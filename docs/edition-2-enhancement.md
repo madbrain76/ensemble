@@ -80,8 +80,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 0–1 | Complete | Accepted after one prose correction | `02efcd4`, `edition-2-enhanced-ch01-r1` |
 | 2 | Complete | Accepted at initial formal review | `ec8c901`, `edition-2-enhanced-ch02-r1` |
 | 3 | Complete | Accepted at initial formal review | `601791a`, `edition-2-enhanced-ch03-r1` |
-| 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `edition-2-enhanced-ch04-r1` |
-| 5 (old 6) | Not started | Pending | — |
+| 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `7b8f46a`, `edition-2-enhanced-ch04-r1` |
+| 5 (old 6) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch05-r1` |
 | 6 (old 7) | Not started | Pending | — |
 | 7 (old 8) | Not started | Pending | — |
 | 8 (old 9) | Not started | Pending | — |
@@ -236,3 +236,35 @@ test limitation using source and independent group-kill evidence, without claimi
 a zombie was observed or waiving group kill. No runtime or frozen export changed.
 The coordinator checked the prose diff, grader, evidence and disposition. Chapter
 5 (original 6) may now begin after this checkpoint.
+
+### Chapter 5 grader scope
+
+Retain seven checks and 100 points: corrected full Chapter 4 parity (10),
+hint before the slow tool result (25), actual request-prefix replay (15),
+state and finalized-content observations (15), distinct sequential application
+completions (15), actual local-media rendering/refusal (10), and clean common
+imports (10). The withdrawn grouped-wake requirement is not restored. A separate
+workflow runner uses scratch logs and the actual external application, with no
+core-binary fallback. Replay compares captured HTTP bytes with offline rendering
+of the log prefix immediately before each request_sent marker. Grader-only
+workflow and optional media-model mapping inputs avoid prescribing an API or
+model-table spelling. Reliable request completion and actual role-tool handoffs
+still require their focused source tests and independent review; output labels
+alone do not prove their implementation.
+
+### Chapter 5 acceptance
+
+Accepted at initial formal combined review, zero correction rounds. See
+[author notes](edition-2-notes/enhancement-05.md), [grader evidence](edition-2-notes/enhancement-05-code.md)
+and [independent review](edition-2-notes/enhancement-05-review.md). The original
+GUI/deaf-loop stories remain, with correct Agent ownership, interrupt lifetime,
+reliable replies, full observations and local-media contracts. Original results
+remain accepted 80/100 FAIL and legacy 100/100 PASS. Full revised runs scored
+100/100 and 25/100; correcting only the replay fixture to a supported fake ID
+gave final composed results of 100/100 and 40/100. The reports identify that
+composition explicitly. Seventeen targeted defects failed intended checks.
+Affected tests/vet and exact examples passed in an isolated committed checkout
+after concurrent first-edition edits temporarily broke the shared build. All
+submitted-file hashes matched; a final shared command build also passed after
+those concurrent changes settled. No runtime, original grader or frozen source
+was changed by this pass. Chapter 6 (original 7) may begin after checkpointing.

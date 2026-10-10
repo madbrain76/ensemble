@@ -75,6 +75,16 @@ of an immediate descendant-PID existence assertion; it recorded a narrow test
 exception, with group-kill behavior still binding and the reaping explanation
 unverified. See the Chapter 4 enhancement review for evidence and limits.
 
+Chapter 5 enhancement corrected the replay boundary in the prose: the request
+marker records consumption of pending input, so reconstruct the bytes that were
+sent from the prefix before that marker. The accepted actor regression already
+used this boundary; the original grader checked only pipeline markers and
+observation counts. Media refusal likewise needs an actual attachment plus a
+supported positive control; an unknown-model text prompt proves neither. The
+versioned grader now exercises those public boundaries, while reliable request
+replies and manuscript handoffs retain their separate integration/source proof.
+These are corrections of evidence claims, not new product protocols.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

@@ -80,12 +80,18 @@ func fail(check *grade.Check, format string, args ...any) {
 // runChapter2 uses only the already published CLI and environment contract.
 // Each launch has a bounded lifetime and a private directory, including dump.
 func runChapter2(bin, work, vendor, endpoint, input string, args ...string) (string, error) {
+	return runModel(bin, work, vendor, fakevendor.Models[vendor], endpoint, input, args...)
+}
+
+// Media fixtures select a known model explicitly; the earlier chapter fixtures
+// keep their original fake identities through runChapter2 above.
+func runModel(bin, work, vendor, model, endpoint, input string, args ...string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), grade.Ch2Timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = work
 	cmd.Env = append(os.Environ(),
-		"LLM_VENDOR="+vendor, "LLM_MODEL="+fakevendor.Models[vendor],
+		"LLM_VENDOR="+vendor, "LLM_MODEL="+model,
 		"LLM_RESOLVED_MODEL=", "LLM_API_KEY=course-grader-fake",
 		"LLM_BASE_URL="+endpoint, "CH02_LOG="+filepath.Join(work, "input.log"))
 	cmd.Stdin = strings.NewReader(input)

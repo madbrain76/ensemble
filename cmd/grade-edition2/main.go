@@ -20,11 +20,13 @@ func main() {
 func run() int {
 	chapter := flag.Int("ch", 1, "Edition 2 chapter to grade")
 	asJSON := flag.Bool("json", false, "emit the report as JSON")
-	consumer := flag.String("consumer", "", "Chapter 4 separate consumer module (default: submission/ch05)")
-	consumerCase := flag.String("consumer-case", "", "Chapter 4 JSON case file (default: accepted shout example)")
+	consumer := flag.String("consumer", "", "Chapter 4/5 separate consumer module (default: ch05 under or beside submission)")
+	consumerCase := flag.String("consumer-case", "", "Chapter 4/5 JSON case file (default: accepted shout example)")
+	workflow := flag.String("workflow", "", "Chapter 5 workflow module (default: ch06 under or beside submission)")
+	mediaModels := flag.String("media-models", "", "Chapter 5 JSON vendor/model map (default: historical accepted fixtures)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 4 || flag.NArg() > 1 || (*chapter != 4 && (*consumer != "" || *consumerCase != "")) {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4 [-json] [-consumer DIR -consumer-case FILE] [submission-directory]")
+	if *chapter < 1 || *chapter > 5 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter != 5 && (*workflow != "" || *mediaModels != "")) {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [submission-directory]")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -32,10 +34,12 @@ func run() int {
 		path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter)
 		if *chapter == 4 {
 			path = "./solutions/edition-2/ch05" // Edition 2 folds original Chapter 5 into 4.
+		} else if *chapter == 5 {
+			path = "./solutions/edition-2/ch06"
 		}
 	}
 	var example gradeedition2.ConsumerCase
-	if *chapter == 4 {
+	if *chapter >= 4 {
 		var err error
 		example, err = gradeedition2.ReadConsumerCase(*consumerCase)
 		if err != nil {
@@ -43,7 +47,19 @@ func run() int {
 			return 2
 		}
 		if *consumer == "" {
-			*consumer = filepath.Join(path, "ch05")
+			*consumer = appDirectory(path, "ch05")
+		}
+	}
+	var models map[string]string
+	if *chapter == 5 {
+		var err error
+		models, err = gradeedition2.ReadMediaModels(*mediaModels)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			return 2
+		}
+		if *workflow == "" {
+			*workflow = appDirectory(path, "ch06")
 		}
 	}
 	bin, cleanup, err := grade.Build(path)
@@ -66,6 +82,8 @@ func run() int {
 		report, err = gradeedition2.Chapter3(bin)
 	case 4:
 		report, err = gradeedition2.Chapter4(bin, path, *consumer, example)
+	case 5:
+		report, err = gradeedition2.Chapter5(bin, path, *consumer, *workflow, example, models)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "grader: %v\n", err)
@@ -83,4 +101,15 @@ func run() int {
 		return 1
 	}
 	return 0
+}
+
+// Historical exports place applications either inside the core tree or beside
+// it. Discover only those established layouts; an absent app still fails grading.
+func appDirectory(core, name string) string {
+	for _, dir := range []string{filepath.Join(core, name), filepath.Join(core, "..", name)} {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+	}
+	return filepath.Join(core, name)
 }

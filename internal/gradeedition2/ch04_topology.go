@@ -15,6 +15,8 @@ import (
 // go list supplies resolved paths, not a guessed module name from imports.
 // In particular, a consumer must use THIS submission, not an installed copy.
 type listedPackage struct {
+	// Standard distinguishes Go's standard library from dot-free module names.
+	Standard bool
 	// ImportPath identifies this package in the resolved dependency graph.
 	ImportPath string
 	// Imports are direct edges, needed to distinguish public from internal use.
@@ -96,10 +98,30 @@ func consumerTopology(core, consumer string) grade.Check {
 	if !foundCommon {
 		fail(&c, "required shared vocabulary package internal/common is absent")
 	}
+	if err := publicDependency(coreDir, consumer); err != nil {
+		fail(&c, "%v", err)
+	}
+	c.Details = append(c.Details, "source review must verify real composition-root use, parent interfaces, common-package behavior and absence of mutable application globals")
+	return c
+}
+
+// Both external exercises must execute the submitted framework. Share this
+// boundary check rather than let each application validate a different checkout.
+func publicDependency(core, consumer string) error {
+	coreDir, err := filepath.EvalSymlinks(core)
+	if err == nil {
+		coreDir, err = filepath.Abs(coreDir)
+	}
+	if err != nil {
+		return err
+	}
+	base, consumerBase := grade.DiscoverBase(coreDir), grade.DiscoverBase(consumer)
+	if base == "" || consumerBase == "" || base == consumerBase {
+		return fmt.Errorf("core and consumer need distinct module declarations")
+	}
 	dependencies, err := listPackages(consumer, "-deps", ".")
 	if err != nil {
-		fail(&c, "%v", err)
-		return c
+		return err
 	}
 	usesPublic := false
 	for _, pkg := range dependencies {
@@ -111,8 +133,7 @@ func consumerTopology(core, consumer string) grade.Check {
 			// checkout. Compare canonical directories, not just module spelling.
 			actual, err := filepath.EvalSymlinks(pkg.Module.Dir)
 			if err != nil || actual != coreDir {
-				fail(&c, "consumer resolves %s to %s, not submission %s", base, pkg.Module.Dir, coreDir)
-				break
+				return fmt.Errorf("consumer resolves %s to %s, not submission %s", base, pkg.Module.Dir, coreDir)
 			}
 		}
 		if pkg.Module.Path != consumerBase {
@@ -126,7 +147,7 @@ func consumerTopology(core, consumer string) grade.Check {
 				continue
 			}
 			if strings.Contains(imp, "/internal/") {
-				fail(&c, "consumer imports private package %s", imp)
+				return fmt.Errorf("consumer imports private package %s", imp)
 			} else {
 				usesPublic = true
 			}
@@ -135,8 +156,7 @@ func consumerTopology(core, consumer string) grade.Check {
 	if !usesPublic {
 		// Pair the absence of forbidden edges with a positive public edge. An
 		// unrelated executable must not pass merely because it imports no core.
-		fail(&c, "consumer does not import a public package from the submitted core")
+		return fmt.Errorf("consumer does not import a public package from the submitted core")
 	}
-	c.Details = append(c.Details, "source review must verify real composition-root use, parent interfaces, common-package behavior and absence of mutable application globals")
-	return c
+	return nil
 }
