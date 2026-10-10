@@ -71,11 +71,11 @@ try{
  output.phase='speed control';
  await page.locator('#tts-speed').focus();await page.locator('#tts-speed').press('Home');
  await second.waitForFunction(()=>document.querySelector('#tts-speed').value==='0.5');
- await page.locator('#tts-speed').press('ArrowRight');
- await second.waitForFunction(()=>document.querySelector('#tts-speed').value==='0.6');
+ await page.locator('#tts-speed').press('End');
+ await second.waitForFunction(()=>document.querySelector('#tts-speed').value==='2');
  output.phase='native speech';
  await page.locator('#voice').check();await second.waitForFunction(()=>document.querySelector('#voice').checked);await page.bringToFront();await page.locator('#input').fill('Speak');await page.locator('#input').press('Enter');
- await page.waitForFunction(()=>speechEvidence.some(e=>e.type==='queued'&&e.text==='Native speech uses the saved speed.'&&Math.abs(e.rate-0.6)<0.001));
+ await page.waitForFunction(()=>speechEvidence.some(e=>e.type==='queued'&&e.text==='Native speech uses the saved speed.'&&Math.abs(e.rate-2)<0.001));
  await page.waitForFunction(()=>speechEvidence.some(e=>['end','error'].includes(e.type)&&e.text==='Native speech uses the saved speed.'),null,{timeout:30000});
  check(true,'native speech consumes persisted speed');
  output.speech=await page.evaluate(()=>speechEvidence);
@@ -83,7 +83,7 @@ try{
  await second.waitForFunction(()=>!document.querySelector('#voice').checked);
  output.phase='restart';
  await stop();await start();await page.reload();await page.getByRole('tab',{name:'Settings',exact:true}).click();
- await page.waitForFunction(()=>document.querySelector('#theme').value==='system'&&document.querySelector('#font-size').value==='20'&&document.querySelector('#tts-speed').value==='0.6'&&!document.querySelector('#voice').checked);
+ await page.waitForFunction(()=>document.querySelector('#theme').value==='system'&&document.querySelector('#font-size').value==='20'&&document.querySelector('#tts-speed').value==='2'&&!document.querySelector('#voice').checked);
  check(true,'visible controls restore all four values after process restart');
  await page.screenshot({path:evidence.replace('.json','.png')});
  output.result='PASS';output.browser=await browser.version();

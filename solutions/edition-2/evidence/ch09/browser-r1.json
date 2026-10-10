@@ -1,0 +1,34 @@
+{
+  "checks": [
+    "selected tab exposed",
+    "theme and false TTS broadcast to second tab",
+    "font setting changes effective layout across tabs",
+    "system theme follows OS changes",
+    "#sidebar-drag resizes pane",
+    "#actions-drag resizes pane",
+    "single agent shows active state",
+    "tool artifacts route to actions",
+    "assistant text stays in chat",
+    "disabled TTS suppresses speech",
+    "native speech consumes persisted speed",
+    "visible controls restore all four values after process restart"
+  ],
+  "phase": "restart",
+  "speech": [
+    {
+      "type": "queued",
+      "text": "Native speech uses the saved speed.",
+      "rate": 2
+    },
+    {
+      "type": "start",
+      "text": "Native speech uses the saved speed."
+    },
+    {
+      "type": "end",
+      "text": "Native speech uses the saved speed."
+    }
+  ],
+  "result": "PASS",
+  "browser": "154.0.8037.93"
+}

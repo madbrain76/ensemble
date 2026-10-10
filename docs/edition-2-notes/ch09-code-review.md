@@ -2,9 +2,10 @@
 
 Reviewer: Codex independent code reviewer, October 9, 2026.
 
-**Initial verdict: needs correction. Zero correction rounds used (maximum three).**
-One current-feature finding remains below. The sole original grader is still
-running; no Chapter 9 score or final acceptance is inferred from partial output.
+**Round 1 status: the sole implementation finding is resolved. One correction
+round used (maximum three). Final acceptance awaits the original grader's actual
+result and its assessment.** The initial needs-correction review is preserved
+below; no Chapter 9 score or final acceptance is inferred from partial output.
 
 Read the entire mandatory `.agents/skills/ensemble-coding/SKILL.md`, carryover,
 workflow, original Chapter 9 and completed student review, including its
@@ -195,3 +196,52 @@ every actual failure and distinguish final verification from the grader's build.
 
 Remaining gates: resolve R1 with bounded affected evidence; read the final student
 review and original grader result; then issue the acceptance/exception decision.
+
+## Correction round 1 reassessment
+
+Reread the entire mandatory coding skill, updated student review, exact source
+diff, focused native-speed script and complete baseline/mutation results, plus
+the broader browser rerun. **R1 is resolved.** Current source matches every hash
+in `review-source-r1.json`; its only difference from the initially reviewed
+source manifest is `gui/web/gui/index.html`.
+
+The input now uses `step="any"`, with a useful comment explaining why saved
+rates between tenths must survive. This removes the unwanted browser
+quantization while retaining the server's existing range, setting ownership and
+native speech consumer. It is the appropriately small correction.
+
+`speed-check.mjs` uses the real command, server, WebSocket settings path,
+restart, browser controls and native speech. Only the external provider is
+fake. The wrapper forwards the actual native call and records callbacks. The
+baseline saves and restores **1.75**, with slider, label and native rate all
+**1.75**; the second accepted value **1.2345** reaches native rate
+**1.2345000505447388**. Both utterances start and end. The test's `0.00001`
+tolerance covers representation noise without accepting the original defect.
+
+The isolated mutation restores exactly `step="0.1"`. It captures the complete
+behavior before asserting: saved/restored and displayed values remain correct,
+but controls/native rates become **1.8 / 1.7999999523162842** and
+**1.2 / 1.2000000476837158**. Both utterances still start/end, and the consistency
+check fails. This is a clean intended kill, not a speech-service or startup
+failure. The unchanged initial independent reproduction grounds the defect;
+the corrected source and native evidence suffice without another browser run.
+
+The twelve broader browser checks pass again. Replacing the generic slider's
+ArrowRight assumption with native End, and checking the accepted value 2, is
+appropriate now that the control has no fixed tenths step. The new focused
+regression supplies the non-step coverage that the original 0.6 case lacked;
+the old results remain as history. No paid call, Go behavior change, repeated
+full mutation sweep or duplicate original grader was needed.
+
+Final HTML counts are **52 active / 1 comment / 53 physical**, chapter delta
+**+23 / +1 / +24**. All Go, JavaScript and CSS production/test counts above are
+unchanged. The focused evidence launcher adds **57 / 2 / 59** support lines;
+the three current `.mjs` launchers total **205 / 6 / 211**, separately from
+shipping source. No further implementation, scope, teaching-comment or test
+finding remains open.
+
+**Sole remaining gate:** collect the existing original grader's actual result,
+read the student's final explanation, and assess each new or inherited failure
+before issuing final acceptance. Its earlier build predates this HTML correction
+as well as the previously recorded four-file differences; the final native
+browser results are separate verification, not a final-source original score.

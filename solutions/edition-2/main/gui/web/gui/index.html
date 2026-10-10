@@ -22,7 +22,8 @@
           <select id="theme"><option>dark</option><option>light</option><option>system</option></select>
           <label><input id="voice" type="checkbox" checked /> Read aloud</label>
           <label for="tts-speed">Speech speed <output id="speed-value">1</output></label>
-          <input id="tts-speed" type="range" min="0.5" max="2" step="0.1" value="1" />
+          <!-- Saved rates may fall between tenths; preserve them in the slider. -->
+          <input id="tts-speed" type="range" min="0.5" max="2" step="any" value="1" />
           <label for="font-size">Font size</label>
           <select id="font-size"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>22</option><option>24</option></select>
           <p id="settings-status" role="status"></p>

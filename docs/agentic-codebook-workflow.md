@@ -54,8 +54,10 @@ Fresh coder `student_restart_ch09` now follows original Chapter 9 from accepted
 handoff and scope are in `edition-2-notes/ch09.md`. Its implementation is now
 preserved at progress commit `89d17e0`. Independent initial review found one real
 mismatch: accepted speech speed 1.75 is rounded by the browser slider to 1.8,
-which native speech then uses. The coder is addressing that bounded finding in
-correction round 1; other ownership/scope/budget checks passed review. The student
+which native speech then uses. The coder corrected that bounded finding in
+round 1, and the reviewer independently verified the saved/control/native-rate
+agreement and restored-defect evidence. No implementation findings remain;
+other ownership/scope/budget checks also passed review. The student
 also supplied exact mutation edits from retained scripts for evidence assessment.
 The sole original grader is still running. No Chapter 9 grade, acceptance or
 frozen export is claimed yet.

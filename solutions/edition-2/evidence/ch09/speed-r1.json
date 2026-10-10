@@ -1,0 +1,47 @@
+{
+  "observations": [
+    {
+      "speed": 1.75,
+      "slider": 1.75,
+      "label": 1.75,
+      "speech": [
+        {
+          "type": "queued",
+          "text": "Speech speed check.",
+          "rate": 1.75
+        },
+        {
+          "type": "start",
+          "text": "Speech speed check."
+        },
+        {
+          "type": "end",
+          "text": "Speech speed check."
+        }
+      ]
+    },
+    {
+      "speed": 1.2345,
+      "slider": 1.2345,
+      "label": 1.2345,
+      "speech": [
+        {
+          "type": "queued",
+          "text": "Speech speed check.",
+          "rate": 1.2345000505447388
+        },
+        {
+          "type": "start",
+          "text": "Speech speed check."
+        },
+        {
+          "type": "end",
+          "text": "Speech speed check."
+        }
+      ]
+    }
+  ],
+  "saved": 1.75,
+  "restored": 1.75,
+  "result": "PASS"
+}

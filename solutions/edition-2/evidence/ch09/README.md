@@ -26,3 +26,12 @@ They do not replace speech. No Node dependency belongs to the shipped GUI.
 Mutation logs preserve each defect and its intended behavioral failure. Scratch
 source/static copies are removed after testing. Unchanged Chapter 8 evidence
 continues to cover earlier behavior; no repeated paid provider matrix was needed.
+
+Correction round1 adds `speed-check.mjs` (install `ws@8.18.3` alongside Playwright).
+It uses port19393, saves/restores speed1.75 and checks native speech at that value
+and1.2345. The isolated restored defect is exactly HTML `step="any"` changed to
+`step="0.1"`. Baseline and actual wrong native rates are retained in
+`speed-r1.json` and `speed-r1-mutation.json`. `browser-r1.json` retains the broader
+passing follow-up; original browser results remain untouched. The current generic
+browser script uses End=2; its original0.6 version is retained in progress commit
+89d17e0. `review-source-r1.json` records the source frozen for reassessment.

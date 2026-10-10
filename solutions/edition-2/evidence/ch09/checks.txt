@@ -15,3 +15,9 @@ PASS discovered-model live GUI/tool/terminal-hint/native-speaker turn: live.json
 PASS targeted mutation sensitivity: 17 Go mutants and 8 browser mutants; see logs for exact failures.
 Separate failed setup invocation: targeted ./ensemble from outer root did not exist; corrected cwd test passed.
 Original grader remains running; no score inferred.
+Correction round 1:
+PASS speed-r1.json: actual server persistence/restart, visible slider/label, native queued/start/end at speeds1.75 and1.2345.
+KILLED restored HTML step=0.1: speed-r1-mutation.json records accepted1.75 vs slider1.8/native1.7999999523; accepted1.2345 vs slider1.2/native1.2000000477. Clean intended exit1.
+PASS browser-r1.json: all12 broader native-browser checks (generic speed control now End=2).
+PASS node --check app.js and speed-check.mjs; git diff --check changed HTML.
+No Go production changes, second grader or paid rerun.
