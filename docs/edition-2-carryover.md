@@ -578,6 +578,16 @@ claims; no provider access or external verification was performed here.
 
 ## Reading coverage and later use
 
+October 9 coordinator preparation reread all 373 lines of Chapter 9 at file
+revision `2b2fedbc8b50bc688c31ab823712553e589f8a3b`, SHA-256
+`3693cdbb54b6ce66698f635586b17973b9f4a707f8a51c3898b17e2d3ee3349b`.
+Its single-loop `max_tool_rounds` obligation makes the effective-settings lesson
+above concrete: zero selects default 200; positive N permits N batches; read
+the setting at turn start and demonstrate persistence actually affects execution.
+The source's stale sub-agent forecast does not expand Chapter 9's one-node tree.
+Preparation details are in `edition-2-notes/ch09.md`; the active coder remains
+on Chapter 8 until acceptance. No future feature was assigned by this reading.
+
 October 9 addition: carryover reviewer read all 565 lines of `book/chapter-24.md`
 at `2ca63636c8ba592ea0ed190fb0a3c4731e2b0848`; SHA-256
 `c6ac58046ed8e5496c44931e20d126d36081325fc06bfc27f4276c73424976b1`.
