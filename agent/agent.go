@@ -213,6 +213,7 @@ type Agent struct {
 	Logger     *Logger
 	sb         *sandbox.Sandbox // confinement; holds a back-pointer to this agent
 	mcpClients []*mcp.Client    // active MCP connections for cleanup
+	msg        messagingState   // links to this agent's parent and to the user
 }
 
 // Sandbox returns the agent's confined filesystem.

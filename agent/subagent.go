@@ -100,6 +100,11 @@ type SubAgent struct {
 	state SubAgentState
 	turns int
 	err   error
+
+	// pending holds this child's messages that are waiting for an answer,
+	// keyed by message id. Filed under the child that sent them rather than
+	// in one shared queue, because answering requires knowing who asked.
+	pending map[string]*Message
 }
 
 // State reports what the child is doing.
@@ -143,6 +148,11 @@ type SubAgentManager struct {
 	parent   *Agent
 	factory  AgentFactory
 	children map[string]*SubAgent
+
+	// notify releases anyone blocked on the fleet, such as a parent inside
+	// join_agents. Buffered with room for one: a wakeup nobody has
+	// collected yet already says what a second one would.
+	notify chan struct{}
 }
 
 // NewSubAgentManager builds a manager for one parent agent.
@@ -155,6 +165,7 @@ func NewSubAgentManager(parent *Agent, factory AgentFactory) *SubAgentManager {
 		parent:   parent,
 		factory:  factory,
 		children: make(map[string]*SubAgent),
+		notify:   make(chan struct{}, 1),
 	}
 }
 
@@ -173,8 +184,14 @@ func (m *SubAgentManager) Spawn(id, task string, adjust func(*AgentSpec)) (*SubA
 	// The user's address is reserved. An agent registered under it could
 	// receive messages a child meant for the human, which is a confusion
 	// worth refusing rather than detecting later.
-	if id == UserID {
-		return nil, fmt.Errorf("sub-agent id %q is reserved for the user", UserID)
+	//
+	// Both the configured name and the UserID default are reserved. When
+	// the human is called "Bill", the literal "user" is still the value
+	// that unconfigured code compares against, so leaving it free would
+	// let an agent take an address that some paths still treat as the
+	// human's.
+	if id == m.parent.userAddr() || id == UserID {
+		return nil, fmt.Errorf("sub-agent id %q is reserved for the user", id)
 	}
 
 	m.mu.Lock()
@@ -226,6 +243,20 @@ func (m *SubAgentManager) Spawn(id, task string, adjust func(*AgentSpec)) (*SubA
 		return nil, fmt.Errorf("sub-agent %q: %w", id, err)
 	}
 
+	// The child's link to its parent is installed by the manager, never by
+	// the child and never by the factory. A child that could set its own
+	// link could point it at another agent and deliver its escalations
+	// there.
+	child.setParentLink(childLink{mgr: m})
+
+	// The user's name and sink are inherited together so a deep child can
+	// reach the human directly, and knows what to call them. Relaying
+	// through parents only works if every agent above chooses to relay, and
+	// a stuck agent is precisely the one that will not.
+	if sink := m.parent.userSink(); sink != nil {
+		child.SetUser(m.parent.userAddr(), sink)
+	}
+
 	sub := &SubAgent{ID: id, Task: task, Agent: child, state: SubAgentIdle}
 
 	m.mu.Lock()
@@ -258,6 +289,11 @@ func (m *SubAgentManager) Get(id string) (*SubAgent, bool) {
 func (m *SubAgentManager) List() []*SubAgent {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.sortedLocked()
+}
+
+// sortedLocked returns the fleet ordered by id. The caller must hold m.mu.
+func (m *SubAgentManager) sortedLocked() []*SubAgent {
 	out := make([]*SubAgent, 0, len(m.children))
 	for _, sub := range m.children {
 		out = append(out, sub)
