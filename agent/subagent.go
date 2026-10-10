@@ -107,6 +107,11 @@ type SubAgent struct {
 	turns int
 	err   error
 
+	// wakes counts the consecutive times the framework has woken this agent
+	// after it stopped without submitting. Submitting resets it, so this
+	// measures stopping in a row rather than stopping in total.
+	wakes int
+
 	// pending holds this child's messages that are waiting for an answer,
 	// keyed by message id. Filed under the child that sent them rather than
 	// in one shared queue, because answering requires knowing who asked.

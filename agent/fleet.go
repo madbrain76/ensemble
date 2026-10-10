@@ -76,6 +76,21 @@ func (s *SubAgent) Start(task string) error {
 		}
 		s.setState(next, err)
 		s.notifyFleet()
+
+		// Correct the mistake where it happens. The turn ending is the
+		// event, so nothing has to poll for it.
+		//
+		// A FAILED turn is deliberately left alone. That is a real error,
+		// not a model losing the thread, and waking an agent whose model
+		// name is wrong just spends another turn getting the same error.
+		switch next {
+		case SubAgentDone:
+			s.resetWakes()
+		case SubAgentIdle:
+			if s.mgr != nil {
+				s.mgr.correctIdle(s)
+			}
+		}
 	}()
 	return nil
 }
