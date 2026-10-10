@@ -261,3 +261,18 @@ func validateParts(parts []common.Part) error {
 	}
 	return nil
 }
+
+// EventsAfter snapshots only the requested suffix. Append-only slices still
+// require locking: append can replace their backing array while readers run.
+func (h *history) EventsAfter(seq uint64) []common.Event {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	start := len(h.events)
+	for start > 0 && h.events[start-1].Seq > seq {
+		start--
+	}
+	data, _ := json.Marshal(h.events[start:])
+	var events []common.Event
+	json.Unmarshal(data, &events)
+	return events
+}

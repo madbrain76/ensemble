@@ -101,6 +101,8 @@ type Ref struct {
 // registry or custom interface decoder. Only fields for Type carry meaning.
 // Opaque belongs to a call; Data belongs to a standalone opaque part.
 type Part struct {
+	// ArtifactID is the Agent-lifetime display identity, independent of parser-local IDs.
+	ArtifactID uint64 `json:"artifact_id,omitempty"`
 	// Type selects the meaningful fields of this neutral content union.
 	Type string `json:"type"`
 	// Text contains visible text for a text part, including legitimate empty text.
@@ -260,6 +262,12 @@ type Ensemble interface {
 
 // Agent owns one conversation, its tools and the actor that coordinates them.
 type Agent interface {
+	// Pause holds subsequent tool starts; current execution and input remain live.
+	Pause()
+	// Unpause releases the Agent-wide gate regardless of which client paused it.
+	Unpause()
+	// Paused reports the shared gate state for client status.
+	Paused() bool
 	// Ensemble returns the owning application root, including its logging services.
 	Ensemble() Ensemble
 	// Config returns this Agent's fixed request and workspace configuration.
@@ -411,6 +419,8 @@ type Job interface {
 // Context returns an independent snapshot. Append/Load are offline operations;
 // live clients send facts through Agent.Record so one actor owns their ordering.
 type History interface {
+	// EventsAfter returns independent ordered facts newer than seq under the history lock.
+	EventsAfter(seq uint64) []Event
 	// Agent returns the required owning Agent rather than a copied service bundle.
 	Agent() Agent
 	// Append validates and records one fact, then updates its replay projection.

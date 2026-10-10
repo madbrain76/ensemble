@@ -14,6 +14,23 @@ func (r *runtime) dispatch() {
 		r.send()
 		return
 	}
+	// Serial dispatch gives pause a boundary between tools. Wait outside the
+	// owner: its mailbox must keep accepting hints, interrupts and real job results.
+	if resume := r.owner.pauseChannel(); resume != nil {
+		r.workers++
+		go func() {
+			select {
+			case <-resume:
+			case <-t.request.ctx.Done():
+			}
+			r.owner.box.Post(gateReady{t})
+		}()
+		return
+	}
+	if err := t.request.ctx.Err(); err != nil {
+		r.interrupt(err)
+		return
+	}
 	call := t.calls[0]
 	t.calls = t.calls[1:]
 	var definition *common.ToolDefinition
@@ -40,6 +57,7 @@ func (r *runtime) dispatch() {
 		r.finish("", err)
 		return
 	}
+	r.owner.notify(common.ToolDispatched{CallID: call.CallID, Name: call.Name, Input: call.Args})
 	t.current = &report{turn: t, call: call, data: called}
 	run := func() (string, error) {
 		if limitErr != nil {

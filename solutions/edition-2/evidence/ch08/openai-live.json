@@ -1,0 +1,270 @@
+{
+  "wire": [
+    {
+      "replay": true,
+      "to": "idle",
+      "type": "state_changed"
+    },
+    {
+      "paused": false,
+      "replay": true,
+      "type": "pause_changed"
+    },
+    {
+      "paused": true,
+      "type": "pause_changed"
+    },
+    {
+      "paused": false,
+      "type": "pause_changed"
+    },
+    {
+      "part": {
+        "type": "text",
+        "text": "Use run_command exactly once to run: sleep 2; printf GUI_OPENAI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files."
+      },
+      "part_id": "user-1-0",
+      "type": "user_message"
+    },
+    {
+      "from": "idle",
+      "to": "input_pending",
+      "type": "state_changed"
+    },
+    {
+      "from": "input_pending",
+      "to": "in_flight",
+      "type": "state_changed"
+    },
+    {
+      "chunk": "run_command ",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "{\"",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "command",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "\":\"",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "sleep",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " ",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "2",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": ";",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " printf",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " GUI",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "_OPEN",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "AI",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "_OK",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "\"}",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "part": {
+        "artifact_id": 1,
+        "type": "tool_call",
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-4o-mini-2024-07-18",
+          "surface": "chat_completions"
+        },
+        "call_id": "call_RYnB4Sr21ftXIzhfbIQmXt8i",
+        "name": "run_command",
+        "args": {
+          "command": "sleep 2; printf GUI_OPENAI_OK"
+        }
+      },
+      "part_id": 1,
+      "type": "part_final"
+    },
+    {
+      "from": "in_flight",
+      "to": "tools_pending",
+      "type": "state_changed"
+    },
+    {
+      "call_id": "call_RYnB4Sr21ftXIzhfbIQmXt8i",
+      "input": {
+        "command": "sleep 2; printf GUI_OPENAI_OK"
+      },
+      "name": "run_command",
+      "type": "tool_dispatched"
+    },
+    {
+      "call_id": "call_RYnB4Sr21ftXIzhfbIQmXt8i",
+      "is_error": false,
+      "result": "GUI_OPENAI_OK\nexit_code: 0\n",
+      "type": "tool_finished"
+    },
+    {
+      "from": "tools_pending",
+      "to": "input_pending",
+      "type": "state_changed"
+    },
+    {
+      "from": "input_pending",
+      "to": "in_flight",
+      "type": "state_changed"
+    },
+    {
+      "chunk": "",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "The",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " printed",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " marker",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " is",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " confirmed",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " as",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": " \"",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "GUI",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "_OPEN",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "AI",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "_OK",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "\".",
+      "kind": "text",
+      "part_id": 3,
+      "type": "part_delta"
+    },
+    {
+      "part": {
+        "artifact_id": 3,
+        "type": "text",
+        "text": "The printed marker is confirmed as \"GUI_OPENAI_OK\"."
+      },
+      "part_id": 3,
+      "type": "part_final"
+    },
+    {
+      "from": "in_flight",
+      "to": "idle",
+      "type": "state_changed"
+    },
+    {
+      "error": "",
+      "text": "The printed marker is confirmed as \"GUI_OPENAI_OK\".",
+      "type": "turn_ended"
+    }
+  ],
+  "speech": [],
+  "visible": "user\n🔊\nUse run_command exactly once to run: sleep 2; printf GUI_OPENAI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.\nrun_command\n🔊\nrun_command\n{\n  \"command\": \"sleep 2; printf GUI_OPENAI_OK\"\n}\n\nGUI_OPENAI_OK\nexit_code: 0\n\ntext\n🔊\n\nThe printed marker is confirmed as \"GUI_OPENAI_OK\"."
+}

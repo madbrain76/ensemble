@@ -1,0 +1,6 @@
+--- FAIL: TestReplayStatus (0.00s)
+    gui_test.go:307: replay status must describe current state "idle" at both endpoints: map[replay:true to:idle type:state_changed]
+FAIL
+FAIL	ensemble-gui-stub	0.011s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL

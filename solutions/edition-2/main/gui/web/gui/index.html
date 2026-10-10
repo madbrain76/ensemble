@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ensemble</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Ensemble</h1>
+        <span id="state" role="status">connecting</span
+        ><span id="pause-state"></span
+        ><label><input id="voice" type="checkbox" checked /> Read aloud</label
+        ><button id="resume">Unpause everyone</button
+        ><button id="interrupt">Interrupt turn</button>
+      </header>
+      <section id="artifacts" aria-label="Conversation"></section>
+      <form id="input-form">
+        <label for="input">Message or hint while busy</label
+        ><textarea id="input" rows="2" autofocus></textarea
+        ><button>Send</button>
+      </form>
+      <p id="speech-status" role="status"></p>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,4 @@
+go run ./cmd/grade -ch 8 solutions/edition-2/main/gui
+Open http://localhost:61045; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:61054; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:61065; terminal messages while busy are hints. /interrupt ends the turn.

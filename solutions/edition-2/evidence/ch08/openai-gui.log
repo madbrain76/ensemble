@@ -1,0 +1,47 @@
+2026-10-10T05:22:19.286781Z > {"type":"subscribe"}
+2026-10-10T05:22:19.287007Z < {"replay":true,"to":"idle","type":"state_changed"}
+2026-10-10T05:22:19.287034Z < {"paused":false,"replay":true,"type":"pause_changed"}
+2026-10-10T05:22:19.336135Z > {"type":"pause"}
+2026-10-10T05:22:19.336194Z < {"paused":true,"type":"pause_changed"}
+2026-10-10T05:22:19.337698Z > {"text":"Use run_command exactly once to run: sleep 2; printf GUI_OPENAI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.","type":"prompt"}
+2026-10-10T05:22:19.337757Z > {"type":"unpause"}
+2026-10-10T05:22:19.33778Z < {"paused":false,"type":"pause_changed"}
+2026-10-10T05:22:19.337995Z < {"part":{"text":"Use run_command exactly once to run: sleep 2; printf GUI_OPENAI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.","type":"text"},"part_id":"user-1-0","type":"user_message"}
+2026-10-10T05:22:19.338008Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-10T05:22:19.338107Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-10T05:22:21.006468Z < {"chunk":"run_command ","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006506Z < {"chunk":"{\"","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006535Z < {"chunk":"command","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006581Z < {"chunk":"\":\"","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006622Z < {"chunk":"sleep","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006663Z < {"chunk":" ","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.0067Z < {"chunk":"2","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006736Z < {"chunk":";","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006774Z < {"chunk":" printf","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006806Z < {"chunk":" GUI","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.006854Z < {"chunk":"_OPEN","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.015185Z < {"chunk":"AI","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.015198Z < {"chunk":"_OK","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.036166Z < {"chunk":"\"}","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:21.044749Z < {"part":{"args":{"command":"sleep 2; printf GUI_OPENAI_OK"},"artifact_id":1,"call_id":"call_RYnB4Sr21ftXIzhfbIQmXt8i","from":{"model":"gpt-4o-mini-2024-07-18","surface":"chat_completions","vendor":"openai"},"name":"run_command","type":"tool_call"},"part_id":1,"type":"part_final"}
+2026-10-10T05:22:21.044764Z < {"from":"in_flight","to":"tools_pending","type":"state_changed"}
+2026-10-10T05:22:21.044953Z < {"call_id":"call_RYnB4Sr21ftXIzhfbIQmXt8i","input":{"command":"sleep 2; printf GUI_OPENAI_OK"},"name":"run_command","type":"tool_dispatched"}
+2026-10-10T05:22:23.057521Z < {"call_id":"call_RYnB4Sr21ftXIzhfbIQmXt8i","is_error":false,"result":"GUI_OPENAI_OK\nexit_code: 0\n","type":"tool_finished"}
+2026-10-10T05:22:23.057553Z < {"from":"tools_pending","to":"input_pending","type":"state_changed"}
+2026-10-10T05:22:23.05765Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-10T05:22:23.958041Z < {"chunk":"","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:23.964836Z < {"chunk":"The","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:23.964895Z < {"chunk":" printed","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:23.974928Z < {"chunk":" marker","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:23.974948Z < {"chunk":" is","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:23.990781Z < {"chunk":" confirmed","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:23.990795Z < {"chunk":" as","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.044386Z < {"chunk":" \"","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.0444Z < {"chunk":"GUI","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.073763Z < {"chunk":"_OPEN","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.073777Z < {"chunk":"AI","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.08329Z < {"chunk":"_OK","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.0833Z < {"chunk":"\".","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-10T05:22:24.111813Z < {"part":{"artifact_id":3,"text":"The printed marker is confirmed as \"GUI_OPENAI_OK\".","type":"text"},"part_id":3,"type":"part_final"}
+2026-10-10T05:22:24.111831Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-10T05:22:24.11184Z < {"error":"","text":"The printed marker is confirmed as \"GUI_OPENAI_OK\".","type":"turn_ended"}

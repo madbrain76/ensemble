@@ -1,0 +1,26 @@
+2026-10-10T05:22:24.278518Z > {"type":"subscribe"}
+2026-10-10T05:22:24.278813Z < {"replay":true,"to":"idle","type":"state_changed"}
+2026-10-10T05:22:24.278897Z < {"paused":false,"replay":true,"type":"pause_changed"}
+2026-10-10T05:22:24.31873Z > {"type":"pause"}
+2026-10-10T05:22:24.318833Z < {"paused":true,"type":"pause_changed"}
+2026-10-10T05:22:24.320537Z > {"text":"Use run_command exactly once to run: sleep 2; printf GUI_GEMINI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.","type":"prompt"}
+2026-10-10T05:22:24.320601Z > {"type":"unpause"}
+2026-10-10T05:22:24.320628Z < {"paused":false,"type":"pause_changed"}
+2026-10-10T05:22:24.320823Z < {"part":{"text":"Use run_command exactly once to run: sleep 2; printf GUI_GEMINI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.","type":"text"},"part_id":"user-1-0","type":"user_message"}
+2026-10-10T05:22:24.32084Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-10T05:22:24.320967Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-10T05:22:32.515972Z < {"chunk":"run_command {\"command\":\"sleep 2; printf GUI_GEMINI_OK\"}","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:32.534121Z < {"chunk":"","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:32.537963Z < {"part":{"args":{"command":"sleep 2; printf GUI_GEMINI_OK"},"artifact_id":1,"call_id":"call_466442","from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"name":"run_command","opaque":"EtQDCtEDAWkUfROV54kMxj3zkiXu6IPyUZHou4a8LZhZ1KXTw4zRbyZSi1vjZiQ5UGLIJ4xLcsu3TOSsoi/ssuVKsOah73dYoEO3xBG5kDaiHLKTBTB5lBhd57oAk3MZnla0UXo4CoKDCQEvYCyNvGQ5TCBph5J+G3JjRMqfhFBuaIqG196v0/zYf4/qielHZu0G+AsvKf2WPKojM3cbZc8DCrB9e1P72JrfrNJcNxLjvoPrEPRzoCcPfrEqsM28BLZBCCYbXO+vgVjJCFCq9gvrVKg/iaw5/VcKDBBKHpCINfdCzRUL1YDlgX7Rx9bQtPCHbb1IBXfkxthFlXfsvUEHQmOFq8fiFmICVRDcXsZABGqIVJnDBWfxMYOTzi7Iu27d7IpUNpHmwyMyPg7PBXL6XQOwac9avlofanfeogYH7VqwevFWIT9VQqMvq5+EM7mOHReV7Xse8f2D99c+LsegqQqxrVl85jU81Gdo8e/+PbxQsZ8eojoAYfyKIHw8BKeO8sGws+LI/d14rUBRBLr7uQiYx8yOr89uknkhlix78vnTyCezqJVoEfYaMhbKNiziVTSQtfqVBpnUjq0Xg+TJFBoINw6WUq6tiCFtxnmg1tfQzNeJ","type":"tool_call"},"part_id":1,"type":"part_final"}
+2026-10-10T05:22:32.538003Z < {"part":{"artifact_id":2,"from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"type":"text"},"part_id":2,"type":"part_final"}
+2026-10-10T05:22:32.538014Z < {"from":"in_flight","to":"tools_pending","type":"state_changed"}
+2026-10-10T05:22:32.53822Z < {"call_id":"call_466442","input":{"command":"sleep 2; printf GUI_GEMINI_OK"},"name":"run_command","type":"tool_dispatched"}
+2026-10-10T05:22:34.548918Z < {"call_id":"call_466442","is_error":false,"result":"GUI_GEMINI_OK\nexit_code: 0\n","type":"tool_finished"}
+2026-10-10T05:22:34.548939Z < {"from":"tools_pending","to":"input_pending","type":"state_changed"}
+2026-10-10T05:22:34.549071Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-10T05:22:36.404971Z < {"chunk":"The command successfully executed and printed the marker `GUI_GEMINI_","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:36.426097Z < {"chunk":"OK`.","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:36.431687Z < {"chunk":"","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:36.432064Z < {"part":{"artifact_id":4,"from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"opaque":"EvwBCvkBAWkUfRP3QXDN0BrRX6g3cfRiW63pAMAAMhLXq3TRXyrzdyfWBaF+5yzWWV7I7qBGzT7MIk675s8JwxJXKLWnseiIIo5nn0Zt4MRsNeYNX1+mIwsTWDVwr2nXkPQDy4AOlzw0frObmgFqsI2q8MDxZyil2flWRZAwBS3JvMkU36SaOLoU6VJRk+8iRRuR3POieJRryTOPIc60W3W/cGsqK7Du+a3Ce2uB6HJAJw9ALCke9EPU7HFJOA1Gz0nsNn+pvvs16t3k/w+Qqsck963YdZJjybrW4RpI3o2MaOWed3MivL0FcEgoiJM0dVodGhUk5sAvwyE3Mxfj","text":"The command successfully executed and printed the marker `GUI_GEMINI_OK`.","type":"text"},"part_id":4,"type":"part_final"}
+2026-10-10T05:22:36.432099Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-10T05:22:36.432228Z < {"error":"","text":"The command successfully executed and printed the marker `GUI_GEMINI_OK`.","type":"turn_ended"}

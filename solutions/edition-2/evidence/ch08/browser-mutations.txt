@@ -1,0 +1,29 @@
+
+untrusted Markdown: KILLED
+child.textContent = => child.innerHTML =
+file:///private/tmp/ensemble-ch08-browser/browser.mjs:40
+ if(await first.evaluate(()=>!!globalThis.injected)||await first.locator('.content img').count())throw Error('untrusted markup executed');
+                                                                                                       ^
+
+Error: untrusted markup executed
+    at file:///private/tmp/ensemble-ch08-browser/browser.mjs:40:104
+
+Node.js v24.20.0
+
+
+full truncated content: KILLED
+full.textContent = card.text => full.textContent = shown
+file:///private/tmp/ensemble-ch08-browser/browser.mjs:46
+ const details=first.locator('details').last();await details.locator('summary').click();if(!(await details.innerText()).includes('END_OF_FULL_ARTIFACT'))throw Error('truncation lost tail');
+                                                                                                                                                               ^
+
+Error: truncation lost tail
+    at file:///private/tmp/ensemble-ch08-browser/browser.mjs:46:160
+
+Node.js v24.20.0
+
+
+speech error advances queue: KILLED
+utterance.onerror = done => utterance.onerror = () => {}
+{"result":"FAIL","error":"page.waitForFunction: Timeout 15000ms exceeded.","events":[{"type":"queued","text":"A short sentence is spoken. "},{"type":"start","text":"A short sentence is spoken. "},{"type":"error","text":"A short sentence is spoken. ","error":"interrupted"}]}
+

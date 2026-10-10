@@ -1,0 +1,34 @@
+{
+  "result": "PASS",
+  "checks": [
+    "two tabs stream same Agent",
+    "in-flight reconnect",
+    "completed replay",
+    "safe Markdown",
+    "full long artifact reachable",
+    "typing pauses with voice off",
+    "other-tab explicit unpause",
+    "native auto-speech callback",
+    "speaker and Escape cancellation",
+    "tab visibility wake"
+  ],
+  "speech": {
+    "voices": 180,
+    "events": [
+      {
+        "type": "queued",
+        "text": "A calm voice reads this sentence.",
+        "volume": 1
+      },
+      {
+        "type": "start",
+        "text": "A calm voice reads this sentence."
+      },
+      {
+        "type": "end",
+        "text": "A calm voice reads this sentence."
+      }
+    ]
+  },
+  "stderr": "Open http://localhost:19388; terminal messages while busy are hints. /interrupt ends the turn.\n"
+}

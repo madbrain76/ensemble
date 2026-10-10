@@ -42,6 +42,7 @@ type record struct {
 }
 type flush struct{ reply chan error }
 type stop struct{}
+type gateReady struct{ turn *turn }
 type workerDone struct {
 	job common.Job
 	err error
@@ -50,6 +51,7 @@ type turn struct {
 	request        request
 	cancel         context.CancelFunc
 	calls          []common.Part
+	ids            map[uint64]uint64
 	current        *report
 	batches, limit int
 }
@@ -281,6 +283,11 @@ func (r *runtime) finish(text string, err error) {
 	t := r.active
 	t.cancel()
 	r.active = nil
+	ended := common.TurnEnded{Text: text}
+	if err != nil {
+		ended.Error = err.Error()
+	}
+	r.owner.notify(ended)
 	err = errors.Join(err, r.save())
 	if t.request.reply != nil {
 		t.request.reply <- common.Result{Text: text, Err: err}
@@ -311,6 +318,7 @@ func (r *runtime) begin(q request) {
 }
 func (r *runtime) send() {
 	t := r.active
+	t.ids = make(map[uint64]uint64)
 	body, err := r.owner.engine.Render(r.owner.history.Context())
 	if err != nil {
 		r.append(common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
@@ -347,6 +355,11 @@ func (r *runtime) receive(m response) {
 	} // cancelled HTTP cannot finish a newer human turn.
 	var answer strings.Builder
 	for _, event := range m.events {
+		if event.Response != nil {
+			for i := range event.Response.Parts {
+				event.Response.Parts[i].ArtifactID = r.displayID(m.turn, m.partIDs[i])
+			}
+		}
 		if err := r.append(event); err != nil {
 			r.finish("", err)
 			return
@@ -357,7 +370,7 @@ func (r *runtime) receive(m response) {
 			c := r.owner.history.Context()
 			entry := c.Dialogue[len(c.Dialogue)-1]
 			for i, p := range entry.Parts {
-				r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: m.partIDs[i], Part: p})
+				r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: p.ArtifactID, Part: p})
 				if cb := m.turn.request.watch.OnPartFinal; cb != nil {
 					cb(m.partIDs[i], p)
 				}
@@ -441,9 +454,20 @@ func (r *runtime) run() {
 				r.interrupt(common.ErrInterrupted)
 			case streamed:
 				if m.turn == r.active {
-					r.owner.notify(m.delta)
+					delta := m.delta
+					delta.PartID = r.displayID(m.turn, delta.PartID)
+					r.owner.notify(delta)
 					if cb := m.turn.request.watch.OnDelta; cb != nil {
 						cb(m.delta.PartID, m.delta.Kind, m.delta.Chunk)
+					}
+				}
+			case gateReady:
+				r.workers--
+				if m.turn == r.active {
+					if err := m.turn.request.ctx.Err(); err != nil {
+						r.interrupt(err)
+					} else {
+						r.dispatch()
 					}
 				}
 			case response:
@@ -457,6 +481,11 @@ func (r *runtime) run() {
 					kind = "job_report"
 				}
 				err := r.append(common.Event{Type: kind, Tool: m.data})
+				var result strings.Builder
+				for _, p := range m.data.Parts {
+					result.WriteString(p.Text)
+				}
+				r.owner.notify(common.ToolFinished{CallID: m.data.CallID, Result: result.String(), IsError: m.data.IsError})
 				if m.turn == r.active {
 					m.turn.current = nil
 					if err != nil {
@@ -536,4 +565,15 @@ func (r *runtime) input(text string) {
 	}
 	// Reducer uses active turn state to preserve a hint as pending context.
 	r.append(common.Event{Type: "hint_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: text}}}})
+}
+
+// Parser IDs restart each response. Assign display identities once in the actor,
+// preserving the same identity in the stored part and every live observation.
+func (r *runtime) displayID(t *turn, local uint64) uint64 {
+	if id := t.ids[local]; id != 0 {
+		return id
+	}
+	r.partID++
+	t.ids[local] = r.partID
+	return r.partID
 }

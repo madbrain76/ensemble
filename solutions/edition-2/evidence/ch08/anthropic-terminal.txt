@@ -1,0 +1,8 @@
+The user wants me to run a specific command exactly once and then confirm the printed marker.run_command {"command": "sleep 2; printf GUI_ANTHROPIC_OK"}hint:Keep the final answer to one short sentence.The user wants me to confirm the printed marker in one short sentence.The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**.
+
+STDERR
+Open http://localhost:19389; terminal messages while busy are hints. /interrupt ends the turn.
+[run_command]
+GUI_ANTHROPIC_OK
+exit_code: 0
+

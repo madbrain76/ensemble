@@ -1,0 +1,44 @@
+
+partial replay: KILLED
+mutation: for _, id := range ids { => for _, id := range ids[:0] {
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.01s)
+    gui_test.go:144: reconnect lost in-flight partial
+FAIL
+FAIL	ensemble-gui-stub	0.014s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+clear finalized partials: KILLED
+mutation: delete(s.partials, p.ArtifactID) => _ = p.ArtifactID
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.01s)
+    gui_test.go:167: finalized partial survived replay during tools
+FAIL
+FAIL	ensemble-gui-stub	0.022s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+entire replay batch: KILLED
+mutation: queue <- s.replay() => batch := s.replay(); if len(batch)>256 { batch=append(batch[:254],batch[len(batch)-2:]...) }; queue <- batch
+command: go test -race -count=1 -timeout=20s -run TestPausedInterruptAndReplayBatch ./... (cwd gui)
+--- FAIL: TestPausedInterruptAndReplayBatch (1.29s)
+    gui_test.go:283: replay silently dropped history 249
+FAIL
+FAIL	ensemble-gui-stub	1.294s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+dispatch observer: KILLED
+mutation: r.owner.notify(common.ToolDispatched{CallID: call.CallID, Name: call.Name, Input: call.Args}) => // removed dispatch observation
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (1.02s)
+    gui_test.go:158: observer did not announce dispatch before execution
+FAIL
+FAIL	ensemble-gui-stub	1.030s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+

@@ -1,0 +1,8 @@
+run_command {"command":"sleep 2; printf GUI_OPENAI_OK"}The printed marker is confirmed as "GUI_OPENAI_OK".
+
+STDERR
+Open http://localhost:19389; terminal messages while busy are hints. /interrupt ends the turn.
+[run_command]
+GUI_OPENAI_OK
+exit_code: 0
+

@@ -1,0 +1,30 @@
+{
+  "result": "PASS",
+  "events": [
+    {
+      "type": "queued",
+      "text": "A short sentence is spoken. "
+    },
+    {
+      "type": "start",
+      "text": "A short sentence is spoken. "
+    },
+    {
+      "type": "queued",
+      "text": "A second sentence follows."
+    },
+    {
+      "type": "error",
+      "text": "A short sentence is spoken. ",
+      "error": "interrupted"
+    },
+    {
+      "type": "start",
+      "text": "A second sentence follows."
+    },
+    {
+      "type": "end",
+      "text": "A second sentence follows."
+    }
+  ]
+}

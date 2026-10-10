@@ -1,0 +1,55 @@
+2026-10-10T05:22:04.613171Z > {"type":"subscribe"}
+2026-10-10T05:22:04.613688Z < {"replay":true,"to":"idle","type":"state_changed"}
+2026-10-10T05:22:04.613742Z < {"paused":false,"replay":true,"type":"pause_changed"}
+2026-10-10T05:22:04.669646Z > {"type":"pause"}
+2026-10-10T05:22:04.669708Z < {"paused":true,"type":"pause_changed"}
+2026-10-10T05:22:04.67192Z > {"text":"Use run_command exactly once to run: sleep 2; printf GUI_ANTHROPIC_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.","type":"prompt"}
+2026-10-10T05:22:04.671958Z > {"type":"unpause"}
+2026-10-10T05:22:04.672012Z < {"paused":false,"type":"pause_changed"}
+2026-10-10T05:22:04.67228Z < {"part":{"text":"Use run_command exactly once to run: sleep 2; printf GUI_ANTHROPIC_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.","type":"text"},"part_id":"user-1-0","type":"user_message"}
+2026-10-10T05:22:04.672323Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-10T05:22:04.672349Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-10T05:22:06.056898Z < {"chunk":"The user wants me to run","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.056914Z < {"chunk":" a specific","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.056921Z < {"chunk":" command exactly","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.056928Z < {"chunk":" once and","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.056933Z < {"chunk":" then confirm","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.05694Z < {"chunk":" the printed","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.056946Z < {"chunk":" marker.","kind":"thinking","part_id":1,"type":"part_delta"}
+2026-10-10T05:22:06.229753Z < {"chunk":"run_command ","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.229767Z < {"chunk":"","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607482Z < {"chunk":"{\"comma","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607497Z < {"chunk":"nd\": \"s","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607511Z < {"chunk":"leep 2;","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607519Z < {"chunk":" printf","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607544Z < {"chunk":" GUI_AN","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607598Z < {"chunk":"THROPIC","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607645Z < {"chunk":"_OK\"}","kind":"tool_call","part_id":2,"type":"part_delta"}
+2026-10-10T05:22:06.607707Z < {"part":{"artifact_id":1,"data":{"signature":"EukCCqgBCBIYAipAo0DiZnc4p9+ARtjgQfXbobFLz5JJSse0eol66MgXE449sH0iJozqkNUqaIstNjWhqyTf5hF6I//PcaldPZM3kTIRY2xhdWRlLXNvbm5ldC00LTY4AEIIdGhpbmtpbmdaJDU2NzZhNTkzLWVjOTItNDA3MC1iMzA1LThkNmUyODBkYzkwYZoBEwoRY2xhdWRlLXNvbm5ldC00LTaoAf6Wp9YGEgwwY5lCAz5IlKeuQLMaDLAK0zzrat+/mWLcQCIw0CVNuXV1xfGdl7yrAyqaOp+SRGOqNU/T51ptV1q1gW5A7hIVMeQvWOL9oQNVAWchKm4H77UrEf3Mbv8admh6dStG56/+bKjRCZEGW2Pe2wFsnScuS0PsRe3noMhFdQ5zGUOKtRrkNUMrGpHp2wI4bdG58um68ImZ9ZorTgUFJz5e9PaoqkoiECR3ByAzuuysW0naPnhgB8rMxTsdkj7rhxgB","thinking":"The user wants me to run a specific command exactly once and then confirm the printed marker.","type":"thinking"},"from":{"model":"claude-sonnet-4-6","surface":"messages","vendor":"anthropic"},"type":"opaque"},"part_id":1,"type":"part_final"}
+2026-10-10T05:22:06.607755Z < {"part":{"args":{"command":"sleep 2; printf GUI_ANTHROPIC_OK"},"artifact_id":2,"call_id":"toolu_01BCpEK45necgz9Ddd6GJmsV","from":{"model":"claude-sonnet-4-6","surface":"messages","vendor":"anthropic"},"name":"run_command","type":"tool_call"},"part_id":2,"type":"part_final"}
+2026-10-10T05:22:06.607773Z < {"from":"in_flight","to":"tools_pending","type":"state_changed"}
+2026-10-10T05:22:06.608167Z < {"call_id":"toolu_01BCpEK45necgz9Ddd6GJmsV","input":{"command":"sleep 2; printf GUI_ANTHROPIC_OK"},"name":"run_command","type":"tool_dispatched"}
+2026-10-10T05:22:06.614271Z < {"part":{"text":"Keep the final answer to one short sentence.","type":"text"},"part_id":"user-5-0","type":"user_message"}
+2026-10-10T05:22:08.620734Z < {"call_id":"toolu_01BCpEK45necgz9Ddd6GJmsV","is_error":false,"result":"GUI_ANTHROPIC_OK\nexit_code: 0\n","type":"tool_finished"}
+2026-10-10T05:22:08.620807Z < {"from":"tools_pending","to":"input_pending","type":"state_changed"}
+2026-10-10T05:22:08.620951Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-10T05:22:09.84321Z < {"chunk":"The","kind":"thinking","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:09.843225Z < {"chunk":" user wants me to confirm","kind":"thinking","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:09.843238Z < {"chunk":" the printed marker in","kind":"thinking","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:09.843261Z < {"chunk":" one short sentence.","kind":"thinking","part_id":4,"type":"part_delta"}
+2026-10-10T05:22:09.843278Z < {"chunk":"The","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:09.883073Z < {"chunk":" command","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:09.931438Z < {"chunk":" ran","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:09.986972Z < {"chunk":" successfully and printed","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:10.030357Z < {"chunk":" the","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:10.081998Z < {"chunk":" marker **","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:10.139874Z < {"chunk":"GUI_ANTHROPIC_OK","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:10.157106Z < {"chunk":"**.","kind":"text","part_id":5,"type":"part_delta"}
+2026-10-10T05:22:10.163587Z < {"part":{"artifact_id":4,"data":{"signature":"EtICCqgBCBIYAipAdiMHr06amAg/YIUwJTKZQ0XOXim2c/lihFuUKqF5qYS70zlP/nR71kJoQNFSN+sL4qOPDGgs4/ryitrmrxIZbTIRY2xhdWRlLXNvbm5ldC00LTY4AEIIdGhpbmtpbmdaJDU2NzZhNTkzLWVjOTItNDA3MC1iMzA1LThkNmUyODBkYzkwYZoBEwoRY2xhdWRlLXNvbm5ldC00LTaoAYGXp9YGEgy3GEeHYxjv+JpJBVoaDIifa3pYwwHgP76TsyIwJ2vsFqH3HuG7V97DZPRS/jXUU+3cSV8NKO/irdoJcJmtHCCkoAFx0AtmGuhxXVnVKldBYLQ7lshZM40qCtR7JjJZnIzaLALZw1EN0m2RH3z0HsdQuTizeEdRNGlNaTZrZgFgyioxQE6ejxv1qerJy+3BixTeZwHo//BWsuBMlYrKWY5kfb/gtjoYAQ==","thinking":"The user wants me to confirm the printed marker in one short sentence.","type":"thinking"},"from":{"model":"claude-sonnet-4-6","surface":"messages","vendor":"anthropic"},"type":"opaque"},"part_id":4,"type":"part_final"}
+2026-10-10T05:22:10.163662Z < {"part":{"artifact_id":5,"text":"The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**.","type":"text"},"part_id":5,"type":"part_final"}
+2026-10-10T05:22:10.163675Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-10T05:22:10.163809Z < {"error":"","text":"The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**.","type":"turn_ended"}
+2026-10-10T05:22:10.247964Z > {"type":"pause"}
+2026-10-10T05:22:10.248023Z < {"paused":true,"type":"pause_changed"}
+2026-10-10T05:22:19.103244Z > {"type":"unpause"}
+2026-10-10T05:22:19.103907Z < {"paused":false,"type":"pause_changed"}

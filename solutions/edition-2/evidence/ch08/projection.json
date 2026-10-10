@@ -1,0 +1,103 @@
+{
+  "result": "PASS",
+  "source": "retained gemini-live.json artifact 2 plus opaque peer fixtures",
+  "checks": [
+    {
+      "name": "Anthropic readable thinking",
+      "display": "A readable thought.",
+      "displayPass": true,
+      "automatic": [
+        {
+          "type": "queued",
+          "text": "A readable thought."
+        },
+        {
+          "type": "start",
+          "text": "A readable thought."
+        },
+        {
+          "type": "end",
+          "text": "A readable thought."
+        }
+      ],
+      "speaker": [
+        {
+          "type": "queued",
+          "text": "A readable thought."
+        },
+        {
+          "type": "start",
+          "text": "A readable thought."
+        },
+        {
+          "type": "end",
+          "text": "A readable thought."
+        }
+      ],
+      "autoPass": true,
+      "speakerPass": true
+    },
+    {
+      "name": "Gemini readable thinking",
+      "display": "Another readable thought.",
+      "displayPass": true,
+      "automatic": [
+        {
+          "type": "queued",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "start",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "end",
+          "text": "Another readable thought."
+        }
+      ],
+      "speaker": [
+        {
+          "type": "queued",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "start",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "end",
+          "text": "Another readable thought."
+        }
+      ],
+      "autoPass": true,
+      "speakerPass": true
+    },
+    {
+      "name": "retained Gemini empty text",
+      "display": "",
+      "displayPass": true,
+      "automatic": [],
+      "speaker": [],
+      "autoPass": true,
+      "speakerPass": true
+    },
+    {
+      "name": "redacted thinking",
+      "display": "",
+      "displayPass": true,
+      "automatic": [],
+      "speaker": [],
+      "autoPass": true,
+      "speakerPass": true
+    },
+    {
+      "name": "signature only",
+      "display": "",
+      "displayPass": true,
+      "automatic": [],
+      "speaker": [],
+      "autoPass": true,
+      "speakerPass": true
+    }
+  ]
+}

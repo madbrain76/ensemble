@@ -1,0 +1,380 @@
+
+pause boundary: KILLED
+mutation: resume != nil { => resume != nil && false {
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.11s)
+    gui_test.go:159: pause did not hold next tool
+FAIL
+FAIL	ensemble-gui-stub	0.121s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+cancel paused wait: KILLED
+mutation: case <-t.request.ctx.Done(): => 
+command: go test -race -count=1 -timeout=20s -run TestPausedCancellation ./... (cwd .)
+ok  	ensemble	1.016s [no tests to run]
+--- FAIL: TestPausedCancellation (3.01s)
+    pause_test.go:34: request did not complete
+FAIL
+FAIL	ensemble/ensemble	3.018s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+ok  	ensemble/internal/engine	1.015s [no tests to run]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+
+global artifact identity: KILLED
+mutation: t.ids = make(map[uint64]uint64) => r.partID = 0
+ t.ids = make(map[uint64]uint64)
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.13s)
+    gui_test.go:174: artifact identity collided across responses
+FAIL
+FAIL	ensemble-gui-stub	0.139s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+partial replay: INVESTIGATE
+mutation: for _, id := range ids { => for _, id := range ids[:0] {
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+2026/10/09 22:23:22 httptest.Server blocked in Close after 5 seconds, waiting for connections:
+  *net.TCPConn 0xc000098068 127.0.0.1:61389 in state active
+panic: test timed out after 20s
+	running tests:
+		TestStreamReplayPause (20s)
+
+goroutine 10 [running]:
+testing.(*M).startAlarm.func1()
+	/usr/local/go/src/testing/testing.go:2682 +0x490
+created by time.goFunc
+	/usr/local/go/src/time/sleep.go:215 +0x44
+
+goroutine 1 [chan receive]:
+testing.(*T).Run(0xc0001828c0, {0x10307ee0d, 0x15}, 0x1031fe268)
+	/usr/local/go/src/testing/testing.go:2005 +0x700
+testing.runTests.func1(0xc0001828c0)
+	/usr/local/go/src/testing/testing.go:2477 +0x78
+testing.tRunner(0xc0001828c0, 0xc0001b9ad8)
+	/usr/local/go/src/testing/testing.go:1934 +0x168
+testing.runTests(0xc0001ae138, {0x1034b7a60, 0x2, 0x2}, {0x3a31cac7965737f?, 0x0?, 0x1034c45a0?})
+	/usr/local/go/src/testing/testing.go:2475 +0x738
+testing.(*M).Run(0xc00019e320)
+	/usr/local/go/src/testing/testing.go:2337 +0xaf8
+main.main()
+	_testmain.go:49 +0x104
+
+goroutine 20 [sync.WaitGroup.Wait]:
+sync.runtime_SemacquireWaitGroup(0xc0001ea270?, 0x0?)
+	/usr/local/go/src/runtime/sema.go:114 +0x38
+sync.(*WaitGroup).Wait(0xc0001ea270)
+	/usr/local/go/src/sync/waitgroup.go:206 +0xc0
+net/http/httptest.(*Server).Close(0xc0001ea230)
+	/usr/local/go/src/net/http/httptest/server.go:251 +0x2e4
+runtime.Goexit()
+	/usr/local/go/src/runtime/panic.go:615 +0x60
+testing.(*common).FailNow(0xc000182a80)
+	/usr/local/go/src/testing/testing.go:1013 +0x70
+testing.(*common).Fatal(0xc000182a80, {0xc000037e98, 0x1, 0x1})
+	/usr/local/go/src/testing/testing.go:1212 +0x78
+ensemble-gui-stub_test.TestStreamReplayPause(0xc000182a80)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui_test.go:145 +0x5d8
+testing.tRunner(0xc000182a80, 0x1031fe268)
+	/usr/local/go/src/testing/testing.go:1934 +0x168
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:1997 +0x6e4
+
+goroutine 22 [IO wait]:
+internal/poll.runtime_pollWait(0x1048ca800, 0x72)
+	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+internal/poll.(*pollDesc).wait(0xc000204220, 0x72, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0xc000204200)
+	/usr/local/go/src/internal/poll/fd_unix.go:613 +0x364
+net.(*netFD).accept(0xc000204200)
+	/usr/local/go/src/net/fd_unix.go:161 +0x38
+net.(*TCPListener).accept(0xc000196b80)
+	/usr/local/go/src/net/tcpsock_posix.go:159 +0x40
+net.(*TCPListener).Accept(0xc000196b80)
+	/usr/local/go/src/net/tcpsock.go:380 +0x68
+net/http.(*Server).Serve(0xc00021a100, {0x103205ff0, 0xc000196b80})
+	/usr/local/go/src/net/http/server.go:3463 +0x404
+net/http/httptest.(*Server).goServe.func1()
+	/usr/local/go/src/net/http/httptest/server.go:311 +0x9c
+created by net/http/httptest.(*Server).goServe in goroutine 20
+	/usr/local/go/src/net/http/httptest/server.go:309 +0x98
+
+goroutine 33 [IO wait]:
+internal/poll.runtime_pollWait(0x1048ca400, 0x72)
+	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+internal/poll.(*pollDesc).wait(0xc0000a4020, 0x72, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0xc0000a4000, {0xc0000b8000, 0x1000, 0x1000})
+	/usr/local/go/src/internal/poll/fd_unix.go:165 +0x2f8
+net.(*netFD).Read(0xc0000a4000, {0xc0000b8000, 0x1000, 0x1000})
+	/usr/local/go/src/net/fd_posix.go:68 +0x48
+net.(*conn).Read(0xc000098010, {0xc0000b8000, 0x1000, 0x1000})
+	/usr/local/go/src/net/net.go:196 +0x88
+bufio.(*Reader).fill(0xc00008e060)
+	/usr/local/go/src/bufio/bufio.go:113 +0x210
+bufio.(*Reader).Peek(0xc00008e060, 0x2)
+	/usr/local/go/src/bufio/bufio.go:152 +0xac
+github.com/gorilla/websocket.(*Conn).read(0xc0001f6420, 0x2)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:371 +0x4c
+github.com/gorilla/websocket.(*Conn).advanceFrame(0xc0001f6420)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:809 +0xc0
+github.com/gorilla/websocket.(*Conn).NextReader(0xc0001f6420)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:1009 +0xf0
+github.com/gorilla/websocket.(*Conn).ReadMessage(0xc0001f6420)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:1093 +0x2c
+ensemble-gui-stub.(*Server).socket(0xc000204180, {0x103205eb8, 0xc0000cc000}, 0xc0000ba000)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui.go:197 +0x350
+net/http.HandlerFunc.ServeHTTP(0xc0001a4420, {0x103205eb8, 0xc0000cc000}, 0xc0000ba000)
+	/usr/local/go/src/net/http/server.go:2322 +0x4c
+net/http.(*ServeMux).ServeHTTP(0xc0001dc0c0, {0x103205eb8, 0xc0000cc000}, 0xc0000ba000)
+	/usr/local/go/src/net/http/server.go:2861 +0x1b0
+net/http.serverHandler.ServeHTTP({0xc0000b2000?}, {0x103205eb8, 0xc0000cc000}, 0xc0000ba000)
+	/usr/local/go/src/net/http/server.go:3340 +0x274
+net/http.(*conn).serve(0xc0000a0120, {0x1032063a0, 0xc000092210})
+	/usr/local/go/src/net/http/server.go:2109 +0x9b4
+created by net/http.(*Server).Serve in goroutine 22
+	/usr/local/go/src/net/http/server.go:3493 +0x5e0
+
+goroutine 24 [select]:
+ensemble-gui-stub.(*Server).socket.func2()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui.go:182 +0xe8
+created by ensemble-gui-stub.(*Server).socket in goroutine 33
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui.go:179 +0x2e0
+
+goroutine 49 [chan receive]:
+ensemble/internal/agent.(*runtime).run(0xc0002a4000)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/agent/actor.go:436 +0x78
+created by ensemble/internal/agent.(*agent).post.(*agent).start.func1 in goroutine 33
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/agent/actor.go:74 +0x110
+
+goroutine 50 [IO wait]:
+internal/poll.runtime_pollWait(0x1048ca200, 0x72)
+	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+internal/poll.(*pollDesc).wait(0xc0002bc7a0, 0x72, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0xc0002bc780, {0xc00010a000, 0x1000, 0x1000})
+	/usr/local/go/src/internal/poll/fd_unix.go:165 +0x2f8
+net.(*netFD).Read(0xc0002bc780, {0xc00010a000, 0x1000, 0x1000})
+	/usr/local/go/src/net/fd_posix.go:68 +0x48
+net.(*conn).Read(0xc00005c008, {0xc00010a000, 0x1000, 0x1000})
+	/usr/local/go/src/net/net.go:196 +0x88
+net/http.(*persistConn).Read(0xc0002cafc0, {0xc00010a000, 0x1000, 0x1000})
+	/usr/local/go/src/net/http/transport.go:2125 +0xc0
+bufio.(*Reader).fill(0xc00007e060)
+	/usr/local/go/src/bufio/bufio.go:113 +0x210
+bufio.(*Reader).ReadSlice(0xc00007e060, 0xa)
+	/usr/local/go/src/bufio/bufio.go:380 +0x60
+net/http/internal.readChunkLine(0xc00007e060)
+	/usr/local/go/src/net/http/internal/chunked.go:156 +0x30
+net/http/internal.(*chunkedReader).beginChunk(0xc000108390)
+	/usr/local/go/src/net/http/internal/chunked.go:49 +0x48
+net/http/internal.(*chunkedReader).Read(0xc000108390, {0xc000120000, 0x1000, 0x1000})
+	/usr/local/go/src/net/http/internal/chunked.go:125 +0x224
+net/http.(*body).readLocked(0xc00010c140, {0xc000120000, 0x1000, 0x1000})
+	/usr/local/go/src/net/http/transfer.go:845 +0x78
+net/http.(*body).Read(0xc00010c140, {0xc000120000, 0x1000, 0x1000})
+	/usr/local/go/src/net/http/transfer.go:837 +0x104
+net/http.(*bodyEOFSignal).Read(0xc00010c180, {0xc000120000, 0x1000, 0x1000})
+	/usr/local/go/src/net/http/transport.go:3000 +0xc4
+net/http.(*cancelTimerBody).Read(0xc00007c040, {0xc000120000, 0x1000, 0x1000})
+	/usr/local/go/src/net/http/client.go:973 +0x60
+bufio.(*Reader).fill(0xc000139290)
+	/usr/local/go/src/bufio/bufio.go:113 +0x210
+bufio.(*Reader).ReadSlice(0xc000139290, 0xa)
+	/usr/local/go/src/bufio/bufio.go:380 +0x60
+bufio.(*Reader).collectFragments(0xc000139290, 0xa)
+	/usr/local/go/src/bufio/bufio.go:455 +0x70
+bufio.(*Reader).ReadString(0xc000139290, 0xa)
+	/usr/local/go/src/bufio/bufio.go:502 +0x38
+ensemble/internal/engine.ReadSSE({0x1047d5d58, 0xc00007c040}, 0xc0001395a0)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/engine/sse.go:27 +0x174
+ensemble/internal/engine.frames(...)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/engine/stream.go:124
+ensemble/internal/engine.(*engine).readOpenAI(0x1034b45c0?, {0x1047d5d58, 0xc00007c040}, 0xc0000a7e70, 0xc0000a7940)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/engine/openai_stream.go:17 +0x1a0
+ensemble/internal/engine.(*engine).Parse(0xc000196b00, 0xc00010e090, {0xc00029a408?, 0xc0000a7e50?, 0xc00028ad60?, 0xc0000a7e70?})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/engine/stream.go:34 +0xc28
+ensemble/internal/engine.(*engine).Send(0xc000196b00, {0x1032063d8, 0xc0002920a0}, {0xc0002e2000, 0x1309, 0x1500}, {0xc00029a408?, 0x0?, 0xc00028ad60?, 0x0?})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/engine/engine.go:180 +0x1060
+ensemble/internal/agent.(*runtime).send.func1()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/agent/actor.go:344 +0x200
+created by ensemble/internal/agent.(*runtime).send in goroutine 49
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/internal/agent/actor.go:335 +0x430
+
+goroutine 7 [IO wait]:
+internal/poll.runtime_pollWait(0x1048ca000, 0x72)
+	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+internal/poll.(*pollDesc).wait(0xc0000a4420, 0x72, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0xc0000a4400, {0xc0000b2361, 0x1, 0x1})
+	/usr/local/go/src/internal/poll/fd_unix.go:165 +0x2f8
+net.(*netFD).Read(0xc0000a4400, {0xc0000b2361, 0x1, 0x1})
+	/usr/local/go/src/net/fd_posix.go:68 +0x48
+net.(*conn).Read(0xc000098068, {0xc0000b2361, 0x1, 0x1})
+	/usr/local/go/src/net/net.go:196 +0x88
+net/http.(*connReader).backgroundRead(0xc0000b2340)
+	/usr/local/go/src/net/http/server.go:702 +0x50
+created by net/http.(*connReader).startBackgroundRead in goroutine 35
+	/usr/local/go/src/net/http/server.go:698 +0x130
+
+goroutine 35 [chan receive]:
+ensemble-gui-stub_test.TestStreamReplayPause.func2({0x103205eb8, 0xc000114000}, 0xc0000ad9f8?)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui_test.go:114 +0x328
+net/http.HandlerFunc.ServeHTTP(0xc0001ae1b0, {0x103205eb8, 0xc000114000}, 0xc0000bb2c0)
+	/usr/local/go/src/net/http/server.go:2322 +0x4c
+net/http.serverHandler.ServeHTTP({0x103204c38?}, {0x103205eb8, 0xc000114000}, 0xc0000bb2c0)
+	/usr/local/go/src/net/http/server.go:3340 +0x274
+net/http.(*conn).serve(0xc0000a0990, {0x1032063a0, 0xc000092120})
+	/usr/local/go/src/net/http/server.go:2109 +0x9b4
+created by net/http.(*Server).Serve in goroutine 21
+	/usr/local/go/src/net/http/server.go:3493 +0x5e0
+
+goroutine 5 [select]:
+net/http.(*persistConn).readLoop(0xc0002cafc0)
+	/usr/local/go/src/net/http/transport.go:2398 +0xed4
+created by net/http.(*Transport).dialConn in goroutine 51
+	/usr/local/go/src/net/http/transport.go:1947 +0x20a8
+
+goroutine 6 [select]:
+net/http.(*persistConn).writeLoop(0xc0002cafc0)
+	/usr/local/go/src/net/http/transport.go:2600 +0x114
+created by net/http.(*Transport).dialConn in goroutine 51
+	/usr/local/go/src/net/http/transport.go:1948 +0x2110
+
+goroutine 55 [select]:
+ensemble-gui-stub.(*Server).socket.func2()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui.go:182 +0xe8
+created by ensemble-gui-stub.(*Server).socket in goroutine 8
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui.go:179 +0x2e0
+
+goroutine 8 [IO wait]:
+internal/poll.runtime_pollWait(0x1048c9c00, 0x72)
+	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+internal/poll.(*pollDesc).wait(0xc00013c0a0, 0x72, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Read(0xc00013c080, {0xc000121000, 0x1000, 0x1000})
+	/usr/local/go/src/internal/poll/fd_unix.go:165 +0x2f8
+net.(*netFD).Read(0xc00013c080, {0xc000121000, 0x1000, 0x1000})
+	/usr/local/go/src/net/fd_posix.go:68 +0x48
+net.(*conn).Read(0xc00005c040, {0xc000121000, 0x1000, 0x1000})
+	/usr/local/go/src/net/net.go:196 +0x88
+bufio.(*Reader).fill(0xc00007e2a0)
+	/usr/local/go/src/bufio/bufio.go:113 +0x210
+bufio.(*Reader).Peek(0xc00007e2a0, 0x2)
+	/usr/local/go/src/bufio/bufio.go:152 +0xac
+github.com/gorilla/websocket.(*Conn).read(0xc0002e66e0, 0x2)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:371 +0x4c
+github.com/gorilla/websocket.(*Conn).advanceFrame(0xc0002e66e0)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:809 +0xc0
+github.com/gorilla/websocket.(*Conn).NextReader(0xc0002e66e0)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:1009 +0xf0
+github.com/gorilla/websocket.(*Conn).ReadMessage(0xc0002e66e0)
+	/Users/bill/go/pkg/mod/github.com/gorilla/websocket@v1.5.3/conn.go:1093 +0x2c
+ensemble-gui-stub.(*Server).socket(0xc000204180, {0x103205eb8, 0xc0002f8000}, 0xc000000640)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch08-mutations-dlnbexm2/main/gui/gui.go:197 +0x350
+net/http.HandlerFunc.ServeHTTP(0xc0001a4420, {0x103205eb8, 0xc0002f8000}, 0xc000000640)
+	/usr/local/go/src/net/http/server.go:2322 +0x4c
+net/http.(*ServeMux).ServeHTTP(0xc0001dc0c0, {0x103205eb8, 0xc0002f8000}, 0xc000000640)
+	/usr/local/go/src/net/http/server.go:2861 +0x1b0
+net/http.serverHandler.ServeHTTP({0xc00010c440?}, {0x103205eb8, 0xc0002f8000}, 0xc000000640)
+	/usr/local/go/src/net/http/server.go:3340 +0x274
+net/http.(*conn).serve(0xc00010e360, {0x1032063a0, 0xc000092210})
+	/usr/local/go/src/net/http/server.go:2109 +0x9b4
+created by net/http.(*Server).Serve in goroutine 22
+	/usr/local/go/src/net/http/server.go:3493 +0x5e0
+FAIL	ensemble-gui-stub	20.018s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+clear finalized partials: INVESTIGATE
+mutation: delete(s.partials, p.ArtifactID) => _ = p.ArtifactID
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+ok  	ensemble-gui-stub	1.150s
+?   	ensemble-gui-stub/cmd	[no test files]
+
+
+durable replay: KILLED
+mutation: for _, event := range s.events[start:] { => for _, event := range s.events[:0] {
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.13s)
+    gui_test.go:188: replay missing part_final
+FAIL
+FAIL	ensemble-gui-stub	0.140s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+entire replay batch: KILLED
+mutation: queue <- s.replay() => batch := s.replay(); if len(batch)>256 { batch=batch[:256] }; queue <- batch
+command: go test -race -count=1 -timeout=20s -run TestPausedInterruptAndReplayBatch ./... (cwd gui)
+--- FAIL: TestPausedInterruptAndReplayBatch (6.27s)
+    gui_test.go:260: waiting for wire event: read tcp 127.0.0.1:61411->127.0.0.1:61408: i/o timeout
+FAIL
+FAIL	ensemble-gui-stub	6.277s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+dispatch observer: INVESTIGATE
+mutation: r.owner.notify(common.ToolDispatched{CallID: call.CallID, Name: call.Name, Input: call.Args}) => // removed dispatch observation
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (3.13s)
+    gui_test.go:159: pause did not hold next tool
+FAIL
+FAIL	ensemble-gui-stub	3.137s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+finished observer: KILLED
+mutation: r.owner.notify(common.ToolFinished{CallID: m.data.CallID, Result: result.String(), IsError: m.data.IsError}) => _ = result.String()
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.14s)
+    gui_test.go:201: observer lost tool lifecycle map[dispatch:2]
+FAIL
+FAIL	ensemble-gui-stub	0.147s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+inbound trace: KILLED
+mutation: s.trace(">", data) => // removed inbound trace
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.13s)
+    gui_test.go:205: gui.log missing direction
+FAIL
+FAIL	ensemble-gui-stub	0.141s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+
+outbound trace: KILLED
+mutation: s.trace("<", data) => // removed outbound trace
+command: go test -race -count=1 -timeout=20s -run TestStreamReplayPause ./... (cwd gui)
+--- FAIL: TestStreamReplayPause (0.13s)
+    gui_test.go:205: gui.log missing direction
+FAIL
+FAIL	ensemble-gui-stub	0.141s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+

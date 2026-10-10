@@ -39,12 +39,14 @@ type ToolContext = common.ToolContext
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
-	logger  *log.Logger
-	api     io.Writer
-	apiMu   sync.Mutex
-	agents  []Agent
-	nextJob atomic.Int64
-	merged  chan AgentObservation
+	logger      *log.Logger
+	api         io.Writer
+	apiMu       sync.Mutex
+	agents      []Agent
+	nextJob     atomic.Int64
+	merged      chan AgentObservation
+	observersMu sync.Mutex
+	observers   []common.AgentObserver
 }
 
 // New gives logging one owner; applications choose the diagnostic destination.
@@ -132,6 +134,12 @@ type AgentObservation struct {
 
 // Observe offers progress without waiting for a consumer to receive it.
 func (e *Ensemble) Observe(a Agent, o Observation) {
+	e.observersMu.Lock()
+	observers := append([]common.AgentObserver(nil), e.observers...)
+	e.observersMu.Unlock()
+	for _, observer := range observers {
+		observer.ObserveAgent(a, o)
+	}
 	select {
 	case e.merged <- AgentObservation{a, o}:
 	default:
@@ -286,3 +294,22 @@ const (
 
 // StreamingFor returns effective model capabilities after the caller's opt-out.
 func StreamingFor(cfg Config) Stream { return engine.StreamingFor(cfg) }
+
+// AgentObserver receives identified progress through the composition root.
+type AgentObserver = common.AgentObserver
+
+// AddObserver attaches a root consumer for its lifetime; callbacks must not block.
+func (e *Ensemble) AddObserver(observer AgentObserver) {
+	e.observersMu.Lock()
+	defer e.observersMu.Unlock()
+	e.observers = append(e.observers, observer)
+}
+
+// ToolDispatched marks the start of one tool call.
+type ToolDispatched = common.ToolDispatched
+
+// ToolFinished carries a real tool result independently of turn lifetime.
+type ToolFinished = common.ToolFinished
+
+// TurnEnded reports turn completion as display progress.
+type TurnEnded = common.TurnEnded

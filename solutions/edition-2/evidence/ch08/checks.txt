@@ -1,0 +1,19 @@
+Core module: go vet ./... PASS; go test -race -count=1 ./... PASS (ensemble 1.705s; ensemble/ensemble 31.407s; engine1.012s).
+New core paused-cancellation test: go test -race -run TestPausedCancellation -count=1 ./ensemble PASS1.021s.
+GUI module: go vet ./... PASS; go test -race -count=1 ./... PASS2.933s, including TestReplayWindow.
+Separate ch05: go vet ./... PASS; go test -race ./... PASS1.029s.
+Separate ch06: go vet ./... PASS; go test -race ./... PASS1.290s.
+Separate ch07: go vet ./... PASS; go test -race ./... [no test files].
+Formatting: gofmt -l changed Go files empty; Prettier check app.js/style.css/index.html passed.
+Core go list -deps ensemble/ensemble: no websocket or ensemble-gui entries.
+Browser: headed installed Google Chrome, Playwright1.64.0, real native speech; see raw browser/speech JSON.
+Original grader: see grader-gui.txt; running at this source-review handoff. No core grader rerun claimed.
+Boundary positive control: GUI go list -deps ./... contains github.com/gorilla/websocket; headless core does not.
+Retained-evidence credential scan: no authorized provider key bytes present.
+
+Correction round 1 (2026-10-09), cwd main/gui:
+go test -race -count=1 ./...: PASS, ensemble-gui-stub 2.742s; cmd no test files.
+go vet ./...: PASS.
+gofmt -l gui.go gui_test.go: no files.
+npx --yes prettier --check web/gui/app.js: all matched files formatted.
+Production core unchanged; previous core checks reused.

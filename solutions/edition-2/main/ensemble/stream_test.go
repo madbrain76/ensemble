@@ -287,6 +287,10 @@ func TestStreamingDeliveryAndContent(t *testing.T) {
 					}
 					for i := range events {
 						events[i].Seq = 0
+						// Display identity follows arrival order, not provider content semantics.
+						for j := range events[i].Response.Parts {
+							events[i].Response.Parts[j].ArtifactID = 0
+						}
 
 					}
 					if baseline == nil {

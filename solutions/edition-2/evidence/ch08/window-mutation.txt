@@ -1,0 +1,12 @@
+
+fixed replay window: KILLED
+mutation: count > 100 => count > 10
+command: go test -race -count=1 -timeout=20s -run TestReplayWindow ./... (cwd gui)
+--- FAIL: TestReplayWindow (0.05s)
+    --- FAIL: TestReplayWindow/0 (0.02s)
+        gui_test.go:328: replay window got 10 want 100
+FAIL
+FAIL	ensemble-gui-stub	0.061s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+

@@ -38,7 +38,20 @@ frozen reference grader passed 100/100. Fresh coder `student_restart_ch08` now
 extends accepted `7c940fc` / `edition-2-ch07-r4` in `solutions/edition-2/main/`.
 Its assignment includes Bill's global pause semantics, optional GUI module,
 Gemini 3.8 restriction, actual browser exercise and the sourced launch erratum.
-No Chapter 8 result or acceptance is claimed.
+Chapter 8 implementation is now frozen after correction round 1. Core and
+GUI checks, browser/native speech checks, targeted mutations and three-provider
+live GUI turns are recorded in its student review. No subjective speech-listening
+result is claimed. The original GUI grader is still traversing inherited CLI
+timeouts; its initial GUI binary predates later socket-shutdown and terminal
+display edits, which final affected checks exercised separately. Preserve that
+provenance rather than calling it exact final-source grading. Initial independent
+review requests correction round 1 for empty-text/opaque-data display projection,
+one exported test-method comment and replay status missing its required `from`
+field. The reviewer has independently verified all three corrections, including the
+actual browser/native-speech projection evidence and focused race checks. The
+sole remaining acceptance gate is the original grading result and diagnosis of
+any new GUI failure; the result concerns its earlier built binary, including
+the missing replay field corrected afterward. No Chapter 8 acceptance is claimed.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous

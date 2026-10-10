@@ -1,0 +1,49 @@
+[
+  {
+    "vendor": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "status": "PASS",
+    "answer": "The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**.",
+    "deltas": 28,
+    "tools": [
+      "GUI_ANTHROPIC_OK\nexit_code: 0\n"
+    ],
+    "terminalHintSeen": true,
+    "speech": [
+      {
+        "type": "queued",
+        "text": "The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**."
+      },
+      {
+        "type": "start",
+        "text": "The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**."
+      },
+      {
+        "type": "end",
+        "text": "The command ran successfully and printed the marker **GUI_ANTHROPIC_OK**."
+      }
+    ]
+  },
+  {
+    "vendor": "openai",
+    "model": "gpt-4o-mini",
+    "status": "PASS",
+    "answer": "The printed marker is confirmed as \"GUI_OPENAI_OK\".",
+    "deltas": 27,
+    "tools": [
+      "GUI_OPENAI_OK\nexit_code: 0\n"
+    ],
+    "terminalHintSeen": false
+  },
+  {
+    "vendor": "gemini",
+    "model": "gemini-3.8-flash",
+    "status": "PASS",
+    "answer": "The command successfully executed and printed the marker `GUI_GEMINI_OK`.",
+    "deltas": 5,
+    "tools": [
+      "GUI_GEMINI_OK\nexit_code: 0\n"
+    ],
+    "terminalHintSeen": false
+  }
+]

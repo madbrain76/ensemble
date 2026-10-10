@@ -1,0 +1,158 @@
+{
+  "wire": [
+    {
+      "replay": true,
+      "to": "idle",
+      "type": "state_changed"
+    },
+    {
+      "paused": false,
+      "replay": true,
+      "type": "pause_changed"
+    },
+    {
+      "paused": true,
+      "type": "pause_changed"
+    },
+    {
+      "paused": false,
+      "type": "pause_changed"
+    },
+    {
+      "part": {
+        "type": "text",
+        "text": "Use run_command exactly once to run: sleep 2; printf GUI_GEMINI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files."
+      },
+      "part_id": "user-1-0",
+      "type": "user_message"
+    },
+    {
+      "from": "idle",
+      "to": "input_pending",
+      "type": "state_changed"
+    },
+    {
+      "from": "input_pending",
+      "to": "in_flight",
+      "type": "state_changed"
+    },
+    {
+      "chunk": "run_command {\"command\":\"sleep 2; printf GUI_GEMINI_OK\"}",
+      "kind": "tool_call",
+      "part_id": 1,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "",
+      "kind": "text",
+      "part_id": 2,
+      "type": "part_delta"
+    },
+    {
+      "part": {
+        "artifact_id": 1,
+        "type": "tool_call",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "call_id": "call_466442",
+        "name": "run_command",
+        "args": {
+          "command": "sleep 2; printf GUI_GEMINI_OK"
+        },
+        "opaque": "EtQDCtEDAWkUfROV54kMxj3zkiXu6IPyUZHou4a8LZhZ1KXTw4zRbyZSi1vjZiQ5UGLIJ4xLcsu3TOSsoi/ssuVKsOah73dYoEO3xBG5kDaiHLKTBTB5lBhd57oAk3MZnla0UXo4CoKDCQEvYCyNvGQ5TCBph5J+G3JjRMqfhFBuaIqG196v0/zYf4/qielHZu0G+AsvKf2WPKojM3cbZc8DCrB9e1P72JrfrNJcNxLjvoPrEPRzoCcPfrEqsM28BLZBCCYbXO+vgVjJCFCq9gvrVKg/iaw5/VcKDBBKHpCINfdCzRUL1YDlgX7Rx9bQtPCHbb1IBXfkxthFlXfsvUEHQmOFq8fiFmICVRDcXsZABGqIVJnDBWfxMYOTzi7Iu27d7IpUNpHmwyMyPg7PBXL6XQOwac9avlofanfeogYH7VqwevFWIT9VQqMvq5+EM7mOHReV7Xse8f2D99c+LsegqQqxrVl85jU81Gdo8e/+PbxQsZ8eojoAYfyKIHw8BKeO8sGws+LI/d14rUBRBLr7uQiYx8yOr89uknkhlix78vnTyCezqJVoEfYaMhbKNiziVTSQtfqVBpnUjq0Xg+TJFBoINw6WUq6tiCFtxnmg1tfQzNeJ"
+      },
+      "part_id": 1,
+      "type": "part_final"
+    },
+    {
+      "part": {
+        "artifact_id": 2,
+        "type": "text",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        }
+      },
+      "part_id": 2,
+      "type": "part_final"
+    },
+    {
+      "from": "in_flight",
+      "to": "tools_pending",
+      "type": "state_changed"
+    },
+    {
+      "call_id": "call_466442",
+      "input": {
+        "command": "sleep 2; printf GUI_GEMINI_OK"
+      },
+      "name": "run_command",
+      "type": "tool_dispatched"
+    },
+    {
+      "call_id": "call_466442",
+      "is_error": false,
+      "result": "GUI_GEMINI_OK\nexit_code: 0\n",
+      "type": "tool_finished"
+    },
+    {
+      "from": "tools_pending",
+      "to": "input_pending",
+      "type": "state_changed"
+    },
+    {
+      "from": "input_pending",
+      "to": "in_flight",
+      "type": "state_changed"
+    },
+    {
+      "chunk": "The command successfully executed and printed the marker `GUI_GEMINI_",
+      "kind": "text",
+      "part_id": 4,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "OK`.",
+      "kind": "text",
+      "part_id": 4,
+      "type": "part_delta"
+    },
+    {
+      "chunk": "",
+      "kind": "text",
+      "part_id": 4,
+      "type": "part_delta"
+    },
+    {
+      "part": {
+        "artifact_id": 4,
+        "type": "text",
+        "text": "The command successfully executed and printed the marker `GUI_GEMINI_OK`.",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "opaque": "EvwBCvkBAWkUfRP3QXDN0BrRX6g3cfRiW63pAMAAMhLXq3TRXyrzdyfWBaF+5yzWWV7I7qBGzT7MIk675s8JwxJXKLWnseiIIo5nn0Zt4MRsNeYNX1+mIwsTWDVwr2nXkPQDy4AOlzw0frObmgFqsI2q8MDxZyil2flWRZAwBS3JvMkU36SaOLoU6VJRk+8iRRuR3POieJRryTOPIc60W3W/cGsqK7Du+a3Ce2uB6HJAJw9ALCke9EPU7HFJOA1Gz0nsNn+pvvs16t3k/w+Qqsck963YdZJjybrW4RpI3o2MaOWed3MivL0FcEgoiJM0dVodGhUk5sAvwyE3Mxfj"
+      },
+      "part_id": 4,
+      "type": "part_final"
+    },
+    {
+      "from": "in_flight",
+      "to": "idle",
+      "type": "state_changed"
+    },
+    {
+      "error": "",
+      "text": "The command successfully executed and printed the marker `GUI_GEMINI_OK`.",
+      "type": "turn_ended"
+    }
+  ],
+  "speech": [],
+  "visible": "user\n🔊\nUse run_command exactly once to run: sleep 2; printf GUI_GEMINI_OK . Then answer in one short sentence confirming the printed marker. This is a bounded interface demonstration; do not inspect files.\nrun_command\n🔊\nrun_command\n{\n  \"command\": \"sleep 2; printf GUI_GEMINI_OK\"\n}\n\nGUI_GEMINI_OK\nexit_code: 0\n\ntext\n🔊\n\n{\n\n  \"artifact_id\": 2,\n\n  \"type\": \"text\",\n\n  \"from\": {\n\n    \"vendor\": \"gemini\",\n\n    \"model\": \"gemini-3.8-flash\",\n\n    \"surface\": \"generate_content\"\n\n  }\n\n}\n\ntext\n🔊\n\nThe command successfully executed and printed the marker GUI_GEMINI_OK."
+}

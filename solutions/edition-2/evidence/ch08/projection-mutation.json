@@ -1,0 +1,168 @@
+{
+  "result": "FAIL",
+  "source": "retained gemini-live.json artifact 2 plus opaque peer fixtures",
+  "checks": [
+    {
+      "name": "Anthropic readable thinking",
+      "display": "A readable thought.",
+      "displayPass": true,
+      "automatic": [
+        {
+          "type": "queued",
+          "text": "A readable thought."
+        },
+        {
+          "type": "start",
+          "text": "A readable thought."
+        },
+        {
+          "type": "end",
+          "text": "A readable thought."
+        }
+      ],
+      "speaker": [
+        {
+          "type": "queued",
+          "text": "A readable thought."
+        },
+        {
+          "type": "start",
+          "text": "A readable thought."
+        },
+        {
+          "type": "end",
+          "text": "A readable thought."
+        }
+      ],
+      "autoPass": true,
+      "speakerPass": true
+    },
+    {
+      "name": "Gemini readable thinking",
+      "display": "Another readable thought.",
+      "displayPass": true,
+      "automatic": [
+        {
+          "type": "queued",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "start",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "end",
+          "text": "Another readable thought."
+        }
+      ],
+      "speaker": [
+        {
+          "type": "queued",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "start",
+          "text": "Another readable thought."
+        },
+        {
+          "type": "end",
+          "text": "Another readable thought."
+        }
+      ],
+      "autoPass": true,
+      "speakerPass": true
+    },
+    {
+      "name": "retained Gemini empty text",
+      "display": "{\n  \"artifact_id\": 2,\n  \"type\": \"text\",\n  \"from\": {\n    \"vendor\": \"gemini\",\n    \"model\": \"gemini-3.8-flash\",\n    \"surface\": \"generate_content\"\n  }\n}",
+      "displayPass": false,
+      "automatic": [
+        {
+          "type": "queued",
+          "text": "{\n"
+        },
+        {
+          "type": "start",
+          "text": "{\n"
+        }
+      ],
+      "speaker": [
+        {
+          "type": "error",
+          "text": "{\n",
+          "error": "interrupted"
+        },
+        {
+          "type": "queued",
+          "text": "{\n  \"artifact_id\": 2,\n  \"type\": \"text\",\n  \"from\": {\n    \"vendor\": \"gemini\",\n    \"model\": \"gemini-3.8-flash\",\n    \"surface\": \"generate_content\"\n  }\n}"
+        }
+      ],
+      "autoPass": false,
+      "speakerPass": false
+    },
+    {
+      "name": "redacted thinking",
+      "display": "{\n  \"type\": \"redacted_thinking\",\n  \"data\": \"OPAQUE_REPLAY_BYTES\"\n}",
+      "displayPass": false,
+      "automatic": [
+        {
+          "type": "start",
+          "text": "{\n  \"artifact_id\": 2,\n  \"type\": \"text\",\n  \"from\": {\n    \"vendor\": \"gemini\",\n    \"model\": \"gemini-3.8-flash\",\n    \"surface\": \"generate_content\"\n  }\n}"
+        },
+        {
+          "type": "queued",
+          "text": "{\n"
+        },
+        {
+          "type": "error",
+          "text": "{\n  \"artifact_id\": 2,\n  \"type\": \"text\",\n  \"from\": {\n    \"vendor\": \"gemini\",\n    \"model\": \"gemini-3.8-flash\",\n    \"surface\": \"generate_content\"\n  }\n}",
+          "error": "interrupted"
+        },
+        {
+          "type": "start",
+          "text": "{\n"
+        }
+      ],
+      "speaker": [
+        {
+          "type": "queued",
+          "text": "{\n  \"type\": \"redacted_thinking\",\n  \"data\": \"OPAQUE_REPLAY_BYTES\"\n}"
+        }
+      ],
+      "autoPass": false,
+      "speakerPass": false
+    },
+    {
+      "name": "signature only",
+      "display": "{\n  \"thoughtSignature\": \"SIGNATURE_ONLY\"\n}",
+      "displayPass": false,
+      "automatic": [
+        {
+          "type": "start",
+          "text": "{\n  \"type\": \"redacted_thinking\",\n  \"data\": \"OPAQUE_REPLAY_BYTES\"\n}"
+        },
+        {
+          "type": "queued",
+          "text": "{\n"
+        },
+        {
+          "type": "error",
+          "text": "{\n  \"type\": \"redacted_thinking\",\n  \"data\": \"OPAQUE_REPLAY_BYTES\"\n}",
+          "error": "interrupted"
+        },
+        {
+          "type": "start",
+          "text": "{\n"
+        }
+      ],
+      "speaker": [
+        {
+          "type": "queued",
+          "text": "{\n  \"thoughtSignature\": \"SIGNATURE_ONLY\"\n}"
+        }
+      ],
+      "autoPass": false,
+      "speakerPass": false
+    }
+  ]
+}
