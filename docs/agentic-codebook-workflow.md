@@ -34,7 +34,11 @@ are resolved. Keep the initial artifacts and selection error. The closely spaced
 Gemini stdout writes do not demonstrate visibly paced typing; the deterministic
 gated CLI test independently verifies flushing before response completion.
 Original Chapter 8 preparation is recorded in `edition-2-notes/ch08.md`; its
-frozen reference grader passed 100/100. No Chapter 8 student has started.
+frozen reference grader passed 100/100. Fresh coder `student_restart_ch08` now
+extends accepted `7c940fc` / `edition-2-ch07-r4` in `solutions/edition-2/main/`.
+Its assignment includes Bill's global pause semantics, optional GUI module,
+Gemini 3.8 restriction, actual browser exercise and the sourced launch erratum.
+No Chapter 8 result or acceptance is claimed.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
