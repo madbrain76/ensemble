@@ -1,0 +1,129 @@
+[
+  {
+    "checks": [],
+    "result": "FAIL",
+    "error": "selected tab exposed",
+    "stack": "Error: selected tab exposed\n    at check (file:///private/tmp/ensemble-ch09-browser/check.mjs:33:44)\n    at file:///private/tmp/ensemble-ch09-browser/check.mjs:49:2",
+    "speech": [],
+    "mutation": "tab_state",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed"
+    ],
+    "result": "FAIL",
+    "error": "page.waitForFunction: Timeout 6000ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 6000ms exceeded.\n    at /private/tmp/ensemble-ch09-browser/check.mjs:51:15",
+    "speech": [],
+    "mutation": "theme_apply",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed",
+      "theme and false TTS broadcast to second tab"
+    ],
+    "result": "FAIL",
+    "error": "page.waitForFunction: Timeout 6000ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 6000ms exceeded.\n    at /private/tmp/ensemble-ch09-browser/check.mjs:54:15",
+    "speech": [],
+    "mutation": "font_apply",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed",
+      "theme and false TTS broadcast to second tab",
+      "font setting changes effective layout across tabs"
+    ],
+    "result": "FAIL",
+    "error": "page.waitForFunction: Timeout 6000ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 6000ms exceeded.\n    at /private/tmp/ensemble-ch09-browser/check.mjs:57:13",
+    "speech": [],
+    "mutation": "system_change",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed",
+      "theme and false TTS broadcast to second tab",
+      "font setting changes effective layout across tabs",
+      "system theme follows OS changes"
+    ],
+    "result": "FAIL",
+    "error": "#sidebar-drag resizes pane",
+    "stack": "Error: #sidebar-drag resizes pane\n    at check (file:///private/tmp/ensemble-ch09-browser/check.mjs:33:44)\n    at file:///private/tmp/ensemble-ch09-browser/check.mjs:62:54",
+    "speech": [],
+    "mutation": "drag_bar",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed",
+      "theme and false TTS broadcast to second tab",
+      "font setting changes effective layout across tabs",
+      "system theme follows OS changes",
+      "#sidebar-drag resizes pane",
+      "#actions-drag resizes pane"
+    ],
+    "result": "FAIL",
+    "error": "single agent shows active state",
+    "stack": "Error: single agent shows active state\n    at check (file:///private/tmp/ensemble-ch09-browser/check.mjs:33:44)\n    at file:///private/tmp/ensemble-ch09-browser/check.mjs:66:2",
+    "speech": [],
+    "mutation": "state_indicator",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed",
+      "theme and false TTS broadcast to second tab",
+      "font setting changes effective layout across tabs",
+      "system theme follows OS changes",
+      "#sidebar-drag resizes pane",
+      "#actions-drag resizes pane",
+      "single agent shows active state"
+    ],
+    "result": "FAIL",
+    "error": "locator.waitFor: Timeout 6000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#actions').getByText(/PANE_RESULT/).first() to be visible\u001b[22m\n",
+    "stack": "locator.waitFor: Timeout 6000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#actions').getByText(/PANE_RESULT/).first() to be visible\u001b[22m\n\n    at /private/tmp/ensemble-ch09-browser/check.mjs:67:76",
+    "speech": [],
+    "mutation": "pane_routing",
+    "exit": 1
+  },
+  {
+    "checks": [
+      "selected tab exposed",
+      "theme and false TTS broadcast to second tab",
+      "font setting changes effective layout across tabs",
+      "system theme follows OS changes",
+      "#sidebar-drag resizes pane",
+      "#actions-drag resizes pane",
+      "single agent shows active state",
+      "tool artifacts route to actions",
+      "assistant text stays in chat",
+      "disabled TTS suppresses speech"
+    ],
+    "phase": "native speech",
+    "result": "FAIL",
+    "error": "page.waitForFunction: Timeout 6000ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 6000ms exceeded.\n    at /private/tmp/ensemble-ch09-browser/check.mjs:78:13",
+    "speech": [
+      {
+        "type": "queued",
+        "text": "Native speech uses the saved speed.",
+        "rate": 1
+      },
+      {
+        "type": "start",
+        "text": "Native speech uses the saved speed."
+      },
+      {
+        "type": "end",
+        "text": "Native speech uses the saved speed."
+      }
+    ],
+    "mutation": "speech_speed",
+    "exit": 1
+  }
+]

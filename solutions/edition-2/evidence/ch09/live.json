@@ -1,0 +1,28 @@
+{
+  "model": "gpt-4o-mini",
+  "discovery": "model present in authenticated model list",
+  "chat": "user\n🔊\nRun run_command with command \"sleep 1; printf CH09_LIVE_OK\" and yield_time_ms 1500. Then briefly report the exact output. Do not edit files.\nuser\n🔊\nKeep the final reply to one sentence.\ntext\n🔊\n\nThe output is \"CH09_LIVE_OK\".",
+  "actions": "run_command\n🔊\nrun_command\n{\n  \"command\": \"sleep 1; printf CH09_LIVE_OK\",\n  \"max_output_bytes\": 16384\n}\n\nCH09_LIVE_OK\nexit_code: 0\n",
+  "savedControls": {
+    "theme": "light",
+    "font": "18",
+    "tts": false
+  },
+  "terminalHintSeen": true,
+  "speech": [
+    {
+      "type": "queued",
+      "text": "The output is \"CH09_LIVE_OK\".",
+      "rate": 1
+    },
+    {
+      "type": "start",
+      "text": "The output is \"CH09_LIVE_OK\"."
+    },
+    {
+      "type": "end",
+      "text": "The output is \"CH09_LIVE_OK\"."
+    }
+  ],
+  "result": "PASS"
+}

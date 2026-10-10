@@ -40,7 +40,7 @@ select { color: var(--fg); background: var(--input-bg); border: 1px solid var(--
 #tts-speed { width: 100%; }
 #agent-tree { list-style: none; padding: 0; }
 .agent-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: .35; margin-right: .5rem; }
-[data-state="thinking"] .agent-indicator, [data-state="tool_use"] .agent-indicator { opacity: 1; animation: pulse 1.5s ease-in-out infinite; }
+[data-state="in_flight"] .agent-indicator, [data-state="tools_pending"] .agent-indicator { opacity: 1; animation: pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
 header {
   display: flex;

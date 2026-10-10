@@ -489,3 +489,16 @@ func TestShutdownResolvesQueuedRequests(t *testing.T) {
 		}
 	}
 }
+
+// TestBudgetUpdateRejectsNegative protects the public configuration boundary,
+// including callers that do not pass through the GUI's clamping path.
+func TestBudgetUpdateRejectsNegative(t *testing.T) {
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "offline", DataDir: t.TempDir(), MaxToolRounds: 3})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	if err := a.SetMaxToolRounds(-1); err == nil || a.Config().MaxToolRounds != 3 {
+		t.Fatal("negative budget changed the accepted configuration", err, a.Config().MaxToolRounds)
+	}
+}

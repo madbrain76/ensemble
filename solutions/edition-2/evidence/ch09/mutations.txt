@@ -1,0 +1,139 @@
+
+=== BASELINE exit=0 ===
+ok  	ensemble-gui-stub	0.473s
+?   	ensemble-gui-stub/cmd	[no test files]
+
+=== entry_validation exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:76: entry not clamped map[font_size:99 max_tool_rounds:-5 theme:invalid tts_enabled:false tts_speed:-5]
+FAIL
+FAIL	ensemble-gui-stub	0.009s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== load_validation exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:27: load settings: MaxToolRounds must be nonnegative
+FAIL
+FAIL	ensemble-gui-stub	0.010s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== false_snapshot exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:64: patch lost false/zero or absent fields map[font_size:20 max_tool_rounds:0 theme:light tts_speed:1.7]
+FAIL
+FAIL	ensemble-gui-stub	0.008s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== zero_snapshot exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:39: defaults map[font_size:16 theme:dark tts_enabled:true tts_speed:1]
+FAIL
+FAIL	ensemble-gui-stub	0.008s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== patch_absence exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:64: patch lost false/zero or absent fields map[font_size:12 max_tool_rounds:0 theme:dark tts_enabled:false tts_speed:0.5]
+FAIL
+FAIL	ensemble-gui-stub	0.008s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== skip_restore exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:71: restart lost preferences map[font_size:16 max_tool_rounds:0 theme:dark tts_enabled:true tts_speed:1]
+FAIL
+FAIL	ensemble-gui-stub	0.008s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== broadcast exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (5.01s)
+    settings_test.go:55: waiting for wire event: read tcp 127.0.0.1:63381->127.0.0.1:63379: i/o timeout
+FAIL
+FAIL	ensemble-gui-stub	5.013s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== failed_write_publishes exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:95: failed patch changed accepted state map[font_size:24 max_tool_rounds:0 theme:light tts_enabled:false tts_speed:0.5]
+FAIL
+FAIL	ensemble-gui-stub	0.009s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== skip_budget_apply exit=1 ===
+--- FAIL: TestSavedBudgetEntry (0.22s)
+    entry_test.go:163: budget: calls=2 want=18 limited=false end=map[error:tool round limit reached text: type:turn_ended]
+FAIL
+FAIL	ensemble-gui-stub	0.223s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== skip_budget_restore exit=1 ===
+--- FAIL: TestSavedBudgetEntry (0.27s)
+    entry_test.go:161: budget: calls=18 want=2 limited=true end=map[error: text:finished eighteen type:turn_ended]
+FAIL
+FAIL	ensemble-gui-stub	0.275s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== limit_16 exit=1 ===
+--- FAIL: TestSavedBudgetEntry (0.27s)
+    entry_test.go:163: budget: calls=16 want=18 limited=false end=map[error:tool round limit reached text: type:turn_ended]
+FAIL
+FAIL	ensemble-gui-stub	0.280s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== default_16 exit=1 ===
+--- FAIL: TestSavedBudgetEntry (0.44s)
+    entry_test.go:170: budget: calls=16 want=18 limited=false end=map[error:tool round limit reached text: type:turn_ended]
+FAIL
+FAIL	ensemble-gui-stub	0.443s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== midturn_budget exit=1 ===
+--- FAIL: TestSavedBudgetEntry (0.27s)
+    entry_test.go:161: budget: calls=18 want=2 limited=true end=map[error: text:finished eighteen type:turn_ended]
+FAIL
+FAIL	ensemble-gui-stub	0.274s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== load_ui_validation exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:71: restart lost preferences map[font_size:0 max_tool_rounds:0 theme:wrong tts_enabled:false tts_speed:9]
+FAIL
+FAIL	ensemble-gui-stub	0.008s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== corrupt_load_ignored exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:116: corrupt settings silently accepted
+FAIL
+FAIL	ensemble-gui-stub	0.010s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== missing_current_snapshot exit=1 ===
+--- FAIL: TestSettingsWireAndDisk (5.00s)
+    settings_test.go:36: waiting for wire event: read tcp 127.0.0.1:63464->127.0.0.1:63463: i/o timeout
+FAIL
+FAIL	ensemble-gui-stub	5.012s
+?   	ensemble-gui-stub/cmd	[no test files]
+FAIL
+
+=== negative_public_budget exit=1 ===
+--- FAIL: TestBudgetUpdateRejectsNegative (0.00s)
+    actor_test.go:502: negative budget changed the accepted configuration <nil> -1
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL

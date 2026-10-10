@@ -33,7 +33,8 @@ type Server struct {
 }
 
 // New attaches a root observer. Ensemble and Agent are application services,
-// not parents of this optional transport; the server owns only its connections.
+// not parents of this optional transport; the server owns its connections and
+// browser preferences. Invalid saved settings fail construction before attachment.
 func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server, error) {
 	if root == nil || agent == nil || agent.Ensemble() != root || log == nil {
 		panic("GUI requires its Ensemble, Agent and log")

@@ -5,3 +5,13 @@ PASS gofmt on changed Go files (later source revisions require affected checks).
 FAILED/INTERRUPTED separate accidental invocation: outer-root go test ./... had unrelated script-package setup errors, then interrupted. No grader score claimed.
 Original grader: running, sole intended invocation; see original-grade.txt and grader-source.json.
 Browser, mutations and live exercise: pending at this checkpoint.
+Final review stage:
+PASS core go test ./... and go vet ./...; focused race Test.*Round|Test.*Limit and TestBudgetUpdateRejectsNegative.
+PASS GUI go test -race ./... and go vet ./... after final Go constructor comment.
+PASS ch05/ch06/ch07 separate-module go test ./... and go vet ./... (ch07 has no tests).
+PASS gofmt listing empty; git diff --check clean for main.
+PASS headed browser: browser.json; failed attempts preserved separately.
+PASS discovered-model live GUI/tool/terminal-hint/native-speaker turn: live.json.
+PASS targeted mutation sensitivity: 17 Go mutants and 8 browser mutants; see logs for exact failures.
+Separate failed setup invocation: targeted ./ensemble from outer root did not exist; corrected cwd test passed.
+Original grader remains running; no score inferred.

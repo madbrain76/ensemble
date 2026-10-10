@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "selected tab exposed",
+    "theme and false TTS broadcast to second tab",
+    "font setting changes effective layout across tabs",
+    "system theme follows OS changes",
+    "#sidebar-drag resizes pane",
+    "#actions-drag resizes pane",
+    "single agent shows active state",
+    "tool artifacts route to actions",
+    "assistant text stays in chat",
+    "disabled TTS suppresses speech"
+  ],
+  "phase": "native speech",
+  "result": "FAIL",
+  "error": "page.waitForFunction: Timeout 30000ms exceeded.",
+  "stack": "page.waitForFunction: Timeout 30000ms exceeded.\n    at /private/tmp/ensemble-ch09-browser/check.mjs:78:13"
+}
