@@ -304,6 +304,7 @@ func ModelList() []ModelEntry {
 		// OpenAI
 		{ID: "gpt-6.1-sol", Features: models()["gpt-6.1-sol"]},
 		{ID: "gpt-6-astra", Features: models()["gpt-6-astra"]},
+		{ID: "gpt-6-luna", Features: models()["gpt-6-luna"]},
 		{ID: "gpt-5.6-sol", Features: models()["gpt-5.6-sol"]},
 		// Google
 		{ID: "gemini-3.8-flash", Features: models()["gemini-3.8-flash"]},
@@ -319,6 +320,7 @@ func displayName(id string) string {
 		"claude-opus-5-5":        "Claude Opus 5.5",
 		"claude-sonnet-5":        "Claude Sonnet 5",
 		"gpt-6-astra":            "GPT-6 Astra",
+		"gpt-6-luna":             "GPT-6 Luna",
 		"gpt-6.1-sol":            "GPT-6.1 Sol",
 		"gpt-5.6-sol":            "GPT-5.6 Sol",
 		"gemini-3.8-flash":       "Gemini 3.8 Flash",
@@ -419,6 +421,7 @@ func models() map[string]ModelFeatures {
 		// fact: the vendor default is still Chat Completions, which is what
 		// OpenAI-compatible third-party endpoints speak.
 		"gpt-6-astra": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-6-luna":  {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 0.10, CacheWrite: 0.125, CacheRead: 0.01, Output: 0.50}, ContextWindow: 272000, Media: MediaImage, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 		"gpt-5.6-sol": {RequiresVisibleReasoning: true, Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
 
 		// Chapter 19's model, and the agent's new default.
