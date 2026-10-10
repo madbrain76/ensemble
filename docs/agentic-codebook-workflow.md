@@ -59,6 +59,9 @@ round 1, and the reviewer independently verified the saved/control/native-rate
 agreement and restored-defect evidence. No implementation findings remain;
 other ownership/scope/budget checks also passed review. The student
 also supplied exact mutation edits from retained scripts for evidence assessment.
+Reviewed round 1 is checkpointed at `6f38944`: 69 source files, aggregate sorted
+source-manifest SHA-256
+`92c899ba27aa438052a91f411c3efdd9bce1aadb94a849c79f3aee9a1dd634e0`.
 The sole original grader is still running. No Chapter 9 grade, acceptance or
 frozen export is claimed yet.
 No author is active. Consequential ambiguities still require resolution.
