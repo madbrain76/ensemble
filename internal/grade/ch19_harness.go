@@ -80,10 +80,23 @@ type ch19Out struct {
 	fatal string
 }
 
+// ch19AbsPath makes a path absolute, falling back to the original if the
+// working directory cannot be read. A best effort is right here: the only
+// caller is building an environment variable, and a relative path is what it
+// would have passed anyway.
+func ch19AbsPath(p string) string {
+	abs, err := filepath.Abs(p)
+	if err != nil {
+		return p
+	}
+	return abs
+}
+
 // ch19Launch performs the login, then the inference run, and returns
 // everything observed. The two phases share one pair of fake servers so the
 // token minted in phase one is the token checked in phase two.
 func ch19Launch(bin, skillsDir, guiDir string, o ch19Opts) ch19Out {
+
 	auth := ch19NewFakeOAuth(o.oauth)
 	defer auth.Close()
 	resp := ch19NewFakeResponses(o.resp)
@@ -118,7 +131,12 @@ func ch19Launch(bin, skillsDir, guiDir string, o ch19Opts) ch19Out {
 		// points it at `true`, which exits 0 without doing anything, and then
 		// drives the authorize URL itself.
 		"EN_BROWSER_CMD=true",
-		"CH02_LOG="+filepath.Join(o.dir, "events.jsonl"),
+		// Absolute, because cmd.Dir below makes the student directory the
+		// agent's working directory. A relative path here is resolved against
+		// that directory rather than against the grader's, so grading ./agent
+		// looked for agent/events.jsonl inside agent/ and lost a check that
+		// the same tree passes when the path is spelled absolutely.
+		"CH02_LOG="+ch19AbsPath(filepath.Join(o.dir, "events.jsonl")),
 	)
 
 	out := ch19Out{}
