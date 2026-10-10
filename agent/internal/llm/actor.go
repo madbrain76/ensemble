@@ -569,6 +569,21 @@ func (a *Actor) waitForTool(callID string) bool {
 					// then started a turn of its own, by which time the thing it was
 					// about had already finished.
 					a.handleHint(common.Hint{Text: m.Text})
+					// The hint is enough for a tool that returns on its own,
+					// because the text is in context before the next request
+					// goes out. A blocking tool is the case it does not
+					// cover: the text lands in context but the agent stays
+					// parked in this loop, so nothing reads it until the tool
+					// returns. A parent waiting ten minutes on a join cannot
+					// answer the child question that would let that join
+					// finish, and the two wait on each other to the deadline.
+					//
+					// Interrupting ends the wait and leaves the work running,
+					// so the message gets an answer and the tool still
+					// delivers. A job nobody is parked on is passed over, so
+					// a tool deliberately left running in the background is
+					// not disturbed.
+					a.eng.Jobs.Interrupt()
 				default:
 					a.pending = append(a.pending, msg)
 				}

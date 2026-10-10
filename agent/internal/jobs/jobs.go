@@ -113,6 +113,23 @@ func (js *Jobs) Running() []common.JobHandle {
 	return out
 }
 
+// Interrupt ends any wait in progress, leaving the jobs themselves running.
+// Reports how many waits actually ended.
+//
+// Walking every running job is safe because a job interrupts only when
+// somebody is parked on it. Jobs already running in the background have no
+// waiter and are passed over, so this cannot disturb work the agent has
+// deliberately left to run.
+func (js *Jobs) Interrupt() int {
+	n := 0
+	for _, j := range js.Running() {
+		if j.Interrupt() {
+			n++
+		}
+	}
+	return n
+}
+
 func (js *Jobs) SetNext(l common.Limits) {
 	js.mu.Lock()
 	defer js.mu.Unlock()
@@ -162,6 +179,14 @@ type Job struct {
 	cursor int
 	// changed is closed and replaced on every change; a waiter blocks on it.
 	changed chan struct{}
+	// waiters counts the callers currently inside Wait. Interrupt uses it to
+	// tell a job somebody is parked on from one already running in the
+	// background: only a job with a waiter can be interrupted. Without the
+	// count, interrupting a backgrounded job would leave a flag set that the
+	// job's next waiter would consume as though a message had just arrived.
+	waiters int
+	// interrupted is set by Interrupt and consumed by the waiter it wakes.
+	interrupted bool
 
 	proc        *os.Process // set by tools that start a process; nil otherwise
 	processStop string      // shutdown may precede process attachment
@@ -282,6 +307,14 @@ func (j *Job) Bytes() int {
 func (j *Job) Wait(l common.Limits) common.WakeReason {
 	timer := time.NewTimer(l.Delay)
 	defer timer.Stop()
+	j.mu.Lock()
+	j.waiters++
+	j.mu.Unlock()
+	defer func() {
+		j.mu.Lock()
+		j.waiters--
+		j.mu.Unlock()
+	}()
 	for {
 		j.mu.Lock()
 		if j.status != common.StatusRunning {
@@ -292,6 +325,15 @@ func (j *Job) Wait(l common.Limits) common.WakeReason {
 			j.mu.Unlock()
 			return common.WokePattern
 		}
+		// Checked after the job's own signals on purpose. A tool that has
+		// already finished reports its result, because backgrounding it
+		// instead would throw away work that is done. The interrupt only
+		// wins when the tool genuinely has nothing to say yet.
+		if j.interrupted {
+			j.interrupted = false
+			j.mu.Unlock()
+			return common.WokeMessage
+		}
 		ch := j.changed
 		j.mu.Unlock()
 		select {
@@ -300,6 +342,24 @@ func (j *Job) Wait(l common.Limits) common.WakeReason {
 			return common.WokeDelay
 		}
 	}
+}
+
+// Interrupt ends a wait in progress and leaves the job running, so the caller
+// gets control back while the work continues in the background.
+//
+// Returns false when nothing was waiting, which is the ordinary case for a job
+// already running in the background. That check is what keeps the flag off a
+// job nobody is parked on, where the job's next waiter would consume it as a
+// message that never arrived.
+func (j *Job) Interrupt() bool {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.waiters == 0 || j.status != common.StatusRunning {
+		return false
+	}
+	j.interrupted = true
+	j.broadcast()
+	return true
 }
 
 // Kill ends a running job. For a process it kills the whole process group,
@@ -413,6 +473,11 @@ func (j *Job) Report(reason common.WakeReason, l common.Limits) string {
 		switch reason {
 		case common.WokePattern:
 			fmt.Fprintf(&b, "job %d still running; ai_callback_pattern %q matched.", j.Handle, l.Pattern.String())
+		case common.WokeMessage:
+			// Names the cause, because an agent that cannot tell why it got
+			// control back tends to read a half finished tool as a failed
+			// one and start the work again.
+			fmt.Fprintf(&b, "job %d still running; a message arrived and the wait ended early.", j.Handle)
 		default:
 			fmt.Fprintf(&b, "job %d still running after %s.", j.Handle, l.Delay)
 		}

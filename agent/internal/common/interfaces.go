@@ -84,6 +84,12 @@ const (
 	WokeDone WakeReason = iota + 1
 	WokeDelay
 	WokePattern
+	// WokeMessage means a message arrived for an agent that was waiting on a
+	// tool. The tool keeps running in the background and the agent gets
+	// control back, so a message can reach an agent parked in a long wait.
+	// Without it, a parent blocked in a ten minute join cannot answer the
+	// child question that would let the join finish.
+	WokeMessage
 )
 
 // ---------------------------------------------------------------------------
@@ -101,6 +107,9 @@ type JobHandle interface {
 	HasProcess() bool
 	Wait(l Limits) WakeReason
 	Report(reason WakeReason, l Limits) string
+	// Interrupt ends a wait in progress and leaves the job running. Reports
+	// whether anything was actually waiting.
+	Interrupt() bool
 	Kill(reason string) bool
 	// StopProcess kills an attached process (or one attached later), without
 	// discarding a non-process tool's eventual return value during shutdown.
@@ -119,6 +128,9 @@ type JobManager interface {
 	Get(h int) (JobHandle, bool)
 	Handles() []int
 	Running() []JobHandle
+	// Interrupt ends any wait in progress, leaving the jobs running.
+	// Reports how many waits actually ended.
+	Interrupt() int
 	SetNext(l Limits)
 	Take(args json.RawMessage) (Limits, bool, error)
 }
