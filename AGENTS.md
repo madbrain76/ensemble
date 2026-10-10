@@ -1,5 +1,18 @@
 # Ensemble student restart
 
+## October 10: bounded author–coder enhancement pass
+
+Bill explicitly authorized author and coder to enhance original Chapters 1–9
+as second-edition Chapters 1–8, dropping original Chapter 5 as a standalone
+chapter, with independent review of both prose and code for each chapter.
+This supersedes the author-phase timing prohibition below for this bounded
+pass only. Include the agreed Chapter 0 execution guidance. Enhance the original
+text; do not rewrite it or revive the retired author-first attempt. Preserve
+first-edition text, graders, frozen student exports and actual results.
+Follow `docs/edition-2-enhancement.md` for mapping, assignments and gates.
+The student remains accepted through original Chapter 9; do not advance Chapter
+10 during this pass. No future features or expanded exercises are authorized.
+
 Bill's explicit crossover goal: the coder's new Ensemble must run GPT-5 Astra
 at high reasoning, and Edition 3 of the book is to be built using that Ensemble
 agent rather than Codex. Keep this destination in view without implementing

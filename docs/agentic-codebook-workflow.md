@@ -1,5 +1,19 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 10: authorized enhancement of the accepted chapters
+
+Bill approved beginning author–coder work now on original Chapters 1–9, producing
+Edition 2 Chapters 1–8 with original Chapter 5 absorbed, plus the agreed Chapter 0
+execution guidance. His constraint is explicit: improve the chapters, do not
+rewrite them. Independently review each chapter and its code/grader changes.
+This bounded authorization supersedes the whole-implementation authorship gate
+and no-author status below; those passages describe the preceding student phase.
+The original student run remains accepted through Chapter 9. Chapter 10 waits.
+The current assignments, mapping, enhancement limits and chapter gates are in
+[edition-2-enhancement.md](edition-2-enhancement.md). Preserve original source,
+graders, frozen exports and actual results. This does not resume the retired
+attempt or authorize future feature work.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

@@ -5,6 +5,15 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
+**October 10 bounded enhancement authorization.** Bill now authorizes an author
+and coder to enhance original Chapters 1–9 into Edition 2 Chapters 1–8, with
+Chapter 0 guidance and independent prose/code review for each chapter. For this
+pass, the author-phase timing and no-grader-edit restrictions below are superseded
+by `docs/edition-2-enhancement.md`. Preserve original graders; create separately
+versioned Edition 2 corrections. Enhance existing prose without rewriting or
+adding features. All architecture, KISS, no-mocks and review requirements remain.
+The restrictions continue to govern the original student run beyond Chapter 9.
+
 Read this entire skill before coding or code review and after compaction. The original chapter
 defines feature scope; Bill's instructions define architecture. Do not import
 requirements from the discarded edition.

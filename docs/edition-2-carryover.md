@@ -1,5 +1,13 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 10 author-pass update.** Bill authorized a bounded enhancement of
+accepted original Chapters 1–9 as Edition 2 Chapters 1–8, plus the agreed Chapter
+0 guidance, with coder/grader collaboration and independent prose/code review.
+The later whole-implementation authorship gate in this historical student record
+is superseded for that pass; see [the enhancement plan](edition-2-enhancement.md).
+Original student checkpoints and results remain unchanged. Incorporate the
+upfront lessons into Chapters 0–1 and feature lessons where they become relevant.
+
 **Student run authorized by Bill, October 9, 2026.** Bill reviewed this carryover
 with [the workflow and learning record](agentic-codebook-workflow.md), refined the
 rules and explicitly authorized autonomous work. Use it with the original chapter;
