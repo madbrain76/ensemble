@@ -52,10 +52,13 @@ checks are preserved in `edition-2-notes/ch08.md` and its comparative review.
 Fresh coder `student_restart_ch09` now follows original Chapter 9 from accepted
 `46fd955` / `edition-2-ch08-r3` in the authoritative main tree. Its sourced
 handoff and scope are in `edition-2-notes/ch09.md`. Its implementation is now
-frozen at progress commit `89d17e0` for initial comparative review. Core/GUI/example
-checks, actual browser/live use and targeted mutations are recorded in the
-student review; the sole original grader is still running. No Chapter 9 grade,
-acceptance or frozen export is claimed yet.
+preserved at progress commit `89d17e0`. Independent initial review found one real
+mismatch: accepted speech speed 1.75 is rounded by the browser slider to 1.8,
+which native speech then uses. The coder is addressing that bounded finding in
+correction round 1; other ownership/scope/budget checks passed review. The student
+also supplied exact mutation edits from retained scripts for evidence assessment.
+The sole original grader is still running. No Chapter 9 grade, acceptance or
+frozen export is claimed yet.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
