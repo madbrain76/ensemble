@@ -109,6 +109,12 @@ report actual usage; keep protocol output usable and diagnostics separate.
 Discover available models during setup/testing instead of treating the book's
 historical names as an inventory. Discovery is not an extra API call to add
 automatically to the exercise's conversation loop.
+Bill restricts Gemini demonstrations to 3.0 Flash or newer and specifically
+requests **Gemini 3.8 Flash** for correct hint behavior. Verify that model's
+availability; do not choose an older model merely because discovery lists it.
+If it is unavailable, report the limitation rather than silently substituting.
+Chapter 7's initial 2.5 Flash selection missed this instruction; the student,
+coordinator and reviewer must carry this constraint into later handoffs.
 Source: [Chapter 1, §§1.1–1.2](../book/chapter-01.md#11-frameworks-and-why-this-book-uses-none).
 
 **Give facts owners and make those owners reachable.** The logger ambush in

@@ -255,6 +255,15 @@ phase. Once the process works reliably, consider encoding its demonstrated
 handoffs and decisions in a small automated workflow. Automation is a possible
 later step, not a current deliverable or proof that the process is sound.
 
+**Keep the coordinator active across handoffs.** During Chapter 7, the coordinator
+ended status replies while delegates worked, then dispatched the next step only
+when Bill asked again. Completion notifications existed, but that was not a
+continuous autonomous workflow. Answer status questions briefly while continuing
+the authorized work; receive completion, assess the result and dispatch review,
+correction or the next accepted chapter without requiring Bill to poll. Stop for
+a critical question or an actual execution limit, and leave a resumable record.
+Do not promise background coordination after ending the active turn.
+
 ## How the agents work together
 
 | Role | Responsibility and boundary |
