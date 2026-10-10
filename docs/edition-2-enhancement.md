@@ -88,8 +88,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `7b8f46a`, `edition-2-enhanced-ch04-r1` |
 | 5 (old 6) | Complete | Accepted at initial formal review | `e7f40fa`, `edition-2-enhanced-ch05-r1` |
 | 6 (old 7) | Complete | Accepted at initial formal review | `54939b6`, `edition-2-enhanced-ch06-r1` |
-| 7 (old 8) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch07-r1` |
-| 8 (old 9) | Not started | Pending | — |
+| 7 (old 8) | Complete | Accepted at initial formal review | `e6ae895`, `edition-2-enhanced-ch07-r1` |
+| 8 (old 9) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch08-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -338,3 +338,42 @@ The reviewer assessed low grader comment density without padding or a quota;
 the direct fixtures explain their lifecycle and ordering choices. No runtime,
 original grader or frozen export changed. Chapter 8 (original 9), the final
 chapter of this bounded pass, may begin after checkpointing.
+
+### Chapter 8 grader scope
+
+Retain four settings weights (25/20/20/15) plus corrected Chapter 7 parity (20).
+Reuse the actual GUI process/WebSocket helpers and separate core/GUI inputs.
+Exercise all four visible preferences, a sparse theme patch that preserves the
+others, explicit TTS false, and the existing required tool-budget field changing
+from two to zero. Compare those known fields in sender/second-client snapshots,
+a fresh subscription and an actual restart in the same disposable directory.
+Fixture values are test inputs, not mandatory defaults or clamp endpoints.
+Runtime budget enforcement, entry/load validation, failed writes, native speech
+and visible workbench behavior retain their actual source/browser tests and
+mutation evidence; snapshot equality alone does not prove them. No new setting,
+error protocol or configuration framework is authorized. Reuse the historical
+original 80/100 FAIL and legacy 100/100 results rather than repeating the known
+wrong-entrypoint parity cascade.
+
+### Chapter 8 acceptance and bounded-pass completion
+
+Accepted at initial formal combined review, zero correction rounds. See
+[author notes](edition-2-notes/enhancement-08.md), [grader evidence](edition-2-notes/enhancement-08-code.md)
+and [independent review](edition-2-notes/enhancement-08-review.md). The original
+daily-use workbench story remains, enhanced with actual ownership, settings and
+native speech lessons. Both exact JSON examples and Go excerpts pass. Actual
+full revised grading is accepted 100/100 and legacy 0/100; original accepted
+80/100 FAIL and legacy 100/100 PASS remain unchanged. Eleven targeted defects
+fail intended checks; independent disk-only font corruption fails persistence
+alone. Affected tests/vet and settings/budget source race tests pass. Browser,
+native speech and live evidence retain their provenance and stated limits.
+The coordinator checked the final source, hashes, examples and dispositions.
+
+This completes the authorized enhancement of Chapters 0–8, including original
+Chapter 5's external-consumer lesson in Chapter 4. Every chapter has independent
+prose and code acceptance and an immutable checkpoint. All nine manuscripts'
+local file links resolve. The original chapters, graders, frozen exports and
+historical scores remain preserved; this pass changed no runtime implementation.
+Author, coder and reviewer have no later chapter assignment. The student remains
+accepted through original Chapter 9. GPT-5 Astra at high reasoning and producing
+Edition 3 in Ensemble remain the destination, not an achieved crossover claim.

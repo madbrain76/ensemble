@@ -120,6 +120,29 @@ legacy blank separators produced by two newline writers; validate every actual
 record without interpreting harmless separators as malformed messages. These
 are grader and evidence corrections, not reasons to alter the frozen runtime.
 
+Chapter 8 enhancement follows settings through separate observable boundaries:
+patch application, full snapshots on both clients, fresh subscription and a new
+process reading the saved file. Explicit false and zero must survive; omission
+means something different. An independent disk-only font corruption leaves live
+settings correct but fails restart comparison, showing why an echo cannot prove
+persistence. The legacy report names its first differing field, missing false
+`tts_enabled`; source separately proves omitted zero, so the report is not
+claimed to enumerate every defect. Effective tool budgets, failed writes and
+validation retain their actual source tests. The saved-speed story likewise
+follows the value into native speech: completed speech callbacks alone had
+concealed a rounded rate. These improvements preserve the original exercise
+and its historical 80/100 failure while distinguishing what each check proves.
+
+The bounded enhancement is now complete through Edition 2 Chapter 8, with
+independent prose/code acceptance at every chapter gate and separate checkpoint
+tags. Chapter 8 passed initial formal review with zero correction rounds;
+its full revised result is accepted 100/100, legacy 0/100. Actual historical
+scores, failed approaches and coverage limits remain separate in the chapter
+records. No runtime implementation or frozen export changed during this pass.
+The author, coder and reviewer stop at this authorized boundary; the original
+student remains accepted through Chapter 9. The enhancement plan records every
+checkpoint and the unfulfilled Astra-high/Edition-3 destination.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

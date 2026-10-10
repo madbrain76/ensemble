@@ -20,17 +20,17 @@ func main() {
 func run() int {
 	chapter := flag.Int("ch", 1, "Edition 2 chapter to grade")
 	asJSON := flag.Bool("json", false, "emit the report as JSON")
-	consumer := flag.String("consumer", "", "Chapter 4–7 separate consumer module (default: ch05 under or beside submission)")
-	consumerCase := flag.String("consumer-case", "", "Chapter 4–7 JSON case file (default: accepted shout example)")
-	workflow := flag.String("workflow", "", "Chapter 5–7 workflow module (default: ch06 under or beside submission)")
-	mediaModels := flag.String("media-models", "", "Chapter 5–7 JSON vendor/model map (default: historical accepted fixtures)")
-	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6/7 declared Anthropic streaming fixture (historical default)")
-	streamExercise := flag.String("stream-exercise", "", "Chapter 6/7 external shape module (default: ch07 under or beside submission)")
-	gui := flag.String("gui", "", "Chapter 7 GUI module (default: gui under submission)")
-	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7 declared Anthropic GUI fixture (historical default)")
+	consumer := flag.String("consumer", "", "Chapter 4–8 separate consumer module (default: ch05 under or beside submission)")
+	consumerCase := flag.String("consumer-case", "", "Chapter 4–8 JSON case file (default: accepted shout example)")
+	workflow := flag.String("workflow", "", "Chapter 5–8 workflow module (default: ch06 under or beside submission)")
+	mediaModels := flag.String("media-models", "", "Chapter 5–8 JSON vendor/model map (default: historical accepted fixtures)")
+	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6–8 declared Anthropic streaming fixture (historical default)")
+	streamExercise := flag.String("stream-exercise", "", "Chapter 6–8 external shape module (default: ch07 under or beside submission)")
+	gui := flag.String("gui", "", "Chapter 7/8 GUI module (default: gui under submission)")
+	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7/8 declared Anthropic GUI fixture (historical default)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 7 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter != 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
+	if *chapter < 1 || *chapter > 8 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7|8 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -69,7 +69,7 @@ func run() int {
 	if *chapter >= 6 && *streamExercise == "" {
 		*streamExercise = appDirectory(path, "ch07")
 	}
-	if *chapter == 7 && *gui == "" {
+	if *chapter >= 7 && *gui == "" {
 		*gui = filepath.Join(path, "gui")
 	}
 	bin, cleanup, err := grade.Build(path)
@@ -98,6 +98,8 @@ func run() int {
 		report, err = gradeedition2.Chapter6(bin, path, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	case 7:
 		report, err = gradeedition2.Chapter7(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
+	case 8:
+		report, err = gradeedition2.Chapter8(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "grader: %v\n", err)
