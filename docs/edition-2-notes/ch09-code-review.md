@@ -2,10 +2,11 @@
 
 Reviewer: Codex independent code reviewer, October 9, 2026.
 
-**Round 1 status: the sole implementation finding is resolved. One correction
-round used (maximum three). Final acceptance awaits the original grader's actual
-result and its assessment.** The initial needs-correction review is preserved
-below; no Chapter 9 score or final acceptance is inferred from partial output.
+**Final verdict, October 10, 2026: accepted with the documented inherited grader
+exceptions. One correction round used (maximum three).** R1 is resolved; no
+implementation, scope or test finding remains open. Actual original grading is
+**80/100 FAIL**, with all four new settings checks passing. The initial review
+and its pending-result statements are preserved below as dated history.
 
 Read the entire mandatory `.agents/skills/ensemble-coding/SKILL.md`, carryover,
 workflow, original Chapter 9 and completed student review, including its
@@ -245,3 +246,69 @@ read the student's final explanation, and assess each new or inherited failure
 before issuing final acceptance. Its earlier build predates this HTML correction
 as well as the previously recorded four-file differences; the final native
 browser results are separate verification, not a final-source original score.
+
+## Final outcome and exception decision — October 10
+
+Read the complete original output, `grader-result.json` and the student's final
+per-failure explanation. Verified the raw output SHA-256 against the collection
+record and all **69** final source hashes against `review-source-r1.json`.
+The sole grading command completed with **80/100 FAIL**, grader exit 1 and make
+exit 2. The recorded approximately 46m59s is an output-file timestamp estimate,
+not separately instrumented process duration.
+
+| Original check | Actual result |
+| --- | --- |
+| Settings roundtrip | 25/25 PASS |
+| Settings on connect | 20/20 PASS |
+| Settings broadcast | 20/20 PASS |
+| Settings restart persistence | 15/15 PASS |
+| Chapter 8 parity | 0/20 FAIL |
+
+The nested report names only Chapter 7 parity under Chapter 8. Five stream check
+labels report 30-second exercise timeouts; they are not five independently
+established invocations. Nested Chapter 6 additionally reports Chapter 5
+`star-topology`, `loud-refusal`, and `hub-clean`. No other Chapter 8 failure or
+unreported nested numeric score is inferred.
+
+I independently accept the student's inherited exception request, with these
+precise grounds:
+
+- **CLI lifetime/protocol mismatch.** The earlier harness launches the submitted
+  GUI command as a finite protocol CLI, closes stdin and waits for exit. The
+  reviewed optional application deliberately leaves its browser service alive
+  when terminal input ends. That accounts for the timeout path; it is not
+  evidence of a new parser hang or successful streaming. Existing deterministic
+  core streaming tests and declared-model live evidence remain the independent
+  behavioral proof. The earlier `fake-model`/plain-fallback conflict is retained
+  separately, not substituted for this run's actual timeout result.
+- **Wrong module for topology inspection.** The original helper uses
+  `go list ./...` in the submitted directory; it does not enumerate the separate
+  core dependency's package graph. Its hub checks derive the expected internal
+  package from that submission's module base. A public optional GUI client
+  therefore has neither the inferred hub nor its own `internal/common` node.
+  This is narrower than saying the core is absent from all transitive imports.
+  The actual core star and parent relationships were independently reviewed;
+  duplicating core packages inside the GUI would undermine Bill's boundary.
+- **Inherited refusal probe.** The original probe sends only `{"user":"test"}`
+  to an unknown model, with no unsupported attachment. It also waits for this
+  same long-lived GUI command to exit before evaluating output. Its failed
+  result is not a new media-refusal regression. The existing accepted policy
+  permits unknown-model text/plain delivery and rejects unsupported media when
+  actually requested; demanding a blanket unknown-model refusal remains the
+  documented earlier contract conflict.
+
+No Chapter 9 settings obligation is waived. R1's speed mismatch was corrected
+and mutation-checked, not accepted as an exception. The original build predates
+the documented CSS/test/documentation and HTML changes; final native-browser
+verification and unchanged Go behavior justify acceptance without repeating the
+same inherited timeout cascade. **No exact-final-source original-grade run is
+claimed.** The original reference's 100/100 PASS and the student's actual
+80/100 FAIL remain distinct from this review decision.
+
+Carry these bounded exceptions and their actual failed results into later parity
+reviews. They do not waive new GUI/browser behavior, core architecture, actual
+streaming, or unsupported-media handling. The later author/grader phase should
+allow the correct core and optional-client entrypoints/module paths and reconcile
+the unknown-model fixture, preserving valid behavior checks. No current product
+feature or grader rewrite is required. All acceptance gates are now satisfied;
+the coordinator may checkpoint and advance the student.

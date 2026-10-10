@@ -1,0 +1,55 @@
+go run ./cmd/grade -ch 9 solutions/edition-2/main/gui
+Open http://localhost:63088; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:63096; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:63180; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:63197; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+Open http://localhost:63212; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+Open http://localhost:63223; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+[think]
+unknown tool "think"
+[think]
+unknown tool "think"
+Chapter 9 — Build Your Dream GUI
+============================================================
+
+[PASS]      update_settings returns settings_changed  (25/25)
+       sent map[theme:light tts_speed:1.5], received matching
+       settings_changed
+
+[PASS]      new connection receives current_settings  (20/20)
+       received current_settings with 5 keys on subscribe
+
+[PASS]      settings broadcast to all clients  (20/20)
+       second client received settings_changed with correct theme
+
+[PASS]      settings survive server restart  (15/15)
+       theme survived server restart
+
+[FAIL]      chapter 8 behavior is unchanged  (0/20)
+       1 ch8 check(s) now fail: [ch7-parity (6 ch7 check(s) now fail:
+       [stream-deltas (exercise exited with an error: exercise did not exit
+       within 30s (stream parser may be waiting for input that never comes))
+       deltas-match-final (exercise exited with an error: exercise did not
+       exit within 30s (stream parser may be waiting for input that never
+       comes)) thinking-streamed (exercise exited with an error: exercise did
+       not exit within 30s (stream parser may be waiting for input that never
+       comes)) tool-params-streamed (exercise exited with an error: exercise
+       did not exit within 30s (stream parser may be waiting for input that
+       never comes)) delivery-not-content (exercise exited with an error:
+       exercise did not exit within 30s (stream parser may be waiting for
+       input that never comes)) ch6-parity (3 ch6 check(s) now fail:
+       [ch5-parity (ch5 check "star-topology" failed: no hub package found
+       (an internal package imported by ≥2 others)) loud-refusal (no loud
+       refusal for unknown model - expected error mentioning model name)
+       hub-clean (internal/common not in import graph)])])]
+
+------------------------------------------------------------
+score: 80/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

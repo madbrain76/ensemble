@@ -35,3 +35,10 @@ and1.2345. The isolated restored defect is exactly HTML `step="any"` changed to
 passing follow-up; original browser results remain untouched. The current generic
 browser script uses End=2; its original0.6 version is retained in progress commit
 89d17e0. `review-source-r1.json` records the source frozen for reassessment.
+
+Final original result collected October10: **80/100 FAIL**, all four settings
+checks passing; only inherited parity fails. `grader-result.json` gives the exact
+raw-output digest, collection date and approximate duration. Earlier pending
+entries above are checkpoint history. The final student review explains each
+nested failure and requests independent acceptance of inherited exceptions;
+failing scores remain failing. No post-R1 grader repeat is claimed.

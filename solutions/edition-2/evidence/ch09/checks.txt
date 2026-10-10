@@ -21,3 +21,8 @@ KILLED restored HTML step=0.1: speed-r1-mutation.json records accepted1.75 vs sl
 PASS browser-r1.json: all12 broader native-browser checks (generic speed control now End=2).
 PASS node --check app.js and speed-check.mjs; git diff --check changed HTML.
 No Go production changes, second grader or paid rerun.
+October10 final original collection:
+make grade-dir CH=9 DIR=solutions/edition-2/main/gui completed once:80/100 FAIL; all4settings checks80/80PASS; inherited ch8parity0/20FAIL with nested earlier CLI/topology checks.
+Actual raw output original-grade.txt; grader-result.json records collection/date/digest/status. Approx46m59s from output-file timestamps.
+No post-R1 original rerun or inferred nested score. See student review per-failure explanation.
+Only3grader-generated gui/test_ch06.log.* runtime files removed after process exit.

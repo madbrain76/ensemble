@@ -4,7 +4,7 @@
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
 instructions, Bill explicitly said "Please proceed autonomously." Student
-Chapters 1–8 are now accepted and checkpointed, with explicit grader exceptions
+Chapters 1–9 are now accepted and checkpointed, with explicit grader exceptions
 where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
@@ -49,21 +49,23 @@ earlier CLI/topology checks ran against the optional GUI module. Earlier core
 results and exceptions remain separate. The grader was not changed or repeated
 solely to traverse those timeouts again; its earlier-binary provenance and final
 checks are preserved in `edition-2-notes/ch08.md` and its comparative review.
-Fresh coder `student_restart_ch09` now follows original Chapter 9 from accepted
-`46fd955` / `edition-2-ch08-r3` in the authoritative main tree. Its sourced
-handoff and scope are in `edition-2-notes/ch09.md`. Its implementation is now
-preserved at progress commit `89d17e0`. Independent initial review found one real
-mismatch: accepted speech speed 1.75 is rounded by the browser slider to 1.8,
-which native speech then uses. The coder corrected that bounded finding in
-round 1, and the reviewer independently verified the saved/control/native-rate
-agreement and restored-defect evidence. No implementation findings remain;
-other ownership/scope/budget checks also passed review. The student
-also supplied exact mutation edits from retained scripts for evidence assessment.
-Reviewed round 1 is checkpointed at `6f38944`: 69 source files, aggregate sorted
-source-manifest SHA-256
+**Chapter 9 is accepted with documented inherited exceptions after one correction
+round (October 10).** All four new settings checks passed (80/80); the actual
+original total remains **80/100 FAIL**, with only inherited parity failing.
+The reviewer independently verified the optional GUI command's lifetime and
+module-path mismatch with older finite CLI/topology checks, plus the inherited
+unknown-model probe conflict. No new settings requirement was waived.
+Round 1 corrected a real browser slider mismatch: saved speech speed 1.75 was
+rounded to 1.8 before native speech. Native browser regressions and restored-defect
+mutations verify the correction. The original build preceded that HTML fix and
+other documented CSS/test/comment changes; no final-source original score is claimed.
+
+Checkpoint `edition-2-ch09-r2` preserves the exact 69-file reviewed source export
+in `solutions/edition-2/ch09/`, aggregate sorted manifest SHA-256
 `92c899ba27aa438052a91f411c3efdd9bce1aadb94a849c79f3aee9a1dd634e0`.
-The sole original grader is still running. No Chapter 9 grade, acceptance or
-frozen export is claimed yet.
+Actual results, provenance and exception rationale are in `edition-2-notes/ch09.md`
+and its comparative review. Chapter 10 (Skills) is next; its sourced public-input
+erratum and scope are prepared in `edition-2-notes/ch10.md`.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous

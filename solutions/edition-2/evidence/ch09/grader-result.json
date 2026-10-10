@@ -1,0 +1,16 @@
+{
+  "collected_at": "2026-10-10T00:01:54.717171-07:00",
+  "command": "make grade-dir CH=9 DIR=solutions/edition-2/main/gui",
+  "invocations": 1,
+  "shell_exit": 2,
+  "grader_report": "80/100 FAIL",
+  "settings_checks": "4 PASS (80/80)",
+  "parity_check": "FAIL (0/20), nested failures retained verbatim in original-grade.txt",
+  "source_manifest": "grader-source.json",
+  "final_review_manifest": "review-source-r1.json",
+  "output_sha256": "b336174cc026c7afb0aab386c2eb2df59c6aaa2c66796fa7239d084e58119bff",
+  "output_created_at": "2026-10-09T23:14:03.108438-07:00",
+  "output_last_modified_at": "2026-10-10T00:01:01.658318-07:00",
+  "approx_duration_seconds_from_output_file": 2818.55,
+  "note": "Elapsed approximation from output file creation to final write; source changed after grading build only as recorded in chapter review, no final-R1 repeat score claimed."
+}
