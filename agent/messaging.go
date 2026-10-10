@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -79,13 +78,17 @@ type parentLink interface {
 	deliver(m *Message) error
 }
 
-// messageSeq numbers messages. A counter rather than a timestamp because two
-// messages posted in the same nanosecond must still have different ids, and
-// on some platforms the clock is coarse enough for that to happen.
-var messageSeq atomic.Uint64
-
-func nextMessageID() string {
-	return fmt.Sprintf("msg-%d", messageSeq.Add(1))
+// nextMessageID returns an id unique within this agent. A counter rather than
+// a timestamp because two messages posted in the same nanosecond must still
+// have different ids, and on some platforms the clock is coarse enough for
+// that to happen. The counter is instance state guarded by the messaging
+// lock, not a package variable, because an id only has to be unique within
+// the pending map that stores it.
+func (a *Agent) nextMessageID() string {
+	a.msg.mu.Lock()
+	defer a.msg.mu.Unlock()
+	a.msg.seq++
+	return fmt.Sprintf("msg-%d", a.msg.seq)
 }
 
 // ErrNoParentLink reports that an agent tried to reach a parent it has no
@@ -114,7 +117,7 @@ func (ErrReplyTimeout) Error() string { return "timed out waiting for a reply" }
 // is what lets a child ask a question without claiming to be done.
 func (a *Agent) MessageParent(content string, timeout time.Duration) (*Message, error) {
 	m := &Message{
-		ID:      nextMessageID(),
+		ID:      a.nextMessageID(),
 		From:    a.Spec().ID,
 		To:      a.Spec().ParentID,
 		Content: content,
@@ -168,7 +171,7 @@ func (a *Agent) MessageUser(content string) error {
 		return fmt.Errorf("agent %s: no user sink configured", a.Spec().ID)
 	}
 	sink.DeliverToUser(&Message{
-		ID:      nextMessageID(),
+		ID:      a.nextMessageID(),
 		From:    a.Spec().ID,
 		To:      a.userAddr(),
 		Content: content,
@@ -294,7 +297,7 @@ func (m *SubAgentManager) Respond(agentID, messageID, response string) error {
 	// was told. Buffered with room for one, so this never blocks even when
 	// the sender has already timed out and gone.
 	msg.reply <- &Message{
-		ID:      nextMessageID(),
+		ID:      m.parent.nextMessageID(),
 		From:    m.parent.Spec().ID,
 		To:      agentID,
 		Content: response,
@@ -339,6 +342,12 @@ type messagingState struct {
 	// here rather than on the parent so that finishing needs no
 	// back-pointer: the parent reads it through the handle it already has.
 	submission *Submission
+
+	// seq numbers this agent's outgoing messages. It is instance state
+	// rather than a package counter because an id only has to be unique
+	// within the pending map that stores it, and a package counter would
+	// make two agents in one process share a sequence they cannot see.
+	seq uint64
 }
 
 func (a *Agent) parentLink() parentLink {

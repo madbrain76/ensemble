@@ -133,6 +133,8 @@ run 19 ./solutions/ch19
 run 21 ./solutions/ch21
 run 22 ./solutions/ch22
 run 23 ./solutions/ch23
+run 24 ./solutions/ch24
+run 25 ./solutions/ch25
 
 {
   echo "SWEEP-DONE breached=$BREACHED limit=${DEADLINE}s"
