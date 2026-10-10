@@ -87,8 +87,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 3 | Complete | Accepted at initial formal review | `601791a`, `edition-2-enhanced-ch03-r1` |
 | 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `7b8f46a`, `edition-2-enhanced-ch04-r1` |
 | 5 (old 6) | Complete | Accepted at initial formal review | `e7f40fa`, `edition-2-enhanced-ch05-r1` |
-| 6 (old 7) | Complete | Accepted at initial formal review | Checkpoint pending |
-| 7 (old 8) | Not started | Pending | — |
+| 6 (old 7) | Complete | Accepted at initial formal review | `54939b6`, `edition-2-enhanced-ch06-r1` |
+| 7 (old 8) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch07-r1` |
 | 8 (old 9) | Not started | Pending | — |
 
 ### Chapters 0–1 acceptance
@@ -302,3 +302,39 @@ detected a wrong final ID only in the second response. Affected checks, selected
 source race tests and four exact published examples pass. The coordinator
 checked source changes and evidence; no runtime or frozen source changed.
 Chapter 7 (original 8) may begin after this checkpoint.
+
+### Chapter 7 grader scope
+
+Retain the four original GUI weights (25/20/15/20) and corrected full Chapter 6
+parity (20). A separate GUI launcher uses the actual submitted GUI module and
+core entry point; grader-only directory/model inputs avoid a new product API.
+Check its public-core dependency on the executable path, real wire/tool content,
+completed replay identity/content, each timestamp/direction/JSON log line, and
+Agent-wide pause with unpause from a second connection. The optional-module
+boundary contributes to the WebSocket check; still run and report legacy wire
+behavior when its old architecture fails that boundary. Establish that pause
+was applied before releasing the first gated tool, using existing observations.
+Active-partial replay, the handoff, fixed window, paused interrupt and browser/
+speech guarantees retain their causal source tests, mutations and actual live
+evidence; do not duplicate them with a new protocol or pretend the numeric
+grader proves them. Preserve the historical earlier-binary 55/100 and legacy
+100/100 original results rather than repeating the known 47-minute wrong-program
+parity cascade. No new runtime feature is authorized.
+
+### Chapter 7 acceptance
+
+Accepted at initial formal combined review, zero correction rounds. See
+[author notes](edition-2-notes/enhancement-07.md), [grader evidence](edition-2-notes/enhancement-07-code.md)
+and [independent review](edition-2-notes/enhancement-07-review.md). Radio, pacing,
+artifact and speech stories remain, with demonstrated ownership, replay and
+readable-content corrections. Original scores remain earlier accepted binary
+55/100 FAIL and legacy 100/100 PASS. Initial revised full runs scored 100/100
+and 20/100; ignoring harmless blank log separators yields final composed
+100/100 and 35/100 from actual rerun GUI components and unchanged core parity.
+Nineteen targeted defects failed intended checks. Independent review also
+removed the replay-only state field and observed only that check fail. Affected
+checks, real GUI race tests and the published launch/client examples pass.
+The reviewer assessed low grader comment density without padding or a quota;
+the direct fixtures explain their lifecycle and ordering choices. No runtime,
+original grader or frozen export changed. Chapter 8 (original 9), the final
+chapter of this bounded pass, may begin after checkpointing.

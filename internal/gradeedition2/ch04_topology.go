@@ -108,6 +108,12 @@ func consumerTopology(core, consumer string) grade.Check {
 // Both external exercises must execute the submitted framework. Share this
 // boundary check rather than let each application validate a different checkout.
 func publicDependency(core, consumer string) error {
+	return publicDependencyTarget(core, consumer, ".")
+}
+
+// Check the package actually built: a clean library does not excuse private
+// imports or another core checkout in its executable composition root.
+func publicDependencyTarget(core, consumer, target string) error {
 	coreDir, err := filepath.EvalSymlinks(core)
 	if err == nil {
 		coreDir, err = filepath.Abs(coreDir)
@@ -119,7 +125,7 @@ func publicDependency(core, consumer string) error {
 	if base == "" || consumerBase == "" || base == consumerBase {
 		return fmt.Errorf("core and consumer need distinct module declarations")
 	}
-	dependencies, err := listPackages(consumer, "-deps", ".")
+	dependencies, err := listPackages(consumer, "-deps", target)
 	if err != nil {
 		return err
 	}

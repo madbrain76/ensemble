@@ -98,6 +98,28 @@ source-test evidence. Original scores and the mistaken Gemini 2.5 selection
 remain recorded alongside the later compliant 3.8 run. See the Chapter 6
 enhancement notes for exact results and review status.
 
+Bill also clarified that chapters need the right length, not simply fewer words.
+The coordinator checked source-relative counts and the author's instructions:
+no per-chapter reduction target had been assigned, and every enhanced chapter
+through Chapter 6 grew against its main original source. The merged Chapter 4
+is shorter only than original Chapters 4 and 5 combined. The inherited voice
+guide's cut pass must be read with its explicit “Length is not the test” rule;
+preserve useful explanations and personality regardless of soft length warnings.
+The author and independent reviewer received this clarification before Chapter 7.
+
+Chapter 7 enhancement separates the optional GUI executable from headless parity.
+The original shared-directory assumption had spent roughly 47 minutes applying
+CLI exercises to a continuing GUI server; its actual earlier-binary 55/100 stays
+historical evidence, including the genuine replay-field defect. The corrected
+driver inspects the dependencies of the executable it actually builds, rather
+than a clean library beside it. For pause, an inbound log line proves receipt
+before application; an ordered WebSocket ping/pong after the synchronous handler
+provides the needed barrier before releasing the real first tool. Another tab
+then unpauses the same Agent gate. Initial strict log parsing also rejected
+legacy blank separators produced by two newline writers; validate every actual
+record without interpreting harmless separators as malformed messages. These
+are grader and evidence corrections, not reasons to alter the frozen runtime.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
