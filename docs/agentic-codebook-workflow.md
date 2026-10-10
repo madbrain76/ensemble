@@ -582,6 +582,18 @@ reported substantial subscription usage; exact cost attribution was not
 measured. The repository evidence establishes scope expansion, not a diagnosis
 of which training data or internal model mechanism caused it.
 
+The fresh run adds a concrete limit to mutation evidence. Chapter 8's passing
+browser checks and targeted mutants missed an empty Gemini text part rendered
+as metadata; the reviewer found it in the retained live capture. Chapter 9's
+initial mutations missed accepted speech rates between the slider's step values;
+the reviewer independently tried 1.75 and observed native speech at 1.8. The
+checks were sensitive to their chosen defects without covering those other
+valid inputs. Both defects received small corrections and focused restored-defect
+checks. See `edition-2-notes/ch08.md` and `edition-2-notes/ch09.md` plus their
+independent reviews. This supports the existing rule that mutation kills do not
+prove a shared assumption or completeness; it does not justify exhaustive input
+matrices, a new test framework, or expanded product requirements.
+
 ## Chapter notes belong to every agent
 
 Any agent may contribute a lesson: the coder, code reviewer, orchestrator or
