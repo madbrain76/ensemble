@@ -4,7 +4,7 @@
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
 instructions, Bill explicitly said "Please proceed autonomously." Student
-Chapters 1–7 are now accepted and checkpointed, with explicit grader exceptions
+Chapters 1–8 are now accepted and checkpointed, with explicit grader exceptions
 where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
@@ -33,25 +33,24 @@ evidence, including actual model, hint ordering and final answer; all findings
 are resolved. Keep the initial artifacts and selection error. The closely spaced
 Gemini stdout writes do not demonstrate visibly paced typing; the deterministic
 gated CLI test independently verifies flushing before response completion.
-Original Chapter 8 preparation is recorded in `edition-2-notes/ch08.md`; its
-frozen reference grader passed 100/100. Fresh coder `student_restart_ch08` now
-extends accepted `7c940fc` / `edition-2-ch07-r4` in `solutions/edition-2/main/`.
-Its assignment includes Bill's global pause semantics, optional GUI module,
-Gemini 3.8 restriction, actual browser exercise and the sourced launch erratum.
-Chapter 8 implementation is now frozen after correction round 1. Core and
-GUI checks, browser/native speech checks, targeted mutations and three-provider
-live GUI turns are recorded in its student review. No subjective speech-listening
-result is claimed. The original GUI grader is still traversing inherited CLI
-timeouts; its initial GUI binary predates later socket-shutdown and terminal
-display edits, which final affected checks exercised separately. Preserve that
-provenance rather than calling it exact final-source grading. Initial independent
-review requests correction round 1 for empty-text/opaque-data display projection,
-one exported test-method comment and replay status missing its required `from`
-field. The reviewer has independently verified all three corrections, including the
-actual browser/native-speech projection evidence and focused race checks. The
-sole remaining acceptance gate is the original grading result and diagnosis of
-any new GUI failure; the result concerns its earlier built binary, including
-the missing replay field corrected afterward. No Chapter 8 acceptance is claimed.
+**Chapter 8 is accepted with documented exceptions after one correction round.**
+Checkpoint `edition-2-ch08-r3` preserves the exact 66-file export, including the
+separate GUI module and browser assets. Its original GUI-directory grader took
+roughly 47 minutes and returned **55/100 FAIL**: replay, transport logging and
+pause passed. The earlier binary lacked replay status `from`; this genuine bug
+was corrected and independently verified in round 1, not waived. Round 1 also
+fixed empty/opaque metadata appearing in display/speech and documented an exported
+test method. Actual browser/native-speech tests, targeted mutations, core/GUI
+checks and three-provider live GUI turns support acceptance. No subjective
+speech-listening result or final-source original-grader score is claimed.
+
+The reviewer independently accepted the inherited single-directory mismatch:
+earlier CLI/topology checks ran against the optional GUI module. Earlier core
+results and exceptions remain separate. The grader was not changed or repeated
+solely to traverse those timeouts again; its earlier-binary provenance and final
+checks are preserved in `edition-2-notes/ch08.md` and its comparative review.
+Chapter 9 preparation is in `edition-2-notes/ch09.md`; assignment follows this
+checkpoint. No author is active.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
@@ -513,6 +512,14 @@ explicit exception to the ordinary chapter voice, not permission to impersonate
 Bill. Write it from the completed experiment and its actual outcomes, including
 the failed first attempt and what was learned. Leave the first-edition epilogue
 intact. The epilogue is the final writing step, not a prediction drafted now.
+
+A local progress commit can precede chapter acceptance when a coherent, tested
+stage is complete. Mark the remaining gate plainly and preserve its actual status;
+reserve the accepted chapter export/tag for the completed review. Chapter 8's
+reviewed correction round was committed as `2af66bb` while the original grader
+continued its inherited CLI timeout chain. Waiting for that result did not need
+to leave the completed source uncommitted. Commit only the owned paths in this
+shared workspace; retain pending evidence separately until its process finishes.
 
 Publication and pushing remain Bill's decisions. Local checkpoints document
 the work; they do not imply editorial approval or a published release.

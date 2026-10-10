@@ -2,3 +2,42 @@ go run ./cmd/grade -ch 8 solutions/edition-2/main/gui
 Open http://localhost:61045; terminal messages while busy are hints. /interrupt ends the turn.
 Open http://localhost:61054; terminal messages while busy are hints. /interrupt ends the turn.
 Open http://localhost:61065; terminal messages while busy are hints. /interrupt ends the turn.
+Chapter 8 — Everything Is an Artifact
+============================================================
+
+[FAIL]      WebSocket delivers all observation types  (0/25)
+       state_changed missing from or to: {Type:state_changed PartID:[] Kind:
+       Chunk: Seq:0 Text: Error: From: To:idle CallID: Name: Input:[] Result:
+       IsError:false Agent: Content: Actor: First:0 Last:0 Tool: Args:}
+
+[PASS]      reconnection delivers event-log window  (20/20)
+       replay returned 5 messages with event-log content
+
+[PASS]      gui.log records WebSocket traffic  (15/15)
+       gui.log has 22 lines with both directions, timestamps, and JSON
+
+[PASS]      pause gate holds tool dispatch  (20/20)
+       all 3 tools dispatched and finished; turn ended after unpause
+
+[FAIL]      chapter 7 behavior is unchanged  (0/20)
+       6 ch7 check(s) now fail: [stream-deltas (exercise exited with an
+       error: exercise did not exit within 30s (stream parser may be waiting
+       for input that never comes)) deltas-match-final (exercise exited with
+       an error: exercise did not exit within 30s (stream parser may be
+       waiting for input that never comes)) thinking-streamed (exercise
+       exited with an error: exercise did not exit within 30s (stream parser
+       may be waiting for input that never comes)) tool-params-streamed
+       (exercise exited with an error: exercise did not exit within 30s
+       (stream parser may be waiting for input that never comes))
+       delivery-not-content (exercise exited with an error: exercise did not
+       exit within 30s (stream parser may be waiting for input that never
+       comes)) ch6-parity (3 ch6 check(s) now fail: [ch5-parity (ch5 check
+       "star-topology" failed: no hub package found (an internal package
+       imported by ≥2 others)) loud-refusal (no loud refusal for unknown
+       model - expected error mentioning model name) hub-clean
+       (internal/common not in import graph)])]
+
+------------------------------------------------------------
+score: 55/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

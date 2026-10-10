@@ -1,11 +1,11 @@
 # Chapter 8 comparative code review
 
-Reviewer: `review_restart_ch01`, October 9, 2026. **All three initial findings
-resolved after correction round 1 (maximum three); acceptance pending original
-grading outcome.** The initial review is preserved below as history.
-Original GUI grading is still running; no score or acceptance is claimed.
-The grader's earlier built binary and current reviewed source are distinguished
-under verification. Complete the grading record before final acceptance.
+Reviewer: `review_restart_ch01`, October 9, 2026. **Accepted with documented
+exceptions after one correction round (maximum three).** All three findings are
+resolved. The original GUI-directory result is **55/100 FAIL** on the earlier
+binary, not a final-source pass. The final disposition below distinguishes its
+corrected implementation defect from the inherited entry-point mismatch. Initial
+review and pending-result stages remain preserved as history.
 
 Read the full `.agents/skills/ensemble-coding/SKILL.md`, carryover, workflow,
 original Chapter 8 and the [student review](ch08.md). Chapter SHA-256:
@@ -179,7 +179,7 @@ Flash. Each real command returns its marker and exit 0; observed deltas are
 message on the same Agent. These successful interactions do not erase the extra
 Gemini metadata card, which their retained visible capture exposes.
 
-## Original grading and departures — outcome pending
+## Original grading and departures — initial pending assessment
 
 The original reference baseline is **100/100 PASS**, as recorded by the
 coordinator. The student's one ongoing original run submits `main/gui`, not the
@@ -258,3 +258,60 @@ its own diagnosis; optional-GUI/CLI structural mismatch and previously accepted
 Chapter 7 exceptions do not automatically waive it. No implementation finding is
 currently open, but chapter acceptance remains withheld until this grading record
 is resolved. Reviewer checks left no scratch files or processes.
+
+## Final grading assessment and acceptance
+
+Read the completed original output and the student's final result/provenance
+append before deciding. The sole original command was
+`make grade-dir CH=8 DIR=solutions/edition-2/main/gui`; actual result **55/100
+FAIL**, grader exit 1 and Make/tool exit 2, after roughly 47 minutes. It graded
+the earlier built GUI binary, not checkpoint `2af66bb` or the headless core.
+
+| Original check | Actual result and disposition |
+| --- | --- |
+| Observation types/fields | **0/25 FAIL** for replay `state_changed.from`; genuine initial defect, fixed and independently verified in round 1, not waived |
+| Event replay | **20/20 PASS** |
+| GUI logging | **15/15 PASS**, 22 lines with both directions |
+| Pause holds tools | **20/20 PASS**, three calls complete after unpause |
+| Chapter 7 parity | **0/20 FAIL**, inherited CLI launches/timeouts and module-topology/refusal checks applied to the GUI submission |
+
+I accept the student's requested **aggregate inherited-entry-point exception**.
+Independent harness inspection confirms `Ch8Run` passes its same GUI directory to
+`Ch7Run`; those inherited launchers expect finite protocol exercises and scan the
+submitted module's core topology. This GUI command is a continuing HTTP server
+in the required separate optional module. Five streaming check labels report
+exercise timeouts; that is not five independent process launches. Those failures,
+no-hub/common-import findings and text-model refusal finding do not establish a
+regression in the actual core command. The real common/star owner chain, shared
+Agent, independent core tests and previous core grading remain separately reviewed.
+Adding a second core exercise implementation or coupling GUI into core solely to
+satisfy this directory assumption is not warranted. Later grader maintenance
+should accept the appropriate separate core/GUI entry points and retain meaningful
+parity coverage. This is a narrowly recorded exception, not a waiver of behavior.
+
+The prior actual core Chapter 7 **0/100 FAIL** and its fake-model streaming and
+inherited logger/text-model exceptions remain visible and unchanged. No new core
+score is claimed. No exception for the `think` fixture is needed: the actual pause
+check passed, and the independent controlled real-shell pause evidence remains
+the stronger causal test. My earlier concern about that fixture does not become
+a claimed failure or additional waiver.
+
+The missing `from` field is an implementation correction, not a grader defect.
+Its initial zero score stays recorded. Current-source tests and the restored-field
+mutation establish its repair; other required lifecycle types/fields are supported
+by real WebSocket tests and live captures. The old grader result does not prove
+all later field checks would pass. Socket writer lifetimes, terminal display and
+browser projection likewise use their already-reviewed affected final-source
+evidence. No exact final-source original grader was run, and no hypothetical
+replacement score is assigned. Repeating the known inherited timeout cascade
+would not meaningfully verify these bounded changes.
+
+**Chapter 8 is accepted with the entry-point/inherited parity exceptions and the
+documented flags/environment departure.** No architecture, current-feature,
+test-sensitivity or scope finding remains open. Counts and limitations are the
+round-1 figures above. Native speech events are verified without claiming human
+listening or intelligibility. Original failures, mutation survivors, capture
+corrections and initial findings remain in history. Student runtime logs have been
+removed; current source status is clean at its progress checkpoint. Reviewer
+changed only this report, with no source, grader, original answer, export or tag
+edits and no paid repeats or remaining scratch/processes.
