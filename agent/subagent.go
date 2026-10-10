@@ -93,6 +93,12 @@ type SubAgent struct {
 	// Agent is the child itself.
 	Agent *Agent
 
+	// mgr is the fleet this child belongs to, so a state change can wake a
+	// parent blocked in Join. A back-pointer rather than a callback because
+	// there is exactly one fleet a child can belong to, and it never
+	// changes.
+	mgr *SubAgentManager
+
 	// mu guards every field below it. The parent's actor reads this
 	// concurrently with the child's own turn goroutine writing it.
 	mu sync.Mutex
@@ -257,7 +263,7 @@ func (m *SubAgentManager) Spawn(id, task string, adjust func(*AgentSpec)) (*SubA
 		child.SetUser(m.parent.userAddr(), sink)
 	}
 
-	sub := &SubAgent{ID: id, Task: task, Agent: child, state: SubAgentIdle}
+	sub := &SubAgent{ID: id, Task: task, Agent: child, mgr: m, state: SubAgentIdle}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()

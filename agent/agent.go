@@ -214,6 +214,7 @@ type Agent struct {
 	sb         *sandbox.Sandbox // confinement; holds a back-pointer to this agent
 	mcpClients []*mcp.Client    // active MCP connections for cleanup
 	msg        messagingState   // links to this agent's parent and to the user
+	subs       *SubAgentManager // this agent's children
 }
 
 // Sandbox returns the agent's confined filesystem.
@@ -501,6 +502,12 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 	a.sb = sandbox.New(a)
 	a.jobs = jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
+
+	// The fleet manager exists from the start, with no factory. An agent
+	// that is never given one still answers status queries about an empty
+	// fleet, which is what a leaf agent needs; it simply cannot spawn.
+	a.subs = NewSubAgentManager(a, nil)
+	a.registerWorkflowTools()
 
 	// Safe mode withholds the tools that run arbitrary programs. They are
 	// removed from the registry, not forbidden in the prompt, and the

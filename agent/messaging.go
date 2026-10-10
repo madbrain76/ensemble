@@ -309,6 +309,11 @@ type messagingState struct {
 	user   UserSink
 	// addr is the human's address. Empty means the UserID default.
 	addr string
+
+	// submission is this agent's result, nil until it submits. It lives
+	// here rather than on the parent so that finishing needs no
+	// back-pointer: the parent reads it through the handle it already has.
+	submission *Submission
 }
 
 func (a *Agent) parentLink() parentLink {
