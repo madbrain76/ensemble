@@ -43,6 +43,17 @@ and the exact published fixture runs through all three offline renderers.
 Original graders, frozen exports and product code are unchanged. Details and
 the checkpoint are linked from the enhancement plan.
 
+Chapter 3 enhancement is also independently accepted at initial formal review.
+Its revised grader exposes a real legacy omission: search ignored the original
+chapter's `context_lines` requirement, yielding 96/100 versus the accepted
+student's 100/100. Legacy compatibility is not a reason to hide a valid failure.
+The new Chapter 2 capture fake initially repeated a tool call indefinitely when
+the Chapter 3 loop answered it. A zero-usage terminating reply fixed the fixture
+without weakening capture assertions; both chapters were revalidated. This
+repeated the earlier fake-lifetime lesson: a chapter boundary is not a protocol
+completion boundary. The original student score remains 90/100 FAIL. See the
+Chapter 3 enhancement evidence and review linked from the enhancement plan.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

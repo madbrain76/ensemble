@@ -239,7 +239,12 @@ func checkCapture(check *grade.Check, vendor string, events []grade.Ch2LogLine) 
 }
 
 func checkUnresolvedCapture(check *grade.Check, bin, work string) {
-	fake := fakevendor.New([]fakevendor.Reply{{ToolName: "read_file", ToolID: "capture-call", ToolArgs: `{"path":"config.json"}`, Usage: fakevendor.Canonical{Input: 1, Output: 1}}})
+	fake := fakevendor.New([]fakevendor.Reply{
+		{ToolName: "read_file", ToolID: "capture-call", ToolArgs: `{"path":"config.json"}`, Usage: fakevendor.Canonical{Input: 1, Output: 1}},
+		// Chapter 2 only records the call; later chapters answer it. Let their
+		// real loop finish without adding usage or bypassing tool dispatch.
+		{Text: "Capture complete."},
+	})
 	defer fake.Close()
 	// An unknown routing name with a local fake needs no model discovery. The
 	// response supplies modelVersion; Chapter 2 records the unanswered call.

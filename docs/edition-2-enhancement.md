@@ -78,8 +78,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | Edition 2 chapter | Author/coder | Independent review | Checkpoint |
 | --- | --- | --- | --- |
 | 0–1 | Complete | Accepted after one prose correction | `02efcd4`, `edition-2-enhanced-ch01-r1` |
-| 2 | Complete | Accepted at initial formal review | `edition-2-enhanced-ch02-r1` |
-| 3 | Not started | Pending | — |
+| 2 | Complete | Accepted at initial formal review | `ec8c901`, `edition-2-enhanced-ch02-r1` |
+| 3 | Complete | Accepted at initial formal review | `edition-2-enhanced-ch03-r1` |
 | 4 (includes old 5) | Not started | Pending | — |
 | 5 (old 6) | Not started | Pending | — |
 | 6 (old 7) | Not started | Pending | — |
@@ -184,3 +184,19 @@ independently verified the empty-stub mutation and exact published sample.
 Affected tests/vet pass. The broad root test is explicitly incomplete following
 unrelated script-package setup failures; it is not reported as passing.
 No product code or original source changed. Chapter 3 may now begin.
+
+### Chapter 3 acceptance
+
+Accepted at initial formal combined review, zero correction rounds. The original
+tool-count and editing stories remain; additions clarify arguments, ownership,
+credential handling and actual live use. See [author notes](edition-2-notes/enhancement-03.md),
+[grader evidence](edition-2-notes/enhancement-03-code.md) and
+[review](edition-2-notes/enhancement-03-review.md). Revised student grading is
+100/100; legacy grading is 96/100 because its search tool omits the context
+required by the original prose. Original results remain student 90/100 FAIL
+and legacy 100/100 PASS. Seven targeted defects and two score-accounting cases
+verify the changes; affected tests/vet and own-binary fake demos pass.
+The Chapter 2 capture fake now terminates after a tool result so Chapter 3 can
+use it without looping; both chapters were revalidated. The coordinator checked
+the source diff and unchanged original/frozen paths. Chapter 4 may now begin,
+including the original Chapter 5 external-consumer proof.
