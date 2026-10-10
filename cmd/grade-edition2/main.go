@@ -20,13 +20,15 @@ func main() {
 func run() int {
 	chapter := flag.Int("ch", 1, "Edition 2 chapter to grade")
 	asJSON := flag.Bool("json", false, "emit the report as JSON")
-	consumer := flag.String("consumer", "", "Chapter 4/5 separate consumer module (default: ch05 under or beside submission)")
-	consumerCase := flag.String("consumer-case", "", "Chapter 4/5 JSON case file (default: accepted shout example)")
-	workflow := flag.String("workflow", "", "Chapter 5 workflow module (default: ch06 under or beside submission)")
-	mediaModels := flag.String("media-models", "", "Chapter 5 JSON vendor/model map (default: historical accepted fixtures)")
+	consumer := flag.String("consumer", "", "Chapter 4–6 separate consumer module (default: ch05 under or beside submission)")
+	consumerCase := flag.String("consumer-case", "", "Chapter 4–6 JSON case file (default: accepted shout example)")
+	workflow := flag.String("workflow", "", "Chapter 5/6 workflow module (default: ch06 under or beside submission)")
+	mediaModels := flag.String("media-models", "", "Chapter 5/6 JSON vendor/model map (default: historical accepted fixtures)")
+	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6 declared Anthropic streaming fixture (historical default)")
+	streamExercise := flag.String("stream-exercise", "", "Chapter 6 external shape module (default: ch07 under or beside submission)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 5 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter != 5 && (*workflow != "" || *mediaModels != "")) {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [submission-directory]")
+	if *chapter < 1 || *chapter > 6 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter != 6 && *streamExercise != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [submission-directory]")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -34,8 +36,8 @@ func run() int {
 		path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter)
 		if *chapter == 4 {
 			path = "./solutions/edition-2/ch05" // Edition 2 folds original Chapter 5 into 4.
-		} else if *chapter == 5 {
-			path = "./solutions/edition-2/ch06"
+		} else if *chapter >= 5 {
+			path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter+1)
 		}
 	}
 	var example gradeedition2.ConsumerCase
@@ -51,7 +53,7 @@ func run() int {
 		}
 	}
 	var models map[string]string
-	if *chapter == 5 {
+	if *chapter >= 5 {
 		var err error
 		models, err = gradeedition2.ReadMediaModels(*mediaModels)
 		if err != nil {
@@ -61,6 +63,9 @@ func run() int {
 		if *workflow == "" {
 			*workflow = appDirectory(path, "ch06")
 		}
+	}
+	if *chapter == 6 && *streamExercise == "" {
+		*streamExercise = appDirectory(path, "ch07")
 	}
 	bin, cleanup, err := grade.Build(path)
 	if err != nil {
@@ -84,6 +89,8 @@ func run() int {
 		report, err = gradeedition2.Chapter4(bin, path, *consumer, example)
 	case 5:
 		report, err = gradeedition2.Chapter5(bin, path, *consumer, *workflow, example, models)
+	case 6:
+		report, err = gradeedition2.Chapter6(bin, path, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "grader: %v\n", err)

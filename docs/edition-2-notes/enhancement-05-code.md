@@ -87,9 +87,10 @@ No redundant full inherited sweep was performed. Component checks and this
 composition method are recorded in `accepted-revised05-final-composed.json` and
 `legacy-revised05-final-composed.json`; original full-run artifacts remain.
 
-Legacy still fails corrected parity (including earlier fake-routing/provenance
-and search/append requirements), full final-part observations, and actual local
-media. Its adjacent Chapter 5 app needs stdin and does not perform the default
+Legacy still fails corrected parity (10 points; including earlier fake-routing/
+provenance and search/append requirements), `not-deaf` (25; no matching tool-result
+final), `observer-fires` (15; missing full final content), and actual local media
+(10). Its adjacent Chapter 5 app needs stdin and does not perform the default
 no-argument consumer demonstration; this is recorded as unverified/failing,
 not replaced with a new compatibility app. No consumer implementation was adapted.
 

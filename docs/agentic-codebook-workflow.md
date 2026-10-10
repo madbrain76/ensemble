@@ -85,6 +85,19 @@ versioned grader now exercises those public boundaries, while reliable request
 replies and manuscript handoffs retain their separate integration/source proof.
 These are corrections of evidence claims, not new product protocols.
 
+Chapter 6 enhancement found two distinct fixture assumptions to correct:
+streaming needs a model the submitted table declares, and part IDs must be
+compared within their response boundary. A second response deliberately reuses
+a valid ID, so a global map cannot silently overwrite the first response.
+The external example reports aggregate shape; requiring per-part CLI records
+from it would invent a new interface. The corrected grader instead drives the
+existing core observations and the actual separate example for their respective
+claims. Captured requests verify delivery flags and successful tool execution;
+gated flushing, detailed vendor parsing and opaque replay retain their focused
+source-test evidence. Original scores and the mistaken Gemini 2.5 selection
+remain recorded alongside the later compliant 3.8 run. See the Chapter 6
+enhancement notes for exact results and review status.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

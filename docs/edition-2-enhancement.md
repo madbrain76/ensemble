@@ -15,6 +15,11 @@ with upfront architecture, using the carryover and workflow records.
   titles, stories, argument and useful explanations. Change only what recorded
   lessons, corrected architecture, clarified contracts or numbering require.
   Start from the original text, never the discarded Edition 2 draft.
+- Bill clarified during the resumed pass: each chapter must be the right
+  length, not simply smaller. There is no chapter-trimming target. Preserve
+  enough explanation, examples and personality to teach well; neither fewer
+  words nor more words establishes improvement. Soft length warnings do not
+  justify cuts to useful material.
 - Author and prose reviewer read all of `book/voice.md` and
   `book/chapter-writing-procedure.md`. The old procedure's author-first sequence,
   fixed whole-book chapter count and expanded-contract machinery do not govern
@@ -81,8 +86,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 2 | Complete | Accepted at initial formal review | `ec8c901`, `edition-2-enhanced-ch02-r1` |
 | 3 | Complete | Accepted at initial formal review | `601791a`, `edition-2-enhanced-ch03-r1` |
 | 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `7b8f46a`, `edition-2-enhanced-ch04-r1` |
-| 5 (old 6) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch05-r1` |
-| 6 (old 7) | Not started | Pending | — |
+| 5 (old 6) | Complete | Accepted at initial formal review | `e7f40fa`, `edition-2-enhanced-ch05-r1` |
+| 6 (old 7) | Complete | Accepted at initial formal review | Checkpoint pending |
 | 7 (old 8) | Not started | Pending | — |
 | 8 (old 9) | Not started | Pending | — |
 
@@ -268,3 +273,32 @@ after concurrent first-edition edits temporarily broke the shared build. All
 submitted-file hashes matched; a final shared command build also passed after
 those concurrent changes settled. No runtime, original grader or frozen source
 was changed by this pass. Chapter 6 (original 7) may begin after checkpointing.
+
+### Chapter 6 grader scope
+
+Retain the six original streaming check weights (100 total), with corrected
+Chapter 5 parity. Select an explicitly declared streaming-model fixture through
+a grader-only optional input; separately verify unknown-model plain fallback.
+Use the existing core observation stream for per-part proof, correlating IDs
+within actual response boundaries. Execute the independent ch07 module for its
+existing aggregate shape/latency/content report and verify its public dependency
+resolves to the submitted core. Do not add per-delta output to that application
+merely to suit the grader. Preserve original checks, strengthen final content/
+usage equality, and retain the separate real source-test evidence for gated CLI
+flush, SSE framing and ownership. No new product or GUI protocol is authorized.
+
+### Chapter 6 acceptance
+
+Accepted at initial formal combined review, zero correction rounds. See
+[author notes](edition-2-notes/enhancement-06.md), [grader evidence](edition-2-notes/enhancement-06-code.md)
+and [independent review](edition-2-notes/enhancement-06-review.md). The source
+stories remain, including the real hint-routing defect and correction of the
+initial Gemini model choice. Original scores remain accepted 0/100 FAIL and
+legacy 90/100 FAIL. Full initial revised runs scored 100/100 and 70/100; final
+composed scores retain those totals, using actual rerun streaming components
+and unchanged parity. Eighteen targeted defects were detected, and one
+ineffective mutation survivor is explicitly preserved. Independent review also
+detected a wrong final ID only in the second response. Affected checks, selected
+source race tests and four exact published examples pass. The coordinator
+checked source changes and evidence; no runtime or frozen source changed.
+Chapter 7 (original 8) may begin after this checkpoint.
