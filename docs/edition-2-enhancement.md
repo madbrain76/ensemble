@@ -79,8 +79,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | --- | --- | --- | --- |
 | 0–1 | Complete | Accepted after one prose correction | `02efcd4`, `edition-2-enhanced-ch01-r1` |
 | 2 | Complete | Accepted at initial formal review | `ec8c901`, `edition-2-enhanced-ch02-r1` |
-| 3 | Complete | Accepted at initial formal review | `edition-2-enhanced-ch03-r1` |
-| 4 (includes old 5) | Not started | Pending | — |
+| 3 | Complete | Accepted at initial formal review | `601791a`, `edition-2-enhanced-ch03-r1` |
+| 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `edition-2-enhanced-ch04-r1` |
 | 5 (old 6) | Not started | Pending | — |
 | 6 (old 7) | Not started | Pending | — |
 | 7 (old 8) | Not started | Pending | — |
@@ -200,3 +200,39 @@ The Chapter 2 capture fake now terminates after a tool result so Chapter 3 can
 use it without looping; both chapters were revalidated. The coordinator checked
 the source diff and unchanged original/frozen paths. Chapter 4 may now begin,
 including the original Chapter 5 external-consumer proof.
+
+### Chapter 4 grader composition agreed before implementation
+
+Keep the original job checks at 100 points, with corrected inherited parity.
+Add 60 points for external consumer execution (25, including separate build),
+star imports (25), and an emitted tool diagnostic (10). Grader-only consumer
+directory/case inputs allow an arbitrary custom tool without prescribing public
+API spellings or adding product commands. The external dependency must resolve
+to the submitted core. New results use 160 total and preserve historical Chapter
+4 and Chapter 5 scores separately.
+
+The reviewer inspected original Chapter 5's unexported global-variable grep
+check: name-based exemptions can hide mutable state, while other declarations
+can falsely fail. Its flawed logger AST check likewise misses actual multi-hop
+parent interfaces. Correct these claims by retaining mandatory source review
+of ownership, actual composition, common-package behavior and no mutable global
+application state; do not report automatic proof from names or emitted logs.
+The architecture remains binding. This scope decision does not authorize a
+new semantic-analysis framework or removal of valid job/consumer coverage.
+
+### Chapter 4 acceptance
+
+Accepted at initial formal combined review, zero correction rounds, with one
+recorded inherited source-test exception. See [author notes](edition-2-notes/enhancement-04.md),
+[coder evidence](edition-2-notes/enhancement-04-code.md) and
+[independent review](edition-2-notes/enhancement-04-review.md). The chapter retains
+the original jobs stories and incorporates the external consumer/logger lesson.
+Revised results are accepted 160/160 and legacy 90/160; original results remain
+unchanged. Thirteen targeted changed-behavior defects are detected. Affected
+tests/vet and published examples pass. Two immediate descendant-PID existence
+assertions failed in the unchanged source tests; bounded diagnostic runs captured
+no failing process state. The reviewer accepted that stronger assertion as a
+test limitation using source and independent group-kill evidence, without claiming
+a zombie was observed or waiving group kill. No runtime or frozen export changed.
+The coordinator checked the prose diff, grader, evidence and disposition. Chapter
+5 (original 6) may now begin after this checkpoint.

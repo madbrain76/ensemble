@@ -54,6 +54,27 @@ repeated the earlier fake-lifetime lesson: a chapter boundary is not a protocol
 completion boundary. The original student score remains 90/100 FAIL. See the
 Chapter 3 enhancement evidence and review linked from the enhancement plan.
 
+During Chapter 4 enhancement, the coder reported that the new debugger JSON
+example was overescaped, and the coordinator relayed that claim before checking
+it. The author challenged it without editing the source. Direct decoding of
+both the chapter and the coder's earlier saved artifact yielded code points
+`[92,40,100,108,118,92,41,32]`, correctly matching `(dlv) `. The coder had
+misread the JSON-escaped display of a Python representation as the payload.
+The coordinator independently verified the decoded value and corrected its
+user-facing claim. No regex edit or paid rerun was needed. This repeats the
+original Chapter 4 evidence-reading mistake despite documented guidance:
+inspect decoded values before diagnosing or relaying an escaping defect.
+
+Chapter 4's combined jobs/external-consumer gate replaced source-shape claims
+with accurate limits: real handler output and resolved imports are observable,
+while actual ownership and absence of mutable globals require source review.
+The legacy grader had accepted an unknown-tool error as custom-tool proof.
+The new grader detects thirteen targeted defects and honestly fails the legacy
+export lacking an external consumer. Independent review also found two failures
+of an immediate descendant-PID existence assertion; it recorded a narrow test
+exception, with group-kill behavior still binding and the reaping explanation
+unverified. See the Chapter 4 enhancement review for evidence and limits.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
