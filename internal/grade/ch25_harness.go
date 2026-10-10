@@ -60,6 +60,24 @@ const (
 	ch25LeafDone  = "LEAFDONE-7a90c5"
 
 	ch25TaskIdle = "CH25-TASK-IDLE"
+
+	// A command that takes its time. The sentinel is arithmetic the shell
+	// works out, so the literal the probe searches for never appears in the
+	// tool arguments: a probe that matches its own request would pass without
+	// the command having run at all.
+	ch25SlowCmd = `sleep 12 && echo "SLOWDONE-$((123456+789))"`
+	ch25SlowPay = "SLOWDONE-124245"
+
+	// Typed at the agent while that wait is in progress. If this text reaches
+	// the model, the only thing that can have carried it is the wait ending
+	// early, because the callback was pushed out past the end of the run.
+	ch25Interrupt = "INTERRUPT-9b24e7"
+
+	// Long enough that the job's own callback cannot be what wakes the agent.
+	ch25LongDelay = 60
+
+	// The child that never finishes.
+	ch25IdleChild = "driftr-6c81"
 )
 
 // Ch25Run grades a submission.
@@ -75,6 +93,8 @@ func Ch25Run(dir string) Ch25Result {
 	ch25Fleet(bin, &r)
 	ch25Visibility(bin, &r)
 	ch25Messaging(bin, &r)
+	ch25Interrupted(bin, &r)
+	ch25Idle(bin, &r)
 	return r
 }
 
@@ -97,6 +117,14 @@ type ch25Session struct {
 }
 
 func ch25Launch(bin, workdir, url string, args []string, prompt string, onLine func(line string, stdin io.Writer)) ch25Session {
+	return ch25LaunchOpts(bin, workdir, url, args, prompt, onLine, nil)
+}
+
+// ch25LaunchOpts adds onStart, which runs in its own goroutine once the prompt
+// has been sent. A probe that has to deliver a message while a tool is still
+// running cannot wait for a particular output line to cue it, because the
+// agent is busy inside the tool and may print nothing at all until it is done.
+func ch25LaunchOpts(bin, workdir, url string, args []string, prompt string, onLine func(line string, stdin io.Writer), onStart func(stdin io.Writer)) ch25Session {
 	var s ch25Session
 	cmd := exec.Command(bin, args...)
 	cmd.Dir = workdir
@@ -144,6 +172,9 @@ func ch25Launch(bin, workdir, url string, args []string, prompt string, onLine f
 	}()
 
 	fmt.Fprintf(stdin, "%s\n", ch25Prompt(prompt))
+	if onStart != nil {
+		go onStart(stdin)
+	}
 
 	select {
 	case <-done:
@@ -327,10 +358,12 @@ func ch25Fleet(bin string, r *Ch25Result) {
 	}
 }
 
-// ch25RequireTools fails one check when a pinned tool name was never
-// advertised to the model, so the diagnosis names the tool rather than the
-// behaviour that silently could not happen without it.
-func ch25RequireTools(r *Ch25Result, srv *fakevendor.Server, check string, names ...string) {
+// ch25RequireTools reports whether every named tool was advertised, failing
+// check with the missing ones if not. Attributing a missing name to the one
+// check that needs it keeps omitting a single tool from costing every check,
+// so the diagnosis names the tool rather than the behaviour that silently
+// could not happen without it.
+func ch25RequireTools(r *Ch25Result, srv *fakevendor.Server, check string, names ...string) bool {
 	advertised := map[string]bool{}
 	for _, b := range ch25Bodies(srv) {
 		for n := range ch23AdvertisedTools([]byte(b)) {
@@ -346,7 +379,9 @@ func ch25RequireTools(r *Ch25Result, srv *fakevendor.Server, check string, names
 	if len(missing) > 0 {
 		r.ran(check)
 		r.fail(check, "these pinned tool names are never advertised to the model: %s", strings.Join(missing, ", "))
+		return false
 	}
+	return true
 }
 
 // ch25OneResultHasAll reports whether a single tool result carried every one
@@ -591,4 +626,159 @@ func ch25Trim(s string) string {
 		return s[:200] + "..."
 	}
 	return s
+}
+
+// ch25Interrupted covers wait-interrupt. The agent starts a genuinely slow
+// command and pushes the wait's own callback out past the end of the run, so
+// that nothing except an arriving message can return control to it. A message
+// typed while that wait is in flight should end the wait, and the command it
+// walked away from should still deliver its output afterwards.
+//
+// The slow thing has to be a real tool rather than a slow vendor reply,
+// because the fake vendor answers one request at a time: a sleep taken inside
+// a reply stalls every other agent in the run, including the one under test.
+func ch25Interrupted(bin string, r *Ch25Result) {
+	work, err := os.MkdirTemp("", "ch25-int-*")
+	if err != nil {
+		r.fail("wait-interrupt", "cannot create a working directory: %v", err)
+		return
+	}
+	defer os.RemoveAll(work)
+
+	var waits atomic.Int32
+	srv := fakevendor.NewWithOptions(nil, fakevendor.Options{
+		Route: func(body []byte) *fakevendor.Reply {
+			b := string(body)
+			switch {
+			case strings.Contains(b, ch25SlowPay):
+				return &fakevendor.Reply{Text: "interrupt run done"}
+			case !strings.Contains(b, "ch25i1"):
+				// Push the wait's own callback out past the end of the run,
+				// so that waking early can only be the message's doing.
+				return &fakevendor.Reply{
+					ToolName: "tool_limits",
+					ToolArgs: ch25Args(map[string]any{"ai_callback_delay": ch25LongDelay}),
+					ToolID:   "ch25i1",
+				}
+			case !strings.Contains(b, "ch25i2"):
+				return &fakevendor.Reply{
+					ToolName: "run_command",
+					ToolArgs: ch25Args(map[string]any{"command": ch25SlowCmd}),
+					ToolID:   "ch25i2",
+				}
+			default:
+				// Back in control with the command still out. Keep asking
+				// after it, the way a model would, until it reports.
+				n := waits.Add(1)
+				return &fakevendor.Reply{
+					ToolName: "wait_for_job",
+					ToolArgs: ch25Args(map[string]any{"handle": 1}),
+					ToolID:   fmt.Sprintf("ch25iw%d", n),
+				}
+			}
+		},
+	})
+	defer srv.Close()
+
+	sess := ch25LaunchOpts(bin, work, srv.URL(), nil,
+		ch25Marker+" run the slow command and wait for it", nil,
+		func(stdin io.Writer) {
+			// Late enough that the wait is certainly in flight, early enough
+			// that the command is certainly not finished.
+			time.Sleep(5 * time.Second)
+			fmt.Fprintf(stdin, "%s\n", ch25Prompt(ch25Interrupt))
+		})
+	if sess.err != nil {
+		r.fail("wait-interrupt", "could not drive the agent: %v", sess.err)
+		return
+	}
+	if !ch25RequireTools(r, srv, "wait-interrupt", "tool_limits") {
+		return
+	}
+	r.ran("wait-interrupt")
+	// The wake is a turn carrying the typed message but not yet the command's
+	// output: the agent has control back with the command still running. Had
+	// the message merely queued, the next turn would carry both at once.
+	woke := false
+	for _, b := range ch25Bodies(srv) {
+		if strings.Contains(b, ch25Interrupt) && !strings.Contains(b, ch25SlowPay) {
+			woke = true
+			break
+		}
+	}
+	if !woke {
+		r.fail("wait-interrupt", "the agent took no turn between the message arriving and the command finishing: a message that lands during a tool wait has to end the wait, not queue behind it")
+		return
+	}
+	if !ch25SawInResults(srv, ch25SlowPay) {
+		r.fail("wait-interrupt", "the abandoned command never delivered %q: ending a wait early has to leave the tool running rather than cancel it", ch25SlowPay)
+	}
+}
+
+// ch25Idle covers idle-corrected. The child answers in prose and never calls
+// submit. Stopping without submitting is a mistake rather than an answer, so
+// the framework should wake the child to finish, and give up after a fixed
+// number of attempts by telling the parent rather than trying forever.
+func ch25Idle(bin string, r *Ch25Result) {
+	work, err := os.MkdirTemp("", "ch25-idle-*")
+	if err != nil {
+		r.fail("idle-corrected", "cannot create a working directory: %v", err)
+		return
+	}
+	defer os.RemoveAll(work)
+
+	srv := fakevendor.NewWithOptions(nil, fakevendor.Options{
+		Route: func(body []byte) *fakevendor.Reply {
+			b := string(body)
+			switch {
+			case !strings.Contains(b, ch25Marker):
+				// The child, however many times it is asked, never finishes.
+				return &fakevendor.Reply{Text: "I had a look around."}
+			case !strings.Contains(b, "ch25d1"):
+				return &fakevendor.Reply{
+					ToolName: "spawn_sub_agent",
+					ToolArgs: ch25Args(map[string]any{"agent_id": ch25IdleChild, "task": ch25TaskIdle}),
+					ToolID:   "ch25d1",
+				}
+			case !strings.Contains(b, "ch25d2"):
+				return &fakevendor.Reply{
+					ToolName: "join_agents",
+					ToolArgs: ch25Args(map[string]any{"agent_ids": []string{ch25IdleChild}}),
+					ToolID:   "ch25d2",
+				}
+			default:
+				return &fakevendor.Reply{Text: "idle run done"}
+			}
+		},
+	})
+	defer srv.Close()
+
+	sess := ch25Launch(bin, work, srv.URL(), nil, ch25Marker+" start the drifting worker", nil)
+	if sess.err != nil {
+		r.fail("idle-corrected", "could not drive the agent: %v", sess.err)
+		return
+	}
+	if !ch25RequireTools(r, srv, "idle-corrected", "spawn_sub_agent", "join_agents") {
+		return
+	}
+	r.ran("idle-corrected")
+
+	// The child makes no tool calls, so one turn is one request. Counting them
+	// pins both halves of the rule at once: a framework that treats stopping
+	// as finishing leaves this at one, and a framework that nags without a
+	// bound runs until the harness times out.
+	turns := 0
+	for _, b := range ch25Bodies(srv) {
+		if !strings.Contains(b, ch25Marker) {
+			turns++
+		}
+	}
+	const want = 4 // the child's own turn, plus three wakes
+	if turns != want {
+		r.fail("idle-corrected", "the child that never submitted took %d turns, expected %d: its own, plus three wakes before the framework gives up", turns, want)
+		return
+	}
+	if !ch25SawInResults(srv, ch25IdleChild) {
+		r.fail("idle-corrected", "after giving up on %q the framework told nobody: the parent is the one that can act on it", ch25IdleChild)
+	}
 }
