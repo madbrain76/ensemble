@@ -77,7 +77,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 
 | Edition 2 chapter | Author/coder | Independent review | Checkpoint |
 | --- | --- | --- | --- |
-| 0–1 | Preparing | Pending | — |
+| 0–1 | Complete | Accepted after one prose correction | Ready to checkpoint |
 | 2 | Not started | Pending | — |
 | 3 | Not started | Pending | — |
 | 4 (includes old 5) | Not started | Pending | — |
@@ -85,3 +85,15 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 6 (old 7) | Not started | Pending | — |
 | 7 (old 8) | Not started | Pending | — |
 | 8 (old 9) | Not started | Pending | — |
+
+### Chapters 0–1 acceptance
+
+Author `enhancement_author`, coder `enhancement_coder`, independent prose/code
+reviewer `enhancement_reviewer`. Combined review: [enhancement-01-review.md](edition-2-notes/enhancement-01-review.md).
+Preserved the original stories and section progression; added execution guidance
+and architecture before code. Corrected one `go run` exit-status explanation.
+The separate Edition 2 grader retains all seven original checks and fixes the
+API-version-header survivor. Accepted and legacy source both score 100/100;
+wrong-version source scores original 100 versus revised 85, with only wire failing.
+Original code, graders and student results are unchanged. Historical Chapter 0
+lint issues and frozen Chapter 1 documentation gaps are recorded, not called passes.

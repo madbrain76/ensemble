@@ -14,6 +14,13 @@ The current assignments, mapping, enhancement limits and chapter gates are in
 graders, frozen exports and actual results. This does not resume the retired
 attempt or authorize future feature work.
 
+Chapters 0–1 are now independently accepted in that enhancement pass after one
+prose correction. The source diff preserves the original stories and adds upfront
+teaching. The first corrected grader preserves all seven checks and catches the
+documented wrong-version-header survivor (original 100, revised 85); both correct
+student and legacy references score 100. See the enhancement plan for the review
+and checkpoint; original student results remain separate.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
