@@ -278,6 +278,11 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 24 — Freeing the GUI",
 			grade.Ch24Checks(r), "")
+	case 25:
+		r := grade.Ch25Run(path)
+		report = grade.NewTitledReport(
+			"Chapter 25 — The Ensemble",
+			grade.Ch25Checks(r), "")
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)
