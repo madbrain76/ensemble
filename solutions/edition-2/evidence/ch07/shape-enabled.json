@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "stdout": "{\"assistant\":\"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20\",\"deltas\":{\"text\":40},\"elapsed_ms\":1350,\"first_delta_ms\":1059,\"observation\":\"stream_stats\",\"parts\":{\"text\":1},\"streaming\":true,\"usage\":{\"input\":733,\"cache_write\":0,\"cache_read\":0,\"output\":40}}\n",
+  "stderr": ""
+}

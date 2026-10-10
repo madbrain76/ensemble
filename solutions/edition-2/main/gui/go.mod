@@ -1,6 +1,6 @@
 module ensemble-gui-stub
 
-go 1.25
+go 1.25.0
 
 require ensemble v0.0.0
 

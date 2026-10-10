@@ -1,0 +1,178 @@
+{
+  "anthropic": {
+    "model": "claude-sonnet-4-6",
+    "human_turns": 2,
+    "hints": 1,
+    "story_stdout_reads": 62,
+    "story_first_read_seconds": 2.6112,
+    "story_last_read_seconds": 5.5389,
+    "wire_frames": {
+      "message_start": 3,
+      "content_block_start": 5,
+      "ping": 3,
+      "content_block_delta": 86,
+      "content_block_stop": 5,
+      "message_delta": 3,
+      "message_stop": 3
+    },
+    "usage": {
+      "input": 5991,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 261
+    },
+    "tool_calls": [
+      {
+        "job": {
+          "handle": 1,
+          "status": "running",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/1"
+          },
+          "bytes": 0
+        },
+        "name": "run_command",
+        "args": {
+          "command": "echo STREAM_PROBE"
+        },
+        "call_id": "toolu_013geispE6puJh6SFQj1yeGa"
+      }
+    ],
+    "tool_results": [
+      {
+        "job": {
+          "handle": 1,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/1"
+          },
+          "bytes": 27,
+          "exit_code": 0
+        },
+        "call_id": "toolu_013geispE6puJh6SFQj1yeGa",
+        "parts": [
+          {
+            "type": "text",
+            "text": "STREAM_PROBE\n\nexit_code: 0\n"
+          }
+        ]
+      }
+    ]
+  },
+  "openai": {
+    "model": "gpt-4o-mini",
+    "human_turns": 3,
+    "hints": 0,
+    "story_stdout_reads": 61,
+    "story_first_read_seconds": 1.8427,
+    "story_last_read_seconds": 2.5454,
+    "wire_frames": {
+      "response_chunk": 160,
+      "DONE": 4
+    },
+    "usage": {
+      "input": 3419,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 160
+    },
+    "tool_calls": [
+      {
+        "job": {
+          "handle": 1,
+          "status": "running",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/1"
+          },
+          "bytes": 0
+        },
+        "name": "run_command",
+        "args": {
+          "command": "print STREAM_PROBE"
+        },
+        "call_id": "call_XXjXoZD5K28u8l3yyr3q0aGw"
+      }
+    ],
+    "tool_results": [
+      {
+        "job": {
+          "handle": 1,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/1"
+          },
+          "bytes": 50,
+          "exit_code": 127
+        },
+        "call_id": "call_XXjXoZD5K28u8l3yyr3q0aGw",
+        "parts": [
+          {
+            "type": "text",
+            "text": "/bin/sh: print: command not found\n\nexit_code: 127\n"
+          }
+        ]
+      }
+    ]
+  },
+  "gemini": {
+    "model": "gemini-2.5-flash",
+    "human_turns": 3,
+    "hints": 0,
+    "story_stdout_reads": 4,
+    "story_first_read_seconds": 1.621,
+    "story_last_read_seconds": 1.6541,
+    "wire_frames": {
+      "response_chunk": 10
+    },
+    "usage": {
+      "input": 5826,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 248
+    },
+    "tool_calls": [
+      {
+        "job": {
+          "handle": 1,
+          "status": "running",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/1"
+          },
+          "bytes": 0
+        },
+        "name": "run_command",
+        "args": {
+          "command": "echo STREAM_PROBE"
+        },
+        "call_id": "call_6_1"
+      }
+    ],
+    "tool_results": [
+      {
+        "job": {
+          "handle": 1,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/1"
+          },
+          "bytes": 27,
+          "exit_code": 0
+        },
+        "call_id": "call_6_1",
+        "parts": [
+          {
+            "type": "text",
+            "text": "STREAM_PROBE\n\nexit_code: 0\n"
+          }
+        ]
+      }
+    ]
+  },
+  "capture_note": "Anthropic mtime-only completion polling falsely classified the final input as a third turn. Durable log establishes two human turns and one live hint. Raw capture preserved."
+}

@@ -1,0 +1,29 @@
+
+=== content-prefix-routing ===
+chat.go
+mutation: 'if v.Hint {' -> 'if strings.HasPrefix(v.Chunk, "hint:") {'
+--- FAIL: TestChatFlushesChunksAndSeparatesChannels (4.31s)
+    chat_test.go:70: chat withheld assistant chunk while response remained open: stdout="" stderr="Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nreasoning-onlyhint:early\n"
+FAIL
+FAIL	ensemble	4.325s
+FAIL
+exit=1
+
+=== unmarked-hint-acknowledgement ===
+internal/agent/actor.go
+mutation: 'Kind: common.DeltaText, Hint: true, Chunk: "hint:"' -> 'Kind: common.DeltaText, Chunk: "hint:"'
+--- FAIL: TestHintDuringHTTPReplaysAtNextRequest (1.01s)
+    actor_test.go:241: context deadline exceeded
+FAIL
+FAIL	ensemble/ensemble	1.017s
+FAIL
+exit=1
+
+=== unmarked-hint-acknowledgement: direct assertion ===
+Refined the test to inspect the received acknowledgement rather than waiting for its marker.
+--- FAIL: TestHintDuringHTTPReplaysAtNextRequest (0.00s)
+    actor_test.go:249: hint acknowledgement missing origin marker
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+exit=1

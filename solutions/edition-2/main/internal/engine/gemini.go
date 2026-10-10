@@ -79,6 +79,9 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 			case "text":
 				value := p.Text
 				part.Text = &value
+				if p.From == e.Target() {
+					part.ThoughtSignature = p.Opaque
+				}
 			case "redacted":
 				value := p.Stub
 				part.Text = &value
@@ -132,22 +135,17 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 		tools = []map[string]any{{"functionDeclarations": declarations}}
 	}
 	prompt := e.systemPrompt()
-	return json.Marshal(struct {
-		// Tools contains only the declarations visible to this Agent.
-		Tools []map[string]any `json:"tools,omitempty"`
-		// SystemInstruction holds Gemini instructions outside conversation contents.
-		SystemInstruction geminiContent `json:"systemInstruction"`
-		// Contents carries Gemini conversation turns using its user/model vocabulary.
-		Contents []geminiContent `json:"contents"`
-		// GenerationConfig holds request generation settings, separate from dialogue.
-		GenerationConfig struct {
-			// MaxOutputTokens bounds Gemini response generation.
-			MaxOutputTokens int `json:"maxOutputTokens"`
-		} `json:"generationConfig"`
-	}{tools, geminiContent{Parts: []geminiPart{{Text: &prompt}}}, contents, struct {
-		// MaxOutputTokens bounds Gemini response generation.
-		MaxOutputTokens int `json:"maxOutputTokens"`
-	}{1024}})
+
+	features, _ := LookupModel(e.parent.Config().Model)
+	generation := map[string]any{"maxOutputTokens": 4096}
+	if features.Stream&common.StreamThinking != 0 {
+		generation["thinkingConfig"] = map[string]bool{"includeThoughts": true}
+	}
+	request := map[string]any{"systemInstruction": geminiContent{Parts: []geminiPart{{Text: &prompt}}}, "contents": contents, "generationConfig": generation}
+	if len(tools) > 0 {
+		request["tools"] = tools
+	}
+	return json.Marshal(request)
 }
 
 // STOP does not mean there were no calls: Gemini uses it for functionCall
@@ -211,7 +209,7 @@ func (e *engine) parseGemini(data []byte) (common.ResponseData, error) {
 		case part.Thought:
 			result.Parts = append(result.Parts, common.Part{Type: "opaque", From: from, Data: raw})
 		case part.Text != nil:
-			result.Parts = append(result.Parts, common.Part{Type: "text", Text: *part.Text})
+			result.Parts = append(result.Parts, common.Part{Type: "text", Text: *part.Text, From: from, Opaque: part.ThoughtSignature})
 		default:
 			return result, errors.New("unknown Gemini response part")
 		}

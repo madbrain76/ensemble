@@ -36,12 +36,23 @@ func run() (runErr error) {
 	if mode == "dump" && cfg.Model == "" {
 		cfg.Model = "offline"
 	}
-	logPath := os.Getenv("CH02_LOG")
+	logPath := os.Getenv("CH07_AGENT_LOG")
+	if logPath == "" {
+		logPath = os.Getenv("CH02_LOG")
+	}
 	if logPath == "" {
 		logPath = "ch02.jsonl"
 	}
 	cfg.LogPath = logPath
 	app := ensemble.New(os.Stderr)
+	if mode == "chat" || mode == "protocol" {
+		trace, err := os.Create("api.log")
+		if err != nil {
+			return err
+		}
+		defer trace.Close()
+		app.SetAPILog(trace)
+	}
 	a, err := app.NewAgent(cfg)
 	if err != nil {
 		return err

@@ -16,11 +16,20 @@ type request struct {
 	ctx   context.Context
 	text  string
 	reply chan common.Result
+	watch common.StreamCallbacks
 }
 type response struct {
-	turn   *turn
-	events []common.Event
-	err    error
+	turn    *turn
+	events  []common.Event
+	partIDs []uint64
+	err     error
+}
+
+// Stream progress shares the owner FIFO with input and completion. The turn
+// token discards late chunks after an interrupt without ending the Agent.
+type streamed struct {
+	turn  *turn
+	delta common.PartDelta
 }
 type report struct {
 	turn *turn
@@ -89,12 +98,15 @@ func (a *agent) Post(message common.Inbound) error { return a.post(message) }
 // Submit queues a separate human turn. Post is the deliberately different API
 // for live input that may become a hint when a turn is already active.
 func (a *agent) Submit(ctx context.Context, text string) <-chan common.Result {
+	return a.submit(ctx, text, common.StreamCallbacks{})
+}
+func (a *agent) submit(ctx context.Context, text string, watch common.StreamCallbacks) <-chan common.Result {
 	reply := make(chan common.Result, 1)
 	if strings.TrimSpace(text) == "" {
 		reply <- common.Result{Err: errors.New("user message is empty")}
 		return reply
 	}
-	if err := a.post(request{ctx: ctx, text: text, reply: reply}); err != nil {
+	if err := a.post(request{ctx: ctx, text: text, reply: reply, watch: watch}); err != nil {
 		reply <- common.Result{Err: err}
 	}
 	return reply
@@ -103,7 +115,13 @@ func (a *agent) Submit(ctx context.Context, text string) <-chan common.Result {
 // Ask blocks on its own request reply or caller cancellation, never a shared idle
 // event.
 func (a *agent) Ask(ctx context.Context, text string) (string, error) {
-	reply := a.Submit(ctx, text)
+	return a.AskWatching(ctx, text, common.StreamCallbacks{})
+}
+
+// AskWatching delivers this request's stream through the same actor as Ask.
+// Frame callbacks run on the HTTP worker; all other callbacks run on the actor.
+func (a *agent) AskWatching(ctx context.Context, text string, watch common.StreamCallbacks) (string, error) {
+	reply := a.submit(ctx, text, watch)
 	select {
 	case result := <-reply:
 		return result.Text, result.Err
@@ -218,19 +236,21 @@ func (r *runtime) append(event common.Event) error {
 	if err := h.Append(event); err != nil {
 		return err
 	}
+	if r.active != nil && r.active.request.watch.OnEvent != nil {
+		r.active.request.watch.OnEvent(event)
+	}
 	after := h.Context()
 	if before != after.Turn {
 		r.owner.notify(common.StateChanged{From: before, To: after.Turn})
 	}
 	if event.Type == "hint_received" {
-		r.owner.notify(common.PartDelta{Chunk: "hint:" + event.Message.Parts[0].Text})
+		r.owner.notify(common.PartDelta{Kind: common.DeltaText, Hint: true, Chunk: "hint:" + event.Message.Parts[0].Text})
 	}
 	// Finalized dialogue has its stored Seq; transient deltas never enter history.
-	if len(after.Dialogue) > 0 && (event.Type == "response_ended" || event.Type == "tool_returned") {
+	if len(after.Dialogue) > 0 && event.Type == "tool_returned" {
 		entry := after.Dialogue[len(after.Dialogue)-1]
 		for _, part := range entry.Parts {
 			r.partID++
-			r.owner.notify(common.PartDelta{PartID: r.partID, Chunk: part.Text})
 			r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: r.partID, Part: part})
 		}
 	}
@@ -305,8 +325,16 @@ func (r *runtime) send() {
 	}
 	r.workers++
 	go func() {
-		events, err := r.owner.engine.Send(t.request.ctx, body)
-		r.owner.box.Post(response{t, events, err})
+		var ids []uint64
+		cb := common.StreamCallbacks{
+			OnFrame: t.request.watch.OnFrame,
+			OnDelta: func(id uint64, kind common.DeltaKind, chunk string) {
+				r.owner.box.Post(streamed{t, common.PartDelta{PartID: id, Kind: kind, Chunk: chunk}})
+			},
+			OnPartFinal: func(id uint64, _ common.Part) { ids = append(ids, id) },
+		}
+		events, err := r.owner.engine.Send(t.request.ctx, body, cb)
+		r.owner.box.Post(response{t, events, ids, err})
 	}()
 }
 
@@ -324,7 +352,17 @@ func (r *runtime) receive(m response) {
 			return
 		}
 		if event.Response != nil {
-			for _, p := range event.Response.Parts {
+			// History may assign missing call identities. Publish the stored parts,
+			// retaining the parser's mapping instead of guessing IDs from positions.
+			c := r.owner.history.Context()
+			entry := c.Dialogue[len(c.Dialogue)-1]
+			for i, p := range entry.Parts {
+				r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: m.partIDs[i], Part: p})
+				if cb := m.turn.request.watch.OnPartFinal; cb != nil {
+					cb(m.partIDs[i], p)
+				}
+			}
+			for _, p := range entry.Parts {
 				if p.Type == "text" {
 					answer.WriteString(p.Text)
 				}
@@ -401,6 +439,13 @@ func (r *runtime) run() {
 				r.input(m.Text)
 			case common.Interrupt:
 				r.interrupt(common.ErrInterrupted)
+			case streamed:
+				if m.turn == r.active {
+					r.owner.notify(m.delta)
+					if cb := m.turn.request.watch.OnDelta; cb != nil {
+						cb(m.delta.PartID, m.delta.Kind, m.delta.Chunk)
+					}
+				}
 			case response:
 				r.receive(m)
 			case report:

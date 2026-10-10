@@ -107,11 +107,15 @@ func TestInterruptKeepsAgentAndJobAlive(t *testing.T) {
 	a.Post(ensemble.Hint{Text: "heard while busy"})
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if _, err := a.Wait(ctx, func(o ensemble.Observation) bool {
+	ack, err := a.Wait(ctx, func(o ensemble.Observation) bool {
 		d, ok := o.(ensemble.PartDelta)
 		return ok && d.Chunk == "hint:heard while busy"
-	}); err != nil {
+	})
+	if err != nil {
 		t.Fatal("hint was deaf:", err)
+	}
+	if !ack.(ensemble.PartDelta).Hint {
+		t.Fatal("hint acknowledgement missing origin marker")
 	}
 	a.Post(ensemble.Interrupt{})
 	if result := receive(t, first); !errors.Is(result.Err, ensemble.ErrInterrupted) {
@@ -234,11 +238,15 @@ func TestHintDuringHTTPReplaysAtNextRequest(t *testing.T) {
 	a.Post(ensemble.UserMessage{Text: "next-request-hint"})
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if _, err := a.Wait(ctx, func(o ensemble.Observation) bool {
+	ack, err := a.Wait(ctx, func(o ensemble.Observation) bool {
 		d, ok := o.(ensemble.PartDelta)
 		return ok && d.Chunk == "hint:next-request-hint"
-	}); err != nil {
+	})
+	if err != nil {
 		t.Fatal(err)
+	}
+	if !ack.(ensemble.PartDelta).Hint {
+		t.Fatal("hint acknowledgement missing origin marker")
 	}
 	unblock()
 	if result := receive(t, pending); result.Err != nil {
@@ -418,7 +426,8 @@ func TestObserverRoutesIdentityAndFinalParts(t *testing.T) {
 		}
 		switch event := routed.Observation.(type) {
 		case ensemble.PartFinal:
-			if event.Seq == 0 || event.PartID == 0 {
+			// Chapter 7 IDs are response-scoped vendor indices; zero is valid.
+			if event.Seq == 0 {
 				t.Fatal("final part has no stored identity")
 			}
 			seen[routed.Agent][event.Part.Type] = true

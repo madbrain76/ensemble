@@ -16,7 +16,7 @@ func ConfigFromEnv() (Config, error) {
 	if vendor == "" {
 		vendor = "anthropic"
 	}
-	cfg := Config{Workspace: os.Getenv("ENSEMBLE_WORKSPACE")}
+	cfg := Config{Workspace: os.Getenv("ENSEMBLE_WORKSPACE"), DisableStreaming: os.Getenv("EN_DISABLE_STREAMING") == "1"}
 	switch vendor {
 	case "anthropic":
 		cfg.Vendor = Anthropic

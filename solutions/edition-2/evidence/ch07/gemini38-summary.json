@@ -1,0 +1,108 @@
+{
+  "model": "gemini-3.8-flash",
+  "available": true,
+  "production_changed": false,
+  "exit": 0,
+  "requests": 2,
+  "frames": 11,
+  "nonempty_text_frames": 6,
+  "thinking_frames": 2,
+  "tool_call_frames": 1,
+  "stdout_text_reads": 3,
+  "first_text_seconds": 11.7314,
+  "last_text_seconds": 11.7325,
+  "streaming_observation_limit": "Three nonempty stdout reads were only 1.1 ms apart. This run shows separate incremental writes, not perceptibly paced typing. Deterministic gated CLI regression supplies independent before-completion delivery evidence.",
+  "log_headers": [
+    {
+      "log_version": 1
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "type": "message_received"
+    },
+    {
+      "seq": 2,
+      "type": "request_sent"
+    },
+    {
+      "seq": 3,
+      "type": "response_ended"
+    },
+    {
+      "seq": 4,
+      "type": "tool_called"
+    },
+    {
+      "seq": 5,
+      "type": "hint_received"
+    },
+    {
+      "seq": 6,
+      "type": "tool_returned"
+    },
+    {
+      "seq": 7,
+      "type": "request_sent"
+    },
+    {
+      "seq": 8,
+      "type": "response_ended"
+    }
+  ],
+  "hint_in_next_request": true,
+  "tool_result_in_next_request": true,
+  "tool_exit": 0,
+  "stdout_matches_final_and_frame_reassembly": true,
+  "final_text": "HINT_38_APPLIED perched high upon the wind-battered coastal cliffs, a solitary blue lighthouse stood vigil over the churning cerulean sea. Its sapphire tower, painted in deep oceanic hues, blended seamlessly into the twilight horizon until its brilliant lantern flared to life. Night after night, the powerful beam swept across treacherous reefs, casting long azure reflections over frothing crests. Generations of weary sailors watched for that steady sapphire gleam, trusting its dependable light to guide their battered vessels safely toward calm harbor waters.",
+  "usage_per_response": [
+    {
+      "input": 1241,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 181
+    },
+    {
+      "input": 1486,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 755
+    }
+  ],
+  "final_vendor_usage": [
+    {
+      "promptTokenCount": 1241,
+      "candidatesTokenCount": 51,
+      "totalTokenCount": 1422,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1241
+        }
+      ],
+      "thoughtsTokenCount": 130,
+      "serviceTier": "standard"
+    },
+    {
+      "promptTokenCount": 1486,
+      "candidatesTokenCount": 106,
+      "totalTokenCount": 2241,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 1486
+        }
+      ],
+      "thoughtsTokenCount": 649,
+      "serviceTier": "standard"
+    }
+  ],
+  "no_ansi_when_redirected": true,
+  "credential_absent_from_saved_evidence": true,
+  "source_sha256": {
+    "chat.go": "75d9f17ebeffea43c560cb4231238aa8cec74f07ced76bb4aced58512bd05bbe",
+    "internal/common/actor.go": "3892117ba4ed98784436db6bcd89efd0f6f80b73516df8e950e0ff9040d618e8",
+    "internal/agent/actor.go": "408d8e7b1f1d57792eb366471df65f259c072ea7989f77437e8a5398025b1cca"
+  }
+}

@@ -1,0 +1,4 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-10T00:20:12.478249Z","message":{"actor":"human","parts":[{"type":"text","text":"Print the integers 1 through 20 separated by single spaces. No other text."}]}}
+{"seq":2,"type":"request_sent","time":"2026-10-10T00:20:12.478462Z","request":{"to":{"vendor":"openai","model":"gpt-4o-mini","surface":"chat_completions"}}}
+{"seq":3,"type":"response_ended","time":"2026-10-10T00:20:13.627582Z","response":{"parts":[{"type":"text","text":"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"}],"usage":{"input":733,"cache_write":0,"cache_read":0,"output":40},"from":{"vendor":"openai","model":"gpt-4o-mini-2024-07-18","surface":"chat_completions"}}}

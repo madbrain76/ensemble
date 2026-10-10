@@ -3,12 +3,14 @@ package ensemble
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 
 	"ensemble/internal/agent"
@@ -38,6 +40,8 @@ type ToolContext = common.ToolContext
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
 	logger  *log.Logger
+	api     io.Writer
+	apiMu   sync.Mutex
 	agents  []Agent
 	nextJob atomic.Int64
 	merged  chan AgentObservation
@@ -208,7 +212,7 @@ const DefaultMaxToolRounds = common.DefaultMaxToolRounds
 // Media is a bit set of input categories a declared model accepts.
 type Media = common.Media
 
-// ModelFeatures describes the explicitly known media input capabilities.
+// ModelFeatures describes known media inputs and incremental delivery channels.
 type ModelFeatures = common.ModelFeatures
 
 const (
@@ -222,7 +226,7 @@ const (
 	MediaDocument = common.MediaDocument
 )
 
-// LookupModel returns explicit media capabilities; there is no fallback row.
+// LookupModel returns explicit media and streaming capabilities; there is no fallback row.
 func LookupModel(model string) (ModelFeatures, bool) { return engine.LookupModel(model) }
 
 // Embedders can submit media facts without importing the internal hub.
@@ -239,3 +243,46 @@ type Entry = common.Entry
 
 // Human marks user authorship independently of vendor role spelling.
 const Human = common.Human
+
+// SetAPILog selects the root's wire-trace destination before starting Agents.
+// The caller owns closing the writer; nil disables tracing.
+func (e *Ensemble) SetAPILog(w io.Writer) { e.api = w }
+
+// APILog writes one JSON record per sanitized payload, retaining frame order.
+// Auth headers and credential-bearing URLs never enter this facility.
+func (e *Ensemble) APILog(kind string, data []byte) {
+	e.apiMu.Lock()
+	defer e.apiMu.Unlock()
+	if e.api != nil {
+		json.NewEncoder(e.api).Encode(map[string]string{"event": kind, "data": string(data)})
+	}
+}
+
+// Stream is the bit set of incremental delivery capabilities.
+type Stream = common.Stream
+
+// DeltaKind selects the display channel for a fragment.
+type DeltaKind = common.DeltaKind
+
+// StreamCallbacks supplies synchronous response notifications to parsers.
+type StreamCallbacks = common.StreamCallbacks
+
+const (
+	// StreamText permits incremental reply text.
+	StreamText = common.StreamText
+	// StreamThinking permits incremental provider reasoning.
+	StreamThinking = common.StreamThinking
+	// StreamToolArgs permits incremental function arguments.
+	StreamToolArgs = common.StreamToolArgs
+	// StreamAll enables every defined delivery channel.
+	StreamAll = common.StreamAll
+	// DeltaThinking displays reasoning separately from the reply.
+	DeltaThinking = common.DeltaThinking
+	// DeltaText displays reply text.
+	DeltaText = common.DeltaText
+	// DeltaToolCall displays a tool name and argument fragments.
+	DeltaToolCall = common.DeltaToolCall
+)
+
+// StreamingFor returns effective model capabilities after the caller's opt-out.
+func StreamingFor(cfg Config) Stream { return engine.StreamingFor(cfg) }

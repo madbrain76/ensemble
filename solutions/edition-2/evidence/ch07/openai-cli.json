@@ -1,0 +1,588 @@
+{
+  "vendor": "openai",
+  "model": "gpt-4o-mini",
+  "failure": null,
+  "turns": [
+    {
+      "turn": 1,
+      "prompt": "Write a vivid 70-word story about a lighthouse keeper who collects fog.",
+      "elapsed_seconds": 2.5965
+    },
+    {
+      "turn": 2,
+      "prompt": "Use run_command to print STREAM_PROBE, then tell me the result in one sentence.",
+      "elapsed_seconds": 1.7521
+    },
+    {
+      "turn": 3,
+      "prompt": "What exact word did the command print? Answer in one sentence.",
+      "elapsed_seconds": 1.0549
+    }
+  ],
+  "reads": [
+    {
+      "seconds": 0.0109,
+      "turn": 1,
+      "stream": "stderr",
+      "text": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n"
+    },
+    {
+      "seconds": 1.8427,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "In a"
+    },
+    {
+      "seconds": 1.8484,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " remote coastal"
+    },
+    {
+      "seconds": 1.8663,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " town"
+    },
+    {
+      "seconds": 1.8665,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ","
+    },
+    {
+      "seconds": 1.8967,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " an eccentric"
+    },
+    {
+      "seconds": 1.9475,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " lighthouse keeper"
+    },
+    {
+      "seconds": 1.9533,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " named Elias"
+    },
+    {
+      "seconds": 1.9677,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " believed he"
+    },
+    {
+      "seconds": 1.9693,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " could capture"
+    },
+    {
+      "seconds": 1.9771,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " the essence"
+    },
+    {
+      "seconds": 1.9826,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " of"
+    },
+    {
+      "seconds": 1.9827,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " the"
+    },
+    {
+      "seconds": 1.9867,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " sea."
+    },
+    {
+      "seconds": 1.9975,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " Each"
+    },
+    {
+      "seconds": 1.9976,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " morning"
+    },
+    {
+      "seconds": 2.0141,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ", he"
+    },
+    {
+      "seconds": 2.0328,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " unf"
+    },
+    {
+      "seconds": 2.033,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "ur"
+    },
+    {
+      "seconds": 2.0483,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "led his"
+    },
+    {
+      "seconds": 2.0581,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " delicate nets"
+    },
+    {
+      "seconds": 2.0925,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " into the"
+    },
+    {
+      "seconds": 2.0977,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " swirling fog"
+    },
+    {
+      "seconds": 2.1113,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ","
+    },
+    {
+      "seconds": 2.1115,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " gathering"
+    },
+    {
+      "seconds": 2.1265,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " its cool"
+    },
+    {
+      "seconds": 2.1419,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ", damp"
+    },
+    {
+      "seconds": 2.151,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " tendr"
+    },
+    {
+      "seconds": 2.1685,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "ils"
+    },
+    {
+      "seconds": 2.1687,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "."
+    },
+    {
+      "seconds": 2.1786,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " As"
+    },
+    {
+      "seconds": 2.1787,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " the"
+    },
+    {
+      "seconds": 2.198,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " sun rose"
+    },
+    {
+      "seconds": 2.2144,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ", the"
+    },
+    {
+      "seconds": 2.2328,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " thick mist"
+    },
+    {
+      "seconds": 2.2463,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " sparkled"
+    },
+    {
+      "seconds": 2.2569,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " like diamonds"
+    },
+    {
+      "seconds": 2.2703,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " in his"
+    },
+    {
+      "seconds": 2.2838,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " jars,"
+    },
+    {
+      "seconds": 2.2972,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " illuminating his"
+    },
+    {
+      "seconds": 2.3083,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " tiny cottage"
+    },
+    {
+      "seconds": 2.3195,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ". Visitors"
+    },
+    {
+      "seconds": 2.3364,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " whispered"
+    },
+    {
+      "seconds": 2.3365,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " about"
+    },
+    {
+      "seconds": 2.3469,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " his collection"
+    },
+    {
+      "seconds": 2.3665,
+      "turn": 1,
+      "stream": "stdout",
+      "text": ", while"
+    },
+    {
+      "seconds": 2.3767,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " Elias,"
+    },
+    {
+      "seconds": 2.3894,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " with a"
+    },
+    {
+      "seconds": 2.4037,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " tw"
+    },
+    {
+      "seconds": 2.4039,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "inkle"
+    },
+    {
+      "seconds": 2.4197,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " in his"
+    },
+    {
+      "seconds": 2.4286,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " eye,"
+    },
+    {
+      "seconds": 2.4469,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " dreamed of"
+    },
+    {
+      "seconds": 2.4576,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " bott"
+    },
+    {
+      "seconds": 2.4578,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "ling"
+    },
+    {
+      "seconds": 2.4716,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " the ocean"
+    },
+    {
+      "seconds": 2.4846,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "\u2019s secrets"
+    },
+    {
+      "seconds": 2.4923,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " for"
+    },
+    {
+      "seconds": 2.4925,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " all"
+    },
+    {
+      "seconds": 2.5101,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " to share"
+    },
+    {
+      "seconds": 2.5375,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "."
+    },
+    {
+      "seconds": 2.5454,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "\n"
+    },
+    {
+      "seconds": 3.2127,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "run_command "
+    },
+    {
+      "seconds": 3.2166,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "{\"command"
+    },
+    {
+      "seconds": 3.2215,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "\":\"print"
+    },
+    {
+      "seconds": 3.2261,
+      "turn": 2,
+      "stream": "stderr",
+      "text": " STREAM"
+    },
+    {
+      "seconds": 3.2262,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "_PRO"
+    },
+    {
+      "seconds": 3.2374,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "BE\"}"
+    },
+    {
+      "seconds": 3.2803,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "\n"
+    },
+    {
+      "seconds": 4.1499,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "The command"
+    },
+    {
+      "seconds": 4.1501,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " failed because \"print"
+    },
+    {
+      "seconds": 4.1971,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "\""
+    },
+    {
+      "seconds": 4.1973,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " is"
+    },
+    {
+      "seconds": 4.2216,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " not"
+    },
+    {
+      "seconds": 4.2217,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " a"
+    },
+    {
+      "seconds": 4.2272,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " recognized command"
+    },
+    {
+      "seconds": 4.2389,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " in the"
+    },
+    {
+      "seconds": 4.2471,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " shell"
+    },
+    {
+      "seconds": 4.2473,
+      "turn": 2,
+      "stream": "stdout",
+      "text": ", resulting in"
+    },
+    {
+      "seconds": 4.2489,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " an exit"
+    },
+    {
+      "seconds": 4.2556,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " code of"
+    },
+    {
+      "seconds": 4.2645,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " "
+    },
+    {
+      "seconds": 4.2646,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "127"
+    },
+    {
+      "seconds": 4.2859,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "."
+    },
+    {
+      "seconds": 4.2977,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "\n"
+    },
+    {
+      "seconds": 5.2757,
+      "turn": 3,
+      "stream": "stdout",
+      "text": "The command did"
+    },
+    {
+      "seconds": 5.2759,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " not print any"
+    },
+    {
+      "seconds": 5.3114,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " word because"
+    },
+    {
+      "seconds": 5.334,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " it encountered"
+    },
+    {
+      "seconds": 5.3388,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " an error"
+    },
+    {
+      "seconds": 5.3541,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " and could"
+    },
+    {
+      "seconds": 5.3622,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " not execute"
+    },
+    {
+      "seconds": 5.3671,
+      "turn": 3,
+      "stream": "stdout",
+      "text": " successfully."
+    },
+    {
+      "seconds": 5.4037,
+      "turn": 3,
+      "stream": "stdout",
+      "text": "\n"
+    }
+  ]
+}

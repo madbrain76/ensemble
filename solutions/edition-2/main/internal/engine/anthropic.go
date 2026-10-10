@@ -91,7 +91,18 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 	for _, d := range e.parent.Declarations() {
 		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
 	}
+	features, _ := LookupModel(e.parent.Config().Model)
+	var thinking map[string]string
+	maxTokens := 1024
+	if features.Stream&common.StreamThinking != 0 {
+		thinking = map[string]string{"type": "adaptive"}
+		maxTokens = 4096
+	}
 	return json.Marshal(struct {
+		// Thinking asks supported models for reasoning in either delivery mode.
+		Thinking map[string]string `json:"thinking,omitempty"`
+		// Stream requests SSE only when both caller and model permit it.
+		Stream bool `json:"stream,omitempty"`
 		// Tools contains only the declarations visible to this Agent.
 		Tools []map[string]any `json:"tools,omitempty"`
 		// Model selects or reports the provider model identity for this exchange.
@@ -102,7 +113,7 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		System string `json:"system"`
 		// Messages retains provider message order, including tool-result boundaries.
 		Messages []anthropicMessage `json:"messages"`
-	}{tools, e.parent.Config().Model, 1024, e.systemPrompt(), messages})
+	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.systemPrompt(), messages})
 }
 func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.RawMessage, error) {
 	var out []json.RawMessage

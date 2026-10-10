@@ -12,60 +12,138 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"ensemble/ensemble"
+	"golang.org/x/term"
 )
 
 // Display owns its slow output worker. Observe only offers a progress value;
 // completion replies and persistence never depend on the terminal keeping up.
 type display struct {
-	queue   chan ensemble.Observation
+	queue   []ensemble.Observation
+	mu      sync.Mutex
+	wake    chan struct{}
+	closed  bool
 	enabled atomic.Bool
 }
 
 // Observe offers progress without waiting for a consumer to receive it.
 func (d *display) Observe(o ensemble.Observation) {
-	if d.enabled.Load() {
-		select {
-		case d.queue <- o:
-		default:
-		}
+	if !d.enabled.Load() {
+		return
+	}
+	d.mu.Lock()
+	d.queue = append(d.queue, o)
+	d.mu.Unlock()
+	select {
+	case d.wake <- struct{}{}:
+	default:
+	}
+}
+
+// Shutdown the display only after the Agent joins all producers. A queue rather
+// than a bounded channel preserves the incremental reply under a slow terminal.
+func (d *display) close() {
+	d.mu.Lock()
+	d.closed = true
+	d.mu.Unlock()
+	select {
+	case d.wake <- struct{}{}:
+	default:
 	}
 }
 func converse(a ensemble.Agent, chat bool) (err error) {
-	d := &display{queue: make(chan ensemble.Observation, 256)}
+	d := &display{wake: make(chan struct{}, 1)}
 	d.enabled.Store(chat)
 	a.Observe(d)
 	var output sync.Mutex
-	enc := json.NewEncoder(os.Stdout)
+	writer := io.Writer(os.Stdout)
+	if path := os.Getenv("CH07_LOG"); path != "" && !chat {
+		file, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		writer = io.MultiWriter(writer, file)
+	}
+	enc := json.NewEncoder(writer)
 	emit := func(v any) {
 		output.Lock()
 		defer output.Unlock()
 		enc.Encode(v)
 	}
+	started := time.Now()
+	var first time.Duration
+	counts, parts := map[string]int{}, map[string]int{}
 	finished := make(chan struct{})
 	go func() {
 		defer close(finished)
-		for o := range d.queue {
-			if chat {
+		colour := term.IsTerminal(int(os.Stderr.Fd()))
+		for {
+			<-d.wake
+			d.mu.Lock()
+			queue, closed := d.queue, d.closed
+			d.queue = nil
+			d.mu.Unlock()
+			for _, o := range queue {
+				switch v := o.(type) {
+				case ensemble.PartDelta:
+					if first == 0 {
+						first = time.Since(started)
+					}
+					kind, _ := json.Marshal(v.Kind)
+					counts[strings.Trim(string(kind), "\"")]++
+				case ensemble.PartFinal:
+					if v.Part.Type != "tool_result" {
+						parts[v.Part.Type]++
+					}
+				}
+				if !chat {
+					emit(o)
+					continue
+				}
 				output.Lock()
 				switch v := o.(type) {
 				case ensemble.PartDelta:
-					if strings.HasPrefix(v.Chunk, "hint:") {
-						fmt.Fprintln(os.Stdout, v.Chunk)
+					if v.Hint {
+						fmt.Fprintln(os.Stderr, v.Chunk)
+						break
+					}
+					switch v.Kind {
+					case ensemble.DeltaText:
+						// os.File is unbuffered: each write reaches the pipe/terminal now.
+						fmt.Fprint(os.Stdout, v.Chunk)
+					case ensemble.DeltaThinking, ensemble.DeltaToolCall:
+						style := "\x1b[2m"
+						if v.Kind == ensemble.DeltaToolCall {
+							style = "\x1b[33m"
+						}
+						if colour {
+							fmt.Fprint(os.Stderr, style)
+						}
+						fmt.Fprint(os.Stderr, v.Chunk)
+						if colour {
+							fmt.Fprint(os.Stderr, "\x1b[0m")
+						}
 					}
 				case ensemble.PartFinal:
+					// Finals correct widgets in richer clients. The terminal only separates
+					// completed pieces; printing their content would duplicate every delta.
 					if v.Part.Type == "text" {
-						fmt.Fprintf(os.Stdout, "assistant> %s\n", v.Part.Text)
+						fmt.Fprintln(os.Stdout)
+					} else if v.Part.Type == "opaque" || v.Part.Type == "tool_call" {
+						fmt.Fprintln(os.Stderr)
 					}
 				case ensemble.StateChanged:
 					if v.To == "interrupted" {
-						fmt.Fprintln(os.Stdout, "[interrupted; other jobs continue]")
+						fmt.Fprintln(os.Stderr, "[interrupted; other jobs continue]")
 					}
 				}
 				output.Unlock()
-			} else {
-				emit(o)
+			}
+			if closed {
+				return
 			}
 		}
 	}()
@@ -93,8 +171,28 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 	defer func() {
 		err = errors.Join(err, a.Shutdown())
 		replies.Wait()
-		close(d.queue)
+		d.close()
 		<-finished
+		// Drain the display before its summary so the answer cannot overtake
+		// the stream records that explain it.
+		if err == nil && !chat {
+			if d.enabled.Load() {
+				emit(map[string]any{"observation": "stream_stats", "deltas": counts, "parts": parts, "first_delta_ms": first.Milliseconds()})
+				// Prompt/hint mode has no private request reply. At the EOF barrier its
+				// final assistant entry is authoritative, independent of lossy progress.
+				dialogue := a.History().Context().Dialogue
+				if len(dialogue) > 0 {
+					var answer strings.Builder
+					for _, p := range dialogue[len(dialogue)-1].Parts {
+						if p.Type == "text" {
+							answer.WriteString(p.Text)
+						}
+					}
+					emit(map[string]string{"assistant": answer.String()})
+				}
+			}
+			emit(map[string]any{"usage": a.Engine().Usage()})
+		}
 	}()
 	if chat {
 		fmt.Fprintln(os.Stderr, "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.")
@@ -169,9 +267,6 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 	if err := a.Flush(context.Background()); err != nil {
 		return err
 	}
-	replies.Wait()
-	if !chat {
-		emit(map[string]any{"usage": a.Engine().Usage()})
-	}
+
 	return nil
 }

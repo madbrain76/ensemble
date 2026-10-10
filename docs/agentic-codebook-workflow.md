@@ -4,7 +4,7 @@
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
 instructions, Bill explicitly said "Please proceed autonomously." Student
-Chapters 1–6 are now accepted and checkpointed, with explicit grader exceptions
+Chapters 1–7 are now accepted and checkpointed, with explicit grader exceptions
 where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
@@ -18,13 +18,23 @@ support acceptance. Bill withdrew the misleading grouped-wake requirement before
 any such code was added; explicit future prose/grader fixes and our mistaken
 initial interpretation remain in the chapter notes and comparative review.
 
-Next is original Chapter 7, streaming, extending the accepted source in `main/`.
-Its coordinator preparation records missing launch/protocol facts and a reproduced
-original frozen baseline of **90/100 FAIL**, with the delivery-not-content check
-failing because both runs streamed. Fresh student `student_restart_ch07` is
-assigned from accepted commit `8dc6dd8`; no Chapter 7 student result is claimed.
-Its handoff includes the original chapter, carryover, exact mandatory skill path
-and sourced protocol clarifications.
+**Chapter 7, streaming, is accepted after two correction rounds**, with exact
+59-file export and fresh checkpoint `edition-2-ch07-r4`.
+Its actual original grade remains **0/100 FAIL**: the harness uses `fake-model`,
+which §7.7 explicitly requires to fall back to plain delivery, while expecting
+streaming. The reviewer independently accepts this fixture conflict and inherited
+exceptions, with real declared-model tests and live evidence required instead.
+Round 1 fixed real assistant text beginning `hint:` being mistaken for a hint
+acknowledgement, and added four missing test documentation comments. The reviewer
+verified those corrections. Round 2 supplied a bounded Gemini 3.8 streaming/hint live
+demonstration: the initial run used 2.5, contrary to Bill's restriction, which the
+coordinator and reviewer also missed. The reviewer verified the corrected raw
+evidence, including actual model, hint ordering and final answer; all findings
+are resolved. Keep the initial artifacts and selection error. The closely spaced
+Gemini stdout writes do not demonstrate visibly paced typing; the deterministic
+gated CLI test independently verifies flushing before response completion.
+Original Chapter 8 preparation is recorded in `edition-2-notes/ch08.md`; its
+frozen reference grader passed 100/100. No Chapter 8 student has started.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous

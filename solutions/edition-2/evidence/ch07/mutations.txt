@@ -1,0 +1,330 @@
+
+=== no-stream-request ===
+internal/engine/anthropic.go
+mutation: 'StreamingFor(e.parent.Config()) != 0, tools' -> 'false, tools'
+--- FAIL: TestStreamingDeliveryAndContent (3.03s)
+    --- FAIL: TestStreamingDeliveryAndContent/anthropic (3.03s)
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=false (3.00s)
+            stream_test.go:131: request ignored effective streaming: map[max_tokens:4096 messages:[map[content:[map[text:use echo type:text]] role:user]] model:claude-sonnet-4-6 system:You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly. thinking:map[type:adaptive] tools:[map[description: input_schema:map[properties:map[value:map[type:string]] type:object] name:echo]]]
+            stream_test.go:131: request ignored effective streaming: map[max_tokens:4096 messages:[map[content:[map[text:use echo type:text]] role:user] map[content:[map[signature:signed thinking:consider this type:thinking] map[text:Checking. type:text] map[id:c1 input:map[value:complete] name:echo type:tool_use]] role:assistant] map[content:[map[content:[map[text:complete type:text]] tool_use_id:c1 type:tool_result]] role:user]] model:claude-sonnet-4-6 system:You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly. thinking:map[type:adaptive] tools:[map[description: input_schema:map[properties:map[value:map[type:string]] type:object] name:echo]]]
+            stream_test.go:256: no incremental observation while provider remained open
+FAIL
+FAIL	ensemble/ensemble	3.037s
+FAIL
+exit=1
+
+=== chunk-derived-ids ===
+internal/engine/stream.go
+mutation: 'cb.OnDelta(id, kind, chunk)' -> 'cb.OnDelta(id+uint64(len(chunk)), kind, chunk)'
+--- FAIL: TestStreamingDeliveryAndContent (0.02s)
+    --- FAIL: TestStreamingDeliveryAndContent/anthropic (0.02s)
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=false (0.01s)
+            stream_test.go:237: part 0 deltas "" != final "consider this"
+            stream_test.go:237: part 1 deltas "" != final "Checking."
+            stream_test.go:237: part 2 deltas "" != final "echo {\"value\":\"complete\"}"
+            stream_test.go:237: part 0 deltas "" != final "Done."
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=true (0.01s)
+            stream_test.go:237: part 0 deltas "" != final "consider this"
+            stream_test.go:237: part 1 deltas "" != final "Checking."
+            stream_test.go:237: part 2 deltas "" != final "echo {\"value\":\"complete\"}"
+            stream_test.go:237: part 0 deltas "" != final "Done."
+FAIL
+FAIL	ensemble/ensemble	0.027s
+FAIL
+exit=1
+
+=== thinking-as-text ===
+internal/engine/anthropic_stream.go
+mutation: 'field, kind = "thinking", common.DeltaThinking' -> 'field, kind = "thinking", common.DeltaText'
+ok  	ensemble/ensemble	1.037s
+exit=0
+
+=== no-tool-argument-deltas ===
+internal/engine/anthropic_stream.go
+mutation: 'delta(id, common.DeltaToolCall, chunk)' -> '// Removed argument delivery.'
+--- FAIL: TestStreamingDeliveryAndContent (3.03s)
+    --- FAIL: TestStreamingDeliveryAndContent/anthropic (3.03s)
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=false (3.00s)
+            stream_test.go:256: no incremental observation while provider remained open
+FAIL
+FAIL	ensemble/ensemble	3.035s
+FAIL
+exit=1
+
+=== ignore-stream-usage ===
+internal/engine/openai_stream.go
+mutation: 'usage = frame.Usage' -> 'usage = nil'
+--- FAIL: TestStreamingDeliveryAndContent (0.01s)
+    --- FAIL: TestStreamingDeliveryAndContent/openai (0.01s)
+        --- FAIL: TestStreamingDeliveryAndContent/openai/disabled=false (0.00s)
+            stream_test.go:264: OpenAI response missing usage
+FAIL
+FAIL	ensemble/ensemble	0.019s
+FAIL
+exit=1
+
+=== no-response-trace ===
+internal/engine/engine.go
+mutation: 'e.parent.Ensemble().APILog(kind, safe)' -> '// Removed frame logging.'
+--- FAIL: TestAPIFrameRedaction (0.00s)
+    stream_test.go:385: sanitized error frame missing {"data":"{\"thinking\":{\"type\":\"adaptive\"},\"stream\":true,\"model\":\"claude-sonnet-4-6\",\"max_tokens\":4096,\"system\":\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"hello\"}]}]}","event":"request"}
+        
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+exit=1
+
+=== credential-reflection ===
+internal/engine/engine.go
+mutation: 'safe = []byte(strings.ReplaceAll(string(data), cfg.APIKey, "[REDACTED]"))' -> 'safe = data'
+--- FAIL: TestAPIFrameRedaction (0.00s)
+    stream_test.go:382: credential escaped into diagnostics
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+exit=1
+
+=== disable-ignored ===
+internal/engine/media.go
+mutation: 'if cfg.DisableStreaming {' -> 'if false {'
+--- FAIL: TestUnknownModelAndStreamFailures (0.00s)
+    stream_test.go:336: capability and caller policy did not intersect
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+exit=1
+
+=== unknown-streams ===
+internal/engine/media.go
+mutation: 'features, _ := LookupModel(cfg.Model)\n\treturn features.Stream' -> 'features, known := LookupModel(cfg.Model)\n\tif !known { return common.StreamText }; return features.Stream'
+--- FAIL: TestUnknownModelAndStreamFailures (0.00s)
+    stream_test.go:324: unknown model requested streaming
+    stream_test.go:336: capability and caller policy did not intersect
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+exit=1
+
+=== lose-gemini-text-signature ===
+internal/engine/gemini_stream.go
+mutation: 'last.ThoughtSignature = p.ThoughtSignature' -> '// Removed trailing signature retention.'
+--- FAIL: TestStreamingDeliveryAndContent (0.02s)
+    --- FAIL: TestStreamingDeliveryAndContent/gemini (0.02s)
+        --- FAIL: TestStreamingDeliveryAndContent/gemini/disabled=true (0.01s)
+            stream_test.go:282: delivery changed finalized facts
+                stream: []common.Event{common.Event{Seq:0x0, Type:"response_ended", Time:time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), Message:(*common.MessageData)(nil), Request:(*common.RequestData)(nil), Response:(*common.ResponseData)(0xc00034c240), Tool:(*common.ToolData)(nil), Redact:(*common.RedactData)(nil), Error:(*common.ErrorData)(nil), Job:(*common.JobKilledData)(nil)}, common.Event{Seq:0x0, Type:"response_ended", Time:time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), Message:(*common.MessageData)(nil), Request:(*common.RequestData)(nil), Response:(*common.ResponseData)(0xc000396300), Tool:(*common.ToolData)(nil), Redact:(*common.RedactData)(nil), Error:(*common.ErrorData)(nil), Job:(*common.JobKilledData)(nil)}}
+                plain: []common.Event{common.Event{Seq:0x0, Type:"response_ended", Time:time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), Message:(*common.MessageData)(nil), Request:(*common.RequestData)(nil), Response:(*common.ResponseData)(0xc00034db00), Tool:(*common.ToolData)(nil), Redact:(*common.RedactData)(nil), Error:(*common.ErrorData)(nil), Job:(*common.JobKilledData)(nil)}, common.Event{Seq:0x0, Type:"response_ended", Time:time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), Message:(*common.MessageData)(nil), Request:(*common.RequestData)(nil), Response:(*common.ResponseData)(0xc000094b40), Tool:(*common.ToolData)(nil), Redact:(*common.RedactData)(nil), Error:(*common.ErrorData)(nil), Job:(*common.JobKilledData)(nil)}}
+FAIL
+FAIL	ensemble/ensemble	0.027s
+FAIL
+exit=1
+
+=== usage-not-accounted ===
+internal/engine/engine.go
+mutation: 'e.usage.Output += u.Output' -> '// Removed measured output accounting.'
+--- FAIL: TestStreamingDeliveryAndContent (0.02s)
+    --- FAIL: TestStreamingDeliveryAndContent/openai (0.02s)
+        --- FAIL: TestStreamingDeliveryAndContent/openai/disabled=false (0.01s)
+            stream_test.go:305: stream usage diverged from replay accounting
+        --- FAIL: TestStreamingDeliveryAndContent/openai/disabled=true (0.01s)
+            stream_test.go:305: stream usage diverged from replay accounting
+FAIL
+FAIL	ensemble/ensemble	0.024s
+FAIL
+exit=1
+
+=== sse-last-data-only ===
+internal/engine/sse.go
+mutation: 'data = append(data, value)' -> 'data = []string{value}'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/multiline (0.00s)
+        sse_test.go:30: framing error <nil>; got lengths/events [block:second]
+FAIL
+FAIL	ensemble/internal/engine	0.009s
+FAIL
+exit=1
+
+=== sse-lost-eof ===
+internal/engine/sse.go
+mutation: 'if err == io.EOF {\n\t\t\treturn flush()' -> 'if err == io.EOF {\n\t\t\treturn nil'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/eof (0.00s)
+        sse_test.go:30: framing error <nil>; got lengths/events []
+FAIL
+FAIL	ensemble/internal/engine	0.010s
+FAIL
+exit=1
+
+=== cli-withholds-chunks ===
+chat.go
+mutation: 'fmt.Fprint(os.Stdout, v.Chunk)' -> '// Withhold text until final.'
+--- FAIL: TestChatFlushesChunksAndSeparatesChannels (4.67s)
+    chat_test.go:68: chat withheld stdout while response remained open
+FAIL
+FAIL	ensemble	4.679s
+FAIL
+exit=1
+
+=== cli-colours-redirected ===
+chat.go
+mutation: 'colour := term.IsTerminal(int(os.Stderr.Fd()))' -> 'colour := term.IsTerminal(int(os.Stderr.Fd())) || true'
+--- FAIL: TestChatFlushesChunksAndSeparatesChannels (0.36s)
+    chat_test.go:81: ANSI escaped into redirected output
+FAIL
+FAIL	ensemble	0.373s
+FAIL
+exit=1
+
+FOLLOW-UP: reasoning channel assertion added after survivor; restored baseline passes.
+
+=== thinking-as-text ===
+internal/engine/anthropic_stream.go
+mutation: 'field, kind = "thinking", common.DeltaThinking' -> 'field, kind = "thinking", common.DeltaText'
+--- FAIL: TestStreamingDeliveryAndContent (0.02s)
+    --- FAIL: TestStreamingDeliveryAndContent/anthropic (0.02s)
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=false (0.01s)
+            stream_test.go:244: part 0 channel 2 != expected 1
+FAIL
+FAIL	ensemble/ensemble	0.027s
+FAIL
+exit=1
+
+=== final-before-fact ===
+internal/agent/actor.go
+mutation: 'for _, event := range m.events {\n\t\tif err := r.append(event);' -> 'for _, event := range m.events {\n if event.Response!=nil && m.turn.request.watch.OnPartFinal!=nil { for i,p:=range event.Response.Parts { m.turn.request.watch.OnPartFinal(m.partIDs[i],p) } }\n\t\tif err := r.append(event);'
+--- FAIL: TestStreamingDeliveryAndContent (0.02s)
+    --- FAIL: TestStreamingDeliveryAndContent/anthropic (0.02s)
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=false (0.01s)
+            stream_test.go:218: final preceded stored response
+            stream_test.go:218: final preceded stored response
+            stream_test.go:218: final preceded stored response
+            stream_test.go:229: final content absent from event
+            stream_test.go:244: part 0 channel 0 != expected 2
+            stream_test.go:247: part 0 deltas "" != final "Done."
+        --- FAIL: TestStreamingDeliveryAndContent/anthropic/disabled=true (0.01s)
+            stream_test.go:218: final preceded stored response
+            stream_test.go:218: final preceded stored response
+            stream_test.go:218: final preceded stored response
+            stream_test.go:229: final content absent from event
+            stream_test.go:244: part 0 channel 0 != expected 2
+            stream_test.go:247: part 0 deltas "" != final "Done."
+FAIL
+FAIL	ensemble/ensemble	0.029s
+FAIL
+exit=1
+
+=== execute-partial-arguments ===
+internal/agent/actor.go
+mutation: 'if m.turn == r.active {\n\t\t\t\t\tr.owner.notify(m.delta)' -> 'if m.turn == r.active {\n if m.delta.Kind==common.DeltaToolCall && m.delta.Chunk==`{"value":` { r.active.calls=append(r.active.calls,common.Part{Type:"tool_call",CallID:"early",Name:"echo",Args:[]byte(`{"value":"partial"}`)}); r.dispatch() }\n\t\t\t\t\tr.owner.notify(m.delta)'
+--- FAIL: TestStreamingDeliveryAndContent (0.01s)
+    --- FAIL: TestStreamingDeliveryAndContent/openai (0.01s)
+        --- FAIL: TestStreamingDeliveryAndContent/openai/disabled=false (0.00s)
+            stream_test.go:184: executed incomplete arguments: {"value":"partial"}
+            stream_test.go:274: tool result has no matching call
+FAIL
+FAIL	ensemble/ensemble	0.020s
+FAIL
+exit=1
+
+=== sse-empty-keepalive-events ===
+internal/engine/sse.go
+mutation: 'if len(data) == 0 {' -> 'if false {'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/comments (0.00s)
+        sse_test.go:30: framing error <nil>; got lengths/events [: :ok :]
+FAIL
+FAIL	ensemble/internal/engine	0.008s
+FAIL
+exit=1
+
+=== sse-crlf-not-trimmed ===
+internal/engine/sse.go
+mutation: 'strings.TrimSuffix(strings.TrimSuffix(line, "\\n"), "\\r")' -> 'strings.TrimSuffix(line, "\\n")'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/crlf (0.00s)
+        sse_test.go:30: framing error <nil>; got lengths/events [x
+:value
+]
+FAIL
+FAIL	ensemble/internal/engine	0.008s
+FAIL
+exit=1
+
+=== done-parsed-as-json ===
+internal/engine/stream.go
+mutation: 'if string(data) == "[DONE]" {' -> 'if false {'
+--- FAIL: TestStreamingDeliveryAndContent (0.01s)
+    --- FAIL: TestStreamingDeliveryAndContent/openai (0.01s)
+        --- FAIL: TestStreamingDeliveryAndContent/openai/disabled=false (0.00s)
+            stream_test.go:274: invalid OpenAI stream frame
+FAIL
+FAIL	ensemble/ensemble	0.019s
+FAIL
+exit=1
+
+SSE boundary sensitivities and completed-metadata truncation fixture.
+
+=== sse-lost-event-reset ===
+internal/engine/sse.go
+mutation: 'if len(data) == 0 {\n\t\t\tevent = ""' -> 'if len(data) == 0 {\n\t\t\t// Stale event retained.'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/reset_event (0.00s)
+        sse_test.go:30: framing error <nil>; got 1 events, expected 1; framing payload differs
+FAIL
+FAIL	ensemble/internal/engine	0.011s
+FAIL
+exit=1
+
+=== sse-ignores-empty-data ===
+internal/engine/sse.go
+mutation: 'data = append(data, value)' -> 'if value!="" { data = append(data, value) }'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/empty_data (0.00s)
+        sse_test.go:30: framing error <nil>; got 0 events, expected 1; framing payload differs
+FAIL
+FAIL	ensemble/internal/engine	0.010s
+FAIL
+exit=1
+
+=== sse-trims-content-spaces ===
+internal/engine/sse.go
+mutation: 'value = strings.TrimPrefix(value, " ")' -> 'value = strings.TrimSpace(value)'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/one_optional_space (0.00s)
+        sse_test.go:30: framing error <nil>; got 1 events, expected 1; framing payload differs
+FAIL
+FAIL	ensemble/internal/engine	0.009s
+FAIL
+exit=1
+
+=== sse-caps-frame-size ===
+internal/engine/sse.go
+mutation: 'reader := bufio.NewReader(r)' -> 'reader := bufio.NewReader(io.LimitReader(r,64*1024))'
+--- FAIL: TestSSEFraming (0.00s)
+    --- FAIL: TestSSEFraming/large (0.00s)
+        sse_test.go:30: framing error <nil>; got 1 events, expected 1; framing payload differs
+FAIL
+FAIL	ensemble/internal/engine	0.012s
+FAIL
+exit=1
+
+=== sse-loses-consumer-error ===
+internal/engine/sse.go
+mutation: 'return e\n' -> 'return nil\n'
+--- FAIL: TestSSEFraming (0.00s)
+    sse_test.go:36: consumer failure lost <nil>
+FAIL
+FAIL	ensemble/internal/engine	0.009s
+FAIL
+exit=1
+
+=== accepts-truncated-response ===
+internal/engine/anthropic_stream.go
+mutation: 'if !stopped {' -> 'if !stopped && false {'
+--- FAIL: TestUnknownModelAndStreamFailures (0.00s)
+    --- FAIL: TestUnknownModelAndStreamFailures/anthropic_truncated (0.00s)
+        stream_test.go:368: failed stream masqueraded as final or lost trace <nil> 1 2
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
+exit=1

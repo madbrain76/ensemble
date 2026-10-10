@@ -1,0 +1,120 @@
+{
+  "vendor": "gemini",
+  "model": "gemini-2.5-flash",
+  "failure": null,
+  "turns": [
+    {
+      "turn": 1,
+      "prompt": "Write a vivid 70-word story about a lighthouse keeper who collects fog.",
+      "elapsed_seconds": 1.7052
+    },
+    {
+      "turn": 2,
+      "prompt": "Use run_command to print STREAM_PROBE, then tell me the result in one sentence.",
+      "elapsed_seconds": 1.8986
+    },
+    {
+      "turn": 3,
+      "prompt": "What exact word did the command print? Answer in one sentence.",
+      "elapsed_seconds": 0.4863
+    }
+  ],
+  "reads": [
+    {
+      "seconds": 0.0113,
+      "turn": 1,
+      "stream": "stderr",
+      "text": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n"
+    },
+    {
+      "seconds": 1.6093,
+      "turn": 1,
+      "stream": "stderr",
+      "text": "**Generating the Story**\n\nI've decided to move forward with the lighthouse keeper story. The word count is a little less than the target, but I believe I can craft a compelling narrative in that space. I'm focusing on the unique task of collecting fog, and will try to make sure I convey a sense of solitude and wonder.\n\n\n"
+    },
+    {
+      "seconds": 1.621,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "Elara, the lighthouse keeper, lived a life of salty solitude. Her true passion wasn't just"
+    },
+    {
+      "seconds": 1.6328,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " guiding ships, but collecting the very essence of the sea's breath: fog. Each swirling tendril that embraced her tower was carefully siphoned into ornate glass vials. Her cottage shelves gleamed with jars of thick, pearly mist, each labeled"
+    },
+    {
+      "seconds": 1.6509,
+      "turn": 1,
+      "stream": "stdout",
+      "text": " with the date and the specific mood of the sea it represented\u2014\"Gloomy November,\" \"Whispering Dawn,\" \"Sorrowful Gale.\" She swore each jar hummed with a unique, silent song."
+    },
+    {
+      "seconds": 1.6541,
+      "turn": 1,
+      "stream": "stderr",
+      "text": "\n"
+    },
+    {
+      "seconds": 1.6541,
+      "turn": 1,
+      "stream": "stdout",
+      "text": "\n"
+    },
+    {
+      "seconds": 2.9783,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "**Defining the Command**\n\nI've determined the approach: I'll use `run_command` with the argument `command='echo STREAM_PROBE'`. My next step is to execute this command and capture its output to formulate a concise response to the user.\n\n\n"
+    },
+    {
+      "seconds": 3.008,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "run_command {\"command\":\"echo STREAM_PROBE\"}"
+    },
+    {
+      "seconds": 3.0086,
+      "turn": 2,
+      "stream": "stderr",
+      "text": "\n\n"
+    },
+    {
+      "seconds": 3.4678,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "The command"
+    },
+    {
+      "seconds": 3.5519,
+      "turn": 2,
+      "stream": "stdout",
+      "text": " successfully printed \"STREAM_PROBE\"."
+    },
+    {
+      "seconds": 3.5527,
+      "turn": 2,
+      "stream": "stdout",
+      "text": "\n"
+    },
+    {
+      "seconds": 4.0382,
+      "turn": 3,
+      "stream": "stdout",
+      "text": "The command printed \""
+    },
+    {
+      "seconds": 4.0386,
+      "turn": 3,
+      "stream": "stdout",
+      "text": "STREAM_PROBE\"."
+    },
+    {
+      "seconds": 4.0394,
+      "turn": 3,
+      "stream": "stdout",
+      "text": "\n"
+    }
+  ]
+}

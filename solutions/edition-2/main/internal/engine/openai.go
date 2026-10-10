@@ -121,7 +121,15 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 	for _, d := range e.parent.Declarations() {
 		tools = append(tools, map[string]any{"type": "function", "function": map[string]any{"name": d.Name, "description": d.Description, "parameters": d.Schema}})
 	}
+	var streamOptions map[string]bool
+	if StreamingFor(e.parent.Config()) != 0 {
+		streamOptions = map[string]bool{"include_usage": true}
+	}
 	return json.Marshal(struct {
+		// Stream requests incremental Chat Completions delivery.
+		Stream bool `json:"stream,omitempty"`
+		// StreamOptions asks for the final usage-only frame; otherwise accounting disappears.
+		StreamOptions map[string]bool `json:"stream_options,omitempty"`
 		// Tools contains only the declarations visible to this Agent.
 		Tools []map[string]any `json:"tools,omitempty"`
 		// Model selects or reports the provider model identity for this exchange.
@@ -130,7 +138,7 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 		MaxTokens int `json:"max_completion_tokens"`
 		// Messages retains provider message order, including tool-result boundaries.
 		Messages []openAIMessage `json:"messages"`
-	}{tools, e.parent.Config().Model, 1024, messages})
+	}{StreamingFor(e.parent.Config()) != 0, streamOptions, tools, e.parent.Config().Model, 1024, messages})
 }
 
 // This parser consumes the first response choice, matching one conversational
