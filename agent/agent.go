@@ -288,7 +288,53 @@ type AgentSpec struct {
 	// only subtract cannot grow a dependency bag.
 	SafeMode        bool
 	EnableWebSearch bool
+
+	// ID is this agent's address. It is unique among its siblings, and it
+	// is the name a parent uses to talk about one child rather than
+	// another.
+	//
+	// ParentID is the address of whoever this agent reports to. For a
+	// top-level agent it is UserID, so the chain of parents ends at the
+	// human instead of at an agent with nobody to tell. That matters for
+	// more than tidiness: an agent that escalates a problem upward needs
+	// somewhere for the last escalation to go.
+	//
+	// Both qualify under the rule stated above, which bans capabilities
+	// and admits data. An address is a name, not a reference. Holding one
+	// lets an agent say who it wants to reach; it confers no ability to
+	// reach them, which is why the objects that actually deliver messages
+	// are wired onto the agent and are deliberately not here. Putting a
+	// live parent pointer in this struct would be exactly the dependency
+	// bag this type was built to replace.
+	ID       string
+	ParentID string
 }
+
+// UserID is the reserved address of the human.
+//
+// The user is addressable but is not a fleet member, and the split is the
+// point. Addressing is uniform: a top-level agent's parent is the user, so
+// send-to-parent needs no special case at the root, and no code has to ask
+// whether it is at the top of the tree before deciding where a message
+// goes. Lifecycle is not uniform, because nothing can spawn a user, shut
+// one down, or read a user's state. So this id never appears in an agent
+// map, and every loop that walks the fleet is spared an "unless it is the
+// user" guard.
+//
+// It is reserved rather than merely conventional: a child may not be
+// spawned under this id, because an agent answering to the user's address
+// could intercept messages meant for the human.
+const UserID = "user"
+
+// RootID is the default address of a top-level agent.
+//
+// Every agent needs a non-empty address, and this is the invariant that
+// guarantees it. The alternative looks harmless and is not: a parent with no
+// address hands its children an empty ParentID, which then defaults to the
+// user, and those children escalate PAST their real parent straight to the
+// human. An unaddressable agent does not merely fail to receive messages, it
+// silently reroutes its children's.
+const RootID = "main"
 
 // Child derives a specification for a sub-agent from its parent's.
 //
@@ -308,6 +354,14 @@ func (s AgentSpec) Child(dataDir string) AgentSpec {
 	c.DataDir = dataDir
 	c.LogPath = ""
 	c.SavePath = ""
+	// The child reports to this agent. Deriving the link here rather than
+	// asking the caller to set it means a child cannot be created with the
+	// wrong parent, or with none: whoever derives the spec IS the parent.
+	c.ParentID = s.ID
+	// The child's own address is cleared, not inherited. Two agents sharing
+	// one id would make a reply ambiguous, and inheriting the parent's id
+	// is the specific way that happens. Whoever names the child sets it.
+	c.ID = ""
 	return c
 }
 
@@ -411,6 +465,23 @@ func (s AgentSpec) Path(name string) string { return filepath.Join(s.DataDir, na
 func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 	if spec.DataDir == "" {
 		spec.DataDir = "."
+	}
+	// An agent nobody derived is a top-level agent, and a top-level agent
+	// answers to the user. Defaulting here rather than at the call sites is
+	// what makes the parent chain total: every agent has a parent address,
+	// so code that walks upward never has to handle "and then nothing".
+	//
+	// The agent's OWN address is defaulted first, and the order matters.
+	// Spawn copies the parent's id into each child's ParentID, so a parent
+	// left unaddressed would hand out empty parent addresses, which default
+	// to the user and send those children's escalations past their real
+	// parent. Naming the root closes that path at the only point where
+	// anonymity can enter.
+	if spec.ID == "" {
+		spec.ID = RootID
+	}
+	if spec.ParentID == "" {
+		spec.ParentID = UserID
 	}
 	logPath := spec.LogPath
 	if logPath == "" {

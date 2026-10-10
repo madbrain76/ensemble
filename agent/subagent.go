@@ -170,6 +170,12 @@ func (m *SubAgentManager) Spawn(id, task string, adjust func(*AgentSpec)) (*SubA
 	if id == "" {
 		return nil, fmt.Errorf("sub-agent id must not be empty")
 	}
+	// The user's address is reserved. An agent registered under it could
+	// receive messages a child meant for the human, which is a confusion
+	// worth refusing rather than detecting later.
+	if id == UserID {
+		return nil, fmt.Errorf("sub-agent id %q is reserved for the user", UserID)
+	}
 
 	m.mu.Lock()
 	if _, exists := m.children[id]; exists {
@@ -190,6 +196,18 @@ func (m *SubAgentManager) Spawn(id, task string, adjust func(*AgentSpec)) (*SubA
 	if adjust != nil {
 		adjust(&spec)
 	}
+	// Identity is assigned after the caller's adjustments, not before, so
+	// adjust cannot rename the agent out from under the manager. The map
+	// key and the agent's own address have to agree or a reply goes to the
+	// wrong child, and the only way to guarantee that is for one of them to
+	// be derived from the other here.
+	//
+	// Parentage is re-derived for the same reason. Child already set it,
+	// but adjust runs in between and could point the child at some other
+	// agent, which would send its escalations to a stranger. Whoever
+	// spawns an agent is its parent, and that is not negotiable by a hook.
+	spec.ID = id
+	spec.ParentID = m.parent.Spec().ID
 
 	// Clamp unconditionally, then report. The narrowing already happened by
 	// the time the error is read, so a caller that drops the error still
