@@ -2,6 +2,8 @@ package agent
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -252,6 +254,29 @@ func (m *SubAgentManager) Respond(agentID, messageID, response string) error {
 	}
 
 	sub.mu.Lock()
+	// An omitted id answers the only pending question. Making the model copy
+	// an identifier out of prose to answer a question it just read is a step
+	// that can only go wrong, and the overwhelmingly common case is one child
+	// asking one thing. The id still settles the ambiguous case, and when it
+	// is ambiguous the error names the choices rather than guessing.
+	if messageID == "" {
+		switch len(sub.pending) {
+		case 1:
+			for id := range sub.pending {
+				messageID = id
+			}
+		case 0:
+			// Fall through to the not-found error below.
+		default:
+			ids := make([]string, 0, len(sub.pending))
+			for id := range sub.pending {
+				ids = append(ids, id)
+			}
+			sort.Strings(ids)
+			sub.mu.Unlock()
+			return fmt.Errorf("sub-agent %s has %d pending messages (%s): name one with message_id", agentID, len(ids), strings.Join(ids, ", "))
+		}
+	}
 	msg, found := sub.pending[messageID]
 	if found {
 		delete(sub.pending, messageID)

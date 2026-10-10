@@ -268,6 +268,15 @@ func (m *SubAgentManager) Spawn(id, task string, adjust func(*AgentSpec)) (*SubA
 		child.SetUser(m.parent.userAddr(), sink)
 	}
 
+	// The child inherits the factory as well, or it cannot spawn children of
+	// its own and the fleet is permanently one level deep. Propagating here
+	// rather than asking the host to re-inject a factory into every child it
+	// never sees is the whole point of the manager owning this: the host
+	// supplies the policy once, and the mechanism carries it down.
+	if m.factory != nil {
+		child.SetAgentFactory(m.factory)
+	}
+
 	sub := &SubAgent{ID: id, Task: task, Agent: child, mgr: m, state: SubAgentIdle}
 
 	m.mu.Lock()

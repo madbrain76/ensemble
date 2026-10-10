@@ -539,6 +539,16 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		out.Flush()
 	}
 
+	// A message addressed to the user has to leave the process, so the root
+	// agent needs a sink that writes one. Without this the human is
+	// addressable in principle and unreachable in practice, which is the gap
+	// the agent factory had as well: exercised in every test, wired in no
+	// product. Children inherit this sink when they are spawned, so an
+	// escalation from deep in a fleet reaches the same place.
+	a.SetUser(agent.UserID, agent.UserSinkFunc(func(m *agent.Message) {
+		emitLocked(map[string]string{"user_message": m.Content, "from": m.From})
+	}))
+
 	if textMode {
 		if isTerminal(os.Stdin) {
 			fmt.Fprintf(os.Stderr, "%[1]s: interactive chat. type a message and press enter.\n", progName())
