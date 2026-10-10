@@ -21,6 +21,28 @@ documented wrong-version-header survivor (original 100, revised 85); both correc
 student and legacy references score 100. See the enhancement plan for the review
 and checkpoint; original student results remain separate.
 
+On October 10, Bill restarted coordination after repeated command-approval
+prompts despite selecting full permissions. He identified the mismatch with
+the user's expectation as a bug; its underlying cause has not been diagnosed.
+The incoming session reports full filesystem access and approval policy `never`,
+and its commands execute without approval requests. Cross-thread tools could
+read the previous team but rejected direct input to its v2 sub-agents. The old
+coordinator checkpointed Chapter 2 and interrupted all three delegates before
+replacement author, coder and reviewer roles resumed from repository artifacts.
+The handoff preserves pending validation and review rounds; restarting an agent
+does not turn interrupted checks into passes. See the enhancement plan's
+October 10 handoff for the exact pending work.
+
+The resumed team then completed Chapter 2 at initial independent combined
+prose/code review, with no formal correction rounds. The enhancement preserves
+the original stories while publishing missing CLI/log contracts and explaining
+demonstrated capture, ordering and redaction failures. Revised grading is
+100/100 for both accepted student and legacy code; original student grading
+remains 92/100 FAIL. Nine targeted defects demonstrate the strengthened checks,
+and the exact published fixture runs through all three offline renderers.
+Original graders, frozen exports and product code are unchanged. Details and
+the checkpoint are linked from the enhancement plan.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

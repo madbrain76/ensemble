@@ -20,13 +20,13 @@ func run() int {
 	chapter := flag.Int("ch", 1, "Edition 2 chapter to grade")
 	asJSON := flag.Bool("json", false, "emit the report as JSON")
 	flag.Parse()
-	if *chapter != 1 || flag.NArg() > 1 {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1 [-json] [submission-directory]")
+	if (*chapter != 1 && *chapter != 2) || flag.NArg() > 1 {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2 [-json] [submission-directory]")
 		return 2
 	}
 	path := flag.Arg(0)
 	if path == "" {
-		path = "./solutions/edition-2/ch01"
+		path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter)
 	}
 	bin, cleanup, err := grade.Build(path)
 	if err != nil {
@@ -34,12 +34,20 @@ func run() int {
 		return 2
 	}
 	defer cleanup()
-	res, err := grade.Run(bin)
+	var report grade.Report
+	if *chapter == 1 {
+		var res *grade.RunResult
+		res, err = grade.Run(bin)
+		if err == nil {
+			report = gradeedition2.Chapter1(res)
+		}
+	} else {
+		report, err = gradeedition2.Chapter2(bin)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "grader: %v\n", err)
 		return 2
 	}
-	report := gradeedition2.Chapter1(res)
 	if *asJSON {
 		if err := report.WriteJSON(os.Stdout); err != nil {
 			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
