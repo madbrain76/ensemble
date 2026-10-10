@@ -95,7 +95,10 @@ func setup(t *testing.T, provider *httptest.Server) (ensemble.Agent, *gui.Server
 		t.Fatal(err)
 	}
 	log := &trace{}
-	hub := gui.New(root, a, log)
+	hub, err := gui.New(root, a, log)
+	if err != nil {
+		t.Fatal(err)
+	}
 	server := httptest.NewServer(hub.Handler("web/gui"))
 	t.Cleanup(func() { a.Unpause(); a.Shutdown(); hub.Close(); server.Close() })
 	return a, hub, server, log

@@ -304,7 +304,7 @@ func (r *runtime) begin(q request) {
 		return
 	}
 	ctx, cancel := context.WithCancel(q.ctx)
-	limit := r.owner.config.MaxToolRounds
+	limit := r.owner.Config().MaxToolRounds
 	if limit == 0 {
 		limit = common.DefaultMaxToolRounds
 	}

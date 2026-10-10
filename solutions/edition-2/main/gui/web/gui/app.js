@@ -1,4 +1,4 @@
-// One scroll owns every artifact. Renderers construct DOM nodes from text;
+// Each pane owns its artifacts through the same renderer. Renderers construct DOM nodes from text;
 // filenames, tool results and model prose can never become executable markup.
 const input = document.querySelector("#input");
 const voice = document.querySelector("#voice");
@@ -46,6 +46,7 @@ class Speech {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = Number(document.querySelector("#tts-speed").value);
     this.active = utterance;
     const done = (event) => {
       if (this.active !== utterance) return; // A cancelled utterance cannot finish a newer one.
@@ -92,9 +93,7 @@ document.addEventListener("visibilitychange", () => {
   wake.volume = 0;
   speechSynthesis.speak(wake);
 });
-voice.addEventListener("change", () => {
-  if (!voice.checked) speech.cancel();
-});
+
 
 function markdown(node, text) {
   // A deliberately small Markdown subset: headings, bullets, fences, bold and
@@ -209,7 +208,7 @@ class ArtifactScroll {
   // an earlier artifact should not fight an unconditional scroll-to-bottom.
   render(card) {
     const nearEnd =
-      window.innerHeight + window.scrollY >= document.body.scrollHeight - 180;
+      this.element.clientHeight + this.element.scrollTop >= this.element.scrollHeight - 180;
     card.content.replaceChildren();
     // A cap bounds the normal card while the expander retains every byte.
     const shown = card.text.slice(0, 4000);
@@ -248,7 +247,7 @@ class ArtifactScroll {
       details.append(summary, full);
       card.content.append(details);
     }
-    if (nearEnd) card.element.scrollIntoView({ block: "end" });
+    if (nearEnd) this.element.scrollTo(0, this.element.scrollHeight);
   }
   // History replay is silent. Finals reconcile display text, while already
   // streamed speech is never re-enqueued just because a final arrives.
@@ -304,20 +303,121 @@ class ArtifactScroll {
     }
   }
 }
-const scroll = new ArtifactScroll(document.querySelector("#artifacts"));
+const chatScroll = new ArtifactScroll(document.querySelector("#artifacts"));
+const actionsScroll = new ArtifactScroll(document.querySelector("#actions"));
+// Provider tool parts and dispatch/results share the actions renderer, retaining
+// call identity. Other content stays in chat without a second rendering path.
+function route(message) {
+  const tool = ["tool_dispatched", "tool_finished"].includes(message.type) ||
+    message.kind === "tool_call" || message.part?.type === "tool_call";
+  (tool ? actionsScroll : chatScroll).receive(message);
+}
+const agents = [{ id: "root", name: "Ensemble", state: "idle", children: [] }];
+function renderAgents(nodes, parent) {
+  parent.replaceChildren();
+  for (const agent of nodes) {
+    const node = document.createElement("li");
+    node.dataset.state = agent.state;
+    const indicator = document.createElement("span");
+    indicator.className = "agent-indicator";
+    node.append(indicator, `${agent.name} — ${agent.state}`);
+    if (agent.children.length) {
+      const children = document.createElement("ul");
+      renderAgents(agent.children, children);
+      node.append(children);
+    }
+    parent.append(node);
+  }
+}
+renderAgents(agents, document.querySelector("#agent-tree"));
+const theme = document.querySelector("#theme");
+const speed = document.querySelector("#tts-speed");
+const font = document.querySelector("#font-size");
+const scheme = matchMedia("(prefers-color-scheme: dark)");
+function applyTheme() {
+  document.body.dataset.theme = theme.value === "system" ?
+    (scheme.matches ? "dark" : "light") : theme.value;
+}
+scheme.addEventListener("change", applyTheme);
+function applySettings(settings) {
+  theme.value = settings.theme;
+  applyTheme();
+  voice.checked = settings.tts_enabled;
+  if (!voice.checked) speech.cancel();
+  speed.value = settings.tts_speed;
+  document.querySelector("#speed-value").value = settings.tts_speed;
+  // Loaded/API values can be any integer in range, not only the menu presets.
+  if (![...font.options].some(option => Number(option.value) === settings.font_size))
+    font.add(new Option(String(settings.font_size), String(settings.font_size)));
+  font.value = settings.font_size;
+  document.body.style.fontSize = `${settings.font_size}px`;
+  document.querySelector("#settings-status").textContent = "";
+}
+for (const [control, field, value] of [
+  [theme, "theme", () => theme.value],
+  [voice, "tts_enabled", () => voice.checked],
+  [speed, "tts_speed", () => Number(speed.value)],
+  [font, "font_size", () => Number(font.value)],
+]) control.addEventListener("change", () => {
+  send({ type: "update_settings", settings: { [field]: value() } });
+});
+// Native buttons and selected attributes expose the active panel to readers.
+for (const tab of document.querySelectorAll('[role="tab"]')) {
+  tab.onclick = () => {
+    for (const other of document.querySelectorAll('[role="tab"]')) {
+      const selected = other === tab;
+      other.setAttribute("aria-selected", selected);
+      document.getElementById(other.getAttribute("aria-controls")).hidden = !selected;
+    }
+  };
+}
+// Pointer capture survives leaving the narrow divider. Keyboard arrows provide
+// the same resizing operation without requiring a precise mouse gesture.
+for (const [id, selector, minimum, sign] of [
+  ["sidebar-drag", ".sidebar", 180, 1], ["actions-drag", ".actions", 200, -1],
+]) {
+  const bar = document.getElementById(id), pane = document.querySelector(selector);
+  const resize = (width) => {
+    const maximum = Math.max(minimum, pane.offsetWidth + document.querySelector(".center").offsetWidth - 300);
+    const next = Math.max(minimum, Math.min(maximum, width));
+    pane.style.width = `${next}px`;
+    bar.setAttribute("aria-valuenow", Math.round(next));
+  };
+  bar.setAttribute("aria-valuemin", minimum);
+  bar.setAttribute("aria-valuenow", pane.offsetWidth);
+  bar.onpointerdown = (event) => {
+    const start = event.clientX, width = pane.offsetWidth;
+    bar.setPointerCapture(event.pointerId);
+    bar.onpointermove = (move) => resize(width + sign * (move.clientX - start));
+    bar.onpointerup = bar.onpointercancel = () => { bar.onpointermove = null; };
+  };
+  bar.onkeydown = (event) => {
+    if (["ArrowLeft", "ArrowRight"].includes(event.key)) {
+      event.preventDefault();
+      resize(pane.offsetWidth + sign * (event.key === "ArrowRight" ? 20 : -20));
+    }
+  };
+}
 function connect() {
   socket = new WebSocket(
     `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`,
   );
   // Reconnection requests history only; stale local causes must not veto another tab's unpause.
   socket.onopen = () => {
-    scroll.reset();
+    chatScroll.reset();
+    actionsScroll.reset();
     send({ type: "subscribe" });
   };
   socket.onmessage = (event) => {
     const message = JSON.parse(event.data);
-    scroll.receive(message);
-    if (message.type === "state_changed") state.textContent = message.to;
+    route(message);
+    if (["current_settings", "settings_changed"].includes(message.type)) applySettings(message.settings);
+    if (message.type === "settings_error") document.querySelector("#settings-status").textContent = message.error;
+    if (message.type === "state_changed") {
+      state.textContent = message.to;
+      agents[0].state = message.to;
+      renderAgents(agents, document.querySelector("#agent-tree"));
+    }
     if (message.type === "pause_changed")
       pauseState.textContent = message.paused ? "paused" : "";
     if (message.type === "turn_ended") {

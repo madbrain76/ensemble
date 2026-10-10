@@ -17,6 +17,7 @@ import (
 type agent struct {
 	parent      common.Ensemble
 	config      common.Config
+	configMu    sync.Mutex
 	engine      common.Engine
 	history     common.History
 	tools       []common.ToolDefinition
@@ -46,8 +47,12 @@ func New(parent common.Ensemble, cfg common.Config) *agent {
 // Ensemble returns the owning application root, including its logging services.
 func (a *agent) Ensemble() common.Ensemble { return a.parent }
 
-// Config returns this Agent's fixed request and workspace configuration.
-func (a *agent) Config() common.Config { return a.config }
+// Config returns request/workspace configuration with the current turn policy.
+func (a *agent) Config() common.Config {
+	a.configMu.Lock()
+	defer a.configMu.Unlock()
+	return a.config
+}
 
 // Engine reaches the transport and measured usage through the owning Agent.
 func (a *agent) Engine() common.Engine { return a.engine }
@@ -132,4 +137,16 @@ func (a *agent) AttachHistory(h common.History) {
 		panic("History must belong to this Agent")
 	}
 	a.history = h
+}
+
+// SetMaxToolRounds changes the next turn's budget, preserving the active turn's
+// snapshot. Zero selects the named default; negative budgets are invalid.
+func (a *agent) SetMaxToolRounds(limit int) error {
+	if limit < 0 {
+		return fmt.Errorf("MaxToolRounds must be nonnegative")
+	}
+	a.configMu.Lock()
+	defer a.configMu.Unlock()
+	a.config.MaxToolRounds = limit
+	return nil
 }

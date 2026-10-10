@@ -1,0 +1,7 @@
+October 9, 2026, student Chapter 9 initial implementation
+PASS core: go test ./...; go vet ./...
+PASS GUI: go test ./...; go test -race ./...; go vet ./...
+PASS gofmt on changed Go files (later source revisions require affected checks).
+FAILED/INTERRUPTED separate accidental invocation: outer-root go test ./... had unrelated script-package setup errors, then interrupted. No grader score claimed.
+Original grader: running, sole intended invocation; see original-grade.txt and grader-source.json.
+Browser, mutations and live exercise: pending at this checkpoint.

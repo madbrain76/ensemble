@@ -19,6 +19,7 @@ import (
 // owner. Construct the server before starting the Agent, and close it afterward.
 type Server struct {
 	agent       ensemble.Agent
+	settings    Settings
 	mu          sync.Mutex
 	clients     map[*websocket.Conn]chan [][]byte
 	partials    map[uint64]map[string]any
@@ -33,14 +34,17 @@ type Server struct {
 
 // New attaches a root observer. Ensemble and Agent are application services,
 // not parents of this optional transport; the server owns only its connections.
-func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) *Server {
+func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server, error) {
 	if root == nil || agent == nil || agent.Ensemble() != root || log == nil {
 		panic("GUI requires its Ensemble, Agent and log")
 	}
 	s := &Server{agent: agent, clients: make(map[*websocket.Conn]chan [][]byte), partials: make(map[uint64]map[string]any), log: log}
 	s.connections = make(map[*websocket.Conn]bool)
+	if err := s.loadSettings(); err != nil {
+		return nil, fmt.Errorf("load settings: %w", err)
+	}
 	root.AddObserver(s)
-	return s
+	return s, nil
 }
 
 // Submit retains the original external client seam over the same Agent.
@@ -226,6 +230,8 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 		var input struct {
 			// Type selects the client command; Text carries its human input.
 			Type, Text string
+			// Settings carries a sparse preference patch; absent fields stay unchanged.
+			Settings json.RawMessage
 		}
 		if json.Unmarshal(data, &input) != nil {
 			continue
@@ -243,6 +249,22 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				// live progress buffer. Socket writes remain outside the observer lock.
 				queue <- s.replay()
 				s.clients[conn] = queue
+			}
+			s.mu.Unlock()
+		case "update_settings":
+			// Serialize apply and broadcast with subscribe: every tab observes the
+			// same ordering, even when two clients update at once.
+			s.mu.Lock()
+			settings, err := s.updateSettings(input.Settings)
+			if err != nil {
+				data, _ := json.Marshal(map[string]any{"type": "settings_error", "error": err.Error()})
+				select {
+				case queue <- [][]byte{data}:
+				default:
+					conn.Close()
+				}
+			} else {
+				s.broadcast(map[string]any{"type": "settings_changed", "settings": settings})
 			}
 			s.mu.Unlock()
 		case "prompt":
@@ -310,6 +332,7 @@ func (s *Server) replay() [][]byte {
 	state := s.agent.History().Context().Turn
 	add(map[string]any{"type": "state_changed", "from": state, "to": state})
 	add(map[string]any{"type": "pause_changed", "paused": s.agent.Paused()})
+	add(map[string]any{"type": "current_settings", "settings": s.snapshotSettings()})
 	return out
 }
 
