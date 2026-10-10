@@ -685,9 +685,64 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 	// either end-of-input or a signal. A blocking Scan cannot be cancelled,
 	// so on Ctrl-C we abandon this goroutine and leave through the normal
 	// path below — which is the whole point, because that path holds the save.
+	// A turn runs on the actor's own goroutine; AskContext only posts a
+	// request and waits for the reply. Waiting here is what causes the
+	// trouble, because this is also the goroutine reading stdin, so nothing
+	// sent while a tool is running is read until the turn it was meant to
+	// steer has already ended. The wake built for sub-agents is reachable
+	// from a running turn and was not reachable from here. So run the ask
+	// on its own goroutine and keep reading.
+	var turnMu sync.Mutex
+	var turnActive bool
+	var turns sync.WaitGroup
+
+	startTurn := func(text string) {
+		turnMu.Lock()
+		turnActive = true
+		turnMu.Unlock()
+		turns.Add(1)
+		go func() {
+			defer turns.Done()
+			reply, err := actor.AskContext(ctx, text)
+			turnMu.Lock()
+			turnActive = false
+			if err != nil {
+				vendorFailed = true
+			}
+			turnMu.Unlock()
+			if err != nil {
+				if !textMode {
+					emitLocked(map[string]string{"error": err.Error()})
+				}
+				return
+			}
+			if !textMode {
+				// The text observer already streamed it; never echo twice.
+				emitLocked(map[string]string{"assistant": reply})
+			}
+		}()
+	}
+
+	// Text arriving while a turn is in flight is not a new request. It is a
+	// message into the running one, and the actor decides what that means:
+	// a tool wait ends early, an idle actor starts a fresh turn.
+	deliver := func(text string) {
+		turnMu.Lock()
+		busy := turnActive
+		turnMu.Unlock()
+		if busy {
+			actor.Send(common.UserMessage{Text: text})
+			return
+		}
+		startTurn(text)
+	}
+
 	stdinDone := make(chan struct{})
 	go func() {
 		defer close(stdinDone)
+		// Registered second, so it runs first: closing stdin must not cut a
+		// turn short. The signal is "input is finished and so is the work".
+		defer turns.Wait()
 
 		in := bufio.NewScanner(os.Stdin)
 		in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
@@ -742,16 +797,7 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 						emitLocked(map[string]string{"error": "prompt requires text"})
 						continue
 					}
-					reply, err := actor.AskContext(ctx, *msg.Text)
-					if err != nil {
-						vendorFailed = true
-						if !textMode {
-							emitLocked(map[string]string{"error": err.Error()})
-						}
-					} else if !textMode {
-						// The text observer already streamed it; never echo twice.
-						emitLocked(map[string]string{"assistant": reply})
-					}
+					deliver(*msg.Text)
 				case "hint":
 					if msg.Text == nil {
 						emitLocked(map[string]string{"error": "hint requires text"})
@@ -778,13 +824,7 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 
 			// Backward compat: {"user":"..."}
 			if msg.User != nil {
-				reply, err := actor.AskContext(ctx, *msg.User)
-				if err != nil {
-					vendorFailed = true
-					emitLocked(map[string]string{"error": err.Error()})
-					continue
-				}
-				emitLocked(map[string]string{"assistant": reply})
+				deliver(*msg.User)
 				continue
 			}
 
@@ -839,7 +879,12 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		emitLocked(map[string]any{"usage": eng.Ctx.Usage})
 	}
 	out.Flush()
-	return vendorFailed
+	// A signal can arrive with a turn still in flight, and that turn is what
+	// sets the flag.
+	turnMu.Lock()
+	failed := vendorFailed
+	turnMu.Unlock()
+	return failed
 }
 
 // stdoutObserver adapts a func to common.Observer.
