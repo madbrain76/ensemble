@@ -347,6 +347,17 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		os.Exit(1)
 	}
 
+	// A spawned child is a full agent, so it is built the way this one was.
+	//
+	// The factory lives in the composition root rather than in the manager
+	// because model and credential policy belong here. The manager decides
+	// whether to spawn and with which permissions; this decides what the
+	// child is built with. Without it the manager can derive a perfectly
+	// good child specification and still have nothing to build.
+	a.SetAgentFactory(func(childSpec agent.AgentSpec, task string) (*agent.Agent, error) {
+		return agent.NewAgent(cfg, childSpec)
+	})
+
 	host := a
 	j := a.Jobs()
 	reg := a.Registry()
