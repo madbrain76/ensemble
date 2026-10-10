@@ -49,8 +49,9 @@ earlier CLI/topology checks ran against the optional GUI module. Earlier core
 results and exceptions remain separate. The grader was not changed or repeated
 solely to traverse those timeouts again; its earlier-binary provenance and final
 checks are preserved in `edition-2-notes/ch08.md` and its comparative review.
-Chapter 9 preparation is in `edition-2-notes/ch09.md`; assignment follows this
-checkpoint. No author is active.
+Fresh coder `student_restart_ch09` now follows original Chapter 9 from accepted
+`46fd955` / `edition-2-ch08-r3` in the authoritative main tree. Its sourced
+handoff and scope are in `edition-2-notes/ch09.md`; no Chapter 9 result is claimed.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
