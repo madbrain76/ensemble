@@ -124,13 +124,16 @@ class VirtualUser {
 const user = new VirtualUser();
 try {
   await user.open();
-  process.once("SIGTERM", async () => {
+  // Session shutdown owns the whole peer, including timers unrelated to the
+  // browser. Closing only the page leaves a pending sleep holding Node alive.
+  const close = async () => {
     await user.browser.close();
     process.exit(0);
-  });
+  };
+  process.once("SIGTERM", close);
   const lines = createInterface({ input: process.stdin });
-  // EOF must also interrupt a pending wait when the controlling Agent exits.
-  lines.once("close", () => user.browser.close());
+  // EOF and SIGTERM end the same lifetime, even during wait or sleep.
+  lines.once("close", close);
   for await (const line of lines) {
     const request = JSON.parse(line);
     if (request.id === undefined) continue;

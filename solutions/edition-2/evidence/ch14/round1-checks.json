@@ -1,0 +1,32 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "virtual-user.test.mjs"
+    ],
+    "exit": 0,
+    "stdout": "\u25b6 peer EOF cancels pending sleep and the actual client can finish\n  \u2714 peer keeps normal sleep but exits on EOF during sleep (1451.444333ms)\n  \u2714 real client exits after its answer with a sleep job still active (4308.357625ms)\n\u2714 peer EOF cancels pending sleep and the actual client can finish (6388.67475ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 6431.345791\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "virtual-user.mjs"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

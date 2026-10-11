@@ -1,0 +1,7 @@
+{
+  "mutation": "restore browser-only EOF cleanup, leaving pending timer alive",
+  "applied": true,
+  "exit": 1,
+  "stdout": "\u25b6 peer EOF cancels pending sleep and the actual client can finish\n  \u2716 peer keeps normal sleep but exits on EOF during sleep (3145.9045ms)\n  \u2716 real client exits after its answer with a sleep job still active (5622.622083ms)\n\u2716 peer EOF cancels pending sleep and the actual client can finish (9748.483042ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 3\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 9799.521375\n\n\u2716 failing tests:\n\ntest at virtual-user.test.mjs:126:15\n\u2716 peer keeps normal sleep but exits on EOF during sleep (3145.9045ms)\n  Error: pending sleep EOF exceeded bound\n      at Timeout.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-eof-mutant-6lfpn9fx/main/gui/virtual-user.test.mjs:25:24)\n      at listOnTimeout (node:internal/timers:685:17)\n      at process.processTimers (node:internal/timers:618:7)\n\ntest at virtual-user.test.mjs:199:15\n\u2716 real client exits after its answer with a sleep job still active (5622.622083ms)\n  Error: client exit with pending sleep=true exceeded bound\n      at Timeout.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-eof-mutant-6lfpn9fx/main/gui/virtual-user.test.mjs:25:24)\n      at listOnTimeout (node:internal/timers:685:17)\n      at process.processTimers (node:internal/timers:618:7)\n",
+  "stderr": ""
+}
