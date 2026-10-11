@@ -127,3 +127,41 @@ for another paid attempt or evidence that speech filtering failed. Live binaries
 precede the documented cleanup/formatting edits; no final-source paid result is
 claimed. Acceptance awaits the sole lifetime correction, within the existing
 three-round maximum; coordinator owns the eventual top-level `ch13` export.
+
+## Correction round 1: accepted with inherited grader exception
+
+Read the full revised student response, source and regression at `d01e846`;
+independently verified all **103** submitted file hashes and modes. The production
+fix only shares the peer's close-browser-and-exit handler between EOF and SIGTERM.
+It ends the owner's lifetime, including its timer, without shortening a live
+session's requested sleep or changing core, Go production or speech processing.
+The nearby explanation now states the actual timer-lifetime reason. Production
+JavaScript grows by one active and two comment-only lines against the initial
+submission; the focused new test is 254 active / 7 comment-only / 263 physical
+lines, separate from production. Its direct peer and actual-client controls are
+justified by the two observed cleanup boundaries, without a testing framework.
+
+Repeated the original independent real-GUI/peer probe on corrected source:
+idle EOF exits in **126 ms**; EOF during a **4000 ms** sleep exits in **127 ms**,
+both zero, compared with the initial pending-sleep **3865 ms**. The
+[round-1 receipt](../../solutions/edition-2/evidence/ch14/reviewer-round1-peer-eof.json)
+preserves exact revision/hashes and observations; its adjacent script retains
+the invocation. Reviewer processes and scratch are cleaned up.
+
+Reviewed the new real-browser/public-client regression and raw baseline/mutation
+results. Normal 150 ms sleep, idle wait, idle EOF and ordinary client completion
+pass. A real 60-second MCP sleep yields the existing job running callback; the
+fake provider then ends the actual model turn, and the real client exits within
+the observed post-answer bound. Restoring the old EOF handler fails both the
+pending-sleep peer bound and that actual-client exit bound, with normal controls
+passing first and no unrelated cleanup failure. The final restored baseline
+passes both subchecks (three Node records including their parent); syntax and
+whitespace checks pass. These are meaningful lifetime failures, not arbitrary
+timing substitutes for unrelated behavior. No further broad or paid run is needed.
+
+**Accepted with the inherited original13 grader exception after one correction
+round.** The sole current-scope blocker is fixed. Original **95/100 FAIL**, its
+earlier build provenance, the initial mutation survivor/cleanup failures, live
+target-content limits and absence of a human sound-quality judgment remain
+unchanged. No current speech or persona requirement is waived. Coordinator owns
+the direct top-level Edition 2 `ch13` export and any subsequent chapter release.

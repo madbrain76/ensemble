@@ -1,0 +1,10 @@
+import fs from 'node:fs';import {spawn} from 'node:child_process';import {createInterface} from 'node:readline';
+const root='/Users/bill/projects/ensemble/solutions/edition-2/',scratch='/tmp/ensemble-ch14-review-4mYCIs';
+const gui=spawn(scratch+'/gui',['--port','19424','--gui-dir',root+'main/gui/web/gui'],{cwd:scratch,env:{PATH:process.env.PATH,HOME:process.env.HOME,LLM_VENDOR:'anthropic',LLM_MODEL:'fake',LLM_API_KEY:'fake'},stdio:['pipe','ignore','pipe']});gui.stderr.resume();const results=[];
+try{for(let i=0;i<100;i++){try{if((await fetch('http://127.0.0.1:19424')).ok)break}catch{}await new Promise(r=>setTimeout(r,25));}
+for(const ms of [0,4000]){
+ const peer=spawn(process.execPath,[root+'main/gui/virtual-user.mjs','--agent-url','http://127.0.0.1:19424','--browser','/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'],{cwd:scratch,env:{PATH:process.env.PATH,HOME:process.env.HOME},stdio:['pipe','pipe','pipe']});let stderr='';peer.stderr.on('data',d=>stderr+=d);const lines=createInterface({input:peer.stdout})[Symbol.asyncIterator]();let exit;const done=new Promise(r=>peer.once('exit',(code,signal)=>{exit={code,signal};r()}));peer.stdin.write(JSON.stringify({jsonrpc:'2.0',id:1,method:'initialize'})+'\n');const init=JSON.parse((await lines.next()).value);
+ if(ms){peer.stdin.write(JSON.stringify({jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'sleep',arguments:{milliseconds:ms}}})+'\n');await new Promise(r=>setTimeout(r,150));}
+ const start=performance.now();peer.stdin.end();const early=await Promise.race([done.then(()=>true),new Promise(r=>setTimeout(()=>r(false),750))]);await Promise.race([done,new Promise((_,reject)=>setTimeout(()=>reject(Error('peer failed to exit')),6000))]);results.push({sleep_ms:ms,initialize_ok:!!init.result,exited_within_750ms:early,exit_elapsed_ms:Math.round(performance.now()-start),exit,stderr});
+}
+}finally{if(gui.exitCode===null){const done=new Promise(r=>gui.once('exit',r));gui.kill('SIGTERM');await done;}fs.writeFileSync(root+'evidence/ch14/reviewer-round1-peer-eof.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results));}

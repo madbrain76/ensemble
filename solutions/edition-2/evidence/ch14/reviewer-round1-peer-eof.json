@@ -1,0 +1,32 @@
+{
+  "source_revision": "d01e846864cf1cb731e10d7579f746457b19c645",
+  "file_sha256": {
+    "gui/virtual-user.mjs": "4a6e23c11f15ac2830d36fab4d22fd5825f2f77f6befa26101f51cfa797fe128",
+    "gui/cmd/virtual-user/main.go": "f8ebbcf8beecf86b711a1dbe58de2edfa1688a5ca14befddce0a79b861f4c477"
+  },
+  "measurements": [
+    {
+      "sleep_ms": 0,
+      "initialize_ok": true,
+      "exited_within_750ms": true,
+      "exit_elapsed_ms": 126,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stderr": ""
+    },
+    {
+      "sleep_ms": 4000,
+      "initialize_ok": true,
+      "exited_within_750ms": true,
+      "exit_elapsed_ms": 127,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stderr": ""
+    }
+  ],
+  "interpretation": "Same independent actual-peer EOF probe now exits promptly while4000ms sleep is pending, matching idle control. No provider/model request was sent."
+}
