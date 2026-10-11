@@ -1,0 +1,10 @@
+{
+  "source_commit": "9e2b72aeaddc85cbe1afadec41909b4d66ad3b34",
+  "main_tree": "38aee9dd34ca180dedeed0fe17bf4cfe2173ef84",
+  "binary": "/tmp/ch26-gui-live",
+  "binary_sha256": "a42e9069d3c9b123ede0f44f635b58e8646b5e78b85c615526748b2c915ebfa5",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "high",
+  "billing": "chatgpt",
+  "api_key_fallback": false
+}

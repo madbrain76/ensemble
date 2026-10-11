@@ -1,0 +1,1 @@
+[{"agent_id":"helper","reason":"change","status":{"activity":{"phase":"thinking"},"usage":{"input":3978,"cache_write":0,"cache_read":0,"output":106},"agent_id":"helper","state":"running"}}]

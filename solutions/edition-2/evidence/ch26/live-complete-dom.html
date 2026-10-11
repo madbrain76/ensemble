@@ -1,0 +1,171 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ensemble</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body data-theme="dark" style="font-size: 16px;">
+    <main class="layout">
+      <aside class="sidebar" aria-label="Ensemble sidebar">
+        <h1>Ensemble</h1>
+        <div role="tablist" aria-label="Sidebar">
+          <button id="agents-tab" role="tab" aria-controls="agents-panel" aria-selected="true">Agents</button>
+          <button id="context-tab" role="tab" aria-controls="context-panel" aria-selected="false">Context Management</button>
+          <button id="settings-tab" role="tab" aria-controls="settings-panel" aria-selected="false">Settings</button>
+        </div>
+        <section id="agents-panel" role="tabpanel" aria-labelledby="agents-tab">
+          <ul id="agent-tree" aria-label="Agents"><li data-state="idle" data-activity="idle"><button type="button" data-agent-key="main" aria-pressed="false" title="Select conversation">main · saved — idle · idle</button></li><li data-state="submitted" data-activity="idle"><button type="button" data-agent-key="console" aria-pressed="true" title="Select conversation">console · saved — submitted · idle</button><button type="button" aria-label="Delete console">Delete</button><ul><li data-state="submitted" data-activity="idle"><button type="button" data-agent-key="console/helper" aria-pressed="false" title="Select conversation">helper — submitted · idle</button></li></ul></li></ul>
+          <form id="create-agent">
+            <label>Name <input id="agent-name" required="" autocomplete="off" style=""></label>
+            <label>Model <input id="agent-model" placeholder="Application default" autocomplete="off" style=""></label>
+            <label>Skill <input id="agent-skill" placeholder="Application default" autocomplete="off" style=""></label>
+            <button>Create agent</button>
+          </form>
+          <p id="agent-status" role="status">Created console</p>
+        </section>
+        <section id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" hidden="">
+          <label>Model (current provider, between turns) <input id="model" type="text" autocomplete="off" style=""></label>
+          <label for="theme">Theme</label>
+          <select id="theme"><option>dark</option><option>light</option><option>system</option></select>
+          <label><input id="voice" type="checkbox" checked="" style=""> Read aloud</label>
+          <label for="tts-speed">Speech speed <output id="speed-value">1</output></label>
+          <!-- Saved rates may fall between tenths; preserve them in the slider. -->
+          <input id="tts-speed" type="range" min="0.5" max="2" step="any" value="1" style="">
+          <label for="font-size">Font size</label>
+          <select id="font-size"><option>12</option><option>14</option><option selected="">16</option><option>18</option><option>20</option><option>22</option><option>24</option></select>
+          <p id="settings-status" role="status"></p>
+        </section>
+        <section id="context-panel" role="tabpanel" aria-labelledby="context-tab" hidden="">
+          <fieldset id="memory-settings"><legend>Memory</legend><div><label><input type="checkbox" style=""> soul enabled </label><label> budget <input type="number" min="0" step="1" aria-label="soul budget bytes (0 = default)" style="width: 7em;"></label><label> high watermark <input type="number" min="0" step="1" aria-label="soul high_watermark bytes (0 = default)" style="width: 7em;"></label><label> low watermark <input type="number" min="0" step="1" aria-label="soul low_watermark bytes (0 = default)" style="width: 7em;"></label></div><div><label><input type="checkbox" style=""> memory enabled </label><label> budget <input type="number" min="0" step="1" aria-label="memory budget bytes (0 = default)" style="width: 7em;"></label><label> high watermark <input type="number" min="0" step="1" aria-label="memory high_watermark bytes (0 = default)" style="width: 7em;"></label><label> low watermark <input type="number" min="0" step="1" aria-label="memory low_watermark bytes (0 = default)" style="width: 7em;"></label></div><div><label><input type="checkbox" style=""> 64x enabled </label><label> budget <input type="number" min="0" step="1" aria-label="64x budget bytes (0 = default)" style="width: 7em;"></label><label> high watermark <input type="number" min="0" step="1" aria-label="64x high_watermark bytes (0 = default)" style="width: 7em;"></label><label> low watermark <input type="number" min="0" step="1" aria-label="64x low_watermark bytes (0 = default)" style="width: 7em;"></label></div><div><label><input type="checkbox" style=""> 8x enabled </label><label> budget <input type="number" min="0" step="1" aria-label="8x budget bytes (0 = default)" style="width: 7em;"></label><label> high watermark <input type="number" min="0" step="1" aria-label="8x high_watermark bytes (0 = default)" style="width: 7em;"></label><label> low watermark <input type="number" min="0" step="1" aria-label="8x low_watermark bytes (0 = default)" style="width: 7em;"></label></div><div><label><input type="checkbox" style=""> session enabled </label><label> budget <input type="number" min="0" step="1" aria-label="session budget bytes (0 = default)" style="width: 7em;"></label><label> high watermark <input type="number" min="0" step="1" aria-label="session high_watermark bytes (0 = default)" style="width: 7em;"></label><label> low watermark <input type="number" min="0" step="1" aria-label="session low_watermark bytes (0 = default)" style="width: 7em;"></label></div><div><label><input type="checkbox" style=""> conversation enabled </label><label> budget <input type="number" min="0" step="1" aria-label="conversation budget bytes (0 = default)" style="width: 7em;"></label><label> high watermark <input type="number" min="0" step="1" aria-label="conversation high_watermark bytes (0 = default)" style="width: 7em;"></label><label> low watermark <input type="number" min="0" step="1" aria-label="conversation low_watermark bytes (0 = default)" style="width: 7em;"></label></div></fieldset>
+          <label for="context-target">Context target (bytes; 0 = 400,000)</label>
+          <input id="context-target" type="number" min="0" step="1" value="0" style="">
+          <label for="log-retention">Saved log events (0 = all)</label>
+          <input id="log-retention" type="number" min="0" step="1" value="0" style="">
+        </section>
+      </aside>
+      <div class="drag-bar" id="sidebar-drag" role="separator" aria-label="Sidebar width" aria-orientation="vertical" tabindex="0" aria-valuemin="180" aria-valuenow="240"></div>
+      <section class="center" aria-label="Chat">
+        <header>
+          <h2 id="conversation-title">console</h2><span id="state" role="status">input_pending</span>
+          <span id="pause-state"></span>
+          <span id="usage" aria-label="Session usage" title="Session tokens: input 22432, cache write 0, cache read 3840, output 533">Cost — · Input 3392 · Cache 0 · Hit 14.6%</span>
+          <button id="resume">Unpause everyone</button><button id="interrupt">Interrupt turn</button>
+        </header>
+        <section id="artifacts" class="scroll" aria-label="Conversation"><article class="artifact artifact--user" data-id="user-1-0"><header><span>user</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">Work only in /tmp/ch26-live-0N7L6h. This is one small bounded coding task. Create exactly one child with agent_id helper and delegate implementing slugify.py with slugify(text) that lowercases and joins whitespace-separated words using hyphens (empty input returns empty string), plus a unittest file covering mixed case, repeated whitespace and empty input. The child must run python3 -m unittest -v and submit its actual result. Do not create further children. As parent use get_sub_agent_status and wait_for_agent_change to monitor helper, then join_agents and get_submission. Independently rerun the tests, write fleet-result.txt containing your measured test outcome, and submit a concise final result beginning CH26_LIVE_COMPLETE. Use the inherited model. Do not browse or install packages.</span></pre></div></div></article><article class="artifact artifact--reasoning_summary" data-id="11"><header><span>reasoning_summary</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><details><summary>Thinking</summary><div><p><span></span><strong>Adding 10-second delay</strong><span></span></p></div></details></div></article></section>
+        <form id="input-form">
+          <label for="input">Message or hint while busy</label><textarea id="input" rows="2" autofocus="" style=""></textarea><button>Send</button>
+        </form>
+        <p id="speech-status" role="status"></p>
+      </section>
+      <div class="drag-bar" id="actions-drag" role="separator" aria-label="Actions width" aria-orientation="vertical" tabindex="0" aria-valuemin="200" aria-valuenow="360"></div>
+      <section class="actions" aria-label="Actions">
+        <header><h2>Actions</h2></header>
+        <section id="actions" class="scroll" aria-label="Tool activity"><article class="artifact artifact--tool_call" data-id="1"><header><span>spawn_sub_agent</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">spawn_sub_agent
+{
+  "agent_id": "helper",
+  "task": "Work only in /tmp/ch26-live-0N7L6h. Implement slugify.py with slugify(text) that lowercases and joins whitespace-separated words using hyphens; empty input returns empty string. Create a unittest file covering mixed case, repeated whitespace, and empty input. Inspect the directory first. Run python3 -m unittest -v in that directory and submit your actual measured result. Do not create any children. Do not browse or install packages. Use the inherited model."
+}
+
+{"activity":{"phase":""},"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0},"agent_id":"helper","state":"running"}</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="3"><header><span>get_sub_agent_status</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">get_sub_agent_status
+{
+  "agent_id": "helper"
+}
+
+{"activity":{"phase":"thinking"},"usage":{"input":1962,"cache_write":0,"cache_read":0,"output":29},"agent_id":"helper","state":"running"}</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="5"><header><span>wait_for_agent_change</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">wait_for_agent_change
+{
+  "agent_ids": [
+    "helper"
+  ],
+  "ai_callback_delay": 1,
+  "timeout_seconds": 60
+}
+
+[{"agent_id":"helper","reason":"change","status":{"activity":{"phase":"thinking"},"usage":{"input":3978,"cache_write":0,"cache_read":0,"output":106},"agent_id":"helper","state":"running"}}]</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="7"><header><span>join_agents</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">join_agents
+{
+  "agent_ids": [
+    "helper"
+  ],
+  "ai_callback_delay": 1
+}
+
+job 6 running; 0 bytes total at /private/tmp/ch26-live-0N7L6h/agents/console/io/6
+no new output
+
+Use wait_for_job(6), send_input or kill_job to supervise this job.</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="9"><header><span>wait_for_job</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">wait_for_job
+{
+  "ai_callback_delay": 1,
+  "handle": 6
+}
+
+job 6 running; 0 bytes total at /private/tmp/ch26-live-0N7L6h/agents/console/io/6
+no new output
+
+Use wait_for_job(6), send_input or kill_job to supervise this job.</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="12"><header><span>wait_for_job</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">wait_for_job
+{
+  "ai_callback_delay": 10,
+  "handle": 6
+}
+
+job 6 done; 635 bytes total at /private/tmp/ch26-live-0N7L6h/agents/console/io/6
+[{"activity":{"phase":"tool_call","tool":"submit","detail":"{\"result\":\"Inspected /tmp/ch26-live-0N7L6h before "},"usage":{"input":10907,"cache_write":0,"cache_read":0,"output":450},"agent_id":"helper","state":"submitted","result":"Inspected /tmp/ch26-live-0N7L6h before making changes. Created slugify.py with slugify(text) using \"-\".join(text.lower().split()), and test_slugify.py covering mixed case, repeated whitespace, and empty input.\n\nRan python3 -m unittest -v in /tmp/ch26-live-0N7L6h. Actual measured result: all 3 tests passed in 0.000s; output OK; exit code 0. No children, browsing, or package installation used."}]</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="14"><header><span>get_submission</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">get_submission
+{
+  "agent_id": "helper"
+}
+
+{"agent_id":"helper","result":"Inspected /tmp/ch26-live-0N7L6h before making changes. Created slugify.py with slugify(text) using \"-\".join(text.lower().split()), and test_slugify.py covering mixed case, repeated whitespace, and empty input.\n\nRan python3 -m unittest -v in /tmp/ch26-live-0N7L6h. Actual measured result: all 3 tests passed in 0.000s; output OK; exit code 0. No children, browsing, or package installation used."}</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="16"><header><span>run_command</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">run_command
+{
+  "ai_callback_delay": 1,
+  "command": "pwd; cat slugify.py; cat test_slugify.py; python3 -m unittest -v",
+  "cwd": "/tmp/ch26-live-0N7L6h"
+}
+
+/private/tmp/ch26-live-0N7L6h
+def slugify(text):
+    """Lowercase text and join whitespace-separated words with hyphens."""
+    return "-".join(text.lower().split())
+import unittest
+
+from slugify import slugify
+
+
+class SlugifyTests(unittest.TestCase):
+    def test_mixed_case(self):
+        self.assertEqual(slugify("HeLLo WoRLD"), "hello-world")
+
+    def test_repeated_whitespace(self):
+        self.assertEqual(slugify("  Hello   \tworld\n\nagain  "), "hello-world-again")
+
+    def test_empty_input(self):
+        self.assertEqual(slugify(""), "")
+
+
+if __name__ == "__main__":
+    unittest.main()
+test_empty_input (test_slugify.SlugifyTests.test_empty_input) ... ok
+test_mixed_case (test_slugify.SlugifyTests.test_mixed_case) ... ok
+test_repeated_whitespace (test_slugify.SlugifyTests.test_repeated_whitespace) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK
+
+exit_code: 0
+</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="18"><header><span>write_file</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">write_file
+{
+  "content": "Parent independently reran: python3 -m unittest -v\nWorking directory: /tmp/ch26-live-0N7L6h\nMeasured outcome: 3 tests passed in 0.000s; OK; exit code 0.\nCoverage: mixed case, repeated whitespace, empty input.\n",
+  "path": "/tmp/ch26-live-0N7L6h/fleet-result.txt"
+}
+
+wrote 209 bytes to /tmp/ch26-live-0N7L6h/fleet-result.txt</span></pre></div></div></article><article class="artifact artifact--tool_call" data-id="20"><header><span>submit</span><button aria-label="Read artifact aloud">🔊</button></header><div class="content"><div><pre><span class="">submit
+{
+  "result": "CH26_LIVE_COMPLETE — Created slugify.py and test_slugify.py via the single helper child. Helper ran tests and submitted; independently reran python3 -m unittest -v: all 3 tests passed, exit code 0. Recorded measured outcome in fleet-result.txt. All work stayed in /tmp/ch26-live-0N7L6h."
+}
+
+submitted: CH26_LIVE_COMPLETE — Created slugify.py and test_slugify.py via the single helper child. Helper ran tests and submitted; independently reran python3 -m unittest -v: all 3 tests passed, exit code 0. Recorded measured outcome in fleet-result.txt. All work stayed in /tmp/ch26-live-0N7L6h.</span></pre></div></div></article></section>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  
+
+</body></html>

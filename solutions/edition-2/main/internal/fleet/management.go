@@ -62,6 +62,7 @@ func (m *manager) Submission(id string) (string, error) {
 		return "", err
 	}
 	var last struct {
+		// Result holds the most recent appended submission, including multiline text.
 		Result string `json:"result"`
 	}
 	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {

@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "workspace": "/tmp/ch26-live-0N7L6h",
+  "prompt": "Work only in /tmp/ch26-live-0N7L6h. This is one small bounded coding task. Create exactly one child with agent_id helper and delegate implementing slugify.py with slugify(text) that lowercases and joins whitespace-separated words using hyphens (empty input returns empty string), plus a unittest file covering mixed case, repeated whitespace and empty input. The child must run python3 -m unittest -v and submit its actual result. Do not create further children. As parent use get_sub_agent_status and wait_for_agent_change to monitor helper, then join_agents and get_submission. Independently rerun the tests, write fleet-result.txt containing your measured test outcome, and submit a concise final result beginning CH26_LIVE_COMPLETE. Use the inherited model. Do not browse or install packages.",
+  "errors": [],
+  "outcomes": [
+    {
+      "code": 0,
+      "signal": null
+    },
+    {
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "frames": 1432
+}

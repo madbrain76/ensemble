@@ -1,0 +1,10 @@
+test_empty_input (test_slugify.SlugifyTests.test_empty_input) ... ok
+test_mixed_case (test_slugify.SlugifyTests.test_mixed_case) ... ok
+test_repeated_whitespace (test_slugify.SlugifyTests.test_repeated_whitespace) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK
+
+exit_code: 0

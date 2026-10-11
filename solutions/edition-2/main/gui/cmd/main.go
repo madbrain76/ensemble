@@ -1,4 +1,4 @@
-// This optional application owns one Ensemble, one Agent and two human views.
+// This optional application owns one Ensemble fleet and its terminal/browser views.
 package main
 
 import (

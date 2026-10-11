@@ -1,0 +1,4 @@
+Parent independently reran: python3 -m unittest -v
+Working directory: /tmp/ch26-live-0N7L6h
+Measured outcome: 3 tests passed in 0.000s; OK; exit code 0.
+Coverage: mixed case, repeated whitespace, empty input.

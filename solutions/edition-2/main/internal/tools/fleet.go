@@ -5,8 +5,9 @@ import (
 	"ensemble/internal/common"
 )
 
-// FleetTools returns the workflow and management declarations. They share ordinary job supervision. A question or join may
-// outlive its first wait, while a later wait_for_job recovers its real answer.
+// FleetTools returns workflow and management declarations with ordinary job
+// supervision. A question or join may outlive its first wait, while a later
+// wait_for_job recovers its real answer.
 func FleetTools() []common.ToolDefinition {
 	return append(managementTools(), []common.ToolDefinition{
 		{ToolDeclaration: common.ToolDeclaration{Name: "spawn_sub_agent", Description: "Start a full child agent with an isolated data directory. It inherits your model and restrictions; optional model selects another supported model. Children must submit results.", Schema: json.RawMessage(`{"type":"object","properties":{"agent_id":{"type":"string"},"task":{"type":"string"},"model":{"type":"string"}},"required":["agent_id","task"]}`)}, Run: spawnChild},

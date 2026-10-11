@@ -1,0 +1,5 @@
+After live source 9e2b72a: only three Go documentation comments changed.
+Core go vet ./...: exit 0
+Optional GUI go vet ./...: exit 0
+gofmt -l ensemble internal authcli gui/cmd gui/*.go: exit 0, no output
+Runtime verification remains the recorded corrected core/GUI checks and actual live run; no paid repeat.
