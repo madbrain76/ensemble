@@ -1,0 +1,30 @@
+go run ./cmd/grade -ch 14 ./solutions/edition-2/main
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch13-grade-1670913509/skills/gui-debug/SKILL.md: skill "gui-debug" has invalid type ""
+Chapter 14 — The Channel Nobody Tested
+============================================================
+
+[PASS]      the speech harness launches the system and produces a log  (0/0)
+
+[PASS]      tool results stay silent; the model's own words are spoken  (20/20)
+
+[PASS]      markup is filtered for the ear; a fenced block is named, not read  (20/20)
+
+[PASS]      fragments are assembled before they are spoken  (10/10)
+
+[PASS]      a reply that arrives whole is still spoken  (15/15)
+
+[PASS]      typing pauses speech, the log says why, and speech resumes  (10/10)
+
+[PASS]      a failure is spoken rather than leaving the listener waiting  (10/10)
+
+[PASS]      sentences are separate utterances a listener can interrupt  (5/5)
+
+[PASS]      run-together identifiers are spoken as words, all-caps left alone  (5/5)
+
+[FAIL]      chapter 13 still passes  (0/5)
+       ch13-parity: one or more ch13 checks failed
+
+------------------------------------------------------------
+score: 95/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1
