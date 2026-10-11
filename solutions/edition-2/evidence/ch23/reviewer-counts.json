@@ -1,0 +1,454 @@
+{
+  "method": "Physical/active/comment-only/blank lines; lexical classification, inline-comment code remains active. Go, JS, MJS, HTML and CSS only; examples separated; docs/generated files/evidence excluded. Own predecessor per edition.",
+  "student_source": "64e5d0c17be8db116fa4c1da52cd290c45b4e2ef",
+  "student_predecessor": "1da0891a7ea0f121b05225c62be3b2190e4f3918",
+  "student": {
+    "delta": {
+      "production_go": [
+        620,
+        515,
+        73,
+        32
+      ],
+      "test_go": [
+        408,
+        376,
+        20,
+        12
+      ]
+    },
+    "changed": [
+      {
+        "path": "ensemble/config.go",
+        "category": "production_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "ensemble/ensemble.go",
+        "category": "production_go",
+        "delta": [
+          60,
+          60,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "ensemble/mcp_http_test.go",
+        "category": "test_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "ensemble/sandbox_test.go",
+        "category": "test_go",
+        "delta": [
+          408,
+          376,
+          20,
+          12
+        ]
+      },
+      {
+        "path": "ensemble/spec.go",
+        "category": "production_go",
+        "delta": [
+          37,
+          29,
+          5,
+          3
+        ]
+      },
+      {
+        "path": "internal/agent/actor.go",
+        "category": "production_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/agent/agent.go",
+        "category": "production_go",
+        "delta": [
+          39,
+          32,
+          3,
+          4
+        ]
+      },
+      {
+        "path": "internal/cachelens/lens.go",
+        "category": "production_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/common/sandbox.go",
+        "category": "production_go",
+        "delta": [
+          38,
+          21,
+          15,
+          2
+        ]
+      },
+      {
+        "path": "internal/common/skills.go",
+        "category": "production_go",
+        "delta": [
+          12,
+          6,
+          6,
+          0
+        ]
+      },
+      {
+        "path": "internal/common/types.go",
+        "category": "production_go",
+        "delta": [
+          4,
+          2,
+          2,
+          0
+        ]
+      },
+      {
+        "path": "internal/engine/media.go",
+        "category": "production_go",
+        "delta": [
+          -1,
+          -1,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/history/journal.go",
+        "category": "production_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/jobs/jobs.go",
+        "category": "production_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/memory/memory.go",
+        "category": "production_go",
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/recall/recall.go",
+        "category": "production_go",
+        "delta": [
+          33,
+          29,
+          4,
+          0
+        ]
+      },
+      {
+        "path": "internal/sandbox/command.go",
+        "category": "production_go",
+        "delta": [
+          109,
+          93,
+          13,
+          3
+        ]
+      },
+      {
+        "path": "internal/sandbox/files.go",
+        "category": "production_go",
+        "delta": [
+          271,
+          226,
+          26,
+          19
+        ]
+      },
+      {
+        "path": "internal/skills/skills.go",
+        "category": "production_go",
+        "delta": [
+          4,
+          3,
+          1,
+          0
+        ]
+      },
+      {
+        "path": "internal/tools/tools.go",
+        "category": "production_go",
+        "delta": [
+          -12,
+          -10,
+          -2,
+          0
+        ]
+      },
+      {
+        "path": "main.go",
+        "category": "production_go",
+        "delta": [
+          26,
+          25,
+          0,
+          1
+        ]
+      }
+    ]
+  },
+  "original": {
+    "delta": {
+      "production_go": [
+        1245,
+        550,
+        601,
+        94
+      ],
+      "test_go": [
+        1373,
+        1017,
+        191,
+        165
+      ]
+    },
+    "changed": [
+      {
+        "path": "agent.go",
+        "category": "production_go",
+        "delta": [
+          192,
+          60,
+          116,
+          16
+        ]
+      },
+      {
+        "path": "agent_child_spec_test.go",
+        "category": "test_go",
+        "delta": [
+          224,
+          165,
+          21,
+          38
+        ]
+      },
+      {
+        "path": "agent_gating_test.go",
+        "category": "test_go",
+        "delta": [
+          105,
+          80,
+          13,
+          12
+        ]
+      },
+      {
+        "path": "cmd/main.go",
+        "category": "production_go",
+        "delta": [
+          51,
+          26,
+          21,
+          4
+        ]
+      },
+      {
+        "path": "cmd/tools_test.go",
+        "category": "test_go",
+        "delta": [
+          16,
+          6,
+          7,
+          3
+        ]
+      },
+      {
+        "path": "internal/common/interfaces.go",
+        "category": "production_go",
+        "delta": [
+          63,
+          17,
+          43,
+          3
+        ]
+      },
+      {
+        "path": "internal/jobs/jobs.go",
+        "category": "production_go",
+        "delta": [
+          4,
+          1,
+          2,
+          1
+        ]
+      },
+      {
+        "path": "internal/llm/compact_test.go",
+        "category": "test_go",
+        "delta": [
+          4,
+          1,
+          2,
+          1
+        ]
+      },
+      {
+        "path": "internal/skills/registry.go",
+        "category": "production_go",
+        "delta": [
+          10,
+          3,
+          6,
+          1
+        ]
+      },
+      {
+        "path": "internal/tools/removetool_test.go",
+        "category": "test_go",
+        "delta": [
+          58,
+          36,
+          12,
+          10
+        ]
+      },
+      {
+        "path": "internal/tools/sandboxwiring_test.go",
+        "category": "test_go",
+        "delta": [
+          182,
+          143,
+          22,
+          17
+        ]
+      },
+      {
+        "path": "internal/tools/statustools_test.go",
+        "category": "test_go",
+        "delta": [
+          4,
+          1,
+          2,
+          1
+        ]
+      },
+      {
+        "path": "internal/tools/tools.go",
+        "category": "production_go",
+        "delta": [
+          42,
+          8,
+          33,
+          1
+        ]
+      },
+      {
+        "path": "logger.go",
+        "category": "production_go",
+        "delta": [
+          11,
+          1,
+          9,
+          1
+        ]
+      },
+      {
+        "path": "sandbox/git_test.go",
+        "category": "test_go",
+        "delta": [
+          147,
+          110,
+          19,
+          18
+        ]
+      },
+      {
+        "path": "sandbox/sandbox.go",
+        "category": "production_go",
+        "delta": [
+          468,
+          244,
+          191,
+          33
+        ]
+      },
+      {
+        "path": "sandbox/sandbox_test.go",
+        "category": "test_go",
+        "delta": [
+          395,
+          315,
+          42,
+          38
+        ]
+      },
+      {
+        "path": "sandbox/seatbelt.go",
+        "category": "production_go",
+        "delta": [
+          404,
+          190,
+          180,
+          34
+        ]
+      },
+      {
+        "path": "sandbox/seatbelt_test.go",
+        "category": "test_go",
+        "delta": [
+          219,
+          154,
+          40,
+          25
+        ]
+      },
+      {
+        "path": "sandbox_contract_test.go",
+        "category": "test_go",
+        "delta": [
+          19,
+          6,
+          11,
+          2
+        ]
+      }
+    ]
+  },
+  "original_source": "solutions/ch23 at fcb98a9459b328314f0a7ff06efbb5e7c85fe07e",
+  "original_predecessor": "solutions/ch22 at same commit",
+  "exclusions": "README/docs/evidence excluded; 22 generated original cr/io files excluded. No chapter source moves or non-Go code deltas."
+}

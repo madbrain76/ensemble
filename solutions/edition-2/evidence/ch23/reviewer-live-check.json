@@ -1,0 +1,136 @@
+{
+  "live_source": "fcb98a9459b328314f0a7ff06efbb5e7c85fe07e",
+  "final_review_source": "64e5d0c17be8db116fa4c1da52cd290c45b4e2ef",
+  "binary_sha256_verified": true,
+  "sessions": [
+    {
+      "mode": "confined",
+      "raw_sha256": "b9a93777b81f747a9bfab94337f2b426e8d289d373c1208f1744097bd0b6e261",
+      "requests": 12,
+      "completed": 12,
+      "all_model_effort": "gpt-6-astra/high",
+      "matched_calls_results": 11,
+      "safe_request_exec_absence": false,
+      "observed_results": [
+        {
+          "name": "write_file",
+          "output_bytes": 27,
+          "output_sha256": "c349b4b92ba6760f37f76f55b1deec102ed8a3666f77f53b4cf21171bfa05e24",
+          "excerpt": "wrote 12 bytes to notes.txt",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "read_file",
+          "output_bytes": 12,
+          "output_sha256": "0b17e2c3ec6785cd4d36b6914a7fedcc5bf33aaa2b2574084eb232b728b96c4e",
+          "excerpt": "amber apple\n",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "edit_file",
+          "output_bytes": 37,
+          "output_sha256": "47f299b2490abf1a9c957d3016d48395a7837ce037d44a7abde6abc280e2c7af",
+          "excerpt": "replaced one exact match in notes.txt",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "search_files",
+          "output_bytes": 16650,
+          "output_sha256": "d20edc0da96555b4c2769b025586c4f339fc5282fe55d9c21447d2e53441686a",
+          "excerpt": "notes.txt:1:amber plum",
+          "excerpt_is_full_output": false
+        },
+        {
+          "name": "list_directory",
+          "output_bytes": 40,
+          "output_sha256": "77911f47adda46ba40b79d0fcc28dcdb649c3726d2ab2c9ee3cfa14a9df9575e",
+          "excerpt": "api.log\ncr/\nnotes.txt\nsave.json.journal\n",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "run_command",
+          "output_bytes": 351,
+          "output_sha256": "27ba3dde60c34da9b863bf697623619fb2fdde36cf44523ac679c86ddc1cd474",
+          "excerpt": "LOCAL_COMMAND_OK\nsymlink exit=0\ncat: /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/private.txt: Operation not permitted\ngrandchild cat exit=1\n/bin/sh: line 5: /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/bad.txt: Operation not permitted\noutside write exit=1\n\nexit_code: 0\n",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "read_file",
+          "output_bytes": 24,
+          "output_sha256": "2c25fc004dbc023fca8bcb4dcbd2087da398e112054ab8d7e45428841b6857cc",
+          "excerpt": "sandbox refused \"escape\"",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "read_file",
+          "output_bytes": 40,
+          "output_sha256": "d55fcdaa557b640e553dbcf18e1567249069ee00030ab793e222bec10593c089",
+          "excerpt": "sandbox refused \"../outside/private.txt\"",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "run_command",
+          "output_bytes": 105,
+          "output_sha256": "cfa30c967c76451ff40451153218d02703d74edce4753f7a931df092091bd4ea",
+          "excerpt": "curl: (7) Failed to connect to 127.0.0.1 port 62327 after 0 ms: Couldn't connect to server\n\nexit_code: 7\n",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "run_command",
+          "output_bytes": 20,
+          "output_sha256": "5d7e50faeabd744f5f7997ad0df6e5638fa5996d6e872fa0745969bbb5f652c8",
+          "excerpt": "unset\n\nexit_code: 0\n",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "run_command",
+          "output_bytes": 436,
+          "output_sha256": "f9c6348c0832cf08a48b4f75622f990c8a0fbd644b4c2a74ebd233546389faee",
+          "excerpt": "Initialized empty Git repository in /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/confined/localrepo/.git/\n[main (root-commit) 68628f1] Add small file\n 1 file changed, 1 insertion(+)\n create mode 100644 sample.txt\ncommit 68628f1721d39ef1e538d1e74342fd7e01b6688d (HEAD -> main)\nAuthor: Sandbox Test <sandbox@example.invalid>\nDate:   Sun Oct 11 17:27:51 2026 +0000\n\n    Add small file\n\nexit_code: 0\n",
+          "excerpt_is_full_output": true
+        }
+      ],
+      "fake_markers_absent_all_retained_artifacts": true
+    },
+    {
+      "mode": "safe",
+      "raw_sha256": "5ce0eb7d92940cba1d7d4cecdc3df41c4c604a3e4244fd6b4f2f3e5dacd5fa36",
+      "requests": 3,
+      "completed": 3,
+      "all_model_effort": "gpt-6-astra/high",
+      "matched_calls_results": 3,
+      "safe_request_exec_absence": true,
+      "observed_results": [
+        {
+          "name": "write_file",
+          "output_bytes": 26,
+          "output_sha256": "14dcea0619a34c47f81ba2375f5512d85428748d6a4c71f4132f781a7a7534df",
+          "excerpt": "wrote 20 bytes to safe.txt",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "read_file",
+          "output_bytes": 20,
+          "output_sha256": "412c7f58cddee4085e140aee9262314135f2a32386e85a734289229eac804d7a",
+          "excerpt": "safe mode file works",
+          "excerpt_is_full_output": true
+        },
+        {
+          "name": "read_file",
+          "output_bytes": 30,
+          "output_sha256": "44747314ed0de17c6b3cc82197b01609b9c9fceb7efe2a35b8d23aa71deb1862",
+          "excerpt": "sandbox refused \"../notes.txt\"",
+          "excerpt_is_full_output": true
+        }
+      ],
+      "fake_markers_absent_all_retained_artifacts": true
+    }
+  ],
+  "limits": [
+    "Live source predates cache/cwd fixes; final real-process regressions cover corrections.",
+    "Provider endpoint is configuration/source provenance, not intercepted network evidence.",
+    "Local network attribution relies on retained host positive-control launcher plus hit counts, not curl failure alone.",
+    "No actual credentials/profile access or provider calls by reviewer.",
+    "Initial reviewer parser assumed completed-response output contained the calls; these SSE captures carry them in output_item.done. Corrected parser matches those calls to subsequent request results."
+  ]
+}

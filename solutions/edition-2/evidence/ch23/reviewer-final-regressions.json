@@ -1,0 +1,19 @@
+{
+  "source": "64e5d0c17be8db116fa4c1da52cd290c45b4e2ef",
+  "tree": "9dc3e9e36a854ede4cc2cbef22dc389850cedc0c",
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "./ensemble",
+    "-run",
+    "TestSandbox|TestReviewer",
+    "-count=1",
+    "-timeout=90s",
+    "-v"
+  ],
+  "exit": 0,
+  "elapsed_seconds": 3.013,
+  "source_setup": "exact git archive plus unchanged two reviewer probes; no provider access",
+  "output_normalization": "Trailing whitespace removed from display transcript; no result text removed."
+}
