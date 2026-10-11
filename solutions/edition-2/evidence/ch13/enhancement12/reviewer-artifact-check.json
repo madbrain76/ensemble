@@ -1,0 +1,64 @@
+{
+  "reviewer": "reviewer_astra",
+  "kind": "independent artifact/source audit; no new execution",
+  "chapter_sha256": "6e0fd380bc203701634f1bfde8861f58a177131765ed36a81c0e7f437da3ec6c",
+  "all_exact_fences": 16,
+  "samples": {
+    "core": {
+      "requests": 4,
+      "frozen_manual": true,
+      "fresh_context_and_state": true,
+      "correlated_success_results": true,
+      "external_capability_absent_after_unload": true
+    },
+    "gui": {
+      "requests": 4,
+      "frozen_manual": true,
+      "fresh_context_and_state": true,
+      "correlated_success_results": true,
+      "external_capability_absent_after_unload": true
+    }
+  },
+  "gui_wire_frames": 51,
+  "rpc_methods": {
+    "initialize": 1,
+    "notifications/initialized": 1,
+    "tools/list": 1,
+    "tools/call": 8
+  },
+  "rpc_calls": {
+    "gui_snapshot": 3,
+    "tts_queue": 3,
+    "gui_click": 1,
+    "gui_input": 1
+  },
+  "final_source_binding_verified": {
+    "cmd/grade-edition2/main.go": "4979eb88008443f013bbc5bbb86b90a931c73b9afc4a2321b27e313eb67816f6",
+    "internal/gradeedition2/ch11.go": "f86645210fc8d33bceac5a30dd216f26b0343b889ac91cea811b49d9fc6a36d3",
+    "internal/gradeedition2/ch12.go": "4a0f5bd3b0750ae09e09e0f19a3414d6db9657db2351ffc8e820c6fc0325bb4e",
+    "internal/gradeedition2/ch12_test.go": "18ad33d58b669c66e6ef0ea432a4db299f1843494190cdacc9b7ee3319b37cd3"
+  },
+  "frozen_trees": {
+    "accepted_tree": "6db89522a1e5db9b8d5f7a5eedadd27315ff87eb",
+    "legacy_tree": "00f53fedc8a576e88942556ee9d88536b156dcb2"
+  },
+  "limits": [
+    "Provider and WebSocket peer are fakes in these sample runs; no new paid or DOM/native-speech claim.",
+    "Exit/timing observations are retained launcher receipts, not reviewer reruns.",
+    "Final totals compose corrected focused runs with unchanged earlier full-run parity."
+  ],
+  "grader_freeze": "9a7e2529",
+  "coder_report_clarification": "3ed84c05",
+  "author_reconciliation": "d6f08143",
+  "independent_prose_lint": {
+    "command": [
+      "go",
+      "run",
+      "./cmd/lintprose",
+      "book/edition-2/chapter-12.md"
+    ],
+    "exit": 0,
+    "words": 5273,
+    "warning": "person gap3399"
+  }
+}

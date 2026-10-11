@@ -3,10 +3,11 @@
 Reviewer: `reviewer_astra`, October11,2026. Mandatory skill:
 `.agents/skills/ensemble-coding/SKILL.md`.
 
-**Preparation only; formal combined submission pending.** Original Chapter13,
+**Accepted at initial combined review; zero formal correction rounds.** Original Chapter13,
 The Agent Sees Itself, maps to accepted direct `solutions/edition-2/ch12`.
-Zero formal correction rounds. No Chapter13 work or acceptance is authorized
-by this record.
+Final grader/evidence `9a7e2529`, report clarification `3ed84c05`, author
+reconciliation `d6f08143`. The coordinator owns checkpoint and next release.
+The preparation and preflight entries below preserve their earlier status.
 
 ## Reading and scope
 
@@ -114,3 +115,91 @@ the evidence lesson while correcting the unsupported invention claim.
 
 Final combined review still awaits corrected grader freeze, exact examples and
 complete evidence reconciliation. No next-chapter work is released.
+
+## Final combined disposition
+
+Read the complete final coder submission, updated author reconciliation and
+report-only correction distinguishing the original chapter's missing kind/grants
+from the original grader's explicit grants but missing loadable kind. Confirmed
+that correction directly in the original harness. No unresolved prose, scope,
+architecture or grader blocker remains. The chapter is accepted at initial
+review, with zero formal correction rounds. Pre-submission representation fixes
+and attribution corrections are recorded above rather than hidden.
+
+The manuscript remains SHA-256
+`6e0fd380bc203701634f1bfde8861f58a177131765ed36a81c0e7f437da3ec6c`.
+Independent hard lint passes5273 words; the person-gap warning does not justify
+cutting these useful stories or adding a person for a quota. Line-sequence
+comparison retains206 of315 original lines in383 enhanced lines; this is context
+for preservation, not a quality score. Mechanisms resolve the reader's recurring
+problem of trusting what the interface actually did. The phantom panel, escape
+hatch behind the blocked tool and later speech callback give the explanation
+specific consequences and varied pacing. Historical observer limits and both
+OpenAI task failures remain candid. No invented anecdote or future feature was
+needed to make the chapter engaging.
+
+The revised grader preserves all six original weights and corrected predecessor
+parity while replacing source-name/vacuous claims with actual command behavior.
+Real actors, jobs, skills, MCP and renderers execute; only provider and external
+peer boundaries are fakes. Corrected string/block handling is representation
+neutral without allowing arguments or tool results to masquerade as automatic
+context. Read both valid-renderer patches and complete before/after output:
+the former system-array panic and45-point string-content loss become90/90.
+Those are compatibility controls, not product-defect mutation kills.
+
+Actual earlier full runs stay100/100 accepted and75/100 legacy, with their
+16.902s/15.408s source provenance. Final focused runs are90/90 and75/90; final
+totals are explicitly **composed100/100 and75/100** using unchanged measured
+parity10/0. The legacy manual loss is valid; initial missing-primary launch was
+a fixture error. Inherited parity includes real failures and unavailable setup
+paths, so its aggregate does not prove every downstream behavior defective.
+Original student grading remains0/100 FAIL. No fresh full or paid run is claimed.
+
+All15 targeted patches compile and fail their intended assertions, with original
+and restored baselines passing. Inspected every patch, failure detail and raw
+completion/cleanup output. The detached-live-peer case specifically detects an
+otherwise hidden lifetime leak; guessed-success detects error text falsely marked
+successful. Startup/directory failures couple downstream rows; they do not yield
+several independent proofs. Shared result-forwarding/correlation and automatic
+error/lifetime sensitivity retain Chapter11 evidence. The post-unload marker
+guard predates these runs and is not a repaired survivor. Mutation evidence is
+bounded sensitivity, not completeness.
+
+Final affected Chapter11/12 tests pass under race, vet succeeds, and formatting
+output is empty. The command-package `go test` invocation compiles it and reports
+`[no test files]`; it is not an additional behavioral test. Existing actual
+browser/native-speech controls still establish the provenance/whitespace/submit
+and other-tab unpause properties outside the numeric stdio checks. Historical
+paid captures retain their earlier source and task limitations.
+
+Independent [artifact audit](../../solutions/edition-2/evidence/ch13/enhancement12/reviewer-artifact-check.json)
+checks all16 exact manuscript fence hashes, both four-request sample captures,
+51 GUI frames, correlated results, fresh changed peer state, frozen manuals and
+post-unload absence. The11 RPC envelopes contain initialization/discovery and
+eight actual calls with unique request IDs. This is evidence inspection, not a
+new sample, Chrome or live-model run. All four final grader hashes and both
+frozen tree identities match the submitted binding.
+
+For KISS comparison, independently counted physical lines, blanks and comment-only
+lines; remaining lines include Go declarations/braces/data and embedded Python.
+The new Chapter12 driver adds275 active/20 comment/303 physical lines over its
+own Chapter11 predecessor, plus22/1/26 test lines. Original13 harness/checks add
+545/81/700. The shared command helper adds only process identity and a synchronized
+EOF diagnostic; the command entry extends existing selection. Reusing explained
+helpers avoids another protocol or framework. The approximately7% comment share
+is below the teaching target, but the consequential boundaries have useful nearby
+explanations: independent executable wiring, grants, result-only assertions,
+peer lifetime versus shutdown, cleanup and message forms. Further commentary on
+straightforward assertions would add little. New exported Chapter12 and its test
+have meaningful documentation. No compressed-code or comment-deletion advantage
+is claimed.
+
+The accepted runtime remains unchanged. Its own-predecessor comparison in the
+original independent review is retained: production Go+43 active/+4 comment
+versus legacy+129/+24, new test Go+105/+8, final browser JS+5/+4 versus no legacy
+JS delta, with skill text separate. These are the prior measured chapter deltas,
+not new runtime changes. Existing ownership, earlier job behavior and separate
+GUI remain preferable to restoring legacy callback wiring. All four full
+governing documents remain active together after the reload recorded above;
+no further compaction occurred. Mandatory handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.
