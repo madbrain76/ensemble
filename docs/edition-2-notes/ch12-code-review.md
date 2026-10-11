@@ -268,9 +268,13 @@ waived. The three-provider live receipts and 15 browser checks are reused with
 their original source provenance; no paid, browser or full-grader rerun was
 performed or implied. No unresolved finding remains.
 
-Coordinator checkpoint qualification: the final validated manifest contains 92
-paths because it also hashes ignored runtime output `gui/test_ch06.log`; the
-initial manifest includes the same generated path. The immutable source export
-contains the 91 tracked files, excluding that log. Original manifests and
-measured hashes remain unchanged. Source and export Git trees match exactly at
-`cab2281`; this is a source-count clarification, not a changed acceptance result.
+Checkpoint manifest clarification: the coordinator's export audit found that
+the initial 91-path and round-1 92-path student manifests include the ignored
+generated `gui/test_ch06.log`. Their measured hashes remain preserved, but those
+counts are not counts of tracked source. The accepted export contains **91
+tracked files**, exactly matching the working-tree Git tree at
+`edition-2-ch12-r1` (`cab2281`). Excluding that generated log changes neither
+the reviewed implementation nor test results or acceptance. Earlier references
+above to “92 source hashes” mean all manifest entries were checked, including
+that support artifact; they do not authorize exporting generated logs.
+

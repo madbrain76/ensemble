@@ -2,6 +2,20 @@
 
 ## October 10: resumed original student run
 
+Original Chapter 13 is in correction round 1, not yet accepted. Startup skill
+activation and browser interaction are implemented. Its full original grader
+completed at 0/100: an omitted fixture type rejects startup, and its parity check
+requires particular MCP method names. Those failures remain separate from the
+actual integration/browser evidence and requested reviewer exceptions.
+The initial input fix worked with speech disabled, but independent real-browser
+review found that later native speech transitions reclassified programmatic text
+as human typing and left the Agent paused. Correct that cause distinction without
+bringing the next speech chapter forward. A whole-request marker assertion also
+repeated Chapter 12's evidence error; its corrected check reads the actual snapshot.
+Anthropic and Gemini completed the live browser task; both OpenAI attempts remain
+task failures, even though the guided second attempt demonstrated the controls.
+Partial capability evidence must not become a claim of successful autonomous use.
+
 Original Chapter 12 is accepted after one correction round. Three-provider MCP
 chat and real browser/tunnel checks passed.
 The live Anthropic run exposed an inherited empty tool-argument streaming defect;
