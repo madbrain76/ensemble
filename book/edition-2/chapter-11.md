@@ -276,10 +276,11 @@ feature; this chapter adds no new way to erase the retained manual.
 Extend the accepted Chapter 10 agent. Implement the transport/client/bridge,
 automatic round and turn tools, reverse calls, browser tools/tunnel and skill
 server lifecycle above. Preserve prior behavior through the same Agent runtime.
-Begin with a protocol peer connected to the built core command:
+Build from the core module with `go build -o /tmp/ensemble-ch11 .`. Begin
+with a protocol peer connected to that executable:
 
-```
-./ensemble --mcp-pipe
+```sh
+/tmp/ensemble-ch11 --mcp-pipe
 ```
 
 The flag dedicates stdin/stdout to one JSON-RPC 2.0 object per newline. The

@@ -111,3 +111,11 @@ grader results and independent combined acceptance are pending. Do not call
 this draft accepted or advance Chapter12. Final bounded results will be recorded
 here with links to the [coder report](enhancement-11-code.md) and independent
 review. Mandatory technical handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+Initial independent prose review of `685f0bfe` finds no blocker. During sample
+reconciliation, the coordinator and coder flagged the inherited generic
+`./ensemble --mcp-pipe` path beside the later explicit `/tmp/ensemble-ch11`
+build; the accepted core also has an `ensemble/` library directory. The exercise
+now states the core-module build and uses `/tmp/ensemble-ch11 --mcp-pipe`
+consistently. This is executable-location clarity, not a claim of a failed
+protocol or changed runtime requirement. Exact execution remains pending.
