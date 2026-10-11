@@ -1,0 +1,81 @@
+{
+  "source_base": "dbe49707f9e8b9dc8f9de92fd6cadc94920d0260",
+  "scope": "Round 1 working source; source_sha256 lists exact corrected files before the checkpoint commit. Scratch copies removed after each run. No mocks or provider calls.",
+  "source_sha256": {
+    "internal/cachelens/lens.go": "c871d5431b87c1a59f3795c721e2bc6a42c2808962ca03145f51c7e3e8dd1311",
+    "internal/common/cache.go": "1c97359c253459016b9671f0bcd266c818456bd5f1aba9eca888fb6cba1abb21",
+    "internal/engine/engine.go": "24e8f224a2af5ddae6447a8abe47a55165d7e4eb5cc570e98dc483156c2e8dcc",
+    "ensemble/cache_interrupt_test.go": "f64fa9b7caf8864b0e54850cc533de90a3dbd9d57981aba664ceae217feab891"
+  },
+  "mutations": {
+    "unlocked_observation": "Remove the ObserveRequest lock/unlock only, retaining request-local prediction.",
+    "latest_prediction": "Keep locking but store the latest prediction in Lens; ObserveUsage reads that value under lock instead of its argument.",
+    "no_rotation": "Remove only the current-to-prior rename."
+  },
+  "results": [
+    {
+      "name": "baseline",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./ensemble",
+        "-run",
+        "^TestCacheLensInterrupted",
+        "-count=1"
+      ],
+      "exit": 0,
+      "output": "round1-baseline.txt",
+      "lens_sha256": "c871d5431b87c1a59f3795c721e2bc6a42c2808962ca03145f51c7e3e8dd1311",
+      "result": "pass"
+    },
+    {
+      "name": "unlocked_observation",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./ensemble",
+        "-run",
+        "^TestCacheLensInterruptedObservation",
+        "-count=1"
+      ],
+      "exit": 1,
+      "output": "round1-unlocked_observation.txt",
+      "lens_sha256": "939799733d1daf52e36a7e185a029006cb8f619cf2dbdb45d3e95b4bfe419b31",
+      "result": "race detected"
+    },
+    {
+      "name": "latest_prediction",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./ensemble",
+        "-run",
+        "^TestCacheLensInterruptedAttribution",
+        "-count=1"
+      ],
+      "exit": 1,
+      "output": "round1-latest_prediction.txt",
+      "lens_sha256": "3c4dc5186634acd375e31516bcbbdb6d889ff6d6a19d1430b66dc98678e323ad",
+      "result": "wrong request prediction caught"
+    },
+    {
+      "name": "no_rotation",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./ensemble",
+        "-run",
+        "^TestCacheLensInterruptedObservation",
+        "-count=1"
+      ],
+      "exit": 1,
+      "output": "round1-no_rotation.txt",
+      "lens_sha256": "93d094a77f677b0b848bb9a7ca1150421bacadcd474df48d9b0c07855e3aa06d",
+      "result": "missing prior artifact caught"
+    }
+  ]
+}

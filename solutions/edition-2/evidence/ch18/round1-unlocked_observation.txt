@@ -1,0 +1,164 @@
+$ go test -race ./ensemble -run ^TestCacheLensInterruptedObservation -count=1
+==================
+WARNING: DATA RACE
+Write at 0x00c0000ab3f8 by goroutine 14:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/cachelens/lens.go:155 +0x14c8
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/engine/engine.go:101 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:384 +0x1fc
+
+Previous read at 0x00c0000ab3f8 by goroutine 17:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/cachelens/lens.go:89 +0x584
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/engine/engine.go:101 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:384 +0x1fc
+
+Goroutine 14 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:82 +0x34
+
+Goroutine 17 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:82 +0x34
+==================
+==================
+WARNING: DATA RACE
+Write at 0x00c000302678 by goroutine 106:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/cachelens/lens.go:155 +0x14c8
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/engine/engine.go:101 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:384 +0x1fc
+
+Previous write at 0x00c000302678 by goroutine 109:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/cachelens/lens.go:155 +0x14c8
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/engine/engine.go:101 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:384 +0x1fc
+
+Goroutine 106 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:82 +0x34
+
+Goroutine 109 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-round1-f8h9j9tq/main/internal/agent/actor.go:82 +0x34
+==================
+--- FAIL: TestCacheLensInterruptedObservation (0.31s)
+    --- FAIL: TestCacheLensInterruptedObservation/0 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation01119253625/001/cache-prior.txt: no such file or directory
+        testing.go:1617: race detected during execution of test
+    --- FAIL: TestCacheLensInterruptedObservation/1 (0.02s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation11279144650/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/2 (0.02s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation22824084697/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/3 (0.02s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation3376971795/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/4 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation458013239/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/5 (0.03s)
+        cache_interrupt_test.go:85: current artifact lost second request: system:
+            [{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","type":"text"}]
+            messages:
+            [{"role":"user","content":[{"type":"text","text":"first"}]}]
+            max_tokens:
+            4096
+            model:
+            "claude-haiku-5-5"
+            thinking:
+            {"type":"adaptive"}
+            , <nil>
+        testing.go:1617: race detected during execution of test
+    --- FAIL: TestCacheLensInterruptedObservation/6 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation63065163256/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/7 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation7916592044/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/8 (0.03s)
+        cache_interrupt_test.go:85: current artifact lost second request: system:
+            [{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","type":"text"}]
+            messages:
+            [{"role":"user","content":[{"type":"text","text":"first"}]}]
+            max_tokens:
+            4096
+            model:
+            "claude-haiku-5-5"
+            thinking:
+            {"type":"adaptive"}
+            , <nil>
+    --- FAIL: TestCacheLensInterruptedObservation/9 (0.03s)
+        cache_interrupt_test.go:85: current artifact lost second request: system:
+            [{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","type":"text"}]
+            messages:
+            [{"role":"user","content":[{"type":"text","text":"first"}]}]
+            max_tokens:
+            4096
+            model:
+            "claude-haiku-5-5"
+            thinking:
+            {"type":"adaptive"}
+            , <nil>
+    --- FAIL: TestCacheLensInterruptedObservation/10 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation102822763351/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/11 (0.03s)
+        cache_interrupt_test.go:85: current artifact lost second request: system:
+            [{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","type":"text"}]
+            messages:
+            [{"role":"user","content":[{"type":"text","text":"first"}]}]
+            max_tokens:
+            4096
+            model:
+            "claude-haiku-5-5"
+            thinking:
+            {"type":"adaptive"}
+            , <nil>
+FAIL
+FAIL	ensemble/ensemble	0.320s
+FAIL
+exit=1

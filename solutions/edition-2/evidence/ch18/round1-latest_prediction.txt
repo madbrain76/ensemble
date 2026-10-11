@@ -1,0 +1,7 @@
+$ go test -race ./ensemble -run ^TestCacheLensInterruptedAttribution -count=1
+--- FAIL: TestCacheLensInterruptedAttribution (0.01s)
+    cache_interrupt_test.go:146: old cold response attributed later prediction: 2026/10/11 06:52:00 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.8554
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL
+exit=1

@@ -90,12 +90,15 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 // without changing conversation.
 func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
 	cfg := e.parent.Config()
+	// Keep the prediction with this exchange: an interrupted worker may report
+	// its usage after the next turn has already observed another request.
+	predicted := 0.0
 	if e.lens != nil {
 		safe := body
 		if cfg.APIKey != "" {
 			safe = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
 		}
-		e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safe)
+		predicted = e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safe)
 	}
 	onEvent := cb.OnEvent
 	cb.OnEvent = func(event common.Event) {
@@ -104,7 +107,7 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 			e.last = event.Response.Usage
 			e.mu.Unlock()
 			if e.lens != nil {
-				e.lens.ObserveUsage(event.Response.Usage)
+				e.lens.ObserveUsage(event.Response.Usage, predicted)
 			}
 		}
 		if onEvent != nil {

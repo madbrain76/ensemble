@@ -10,17 +10,18 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
 	"ensemble/internal/common"
 )
 
 // Lens belongs to one Engine and retains only its preceding main request.
-// Calls are serialized by the Agent's conversation loop; auxiliary requests bypass it.
+// Interrupted workers can overlap new turns; auxiliary requests bypass the lens.
 type Lens struct {
-	parent    common.Engine
-	previous  map[string]json.RawMessage
-	name      string
-	predicted float64
+	parent   common.Engine
+	mu       sync.Mutex
+	previous map[string]json.RawMessage
+	name     string
 }
 
 // New establishes the required ownership link; files are created only on live use.
@@ -46,13 +47,18 @@ func strip(body []byte) []byte {
 }
 
 // ObserveRequest rotates readable section files and reports real serialized
-// prefix bytes. Section order follows the vendor's cache order, not Go field order.
-func (l *Lens) ObserveRequest(name string, body []byte) {
+// prefix bytes, returning this request's prediction for its eventual response.
+// Section order follows the vendor's cache order, not Go field order.
+func (l *Lens) ObserveRequest(name string, body []byte) float64 {
+	// Interrupt ends the turn before its worker necessarily exits. Serialize the
+	// comparison and artifact rotation together, never the HTTP exchange.
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	root := l.parent.Agent().Ensemble()
 	var sections map[string]json.RawMessage
 	if err := json.Unmarshal(strip(body), &sections); err != nil {
 		root.Logf("cache lens: invalid request JSON")
-		return
+		return 0
 	}
 	// A model/route switch starts a fresh comparison rather than accusing its
 	// deliberately different system/tools prefix of an accidental rewrite.
@@ -131,11 +137,11 @@ func (l *Lens) ObserveRequest(name string, body []byte) {
 	for _, key := range append(keys, other...) {
 		fmt.Fprintf(&artifact, "%s:\n%s\n", key, sections[key])
 	}
-	l.predicted = 0
+	predicted := 0.0
 	if total > 0 {
-		l.predicted = float64(prefix) / float64(total)
+		predicted = float64(prefix) / float64(total)
 	}
-	root.Logf("cache lens %s: %s; prefix_bytes=%d prompt_bytes=%d predicted=%.4f", name, strings.Join(verdicts, " "), prefix, total, l.predicted)
+	root.Logf("cache lens %s: %s; prefix_bytes=%d prompt_bytes=%d predicted=%.4f", name, strings.Join(verdicts, " "), prefix, total, predicted)
 	dir := l.parent.Agent().Config().DataDir
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		root.Logf("cache lens: create directory: %v", err)
@@ -149,6 +155,7 @@ func (l *Lens) ObserveRequest(name string, body []byte) {
 		}
 	}
 	l.previous = sections
+	return predicted
 }
 
 func appended(old, now []byte) bool {
@@ -179,11 +186,11 @@ func conversation(raw []byte) bool {
 
 // ObserveUsage keeps tokens and bytes separate: only their dimensionless ratios
 // are comparable. A zero grant alone says nothing about minimum eligibility.
-func (l *Lens) ObserveUsage(u common.Usage) {
+func (l *Lens) ObserveUsage(u common.Usage, predicted float64) {
 	total := u.Input + u.CacheWrite + u.CacheRead
 	rate := 0.0
 	if total > 0 {
 		rate = float64(u.CacheRead) / float64(total)
 	}
-	l.parent.Agent().Ensemble().Logf("cache grant: input_tokens=%d read_tokens=%d granted=%.4f predicted=%.4f", total, u.CacheRead, rate, l.predicted)
+	l.parent.Agent().Ensemble().Logf("cache grant: input_tokens=%d read_tokens=%d granted=%.4f predicted=%.4f", total, u.CacheRead, rate, predicted)
 }

@@ -1,0 +1,7 @@
+$ go test ./... -count=1
+ok  	ensemble-gui-stub	1.515s
+?   	ensemble-gui-stub/cmd	[no test files]
+?   	ensemble-gui-stub/cmd/virtual-user	[no test files]
+exit=0
+$ go vet ./...
+exit=0

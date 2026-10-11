@@ -5,8 +5,8 @@ package common
 type CacheLens interface {
 	// Engine exposes the required owner, including its Agent's data directory.
 	Engine() Engine
-	// ObserveRequest records one actual request before the HTTP exchange.
-	ObserveRequest(name string, body []byte)
-	// ObserveUsage compares provider-granted tokens with the byte prediction.
-	ObserveUsage(Usage)
+	// ObserveRequest records a request and returns its predicted cached-byte ratio.
+	ObserveRequest(name string, body []byte) float64
+	// ObserveUsage compares granted tokens with that request's returned prediction.
+	ObserveUsage(usage Usage, predicted float64)
 }

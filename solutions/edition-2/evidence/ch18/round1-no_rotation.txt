@@ -1,0 +1,30 @@
+$ go test -race ./ensemble -run ^TestCacheLensInterruptedObservation -count=1
+--- FAIL: TestCacheLensInterruptedObservation (0.31s)
+    --- FAIL: TestCacheLensInterruptedObservation/0 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation0547416205/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/1 (0.02s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation13265329115/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/2 (0.02s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation22995631332/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/3 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation31269685746/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/4 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation42468118600/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/5 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation51061899944/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/6 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation6251336598/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/7 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation73856554249/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/8 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation83478798333/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/9 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation93371682934/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/10 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation102200043356/001/cache-prior.txt: no such file or directory
+    --- FAIL: TestCacheLensInterruptedObservation/11 (0.03s)
+        cache_interrupt_test.go:89: prior artifact lost first request: , open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensInterruptedObservation114236476774/001/cache-prior.txt: no such file or directory
+FAIL
+FAIL	ensemble/ensemble	0.323s
+FAIL
+exit=1

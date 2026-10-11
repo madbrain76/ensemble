@@ -1,0 +1,20 @@
+$ go test ./... -count=1
+ok  	ensemble	1.467s
+ok  	ensemble/ensemble	27.377s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/cachelens	[no test files]
+?   	ensemble/internal/common	[no test files]
+ok  	ensemble/internal/engine	0.012s
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/mcp	[no test files]
+?   	ensemble/internal/memory	[no test files]
+ok  	ensemble/internal/recall	0.011s
+?   	ensemble/internal/skills	[no test files]
+?   	ensemble/internal/tools	[no test files]
+exit=0
+$ go vet ./...
+exit=0
+$ go test -race ./ensemble -run TestCache -count=1
+ok  	ensemble/ensemble	1.406s
+exit=0
