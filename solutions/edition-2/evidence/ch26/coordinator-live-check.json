@@ -1,0 +1,64 @@
+{
+  "source_commit": "9e2b72aeaddc85cbe1afadec41909b4d66ad3b34",
+  "main_tree": "38aee9dd34ca180dedeed0fe17bf4cfe2173ef84",
+  "binary_sha256": "a42e9069d3c9b123ede0f44f635b58e8646b5e78b85c615526748b2c915ebfa5",
+  "raw_api_sha256": "0f0a3d4e853c249c234845be6bce52c25978c82c3e19b2bc0a80b4cdbca09c94",
+  "request_count": 15,
+  "completed_responses": 15,
+  "request_models_and_effort": "all gpt-6-astra/high",
+  "created_completed_ids_match": true,
+  "agent_request_counts_from_own_logs": {
+    "console": 10,
+    "helper": 5
+  },
+  "actual_non_submit_tool_results_matched_provider_inputs_by_call_id": 13,
+  "child_ids_spawned": [
+    "helper"
+  ],
+  "parent_and_child_test_runs": "three tests pass independently, exit0",
+  "independent_coordinator_unittest_exit": 0,
+  "independent_coordinator_unittest_output": "test_empty_input (test_slugify.SlugifyTests.test_empty_input) ... ok\ntest_mixed_case (test_slugify.SlugifyTests.test_mixed_case) ... ok\ntest_repeated_whitespace (test_slugify.SlugifyTests.test_repeated_whitespace) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.000s\n\nOK\n",
+  "artifact_hashes": {
+    "slugify.py": "d4a22d43f89aac2693a12733fd184c202bff284cab32e5f64493f510ceb178c3",
+    "test_slugify.py": "2b20a918e405e9545d092382eefc4c21af76cdf0fe0ac16d9d85564770e62228",
+    "fleet-result.txt": "ded90dc1f8ed1f85a7bf9d2c5ade3fd31839ed8c7ec214c1f58762a84b1306d4",
+    "ensemble.json": "1becb7c83672a4be014f42f322485ca9fdeed77625a426e5343751aa445b6ea4"
+  },
+  "registry_named_agents": [
+    "console"
+  ],
+  "gui_selection_sequence": [
+    "main",
+    "console",
+    "console/helper",
+    "console",
+    "main",
+    "console"
+  ],
+  "activity_phases": [
+    "idle",
+    "thinking",
+    "tool_call",
+    "waiting"
+  ],
+  "restart_provider_log_bytes": 0,
+  "restart_tree_retains_console_without_ephemeral_helper": true,
+  "restart_actual_submit_result_in_dom": true,
+  "spare_deleted": true,
+  "recorded_process_outcomes": [
+    {
+      "code": 0,
+      "signal": null
+    },
+    {
+      "code": 0,
+      "signal": null
+    }
+  ],
+  "limitations": [
+    "Shared wire log is interleaved; agent attribution uses own logs and call IDs, not ordinal pairing.",
+    "Endpoint and billing derived from explicit launch/runtime configuration, no network interception or charge attribution.",
+    "Monitoring evidence is not a security certification.",
+    "Restart screenshot/replay reports input_pending despite submitted work and idle activity; independent current-turn-state probe/review is pending. This receipt does not certify that displayed status."
+  ]
+}
