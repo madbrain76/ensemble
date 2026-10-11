@@ -1,5 +1,20 @@
 # Agentic codebook: edition workflow and learning record
 
+**Current solution paths, October 10:** after the bounded enhancement and its
+Chapter 4 clarification, Bill authorized aligning the solution directories with
+the book. Original `ch04`–`ch09` now have exact preserved copies under
+`solutions/edition-2/history/`; current `ch04`–`ch08` come from old `ch05`–`ch09`.
+Chapters 1–3 and the working `main/` are unchanged. Historical path references
+in this learning record use the original numbering. See the
+[solution mapping](../solutions/edition-2/README.md) and its original-source
+manifest. Existing tags, historical scores and nested application names remain
+unchanged; new grader defaults and tests use the book's numbering.
+Independent preservation/path review accepted this migration. Affected tests,
+vet and the full default Chapter 8 grade pass; the latter is a new 100/100
+relocation result, not a revision of historical scores. Checkpoint:
+`edition-2-solutions-renumbered-r1`; validation and review are linked from the
+enhancement plan.
+
 ## October 10: authorized enhancement of the accepted chapters
 
 Bill approved beginning author–coder work now on original Chapters 1–9, producing

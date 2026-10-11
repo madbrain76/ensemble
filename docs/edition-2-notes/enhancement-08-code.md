@@ -1,5 +1,9 @@
 # Edition 2 Chapter 8 grader review
 
+> Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
+> original student numbering. Those exports are now preserved under
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+
 Coder: `enhancement_coder_resumed`, October 10, 2026. Accepted at initial formal
 combined review, zero correction rounds; see [review](enhancement-08-review.md).
 Mandatory handoff:

@@ -14,22 +14,35 @@ import (
 	"ensemble/internal/common"
 )
 
-// Calls are dispatched serially by Agent. Only each job's output/state is
-// concurrent; the collection and one-shot setting stay on the Agent's thread.
+// The actor dispatches calls in order. Workers can supervise existing jobs and
+// set the next-call limit, so collection admission and settings share this lock.
 type jobs struct {
+	mu      sync.Mutex
+	stopped bool
 	parent  common.Agent
 	entries []common.Job
 	pending *common.Limits
 }
 
+// New creates an Agent-owned collection; handles and retained files live beyond
+// individual waits.
 func New(parent common.Agent) common.Jobs {
 	if parent == nil {
 		panic("Jobs requires Agent")
 	}
 	return &jobs{parent: parent}
 }
+
+// Agent returns the required owning Agent rather than a copied service bundle.
 func (j *jobs) Agent() common.Agent { return j.parent }
+
+// Start creates a recoverable output file before publishing a new running job.
 func (j *jobs) Start() (common.Job, error) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.stopped {
+		return nil, common.ErrStopped
+	}
 	// Handles belong to Ensemble so two Agents do not silently reuse one.
 	// Create the output before publishing the child: a failed open must not
 	// launch work whose result has no recovery address.
@@ -46,7 +59,11 @@ func (j *jobs) Start() (common.Job, error) {
 	j.entries = append(j.entries, child)
 	return child, nil
 }
+
+// Find resolves a handle even after execution ended, allowing later output recovery.
 func (j *jobs) Find(handle int) (common.Job, error) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
 	// Finished entries stay in the collection. Waiting after completion is a
 	// normal observation, not a second receive from a consumed result channel.
 	for _, child := range j.entries {
@@ -56,12 +73,17 @@ func (j *jobs) Find(handle int) (common.Job, error) {
 	}
 	return nil, fmt.Errorf("unknown job %d", handle)
 }
+
+// Shutdown closes process admission before visiting jobs. Go handlers retain
+// their output and are joined by the actor; explicit Kill still discards late work.
 func (j *jobs) Shutdown() error {
-	// Kill is idempotent for terminal states. Attempt every running job even
-	// if one OS operation fails, then let the application report the failures.
+	j.mu.Lock()
+	j.stopped = true
+	children := append([]common.Job(nil), j.entries...)
+	j.mu.Unlock()
 	var failures []error
-	for _, child := range j.entries {
-		failures = append(failures, child.Kill("shutdown"))
+	for _, child := range children {
+		failures = append(failures, child.Shutdown())
 	}
 	return errors.Join(failures...)
 }
@@ -70,9 +92,12 @@ func (j *jobs) Shutdown() error {
 // even by a malformed call or another setter, so they cannot become sticky.
 func limits(raw json.RawMessage, base common.Limits) (common.Limits, error) {
 	var args struct {
-		Delay   *float64 `json:"ai_callback_delay"`
-		Pattern *string  `json:"ai_callback_pattern"`
-		Max     *int     `json:"max_output_bytes"`
+		// Delay optionally overrides this wait; zero means inspect immediately.
+		Delay *float64 `json:"ai_callback_delay"`
+		// Pattern wakes the wait on a regex match in output not yet reported.
+		Pattern *string `json:"ai_callback_pattern"`
+		// Max bounds the visible output without changing retained file contents.
+		Max *int `json:"max_output_bytes"`
 	}
 	if err := json.Unmarshal(raw, &args); err != nil {
 		return base, err
@@ -95,7 +120,11 @@ func limits(raw json.RawMessage, base common.Limits) (common.Limits, error) {
 	return base, nil
 }
 func defaults() common.Limits { return common.Limits{Delay: 3 * time.Second, MaxBytes: 16 * 1024} }
+
+// Consume burns one-shot limits and applies explicit overrides for this call.
 func (j *jobs) Consume(raw json.RawMessage) (common.Limits, string, error) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
 	base := defaults()
 	notice := ""
 	if j.pending != nil {
@@ -109,7 +138,11 @@ func (j *jobs) Consume(raw json.RawMessage) (common.Limits, string, error) {
 	}
 	return value, notice, nil
 }
+
+// SetLimits validates the next-call override without extending any job lifetime.
 func (j *jobs) SetLimits(raw json.RawMessage) error {
+	j.mu.Lock()
+	defer j.mu.Unlock()
 	// This setter starts from defaults, not from the setting it just consumed.
 	// Otherwise omitted fields on consecutive setters would become sticky.
 	value, err := limits(raw, defaults())
@@ -123,18 +156,22 @@ func (j *jobs) SetLimits(raw json.RawMessage) error {
 // notification channel while holding the same lock that tests its condition;
 // completion between that test and select therefore cannot be missed.
 type job struct {
-	parent  common.Jobs
-	mu      sync.Mutex
-	data    common.JobData
-	file    *os.File
-	changed chan struct{}
-	cursor  int64
-	reports int
-	err     error
-	process *process
+	parent   common.Jobs
+	mu       sync.Mutex
+	data     common.JobData
+	file     *os.File
+	changed  chan struct{}
+	cursor   int64
+	reports  int
+	err      error
+	process  *process
+	stopping bool
 }
 
+// Jobs returns the owner of this execution's retained output and lookup lifetime.
 func (j *job) Jobs() common.Jobs { return j.parent }
+
+// Data returns a synchronized snapshot that cannot mutate the underlying job.
 func (j *job) Data() common.JobData {
 	j.mu.Lock()
 	defer j.mu.Unlock()
@@ -179,6 +216,8 @@ func (j *job) complete(text string, err error) {
 	j.data.Status = "done"
 	j.notify()
 }
+
+// Finish records Go handler output; a launched process retains completion ownership.
 func (j *job) Finish(text string, err error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
@@ -206,6 +245,9 @@ func (j *job) read(offset, count int64) (string, error) {
 	_, err = file.ReadAt(data, offset)
 	return string(data), err
 }
+
+// Wait returns on completion, a fresh output match or the callback delay; it does
+// not cancel execution.
 func (j *job) Wait(limits common.Limits) (string, error) {
 	pattern, err := regexp.Compile(limits.Pattern)
 	if err != nil {

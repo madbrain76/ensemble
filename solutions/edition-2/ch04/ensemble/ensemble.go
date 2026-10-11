@@ -22,6 +22,8 @@ import (
 type Config = common.Config
 type Agent = common.Agent
 type Usage = common.Usage
+type ToolDeclaration = common.ToolDeclaration
+type ToolContext = common.ToolContext
 
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
@@ -33,10 +35,13 @@ type Ensemble struct {
 
 // New gives logging one owner; applications choose the diagnostic destination.
 func New(diagnostics io.Writer) *Ensemble {
-	return &Ensemble{logger: log.New(diagnostics, "", 0)}
+	return &Ensemble{logger: log.New(diagnostics, "", log.LstdFlags)}
 }
-func (e *Ensemble) NextJobHandle() int  { return int(e.nextJob.Add(1)) }
-func (e *Ensemble) Logger() *log.Logger { return e.logger }
+func (e *Ensemble) NextJobHandle() int { return int(e.nextJob.Add(1)) }
+
+// Logf exposes logging without giving children the concrete logger to reconfigure.
+// The standard logger serializes writers and stamps each diagnostic.
+func (e *Ensemble) Logf(format string, args ...any) { e.logger.Printf(format, args...) }
 
 // Public vendor names allow optional clients to configure the same core.
 type Vendor = common.Vendor

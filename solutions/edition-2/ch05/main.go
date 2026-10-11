@@ -2,14 +2,9 @@
 package main
 
 import (
-	"bufio"
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
-	"strings"
 
 	"ensemble/ensemble"
 )
@@ -41,14 +36,15 @@ func run() (runErr error) {
 	if mode == "dump" && cfg.Model == "" {
 		cfg.Model = "offline"
 	}
+	logPath := os.Getenv("CH02_LOG")
+	if logPath == "" {
+		logPath = "ch02.jsonl"
+	}
+	cfg.LogPath = logPath
 	app := ensemble.New(os.Stderr)
 	a, err := app.NewAgent(cfg)
 	if err != nil {
 		return err
-	}
-	logPath := os.Getenv("CH02_LOG")
-	if logPath == "" {
-		logPath = "ch02.jsonl"
 	}
 	// These branches terminate before the live key check and input loop.
 	// Dump reproduces recorded facts; render projects them onto today's target.
@@ -79,103 +75,5 @@ func run() (runErr error) {
 	if cfg.APIKey == "" {
 		return errors.New("provider API key is not set")
 	}
-	// A session starts fresh; the standalone dump command loads its saved facts.
-	// Rewrite after each completed synchronous input, including failed exchanges.
-	// Crash-safe journaling and automatic resume belong to later chapters.
-	save := func() error {
-		file, err := os.Create(logPath)
-		if err != nil {
-			return err
-		}
-		err = a.History().Dump(file)
-		closeErr := file.Close()
-		if err != nil {
-			return err
-		}
-		return closeErr
-	}
-	// Shutdown precedes the final save so killed jobs have durable reasons,
-	// including when Ask or input fails. Offline commands create no live work.
-	defer func() { runErr = errors.Join(runErr, a.Shutdown(), save()) }()
-	input := bufio.NewReader(os.Stdin)
-	output := json.NewEncoder(os.Stdout)
-	chat := mode == "chat"
-	turns := 0
-	if chat {
-		fmt.Fprintf(os.Stderr, "talking to %s — Ctrl-D to quit\n", cfg.Model)
-	}
-	for {
-		if chat {
-			fmt.Fprint(os.Stdout, "you> ")
-		}
-		line, readErr := input.ReadString('\n')
-		if readErr != nil && readErr != io.EOF {
-			return readErr
-		}
-		if len(line) == 0 && readErr == io.EOF {
-			break
-		}
-		question := strings.TrimRight(line, "\r\n")
-		if chat && strings.TrimSpace(question) == "" {
-			continue
-		}
-		// Presence matters for directives: an empty ephemeral string is still a
-		// directive to acknowledge, not an empty user question to send upstream.
-		if !chat {
-			var in struct {
-				User      string  `json:"user"`
-				Ephemeral *string `json:"ephemeral"`
-			}
-			if err := json.Unmarshal([]byte(line), &in); err != nil {
-				return errors.New("invalid input JSON")
-			}
-			if in.Ephemeral != nil {
-				if err := a.Ephemeral(*in.Ephemeral); err != nil {
-					return err
-				}
-				if err := save(); err != nil {
-					return err
-				}
-				if err := output.Encode(struct {
-					Ack string `json:"ack"`
-				}{"ephemeral"}); err != nil {
-					return err
-				}
-				continue
-			}
-			question = in.User
-		}
-		// Save failure facts as well as successful replies. A client-visible error
-		// must not erase the request from the independently inspectable record.
-		answer, askErr := a.Ask(context.Background(), question)
-		if err := save(); err != nil {
-			return err
-		}
-		if askErr != nil {
-			return askErr
-		}
-		turns += 2
-		if chat {
-			name := "assistant"
-			if cfg.Vendor == ensemble.Anthropic {
-				name = "claude"
-			}
-			fmt.Fprintf(os.Stdout, "\n%s> %s\n\n", name, answer)
-			u := a.Engine().Usage()
-			fmt.Fprintf(os.Stderr, "[%d turns | %d input tokens | %d output tokens | %d cache write | %d cache read]\n", turns, u.Input, u.Output, u.CacheWrite, u.CacheRead)
-		} else if err := output.Encode(struct {
-			Assistant string `json:"assistant"`
-		}{answer}); err != nil {
-			return err
-		}
-	}
-	if err := save(); err != nil {
-		return err
-	}
-	if !chat {
-		return output.Encode(struct {
-			Usage ensemble.Usage `json:"usage"`
-		}{a.Engine().Usage()})
-	}
-	return nil
+	return converse(a, mode == "chat")
 }

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -86,9 +85,9 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 
 // Send performs one HTTP exchange from already rendered bytes and returns facts
 // without changing conversation.
-func (e *engine) Send(ctx context.Context, body []byte) (events []common.Event, err error) {
+func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
 	// Error bodies and URLs may echo credentials. Preserve useful status/error
-	// identity but never return those remote bytes or log request payloads.
+	// identity but never return remote error prose or log authentication headers.
 	defer func() {
 		if err != nil {
 			e.parent.Ensemble().Logf("%s request failed: %v", e.parent.Config().Vendor, err)
@@ -105,6 +104,9 @@ func (e *engine) Send(ctx context.Context, body []byte) (events []common.Event, 
 		path = "/v1/chat/completions"
 	case common.Gemini:
 		path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":generateContent"
+		if StreamingFor(cfg) != 0 {
+			path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":streamGenerateContent?alt=sse"
+		}
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(cfg.BaseURL, "/")+path, bytes.NewReader(body))
 	if err != nil {
@@ -122,6 +124,11 @@ func (e *engine) Send(ctx context.Context, body []byte) (events []common.Event, 
 	}
 	// The actor already recorded request_sent and consumed delivered ephemera.
 	// This worker returns response facts without borrowing the live projection.
+	safeBody := body
+	if cfg.APIKey != "" {
+		safeBody = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
+	}
+	e.parent.Ensemble().APILog("request", safeBody)
 	resp, err := e.client.Do(req)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -138,34 +145,40 @@ func (e *engine) Send(ctx context.Context, body []byte) (events []common.Event, 
 	if resp.StatusCode != http.StatusOK {
 		return events, fmt.Errorf("provider HTTP status %d", resp.StatusCode)
 	}
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return events, errors.New("reading provider response failed")
+
+	// Frames share the owner's trace facility. Headers and URLs never enter it;
+	// remote bytes are redacted before leaving Engine, even if a server echoes a key.
+	onFrame := cb.OnFrame
+	cb.OnFrame = func(kind string, data []byte) {
+		safe := data
+		if cfg.APIKey != "" {
+			safe = []byte(strings.ReplaceAll(string(data), cfg.APIKey, "[REDACTED]"))
+		}
+		e.parent.Ensemble().APILog(kind, safe)
+		if onFrame != nil {
+			onFrame(kind, safe)
+		}
 	}
-	// Every parser normalizes into one response fact. There is no vendor branch
-	// in the reducer, and no parser has permission to mutate conversation state.
-	var response common.ResponseData
-	switch cfg.Vendor {
-	case common.Anthropic:
-		response, err = e.parseAnthropic(data)
-	case common.OpenAI:
-		response, err = e.parseOpenAI(data)
-	case common.Gemini:
-		response, err = e.parseGemini(data)
+	onEvent := cb.OnEvent
+	cb.OnEvent = func(event common.Event) {
+		events = append(events, event)
+		if event.Response != nil {
+			// Replay independently sums these same normalized categories. No vendor
+			// cache or reasoning interpretation belongs in session accounting.
+			u := event.Response.Usage
+			e.mu.Lock()
+			e.usage.Input += u.Input
+			e.usage.CacheRead += u.CacheRead
+			e.usage.CacheWrite += u.CacheWrite
+			e.usage.Output += u.Output
+			e.mu.Unlock()
+		}
+		if onEvent != nil {
+			onEvent(event)
+		}
 	}
-	if err != nil {
-		return events, err
-	}
-	// Session accounting measures accepted exchanges. The replay projection
-	// independently derives historical totals from stored response usage.
-	// Both consume already-disjoint categories; neither reinterprets vendors.
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.usage.Input += response.Usage.Input
-	e.usage.CacheWrite += response.Usage.CacheWrite
-	e.usage.CacheRead += response.Usage.CacheRead
-	e.usage.Output += response.Usage.Output
-	return append(events, common.Event{Type: "response_ended", Response: &response}), nil
+	err = e.Parse(resp, cb)
+	return events, err
 }
 
 // All renderers append pending ephemera at the request tail. It remains absent

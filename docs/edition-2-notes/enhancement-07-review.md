@@ -1,5 +1,9 @@
 # Enhancement review: Chapter 7 — accepted
 
+> Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
+> original student numbering. Those exports are now preserved under
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+
 Reviewer: `enhancement_reviewer_resumed`, October 10, 2026. Mandatory handoff:
 `.agents/skills/ensemble-coding/SKILL.md`, read entirely for this task. Full
 carryover, voice/procedure and current bounded plan are read. Scope is original

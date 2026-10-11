@@ -15,14 +15,14 @@ import (
 // turn an omitted attachment into a plausible but misleading answer.
 func LookupModel(model string) (common.ModelFeatures, bool) {
 	switch model {
-	case "claude-haiku-5-5", "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5-5":
-		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument}, true
+	case "claude-haiku-5-5", "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5", "claude-sonnet-5":
+		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
 	case "claude-3-haiku-20240307":
-		return common.ModelFeatures{Media: common.MediaImage}, true
-	case "gpt-5.4-mini", "gpt-4o", "gpt-4o-mini":
-		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument}, true
-	case "gemini-3.8-flash", "gemini-2.5-flash":
-		return common.ModelFeatures{Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument}, true
+		return common.ModelFeatures{Media: common.MediaImage, Stream: common.StreamText | common.StreamToolArgs}, true
+	case "gpt-5.4-mini", "gpt-4o", "gpt-4o-mini", "gpt-6-astra", "gpt-5.6-sol":
+		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+	case "gemini-3.8-flash", "gemini-2.5-flash", "gemini-3.1-pro-preview":
+		return common.ModelFeatures{Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
 	}
 	return common.ModelFeatures{}, false
 }
@@ -73,4 +73,14 @@ func (e *engine) openAIBlob(p common.Part) (map[string]any, error) {
 		return map[string]any{"type": "image_url", "image_url": map[string]string{"url": "data:" + p.MIME + ";base64," + data}}, nil
 	}
 	return map[string]any{"type": "file", "file": map[string]string{"filename": filepath.Base(p.Ref.Locator), "file_data": "data:" + p.MIME + ";base64," + data}}, nil
+}
+
+// StreamingFor intersects caller policy with known delivery capabilities. A miss
+// changes latency, not content: an unfamiliar text model still gets a request.
+func StreamingFor(cfg common.Config) common.Stream {
+	if cfg.DisableStreaming {
+		return 0
+	}
+	features, _ := LookupModel(cfg.Model)
+	return features.Stream
 }

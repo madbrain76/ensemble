@@ -63,7 +63,7 @@ func (j *job) capture(p *process) {
 			// Unix PTYs signal EOF as either EOF or EIO. Other I/O failures are
 			// diagnostics, not invented command exit codes.
 			if err != io.EOF && !errors.Is(err, syscall.EIO) {
-				j.parent.Agent().Ensemble().Logger().Printf("job terminal read: %v", err)
+				j.parent.Agent().Ensemble().Logf("job terminal read: %v", err)
 			}
 			break
 		}

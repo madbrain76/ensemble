@@ -7,22 +7,46 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main>
-      <header>
+    <main class="layout">
+      <aside class="sidebar" aria-label="Ensemble sidebar">
         <h1>Ensemble</h1>
-        <span id="state" role="status">connecting</span
-        ><span id="pause-state"></span
-        ><label><input id="voice" type="checkbox" checked /> Read aloud</label
-        ><button id="resume">Unpause everyone</button
-        ><button id="interrupt">Interrupt turn</button>
-      </header>
-      <section id="artifacts" aria-label="Conversation"></section>
-      <form id="input-form">
-        <label for="input">Message or hint while busy</label
-        ><textarea id="input" rows="2" autofocus></textarea
-        ><button>Send</button>
-      </form>
-      <p id="speech-status" role="status"></p>
+        <div role="tablist" aria-label="Sidebar">
+          <button id="agents-tab" role="tab" aria-controls="agents-panel" aria-selected="true">Agents</button>
+          <button id="settings-tab" role="tab" aria-controls="settings-panel" aria-selected="false">Settings</button>
+        </div>
+        <section id="agents-panel" role="tabpanel" aria-labelledby="agents-tab">
+          <ul id="agent-tree" aria-label="Agents"></ul>
+        </section>
+        <section id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" hidden>
+          <label for="theme">Theme</label>
+          <select id="theme"><option>dark</option><option>light</option><option>system</option></select>
+          <label><input id="voice" type="checkbox" checked /> Read aloud</label>
+          <label for="tts-speed">Speech speed <output id="speed-value">1</output></label>
+          <!-- Saved rates may fall between tenths; preserve them in the slider. -->
+          <input id="tts-speed" type="range" min="0.5" max="2" step="any" value="1" />
+          <label for="font-size">Font size</label>
+          <select id="font-size"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>22</option><option>24</option></select>
+          <p id="settings-status" role="status"></p>
+        </section>
+      </aside>
+      <div class="drag-bar" id="sidebar-drag" role="separator" aria-label="Sidebar width" aria-orientation="vertical" tabindex="0"></div>
+      <section class="center" aria-label="Chat">
+        <header>
+          <h2>Chat</h2><span id="state" role="status">connecting</span>
+          <span id="pause-state"></span>
+          <button id="resume">Unpause everyone</button><button id="interrupt">Interrupt turn</button>
+        </header>
+        <section id="artifacts" class="scroll" aria-label="Conversation"></section>
+        <form id="input-form">
+          <label for="input">Message or hint while busy</label><textarea id="input" rows="2" autofocus></textarea><button>Send</button>
+        </form>
+        <p id="speech-status" role="status"></p>
+      </section>
+      <div class="drag-bar" id="actions-drag" role="separator" aria-label="Actions width" aria-orientation="vertical" tabindex="0"></div>
+      <section class="actions" aria-label="Actions">
+        <header><h2>Actions</h2></header>
+        <section id="actions" class="scroll" aria-label="Tool activity"></section>
+      </section>
     </main>
     <script type="module" src="app.js"></script>
   </body>

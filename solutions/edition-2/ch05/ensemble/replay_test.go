@@ -34,6 +34,8 @@ const firstResult = `{"seq":4,"type":"tool_returned","tool":{"call_id":"one","pa
 const lastResult = `{"seq":5,"type":"tool_returned","tool":{"call_id":"two","parts":[{"type":"text","text":"second"}]}}
 `
 
+// Replay must reconstruct turn state and each redaction without mutating original
+// facts.
 func TestReducerStateAndRedactionReplay(t *testing.T) {
 	a := loaded(t, ensemble.Gemini, conversation)
 	if a.History().Context().Turn != "tools_pending" {
@@ -95,6 +97,7 @@ func TestReducerStateAndRedactionReplay(t *testing.T) {
 	}
 }
 
+// Malformed or unknown interpreted events must fail before replacing valid history.
 func TestLoadRefusesUnknownInterpretedData(t *testing.T) {
 	good := `{"seq":1,"type":"message_received","message":{"actor":"human","parts":[{"type":"text","text":"kept"}]}}` + "\n"
 	for _, bad := range []string{
@@ -118,6 +121,8 @@ func TestLoadRefusesUnknownInterpretedData(t *testing.T) {
 	}
 }
 
+// Opaque replay requires exact provenance while an empty visible reply remains
+// present.
 func TestOpaqueIdentityAndEmptyReply(t *testing.T) {
 	// Signatures are compared on all identity axes; visible call arguments still
 	// survive vendor/model changes. Repeated rendering cannot consume the parts.
@@ -147,8 +152,11 @@ func TestOpaqueIdentityAndEmptyReply(t *testing.T) {
 		calls++
 		if calls == 2 {
 			var request struct {
+				// Messages retains provider message order, including tool-result boundaries.
 				Messages []struct {
-					Role    string
+					// Role is the provider spelling chosen from neutral authorship.
+					Role string
+					// Content preserves the provider's ordered blocks or message text.
 					Content json.RawMessage
 				}
 			}
@@ -176,6 +184,8 @@ func TestOpaqueIdentityAndEmptyReply(t *testing.T) {
 	}
 }
 
+// Turn transitions and one-request instructions must be derived from the same
+// replayable facts.
 func TestTurnTransitionsAndPendingEphemera(t *testing.T) {
 	human := `{"seq":1,"type":"message_received","message":{"actor":"human","parts":[{"type":"text","text":"hello"}]}}` + "\n"
 	sent := `{"seq":2,"type":"request_sent","request":{"to":{"vendor":"anthropic","model":"model","surface":"messages"}}}` + "\n"
@@ -215,6 +225,8 @@ func TestTurnTransitionsAndPendingEphemera(t *testing.T) {
 	}
 }
 
+// Redacted results must keep Refs and missing provider call IDs must acquire stable
+// identities.
 func TestRefCarryforwardAndMissingCallIDs(t *testing.T) {
 	for kind := 1; kind <= 3; kind++ {
 		ref := `"kind":` + string(rune('0'+kind)) + `,"locator":"result:one"`
@@ -243,8 +255,13 @@ func TestRefCarryforwardAndMissingCallIDs(t *testing.T) {
 		t.Fatal("synthesized IDs are nondeterministic")
 	}
 	var request struct {
+		// Messages retains provider message order, including tool-result boundaries.
 		Messages []struct {
-			ToolCalls []struct{ ID string } `json:"tool_calls"`
+			// ToolCalls retains all calls in their provider response order.
+			ToolCalls []struct {
+				// ID is the provider-issued call identity, retained for its matching result.
+				ID string
+			} `json:"tool_calls"`
 		}
 	}
 	if err := json.Unmarshal(first, &request); err != nil {
@@ -256,6 +273,8 @@ func TestRefCarryforwardAndMissingCallIDs(t *testing.T) {
 	}
 }
 
+// Gemini signatures and function-result names must survive the actual capture/render
+// path.
 func TestGeminiCaptureAndResultName(t *testing.T) {
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -298,7 +317,6 @@ func TestGeminiCaptureAndResultName(t *testing.T) {
 	if !bytes.Contains(body, []byte(`"thoughtSignature":"private-signature"`)) {
 		t.Fatal("captured call signature lost on replay")
 	}
-
 	// The name belongs to the call, but Gemini requires it again on the result.
 	result := `{"seq":4,"type":"tool_returned","tool":{"call_id":"one","parts":[{"type":"text","text":"ok"}]}}` + "\n"
 	b := loaded(t, ensemble.Gemini, conversation+result)
@@ -307,9 +325,15 @@ func TestGeminiCaptureAndResultName(t *testing.T) {
 		t.Fatal(err)
 	}
 	var request struct {
+		// Contents carries Gemini conversation turns using its user/model vocabulary.
 		Contents []struct {
+			// Parts retains ordered Gemini content blocks within a turn.
 			Parts []struct {
-				FunctionResponse *struct{ Name string } `json:"functionResponse"`
+				// FunctionResponse carries a tool result with its required function name.
+				FunctionResponse *struct {
+					// Name is the declared function identifier used to correlate calls and results.
+					Name string
+				} `json:"functionResponse"`
 			}
 		}
 	}
@@ -322,6 +346,8 @@ func TestGeminiCaptureAndResultName(t *testing.T) {
 	}
 }
 
+// Anthropic wire ordering must move all results before user text without changing
+// neutral history.
 func TestAnthropicInterleavedResultsPrecedeText(t *testing.T) {
 	// The log preserves arrival order. Anthropic's merged user message must put
 	// both results first even when human text arrived between their returns.
@@ -336,13 +362,23 @@ func TestAnthropicInterleavedResultsPrecedeText(t *testing.T) {
 		t.Fatal(err)
 	}
 	var request struct {
+		// Messages retains provider message order, including tool-result boundaries.
 		Messages []struct {
-			Role    string
+			// Role is the provider spelling chosen from neutral authorship.
+			Role string
+			// Content preserves the provider's ordered blocks or message text.
 			Content []struct {
-				Type    string
-				Text    string
-				CallID  string `json:"tool_use_id"`
-				Content []struct{ Text string }
+				// Type selects the wire block variant before its other fields are interpreted.
+				Type string
+				// Text holds visible provider or user content, including an explicitly empty string.
+				Text string
+				// CallID retains the producing call identifier when inspecting a tool result.
+				CallID string `json:"tool_use_id"`
+				// Content preserves the provider's ordered blocks or message text.
+				Content []struct {
+					// Text holds visible provider or user content, including an explicitly empty string.
+					Text string
+				}
 			}
 		}
 	}

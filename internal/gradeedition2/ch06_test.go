@@ -8,7 +8,7 @@ import (
 // TestChapter6Streaming exercises actual core and separate public shape clients
 // against the same provider replies, preserving real actor/tool/parse behavior.
 func TestChapter6Streaming(t *testing.T) {
-	const core = "../../solutions/edition-2/ch07"
+	const core = "../../solutions/edition-2/ch06"
 	bin, cleanup, err := grade.Build(core)
 	if err != nil {
 		t.Fatal(err)

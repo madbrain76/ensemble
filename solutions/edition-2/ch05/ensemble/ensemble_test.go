@@ -21,10 +21,18 @@ func TestAgentsKeepTheirOwnersAndState(t *testing.T) {
 			t.Error("wrong Anthropic API version")
 		}
 		var request struct {
-			Model    string
+			// Model selects or reports the provider model identity for this exchange.
+			Model string
+			// Messages retains provider message order, including tool-result boundaries.
 			Messages []struct {
-				Role    string
-				Content []struct{ Type, Text string }
+				// Role is the provider spelling chosen from neutral authorship.
+				Role string
+				// Content preserves the provider's ordered blocks or message text.
+				Content []struct {
+					// Type selects the wire block variant before its other fields are interpreted. Text
+					// holds visible provider or user content, including an explicitly empty string.
+					Type, Text string
+				}
 			}
 		}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -75,6 +83,8 @@ func TestAgentsKeepTheirOwnersAndState(t *testing.T) {
 	}
 }
 
+// Failed HTTP exchanges must remain failure facts, without inventing assistant
+// dialogue.
 func TestFailedExchangeIsLoggedWithoutAResponse(t *testing.T) {
 	// These are ordinary Chapter 1 failures, not tool or streaming fixtures.
 	for _, failure := range []struct {
@@ -100,9 +110,16 @@ func TestFailedExchangeIsLoggedWithoutAResponse(t *testing.T) {
 					return
 				}
 				var request struct {
+					// Messages retains provider message order, including tool-result boundaries.
 					Messages []struct {
-						Role    string
-						Content []struct{ Type, Text string }
+						// Role is the provider spelling chosen from neutral authorship.
+						Role string
+						// Content preserves the provider's ordered blocks or message text.
+						Content []struct {
+							// Type selects the wire block variant before its other fields are interpreted. Text
+							// holds visible provider or user content, including an explicitly empty string.
+							Type, Text string
+						}
 					}
 				}
 				if err := json.NewDecoder(r.Body).Decode(&request); err != nil {

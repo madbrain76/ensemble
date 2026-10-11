@@ -913,6 +913,8 @@ The binary reads JSON events on stdin, writes observations as JSON
 lines on stdout, and logs to the path in `CH06_LOG`. The grader
 drives the fake vendor to script specific responses for each agent.
 
+The reference workflow is in
+[`solutions/edition-2/ch05/ch06/`](../../solutions/edition-2/ch05/ch06/).
 Keep the historical `ch06` application directory and `CH06_LOG` name for
 compatibility. Build that module separately. The local provider fake supplies
 the ordinary Anthropic adapter environment (`LLM_VENDOR=anthropic`, a model,

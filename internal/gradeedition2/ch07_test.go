@@ -8,7 +8,7 @@ import (
 // TestChapter7GUI drives the actual optional application, real core and shell
 // tools through WebSockets; only the provider HTTP peer is a faithful fake.
 func TestChapter7GUI(t *testing.T) {
-	core, err := filepath.Abs("../../solutions/edition-2/ch08")
+	core, err := filepath.Abs("../../solutions/edition-2/ch07")
 	if err != nil {
 		t.Fatal(err)
 	}

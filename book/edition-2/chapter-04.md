@@ -943,8 +943,10 @@ kill, output and debugger scenarios.
 ### Take the library outside
 
 Build your consumer from its own module directory, using the public library.
-The accepted consumer remains under historical `ch05/` in the frozen reference;
-its source numbering records when it was built. For a corresponding local
+The accepted consumer is in
+[`solutions/edition-2/ch04/ch05/`](../../solutions/edition-2/ch04/ch05/).
+The nested `ch05` name records when the application was built; its enclosing
+solution now matches this chapter. For a corresponding local
 consumer, the build and invocation are:
 
 ```

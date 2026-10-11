@@ -9,7 +9,7 @@ import (
 // The CLI, local files, actor, jobs and separate application remain real. Only
 // HTTP is replaced, and the replay oracle is the body captured at that boundary.
 func TestChapter5Boundaries(t *testing.T) {
-	const core = "../../solutions/edition-2/ch06"
+	const core = "../../solutions/edition-2/ch05"
 	bin, cleanup, err := grade.Build(core)
 	if err != nil {
 		t.Fatal(err)

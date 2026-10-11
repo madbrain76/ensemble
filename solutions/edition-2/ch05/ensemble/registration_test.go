@@ -8,6 +8,8 @@ import (
 	"ensemble/ensemble"
 )
 
+// Custom tool visibility and validation must stay local to the Agent receiving
+// registration.
 func TestRegistrationIsAgentOwned(t *testing.T) {
 	app := ensemble.New(io.Discard)
 	a, err := app.NewAgent(ensemble.Config{Model: "fake", BuiltinTools: true, DataDir: t.TempDir()})

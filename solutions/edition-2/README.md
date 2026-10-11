@@ -1,84 +1,62 @@
-# Edition 2 student implementation
+# Edition 2 solutions
 
-`main/` is the authoritative working source, built fresh by the student from
-the original book and accepted carryover. This outer repository tracks it;
-there is no nested Git repository.
+`ch01/` through `ch08/` match the enhanced book's chapter numbers. Each contains
+an accepted cumulative solution. `main/` remains the authoritative working
+implementation; extend it for future student work rather than editing snapshots.
 
-`chNN/` is an exact source export at an accepted chapter checkpoint. Do not edit
-exports. Carry fixes forward in `main/`, revalidate, and create a fresh revision
-tag rather than moving an existing tag. The first edition and retired attempt
-remain historical evidence, not source for the student to copy.
+Bill authorized the solution renumbering on October 10, 2026. The code is
+unchanged: the old Chapter 5 solution supplies the combined Chapter 4, including
+jobs and the separately built custom-tool consumer. Later snapshots shift down
+one. The intermediate old Chapter 4 is retained in the historical archive.
 
-Chapter reviews live in `../../docs/edition-2-notes/`; small sanitized run evidence
-lives in `evidence/chNN/`. Graders remain the original course graders during the
-student run. For Chapter 1, run from the repository root:
+| Book chapter | Solution | Original student chapter | Historical checkpoint |
+| --- | --- | --- | --- |
+| 1 | [ch01](ch01/) | 1 | `edition-2-ch01-r1` |
+| 2 | [ch02](ch02/) | 2 | `edition-2-ch02-r3` |
+| 3 | [ch03](ch03/) | 3 | `edition-2-ch03-r3` |
+| 4: jobs and external consumer | [ch04](ch04/) | 5 | `edition-2-ch05-r2` |
+| 5: actor and steering | [ch05](ch05/) | 6 | `edition-2-ch06-r3` |
+| 6: streaming | [ch06](ch06/) | 7 | `edition-2-ch07-r4` |
+| 7: GUI and replay | [ch07](ch07/) | 8 | `edition-2-ch08-r3` |
+| 8: workbench and settings | [ch08](ch08/) | 9 | `edition-2-ch09-r2` |
 
+From the repository root, use the Edition 2 grader. Its default solution path
+now matches the requested chapter:
+
+```sh
+go run ./cmd/grade-edition2 -ch 4
+go run ./cmd/grade-edition2 -ch 8
 ```
-make grade-dir CH=1 DIR=solutions/edition-2/ch01
-```
 
-Chapter 1 was accepted on initial review, with no exception. Its checkpoint is
-the immutable annotated tag `edition-2-ch01-r1`. The sorted relative-path and
-SHA-256 source manifest has digest
-`c2dd9901cc615844e717901de89e3b091046b62b85303393b3bf68b27416c41d`.
-Source and export matched byte for byte before checkpointing. See the student
-and comparative reviews for actual grading, live use and mutation results.
+An explicit submission directory and the existing consumer/workflow/GUI flags
+remain available. Chapter 4 combines the original jobs checks (100 points) with
+external-consumer, topology and diagnostic checks (60). Later graders carry the
+corrected earlier checks forward. See the
+[enhancement record](../../docs/edition-2-enhancement.md) for reviewed results,
+exceptions and the distinction between original and revised scores.
 
-Chapter 2 was accepted with a scoped exception after one correction round.
-Its immutable annotated checkpoint is `edition-2-ch02-r3`; the existing older
-`edition-2-ch02-r2` tag is preserved. Source/export manifest SHA-256:
-`3a042fc7f3308471777f4a74178df2e246df5e7b87ea5fa31f7cc4a21b93ef90`.
-All 17 exported source files matched byte for byte before checkpointing.
+## Historical numbering
 
-The original Chapter 2 grader remains **92/100 FAIL**: its added URI-media
-rendering and unredacted media control exceed the chapter's stated scope.
-The reviewer verified the explicitly required Ref/redaction behavior separately.
-Keep these actual failures visible through later parity checks. Chapter 4's
-independent scope reassessment confirms that output references are not URI
-attachments: §4.5 explicitly excludes rendering them as parts. The exception
-therefore continues through that chapter. Do not add early features
-merely to conceal the inherited score. See `ch02.md` and `ch02-code-review.md`
-in the review directory for the decision, original results and revision history.
+[history/](history/) preserves the six original `ch04`–`ch09` snapshots byte for
+byte. Original Chapters 1–3 remain unchanged at their existing paths. The
+[mapping manifest](history/mapping.json) records source commit, Git tree IDs,
+file counts and content digests. Existing tags retain the original paths.
 
-Chapter 3 was accepted on initial review, with the inherited media exception
-and no correction rounds. Checkpoint: `edition-2-ch03-r3`; older r1/r2 tags are
-preserved. Its 19 source/export files match; manifest SHA-256:
-`b92d8f8c7fdd79e2b39226ed88067f0f9fdd2a8fcae3c702e6138bf49e6ca459`.
-Original grade is **90/100 FAIL**: all nine new checks pass, while `ch2parity`
-reports the same two waived media controls. The inherited exception was
-subsequently reassessed against Chapter 4 as described above. Student/reviewer notes
-and live three-provider tool exercises are recorded with the checkpoint.
+Earlier student and enhancement reports use the original numbering and describe
+commands that were actually run then. For example, their old
+`solutions/edition-2/ch05` now means [history/ch05](history/ch05/), whose current
+book-numbered counterpart is [ch04](ch04/). Do not run an old command against the
+new same-numbered directory without translating that path. The
+[previous student-run README](history/student-run-readme.md) and
+[chapter records](../../docs/edition-2-notes/) preserve original results.
 
-Chapter 4 was accepted with the inherited media exception after two test-only
-correction rounds. Checkpoint: `edition-2-ch04-r2`; the older r1 tag remains.
-All 25 source/export files match; manifest SHA-256:
-`36605e815176cf0ed244c4ba98ef88df97e59f51efb59cf4e8927b2e9858bf3d`.
-Original grade remains **90/100 FAIL**, with all eight new checks passing.
-Live three-provider supervision, actual debugger prompt matching and shutdown
-are recorded alongside the unsuccessful attempts and corrected evidence claims.
-Independent review verified the two lifecycle regression tests, including their
-failure paths, before acceptance. See `ch04.md` and `ch04-code-review.md`.
+Evidence directories (`evidence/chNN`), nested application names and their
+interfaces retain historical numbering. In particular, the consumer remains
+`ch05/`, the three-Agent workflow `ch06/`, and the streaming example `ch07/`
+inside each applicable snapshot. Their relative module dependencies still point
+to that snapshot's core. Snapshot-local READMEs and source comments likewise
+retain their original labels. This outer mapping identifies their place in the
+new book; no runtime or historical artifact was rewritten to change numbering.
 
-Chapter 5 was accepted at initial review with documented grader exceptions and
-zero correction rounds. Checkpoint: `edition-2-ch05-r2`; the older r1 remains.
-All 32 source/export files match; manifest SHA-256:
-`5d64b57085a9358bd309193591664b5c36d08cbf2ef467cd9c4e288754f9520a`.
-Original grade is **110/120 FAIL**: its logger-shape check rejects the demonstrated
-multi-hop ownership chain. Nested Chapter 4 remains 90/100 despite the enclosing
-parity check's passing label. The separately built consumer proves real custom
-registration, execution and root logging on all three providers; the grader's
-generic tool-return check does not establish that capability. See `ch05.md` and
-`ch05-code-review.md` for the precise exceptions and comparative results.
-
-Chapter 6 was accepted after one correction round with scoped grader exceptions.
-Checkpoint: `edition-2-ch06-r3`; older r1/r2 tags remain. All 45 source/export
-files match; manifest SHA-256:
-`91e7bcbc3073911560b9f6d85ca35a0c93b47a0b634a5c40d23a8237959864b8`.
-Original grade is **80/100 FAIL**: inherited logger-shape parity and a text-only
-unknown-model probe are independently accepted exceptions. Local-path media is
-implemented; URI/handle attachments remain deferred by the chapter. Bill withdrew
-the misleading grouped-wake requirement before any implementation was added.
-Live interruption with continuing jobs, the three-role application and local
-image input are recorded alongside targeted mutations and four-module checks.
-The media test's original survivor and successful correction are preserved.
-See `ch06.md` and `ch06-code-review.md` for the final decision and prose fixes.
+Keep the archived and reader snapshots immutable. Preserve old tags and actual
+results when a future correction is reviewed and checkpointed.

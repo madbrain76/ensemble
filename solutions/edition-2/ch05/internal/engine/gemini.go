@@ -8,16 +8,24 @@ import (
 )
 
 type geminiCall struct {
-	ID   string          `json:"id,omitempty"`
-	Name string          `json:"name"`
+	// ID is the provider-issued call identity, retained for its matching result.
+	ID string `json:"id,omitempty"`
+	// Name is the declared function identifier used to correlate calls and results.
+	Name string `json:"name"`
+	// Args retains the tool's JSON object before canonical argument capture.
 	Args json.RawMessage `json:"args"`
 }
 type geminiResult struct {
-	ID       string `json:"id,omitempty"`
-	Name     string `json:"name"`
+	// ID is the provider-issued call identity, retained for its matching result.
+	ID string `json:"id,omitempty"`
+	// Name is the declared function identifier used to correlate calls and results.
+	Name string `json:"name"`
+	// Response is the object-valued Gemini tool testimony, never a bare string.
 	Response struct {
-		Result  string `json:"result"`
-		IsError bool   `json:"is_error,omitempty"`
+		// Result carries bounded visible tool output within the result object.
+		Result string `json:"result"`
+		// IsError distinguishes ordinary tool failure from a successful result.
+		IsError bool `json:"is_error,omitempty"`
 	} `json:"response"`
 }
 
@@ -25,14 +33,23 @@ type geminiResult struct {
 // beside the call while parsing and rendering prevents an unrelated opaque
 // part from being mistaken for that call's mandatory replay material.
 type geminiPart struct {
-	Text             *string         `json:"text,omitempty"`
-	FunctionCall     *geminiCall     `json:"functionCall,omitempty"`
-	FunctionResponse *geminiResult   `json:"functionResponse,omitempty"`
-	Thought          bool            `json:"thought,omitempty"`
+	// InlineData embeds supported local media bytes with their MIME type.
+	InlineData any `json:"inlineData,omitempty"`
+	// Text holds visible provider or user content, including an explicitly empty string.
+	Text *string `json:"text,omitempty"`
+	// FunctionCall carries provider arguments and the declared tool name.
+	FunctionCall *geminiCall `json:"functionCall,omitempty"`
+	// FunctionResponse carries a tool result with its required function name.
+	FunctionResponse *geminiResult `json:"functionResponse,omitempty"`
+	// Thought marks private reasoning content that must not become visible prose.
+	Thought bool `json:"thought,omitempty"`
+	// ThoughtSignature binds private replay material to this exact part.
 	ThoughtSignature json.RawMessage `json:"thoughtSignature,omitempty"`
 }
 type geminiContent struct {
-	Role  string       `json:"role,omitempty"`
+	// Role is the provider spelling chosen from neutral authorship.
+	Role string `json:"role,omitempty"`
+	// Parts retains ordered Gemini content blocks within a turn.
 	Parts []geminiPart `json:"parts"`
 }
 
@@ -53,6 +70,12 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 			}
 			part := geminiPart{}
 			switch p.Type {
+			case "blob":
+				data, err := e.blob(p)
+				if err != nil {
+					return nil, err
+				}
+				part.InlineData = map[string]string{"mimeType": p.MIME, "data": data}
 			case "text":
 				value := p.Text
 				part.Text = &value
@@ -63,7 +86,7 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 				part.FunctionCall = &geminiCall{ID: p.CallID, Name: p.Name, Args: p.Args}
 				// A call-bound signature cannot be moved to a neighboring part. Only its
 				// exact producer gets it back, including the API surface and model ID.
-				if p.From == e.target() {
+				if p.From == e.Target() {
 					part.ThoughtSignature = p.Opaque
 				}
 			case "tool_result":
@@ -72,6 +95,9 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 					return nil, err
 				}
 				for _, nested := range p.Parts {
+					if nested.Type == "blob" {
+						return nil, errors.New("Gemini tool results do not support media on this renderer")
+					}
 					if err := e.refuseBlob(nested); err != nil {
 						return nil, err
 					}
@@ -82,7 +108,7 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 				part.FunctionResponse.Response.Result = text(p.Parts)
 				part.FunctionResponse.Response.IsError = p.IsError
 			case "opaque":
-				if p.From != e.target() {
+				if p.From != e.Target() {
 					continue
 				}
 				if err := json.Unmarshal(p.Data, &part); err != nil {
@@ -105,15 +131,21 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 	if len(declarations) > 0 {
 		tools = []map[string]any{{"functionDeclarations": declarations}}
 	}
-	prompt := systemPrompt
+	prompt := e.systemPrompt()
 	return json.Marshal(struct {
-		Tools             []map[string]any `json:"tools,omitempty"`
-		SystemInstruction geminiContent    `json:"systemInstruction"`
-		Contents          []geminiContent  `json:"contents"`
-		GenerationConfig  struct {
+		// Tools contains only the declarations visible to this Agent.
+		Tools []map[string]any `json:"tools,omitempty"`
+		// SystemInstruction holds Gemini instructions outside conversation contents.
+		SystemInstruction geminiContent `json:"systemInstruction"`
+		// Contents carries Gemini conversation turns using its user/model vocabulary.
+		Contents []geminiContent `json:"contents"`
+		// GenerationConfig holds request generation settings, separate from dialogue.
+		GenerationConfig struct {
+			// MaxOutputTokens bounds Gemini response generation.
 			MaxOutputTokens int `json:"maxOutputTokens"`
 		} `json:"generationConfig"`
 	}{tools, geminiContent{Parts: []geminiPart{{Text: &prompt}}}, contents, struct {
+		// MaxOutputTokens bounds Gemini response generation.
 		MaxOutputTokens int `json:"maxOutputTokens"`
 	}{1024}})
 }
@@ -123,17 +155,26 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 // modelVersion, when returned, supplies the exact producer identity.
 func (e *engine) parseGemini(data []byte) (common.ResponseData, error) {
 	var wire struct {
+		// ModelVersion captures the resolved producer identity returned by Gemini.
 		ModelVersion string `json:"modelVersion"`
-		Candidates   []struct {
+		// Candidates holds provider alternatives; this client consumes the first.
+		Candidates []struct {
+			// Content preserves the provider's ordered blocks or message text.
 			Content struct {
+				// Parts retains ordered Gemini content blocks within a turn.
 				Parts []json.RawMessage `json:"parts"`
 			} `json:"content"`
 		} `json:"candidates"`
+		// Usage must be present to distinguish measured counts from missing accounting.
 		Usage *struct {
-			Input    *int `json:"promptTokenCount"`
-			Output   int  `json:"candidatesTokenCount"`
-			Read     int  `json:"cachedContentTokenCount"`
-			Thoughts int  `json:"thoughtsTokenCount"`
+			// Input retains the provider's input count before cache normalization.
+			Input *int `json:"promptTokenCount"`
+			// Output retains the provider's generated-token count before normalization.
+			Output int `json:"candidatesTokenCount"`
+			// Read records the provider's cached-input token category.
+			Read int `json:"cachedContentTokenCount"`
+			// Thoughts counts Gemini thinking tokens additional to candidate output.
+			Thoughts int `json:"thoughtsTokenCount"`
 		} `json:"usageMetadata"`
 	}
 	if err := json.Unmarshal(data, &wire); err != nil {
@@ -145,7 +186,7 @@ func (e *engine) parseGemini(data []byte) (common.ResponseData, error) {
 	if len(wire.Candidates) == 0 {
 		return common.ResponseData{}, errors.New("Gemini response missing candidate")
 	}
-	from := e.target()
+	from := e.Target()
 	if wire.ModelVersion != "" {
 		from.Model = wire.ModelVersion
 	}

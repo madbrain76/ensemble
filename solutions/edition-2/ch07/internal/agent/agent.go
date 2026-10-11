@@ -30,6 +30,8 @@ type agent struct {
 	stopErr     error
 	lifecycle   sync.Mutex
 	stopping    bool
+	pauseMu     sync.Mutex
+	resume      chan struct{}
 }
 
 // New creates an Agent with a required Ensemble parent; the root installs its

@@ -18,3 +18,8 @@ headers are excluded and the configured key is redacted from wire traces.
 The no-argument CLI accepts the existing JSON-lines exercise protocol. The
 separate [Chapter 7 application](ch07/README.md) demonstrates the public library
 and reports delta counts, finalized parts and time to first delta.
+
+Chapter 8's optional browser application lives in the separate `gui/` module;
+see `gui/README.md`. The existing headless command remains independent of HTTP,
+WebSocket and browser dependencies. Both applications use the same public Agent
+API; the GUI executable also accepts terminal input for its existing Agent.

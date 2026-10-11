@@ -77,7 +77,7 @@ func (e *engine) Send(ctx context.Context, c *common.Context) (events []common.E
 	// identity but never return those remote bytes or log request payloads.
 	defer func() {
 		if err != nil {
-			e.parent.Ensemble().Logger().Printf("%s request failed: %v", e.parent.Config().Vendor, err)
+			e.parent.Ensemble().Logf("%s request failed: %v", e.parent.Config().Vendor, err)
 			events = append(events, common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		}
 	}()

@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"ensemble/internal/common"
@@ -27,21 +28,31 @@ type engine struct {
 	parent common.Agent
 	client *http.Client
 	usage  common.Usage
+	mu     sync.Mutex
 }
 
+// New creates an Agent-owned HTTP engine with bounded transport requests.
 func New(parent common.Agent) common.Engine {
 	if parent == nil {
 		panic("Engine requires Agent")
 	}
 	return &engine{parent: parent, client: &http.Client{Timeout: 60 * time.Second}}
 }
+
+// Agent returns the required owning Agent rather than a copied service bundle.
 func (e *engine) Agent() common.Agent { return e.parent }
-func (e *engine) Usage() common.Usage { return e.usage }
+
+// Usage returns measured session counts under the Engine's accounting lock.
+func (e *engine) Usage() common.Usage {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.usage
+}
 
 // An explicitly resolved identity controls replay matching while Model still
 // routes the HTTP request. Without resolution, equality is conservative: an
 // alias differing from the captured producer will not receive opaque bytes.
-func (e *engine) target() common.Provenance {
+func (e *engine) Target() common.Provenance {
 	cfg := e.parent.Config()
 	model := cfg.ResolvedModel
 	if model == "" {
@@ -57,8 +68,9 @@ func (e *engine) target() common.Provenance {
 	return common.Provenance{Vendor: cfg.Vendor, Model: model, Surface: surface}
 }
 
-// Render has no clock, I/O or mutation. Offline replay and live requests share
-// these exact bytes; credentials and URL construction are transport-only.
+// Render has no clock or conversation mutation. Local media reads its Ref.
+// Offline replay and live requests share these bytes; credentials and URL
+// construction are transport-only. Referenced files must still contain the same bytes.
 func (e *engine) Render(c *common.Context) ([]byte, error) {
 	switch e.parent.Config().Vendor {
 	case common.Anthropic:
@@ -72,7 +84,9 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 	}
 }
 
-func (e *engine) Send(ctx context.Context, c *common.Context) (events []common.Event, err error) {
+// Send performs one HTTP exchange from already rendered bytes and returns facts
+// without changing conversation.
+func (e *engine) Send(ctx context.Context, body []byte) (events []common.Event, err error) {
 	// Error bodies and URLs may echo credentials. Preserve useful status/error
 	// identity but never return those remote bytes or log request payloads.
 	defer func() {
@@ -81,10 +95,6 @@ func (e *engine) Send(ctx context.Context, c *common.Context) (events []common.E
 			events = append(events, common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		}
 	}()
-	body, err := e.Render(c)
-	if err != nil {
-		return nil, err
-	}
 	// URLs and authentication are deliberately outside Render. Offline replay
 	// needs neither credentials nor a reachable provider, and bodies cannot
 	// accidentally serialize an API key from the configuration.
@@ -110,9 +120,8 @@ func (e *engine) Send(ctx context.Context, c *common.Context) (events []common.E
 	case common.Gemini:
 		req.Header.Set("x-goog-api-key", cfg.APIKey)
 	}
-	// Record sending before consuming ephemera. Send's caller appends returned
-	// facts afterward; no parser can mutate or bypass the reducer.
-	events = append(events, common.Event{Type: "request_sent", Request: &common.RequestData{To: e.target()}})
+	// The actor already recorded request_sent and consumed delivered ephemera.
+	// This worker returns response facts without borrowing the live projection.
 	resp, err := e.client.Do(req)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -150,6 +159,8 @@ func (e *engine) Send(ctx context.Context, c *common.Context) (events []common.E
 	// Session accounting measures accepted exchanges. The replay projection
 	// independently derives historical totals from stored response usage.
 	// Both consume already-disjoint categories; neither reinterprets vendors.
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	e.usage.Input += response.Usage.Input
 	e.usage.CacheWrite += response.Usage.CacheWrite
 	e.usage.CacheRead += response.Usage.CacheRead
@@ -206,19 +217,6 @@ func callFor(c *common.Context, id string) (common.Entry, int, common.Part, erro
 	return common.Entry{}, 0, common.Part{}, errors.New("tool result has no matching call")
 }
 
-// Blob storage is deliberately a reference-only shape in this chapter. No
-// media capability is implemented yet. Even a remote form that needs no local
-// fetch is deferred; unsupported media must fail rather than disappear.
-func (e *engine) refuseBlob(p common.Part) error {
-	if p.Type == "blob" && strings.HasPrefix(p.MIME, "audio/") && !e.parent.Config().Audio {
-		return errors.New("audio is unsupported by this target")
-	}
-	if p.Type == "blob" {
-		return errors.New("blob media rendering is unsupported")
-	}
-	return nil
-}
-
 // OpenAI wraps arguments in a JSON string; the other providers send objects.
 // Normalize object ordering at capture so that difference does not leak past
 // parsing. This does not interpret or execute the function's arguments.
@@ -230,4 +228,12 @@ func canonical(raw json.RawMessage) (json.RawMessage, error) {
 		return nil, errors.New("invalid tool arguments")
 	}
 	return json.Marshal(value)
+}
+
+// Role instructions belong to the Agent; the default keeps earlier clients working.
+func (e *engine) systemPrompt() string {
+	if s := e.parent.Config().SystemPrompt; s != "" {
+		return s
+	}
+	return systemPrompt
 }

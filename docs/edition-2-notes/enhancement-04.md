@@ -1,5 +1,9 @@
 # Enhancement notes: Chapter 4, including original Chapter 5
 
+> Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
+> original student numbering. Those exports are now preserved under
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+
 Author: `enhancement_author_resumed`, October 10, 2026. Final prose submitted for
 independent combined review; coder evidence reconciled. Mandatory handoff:
 `.agents/skills/ensemble-coding/SKILL.md`.

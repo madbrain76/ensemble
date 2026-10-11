@@ -1,5 +1,9 @@
 # Enhancement review: Chapter 4 — accepted with a recorded test exception
 
+> Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
+> original student numbering. Those exports are now preserved under
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+
 Reviewer: `enhancement_reviewer_resumed`, October 10, 2026. Mandatory handoff:
 `.agents/skills/ensemble-coding/SKILL.md`, read entirely before review. Current
 voice/procedure, carryover and bounded plan remain governing. This combines

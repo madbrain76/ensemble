@@ -152,3 +152,41 @@ type ModelFeatures struct {
 	// Stream identifies the channels this model can deliver incrementally.
 	Stream Stream
 }
+
+// ToolDispatched reports the actual boundary before handler execution.
+type ToolDispatched struct {
+	// CallID correlates execution with its requested call.
+	CallID string `json:"call_id"`
+	// Name identifies the selected tool.
+	Name string `json:"name"`
+	// Input preserves raw arguments without interpreting their content.
+	Input json.RawMessage `json:"input"`
+}
+
+// ToolFinished reports a real tool wait result, including late reports after interrupt.
+type ToolFinished struct {
+	// CallID identifies the completed call.
+	CallID string `json:"call_id"`
+	// Result is the bounded returned text; full job output remains recoverable.
+	Result string `json:"result"`
+	// IsError distinguishes failure from successful tool output.
+	IsError bool `json:"is_error"`
+}
+
+// TurnEnded is progress for a finished turn, not a reliable request acknowledgement.
+type TurnEnded struct {
+	// Text is the final response, excluding intermediate tool narration.
+	Text string `json:"text"`
+	// Error is a safe diagnostic when the turn failed or was interrupted.
+	Error string `json:"error,omitempty"`
+}
+
+func (ToolDispatched) observation() {}
+func (ToolFinished) observation()   {}
+func (TurnEnded) observation()      {}
+
+// AgentObserver receives identified progress through the composition root.
+type AgentObserver interface {
+	// ObserveAgent must return promptly; transports queue their own slow work.
+	ObserveAgent(Agent, Observation)
+}

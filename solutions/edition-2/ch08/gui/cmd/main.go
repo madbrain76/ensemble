@@ -86,7 +86,10 @@ func run() error {
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,
 	// then ends Agent lifetime, then closes the application-owned log writers.
 	defer a.Shutdown()
-	hub := gui.New(root, a, trace)
+	hub, err := gui.New(root, a, trace)
+	if err != nil {
+		return err
+	}
 	defer hub.Close()
 	server := &http.Server{Addr: "127.0.0.1:" + strconv.Itoa(*port), Handler: hub.Handler(*directory)}
 	// Report listener failure through its own completion channel: a bind error

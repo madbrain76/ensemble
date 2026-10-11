@@ -23,6 +23,7 @@ func registerShout(a ensemble.Agent) error {
 		// Schema guides the model; the handler still checks required input.
 		// A pointer distinguishes missing text from a valid empty string.
 		var input struct {
+			// Text holds visible provider or user content, including an explicitly empty string.
 			Text *string `json:"text"`
 		}
 		if err := json.Unmarshal(args, &input); err != nil {

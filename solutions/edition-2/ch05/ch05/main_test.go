@@ -20,15 +20,27 @@ func TestExternalToolLoop(t *testing.T) {
 	var logs bytes.Buffer
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request struct {
+			// Tools contains only the declarations visible to this Agent.
 			Tools []struct {
+				// Name is the declared function identifier used to correlate calls and results.
+				// Description gives the model the tool's purpose rather than executable behavior.
 				Name, Description string
-				Schema            json.RawMessage `json:"input_schema"`
+				// Schema supplies the JSON argument contract advertised to the provider.
+				Schema json.RawMessage `json:"input_schema"`
 			}
+			// Messages retains provider message order, including tool-result boundaries.
 			Messages []struct {
+				// Content preserves the provider's ordered blocks or message text.
 				Content []struct {
-					Type    string
-					ID      string `json:"tool_use_id"`
-					Content []struct{ Text string }
+					// Type selects the wire block variant before its other fields are interpreted.
+					Type string
+					// ID is the provider-issued call identity, retained for its matching result.
+					ID string `json:"tool_use_id"`
+					// Content preserves the provider's ordered blocks or message text.
+					Content []struct {
+						// Text holds visible provider or user content, including an explicitly empty string.
+						Text string
+					}
 				}
 			}
 		}

@@ -21,12 +21,13 @@ type process struct {
 	done     chan struct{}
 }
 
+// StartProcess transfers completion to the PTY reader and rejects stopped jobs.
 func (j *job) StartProcess(command *exec.Cmd) error {
 	// Hold the state lock through launch: a kill that wins forbids launch,
 	// and a kill that loses sees the actual process group it must stop.
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	if j.data.Status != "running" {
+	if j.data.Status != "running" || j.stopping {
 		return errors.New("job is no longer running")
 	}
 	terminal, err := pty.StartWithSize(command, &pty.Winsize{Rows: 50, Cols: 200})
@@ -89,6 +90,9 @@ func (j *job) capture(p *process) {
 	// completion here prevents dispatch from closing the file under the reader.
 	j.complete(pending+fmt.Sprintf("\nexit_code: %d\n", code), nil)
 }
+
+// Send writes a line to the running terminal without holding the job state lock
+// during I/O.
 func (j *job) Send(input string) error {
 	j.mu.Lock()
 	if j.data.Status != "running" || j.process == nil {
@@ -107,6 +111,9 @@ func (j *job) Send(input string) error {
 	_, err := io.WriteString(terminal, input)
 	return err
 }
+
+// Kill explicitly stops a process group and suppresses subsequent output for that
+// job.
 func (j *job) Kill(reason string) error {
 	j.mu.Lock()
 	if j.data.Status != "running" {
@@ -135,5 +142,18 @@ func (j *job) Kill(reason string) error {
 	if j.process != nil {
 		<-j.process.done
 	}
-	return j.parent.Agent().History().Append(common.Event{Type: "job_killed", Job: &common.JobKilledData{JobData: data, Reason: reason}})
+	return j.parent.Agent().Record(common.Event{Type: "job_killed", Job: &common.JobKilledData{JobData: data, Reason: reason}})
+}
+
+// Closing process admission also covers a handler that has not launched yet.
+// Without it, shutdown could scan an empty job and miss its later child process.
+func (j *job) Shutdown() error {
+	j.mu.Lock()
+	j.stopping = true
+	hasProcess := j.process != nil
+	j.mu.Unlock()
+	if hasProcess {
+		return j.Kill("shutdown")
+	}
+	return nil
 }

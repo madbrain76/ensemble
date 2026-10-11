@@ -96,10 +96,14 @@ func decode(raw json.RawMessage, into any, required ...string) error {
 // cap, not a claim of bounded filesystem memory or background I/O.
 func readFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
-		Path  string `json:"path"`
-		Start int    `json:"start_line"`
-		End   int    `json:"end_line"`
-		Max   int    `json:"max_bytes"`
+		// Path identifies the requested file or directory before tool validation.
+		Path string `json:"path"`
+		// Start selects the first requested line using the tool's one-based convention.
+		Start int `json:"start_line"`
+		// End selects the inclusive last requested line when supplied.
+		End int `json:"end_line"`
+		// Max bounds the visible output without changing retained file contents.
+		Max int `json:"max_bytes"`
 	}
 	if err := decode(raw, &args, "path"); err != nil {
 		return "", err
@@ -138,6 +142,7 @@ func readFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 // reproducible output; the slash distinguishes a directory without another stat.
 func listDirectory(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
+		// Path identifies the requested file or directory before tool validation.
 		Path string `json:"path"`
 	}
 	if err := decode(raw, &args, "path"); err != nil {
@@ -163,10 +168,14 @@ func listDirectory(owner common.ToolContext, raw json.RawMessage) (string, error
 // Creating parents lets the model write a new package in one ordinary call.
 func writeFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
-		Path      string `json:"path"`
-		Content   string `json:"content"`
-		Overwrite bool   `json:"overwrite"`
-		Append    bool   `json:"append"`
+		// Path identifies the requested file or directory before tool validation.
+		Path string `json:"path"`
+		// Content is the exact text to write after overwrite/append validation.
+		Content string `json:"content"`
+		// Overwrite explicitly permits replacing an existing file.
+		Overwrite bool `json:"overwrite"`
+		// Append requests extension of an existing file instead of replacement.
+		Append bool `json:"append"`
 	}
 	if err := decode(raw, &args, "path", "content"); err != nil {
 		return "", err
@@ -209,9 +218,12 @@ func writeFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 // here, so the model can repair a failed call using the reported match count.
 func editFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
+		// Path identifies the requested file or directory before tool validation.
 		Path string `json:"path"`
-		Old  string `json:"old_text"`
-		New  string `json:"new_text"`
+		// Old identifies the exact text that the edit must match before replacement.
+		Old string `json:"old_text"`
+		// New supplies replacement text only after the old text is uniquely located.
+		New string `json:"new_text"`
 	}
 	if err := decode(raw, &args, "path", "old_text", "new_text"); err != nil {
 		return "", err
@@ -249,8 +261,11 @@ func editFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 // No persistent shell state or execution deadline is hidden behind a call.
 func runCommand(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
+		// Command is the explicit shell program, with no persistent shell state.
 		Command string `json:"command"`
-		Cwd     string `json:"cwd"`
+		// Cwd optionally overrides this call's workspace without changing Agent
+		// configuration.
+		Cwd string `json:"cwd"`
 	}
 	if err := decode(raw, &args, "command"); err != nil {
 		return "", err
@@ -286,9 +301,12 @@ func runCommand(owner common.ToolContext, raw json.RawMessage) (string, error) {
 // matches versus context and preserves separated groups with a visible marker.
 func searchFiles(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
-		Path    string `json:"path"`
+		// Path identifies the requested file or directory before tool validation.
+		Path string `json:"path"`
+		// Pattern is a regular expression matched against each file line.
 		Pattern string `json:"pattern"`
-		Context int    `json:"context_lines"`
+		// Context selects the number of neighboring lines included around grep matches.
+		Context int `json:"context_lines"`
 	}
 	if err := decode(raw, &args, "path", "pattern"); err != nil {
 		return "", err

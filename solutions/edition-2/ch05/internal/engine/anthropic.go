@@ -11,17 +11,29 @@ import (
 // blocks without turning them into public context fields or relying on map
 // iteration when constructing an ordered message.
 type anthropicBlock struct {
-	Type      string            `json:"type"`
-	Text      string            `json:"text,omitempty"`
-	ID        string            `json:"id,omitempty"`
-	Name      string            `json:"name,omitempty"`
-	Input     json.RawMessage   `json:"input,omitempty"`
-	ToolUseID string            `json:"tool_use_id,omitempty"`
-	Content   []json.RawMessage `json:"content,omitempty"`
-	IsError   bool              `json:"is_error,omitempty"`
+	// Source encodes local image or PDF bytes as an Anthropic base64 source.
+	Source any `json:"source,omitempty"`
+	// Type selects the wire block variant before its other fields are interpreted.
+	Type string `json:"type"`
+	// Text holds visible provider or user content, including an explicitly empty string.
+	Text string `json:"text,omitempty"`
+	// ID is the provider-issued call identity, retained for its matching result.
+	ID string `json:"id,omitempty"`
+	// Name is the declared function identifier used to correlate calls and results.
+	Name string `json:"name,omitempty"`
+	// Input preserves the tool-use arguments as JSON for dispatch and replay.
+	Input json.RawMessage `json:"input,omitempty"`
+	// ToolUseID quotes the exact tool_use identity receiving this result.
+	ToolUseID string `json:"tool_use_id,omitempty"`
+	// Content preserves the provider's ordered blocks or message text.
+	Content []json.RawMessage `json:"content,omitempty"`
+	// IsError distinguishes ordinary tool failure from a successful result.
+	IsError bool `json:"is_error,omitempty"`
 }
 type anthropicMessage struct {
-	Role    string            `json:"role"`
+	// Role is the provider spelling chosen from neutral authorship.
+	Role string `json:"role"`
+	// Content preserves the provider's ordered blocks or message text.
 	Content []json.RawMessage `json:"content"`
 }
 
@@ -60,6 +72,7 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		var results, other []json.RawMessage
 		for _, raw := range message.Content {
 			var block struct {
+				// Type selects the wire block variant before its other fields are interpreted.
 				Type string `json:"type"`
 			}
 			if err := json.Unmarshal(raw, &block); err != nil {
@@ -79,12 +92,17 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
 	}
 	return json.Marshal(struct {
-		Tools     []map[string]any   `json:"tools,omitempty"`
-		Model     string             `json:"model"`
-		MaxTokens int                `json:"max_tokens"`
-		System    string             `json:"system"`
-		Messages  []anthropicMessage `json:"messages"`
-	}{tools, e.parent.Config().Model, 1024, systemPrompt, messages})
+		// Tools contains only the declarations visible to this Agent.
+		Tools []map[string]any `json:"tools,omitempty"`
+		// Model selects or reports the provider model identity for this exchange.
+		Model string `json:"model"`
+		// MaxTokens bounds generated response tokens on this provider surface.
+		MaxTokens int `json:"max_tokens"`
+		// System carries the role instruction outside ordinary Anthropic messages.
+		System string `json:"system"`
+		// Messages retains provider message order, including tool-result boundaries.
+		Messages []anthropicMessage `json:"messages"`
+	}{tools, e.parent.Config().Model, 1024, e.systemPrompt(), messages})
 }
 func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.RawMessage, error) {
 	var out []json.RawMessage
@@ -94,6 +112,16 @@ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.R
 		}
 		b := anthropicBlock{}
 		switch p.Type {
+		case "blob":
+			data, err := e.blob(p)
+			if err != nil {
+				return nil, err
+			}
+			b.Type = "image"
+			if p.MIME == "application/pdf" {
+				b.Type = "document"
+			}
+			b.Source = map[string]string{"type": "base64", "media_type": p.MIME, "data": data}
 		case "text":
 			b.Type, b.Text = "text", p.Text
 		case "redacted":
@@ -113,7 +141,7 @@ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.R
 				return nil, err
 			}
 		case "opaque":
-			if p.From == e.target() {
+			if p.From == e.Target() {
 				out = append(out, p.Data)
 			}
 			continue
@@ -123,7 +151,9 @@ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.R
 		// Empty text is still a text block; it must not disappear into null content.
 		if b.Type == "text" {
 			raw, _ := json.Marshal(struct {
+				// Type selects the wire block variant before its other fields are interpreted.
 				Type string `json:"type"`
+				// Text holds visible provider or user content, including an explicitly empty string.
 				Text string `json:"text"`
 			}{"text", b.Text})
 			out = append(out, raw)
@@ -143,13 +173,20 @@ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.R
 // visible before a completed-response event can be emitted.
 func (e *engine) parseAnthropic(data []byte) (common.ResponseData, error) {
 	var wire struct {
-		Model   string            `json:"model"`
+		// Model selects or reports the provider model identity for this exchange.
+		Model string `json:"model"`
+		// Content preserves the provider's ordered blocks or message text.
 		Content []json.RawMessage `json:"content"`
-		Usage   *struct {
-			Input  *int `json:"input_tokens"`
+		// Usage must be present to distinguish measured counts from missing accounting.
+		Usage *struct {
+			// Input retains the provider's input count before cache normalization.
+			Input *int `json:"input_tokens"`
+			// Output retains the provider's generated-token count before normalization.
 			Output *int `json:"output_tokens"`
-			Write  int  `json:"cache_creation_input_tokens"`
-			Read   int  `json:"cache_read_input_tokens"`
+			// Write records the provider's cache-creation token category.
+			Write int `json:"cache_creation_input_tokens"`
+			// Read records the provider's cached-input token category.
+			Read int `json:"cache_read_input_tokens"`
 		} `json:"usage"`
 	}
 	if err := json.Unmarshal(data, &wire); err != nil {
@@ -158,7 +195,7 @@ func (e *engine) parseAnthropic(data []byte) (common.ResponseData, error) {
 	if wire.Usage == nil || wire.Usage.Input == nil || wire.Usage.Output == nil {
 		return common.ResponseData{}, errors.New("Anthropic response missing usage")
 	}
-	from := e.target()
+	from := e.Target()
 	if wire.Model != "" {
 		from.Model = wire.Model
 	}

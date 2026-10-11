@@ -1,5 +1,9 @@
 # Chapter 6 comparative code review
 
+> Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
+> original student numbering. Those exports are now preserved under
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+
 **Final verdict: accepted with documented exceptions after correction round 1
 (one of three rounds used).** Actual original grading remains **80/100 FAIL**.
 The two remaining corrections are resolved; the grouped-completion finding was

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"ensemble/internal/common"
@@ -17,6 +18,7 @@ import (
 // after a rewrite. This owner is separate from the Engine's HTTP lifetime:
 // offline loading does not manufacture a transport exchange.
 type history struct {
+	mu      sync.Mutex
 	parent  common.Agent
 	events  []common.Event
 	context common.Context
@@ -30,12 +32,25 @@ func New(parent common.Agent) common.History {
 	}
 	return &history{parent: parent, context: common.Context{Turn: "idle"}}
 }
-func (h *history) Agent() common.Agent      { return h.parent }
-func (h *history) Context() *common.Context { return &h.context }
+
+// Agent returns the required owning Agent rather than a copied service bundle.
+func (h *history) Agent() common.Agent { return h.parent }
+
+// Readers receive their own snapshot: live clients cannot race with reduction.
+func (h *history) Context() *common.Context {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	data, _ := json.Marshal(h.context)
+	var snapshot common.Context
+	json.Unmarshal(data, &snapshot)
+	return &snapshot
+}
 
 // Append is the single live entry point. Sequence assignment belongs here so
 // parsers and human clients cannot disagree about ordering.
 func (h *history) Append(e common.Event) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	e.Seq = uint64(len(h.events) + 1)
 	if len(h.events) > 0 {
 		e.Seq = h.events[len(h.events)-1].Seq + 1
@@ -64,6 +79,8 @@ func (h *history) Append(e common.Event) error {
 // Load stages the entire replay: refusing malformed input must not leave a
 // half-loaded context. Headerless logs are current; unknown versions are not.
 func (h *history) Load(r io.Reader) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	next := history{parent: h.parent, context: common.Context{Turn: "idle"}}
 	// ReadBytes avoids Scanner's small token ceiling: one event may contain
 	// a large tool result. EOF may still bring the final unterminated line.
@@ -78,6 +95,7 @@ func (h *history) Load(r io.Reader) error {
 			// A pointer distinguishes an absent header from an explicitly invalid
 			// version zero. The header is metadata and consumes no event Seq.
 			var header struct {
+				// Version distinguishes a current log header from unsupported or absent metadata.
 				Version *int `json:"log_version"`
 			}
 			if decodeErr := json.Unmarshal(line, &header); decodeErr != nil {
@@ -117,8 +135,11 @@ func (h *history) Load(r io.Reader) error {
 // process must recover both the historical evidence and the current view.
 // Encoding the version separately also keeps the event vocabulary frozen.
 func (h *history) Dump(w io.Writer) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(struct {
+		// Version distinguishes a current log header from unsupported or absent metadata.
 		Version int `json:"log_version"`
 	}{1}); err != nil {
 		return err
@@ -148,7 +169,7 @@ func validate(e common.Event) error {
 	}
 	var parts []common.Part
 	switch e.Type {
-	case "message_received":
+	case "message_received", "hint_received":
 		if e.Message == nil {
 			return errors.New("message payload missing")
 		}
@@ -171,7 +192,7 @@ func validate(e common.Event) error {
 			return err
 		}
 		parts = e.Response.Parts
-	case "tool_called", "tool_returned":
+	case "tool_called", "tool_returned", "job_report", "job_finished":
 		if e.Tool == nil {
 			return errors.New("tool payload missing")
 		}
@@ -190,7 +211,7 @@ func validate(e common.Event) error {
 			return errors.New("unknown redaction level")
 		}
 		parts = e.Redact.Replacement
-	case "error_occurred":
+	case "error_occurred", "turn_ended", "turn_interrupted":
 		if e.Error == nil {
 			return errors.New("error payload missing")
 		}

@@ -36,7 +36,11 @@ func toolSession(t *testing.T, calls ...toolCall) (ensemble.Agent, []common.Part
 			return
 		}
 		var body struct {
-			Messages []struct{ Content []json.RawMessage }
+			// Messages retains provider message order, including tool-result boundaries.
+			Messages []struct {
+				// Content preserves the provider's ordered blocks or message text.
+				Content []json.RawMessage
+			}
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Error(err)
@@ -47,8 +51,10 @@ func toolSession(t *testing.T, calls ...toolCall) (ensemble.Agent, []common.Part
 		}
 		for i, raw := range last {
 			var result struct {
+				// Type selects the wire block variant before its other fields are interpreted.
 				Type string
-				ID   string `json:"tool_use_id"`
+				// ID is the provider-issued call identity, retained for its matching result.
+				ID string `json:"tool_use_id"`
 			}
 			_ = json.Unmarshal(raw, &result)
 			if result.Type != "tool_result" || result.ID != string(rune('a'+i)) {
@@ -86,6 +92,8 @@ func toolSession(t *testing.T, calls ...toolCall) (ensemble.Agent, []common.Part
 }
 func resultText(p common.Part) string { return p.Parts[0].Text }
 
+// Real file handlers must enforce their argument and edit contracts through model
+// dispatch.
 func TestFileContractsThroughLoop(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "sub", "notes.txt")
@@ -134,6 +142,7 @@ func TestFileContractsThroughLoop(t *testing.T) {
 	}
 }
 
+// The shell must receive filtered credentials and report its actual exit status.
 func TestCommandEnvironmentAndExitThroughLoop(t *testing.T) {
 	for _, name := range []string{"LLM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"} {
 		t.Setenv(name, "dummy-secret")
@@ -146,6 +155,7 @@ func TestCommandEnvironmentAndExitThroughLoop(t *testing.T) {
 	}
 }
 
+// Only enabled per-Agent tools may appear in each vendor's declarations.
 func TestRegistryDeclarationsAndIsolation(t *testing.T) {
 	for _, vendor := range []ensemble.Vendor{ensemble.Anthropic, ensemble.OpenAI, ensemble.Gemini} {
 		app := ensemble.New(io.Discard)
@@ -171,6 +181,8 @@ func TestRegistryDeclarationsAndIsolation(t *testing.T) {
 	}
 }
 
+// A zero setting must allow the named default batch budget and then refuse the next
+// batch.
 func TestLoopRoundBound(t *testing.T) {
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -183,11 +195,12 @@ func TestLoopRoundBound(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = a.Ask(context.Background(), "keep calling")
-	if err == nil || !strings.Contains(err.Error(), "16 rounds") || requests != 16 {
+	if err == nil || !strings.Contains(err.Error(), "tool round limit") || requests != ensemble.DefaultMaxToolRounds+1 {
 		t.Fatalf("round bound: requests=%d error=%v", requests, err)
 	}
 }
 
+// ID-less Gemini calls must remain distinct and pair with their own tool results.
 func TestGeminiMissingIDsStillPairDistinctCalls(t *testing.T) {
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -197,9 +210,13 @@ func TestGeminiMissingIDsStillPairDistinctCalls(t *testing.T) {
 			return
 		}
 		var body struct {
+			// Contents carries Gemini conversation turns using its user/model vocabulary.
 			Contents []struct {
+				// Parts retains ordered Gemini content blocks within a turn.
 				Parts []struct {
+					// Response is the object-valued Gemini tool testimony, never a bare string.
 					Response *struct {
+						// ID is the provider-issued call identity, retained for its matching result.
 						ID string `json:"id"`
 					} `json:"functionResponse"`
 				}

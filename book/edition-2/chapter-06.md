@@ -619,6 +619,8 @@ at a blank terminal before the first word appears.
 `CH07_NO_STREAM=1` runs the identical script with `DisableStreaming` on.
 
 
+The reference application is in
+[`solutions/edition-2/ch06/ch07/`](../../solutions/edition-2/ch06/ch07/).
 Keep the historical `ch07` directory and environment names. The core's
 no-argument JSON protocol receives this prompt, followed by EOF:
 

@@ -31,6 +31,8 @@ type Config struct {
 	// MaxToolRounds permits this many dispatched batches per human turn; zero selects
 	// 200.
 	MaxToolRounds int
+	// DisableStreaming selects length-one delivery even for known streaming models.
+	DisableStreaming bool
 }
 
 // These categories are disjoint after parsing. Cache counts are not extra
@@ -248,6 +250,8 @@ type Context struct {
 type Ensemble interface {
 	// Logf sends safe diagnostics through the application-owned logger.
 	Logf(format string, args ...any)
+	// APILog records sanitized wire payloads through the application-owned trace sink.
+	APILog(eventType string, data []byte)
 	// NextJobHandle allocates an application-wide identity so Agents cannot collide.
 	NextJobHandle() int
 	// Observe offers progress without waiting for a consumer to receive it.
@@ -267,6 +271,8 @@ type Agent interface {
 	// Ask blocks on its own request reply or caller cancellation, never a shared idle
 	// event.
 	Ask(context.Context, string) (string, error)
+	// AskWatching attaches callbacks to this request without registering a permanent observer.
+	AskWatching(context.Context, string, StreamCallbacks) (string, error)
 	// Submit queues a separate turn and returns its buffered, reliable completion reply.
 	Submit(context.Context, string) <-chan Result
 	// Post accepts live input without waiting for execution or dropping its message.
@@ -425,7 +431,9 @@ type Engine interface {
 	// Agent returns the required owning Agent rather than a copied service bundle.
 	Agent() Agent
 	// Send performs one HTTP exchange from rendered bytes and returns normalized facts.
-	Send(context.Context, []byte) ([]Event, error)
+	Send(context.Context, []byte, StreamCallbacks) ([]Event, error)
+	// Parser supplies the single streaming and plain-response parsing seam.
+	Parser
 	// Target identifies the current provider, resolved model and API replay surface.
 	Target() Provenance
 	// Render builds provider bytes from a projection, reading supported local media

@@ -36,11 +36,6 @@ func run() int {
 	path := flag.Arg(0)
 	if path == "" {
 		path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter)
-		if *chapter == 4 {
-			path = "./solutions/edition-2/ch05" // Edition 2 folds original Chapter 5 into 4.
-		} else if *chapter >= 5 {
-			path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter+1)
-		}
 	}
 	var example gradeedition2.ConsumerCase
 	if *chapter >= 4 {

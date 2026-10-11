@@ -1,0 +1,30 @@
+# Original student snapshots
+
+These are the byte-for-byte accepted exports of original Chapters 4–9 before
+the October 10, 2026 solution renumbering. Original Chapters 1–3 remain at
+`../ch01`–`../ch03`. The current book-numbered solutions are one level above;
+see [the complete mapping](../README.md).
+
+| Original export | Current Edition 2 solution |
+| --- | --- |
+| [ch04](ch04/) | Intermediate jobs-only snapshot; retained here |
+| [ch05](ch05/) | [Chapter 4](../ch04/), including external consumer |
+| [ch06](ch06/) | [Chapter 5](../ch05/) |
+| [ch07](ch07/) | [Chapter 6](../ch06/) |
+| [ch08](ch08/) | [Chapter 7](../ch07/) |
+| [ch09](ch09/) | [Chapter 8](../ch08/) |
+
+[mapping.json](mapping.json) binds every export to its original Git tree in
+`c2df11b5f86c2abbcc14a827e59d263f766ee8e6`, with file counts and sorted
+relative-path/SHA-256 manifest digests. Existing checkpoint tags are unchanged.
+Both content and executable modes are preserved. Nested application directories
+and relative module replacements retain their original structure.
+
+[student-run-readme.md](student-run-readme.md) is the prior outer README copied
+unchanged. Its relative paths and current-status language describe its original
+location and date. Use the mapping above to locate those sources now.
+[Student reviews](../../../docs/edition-2-notes/) and [run evidence](../evidence/)
+retain their original chapter numbers, scores and command transcripts.
+
+Do not edit these historical exports. This archive records the original student
+run and is distinct from the retired author-first attempt.

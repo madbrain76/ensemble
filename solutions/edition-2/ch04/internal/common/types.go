@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log"
 	"os/exec"
 	"time"
 )
@@ -169,7 +168,7 @@ type Context struct {
 
 // These are actual ownership links, not a bag of sibling service callbacks.
 type Ensemble interface {
-	Logger() *log.Logger
+	Logf(format string, args ...any)
 	NextJobHandle() int
 }
 type Agent interface {
@@ -180,6 +179,7 @@ type Agent interface {
 	Ask(context.Context, string) (string, error)
 	Ephemeral(string) error
 	Declarations() []ToolDeclaration
+	RegisterTool(ToolDeclaration, func(ToolContext, json.RawMessage) (string, error)) error
 	Jobs() Jobs
 	Shutdown() error
 }

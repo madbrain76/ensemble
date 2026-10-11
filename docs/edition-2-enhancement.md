@@ -3,6 +3,26 @@
 Authorized by Bill on October 10, 2026, after acceptance of original Chapters
 1–9 at `db96c20` / `edition-2-ch09-r2`. Coordinator: Codex.
 
+**Subsequent solution renumbering, October 10.** Bill authorized preserving the
+historical exports separately and aligning the reader solutions with this book:
+old `ch05` becomes `ch04`, and old `ch06`–`ch09` become `ch05`–`ch08`.
+Original `ch04`–`ch09` are preserved byte for byte in
+[`solutions/edition-2/history/`](../solutions/edition-2/history/); Chapters 1–3,
+`main/`, evidence numbering and all existing tags remain unchanged. The
+[solution mapping](../solutions/edition-2/README.md) identifies current paths
+and historical checkpoints. The dated reports below retain their original path
+meanings. This later authorization supersedes the earlier instruction to retain
+snapshot locations; it does not authorize changing their runtime content.
+
+Renumbering is independently accepted; checkpoint
+`edition-2-solutions-renumbered-r1`. All preserved and relocated files match the
+pre-move revision, including executable modes. Affected tests/vet pass, all 17
+nested modules resolve to their enclosing core, and the full default Chapter 8
+grader scores 100/100. Current links resolve and historical notes retain their
+original contents beneath a path-era notice. See
+[validation](edition-2-notes/solution-renumbering-code.md) and
+[independent review](edition-2-notes/solution-renumbering-review.md).
+
 Bill: “Please proceed autonomously with the author and coder for chapters 1–9
 (1–8 after deleting 5). Have a reviewer review the chapter and also the code for
 each chapter. The goal is improving the chapter, not rewriting.” The preceding

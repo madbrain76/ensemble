@@ -23,6 +23,7 @@ func supervision() []common.ToolDefinition {
 }
 func findJob(owner common.ToolContext, raw json.RawMessage) (common.Job, error) {
 	var args struct {
+		// Handle identifies an existing job within the owning Agent.
 		Handle int `json:"handle"`
 	}
 	if err := decode(raw, &args, "handle"); err != nil {
@@ -39,6 +40,7 @@ func waitJob(owner common.ToolContext, raw json.RawMessage) (string, error) {
 }
 func sendInput(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	var args struct {
+		// Input is the line sent to the selected interactive job.
 		Input string `json:"input"`
 	}
 	if err := decode(raw, &args, "input"); err != nil {

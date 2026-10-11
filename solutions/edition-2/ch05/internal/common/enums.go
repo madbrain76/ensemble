@@ -10,19 +10,27 @@ import (
 type Vendor int
 
 const (
+	// Anthropic selects the Messages provider translator.
 	Anthropic Vendor = iota + 1
+	// OpenAI selects the Chat Completions provider translator.
 	OpenAI
+	// Gemini selects the GenerateContent provider translator.
 	Gemini
 )
 
+// Surface identifies the vendor API shape used to capture opaque content.
 type Surface int
 
 const (
+	// Messages identifies Anthropic opaque replay material.
 	Messages Surface = iota + 1
+	// ChatCompletions identifies OpenAI chat replay material.
 	ChatCompletions
+	// GenerateContent identifies Gemini call signatures and thought material.
 	GenerateContent
 )
 
+// String returns the canonical provider name used by configuration and JSON.
 func (v Vendor) String() string {
 	switch v {
 	case Anthropic:
@@ -34,6 +42,8 @@ func (v Vendor) String() string {
 	}
 	return "unknown"
 }
+
+// String returns the canonical API-surface name used by provenance JSON.
 func (s Surface) String() string {
 	switch s {
 	case Messages:
@@ -47,7 +57,9 @@ func (s Surface) String() string {
 }
 
 // JSON dispatch belongs with the enum, while vendor behavior stays in Engine.
-func (v Vendor) MarshalJSON() ([]byte, error)  { return json.Marshal(v.String()) }
+func (v Vendor) MarshalJSON() ([]byte, error) { return json.Marshal(v.String()) }
+
+// MarshalJSON writes the canonical surface identity for replay.
 func (s Surface) MarshalJSON() ([]byte, error) { return json.Marshal(s.String()) }
 
 // Refuse unknown names while decoding, before replay can produce plausible but
@@ -92,6 +104,8 @@ func (p *Part) UnmarshalJSON(b []byte) error {
 	type plain Part
 	var wire struct {
 		plain
+		// Path detects obsolete blob JSON so decoding refuses it instead of silently
+		// dropping location.
 		Path json.RawMessage `json:"path"`
 	}
 	if err := json.Unmarshal(b, &wire); err != nil {

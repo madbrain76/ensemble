@@ -3,6 +3,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -42,6 +43,24 @@ func (a *agent) Declarations() []common.ToolDeclaration {
 		declarations = append(declarations, tool.ToolDeclaration)
 	}
 	return declarations
+}
+
+// RegisterTool extends this Agent only. Register before Ask; conversation and
+// registration are synchronous application operations, not concurrent inputs.
+// Reject duplicate names so declarations and dispatch cannot silently disagree.
+func (a *agent) RegisterTool(declaration common.ToolDeclaration, handler func(common.ToolContext, json.RawMessage) (string, error)) error {
+	if strings.TrimSpace(declaration.Name) == "" || handler == nil || !json.Valid(declaration.Schema) {
+		return errors.New("tool requires a name, JSON schema and handler")
+	}
+	for _, tool := range a.tools {
+		if tool.Name == declaration.Name {
+			return fmt.Errorf("tool %q is already registered", declaration.Name)
+		}
+	}
+	// Own the schema bytes: callers may reuse their input buffer after setup.
+	declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)
+	a.tools = append(a.tools, common.ToolDefinition{ToolDeclaration: declaration, Run: handler})
+	return nil
 }
 
 // A call has its actual Agent as parent; tools reach Engine and job services

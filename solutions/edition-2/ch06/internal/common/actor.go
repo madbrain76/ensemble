@@ -41,7 +41,14 @@ type Observer interface {
 type PartDelta struct {
 	// PartID correlates transient content with its final display part.
 	PartID uint64 `json:"part_id"`
-	// Chunk contains transient text; a hint acknowledgement begins with hint:.
+	// Kind identifies reply, thinking, or tool display content.
+	Kind DeltaKind `json:"kind"`
+	// Agent optionally names the source when a client merges several Agents.
+	Agent string `json:"agent,omitempty"`
+	// Hint identifies an actor-generated acknowledgement, never model content.
+	// Keep this explicit: legitimate assistant text can begin with "hint:" too.
+	Hint bool `json:"hint,omitempty"`
+	// Chunk contains transient text, including the existing hint acknowledgement label.
 	Chunk string `json:"chunk"`
 }
 
@@ -105,8 +112,12 @@ func (p PartFinal) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		// Kind selects the input or observation protocol variant.
 		Kind string `json:"observation"`
+		// Text exposes complete reply text in the exercise envelope.
+		Text string `json:"text,omitempty"`
+		// Tool exposes the finalized tool name without parsing a neutral part.
+		Tool string `json:"tool,omitempty"`
 		value
-	}{"part_final", value(p)})
+	}{"part_final", p.Part.Text, p.Part.Name, value(p)})
 }
 
 // MarshalJSON writes the canonical observation discriminator alongside its payload.
@@ -134,8 +145,10 @@ const (
 	MediaDocument
 )
 
-// ModelFeatures describes the explicitly known media input capabilities.
+// ModelFeatures describes known media inputs and incremental delivery channels.
 type ModelFeatures struct {
 	// Media is the explicitly supported input-category bit set.
 	Media Media
+	// Stream identifies the channels this model can deliver incrementally.
+	Stream Stream
 }

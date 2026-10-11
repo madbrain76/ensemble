@@ -13,18 +13,18 @@ func apply(c *common.Context, e common.Event) {
 	switch e.Type {
 	// Classification belongs here, after capture. Replaying a System arrival
 	// recovers pending instructions even before the first request is sent.
-	case "message_received":
-		if e.Message.Actor == common.System {
+	case "message_received", "hint_received":
+		if e.Message.Actor == common.System || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending")) {
 			c.Ephemera = append(c.Ephemera, e.Message.Parts...)
 		} else {
 			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: e.Message.Actor, Parts: e.Message.Parts})
 		}
-		if c.Turn == "idle" {
+		if c.Turn == "idle" || c.Turn == "interrupted" {
 			c.Turn = "input_pending"
 		}
 	case "request_sent":
 		c.Ephemera = nil // consumption is logged, so replay knows it was delivered once.
-		if c.Turn == "input_pending" {
+		if c.Turn == "input_pending" || c.Turn == "idle" {
 			c.Turn = "in_flight"
 		}
 	// Usage and dialogue are derived from the same completed response fact.
@@ -60,10 +60,10 @@ func apply(c *common.Context, e common.Event) {
 		}
 	case "redacted":
 		redact(c, e.Redact)
-	case "error_occurred":
-		if c.Turn == "in_flight" {
-			c.Turn = "idle"
-		}
+	case "error_occurred", "turn_ended":
+		c.Turn = "idle"
+	case "turn_interrupted":
+		c.Turn = "interrupted"
 	}
 }
 

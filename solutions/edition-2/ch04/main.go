@@ -21,34 +21,6 @@ func main() {
 	}
 }
 
-// Generic settings select any provider; provider-prefixed settings retain the
-// Chapter 1 interface and make interactive setup convenient for all three.
-func config() (ensemble.Config, error) {
-	vendor := os.Getenv("LLM_VENDOR")
-	if vendor == "" {
-		vendor = "anthropic"
-	}
-	cfg := ensemble.Config{BuiltinTools: true, DataDir: "cr", Workspace: os.Getenv("ENSEMBLE_WORKSPACE")}
-	switch vendor {
-	case "anthropic":
-		cfg.Vendor = ensemble.Anthropic
-	case "openai":
-		cfg.Vendor = ensemble.OpenAI
-	case "gemini":
-		cfg.Vendor = ensemble.Gemini
-	default:
-		return cfg, errors.New("unknown LLM_VENDOR")
-	}
-	env := func(name string) string {
-		if value := os.Getenv("LLM_" + name); value != "" {
-			return value
-		}
-		return os.Getenv(strings.ToUpper(vendor) + "_" + name)
-	}
-	cfg.BaseURL, cfg.APIKey, cfg.Model = env("BASE_URL"), env("API_KEY"), env("MODEL")
-	cfg.ResolvedModel = os.Getenv("LLM_RESOLVED_MODEL")
-	return cfg, nil
-}
 func run() (runErr error) {
 	// Command selection is separate from configuration. In particular, render
 	// cannot accept model flags that would make byte-identity depend on a
@@ -58,9 +30,10 @@ func run() (runErr error) {
 		mode = os.Args[1]
 	}
 	if !((mode == "protocol" && len(os.Args) == 1) || ((mode == "chat" || mode == "dump") && len(os.Args) == 2) || (mode == "render" && len(os.Args) == 3)) {
-		return errors.New("usage: ch04 [chat | dump | render LOG]")
+		return errors.New("usage: ensemble [chat | dump | render LOG]")
 	}
-	cfg, err := config()
+	cfg, err := ensemble.ConfigFromEnv()
+	cfg.BuiltinTools, cfg.DataDir = true, "cr"
 	if err != nil {
 		return err
 	}

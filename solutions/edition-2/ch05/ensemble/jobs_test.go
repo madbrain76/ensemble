@@ -36,6 +36,9 @@ func events(t *testing.T, a common.Agent) []common.Event {
 	}
 	return result
 }
+
+// Bounded reports must preserve full recoverable bytes and their address through
+// redaction.
 func TestJobFileCapCursorAndRedaction(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "large.txt")
 	full := "FIRST\n" + strings.Repeat("middle\n", 10000) + "LAST\n"
@@ -94,6 +97,9 @@ func TestJobFileCapCursorAndRedaction(t *testing.T) {
 		}
 	}
 }
+
+// The real terminal must support input, unseen-output patterns and independent cwd
+// overrides.
 func TestPTYInteractionUnseenPatternAndCwd(t *testing.T) {
 	dir := t.TempDir()
 	a, results := toolSession(t,
@@ -129,6 +135,9 @@ func TestPTYInteractionUnseenPatternAndCwd(t *testing.T) {
 		}
 	}
 }
+
+// A blocked real waiter must wake on kill, and killing the process group must stop
+// descendants.
 func TestKillWakesWaiterAndKillsGroup(t *testing.T) {
 	t.Run("already blocked waiter", func(t *testing.T) {
 		synctest.Test(t, func(t *testing.T) {
@@ -136,6 +145,7 @@ func TestKillWakesWaiterAndKillsGroup(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			defer a.Shutdown() // Direct job facts also start the owned actor.
 			job, err := a.Jobs().Start()
 			if err != nil {
 				t.Fatal(err)
@@ -222,6 +232,9 @@ func TestKillWakesWaiterAndKillsGroup(t *testing.T) {
 		t.Fatal("kill fact absent")
 	}
 }
+
+// One-shot limits must be consumed even by another setter, with explicit call values
+// winning.
 func TestLimitsBurnAndExplicitOverride(t *testing.T) {
 	_, results := toolSession(t,
 		toolCall{"tool_limits", map[string]any{"max_output_bytes": 1}},
@@ -240,6 +253,7 @@ func TestLimitsBurnAndExplicitOverride(t *testing.T) {
 	}
 }
 
+// A callback observes execution without ending it or repeating an old prompt match.
 func TestWakeLeavesJobRunningAndPatternConsumes(t *testing.T) {
 	a, _ := toolSession(t, toolCall{"run_command", map[string]any{"command": "printf 'READY> '; read line; sleep 0.2; printf 'REPLY> '; read quit", "ai_callback_pattern": "READY> ", "ai_callback_delay": 2}})
 	job, err := a.Jobs().Find(1)
@@ -267,6 +281,8 @@ func TestWakeLeavesJobRunningAndPatternConsumes(t *testing.T) {
 	}
 }
 
+// Uniform dispatch supervision must allow a blocked file handler to return a running
+// handle.
 func TestBlockedFileToolCanBeSupervised(t *testing.T) {
 	fifo := filepath.Join(t.TempDir(), "pipe")
 	if err := syscall.Mkfifo(fifo, 0600); err != nil {
@@ -299,6 +315,8 @@ func TestBlockedFileToolCanBeSupervised(t *testing.T) {
 	}
 }
 
+// Managed process shutdown must retain its actual killed state and reason in
+// history.
 func TestShutdownRecordsKilledReason(t *testing.T) {
 	a, _ := toolSession(t, toolCall{"run_command", map[string]any{"command": "sleep 2", "ai_callback_delay": 0.02}})
 	if err := a.Shutdown(); err != nil {

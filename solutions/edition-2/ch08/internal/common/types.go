@@ -270,7 +270,9 @@ type Agent interface {
 	Paused() bool
 	// Ensemble returns the owning application root, including its logging services.
 	Ensemble() Ensemble
-	// Config returns this Agent's fixed request and workspace configuration.
+	// SetMaxToolRounds sets the next turn budget; zero selects default 200.
+	SetMaxToolRounds(int) error
+	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config
 	// Engine reaches the transport and measured usage through the owning Agent.
 	Engine() Engine
