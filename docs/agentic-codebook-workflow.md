@@ -8,8 +8,27 @@ fleet race checks pass. The unchanged original grader on an exact isolated
 archive returns **0/100 FAIL** in 0.610 seconds (make2/grader1, no timeout).
 All seven checks stop before inference because no model is supplied; no fleet
 behavior was observed by that run. Raw/provenance is committed at `5f48ac4`.
-Independent review and the final live/mutation evidence remain pending; this
-checkpoint is not accepted and no combined `ch22` export exists yet.
+Independent review and final evidence remain pending; this checkpoint is not
+accepted and no combined `ch22` export exists yet.
+
+Pre-submission review found two real fleet defects: same-name parent/child
+questions overwrote a pending human question, and exhausted children still
+reported running. Corrected `891d513` passes the exact independent reproductions
+and the human/child omitted-ID reply control under race detection. Exhaustion
+now records failure without inventing a submission. The original grade retains
+its earlier-source provenance.
+
+The bounded real fleet task on `891d513` completed in 48.198 seconds, exit0.
+Exactly three children wrote/tested functions, one asked and received a parent
+reply, and all child saves and submissions survived. Root verification confirms
+20 actual Astra/high requests, 20 completed responses, and the three resulting
+files passing independent combined assertions. A terminal hint woke join job12
+while it remained running; waiting for that same job later returned all three
+submissions. The exact hint reached provider request15, but the final submit
+omitted its requested marker. Delivery and model compliance are distinct claims.
+The add child also issued an invalid shell command, then corrected it and passed.
+Preserve both limits; no paid repeat was spent to improve the narrative. Raw
+receipt: `evidence/ch25/coordinator-live-check.json`. Final acceptance is pending.
 
 
 Independent review `d747be7` accepts original24 source `0430df4`, main tree

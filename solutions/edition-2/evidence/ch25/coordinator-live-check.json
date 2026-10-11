@@ -1,0 +1,65 @@
+{
+  "source_commit": "891d513bf142013d6888760cfae4fcaab1edd680",
+  "main_tree": "6cbf18933f82ee450d91750442161b176e469f8e",
+  "binary_sha256": "aa3e82c00f8c878d6f72d8bc08939ba478978b3b5dee75dbc4cd7d25fbe5f893",
+  "api_sha256": "b2f9ac4bc42e509357cdf3e273574dedc73e7c3335a0d80b0b1fae2b5efd031d",
+  "request_count": 20,
+  "completed_response_count": 20,
+  "all_request_model_effort": "gpt-6-astra/high",
+  "all_completed_models": "gpt-6-astra",
+  "created_completed_response_ids_match": true,
+  "all_request_count_matches_root_and_child_logs": true,
+  "steering_input_request_ordinals": [
+    15
+  ],
+  "steering_woke_join_handle": 12,
+  "join_call_time": "2026-10-11T18:30:55.751093Z",
+  "running_return_time": "2026-10-11T18:30:55.887642Z",
+  "later_same_job_result_time": "2026-10-11T18:31:10.340664Z",
+  "later_join_has_all_child_submissions": true,
+  "children": {
+    "add": {
+      "tools": [
+        "send_message_to_parent",
+        "write_file",
+        "run_command",
+        "run_command",
+        "submit"
+      ],
+      "save_events": 24,
+      "request_count": 5,
+      "artifact_sha256": "ba1a531f581d2e6094e978ed6f7aca7a8d92eeb62c6e7ad73ee692f7f18bc772"
+    },
+    "multiply": {
+      "tools": [
+        "write_file",
+        "run_command",
+        "submit"
+      ],
+      "save_events": 15,
+      "request_count": 3,
+      "artifact_sha256": "12141ca5171ea43624b961e04b6ef0e709db4d1b90d1c967bea2706afe4aad27"
+    },
+    "subtract": {
+      "tools": [
+        "write_file",
+        "run_command",
+        "submit"
+      ],
+      "save_events": 15,
+      "request_count": 3,
+      "artifact_sha256": "1c3752902e3c25dbf44409955d96315a96a8e102f18177505969713da587e2d6"
+    }
+  },
+  "final_submission": "FLEET_DONE \u2014 All three children explicitly submitted their Python functions and passed individual assertions after four-second sleeps. Confirmed negative integers are required. Combined assertions passed: COMBINED_TESTS_PASS.",
+  "final_requested_steering_marker_present": false,
+  "coordinator_combined_python_assertions_exit": 0,
+  "limitations": [
+    "Final submit omitted requested STEER_COBALT despite delivered provider input.",
+    "Add child initial malformed sleep command exited1; corrected command completed exit0.",
+    "Wire log interleaves fleet requests; counts/model consistency verified, not invented per-request response association.",
+    "Billing endpoint derived from configured launcher/runtime, no independent network interception."
+  ],
+  "recorded_exit": 0,
+  "recorded_seconds": 48.198
+}
