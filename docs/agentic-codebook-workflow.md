@@ -32,6 +32,13 @@ real-Opus narrative, as the reviewer independently confirmed. Real all-provider
 ladder/handoff demonstrations remain distinct from course-fake inline/stubbing
 checks. Notes preserve the actual live task failures and the filename-fixture
 correction; successful process exit alone is not task success.
+Initial independent review found one current-scope wire-ordering defect: an
+inline tool-declaration system message preceded automatic ephemeral user content,
+violating the provider's documented placement rule. A supplemental fake initially
+passed prefix, declaration and replay checks while accepting invalid requests.
+Adding the actual provider constraint exposed the error without another paid
+run. Correction round 1 is underway; record the initial permissive pass as limited
+evidence, not proof of a valid protocol. See `edition-2-notes/ch15-code-review.md`.
 
 Edition 2 Chapter 13 (original 14) is now accepted after one correction round,
 with the inherited grader exception. The initial EOF cleanup closed the browser
