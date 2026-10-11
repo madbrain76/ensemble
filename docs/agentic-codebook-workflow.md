@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. The active original Chapter
-14 exercise will export to **Edition 2 `ch13/`** after acceptance. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapter 14 is
+accepted at **Edition 2 `ch13/`**; original 15 will export to `ch14/`. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,18 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+Edition 2 Chapter 13 (original 14) is now accepted after one correction round,
+with the inherited grader exception. The initial EOF cleanup closed the browser
+but left a pending sleep timer keeping its peer, and therefore its client, alive.
+Sharing the existing whole-process shutdown path fixes that lifetime without
+adding sleep limits or core machinery. Independent pending-sleep teardown fell
+from 3865 ms to 127 ms; actual-client regression and restored-defect failures
+verify both affected boundaries. Original 95/100 FAIL and live limitations remain
+unchanged. The exact 103-file export is directly `solutions/edition-2/ch13`,
+checkpoint `edition-2-ch14-r1` (original numbering). See `ch14-code-review.md`
+in the chapter notes. Edition 2 Chapter 14 / original 15, context management,
+is next; the author remains stopped.
 
 Edition 2 Chapter 13 (original 14), speech and the blind persona, is submitted
 for independent review at `4a7816a`, not accepted. Its complete original grader

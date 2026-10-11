@@ -6,8 +6,8 @@ Bill requires accepted solutions directly in `solutions/edition-2/chNN/`, using
 Edition 2 numbering, with no symlinks. Original Chapter 5 is absorbed into
 Chapter 4; original Chapters 10–13 are Edition 2 `ch09`–`ch12`. Only the retired
 original `history/ch05/` remains. The coder extends `solutions/edition-2/main/`;
-the active original Chapter 14 will export to top-level Edition 2 `ch13/` after
-acceptance. Never put new accepted solutions in history. Original exercise,
+original Chapter 14 is accepted at top-level Edition 2 `ch13/`; original
+Chapter 15 will export directly to `ch14/` after acceptance. Never put new accepted solutions in history. Original exercise,
 grader, note, evidence and existing tag numbers remain unchanged; state both
 numbers in handoffs. This explicitly supersedes the coordinator's history-only
 export policy. Preserve snapshot contents and existing Git tags when moving.

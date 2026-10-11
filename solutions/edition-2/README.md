@@ -1,9 +1,9 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–12 are accepted**. The coder is working on **Chapter 13** in
+Chapters **1–13 are accepted**. The coder is working on **Chapter 14** in
 [`main/`](main/), the authoritative working implementation. After independent
-acceptance, export it to `ch13/`; continue this numbering for later chapters.
+acceptance, export it to `ch14/`; continue this numbering for later chapters.
 Do not put new solutions in `history` or create symlinks.
 
 Original Chapter 5 was absorbed into Chapter 4. From that point, Edition 2
@@ -24,11 +24,12 @@ numbers are one lower than the original book's numbers. The remaining standalone
 | 10: Persistence | [ch10](ch10/), [manifest](ch10-manifest.json) | 11 | `edition-2-ch11-r1` |
 | 11: MCP | [ch11](ch11/), [manifest](ch11-manifest.json) | 12 | `edition-2-ch12-r1` |
 | 12: The Agent Sees Itself | [ch12](ch12/), [manifest](ch12-manifest.json) | 13 | `edition-2-ch13-r1` |
+| 13: Speech and blind persona | [ch13](ch13/), [manifest](ch13-manifest.json) | 14 | `edition-2-ch14-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
-The active speech exercise is original Chapter 14, Edition 2 Chapter 13.
+The next context-management exercise is original Chapter 15, Edition 2 Chapter 14.
 
 The revised grader covers enhanced Chapters 1–8, for example:
 
