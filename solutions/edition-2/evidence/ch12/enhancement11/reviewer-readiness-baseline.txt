@@ -1,0 +1,5 @@
+=== RUN   TestReviewerReverseReadiness
+    reviewer_readiness_test.go:7: handshake={ID: Title: Points:15 Earned:15 Passed:true Details:[]} reverse={ID: Title: Points:15 Earned:15 Passed:true Details:[enabled reverse read readiness attempts=1]}
+--- PASS: TestReviewerReverseReadiness (0.42s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.435s

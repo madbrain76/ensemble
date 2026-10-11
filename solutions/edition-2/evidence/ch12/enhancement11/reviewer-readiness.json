@@ -1,0 +1,52 @@
+{
+  "grader_source_sha256": "a5d98eb5412f2ddbebb2b2d7ee67adf1e9079f37628c757d980ee5fc70387489",
+  "source": "accepted solutions/edition-2/ch11 copied without source changes; one scoped scratch mutation",
+  "cases": [
+    {
+      "case": "baseline",
+      "exit": 0,
+      "seconds": 3.802,
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerReverseReadiness$",
+        "-count=1",
+        "-v"
+      ]
+    },
+    {
+      "case": "persistent-refusal",
+      "exit": 1,
+      "seconds": 1.645,
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerReverseReadiness$",
+        "-count=1",
+        "-v"
+      ]
+    },
+    {
+      "case": "restored",
+      "exit": 0,
+      "seconds": 1.51,
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerReverseReadiness$",
+        "-count=1",
+        "-v"
+      ]
+    }
+  ],
+  "limit": "Only raw-pipe reverse readiness and refusal sensitivity; no live provider or broad suite."
+}

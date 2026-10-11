@@ -1,0 +1,7 @@
+=== RUN   TestReviewerReverseReadiness
+    reviewer_readiness_test.go:7: handshake={ID: Title: Points:15 Earned:15 Passed:true Details:[]} reverse={ID: Title: Points:15 Earned:0 Passed:false Details:[read_file: correlated=<nil> error=true text="reviewer persistent read refusal" enabled reverse read readiness attempts=85]}
+    reviewer_readiness_test.go:8: actual protocol or reverse execution failed
+--- FAIL: TestReviewerReverseReadiness (1.32s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	1.332s
+FAIL

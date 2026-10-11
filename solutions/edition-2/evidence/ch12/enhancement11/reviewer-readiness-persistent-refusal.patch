@@ -1,0 +1,10 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -231,6 +231,7 @@
+ 				params.Arguments = raw(map[string]any{})
+ 			}
+ 			text, err := c.parent.Agent().Invoke(context.Background(), params.Name, params.Arguments)
++			if params.Name == "read_file" { err = fmt.Errorf("reviewer persistent read refusal") }
+ 			if err != nil {
+ 				text = err.Error()
+ 			}

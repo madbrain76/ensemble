@@ -1,0 +1,9 @@
+package gradeedition2
+import("os";"testing";"github.com/waywardgeek/ensemble/internal/grade")
+func TestReviewerReverseReadiness(t *testing.T) {
+ bin,cleanup,err:=grade.Build(os.Getenv("REVIEWER_CORE")); if err!=nil {t.Fatal(err)};defer cleanup()
+ handshake:=grade.Check{Passed:true,Points:15,Earned:15}; reverse:=handshake
+ mcpPipeChecks(bin,&handshake,&reverse)
+ t.Logf("handshake=%+v reverse=%+v",handshake,reverse)
+ if !handshake.Passed || !reverse.Passed {t.Fatalf("actual protocol or reverse execution failed")}
+}
