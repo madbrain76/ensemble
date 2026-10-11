@@ -466,6 +466,8 @@ type Engine interface {
 	Send(context.Context, []byte, StreamCallbacks) ([]Event, error)
 	// Parser supplies the single streaming and plain-response parsing seam.
 	Parser
+	// SystemPrompt returns the effective role instruction, including an intentionally empty primary.
+	SystemPrompt() string
 	// Target identifies the current provider, resolved model and API replay surface.
 	Target() Provenance
 	// Render builds provider bytes from a projection, reading supported local media

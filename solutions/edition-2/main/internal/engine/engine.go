@@ -243,8 +243,9 @@ func canonical(raw json.RawMessage) (json.RawMessage, error) {
 	return json.Marshal(value)
 }
 
-// Role instructions belong to the Agent; the default keeps earlier clients working.
-func (e *engine) systemPrompt() string {
+// SystemPrompt resolves the Agent's role instruction for rendering and save metadata.
+// An explicitly empty primary skill suppresses the earlier clients' default.
+func (e *engine) SystemPrompt() string {
 	if s := e.parent.Config().SystemPrompt; s != "" || e.parent.Skills() != nil {
 		return s
 	}

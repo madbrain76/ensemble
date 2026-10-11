@@ -24,7 +24,7 @@ func (h *history) Save(w io.Writer) error {
 		tools = []common.ToolDeclaration{}
 	}
 	return json.NewEncoder(w).Encode(common.SaveFile{
-		Config: common.SaveConfig{Model: cfg.Model, Vendor: cfg.Vendor, SystemPrompt: cfg.SystemPrompt, Tools: tools},
+		Config: common.SaveConfig{Model: cfg.Model, Vendor: cfg.Vendor, SystemPrompt: h.parent.Engine().SystemPrompt(), Tools: tools},
 		AsOf:   h.asOf, Context: &h.context, Log: log,
 	})
 }

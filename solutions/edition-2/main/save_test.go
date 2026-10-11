@@ -68,16 +68,30 @@ func TestCLISaveLifecycle(t *testing.T) {
 				t.Fatalf("four-field save: %s %v", data, err)
 			}
 			var config struct {
-				Model        string                       `json:"model"`
-				Vendor       string                       `json:"vendor"`
-				SystemPrompt *string                      `json:"system_prompt"`
-				Tools        []map[string]json.RawMessage `json:"tools"`
+				// Model identifies the request model recorded at save time.
+				Model string `json:"model"`
+				// Vendor records the translator using its public disk spelling.
+				Vendor string `json:"vendor"`
+				// SystemPrompt distinguishes a present empty prompt from an omitted field.
+				SystemPrompt *string `json:"system_prompt"`
+				// Tools exposes exact declaration field names for the portable save.
+				Tools []map[string]json.RawMessage `json:"tools"`
 			}
 			if err := json.Unmarshal(fields["config"], &config); err != nil {
 				t.Fatal(err)
 			}
 			if config.Model != "fake" || config.Vendor != "anthropic" || config.SystemPrompt == nil || len(config.Tools) == 0 || config.Tools[0]["name"] == nil || config.Tools[0]["description"] == nil || config.Tools[0]["schema"] == nil {
 				t.Fatalf("save configuration shape: %s", fields["config"])
+			}
+			mu.Lock()
+			var request struct {
+				// System is the actual Anthropic role instruction received at the boundary.
+				System string `json:"system"`
+			}
+			decodeErr := json.Unmarshal(requests[len(requests)-1], &request)
+			mu.Unlock()
+			if decodeErr != nil || request.System == "" || *config.SystemPrompt != request.System {
+				t.Fatalf("saved prompt differs from actual default wire instruction: saved=%q wire=%q err=%v", *config.SystemPrompt, request.System, decodeErr)
 			}
 			if bytes.Contains(data, []byte("private-test-key")) || bytes.Contains(data, []byte(provider.URL)) {
 				t.Fatal("save leaked transport configuration")

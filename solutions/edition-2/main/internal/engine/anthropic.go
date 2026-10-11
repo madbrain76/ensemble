@@ -113,7 +113,7 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		System string `json:"system"`
 		// Messages retains provider message order, including tool-result boundaries.
 		Messages []anthropicMessage `json:"messages"`
-	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.systemPrompt(), messages})
+	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.SystemPrompt(), messages})
 }
 func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.RawMessage, error) {
 	var out []json.RawMessage

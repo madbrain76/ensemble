@@ -39,7 +39,7 @@ type openAIMessage struct {
 // the next human message. Its system instruction lives inside the ordered
 // message list, unlike Anthropic's top-level system field.
 func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
-	system := e.systemPrompt()
+	system := e.SystemPrompt()
 	messages := []openAIMessage{{Role: "system", Content: &system}}
 	for _, entry := range entries(c) {
 		role := "user"

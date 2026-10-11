@@ -119,7 +119,9 @@ func run() (runErr error) {
 			// Keep the human terminal usable while accepting the chapter's prompt
 			// envelope on redirected stdin, just as the headless client does.
 			var prompt struct {
+				// Kind recognizes redirected prompt input without consuming ordinary prose.
 				Kind string `json:"kind"`
+				// Text is the human message inside that prompt envelope.
 				Text string `json:"text"`
 			}
 			if json.Unmarshal([]byte(text), &prompt) == nil && prompt.Kind == "prompt" {

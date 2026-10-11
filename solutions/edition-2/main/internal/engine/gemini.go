@@ -134,7 +134,7 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 	if len(declarations) > 0 {
 		tools = []map[string]any{{"functionDeclarations": declarations}}
 	}
-	prompt := e.systemPrompt()
+	prompt := e.SystemPrompt()
 
 	features, _ := LookupModel(e.parent.Config().Model)
 	generation := map[string]any{"maxOutputTokens": 4096}

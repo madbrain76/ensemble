@@ -72,8 +72,10 @@ func TestSaveSnapshotReplayAndTail(t *testing.T) {
 						t.Fatal(err)
 					}
 					var state struct {
-						AsOf uint64           `json:"as_of"`
-						Log  []ensemble.Event `json:"log"`
+						// AsOf must include the first new fact after restoration.
+						AsOf uint64 `json:"as_of"`
+						// Log must preserve loaded facts before newly appended ones.
+						Log []ensemble.Event `json:"log"`
 					}
 					if err := json.Unmarshal(next.Bytes(), &state); err != nil {
 						t.Fatal(err)
@@ -160,5 +162,40 @@ func TestBadSaveLeavesHistory(t *testing.T) {
 		if !bytes.Equal(before, after) {
 			t.Fatal("bad restore changed existing history")
 		}
+	}
+}
+
+// Empty primary instructions deliberately suppress the legacy default. Save
+// metadata and rendering must share that decision, not each invent a fallback.
+func TestSaveIntentionallyEmptyPrimary(t *testing.T) {
+	dir := skillFiles(t, map[string]string{"base": "---\nname: base\ntype: primary\n---\n"})
+	a := skillAgent(t, ensemble.New(io.Discard), dir, "base", "")
+	var saved bytes.Buffer
+	if err := a.History().Save(&saved); err != nil {
+		t.Fatal(err)
+	}
+	var save struct {
+		// Config records request metadata without replacing runtime settings.
+		Config struct {
+			// SystemPrompt retains an empty primary rather than the legacy fallback.
+			SystemPrompt string `json:"system_prompt"`
+		} `json:"config"`
+	}
+	if err := json.Unmarshal(saved.Bytes(), &save); err != nil {
+		t.Fatal(err)
+	}
+	body, err := a.Engine().Render(a.History().Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request struct {
+		// System is Anthropic's instruction field, distinct from its conversation.
+		System string `json:"system"`
+	}
+	if err := json.Unmarshal(body, &request); err != nil {
+		t.Fatal(err)
+	}
+	if save.Config.SystemPrompt != "" || request.System != "" {
+		t.Fatalf("empty primary acquired default instructions: save=%q wire=%q", save.Config.SystemPrompt, request.System)
 	}
 }
