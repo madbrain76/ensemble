@@ -26,8 +26,10 @@ func LookupModel(model string) (common.ModelFeatures, bool) {
 		return common.ModelFeatures{}, true
 	case "claude-haiku-5-5":
 		return common.ModelFeatures{Price: &common.Pricing{Input: .10, Output: .50, CacheWrite: .125, CacheRead: .01}, PriceThreshold: 100000, LargePrice: &common.Pricing{Input: .50, Output: 2.50, CacheWrite: .625, CacheRead: .05}, ContextWindow: 1000000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
-	case "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5", "claude-sonnet-5":
+	case "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
+	case "claude-sonnet-5":
+		return common.ModelFeatures{Price: &common.Pricing{Input: 2, Output: 10, CacheWrite: 2.5, CacheRead: .2}, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
 	case "claude-3-haiku-20240307":
 		return common.ModelFeatures{Media: common.MediaImage, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-4o-mini":

@@ -1,0 +1,108 @@
+2026-10-11T13:34:28.815401Z > {"type":"subscribe"}
+2026-10-11T13:34:28.815609Z < {"from":"idle","replay":true,"to":"idle","type":"state_changed"}
+2026-10-11T13:34:28.81562Z < {"paused":false,"replay":true,"type":"pause_changed"}
+2026-10-11T13:34:28.815669Z < {"replay":true,"settings":{"context_target":0,"font_size":16,"log_retention":0,"max_tool_rounds":0,"memory":{"64x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"8x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"conversation":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"memory":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"session":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"soul":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0}},"theme":"dark","tts_enabled":false,"tts_speed":1},"type":"current_settings"}
+2026-10-11T13:34:28.815692Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":0,"output":0,"priced":true,"replay":true,"total":{"cache_read":0,"cache_write":0,"input":0,"output":0},"type":"usage"}
+2026-10-11T13:34:28.850305Z > {"type":"pause"}
+2026-10-11T13:34:28.850398Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:28.856063Z > {"text":"What is the archive project code? Reply in one short sentence.","type":"prompt"}
+2026-10-11T13:34:28.856097Z > {"type":"unpause"}
+2026-10-11T13:34:28.856122Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:28.856369Z < {"part":{"text":"What is the archive project code? Reply in one short sentence.","type":"text"},"part_id":"user-1-0","type":"user_message"}
+2026-10-11T13:34:28.856414Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:28.857685Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:30.853201Z < {"chunk":"","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.856004Z < {"chunk":"The","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.856028Z < {"chunk":" archive","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.858683Z < {"chunk":" project","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.858694Z < {"chunk":" code","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.894753Z < {"chunk":" is","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.89477Z < {"chunk":" COP","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.899653Z < {"chunk":"PER","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.899661Z < {"chunk":"-F","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.904313Z < {"chunk":"ERRY","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.904323Z < {"chunk":"-","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.916461Z < {"chunk":"18","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.91648Z < {"chunk":".","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:30.956279Z < {"cache_read":0,"cache_write":16366,"cost_usd":0.082142,"hit_rate":0,"input":3,"output":15,"priced":true,"total":{"cache_read":0,"cache_write":16366,"input":3,"output":15},"type":"usage"}
+2026-10-11T13:34:30.956299Z < {"part":{"artifact_id":1,"text":"The archive project code is COPPER-FERRY-18.","type":"text"},"part_id":1,"type":"part_final"}
+2026-10-11T13:34:30.95631Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:30.956323Z < {"cache_read":0,"cache_write":16366,"cost_usd":0.082142,"hit_rate":0,"input":3,"output":15,"priced":true,"total":{"cache_read":0,"cache_write":16366,"input":3,"output":15},"type":"usage"}
+2026-10-11T13:34:30.956333Z < {"error":"","text":"The archive project code is COPPER-FERRY-18.","type":"turn_ended"}
+2026-10-11T13:34:30.976472Z > {"type":"pause"}
+2026-10-11T13:34:30.976515Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:30.978137Z > {"text":"What is the rule for archive record 37? Reply in one short sentence.","type":"prompt"}
+2026-10-11T13:34:30.978166Z > {"type":"unpause"}
+2026-10-11T13:34:30.978206Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:30.978494Z < {"part":{"text":"What is the rule for archive record 37? Reply in one short sentence.","type":"text"},"part_id":"user-4-0","type":"user_message"}
+2026-10-11T13:34:30.978513Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:30.979193Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:31.835322Z < {"chunk":"","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.843702Z < {"chunk":"Archive","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.843745Z < {"chunk":" record","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.869441Z < {"chunk":" ","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.86954Z < {"chunk":"37","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.873868Z < {"chunk":" requires","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.873906Z < {"chunk":" preserving","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.878643Z < {"chunk":" the","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.878675Z < {"chunk":" original","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.879583Z < {"chunk":" source","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.879618Z < {"chunk":" and","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.916573Z < {"chunk":" recording","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.916587Z < {"chunk":" the","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.923716Z < {"chunk":" reason","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.923736Z < {"chunk":" for","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.931769Z < {"chunk":" each","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.931798Z < {"chunk":" change","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.935502Z < {"chunk":".","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:31.970836Z < {"cache_read":16349,"cache_write":55,"cost_usd":0.0893686,"hit_rate":0.498810104954845,"input":3,"output":20,"priced":true,"total":{"cache_read":16349,"cache_write":16421,"input":6,"output":35},"type":"usage"}
+2026-10-11T13:34:31.970889Z < {"part":{"artifact_id":2,"text":"Archive record 37 requires preserving the original source and recording the reason for each change.","type":"text"},"part_id":2,"type":"part_final"}
+2026-10-11T13:34:31.970921Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:31.970999Z < {"cache_read":16349,"cache_write":55,"cost_usd":0.0893686,"hit_rate":0.498810104954845,"input":3,"output":20,"priced":true,"total":{"cache_read":16349,"cache_write":16421,"input":6,"output":35},"type":"usage"}
+2026-10-11T13:34:31.97103Z < {"error":"","text":"Archive record 37 requires preserving the original source and recording the reason for each change.","type":"turn_ended"}
+2026-10-11T13:34:31.994474Z > {"type":"pause"}
+2026-10-11T13:34:31.994519Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:31.99613Z > {"text":"What color identifies archive record 402? Reply in one short sentence.","type":"prompt"}
+2026-10-11T13:34:31.996194Z > {"type":"unpause"}
+2026-10-11T13:34:31.996221Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:31.996526Z < {"part":{"text":"What color identifies archive record 402? Reply in one short sentence.","type":"text"},"part_id":"user-7-0","type":"user_message"}
+2026-10-11T13:34:31.996571Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:31.997523Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:32.68321Z < {"chunk":"","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.684861Z < {"chunk":"Archive","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.684931Z < {"chunk":" record","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.690664Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.690714Z < {"chunk":"402","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.711Z < {"chunk":" is","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.711061Z < {"chunk":" identified","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.765294Z < {"chunk":" by","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.765404Z < {"chunk":" the","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.784922Z < {"chunk":" color","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.784983Z < {"chunk":" copper","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.79491Z < {"chunk":".","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:32.840632Z < {"cache_read":16349,"cache_write":96,"cost_usd":0.0966802,"hit_rate":0.664269462051032,"input":3,"output":14,"priced":true,"total":{"cache_read":32698,"cache_write":16517,"input":9,"output":49},"type":"usage"}
+2026-10-11T13:34:32.840673Z < {"part":{"artifact_id":3,"text":"Archive record 402 is identified by the color copper.","type":"text"},"part_id":3,"type":"part_final"}
+2026-10-11T13:34:32.840698Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:32.840728Z < {"cache_read":16349,"cache_write":96,"cost_usd":0.0966802,"hit_rate":0.664269462051032,"input":3,"output":14,"priced":true,"total":{"cache_read":32698,"cache_write":16517,"input":9,"output":49},"type":"usage"}
+2026-10-11T13:34:32.840746Z < {"error":"","text":"Archive record 402 is identified by the color copper.","type":"turn_ended"}
+2026-10-11T13:34:32.859929Z > {"type":"pause"}
+2026-10-11T13:34:32.860022Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:32.862073Z > {"text":"Remind me of the archive project code, in five words or fewer.","type":"prompt"}
+2026-10-11T13:34:32.862111Z > {"type":"unpause"}
+2026-10-11T13:34:32.862129Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:32.86256Z < {"part":{"text":"Remind me of the archive project code, in five words or fewer.","type":"text"},"part_id":"user-10-0","type":"user_message"}
+2026-10-11T13:34:32.862598Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:32.863821Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:34.514277Z < {"chunk":"","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.517974Z < {"chunk":"COP","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.518026Z < {"chunk":"PER","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.518061Z < {"chunk":"-F","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.518092Z < {"chunk":"ERRY","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.560986Z < {"chunk":"-","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.561113Z < {"chunk":"18","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.567055Z < {"chunk":".","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:34.606689Z < {"cache_read":16349,"cache_write":132,"cost_usd":0.1040918,"hit_rate":0.746438789797285,"input":3,"output":10,"priced":true,"total":{"cache_read":49047,"cache_write":16649,"input":12,"output":59},"type":"usage"}
+2026-10-11T13:34:34.606774Z < {"part":{"artifact_id":4,"text":"COPPER-FERRY-18.","type":"text"},"part_id":4,"type":"part_final"}
+2026-10-11T13:34:34.606826Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:34.607108Z < {"cache_read":16349,"cache_write":132,"cost_usd":0.1040918,"hit_rate":0.746438789797285,"input":3,"output":10,"priced":true,"total":{"cache_read":49047,"cache_write":16649,"input":12,"output":59},"type":"usage"}
+2026-10-11T13:34:34.607158Z < {"error":"","text":"COPPER-FERRY-18.","type":"turn_ended"}

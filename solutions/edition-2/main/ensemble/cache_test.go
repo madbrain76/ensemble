@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"ensemble/ensemble"
 	"ensemble/internal/common"
+	"fmt"
 	"io"
 	"math"
 	"net/http"
@@ -55,6 +56,11 @@ func TestCacheLensMainBoundary(t *testing.T) {
 			a.Engine().Render(a.History().Context())
 			if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
 				t.Fatal(err)
+			}
+			// A valid text-only provider response fails the compressor's submit
+			// contract, but even that paid auxiliary exchange must bypass the lens.
+			if _, err := a.Engine().Compress(context.Background(), "compress source", 8); err == nil {
+				t.Fatal("fixture unexpectedly submitted memory")
 			}
 			after, _ := os.ReadFile(current)
 			if !bytes.Equal(before, after) {
@@ -119,9 +125,15 @@ func TestCacheMarkers(t *testing.T) {
 				t.Fatal(err)
 			}
 			defer a.Shutdown()
-			a.Record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "old user"}}}})
-			a.Record(common.Event{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "settled boundary"}})
-			a.Record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "stable tail"}}}})
+			record := func(event common.Event) {
+				t.Helper()
+				if err := a.Record(event); err != nil {
+					t.Fatal(err)
+				}
+			}
+			record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "old user"}}}})
+			record(common.Event{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "settled boundary"}})
+			record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "stable tail"}}}})
 			a.Ephemeral("volatile once")
 			body, err := a.Engine().Render(a.History().Context())
 			if err != nil {
@@ -169,8 +181,8 @@ func TestCacheMarkers(t *testing.T) {
 			} else if wire["prompt_cache_options"] == nil || wire["reasoning_effort"] != "none" || len(marked) != 3 {
 				t.Fatal("explicit opt-in/system")
 			}
-			a.Record(common.Event{Type: "request_sent", Request: &common.RequestData{To: a.Engine().Target()}})
-			a.Record(common.Event{Type: "response_ended", Response: &common.ResponseData{From: a.Engine().Target(), Parts: []common.Part{{Type: "text", Text: "next tail"}}}})
+			record(common.Event{Type: "request_sent", Request: &common.RequestData{To: a.Engine().Target()}})
+			record(common.Event{Type: "response_ended", Response: &common.ResponseData{From: a.Engine().Target(), Parts: []common.Part{{Type: "text", Text: "next tail"}}}})
 			next, _ := a.Engine().Render(a.History().Context())
 			marked = nil
 			json.Unmarshal(next, &wire)
@@ -284,5 +296,70 @@ func TestCacheMeterAuxiliaryIdentity(t *testing.T) {
 	after := a.Engine().Meter()
 	if after.Priced || after.CostUSD != 0 || after.Usage != before.Usage || after.Total.Output != 2*before.Total.Output {
 		t.Fatalf("auxiliary accounting: %+v", after)
+	}
+}
+
+// TestCacheLensByteCounts pins the measured unit to serialized section bytes,
+// including JSON punctuation, without involving a tokenizer or a remarshal.
+func TestCacheLensByteCounts(t *testing.T) {
+	var logs bytes.Buffer
+	a, err := ensemble.New(&logs).NewAgent(ensemble.Config{Model: "fake", DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	old := `[{"role":"user","content":"one"}]`
+	next := `[{"role":"user","content":"one"},{"role":"assistant","content":"two"}]`
+	lens := a.Engine().CacheLens()
+	lens.ObserveRequest("fixture", []byte(`{"system":"stable","messages":`+old+`}`))
+	lens.ObserveRequest("fixture", []byte(`{"system":"stable","messages":`+next+`}`))
+	expected := fmt.Sprintf("prefix_bytes=%d prompt_bytes=%d", len(`"stable"`)+len(old)-1, len(`"stable"`)+len(next))
+	if !strings.Contains(logs.String(), expected) {
+		t.Fatalf("serialized-byte accounting: %s want %s", logs.String(), expected)
+	}
+}
+
+// TestCacheEmptyOptIn prevents explicit mode from disabling the provider's
+// implicit cache when an intentionally empty primary has no content to mark.
+func TestCacheEmptyOptIn(t *testing.T) {
+	dir := skillFiles(t, map[string]string{"base": "---\nname: base\ntype: primary\n---\n"})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-5.6-sol", DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	body, err := a.Engine().Render(a.History().Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(body, []byte("prompt_cache_")) {
+		t.Fatalf("empty explicit opt-in: %s", body)
+	}
+}
+
+// TestCacheMeterKnownJudge checks two known prices in one real Engine session.
+// The judge's route must retain its own rate while last conversation usage stays put.
+func TestCacheMeterKnownJudge(t *testing.T) {
+	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
+	server := httptest.NewServer(http.HandlerFunc(peer.serve))
+	defer server.Close()
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "claude-sonnet-5"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	if _, err := a.Ask(context.Background(), "hello"); err != nil {
+		t.Fatal(err)
+	}
+	before := a.Engine().Meter()
+	if math.Abs(before.CostUSD-.000002) > 1e-12 {
+		t.Fatalf("Haiku base price: %+v", before)
+	}
+	if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
+		t.Fatal(err)
+	}
+	after := a.Engine().Meter()
+	if !after.Priced || math.Abs(after.CostUSD-.000042) > 1e-12 || after.Usage != before.Usage {
+		t.Fatalf("mixed model prices: %+v", after)
 	}
 }

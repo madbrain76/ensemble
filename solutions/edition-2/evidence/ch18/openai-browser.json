@@ -1,0 +1,29 @@
+[
+  {
+    "initial": "Cost $0.0000 · Input 0 · Cache 0 · Hit 0.0%"
+  },
+  {
+    "prompt": "What is the archive project code? Reply in one short sentence.",
+    "meter": "Cost $0.0821 · Input 16369 · Cache 0 · Hit 0.0%",
+    "tooltip": "Session tokens: input 3, cache write 16366, cache read 0, output 15",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18."
+  },
+  {
+    "prompt": "What is the rule for archive record 37? Reply in one short sentence.",
+    "meter": "Cost $0.0894 · Input 16407 · Cache 16349 · Hit 49.9%",
+    "tooltip": "Session tokens: input 6, cache write 16421, cache read 16349, output 35",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18.\n\nuser\n🔊\nWhat is the rule for archive record 37? Reply in one short sentence.\ntext\n🔊\n\nArchive record 37 requires preserving the original source and recording the reason for each change."
+  },
+  {
+    "prompt": "What color identifies archive record 402? Reply in one short sentence.",
+    "meter": "Cost $0.0967 · Input 16448 · Cache 16349 · Hit 66.4%",
+    "tooltip": "Session tokens: input 9, cache write 16517, cache read 32698, output 49",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18.\n\nuser\n🔊\nWhat is the rule for archive record 37? Reply in one short sentence.\ntext\n🔊\n\nArchive record 37 requires preserving the original source and recording the reason for each change.\n\nuser\n🔊\nWhat color identifies archive record 402? Reply in one short sentence.\ntext\n🔊\n\nArchive record 402 is identified by the color copper."
+  },
+  {
+    "prompt": "Remind me of the archive project code, in five words or fewer.",
+    "meter": "Cost $0.1041 · Input 16484 · Cache 16349 · Hit 74.6%",
+    "tooltip": "Session tokens: input 12, cache write 16649, cache read 49047, output 59",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18.\n\nuser\n🔊\nWhat is the rule for archive record 37? Reply in one short sentence.\ntext\n🔊\n\nArchive record 37 requires preserving the original source and recording the reason for each change.\n\nuser\n🔊\nWhat color identifies archive record 402? Reply in one short sentence.\ntext\n🔊\n\nArchive record 402 is identified by the color copper.\n\nuser\n🔊\nRemind me of the archive project code, in five words or fewer.\ntext\n🔊\n\nCOPPER-FERRY-18."
+  }
+]

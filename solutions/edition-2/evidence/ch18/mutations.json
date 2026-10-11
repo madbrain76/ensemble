@@ -1,0 +1,107 @@
+[
+  {
+    "name": "main-observation",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheLensMainBoundary (0.00s)\n    --- FAIL: TestCacheLensMainBoundary/anthropic (0.00s)\n        cache_test.go:47: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensMainBoundaryanthropic1113412160/001/cache-current.txt: no such file or directory\n    --- FAIL: TestCacheLensMainBoundary/openai (0.00s)\n        cache_test.go:47: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensMainBoundaryopenai1929400377/001/cache-current.txt: no such file or directory\n    --- FAIL: TestCacheLensMainBoundary/gemini (0.00s)\n        cache_test.go:47: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestCacheLensMainBoundarygemini314122954/001/cache-current.txt: no such file or directory\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n"
+  },
+  {
+    "name": "strip-markers",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheLensSerializedMarkers (0.00s)\n    cache_test.go:100: marker changed serialized artifact:\n        system:\n        [{\"cache_control\":{\"type\":\"ephemeral\"},\"text\":\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\",\"type\":\"text\",\"cache_control\":{\"type\":\"ephemeral\"}}]\n        messages:\n        [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"keep \\u003cescaped\\u003e bytes\",\"cache_control\":{\"type\":\"ephemeral\"}}]}]\n        max_tokens:\n        1024\n        model:\n        \"fake\"\n        \n        system:\n        [{\"cache_control\":{\"type\":\"ephemeral\"},\"text\":\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\",\"type\":\"text\"}]\n        messages:\n        [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"keep \\u003cescaped\\u003e bytes\",\"cache_control\":{\"type\":\"ephemeral\"}}]}]\n        max_tokens:\n        1024\n        model:\n        \"fake\"\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "name": "append-detection",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheLensMainBoundary (0.01s)\n    --- FAIL: TestCacheLensMainBoundary/anthropic (0.00s)\n        cache_test.go:53: verdicts: 2026/10/11 06:35:17 cache lens anthropic/fake-model: system:cold messages:cold; prefix_bytes=0 prompt_bytes=208 predicted=0.0000\n            2026/10/11 06:35:17 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.0000\n            2026/10/11 06:35:17 cache lens anthropic/fake-model: system:identical messages:changed; prefix_bytes=207 prompt_bytes=357 predicted=0.5798\n            2026/10/11 06:35:17 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.5798\n    --- FAIL: TestCacheLensMainBoundary/openai (0.00s)\n        cache_test.go:53: verdicts: 2026/10/11 06:35:17 cache lens openai/fake-model: messages:cold; prefix_bytes=0 prompt_bytes=187 predicted=0.0000\n            2026/10/11 06:35:17 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.0000\n            2026/10/11 06:35:17 cache lens openai/fake-model: messages:changed; prefix_bytes=186 prompt_bytes=286 predicted=0.6503\n            2026/10/11 06:35:17 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.6503\n    --- FAIL: TestCacheLensMainBoundary/gemini (0.00s)\n        cache_test.go:53: verdicts: 2026/10/11 06:35:17 cache lens gemini/fake-model: systemInstruction:cold contents:cold; prefix_bytes=0 prompt_bytes=188 predicted=0.0000\n            2026/10/11 06:35:17 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.0000\n            2026/10/11 06:35:17 cache lens gemini/fake-model: systemInstruction:identical contents:changed; prefix_bytes=187 prompt_bytes=301 predicted=0.6213\n            2026/10/11 06:35:17 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.6213\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "name": "gemini-array-exemption",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheLensMainBoundary (0.00s)\n    --- FAIL: TestCacheLensMainBoundary/gemini (0.00s)\n        cache_test.go:53: verdicts: 2026/10/11 06:35:18 cache lens gemini/fake-model: systemInstruction:cold contents:cold; prefix_bytes=0 prompt_bytes=188 predicted=0.0000\n            2026/10/11 06:35:18 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.0000\n            2026/10/11 06:35:18 cache prefix changed: contents (appended)\n            2026/10/11 06:35:18 cache lens gemini/fake-model: systemInstruction:identical contents:appended; prefix_bytes=187 prompt_bytes=301 predicted=0.6213\n            2026/10/11 06:35:18 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.6213\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "system-marker",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/claude-haiku-5-5 (0.00s)\n        cache_test.go:167: Anthropic marker budget/system\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "tool-marker",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/claude-haiku-5-5 (0.00s)\n        cache_test.go:164: tools not banked\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "compaction-marker",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/claude-haiku-5-5 (0.00s)\n        cache_test.go:159: wrong boundaries: [stable tail You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.]\n    --- FAIL: TestCacheMarkers/gpt-5.6-sol (0.00s)\n        cache_test.go:159: wrong boundaries: [You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly. stable tail]\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "retired-handoff-fallback",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/claude-haiku-5-5 (0.00s)\n        cache_test.go:190: compacted boundary lost\n    --- FAIL: TestCacheMarkers/gpt-5.6-sol (0.00s)\n        cache_test.go:190: compacted boundary lost\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "ephemeral-marker",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/claude-haiku-5-5 (0.00s)\n        cache_test.go:159: wrong boundaries: [You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly. settled boundary volatile once]\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "openai-opt-in",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/gpt-5.6-sol (0.00s)\n        cache_test.go:170: explicit opt-in/system\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "openai-marker",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/gpt-5.6-sol (0.00s)\n        cache_test.go:159: wrong boundaries: []\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "tool-reasoning",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMarkers (0.00s)\n    --- FAIL: TestCacheMarkers/gpt-5.6-sol (0.00s)\n        cache_test.go:170: explicit opt-in/system\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "last-vs-session",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.01s)\n    --- FAIL: TestCacheMeterSessionAndTiers/claude-haiku-5-5 (0.00s)\n        cache_test.go:230: last/session counts: {Usage:{Input:200002 CacheWrite:80 CacheRead:120 Output:20} Total:{Input:200002 CacheWrite:80 CacheRead:120 Output:20} HitRate:0.0005993946114424432 CostUSD:0.100107 Priced:true}\n    --- FAIL: TestCacheMeterSessionAndTiers/gpt-5.6-sol (0.00s)\n        cache_test.go:230: last/session counts: {Usage:{Input:543802 CacheWrite:80 CacheRead:120 Output:20} Total:{Input:543802 CacheWrite:80 CacheRead:120 Output:20} HitRate:0.00022058742431094004 CostUSD:4.351912 Priced:true}\n    --- FAIL: TestCacheMeterSessionAndTiers/gemini-3.8-flash (0.00s)\n        cache_test.go:230: last/session counts: {Usage:{Input:80 CacheWrite:0 CacheRead:120 Output:20} Total:{Input:80 CacheWrite:0 CacheRead:120 Output:20} HitRate:0.6 CostUSD:0.000144 Priced:true}\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "name": "large-prompt-tier",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.00s)\n    --- FAIL: TestCacheMeterSessionAndTiers/claude-haiku-5-5 (0.00s)\n        cache_test.go:223: usage/pricing: {Usage:{Input:100001 CacheWrite:40 CacheRead:60 Output:10} Total:{Input:100001 CacheWrite:40 CacheRead:60 Output:10} HitRate:0.0005993946114424432 CostUSD:0.0100107 Priced:true} want {100001 40 60 10} cost 0.050053500\n    --- FAIL: TestCacheMeterSessionAndTiers/gpt-5.6-sol (0.00s)\n        cache_test.go:223: usage/pricing: {Usage:{Input:271901 CacheWrite:40 CacheRead:60 Output:10} Total:{Input:271901 CacheWrite:40 CacheRead:60 Output:10} HitRate:0.00022058742431094004 CostUSD:1.088028 Priced:true} want {271901 40 60 10} cost 2.175956000\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n"
+  },
+  {
+    "name": "effective-request-model",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterAuxiliaryIdentity (0.00s)\n    cache_test.go:286: auxiliary accounting: {Usage:{Input:10 CacheWrite:0 CacheRead:0 Output:2} Total:{Input:20 CacheWrite:0 CacheRead:0 Output:4} HitRate:0 CostUSD:4e-06 Priced:true}\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "auxiliary-accounting",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterAuxiliaryIdentity (0.00s)\n    cache_test.go:279: effective environment model unpriced\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "hit-rate",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.01s)\n    --- FAIL: TestCacheMeterSessionAndTiers/claude-haiku-5-5 (0.00s)\n        cache_test.go:234: token hit ratio\n    --- FAIL: TestCacheMeterSessionAndTiers/gpt-5.6-sol (0.00s)\n        cache_test.go:234: token hit ratio\n    --- FAIL: TestCacheMeterSessionAndTiers/gemini-3.8-flash (0.00s)\n        cache_test.go:234: token hit ratio\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "name": "anthropic-cache-write",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.00s)\n    --- FAIL: TestCacheMeterSessionAndTiers/claude-haiku-5-5 (0.00s)\n        cache_test.go:223: usage/pricing: {Usage:{Input:100001 CacheWrite:0 CacheRead:60 Output:10} Total:{Input:100001 CacheWrite:0 CacheRead:60 Output:10} HitRate:0.0005996342231238944 CostUSD:0.0500285 Priced:true} want {100001 40 60 10} cost 0.050053500\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "openai-disjoint-input",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.00s)\n    --- FAIL: TestCacheMeterSessionAndTiers/gpt-5.6-sol (0.00s)\n        cache_test.go:223: usage/pricing: {Usage:{Input:272001 CacheWrite:40 CacheRead:60 Output:10} Total:{Input:272001 CacheWrite:40 CacheRead:60 Output:10} HitRate:0.00022050635609571447 CostUSD:2.176756 Priced:true} want {271901 40 60 10} cost 2.175956000\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "gemini-thinking",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.00s)\n    --- FAIL: TestCacheMeterSessionAndTiers/gemini-3.8-flash (0.00s)\n        cache_test.go:223: usage/pricing: {Usage:{Input:40 CacheWrite:0 CacheRead:60 Output:7} Total:{Input:40 CacheWrite:0 CacheRead:60 Output:7} HitRate:0.6 CostUSD:6.075e-05 Priced:true} want {40 0 60 10} cost 0.000072000\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "gui-meter-snapshot",
+    "exit": 1,
+    "output": "--- FAIL: TestUsageWireSession (0.00s)\n    cache_test.go:65: usage frame: map[cache_read:80 cache_write:0 cost_usd:7.599999999999999e-06 hit_rate:0.8 input:40 output:2 priced:true total:map[cache_read:160 cache_write:0 input:40 output:4] type:usage]\nFAIL\nFAIL\tensemble-gui-stub\t0.012s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\nFAIL\n"
+  }
+]

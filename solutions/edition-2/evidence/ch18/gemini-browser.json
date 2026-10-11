@@ -1,0 +1,29 @@
+[
+  {
+    "initial": "Cost $0.0000 · Input 0 · Cache 0 · Hit 0.0%"
+  },
+  {
+    "prompt": "What is the archive project code? Reply in one short sentence.",
+    "meter": "Cost $0.0135 · Input 17779 · Cache 0 · Hit 0.0%",
+    "tooltip": "Session tokens: input 17779, cache write 0, cache read 0, output 56",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18."
+  },
+  {
+    "prompt": "What is the rule for archive record 37? Reply in one short sentence.",
+    "meter": "Cost $0.0167 · Input 17854 · Cache 15725 · Hit 44.1%",
+    "tooltip": "Session tokens: input 19908, cache write 0, cache read 15725, output 146",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18.\n\nuser\n🔊\nWhat is the rule for archive record 37? Reply in one short sentence.\ntext\n🔊\n\nThe rule for archive record 37 is that the color is copper, and you must preserve the original source and record the reason for each change."
+  },
+  {
+    "prompt": "What color identifies archive record 402? Reply in one short sentence.",
+    "meter": "Cost $0.0197 · Input 17962 · Cache 15801 · Hit 58.8%",
+    "tooltip": "Session tokens: input 22069, cache write 0, cache read 31526, output 205",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18.\n\nuser\n🔊\nWhat is the rule for archive record 37? Reply in one short sentence.\ntext\n🔊\n\nThe rule for archive record 37 is that the color is copper, and you must preserve the original source and record the reason for each change.\n\nuser\n🔊\nWhat color identifies archive record 402? Reply in one short sentence.\ntext\n🔊\n\nArchive record 402 is identified by the color copper."
+  },
+  {
+    "prompt": "Remind me of the archive project code, in five words or fewer.",
+    "meter": "Cost $0.0226 · Input 18038 · Cache 15910 · Hit 66.2%",
+    "tooltip": "Session tokens: input 24197, cache write 0, cache read 47436, output 243",
+    "conversation": "user\n🔊\nWhat is the archive project code? Reply in one short sentence.\ntext\n🔊\n\nThe archive project code is COPPER-FERRY-18.\n\nuser\n🔊\nWhat is the rule for archive record 37? Reply in one short sentence.\ntext\n🔊\n\nThe rule for archive record 37 is that the color is copper, and you must preserve the original source and record the reason for each change.\n\nuser\n🔊\nWhat color identifies archive record 402? Reply in one short sentence.\ntext\n🔊\n\nArchive record 402 is identified by the color copper.\n\nuser\n🔊\nRemind me of the archive project code, in five words or fewer.\ntext\n🔊\n\nCOPPER-FERRY-18."
+  }
+]

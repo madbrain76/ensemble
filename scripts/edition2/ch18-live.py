@@ -1,7 +1,7 @@
 """Bounded real-browser Chapter18 demonstration; never expose credentials."""
 import json,os,pathlib,subprocess,tempfile,time,socket,urllib.request,urllib.error,shutil,signal
 root=pathlib.Path(__file__).resolve().parents[2]
-output=root/'docs/edition-2-evidence/ch18'
+output=root/'solutions/edition-2/evidence/ch18'
 binary=pathlib.Path(tempfile.gettempdir())/'ensemble-ch18-gui'
 subprocess.run(['go','build','-o',str(binary),'./cmd'],cwd=root/'solutions/edition-2/main/gui',check=True)
 settings=json.loads((pathlib.Path.home()/'.cr/settings.json').read_text())

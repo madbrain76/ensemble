@@ -140,7 +140,7 @@ The header meter shows process-session USD cost, the latest conversation input
 session token totals. A dash means at least one contributing model is unpriced.
 Engine derives dollars from counts using the effective request model and its
 prompt-size tier; restoring history never restores session charges. Current
-verified prices cover Haiku 5.5, GPT-5.6 Sol and Gemini 3.8 Flash; the latter's
+verified prices cover Haiku 5.5, Sonnet 5, GPT-5.6 Sol and Gemini 3.8 Flash; the latter's
 introductory rates need updating January 1, 2027. Other models retain counts and
 show unknown cost until their prices are verified.
 

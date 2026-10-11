@@ -1,0 +1,8 @@
+2026/10/11 06:34:23 cache lens anthropic/claude-haiku-5-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=84622 predicted=0.0000
+2026/10/11 06:34:24 cache grant: input_tokens=21928 read_tokens=0 granted=0.0000 predicted=0.0000
+2026/10/11 06:34:24 cache lens anthropic/claude-haiku-5-5: tools:identical system:identical messages:appended; prefix_bytes=84621 prompt_bytes=84847 predicted=0.9973
+2026/10/11 06:34:25 cache grant: input_tokens=21972 read_tokens=21924 granted=0.9978 predicted=0.9973
+2026/10/11 06:34:25 cache lens anthropic/claude-haiku-5-5: tools:identical system:identical messages:appended; prefix_bytes=84846 prompt_bytes=86104 predicted=0.9854
+2026/10/11 06:34:26 cache grant: input_tokens=22062 read_tokens=21968 granted=0.9957 predicted=0.9854
+2026/10/11 06:34:26 cache lens anthropic/claude-haiku-5-5: tools:identical system:identical messages:appended; prefix_bytes=86103 prompt_bytes=86332 predicted=0.9973
+2026/10/11 06:34:26 cache grant: input_tokens=22103 read_tokens=22058 granted=0.9980 predicted=0.9973

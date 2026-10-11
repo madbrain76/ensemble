@@ -1,0 +1,8 @@
+2026/10/11 06:34:28 cache lens openai/gpt-5.6-sol: tools:cold messages:cold; prefix_bytes=0 prompt_bytes=84796 predicted=0.0000
+2026/10/11 06:34:30 cache grant: input_tokens=16369 read_tokens=0 granted=0.0000 predicted=0.0000
+2026/10/11 06:34:30 cache lens openai/gpt-5.6-sol: tools:identical messages:appended; prefix_bytes=84795 prompt_bytes=85021 predicted=0.9973
+2026/10/11 06:34:31 cache grant: input_tokens=16407 read_tokens=16349 granted=0.9965 predicted=0.9973
+2026/10/11 06:34:31 cache lens openai/gpt-5.6-sol: tools:identical messages:appended; prefix_bytes=85020 prompt_bytes=85303 predicted=0.9967
+2026/10/11 06:34:32 cache grant: input_tokens=16448 read_tokens=16349 granted=0.9940 predicted=0.9967
+2026/10/11 06:34:32 cache lens openai/gpt-5.6-sol: tools:identical messages:appended; prefix_bytes=85302 prompt_bytes=85531 predicted=0.9973
+2026/10/11 06:34:34 cache grant: input_tokens=16484 read_tokens=16349 granted=0.9918 predicted=0.9973

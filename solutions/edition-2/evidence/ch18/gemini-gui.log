@@ -1,0 +1,67 @@
+2026-10-11T13:34:35.751362Z > {"type":"subscribe"}
+2026-10-11T13:34:35.751545Z < {"from":"idle","replay":true,"to":"idle","type":"state_changed"}
+2026-10-11T13:34:35.751583Z < {"paused":false,"replay":true,"type":"pause_changed"}
+2026-10-11T13:34:35.751706Z < {"replay":true,"settings":{"context_target":0,"font_size":16,"log_retention":0,"max_tool_rounds":0,"memory":{"64x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"8x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"conversation":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"memory":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"session":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"soul":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0}},"theme":"dark","tts_enabled":false,"tts_speed":1},"type":"current_settings"}
+2026-10-11T13:34:35.751723Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":0,"output":0,"priced":true,"replay":true,"total":{"cache_read":0,"cache_write":0,"input":0,"output":0},"type":"usage"}
+2026-10-11T13:34:35.795398Z > {"type":"pause"}
+2026-10-11T13:34:35.795476Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:35.798054Z > {"text":"What is the archive project code? Reply in one short sentence.","type":"prompt"}
+2026-10-11T13:34:35.798103Z > {"type":"unpause"}
+2026-10-11T13:34:35.798136Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:35.798509Z < {"part":{"text":"What is the archive project code? Reply in one short sentence.","type":"text"},"part_id":"user-1-0","type":"user_message"}
+2026-10-11T13:34:35.798535Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:35.79898Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:37.544404Z < {"chunk":"The archive project code is COP","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:37.590535Z < {"chunk":"PER-FERRY-18.","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:37.601638Z < {"chunk":"","kind":"text","part_id":1,"type":"part_delta"}
+2026-10-11T13:34:37.602596Z < {"cache_read":0,"cache_write":0,"cost_usd":0.01354425,"hit_rate":0,"input":17779,"output":56,"priced":true,"total":{"cache_read":0,"cache_write":0,"input":17779,"output":56},"type":"usage"}
+2026-10-11T13:34:37.602697Z < {"part":{"artifact_id":1,"from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"opaque":"ErICCq8CAWkUfRMitSda7QjUtSSMZlklGE0Ohdhac2F88vDAnJRsokkrUKoWqK0iAFOgyEnONeFbWSYKBbSnoM5GKtaBQ6h+vDg44aXk/4h4tnsaeIDjLw0PagiBehHbi2UF3gJx4880O0Uj957aIWw2bSXYPlJJTpFNoLoEtaIuwhFw6SveKFJksrX4QxyOGz1m2CMD7VmvZXxj9M7tacpFub/4urpFFeIcwcrejMezV8Ztsa/b5o7wjGSgYbZaiF4ugMAQqQgWPdC3kgMxxEqenILuzwc0bD4kqs1Z19eTiTTZMdimygnk/kESEb2lIQf8R+cNCQgbZ/KYcH9uVBD4vQS/dhYyqf3XiUyV1CIgsIcKYWlAawlnZUTJaai+1ud1NdcCJPjF3EIqx8VlzFFh0XSw","text":"The archive project code is COPPER-FERRY-18.","type":"text"},"part_id":1,"type":"part_final"}
+2026-10-11T13:34:37.602768Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:37.603122Z < {"cache_read":0,"cache_write":0,"cost_usd":0.01354425,"hit_rate":0,"input":17779,"output":56,"priced":true,"total":{"cache_read":0,"cache_write":0,"input":17779,"output":56},"type":"usage"}
+2026-10-11T13:34:37.603193Z < {"error":"","text":"The archive project code is COPPER-FERRY-18.","type":"turn_ended"}
+2026-10-11T13:34:37.624598Z > {"type":"pause"}
+2026-10-11T13:34:37.624729Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:37.628299Z > {"text":"What is the rule for archive record 37? Reply in one short sentence.","type":"prompt"}
+2026-10-11T13:34:37.628393Z > {"type":"unpause"}
+2026-10-11T13:34:37.628454Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:37.628843Z < {"part":{"text":"What is the rule for archive record 37? Reply in one short sentence.","type":"text"},"part_id":"user-4-0","type":"user_message"}
+2026-10-11T13:34:37.628882Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:37.629474Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:39.416418Z < {"chunk":"The rule for archive record 37 is that","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:39.518913Z < {"chunk":" the color is copper, and you must preserve the original source and record the reason for each change.","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:39.530966Z < {"chunk":"","kind":"text","part_id":2,"type":"part_delta"}
+2026-10-11T13:34:39.531335Z < {"cache_read":15725,"cache_write":0,"cost_usd":0.016657875,"hit_rate":0.44130440883450733,"input":2129,"output":90,"priced":true,"total":{"cache_read":15725,"cache_write":0,"input":19908,"output":146},"type":"usage"}
+2026-10-11T13:34:39.531381Z < {"part":{"artifact_id":2,"from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"opaque":"EqUDCqIDAWkUfRM8VHa65cEZCrZFJq/TOMGSYh1phuBpXQxzCVjWZsK4vAwv0mSM7QfB9sO+myeRYZZiqTq4IUqLzjbKfTwhaGAi/7BRsb2ixYiWvv1wr5htaX6MY2KA4Bg4ZdP2VGWukk11A7yrz7/DYsdIx5u4fg3zmu4uqJSrp5jEBTJCglAu5VGRUS5s+bQc6GC3wLhnLmY50Zcx3x9AZZDNGkxMWTK8N+2fzfUkcKv+tfSBszeSvrUU7KwWdYd1efYdoHXsZBox7EzRPcKh5AdvJjHpheGHnlM24fsVkZfReUpd7rXQKTrI0m2W5n46+m7vEjpRITejVvQx4UVG8zS6urze4tYvga7ZdqYXeJJwlEKa/eeUngtK71EpJXOoF1B3UAb8VfWXwDF1XzhEf5bxNrNSnBPSnoiT/COJIPaCpPlQhTXtWBEZK0JQNGNbPsikWyij/KDJNod1X8Goi8ZtABb9efNBw9pykAkGS4IzejntYrHkUZ69F/kYSZYJo4EdzDVpFVUScIz1KeyR9m+RVu8Ou5IC/pGlZJMdMMF0tGi/8Q==","text":"The rule for archive record 37 is that the color is copper, and you must preserve the original source and record the reason for each change.","type":"text"},"part_id":2,"type":"part_final"}
+2026-10-11T13:34:39.531414Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:39.53149Z < {"cache_read":15725,"cache_write":0,"cost_usd":0.016657875,"hit_rate":0.44130440883450733,"input":2129,"output":90,"priced":true,"total":{"cache_read":15725,"cache_write":0,"input":19908,"output":146},"type":"usage"}
+2026-10-11T13:34:39.531508Z < {"error":"","text":"The rule for archive record 37 is that the color is copper, and you must preserve the original source and record the reason for each change.","type":"turn_ended"}
+2026-10-11T13:34:39.550928Z > {"type":"pause"}
+2026-10-11T13:34:39.550978Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:39.555186Z > {"text":"What color identifies archive record 402? Reply in one short sentence.","type":"prompt"}
+2026-10-11T13:34:39.555234Z > {"type":"unpause"}
+2026-10-11T13:34:39.555256Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:39.555848Z < {"part":{"text":"What color identifies archive record 402? Reply in one short sentence.","type":"text"},"part_id":"user-7-0","type":"user_message"}
+2026-10-11T13:34:39.555944Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:39.5567Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:41.401732Z < {"chunk":"Archive record 402 is identified by the color copper.","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:41.415293Z < {"chunk":"","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T13:34:41.416408Z < {"cache_read":15801,"cache_write":0,"cost_usd":0.01968495,"hit_rate":0.5882265136673197,"input":2161,"output":59,"priced":true,"total":{"cache_read":31526,"cache_write":0,"input":22069,"output":205},"type":"usage"}
+2026-10-11T13:34:41.416613Z < {"part":{"artifact_id":3,"from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"opaque":"Es4CCssCAWkUfRPIDls2uLR8BvMohGcMo7dotQt6s/X6bADicGcFJPGXnAvm8GBuXZlmyigDlniQ0Zxas+EGEL90c3Rd0/Il/gfVHBabe/QTahlZxBrNS+FR5Z+cypVaI78iJsExQ9y1dbmCjWLF03nrUC9MJhOgX+UeD85VD+N5qA8iN0WHTpbkeoMAJH/Ly4wffG1dB5uLhNYtmmvwOLHBuJ4HrDvbhAIQbp9ZWmVUDJe46zFGWFyu6xUAJzPde7BZvA+vDuku4IdL8J6OC2AkbuXgOJdzVgros33MnelS/UzoUc3Xs0ycCOcxsC4wmJiHl3yHqTtm8rGOhSCcp1nsPmzzn2lCl2EzxzcVqJ9NltaWFRRIeT7AuAoCXmEYyK+m/PuDSEnQ8/7V64BvURigIv5G/OR+icmwA3Ze8jAcncDDRC7+knIl6E9H8Israg==","text":"Archive record 402 is identified by the color copper.","type":"text"},"part_id":3,"type":"part_final"}
+2026-10-11T13:34:41.416791Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:41.416896Z < {"cache_read":15801,"cache_write":0,"cost_usd":0.01968495,"hit_rate":0.5882265136673197,"input":2161,"output":59,"priced":true,"total":{"cache_read":31526,"cache_write":0,"input":22069,"output":205},"type":"usage"}
+2026-10-11T13:34:41.416984Z < {"error":"","text":"Archive record 402 is identified by the color copper.","type":"turn_ended"}
+2026-10-11T13:34:41.440954Z > {"type":"pause"}
+2026-10-11T13:34:41.441044Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T13:34:41.442868Z > {"text":"Remind me of the archive project code, in five words or fewer.","type":"prompt"}
+2026-10-11T13:34:41.442905Z > {"type":"unpause"}
+2026-10-11T13:34:41.442924Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T13:34:41.444141Z < {"part":{"text":"Remind me of the archive project code, in five words or fewer.","type":"text"},"part_id":"user-10-0","type":"user_message"}
+2026-10-11T13:34:41.444206Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T13:34:41.445432Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T13:34:43.178711Z < {"chunk":"COPPER-FERRY-18.","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:43.1892Z < {"chunk":"","kind":"text","part_id":4,"type":"part_delta"}
+2026-10-11T13:34:43.190644Z < {"cache_read":15910,"cache_write":0,"cost_usd":0.0226167,"hit_rate":0.6622087585330784,"input":2128,"output":38,"priced":true,"total":{"cache_read":47436,"cache_write":0,"input":24197,"output":243},"type":"usage"}
+2026-10-11T13:34:43.190753Z < {"part":{"artifact_id":4,"from":{"model":"gemini-3.8-flash","surface":"generate_content","vendor":"gemini"},"opaque":"EsoBCscBAWkUfROcq1CES+sfOqZAEGwQx0IFTOQM+G47wetgeyZYIyskSXXQs7SUqhcwaJccJ3h07dt6i9a89+ZdgpDuyU0d7nil1f/pIiyXIUvaujC93nSTb/JKczV619OyzOJf13ilO85G8zml+7o/e54AdI1hyez9emUtoq4Ibwtu9EYfjZbpcTw7/dQCdpMMOvqFyJx2dtPuu430Th3qTcCt1050sZdphYLY2YFIUYF+vb8wBZb2gfiQtBLK+9FNPKlCApJuRdQWAQ==","text":"COPPER-FERRY-18.","type":"text"},"part_id":4,"type":"part_final"}
+2026-10-11T13:34:43.190837Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T13:34:43.191159Z < {"cache_read":15910,"cache_write":0,"cost_usd":0.0226167,"hit_rate":0.6622087585330784,"input":2128,"output":38,"priced":true,"total":{"cache_read":47436,"cache_write":0,"input":24197,"output":243},"type":"usage"}
+2026-10-11T13:34:43.191209Z < {"error":"","text":"COPPER-FERRY-18.","type":"turn_ended"}

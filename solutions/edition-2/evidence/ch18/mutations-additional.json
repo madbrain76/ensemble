@@ -1,0 +1,37 @@
+[
+  {
+    "name": "auxiliary-accounting-corrected",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterAuxiliaryIdentity (0.00s)\n    cache_test.go:287: auxiliary accounting: {Usage:{Input:10 CacheWrite:0 CacheRead:0 Output:2} Total:{Input:10 CacheWrite:0 CacheRead:0 Output:2} HitRate:0 CostUSD:2e-06 Priced:true}\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "serialized-byte-count",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheLensByteCounts (0.00s)\n    cache_test.go:307: serialized-byte accounting: 2026/10/11 06:38:50 cache lens fixture: system:cold messages:cold; prefix_bytes=0 prompt_bytes=41 predicted=0.0000\n        2026/10/11 06:38:50 cache lens fixture: system:identical messages:appended; prefix_bytes=80 prompt_bytes=78 predicted=1.0256\n         want prefix_bytes=40 prompt_bytes=78\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "empty-explicit-opt-in",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheEmptyOptIn (0.00s)\n    cache_test.go:325: empty explicit opt-in: {\"reasoning_effort\":\"none\",\"prompt_cache_options\":{\"mode\":\"explicit\"},\"stream\":true,\"stream_options\":{\"include_usage\":true},\"tools\":[{\"function\":{\"description\":\"Load an available skill and its dependencies. Appends its instructions to context and enables its tools.\",\"name\":\"load_skill\",\"parameters\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}},\"type\":\"function\"},{\"function\":{\"description\":\"Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.\",\"name\":\"unload_skill\",\"parameters\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}},\"type\":\"function\"}],\"model\":\"gpt-5.6-sol\",\"max_completion_tokens\":1024,\"messages\":[{\"role\":\"system\",\"content\":[{\"text\":\"\",\"type\":\"text\"}]}]}\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "known-model-repricing",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterKnownJudge (0.00s)\n    cache_test.go:352: mixed model prices: {Usage:{Input:10 CacheWrite:0 CacheRead:0 Output:2} Total:{Input:20 CacheWrite:0 CacheRead:0 Output:4} HitRate:0 CostUSD:4e-06 Priced:true}\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "name": "session-restoration",
+    "exit": 1,
+    "output": "--- FAIL: TestCacheMeterSessionAndTiers (0.01s)\n    --- FAIL: TestCacheMeterSessionAndTiers/claude-haiku-5-5 (0.00s)\n        cache_test.go:255: session restored lifetime spend\n    --- FAIL: TestCacheMeterSessionAndTiers/gpt-5.6-sol (0.00s)\n        cache_test.go:255: session restored lifetime spend\n    --- FAIL: TestCacheMeterSessionAndTiers/gemini-3.8-flash (0.00s)\n        cache_test.go:255: session restored lifetime spend\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "name": "gui-visible-input",
+    "exit": 1,
+    "output": "# node\npackage node is not in std (/usr/local/go/src/node)\nFAIL\tnode [setup failed]\nFAIL\n"
+  },
+  {
+    "name": "gui-visible-unknown-price",
+    "exit": 1,
+    "output": "# node\npackage node is not in std (/usr/local/go/src/node)\nFAIL\tnode [setup failed]\nFAIL\n"
+  }
+]

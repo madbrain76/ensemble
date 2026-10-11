@@ -1,0 +1,12 @@
+[
+  {
+    "name": "gui-visible-input",
+    "exit": 1,
+    "output": "\u2716 session meter renders measured usage and unknown price (1091.46625ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1270.782917\n\n\u2716 failing tests:\n\ntest at cache.test.mjs:13:1\n\u2716 session meter renders measured usage and unknown price (1091.46625ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  + actual - expected\n  \n  + 'Cost $0.0000 \u00b7 Input 20 \u00b7 Cache 80 \u00b7 Hit 80.0%'\n  - 'Cost $0.0000 \u00b7 Input 100 \u00b7 Cache 80 \u00b7 Hit 80.0%'\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-mutations-nava5s1n/main/gui/cache.test.mjs:39:13)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'Cost $0.0000 \u00b7 Input 20 \u00b7 Cache 80 \u00b7 Hit 80.0%',\n    expected: 'Cost $0.0000 \u00b7 Input 100 \u00b7 Cache 80 \u00b7 Hit 80.0%',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "name": "gui-visible-unknown-price",
+    "exit": 1,
+    "output": "\u2716 session meter renders measured usage and unknown price (975.944916ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1147.482083\n\n\u2716 failing tests:\n\ntest at cache.test.mjs:13:1\n\u2716 session meter renders measured usage and unknown price (975.944916ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  + actual - expected\n  \n  + 'Cost $0.0000 \u00b7 Input 100 \u00b7 Cache 80 \u00b7 Hit 80.0%'\n  - 'Cost \u2014 \u00b7 Input 100 \u00b7 Cache 80 \u00b7 Hit 80.0%'\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-mutations-nava5s1n/main/gui/cache.test.mjs:39:13)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'Cost $0.0000 \u00b7 Input 100 \u00b7 Cache 80 \u00b7 Hit 80.0%',\n    expected: 'Cost \u2014 \u00b7 Input 100 \u00b7 Cache 80 \u00b7 Hit 80.0%',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  }
+]

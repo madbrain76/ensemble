@@ -1,0 +1,8 @@
+2026/10/11 06:34:35 cache lens gemini/gemini-3.8-flash: tools:cold systemInstruction:cold contents:cold; prefix_bytes=0 prompt_bytes=84619 predicted=0.0000
+2026/10/11 06:34:37 cache grant: input_tokens=17779 read_tokens=0 granted=0.0000 predicted=0.0000
+2026/10/11 06:34:37 cache lens gemini/gemini-3.8-flash: tools:identical systemInstruction:identical contents:appended; prefix_bytes=84618 prompt_bytes=85242 predicted=0.9927
+2026/10/11 06:34:39 cache grant: input_tokens=17854 read_tokens=15725 granted=0.8808 predicted=0.9927
+2026/10/11 06:34:39 cache lens gemini/gemini-3.8-flash: tools:identical systemInstruction:identical contents:appended; prefix_bytes=85241 prompt_bytes=86119 predicted=0.9898
+2026/10/11 06:34:41 cache grant: input_tokens=17962 read_tokens=15801 granted=0.8797 predicted=0.9898
+2026/10/11 06:34:41 cache lens gemini/gemini-3.8-flash: tools:identical systemInstruction:identical contents:appended; prefix_bytes=86118 prompt_bytes=86785 predicted=0.9923
+2026/10/11 06:34:43 cache grant: input_tokens=18038 read_tokens=15910 granted=0.8820 predicted=0.9923

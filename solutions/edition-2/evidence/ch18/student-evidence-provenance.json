@@ -1,0 +1,31 @@
+{
+  "live_source": "7436fcb35ef54e2996114a2d3fe68fae4cfac82e",
+  "live_main_tree": "05e0d2e92a9f70f5d2433af76c1a3cbf5208b493",
+  "session_turns_per_provider": 4,
+  "mutations": {
+    "initial_attempts": 21,
+    "additional_attempts": 7,
+    "browser_corrected_attempts": 2,
+    "exclusion_attempts": 3,
+    "invalid_attempts": 3,
+    "intended_failures": 32,
+    "boundary_attempts": 2
+  },
+  "validation_commands": {
+    "core": [
+      "go test ./... -count=1",
+      "go vet ./...",
+      "go test -race ./ensemble -run TestCache -count=1"
+    ],
+    "gui": [
+      "go test ./... -count=1",
+      "go vet ./...",
+      "go test -race ./... -run TestUsageWireSession -count=1",
+      "node --test cache.test.mjs"
+    ],
+    "ch06": [
+      "go test ./... -count=1",
+      "go vet ./..."
+    ]
+  }
+}

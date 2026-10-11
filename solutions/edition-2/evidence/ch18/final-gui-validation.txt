@@ -1,0 +1,17 @@
+Exit: 0
+ok  	ensemble-gui-stub	1.168s
+?   	ensemble-gui-stub/cmd	[no test files]
+?   	ensemble-gui-stub/cmd/virtual-user	[no test files]
+ok  	ensemble-gui-stub	1.033s
+?   	ensemble-gui-stub/cmd	[no test files]
+?   	ensemble-gui-stub/cmd/virtual-user	[no test files]
+✔ session meter renders measured usage and unknown price (1790.7105ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1966.919791
+
