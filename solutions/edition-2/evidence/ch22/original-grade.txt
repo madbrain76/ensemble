@@ -1,0 +1,37 @@
+go run ./cmd/grade -ch 22 /Users/bill/projects/ensemble/solutions/edition-2/main
+usage: ensemble [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+Chapter 22 — Architectural Decay
+============================================================
+
+[PASS]      The agent builds  (5/5)
+
+[FAIL]      Capabilities are reached through a back-pointer chain, not stapled on  (0/20)
+       common.Config carries [common.CredentialProvider], but none of those
+       interfaces has a method returning another interface from the same
+       package: a back-pointer exists, but nothing can be reached THROUGH it
+
+[FAIL]      One composition root in the library, and the binary uses it  (0/15)
+       no main package calls a composition root: nothing in this tree
+       assembles the agent from the library, so the binary is still building
+       the parts itself
+
+[FAIL]      agent_status reports model, usage, cache and cost  (0/20)
+       agent never opened its GUI port
+
+[PASS]      The tool package reaches the engine only through the hub  (15/15)
+
+[FAIL]      Session cost is the sum of per-model costs, not the total at the current price  (0/15)
+       the session did not run: agent never opened its GUI port
+
+[FAIL]      Chapter 21's behaviour still works  (0/10)
+       chapter 21 checks now fail: tools-gated-by-skill,
+       url-transport-connects, search-dispatches,
+       fetch-returns-planted-token, fetched-content-is-a-tool-result,
+       tool-error-is-reported, transport-error-is-reported
+
+------------------------------------------------------------
+score: 20/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

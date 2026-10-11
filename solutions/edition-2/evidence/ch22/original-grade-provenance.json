@@ -1,0 +1,19 @@
+{
+  "source_commit": "18c2d48591ebdb59a52274c5b6fc4f857dde2cbf",
+  "main_tree": "dd1282c0672ba256b7c4f5099e9aec80257016d4",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=22",
+    "DIR=/Users/bill/projects/ensemble/solutions/edition-2/main"
+  ],
+  "started_utc": "2026-10-11T17:04:20.607011+00:00",
+  "external_bound_seconds": 240,
+  "ended_utc": "2026-10-11T17:05:11.890470+00:00",
+  "process_exit": 2,
+  "timed_out": false,
+  "raw_sha256": "94986eac0c0399efb525c978c99117e00591972110460d7d49f703436ff51ec9",
+  "grader_exit": 1,
+  "score": "20/100 FAIL",
+  "limitation": "Build and tool import boundary pass; two structural findings await independent assessment. Headless command cannot satisfy combined GUI behavioral launch."
+}
