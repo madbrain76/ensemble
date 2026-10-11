@@ -257,3 +257,25 @@ that browser, the TCP client or the Server closes; no timeout is promised. The
 application chooses access to this listener; `Server.Close` closes its listeners
 and clients. The externally built test in `gui/testdata/reuse` demonstrates these
 public boundaries with real core objects and fake external peers.
+
+Chapter 25 enables a recursive fleet in the CLI. Ask it to delegate work with
+`spawn_sub_agent`, inspect `agents_status`, collect `join_agents`, and finish
+with `submit`. Each child owns a separate actor and `cr/children/ID` state
+directory; shutdown preserves its save for a later child with the same ID.
+Children share the application's working directory for task files. The human
+is an addressable recipient, not a managed child.
+
+A child asks its parent with `send_message_to_parent`; the parent answers with
+`respond_to_parent_message`. A root question appears on stderr. Enter
+`/reply ANSWER`, or `/reply MESSAGE_ID ANSWER` when several questions are pending.
+Ordinary text entered during a tool wait steers the next request and releases
+that wait while the actual job continues; its handle still retrieves the result.
+Three automatic reminders follow a successful turn without submission, then
+the fleet reports escalation. Failed turns are reported without automatic retry.
+
+Library applications enable this protocol by installing `SetAgentFactory`
+before starting Agents and construct every child with `NewChildAgent(parent,
+cfg, spec)`. Configure `SetUserSink` to receive human questions and escalation,
+and answer through the root's `Fleet().Reply`. Without a factory, the prior
+single-Agent turn protocol remains and fleet tools are hidden. The optional
+GUI retains its existing single-Agent interface at this chapter.

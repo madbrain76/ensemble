@@ -507,14 +507,14 @@ func TestFleetSameNameQuestionCorrelation(t *testing.T) {
 	for {
 		result, err := a.Fleet().Join(ctx, []string{"main"})
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("pending question correlation incomplete: %d questions after %d child requests: %v", len(messages), childCalls.Load(), err)
 		}
 		json.Unmarshal([]byte(result), &messages)
 		if len(messages) == 2 {
 			break
 		}
 		if ctx.Err() != nil {
-			t.Fatal("one pending question overwrote the other")
+			t.Fatalf("pending question correlation incomplete: %d questions after %d child requests", len(messages), childCalls.Load())
 		}
 		time.Sleep(time.Millisecond)
 	}

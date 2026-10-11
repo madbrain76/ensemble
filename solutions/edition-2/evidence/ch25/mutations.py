@@ -20,7 +20,7 @@ cases=[
  ('message_wake','internal/jobs/jobs.go','case <-limits.Wake:','case <-(<-chan struct{})(nil):','TestFleetMessage','message waited for command or timer'),
  ('late_tool_result','internal/jobs/jobs.go','return header + text, j.err','return header + "lost output", j.err','TestFleetMessage','background result lost'),
  ('join_question_direct','internal/fleet/fleet.go','if len(m.pending) > 0 {','if false && len(m.pending) > 0 {','TestFleetJoinQuestionYield','join did not yield pending question before child submission'),
- ('question_collision','internal/fleet/fleet.go','msg.ID = fmt.Sprintf("%s-%d", m.parent.Spec().ID, m.sequence)','msg.ID = fmt.Sprintf("%s-%d", msg.From, 1)','TestFleetSameNameQuestionCorrelation','one pending question overwrote the other'),
+ ('question_collision','internal/fleet/fleet.go','msg.ID = fmt.Sprintf("%s-%d", m.parent.Spec().ID, m.sequence)','msg.ID = fmt.Sprintf("%s-%d", msg.From, 1)','TestFleetSameNameQuestionCorrelation','pending question correlation incomplete'),
  ('question_recipient','internal/fleet/fleet.go','recipientMatches := messageID != "" || (agentID == "") == humanQuestion','recipientMatches := true || humanQuestion','TestFleetSameNameQuestionCorrelation','single child question was ambiguous'),
  ('escalated_status','internal/fleet/fleet.go','if m.failure != "" {','if false && m.failure != "" {','TestFleetEscalatedChildStatus','exhausted child still claims running'),
  ('human_sink','main.go','app.SetUserSink("user", terminalUser{})','// removed human sink','TestFleetCLI','human sink was unreachable'),

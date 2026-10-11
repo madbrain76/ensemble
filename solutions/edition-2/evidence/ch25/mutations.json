@@ -174,14 +174,15 @@
     "seconds": 1.251
   },
   {
-    "name": "question_collision",
+    "name": "question_collision_initial",
     "file": "internal/fleet/fleet.go",
     "mutation": "msg.ID = fmt.Sprintf(\"%s-%d\", msg.From, 1)",
     "test": "TestFleetSameNameQuestionCorrelation",
     "exit": 1,
     "outcome": "inspect",
     "expected": "one pending question overwrote the other",
-    "seconds": 2.718
+    "seconds": 2.718,
+    "observed": "Two-second context deadline during join after the overwritten pending question was canceled; classifier expected a different failure label. Added explicit pending count diagnosis."
   },
   {
     "name": "question_recipient",
@@ -202,5 +203,15 @@
     "outcome": "intended_failure",
     "expected": "exhausted child still claims running",
     "seconds": 0.763
+  },
+  {
+    "name": "question_collision",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "msg.ID = fmt.Sprintf(\"%s-%d\", msg.From, 1)",
+    "test": "TestFleetSameNameQuestionCorrelation",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "pending question correlation incomplete",
+    "seconds": 2.788
   }
 ]

@@ -1,0 +1,28 @@
+{
+  "source_commit": "891d513bf142013d6888760cfae4fcaab1edd680",
+  "source_tree": "6cbf18933f82ee450d91750442161b176e469f8e",
+  "binary_sha256_verified": "aa3e82c00f8c878d6f72d8bc08939ba478978b3b5dee75dbc4cd7d25fbe5f893",
+  "requests_astra_high": 20,
+  "completed_astra": 20,
+  "created_completed_id_sets_equal": true,
+  "steering_exact_provider_input_ordinals": [
+    15
+  ],
+  "exact_non_submit_tool_results_matched_to_provider_inputs_by_call_id": 16,
+  "artifact_bytes_match_recorded_copies": true,
+  "independent_combined_assertions_exit": 0,
+  "independent_combined_assertions_stdout": "COMBINED_TESTS_PASS\n",
+  "observed_join_handle": 12,
+  "observed_join_time": "2026-10-11T18:30:55.751093Z",
+  "observed_steering_time": "2026-10-11T18:30:55.885293Z",
+  "observed_running_return_time": "2026-10-11T18:30:55.887642Z",
+  "observed_later_same_handle_done_time": "2026-10-11T18:31:10.340664Z",
+  "later_result_contains_three_explicit_submissions": true,
+  "live_limitations": [
+    "Final submission omits the requested STEER_COBALT marker despite exact provider-input delivery.",
+    "Add child malformed sleep command returns exit1, then corrected && command returns exit0; both actual results are retained.",
+    "Interleaved wire log does not establish ordinal request-response pairing.",
+    "No provider calls, profile reads, endpoint interception or billing-charge claim by reviewer."
+  ],
+  "disposition": "Live transport/runtime/artifact verification; final chapter review pending."
+}

@@ -1,0 +1,161 @@
+{
+  "source_tree": "6cbf18933f82ee450d91750442161b176e469f8e",
+  "source_commit": "891d513bf142013d6888760cfae4fcaab1edd680",
+  "binary_sha256": "aa3e82c00f8c878d6f72d8bc08939ba478978b3b5dee75dbc4cd7d25fbe5f893",
+  "scratch": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch25-live-ckonljky",
+  "status": "submitted",
+  "exit": 0,
+  "seconds": 48.198,
+  "submitted": true,
+  "steering": {
+    "seconds": 25.94,
+    "join_call_id": "call_JA5sxbjQz2rtKkq0mF3If7E7",
+    "join_event_time": "2026-10-11T18:30:55.751093Z",
+    "text": "STEER_COBALT: preserve the negative-integer checks and include STEER_COBALT in your final submission."
+  },
+  "wire_requests": [
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    }
+  ],
+  "independent_test_exit": 0,
+  "independent_test_stdout": "COMBINED_TESTS_PASS\n",
+  "independent_test_stderr": ""
+}

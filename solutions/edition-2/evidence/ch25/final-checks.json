@@ -1,0 +1,26 @@
+[
+  {
+    "check": "final-core-tests",
+    "exit": 0,
+    "seconds": 31.358
+  },
+  {
+    "check": "final-core-vet",
+    "exit": 0,
+    "seconds": 0.216
+  },
+  {
+    "check": "final-fleet-race",
+    "exit": 0,
+    "seconds": 4.049
+  },
+  {
+    "check": "gofmt all main Go files",
+    "exit": 0,
+    "listed_files": []
+  },
+  {
+    "check": "git diff --check source and notes",
+    "exit": 0
+  }
+]
