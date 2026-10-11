@@ -1,5 +1,24 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 11 accepted
+
+Independent combined review `dfc263c5` accepts MCP at initial review, zero formal
+rounds; checkpoint `edition-2-enhanced-ch11-r1`. Actual revised full grading is
+accepted100/100 and legacy30/100. The revised checks exercise real calls and
+results where the original had awarded credit after handshake alone. Exact
+examples and affected checks pass; all22 targeted coder defects and the
+independent persistent-refusal control fail as intended with restored baselines.
+Historical unscored/interim80/90, live/browser limits and frozen code remain.
+
+The legacy reverse handler becomes available after discovery returns, without a
+public ready acknowledgment. A bounded correlated read establishes readiness;
+wrong successful data still fails and permanent refusal cannot pass. Distinguish
+this fixture timing from missing shipped integration, and distinguish a failed
+launch from every downstream behavior it prevented. Existing source/browser
+proof remains separate from numeric tunnel and model-session observations.
+Author and reviewer each completed the required full four-document reload after
+compaction. Chapter12 (original13, The Agent Sees Itself) follows.
+
 ## October 11: enhanced Chapter 10 accepted
 
 Independent combined review `3cd08628` accepts Persistence at initial review,

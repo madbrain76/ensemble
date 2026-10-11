@@ -17,8 +17,8 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapters 9–10 are accepted; Chapter 11
-(original 12, MCP) is now assigned.
+acceptance and releases the next chapter. Chapters 9–11 are accepted; Chapter 12
+(original 13, The Agent Sees Itself) is now assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
@@ -152,6 +152,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 8 (old 9) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch08-r1` |
 | 9 (old 10) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch09-r1` |
 | 10 (old 11) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch10-r1` |
+| 11 (old 12) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch11-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -505,3 +506,36 @@ scores and sample receipts; both frozen source trees remain unchanged. See
 Continue Edition2 Chapter11 from original12, MCP, matching direct `ch11`.
 Keep existing job/owner/optional-GUI boundaries and the historical course
 protocol distinct from any current-standard claim. Sequential gates continue.
+
+
+### October 11 Chapter 11 acceptance
+
+Independent combined review `dfc263c5` accepts MCP at initial review, zero formal
+rounds. Prose `685f0bfe`, executable clarification `139d6922`, author reconciliation
+`cf0b2df9`, grader behavior checkpoint `0b9a9abe` and final submission `9be403dd`;
+checkpoint `edition-2-enhanced-ch11-r1`. The original extension argument and
+section progression remain, with actual owners, job lifetimes, hidden context
+and the observed slow-result failure explained. Historical course extensions are
+identified explicitly. All ten sample fences, their actual commands and hard
+prose lint pass. Both author and reviewer reloaded all four documents completely
+after compaction before resuming work.
+
+Actual full revised grading is accepted100/100 in16.843s and legacy30/100 in15.074s.
+Legacy command integration gaps and inherited fixture limitations are distinct
+from unexercised downstream behavior. The invalid tools header and initial
+reverse-readiness failure remain recorded. A bounded actual read accommodates
+the protocol's lack of a ready acknowledgment; independent persistent refusal
+still fails its intended check. Twenty-two targeted coder defects fail with
+restored controls, without claiming independent proof from coupled failures.
+Original unscored/interim80/90, historical live/browser provenance and frozen
+solutions remain unchanged. No new paid run or runtime edit occurred.
+
+Coordinator inspected the complete prose/review, raw scores and samples, final
+source hashes and both frozen tree identities. See
+[author notes](edition-2-notes/enhancement-11.md),
+[coder report](edition-2-notes/enhancement-11-code.md) and
+[independent review](edition-2-notes/enhancement-11-review.md).
+Continue Edition2 Chapter12 from original13, The Agent Sees Itself, matching
+`ch12`. Preserve the original human-observer story while correcting sourced
+contradictions; the coordinator's quotation check is recorded in original13
+notes at `8b03f758`. Sequential author/coder/reviewer gates continue.
