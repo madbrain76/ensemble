@@ -24,6 +24,7 @@ type cacheGateWriter struct {
 	release chan struct{}
 }
 
+// Write holds the first lens diagnostic until release and discards other logs.
 func (w *cacheGateWriter) Write(p []byte) (int, error) {
 	if strings.Contains(string(p), "cache lens anthropic/") {
 		w.once.Do(func() { close(w.entered); <-w.release })
@@ -31,6 +32,8 @@ func (w *cacheGateWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+// TestCacheLensInterruptedObservation checks interrupt liveness and ordered
+// artifacts while the old and replacement request workers overlap.
 func TestCacheLensInterruptedObservation(t *testing.T) {
 	// Repeat the reviewer's bounded scheduling window under -race. The channels
 	// establish interruption before release; the sleep only lets worker two run.
@@ -92,6 +95,8 @@ func TestCacheLensInterruptedObservation(t *testing.T) {
 	}
 }
 
+// TestCacheLensInterruptedAttribution preserves a delayed cold response's own
+// prediction and counts its usage after the replacement turn has completed.
 func TestCacheLensInterruptedAttribution(t *testing.T) {
 	var logs bytes.Buffer
 	var count atomic.Int32
