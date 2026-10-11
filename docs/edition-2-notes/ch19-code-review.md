@@ -331,3 +331,94 @@ All reviewer work used source/evidence and isolated scratch only: no production
 profile access, paid request, grader rewrite, original-source edit or future
 chapter work. Preserve CodeRhapsody's commits/working changes. Required handoff:
 `.agents/skills/ensemble-coding/SKILL.md`.
+
+
+## Correction round1 — independent deterministic reassessment
+
+Source `534112a`, main tree `c72d29294763f23f51071d7484b0d4283ee70c33`.
+Read the complete appended student response and exact production/test delta.
+The correction resolves the consolidated parser blocker without changing auth,
+parent ownership, billing policy or the accepted cache exception. A six-byte
+buffered lookahead does not consume or wait for the complete body. Completed
+items retain output-index order only when terminal output is absent; terminal
+success and usage remain prerequisites for response facts. The live header was
+not retained; recovery of that header is **not** an acceptance obligation and
+warrants no additional provider request solely for diagnostics.
+
+The unchanged initial diagnostic probe now observes nil errors for all three
+original captured-body/control cases. Its old assertions expected those errors,
+so that literal invocation exits1; this is preserved, not mislabeled a passing
+regression. Replacing only obsolete expectations with successful completion and
+adding exact captured call-ID/read_file and usage831/20 assertions passes.
+Together with the real-Agent captured-tool/result regression, misleading-header
+summary gate and incomplete/failed completion checks, the focused race run passes
+**1.125s**. See [the round1 receipt](../../solutions/edition-2/evidence/ch19/reviewer-round1-probe.json)
+and [updated success assertions](../../solutions/edition-2/evidence/ch19/reviewer-round1-plan-wire-probe.go.txt).
+One initial launch used a nonexistent placeholder scratch directory and executed
+no test; the corrected path produced the recorded results. Both reviewer scratch
+archives were removed afterward.
+
+Read all three restored-defect outputs: absent framing recognition fails invalid
+JSON; dropped item.done fails no-content; whole-body sniffing blocks the causal
+summary gate until its intended deadline. No compile failure is counted. New
+production delta is27physical/21active/6comment-only Go lines; test delta is
+68physical/57active/10comment-only lines plus a39-line captured SSE fixture,
+separate from production. Final chapter net Go production thus adds
+1635physical/1383active/188comment-only lines; Go tests add755/702/36.
+Added anonymous test fields have attached useful comments. The raw captured-body
+hash independently matches `3d6bf5b09bd59c0260e962a5facf54189d44b62edf63572ed53ea804a3511844`.
+The reduced fixture accurately retains the relevant observed events and fields.
+
+No deterministic blocker remains. **Final chapter disposition still awaits the
+bounded live plan result and its complete student reconciliation.** Original
+15/100 FAIL, initial/repeat task failures, actual source provenance, accepted
+exceptions and live cache limits remain as recorded above. This is round1 of the
+maximum three, not a new initial review or automatic whole-chapter pass.
+
+
+## Final disposition — accepted with recorded exceptions after round1
+
+Read the complete final student handoff at `2338b108e550548f9d827db34daa950c0f4d99f8`.
+Independently confirmed product source still matches
+`534112a2d6f9222577db94159c8bd3dbb8368376`, main tree
+`c72d29294763f23f51071d7484b0d4283ee70c33`; later changes are notes, evidence and
+launcher completion detection only. **Original19 / Edition2 Chapter18 is accepted
+with the missing-type grader and paired plan-cache exceptions stated above,
+after one correction round.** No current implementation finding remains open.
+Original grading remains **15/100 FAIL on06cbf20**, never a final-source pass.
+
+The [independent final live check](../../solutions/edition-2/evidence/ch19/reviewer-round1-live-check.json)
+verifies two actual completed plan responses, the correlated read_file result in
+request2 and the valid optimal makespan13 answer. Both requests select
+GPT-6.1-Sol/high/detailed, store:false, stream:true and omit the paired explicit
+cache mechanism. Announced ChatGPT billing and the launcher's absent API key
+establish the recorded source; I did not access credentials. Observed usage is
+831input/20output and957input/337output, with zero cache writes/reads; 166 text
+deltas and zero summary deltas. Completion took14.887seconds. No plan cache grant,
+summary delivery or hint use is claimed from this session.
+
+The outer launcher subsequently killed the idle CLI at150.03seconds, exit-9,
+because its completion path depended on a summary-triggered hint. I accept the
+student's distinction: the task succeeded, but normal EOF/shutdown save did not
+run and is not demonstrated. Its small launcher-only correction has offline
+positive/negative evidence, not a retroactive live pass. There is no reason to
+spend another inference merely to induce optional public summary output or
+repeat unchanged shutdown behavior. Actual API-key summary/hint evidence and
+causal runtime/browser delivery checks remain separate. Production renewal and
+terminal-error paths retain external-peer evidence; no forced live token expiry,
+revocation or account mutation was required for acceptance.
+
+The parser correction and real task establish the behavior masked by the original
+fixture alongside the reviewed OAuth/JWT/rotation, route/billing, result/replay,
+usage and incremental tests. All39 recorded targeted failures have appropriate
+behavioral reasons, with setup failures and initial missing fixture coverage
+retained. Source documentation/ownership and the final small delta remain
+acceptable under KISS; no further feature, framework, mock or paid test is needed.
+
+Stop here for coordinator-owned direct Edition2 ch18 export/checkpoint. Do not
+advance original20: Bill's exact GPT-5 Astra destination is absent from the observed
+catalog, and GPT-6 Astra is not an authorized substitution. Coordinator owns that
+separate decision gate. Original22/24 stops and stopped authorship remain binding.
+Preserve CodeRhapsody's Edition1 commits and working changes. This review touched
+only its own record and sanitized probe receipts, with no reset, tag move or
+production modification. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.

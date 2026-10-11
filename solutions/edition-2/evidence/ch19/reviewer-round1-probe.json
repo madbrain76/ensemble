@@ -1,0 +1,35 @@
+{
+  "source_commit": "534112a",
+  "main_tree": "c72d29294763f23f51071d7484b0d4283ee70c33",
+  "captured_response_sha256": "3d6bf5b09bd59c0260e962a5facf54189d44b62edf63572ed53ea804a3511844",
+  "unchanged_diagnostic_probe": {
+    "exit": 1,
+    "observations": [
+      "non_sse_header: error=nil, events=1",
+      "sse_header_empty_terminal: error=nil, events=1",
+      "sse_header_full_terminal_control: error=nil, events=1"
+    ],
+    "interpretation": "Original probe expected submitted defects. Its obsolete error assertions now fail; same source body/header/control cases succeed."
+  },
+  "corrected_success_assertions": {
+    "change": "Only replace obsolete expected errors with success and add exact call identity/usage assertions; original captured body and controlled variants unchanged",
+    "command": "go test -race ./ensemble -run '^TestReviewerCapturedPlanWire$|^TestResponsesCapturedPlanStream$|^TestResponsesSummaryToolLoop$|^TestResponsesRequiresCompletion$' -count=1 -v",
+    "exit": 0,
+    "seconds": 1.125,
+    "checks": [
+      "all3controlledwirecases succeed",
+      "actual captured read_file identity/callID and usage831/20 retained",
+      "real Agent tool execution and next-request actual result under both headers",
+      "summary before completion under misleading header",
+      "item.done without terminal success cannot become successful response"
+    ]
+  },
+  "setup_error": "First exec used nonexistent placeholder scratch workdir; process creation failed before tests. Retried actual extracted path. No product issue.",
+  "mutations_reviewed": [
+    "framing restores invalid JSON failure",
+    "dropped item.done restores no-content failure",
+    "whole-body sniffing hits causal summary deadline"
+  ],
+  "limits": "No production OAuth/profile access, paid/provider request, original grader or broad suite. Final live assessment is separately recorded in reviewer-round1-live-check.json.",
+  "cleanup": "Both reviewer-owned initial/round1 archive scratch directories removed after tests; probe sources and receipts retained."
+}

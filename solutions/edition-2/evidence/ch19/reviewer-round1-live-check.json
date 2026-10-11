@@ -1,0 +1,53 @@
+{
+  "source_commit": "534112a",
+  "source_tree": "c72d29294763f23f51071d7484b0d4283ee70c33",
+  "actual_requests": 2,
+  "completed_responses": 2,
+  "model": "gpt-6.1-sol",
+  "requested_reasoning": {
+    "effort": "high",
+    "summary": "detailed"
+  },
+  "billing": "chatgpt announced; launcher reports API key absent; reviewer did not inspect credentials",
+  "cache_options_and_markers_absent": true,
+  "actual_read_file_result_correlated_in_next_request": true,
+  "summary_deltas": 0,
+  "text_deltas": 166,
+  "usage": [
+    {
+      "input": 831,
+      "output": 20,
+      "details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      }
+    },
+    {
+      "input": 957,
+      "output": 337,
+      "details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      }
+    }
+  ],
+  "answer": "Valid two-worker schedule makespan13; A-C-F-H durations4+5+3+1 establish lower bound13. Other worker B0-3,E3-7,D7-9,G9-11 satisfies dependencies.",
+  "response_elapsed_seconds": 14.887,
+  "launcher_result": {
+    "source_commit": "534112a2d6f9222577db94159c8bd3dbb8368376",
+    "main_tree": "c72d29294763f23f51071d7484b0d4283ee70c33",
+    "binary_sha256": "86e0039d476b6ee869fe620a57e1e2a964abb101481a618338ad0b0d256d273e",
+    "model": "gpt-6.1-sol",
+    "billing": "explicit chatgpt",
+    "api_key_configured": false,
+    "reasoning_effort": "high",
+    "reasoning_summary": "detailed",
+    "hint_sent_after_summary": false,
+    "exit_code": -9,
+    "elapsed_seconds": 150.03,
+    "timed_out": true,
+    "dedicated_profile_retained": true,
+    "logout": false
+  },
+  "limits": "Task success distinct from launcher timeout/-9. No live plan summary/hint or graceful EOF/save proof. No cache grant. Existing API summary/hint and deterministic incremental controls provide separate evidence. No further paid runs."
+}
