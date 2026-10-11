@@ -1,0 +1,17 @@
+{
+  "source_commit": "06cbf20000cf3592ac2966a1041ece12b33dbc04",
+  "main_tree": "c550fa3c13faec59268cc8d7486a6ed8f590d68f",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=19",
+    "DIR=./solutions/edition-2/main/gui"
+  ],
+  "started_utc": "2026-10-11T14:20:36.723128+00:00",
+  "ended_utc": "2026-10-11T14:21:28.179247+00:00",
+  "make_exit": 2,
+  "raw_sha256": "bd940a590b17495f5789b0a6e39fa9c825e7e7997d5151ca83a3c914f92e1a6a",
+  "grader_exit": 1,
+  "score": "15/100 FAIL",
+  "limitation": "Six check failures report missing-type GUI startup; billing award does not establish exercised inference/billing behavior."
+}

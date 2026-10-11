@@ -1,0 +1,40 @@
+go run ./cmd/grade -ch 19 ./solutions/edition-2/main/gui
+Chapter 19 — Leaving Anthropic for OpenAI
+============================================================
+
+[FAIL]      An API key and an OAuth token reach the HTTP layer through one interface, and the code that builds a request never learns which it got.  (0/15)
+       scenario A: GUI server did not start:
+       /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch19-skills-3870167953/base/SKILL.md:
+       skill "base" has invalid type ""
+
+[FAIL]      PKCE with S256, state and nonce validated, the ID token's signature checked against JWKS, and the issued client_id persisted instead of the registration placeholder.  (0/15)
+       scenario A: GUI server did not start:
+       /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch19-skills-3870167953/base/SKILL.md:
+       skill "base" has invalid type ""
+
+[FAIL]      Refresh happens before expiry, rotates the stored refresh token atomically, and treats the terminal errors as needing a new authorization.  (0/15)
+       scenario B: GUI server did not start:
+       /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch19-skills-3870167953/base/SKILL.md:
+       skill "base" has invalid type ""
+
+[FAIL]      store:false, stream:true, no parameter the plan route forbids, a developer role rather than a system one, and success claimed only on response.completed.  (0/15)
+       scenario A: GUI server did not start:
+       /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch19-skills-3870167953/base/SKILL.md:
+       skill "base" has invalid type ""
+
+[FAIL]      Chapter 18's caching carried exactly as far as each route allows: none on the plan route, which refuses it, and explicit breakpoints on content blocks on the metered route, with the mode declared only when one attached.  (0/10)
+       scenario A: GUI server did not start:
+       /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch19-skills-3870167953/base/SKILL.md:
+       skill "base" has invalid type ""
+
+[FAIL]      Summaries stream incrementally and arrive distinguishable from the answer, which is the accessibility payoff the migration exists for.  (0/15)
+       scenario A: GUI server did not start:
+       /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch19-skills-3870167953/base/SKILL.md:
+       skill "base" has invalid type ""
+
+[PASS]      Plan-usage errors stop inference rather than silently spending money, and any fallback to a metered key is announced before the first metered request.  (15/15)
+
+------------------------------------------------------------
+score: 15/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1
