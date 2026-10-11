@@ -1,5 +1,16 @@
 # Edition 2 solutions
 
+**Current student progress: original Chapter 13 accepted; Chapter 14 underway.**
+The continued solutions are here:
+
+| Original chapter | Accepted solution | Checkpoint |
+| --- | --- | --- |
+| 10: Skills | [history/ch10](history/ch10/) | `edition-2-ch10-r2` |
+| 11: Persistence | [history/ch11](history/ch11/) | `edition-2-ch11-r1` |
+| 12: MCP | [history/ch12](history/ch12/) | `edition-2-ch12-r1` |
+| 13: The Agent Sees Itself | [history/ch13](history/ch13/) | `edition-2-ch13-r1` |
+| 14: The Channel Nobody Tested | [main](main/) — in progress, not accepted | — |
+
 `ch01/` through `ch08/` match the enhanced book's chapter numbers. Each contains
 an accepted cumulative solution. `main/` remains the authoritative working
 implementation; extend it for future student work rather than editing snapshots.
