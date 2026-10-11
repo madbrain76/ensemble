@@ -1,0 +1,50 @@
+{
+  "source_commit": "fcb98a9459b328314f0a7ff06efbb5e7c85fe07e",
+  "binary_hash_matches": true,
+  "sessions": [
+    {
+      "mode": "confined",
+      "raw_api_sha256": "b9a93777b81f747a9bfab94337f2b426e8d289d373c1208f1744097bd0b6e261",
+      "requests": 12,
+      "completed_responses": 12,
+      "all_model": "gpt-6-astra",
+      "all_effort": "high",
+      "tool_calls": 11,
+      "observed_tool_results": 11,
+      "tool_names": [
+        "edit_file",
+        "list_directory",
+        "read_file",
+        "run_command",
+        "search_files",
+        "write_file"
+      ],
+      "fake_outside_and_environment_markers_absent_from_actual_results": true,
+      "recorded_network_hits_after_host_positive_control": 1,
+      "safe_mode_all_requests_withhold_exec_tools": false
+    },
+    {
+      "mode": "safe",
+      "raw_api_sha256": "5ce0eb7d92940cba1d7d4cecdc3df41c4c604a3e4244fd6b4f2f3e5dacd5fa36",
+      "requests": 3,
+      "completed_responses": 3,
+      "all_model": "gpt-6-astra",
+      "all_effort": "high",
+      "tool_calls": 3,
+      "observed_tool_results": 3,
+      "tool_names": [
+        "read_file",
+        "write_file"
+      ],
+      "fake_outside_and_environment_markers_absent_from_actual_results": true,
+      "recorded_network_hits_after_host_positive_control": 1,
+      "safe_mode_all_requests_withhold_exec_tools": true
+    }
+  ],
+  "limits": [
+    "Endpoint derived from launcher configuration and source, not independently intercepted.",
+    "Live binary predates cache-location and cwd-refusal corrections; these require separate final-source checks.",
+    "Network attribution uses preserved launcher positive control and recorded unchanged hit count, not packet capture.",
+    "Initial coordinator declaration check assumed flat tools and failed on the namespace wrapper; corrected check walks namespace members."
+  ]
+}
