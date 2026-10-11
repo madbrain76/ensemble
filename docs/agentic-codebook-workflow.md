@@ -20,6 +20,19 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+Edition 2 Chapter 14 / original 15 is in progress with fresh student
+`student_continue_ch15`, extending accepted `edition-2-ch14-r1`. Its first
+coherent context-management stage is committed at `165ee52`, pending review.
+Original grading completed at **45/100 FAIL** on that source. The fixed launch
+workspace settings path and inherited undefined `think` declaration differ from
+the student's existing Agent-owned configuration and implemented tools; these
+are proposed explanations requiring independent assessment, not accepted waivers.
+The original exercise's explicit feature-row matrix governs over its conflicting
+real-Opus narrative, as the reviewer independently confirmed. Real all-provider
+ladder/handoff demonstrations remain distinct from course-fake inline/stubbing
+checks. Notes preserve the actual live task failures and the filename-fixture
+correction; successful process exit alone is not task success.
+
 Edition 2 Chapter 13 (original 14) is now accepted after one correction round,
 with the inherited grader exception. The initial EOF cleanup closed the browser
 but left a pending sleep timer keeping its peer, and therefore its client, alive.
