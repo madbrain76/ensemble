@@ -1,0 +1,3 @@
+package gradeedition2
+import("encoding/json";"os";"testing";"github.com/waywardgeek/ensemble/internal/grade")
+func TestChapter12Probe(t *testing.T){bin,cleanup,err:=grade.Build(os.Getenv("DEBUG_PROBE_CORE"));if err!=nil{t.Fatal(err)};defer cleanup();if err=json.NewEncoder(os.Stdout).Encode(guiDebugChecks(bin,os.Getenv("DEBUG_PROBE_GUI"),"claude-sonnet-5"));err!=nil{t.Fatal(err)}}

@@ -56,11 +56,12 @@ func mcpChecks(bin, gui, model string) []grade.Check {
 // One scanner owns stdout until EOF and then reaps the process. Cancellation
 // releases a blocked reader or sender; teardown never races another cmd.Wait.
 type mcpCommand struct {
-	stdin  io.WriteCloser
-	lines  chan string
-	done   chan error
-	cancel context.CancelFunc
-	stderr bytes.Buffer
+	process *os.Process
+	stdin   io.WriteCloser
+	lines   chan string
+	done    chan error
+	cancel  context.CancelFunc
+	stderr  bytes.Buffer
 }
 
 func startMCPCommand(bin, work string, args, env []string) (*mcpCommand, error) {
@@ -90,6 +91,7 @@ func startMCPCommand(bin, work string, args, env []string) (*mcpCommand, error) 
 		p.stdin.Close()
 		return nil, err
 	}
+	p.process = cmd.Process
 	go func() {
 		scanner := bufio.NewScanner(stdout)
 		scanner.Buffer(make([]byte, 4096), 2<<20)
@@ -109,7 +111,7 @@ func (p *mcpCommand) read() (string, error) {
 	select {
 	case line, ok := <-p.lines:
 		if !ok {
-			return "", io.EOF
+			return "", fmt.Errorf("command stdout closed: %s: %w", strings.TrimSpace(p.stderr.String()), io.EOF)
 		}
 		return line, nil
 	case <-time.After(5 * time.Second):

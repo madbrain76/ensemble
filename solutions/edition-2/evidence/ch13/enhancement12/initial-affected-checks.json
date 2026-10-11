@@ -1,0 +1,16 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "./internal/gradeedition2",
+    "-run",
+    "^TestChapter(11MCP|12GUIDebug)$",
+    "-count=1",
+    "-v"
+  ],
+  "exit": 0,
+  "seconds": 3.607141833053902,
+  "stdout": "=== RUN   TestChapter11MCP\n--- PASS: TestChapter11MCP (0.69s)\n=== RUN   TestChapter12GUIDebug\n--- PASS: TestChapter12GUIDebug (0.70s)\nPASS\nok  \tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t2.406s\n",
+  "stderr": ""
+}
