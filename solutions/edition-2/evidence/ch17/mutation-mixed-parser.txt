@@ -1,0 +1,5 @@
+--- FAIL: TestJudgeParsing (0.00s)
+    index_test.go:76: Here: ["0", "3"] done: [0 0 0 3] <nil>
+FAIL
+FAIL	ensemble/internal/recall	0.006s
+FAIL

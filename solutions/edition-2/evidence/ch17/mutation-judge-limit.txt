@@ -1,0 +1,20 @@
+--- FAIL: TestRecallJudge (0.01s)
+    --- FAIL: TestRecallJudge/selected (0.01s)
+        recall_test.go:216: selection: [Auto-recalled memories]
+            
+            From docs/design-0.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 0.
+            From docs/design-1.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 1.
+            From docs/design-2.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 2.
+            From memory/2026-10-10-1.md.retired — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > We selected the copper ferry because the silver bridge lost ordering.
+            > Memory decision 0.
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL

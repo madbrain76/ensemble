@@ -143,3 +143,6 @@ A successful judge's selections, including none, stand unchanged.
 Recall is recorded under `recall_attached.parts`, separately from the user's
 words. Renderers retain its position; offline replay never searches or judges.
 A `micro_handoff` removes recalled context at the existing checkpoint boundary.
+Each attachment also retains hashes of the source snippets it represents, so a
+byte-capped snippet is not injected repeatedly. These identities leave with the
+attachment; edited source content can be recalled again.

@@ -1,0 +1,8 @@
+--- FAIL: TestRecallJudge (0.01s)
+    --- FAIL: TestRecallJudge/failure (0.01s)
+        recall_test.go:216: selection: 
+--- FAIL: TestRecallJudgeTimeout (15.02s)
+    recall_test.go:325: judge timeout/fallback: 15.003422958s <nil> 
+FAIL
+FAIL	ensemble/ensemble	15.052s
+FAIL

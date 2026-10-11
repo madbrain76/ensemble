@@ -1,0 +1,10 @@
+--- FAIL: TestRecallTurnReplayCheckpoint (0.04s)
+    --- FAIL: TestRecallTurnReplayCheckpoint/anthropic (0.02s)
+        recall_test.go:175: checkpoint retained recall
+    --- FAIL: TestRecallTurnReplayCheckpoint/openai (0.01s)
+        recall_test.go:175: checkpoint retained recall
+    --- FAIL: TestRecallTurnReplayCheckpoint/gemini (0.01s)
+        recall_test.go:175: checkpoint retained recall
+FAIL
+FAIL	ensemble/ensemble	0.050s
+FAIL

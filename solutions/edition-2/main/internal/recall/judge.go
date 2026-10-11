@@ -14,6 +14,8 @@ import (
 // The parser owns the format instruction. The model service receives opaque
 // prompt text, so it cannot accidentally supply a competing reply specification.
 func (r *recaller) judge(ctx context.Context, latest string, conversation *common.Context, candidates []hit, s common.RecallSettings) ([]hit, error) {
+	// Memory, skills, tool results and previous recall are not conversational
+	// turns. Include only retained human/assistant prose in the small context.
 	var recent []string
 	for _, entry := range conversation.Dialogue {
 		if entry.Kind != common.KindDialogue || entry.Actor != common.Human && entry.Actor != common.AgentActor {
@@ -29,6 +31,8 @@ func (r *recaller) judge(ctx context.Context, latest string, conversation *commo
 			recent = append(recent, string(entry.Actor)+": "+text.String())
 		}
 	}
+	// Slice after filtering; otherwise nearby tool events could consume all
+	// three slots while contributing no useful conversation to the judge.
 	if len(recent) > s.ContextMsgs {
 		recent = recent[len(recent)-s.ContextMsgs:]
 	}
@@ -37,6 +41,8 @@ func (r *recaller) judge(ctx context.Context, latest string, conversation *commo
 	for i, h := range candidates {
 		fmt.Fprintf(&prompt, "\n[%d] %s — %s\n%s\n", i, h.file, h.header, h.content)
 	}
+	// This timeout is independent of the main provider request's longer budget.
+	// Cancellation also follows the human turn, allowing interrupt and shutdown.
 	bounded, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	reply, err := r.parent.Engine().Judge(bounded, prompt.String())
@@ -48,6 +54,8 @@ func (r *recaller) judge(ctx context.Context, latest string, conversation *commo
 		return nil, err
 	}
 	var out []hit
+	// A small model may repeat, over-select or name nonexistent candidates.
+	// Keep valid selections in its order; do not replace them with quota winners.
 	seen := map[int]bool{}
 	for _, i := range indices {
 		if i >= 0 && i < len(candidates) && !seen[i] && len(out) < s.MaxSnippets {
@@ -57,6 +65,9 @@ func (r *recaller) judge(ctx context.Context, latest string, conversation *commo
 	}
 	return out, nil
 }
+
+// Surrounding prose/fences are common even when the requested format is JSON.
+// Extract the array, but reject malformed array syntax so fallback is observable.
 func parseIndices(reply string) ([]int, error) {
 	start, end := strings.IndexByte(reply, '['), strings.LastIndexByte(reply, ']')
 	if start < 0 || end < start {
@@ -64,6 +75,7 @@ func parseIndices(reply string) ([]int, error) {
 	}
 	data := []byte(reply[start : end+1])
 	var ints []int
+	// JSON null unmarshals into an int as zero; it must not silently select hit 0.
 	if json.Unmarshal(data, &ints) == nil && !strings.Contains(string(data), "null") {
 		return ints, nil
 	}

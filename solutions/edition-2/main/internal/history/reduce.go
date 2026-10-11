@@ -74,7 +74,7 @@ func apply(c *common.Context, e common.Event) {
 	case "skill_loaded":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindSkill, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Skill.Body}}})
 	case "recall_attached":
-		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindRecall, Actor: common.Human, Parts: e.Recall.Parts})
+		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindRecall, Actor: common.Human, Parts: e.Recall.Parts, RecallHashes: e.Recall.Hashes})
 	case "micro_handoff":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindHandoff, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Handoff.Text}}})
 	case "tools_changed":

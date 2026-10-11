@@ -1,0 +1,12 @@
+Here are the details from the archived Quartz Zephyr migration discussion:
+
+- **Release Code**: QZ-731
+- **Owner**: Morgan
+- **Rehearsal Date**: October 23
+- **Rejected Approach**: Automatic retry after timeout
+- **Reason for Rejection**: The remote transaction may already have committed.
+- **Unresolved Decision**: Ledger placement (application database versus separate control database)
+- **Rollback Retention**: Nine days
+
+All requested facts are present.
+The rehearsal is owned by Morgan. The automatic retry was rejected because the remote transaction may already have committed.

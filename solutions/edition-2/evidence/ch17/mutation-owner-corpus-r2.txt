@@ -1,0 +1,21 @@
+--- FAIL: TestRecallSources (0.00s)
+    recall_test.go:392: missing source docs/record.md: [Auto-recalled memories]
+        
+        From skills/calendar/SKILL.md — Iridium calendar:
+        > ## Iridium calendar
+        > Use the iridium calendar to schedule telescope bookings.
+        From skills/calendar/SKILL.md — :
+        > ---
+        > name: calendar
+        > type: loadable
+        > ---
+        From skills/base/SKILL.md — :
+        > ---
+        > name: base
+        > type: primary
+        > loadable-skills: calendar
+        > ---
+        > Answer briefly.
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL

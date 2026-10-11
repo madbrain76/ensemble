@@ -1,0 +1,10 @@
+--- FAIL: TestBM25CompetingDocuments (0.00s)
+    --- FAIL: TestBM25CompetingDocuments/rarity (0.00s)
+        index_test.go:129: rarity ranking chose common, want rare
+    --- FAIL: TestBM25CompetingDocuments/saturation (0.00s)
+        index_test.go:129: saturation ranking chose repeated, want diverse
+    --- FAIL: TestBM25CompetingDocuments/length (0.00s)
+        index_test.go:129: length ranking chose long, want focused
+FAIL
+FAIL	ensemble/internal/recall	0.007s
+FAIL

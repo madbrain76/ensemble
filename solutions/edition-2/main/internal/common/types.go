@@ -256,6 +256,8 @@ type Event struct {
 // Seq connects projected content back to its original event. It survives
 // category filtering and supplies stable IDs when a provider omitted one.
 type Entry struct {
+	// RecallHashes identify source snippets represented by this recall entry, even when capped.
+	RecallHashes []string `json:"recall_hashes,omitempty"`
 	// Kind names the lifetime of this entry; zero in older saves means dialogue.
 	Kind EntryKind `json:"kind"`
 	// File orders memory independently of event sequence.

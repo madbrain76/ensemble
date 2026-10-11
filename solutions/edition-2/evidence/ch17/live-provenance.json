@@ -1,0 +1,13 @@
+{
+  "source_commit": "fcd091f",
+  "source_tree": "a2fd5a4f71d8fde7f58cfdefd18a0cfc31206d0f",
+  "binary_sha256": "17b0e0f9cc1e1df6db1dcafe99d2f03aef8f242cbf03140b27debe75fc49b5ea",
+  "interface": "actual CLI chat, two plain-text input lines per provider",
+  "models": {
+    "anthropic": "claude-haiku-5-5",
+    "openai": "gpt-4o-mini",
+    "gemini": "gemini-3.8-flash"
+  },
+  "discovery_evidence": "../ch16/coordinator-model-metadata.json",
+  "live_limits": "Representative isolated corpus, 25 padding memories and 25 padding docs; padding memory filenames rejected by active band scanner but included in recall corpus. No real private corpus or broad retrieval-quality evaluation."
+}

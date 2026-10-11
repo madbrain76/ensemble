@@ -36,11 +36,14 @@ type Recaller interface {
 	// Agent exposes the actual owner of corpus locations and model services.
 	Agent() Agent
 	// Recall searches against a snapshot; only the actor may attach the returned bytes.
-	Recall(context.Context, string, *Context) (string, error)
+	Recall(context.Context, string, *Context) (RecallData, error)
 }
 
 // RecallData records chosen bytes so replay needs neither disk nor a judge.
 type RecallData struct {
 	// Parts carry attributed, blockquoted text, never the user's own words.
 	Parts []Part `json:"parts"`
+	// Hashes identify complete source snippets actually represented, including capped ones.
+	// They live only as long as the attachment, so a checkpoint permits recall again.
+	Hashes []string `json:"hashes,omitempty"`
 }

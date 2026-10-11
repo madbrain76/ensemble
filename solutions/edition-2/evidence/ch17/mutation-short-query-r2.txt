@@ -1,0 +1,5 @@
+--- FAIL: TestRecallDedupRefreshIsolation (0.01s)
+    recall_test.go:240: short query recalled
+FAIL
+FAIL	ensemble/ensemble	0.014s
+FAIL

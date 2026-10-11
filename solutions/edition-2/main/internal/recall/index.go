@@ -28,6 +28,8 @@ type hit struct {
 	score  float64
 }
 
+// Alphanumeric runs define words independently of markdown punctuation. Unicode
+// letters remain intact; the minimum is characters, not encoded UTF-8 bytes.
 func tokens(s string) []string {
 	var out []string
 	for _, word := range strings.FieldsFunc(strings.ToLower(s), func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsNumber(r) }) {
@@ -42,6 +44,8 @@ func tokens(s string) []string {
 func queryTokens(s string) []string {
 	const stops = " a an and are as at be been but by can could did do does for from had has have how if in into is it its may me my not of on or our should so that the their them then there these they this to was we were what when where which who will with would you your "
 	var out []string
+	// Repeated query words should not multiply relevance merely because the user
+	// repeated a phrase. Document repetitions still contribute through BM25 TF.
 	seen := map[string]bool{}
 	for _, word := range tokens(s) {
 		if !strings.Contains(stops, " "+word+" ") && !seen[word] {
@@ -51,6 +55,9 @@ func queryTokens(s string) []string {
 	}
 	return out
 }
+
+// Precompute document statistics once per changed corpus. A term contributes
+// once to document frequency, however often it occurs inside that document.
 func build(chunks []chunk) index {
 	x := index{chunks: chunks, df: map[string]int{}}
 	for i := range x.chunks {
@@ -63,6 +70,8 @@ func build(chunks []chunk) index {
 		for word := range c.tf {
 			x.df[word]++
 		}
+		// Empty sections were discarded by the chunker, but a punctuation-only
+		// section can still have zero tokens and correctly contributes zero length.
 		x.average += float64(c.length)
 	}
 	if len(chunks) > 0 {
@@ -72,6 +81,7 @@ func build(chunks []chunk) index {
 }
 func (x index) search(source string, query []string, floor float64) []hit {
 	var out []hit
+	// Avoid a zero-length normalization denominator for an empty/no-word corpus.
 	if x.average == 0 {
 		return out
 	}
@@ -81,6 +91,9 @@ func (x index) search(source string, query []string, floor float64) []hit {
 			f := float64(c.tf[word])
 			// Smoothed IDF stays positive even in a one-document archive.
 			idf := math.Log(1 + (float64(len(x.chunks)-x.df[word])+0.5)/(float64(x.df[word])+0.5))
+			// k1=1.2 saturates repeated terms; b=0.75 normalizes document length.
+			// The numerator is TF*(k1+1); the denominator is TF+k1*(1-b+b*L/avg).
+			// Thus a long repeated-keyword file cannot gain linearly forever.
 			score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))
 		}
 		if score > 0 && score >= floor {
@@ -89,6 +102,9 @@ func (x index) search(source string, query []string, floor float64) []hit {
 	}
 	return out
 }
+
+// Stable sorting preserves deterministic corpus order for equal scores, making
+// mechanical fallback reproducible without prescribing the judge's choices.
 func rank(hits []hit) {
 	sort.SliceStable(hits, func(i, j int) bool { return hits[i].score > hits[j].score })
 }
@@ -113,12 +129,17 @@ func sections(text, marker, parent string) []chunk {
 				header = parent + " > " + header
 			}
 		}
+		// Keep heading bytes in the snippet so heading terms are searchable too.
+		// Attribution is separate metadata, not a substitute for source content.
 		body.WriteString(line)
 		body.WriteByte('\n')
 	}
 	flush()
 	return out
 }
+
+// Section boundaries come first; only oversized sections need finer splitting.
+// Keeping a short section whole gives the judge a coherent decision and reason.
 func chunks(file, text string) []chunk {
 	var out []chunk
 	for _, section := range sections(text, "## ", "") {

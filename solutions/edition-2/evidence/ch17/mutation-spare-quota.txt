@@ -1,0 +1,5 @@
+--- FAIL: TestFinalQuotas (0.00s)
+    index_test.go:67: unused memory slots lost: [{{   map[] 0} docs 30}]
+FAIL
+FAIL	ensemble/internal/recall	0.006s
+FAIL

@@ -1,0 +1,200 @@
+[
+  {
+    "claim": "query-stopwords",
+    "file": "internal/recall/index.go",
+    "old": "!strings.Contains(stops, \" \"+word+\" \")",
+    "new": "(strings.Contains(stops, \" \"+word+\" \") || true)",
+    "test": "^TestBM25$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "document-stopwords",
+    "file": "internal/recall/index.go",
+    "old": "range tokens(c.content)",
+    "new": "range queryTokens(c.content)",
+    "test": "^TestBM25$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "small-idf",
+    "file": "internal/recall/index.go",
+    "old": "score += idf * f",
+    "new": "idf = math.Max(0, math.Log((float64(len(x.chunks)-x.df[word])+0.5)/(float64(x.df[word])+0.5)))\n\t\t\tscore += idf * f",
+    "test": "^TestBM25$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "score-floor",
+    "file": "internal/recall/index.go",
+    "old": "score >= floor",
+    "new": "score >= floor || score > 0",
+    "test": "^TestBM25$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "markdown-depth",
+    "file": "internal/recall/index.go",
+    "old": "sections(text, \"## \", \"\")",
+    "new": "sections(text, \"##### \", \"\")",
+    "test": "^TestChunking$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "final-quotas",
+    "file": "internal/recall/recall.go",
+    "old": "chosen = quotas(hits, s.MaxSnippets)",
+    "new": "chosen = hits[:min(len(hits),s.MaxSnippets)]",
+    "test": "^TestRecallTurnReplayCheckpoint$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "spare-quota",
+    "file": "internal/recall/recall.go",
+    "old": "len(out) < limit && !selected[i]",
+    "new": "len(out) < 0 && !selected[i]",
+    "test": "^TestFinalQuotas$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "mixed-parser",
+    "file": "internal/recall/judge.go",
+    "old": "ints = nil // Unmarshal",
+    "new": "// ints = nil // Unmarshal",
+    "test": "^TestJudgeParsing$",
+    "exit": 1,
+    "intended_failure": false
+  },
+  {
+    "claim": "byte-cap",
+    "file": "internal/recall/recall.go",
+    "old": "if len(body) > room {",
+    "new": "if len(body) > room && false {",
+    "test": "^TestAttachmentCap$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-verdict",
+    "file": "internal/recall/recall.go",
+    "old": "judged = err == nil",
+    "new": "judged = false",
+    "test": "^TestRecallJudge/selected$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "empty-verdict",
+    "file": "internal/recall/recall.go",
+    "old": "judged = err == nil",
+    "new": "judged = err == nil && len(chosen) > 0",
+    "test": "^TestRecallJudge/empty$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-fallback",
+    "file": "internal/recall/recall.go",
+    "old": "if !judged {",
+    "new": "if !judged && err == nil {",
+    "test": "^TestRecallJudge/failure$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "short-query",
+    "file": "internal/recall/recall.go",
+    "old": "utf8.RuneCountInString(query) < s.MinQueryLength",
+    "new": "utf8.RuneCountInString(query) < 0",
+    "test": "^TestRecallDedupRefreshIsolation$",
+    "exit": 0,
+    "intended_failure": false
+  },
+  {
+    "claim": "retired-corpus",
+    "file": "internal/recall/recall.go",
+    "old": "source.name == \"memory\" && strings.HasSuffix(path, \".md.retired\")",
+    "new": "source.name == \"never\" && strings.HasSuffix(path, \".md.retired\")",
+    "test": "^TestRecallTurnReplayCheckpoint$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "index-refresh",
+    "file": "internal/recall/recall.go",
+    "old": "r.indexes == nil || digest != r.digest",
+    "new": "r.indexes == nil",
+    "test": "^TestRecallDedupRefreshIsolation$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "context-dedup",
+    "file": "internal/recall/recall.go",
+    "old": "!strings.Contains(present, unquote(h.content))",
+    "new": "!strings.Contains(present, unquote(h.content)) || true",
+    "test": "^TestRecallDedupRefreshIsolation$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "checkpoint-retires",
+    "file": "internal/history/reduce.go",
+    "old": "old.Kind != common.KindRecall",
+    "new": "old.Kind != 255",
+    "test": "^TestRecallTurnReplayCheckpoint$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "begin-hook",
+    "file": "internal/agent/actor.go",
+    "old": "r.recall()",
+    "new": "r.send()",
+    "test": "^TestRecallTurnReplayCheckpoint$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "recorded-bytes",
+    "file": "internal/history/reduce.go",
+    "old": "Parts: e.Recall.Parts",
+    "new": "Parts: []common.Part{{Type:\"text\",Text:\"lost\"}}",
+    "test": "^TestRecallTurnReplayCheckpoint$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-candidates",
+    "file": "internal/recall/recall.go",
+    "old": "min(len(hits), s.Candidates)",
+    "new": "len(hits)",
+    "test": "^TestRecallJudgeContext$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-recent",
+    "file": "internal/recall/judge.go",
+    "old": "recent = recent[len(recent)-s.ContextMsgs:]",
+    "new": "recent = recent[:]",
+    "test": "^TestRecallJudgeContext$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-deadline",
+    "file": "internal/recall/judge.go",
+    "old": "15*time.Second",
+    "new": "30*time.Second",
+    "test": "^TestRecallJudgeTimeout$",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

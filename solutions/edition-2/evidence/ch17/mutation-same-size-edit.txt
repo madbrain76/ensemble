@@ -1,0 +1,16 @@
+--- FAIL: TestRecallDedupRefreshIsolation (0.02s)
+    recall_test.go:252: edit not indexed: [Auto-recalled memories]
+        
+        From docs/design-0.md — Quartz zephyr migration:
+        > ## Quartz zephyr migration
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 0.
+        From memory/2099-12-31-1.md — Quartz zephyr migration:
+        > ## Quartz zephyr migration
+        > We selected the copper ferry because the silver bridge lost ordering. newest fact
+        From memory/2026-10-10-1.md.retired — Quartz zephyr migration:
+        > ## Quartz zephyr migration
+        > We selected the copper ferry because the silver bridge lost ordering.
+        > Memory decision 0. <nil>
+FAIL
+FAIL	ensemble/ensemble	0.021s
+FAIL

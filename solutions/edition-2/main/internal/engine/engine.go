@@ -122,7 +122,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	case common.Anthropic:
 		req.Header.Set("x-api-key", cfg.APIKey)
 		req.Header.Set("anthropic-version", "2023-06-01")
-		if e.Features().InlineTools {
+		// Judge overrides must use the selected request model's protocol features.
+		features, _ := LookupModel(cfg.Model)
+		if features.InlineTools {
 			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
 		}
 	case common.OpenAI:

@@ -1,0 +1,40 @@
+--- FAIL: TestRecallTurnReplayCheckpoint (0.02s)
+    --- FAIL: TestRecallTurnReplayCheckpoint/anthropic (0.01s)
+        recall_test.go:143: mechanical quota: [Auto-recalled memories]
+            
+            From docs/design-0.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 0.
+            From docs/design-1.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 1.
+            From docs/design-2.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 2.
+    --- FAIL: TestRecallTurnReplayCheckpoint/openai (0.01s)
+        recall_test.go:143: mechanical quota: [Auto-recalled memories]
+            
+            From docs/design-0.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 0.
+            From docs/design-1.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 1.
+            From docs/design-2.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 2.
+    --- FAIL: TestRecallTurnReplayCheckpoint/gemini (0.01s)
+        recall_test.go:143: mechanical quota: [Auto-recalled memories]
+            
+            From docs/design-0.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 0.
+            From docs/design-1.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 1.
+            From docs/design-2.md — Quartz zephyr migration:
+            > ## Quartz zephyr migration
+            > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 2.
+FAIL
+FAIL	ensemble/ensemble	0.030s
+FAIL

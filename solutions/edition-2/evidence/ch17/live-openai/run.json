@@ -1,0 +1,18 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "exit": 0,
+  "turns": [
+    {
+      "prompt": "From our archived Quartz Zephyr migration discussion, tell me the release code, owner and rehearsal date, rejected approach and why, the unresolved decision, and rollback retention. Use only the context already supplied; do not call tools. If a fact is absent, say so.",
+      "completed": true,
+      "process_status": null
+    },
+    {
+      "prompt": "Who owns that rehearsal, and why was automatic retry rejected?",
+      "completed": true,
+      "process_status": null
+    }
+  ],
+  "corpus_fact": "## Quartz Zephyr migration decision\nProject Quartz Zephyr, release QZ-731: Morgan owns the migration rehearsal on October 23. We rejected automatic retry after timeout because the remote transaction may already have committed. Read the migration ledger before deciding whether retry is safe. Ledger placement remains unresolved: application database versus separate control database. Retain rollback artifacts for nine days.\n"
+}

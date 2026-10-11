@@ -1,0 +1,5 @@
+--- FAIL: TestRecallJudgeRoute (0.00s)
+    recall_test.go:416: judge inherited parent model header
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL

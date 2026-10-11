@@ -1,0 +1,56 @@
+[
+  {
+    "claim": "capped-identity",
+    "file": "internal/recall/recall.go",
+    "old": "!seen[snippetHash(h)] && ",
+    "new": "",
+    "test": "^TestRecallCappedDedup$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "capped-replay",
+    "file": "internal/history/reduce.go",
+    "old": "RecallHashes: e.Recall.Hashes",
+    "new": "RecallHashes: nil",
+    "test": "^TestRecallCappedDedup$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "raw-frequency",
+    "file": "internal/recall/index.go",
+    "old": "score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "new": "score += f + idf*0",
+    "test": "^TestBM25CompetingDocuments$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "rarity-weight",
+    "file": "internal/recall/index.go",
+    "old": "score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "new": "score += (idf*0+1) * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "test": "^TestBM25CompetingDocuments$/rarity$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "tf-saturation",
+    "file": "internal/recall/index.go",
+    "old": "score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "new": "score += idf * f * 2.2 / (1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "test": "^TestBM25CompetingDocuments$/saturation$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "length-normalization",
+    "file": "internal/recall/index.go",
+    "old": "score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "new": "score += idf * f * 2.2 / (f + 1.2)",
+    "test": "^TestBM25CompetingDocuments$/length$",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

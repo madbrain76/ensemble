@@ -1,0 +1,6 @@
+- **Release code:** QZ-731
+- **Owner and rehearsal date:** Morgan owns the migration rehearsal, on October 23. The source doesn't give a year.
+- **Rejected approach:** Automatic retry after timeout. The remote transaction may already have committed. The team decided to read the migration ledger before deciding whether a retry is safe.
+- **Unresolved decision:** Where the ledger lives: the application database or a separate control database.
+- **Rollback retention:** Nine days.
+Morgan owns the rehearsal. Automatic retry after timeout was rejected because the remote transaction may already have committed, so a retry could apply the change twice. The team wants to read the migration ledger first to decide whether a retry is safe.

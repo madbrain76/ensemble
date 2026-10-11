@@ -1,0 +1,17 @@
+--- FAIL: TestRecallJudgeTimeout (18.02s)
+    recall_test.go:325: judge timeout/fallback: 18.002682083s <nil> [Auto-recalled memories]
+        
+        From docs/design-0.md — Quartz zephyr migration:
+        > ## Quartz zephyr migration
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration doc decision 0.
+        From memory/2026-10-10-1.md.retired — Quartz zephyr migration:
+        > ## Quartz zephyr migration
+        > We selected the copper ferry because the silver bridge lost ordering.
+        > Memory decision 0.
+        From memory/2026-10-10-2.md.retired — Quartz zephyr migration:
+        > ## Quartz zephyr migration
+        > We selected the copper ferry because the silver bridge lost ordering.
+        > Memory decision 1.
+FAIL
+FAIL	ensemble/ensemble	18.024s
+FAIL

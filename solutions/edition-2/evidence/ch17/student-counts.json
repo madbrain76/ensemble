@@ -1,0 +1,38 @@
+[
+  {
+    "file": "internal/agent/recall.go",
+    "physical": 61,
+    "active": 47,
+    "comment_only": 10
+  },
+  {
+    "file": "internal/common/recall.go",
+    "physical": 49,
+    "active": 24,
+    "comment_only": 20
+  },
+  {
+    "file": "internal/engine/judge.go",
+    "physical": 48,
+    "active": 38,
+    "comment_only": 7
+  },
+  {
+    "file": "internal/recall/index.go",
+    "physical": 175,
+    "active": 139,
+    "comment_only": 28
+  },
+  {
+    "file": "internal/recall/judge.go",
+    "physical": 103,
+    "active": 84,
+    "comment_only": 15
+  },
+  {
+    "file": "internal/recall/recall.go",
+    "physical": 327,
+    "active": 266,
+    "comment_only": 49
+  }
+]

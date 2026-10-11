@@ -1,0 +1,5 @@
+--- FAIL: TestRecallJudgeContext (0.01s)
+    recall_test.go:343: judge prompt limits wrong
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL

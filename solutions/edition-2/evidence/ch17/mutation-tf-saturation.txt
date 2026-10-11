@@ -1,0 +1,6 @@
+--- FAIL: TestBM25CompetingDocuments (0.00s)
+    --- FAIL: TestBM25CompetingDocuments/saturation (0.00s)
+        index_test.go:129: saturation ranking chose repeated, want diverse
+FAIL
+FAIL	ensemble/internal/recall	0.006s
+FAIL

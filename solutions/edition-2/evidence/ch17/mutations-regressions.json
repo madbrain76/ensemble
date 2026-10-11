@@ -1,0 +1,23 @@
+[
+  {
+    "claim": "relative-skill-restored",
+    "file": "internal/recall/recall.go",
+    "test": "^TestRecallSources$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-route-restored",
+    "file": "internal/engine/engine.go",
+    "test": "^TestRecallJudgeRoute$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "owner-corpus-r2",
+    "file": "internal/recall/recall.go",
+    "test": "^TestRecallSources$",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

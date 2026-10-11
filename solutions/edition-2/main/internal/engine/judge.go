@@ -16,6 +16,8 @@ func (e *engine) Judge(ctx context.Context, prompt string) (string, error) {
 	if cfg.Recall.JudgeModel != "" {
 		cfg.Model = cfg.Recall.JudgeModel
 	}
+	// The caller needs a single decision, not display deltas. Local route edits
+	// leave the main Agent's model and normal streaming behavior unchanged.
 	cfg.DisableStreaming = true
 	var request any
 	switch cfg.Vendor {
@@ -34,6 +36,8 @@ func (e *engine) Judge(ctx context.Context, prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	// Only text is part of the judge contract; opaque provider reasoning cannot
+	// become recall content. Send accounts usage without updating main history.
 	var out strings.Builder
 	for _, event := range events {
 		if event.Response != nil {

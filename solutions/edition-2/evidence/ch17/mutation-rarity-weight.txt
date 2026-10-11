@@ -1,0 +1,6 @@
+--- FAIL: TestBM25CompetingDocuments (0.00s)
+    --- FAIL: TestBM25CompetingDocuments/rarity (0.00s)
+        index_test.go:129: rarity ranking chose common, want rare
+FAIL
+FAIL	ensemble/internal/recall	0.006s
+FAIL

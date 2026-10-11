@@ -14,6 +14,8 @@ import (
 	"ensemble/internal/common"
 )
 
+// Queries can overlap briefly after interruption. The lock protects index state
+// only; a slow judge never holds it or blocks a newer turn's corpus scan.
 type recaller struct {
 	parent  common.Agent
 	mu      sync.Mutex
@@ -44,6 +46,9 @@ func Validate(s common.RecallSettings) error {
 	}
 	return nil
 }
+
+// Defaults are applied to a local value, leaving explicit Agent configuration
+// available to clients without copying mutable policy into the child.
 func settings(s common.RecallSettings) common.RecallSettings {
 	if s.MinScore == 0 {
 		s.MinScore = 3
@@ -73,6 +78,8 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	root := r.parent.Config().DataDir
+	// Retired files remain searchable after graduation removed their original
+	// bytes from active memory. Bands and archives share the memory quota.
 	sources := []struct{ name, path string }{
 		{"memory", filepath.Join(root, "memory")},
 		{"memory", filepath.Join(root, "bucket-0")},
@@ -83,6 +90,8 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 		{"handoffs", filepath.Join(root, "handoffs")},
 		{"learnings", filepath.Join(root, "learnings")},
 	}
+	// Reach skill identity through its owner, rather than saving another copy
+	// of the application's directory setting in recall. Discovery grants no tools.
 	if skills := r.parent.Skills(); skills != nil {
 		sources = append(sources, struct{ name, path string }{"skills", skills.Directory()})
 	}
@@ -93,6 +102,8 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 	var documents []document
 	for _, source := range sources {
 		err := filepath.WalkDir(source.path, func(path string, entry fs.DirEntry, err error) error {
+			// Optional corpus directories need not exist on a fresh Agent.
+			// Other I/O failures remain diagnostic errors, not empty successes.
 			if os.IsNotExist(err) {
 				return nil
 			}
@@ -109,15 +120,21 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 			if err != nil {
 				return err
 			}
-			name, err := filepath.Rel(root, path)
+			// Skill identity can be absolute while the Agent's data root is relative.
+			// Compute attribution against the source's actual owner before Rel.
+			base := root
+			if source.name == "skills" {
+				base = source.path
+			}
+			file, err := filepath.Rel(base, path)
 			if err != nil {
 				return err
 			}
-			file := name
 			if source.name == "skills" {
-				name, _ = filepath.Rel(source.path, path)
-				file = filepath.Join("skills", name)
+				file = filepath.Join("skills", file)
 			}
+			// Length-delimited content and paths distinguish renames/deletions
+			// as well as edits; mtimes alone can miss equal-size human changes.
 			fmt.Fprintf(hash, "%s\x00%d\x00%s\x00", file, len(body), body)
 			documents = append(documents, document{source.name, file, string(body)})
 			return nil
@@ -128,6 +145,8 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 	}
 	var digest [32]byte
 	copy(digest[:], hash.Sum(nil))
+	// Publish a complete replacement under the lock. No search observes half
+	// an index, and removed files cannot linger in the next request's results.
 	if r.indexes == nil || digest != r.digest {
 		for _, doc := range documents {
 			corpus[doc.source] = append(corpus[doc.source], chunks(doc.file, doc.text)...)
@@ -149,18 +168,20 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 
 // Recall returns immutable attachment bytes. The caller passes a snapshot so
 // the stateless judge can run off the actor without borrowing live conversation.
-func (r *recaller) Recall(ctx context.Context, query string, conversation *common.Context) (string, error) {
+func (r *recaller) Recall(ctx context.Context, query string, conversation *common.Context) (common.RecallData, error) {
 	s := settings(r.parent.Config().Recall)
 	if s.Disabled || utf8.RuneCountInString(query) < s.MinQueryLength {
-		return "", nil
+		return common.RecallData{}, nil
 	}
+	// The judge gets a broad candidate net; plain selection needs a stricter
+	// keyword floor because there is no semantic filter to remove false hits.
 	floor := s.MinScore
 	if !s.DisableJudge {
 		floor = 0.5
 	}
 	hits, err := r.search(queryTokens(query), floor)
 	if err != nil {
-		return "", err
+		return common.RecallData{}, err
 	}
 	// Include text nested in tool results and blockquoted prior attachments.
 	// Normalizing quote prefixes permits comparison with the original snippet.
@@ -179,21 +200,36 @@ func (r *recaller) Recall(ctx context.Context, query string, conversation *commo
 	}
 	collect(conversation.Ephemera)
 	present := unquote(contextText.String())
+	// A byte-capped attachment may contain only the prefix of a source snippet.
+	// Retain its identity with that entry instead of requiring the unseen suffix
+	// to occur in context. Hashing the complete content still permits human edits.
+	seen := map[string]bool{}
+	for _, entry := range conversation.Dialogue {
+		if entry.Kind == common.KindRecall {
+			for _, hash := range entry.RecallHashes {
+				seen[hash] = true
+			}
+		}
+	}
 	available := hits[:0]
 	for _, h := range hits {
-		if !strings.Contains(present, unquote(h.content)) {
+		if !seen[snippetHash(h)] && !strings.Contains(present, unquote(h.content)) {
 			available = append(available, h)
 		}
 	}
 	hits = available
 	if len(hits) == 0 {
-		return "", nil
+		return common.RecallData{}, nil
 	}
+	// Keep the full hit list for mechanical fallback. Capping candidates must
+	// not discard low-scoring memories before the final quota can protect them.
 	var chosen []hit
 	judged := false
 	if !s.DisableJudge {
 		candidates := hits[:min(len(hits), s.Candidates)]
 		chosen, err = r.judge(ctx, query, conversation, candidates, s)
+		// Empty is a valid verdict. Only failure re-enters mechanical selection;
+		// otherwise an intentional [] would inject the very hits the judge rejected.
 		judged = err == nil
 		if err != nil {
 			r.parent.Ensemble().Logf("recall judge failed; using source quotas: %v", err)
@@ -202,7 +238,11 @@ func (r *recaller) Recall(ctx context.Context, query string, conversation *commo
 	if !judged {
 		chosen = quotas(hits, s.MaxSnippets)
 	}
-	return format(chosen, s.MaxRecallBytes), nil
+	text, hashes := format(chosen, s.MaxRecallBytes)
+	if text == "" {
+		return common.RecallData{}, nil
+	}
+	return common.RecallData{Parts: []common.Part{{Type: "text", Text: text}}, Hashes: hashes}, nil
 }
 func unquote(s string) string {
 	lines := strings.Split(s, "\n")
@@ -226,6 +266,8 @@ func quotas(hits []hit, limit int) []hit {
 			}
 		}
 	}
+	// Divide only among secondary sources with actual hits. Fixed source order
+	// gives the remainder a deterministic home when slots do not divide evenly.
 	remaining := limit - quota["memory"]
 	for i, name := range sources {
 		quota[name] = remaining / len(sources)
@@ -233,6 +275,8 @@ func quotas(hits []hit, limit int) []hit {
 			quota[name]++
 		}
 	}
+	// Two passes reserve source shares first, then spend every spare slot on
+	// remaining score-ranked hits. Track positions so no hit is selected twice.
 	selected := make([]bool, len(hits))
 	var out []hit
 	for i, h := range hits {
@@ -249,7 +293,11 @@ func quotas(hits []hit, limit int) []hit {
 	}
 	return out
 }
-func format(hits []hit, limit int) string {
+
+// Count the complete wire-visible text, including heading, attribution and
+// quote prefixes. Cutting source content first would undercount that overhead.
+func format(hits []hit, limit int) (string, []string) {
+	var hashes []string
 	const title = "[Auto-recalled memories]\n"
 	out := title
 	for _, h := range hits {
@@ -261,14 +309,19 @@ func format(hits []hit, limit int) string {
 		body := strings.ReplaceAll(h.content, "\n", "\n> ")
 		if len(body) > room {
 			body = body[:room]
+			// The cap is bytes, but its boundary must not split a UTF-8 character.
 			for !utf8.ValidString(body) {
 				body = body[:len(body)-1]
 			}
 		}
 		out += prefix + body
+		// A selected snippet that did not fit has no identity in live context.
+		hashes = append(hashes, snippetHash(h))
 	}
 	if out == title {
-		return ""
+		return "", nil
 	}
-	return out
+	return out, hashes
 }
+
+func snippetHash(h hit) string { return fmt.Sprintf("%x", sha256.Sum256([]byte(h.content))) }

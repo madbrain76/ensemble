@@ -1,0 +1,5 @@
+--- FAIL: TestRecallCappedDedup (0.01s)
+    recall_test.go:455: capped attachment or identity missing
+FAIL
+FAIL	ensemble/ensemble	0.017s
+FAIL

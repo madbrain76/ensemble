@@ -1,0 +1,5 @@
+--- FAIL: TestRecallCappedDedup (0.01s)
+    recall_test.go:468: capped snippet recalled twice
+FAIL
+FAIL	ensemble/ensemble	0.020s
+FAIL

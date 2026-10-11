@@ -1,0 +1,5 @@
+--- FAIL: TestRecallInterrupt (0.01s)
+    recall_test.go:304: hint became retained dialogue during recall
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL

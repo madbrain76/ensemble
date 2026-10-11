@@ -197,7 +197,7 @@ func TestRecallJudge(t *testing.T) {
 		fail        bool
 		mem, docs   int
 	}{
-		{"selected", `["0",1,2,2,900,-1]`, false, 0, 3},
+		{"selected", `["0",1,2,3,2,900,-1]`, false, 0, 3},
 		{"empty", `[]`, false, 0, 0},
 		{"malformed", "not an array", false, 2, 1},
 		{"failure", "", true, 2, 1},
@@ -236,18 +236,18 @@ func TestRecallJudge(t *testing.T) {
 func TestRecallDedupRefreshIsolation(t *testing.T) {
 	peer := &recallPeer{vendor: ensemble.OpenAI}
 	a := recallAgent(t, ensemble.OpenAI, peer, ensemble.RecallSettings{DisableJudge: true})
-	if got, err := a.Recaller().Recall(context.Background(), "fix it", &common.Context{}); err != nil || got != "" {
+	if got, err := recallText(a, context.Background(), "quartz", &common.Context{}); err != nil || got != "" {
 		t.Fatal("short query recalled")
 	}
 	path := filepath.Join(a.Config().DataDir, "memory", "2099-12-31-1.md")
 	recallWrite(t, path, recallFact+" newest fact")
 	c := &common.Context{}
-	text, err := a.Recaller().Recall(context.Background(), recallQuery+" newest", c)
+	text, err := recallText(a, context.Background(), recallQuery+" newest", c)
 	if err != nil || !strings.Contains(text, "2099-12-31-1.md") {
 		t.Fatalf("newest excluded: %s %v", text, err)
 	}
 	recallWrite(t, path, strings.ReplaceAll(recallFact+" newest fact", "copper", "golden"))
-	text, err = a.Recaller().Recall(context.Background(), recallQuery+" newest", c)
+	text, err = recallText(a, context.Background(), recallQuery+" newest", c)
 	if err != nil || !strings.Contains(text, "golden ferry") {
 		t.Fatalf("edit not indexed: %s %v", text, err)
 	}
@@ -261,7 +261,7 @@ func TestRecallDedupRefreshIsolation(t *testing.T) {
 		return err
 	})
 	c.Dialogue = []common.Entry{{Parts: []common.Part{{Type: "text", Text: content}}}}
-	if text, err = a.Recaller().Recall(context.Background(), recallQuery+" newest", c); err != nil || text != "" {
+	if text, err = recallText(a, context.Background(), recallQuery+" newest", c); err != nil || text != "" {
 		t.Fatal("already-present content recalled")
 	}
 	other, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "offline", DataDir: t.TempDir(), Recall: ensemble.RecallSettings{DisableJudge: true}})
@@ -269,7 +269,7 @@ func TestRecallDedupRefreshIsolation(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer other.Shutdown()
-	if text, err = other.Recaller().Recall(context.Background(), recallQuery, &common.Context{}); err != nil || text != "" {
+	if text, err = recallText(other, context.Background(), recallQuery, &common.Context{}); err != nil || text != "" {
 		t.Fatal("cross-Agent corpus leak")
 	}
 	disabled, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "offline", Recall: ensemble.RecallSettings{Disabled: true}})
@@ -291,6 +291,17 @@ func TestRecallInterrupt(t *testing.T) {
 	case <-peer.judgeStarted:
 	case <-time.After(time.Second):
 		t.Fatal("judge never ran")
+	}
+	// A recorded barrier proves the actor processed the hint before inspection.
+	if err := a.Post(ensemble.Hint{Text: "steer during recall"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Ephemeral("barrier"); err != nil {
+		t.Fatal(err)
+	}
+	view := a.History().Context()
+	if len(view.Ephemera) != 2 || view.Ephemera[0].Text != "steer during recall" {
+		t.Fatal("hint became retained dialogue during recall")
 	}
 	if err := a.Post(ensemble.Interrupt{}); err != nil {
 		t.Fatal(err)
@@ -319,7 +330,7 @@ func TestRecallJudgeTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 18*time.Second)
 	defer cancel()
 	start := time.Now()
-	text, err := a.Recaller().Recall(ctx, recallQuery, &common.Context{})
+	text, err := recallText(a, ctx, recallQuery, &common.Context{})
 	elapsed := time.Since(start)
 	if err != nil || strings.Count(text, "From memory/") != 2 || elapsed < 14*time.Second || elapsed > 17*time.Second {
 		t.Fatalf("judge timeout/fallback: %v %v %s", elapsed, err, text)
@@ -335,11 +346,134 @@ func TestRecallJudgeContext(t *testing.T) {
 	for _, text := range []string{"old-excluded", "recent-one", "recent-two", "recent-three"} {
 		c.Dialogue = append(c.Dialogue, common.Entry{Kind: common.KindDialogue, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: text}}})
 	}
-	if _, err := a.Recaller().Recall(context.Background(), recallQuery, c); err != nil {
+	if _, err := recallText(a, context.Background(), recallQuery, c); err != nil {
 		t.Fatal(err)
 	}
 	wire := peer.wires()[0]
 	if strings.Contains(wire, "old-excluded") || !strings.Contains(wire, "recent-one") || !strings.Contains(wire, "recent-three") || strings.Contains(wire, "[2]") || !strings.Contains(wire, "[1]") {
 		t.Fatal("judge prompt limits wrong")
+	}
+}
+
+// TestRecallSources discovers manuals without loading their tools, and keeps
+// optional document corpora under the Agent's own directory.
+func TestRecallSources(t *testing.T) {
+	root := t.TempDir()
+	// The CLI uses a relative data directory with an independently absolute skill root.
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, err = filepath.Rel(cwd, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	skills := skillFiles(t, map[string]string{
+		"base":     "---\nname: base\ntype: primary\nloadable-skills: calendar\n---\nAnswer briefly.",
+		"calendar": "---\nname: calendar\ntype: loadable\n---\n## Iridium calendar\nUse the iridium calendar to schedule telescope bookings.",
+	})
+	for _, source := range []string{"docs", "handoffs", "learnings"} {
+		if err := os.MkdirAll(filepath.Join(root, source), 0700); err != nil {
+			t.Fatal(err)
+		}
+		recallWrite(t, filepath.Join(root, source, "record.md"), "## Iridium "+source+"\nThe iridium telescope booking belongs to "+source+".")
+	}
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "offline", DataDir: root, Recall: ensemble.RecallSettings{DisableJudge: true, MinScore: .1, MaxSnippets: 4}}, ensemble.AgentSpec{SkillsDir: skills, PrimarySkill: "base"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	text, err := recallText(a, context.Background(), "Please explain the iridium telescope booking calendar instructions and the archived documentation from our previous project discussion.", &common.Context{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, source := range []string{"docs/record.md", "handoffs/record.md", "learnings/record.md", "skills/calendar/SKILL.md"} {
+		if !strings.Contains(text, "From "+source) {
+			t.Fatalf("missing source %s: %s", source, text)
+		}
+	}
+	if got := a.Skills().LoadableSkills(); len(got) != 1 || got[0] != "calendar" {
+		t.Fatal("recall activated skill")
+	}
+}
+
+// TestRecallJudgeRoute keeps model-specific headers with the selected stateless
+// request, even when the main Agent uses the course inline-tools fixture model.
+func TestRecallJudgeRoute(t *testing.T) {
+	beta := make(chan string, 1)
+	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { beta <- r.Header.Get("anthropic-beta"); peer.serve(w, r) }))
+	defer server.Close()
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.Anthropic, Model: "claude-opus-5-course", BaseURL: server.URL, DataDir: t.TempDir(), Recall: ensemble.RecallSettings{JudgeModel: "claude-haiku-5-5"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	if _, err := a.Engine().Judge(context.Background(), "Return a JSON array of zero-based candidate indices: []"); err != nil {
+		t.Fatal(err)
+	}
+	if <-beta != "" {
+		t.Fatal("judge inherited parent model header")
+	}
+	if !strings.Contains(peer.wires()[0], "claude-haiku-5-5") {
+		t.Fatal("judge route model missing")
+	}
+}
+
+// recallText exercises the real service while leaving presentation assertions concise.
+func recallText(a ensemble.Agent, ctx context.Context, query string, c *common.Context) (string, error) {
+	data, err := a.Recaller().Recall(ctx, query, c)
+	if len(data.Parts) == 0 {
+		return "", err
+	}
+	return data.Parts[0].Text, err
+}
+
+// TestRecallCappedDedup retains the identity of a partially shown snippet through
+// replay, but permits a real source edit even beyond the visible capped prefix.
+func TestRecallCappedDedup(t *testing.T) {
+	peer := &recallPeer{vendor: ensemble.OpenAI}
+	a := recallAgent(t, ensemble.OpenAI, peer, ensemble.RecallSettings{DisableJudge: true, MaxSnippets: 1})
+	root := a.Config().DataDir
+	if err := os.RemoveAll(root); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "memory"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 25; i++ {
+		recallWrite(t, filepath.Join(root, "memory", fmt.Sprintf("padding-%d.md.retired", i)), "Garden carrots and apples.")
+	}
+	path := filepath.Join(root, "memory", "2026-10-01-1.md.retired")
+	source := "## Quartz zephyr migration\n" + strings.Repeat("quartz zephyr migration preserves transaction order. ", 230) + "OLD_END"
+	recallWrite(t, path, source)
+	if _, err := a.Ask(context.Background(), recallQuery); err != nil {
+		t.Fatal(err)
+	}
+	entries := recallEntries(a)
+	if len(entries) != 1 || len(entries[0].Parts[0].Text) != 6144 || len(entries[0].RecallHashes) != 1 {
+		t.Fatal("capped attachment or identity missing")
+	}
+	var saved bytes.Buffer
+	if err := a.History().Dump(&saved); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.History().Load(&saved); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.Ask(context.Background(), recallQuery); err != nil {
+		t.Fatal(err)
+	}
+	if len(recallEntries(a)) != 1 || strings.Count(peer.wires()[1], "[Auto-recalled memories]") != 1 {
+		t.Fatal("capped snippet recalled twice")
+	}
+	// The changed suffix was not shown before. Identity must describe source
+	// content, not merely the filename or the clipped display bytes.
+	recallWrite(t, path, strings.ReplaceAll(source, "OLD_END", "NEW_END"))
+	if _, err := a.Ask(context.Background(), recallQuery); err != nil {
+		t.Fatal(err)
+	}
+	if len(recallEntries(a)) != 2 {
+		t.Fatal("edited capped source not recalled")
 	}
 }

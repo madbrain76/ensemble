@@ -1,0 +1,5 @@
+--- FAIL: TestRecallDedupRefreshIsolation (0.01s)
+    recall_test.go:281: disabled recall installed
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL

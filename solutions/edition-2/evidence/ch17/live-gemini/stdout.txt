@@ -1,0 +1,9 @@
+Based on the provided context:
+
+* **Release code:** QZ-731
+* **Owner and rehearsal date:** Morgan; October 23
+* **Rejected approach and why:** Automatic retry after timeout, because the remote transaction may already have committed
+* **Unresolved decision:** Ledger placement (application database vs. separate control database)
+* **Rollback retention:** Nine days
+* **Owner:** Morgan
+* **Why automatic retry was rejected:** Because the remote transaction may already have committed.

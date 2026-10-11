@@ -1,0 +1,5 @@
+--- FAIL: TestRecallDedupRefreshIsolation (0.01s)
+    recall_test.go:265: already-present content recalled
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL

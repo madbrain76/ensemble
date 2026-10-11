@@ -1,0 +1,83 @@
+[
+  {
+    "claim": "short-query-r2",
+    "file": "internal/recall/recall.go",
+    "old": "utf8.RuneCountInString(query) < s.MinQueryLength",
+    "new": "utf8.RuneCountInString(query) < 0",
+    "test": "^TestRecallDedupRefreshIsolation$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "hint-during-recall",
+    "file": "internal/history/reduce.go",
+    "old": "e.Type == \"hint_received\" || ",
+    "new": "",
+    "test": "^TestRecallInterrupt$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "same-size-edit",
+    "file": "internal/recall/recall.go",
+    "old": "file, len(body), body",
+    "new": "file, len(body), \"\"",
+    "test": "^TestRecallDedupRefreshIsolation$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "secondary-sources",
+    "file": "internal/recall/recall.go",
+    "old": "\"memory\", \"docs\", \"handoffs\", \"learnings\", \"skills\"",
+    "new": "\"memory\", \"docs\"",
+    "test": "^TestRecallSources$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "owner-corpus",
+    "file": "internal/recall/recall.go",
+    "old": "root := r.parent.Config().DataDir",
+    "new": "root := \".\"",
+    "test": "^TestRecallSources$",
+    "exit": 1,
+    "intended_failure": false
+  },
+  {
+    "claim": "judge-limit",
+    "file": "internal/recall/judge.go",
+    "old": "len(out) < s.MaxSnippets",
+    "new": "len(out) < len(candidates)",
+    "test": "^TestRecallJudge$/selected$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "judge-model",
+    "file": "internal/engine/judge.go",
+    "old": "cfg.Model = cfg.Recall.JudgeModel",
+    "new": "cfg.Model = e.parent.Config().Model",
+    "test": "^TestRecallJudge$/selected$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "offline-replay",
+    "file": "internal/history/history.go",
+    "old": "func (h *history) replay(e common.Event) {",
+    "new": "func (h *history) replay(e common.Event) {\n if e.Type == \"recall_attached\" { return }",
+    "test": "^TestRecallTurnReplayCheckpoint$",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "recall-disable",
+    "file": "ensemble/ensemble.go",
+    "old": "if !cfg.Recall.Disabled {",
+    "new": "if true {",
+    "test": "^TestRecallDedupRefreshIsolation$",
+    "exit": 1,
+    "intended_failure": true
+  }
+]
