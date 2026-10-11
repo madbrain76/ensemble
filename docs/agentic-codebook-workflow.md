@@ -1,5 +1,26 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 13 accepted
+
+Independent combined review `50e75462` accepts The Channel Nobody Tested at
+initial review, zero formal rounds; checkpoint `edition-2-enhanced-ch13-r1`.
+Actual revised full runs at first-green source score accepted100/100 and
+legacy75/100. Final sentence-boundary assertions pass focused95/95 and75/95;
+with unchanged parity, final totals are explicitly composed100/100 and75/100.
+Twenty-one targeted defects fail as intended; the initial punctuation-boundary
+survivor remains recorded. Exact examples, affected race checks and hard prose
+lint pass. Original95/100 and retained live/native/listening limits remain.
+
+Silence cannot prove suppression when the file read failed: inspect its actual
+correlated result first. Likewise, paragraph-separated phrases did not test
+sentence segmentation; adjacent sentences exposed the surviving defect. A valid
+partial transcript cannot excuse a failed harness process. Keep these separate
+from the real legacy adjacent-bullet defect, and keep numeric transcript checks
+separate from full listener capability, final-only rendering and human listening.
+Author and reviewer held all four full documents after their required reloads.
+Continue Chapter14 (original15), recorded context management, with sequential
+prose/grader review and the accepted implementation's evidence limits preserved.
+
 ## October 11: enhanced Chapter 12 accepted
 
 Independent combined review `cf56e575` accepts The Agent Sees Itself at initial

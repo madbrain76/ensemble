@@ -17,8 +17,8 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapters 9–12 are accepted; Chapter 13
-(original 14, The Channel Nobody Tested) is now assigned.
+acceptance and releases the next chapter. Chapters 9–13 are accepted; Chapter 14
+(original 15, context management) is now assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
@@ -154,6 +154,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 10 (old 11) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch10-r1` |
 | 11 (old 12) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch11-r1` |
 | 12 (old 13) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch12-r1` |
+| 13 (old 14) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch13-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -574,3 +575,40 @@ Continue Edition2 Chapter13 from original14, The Channel Nobody Tested, matching
 direct `ch13`. Preserve the speech-only observer, actual five-tool restriction,
 whole-final and teardown lessons, with transcript/native/audio-quality claims
 kept distinct. Sequential gates continue.
+
+
+### October 11 Chapter 13 acceptance
+
+Independent combined review `50e75462` accepts The Channel Nobody Tested at
+initial review, zero formal correction rounds. Manuscript `5af5fc50`, final
+author reconciliation `ff1479a6`, grader/evidence `bd6c2703`; checkpoint
+`edition-2-enhanced-ch13-r1`. The accessibility opener, alarm analogy, empty
+telemetry, exit-code surprise and fence investigation remain. Whole-final and
+pending-sleep cleanup failures now teach their actual boundaries. All15 example
+blocks match the checked manuscript; actual public listener and GUI launches
+pass with external provider fakes. Hard prose lint passes4627 words. Author and
+reviewer each held all four complete governing documents after compaction reloads.
+
+Actual first-green full results are accepted100/100 in29.634s and legacy75/100
+in41.824s. Final focused speech95/95 and75/95 plus unchanged parity yield explicitly
+composed100/100 and75/100. Twenty-one targeted defects fail intended assertions;
+the earlier punctuation-removal survivor remains evidence of the repaired test
+gap. Three positive controls preserve free fence wording and alternate vendor
+representations. A valid19-record log cannot hide its process's exit17. The
+relative-file and undeclared-model fixture failures remain separate from actual
+legacy filtering failure; no passing silence check substitutes for successful
+file delivery. Numeric speech, full-Agent capability, final-only delivery, native
+callbacks and subjective listening retain their distinct proof and limitations.
+
+Coordinator read the complete final prose, grader and reviews, checked final
+source/sample hashes, raw scores and both unchanged frozen tree identities.
+Original95/100, earlier-source live observations and target-content failures stay
+historical. No paid repeat, runtime edit or frozen-source change occurred. See
+[author notes](edition-2-notes/enhancement-13.md),
+[coder report](edition-2-notes/enhancement-13-code.md) and
+[independent review](edition-2-notes/enhancement-13-review.md).
+Continue Edition2 Chapter14 from original15, matching direct `ch14`. Preserve
+recorded cuts and survivor teaching, serial batch completion, the explicit course
+feature matrix, process-crash durability limits, and the genuine inline-declaration
+ordering correction. Do not import future memory/compression or turn historical
+live failures into successes. Sequential acceptance gates continue.
