@@ -376,8 +376,7 @@ file's contents.
 
 After the ladder runs, what does the agent remember about a file it
 read an hour ago? Exactly what it said about the file. The result is a
-stub, the call may be gone, and opaque provider material has its own replay restrictions. This handoff removes tool parts; it does not claim to erase every opaque part. The words the agent wrote in the dialogue are the only record that
-survives every level up to `RedactDialogue`. Chapter 2 wrote the rule
+stub, the call may be gone, and opaque provider material has its own replay restrictions. This handoff removes tool parts; it does not claim to erase every opaque part. The words the agent wrote in the dialogue remain a readable account through tool clearing, until a later operation such as `RedactDialogue` removes them. Chapter 2 wrote the rule
 into the definition of `RedactTool`: remove calls and results
 entirely, keep visible reasoning.
 
@@ -471,9 +470,9 @@ keeps both new flags false.
 
 > **Open risk.** Per-round-trip stubbing may interfere with the
 > model's thinking: a model reasoning across several round trips has
-> its evidence removed between steps. Nobody has measured it. The
-> experiment that would settle it is one task, one model, stubbing on
-> and off, with the outcomes compared by quality rather than by bytes.
+> its evidence removed between steps. The retained experiments did not measure
+> that effect on reasoning quality. A useful comparison would hold the task and
+> model fixed, run with stubbing on and off, and assess the work rather than bytes.
 
 ## §14.9 From compress_context to micro_handoff
 

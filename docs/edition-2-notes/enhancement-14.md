@@ -169,9 +169,9 @@ pending human edit, beyond an echoed settings value. No browser rerun is claimed
 ## Initial stage checks and next gate
 
 Stable initial manuscript SHA-256:
-`82d944af1fe5d64ed116115d69c8c8196f5162e72fb19a81d3db6752d8e35e34`.
+`55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816`.
 Direct `go run ./cmd/lintprose book/edition-2/chapter-14.md` passes hard checks,
-6,743 words. Soft negation/person-gap warnings were read; they do not justify
+6,753 words. Soft negation/person-gap warnings were read; they do not justify
 removing necessary distinctions or adding invented people. The original teaching
 progression and stories earn the current length.
 
@@ -191,3 +191,9 @@ requires `.agents/skills/ensemble-coding/SKILL.md`.
 
 The final cross-reference pass maps the inherited wrong-data observation to
 Edition 2 Chapter 12. Local links resolve; sample bytes are unchanged.
+
+Draft-stage reviewer feedback narrowed two inherited claims: readable narration
+survives tool clearing alongside retained opaque material, and the retained
+experiments did not measure reasoning-quality effects. The prose no longer
+claims narration is the only survivor or that nobody has measured the question.
+These are prose corrections; exact sample bytes remain unchanged.
