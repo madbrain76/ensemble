@@ -2,6 +2,16 @@
 
 ## October 11: original24 accepted; terminal fleet follows
 
+Original25 first green is `7175d33`, main tree
+`9528cdd0dbfda11a7c3b3b77bf33223a4dade259`; core/GUI tests and vet plus focused
+fleet race checks pass. The unchanged original grader on an exact isolated
+archive returns **0/100 FAIL** in 0.610 seconds (make2/grader1, no timeout).
+All seven checks stop before inference because no model is supplied; no fleet
+behavior was observed by that run. Raw/provenance is committed at `5f48ac4`.
+Independent review and the final live/mutation evidence remain pending; this
+checkpoint is not accepted and no combined `ch22` export exists yet.
+
+
 Independent review `d747be7` accepts original24 source `0430df4`, main tree
 `8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, with three narrow fixture exceptions
 and zero formal correction rounds. The unchanged original grade remains
