@@ -85,7 +85,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 0–1 | Complete | Accepted after one prose correction | `02efcd4`, `edition-2-enhanced-ch01-r1` |
 | 2 | Complete | Accepted at initial formal review | `ec8c901`, `edition-2-enhanced-ch02-r1` |
 | 3 | Complete | Accepted at initial formal review | `601791a`, `edition-2-enhanced-ch03-r1` |
-| 4 (includes old 5) | Complete | Accepted at initial review with recorded source-test exception | `7b8f46a`, `edition-2-enhanced-ch04-r1` |
+| 4 (includes old 5) | Complete | Accepted with recorded source-test exception; assignment clarification independently accepted | `7b8f46a`, `edition-2-enhanced-ch04-r1`; clarification `edition-2-enhanced-ch04-r2` |
 | 5 (old 6) | Complete | Accepted at initial formal review | `e7f40fa`, `edition-2-enhanced-ch05-r1` |
 | 6 (old 7) | Complete | Accepted at initial formal review | `54939b6`, `edition-2-enhanced-ch06-r1` |
 | 7 (old 8) | Complete | Accepted at initial formal review | `e6ae895`, `edition-2-enhanced-ch07-r1` |
@@ -241,6 +241,15 @@ test limitation using source and independent group-kill evidence, without claimi
 a zombie was observed or waiving group kill. No runtime or frozen export changed.
 The coordinator checked the prose diff, grader, evidence and disposition. Chapter
 5 (original 6) may now begin after this checkpoint.
+
+October 10 follow-up requested by Bill: Chapter 4 now has an explicit TL;DR
+and a five-step external-consumer exercise, including configuration, public
+construction, registration, actual tool execution/diagnostic and shutdown.
+The combined requirements already existed in its teaching and 160-point rubric;
+this makes the assignment visible in both requested locations. Independent
+review accepted the clarification with no corrections; hard prose checks pass.
+No grader, runtime, snapshot or historical score changed. See the addenda in
+the Chapter 4 author and review records; the original checkpoint remains intact.
 
 ### Chapter 5 grader scope
 

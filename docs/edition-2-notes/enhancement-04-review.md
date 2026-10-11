@@ -235,3 +235,35 @@ The only exception is the explicitly retained inherited process-existence test
 limitation above. This pass did not change original graders, first-edition text,
 frozen exports or runtime; unrelated shared-tree first-edition work is outside
 that claim. Coordinator owns the commit/tag and the next chapter gate.
+
+## October 10 follow-up: combined assignment clarified
+
+Accepted the focused prose clarification requested by Bill. Independently read
+the new TL;DR and expanded Exercise against original Chapter 5 §5.6, its logger
+and globals sections, and the existing combined grader. The five steps now make
+the external task explicit: independently build a public-library consumer, read
+provider configuration, construct its Ensemble and Agent, register and invoke
+an application-defined tool, and shut down. Instance registration and actual
+parent access preserve Bill's architecture without imposing the original API
+spellings or restoring its global registration example.
+
+The TL;DR covers the existing tool declaration, successful correlated result,
+timestamped diagnostic, import topology and ownership obligations. The unchanged
+rubric remains jobs 100, consumer 25, star 25 and diagnostic 10. Source review
+still establishes real composition, parent relationships, behavior placement
+and absence of mutable application globals; diagnostic output alone does not.
+No new feature, protocol, runtime change or grader requirement was introduced.
+
+The diff adds 53 lines and removes none; the original opener and stories remain.
+The summary and explicit task sequence earn their space by making the combined
+assignment findable. Independent focused prose lint passes all hard checks at
+8,116 words; its length, negation and person-gap warnings remain warnings, not
+reasons to remove useful teaching. Scoped whitespace checks pass. Verified final
+manuscript SHA-256:
+`8beba353da4ae602064dcfb62d7a7354fa8f4d5140c344642930fc0b67cdb7c2`.
+
+No runtime suite or paid run was repeated for this prose-only change. Prior
+scores, validation and the recorded immediate-PID assertion exception remain
+unchanged. This follow-up is accepted at initial review with no correction
+round; the coordinator owns its checkpoint. Mandatory skill, carryover and full
+voice/procedure were reread under the bounded enhancement plan.

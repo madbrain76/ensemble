@@ -133,3 +133,28 @@ No original/frozen file, tag or student score was changed; no commit, mock or
 later chapter draft was made. Final manuscript SHA-256 is
 `69430f9659ed8f8ce7504097e0d67235d0dc820c1b57da0e5627149eb6e8c7b9`.
 Author alignment is complete; independent combined acceptance remains pending.
+
+## October 10 follow-up: make the combined assignment explicit
+
+Bill requested that Chapter 4's TL;DR cover the original Chapter 5 grader's
+needs and its exercise include that chapter's work. The accepted manuscript
+already contained the consumer/logger teaching, case file and 100 + 60 grading
+tables, but had no TL;DR and left the consumer lifecycle distributed across
+those explanations. Added a TL;DR after the preserved opener and a five-step
+external-application sequence in Exercise: separate public-module build,
+environment/configuration and construction, per-Agent registration, actual
+handler/result/diagnostic execution, and shutdown. The description/object-schema
+requirement is explicit. Source review still owns the parent-chain, logging,
+behavior-placement and mutable-state proof; numeric output does not replace it.
+
+This clarifies existing scope against original Chapter 5 §5.6 and the unchanged
+combined grader. No sample, command, table, runtime, grader, frozen export or
+historical result changed. The original stories and explanations remain intact.
+Author reread the full current voice/procedure, mandatory coding skill and
+carryover; the bounded plan still supersedes the retired procedure's workflow.
+Focused prose lint passes every hard check at 8,116 prose words (previously
+7,639); soft length, negation and person-gap warnings remain for judgment under
+Bill's right-length instruction. `git diff --check` passes. No runtime or paid
+run was needed for this unchanged contract. Submitted for independent review;
+manuscript SHA-256:
+`8beba353da4ae602064dcfb62d7a7354fa8f4d5140c344642930fc0b67cdb7c2`.

@@ -143,6 +143,14 @@ The author, coder and reviewer stop at this authorized boundary; the original
 student remains accepted through Chapter 9. The enhancement plan records every
 checkpoint and the unfulfilled Astra-high/Edition-3 destination.
 
+Bill's subsequent Chapter 4 clarification exposed a presentation gap: the
+merged external-consumer exercise and rubric were present, but the chapter had
+no TL;DR and its consumer lifecycle was spread across sections. The author added
+the overview and explicit task sequence; independent review checked both against
+original Chapter 5 and the unchanged combined grader. When merging chapters,
+verify that the summary and exercise each make the combined assignment clear,
+as well as preserving its detailed teaching and checks.
+
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these

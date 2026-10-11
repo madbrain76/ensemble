@@ -53,6 +53,30 @@ inversion is the chapter's design idea. The wait belongs to the caller, not to
 the tool, and §4.6 is where the argument happens, because I got it wrong twice
 in one afternoon before Bill got it right.
 
+## TL;DR
+
+Every ordinary tool call becomes a supervised job at the shared dispatch site.
+Give it a handle, preserve its full output on disk, and return a bounded readout
+with its status. A wake delay or matched pattern ends the caller's wait; it does
+not kill the work. Add `wait_for_job`, `send_input`, `kill_job` and one-shot
+`tool_limits`; these controls do not create jobs themselves. Use a PTY for
+interactive commands and keep it alive until the process finishes. Explicit
+kill and application shutdown stop jobs and record why. Preserve Chapter 3's
+tools and CLI behavior.
+
+Also build a separate Go application that imports the public library, configures
+an Ensemble and Agent, and registers a custom tool on that Agent. Supply a name,
+nonempty description and object argument schema. Ask for work that invokes it:
+the real handler must run through the same job path, return a successful result
+under the matching call id, and emit a timestamped diagnostic through its actual
+parents to Ensemble's logger. Finish the exchange and shut down cleanly.
+
+Keep the star imports, behavior in its responsible package, and application
+state with its owners; no mutable global registry or logger. The exercise is
+100 jobs points plus 60 for external execution, topology and diagnostics.
+Source review still checks ownership and mutable state: a printed log line
+cannot prove those relationships.
+
 ## 4.1 You cannot tell from the name
 
 The instinct is to file the screenshot under bad luck. It is the predictable
@@ -674,6 +698,35 @@ contract rather than read back from the log.
 Keep `chat`, `render LOG`, `dump` and `CH02_LOG`; no new core CLI mode is
 required. The separate consumer is a new application of the public library,
 not a replacement for that CLI.
+
+The submission has two working programs: the core CLI with supervised jobs,
+and the external application that proves somebody else can use that machinery.
+For the external application:
+
+1. Create a separate Go module with its own `go.mod` importing your public
+   library. Build it independently, without importing the core's internal
+   packages or assembling another tool loop.
+2. Read the established provider environment (`LLM_VENDOR`, `LLM_MODEL`,
+   `LLM_API_KEY`, `LLM_BASE_URL`) and construct the Ensemble and its Agent
+   through the public API.
+3. During setup, register one custom tool on that Agent, keeping its builtins.
+   Give the tool a name, a nonempty description, an object argument schema and
+   a handler that computes a result from its arguments. Have that handler log
+   a timestamped diagnostic through the actual parent chain to Ensemble's
+   logger.
+4. Ask a prompt intended to trigger the tool and complete the exchange. Verify
+   that its declaration reaches the provider, its handler executes through the
+   existing job machinery, and its successful output reaches the next request
+   under the call's id. Inspect the saved output and job metadata too; a final
+   answer or an unknown-tool error is insufficient proof.
+5. Shut down through the public lifecycle so the application's outstanding jobs
+   are cleaned up. Run the ordinary CLI checks as well as the separate consumer
+   check below.
+
+Use the public names your library exposes. This carries forward the original
+Chapter 5 exercise without its global registration example or a new refactor.
+The topology and ownership requirements apply to both programs; the source
+review obligations below remain part of completing the exercise.
 
 One prerequisite: `dlv` on your `PATH` or in `$(go env GOPATH)/bin`. The
 `debugger` check fails with the `go install` line when it is absent. It does
