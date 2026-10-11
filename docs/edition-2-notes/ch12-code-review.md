@@ -267,3 +267,10 @@ within its stated limits. No Chapter 12 behavior or architecture requirement is
 waived. The three-provider live receipts and 15 browser checks are reused with
 their original source provenance; no paid, browser or full-grader rerun was
 performed or implied. No unresolved finding remains.
+
+Coordinator checkpoint qualification: the final validated manifest contains 92
+paths because it also hashes ignored runtime output `gui/test_ch06.log`; the
+initial manifest includes the same generated path. The immutable source export
+contains the 91 tracked files, excluding that log. Original manifests and
+measured hashes remain unchanged. Source and export Git trees match exactly at
+`cab2281`; this is a source-count clarification, not a changed acceptance result.
