@@ -127,9 +127,17 @@ type AgentNode struct {
 }
 
 // TreeSnapshot returns the current agent hierarchy as a tree of nodes.
-// Safe to call from any goroutine.
+// Named agents appear as direct children of root alongside any spawned
+// sub-agents. Safe to call from any goroutine.
 func (e *Ensemble) TreeSnapshot() AgentNode {
-	return e.nodeFor(e.root)
+	node := e.nodeFor(e.root)
+	// Add named agents from the registry as children of root.
+	e.mu.RLock()
+	defer e.mu.RUnlock()
+	for _, a := range e.agents {
+		node.Children = append(node.Children, e.nodeFor(a))
+	}
+	return node
 }
 
 func (e *Ensemble) nodeFor(a *Agent) AgentNode {
