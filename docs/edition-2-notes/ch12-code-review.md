@@ -205,3 +205,65 @@ speech. No mocked core behavior or mock framework was found.
 Correction round 1 should resolve the single behavior finding and the evidence
 wording, then return source, affected checks and targeted sensitivity evidence.
 The original grading history and all initial failures remain unchanged.
+
+## Correction round 1 — accepted with recorded grader exceptions
+
+Read the full revised student response and its affected-check/mutation records.
+Verified all 92 final hashes in `student-source-round1.json` against source
+commit `e5377f86be883e921c3876ea83f3cf65841c73eb`. Only three source paths changed:
+the automatic collector, its existing peer helper and the new completion tests.
+The initial submission and failed probe remain above and in their original
+artifacts. **Chapter 12 is accepted after one correction round**, with the
+fixed-path WebSocket and inherited recursive-parity exceptions described above.
+
+The production correction adds a buffered handler-completion result for automatic
+collection. It follows real job completion and rejects a killed job; ordinary
+callers retain `Job.Wait` and callback semantics. The existing invocation context
+lets a turn abandon collection without killing its job, while the eventual
+result still reaches retained output/history. This resolves the finding without
+enlarging a timeout, copying job behavior or adding a new interface/framework.
+The added comments explain precisely that lifetime distinction.
+
+I reran the **same independent faithful-peer probe** under race detection against
+the corrected source: both the immediate peer and the 3.4-second peer pass.
+The delayed provider request now includes `ACTUAL_SLOW_TURN_CONTEXT`. Independently
+reran the interrupt and ordinary correlation/kill/callback tests under race
+detection; both pass. Raw commands, outputs and source revision are in
+`reviewer-round1-checks.json`. The temporary source copy was removed.
+
+The coder's gated regressions additionally check both round and turn tools,
+no provider request before completion, a new turn completing while the old
+automatic call is still held, retained late output and no stale context leaking
+into the newer conversation. The two restored-defect mutations fail for the
+intended reasons: premature provider requests/running notices, and a cancellation
+notification caused by incorrectly killing the old job on turn interrupt.
+Their outputs contain no compile failure or race warning. Core tests/vet and
+the complete MCP race suite pass on the restored source; no broader repeat is
+needed for this correction.
+
+The browser label now says “applied and effective.” Independently compared its
+artifact with the initial commit: only that check label and the explanatory
+`label_correction` changed. Captured requests, trace and observations are intact.
+The revised note accurately separates inherited persistence evidence from this
+DOM/effective-state assertion.
+
+Relative to the initial review, production grows only 8 active / 5 comment / 13
+physical Go lines; tests add 123 active / 6 comment / 133 physical lines and two
+same-line helper replacements. The completed chapter production delta is thus
+940 active / 121 comment / 1128 physical Go lines; its Go-test delta is 508 /
+23 / 551. JavaScript and examples are unchanged from the initial comparison.
+The additional tests cover the demonstrated lifetime defect and its relevant
+interruption constraint; their size is justified. KISS, useful documentation,
+actual ownership, optional GUI separation and no-mocks findings remain clear.
+
+Acceptance does **not** revise grading history: the full original run remains
+interrupted/unscored (reported exit 143), the unchanged current-chapter probe is
+80/90 on interim source, and recursive parity remains unrun. The old-path
+WebSocket checker cannot evaluate this required optional GUI shape; actual
+browser/tunnel evidence establishes that behavior separately. Passing protocol
+credits do not establish the grader's unexercised engine/tool/ephemera claims;
+the inspected integration, mutation and live evidence supplies those proofs
+within its stated limits. No Chapter 12 behavior or architecture requirement is
+waived. The three-provider live receipts and 15 browser checks are reused with
+their original source provenance; no paid, browser or full-grader rerun was
+performed or implied. No unresolved finding remains.
