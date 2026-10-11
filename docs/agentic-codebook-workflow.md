@@ -20,6 +20,24 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 original19 / Edition2 ch18 awaits human sign-in.** Automated work
+is committed at `7a2d562`, main tree `f2435030abf494b287f8ce9a0bc9d1e7f0e1b720`.
+Core/GUI tests and vet, focused OAuth/Responses race checks, incremental browser
+summary speech and 35 intended mutation failures are recorded in `ch19.md`.
+The actual API-key CLI session succeeded; coordinator independently checked its
+tool result, optimal answer and hint continuation. Its zero cache grants remain
+zero. The live run exposed missing Responses input in the lens; the correction
+was verified against captured requests offline without another paid run.
+The original grade remains **15/100 FAIL**, with the earlier provenance and
+vacuous billing award preserved. Plan access and formal comparative review remain
+pending; no acceptance or export is claimed. Both delegates are stopped.
+The concrete command and fresh external profile are in
+`solutions/edition-2/evidence/ch19/signin-handoff.json` (`7a42142`). Coordinator
+verified the built binary hash and source tree. No production flow has started:
+Bill must complete browser sign-in/consent while the five-minute login runs.
+Earlier preparation states below remain historical. Preserve CodeRhapsody’s
+Edition 1 commits and working changes throughout.
+
 **Original19 / Edition2 ch18 is now active.** Fresh blind coder
 `student_continue_ch19` extends the accepted cache chapter in main. Current
 OAuth/Responses source preparation and narrow grader launch/observation facts
