@@ -1,0 +1,31 @@
+go run ./cmd/grade -ch 18 ./solutions/edition-2/main/gui
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-skills-1097338792/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-skills-1097338792/base/SKILL.md: skill "base" has invalid type ""
+Chapter 18 — The Invisible Invoice
+============================================================
+
+[FAIL]      a cache lens observes consecutive requests, so a broken prefix can be found  (0/15)
+       GUI server did not start
+
+[FAIL]      the tool and system sections are byte-identical across turns, so they can be cached at all  (0/20)
+       GUI server did not start
+
+[FAIL]      the system prompt and the message history both carry a cache_control marker, and the history one advances  (0/15)
+       GUI server did not start
+
+[FAIL]      the event log holds token counts only; cost is derived at display time  (0/15)
+       GUI server did not start
+
+[FAIL]      the meter reports the session, not the lifetime restored from disk  (0/10)
+       GUI server did not start
+
+[FAIL]      cache reads are zero on a cold turn and reported faithfully on a warm one  (0/10)
+       GUI server did not start
+
+[FAIL]      every vendor parser extracts all four usage categories from its own reply shape  (0/15)
+       anthropic run failed: GUI server did not start
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

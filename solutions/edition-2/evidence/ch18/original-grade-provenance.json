@@ -1,0 +1,18 @@
+{
+  "source_commit": "7436fcb35ef54e2996114a2d3fe68fae4cfac82e",
+  "main_tree": "05e0d2e92a9f70f5d2433af76c1a3cbf5208b493",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=18",
+    "DIR=./solutions/edition-2/main/gui"
+  ],
+  "started_utc": "2026-10-11T13:34:32.936951+00:00",
+  "finished_utc": "2026-10-11T13:34:54.079435+00:00",
+  "make_exit_code": 2,
+  "output_sha256": "82053233f0bfdee03295053fdbb7b400df3f1406bc056db4de4e26e1e3a3dbe1",
+  "score": 0,
+  "possible": 100,
+  "grade_status": "FAIL",
+  "grader_exit_code": 1
+}
