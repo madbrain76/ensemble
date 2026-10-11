@@ -57,3 +57,42 @@ Noise-KK connection.
 - Ensemble actor-loop integration — separate concern, deferred
 - Web dashboard — CLI + logs
 - TLS certificate management — Cloudflare handles it
+
+### Pinned names
+
+The grader compiles a probe program against your client library and drives
+your gateway binary, so these names and flags are part of the contract.
+Everything not listed here is yours to name.
+
+**Package** `agent/gateway` (public; must not import `agent/internal/...`):
+
+| Pinned | Shape |
+|--------|-------|
+| `Connect(ctx, ClientConfig, Handler) (*Client, error)` | dials, handshakes, starts the receive goroutine |
+| `ClientConfig` | fields `GatewayURL`, `AgentID`, `StaticKey`, `GatewayPubKey`, `LastAckedSeq` |
+| `Handler` | methods `OnDeliver(Envelope)`, `OnConnected(WelcomePayload)`, `OnDisconnected(string)`, `OnError(error)` |
+| `Client` | methods `Send`, `Respond`, `RegisterChild`, `DeclareContactable`, `Close`, `Done` |
+| `OutboundMessage` | fields `ToAgent`, `Content`, `ConversationID`, `ResponseMode` |
+| `ChildRegistration` | fields `AgentID`, `PublicKey []byte`, `Groups []string` |
+| `Envelope` | fields `MessageID`, `Seq`, `AgentID`, `Source`, `ConversationID`, `Content`, `ResponseMode` |
+| `Source` | fields `Type`, `ChannelID`, `UserID`, `DisplayName`, `Trust` |
+| `WelcomePayload` | fields `AgentID`, `QueuedCount`, `ServerVersion` |
+| `Trust` | constants `TrustOwner`, `TrustTrusted`, `TrustExternal` |
+| `ResponseMode` | constants `ResponseAsync`, `ResponseSync`, `ResponseFireAndForget` |
+| `NewNoiseKK(role, static, peerStatic, prologue)` | roles `"initiator"` and `"responder"` |
+| `NoiseKK` | methods `WriteHandshakeMessage`, `ReadHandshakeMessage`, `Encrypt`, `Decrypt`, `IsHandshakeComplete` |
+| `GenerateKeypair()`, `EncodePublicKey([]byte) string`, `ParsePublicKey(string) ([]byte, error)`, `LoadOrCreateKeypair(path)` | key handling |
+
+**Binary** `agent/cmd/gateway`:
+
+| Pinned | Meaning |
+|--------|---------|
+| `-config <path>` | gateway config file; run the server |
+| `-print-key` | print the gateway's public key to stdout and exit |
+| `-listen <addr>` | override `gateway.listen` from config |
+| config keys | `gateway.listen`, `gateway.data_dir`, `agents.<id>.{display_name,public_key,groups}`, `groups.<name>.{description,capabilities,trust}` |
+
+The provenance header delivered to an agent is exactly
+`[GATEWAY source=<channel> user=<user> trust=<trust>]`, followed by a blank
+line, followed by the original content.
+
