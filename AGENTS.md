@@ -1,5 +1,17 @@
 # Ensemble student restart
 
+## October 10: later refactor decision gates
+
+Bill requires stops at original first-edition Chapters 22 and 24. Complete the
+preceding chapter and its review, then stop before implementing or drafting
+either refactor chapter. At 22, Bill will decide whether and how to merge its
+material into original Chapter 21 or 23. At 24, stop again for his decision on
+placement. The coordinator pauses active delegates and waits; no autonomous
+merge, skip, renumbering or advance past these gates. Carry forward the lessons
+already approved for earlier exercises, without adding later capabilities early.
+These future gates do not themselves release the completed early enhancement
+pass into further chapter work.
+
 ## October 10: bounded author–coder enhancement pass
 
 Bill explicitly authorized author and coder to enhance original Chapters 1–9

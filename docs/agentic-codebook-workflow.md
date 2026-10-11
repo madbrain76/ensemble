@@ -1,5 +1,17 @@
 # Agentic codebook: edition workflow and learning record
 
+## Required decisions at original Chapters 22 and 24
+
+Bill specified these stops on October 10, using first-edition chapter numbers.
+After completing and reviewing original Chapter 21, stop before Chapter 22
+implementation or authorship. Bill will decide whether and how Chapter 22's
+material belongs in Chapter 21 or 23. After completing and reviewing original
+Chapter 23, stop before Chapter 24 for a separate placement decision. At each
+gate, pause active delegates and wait for Bill; do not merge, skip, renumber or
+advance autonomously. No placement is settled by the carryover's preservation
+list. These gates govern future authorized work and do not themselves start a
+new run beyond the completed early enhancement pass.
+
 **Current solution paths, October 10:** after the bounded enhancement and its
 Chapter 4 clarification, Bill authorized aligning the solution directories with
 the book. Original `ch04`–`ch09` now have exact preserved copies under
@@ -611,6 +623,34 @@ reaches the application's logger through the owner chain without exposing keys.
 The deleted Chapter 1 (§§1.9–1.10) made these examples concrete. Use them to test
 the existing architecture; they do not require another acceptance framework or
 a new paid multi-agent demonstration for every chapter.
+
+Apply the composition-root check per executable. Chapter 22's first repair check
+let a healthy auxiliary program satisfy a tree-wide count while the actual main
+command still bypassed the public root. Review actual constructor calls and
+runtime paths for the command being shipped, not the presence of a good example
+elsewhere. See [Chapter 22's repair](../book/chapter-22.md#the-repair).
+
+Chapter 24 extends that discipline to public reuse and relocation. An external
+consumer must construct the needed public values and exercise the feature;
+an in-tree test can hide an `internal/` dependency. Inspect transitive imports
+on the actual headless and GUI consumers, with positive controls. When moving
+packages or assets, identify affected earlier harnesses and applications and
+run their relevant checks; retain historical path support where needed. Verify
+wire behavior from requests and resulting effects, not reply counts alone.
+Build supervised probes to binaries before launching them, and verify child
+cleanup: a killed build-tool wrapper can leave a child holding output pipes
+open. These are focused verification rules, not a new whole-book sweep after
+every edit. Sources: [§24.5](../book/chapter-24.md#245-the-proof),
+[§24.7–24.8](../book/chapter-24.md#247-taking-it-for-a-spin).
+
+When consolidating the repair chapters, use the carryover's
+[capability table](edition-2-carryover.md#coverage-of-the-architecture-repair-chapters)
+as the preservation list. Chapter 22's `agent_status` and per-model accounting,
+and Chapter 24's embedded deployment, component-only reuse and public MCP relay,
+must not disappear merely because their motivating refactors are unnecessary.
+Record where each capability is taught and verified after Bill's corresponding
+Chapter 22 or 24 placement decision. This does not bring later features into the completed early chapters;
+Bill's separate-module, actual-parent and no-mocks rules continue to govern.
 
 ### Reviewer acceptance of an unreasonable exercise
 

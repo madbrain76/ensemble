@@ -1,5 +1,13 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 10 decision gates, original chapter numbering.** Complete and review
+Chapter 21, then stop before Chapter 22 implementation or authorship. Bill will
+decide whether and how to merge its material into Chapter 21 or 23. Complete and
+review Chapter 23, then stop before Chapter 24 for his separate placement
+decision. The coordinator pauses delegates and waits at each gate. Do not merge,
+skip, renumber or advance on the basis of the lesson table below. These future
+gates do not themselves authorize resuming work beyond the completed early pass.
+
 **October 10 author-pass update.** Bill authorized a bounded enhancement of
 accepted original Chapters 1–9 as Edition 2 Chapters 1–8, plus the agreed Chapter
 0 guidance, with coder/grader collaboration and independent prose/code review.
@@ -156,6 +164,12 @@ Introduce these objects only as needed. The executable must actually use the
 public library's composition root: a correct constructor with zero callers
 protects nothing. Source: [Chapter 22, “The measurements that found it”](../book/chapter-22.md#the-measurements-that-found-it);
 binding clarification: [coding skill](../.agents/skills/ensemble-coding/SKILL.md#architecture-from-the-first-line).
+
+Check that composition path for each executable being delivered. Chapter 22's
+first structural check counted roots across the whole tree: a healthy auxiliary
+command concealed the main command's bypass. A valid library constructor or a
+different passing consumer cannot establish the current binary's wiring.
+Source: [Chapter 22, the repair](../book/chapter-22.md#the-repair).
 
 Make the chain concrete: Engine's parent is Agent; Agent's parent is Ensemble.
 Agent owns its conversation and configuration; Engine owns its HTTP transport
@@ -497,13 +511,20 @@ permission to invent the missing sub-agent exercise. Sources:
 [§23.3–23.7](../book/chapter-23.md#233-two-boundaries-not-one),
 [§23.9–23.10](../book/chapter-23.md#239-what-does-not-work).
 
-## Coverage of the two architecture-repair chapters
+## Coverage of the architecture-repair chapters
 
-Bill intends to absorb **Chapter 5, The Big Refactor**, and **Chapter 22,
-Architectural Decay**, into the appropriate earlier teaching in the new edition.
-Chapter 20 is **The Crossover**, not the second repair chapter. The student still
-follows the original numbering and exercises; this future editorial consolidation
-does not delete first-edition history or skip required capabilities.
+**Chapter 5, The Big Refactor**, has been absorbed into the enhanced early
+chapters. **Chapter 22, Architectural Decay**, has a required stop for Bill's
+decision about merging its material into original Chapter 21 or 23. Chapter 20
+is **The Crossover**, not the second repair chapter. The continuing student uses
+original numbering and exercises up to that gate; consolidation does not delete
+first-edition history or skip required capabilities.
+Chapter 24, **Freeing the GUI**, supplies further separation, reuse and deployment
+lessons. Its upfront architectural lessons are already above; its later
+capabilities and verification lessons are recorded below so consolidation cannot
+silently discard them. Their placement in later exercises is still to be decided;
+they do not expand the completed Chapters 0–8 enhancement or authorize new work.
+Stop before Chapter 24 as well; Bill decides its placement at that gate.
 
 | Original lesson or capability | Carry forward and eventual placement |
 | --- | --- |
@@ -512,8 +533,13 @@ does not delete first-edition history or skip required capabilities.
 | Ch22: the running binary actually uses the library's composition root; constructor and logging checks test relationships, not names | Apply throughout; the workflow's architecture review and mutation checks guard the real wiring. Do not recreate a flat root merely to refactor it later. |
 | Ch22: a tool dispatch context reaches Engine through a common interface and follows its parent accessors | Establish this when tool dispatch arrives. Expose the owning Engine, not copied usage/model values or a special status callback that creates a second route. See [Ch22 TL;DR](../book/chapter-22.md#tldr). |
 | Ch22: per-model usage and cost, without repricing old work after a model switch | Apply when accounting/model switching arrives; covered in the cost guidance above. |
-| Ch22: `agent_status` reports current model, last response usage, session totals, cache hit rate and cost through the ownership chain | Preserve this feature and its live model-switch exercise. The later author–coder phase assigns its place alongside tool/usage teaching; it is not a Chapter 1 feature. |
+| Ch22: `agent_status` reports current model, last response input/output/cache-read usage, session totals, cache hit rate and USD cost through the ownership chain | Preserve this feature and its live model-switch exercise. Its placement follows Bill's Chapter 22 decision; it is not an extra early tools feature. |
 | Ch22: disconnect can race with observer sends; superficially defensive code and timing-heavy tests can both hide the defect | Apply when GUI connection lifetimes arrive, as described below. |
+| Ch24: external reuse requires both a public GUI boundary and constructible event vocabulary; headless core/MCP must not acquire GUI or WebSocket dependencies transitively | Keep the existing separate-module and public-interface rules. Exercise outside consumers and both positive/negative import controls when those features exist; inspect the actual executable's dependency graph. Do not import the original `AgentHooks` design. Sources: [§24.2](../book/chapter-24.md#242-two-paths-to-gorilla), [§24.5](../book/chapter-24.md#245-the-proof). |
+| Ch24: the deployed GUI starts away from the source tree; embedded assets have an explicit development override | Preserve this later deployment capability. Test a built binary from an unrelated working directory and test the selected disk override separately. Read-only embedded contents do not make an exported variable binding immune to reassignment; neither a blanket package-variable ban nor a broad globals exemption establishes safe ownership. Source: [§24.4](../book/chapter-24.md#244-embedding-the-assets). |
+| Ch24: an application can reuse the Artifact scroll without the full application shell, and can use the public browser MCP relay | Preserve both reuse capabilities when their exercises are reached. Exercise public inputs, replay and prompt delivery, component-only asset serving, and request-correlated relay responses through the real GUI/transport with small external-boundary fakes. Do not require the chapter's callback bundle or fake away the core behavior under test. Source: [§24.6](../book/chapter-24.md#246-reuse-for-real). |
+| Ch24: package moves preserve wire behavior and model switching, including the actual setting's effect | Reuse the existing behavioral session across the move; inspect captured provider requests to establish the chosen model changed at the intended turn boundary. Reply counts or settings acknowledgements alone are insufficient. Sources: [§24.7](../book/chapter-24.md#247-taking-it-for-a-spin), [§24.8](../book/chapter-24.md#248-checks). |
+| Ch24: relocating code also affects old harness paths and supervised child processes | Inspect affected earlier graders, asset readers, launchers and external applications. Preserve their historical-version support where applicable. Build supervised probes first and run their binaries directly; account for child lifetime and inherited output pipes rather than assuming killing a `go run` wrapper stopped its child. Sources: [§24.7](../book/chapter-24.md#247-taking-it-for-a-spin), [§24.8](../book/chapter-24.md#248-checks). |
 
 Chapter 22's [disconnect failure](../book/chapter-22.md#the-crash-the-decay-concealed)
 teaches that a `select` with `default` does not make sending to a closed channel
@@ -584,6 +610,14 @@ chapters and record coverage before applying their lessons. Provider names, pric
 limits and capability claims throughout this review are historical source
 claims; no provider access or external verification was performed here.
 
+Three Chapter 24 teaching corrections also travel with these lessons. A keyed
+Go struct literal can omit fields, so a dependency bundle does not enforce
+required-parent validity. An outside consumer cannot import `internal/llm` as a
+workaround for a missing public type. `go list -deps` establishes import
+reachability; it does not measure retained machine-code bytes. These corrections
+were recorded in [the Chapter 24 reading notes](edition-2-notes/ch24.md) and do
+not prescribe a replacement framework.
+
 ## Reading coverage and later use
 
 October 9 coordinator preparation reread all 373 lines of Chapter 9 at file
@@ -602,6 +636,16 @@ at `2ca63636c8ba592ea0ed190fb0a3c4731e2b0848`; SHA-256
 The coordinator checked the cited excerpts and accepted the narrow verification
 lesson above. No new feature or implementation work is authorized by this reading.
 Deferred lessons and teaching corrections are in `edition-2-notes/ch24.md`.
+
+October 10 coverage audit: coordinator reread original Chapters 22 and 24 in
+full against this carryover and the workflow. Chapter 22 remains at file revision
+`7855ab1`, SHA-256
+`2589a196ad87504ab7193475a3ffba0e5961d57dd5a35ed4cc4e9a2888208118`;
+Chapter 24 still matches the revision and hash above. Chapter 22's main lessons
+were present, with per-executable composition checking now explicit. Chapter
+24's deployment/reuse and harness lessons previously lived only in its chapter
+notes; the table now carries them into the governing document with their
+deferred scope intact. This reading adds no implementation or grading claim.
 
 Codex read [the topology decisions](ensemble-topology-decisions.md) in full on
 October 9, at file revision `70acadd09115ec0543dd39cec3a3d7196dd15295`.
