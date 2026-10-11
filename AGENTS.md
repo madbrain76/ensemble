@@ -1,5 +1,14 @@
 # Ensemble student restart
 
+## October 11: preserve CodeRhapsody’s concurrent Edition 1 work
+
+Bill explicitly reiterates that CodeRhapsody is writing new Edition 1 Chapters
+25 and 26. Preserve its commits and working changes. Do not undo those commits,
+reset or rewrite shared history, or restore/stage unrelated files. Edition 2
+agents commit only their exact owned source, notes and evidence paths, using an
+isolated index while other writers are active. Reconcile only those owned index
+entries afterward; leave all other work untouched.
+
 ## October 11: Auto-Recall decisions approved
 
 Bill agrees with both original Chapter 17 / Edition 2 Chapter 16 decisions:
