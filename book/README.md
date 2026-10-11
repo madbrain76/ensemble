@@ -24,6 +24,7 @@ book/
 ├── note-from-bill.md                  ← author's note (update edition number here)
 ├── front-matter.md                    ← EPUB front matter (update edition number here)
 ├── front-matter-print.md             ← print PDF front matter (update edition number here)
+├── epub.css                           ← ebook-only CSS overrides (code block spacing)
 ├── cover.png                          ← book cover image
 ├── print-header.html                  ← CSS for print PDF (margins, fonts, page numbers)
 ├── build-print.py                     ← two-pass print PDF builder
@@ -99,6 +100,30 @@ its own contents from those. Keeping our "# Contents" section as well is
 what produced a book showing the table of contents twice.
 
 Output: `book/The Art of Building AI Coding Agents.epub`
+
+**Code block spacing (`book/epub.css`).** Pandoc injects a highlighting
+`<style>` into every chapter that sets
+`pre > code.sourceCode > span { display: inline-block; line-height: 1.25 }`,
+making every line of code its own inline-block. Browsers render that
+single-spaced, but e-readers can give those spans and their empty per-line
+anchors block behaviour, which costs a blank line per line of code.
+`book/epub.css` pins the spans inline, hides the anchors, and tightens
+code leading to 1.15.
+
+Two traps if you touch this:
+
+- `--css` **REPLACES** pandoc's default EPUB stylesheet instead of adding
+  to it. The script concatenates `pandoc --print-default-data-file=epub.css`
+  with `book/epub.css`; passing ours alone silently drops all base styling.
+- The syntax colours do NOT live in that stylesheet — they are in an inline
+  `<style>` per chapter, so swapping the stylesheet does not lose them.
+
+The build asserts both halves shipped. Measured effect in Chrome:
+code-line pitch 12.75pt → ~11.7pt, chapter 6 renders 14 pages → 13. The
+larger e-reader gap cannot be reproduced in a browser; check Kindle
+Previewer. If it persists, the guaranteed fix is
+`--syntax-highlighting=none`, which removes the per-line spans entirely
+at the cost of colour.
 
 ### Step 3: Build the print interior PDF (paperback)
 

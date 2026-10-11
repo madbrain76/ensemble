@@ -63,7 +63,7 @@ fi
 # Derive the ebook manuscript: drop the "# Contents" section and everything
 # under it, up to the next level-1 heading. Print keeps the original file.
 DERIVED="$(mktemp -t ebook-manuscript)"
-trap 'rm -f "$DERIVED"' EXIT
+trap 'rm -f "$DERIVED" "${CSS:-}"' EXIT
 
 awk '/^# Contents/{skip=1; next} skip && /^# /{skip=0} !skip' \
     "$MANUSCRIPT" > "$DERIVED"
@@ -77,11 +77,20 @@ if [ "$after" -ne "$((before - 1))" ]; then
     exit 1
 fi
 
+# Stylesheet: pandoc's --css REPLACES the default EPUB stylesheet rather
+# than adding to it, so passing book/epub.css alone would silently drop all
+# the base styling. Concatenate: stock default first, our overrides second.
+# (book/epub.css fixes double-spaced code blocks; see the comment in it.)
+CSS="$(mktemp -t ebook-css)"
+pandoc --print-default-data-file=epub.css > "$CSS"
+cat "$BOOK_DIR/epub.css" >> "$CSS"
+
 pandoc "$FRONT" "$DERIVED" \
     -o "$OUT" \
     --from=markdown --to=epub \
     --toc-depth=1 \
     --resource-path="$BOOK_DIR" \
+    --css="$CSS" \
     -M title="$TITLE" \
     -M author="$AUTHOR" \
     --epub-cover-image="$COVER"
@@ -111,6 +120,28 @@ embedded=$(unzip -l "$OUT" | grep -ciE '\.(png|jpg|jpeg|gif)$' || true)
 if [ "$embedded" -ne "$((refs + 1))" ]; then
     echo "build-ebook: $refs images referenced plus 1 cover, but $embedded" >&2
     echo "build-ebook: embedded. Figures were dropped. Check --resource-path." >&2
+    exit 1
+fi
+
+# The code-spacing fix lives in a stylesheet that pandoc SUBSTITUTES
+# wholesale. If --css is ever dropped, the ebook still builds and still
+# looks fine in a browser; it regresses only on e-readers, where nobody
+# notices until a reader complains. Assert both halves shipped.
+#
+# Count rather than grep -q: under `set -o pipefail`, grep -q closes the
+# pipe on its first match, unzip dies of SIGPIPE, and the pipeline reports
+# 141 even when the rule IS present.
+override=$(unzip -p "$OUT" 'EPUB/styles/*.css' | grep -c 'display: inline !important' || true)
+base=$(unzip -p "$OUT" 'EPUB/styles/*.css' | grep -cE '^html \{' || true)
+if [ "$override" -lt 1 ]; then
+    echo "build-ebook: book/epub.css overrides missing from the ebook." >&2
+    echo "build-ebook: code blocks will be double-spaced. Was --css lost?" >&2
+    exit 1
+fi
+if [ "$base" -lt 1 ]; then
+    echo "build-ebook: pandoc's default EPUB stylesheet is missing. --css" >&2
+    echo "build-ebook: REPLACES it, so it must be concatenated, not passed" >&2
+    echo "build-ebook: on its own." >&2
     exit 1
 fi
 
