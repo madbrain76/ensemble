@@ -1,0 +1,62 @@
+{
+  "source": "35df549210130f824fdc2a4eb632ea878b2c529b",
+  "tree": "5b36f28cbc8bac320febe1a9afa810efd27452e3",
+  "raw_api_sha256": "079c5bbbdaf69e39969541087105ebd34e0307dee8af5ca175b2240264e00299",
+  "binary_sha256_verified": "86d5734eb0beeb176a7ba87c95f082a44c47f9e0e3c3077362988f8a36c0e1df",
+  "requests": 3,
+  "completed": 3,
+  "all_model_effort": "gpt-6-astra/high",
+  "matched_provider_and_raw_gui_results": [
+    {
+      "name": "write_file",
+      "result": "wrote 42 bytes to deployment-demo.txt"
+    },
+    {
+      "name": "read_file",
+      "result": "Embedded GUI works from a fresh directory."
+    }
+  ],
+  "assistant_final": "The file reads: \u201cEmbedded GUI works from a fresh directory.\u201d",
+  "actual_disk_bytes_verified": 42,
+  "dom_contains_actual_assistant_final": true,
+  "source_web_directory_absent": true,
+  "assets": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/style.css",
+      "status": 200
+    },
+    {
+      "path": "/app.js",
+      "status": 200
+    },
+    {
+      "path": "/artifact-scroll.js",
+      "status": 200
+    },
+    {
+      "path": "/mcp.js",
+      "status": 200
+    },
+    {
+      "path": "/speech.js",
+      "status": 200
+    },
+    {
+      "path": "/renderers.js",
+      "status": 200
+    }
+  ],
+  "page_errors": [],
+  "exit": 0,
+  "seconds": 9.649,
+  "limits": [
+    "No reviewer provider or credential/profile access.",
+    "Full-GUI deployment live; standalone component and TCP relay use separate real browser/external-peer tests.",
+    "Model switch uses unchanged earlier live evidence and current deterministic controls.",
+    "No network endpoint interception."
+  ]
+}

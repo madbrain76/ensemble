@@ -1,7 +1,9 @@
 # Original24 / Edition2ch22 opening stage: reviewer preparation
 
 Reviewer `reviewer_astra`, GPT-6 Astra/high, October 11, 2026.
-**Preparation only; implementation and formal review pending; zero rounds.**
+**Accepted with three narrow grader-fixture exceptions at initial review;
+zero formal correction rounds. Intermediate original24 checkpoint only.**
+The final disposition below supersedes historical pending-review statements.
 Mandatory `.agents/skills/ensemble-coding/SKILL.md` applies. Full chapter/read
 coverage and independent merge agreement are recorded in [ch22 review](ch22-code-review.md).
 No original answer, provider or grader execution was used for this preflight.
@@ -90,3 +92,151 @@ appears in the student's delta. Final KISS/comments/tests disposition waits for
 completed evidence; no blocking source finding has emerged at this checkpoint.
 
 Display transcripts normalize trailing whitespace only.
+
+
+## Final independent disposition
+
+**Accepted with exceptions**, original24 / opening stage of Edition2ch22:
+`0430df4340fffac5234a94aea843f9a7c9d02282`, main tree
+`8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`. Read the complete final
+[student review](ch24.md), final delta and mutation records alongside the source
+and comparative inspection above. Mandatory `.agents/skills/ensemble-coding/SKILL.md`
+read in full. Independently verified all164 final manifest hashes. There are no
+unresolved source, documentation, ownership, scope or bloat findings. Zero formal
+correction rounds; the student's test repairs occurred before formal submission.
+Do not export an accepted combined Edition2ch22 yet: original25 must first be
+implemented and independently accepted.
+
+### Accepted explanations, actual grade retained
+
+The unchanged original grader remains **0/100 FAIL** on `35df549`,20.89s,
+make2/grader1, without external timeout. Independently accept these three fixture
+exceptions, agreeing with the complete student review for these specific reasons:
+
+1. Four checks never reach their assertions because one assembled external
+   fixture imports the root executable and a same-module GUI. The actual public
+   core is `ensemble/ensemble` and GUI is the separate optional module required
+   by Bill. Neither a callback bundle nor a same-module compatibility facade is
+   an appropriate repair. The actual outside-module consumer constructs public
+   events, drives real replay/prompt/relay behavior and checks both dependency
+   closures. The old `mcpws` pathname is not a capability: this implementation's
+   existing virtual user uses a browser peer over the public raw MCP transport,
+   with its browser implementation outside core. That actual consumer still runs.
+2. Two checks launch the headless executable with GUI flags. The actual optional
+   GUI executable serves embedded assets from an unrelated cwd, including through
+   the live human browser. Model selection still reaches the same actor at the
+   turn boundary; unchanged source, current deterministic tests and accepted
+   original22 live/model-switch evidence support reuse of that result. A fresh
+   paid switch solely for asset extraction would add no relevant observation.
+3. The root scanner's free-function `NewAgent` positive control cannot recognize
+   the public Ensemble method. Both shipped commands still use the actual public
+   root, and the external headless MCP consumer plus actual command dependency
+   checks establish the intended GUI/WebSocket exclusion, with GUI positive
+   controls. No special free-function wrapper or root relocation is needed.
+
+These waive fixture layout and shape assumptions only. Public reuse, component
+independence, relay correlation, deployment/override, event vocabulary, headless
+imports and actual model-switch behavior are retained obligations. No original
+source or grader was edited, no failing check is recast as passing, and no
+future fleet feature is included. Later grader maintenance needs both module
+replacements and the real optional-GUI entry point, while preserving historical
+layout support.
+
+### Final verification and evidence limits
+
+The final source differs from live `35df549` only in a clearer public method
+comment, multiline constructor formatting and tests. Independent final
+[external run](../../solutions/edition-2/evidence/ch24/reviewer-final-external.txt)
+passes, including its own nested race instrumentation and actual Chrome;
+[receipt](../../solutions/edition-2/evidence/ch24/reviewer-final-check.json)
+records exact source,164-file manifest match and command. It exercises the repaired
+embedded-shell assertion and browser-disconnect/shutdown cases. The separate
+reviewer client-EOF/late-reply probe above remains valid for unchanged behavior.
+Core and GUI tests/vet, complete GUI race suite, renderer/speech browser checks,
+virtual-user/peer lifetime checks and formatting all have retained passing results.
+The initially empty race selection and missing-checksum/copied-memory setup
+failures are correctly excluded from evidence of working behavior.
+
+The independent [live receipt](../../solutions/edition-2/evidence/ch24/reviewer-live-check.json)
+checks binary SHA, all3 actual request/completion pairs as GPT-6 Astra/high,
+matching provider and raw GUI results for write_file/read_file, exact42-byte disk
+artifact, and the actual assistant final in the DOM. The full embedded GUI ran
+from fresh cwd with no source web directory, all7 selected asset requests returned
+200, no page errors occurred, and exit0 followed9.649s. A DOM match to the human
+prompt alone would not have established success; the final and disk checks do.
+This demonstrates full-GUI deployment; component-only and new TCP relay behavior
+have separate real browser/external-peer tests. No second model client using the
+new relay, new paid model-switch run or network-endpoint interception is claimed.
+Reviewer read no credential profile and made no provider call.
+
+Reviewed the18 initial mutations and2 corrected repeats, including actual failure
+locations and setup. The initial embedded-default mutation **survived**: a cwd
+listing returned200 and defeated the status-only control. Requiring the actual
+shell title now kills that same mutation. The initial relay-client-close mutation
+reached its intended assertion but then timed out during cleanup at45s; it is
+not a clean original kill. Explicit client defers fix cleanup ordering, and the
+repeat exits in4.28s with the intended `relay shutdown stuck` assertion and no
+cleanup timeout. Preserve both corrections rather than counting20 independent
+proofs. Speech-owner removal times out at the actual pre-final speech observation;
+prompt/relay timeout failures likewise occur at the specific withheld result,
+with successful baselines. Import mutants compile with the cached dependency
+supplied, then fail the intended transitive check, not module setup.
+
+Those checks protect the current mechanisms; they do not establish exhaustive
+protocol correctness. Client EOF/late reply is additionally checked by the
+independent real-network probe; the student's shutdown mutant alone is not
+claimed to prove every cancellation interleaving. A silent connected browser
+has the documented lifetime bound of browser/client/server closure, not an
+invented per-request timeout. Public export removal is a compile boundary, not
+a claimed behavioral mutation kill. No mocks or generic verification framework
+were introduced.
+
+### Final comparative assessment
+
+Final own-predecessor deltas, physical / active / comment-only / blank:
+
+| Category | Student | Original |
+| --- | --- | --- |
+| Production Go | +220 / +191 / +20 / +9 | +24 / +13 / +11 / +0 |
+| Production JavaScript | +8 / +4 / +3 / +1 | 0 / 0 / 0 / 0 |
+| Test Go | +376 / +356 / +14 / +6 | +144 / +108 / +24 / +12 |
+| Test MJS | +38 / +35 / +2 / +1 | 0 / 0 / 0 / 0 |
+
+The updated [count receipt](../../solutions/edition-2/evidence/ch24/reviewer-counts.json)
+includes whole before/after totals and separates tests, languages and support.
+Lexical comment-only lines are excluded from active counts; inline code remains
+active. Generated IO, docs and evidence are excluded. Moved code is counted once,
+not as a new subsystem. Four final active-line additions merely expand a struct
+literal for readability; they are not four new behaviors.
+
+This chapter starts from different predecessors. The original moved an existing
+GUI, standalone component and TCP relay; the student already had the required
+optional-module boundary but lacked the public relay and independent scroll.
+Its production growth supplies those assigned capabilities. Extracted renderer
+logic stays one implementation used by both shell and component. The relay uses
+its existing transport owner, writer and server lifetime, with a per-browser
+request map to keep caller collisions and core MCP IDs separate. It selects one
+browser, so it needs no broadcast duplicate-response router. No new core facade,
+callback wiring bundle, generic event layer or speculative fleet API is present.
+
+The original has richer explanatory blocks, particularly about imports and
+request routing, but its hook bundle retains optional dependencies and exported
+asset binding. The student retains actual root/Agent access and a private embed
+anchor with a read-only accessor. New public Go symbols have useful contracts;
+comments explain ownership, independent MCP lifetimes, private IDs, late replies,
+EOF cancellation, serialized writes, embedded roots and optional component speech.
+New net Go comments are about9.5% of nonblank growth, below the rough20% target;
+net delta understates retained/moved explanations and is not a quota. These small
+mechanisms remain understandable without padding. The corrected ServeMCP comment
+now clearly distinguishes absent and silent browsers. README covers actual
+imports, constructor, assets, override, component API and listener lifetime.
+
+Student tests are larger because they build a genuinely outside module and run
+the real Agent/Engine plus external peers and Chrome. The original newly added
+reuse test is `gui_test` within its module with hooks, which cannot itself prove
+the same external-module/runtime boundary; its original grader supplies outside
+probes but assumes its own layout. Student assertions now distinguish intended
+HTML from a successful directory listing and verify the relocated real command,
+not only a standalone handler. Existing rendering/model-switch behavior is reused
+with affected checks, not duplicated into a new test system. This is justified
+scope and useful failure coverage, not line-count optimization.

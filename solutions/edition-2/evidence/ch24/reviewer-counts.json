@@ -1,6 +1,6 @@
 {
   "method": "Physical/active/comment-only/blank; lexical comment-only starts //, /*, *, */, <!--; inline code remains active. Go/JS/MJS/HTML/CSS; tests and scripts support separated; docs/evidence/generated IO excluded. Net own-predecessor deltas count moves once.",
-  "student_source": "35df549210130f824fdc2a4eb632ea878b2c529b",
+  "student_source": "0430df4340fffac5234a94aea843f9a7c9d02282",
   "student_predecessor": "64e5d0c17be8db116fa4c1da52cd290c45b4e2ef",
   "original_source": "solutions/ch24 at 35df549210130f824fdc2a4eb632ea878b2c529b",
   "original_predecessor": "solutions/ch23 at 35df549210130f824fdc2a4eb632ea878b2c529b",
@@ -51,15 +51,15 @@
     },
     "after": {
       "production_go": [
-        14173,
-        11356,
+        14177,
+        11360,
         2082,
         735
       ],
       "test_go": [
-        9273,
-        8478,
-        545,
+        9298,
+        8502,
+        546,
         250
       ],
       "test_mjs": [
@@ -101,8 +101,8 @@
         0
       ],
       "production_go": [
-        216,
-        187,
+        220,
+        191,
         20,
         9
       ],
@@ -125,9 +125,9 @@
         0
       ],
       "test_go": [
-        351,
-        332,
-        13,
+        376,
+        356,
+        14,
         6
       ],
       "test_mjs": [

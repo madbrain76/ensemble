@@ -1,0 +1,13 @@
+=== RUN   TestExternalReuse
+    reuse_test.go:41: === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.86s)
+        === RUN   TestPublicRelay
+        --- PASS: TestPublicRelay (0.00s)
+        PASS
+        ok  	outside.example/reuse	1.893s
+
+--- PASS: TestExternalReuse (2.70s)
+PASS
+ok  	ensemble-gui-stub	3.724s

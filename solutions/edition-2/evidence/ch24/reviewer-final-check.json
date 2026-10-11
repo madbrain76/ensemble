@@ -1,0 +1,19 @@
+{
+  "source": "0430df4340fffac5234a94aea843f9a7c9d02282",
+  "main_tree": "8555e3cb9ab5200f0a1c52691007a7fc4a1c6797",
+  "verified_manifest_files": 164,
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-run",
+    "^TestExternalReuse$",
+    "-count=1",
+    "-timeout=90s",
+    "-v",
+    "."
+  ],
+  "exit": 0,
+  "seconds": 4.427,
+  "setup": "Exact git archive; installed node_modules linked as external test dependencies. Display transcript trims trailing whitespace only."
+}
