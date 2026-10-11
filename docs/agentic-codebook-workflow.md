@@ -20,6 +20,18 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**Paused for Bill's decision before Edition 2 Chapter 15 / original 16 code.**
+Fresh student `student_continue_ch16` completed the required reading and raised
+the forcing-policy discrepancy: the TL;DR says cumulative input/cache-write
+usage, while the explanation relies on current context occupancy falling after
+compression. Lifetime cumulative usage never falls. The student and coordinator
+recommend the latest request's context occupancy, with provider-appropriate
+accounting, but have not adopted that behavior. All delegates are stopped; the
+accepted working tree remains `6aa7fda` / `edition-2-ch15-r1`, with no source
+edits. Wait for Bill's answer before implementation. The question and source
+revision are recorded in `edition-2-notes/ch16.md`. No correction round, grade or
+live run has begun for original16. The later original22/24 stops still apply.
+
 Edition 2 Chapter 14 / original 15 is accepted after one correction round.
 The original score remains **45/100 FAIL**, with independently justified settings
 path and undefined-tool fixture exceptions. Supplemental checks cover valid

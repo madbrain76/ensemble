@@ -1,8 +1,9 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–14 are accepted**. The coder is working on **Chapter 15** in
-[`main/`](main/), the authoritative working implementation. After independent
+Chapters **1–14 are accepted**. **Chapter 15 awaits Bill's forcing-policy decision**;
+no new code has been written. [`main/`](main/) remains the accepted Chapter 14
+implementation and is the authoritative working tree. After independent
 acceptance, export it to `ch15/`; continue this numbering for later chapters.
 Do not put new solutions in `history` or create symlinks.
 
