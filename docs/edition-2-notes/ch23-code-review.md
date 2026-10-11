@@ -38,3 +38,38 @@ unsupported-platform refusal. Those are the original chapter's claims, not an
 expanded security certification or a demand for future spawning features.
 Source, own-predecessor/reference comparisons, student explanations, unchanged
 grading, live use and targeted mutation evidence remain pending frozen handoff.
+
+
+## First-green source preflight: actual cache-boundary defect
+
+Read frozen `fcb98a9459b328314f0a7ff06efbb5e7c85fe07e`, main tree
+`f2f8ff00229a4e198988b8756c8702b42b34ab1c`, the student's implementation
+checkpoint, and matching first-edition sandbox source after implementation was
+available. Final review/live/mutations remain pending. Zero formal rounds used.
+
+The original grader's actual result is **0/100 FAIL**,0.623s, without timeout.
+Six behavioral sessions stop at `provider model is not set`: its launch supplies
+no model. The child-spec probe imports the module root, which is a command,
+instead of the public `ensemble/` package. These are independently confirmed
+fixture incompatibilities, not proof that sandbox behavior passed. No exception
+is decided before the complete student review and supplemental evidence.
+
+The student `TestSandbox*` suite passes independently with `-race` from an exact
+frozen archive (exit0,1.252s), including real OS commands and host-network control.
+An additional focused probe nevertheless found a real current-scope defect:
+Seatbelt's xcrun cache rule combines the Darwin temp subpath with a basename-only
+regex. It admits matching names at arbitrary nested depth, not only the actual
+cache location. A fake-marker file named `xcrun_db-private-marker` in an unrelated
+sibling `t.TempDir()` was readable through the real Agent, job and `run_command`;
+`cat` returned `REVIEWER_OUTSIDE_CACHE_MARKER` and exit0. No private file, profile,
+credential or provider was used. The chapter explicitly warns against shared
+temporary-directory access; this is a boundary defect rather than a new policy.
+
+Reproduction and output are retained as reviewer-owned
+[probe](../../solutions/edition-2/evidence/ch23/reviewer-cache-boundary-test.go.txt)
+and [failure](../../solutions/edition-2/evidence/ch23/reviewer-cache-boundary.txt).
+Coordinator received the finding and relayed the required behavior: narrow the
+allowance to actual toolchain cache paths, reject unrelated nested matching
+files, and retain Python/Git allowed-work controls. No original answer code or
+implementation recipe was supplied. Student main was not edited. This is
+attributed pre-submission assistance, not a completed formal correction round.

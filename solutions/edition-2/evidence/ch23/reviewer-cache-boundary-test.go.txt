@@ -1,0 +1,11 @@
+package ensemble_test
+import("os";"path/filepath";"testing";"strings")
+func TestReviewerCacheAllowanceScope(t *testing.T) {
+ root, outside := t.TempDir(), t.TempDir()
+ a:=sandboxAgent(t,root,false)
+ path:=filepath.Join(outside,"xcrun_db-private-marker")
+ if err:=os.WriteFile(path,[]byte("REVIEWER_OUTSIDE_CACHE_MARKER"),0600);err!=nil{t.Fatal(err)}
+ out,err:=sandboxCall(t,a,"run_command",map[string]any{"command":"cat '"+path+"'"})
+ t.Logf("result=%s err=%v",out,err)
+ if strings.Contains(out,"REVIEWER_OUTSIDE_CACHE_MARKER"){t.Fatal("toolchain cache allowance exposed unrelated nested temporary file")}
+}

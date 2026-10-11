@@ -1,0 +1,11 @@
+Frozen source fcb98a9459b328314f0a7ff06efbb5e7c85fe07e, exact archive plus reviewer-only test. Fake marker, no credentials/provider.
+=== RUN   TestReviewerCacheAllowanceScope
+    reviewer_boundary_test.go:9: result=REVIEWER_OUTSIDE_CACHE_MARKER
+        exit_code: 0
+         err=<nil>
+    reviewer_boundary_test.go:10: toolchain cache allowance exposed unrelated nested temporary file
+--- FAIL: TestReviewerCacheAllowanceScope (0.01s)
+FAIL
+FAIL	ensemble/ensemble	0.021s
+FAIL
+exit=1
