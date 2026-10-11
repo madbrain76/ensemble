@@ -1,0 +1,20 @@
+package ensemble_test
+import("context";"encoding/json";"os";"path/filepath";"strings";"testing";"ensemble/ensemble")
+// TestReviewerCappedRecall exercises actual turns and recorded/rendered bytes.
+func TestReviewerCappedRecall(t *testing.T){
+ for _,tc:=range []struct{name string; repeats int}{{"short-control",8},{"capped",220}} {t.Run(tc.name,func(t *testing.T){
+  p:=&recallPeer{vendor:ensemble.OpenAI}
+  a:=recallAgent(t,ensemble.OpenAI,p,ensemble.RecallSettings{DisableJudge:true,MinScore:.1,MaxSnippets:1})
+  os.RemoveAll(a.Config().DataDir)
+  os.MkdirAll(filepath.Join(a.Config().DataDir,"docs"),0700)
+  body:="## Quartz zephyr migration\n"+strings.Repeat("quartz zephyr migration decision durable ordering. ",tc.repeats)
+  recallWrite(t,filepath.Join(a.Config().DataDir,"docs/decision.md"),body)
+  for n:=0;n<2;n++ {if _,err:=a.Ask(context.Background(),recallQuery);err!=nil{t.Fatal(err)}}
+  entries:=recallEntries(a); wires:=p.wires()
+  artifact,_:=json.MarshalIndent(map[string]any{"source_bytes":len(body),"entries":entries,"requests":wires},"","  ")
+  if err:=os.WriteFile(os.Getenv("REVIEW_ARTIFACT_DIR")+"/"+tc.name+".json",artifact,0600);err!=nil{t.Fatal(err)}
+  if len(entries)==0 || len(wires)!=2 || strings.Count(wires[0],"[Auto-recalled memories]")!=1 {t.Fatal("initial recall positive control failed")}
+  t.Logf("source=%d attachment=%d entries=%d second-request-headings=%d",len(body),len(entries[0].Parts[0].Text),len(entries),strings.Count(wires[1],"[Auto-recalled memories]"))
+  if len(entries)!=1 || strings.Count(wires[1],"[Auto-recalled memories]")!=1 {t.Fatal("identical capped recall was attached again")}
+ })}
+}

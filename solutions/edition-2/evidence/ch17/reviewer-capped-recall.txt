@@ -1,0 +1,12 @@
+=== RUN   TestReviewerCappedRecall
+=== RUN   TestReviewerCappedRecall/short-control
+    reviewer_recall_test.go:17: source=435 attachment=515 entries=1 second-request-headings=1
+=== RUN   TestReviewerCappedRecall/capped
+    reviewer_recall_test.go:17: source=11247 attachment=6144 entries=2 second-request-headings=2
+    reviewer_recall_test.go:18: identical capped recall was attached again
+--- FAIL: TestReviewerCappedRecall (0.02s)
+    --- PASS: TestReviewerCappedRecall/short-control (0.01s)
+    --- FAIL: TestReviewerCappedRecall/capped (0.01s)
+FAIL
+FAIL	ensemble/ensemble	0.024s
+FAIL

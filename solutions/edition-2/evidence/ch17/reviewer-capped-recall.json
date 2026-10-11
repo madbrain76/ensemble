@@ -1,0 +1,23 @@
+{
+  "source_commit": "fcd091f619f879341d4bee318e5f1bf8fb4bb21b",
+  "source_tree": "a2fd5a4f71d8fde7f58cfdefd18a0cfc31206d0f",
+  "command": "go test ./ensemble -run '^TestReviewerCappedRecall$' -count=1 -timeout=10s -v",
+  "result": "FAIL capped case; PASS short control",
+  "control": {
+    "source_bytes": 435,
+    "attachment_bytes": 515,
+    "entries": 1,
+    "second_request_headings": 1
+  },
+  "capped": {
+    "source_bytes": 11247,
+    "attachment_bytes": 6144,
+    "entries": 2,
+    "second_request_headings": 2,
+    "identical_attachment_parts": true
+  },
+  "elapsed_seconds": 0.024,
+  "no_production_changes": true,
+  "boundary": "actual public Agent Ask twice, real recall/history/render, external HTTP provider fake; no judge configured",
+  "analysis_script_correction": "first metadata inspection used Parts instead of JSON parts, KeyError; raw test result unaffected"
+}
