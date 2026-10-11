@@ -468,6 +468,19 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 			Usage:    eng.Usage(),
 			Model:    func() string { return eng.Cfg.Model },
 			Tree:     func() any { return en.TreeSnapshot() },
+			CreateAgent: func(name, task string) string {
+				_, err := en.CreateAgent(name, "", "")
+				if err != nil {
+					return err.Error()
+				}
+				return ""
+			},
+			DeleteAgent: func(name string) string {
+				if err := en.DeleteAgent(name); err != nil {
+					return err.Error()
+				}
+				return ""
+			},
 		}, "gui.log")
 		// view_gui: the agent looks at its own GUI when it chooses to. Registered
 		// here because it needs the guiServer, and before the actor starts, so it is in

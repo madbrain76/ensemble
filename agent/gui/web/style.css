@@ -379,6 +379,42 @@ body {
 .agent-dot.tools { color: #2196f3; }
 .agent-dot.waiting { color: #9c27b0; }
 
+.tree-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--text-dim);
+}
+
+.tree-add-btn {
+  background: none;
+  border: 1px solid var(--text-dim);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.tree-add-btn:hover { color: var(--text-main); border-color: var(--text-main); }
+
+.tree-del-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0 3px;
+  margin-left: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tree-row:hover .tree-del-btn { opacity: 1; }
+.tree-del-btn:hover { color: #e53935; }
+
 .agent-label {
   color: var(--text-dim);
 }

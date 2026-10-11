@@ -49,6 +49,8 @@ type Server struct {
 	selfReplies  *replyRouter                     // replies to the agent's own CallGUI requests
 	selfSeq      atomic.Int64                     // CallGUI request ids
 	tree         func() any                       // agent tree snapshot; nil when not wired
+	createAgent  func(name, task string) string   // create named agent; nil when not wired
+	deleteAgent  func(name string) string         // delete named agent; nil when not wired
 }
 
 // AgentHooks bundles everything the GUI server needs from the agent side,
@@ -72,6 +74,12 @@ type AgentHooks struct {
 	// Tree returns the current agent tree for the tree panel. May be nil
 	// if tree display is not wired (pre-ch26 callers).
 	Tree func() any
+	// CreateAgent creates a named agent and returns an error description
+	// (empty on success). May be nil if agent management is not wired.
+	CreateAgent func(name, task string) string
+	// DeleteAgent removes a named agent and returns an error description
+	// (empty on success). May be nil if agent management is not wired.
+	DeleteAgent func(name string) string
 }
 
 // New creates a GUI server bound to one agent's hooks. guiLogPath is the
@@ -92,6 +100,8 @@ func New(hooks AgentHooks, guiLogPath string) *Server {
 		mcpAgents:    make(map[string]*Client),
 		selfReplies:  newReplyRouter(),
 		tree:         hooks.Tree,
+		createAgent:  hooks.CreateAgent,
+		deleteAgent:  hooks.DeleteAgent,
 	}
 	h.mcpReceivers[selfSource] = h.receiveSelf
 	// logLen is the hub's notion of how much of the log is renderable. It was
@@ -633,6 +643,8 @@ func (h *Server) handleClientMessage(c *Client, raw []byte) {
 		TTS      *TTSEvent       `json:"tts"`      // speech channel record
 		Typing   bool            `json:"typing"`   // gate: a person is typing
 		Speaking bool            `json:"speaking"` // gate: speech is playing
+		Name     string          `json:"name"`     // agent name (create/delete)
+		Task     string          `json:"task"`     // initial task (create)
 	}
 	if json.Unmarshal(raw, &msg) != nil {
 		return
@@ -677,6 +689,16 @@ func (h *Server) handleClientMessage(c *Client, raw []byte) {
 			}
 			h.ttsLog.Log(ev)
 		}
+	case "create_agent":
+		if h.createAgent == nil || msg.Name == "" {
+			return
+		}
+		h.createAgent(msg.Name, msg.Task)
+	case "delete_agent":
+		if h.deleteAgent == nil || msg.Name == "" {
+			return
+		}
+		h.deleteAgent(msg.Name)
 	case "update_settings":
 		if h.settings != nil && msg.Settings != nil {
 			was := h.effectiveModel()

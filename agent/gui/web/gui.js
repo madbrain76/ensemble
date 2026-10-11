@@ -155,10 +155,25 @@
     const container = document.getElementById('agent-tree');
     if (!container || !root) return;
     container.innerHTML = '';
-    container.appendChild(buildTreeNode(root));
+
+    // Header with "+" button
+    const header = document.createElement('div');
+    header.className = 'tree-header';
+    const title = document.createElement('span');
+    title.textContent = 'Agents';
+    header.appendChild(title);
+    const addBtn = document.createElement('button');
+    addBtn.className = 'tree-add-btn';
+    addBtn.textContent = '+';
+    addBtn.title = 'Create agent';
+    addBtn.onclick = showCreateAgentDialog;
+    header.appendChild(addBtn);
+    container.appendChild(header);
+
+    container.appendChild(buildTreeNode(root, true));
   }
 
-  function buildTreeNode(node) {
+  function buildTreeNode(node, isRoot) {
     const div = document.createElement('div');
     div.className = 'tree-node';
 
@@ -191,18 +206,40 @@
       row.appendChild(detail);
     }
 
+    // Delete button on non-root nodes
+    if (!isRoot) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'tree-del-btn';
+      delBtn.textContent = '\u00d7';
+      delBtn.title = 'Delete ' + (node.id || 'agent');
+      delBtn.onclick = function(e) {
+        e.stopPropagation();
+        if (confirm('Delete agent "' + node.id + '"?')) {
+          ws.send(JSON.stringify({ type: 'delete_agent', name: node.id }));
+        }
+      };
+      row.appendChild(delBtn);
+    }
+
     div.appendChild(row);
 
     if (node.children && node.children.length > 0) {
       const kids = document.createElement('div');
       kids.className = 'tree-children';
       for (const child of node.children) {
-        kids.appendChild(buildTreeNode(child));
+        kids.appendChild(buildTreeNode(child, false));
       }
       div.appendChild(kids);
     }
 
     return div;
+  }
+
+  function showCreateAgentDialog() {
+    const name = prompt('Agent name:');
+    if (!name) return;
+    const task = prompt('Initial task (optional):') || '';
+    ws.send(JSON.stringify({ type: 'create_agent', name: name, task: task }));
   }
 
   // ── Pause gate ──
