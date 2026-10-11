@@ -26,11 +26,11 @@ func run() int {
 	mediaModels := flag.String("media-models", "", "Chapter 5–13 JSON vendor/model map (default: historical accepted fixtures)")
 	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6–13 declared Anthropic streaming fixture (historical default)")
 	streamExercise := flag.String("stream-exercise", "", "Chapter 6–13 external shape module (default: ch07 under or beside submission)")
-	gui := flag.String("gui", "", "Chapter 7–14 GUI module (default: gui under submission)")
+	gui := flag.String("gui", "", "Chapter 7–15 GUI module (default: gui under submission)")
 	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7–13 declared Anthropic GUI fixture (historical default)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 14 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7|8|9|10|11|12|13|14 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
+	if *chapter < 1 || *chapter > 15 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -68,7 +68,7 @@ func run() int {
 		*gui = filepath.Join(path, "gui")
 	}
 	buildPath := path
-	if *chapter == 14 {
+	if *chapter >= 14 {
 		buildPath = *gui
 	}
 	bin, cleanup, err := grade.Build(buildPath)
@@ -107,6 +107,8 @@ func run() int {
 		report, err = gradeedition2.Chapter11(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	case 12:
 		report, err = gradeedition2.Chapter12(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
+	case 15:
+		report, err = gradeedition2.Chapter15(bin)
 	case 14:
 		report, err = gradeedition2.Chapter14(bin)
 	case 13:

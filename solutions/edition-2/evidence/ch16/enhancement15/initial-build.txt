@@ -1,0 +1,4 @@
+# github.com/waywardgeek/ensemble/internal/gradeedition2 [github.com/waywardgeek/ensemble/internal/gradeedition2.test]
+internal/gradeedition2/ch15.go:5:2: "encoding/json" imported and not used
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2 [build failed]
+FAIL
