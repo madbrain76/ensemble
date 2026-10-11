@@ -5,13 +5,17 @@ from the prior request, including cached input exactly once, not session
 cumulative usage. Anthropic and OpenAI come first, then Gemini. Raw provider
 fields and normalized internal buckets need different arithmetic; use the
 verified contracts in `edition-2-notes/ch16.md`. The prior forcing question is
-resolved and implementation may resume. Original sources remain historical.
+resolved; original 16 is now independently accepted after one correction round.
+Original sources remain historical. Bill approved both original17 decisions on
+October 11: apply quotas to final mechanical selection only when the judge is
+absent/fails, preserving successful judge choices; search all memory files and
+skip content already in actual context, without a newest-two exclusion.
 
 **Current solution paths, Bill's October 10 correction.** Work in
 `solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
-are Edition 2 `ch09`–`ch12`; original 14–15 are accepted at `ch13`–`ch14`.
-The next original 16 will export directly to `ch15` after acceptance.
+are Edition 2 `ch09`–`ch12`; original 14–16 are accepted at `ch13`–`ch15`.
+The next original 17 will export directly to `ch16` after acceptance.
 Only retired original `history/ch05` remains. No symlinks. Original exercises,
 graders, notes, evidence and existing tags retain original numbers; identify
 both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.
@@ -624,8 +628,8 @@ The following remain source discrepancies, not newly imposed requirements:
 | Chapter 6 rule 5 and §6.6 promise two Agent completions in one wake, while §6.10 specifies a sequential three-role application. | Bill resolved this as a misleading requirement. Do not add grouped-wait or sub-agent spawning functionality to Chapter 6. Preserve distinct Agent identities, independent loops and reliable request completion for the sequential exercise; record the misleading prose/check label for later correction. See `edition-2-notes/ch06.md`. |
 | Chapter 8 §8.3 deliberately dispatches serially for pause; Chapter 15 §15.4 says tools run in parallel. | Preserve serial dispatch and the batch-completion invariant; do not add parallel execution to satisfy explanatory prose. |
 | Chapter 8 calls replay-window configuration both current and future, and its GUI-log example is not the JSON-lines shape named by its check table. | Recommend a fixed window for that exercise; confirm the actual required log format if the original grader disagrees. Record the result without changing the grader. |
-| Chapters 10 and 16 put mutable memory in history as data; Chapters 17–18 still refer to recent memory/system-prompt placement. Chapter 17 excludes recent files on that premise. | Recommend preserving memory-as-data. Resolve the recall corpus exclusion against what context actually contains, rather than copying an obsolete placement assumption. |
-| Chapter 17 TL;DR allocates quotas to candidates; §17.3 says final mechanical selection, without overruling a successful judge. | Recommend §17.3's explicit correction; this changes observable recall selection and needs Bill's agreement. |
+| Chapters 10 and 16 put mutable memory in history as data; Chapters 17–18 still refer to recent memory/system-prompt placement. Chapter 17 excludes recent files on that premise. | Resolved by Bill October 11: preserve memory-as-data, search all memory files and skip content already in actual context; no blanket newest-two exclusion. |
+| Chapter 17 TL;DR allocates quotas to candidates; §17.3 says final mechanical selection, without overruling a successful judge. | Resolved by Bill October 11: follow §17.3, applying quotas to final mechanical selection when the judge is absent/fails; preserve successful judge selections. |
 | Chapter 19 requires explicit plan-route caching; §20.4 reports that route rejected it. Chapter 19 also names quota-exhaustion errors differently in its TL;DR and billing section. | Verify the current supported route and error behavior when reached. Document conflicts with original grading; do not claim historical wire details are current, or trade billing safety for a pass. |
 | Chapter 12 requires MCP cancellation but its bridge example supplies `context.Background()`. | Preserve cancellation through the actual job lifetime; the sample cannot override the stated requirement. |
 

@@ -308,3 +308,72 @@ run is requested for this deterministic lock correction.
 Other assessed departures/exceptions are justified within the scope above; final
 acceptance waits for round1 source, affected checks and a sensitive real-runtime
 regression. No next chapter or export is released by this review.
+
+## October 11 correction round1 — accepted with recorded exceptions
+
+Reassessed frozen `05b43a0b46fa154201a8b3e97b22f96ae1047cb9`, main tree
+`4a253c57dd62b4a6ad086618574ef46af7c2d724`, after reading the complete appended
+student response and causal mutation/validation records. **Accepted with the
+recorded grader exceptions after one correction round.** The sole initial
+blocker is resolved; no remaining implementation, architecture or scope finding.
+
+A separate settings-order mutex serializes patches and subscription. The GUI
+observation mutex now protects only the brief snapshot/publication operations,
+not disk I/O or the actor acknowledgment. Lock order is settings-order then
+observation where both are needed; observation never takes the settings-order
+lock. The actor remains free to publish progress before processing the settings
+message. A subscription still waits for an in-flight patch before its snapshot,
+and subsequent patches cannot overtake broadcasts. The correction also reports
+actor-setting errors rather than silently announcing success. Core behavior,
+including effective idle memory disabling, is unchanged.
+
+The first paced restored-lock mutant **survived**, as honestly retained in the
+student evidence. It does not establish regression sensitivity. The final test
+uses a real additional display subscriber to gate the first delta before GUI
+observation, then observes the actual settings file before releasing that delta.
+With the submitted defective GUI restored, that file write proves the socket has
+already entered the lock-held transaction; its subsequent actor wait and the
+released GUI observer form the original cycle. I inspected the raw stack: idle
+control passes, active delivery times out, and settings/observer/shutdown waits
+match the original defect. This is a valid bounded liveness kill, not a setup
+error. The public subscriber adds scheduling control without replacing the
+Agent, its observer or any earlier runtime behavior; the provider fake remains
+at the HTTP boundary. Release/stream cleanup is explicit, and the overall test
+timeout bounds the defective case whose shutdown intentionally cannot complete.
+
+Independent execution from an isolated archive of the final revision reran the
+**unchanged original reviewer reproduction**, the new gated regression and
+existing settings wire/disk test together under race detection. All three pass:
+original probe 0.61s, settings wire/disk 0.01s, gated regression 0.03s; package
+1.661s, exit0. Active updates reach both clients with effective Agent values,
+fresh subscription sees the final value, streaming ends and Agent shutdown
+returns. [Raw output](../../solutions/edition-2/evidence/ch16/reviewer-round1.txt)
+and [source/command provenance](../../solutions/edition-2/evidence/ch16/reviewer-round1.json)
+preserve these observations. The coder's full GUI tests, vet and GUI race pass
+are separate affected-module evidence. No paid or original-grader repeat was
+needed; no shared product source was modified by the reviewer.
+
+The correction adds 15 physical/13 active/2 comment-only production Go lines and
+133 physical/120 active/10 comment-only test lines. Thus final chapter production
+delta is +915/+745/+124 and Go-test delta +835/+782/+35 under the initial review's
+method; examples and other languages are unchanged by this round. The extra
+mutex and local ordering comments directly address the demonstrated lifetime
+problem. The larger test exercises a real cross-component interleaving, two-tab
+publication and shutdown; it is not a generic concurrency framework. The new
+exported test and observer method have useful purpose/lifetime documentation.
+
+Acceptance does **not** revise the original **20/100 FAIL on intermediate
+`ccd6350`** or turn its vacuous eight recovery points into proof. The narrow
+cwd-versus-Agent settings fixture and inherited undefined-tool/parity exceptions
+remain independently justified as recorded above, with valid masked obligations
+supported by the real-runtime and replay evidence. The `summarizeSpan` departure
+remains accepted for actual recorded replacement. Bill's latest-request input
+ruling remains distinct from lifetime accounting. All five live runs and their
+reason-loss, invented-question, recall-error and extra-tool limitations remain
+historical outcomes; acceptance claims working mechanisms and the documented
+quality limits, not perfect summarization or universal task success.
+
+Reviewer harnesses are idle and source review is complete. Coordinator owns the
+checkpoint and direct Edition2 `ch15` export. Original Chapter22/24 decision
+gates and the stopped author phase are unchanged. Mandatory next handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.

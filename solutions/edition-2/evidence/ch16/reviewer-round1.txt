@@ -1,0 +1,13 @@
+=== RUN   TestReviewerSettingsDuringMemoryTurn
+    reviewer_memory_test.go:32: idle settings control acknowledged
+    reviewer_memory_test.go:36: all active-stream settings acknowledged
+--- PASS: TestReviewerSettingsDuringMemoryTurn (0.61s)
+=== RUN   TestSettingsWireAndDisk
+--- PASS: TestSettingsWireAndDisk (0.01s)
+=== RUN   TestMemorySettingsDuringStream
+    settings_test.go:222: idle settings control acknowledged
+    settings_test.go:254: all active-stream patches acknowledged on both tabs
+    settings_test.go:267: stream completed and Agent shutdown returned
+--- PASS: TestMemorySettingsDuringStream (0.03s)
+PASS
+ok  	ensemble-gui-stub	1.661s

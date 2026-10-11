@@ -1,0 +1,46 @@
+{
+  "source_revision": "05b43a0b46fa154201a8b3e97b22f96ae1047cb9",
+  "source_tree": "4a253c57dd62b4a6ad086618574ef46af7c2d724",
+  "command": "go test -race -run '^(TestReviewerSettingsDuringMemoryTurn|TestMemorySettingsDuringStream|TestSettingsWireAndDisk)$' -count=1 -timeout=30s -v .",
+  "exit": 0,
+  "elapsed_package_seconds": 1.661,
+  "snapshot": "isolated git archive plus unchanged original reviewer probe; no shared production edits",
+  "output_sha256": "9b1127fd1f37f979c26534eb5e9f1bdfc9195d70f237236b7cadbbb26acd3e4b",
+  "changed_file_counts": {
+    "e1c8972": {
+      "gui/gui.go": {
+        "physical": 378,
+        "active": 307,
+        "comments": 59
+      },
+      "gui/settings.go": {
+        "physical": 127,
+        "active": 103,
+        "comments": 19
+      },
+      "gui/settings_test.go": {
+        "physical": 135,
+        "active": 128,
+        "comments": 5
+      }
+    },
+    "05b43a0": {
+      "gui/gui.go": {
+        "physical": 385,
+        "active": 313,
+        "comments": 60
+      },
+      "gui/settings.go": {
+        "physical": 135,
+        "active": 110,
+        "comments": 20
+      },
+      "gui/settings_test.go": {
+        "physical": 268,
+        "active": 248,
+        "comments": 15
+      }
+    }
+  },
+  "mutation_assessment": "Read causal baseline/restored-e1c8972 stack and code. Earlier paced survivor retained, not counted as kill. Real public subscriber gate holds first delta until active patch is persisted; original source then deadlocks on released GUI observation."
+}

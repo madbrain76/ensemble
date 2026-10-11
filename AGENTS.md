@@ -1,5 +1,14 @@
 # Ensemble student restart
 
+## October 11: Auto-Recall decisions approved
+
+Bill agrees with both original Chapter 17 / Edition 2 Chapter 16 decisions:
+apply source quotas to final mechanical selection when the judge is absent or
+fails, preserving a successful judge's choices (§17.3); search all memory files
+and skip content already in actual context, without excluding the newest two.
+The Chapter 17 decision stop is lifted. Continue the authorized student/reviewer
+run, preserving original sources and the original Chapter 22/24 stops.
+
 ## October 11: prior-request input correction
 
 Bill resolves original Chapter 16 / Edition 2 Chapter 15 forcing: use total input
@@ -17,8 +26,8 @@ Bill requires accepted solutions directly in `solutions/edition-2/chNN/`, using
 Edition 2 numbering, with no symlinks. Original Chapter 5 is absorbed into
 Chapter 4; original Chapters 10–13 are Edition 2 `ch09`–`ch12`. Only the retired
 original `history/ch05/` remains. The coder extends `solutions/edition-2/main/`;
-original Chapters 14–15 are accepted at top-level Edition 2 `ch13/`–`ch14/`;
-original Chapter 16 will export directly to `ch15/` after acceptance. Never put new accepted solutions in history. Original exercise,
+original Chapters 14–16 are accepted at top-level Edition 2 `ch13/`–`ch15/`.
+Original 17 / Edition 2 Chapter 16 is released under Bill’s decisions above. Never put new accepted solutions in history. Original exercise,
 grader, note, evidence and existing tag numbers remain unchanged; state both
 numbers in handoffs. This explicitly supersedes the coordinator's history-only
 export policy. Preserve snapshot contents and existing Git tags when moving.

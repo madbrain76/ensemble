@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapters 14–15 are
-accepted at **Edition 2 `ch13/`–`ch14/`**; original 16 will export to `ch15/`. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–16 are
+accepted at **Edition 2 `ch13/`–`ch15/`**; original 17 will export to `ch16/`. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,39 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+**October 11: Bill approved both Auto-Recall decisions.** The decision stop below
+is resolved: quotas apply to final mechanical selection when the judge is absent
+or fails, without overriding successful judge choices; search all memory files
+and skip content already in actual context, without excluding the newest two.
+Resume original17 / Edition2 ch16 from accepted main tree
+`4a253c57dd62b4a6ad086618574ef46af7c2d724`. The original22/24 stops remain.
+
+**October 11 memory acceptance and next decision stop.** Original Chapter 16 /
+Edition 2 Chapter 15 is independently accepted with recorded exceptions after
+one correction round, source `05b43a0`, tree
+`4a253c57dd62b4a6ad086618574ef46af7c2d724`. The settings-order mutex resolves the
+GUI/actor lock cycle while preserving synchronous application and publication
+order. The unchanged independent reproduction and causal regression pass under
+race detection; restoring the old implementation reproduces the exact cycle.
+The initial paced mutation survivor remains evidence of a test gap, not a kill.
+
+The original grade remains **20/100 FAIL on intermediate `ccd6350`**, with
+independently justified fixture exceptions and supplemental real-runtime checks.
+The five live sessions demonstrate compression/graduation mechanics with the
+recorded preservation, recall and instruction-following limits. Coordinator
+inspection of the corrected OpenAI final request confirms the missing owner/date
+were actually sent, not merely stored. The exact 113-file accepted export is
+`solutions/edition-2/ch15`, checkpoint `edition-2-ch16-r1` (original numbering).
+See `edition-2-notes/ch16-code-review.md` for the final disposition.
+
+All delegates are idle. Before original 17 / Edition 2 Chapter 16, stop for Bill's
+already documented quota/corpus decision: §17.3 applies quotas to final mechanical
+selection without overriding a successful judge, unlike the TL;DR; the blanket
+exclusion of the newest two memory files assumes obsolete system-prompt placement.
+Recommend §17.3 and exclusion based on content actually present in context.
+No recall implementation is released; original22/24 gates and stopped authorship
+remain unchanged. Earlier status entries below are historical.
 
 **October 11 initial memory review requires correction round 1.** Frozen
 submission `e1c8972` completed all three provider stages in Bill's requested
@@ -1238,3 +1271,21 @@ remains 110/120 FAIL, with nested Chapter 4 at 90/100. The exact 32-file source
 export includes the separately built consumer. No chapter or grader was changed.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.
+
+
+October 11 checkpoint concurrency: another workspace writer committed the staged
+Chapter 16 / Edition 2 Chapter 15 export together with its own first-edition
+changes at `3173da2`, between staging and the coordinator’s path-scoped commit.
+The coordinator verified the exact snapshot tree and manifest against accepted
+`b240993`, preserved shared history, and recorded the provenance in `ch16.md`.
+Checking the index before staging does not prevent another writer from consuming
+it afterward; use an isolated index for future export commits when other writers
+are active. This event changes commit grouping, not the accepted source bytes.
+
+
+At the next turn, repository HEAD was `009d74c`, no longer descended from the
+coordinator’s preceding acceptance/export commits; their exact files remained
+on disk as dirty/untracked paths and the immutable `edition-2-ch16-r1` tag still
+preserved them. Coordinator verified accepted main and snapshot tree identities,
+then re-recorded only its owned artifacts on current history alongside Bill’s
+Auto-Recall ruling. No reset, tag move or unrelated restoration was performed.
