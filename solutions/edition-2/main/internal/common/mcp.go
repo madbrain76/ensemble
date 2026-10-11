@@ -16,16 +16,27 @@ type MCPTransport interface {
 	Close() error
 }
 
+// MCPContextTransport lets request-bound transports interrupt blocked sends.
+// Stream transports retain their existing independent receive/cancel path.
+type MCPContextTransport interface {
+	// SendContext sends while the owning job and connection remain alive.
+	SendContext(context.Context, json.RawMessage) error
+}
+
 // MCPServer is a skill's launch declaration, not an enabled-tool grant.
 type MCPServer struct {
 	// Name identifies the connection for its owning skill.
 	Name string
-	// Transport selects stdio or websocket.
+	// Transport selects stdio, websocket or url.
 	Transport string
 	// Command names the executable for a stdio server.
 	Command string
 	// Args are literal command arguments, without shell expansion.
 	Args []string
+	// URL is the Streamable HTTP endpoint for url transports.
+	URL string
+	// AuthEnv names the environment variable resolved as a Bearer token at load.
+	AuthEnv string
 }
 
 // MCP owns one Agent's external clients and their discovered tool lifetimes.
@@ -39,7 +50,7 @@ type MCP interface {
 	Done(string) <-chan struct{}
 	// AttachBrowser offers a GUI tunnel; a declared skill can start it later.
 	AttachBrowser(context.Context, MCPTransport) error
-	// StartSkill starts stdio peers and records websocket peers awaiting a browser.
+	// StartSkill starts stdio/HTTP peers and records websocket peers awaiting a browser.
 	StartSkill(string, []MCPServer, []string) error
 	// StopSkill closes only the connections declared by this skill.
 	StopSkill(string) error

@@ -186,3 +186,19 @@ The observed ChatGPT route rejects `prompt_cache_options`, so subscription
 requests omit that option and its paired explicit markers. API-key Responses
 requests retain explicit caching on supported models. Cache diagnostics remain
 active on both routes; an answered request does not establish a cache grant.
+
+Chapter 21 adds Streamable HTTP MCP peers with `transport: url`, `url` and
+`auth-env` fields. The named environment variable is resolved at skill load as
+a Bearer token; an absent value logs an anonymous-connection diagnostic. JSON
+and SSE POST replies, optional session headers and job cancellation use the
+same MCP manager and dispatch path. Non-2xx response bodies retain their reason,
+with the configured credential redacted if a server reflects it.
+
+Run `ensemble-cli chat --skills-dir /absolute/path/to/skills` and ask to load
+`web-search`. The shipped primary permits that skill, which declares only
+`firecrawl_search` and `firecrawl_scrape` at `https://mcp.firecrawl.dev/v2/mcp`.
+Set `FIRECRAWL_API_KEY` in the launching environment; never paste it into chat
+or a skill. Discovery does not grant additional tools. Unload removes the web
+capabilities immediately. Search/page text is untrusted evidence; check source
+URLs and scrape metadata before citing it. Provider tools, schemas, access and
+quotas can change; this is not a promise of URL-only provider interchangeability.
