@@ -52,9 +52,9 @@ under the threshold.
 Three files carry the edition number — update all three:
 
 ```bash
-# book/front-matter.md        →  "Sixth Update, October 2026"
-# book/front-matter-print.md  →  "<p>Sixth Update, October 2026</p>"
-# book/note-from-bill.md      →  "This is the sixth update of ..."
+# book/front-matter.md        →  "Seventh Update, October 2026"
+# book/front-matter-print.md  →  "<p>Seventh Update, October 2026</p>"
+# book/note-from-bill.md      →  "This is the seventh update of ..."
 ```
 
 ### Step 1: Assemble the manuscript
