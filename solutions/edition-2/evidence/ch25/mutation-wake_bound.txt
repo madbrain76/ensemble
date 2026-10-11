@@ -1,0 +1,6 @@
+--- FAIL: TestFleetIdleBoundAndFailedTurn (0.01s)
+    --- FAIL: TestFleetIdleBoundAndFailedTurn/false (0.01s)
+        fleet_test.go:229: three-wake bound: calls=5 err=<nil>
+FAIL
+FAIL	ensemble/ensemble	0.019s
+FAIL

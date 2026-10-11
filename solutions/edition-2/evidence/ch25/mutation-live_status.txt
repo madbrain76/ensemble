@@ -1,0 +1,5 @@
+--- FAIL: TestFleetLifecycleAndRestore (0.00s)
+    fleet_test.go:347: live child invisible []
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

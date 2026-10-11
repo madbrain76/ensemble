@@ -1,0 +1,5 @@
+--- FAIL: TestFleetMessageWakesWaitAndRetainsResult (0.51s)
+    fleet_test.go:312: message waited for command or timer
+FAIL
+FAIL	ensemble/ensemble	0.516s
+FAIL

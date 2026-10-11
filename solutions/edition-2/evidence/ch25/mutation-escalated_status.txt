@@ -1,0 +1,5 @@
+--- FAIL: TestFleetEscalatedChildStatus (0.02s)
+    fleet_test.go:564: exhausted child still claims running [{worker running  }]
+FAIL
+FAIL	ensemble/ensemble	0.026s
+FAIL

@@ -1,0 +1,8 @@
+--- FAIL: TestFleetRecursiveQuestionsIsolation (0.02s)
+    fleet_test.go:121: root join lost child's submission
+    fleet_test.go:121: root join lost child's submission
+    fleet_test.go:121: root join lost child's submission
+    fleet_test.go:121: root join lost child's submission
+FAIL
+FAIL	ensemble/ensemble	0.030s
+FAIL

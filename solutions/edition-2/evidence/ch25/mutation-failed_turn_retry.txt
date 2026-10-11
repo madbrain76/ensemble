@@ -1,0 +1,6 @@
+--- FAIL: TestFleetIdleBoundAndFailedTurn (0.02s)
+    --- FAIL: TestFleetIdleBoundAndFailedTurn/true (0.01s)
+        fleet_test.go:224: failed turn retried: calls=4 err=<nil>
+FAIL
+FAIL	ensemble/ensemble	0.023s
+FAIL

@@ -1,0 +1,6 @@
+--- FAIL: TestFleetRecursiveQuestionsIsolation (0.01s)
+    fleet_test.go:121: root join lost child's submission
+    fleet_test.go:172: factory depth=0 addressed reply=false
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL

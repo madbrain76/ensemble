@@ -1,0 +1,5 @@
+--- FAIL: TestFleetLifecycleAndRestore (0.01s)
+    fleet_test.go:396: wake 1 after submit: ""/"Agent main stopped without submit after three framework wakes"
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL

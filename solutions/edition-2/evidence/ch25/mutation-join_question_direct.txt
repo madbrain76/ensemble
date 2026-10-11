@@ -1,0 +1,5 @@
+--- FAIL: TestFleetJoinQuestionYield (0.52s)
+    fleet_test.go:443: join did not yield pending question before child submission: "" context deadline exceeded
+FAIL
+FAIL	ensemble/ensemble	0.525s
+FAIL

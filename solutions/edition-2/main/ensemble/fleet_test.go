@@ -69,7 +69,7 @@ func fleetAgent(t *testing.T, server *httptest.Server) (ensemble.Agent, humanInb
 		}
 		return a, err
 	})
-	a, err := app.NewAgent(ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}})
+	a, err := app.NewAgent(ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, MaxToolRounds: 10, Recall: ensemble.RecallSettings{Disabled: true}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestFleetRecursiveQuestionsIsolation(t *testing.T) {
 			}
 		}
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 	a, _, children := fleetAgent(t, server)
 	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 	defer cancel()
@@ -172,6 +172,18 @@ func TestFleetRecursiveQuestionsIsolation(t *testing.T) {
 		t.Fatalf("factory depth=%d addressed reply=%v", len(*children), replySeen)
 	}
 	child, leaf := (*children)[0], (*children)[1]
+	// The join handler itself must yield the question. Generic message wakeup
+	// alone could hide a still-deadlocked background join.
+	joinedQuestion := false
+	for _, event := range child.History().EventsAfter(0) {
+		if event.Type == "tool_called" && event.Tool.Name == "join_agents" && event.Tool.Job != nil {
+			data, _ := os.ReadFile(event.Tool.Job.Output.Locator)
+			joinedQuestion = joinedQuestion || strings.Contains(string(data), "leaf question")
+		}
+	}
+	if !joinedQuestion {
+		t.Error("join handler never returned the child question")
+	}
 	if child.ParentAgent() != a || leaf.ParentAgent() != child {
 		t.Fatal("routing IDs replaced actual parent links")
 	}
@@ -204,7 +216,7 @@ func TestFleetIdleBoundAndFailedTurn(t *testing.T) {
 				}
 				replyText(w, "plain idle answer")
 			}))
-			defer server.Close()
+			t.Cleanup(server.Close)
 			a, inbox, _ := fleetAgent(t, server)
 			_, err := a.Ask(context.Background(), "idle test")
 			if fail {
@@ -273,7 +285,7 @@ func TestFleetMessageWakesWaitAndRetainsResult(t *testing.T) {
 			fleetCall(w, "submit", map[string]string{"result": "finished"})
 		}
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 	a, _, _ := fleetAgent(t, server)
 	reply := a.Submit(context.Background(), "start slow work")
 	<-started
@@ -307,5 +319,256 @@ func TestFleetMessageWakesWaitAndRetainsResult(t *testing.T) {
 	data, err := os.ReadFile(job.Data().Output.Locator)
 	if err != nil || string(data) != "REAL_JOB_RESULT\nexit_code: 0\n" {
 		t.Fatalf("real result %q %v", data, err)
+	}
+}
+
+// Shutdown preserves a child's save and recursive owner lifetime, while a later
+// same-ID spawn restores the actual previous dialogue. Submission is bottom-up.
+func TestFleetLifecycleAndRestore(t *testing.T) {
+	entered := make(chan struct{}, 2)
+	restored := make(chan bool, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		if strings.Contains(string(body), "RESTORE_TASK") {
+			restored <- strings.Contains(string(body), "ORIGINAL_TASK")
+			fleetCall(w, "submit", map[string]string{"result": "restored result"})
+			return
+		}
+		entered <- struct{}{}
+		<-r.Context().Done()
+	}))
+	t.Cleanup(server.Close)
+	a, _, children := fleetAgent(t, server)
+	if _, err := a.Fleet().Spawn("worker", "ORIGINAL_TASK", ""); err != nil {
+		t.Fatal(err)
+	}
+	<-entered
+	if got := a.Fleet().List(); len(got) != 1 || got[0].ID != "worker" || got[0].State != "running" {
+		t.Fatal("live child invisible", got)
+	}
+	if err := a.Fleet().Submit("too early"); err == nil || !strings.Contains(err.Error(), "worker") {
+		t.Fatal("submit accepted active child", err)
+	}
+	for _, id := range []string{"Bill", "../escape", "."} {
+		if _, err := a.Fleet().Spawn(id, "task", ""); err == nil {
+			t.Fatal("reserved child address accepted", id)
+		}
+	}
+	if err := a.Fleet().ShutdownChild("Bill"); err == nil {
+		t.Fatal("human treated as fleet member")
+	}
+	if err := a.Fleet().ShutdownChild("worker"); err != nil {
+		t.Fatal(err)
+	}
+	if len(a.Fleet().List()) != 0 {
+		t.Fatal("shutdown child retained")
+	}
+	original := (*children)[0]
+	if err := original.Post(ensemble.UserMessage{Text: "must refuse"}); err != ensemble.ErrStopped {
+		t.Fatal("shutdown left actor alive", err)
+	}
+	if _, err := a.Fleet().Spawn("worker", "RESTORE_TASK", ""); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case ok := <-restored:
+		if !ok {
+			t.Fatal("same-ID child lost previous dialogue")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("restored child never ran")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	result, err := a.Fleet().Join(ctx, []string{"worker"})
+	if err != nil || !strings.Contains(result, "restored result") {
+		t.Fatal(result, err)
+	}
+	if err := a.Fleet().Submit("parent complete"); err != nil {
+		t.Fatal(err)
+	}
+	// A successful submission resets the literal correction counter for new work.
+	for i := 0; i < 2; i++ {
+		a.Fleet().Begin()
+		for wake := 1; wake <= 3; wake++ {
+			correction, escalation := a.Fleet().Idle()
+			if correction == "" || escalation != "" {
+				t.Fatalf("wake %d after submit: %q/%q", wake, correction, escalation)
+			}
+		}
+		if correction, escalation := a.Fleet().Idle(); correction != "" || escalation == "" {
+			t.Fatal("unbounded correction")
+		}
+		if err := a.Fleet().Submit("reset"); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+// Park the parent's real HTTP request so generic tool-wait wakeup cannot mask
+// fan-in's own early-return contract. Only the child and manager run this question.
+func TestFleetJoinQuestionYield(t *testing.T) {
+	parentEntered := make(chan struct{})
+	releaseParent := make(chan struct{})
+	var once sync.Once
+	t.Cleanup(func() { once.Do(func() { close(releaseParent) }) })
+	var leafRequests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		if strings.Contains(string(body), "PARK_PARENT") {
+			close(parentEntered)
+			select {
+			case <-releaseParent:
+			case <-r.Context().Done():
+				return
+			}
+			fleetCall(w, "submit", map[string]string{"result": "parent finished"})
+		} else if leafRequests.Add(1) == 1 {
+			fleetCall(w, "send_message_to_parent", map[string]any{"content": "DIRECT_QUESTION", "ai_callback_delay": 30})
+		} else {
+			fleetCall(w, "submit", map[string]string{"result": "child finished"})
+		}
+	}))
+	t.Cleanup(server.Close)
+	a, _, _ := fleetAgent(t, server)
+	parentReply := a.Submit(context.Background(), "PARK_PARENT")
+	<-parentEntered
+	if _, err := a.Fleet().Spawn("child", "ASK_A_QUESTION", ""); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
+	result, err := a.Fleet().Join(ctx, []string{"child"})
+	if err != nil || !strings.Contains(result, "DIRECT_QUESTION") {
+		t.Fatalf("join did not yield pending question before child submission: %q %v", result, err)
+	}
+	if err := a.Fleet().Reply("child", "", "answer"); err != nil {
+		t.Fatal(err)
+	}
+	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second)
+	defer cancel2()
+	result, err = a.Fleet().Join(ctx2, []string{"child"})
+	if err != nil || !strings.Contains(result, "child finished") {
+		t.Fatal(result, err)
+	}
+	once.Do(func() { close(releaseParent) })
+	if result := receive(t, parentReply); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+}
+
+// Reviewer found sender-local IDs collide when an accepted child ID equals its
+// parent's. Two real questions must coexist and route replies to their own jobs.
+func TestFleetSameNameQuestionCorrelation(t *testing.T) {
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var once sync.Once
+	t.Cleanup(func() { once.Do(func() { close(release) }) })
+	var childCalls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		if strings.Contains(string(body), "PARK_ROOT") {
+			close(entered)
+			select {
+			case <-release:
+			case <-r.Context().Done():
+				return
+			}
+			fleetCall(w, "submit", map[string]string{"result": "root done"})
+		} else if childCalls.Add(1) == 1 {
+			fleetCall(w, "send_message_to_parent", map[string]any{"content": "CHILD_QUESTION", "ai_callback_delay": 30})
+		} else {
+			if !strings.Contains(fleetResultText(body), "CHILD_ANSWER") {
+				t.Error("child received another question's reply")
+			}
+			fleetCall(w, "submit", map[string]string{"result": "child done"})
+		}
+	}))
+	t.Cleanup(server.Close)
+	a, inbox, _ := fleetAgent(t, server)
+	rootTurn := a.Submit(context.Background(), "PARK_ROOT")
+	<-entered
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	humanReply := make(chan ensemble.FleetMessage, 1)
+	go func() { reply, _ := a.Fleet().AskParent(ctx, "ROOT_QUESTION"); humanReply <- reply }()
+	var humanMessage ensemble.FleetMessage
+	select {
+	case humanMessage = <-inbox:
+	case <-ctx.Done():
+		t.Fatal("root question missing")
+	}
+	if _, err := a.Fleet().Spawn("main", "CHILD_TASK", ""); err != nil {
+		t.Fatal(err)
+	}
+	// Join also sees the human question; wait for the child's actual request to
+	// enter the shared recipient map before examining correlation.
+	var messages []ensemble.FleetMessage
+	for {
+		result, err := a.Fleet().Join(ctx, []string{"main"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		json.Unmarshal([]byte(result), &messages)
+		if len(messages) == 2 {
+			break
+		}
+		if ctx.Err() != nil {
+			t.Fatal("one pending question overwrote the other")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	if messages[0].ID == messages[1].ID {
+		t.Fatal("question IDs collided")
+	}
+	if err := a.Fleet().Reply("main", "", "CHILD_ANSWER"); err != nil {
+		t.Fatal("single child question was ambiguous with human question", err)
+	}
+	if err := a.Fleet().Reply("", humanMessage.ID, "HUMAN_ANSWER"); err != nil {
+		t.Fatal("root question was lost", err)
+	}
+	select {
+	case reply := <-humanReply:
+		if reply.Content != "HUMAN_ANSWER" || reply.From != "Bill" {
+			t.Fatal("root received wrong reply", reply)
+		}
+	case <-ctx.Done():
+		t.Fatal("root question remained blocked")
+	}
+	if _, err := a.Fleet().Join(ctx, []string{"main"}); err != nil {
+		t.Fatal(err)
+	}
+	once.Do(func() { close(release) })
+	if result := receive(t, rootTurn); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+}
+
+// A child that exhausted correction is stopped without a submission, not still
+// running. Preserve that failure for status/join after escalation reaches a human.
+func TestFleetEscalatedChildStatus(t *testing.T) {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { requests.Add(1); replyText(w, "unsubmitted prose") }))
+	t.Cleanup(server.Close)
+	a, inbox, _ := fleetAgent(t, server)
+	if _, err := a.Fleet().Spawn("worker", "TASK", ""); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-inbox:
+	case <-time.After(2 * time.Second):
+		t.Fatal("escalation never reached human")
+	}
+	statuses := a.Fleet().List()
+	if len(statuses) != 1 || statuses[0].State != "failed" || statuses[0].Result != "" || !strings.Contains(statuses[0].Error, "three framework wakes") {
+		t.Fatal("exhausted child still claims running", statuses)
+	}
+	if requests.Load() != 8 {
+		t.Fatal("child/root correction was not bounded", requests.Load())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	if _, err := a.Fleet().Join(ctx, []string{"worker"}); err == nil || !strings.Contains(err.Error(), "three framework wakes") {
+		t.Fatal("join concealed child failure", err)
 	}
 }

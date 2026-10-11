@@ -34,6 +34,7 @@ type manager struct {
 	stopped   bool
 	submitted bool
 	result    string
+	failure   string
 	wakes     int
 	sequence  uint64
 }
@@ -110,6 +111,10 @@ func (m *manager) Status() common.ChildStatus {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	s := common.ChildStatus{ID: m.parent.Spec().ID, State: "running"}
+	if m.failure != "" {
+		s.State = "failed"
+		s.Error = m.failure
+	}
 	if m.submitted {
 		s.State = "submitted"
 		s.Result = m.result
@@ -159,6 +164,10 @@ func (m *manager) Join(ctx context.Context, ids []string) (string, error) {
 				return "", fmt.Errorf("unknown child %q", id)
 			}
 			s := c.agent.Fleet().Status()
+			if s.State == "failed" {
+				m.mu.Unlock()
+				return "", fmt.Errorf("child %s failed: %s", id, s.Error)
+			}
 			if c.failure != "" {
 				m.mu.Unlock()
 				return "", fmt.Errorf("child %s failed: %s", id, c.failure)
@@ -228,17 +237,14 @@ func (m *manager) Shutdown() error {
 // AskParent stores the reply rendezvous at its recipient. Cancellation removes
 // abandoned questions; no stale channel can answer a later job by accident.
 func (m *manager) AskParent(ctx context.Context, content string) (common.FleetMessage, error) {
-	m.mu.Lock()
-	m.sequence++
-	id := fmt.Sprintf("%s-%d", m.parent.Spec().ID, m.sequence)
-	m.mu.Unlock()
-	msg := common.FleetMessage{ID: id, From: m.parent.Spec().ID, To: m.parent.Spec().ParentID, Content: content}
+	msg := common.FleetMessage{From: m.parent.Spec().ID, To: m.parent.Spec().ParentID, Content: content}
 	reply := make(chan common.FleetMessage, 1)
 	var recipient common.SubAgentManager = m
 	if parent := m.parent.ParentAgent(); parent != nil {
 		recipient = parent.Fleet()
 	}
-	if err := recipient.Receive(msg, reply); err != nil {
+	id, err := recipient.Receive(msg, reply)
+	if err != nil {
 		return common.FleetMessage{}, err
 	}
 	select {
@@ -253,30 +259,34 @@ func (m *manager) AskParent(ctx context.Context, content string) (common.FleetMe
 
 // Receive retains pending questions before waking a parent. Top-level delivery
 // goes to the user sink, never back into the asking model's own conversation.
-func (m *manager) Receive(msg common.FleetMessage, reply chan common.FleetMessage) error {
+func (m *manager) Receive(msg common.FleetMessage, reply chan common.FleetMessage) (string, error) {
 	m.mu.Lock()
 	if m.stopped {
 		m.mu.Unlock()
-		return common.ErrStopped
+		return "", common.ErrStopped
 	}
+	// IDs belong to the rendezvous owner. Sender-local counters collide when
+	// a child legitimately has the same address as its parent.
 	if reply != nil {
+		m.sequence++
+		msg.ID = fmt.Sprintf("%s-%d", m.parent.Spec().ID, m.sequence)
 		m.pending[msg.ID] = question{msg, reply}
 	}
 	m.signal()
 	m.mu.Unlock()
 	if msg.To == m.parent.Ensemble().UserID() {
 		if err := m.parent.Record(common.Event{Type: "fleet_notice", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: encoded(msg)}}}}); err != nil {
-			return err
+			return "", err
 		}
 		if err := m.parent.Ensemble().DeliverUser(msg); err != nil {
 			m.mu.Lock()
 			delete(m.pending, msg.ID)
 			m.mu.Unlock()
-			return err
+			return "", err
 		}
-		return nil
+		return msg.ID, nil
 	}
-	return m.parent.Post(common.UserMessage{Text: "Fleet message: " + encoded(msg)})
+	return msg.ID, m.parent.Post(common.UserMessage{Text: "Fleet message: " + encoded(msg)})
 }
 
 // Reply optionally resolves the sole pending question from one child. Ambiguity
@@ -286,7 +296,9 @@ func (m *manager) Reply(agentID, messageID, content string) error {
 	defer m.mu.Unlock()
 	var selected *question
 	for id, q := range m.pending {
-		if (agentID == "" || q.message.From == agentID) && (messageID == "" || id == messageID) {
+		humanQuestion := q.message.To == m.parent.Ensemble().UserID()
+		recipientMatches := messageID != "" || (agentID == "") == humanQuestion
+		if recipientMatches && (agentID == "" || q.message.From == agentID) && (messageID == "" || id == messageID) {
 			if selected != nil {
 				return errors.New("multiple questions pending; provide message_id")
 			}
@@ -326,6 +338,7 @@ func (m *manager) Submit(result string) error {
 	}
 	m.submitted = true
 	m.result = result
+	m.failure = ""
 	m.wakes = 0
 	m.signal()
 	m.mu.Unlock()
@@ -336,7 +349,13 @@ func (m *manager) Submit(result string) error {
 }
 
 // Begin clears completion for new work while preserving the consecutive-wake bound.
-func (m *manager) Begin() { m.mu.Lock(); m.submitted = false; m.result = ""; m.mu.Unlock() }
+func (m *manager) Begin() {
+	m.mu.Lock()
+	m.submitted = false
+	m.result = ""
+	m.failure = ""
+	m.mu.Unlock()
+}
 
 // Idle applies reactive correction only to a successful turn; the actor never
 // calls it for transport, persistence or interruption failures.
@@ -347,7 +366,8 @@ func (m *manager) Idle() (string, string) {
 		return "", ""
 	}
 	if m.wakes >= 3 {
-		return "", fmt.Sprintf("Agent %s stopped without submit after three framework wakes", m.parent.Spec().ID)
+		m.failure = fmt.Sprintf("Agent %s stopped without submit after three framework wakes", m.parent.Spec().ID)
+		return "", m.failure
 	}
 	m.wakes++
 	return fmt.Sprintf("Framework wake %d/3 for agent %s: work is not submitted. Active children: %v. Use join_agents or shutdown_agent for unfinished children, then submit your result.", m.wakes, m.parent.Spec().ID, m.active()), ""
@@ -358,7 +378,8 @@ func (m *manager) Idle() (string, string) {
 func (m *manager) Escalate(content string) error {
 	msg := common.FleetMessage{From: m.parent.Spec().ID, To: m.parent.Spec().ParentID, Content: content}
 	if parent := m.parent.ParentAgent(); parent != nil {
-		return parent.Fleet().Receive(msg, nil)
+		_, err := parent.Fleet().Receive(msg, nil)
+		return err
 	}
 	return m.parent.Ensemble().DeliverUser(msg)
 }

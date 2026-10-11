@@ -1,0 +1,5 @@
+--- FAIL: TestFleetLifecycleAndRestore (0.00s)
+    fleet_test.go:364: shutdown child retained
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

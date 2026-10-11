@@ -1,0 +1,5 @@
+--- FAIL: TestFleetRecursiveQuestionsIsolation (0.02s)
+    fleet_test.go:191: cascade retained live children
+FAIL
+FAIL	ensemble/ensemble	0.028s
+FAIL

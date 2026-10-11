@@ -1,0 +1,5 @@
+--- FAIL: TestFleetLifecycleAndRestore (0.01s)
+    fleet_test.go:376: same-ID child lost previous dialogue
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL

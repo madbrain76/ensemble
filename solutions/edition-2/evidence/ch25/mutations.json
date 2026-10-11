@@ -1,0 +1,206 @@
+[
+  {
+    "name": "factory_ownership",
+    "file": "ensemble/fleet.go",
+    "mutation": "return e.NewAgent(parent.Config(), AgentSpec(spec))",
+    "test": "TestFleetRecursive",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "recursive fleet:",
+    "seconds": 0.701,
+    "initial_classifier": "inspect: expected broad recursive completion failure",
+    "observed": "factory depth=0 addressed reply=false; bypassed application factory and rejected wrong child ownership"
+  },
+  {
+    "name": "child_save_isolation",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "spec.SavePath = filepath.Join(m.parent.Config().DataDir, \"save.json\")",
+    "test": "TestFleetRecursive",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "child save",
+    "seconds": 0.737
+  },
+  {
+    "name": "child_restore",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if err = nil; err == nil {",
+    "test": "TestFleetLifecycle",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "same-ID child lost previous dialogue",
+    "seconds": 0.725
+  },
+  {
+    "name": "live_status",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if false { out = append(out, s) }",
+    "test": "TestFleetLifecycle",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "live child invisible",
+    "seconds": 0.722
+  },
+  {
+    "name": "shutdown_removal",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if false && m.children[id] == c {",
+    "test": "TestFleetLifecycle",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "shutdown child retained",
+    "seconds": 0.704
+  },
+  {
+    "name": "shutdown_cascade",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "for _, id := range ids[:0] {\n\t\terrs = append",
+    "test": "TestFleetRecursive",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "cascade retained live children",
+    "seconds": 0.759
+  },
+  {
+    "name": "join_fanin",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "done = true",
+    "test": "TestFleetRecursive",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "root join lost",
+    "seconds": 0.709
+  },
+  {
+    "name": "join_question_yield",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if false && len(m.pending) > 0 {",
+    "test": "TestFleetRecursive",
+    "exit": 1,
+    "outcome": "liveness_failure",
+    "expected": "join handler never returned",
+    "seconds": 8.755,
+    "initial_classifier": "inspect",
+    "observed": "8-second request deadline; working baseline finishes in ~0.02s. Dedicated direct join regression added to isolate early-yield sensitivity."
+  },
+  {
+    "name": "reply_sender",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "From: from[:0],",
+    "test": "TestFleetRecursive",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "addressed reply=false",
+    "seconds": 0.71
+  },
+  {
+    "name": "submit_active_children",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if ids := m.active(); len(ids) < 0 {",
+    "test": "TestFleetLifecycle",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "submit accepted active child",
+    "seconds": 0.698
+  },
+  {
+    "name": "wake_bound",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if m.wakes >= 4 {",
+    "test": "TestFleetIdleBound",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "three-wake bound",
+    "seconds": 0.709
+  },
+  {
+    "name": "wake_reset",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "m.wakes += 0",
+    "test": "TestFleetLifecycle",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "wake 1 after submit",
+    "seconds": 0.702
+  },
+  {
+    "name": "failed_turn_retry",
+    "file": "internal/agent/actor.go",
+    "mutation": "if r.owner.Ensemble().FleetEnabled() {",
+    "test": "TestFleetIdleBound",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "failed turn retried",
+    "seconds": 0.717
+  },
+  {
+    "name": "message_wake",
+    "file": "internal/jobs/jobs.go",
+    "mutation": "case <-(<-chan struct{})(nil):",
+    "test": "TestFleetMessage",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "message waited for command or timer",
+    "seconds": 1.198
+  },
+  {
+    "name": "late_tool_result",
+    "file": "internal/jobs/jobs.go",
+    "mutation": "return header + \"lost output\", j.err",
+    "test": "TestFleetMessage",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "background result lost",
+    "seconds": 1.728
+  },
+  {
+    "name": "human_sink",
+    "file": "main.go",
+    "mutation": "// removed human sink",
+    "test": "TestFleetCLI",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "human sink was unreachable",
+    "seconds": 12.785
+  },
+  {
+    "name": "join_question_direct",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if false && len(m.pending) > 0 {",
+    "test": "TestFleetJoinQuestionYield",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "join did not yield pending question before child submission",
+    "seconds": 1.251
+  },
+  {
+    "name": "question_collision",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "msg.ID = fmt.Sprintf(\"%s-%d\", msg.From, 1)",
+    "test": "TestFleetSameNameQuestionCorrelation",
+    "exit": 1,
+    "outcome": "inspect",
+    "expected": "one pending question overwrote the other",
+    "seconds": 2.718
+  },
+  {
+    "name": "question_recipient",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "recipientMatches := true || humanQuestion",
+    "test": "TestFleetSameNameQuestionCorrelation",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "single child question was ambiguous",
+    "seconds": 0.799
+  },
+  {
+    "name": "escalated_status",
+    "file": "internal/fleet/fleet.go",
+    "mutation": "if false && m.failure != \"\" {",
+    "test": "TestFleetEscalatedChildStatus",
+    "exit": 1,
+    "outcome": "intended_failure",
+    "expected": "exhausted child still claims running",
+    "seconds": 0.763
+  }
+]

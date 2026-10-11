@@ -49,9 +49,10 @@ type SubAgentManager interface {
 	Shutdown() error
 	// AskParent blocks until the addressed parent or human replies.
 	AskParent(context.Context, string) (FleetMessage, error)
-	// Receive delivers a child question or notice into this parent's mailbox.
-	Receive(FleetMessage, chan FleetMessage) error
-	// Reply answers the specified pending question; omitted ID selects the sole match.
+	// Receive delivers a child question or notice and allocates its recipient-local ID.
+	Receive(FleetMessage, chan FleetMessage) (string, error)
+	// Reply answers a pending question; blank agentID selects human-addressed questions.
+	// Omitted messageID selects the sole matching question.
 	Reply(agentID, messageID, content string) error
 	// Submit records completion only when no unfinished children remain.
 	Submit(string) error

@@ -1,0 +1,30 @@
+--- FAIL: TestFleetCLIHumanReplyAndEscalation (12.25s)
+    --- FAIL: TestFleetCLIHumanReplyAndEscalation/false (6.01s)
+        fleet_test.go:112: human sink was unreachable
+        fleet_test.go:118: signal: killed Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+            2026/10/11 11:23:52 cache lens anthropic/[redacted]: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=7935 predicted=0.0000
+            2026/10/11 11:23:52 cache grant: input_tokens=1 read_tokens=0 granted=0.0000 predicted=0.0000
+            send_message_to_parent {"ai_callback_delay":60,"content":"HUMAN_QUESTION"}
+            2026/10/11 11:23:52 cache lens anthropic/[redacted]: tools:identical system:identical messages:appended; prefix_bytes=7934 prompt_bytes=8249 predicted=0.9618
+            submit {"result":"CLI_COMPLETED"}2026/10/11 11:23:52 cache grant: input_tokens=1 read_tokens=0 granted=0.0000 predicted=0.9618
+            
+            
+    --- FAIL: TestFleetCLIHumanReplyAndEscalation/true (6.01s)
+        fleet_test.go:112: human sink was unreachable
+        fleet_test.go:118: signal: killed Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+            2026/10/11 11:23:58 cache lens anthropic/[redacted]: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=7935 predicted=0.0000
+            2026/10/11 11:23:58 cache grant: input_tokens=1 read_tokens=0 granted=0.0000 predicted=0.0000
+            Framework wake 1/3 for agent main: work is not submitted. Active children: []. Use join_agents or shutdown_agent for unfinished children, then submit your result.
+            2026/10/11 11:23:58 cache lens anthropic/[redacted]: tools:identical system:identical messages:appended; prefix_bytes=7934 prompt_bytes=8226 predicted=0.9645
+            2026/10/11 11:23:58 cache grant: input_tokens=1 read_tokens=0 granted=0.0000 predicted=0.9645
+            Framework wake 2/3 for agent main: work is not submitted. Active children: []. Use join_agents or shutdown_agent for unfinished children, then submit your result.
+            2026/10/11 11:23:58 cache lens anthropic/[redacted]: tools:identical system:identical messages:changed; prefix_bytes=8007 prompt_bytes=8268 predicted=0.9684
+            2026/10/11 11:23:58 cache grant: input_tokens=1 read_tokens=0 granted=0.0000 predicted=0.9684
+            Framework wake 3/3 for agent main: work is not submitted. Active children: []. Use join_agents or shutdown_agent for unfinished children, then submit your result.
+            2026/10/11 11:23:58 cache lens anthropic/[redacted]: tools:identical system:identical messages:changed; prefix_bytes=8049 prompt_bytes=8310 predicted=0.9686
+            2026/10/11 11:23:58 cache grant: input_tokens=1 read_tokens=0 granted=0.0000 predicted=0.9686
+            no user message sink configured
+            
+FAIL
+FAIL	ensemble	12.256s
+FAIL

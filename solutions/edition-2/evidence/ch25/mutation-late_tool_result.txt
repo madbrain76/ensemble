@@ -1,0 +1,5 @@
+--- FAIL: TestFleetMessageWakesWaitAndRetainsResult (1.03s)
+    fleet_test.go:283: background result lost
+FAIL
+FAIL	ensemble/ensemble	1.038s
+FAIL

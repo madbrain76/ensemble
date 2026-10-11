@@ -1,0 +1,5 @@
+--- FAIL: TestFleetRecursiveQuestionsIsolation (8.02s)
+    fleet_test.go:166: recursive fleet: "" context deadline exceeded
+FAIL
+FAIL	ensemble/ensemble	8.029s
+FAIL
