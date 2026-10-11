@@ -120,8 +120,9 @@ pandoc front-matter-print.md the-art-of-building-ai-coding-agents.md \
 ```
 
 The CSS header file (`/tmp/kdp-print-header.html`) must include:
-- `@page { size: 6in 9in; margin: 0.75in 0.5in; }` — uniform margins
-  (Amazon adjusts the gutter for even/odd pages automatically)
+- `@page` with mirror margins: outside=0.25in, gutter=0.625in,
+  top/bottom=0.75in. Even/odd pages swap left/right via `@page :left`
+  and `@page :right` rules. Amazon's preview shows the mirrored layout.
 - `@page { @bottom-center { content: counter(page); ... } }` — page numbers
 - `.tocpg { float: right; }` — TOC page number positioning
 - `h1, h2 { page-break-before: always }` — chapter/section breaks
@@ -219,4 +220,3 @@ pdfinfo "book/The Art of Building AI Coding Agents.pdf" \
 - **`--css=` with pandoc** — CSS not embedded; use `-H file.html` instead
 - **`--no-pdf-header-footer` with page numbers** — suppresses CSS `@page` margin boxes
 - **`--toc` for EPUB** — inserts nav into spine, creating a duplicate contents page
-- **Mirror margins in CSS** — Amazon adjusts the gutter; uniform margins only
