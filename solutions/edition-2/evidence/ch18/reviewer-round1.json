@@ -1,0 +1,58 @@
+{
+  "source_commit": "ab78b7585cbbb6577e8aee9f71eae94d45788193",
+  "main_tree": "4d5fc7941d8644511ee2e778c64f3219e97ecd51",
+  "setup": "git archive exact main; unchanged independent probe sources copied from initial evidence. First combined invocation failed compilation because coder adapted the same private helper name. Recorded setup error is not behavioral evidence. Excluded only coder cache_interrupt_test.go for independent run, then restored it and excluded independent probes for separate student focused run. No production changes.",
+  "results": [
+    {
+      "command": "go test -race ./ensemble -run ^TestReviewerCache -count=1 -v",
+      "exit": 0,
+      "seconds": 1.399,
+      "output": "reviewer-round1-independent.txt",
+      "old_cold_prediction": 0,
+      "new_prediction": 0.8554
+    },
+    {
+      "command": "go test -race ./ensemble -run ^TestCacheLensInterrupted -count=1",
+      "exit": 0,
+      "seconds": 1.331,
+      "output": "reviewer-round1-student-tests.txt"
+    }
+  ],
+  "changed_file_deltas_active_comments_physical": {
+    "internal/cachelens/lens.go": [
+      4,
+      3,
+      7
+    ],
+    "internal/common/cache.go": [
+      0,
+      0,
+      0
+    ],
+    "internal/engine/engine.go": [
+      1,
+      2,
+      3
+    ],
+    "ensemble/cache_interrupt_test.go": [
+      145,
+      6,
+      156
+    ]
+  },
+  "source_sha256": {
+    "internal/cachelens/lens.go": "c871d5431b87c1a59f3795c721e2bc6a42c2808962ca03145f51c7e3e8dd1311",
+    "internal/common/cache.go": "1c97359c253459016b9671f0bcd266c818456bd5f1aba9eca888fb6cba1abb21",
+    "internal/engine/engine.go": "24e8f224a2af5ddae6447a8abe47a55165d7e4eb5cc570e98dc483156c2e8dcc",
+    "ensemble/cache_interrupt_test.go": "f64fa9b7caf8864b0e54850cc533de90a3dbd9d57981aba664ceae217feab891"
+  },
+  "probe_sha256": {
+    "reviewer-interrupt-probe.go.txt": "a4895695bfc433844bd44ff552961f6b24cfb9757153edf3846c84e3b6a28a93",
+    "reviewer-attribution-probe.go.txt": "ebb71b748a58647c360147e3c825371416a051e36567146028e99bb0158b3bc9",
+    "reviewer-serial-probe.go.txt": "d950a15cd44f77298fccaa1100faca543786c93c0a8231ac5fb2c9e5b7479b5f"
+  },
+  "cleanup": "Scratch tree removed after validation; initial and round1 outputs retained.",
+  "final_comment_only_commit": "afc7dd740b47543cfa0a664ddbe0adba841c25bf",
+  "final_main_tree": "2ee06bb6189898809d80de97df2b73c695cfb0d5",
+  "final_delta": "Five attached test documentation comment lines only, inspected independently; behavioral results remain ab78b75."
+}

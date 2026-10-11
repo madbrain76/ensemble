@@ -289,3 +289,69 @@ useful sensitivity for their listed cases, not proof against the newly reproduce
 interrupted-request overlap. Independent final-source `TestCache` and serial
 control passed; no broad unchanged suite or paid run was repeated. The only
 formal correction requested is the one lens lifetime/attribution finding.
+
+## Correction round1 — accepted with recorded exceptions
+
+Independent reviewer, October11. **Accepted after one correction round** at
+`afc7dd740b47543cfa0a664ddbe0adba841c25bf`, main tree
+`2ee06bb6189898809d80de97df2b73c695cfb0d5`.
+Read the complete updated student response and actual correction/mutation outputs.
+No remaining behavioral, architecture, scope or documentation finding.
+
+The correction locks only lens comparison and artifact rotation, not the HTTP
+exchange or Agent lifetime. Each Send retains its returned prediction in its
+own response callback; ObserveUsage no longer consults mutable latest-request
+state. This resolves both the data race and attribution error with five net
+active production lines, five comment lines and ten physical lines. Ownership,
+auxiliary exclusion/accounting and interrupt semantics remain intact. No new
+framework, request registry or protocol was added. The original misleading
+serialization comment is corrected.
+
+Re-ran all three **unchanged** independent probe sources in an isolated archive
+of `ab78b7585cbbb6577e8aee9f71eae94d45788193`, main tree
+`4d5fc7941d8644511ee2e778c64f3219e97ecd51`: race-enabled overlap, serial control and
+attribution PASS in1.399s. Old cold grant now reports0.0000 while the later grant
+retains0.8554. Independently ran the student's two focused overlap regressions
+under race: PASS1.331s, including actual file rotation and counted late usage.
+A first combined launch failed compilation because both unchanged reviewer and
+student-adapted tests used `cacheGateWriter`; retain this setup error, not a
+behavioral failure. For the independent run only the colliding student test file
+was excluded in scratch; then it was restored and reviewer files excluded for
+the separate student run. Product source was unchanged throughout. See
+[round1 independent receipt](../../solutions/edition-2/evidence/ch18/reviewer-round1.json)
+and its output files. Scratch source is removed and no reviewer process remains.
+
+The student's three restored-defect results are meaningful: removing locking
+reproduces the actual race, a locked shared-latest prediction fails attribution
+at0.8554, and removing rotation fails the prior-file check. Their positive control
+passes. Inspected core/GUI tests/vet and focused cache race receipts; no broad
+unchanged suite, original grader or paid run was repeated by this reviewer.
+The new regression requires the old grant to appear and both usages to be
+counted, so dropping a late observation cannot satisfy its attribution assertion.
+
+During round1 reassessment I requested attached documentation for the new
+exported test Writer and two tests. Final afc7dd7 adds exactly five useful comment
+lines to that test file; inspected the exact diff without redundant behavioral
+execution. This is a follow-up within round1. Final own-predecessor production
+Go delta is405 active/84 comment-only/516 physical lines; Go tests are547/35/598.
+Other language and first-edition comparison counts above are unchanged. Useful
+production explanation is about17.2% of the net nonblank delta; no padding or
+comment removal was needed for acceptance.
+
+Acceptance includes the independently justified original-grader fixture/path
+exceptions above. **Actual original score remains0/100 FAIL on7436fcb**; all seven
+checks were startup-masked, not passed. No runtime obligation is waived: retained
+real-runtime, mutation and independently inspected three-provider evidence cover
+cache bytes, placement, accounting, session reset and GUI display. Twelve successful
+live turns also remain on7436fcb; they do not claim a live restart, the later
+Sonnet price-row exercise or the concurrency correction. Earlier invalid mutation
+attempts and initial independent failures remain visible.
+
+Repository continuity observation: initial review commit0c20fc1 is not an ancestor
+of current afc7dd7, while its review/evidence bytes remained on disk. The current
+history includes CodeRhapsody's dbe4970. No cause is inferred. Re-record only these
+owned review/evidence paths on current history using an isolated index; do not
+reset, restore unrelated paths, cherry-pick, rewrite history or move tags.
+Coordinator owns the accepted direct Edition2 ch17 export and next release;
+original22/24 gates and stopped authorship remain. Mandatory handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.

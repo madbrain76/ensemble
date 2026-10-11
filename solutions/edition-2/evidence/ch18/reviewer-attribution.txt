@@ -1,0 +1,10 @@
+--- FAIL: TestReviewerCacheAttribution (0.01s)
+    reviewer_attribution_test.go:14: 2026/10/11 06:46:00 cache lens anthropic/claude-haiku-5-5: system:cold messages:cold; prefix_bytes=0 prompt_bytes=210 predicted=0.0000
+        2026/10/11 06:46:00 cache lens anthropic/claude-haiku-5-5: system:identical messages:changed; prefix_bytes=207 prompt_bytes=242 predicted=0.8554
+        2026/10/11 06:46:00 cache grant: input_tokens=20 read_tokens=0 granted=0.0000 predicted=0.8554
+        2026/10/11 06:46:00 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.8554
+        
+    reviewer_attribution_test.go:15: old cold response attributed later prediction: 2026/10/11 06:46:00 cache grant: input_tokens=10 read_tokens=0 granted=0.0000 predicted=0.8554
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL

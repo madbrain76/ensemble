@@ -1,0 +1,97 @@
+==================
+WARNING: DATA RACE
+Write at 0x00c00009b3c0 by goroutine 13:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/cachelens/lens.go:151 +0x14f8
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/engine/engine.go:98 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:384 +0x1fc
+
+Previous write at 0x00c00009b3c0 by goroutine 16:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/cachelens/lens.go:151 +0x14f8
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/engine/engine.go:98 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:384 +0x1fc
+
+Goroutine 13 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:82 +0x34
+
+Goroutine 16 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:82 +0x34
+==================
+==================
+WARNING: DATA RACE
+Write at 0x00c00010ce50 by goroutine 29:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/cachelens/lens.go:151 +0x14f8
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/engine/engine.go:98 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:384 +0x1fc
+
+Previous read at 0x00c00010ce50 by goroutine 32:
+  ensemble/internal/cachelens.(*Lens).ObserveRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/cachelens/lens.go:85 +0x580
+  ensemble/internal/engine.(*engine).Send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/engine/engine.go:98 +0x1fc
+  ensemble/internal/agent.(*runtime).sendRequest.func1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:384 +0x1fc
+
+Goroutine 29 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:82 +0x34
+
+Goroutine 32 (running) created at:
+  ensemble/internal/agent.(*runtime).sendRequest()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:375 +0x740
+  ensemble/internal/agent.(*runtime).ephemera()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/mcp.go:159 +0x3a8
+  ensemble/internal/agent.(*runtime).send()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:339 +0x2a8
+  ensemble/internal/agent.(*runtime).recalled()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/recall.go:60 +0x2a0
+  ensemble/internal/agent.(*runtime).run()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:542 +0x13c0
+  ensemble/internal/agent.(*agent).post.(*agent).start.func1.gowrap1()
+      /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch18-review-mmlmh_dr/internal/agent/actor.go:82 +0x34
+==================
+--- FAIL: TestReviewerCacheInterrupt (0.30s)
+    testing.go:1617: race detected during execution of test
+FAIL
+FAIL	ensemble/ensemble	0.309s
+FAIL

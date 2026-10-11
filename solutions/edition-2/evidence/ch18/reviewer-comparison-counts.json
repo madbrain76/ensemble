@@ -1,0 +1,232 @@
+{
+  "method": "Changed tracked source paths in predecessor versus final; active excludes blanks and comment-only lines; leading //, /* and <!-- comments with continuation; embedded strings remain active; tests and cmd/virtual-user example separated; generated logs/binaries/support excluded. Full changed-file counts, not added-line churn; package moves cancel in net totals.",
+  "student_revisions": [
+    "edition-2-ch17-r1",
+    "6194918"
+  ],
+  "original_paths": [
+    "solutions/ch17",
+    "solutions/ch18"
+  ],
+  "rows": {
+    "student": {
+      "production .js": {
+        "before": [
+          477,
+          54,
+          536
+        ],
+        "after": [
+          485,
+          54,
+          544
+        ],
+        "changed_files": 1,
+        "delta": [
+          8,
+          0,
+          8
+        ]
+      },
+      "production .go": {
+        "before": [
+          1652,
+          644,
+          2473
+        ],
+        "after": [
+          2052,
+          723,
+          2979
+        ],
+        "changed_files": 14,
+        "delta": [
+          400,
+          79,
+          506
+        ]
+      },
+      "tests .go": {
+        "before": [
+          760,
+          48,
+          829
+        ],
+        "after": [
+          1162,
+          72,
+          1266
+        ],
+        "changed_files": 7,
+        "delta": [
+          402,
+          24,
+          437
+        ]
+      },
+      "production .html": {
+        "before": [
+          60,
+          1,
+          61
+        ],
+        "after": [
+          61,
+          1,
+          62
+        ],
+        "changed_files": 1,
+        "delta": [
+          1,
+          0,
+          1
+        ]
+      },
+      "tests .mjs": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          42,
+          2,
+          45
+        ],
+        "changed_files": 1,
+        "delta": [
+          42,
+          2,
+          45
+        ]
+      }
+    },
+    "original": {
+      "tests .go": {
+        "before": [
+          1468,
+          238,
+          1881
+        ],
+        "after": [
+          2302,
+          479,
+          3087
+        ],
+        "changed_files": 22,
+        "delta": [
+          834,
+          241,
+          1206
+        ]
+      },
+      "production .js": {
+        "before": [
+          425,
+          79,
+          579
+        ],
+        "after": [
+          594,
+          132,
+          831
+        ],
+        "changed_files": 2,
+        "delta": [
+          169,
+          53,
+          252
+        ]
+      },
+      "production .go": {
+        "before": [
+          8381,
+          2776,
+          12218
+        ],
+        "after": [
+          9172,
+          3492,
+          13871
+        ],
+        "changed_files": 47,
+        "delta": [
+          791,
+          716,
+          1653
+        ]
+      },
+      "production .html": {
+        "before": [
+          99,
+          8,
+          114
+        ],
+        "after": [
+          167,
+          13,
+          190
+        ],
+        "changed_files": 1,
+        "delta": [
+          68,
+          5,
+          76
+        ]
+      },
+      "production .css": {
+        "before": [
+          360,
+          15,
+          435
+        ],
+        "after": [
+          488,
+          30,
+          599
+        ],
+        "changed_files": 1,
+        "delta": [
+          128,
+          15,
+          164
+        ]
+      },
+      "production .svg": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          4,
+          0,
+          4
+        ],
+        "changed_files": 1,
+        "delta": [
+          4,
+          0,
+          4
+        ]
+      },
+      "example .go": {
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          128,
+          29,
+          179
+        ],
+        "delta": [
+          128,
+          29,
+          179
+        ]
+      }
+    }
+  }
+}

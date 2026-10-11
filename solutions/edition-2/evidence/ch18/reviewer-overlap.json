@@ -1,0 +1,36 @@
+{
+  "source_commit": "6194918c2f9dac312263ce35ed644d3bea5d7a99",
+  "main_tree": "0ba40790660cddb0044e376fedaea3d9e8d3f483",
+  "setup": "git archive exact main tree into isolated scratch; added only three reviewer tests",
+  "boundary": "real root/Agent/Engine/parser/lens, small HTTP provider fake; gate actual diagnostic Writer or public HTTP-frame observation; no internal mocks",
+  "runs": [
+    {
+      "command": "go test -race ./ensemble -run ^TestReviewerCacheInterrupt$ -count=1",
+      "exit": 1,
+      "seconds": 0.309,
+      "result": "read/write and write/write race on lens.previous across interrupted and new request workers",
+      "iterations": 12,
+      "limitation": "20ms scheduling allowance after second Ask; actual race stack establishes observed overlap, not deterministic scheduling guarantee"
+    },
+    {
+      "command": "go test -race ./ensemble -run ^TestReviewerCacheSerial$|^TestCache -count=1",
+      "exit": 0,
+      "seconds": 1.147,
+      "result": "serial gate positive control and student cache suite pass"
+    },
+    {
+      "command": "go test -race ./ensemble -run ^TestReviewerCacheAttribution$ -count=1",
+      "exit": 1,
+      "seconds": 0.016,
+      "result": "old cold request logged prediction0.8554 from newer request rather than its own0; channels gate actual retained HTTP frame"
+    }
+  ],
+  "sha256": {
+    "reviewer-interrupt.txt": "18c2b51b80a883c1b5e7032abf076110d5dd78052c69120ceae229d66072cef1",
+    "reviewer-attribution.txt": "913b5a494e7cabf28f2a41bf9783291f9e32cb791412ff2f9326fe2055ed29eb",
+    "reviewer-interrupt-probe.go.txt": "a4895695bfc433844bd44ff552961f6b24cfb9757153edf3846c84e3b6a28a93",
+    "reviewer-control.txt": "584810804938524e836a5cc7ada28e280f5898c4f5a541dd9c75475bb560de7c",
+    "reviewer-attribution-probe.go.txt": "ebb71b748a58647c360147e3c825371416a051e36567146028e99bb0158b3bc9",
+    "reviewer-serial-probe.go.txt": "d950a15cd44f77298fccaa1100faca543786c93c0a8231ac5fb2c9e5b7479b5f"
+  }
+}

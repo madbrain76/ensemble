@@ -1,0 +1,19 @@
+package ensemble_test
+import("context";"fmt";"net/http";"net/http/httptest";"strings";"sync";"testing";"time";"ensemble/ensemble")
+type cacheGateWriter struct { once sync.Once; entered chan struct{}; release chan struct{} }
+func(w *cacheGateWriter) Write(p []byte)(int,error){if strings.Contains(string(p),"cache lens anthropic/"){w.once.Do(func(){close(w.entered);<-w.release})};return len(p),nil}
+func TestReviewerCacheInterrupt(t *testing.T){
+ for n:=0;n<12;n++ {
+ w:= &cacheGateWriter{entered:make(chan struct{}),release:make(chan struct{})}
+ s:=httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter,r *http.Request){fmt.Fprint(rw,`{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":10,"output_tokens":1}}`)}))
+ a,e:=ensemble.New(w).NewAgent(ensemble.Config{Model:"claude-haiku-5-5",BaseURL:s.URL,DataDir:t.TempDir(),DisableStreaming:true});if e!=nil{t.Fatal(e)}
+ ctx,cancel:=context.WithTimeout(context.Background(),2*time.Second)
+ first:=make(chan error,1);go func(){_,e:=a.Ask(ctx,"first");first<-e}()
+ select{case <-w.entered:case <-ctx.Done():t.Fatal("first request never reached lens")}
+ a.Post(ensemble.Interrupt{});select{case e:=<-first:if e==nil{t.Fatal("interrupt returned success")};case <-ctx.Done():t.Fatal("interrupt blocked")}
+ second:=make(chan error,1);go func(){_,e:=a.Ask(ctx,"second");second<-e}()
+ time.Sleep(20*time.Millisecond);close(w.release)
+ select{case e:=<-second:if e!=nil{t.Fatal(e)};case <-ctx.Done():t.Fatal("new request blocked")}
+ a.Shutdown();cancel();s.Close()
+ }
+}

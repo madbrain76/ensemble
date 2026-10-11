@@ -1,0 +1,16 @@
+package ensemble_test
+import("bytes";"context";"fmt";"net/http";"net/http/httptest";"strings";"sync";"sync/atomic";"testing";"time";"ensemble/ensemble")
+func TestReviewerCacheAttribution(t *testing.T){
+ var logs bytes.Buffer;var count atomic.Int32
+ s:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){n:=count.Add(1);fmt.Fprintf(w,`{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":%d,"output_tokens":1}}`,10*n)}));defer s.Close()
+ a,e:=ensemble.New(&logs).NewAgent(ensemble.Config{Model:"claude-haiku-5-5",BaseURL:s.URL,DataDir:t.TempDir(),DisableStreaming:true});if e!=nil{t.Fatal(e)}
+ ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second);defer cancel()
+ entered,release:=make(chan struct{}),make(chan struct{});var once sync.Once
+ first:=make(chan error,1);go func(){_,e:=a.AskWatching(ctx,"first",ensemble.StreamCallbacks{OnFrame:func(_ string,_ []byte){once.Do(func(){close(entered);<-release})}});first<-e}()
+ select{case <-entered:case <-ctx.Done():t.Fatal("first frame absent")}
+ a.Post(ensemble.Interrupt{});select{case e:=<-first:if e==nil{t.Fatal("expected interrupted")};case <-ctx.Done():t.Fatal("interrupt blocked")}
+ _,err:=a.Ask(ctx,"second");if err!=nil{t.Fatal(err)}
+ close(release);a.Shutdown()
+ t.Log(logs.String())
+ for _,line:=range strings.Split(logs.String(),"\n"){if strings.Contains(line,"cache grant: input_tokens=10 ")&&!strings.Contains(line,"predicted=0.0000"){t.Fatalf("old cold response attributed later prediction: %s",line)}}
+}
