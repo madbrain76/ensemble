@@ -1,0 +1,63 @@
+{
+  "reviewer": "coordinator",
+  "source_commit": "534112a2d6f9222577db94159c8bd3dbb8368376",
+  "main_tree": "c72d29294763f23f51071d7484b0d4283ee70c33",
+  "requests": 2,
+  "model": "gpt-6.1-sol",
+  "billing": "explicit chatgpt; launcher has no API key",
+  "reasoning_effort": "high",
+  "reasoning_summary_requested": "detailed",
+  "summary_delta_count": 0,
+  "text_delta_count": 166,
+  "terminal_output_counts": [
+    0,
+    0
+  ],
+  "raw_usage": [
+    {
+      "input_tokens": 831,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 20,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 851
+    },
+    {
+      "input_tokens": 957,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 337,
+      "output_tokens_details": {
+        "reasoning_tokens": 165
+      },
+      "total_tokens": 1294
+    }
+  ],
+  "task_result": "PASS: actual read_file result; all eight jobs obey durations, worker nonoverlap and dependencies; makespan13 equals A-C-F-H lower bound.",
+  "observed_task_seconds": 14.887,
+  "process_result": {
+    "exit_code": -9,
+    "elapsed_seconds": 150.03,
+    "timed_out": true
+  },
+  "limits": [
+    "No plan summary deltas or hint demonstration; provider omitted public summary.",
+    "Launcher waits for summary before closing stdin, then kills at150s; task response completed earlier. This is not successful normal CLI shutdown.",
+    "No cache grants; requested high reasoning and zero public summaries are separate facts.",
+    "No live token-refresh demonstration; independent deterministic evidence is separate."
+  ],
+  "secret_scan": "No current dedicated-profile credential or identity values in inspected run artifacts.",
+  "sha256": {
+    "live-plan-round1-api.log": "be2c5fbc5c97dc836509696314d08b286ff3d745efb381938fd8addae42c9635",
+    "live-plan-round1-events.jsonl": "246307c4e9b2b588761783902db9fc49117802a745ba18702ed6443a96f79c95",
+    "live-plan-round1-result.json": "e14c8c2a11a917483f3ee29277904736067c7d56da2b414a4379a9d75859ae55",
+    "live-plan-round1-stderr.txt": "210150d8634b2e62491d95fb58f22e904fcad9812896330bb7970bb6aac087b5",
+    "live-plan-round1-stdout.txt": "6b2bfc3b289eefb50c0de705e44acb8e794153a5176291c6019d9ecdae262629"
+  }
+}
