@@ -84,3 +84,50 @@ Two small documentation inaccuracies were also relayed for final cleanup:
 tools; `ChildStatus.State` omits the newly returned `idle` state. These are
 accuracy corrections to exported contracts, not new capability requests.
 Zero formal rounds used; final disposition remains pending full implementation.
+
+## Stage2 preflight, October 11 (not formal review)
+
+Reviewed exact `33c4e3315b2210bff946aa9d94bb27f7dda0c340`, main tree
+`918fd9c466bdc55d7d4b245d78b0d846b043cc96`, through an isolated archive.
+Moving GUI browser files were excluded. Read the student stage notes, complete
+registry and tests, startup/fleet/test delta, and matching first-edition registry
+and composition implementation. Mandatory `.agents/skills/ensemble-coding/SKILL.md`
+and carryover were reread after context compaction.
+
+The exact three preserved reviewer wait probes now pass under race (1.807s):
+an unselected child's question no longer wakes the watched child, a selected
+child's question does wake it with the correct identity, and the no-question
+control times out. Per-sender revisions replace the manager-wide attribution.
+The prior failure remains preserved; this is a verified correction, not a
+reclassification of the old result. [Exact rerun](../../solutions/edition-2/evidence/ch26/reviewer-stage2-wait.txt).
+The two exported-contract inaccuracies identified in stage1 are corrected too.
+
+The shared `Start` path installs the recursive factory and human sink before
+constructing/restoring root and named peers. Both actual executables call it;
+offline render/dump retain the non-loading path. Named peers stay separate from
+ephemeral children, while tree keys follow actual parent paths so repeated local
+names remain selectable. The registry uses the required four identity fields,
+restores conversations through normal Agent loading, and writes via temporary
+file/rename. Named deletion checks children, shuts down the owner, then removes
+registry identity and files. Its existing real-runtime tests independently pass
+under race (1.169s), covering restart/provider-history preservation, repeated-name
+path identity, delete/restart absence and an actually parked child's rejection.
+[Focused rerun](../../solutions/edition-2/evidence/ch26/reviewer-stage2-registry.txt).
+This does not claim every concurrency interleaving or final browser integration.
+
+The modified GUI budget fake still exercises the built executable, persisted
+settings, a two-batch turn bound, next-turn eighteen-batch behavior, restart and
+zero/default behavior. Submitting as batch18 replaces the former eighteenth
+shell call while retaining the actual dispatched-count/error assertions; it
+adapts the external response to the enabled fleet completion protocol without
+waiving the inherited budget contract.
+
+Compared with the matching old registry/composition, this stage extends the
+existing ownership root and Observer rather than adding callback wiring or
+copying sibling services. Useful comments explain path identity, persistence
+and lifecycle boundaries; the new public types/members have contract comments.
+The change is proportional to the registry/selection requirements. Final whole-
+chapter own-predecessor counts, management edge coverage, mutations, original
+grading, browser/live evidence and final student review remain pending. No new
+blocking finding in this stage, no acceptance or grader exception, zero formal
+correction rounds.

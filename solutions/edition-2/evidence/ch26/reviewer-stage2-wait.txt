@@ -1,0 +1,15 @@
+Source: 33c4e3315b2210bff946aa9d94bb27f7dda0c340
+Exact preserved reviewer probes, go test -race ./ensemble -run ^TestReviewerWaitChange -count=1 -timeout=10s -v
+=== RUN   TestReviewerWaitChangeNoQuestionControl
+selected watched; nobody asked: result= err=context deadline exceeded
+--- PASS: TestReviewerWaitChangeNoQuestionControl (0.35s)
+=== RUN   TestReviewerWaitChangeDoesNotAttributeUnselectedQuestion
+selected watched; only other asked: result= err=context deadline exceeded
+--- PASS: TestReviewerWaitChangeDoesNotAttributeUnselectedQuestion (0.36s)
+=== RUN   TestReviewerWaitChangeSelectedQuestionControl
+selected other; only other asked: result=[{"agent_id":"other","reason":"message","status":{"activity":{"phase":"thinking"},"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0},"agent_id":"other","state":"running"}}] err=<nil>
+--- PASS: TestReviewerWaitChangeSelectedQuestionControl (0.08s)
+PASS
+ok  	ensemble/ensemble	1.807s
+
+exit=0

@@ -1,0 +1,10 @@
+Source: 33c4e3315b2210bff946aa9d94bb27f7dda0c340
+go test -race ./ensemble -run ^TestNamed -count=1 -timeout=30s -v
+=== RUN   TestNamedRegistryRestartAndTree
+--- PASS: TestNamedRegistryRestartAndTree (0.13s)
+=== RUN   TestNamedDeleteActiveChildGuard
+--- PASS: TestNamedDeleteActiveChildGuard (0.02s)
+PASS
+ok  	ensemble/ensemble	1.169s
+
+exit=0
