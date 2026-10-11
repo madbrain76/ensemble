@@ -134,7 +134,7 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	if cfg.BuiltinTools {
 		a.SetTools(tools.Builtins())
 	}
-	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "") {
+	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "" || len(specs[0].StartupSkills) != 0) {
 		spec := specs[0]
 		sr, err := skills.New(a, spec.SkillsDir)
 		if err != nil {
@@ -153,6 +153,15 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		prompt, err := sr.LoadInitial(spec.PrimarySkill)
 		if err != nil {
 			return nil, err
+		}
+		// Optional startup skills use the same admission and peer lifecycle as
+		// load_skill. Sequence zero means the application loaded before history.
+		for _, name := range spec.StartupSkills {
+			body, err := sr.LoadDynamic(name, 0)
+			if err != nil {
+				return nil, err
+			}
+			prompt += "\n\n" + body
 		}
 		a.SetSystemPrompt(prompt)
 	}

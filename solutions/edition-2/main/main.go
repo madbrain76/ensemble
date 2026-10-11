@@ -25,20 +25,34 @@ func run() (runErr error) {
 	// second source of request settings.
 	args := os.Args[1:]
 	savePath := "save.json"
+	spec := ensemble.AgentSpecFromEnv()
+	guiDebug := false
 	// Accept the location flag beside any live command, without changing the
 	// existing positional protocol or making load an opt-in operation.
 	var positional []string
 	for i := 0; i < len(args); i++ {
-		if args[i] == "--save" {
+		if args[i] == "--gui-debug" {
+			guiDebug = true
+		} else if args[i] == "--save" || args[i] == "--skills-dir" {
+			name := args[i]
 			i++
 			if i == len(args) || args[i] == "" {
-				return errors.New("--save requires a path")
+				return fmt.Errorf("%s requires a path", name)
 			}
-			savePath = args[i]
-		} else if strings.HasPrefix(args[i], "--save=") {
-			savePath = strings.TrimPrefix(args[i], "--save=")
-			if savePath == "" {
-				return errors.New("--save requires a path")
+			if name == "--save" {
+				savePath = args[i]
+			} else {
+				spec.SkillsDir = args[i]
+			}
+		} else if strings.HasPrefix(args[i], "--save=") || strings.HasPrefix(args[i], "--skills-dir=") {
+			name, value, _ := strings.Cut(args[i], "=")
+			if value == "" {
+				return fmt.Errorf("%s requires a path", name)
+			}
+			if name == "--save" {
+				savePath = value
+			} else {
+				spec.SkillsDir = value
 			}
 		} else {
 			positional = append(positional, args[i])
@@ -49,7 +63,16 @@ func run() (runErr error) {
 		mode = positional[0]
 	}
 	if !((mode == "protocol" && len(positional) == 0) || ((mode == "chat" || mode == "dump" || mode == "--mcp-pipe") && len(positional) == 1) || ((mode == "render" || mode == "prompt") && len(positional) == 2)) {
-		return errors.New("usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]")
+		return errors.New("usage: ensemble [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]")
+	}
+	if guiDebug && spec.SkillsDir == "" {
+		spec.SkillsDir = "skills"
+	}
+	if spec.SkillsDir != "" && spec.PrimarySkill == "" {
+		spec.PrimarySkill = "ensemble"
+	}
+	if guiDebug {
+		spec.StartupSkills = []string{"gui-debug"}
 	}
 	cfg, err := ensemble.ConfigFromEnv()
 	cfg.BuiltinTools, cfg.DataDir = true, "cr"
@@ -83,7 +106,7 @@ func run() (runErr error) {
 		defer trace.Close()
 		app.SetAPILog(trace)
 	}
-	a, err := app.NewAgent(cfg, ensemble.AgentSpecFromEnv())
+	a, err := app.NewAgent(cfg, spec)
 	if err != nil {
 		return err
 	}

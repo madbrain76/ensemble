@@ -7,6 +7,9 @@ type AgentSpec struct {
 	SkillsDir string
 	// PrimarySkill selects the identity loaded before the first request.
 	PrimarySkill string
+	// StartupSkills loads reachable optional skills during construction. Their
+	// manuals join the frozen startup prompt; no model-authored call is invented.
+	StartupSkills []string
 	// Variables supplies application renderers before the primary body is frozen.
 	Variables map[string]func() string
 }

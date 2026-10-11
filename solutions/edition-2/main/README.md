@@ -83,3 +83,27 @@ peer. The optional GUI supplies its own WebSocket transport. Remote calls use
 real jobs: callback delays return a handle, explicit kill cancels the RPC, and
 Agent shutdown closes peers and joins its work. Discovered `round`/`turn`
 ephemeral tools run automatically and remain absent from model declarations.
+
+Chapter 13 supplies `skills/ensemble` and `skills/gui-debug`. Both commands
+accept `--skills-dir PATH` (overriding `EN_SKILLS_DIR`) and `--gui-debug` to load
+that optional skill before accepting input. With `--gui-debug`, the directory
+otherwise defaults to `./skills`; selecting a directory defaults the primary
+name to `ensemble` unless `EN_PRIMARY_SKILL` explicitly selects another one.
+For the browser, build the separate GUI command and launch from this directory:
+
+    ensemble-gui --gui-dir gui/web/gui --gui-debug --skills-dir ./skills
+
+Open its browser before sending a prompt. The supplied skill declares a
+WebSocket peer, so connection/discovery waits for the browser. An application
+can instead supply an explicitly typed `gui-debug` skill with a stdio peer,
+using the same four explicit tool grants. `type: loadable` remains required;
+the original Chapter 13 sample omits it.
+
+Embedders can select `AgentSpec.StartupSkills` alongside the primary. These use
+the existing loadable-skill admission and MCP lifecycle. Their returned manuals
+join the frozen startup prompt because no model-authored tool call exists yet;
+ordinary `load_skill` calls still return instructions into conversation history.
+Startup grants have dynamic provenance with sequence zero (before history).
+Unloading immediately disconnects MCP tools and peers while instruction removal
+remains pending. Programmatic browser input updates the control without taking
+the human typing pause; actual typing and explicit Agent-wide unpause still work.

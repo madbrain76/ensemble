@@ -1,0 +1,29 @@
+[
+  {
+    "claim": "startup activation",
+    "file": "main.go",
+    "original": "spec.StartupSkills = []string{\"gui-debug\"}",
+    "mutation": "spec.StartupSkills = nil",
+    "exit": 1,
+    "stdout": "=== RUN   TestGUIDebugStartup\n    skills_test.go:106: startup manual missing\n    skills_test.go:117: browser skill not active at round 1: [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"exercise the browser\"}]}]\n    skills_test.go:124: stale or missing round 1 snapshot: [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"exercise the browser\"}]}]\n    skills_test.go:106: startup manual missing\n    skills_test.go:117: browser skill not active at round 2: [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"exercise the browser\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"1\",\"name\":\"gui_click\",\"input\":{\"selector\":\"#button-A\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"1\",\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_click\\\"\"}],\"is_error\":true}]}]\n    skills_test.go:124: stale or missing round 2 snapshot: [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"exercise the browser\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"1\",\"name\":\"gui_click\",\"input\":{\"selector\":\"#button-A\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"1\",\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_click\\\"\"}],\"is_error\":true}]}]\n    skills_test.go:106: startup manual missing\n    skills_test.go:117: browser skill not active at round 3: [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"exercise the browser\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"1\",\"name\":\"gui_click\",\"input\":{\"selector\":\"#button-A\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"1\",\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_click\\\"\"}],\"is_error\":true}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"2\",\"name\":\"gui_input\",\"input\":{\"selector\":\"#search-box\",\"text\":\"chapter13\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"2\",\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_input\\\"\"}],\"is_error\":true}]}]\n    skills_test.go:124: stale or missing round 3 snapshot: [{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"exercise the browser\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"1\",\"name\":\"gui_click\",\"input\":{\"selector\":\"#button-A\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"1\",\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_click\\\"\"}],\"is_error\":true}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"2\",\"name\":\"gui_input\",\"input\":{\"selector\":\"#search-box\",\"text\":\"chapter13\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"2\",\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_input\\\"\"}],\"is_error\":true}]}]\n    skills_test.go:130: gui_input result lost its arguments\n    skills_test.go:106: startup manual missing\n--- FAIL: TestGUIDebugStartup (0.25s)\nFAIL\nFAIL\tensemble\t0.253s\nFAIL\n",
+    "stderr": ""
+  },
+  {
+    "claim": "startup manual",
+    "file": "ensemble/ensemble.go",
+    "original": "prompt += \"\\n\\n\" + body",
+    "mutation": "_ = body",
+    "exit": 1,
+    "stdout": "=== RUN   TestGUIDebugStartup\n    skills_test.go:106: startup manual missing\n    skills_test.go:106: startup manual missing\n    skills_test.go:106: startup manual missing\n    skills_test.go:106: startup manual missing\n--- FAIL: TestGUIDebugStartup (0.24s)\nFAIL\nFAIL\tensemble\t0.246s\nFAIL\n",
+    "stderr": ""
+  },
+  {
+    "claim": "skills-directory override",
+    "file": "main.go",
+    "original": "spec.SkillsDir = args[i]",
+    "mutation": "_ = args[i]",
+    "exit": 1,
+    "stdout": "=== RUN   TestGUIDebugStartup\n    skills_test.go:159: startup: exit status 1 rounds=0 output=open /missing: no such file or directory\n--- FAIL: TestGUIDebugStartup (0.23s)\nFAIL\nFAIL\tensemble\t0.240s\nFAIL\n",
+    "stderr": ""
+  }
+]

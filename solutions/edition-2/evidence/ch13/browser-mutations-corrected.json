@@ -1,0 +1,18 @@
+[
+  {
+    "claim": "programmatic pause",
+    "original": "new CustomEvent(\"input\", { bubbles: true, detail: { mcp: true } })",
+    "mutation": "new Event(\"input\", { bubbles: true })",
+    "exit": 1,
+    "stdout": "{\"vendor\":\"external HTTP fake\",\"result\":\"FAIL\",\"checks\":[\"human typing still pauses Agent\"],\"error\":\"locator.waitFor: Timeout 6000ms exceeded.\\nCall log:\\n\\u001b[2m  - waiting for getByText('Input and submit completed.', { exact: true }).first() to be visible\\u001b[22m\\n\"}\n",
+    "stderr": ""
+  },
+  {
+    "claim": "GUI startup activation",
+    "original": "spec.StartupSkills = []string{\"gui-debug\"}",
+    "mutation": "spec.StartupSkills = nil",
+    "exit": 1,
+    "stdout": "{\"vendor\":\"external HTTP fake\",\"result\":\"FAIL\",\"checks\":[\"human typing still pauses Agent\",\"MCP input followed by submit clears actual field\",\"MCP input did not strand Agent pause\",\"MCP submit remained reachable through actual dispatch\"],\"error\":\"next snapshot observed actual programmatic input value\"}\n",
+    "stderr": ""
+  }
+]

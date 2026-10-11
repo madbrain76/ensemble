@@ -37,5 +37,5 @@ func unloadSkill(owner common.ToolContext, raw json.RawMessage) (string, error) 
 	if err := owner.Agent().Skills().MarkUnload(args.Name); err != nil {
 		return "", err
 	}
-	return "Skill " + args.Name + " is pending unload at the next compaction.", nil
+	return "Skill " + args.Name + " is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now.", nil
 }

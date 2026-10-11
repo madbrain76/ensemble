@@ -1,0 +1,199 @@
+[
+  {
+    "file": "anthropic-live.json",
+    "model": "claude-haiku-5-5",
+    "model_discovery": "Same-day Chapter10 anthropic-models.json; actual inference recorded here",
+    "requests": 4,
+    "tool_calls": [
+      [
+        "gui_click",
+        {
+          "selector": "#settings-tab"
+        }
+      ],
+      [
+        "gui_input",
+        {
+          "selector": "#font-size",
+          "text": "20"
+        }
+      ],
+      [
+        "unload_skill",
+        {
+          "name": "gui-debug"
+        }
+      ]
+    ],
+    "unloaded": true,
+    "last_declarations": [
+      "read_file",
+      "write_file",
+      "edit_file",
+      "run_command",
+      "load_skill",
+      "unload_skill"
+    ],
+    "last_request_has_auto_context": false,
+    "browser_checks": [
+      "human typing still pauses Agent",
+      "live model clicked actual Settings tab",
+      "live model changed visible/effective font size",
+      "no browser runtime error"
+    ],
+    "script_result": "PASS",
+    "assessment": "Browser change and unload observed. Anthropic final prose incorrectly claimed MCP tools retained."
+  },
+  {
+    "file": "openai-live-initial-failure.json",
+    "model": "gpt-4o-mini",
+    "model_discovery": "Same-day Chapter10 openai-models.json; actual inference recorded here",
+    "requests": 3,
+    "tool_calls": [
+      [
+        "gui_click",
+        {
+          "selector": "#settings-tab"
+        }
+      ],
+      [
+        "gui_input",
+        {
+          "selector": "input[type='number']",
+          "text": "20"
+        }
+      ],
+      [
+        "unload_skill",
+        {
+          "name": "gui-debug"
+        }
+      ]
+    ],
+    "unloaded": true,
+    "last_declarations": [
+      "read_file",
+      "write_file",
+      "edit_file",
+      "run_command",
+      "load_skill",
+      "unload_skill"
+    ],
+    "last_request_has_auto_context": false,
+    "browser_checks": [
+      "human typing still pauses Agent",
+      "live model clicked actual Settings tab"
+    ],
+    "script_result": "FAIL",
+    "assessment": "Task failure: guessed nonexistent input selector, did not repair."
+  },
+  {
+    "file": "openai-live-guided.json",
+    "model": "gpt-4o-mini",
+    "model_discovery": "Same-day Chapter10 openai-models.json; actual inference recorded here",
+    "requests": 6,
+    "tool_calls": [
+      [
+        "gui_click",
+        {
+          "selector": "#settings-tab"
+        }
+      ],
+      [
+        "gui_input",
+        {
+          "selector": "#font-size",
+          "text": "20"
+        }
+      ],
+      [
+        "gui_click",
+        {
+          "selector": "#settings-tab"
+        }
+      ],
+      [
+        "gui_input",
+        {
+          "selector": "#font-size",
+          "text": "20"
+        }
+      ],
+      [
+        "unload_skill",
+        {
+          "name": "gui-debug"
+        }
+      ],
+      [
+        "read_file",
+        {
+          "path": "path/to/the/snapshot"
+        }
+      ]
+    ],
+    "unloaded": true,
+    "last_declarations": [
+      "read_file",
+      "write_file",
+      "edit_file",
+      "run_command",
+      "load_skill",
+      "unload_skill"
+    ],
+    "last_request_has_auto_context": false,
+    "browser_checks": [
+      "human typing still pauses Agent",
+      "live model clicked actual Settings tab",
+      "live model changed visible/effective font size",
+      "no browser runtime error"
+    ],
+    "script_result": "PASS",
+    "assessment": "Capability change and unload observed; task failure: attempted forbidden file read after unload and falsely claimed snapshot unavailable."
+  },
+  {
+    "file": "gemini-live.json",
+    "model": "gemini-3.8-flash",
+    "model_discovery": "Same-day Chapter10 gemini-models.json; actual inference recorded here",
+    "requests": 4,
+    "tool_calls": [
+      [
+        "gui_click",
+        {
+          "selector": "#settings-tab"
+        }
+      ],
+      [
+        "gui_input",
+        {
+          "selector": "#font-size",
+          "text": "20"
+        }
+      ],
+      [
+        "unload_skill",
+        {
+          "name": "gui-debug"
+        }
+      ]
+    ],
+    "unloaded": true,
+    "last_declarations": [
+      "read_file",
+      "write_file",
+      "edit_file",
+      "run_command",
+      "load_skill",
+      "unload_skill"
+    ],
+    "last_request_has_auto_context": false,
+    "browser_checks": [
+      "human typing still pauses Agent",
+      "live model clicked actual Settings tab",
+      "live model changed visible/effective font size",
+      "no browser runtime error"
+    ],
+    "script_result": "PASS",
+    "assessment": "Browser change, fresh snapshot report and unload observed."
+  }
+]

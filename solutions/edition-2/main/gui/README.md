@@ -78,3 +78,12 @@ include their names in `tools:` and declare a server with `transport: websocket`
 connection waits until a browser is available. A browser already present can
 also serve a subsequently loaded skill. Additional tabs still share chat and
 settings; the active MCP peer targets one browser, not a broadcast click.
+
+To activate browser tools through the supplied skill, run from this module with
+`--gui-debug --skills-dir ../skills`. This selects the `ensemble` primary unless
+`EN_PRIMARY_SKILL` overrides it; `--skills-dir` wins over `EN_SKILLS_DIR`.
+Open the page before the first prompt so its declared browser peer can connect.
+The same skill can be loaded later through `load_skill` when using the primary
+without `--gui-debug`. Unload removes executable browser tools immediately.
+Programmatic prompt input does not take the typing pause, allowing the Agent to
+click Send on its next tool call. Human input keeps the existing pause behavior.

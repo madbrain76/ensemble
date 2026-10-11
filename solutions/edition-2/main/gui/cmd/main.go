@@ -32,6 +32,9 @@ func run() (runErr error) {
 	if err != nil {
 		return err
 	}
+	spec := ensemble.AgentSpecFromEnv()
+	guiDebug := flag.Bool("gui-debug", false, "load the gui-debug skill before accepting input")
+	flag.StringVar(&spec.SkillsDir, "skills-dir", spec.SkillsDir, "skill directory (gui-debug defaults to skills)")
 	port := flag.Int("port", 8088, "localhost HTTP port")
 	directory := flag.String("gui-dir", "web/gui", "static GUI directory")
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
@@ -43,6 +46,15 @@ func run() (runErr error) {
 	flag.BoolVar(&cfg.DisableStreaming, "no-stream", cfg.DisableStreaming, "disable incremental delivery")
 	flag.StringVar(&cfg.SavePath, "save", "save.json", "save loaded at startup and written at exit")
 	flag.Parse()
+	if *guiDebug && spec.SkillsDir == "" {
+		spec.SkillsDir = "skills"
+	}
+	if spec.SkillsDir != "" && spec.PrimarySkill == "" {
+		spec.PrimarySkill = "ensemble"
+	}
+	if *guiDebug {
+		spec.StartupSkills = []string{"gui-debug"}
+	}
 	cfg.SavePath, err = filepath.Abs(cfg.SavePath)
 	if err != nil {
 		return err
@@ -87,7 +99,7 @@ func run() (runErr error) {
 	displayDone := make(chan struct{})
 	defer close(displayDone)
 	go terminal.display(displayDone)
-	a, err := root.NewAgent(cfg, ensemble.AgentSpecFromEnv())
+	a, err := root.NewAgent(cfg, spec)
 	if err != nil {
 		return err
 	}

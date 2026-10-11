@@ -26,7 +26,9 @@ export function browserMCP(send, speech) {
           else {
             if (!("value" in element) || typeof args.text !== "string") throw new Error("gui_input requires a value control and text");
             element.value = args.text;
-            element.dispatchEvent(new Event("input", { bubbles: true }));
+            // Notify ordinary input consumers without impersonating human typing:
+            // pausing here would prevent this Agent's next submit click from running.
+            element.dispatchEvent(new CustomEvent("input", { bubbles: true, detail: { mcp: true } }));
             element.dispatchEvent(new Event("change", { bubbles: true }));
           }
           text = "ok";

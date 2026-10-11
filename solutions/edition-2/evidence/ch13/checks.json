@@ -1,0 +1,72 @@
+[
+  {
+    "module": "core",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "ok  \tensemble\t1.426s\nok  \tensemble/ensemble\t9.703s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t(cached)\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/mcp\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "core",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "gui",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "ok  \tensemble-gui-stub\t1.121s\n?   \tensemble-gui-stub/cmd\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "gui",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "core",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./ensemble",
+      "-run",
+      "TestMCPSkillStdioAdmissionAndUnload|TestMCPSlowEphemera|TestMCPEphemeraInterrupt"
+    ],
+    "exit": 0,
+    "stdout": "ok  \tensemble/ensemble\t7.869s\n",
+    "stderr": ""
+  },
+  {
+    "module": "gui",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "ok  \tensemble-gui-stub\t3.406s\n?   \tensemble-gui-stub/cmd\t[no test files]\n",
+    "stderr": ""
+  }
+]

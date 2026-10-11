@@ -1,0 +1,667 @@
+{
+  "vendor": "external HTTP fake",
+  "model": "fake",
+  "checks": [
+    "human typing still pauses Agent",
+    "MCP input followed by submit clears actual field",
+    "MCP input did not strand Agent pause",
+    "MCP submit remained reachable through actual dispatch"
+  ],
+  "prompt": "Exercise input then submit through browser tools.",
+  "result": "FAIL",
+  "error": "next snapshot observed actual programmatic input value",
+  "stderr": "Open http://localhost:19413; terminal messages while busy are hints. /interrupt ends the turn.\n[gui_input]\nunknown tool \"gui_input\"\n[gui_click]\nunknown tool \"gui_click\"\n",
+  "requests": [
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "List immediate entries, sorted by name; directories end with /.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "list_directory"
+        },
+        {
+          "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "context_lines": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path",
+              "pattern"
+            ]
+          },
+          "name": "search_files"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "List immediate entries, sorted by name; directories end with /.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "list_directory"
+        },
+        {
+          "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "context_lines": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path",
+              "pattern"
+            ]
+          },
+          "name": "search_files"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-1",
+              "name": "gui_input",
+              "input": {
+                "selector": "#input",
+                "text": "MCP submitted"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-1",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "unknown tool \"gui_input\""
+                }
+              ],
+              "is_error": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "List immediate entries, sorted by name; directories end with /.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "list_directory"
+        },
+        {
+          "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "context_lines": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path",
+              "pattern"
+            ]
+          },
+          "name": "search_files"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-1",
+              "name": "gui_input",
+              "input": {
+                "selector": "#input",
+                "text": "MCP submitted"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-1",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "unknown tool \"gui_input\""
+                }
+              ],
+              "is_error": true
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-2",
+              "name": "gui_click",
+              "input": {
+                "selector": "#input-form button"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-2",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "unknown tool \"gui_click\""
+                }
+              ],
+              "is_error": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "events": "{\"log_version\":1}\n{\"seq\":1,\"type\":\"message_received\",\"time\":\"2026-10-11T02:11:23.307338Z\",\"message\":{\"actor\":\"human\",\"parts\":[{\"type\":\"text\",\"text\":\"Exercise input then submit through browser tools.\"}]}}\n{\"seq\":2,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:11:23.30751Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":3,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:11:23.310124Z\",\"response\":{\"parts\":[{\"artifact_id\":1,\"type\":\"tool_call\",\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"},\"call_id\":\"call-1\",\"name\":\"gui_input\",\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"}}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":4,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:11:23.310339Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":0},\"name\":\"gui_input\",\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"},\"call_id\":\"call-1\"}}\n{\"seq\":5,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:11:23.310491Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":24},\"call_id\":\"\"}}\n{\"seq\":6,\"type\":\"tool_returned\",\"time\":\"2026-10-11T02:11:23.310684Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":24},\"call_id\":\"call-1\",\"parts\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_input\\\"\"}],\"is_error\":true}}\n{\"seq\":7,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:11:23.310776Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":8,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:11:23.311161Z\",\"response\":{\"parts\":[{\"artifact_id\":3,\"type\":\"tool_call\",\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"},\"call_id\":\"call-2\",\"name\":\"gui_click\",\"args\":{\"selector\":\"#input-form button\"}}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":9,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:11:23.311276Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":0},\"name\":\"gui_click\",\"args\":{\"selector\":\"#input-form button\"},\"call_id\":\"call-2\"}}\n{\"seq\":10,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:11:23.31136Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":24},\"call_id\":\"\"}}\n{\"seq\":11,\"type\":\"tool_returned\",\"time\":\"2026-10-11T02:11:23.311391Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":24},\"call_id\":\"call-2\",\"parts\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_click\\\"\"}],\"is_error\":true}}\n{\"seq\":12,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:11:23.311493Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":13,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:11:23.311789Z\",\"response\":{\"parts\":[{\"artifact_id\":5,\"type\":\"text\",\"text\":\"Input and submit completed.\"}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n"
+}

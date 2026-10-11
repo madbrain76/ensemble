@@ -445,7 +445,9 @@ function connect() {
 }
 // Typing holds new tool starts even when speech is disabled. Submitting clears
 // that cause, but queued speech may independently keep the local cause true.
-input.addEventListener("input", pace);
+input.addEventListener("input", event => {
+  if (!event.detail?.mcp) pace();
+});
 document.querySelector("#input-form").addEventListener("submit", (event) => {
   event.preventDefault();
   if (!input.value.trim() || socket?.readyState !== WebSocket.OPEN) return;

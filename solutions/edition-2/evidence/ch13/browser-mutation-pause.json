@@ -1,0 +1,419 @@
+{
+  "vendor": "external HTTP fake",
+  "model": "fake",
+  "checks": [
+    "human typing still pauses Agent"
+  ],
+  "prompt": "Exercise input then submit through browser tools.",
+  "result": "FAIL",
+  "error": "locator.waitFor: Timeout 6000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Input and submit completed.', { exact: true }).first() to be visible\u001b[22m\n",
+  "stderr": "Open http://localhost:19413; terminal messages while busy are hints. /interrupt ends the turn.\n[gui_input]\nok\n",
+  "requests": [
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        },
+        {
+          "description": "Click a visible control by CSS selector",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "selector": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          },
+          "name": "gui_click"
+        },
+        {
+          "description": "Set an input value and dispatch input/change",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "selector": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "selector",
+              "text"
+            ]
+          },
+          "name": "gui_input"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.\n\nThe current browser snapshot and speech queue arrive automatically before each\nround. Use gui_click with a visible CSS selector and gui_input with selector and\ntext. Observe the next snapshot to confirm the effect. Hidden or omitted state\nis not evidence of success: report what you can actually observe.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            },
+            {
+              "type": "text",
+              "text": "## gui_snapshot (auto-updated)\n\n# Visible GUI\n## Ensemble sidebar (240px wide)\n## Chat (828px wide)\n## Actions (360px wide)\n- #agents-tab \"Agents\" {\"role\":\"tab\",\"aria-controls\":\"agents-panel\",\"aria-selected\":\"true\",\"value\":\"\",\"disabled\":false}\n- #settings-tab \"Settings\" {\"role\":\"tab\",\"aria-controls\":\"settings-panel\",\"aria-selected\":\"false\",\"value\":\"\",\"disabled\":false}\n- #sidebar-drag \"Sidebar width\" {\"role\":\"separator\",\"aria-label\":\"Sidebar width\",\"aria-orientation\":\"vertical\",\"aria-valuemin\":\"180\",\"aria-valuenow\":\"240\"}\n- #resume \"Unpause everyone\" {\"value\":\"\",\"disabled\":false}\n- #interrupt \"Interrupt turn\" {\"value\":\"\",\"disabled\":false}\n- #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \"Read artifact aloud\" {\"aria-label\":\"Read artifact aloud\",\"value\":\"\",\"disabled\":false}\n- #input \"\" {\"value\":\"\",\"disabled\":false,\"readOnly\":false,\"required\":false}\n- #input-form > button:nth-of-type(1) \"Send\" {\"value\":\"\",\"disabled\":false}\n- #actions-drag \"Actions width\" {\"role\":\"separator\",\"aria-label\":\"Actions width\",\"aria-orientation\":\"vertical\",\"aria-valuemin\":\"200\",\"aria-valuenow\":\"360\"}\nArtifact #artifacts > article:nth-of-type(1): user\n🔊\nExercise input then submit through browser tools.\n\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\n\n## tts_queue (auto-updated)\n\n[]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        },
+        {
+          "description": "Click a visible control by CSS selector",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "selector": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          },
+          "name": "gui_click"
+        },
+        {
+          "description": "Set an input value and dispatch input/change",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "selector": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "selector",
+              "text"
+            ]
+          },
+          "name": "gui_input"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.\n\nThe current browser snapshot and speech queue arrive automatically before each\nround. Use gui_click with a visible CSS selector and gui_input with selector and\ntext. Observe the next snapshot to confirm the effect. Hidden or omitted state\nis not evidence of success: report what you can actually observe.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-1",
+              "name": "gui_input",
+              "input": {
+                "selector": "#input",
+                "text": "MCP submitted"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-1",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "ok"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "## gui_snapshot (auto-updated)\n\n# Visible GUI\n## Ensemble sidebar (240px wide)\n## Chat (828px wide)\n## Actions (360px wide)\n- #agents-tab \"Agents\" {\"role\":\"tab\",\"aria-controls\":\"agents-panel\",\"aria-selected\":\"true\",\"value\":\"\",\"disabled\":false}\n- #settings-tab \"Settings\" {\"role\":\"tab\",\"aria-controls\":\"settings-panel\",\"aria-selected\":\"false\",\"value\":\"\",\"disabled\":false}\n- #sidebar-drag \"Sidebar width\" {\"role\":\"separator\",\"aria-label\":\"Sidebar width\",\"aria-orientation\":\"vertical\",\"aria-valuemin\":\"180\",\"aria-valuenow\":\"240\"}\n- #resume \"Unpause everyone\" {\"value\":\"\",\"disabled\":false}\n- #interrupt \"Interrupt turn\" {\"value\":\"\",\"disabled\":false}\n- #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \"Read artifact aloud\" {\"aria-label\":\"Read artifact aloud\",\"value\":\"\",\"disabled\":false}\n- #input \"\" {\"value\":\"MCP submitted\",\"disabled\":false,\"readOnly\":false,\"required\":false}\n- #input-form > button:nth-of-type(1) \"Send\" {\"value\":\"\",\"disabled\":false}\n- #actions-drag \"Actions width\" {\"role\":\"separator\",\"aria-label\":\"Actions width\",\"aria-orientation\":\"vertical\",\"aria-valuemin\":\"200\",\"aria-valuenow\":\"360\"}\n- #actions > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \"Read artifact aloud\" {\"aria-label\":\"Read artifact aloud\",\"value\":\"\",\"disabled\":false}\n- #actions > article:nth-of-type(2) > header:nth-of-type(1) > button:nth-of-type(1) \"Read artifact aloud\" {\"aria-label\":\"Read artifact aloud\",\"value\":\"\",\"disabled\":false}\n- #actions > article:nth-of-type(3) > header:nth-of-type(1) > button:nth-of-type(1) \"Read artifact aloud\" {\"aria-label\":\"Read artifact aloud\",\"value\":\"\",\"disabled\":false}\nArtifact #artifacts > article:nth-of-type(1): user\n🔊\nExercise input then submit through browser tools.\nArtifact #actions > article:nth-of-type(1): gui_snapshot\n🔊\ngui_snapshot\n{}\n\n# Visible GUI\n## Ensemble sidebar (240px wide)\n## Chat (828px wide)\n## Actions (360px wide)\n- #agents-tab \"Agents\" {\"role\":\"tab\",\"aria-controls\":\"agents-panel\",\"aria-selected\":\"true\",\"value\":\"\",\"disabled\":false}\n- #settings-tab \"Settings\" {\"role\":\"tab\",\"aria-controls\":\"settings-panel\",\"aria-selected\":\"false\",\"value\":\"\",\"disabled\":false}\n- #sidebar-drag \"Sidebar width\" {\"role\":\"separator\",\"aria-label\":\"Sidebar width\",\"aria-orientation\":\"vertical\",\"aria-valuemin\":\"180\",\"aria-valuenow\":\"240\"}\n- #resume \"Unpause everyone\" {\"value\":\"\",\"disabled\":false}\n- #interrupt \"Interrupt turn\" {\"value\":\"\",\"disabled\":false}\n- #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \"Read artifact aloud\" {\"aria-label\":\"Read artifact aloud\",\"value\":\"\",\"disabled\":false}\n- #input \"\" {\"value\":\"\",\"disabled\":false,\"readOnly\":false,\"required\":false}\n- #input-form > button:nth-of-type(1) \"Send\" {\"value\":\"\",\"disabled\":false}\n- #actions-drag \"Actions width\" {\"role\":\"separator\",\"aria-label\":\"Actions width\",\"aria-orientation\":\"vertical\",\"aria-valuemin\":\"200\",\"aria-valuenow\":\"360\"}\nArtifact #artifacts > article:nth-of-type(1): user\n🔊\nExercise input then submit through browser tools.\n\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\nArtifact #actions > article:nth-of-type(2): tts_queue\n🔊\ntts_queue\n{}\n\n[]\nArtifact #actions > article:nth-of-type(3): gui_input\n🔊\ngui_input\n{\n  \"selector\": \"#input\",\n  \"text\": \"MCP submitted\"\n}\n\nok\n\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\n\n## tts_queue (auto-updated)\n\n[]"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "events": "{\"log_version\":1}\n{\"seq\":1,\"type\":\"message_received\",\"time\":\"2026-10-11T02:09:48.585909Z\",\"message\":{\"actor\":\"human\",\"parts\":[{\"type\":\"text\",\"text\":\"Exercise input then submit through browser tools.\"}]}}\n{\"seq\":2,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:48.586172Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":0},\"name\":\"gui_snapshot\",\"args\":{},\"call_id\":\"external-2\"}}\n{\"seq\":3,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:48.602276Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":1254},\"call_id\":\"\"}}\n{\"seq\":4,\"type\":\"job_report\",\"time\":\"2026-10-11T02:09:48.602284Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":1254},\"name\":\"gui_snapshot\",\"call_id\":\"external-2\",\"parts\":[{\"type\":\"text\",\"text\":\"# Visible GUI\\n## Ensemble sidebar (240px wide)\\n## Chat (828px wide)\\n## Actions (360px wide)\\n- #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"}\\n- #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #artifacts \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"readOnly\\\":false,\\\"required\\\":false}\\n- #input-form \\u003e button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"}\\nArtifact #artifacts \\u003e article:nth-of-type(1): user\\n🔊\\nExercise input then submit through browser tools.\\n\\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\"}]}}\n{\"seq\":5,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:48.602371Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":0},\"name\":\"tts_queue\",\"args\":{},\"call_id\":\"external-5\"}}\n{\"seq\":6,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:48.602598Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":2},\"call_id\":\"\"}}\n{\"seq\":7,\"type\":\"job_report\",\"time\":\"2026-10-11T02:09:48.602605Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":2},\"name\":\"tts_queue\",\"call_id\":\"external-5\",\"parts\":[{\"type\":\"text\",\"text\":\"[]\"}]}}\n{\"seq\":8,\"type\":\"message_received\",\"time\":\"2026-10-11T02:09:48.602614Z\",\"message\":{\"actor\":\"system\",\"parts\":[{\"type\":\"text\",\"text\":\"## gui_snapshot (auto-updated)\\n\\n# Visible GUI\\n## Ensemble sidebar (240px wide)\\n## Chat (828px wide)\\n## Actions (360px wide)\\n- #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"}\\n- #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #artifacts \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"readOnly\\\":false,\\\"required\\\":false}\\n- #input-form \\u003e button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"}\\nArtifact #artifacts \\u003e article:nth-of-type(1): user\\n🔊\\nExercise input then submit through browser tools.\\n\\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\\n\\n## tts_queue (auto-updated)\\n\\n[]\"}]}}\n{\"seq\":9,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:09:48.602734Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":10,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:09:48.60528Z\",\"response\":{\"parts\":[{\"artifact_id\":1,\"type\":\"tool_call\",\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"},\"call_id\":\"call-1\",\"name\":\"gui_input\",\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"}}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":11,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:48.605426Z\",\"tool\":{\"job\":{\"handle\":3,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/3\"},\"bytes\":0},\"name\":\"gui_input\",\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"},\"call_id\":\"call-1\"}}\n{\"seq\":12,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:48.606022Z\",\"tool\":{\"job\":{\"handle\":3,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/3\"},\"bytes\":2},\"call_id\":\"\"}}\n{\"seq\":13,\"type\":\"tool_returned\",\"time\":\"2026-10-11T02:09:48.606105Z\",\"tool\":{\"job\":{\"handle\":3,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/3\"},\"bytes\":2},\"call_id\":\"call-1\",\"parts\":[{\"type\":\"text\",\"text\":\"ok\"}]}}\n{\"seq\":14,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:48.606239Z\",\"tool\":{\"job\":{\"handle\":4,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/4\"},\"bytes\":0},\"name\":\"gui_snapshot\",\"args\":{},\"call_id\":\"external-14\"}}\n{\"seq\":15,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:48.606883Z\",\"tool\":{\"job\":{\"handle\":4,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/4\"},\"bytes\":3317},\"call_id\":\"\"}}\n{\"seq\":16,\"type\":\"job_report\",\"time\":\"2026-10-11T02:09:48.606905Z\",\"tool\":{\"job\":{\"handle\":4,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/4\"},\"bytes\":3317},\"name\":\"gui_snapshot\",\"call_id\":\"external-14\",\"parts\":[{\"type\":\"text\",\"text\":\"# Visible GUI\\n## Ensemble sidebar (240px wide)\\n## Chat (828px wide)\\n## Actions (360px wide)\\n- #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"}\\n- #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #artifacts \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #input \\\"\\\" {\\\"value\\\":\\\"MCP submitted\\\",\\\"disabled\\\":false,\\\"readOnly\\\":false,\\\"required\\\":false}\\n- #input-form \\u003e button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"}\\n- #actions \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions \\u003e article:nth-of-type(2) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions \\u003e article:nth-of-type(3) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\nArtifact #artifacts \\u003e article:nth-of-type(1): user\\n🔊\\nExercise input then submit through browser tools.\\nArtifact #actions \\u003e article:nth-of-type(1): gui_snapshot\\n🔊\\ngui_snapshot\\n{}\\n\\n# Visible GUI\\n## Ensemble sidebar (240px wide)\\n## Chat (828px wide)\\n## Actions (360px wide)\\n- #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"}\\n- #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #artifacts \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"readOnly\\\":false,\\\"required\\\":false}\\n- #input-form \\u003e button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"}\\nArtifact #artifacts \\u003e article:nth-of-type(1): user\\n🔊\\nExercise input then submit through browser tools.\\n\\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\\nArtifact #actions \\u003e article:nth-of-type(2): tts_queue\\n🔊\\ntts_queue\\n{}\\n\\n[]\\nArtifact #actions \\u003e article:nth-of-type(3): gui_input\\n🔊\\ngui_input\\n{\\n  \\\"selector\\\": \\\"#input\\\",\\n  \\\"text\\\": \\\"MCP submitted\\\"\\n}\\n\\nok\\n\\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\"}]}}\n{\"seq\":17,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:48.606981Z\",\"tool\":{\"job\":{\"handle\":5,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/5\"},\"bytes\":0},\"name\":\"tts_queue\",\"args\":{},\"call_id\":\"external-17\"}}\n{\"seq\":18,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:48.607155Z\",\"tool\":{\"job\":{\"handle\":5,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/5\"},\"bytes\":2},\"call_id\":\"\"}}\n{\"seq\":19,\"type\":\"job_report\",\"time\":\"2026-10-11T02:09:48.607179Z\",\"tool\":{\"job\":{\"handle\":5,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/5\"},\"bytes\":2},\"name\":\"tts_queue\",\"call_id\":\"external-17\",\"parts\":[{\"type\":\"text\",\"text\":\"[]\"}]}}\n{\"seq\":20,\"type\":\"message_received\",\"time\":\"2026-10-11T02:09:48.607201Z\",\"message\":{\"actor\":\"system\",\"parts\":[{\"type\":\"text\",\"text\":\"## gui_snapshot (auto-updated)\\n\\n# Visible GUI\\n## Ensemble sidebar (240px wide)\\n## Chat (828px wide)\\n## Actions (360px wide)\\n- #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"}\\n- #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #artifacts \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #input \\\"\\\" {\\\"value\\\":\\\"MCP submitted\\\",\\\"disabled\\\":false,\\\"readOnly\\\":false,\\\"required\\\":false}\\n- #input-form \\u003e button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"}\\n- #actions \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions \\u003e article:nth-of-type(2) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions \\u003e article:nth-of-type(3) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\nArtifact #artifacts \\u003e article:nth-of-type(1): user\\n🔊\\nExercise input then submit through browser tools.\\nArtifact #actions \\u003e article:nth-of-type(1): gui_snapshot\\n🔊\\ngui_snapshot\\n{}\\n\\n# Visible GUI\\n## Ensemble sidebar (240px wide)\\n## Chat (828px wide)\\n## Actions (360px wide)\\n- #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"}\\n- #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #artifacts \\u003e article:nth-of-type(1) \\u003e header:nth-of-type(1) \\u003e button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"readOnly\\\":false,\\\"required\\\":false}\\n- #input-form \\u003e button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false}\\n- #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"}\\nArtifact #artifacts \\u003e article:nth-of-type(1): user\\n🔊\\nExercise input then submit through browser tools.\\n\\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\\nArtifact #actions \\u003e article:nth-of-type(2): tts_queue\\n🔊\\ntts_queue\\n{}\\n\\n[]\\nArtifact #actions \\u003e article:nth-of-type(3): gui_input\\n🔊\\ngui_input\\n{\\n  \\\"selector\\\": \\\"#input\\\",\\n  \\\"text\\\": \\\"MCP submitted\\\"\\n}\\n\\nok\\n\\n[Snapshot: 0 characters elided; 0 artifacts omitted.]\\n\\n## tts_queue (auto-updated)\\n\\n[]\"}]}}\n{\"seq\":21,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:09:48.607414Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":22,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:09:48.607987Z\",\"response\":{\"parts\":[{\"artifact_id\":3,\"type\":\"tool_call\",\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"},\"call_id\":\"call-2\",\"name\":\"gui_click\",\"args\":{\"selector\":\"#input-form button\"}}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":23,\"type\":\"tool_returned\",\"time\":\"2026-10-11T02:09:54.753008Z\",\"tool\":{\"call_id\":\"call-2\",\"parts\":[{\"type\":\"text\",\"text\":\"not executed: turn interrupted\"}],\"is_error\":true}}\n{\"seq\":24,\"type\":\"turn_interrupted\",\"time\":\"2026-10-11T02:09:54.753447Z\",\"error\":{\"message\":\"agent stopped\"}}\n"
+}

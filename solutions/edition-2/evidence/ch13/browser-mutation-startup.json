@@ -1,0 +1,559 @@
+{
+  "vendor": "external HTTP fake",
+  "model": "fake",
+  "checks": [
+    "human typing still pauses Agent",
+    "MCP input followed by submit clears actual field",
+    "MCP input did not strand Agent pause",
+    "MCP submit remained reachable through actual dispatch",
+    "next round observed actual programmatic input",
+    "no browser runtime error"
+  ],
+  "prompt": "Exercise input then submit through browser tools.",
+  "artifacts": "user\n🔊\nExercise input then submit through browser tools.\ntext\n🔊\n\nInput and submit completed.",
+  "trace": "2026-10-11T02:09:55.89628Z > {\"type\":\"subscribe\"}\n2026-10-11T02:09:55.896784Z < {\"from\":\"idle\",\"replay\":true,\"to\":\"idle\",\"type\":\"state_changed\"}\n2026-10-11T02:09:55.896828Z < {\"paused\":false,\"replay\":true,\"type\":\"pause_changed\"}\n2026-10-11T02:09:55.896907Z < {\"replay\":true,\"settings\":{\"font_size\":16,\"max_tool_rounds\":0,\"theme\":\"dark\",\"tts_enabled\":true,\"tts_speed\":1},\"type\":\"current_settings\"}\n2026-10-11T02:09:59.20124Z > {\"settings\":{\"tts_enabled\":false},\"type\":\"update_settings\"}\n2026-10-11T02:09:59.201694Z < {\"settings\":{\"font_size\":16,\"max_tool_rounds\":0,\"theme\":\"dark\",\"tts_enabled\":false,\"tts_speed\":1},\"type\":\"settings_changed\"}\n2026-10-11T02:09:59.236828Z > {\"type\":\"pause\"}\n2026-10-11T02:09:59.236886Z < {\"paused\":true,\"type\":\"pause_changed\"}\n2026-10-11T02:09:59.268532Z > {\"type\":\"unpause\"}\n2026-10-11T02:09:59.268604Z < {\"paused\":false,\"type\":\"pause_changed\"}\n2026-10-11T02:09:59.301044Z > {\"type\":\"pause\"}\n2026-10-11T02:09:59.301087Z < {\"paused\":true,\"type\":\"pause_changed\"}\n2026-10-11T02:09:59.30276Z > {\"text\":\"Exercise input then submit through browser tools.\",\"type\":\"prompt\"}\n2026-10-11T02:09:59.302825Z > {\"type\":\"unpause\"}\n2026-10-11T02:09:59.302843Z < {\"paused\":false,\"type\":\"pause_changed\"}\n2026-10-11T02:09:59.302982Z < {\"part\":{\"text\":\"Exercise input then submit through browser tools.\",\"type\":\"text\"},\"part_id\":\"user-1-0\",\"type\":\"user_message\"}\n2026-10-11T02:09:59.303022Z < {\"from\":\"idle\",\"to\":\"input_pending\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.303125Z < {\"from\":\"input_pending\",\"to\":\"in_flight\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.30573Z < {\"chunk\":\"gui_input {\\\"selector\\\":\\\"#input\\\",\\\"text\\\":\\\"MCP submitted\\\"}\",\"kind\":\"tool_call\",\"part_id\":1,\"type\":\"part_delta\"}\n2026-10-11T02:09:59.305749Z < {\"part\":{\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"},\"artifact_id\":1,\"call_id\":\"call-1\",\"from\":{\"model\":\"fake\",\"surface\":\"messages\",\"vendor\":\"anthropic\"},\"name\":\"gui_input\",\"type\":\"tool_call\"},\"part_id\":1,\"type\":\"part_final\"}\n2026-10-11T02:09:59.30578Z < {\"from\":\"in_flight\",\"to\":\"tools_pending\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.305935Z < {\"call_id\":\"call-1\",\"input\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"},\"name\":\"gui_input\",\"type\":\"tool_dispatched\"}\n2026-10-11T02:09:59.306291Z < {\"call_id\":\"call-1\",\"is_error\":true,\"result\":\"unknown tool \\\"gui_input\\\"\",\"type\":\"tool_finished\"}\n2026-10-11T02:09:59.306306Z < {\"from\":\"tools_pending\",\"to\":\"input_pending\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.306373Z < {\"from\":\"input_pending\",\"to\":\"in_flight\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.306724Z < {\"chunk\":\"gui_click {\\\"selector\\\":\\\"#input-form button\\\"}\",\"kind\":\"tool_call\",\"part_id\":3,\"type\":\"part_delta\"}\n2026-10-11T02:09:59.30678Z < {\"part\":{\"args\":{\"selector\":\"#input-form button\"},\"artifact_id\":3,\"call_id\":\"call-2\",\"from\":{\"model\":\"fake\",\"surface\":\"messages\",\"vendor\":\"anthropic\"},\"name\":\"gui_click\",\"type\":\"tool_call\"},\"part_id\":3,\"type\":\"part_final\"}\n2026-10-11T02:09:59.306789Z < {\"from\":\"in_flight\",\"to\":\"tools_pending\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.306879Z < {\"call_id\":\"call-2\",\"input\":{\"selector\":\"#input-form button\"},\"name\":\"gui_click\",\"type\":\"tool_dispatched\"}\n2026-10-11T02:09:59.307046Z < {\"call_id\":\"call-2\",\"is_error\":true,\"result\":\"unknown tool \\\"gui_click\\\"\",\"type\":\"tool_finished\"}\n2026-10-11T02:09:59.307054Z < {\"from\":\"tools_pending\",\"to\":\"input_pending\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.307148Z < {\"from\":\"input_pending\",\"to\":\"in_flight\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.307437Z < {\"chunk\":\"Input and submit completed.\",\"kind\":\"text\",\"part_id\":5,\"type\":\"part_delta\"}\n2026-10-11T02:09:59.307487Z < {\"part\":{\"artifact_id\":5,\"text\":\"Input and submit completed.\",\"type\":\"text\"},\"part_id\":5,\"type\":\"part_final\"}\n2026-10-11T02:09:59.307497Z < {\"from\":\"in_flight\",\"to\":\"idle\",\"type\":\"state_changed\"}\n2026-10-11T02:09:59.307524Z < {\"error\":\"\",\"text\":\"Input and submit completed.\",\"type\":\"turn_ended\"}\n",
+  "result": "PASS",
+  "browser": "154.0.8037.99",
+  "requests": [
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-1",
+              "name": "gui_input",
+              "input": {
+                "selector": "#input",
+                "text": "MCP submitted"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-1",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "unknown tool \"gui_input\""
+                }
+              ],
+              "is_error": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tools": [
+        {
+          "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "start_line": {
+                "type": "integer"
+              },
+              "end_line": {
+                "type": "integer"
+              },
+              "max_bytes": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "name": "read_file"
+        },
+        {
+          "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              },
+              "overwrite": {
+                "type": "boolean"
+              },
+              "append": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          },
+          "name": "write_file"
+        },
+        {
+          "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "old_text": {
+                "type": "string"
+              },
+              "new_text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          },
+          "name": "edit_file"
+        },
+        {
+          "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "cwd": {
+                "type": "string"
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds before looking again, default 3; never a job deadline"
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Regex on unseen output"
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Inline output byte cap, default 16384"
+              }
+            },
+            "required": [
+              "command"
+            ]
+          },
+          "name": "run_command"
+        },
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        }
+      ],
+      "model": "fake",
+      "max_tokens": 1024,
+      "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Exercise input then submit through browser tools."
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-1",
+              "name": "gui_input",
+              "input": {
+                "selector": "#input",
+                "text": "MCP submitted"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-1",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "unknown tool \"gui_input\""
+                }
+              ],
+              "is_error": true
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "call-2",
+              "name": "gui_click",
+              "input": {
+                "selector": "#input-form button"
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "call-2",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "unknown tool \"gui_click\""
+                }
+              ],
+              "is_error": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "events": "{\"log_version\":1}\n{\"seq\":1,\"type\":\"message_received\",\"time\":\"2026-10-11T02:09:59.302895Z\",\"message\":{\"actor\":\"human\",\"parts\":[{\"type\":\"text\",\"text\":\"Exercise input then submit through browser tools.\"}]}}\n{\"seq\":2,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:09:59.303088Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":3,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:09:59.305712Z\",\"response\":{\"parts\":[{\"artifact_id\":1,\"type\":\"tool_call\",\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"},\"call_id\":\"call-1\",\"name\":\"gui_input\",\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"}}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":4,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:59.305909Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":0},\"name\":\"gui_input\",\"args\":{\"selector\":\"#input\",\"text\":\"MCP submitted\"},\"call_id\":\"call-1\"}}\n{\"seq\":5,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:59.306052Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":24},\"call_id\":\"\"}}\n{\"seq\":6,\"type\":\"tool_returned\",\"time\":\"2026-10-11T02:09:59.306233Z\",\"tool\":{\"job\":{\"handle\":1,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/1\"},\"bytes\":24},\"call_id\":\"call-1\",\"parts\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_input\\\"\"}],\"is_error\":true}}\n{\"seq\":7,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:09:59.306332Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":8,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:09:59.306723Z\",\"response\":{\"parts\":[{\"artifact_id\":3,\"type\":\"tool_call\",\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"},\"call_id\":\"call-2\",\"name\":\"gui_click\",\"args\":{\"selector\":\"#input-form button\"}}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":9,\"type\":\"tool_called\",\"time\":\"2026-10-11T02:09:59.306836Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"running\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":0},\"name\":\"gui_click\",\"args\":{\"selector\":\"#input-form button\"},\"call_id\":\"call-2\"}}\n{\"seq\":10,\"type\":\"job_finished\",\"time\":\"2026-10-11T02:09:59.306944Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":24},\"call_id\":\"\"}}\n{\"seq\":11,\"type\":\"tool_returned\",\"time\":\"2026-10-11T02:09:59.306987Z\",\"tool\":{\"job\":{\"handle\":2,\"status\":\"done\",\"output\":{\"kind\":3,\"locator\":\"cr/io/2\"},\"bytes\":24},\"call_id\":\"call-2\",\"parts\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"gui_click\\\"\"}],\"is_error\":true}}\n{\"seq\":12,\"type\":\"request_sent\",\"time\":\"2026-10-11T02:09:59.307112Z\",\"request\":{\"to\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n{\"seq\":13,\"type\":\"response_ended\",\"time\":\"2026-10-11T02:09:59.307433Z\",\"response\":{\"parts\":[{\"artifact_id\":5,\"type\":\"text\",\"text\":\"Input and submit completed.\"}],\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1},\"from\":{\"vendor\":\"anthropic\",\"model\":\"fake\",\"surface\":\"messages\"}}}\n"
+}
