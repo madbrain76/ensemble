@@ -20,7 +20,19 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
-**Paused for Bill's decision before Edition 2 Chapter 15 / original 16 code.**
+**October 11: Bill resolved the forcing question and released implementation.**
+Use total input tokens from the prior request, including cached input exactly
+once. Lifetime cumulative usage was erroneous book wording. Get Anthropic and
+OpenAI working first, then Gemini. Bill authorized a narrow original-solution
+audit: the reviewer confirmed latest-request behavior and disjoint normalized
+buckets. Keep answer details in the reviewer-only record; the student receives
+only sourced field contracts in `edition-2-notes/ch16.md`. Provider raw totals
+may already include cache, so adding cache blindly can double-count it. Resume
+Edition 2 Chapter 15 / original 16 from accepted `edition-2-ch15-r1`; no new
+implementation or acceptance result is claimed by this decision. The historical
+pause below is resolved. Later original22/24 stops remain unchanged.
+
+**Historical October 10 pause, resolved October 11 above.**
 Fresh student `student_continue_ch16` completed the required reading and raised
 the forcing-policy discrepancy: the TL;DR says cumulative input/cache-write
 usage, while the explanation relies on current context occupancy falling after

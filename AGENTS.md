@@ -1,5 +1,16 @@
 # Ensemble student restart
 
+## October 11: prior-request input correction
+
+Bill resolves original Chapter 16 / Edition 2 Chapter 15 forcing: use total input
+tokens from the prior request, including its cache buckets exactly once, not
+lifetime cumulative usage. The book wording is erroneous. Coordinator/reviewer
+may inspect the original solution for this narrow check; provide the student
+only verified behavior and provider field contracts, not answer code. Get
+Anthropic and OpenAI working first, then Gemini. Preserve original sources and
+record the correction in the chapter notes. The Chapter 16 pause is lifted;
+all later review and original Chapter 22/24 decision gates remain.
+
 ## October 10: corrected solution layout
 
 Bill requires accepted solutions directly in `solutions/edition-2/chNN/`, using

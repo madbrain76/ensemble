@@ -1,5 +1,12 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 11, Bill’s Chapter 16 correction:** forcing uses total input tokens
+from the prior request, including cached input exactly once, not session
+cumulative usage. Anthropic and OpenAI come first, then Gemini. Raw provider
+fields and normalized internal buckets need different arithmetic; use the
+verified contracts in `edition-2-notes/ch16.md`. The prior forcing question is
+resolved and implementation may resume. Original sources remain historical.
+
 **Current solution paths, Bill's October 10 correction.** Work in
 `solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
