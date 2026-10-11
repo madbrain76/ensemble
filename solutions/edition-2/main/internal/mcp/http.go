@@ -30,7 +30,9 @@ type httpTransport struct {
 	closed                   bool
 }
 
-func newHTTP(parent common.MCP, server common.MCPServer) *httpTransport {
+// NewHTTP creates a boundary owned by the supplied manager. Credentials resolve
+// once at connection creation, never from model-visible skill instructions.
+func NewHTTP(parent common.MCP, server common.MCPServer) *httpTransport {
 	if parent == nil {
 		panic("HTTP MCP requires its manager")
 	}

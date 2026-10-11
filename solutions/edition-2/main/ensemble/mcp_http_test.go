@@ -301,6 +301,9 @@ func TestShippedWebSkill(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer a.Shutdown()
+	if !slices.Contains(toolNames(a), "wait_for_job") {
+		t.Fatal("primary cannot collect slow web jobs")
+	}
 	if !slices.Contains(a.Skills().LoadableSkills(), "web-search") {
 		t.Fatal("primary does not offer web-search")
 	}

@@ -71,7 +71,7 @@ func (m *manager) StartSkill(skill string, servers []common.MCPServer, allowed [
 				continue
 			}
 		} else if server.Transport == "url" {
-			t = newHTTP(m, server)
+			t = NewHTTP(m, server)
 		} else {
 			t, err = startStdio(m.parent, server)
 		}
