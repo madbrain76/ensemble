@@ -1,0 +1,20 @@
+--- gui/web/gui/app.js
++++ gui/web/gui/app.js
+@@ -437,7 +437,7 @@
+     if (message.type === "settings_error") {
+       document.querySelector("#settings-status").textContent = message.error;
+       speech.flush();
+-      speech.enqueue(message.error, "error");
++      speech.enqueue("An unrelated greeting.", "error");
+     }
+     if (message.type === "state_changed") {
+       state.textContent = message.to;
+@@ -451,7 +451,7 @@
+       speech.flush();
+       if (message.error) {
+         state.textContent = message.error;
+-        speech.enqueue(message.error, "error");
++        speech.enqueue("An unrelated greeting.", "error");
+       }
+       window.ensembleTurn++;
+     }

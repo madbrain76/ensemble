@@ -1,0 +1,40 @@
+import pathlib,subprocess,shutil,tempfile,time,json,os,difflib
+root=pathlib.Path.cwd(); out=root/'solutions/edition-2/evidence/ch14/enhancement13'; source=root/'solutions/edition-2/ch13'
+scratch=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-speech-mutants-')); core=scratch/'core'
+shutil.copytree(source,core,ignore=shutil.ignore_patterns('node_modules','.git','save.json','events.jsonl'))
+os.symlink(source/'gui/node_modules',core/'gui/node_modules',target_is_directory=True)
+speech='gui/web/gui/speech.js';app='gui/web/gui/app.js';harness='tts-harness.sh';reader='internal/tools/tools.go'
+cases=[
+ ('fence-silent',speech,'" code block "','" "','tts-filters-markup'),
+ ('link-unfiltered',speech,'    .replace(/!?\\[([^\\]]*)\\]\\([^)]*\\)/g, "$1")\n','','tts-filters-markup'),
+ ('heading-unfiltered',speech,'    .replace(/^\\s{0,3}#{1,6}\\s+/gm, "")\n','','tts-filters-markup'),
+ ('bullet-unfiltered',speech,'    .replace(/^\\s*([-*+] |\\d+\\. )/gm, "")\n','','tts-filters-markup'),
+ ('inline-unfiltered',speech,'    .replace(/[*_`]/g, "")\n','','tts-filters-markup'),
+ ('fragment-flush',speech,'this.drain(id, false);','this.drain(id, true);','tts-buffers-fragments'),
+ ('wrap-boundary',speech,'if (c === "\\n" && /^\\n[ \\t]*\\n/.test(text.slice(i)))','if (c === "\\n") return i + 1;\n    if (c === "\\n" && /^\\n[ \\t]*\\n/.test(text.slice(i)))','tts-boundaries'),
+ ('paragraph-boundary',speech,'if (c === "\\n" && /^\\n[ \\t]*\\n/.test(text.slice(i)))','if (false)','tts-boundaries'),
+ ('drop-final-tail',speech,'      this.speech.enqueue(text, part.source);','      // Deliberately discard final unfinished speech.','tts-boundaries'),
+ ('acronym-unexpanded',speech,'    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")\n','','tts-expands-identifiers'),
+ ('camel-unexpanded',speech,'    .replace(/([a-z\\d])([A-Z])/g, "$1 $2")\n','','tts-expands-identifiers'),
+ ('snake-unexpanded',speech,'    .replace(/([\\p{L}\\d])_+(?=[\\p{L}\\d])/gu, "$1 ")\n','','tts-expands-identifiers'),
+ ('ordinary-caps-split',speech,'  return text\n','  return text.replace(/[A-Z]/g, " $& ")\n','tts-expands-identifiers'),
+ ('duplicate-final',app,'card.streamed ? "" : card.text','card.text','tts-speaks-unstreamed'),
+ ('speak-tool-result',app,'    } else if (message.type === "tool_finished") {','    } else if (message.type === "tool_finished") {\n      speech.enqueue(message.result, "tool");','tts-discrimination'),
+ ('hide-error',app,'speech.enqueue(message.error, "error");','speech.enqueue("An unrelated greeting.", "error");','tts-speaks-errors'),
+ ('no-gate-release',app,'send({ type: next ? "pause" : "unpause" });','send({ type: "pause" });','tts-gate-both-causes'),
+ ('nonzero-with-log',harness,'exec node "$(dirname "$0")/gui/tts-harness.mjs" "$@"','node "$(dirname "$0")/gui/tts-harness.mjs" "$@"\nexit 17','tts-harness-runs'),
+ ('read-empty-success',reader,'os.ReadFile(args.Path)','os.ReadFile("/dev/null")','tts-discrimination'),
+]
+results=[]
+try:
+ for name,file,old,new,want in cases:
+  path=core/file;before=path.read_text();assert old in before,(name,old)
+  after=before.replace(old,new);path.write_text(after)
+  (out/(name+'.patch')).write_text(''.join(difflib.unified_diff(before.splitlines(True),after.splitlines(True),fromfile=file,tofile=file)))
+  start=time.monotonic();p=subprocess.run(['/tmp/ensemble-ch13-probe','-test.run','^TestChapter13Probe$','-test.v'],env=dict(os.environ,SPEECH_PROBE_CORE=str(core)),capture_output=True,text=True,timeout=150)
+  path.write_text(before);(out/(name+'.txt')).write_text(p.stdout+p.stderr)
+  checks=json.loads(next(x for x in p.stdout.splitlines() if x.startswith('[{')))
+  failed=[c for c in checks if not c['passed']];intended=next((c for c in failed if c['id']==want),None)
+  r={'name':name,'file':file,'intended_check':want,'intended_failed':intended is not None,'exit':p.returncode,'seconds':time.monotonic()-start,'failures':failed}
+  results.append(r);(out/'mutations.json').write_text(json.dumps(results,indent=2)+'\n');print(name,'caught' if intended else 'SURVIVED',flush=True)
+finally:shutil.rmtree(scratch)

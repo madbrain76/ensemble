@@ -1,0 +1,11 @@
+--- gui/web/gui/speech.js
++++ gui/web/gui/speech.js
+@@ -64,7 +64,7 @@
+ // Filter only at utterance boundaries, after the fragments have reassembled.
+ // Identifier expansion precedes underscore removal so snake_case keeps its words.
+ export function speechText(text) {
+-  return text
++  return text.replace(/[A-Z]/g, " $& ")
+     .replace(/```[^\n]*\n[\s\S]*?```/g, " code block ")
+     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+     .replace(/^\s{0,3}#{1,6}\s+/gm, "")

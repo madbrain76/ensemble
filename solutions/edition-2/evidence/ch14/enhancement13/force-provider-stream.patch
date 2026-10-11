@@ -1,0 +1,11 @@
+--- gui/tts-harness.mjs
++++ gui/tts-harness.mjs
+@@ -41,7 +41,7 @@
+       path.join(directory, "web/gui"),
+       "--workspace",
+       process.env.WORKSPACE || scratch,
+-      ...(process.env.STREAMING === "off" ? ["--no-stream"] : []),
++      ...[],
+     ],
+     {
+       cwd: scratch,

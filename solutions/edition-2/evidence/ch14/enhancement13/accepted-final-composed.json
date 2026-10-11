@@ -1,0 +1,13 @@
+{
+  "score": 100,
+  "max_score": 100,
+  "kind": "composed; not a new complete run",
+  "speech_points": 95,
+  "speech_max": 95,
+  "speech_receipt": "accepted-final-race.txt",
+  "parity_points": 5,
+  "parity_max": 5,
+  "parity_receipt": "accepted-full.json",
+  "actual_prior_full_score": 100,
+  "source_binding": "source-binding.json"
+}

@@ -1,0 +1,40 @@
+{
+  "method": "Physical Go lines; blank and //-only lines excluded from active; these files have no multiline block comments. Command switch/help delta separate. No runtime production change.",
+  "rows": [
+    {
+      "path": "internal/gradeedition2/ch13.go",
+      "physical": 364,
+      "comment_only": 42,
+      "blank": 13,
+      "active": 309
+    },
+    {
+      "path": "internal/gradeedition2/ch13_test.go",
+      "physical": 20,
+      "comment_only": 2,
+      "blank": 2,
+      "active": 16
+    },
+    {
+      "path": "internal/grade/ch14_harness.go",
+      "physical": 299,
+      "comment_only": 57,
+      "blank": 24,
+      "active": 218
+    },
+    {
+      "path": "internal/grade/ch14_checks.go",
+      "physical": 179,
+      "comment_only": 22,
+      "blank": 12,
+      "active": 145
+    },
+    {
+      "path": "internal/grade/ch14_run.go",
+      "physical": 287,
+      "comment_only": 37,
+      "blank": 34,
+      "active": 216
+    }
+  ]
+}

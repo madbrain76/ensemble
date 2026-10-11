@@ -1,0 +1,967 @@
+{
+  "declared_tools": [
+    "hear",
+    "sleep",
+    "submit",
+    "type",
+    "wait"
+  ],
+  "error": "<nil>",
+  "listener_command": [
+    "/tmp/ensemble-ch13-listener",
+    "--agent-url",
+    "http://localhost:8088",
+    "--persona",
+    "blind",
+    "--peer",
+    "gui/virtual-user.mjs",
+    "--task",
+    "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools.",
+    "--browser",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  ],
+  "listener_requests": [
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Hear new speech transcript entries with their source; no screen contents",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "hear"
+          },
+          {
+            "description": "Replace the chat input with text",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "name": "type"
+          },
+          {
+            "description": "Submit the typed chat input",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "submit"
+          },
+          {
+            "description": "Wait until the submitted turn ends, then hear its new speech",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "wait"
+          },
+          {
+            "description": "Sleep for milliseconds before listening again",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "milliseconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "milliseconds"
+              ]
+            },
+            "name": "sleep"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "You are a blind virtual user. Use type and submit to ask the target agent, wait for completion and hear its speech. Your only perception is the transcript returned by hear or wait. Report exactly what you heard, distinguishing text from thinking and tool announcements. Do not infer screen contents or audio quality.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Hear new speech transcript entries with their source; no screen contents",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "hear"
+          },
+          {
+            "description": "Replace the chat input with text",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "name": "type"
+          },
+          {
+            "description": "Submit the typed chat input",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "submit"
+          },
+          {
+            "description": "Wait until the submitted turn ends, then hear its new speech",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "wait"
+          },
+          {
+            "description": "Sleep for milliseconds before listening again",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "milliseconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "milliseconds"
+              ]
+            },
+            "name": "sleep"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "You are a blind virtual user. Use type and submit to ask the target agent, wait for completion and hear its speech. Your only perception is the transcript returned by hear or wait. Report exactly what you heard, distinguishing text from thinking and tool announcements. Do not infer screen contents or audio quality.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "type-one",
+                "name": "type",
+                "input": {
+                  "text": "Explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code, and choose one fruit."
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "type-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "typed"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Hear new speech transcript entries with their source; no screen contents",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "hear"
+          },
+          {
+            "description": "Replace the chat input with text",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "name": "type"
+          },
+          {
+            "description": "Submit the typed chat input",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "submit"
+          },
+          {
+            "description": "Wait until the submitted turn ends, then hear its new speech",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "wait"
+          },
+          {
+            "description": "Sleep for milliseconds before listening again",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "milliseconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "milliseconds"
+              ]
+            },
+            "name": "sleep"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "You are a blind virtual user. Use type and submit to ask the target agent, wait for completion and hear its speech. Your only perception is the transcript returned by hear or wait. Report exactly what you heard, distinguishing text from thinking and tool announcements. Do not infer screen contents or audio quality.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "type-one",
+                "name": "type",
+                "input": {
+                  "text": "Explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code, and choose one fruit."
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "type-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "typed"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "submit-one",
+                "name": "submit",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "submit-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "submitted"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Hear new speech transcript entries with their source; no screen contents",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "hear"
+          },
+          {
+            "description": "Replace the chat input with text",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "name": "type"
+          },
+          {
+            "description": "Submit the typed chat input",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "submit"
+          },
+          {
+            "description": "Wait until the submitted turn ends, then hear its new speech",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "wait"
+          },
+          {
+            "description": "Sleep for milliseconds before listening again",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "milliseconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "milliseconds"
+              ]
+            },
+            "name": "sleep"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "You are a blind virtual user. Use type and submit to ask the target agent, wait for completion and hear its speech. Your only perception is the transcript returned by hear or wait. Report exactly what you heard, distinguishing text from thinking and tool announcements. Do not infer screen contents or audio quality.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "type-one",
+                "name": "type",
+                "input": {
+                  "text": "Explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code, and choose one fruit."
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "type-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "typed"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "submit-one",
+                "name": "submit",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "submit-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "submitted"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "wait-one",
+                "name": "wait",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "wait-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "[{\"text\":\"queue Chunk buffers speech, max tool rounds bounds batches and HTTP Server serves requests.\",\"source\":\"text\"},{\"text\":\"My fruit is mango.\",\"source\":\"text\"}]"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Hear new speech transcript entries with their source; no screen contents",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "hear"
+          },
+          {
+            "description": "Replace the chat input with text",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "name": "type"
+          },
+          {
+            "description": "Submit the typed chat input",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "submit"
+          },
+          {
+            "description": "Wait until the submitted turn ends, then hear its new speech",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "wait"
+          },
+          {
+            "description": "Sleep for milliseconds before listening again",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "milliseconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "milliseconds"
+              ]
+            },
+            "name": "sleep"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "You are a blind virtual user. Use type and submit to ask the target agent, wait for completion and hear its speech. Your only perception is the transcript returned by hear or wait. Report exactly what you heard, distinguishing text from thinking and tool announcements. Do not infer screen contents or audio quality.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "type-one",
+                "name": "type",
+                "input": {
+                  "text": "Explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code, and choose one fruit."
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "type-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "typed"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "submit-one",
+                "name": "submit",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "submit-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "submitted"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "wait-one",
+                "name": "wait",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "wait-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "[{\"text\":\"queue Chunk buffers speech, max tool rounds bounds batches and HTTP Server serves requests.\",\"source\":\"text\"},{\"text\":\"My fruit is mango.\",\"source\":\"text\"}]"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "hear-one",
+                "name": "hear",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "hear-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "[]"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Hear new speech transcript entries with their source; no screen contents",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "hear"
+          },
+          {
+            "description": "Replace the chat input with text",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "name": "type"
+          },
+          {
+            "description": "Submit the typed chat input",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "submit"
+          },
+          {
+            "description": "Wait until the submitted turn ends, then hear its new speech",
+            "input_schema": {
+              "type": "object",
+              "properties": {}
+            },
+            "name": "wait"
+          },
+          {
+            "description": "Sleep for milliseconds before listening again",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "milliseconds": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "milliseconds"
+              ]
+            },
+            "name": "sleep"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "You are a blind virtual user. Use type and submit to ask the target agent, wait for completion and hear its speech. Your only perception is the transcript returned by hear or wait. Report exactly what you heard, distinguishing text from thinking and tool announcements. Do not infer screen contents or audio quality.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "type-one",
+                "name": "type",
+                "input": {
+                  "text": "Explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code, and choose one fruit."
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "type-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "typed"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "submit-one",
+                "name": "submit",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "submit-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "submitted"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "wait-one",
+                "name": "wait",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "wait-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "[{\"text\":\"queue Chunk buffers speech, max tool rounds bounds batches and HTTP Server serves requests.\",\"source\":\"text\"},{\"text\":\"My fruit is mango.\",\"source\":\"text\"}]"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "hear-one",
+                "name": "hear",
+                "input": {}
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "hear-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "[]"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "role": "assistant",
+            "content": [
+              {
+                "type": "tool_use",
+                "id": "sleep-one",
+                "name": "sleep",
+                "input": {
+                  "milliseconds": 150
+                }
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "tool_result",
+                "tool_use_id": "sleep-one",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "slept"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "output": "The actual target speech names queue Chunk, max tool rounds, HTTP Server and mango.\n",
+  "seconds": 1.183490958,
+  "target_requests": [
+    {
+      "Vendor": "anthropic",
+      "Path": "/v1/messages",
+      "Body": {
+        "thinking": {
+          "type": "adaptive"
+        },
+        "stream": true,
+        "tools": [
+          {
+            "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "name": "load_skill"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+            "input_schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "name": "unload_skill"
+          }
+        ],
+        "model": "claude-haiku-5-5",
+        "max_tokens": 4096,
+        "system": "Answer briefly in two sentences. No tools are needed.",
+        "messages": [
+          {
+            "role": "user",
+            "content": [
+              {
+                "type": "text",
+                "text": "Explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code, and choose one fruit."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

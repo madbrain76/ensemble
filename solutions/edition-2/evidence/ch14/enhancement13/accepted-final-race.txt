@@ -1,0 +1,4 @@
+=== RUN   TestChapter13Speech
+--- PASS: TestChapter13Speech (12.68s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	13.700s

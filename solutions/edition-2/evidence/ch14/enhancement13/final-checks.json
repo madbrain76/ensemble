@@ -1,0 +1,61 @@
+[
+  {
+    "name": "accepted-final-race",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestChapter13Speech$",
+      "-count=1",
+      "-v"
+    ],
+    "exit": 0,
+    "seconds": 14.7762114580255
+  },
+  {
+    "name": "legacy-final-focused",
+    "command": [
+      "/tmp/ensemble-ch13-final-probe",
+      "-test.run",
+      "^TestChapter13Probe$",
+      "-test.v"
+    ],
+    "exit": 0,
+    "seconds": 26.62491837516427
+  },
+  {
+    "name": "vet",
+    "command": [
+      "go",
+      "vet",
+      "./internal/gradeedition2",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.3103051248472184
+  },
+  {
+    "name": "command-tests",
+    "command": [
+      "go",
+      "test",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.12715895916335285
+  },
+  {
+    "name": "format",
+    "command": [
+      "gofmt",
+      "-l",
+      "internal/gradeedition2/ch13.go",
+      "internal/gradeedition2/ch13_test.go",
+      "cmd/grade-edition2/main.go"
+    ],
+    "exit": 0,
+    "seconds": 0.00901762512512505
+  }
+]

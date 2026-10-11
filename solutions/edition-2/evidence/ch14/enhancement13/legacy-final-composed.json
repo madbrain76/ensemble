@@ -1,0 +1,13 @@
+{
+  "score": 75,
+  "max_score": 100,
+  "kind": "composed; not a new complete run",
+  "speech_points": 75,
+  "speech_max": 95,
+  "speech_receipt": "legacy-final-focused.txt",
+  "parity_points": 0,
+  "parity_max": 5,
+  "parity_receipt": "legacy-full.json",
+  "actual_prior_full_score": 75,
+  "source_binding": "source-binding.json"
+}

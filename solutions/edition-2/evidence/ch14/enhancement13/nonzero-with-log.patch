@@ -1,0 +1,8 @@
+--- tts-harness.sh
++++ tts-harness.sh
+@@ -1,3 +1,4 @@
+ #!/bin/sh
+ # The grader supplies only a provider boundary. Exercise the actual optional GUI.
+-exec node "$(dirname "$0")/gui/tts-harness.mjs" "$@"
++node "$(dirname "$0")/gui/tts-harness.mjs" "$@"
++exit 17

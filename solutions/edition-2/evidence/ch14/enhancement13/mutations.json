@@ -1,0 +1,751 @@
+[
+  {
+    "name": "fence-silent",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-filters-markup",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.822467125020921,
+    "failures": [
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "fence was not named between its surrounding sentences: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. After the fence. Tail without punctuation:\"",
+          "fence was not named between its surrounding sentences: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "link-unfiltered",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-filters-markup",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.268879750045016,
+    "failures": [
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "markup/code leaked \"[\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"]\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"https://example.invalid\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"[\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"]\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"https://example.invalid\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with [linked words](https://example.invalid). Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "heading-unfiltered",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-filters-markup",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.265983291901648,
+    "failures": [
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "markup/code leaked \"#\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph # Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"#\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph # Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "bullet-unfiltered",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-filters-markup",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.633037583203986,
+    "failures": [
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "markup/code leaked \"- Bullet\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. - Bullet words - Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"- Following\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. - Bullet words - Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"- Bullet\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. - Bullet words - Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"- Following\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. - Bullet words - Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "inline-unfiltered",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-filters-markup",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.695720083080232,
+    "failures": [
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "markup/code leaked \"*\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading **Emphasis** and `inline` with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"`\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading **Emphasis** and `inline` with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading **Emphasis** and `inline` with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"*\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading **Emphasis** and `inline` with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"`\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading **Emphasis** and `inline` with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading **Emphasis** and `inline` with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "fragment-flush",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-buffers-fragments",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 32.94311579200439,
+    "failures": [
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tool/model discrimination: \"gui snapshot tts queue read file gui snapshot tts queue The mo del sa ys PEL ICA N.\""
+        ]
+      },
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "markup/code leaked \"[\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "markup/code leaked \"]\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "filtered content lost \"Heading\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "filtered content lost \"Bullet words\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "filtered content lost \"Following bullet.\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "fence was not named between its surrounding sentences: \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\""
+        ]
+      },
+      {
+        "id": "tts-buffers-fragments",
+        "title": "fragments are assembled before they are spoken",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "fragmented or repeated \"Reading carefully preserves fragments.\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "fragmented or repeated \"Wrapped words stay together.\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "fragmented or repeated \"After the fence.\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "fragmented or repeated \"Tail without punctuation:\": \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\""
+        ]
+      },
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"Reading carefully preserves fragments.\", got0",
+          "want one complete utterance \"Wrapped words stay together.\", got0",
+          "want one complete utterance \"First paragraph\", got0",
+          "want one complete utterance \"Second paragraph\", got0",
+          "want one complete utterance \"Tail without punctuation:\", got0"
+        ]
+      },
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "identifier/ordinary text \"HTTP Server\" missing or repeated: \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "identifier/ordinary text \"queue Chunk\" missing or repeated: \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "identifier/ordinary text \"max tool rounds\" missing or repeated: \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "identifier/ordinary text \"ALL CAPS\" missing or repeated: \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\"",
+          "identifier/ordinary text \"Hello ordinary World.\" missing or repeated: \"gui snapshot tts queue Rea din g c are ful ly pre ser ves fr agm ent s. Wr app ed wor ds sta y t oge the r. Fi rst pa rag rap h Sec ond pa rag rap h H ead ing Em pha sis and i nli ne wi th [li nke d w ord s]( htt ps: //e xam ple .in val id) . B ull et wor ds F oll owi ng bul let . Use HT TPS erv er wit h q ueu e Ch unk an d m ax too l r oun ds in ALL CA PS. He llo or din ary Wo rld . Bef ore th e f enc e. go FE NCE D B ODY ON LY( ); code block A fte r t he fen ce. T ail wi tho ut pun ctu ati on:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "wrap-boundary",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-boundaries",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 13.028673416003585,
+    "failures": [
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"Wrapped words stay together.\", got0"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "paragraph-boundary",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-boundaries",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 11.138560459017754,
+    "failures": [
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"First paragraph\", got0",
+          "want one complete utterance \"Second paragraph\", got0"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "drop-final-tail",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-boundaries",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.310256541939452,
+    "failures": [
+      {
+        "id": "tts-buffers-fragments",
+        "title": "fragments are assembled before they are spoken",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "fragmented or repeated \"Tail without punctuation:\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence.\""
+        ]
+      },
+      {
+        "id": "tts-speaks-unstreamed",
+        "title": "Provider nonstream replies are spoken once (final-only renderer proof is separate)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "whole reply must speak \"Tail without punctuation:\" exactly once: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence.\""
+        ]
+      },
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"Tail without punctuation:\", got0"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "acronym-unexpanded",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-expands-identifiers",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.626978375017643,
+    "failures": [
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "identifier/ordinary text \"HTTP Server\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTPServer with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "camel-unexpanded",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-expands-identifiers",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.662766334135085,
+    "failures": [
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "identifier/ordinary text \"queue Chunk\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queueChunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "snake-unexpanded",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-expands-identifiers",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.73606437491253,
+    "failures": [
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "identifier/ordinary text \"max tool rounds\" missing or repeated: \"guisnapshot ttsqueue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and maxtoolrounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ordinary-caps-split",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-expands-identifiers",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.601482916157693,
+    "failures": [
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tool/model discrimination: \"gui snapshot tts queue read file gui snapshot tts queue T he model says P E L I C A N .\""
+        ]
+      },
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "filtered content lost \"Heading\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Bullet words\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Following bullet.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "fence was not named between its surrounding sentences: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Heading\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Bullet words\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "filtered content lost \"Following bullet.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "fence was not named between its surrounding sentences: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\""
+        ]
+      },
+      {
+        "id": "tts-buffers-fragments",
+        "title": "fragments are assembled before they are spoken",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "fragmented or repeated \"Reading carefully preserves fragments.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "fragmented or repeated \"Wrapped words stay together.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "fragmented or repeated \"After the fence.\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "fragmented or repeated \"Tail without punctuation:\": \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\""
+        ]
+      },
+      {
+        "id": "tts-speaks-unstreamed",
+        "title": "Provider nonstream replies are spoken once (final-only renderer proof is separate)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "whole reply must speak \"Reading carefully preserves fragments.\" exactly once: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "whole reply must speak \"After the fence.\" exactly once: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "whole reply must speak \"Tail without punctuation:\" exactly once: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\""
+        ]
+      },
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"Reading carefully preserves fragments.\", got0",
+          "want one complete utterance \"Wrapped words stay together.\", got0",
+          "want one complete utterance \"First paragraph\", got0",
+          "want one complete utterance \"Second paragraph\", got0",
+          "want one complete utterance \"Tail without punctuation:\", got0"
+        ]
+      },
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "identifier/ordinary text \"HTTP Server\" missing or repeated: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "identifier/ordinary text \"queue Chunk\" missing or repeated: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "identifier/ordinary text \"ALL CAPS\" missing or repeated: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\"",
+          "identifier/ordinary text \"Hello ordinary World.\" missing or repeated: \"gui snapshot tts queue R eading carefully preserves fragments. W rapped words stay together. F irst paragraph S econd paragraph H eading E mphasis and inline with linked words. B ullet words F ollowing bullet. U se H T T P S erver with queue C hunk and max tool rounds in A L L C A P S . H ello ordinary W orld. B efore the fence. code block A fter the fence. T ail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "duplicate-final",
+    "file": "gui/web/gui/app.js",
+    "intended_check": "tts-speaks-unstreamed",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 17.10567225003615,
+    "failures": [
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tool/model discrimination: \"gui snapshot tts queue read file gui snapshot tts queue The model says PELICAN. The model says PELICAN.\""
+        ]
+      },
+      {
+        "id": "tts-buffers-fragments",
+        "title": "fragments are assembled before they are spoken",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "fragmented or repeated \"Reading carefully preserves fragments.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "fragmented or repeated \"Wrapped words stay together.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "fragmented or repeated \"After the fence.\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "fragmented or repeated \"Tail without punctuation:\": \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      },
+      {
+        "id": "tts-speaks-unstreamed",
+        "title": "Provider nonstream replies are spoken once (final-only renderer proof is separate)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "whole reply must speak \"Reading carefully preserves fragments.\" exactly once: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "whole reply must speak \"After the fence.\" exactly once: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "whole reply must speak \"Tail without punctuation:\" exactly once: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      },
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"Wrapped words stay together.\", got2",
+          "want one complete utterance \"First paragraph\", got2",
+          "want one complete utterance \"Second paragraph\", got2"
+        ]
+      },
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "identifier/ordinary text \"HTTP Server\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "identifier/ordinary text \"queue Chunk\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "identifier/ordinary text \"max tool rounds\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "identifier/ordinary text \"ALL CAPS\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "identifier/ordinary text \"Hello ordinary World.\" missing or repeated: \"gui snapshot tts queue Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "speak-tool-result",
+    "file": "gui/web/gui/app.js",
+    "intended_check": "tts-discrimination",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 14.274890500120819,
+    "failures": [
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tool/model discrimination: \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] read file The actual file contains ZEBRAFISH. gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} #actions > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions > article:nth-of-type(2) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions > article:nth-of-type(3) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. Artifact #actions > article:nth-of-type(1): gui snapshot \ud83d\udd0a gui snapshot {} Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] Artifact #actions > article:nth-of-type(2): tts queue \ud83d\udd0a tts queue {} [] Artifact #actions > article:nth-of-type(3): read file \ud83d\udd0a read file { \\\"path\\\": \\\"/var/folders/p/11vk6y114xq7k9g5r pc3yv80000gn/T/edition2-speech-2102486845/notes.txt\\\" } The actual file contains ZEBRAFISH. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [{\\\"text\\\":\\\"read file\\\",\\\"source\\\":\\\"tool\\\",\\\"state\\\":\\\"speaking\\\",\\\"queued at\\\":1791756942052,\\\"started at\\\":1791756942052,\\\"elapsed ms\\\":3},{\\\"text\\\":\\\"The actual file contains ZEBRAFISH.\\\",\\\"source\\\":\\\"tool\\\",\\\"queued at\\\":1791756942052,\\\"state\\\":\\\"queued\\\",\\\"started at\\\":null,\\\"elapsed ms\\\":0}] The model says PELICAN.\""
+        ]
+      },
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "markup/code leaked \"#\": \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"[\": \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"]\": \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"#\": \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"[\": \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\"",
+          "markup/code leaked \"]\": \"gui snapshot Visible GUI Ensemble sidebar (240px wide) Chat (668px wide) Actions (360px wide) #agents-tab \\\"Agents\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"agents-panel\\\",\\\"aria-selected\\\":\\\"true\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #settings-tab \\\"Settings\\\" {\\\"role\\\":\\\"tab\\\",\\\"aria-controls\\\":\\\"settings-panel\\\",\\\"aria-selected\\\":\\\"false\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #sidebar-drag \\\"Sidebar width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Sidebar width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"180\\\",\\\"aria-valuenow\\\":\\\"240\\\"} #resume \\\"Unpause everyone\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #interrupt \\\"Interrupt turn\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #artifacts > article:nth-of-type(1) > header:nth-of-type(1) > button:nth-of-type(1) \\\"Read artifact aloud\\\" {\\\"aria-label\\\":\\\"Read artifact aloud\\\",\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #input \\\"\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false,\\\"read Only\\\":false,\\\"required\\\":false} #input-form > button:nth-of-type(1) \\\"Send\\\" {\\\"value\\\":\\\"\\\",\\\"disabled\\\":false} #actions-drag \\\"Actions width\\\" {\\\"role\\\":\\\"separator\\\",\\\"aria-label\\\":\\\"Actions width\\\",\\\"aria-orientation\\\":\\\"vertical\\\",\\\"aria-valuemin\\\":\\\"200\\\",\\\"aria-valuenow\\\":\\\"360\\\"} Artifact #artifacts > article:nth-of-type(1): user \ud83d\udd0a Exercise the speech channel. [Snapshot: 0 characters elided; 0 artifacts omitted.] tts queue [] Reading carefully preserves fragments. Wrapped words stay together. First paragraph Second paragraph Heading Emphasis and inline with linked words. Bullet words Following bullet. Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS. Hello ordinary World. Before the fence. code block After the fence. Tail without punctuation:\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "hide-error",
+    "file": "gui/web/gui/app.js",
+    "intended_check": "tts-speaks-errors",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.52878341707401,
+    "failures": [
+      {
+        "id": "tts-speaks-errors",
+        "title": "a failure is spoken rather than leaving the listener waiting",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "no failure-specific speech: \"gui snapshot tts queue an unrelated greeting.\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "no-gate-release",
+    "file": "gui/web/gui/app.js",
+    "intended_check": "tts-gate-both-causes",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 41.64831275003962,
+    "failures": [
+      {
+        "id": "tts-harness-runs",
+        "title": "the speech harness launches the system and produces a log",
+        "points": 0,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "discrimination: harness: exit status 1: node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\npage.waitForFunction: Timeout 30000ms exceeded.\n    at /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-speech-mutants-m2am8ga4/core/gui/tts-harness.mjs:133:14 {\n  log: [],\n  name: 'TimeoutError'\n}\n\nNode.js v24.20.0"
+        ]
+      },
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "discrimination harness: harness: exit status 1: node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\npage.waitForFunction: Timeout 30000ms exceeded.\n    at /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-speech-mutants-m2am8ga4/core/gui/tts-harness.mjs:133:14 {\n  log: [],\n  name: 'TimeoutError'\n}\n\nNode.js v24.20.0",
+          "tool/model discrimination: \"\"",
+          "read conversation made 1 requests, want2"
+        ]
+      },
+      {
+        "id": "tts-gate-both-causes",
+        "title": "Typing tool-dispatch pause and subsequent release appear in the transcript",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "typing pause/release missing or final gate remains paused: typing=true resumed=false paused=true"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "nonzero-with-log",
+    "file": "tts-harness.sh",
+    "intended_check": "tts-harness-runs",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.352015499956906,
+    "failures": [
+      {
+        "id": "tts-harness-runs",
+        "title": "the speech harness launches the system and produces a log",
+        "points": 0,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "streamed prose: harness: exit status 17: ",
+          "whole prose: harness: exit status 17: ",
+          "discrimination: harness: exit status 17: ",
+          "provider error: harness: exit status 17: ",
+          "typing gate: harness: exit status 17: "
+        ]
+      },
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "discrimination harness: harness: exit status 17: ",
+          "tool/model discrimination: \"\""
+        ]
+      },
+      {
+        "id": "tts-filters-markup",
+        "title": "markup is filtered for the ear; a fenced block is named, not read",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "streamed prose harness: harness: exit status 17: ",
+          "filtered content lost \"Heading\": \"\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"\"",
+          "filtered content lost \"Bullet words\": \"\"",
+          "filtered content lost \"Following bullet.\": \"\"",
+          "fence was not named between its surrounding sentences: \"\"",
+          "whole prose harness: harness: exit status 17: ",
+          "filtered content lost \"Heading\": \"\"",
+          "filtered content lost \"Emphasis and inline with linked words.\": \"\"",
+          "filtered content lost \"Bullet words\": \"\"",
+          "filtered content lost \"Following bullet.\": \"\"",
+          "fence was not named between its surrounding sentences: \"\""
+        ]
+      },
+      {
+        "id": "tts-buffers-fragments",
+        "title": "fragments are assembled before they are spoken",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "streamed prose harness: harness: exit status 17: ",
+          "fragmented or repeated \"Reading carefully preserves fragments.\": \"\"",
+          "fragmented or repeated \"Wrapped words stay together.\": \"\"",
+          "fragmented or repeated \"After the fence.\": \"\"",
+          "fragmented or repeated \"Tail without punctuation:\": \"\""
+        ]
+      },
+      {
+        "id": "tts-speaks-unstreamed",
+        "title": "Provider nonstream replies are spoken once (final-only renderer proof is separate)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "whole prose harness: harness: exit status 17: ",
+          "whole reply must speak \"Reading carefully preserves fragments.\" exactly once: \"\"",
+          "whole reply must speak \"After the fence.\" exactly once: \"\"",
+          "whole reply must speak \"Tail without punctuation:\" exactly once: \"\""
+        ]
+      },
+      {
+        "id": "tts-gate-both-causes",
+        "title": "Typing tool-dispatch pause and subsequent release appear in the transcript",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "typing gate harness: harness: exit status 17: ",
+          "typing pause/release missing or final gate remains paused: typing=false resumed=false paused=false"
+        ]
+      },
+      {
+        "id": "tts-speaks-errors",
+        "title": "a failure is spoken rather than leaving the listener waiting",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "provider error harness: harness: exit status 17: ",
+          "no failure-specific speech: \"\""
+        ]
+      },
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "streamed prose harness: harness: exit status 17: ",
+          "want one complete utterance \"Reading carefully preserves fragments.\", got0",
+          "want one complete utterance \"Wrapped words stay together.\", got0",
+          "want one complete utterance \"First paragraph\", got0",
+          "want one complete utterance \"Second paragraph\", got0",
+          "want one complete utterance \"Tail without punctuation:\", got0"
+        ]
+      },
+      {
+        "id": "tts-expands-identifiers",
+        "title": "run-together identifiers are spoken as words, all-caps left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "streamed prose harness: harness: exit status 17: ",
+          "identifier/ordinary text \"HTTP Server\" missing or repeated: \"\"",
+          "identifier/ordinary text \"queue Chunk\" missing or repeated: \"\"",
+          "identifier/ordinary text \"max tool rounds\" missing or repeated: \"\"",
+          "identifier/ordinary text \"ALL CAPS\" missing or repeated: \"\"",
+          "identifier/ordinary text \"Hello ordinary World.\" missing or repeated: \"\""
+        ]
+      }
+    ]
+  },
+  {
+    "name": "read-empty-success",
+    "file": "internal/tools/tools.go",
+    "intended_check": "tts-discrimination",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.497701458865777,
+    "failures": [
+      {
+        "id": "tts-discrimination",
+        "title": "tool results stay silent; the model's own words are spoken",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "actual file result missing"
+        ]
+      }
+    ]
+  }
+]

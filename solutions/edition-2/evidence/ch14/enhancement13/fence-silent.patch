@@ -1,0 +1,24 @@
+--- gui/web/gui/speech.js
++++ gui/web/gui/speech.js
+@@ -21,10 +21,10 @@
+     if (!part) return;
+     // Resolve fences before segmentation: their embedded newlines and periods
+     // must never become phrase boundaries. Hold an unfinished fence across deltas.
+-    let text = part.text.replace(/```[^\n]*\n[\s\S]*?```/g, " code block ");
++    let text = part.text.replace(/```[^\n]*\n[\s\S]*?```/g, " ");
+     if (text.includes("```")) {
+       if (!final) return;
+-      text = text.replace(/```[\s\S]*$/, " code block ");
++      text = text.replace(/```[\s\S]*$/, " ");
+     }
+     let end;
+     while ((end = boundary(text)) > 0) {
+@@ -65,7 +65,7 @@
+ // Identifier expansion precedes underscore removal so snake_case keeps its words.
+ export function speechText(text) {
+   return text
+-    .replace(/```[^\n]*\n[\s\S]*?```/g, " code block ")
++    .replace(/```[^\n]*\n[\s\S]*?```/g, " ")
+     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+     .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+     .replace(/^\s*([-*+] |\d+\. )/gm, "")

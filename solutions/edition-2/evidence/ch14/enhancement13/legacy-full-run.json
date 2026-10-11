@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/tmp/grade-edition2-ch13",
+    "-ch",
+    "13",
+    "-json",
+    "-gui",
+    "solutions/ch14",
+    "solutions/ch14"
+  ],
+  "exit": 1,
+  "seconds": 41.8236511668656,
+  "grader_commit": "1913a0d771c45c2e7640664f517cd0fa1d9ee2dc"
+}

@@ -1,0 +1,10 @@
+--- gui/web/gui/app.js
++++ gui/web/gui/app.js
+@@ -313,6 +313,7 @@
+         speech.enqueue(message.name, "tool");
+       }
+     } else if (message.type === "tool_finished") {
++      speech.enqueue(message.result, "tool");
+       // Tool output stays silent automatically, but the same speaker button
+       // still provides full on-demand access to arguments and result text.
+       const card =

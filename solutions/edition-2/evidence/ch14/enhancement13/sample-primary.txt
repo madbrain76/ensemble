@@ -1,0 +1,6 @@
+---
+name: listener-target
+type: primary
+description: Brief answers for the speech listener exercise
+---
+Answer briefly in two sentences. No tools are needed.

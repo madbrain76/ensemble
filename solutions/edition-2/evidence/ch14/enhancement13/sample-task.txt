@@ -1,0 +1,1 @@
+Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools.

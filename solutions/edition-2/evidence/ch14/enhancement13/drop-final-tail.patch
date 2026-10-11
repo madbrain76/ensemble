@@ -1,0 +1,11 @@
+--- gui/web/gui/speech.js
++++ gui/web/gui/speech.js
+@@ -32,7 +32,7 @@
+       text = text.slice(end);
+     }
+     if (final) {
+-      this.speech.enqueue(text, part.source);
++      // Deliberately discard final unfinished speech.
+       this.fragments.delete(id);
+     } else part.text = text;
+   }

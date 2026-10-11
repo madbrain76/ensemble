@@ -1,0 +1,3 @@
+package gradeedition2
+import("encoding/json";"fmt";"os";"testing";"github.com/waywardgeek/ensemble/internal/fakevendor")
+func TestChapter13ExitReceipt(t *testing.T){entries,requests,err:=runSpeech(os.Getenv("SPEECH_EXIT_SCRIPT"),"on","",[]fakevendor.Reply{{Text:speechProse}},"");json.NewEncoder(os.Stdout).Encode(map[string]any{"error":fmt.Sprint(err),"returned_entries":len(entries),"actual_requests":len(requests)});if err==nil{t.Fatal("nonzero exit accepted")}}

@@ -1,0 +1,10 @@
+#!/bin/sh
+/Users/bill/projects/ensemble/solutions/edition-2/ch13/tts-harness.sh "$@" || exit 18
+python3 - <<'PY'
+import os,json
+entries=[json.loads(x) for x in open(os.environ['TTS_LOG']) if x.strip()]
+assert any(x.get('kind')=='utterance' for x in entries)
+print('verified valid JSON speech log with',len(entries),'records before deliberate exit17')
+PY
+if [ "$?" != 0 ]; then exit 19; fi
+exit 17

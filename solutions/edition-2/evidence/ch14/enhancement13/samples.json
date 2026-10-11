@@ -1,0 +1,67 @@
+{
+  "chapter_sha256": "23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b",
+  "js_excerpts": [
+    {
+      "fence": 3,
+      "historical_comment": true,
+      "current_source_bound": false
+    },
+    {
+      "fence": 4,
+      "historical_comment": false,
+      "current_source_bound": true
+    },
+    {
+      "fence": 5,
+      "historical_comment": false,
+      "current_source_bound": true
+    },
+    {
+      "fence": 7,
+      "historical_comment": false,
+      "current_source_bound": true
+    }
+  ],
+  "describe_exact_match": true,
+  "build_commands": [
+    "(cd gui && go build -o /tmp/ensemble-ch13-gui ./cmd)",
+    "(cd gui && go build -o /tmp/ensemble-ch13-listener ./cmd/virtual-user)"
+  ],
+  "gui_command": [
+    "EN_PRIMARY_SKILL=listener-target",
+    "/tmp/ensemble-ch13-gui",
+    "--skills-dir",
+    "./skills",
+    "--gui-dir",
+    "gui/web/gui",
+    "--port",
+    "8088"
+  ],
+  "listener_command": [
+    "/tmp/ensemble-ch13-listener",
+    "--agent-url",
+    "http://localhost:8088",
+    "--persona",
+    "blind",
+    "--peer",
+    "gui/virtual-user.mjs",
+    "--task",
+    "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools.",
+    "--browser",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  ],
+  "runtime_probe": "go test ./internal/gradeedition2 -run ^TestChapter13Samples$ -count=1 -v",
+  "runtime_probe_exit": 0,
+  "runtime_probe_seconds": 1.265,
+  "initial_probe_compile_error": "undefined local helper stringValue; replaced with fmt.Sprint, no product issue",
+  "actual_five_tools": [
+    "hear",
+    "sleep",
+    "submit",
+    "type",
+    "wait"
+  ],
+  "target_requests": 1,
+  "listener_requests": 6,
+  "scope": "Real two applications, public Ensemble/MCP client, Chrome, transcript-mode page and speech queue; external provider fake. Captured wait result contains actual expanded identifiers and mango. No paid model compliance or native audio judgment. Installed locked Playwright dependencies; used documented existing-browser alternative, not playwright install download. Three current JS excerpts bind after removing whitespace/comments; historical comment remains historical."
+}

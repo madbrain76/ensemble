@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/tmp/grade-edition2-ch13",
+    "-ch",
+    "13",
+    "-json",
+    "-gui",
+    "solutions/ch14",
+    "-gui-model",
+    "claude-haiku-4-5",
+    "-stream-model",
+    "claude-haiku-4-5",
+    "solutions/ch14"
+  ],
+  "exit": -15,
+  "seconds": 42.005496207857504,
+  "grader_commit": "1913a0d771c45c2e7640664f517cd0fa1d9ee2dc"
+}

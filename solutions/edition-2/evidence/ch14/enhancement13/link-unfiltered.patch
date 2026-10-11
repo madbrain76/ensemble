@@ -1,0 +1,10 @@
+--- gui/web/gui/speech.js
++++ gui/web/gui/speech.js
+@@ -66,7 +66,6 @@
+ export function speechText(text) {
+   return text
+     .replace(/```[^\n]*\n[\s\S]*?```/g, " code block ")
+-    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+     .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+     .replace(/^\s*([-*+] |\d+\. )/gm, "")
+     .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")

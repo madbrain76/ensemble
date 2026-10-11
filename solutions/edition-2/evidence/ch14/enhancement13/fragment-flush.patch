@@ -1,0 +1,11 @@
+--- gui/web/gui/speech.js
++++ gui/web/gui/speech.js
+@@ -9,7 +9,7 @@
+   chunk(id, text, source = "text") {
+     const previous = this.fragments.get(id);
+     this.fragments.set(id, { text: (previous?.text || "") + text, source });
+-    this.drain(id, false);
++    this.drain(id, true);
+   }
+   // Finals, tool dispatch and errors explicitly release a colon-ended tail.
+   flush(id) {

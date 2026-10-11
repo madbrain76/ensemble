@@ -1,0 +1,65 @@
+{
+  "chapter_sha256": "23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b",
+  "fences": [
+    {
+      "language": "",
+      "text": "local_pause_cause = speaking OR human_typing"
+    },
+    {
+      "language": "",
+      "text": "go run ./cmd/grade-edition2 -ch 13"
+    },
+    {
+      "language": "",
+      "text": "paused = tts_speaking OR user_typing"
+    },
+    {
+      "language": "javascript",
+      "text": "// TTS \u2014 Text-to-speech for artifacts with Chrome wake-up and pause integration."
+    },
+    {
+      "language": "javascript",
+      "text": "function pace() {\n  const next = speaking || humanTyping;\n  if (next !== localPaused) {\n    localPaused = next;\n    send({ type: next ? \"pause\" : \"unpause\" });\n  }\n}"
+    },
+    {
+      "language": "javascript",
+      "text": "document.addEventListener(\"keydown\", (event) => {\n  if (event.key === \"Escape\") speech.cancel();\n});"
+    },
+    {
+      "language": "",
+      "text": "1. \"run command\"\n2. \"The command failed with exit code 1:\"\n3. \"`\"\n4. \"ls: /nonexistent-path-xyz: No such file or directory\"\n5. \"`\"\n6. \"This is expected since...\""
+    },
+    {
+      "language": "javascript",
+      "text": "if (!message.replay && [\"text\", \"thinking\"].includes(kind))\n  speech.chunk(id, card.streamed ? \"\" : card.text, true, kind);"
+    },
+    {
+      "language": "sh",
+      "text": "./tts-harness.sh --describe"
+    },
+    {
+      "language": "json",
+      "text": "{\"read_file_tool\":\"read_file\",\"read_file_arg\":\"path\",\"supports_type_during_turn\":true,\"supports_streaming_off\":true,\"log_format\":\"jsonl\"}"
+    },
+    {
+      "language": "sh",
+      "text": "go run ./cmd/grade-edition2 -ch 13"
+    },
+    {
+      "language": "sh",
+      "text": "(cd gui && npm ci)\n(cd gui && npx playwright install chromium)\n(cd gui && go build -o /tmp/ensemble-ch13-gui ./cmd)\n(cd gui && go build -o /tmp/ensemble-ch13-listener ./cmd/virtual-user)"
+    },
+    {
+      "language": "yaml",
+      "text": "---\nname: listener-target\ntype: primary\ndescription: Brief answers for the speech listener exercise\n---\nAnswer briefly in two sentences. No tools are needed."
+    },
+    {
+      "language": "sh",
+      "text": "EN_PRIMARY_SKILL=listener-target /tmp/ensemble-ch13-gui \\\n  --skills-dir ./skills --gui-dir gui/web/gui --port 8088"
+    },
+    {
+      "language": "sh",
+      "text": "/tmp/ensemble-ch13-listener --agent-url http://localhost:8088 \\\n  --persona blind --peer gui/virtual-user.mjs \\\n  --task 'Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools.'"
+    }
+  ]
+}

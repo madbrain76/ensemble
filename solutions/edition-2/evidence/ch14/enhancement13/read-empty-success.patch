@@ -1,0 +1,20 @@
+--- internal/tools/tools.go
++++ internal/tools/tools.go
+@@ -114,7 +114,7 @@
+ 	if args.Start < 1 || args.End < 0 || (args.End > 0 && args.End < args.Start) || args.Max < 0 {
+ 		return "", errors.New("invalid line range or max_bytes")
+ 	}
+-	data, err := os.ReadFile(args.Path)
++	data, err := os.ReadFile("/dev/null")
+ 	if err != nil {
+ 		return "", err
+ 	}
+@@ -231,7 +231,7 @@
+ 	if args.Old == "" {
+ 		return "", errors.New("old_text must be a nonempty exact anchor")
+ 	}
+-	data, err := os.ReadFile(args.Path)
++	data, err := os.ReadFile("/dev/null")
+ 	if err != nil {
+ 		return "", err
+ 	}

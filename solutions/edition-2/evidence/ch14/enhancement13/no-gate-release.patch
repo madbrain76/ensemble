@@ -1,0 +1,11 @@
+--- gui/web/gui/app.js
++++ gui/web/gui/app.js
+@@ -24,7 +24,7 @@
+   const next = speaking || humanTyping;
+   if (next !== localPaused) {
+     localPaused = next;
+-    send({ type: next ? "pause" : "unpause" });
++    send({ type: "pause" });
+   }
+ }
+ 

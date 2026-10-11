@@ -195,7 +195,7 @@ func gradeSpeechProse(checks []grade.Check, entries []speechEntry) {
 			utterances[strings.Join(strings.Fields(e.Text), " ")]++
 		}
 	}
-	for _, phrase := range []string{"Reading carefully preserves fragments.", "Wrapped words stay together.", "First paragraph", "Second paragraph", "Tail without punctuation:"} {
+	for _, phrase := range []string{"Reading carefully preserves fragments.", "Wrapped words stay together.", "First paragraph", "Second paragraph", "Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS.", "Hello ordinary World.", "Tail without punctuation:"} {
 		if utterances[phrase] != 1 {
 			fail(&checks[7], "want one complete utterance %q, got%d", phrase, utterances[phrase])
 		}

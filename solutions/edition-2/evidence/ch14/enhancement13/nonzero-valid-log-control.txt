@@ -1,0 +1,4 @@
+=== RUN   TestChapter13ExitReceipt
+{"actual_requests":1,"error":"harness: exit status 17: verified valid JSON speech log with 19 records before deliberate exit17","returned_entries":0}
+--- PASS: TestChapter13ExitReceipt (3.62s)
+PASS

@@ -1,0 +1,9 @@
+import pathlib,subprocess,shutil,tempfile,time,json,os
+root=pathlib.Path.cwd();out=root/'solutions/edition-2/evidence/ch14/enhancement13';source=root/'solutions/edition-2/ch13';scratch=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-speech-controls-'));core=scratch/'core';shutil.copytree(source,core,ignore=shutil.ignore_patterns('node_modules','.git','save.json','events.jsonl'));os.symlink(source/'gui/node_modules',core/'gui/node_modules',target_is_directory=True)
+results=[]
+try:
+ for name,file,changes in [('fence-free-wording','gui/web/gui/speech.js',{'" code block "':'" a quoted program "'}),('openai-wire','gui/tts-harness.mjs',{'LLM_VENDOR: "anthropic"':'LLM_VENDOR: "openai"','LLM_MODEL: "claude-haiku-5-5"':'LLM_MODEL: "gpt-4o-mini"'}),('gemini-wire','gui/tts-harness.mjs',{'LLM_VENDOR: "anthropic"':'LLM_VENDOR: "gemini"','LLM_MODEL: "claude-haiku-5-5"':'LLM_MODEL: "gemini-3.8-flash"'})]:
+  path=core/file;before=path.read_text();after=before
+  for old,new in changes.items():assert old in after;after=after.replace(old,new)
+  path.write_text(after);start=time.monotonic();p=subprocess.run(['/tmp/ensemble-ch13-final-probe','-test.run','^TestChapter13Probe$','-test.v'],env=dict(os.environ,SPEECH_PROBE_CORE=str(core)),capture_output=True,text=True,timeout=150);path.write_text(before);(out/(name+'.txt')).write_text(p.stdout+p.stderr);checks=json.loads(next(x for x in p.stdout.splitlines() if x.startswith('[{')));r={'name':name,'changes':changes,'exit':p.returncode,'seconds':time.monotonic()-start,'checks':checks};results.append(r);(out/'positive-controls.json').write_text(json.dumps(results,indent=2)+'\n');print(name,sum(c['earned'] for c in checks),flush=True)
+finally:shutil.rmtree(scratch)

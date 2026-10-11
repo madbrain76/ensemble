@@ -1,0 +1,43 @@
+[
+  {
+    "name": "sentence-boundary",
+    "file": "gui/web/gui/speech.js",
+    "intended_check": "tts-boundaries",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 11.831657917005941,
+    "failures": [
+      {
+        "id": "tts-boundaries",
+        "title": "sentences are separate utterances a listener can interrupt",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want one complete utterance \"Use HTTP Server with queue Chunk and max tool rounds in ALL CAPS.\", got0",
+          "want one complete utterance \"Hello ordinary World.\", got0"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "force-provider-stream",
+    "file": "gui/tts-harness.mjs",
+    "intended_check": "tts-speaks-unstreamed",
+    "intended_failed": true,
+    "exit": 0,
+    "seconds": 12.569521749857813,
+    "failures": [
+      {
+        "id": "tts-speaks-unstreamed",
+        "title": "Provider nonstream replies are spoken once (final-only renderer proof is separate)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "streaming-off fixture still requested provider deltas"
+        ]
+      }
+    ]
+  }
+]

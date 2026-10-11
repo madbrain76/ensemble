@@ -1,0 +1,10 @@
+--- gui/web/gui/speech.js
++++ gui/web/gui/speech.js
+@@ -68,7 +68,6 @@
+     .replace(/```[^\n]*\n[\s\S]*?```/g, " code block ")
+     .replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1")
+     .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+-    .replace(/^\s*([-*+] |\d+\. )/gm, "")
+     .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
+     .replace(/([a-z\d])([A-Z])/g, "$1 $2")
+     .replace(/([\p{L}\d])_+(?=[\p{L}\d])/gu, "$1 ")
