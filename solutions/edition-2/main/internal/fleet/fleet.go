@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -19,8 +20,7 @@ type question struct {
 	reply   chan common.FleetMessage
 }
 type child struct {
-	agent   common.Agent
-	failure string
+	agent common.Agent
 }
 
 // The mutex protects fleet facts, never conversation state. Model work still
@@ -61,7 +61,7 @@ func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
 		return common.ChildStatus{}, errors.New("spawn requires a child ID and task; user and path addresses are reserved")
 	}
 	m.mu.Lock()
-	defer m.mu.Unlock()
+	defer func() { m.mu.Unlock(); m.parent.Ensemble().Observe(m.parent, common.FleetChanged{}) }()
 	if m.stopped {
 		return common.ChildStatus{}, common.ErrStopped
 	}
@@ -95,11 +95,8 @@ func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
 	// Keep the reliable completion channel. Progress is lossy and cannot tell us
 	// whether a child failed, submitted, or was merely interrupted.
 	go func() {
-		result := <-a.Submit(context.Background(), task)
+		<-a.Submit(context.Background(), task)
 		m.mu.Lock()
-		if result.Err != nil {
-			entry.failure = result.Err.Error()
-		}
 		m.signal()
 		m.mu.Unlock()
 	}()
@@ -110,7 +107,10 @@ func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
 func (m *manager) Status() common.ChildStatus {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	s := common.ChildStatus{ID: m.parent.Spec().ID, State: "running"}
+	s := common.ChildStatus{ID: m.parent.Spec().ID, State: "running", Activity: m.parent.Activity(), Usage: m.parent.Engine().Usage()}
+	if s.Activity.Phase == common.ActivityIdle {
+		s.State = "idle"
+	}
 	if m.failure != "" {
 		s.State = "failed"
 		s.Error = m.failure
@@ -126,10 +126,6 @@ func (m *manager) list() []common.ChildStatus {
 	for id, c := range m.children {
 		s := c.agent.Fleet().Status()
 		s.ID = id
-		if c.failure != "" {
-			s.State = "failed"
-			s.Error = c.failure
-		}
 		out = append(out, s)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
@@ -161,16 +157,12 @@ func (m *manager) Join(ctx context.Context, ids []string) (string, error) {
 			c := m.children[id]
 			if c == nil {
 				m.mu.Unlock()
-				return "", fmt.Errorf("unknown child %q", id)
+				return "", fmt.Errorf("unknown agent %q", id)
 			}
 			s := c.agent.Fleet().Status()
 			if s.State == "failed" {
 				m.mu.Unlock()
 				return "", fmt.Errorf("child %s failed: %s", id, s.Error)
-			}
-			if c.failure != "" {
-				m.mu.Unlock()
-				return "", fmt.Errorf("child %s failed: %s", id, c.failure)
 			}
 			results = append(results, s)
 			done = done && s.State == "submitted"
@@ -205,7 +197,7 @@ func (m *manager) ShutdownChild(id string) error {
 	c := m.children[id]
 	m.mu.Unlock()
 	if c == nil {
-		return fmt.Errorf("unknown child %q", id)
+		return fmt.Errorf("unknown agent %q", id)
 	}
 	err := errors.Join(c.agent.Shutdown(), c.agent.Save())
 	m.mu.Lock()
@@ -214,6 +206,7 @@ func (m *manager) ShutdownChild(id string) error {
 	}
 	m.signal()
 	m.mu.Unlock()
+	m.parent.Ensemble().Observe(m.parent, common.FleetChanged{})
 	return err
 }
 
@@ -336,6 +329,16 @@ func (m *manager) Submit(result string) error {
 		m.mu.Unlock()
 		return fmt.Errorf("active children %v: join_agents or shutdown_agent before submit", ids)
 	}
+	file, err := m.parent.Sandbox().OpenFile(filepath.Join(m.parent.Config().DataDir, "submit.md"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+	if err != nil {
+		m.mu.Unlock()
+		return err
+	}
+	err = errors.Join(json.NewEncoder(file).Encode(map[string]string{"result": result}), file.Close())
+	if err != nil {
+		m.mu.Unlock()
+		return err
+	}
 	m.submitted = true
 	m.result = result
 	m.failure = ""
@@ -382,4 +385,14 @@ func (m *manager) Escalate(content string) error {
 		return err
 	}
 	return m.parent.Ensemble().DeliverUser(msg)
+}
+
+// End retains real failures without treating human interruption as agent death.
+func (m *manager) End(err error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if err != nil && !errors.Is(err, common.ErrInterrupted) && !errors.Is(err, common.ErrStopped) {
+		m.failure = err.Error()
+	}
+	m.signal()
 }

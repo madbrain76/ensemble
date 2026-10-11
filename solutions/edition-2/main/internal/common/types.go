@@ -331,6 +331,10 @@ type Ensemble interface {
 
 // Agent owns one conversation, its tools and the actor that coordinates them.
 type Agent interface {
+	// Activity returns the current work phase without borrowing the actor state.
+	Activity() Activity
+	// ProgressTime reports the last observed progress for stuck detection.
+	ProgressTime() time.Time
 	// ParentAgent is the actual spawning owner, nil for a top-level Agent.
 	ParentAgent() Agent
 	// Fleet owns this Agent's children and pending questions.

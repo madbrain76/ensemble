@@ -90,7 +90,10 @@ type Hint struct {
 }
 
 // Interrupt ends the current turn while keeping the Agent and other jobs alive.
-type Interrupt struct{}
+type Interrupt struct {
+	// AfterTool waits for the current or next tool report before ending this turn.
+	AfterTool bool
+}
 
 func (UserMessage) inbound() {}
 func (Hint) inbound()        {}

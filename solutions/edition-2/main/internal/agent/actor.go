@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"ensemble/internal/common"
 )
@@ -59,6 +60,7 @@ type turn struct {
 	ephemeralTurn  bool
 	presented      []common.Entry
 	checkpoint     bool
+	afterTool      bool
 }
 
 // All fields below are owned by run. Workers own external work only, and return
@@ -224,7 +226,13 @@ func (a *agent) Wait(ctx context.Context, predicate func(common.Observation) boo
 	}
 }
 func (a *agent) notify(observation common.Observation) {
+	a.activityMu.Lock()
+	a.progressTime = time.Now()
+	a.activityMu.Unlock()
 	a.parent.Observe(a, observation)
+	if parent := a.ParentAgent(); parent != nil {
+		parent.Fleet().Changed()
+	}
 	select {
 	case a.progress <- observation:
 	default:
@@ -318,6 +326,8 @@ func (r *runtime) finish(text string, err error) {
 	if err != nil {
 		ended.Error = err.Error()
 	}
+	r.owner.fleet.End(err)
+	r.owner.setActivity(common.ActivityIdle, "", "")
 	r.owner.notify(ended)
 	err = errors.Join(err, r.save())
 	if t.request.reply != nil {
@@ -356,6 +366,7 @@ func (r *runtime) begin(q request) {
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
+	r.owner.setActivity(common.ActivityThinking, "", "")
 	t := r.active
 	t.ids = make(map[uint64]uint64)
 	if err := r.prepareContext(); err != nil {
@@ -515,7 +526,11 @@ func (r *runtime) run() {
 			case common.Hint:
 				r.input(m.Text)
 			case common.Interrupt:
-				r.interrupt(common.ErrInterrupted)
+				if m.AfterTool && r.active != nil {
+					r.active.afterTool = true
+				} else {
+					r.interrupt(common.ErrInterrupted)
+				}
 			case streamed:
 				if m.turn == r.active {
 					delta := m.delta
@@ -589,6 +604,8 @@ func (r *runtime) run() {
 					m.turn.current = nil
 					if err != nil {
 						r.finish("", err)
+					} else if m.turn.afterTool {
+						r.interrupt(common.ErrInterrupted)
 					} else {
 						r.dispatch()
 					}

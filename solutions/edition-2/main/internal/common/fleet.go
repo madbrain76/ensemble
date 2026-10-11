@@ -1,6 +1,9 @@
 package common
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 // UserSink is the application's delivery boundary for questions and escalation.
 // Deliver must return promptly; a question's reply comes through Fleet.Reply.
@@ -23,6 +26,10 @@ type FleetMessage struct {
 
 // ChildStatus is a snapshot of one owned child's completion, not a global registry.
 type ChildStatus struct {
+	// Activity distinguishes provider work, tools, waiting and idle.
+	Activity Activity `json:"activity"`
+	// Usage contains the child's measured session tokens.
+	Usage Usage `json:"usage"`
 	// ID names this parent's child.
 	ID string `json:"agent_id"`
 	// State is running, submitted, or failed.
@@ -35,6 +42,18 @@ type ChildStatus struct {
 
 // SubAgentManager owns child lifetimes and pending questions for one Agent.
 type SubAgentManager interface {
+	// Children returns the actual owned children for trusted tree traversal.
+	Children() []Agent
+	// Find resolves only this manager's children; foreign and absent IDs are identical.
+	Find(string) (Agent, error)
+	// WaitChange waits for a state, output, question, exit, pattern or stuck condition.
+	WaitChange(context.Context, []string, string, time.Duration) (string, error)
+	// Output returns finalized output since an event cursor, optionally waiting.
+	Output(context.Context, string, uint64, bool) (ChildOutput, error)
+	// Submission reads a child's in-memory result with durable submit.md fallback.
+	Submission(string) (string, error)
+	// GracefulShutdown waits for queued turns before ending one child's lifetime.
+	GracefulShutdown(context.Context, string) error
 	// Agent returns the required owner.
 	Agent() Agent
 	// Spawn constructs, restores and starts a child through the application factory.
@@ -58,6 +77,8 @@ type SubAgentManager interface {
 	Submit(string) error
 	// Status reports this Agent's explicit completion state.
 	Status() ChildStatus
+	// End records an actual turn failure; interruption leaves the child available.
+	End(error)
 	// Changed wakes fan-in observers after a child transition.
 	Changed()
 	// Begin starts a new task without forgetting consecutive idle corrections.
@@ -66,4 +87,16 @@ type SubAgentManager interface {
 	Idle() (correction, escalation string)
 	// Escalate reports failure to the parent without opening a blocking question.
 	Escalate(string) error
+}
+
+// ChildOutput carries only new finalized output and its owning event cursor.
+type ChildOutput struct {
+	// ID is the caller-local child address.
+	ID string `json:"agent_id"`
+	// Cursor resumes after the last inspected history event.
+	Cursor uint64 `json:"cursor"`
+	// Content includes assistant text and real tool results, never user input.
+	Content string `json:"content"`
+	// Status describes the child at the same read boundary.
+	Status ChildStatus `json:"status"`
 }

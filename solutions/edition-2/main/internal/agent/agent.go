@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"ensemble/internal/common"
 )
@@ -16,6 +17,9 @@ import (
 // imports the other implementation package. Their shared interfaces let the
 // owner coordinate one actor without a second orchestration path.
 type agent struct {
+	activityMu   sync.Mutex
+	activity     common.Activity
+	progressTime time.Time
 	parent       common.Ensemble
 	parentAgent  common.Agent
 	fleet        common.SubAgentManager
@@ -212,7 +216,7 @@ func (a *agent) SetSystemPrompt(prompt string) {
 
 func (a *agent) allowedTool(name string) bool {
 	switch name {
-	case "spawn_sub_agent", "join_agents", "agents_status", "shutdown_agent", "send_message_to_parent", "respond_to_parent_message", "submit":
+	case "spawn_sub_agent", "join_agents", "agents_status", "shutdown_agent", "send_message_to_parent", "respond_to_parent_message", "submit", "wait_for_agent_change", "send_message", "wait_for_agent", "ask_agent", "get_submission", "kill_agent", "get_sub_agent_status", "interrupt_agent":
 		return a.Ensemble().FleetEnabled()
 	}
 	if a.spec.SafeMode {

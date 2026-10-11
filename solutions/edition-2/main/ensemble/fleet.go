@@ -63,3 +63,12 @@ func (e *Ensemble) NewChildAgent(parent Agent, cfg Config, spec AgentSpec) (Agen
 	}
 	return e.newAgent(parent, cfg, narrowed)
 }
+
+// Activity is current work, distinct from submission/lifecycle state.
+type Activity = common.Activity
+
+// ActivityChanged publishes a phase change through the normal Observer.
+type ActivityChanged = common.ActivityChanged
+
+// FleetChanged marks a topology change, independent of turn activity.
+type FleetChanged = common.FleetChanged

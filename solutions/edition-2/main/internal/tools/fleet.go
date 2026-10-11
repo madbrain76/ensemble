@@ -8,7 +8,7 @@ import (
 // FleetTools returns the seven workflow declarations. They share ordinary job supervision. A question or join may
 // outlive its first wait, while a later wait_for_job recovers its real answer.
 func FleetTools() []common.ToolDefinition {
-	return []common.ToolDefinition{
+	return append(managementTools(), []common.ToolDefinition{
 		{ToolDeclaration: common.ToolDeclaration{Name: "spawn_sub_agent", Description: "Start a full child agent with an isolated data directory. It inherits your model and restrictions; optional model selects another supported model. Children must submit results.", Schema: json.RawMessage(`{"type":"object","properties":{"agent_id":{"type":"string"},"task":{"type":"string"},"model":{"type":"string"}},"required":["agent_id","task"]}`)}, Run: spawnChild},
 		{ToolDeclaration: common.ToolDeclaration{Name: "join_agents", Description: "Wait for the listed children to submit; an empty list means all children. Returns early with pending questions: answer using respond_to_parent_message, then join again. A running job report is not completion.", Schema: waitSchema(`"agent_ids":{"type":"array","items":{"type":"string"}}`, "")}, Run: joinChildren},
 		{ToolDeclaration: common.ToolDeclaration{Name: "agents_status", Description: "List only your owned children and their explicit submission or failure state.", Schema: json.RawMessage(`{"type":"object","properties":{}}`)}, Run: childrenStatus},
@@ -16,7 +16,7 @@ func FleetTools() []common.ToolDefinition {
 		{ToolDeclaration: common.ToolDeclaration{Name: "send_message_to_parent", Description: "Ask your parent (or the human for a root agent) a question and wait for a reply. This does not submit your work. If backgrounded, wait_for_job retrieves the reply.", Schema: waitSchema(`"content":{"type":"string"}`, `"content"`)}, Run: askParent},
 		{ToolDeclaration: common.ToolDeclaration{Name: "respond_to_parent_message", Description: "Answer a question sent by one of your children. Omit message_id only when that child has one pending question.", Schema: json.RawMessage(`{"type":"object","properties":{"agent_id":{"type":"string"},"message_id":{"type":"string"},"response":{"type":"string"}},"required":["agent_id","response"]}`)}, Run: replyChild},
 		{ToolDeclaration: common.ToolDeclaration{Name: "submit", Description: "Finish your task with a result. Rejected while children remain unfinished: join them or shut them down first.", Schema: json.RawMessage(`{"type":"object","properties":{"result":{"type":"string"}},"required":["result"]}`)}, Run: submitFleet},
-	}
+	}...)
 }
 func fleetJSON(value any) (string, error) { data, err := json.Marshal(value); return string(data), err }
 func spawnChild(owner common.ToolContext, raw json.RawMessage) (string, error) {
@@ -58,7 +58,7 @@ func shutdownChild(owner common.ToolContext, raw json.RawMessage) (string, error
 	if err := decode(raw, &args, "agent_id"); err != nil {
 		return "", err
 	}
-	if err := owner.Agent().Fleet().ShutdownChild(args.ID); err != nil {
+	if err := owner.Agent().Fleet().GracefulShutdown(owner.Job().Context(), args.ID); err != nil {
 		return "", err
 	}
 	return "child stopped; saved work retained", nil
@@ -87,6 +87,9 @@ func replyChild(owner common.ToolContext, raw json.RawMessage) (string, error) {
 		Response string `json:"response"`
 	}
 	if err := decode(raw, &args, "agent_id", "response"); err != nil {
+		return "", err
+	}
+	if _, err := owner.Agent().Fleet().Find(args.ID); err != nil {
 		return "", err
 	}
 	if err := owner.Agent().Fleet().Reply(args.ID, args.MessageID, args.Response); err != nil {
