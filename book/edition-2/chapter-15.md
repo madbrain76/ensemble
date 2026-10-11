@@ -637,8 +637,9 @@ about which facts to preserve.
 
 **graduation-fires-oldest-first** (12) scripts enough session
 memories to exceed the session band's high watermark. An 8x entry
-appears in the next request; the graduated session entries are gone;
-the remaining session band is at or below its low watermark.
+appears in the next request; the graduated oldest entries are gone,
+and newer session work remains. The fixture distinguishes taking the oldest
+files from taking the newest.
 
 **disable-enable-idempotent** (12) switches the session band off,
 checks that its entries leave the next request, then switches it
@@ -649,30 +650,32 @@ reflected. An ordinary enabled-band restart also rereads the edit. Checks inspec
 actual memory order in the request, rather than sorting markers in the test.
 
 **disabled-neighbor-refused** (8) disables the 8x band while the
-session band is over its high watermark. Graduation must refuse:
-no 8x entry appears, and a warning surfaces.
+session band is over its high watermark. No fold reaches the compressor,
+and the source memories remain present exactly once.
 
 **forced-handoff** (12) uses `claude-ch16-course`, a model with a
 4,096-token context window. The grader drives the agent until
 context approaches 90%, checks for a warning, then past 95%, and
 checks that only `micro_handoff` remains in the tool list. Mixed cache buckets
-count once. A later smaller main response releases the restriction even though
-lifetime usage has grown; an intervening compressor must not supply that reading.
+count once. After the handoff and a smaller completed main response, normal tools
+must be available even though lifetime usage has grown. A separate phase checks
+that large auxiliary compressor usage does not restrict small main requests.
 
-**replay-needs-no-llm** (10) replays a log containing
-`BandPopulated` and `BandDepopulated` events. The resulting context
-matches the saved context without a new compressor call. The restart's ordinary
-conversation request lets the grader inspect the result; pure offline restoration
-with zero HTTP calls has its own source regression.
+**replay-needs-no-llm** (10) starts from recorded memory populations and compares
+a saved snapshot with full-log reconstruction. Startup alone makes zero HTTP
+requests; identical subsequent prompts produce byte-identical vendor requests
+without a compressor call. Running startup also rescans disk. Pure offline
+restoration of populations and retirements, without disk reads, remains a separate
+source regression.
 
 **abandon-on-restart** (8) first populates a real source band, then exercises
 a failed fold and a genuinely pending fold interrupted by process kill. Restart
 retains the source without immediately retrying compression; a later checkpoint
 can try again. An empty band with zero attempts cannot pass as failure recovery.
 
-**memory-is-data** (5) plants instruction-shaped text in a session
-memory and checks it renders in the conversation, not in the system
-prompt.
+**memory-is-data** (5) checks that the returned memory appears in the
+conversation rather than the system prompt, and that the compressor request
+instructs first-person writing. It does not grade resistance to malicious text.
 
 **fresh-start-populates** (5) places memory files on disk before
 the agent starts. The first request sent to the model contains
@@ -681,9 +684,10 @@ their content.
 **ch14-parity** (3) runs the chapter 14 grader against the same
 solution and checks it still scores full marks.
 
-These eleven weights total 100. All-provider normalization, whole-segment reducer
-cases, native browser settings and the GUI/actor interleaving retain their focused
-source and browser checks. The original grader scored **20/100 FAIL** on an
+These eleven weights total 100. Low-watermark arithmetic, the required disabled-
+neighbor diagnostic, all-provider normalization, whole-segment reducer cases,
+native browser settings and the GUI/actor interleaving retain their focused source
+and browser checks. The original grader scored **20/100 FAIL** on an
 intermediate student build: its settings missed the owning Agent's directory,
 and its awarded recovery points did not require a fold to occur. The
 [student record](../../docs/edition-2-notes/ch16.md) preserves that result and the

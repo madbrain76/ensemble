@@ -130,3 +130,43 @@ or cutting useful explanation. The original-relative code/table diff preserves
 the default settings bytes and historical measurement table, replaces invalid
 Go enum placeholders with actual vocabulary, and adds the explicit executable
 exercise. Independent prose/grader review is pending; no next chapter is drafted.
+
+## Exact sample execution and rubric reconciliation
+
+Coder's exact sample receipt is
+`solutions/edition-2/evidence/ch16/enhancement15/samples.json`, with request and
+returned-memory records beside it. It binds the measured manuscript to
+`bd2acd5cef67062ee2d9700e5349bc62fdea60ea7d4236ffc2094f00c24a78da`.
+The actual published GUI build, primary skill, small settings, Sonnet-5 launch
+and three exact prompts pass against an external local HTTP fake: three turns,
+five main requests, three submit-only compressor requests, two handoffs, two
+recorded cuts, three populations, one depopulation, and normal EOF exit 0.
+The exact Go vocabulary compiles. The author read the receipt, Go output,
+request list and graduated file, and independently checked all eight model
+fields, the three submit-only declarations and the actual returned text in the
+last request. This establishes executable guidance and mechanics, not a paid
+Sonnet outcome, semantic quality, or forcing at an undeclared window size.
+
+Coder reconciliation identified inherited overclaims in the original rubric.
+The author narrowed only §15.11: graduation observes oldest/newest selection and
+replacement rather than numerically measuring the low watermark; refusal observes
+no fold and retained sources rather than a warning log; data placement and the
+first-person instruction are not an adversarial-memory test. Those source-level
+obligations remain in the exercise. Forcing now explicitly follows handoff plus
+a smaller completed main reply, allowing either immediate checkpoint release or
+release after that reply; its auxiliary-usage phase is separate. Replay checks
+zero-HTTP startup and next-request equality while acknowledging running startup's
+disk rescan; the disk-free reducer's stronger replay claim retains source proof.
+These changes follow direct inspection of the current grader and coder findings,
+without expanding the driver or changing the frozen implementation.
+
+All executable fences were compared before/after and are byte-identical.
+Current manuscript after this rubric-only reconciliation is SHA-256
+`d9a23152cf8595a5fb79f2abd32f78be2a43ddb0d7c0a368e1fdd6c6f4ea859b`.
+The earlier sample hash remains its execution binding; no rerun or relabeling is
+needed. Direct hard lint passes at 6,161 prose words. Coder first-green full run
+at `bf0d733c` is accepted 100/100, exit 0 in 2.695 seconds; final grader sensitivity,
+legacy diagnosis and source freeze remain pending, so this is not final grading.
+All four complete governing documents remain active after the reload above;
+there has been no subsequent compaction. Mandatory technical handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.
