@@ -1,0 +1,30 @@
+go run ./cmd/grade -ch 13 ./solutions/edition-2/main
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch13-grade-563185891/skills/gui-debug/SKILL.md: skill "gui-debug" has invalid type ""
+Chapter 13 — The Agent Sees Itself
+============================================================
+
+[FAIL]      gui-debug skill discovered and loaded, MCP handshake completes  (0/15)
+       skill-loads: no requests to fakevendor — skill may not have loaded
+
+[FAIL]      gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)  (0/20)
+       ephemeral-injected:
+
+[FAIL]      After gui_click, next round's gui_snapshot reflects the change  (0/15)
+       snapshot-updates:
+
+[FAIL]      tts_queue returns utterance data in ephemeral context  (0/10)
+       tts-visibility:
+
+[FAIL]      Agent calls gui_click/gui_input correctly, gets confirmation  (0/15)
+       gui-interaction:
+
+[FAIL]      Unloading gui-debug removes MCP tools and closes transport  (0/15)
+       skill-unload:
+
+[FAIL]      All ch12 behavior preserved  (0/10)
+       ch12-parity: client.go missing Initialize, ListTools, or CallTool
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1
