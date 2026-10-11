@@ -528,6 +528,9 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 	defer cancel()
 	go actor.Run(ctx)
 
+	// Start named agents from the persistent registry.
+	en.Start()
+
 	// MCP pipe mode: connect the MCP client to stdin/stdout.
 	// The grader (or another MCP server) drives the MCP protocol externally.
 	if mcpPipe {
