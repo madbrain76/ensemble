@@ -1,5 +1,13 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**Current solution paths, Bill's October 10 correction.** Work in
+`solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
+directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
+are Edition 2 `ch09`–`ch12`; the active original 14 will become `ch13`.
+Only retired original `history/ch05` remains. No symlinks. Original exercises,
+graders, notes, evidence and existing tags retain original numbers; identify
+both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.
+
 **October 10 student resumption.** Bill has released coder and reviewer to resume
 original Chapter 10 after the completed early enhancement, proceeding through
 original Chapter 21 with the existing acceptance gates. Extend the accepted

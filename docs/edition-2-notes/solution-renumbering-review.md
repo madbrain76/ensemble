@@ -69,3 +69,33 @@ No preservation, mapping, executable-path or historical-reference ambiguity
 blocks acceptance. Runtime content and existing behavior are unchanged; the
 path changes make the reader's chapter selection direct. The coordinator owns
 the commit and any fresh tag. This review authorizes no later chapter work.
+
+## October 10 addendum: Bill's direct-directory correction
+
+Independent reviewer `enhancement_reviewer_resumed` accepts the current layout
+correction against pre-move `565d21e`. Bill's explicit instruction supersedes the
+earlier archive layout reviewed above; that review remains historical evidence.
+Accepted solutions now occupy actual top-level Edition 2 directories, with no
+symlinks: old `history/ch10`–`history/ch13` moved to `ch09`–`ch12` respectively.
+The four snapshots contain 75, 80, 91 and 93 files (339 total).
+
+Independently compared every moved file's Git blob and executable mode with its
+pre-move snapshot and recomputed every corresponding manifest SHA-256: all match.
+Manifest content/provenance is preserved, with only current snapshot path,
+original snapshot path and Edition 2 chapter metadata added/updated. Top-level
+`ch01`–`ch08` remain byte/mode identical. Removed `history/ch06`–`history/ch09`
+were exact duplicates of current `ch05`–`ch08`; removed jobs-only `history/ch04`
+exactly matches the snapshot retained in immutable `edition-2-ch04-r2`.
+`history` now contains only its README and the unchanged original `ch05` tree.
+All inspected snapshots and top-level entries are real files/directories, without
+symlinks. Nested example names and module files moved unchanged.
+
+Read the two current READMEs and governing AGENTS/workflow/carryover notices;
+their mapping agrees, and both READMEs' local links resolve. They clearly retain
+original numbering for exercises, graders, notes, evidence and existing tags,
+while future accepted exports use top-level Edition 2 numbering. The active
+original Chapter 14 will export to `ch13` only after its acceptance. Historical
+reports retain their then-current paths and scores; the new top notices explain
+that distinction. No preservation or path blocker remains. No runtime/test/paid
+run was necessary for exact moves; the in-flight working source and shared index
+were not inspected or modified by this review. Only this addendum was edited.

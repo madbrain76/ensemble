@@ -1,5 +1,13 @@
 # Edition 2: bounded enhancement pass
 
+**Current layout correction, October 10:** Bill subsequently required all
+accepted Edition 2 solutions directly in `solutions/edition-2/chNN/`, with only
+retired original `history/ch05/` retained and no symlinks. The older archive
+layout described below is preserved in Git checkpoints, not the current tree.
+See the [current mapping](../solutions/edition-2/README.md). New original
+Chapters 10–13 have been moved to Edition 2 `ch09`–`ch12`; future accepted
+solutions continue that numbering directly at the top level.
+
 Authorized by Bill on October 10, 2026, after acceptance of original Chapters
 1–9 at `db96c20` / `edition-2-ch09-r2`. Coordinator: Codex.
 

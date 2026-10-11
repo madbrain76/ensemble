@@ -1,5 +1,23 @@
 # Agentic codebook: edition workflow and learning record
 
+## Current solution layout — Bill's October 10 correction
+
+Accepted solutions belong directly under `solutions/edition-2/chNN/`, using
+Edition 2 numbers. Original Chapter 5 is absorbed into Chapter 4, so original
+Chapters 10–13 are now Edition 2 `ch09`–`ch12`. They were moved out of `history`,
+not linked. Earlier redundant archive copies were removed after exact tree
+comparison; their prior layouts and the superseded jobs-only stage remain in
+immutable Git tags. Only the retired original `history/ch05/` remains.
+
+The coder continues in `solutions/edition-2/main/`. The active original Chapter
+14 exercise will export to **Edition 2 `ch13/`** after acceptance. All later
+accepted exports go directly to the next top-level solution, never to history.
+Original book, grader, note, evidence and existing tag numbers stay unchanged;
+state both numbers in handoffs. The stops before **original** Chapters 22 and 24
+remain as Bill specified. The coordinator's prior history-only policy was a
+mistake and is superseded here. Historical entries below retain the paths used
+at the time; use `solutions/edition-2/README.md` for the current mapping.
+
 ## October 10: resumed original student run
 
 Original Chapter 13 is accepted after one correction round. Startup skill
