@@ -1,0 +1,36 @@
+go run ./cmd/grade -ch 25 /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch25-original-grade-qz6j6z1c
+Chapter 25 — The Ensemble
+============================================================
+
+[FAIL]      A spawned child runs and reports back: the parent calls spawn_sub_agent and the child's submitted payload reaches the parent  (0/15)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+[FAIL]      Children are isolated and factory built: each child owns its data directory and save file, and an AgentFactory constructs it  (0/15)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+[FAIL]      Fleet visibility and teardown: agents_status lists a live child, and shutdown_agent removes it  (0/10)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+[FAIL]      join_agents blocks until every listed child finishes, then returns each child's result  (0/15)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+[FAIL]      Agents address their parent and the user: send_message_to_parent blocks the child, respond_to_parent_message resumes it with a reply that carries its sender's address  (0/15)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+[FAIL]      A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives  (0/15)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+[FAIL]      A child that goes idle without submitting is woken rather than treated as finished, and after three wakes it escalates to its parent  (0/15)
+       could not drive the agent: agent printed nothing; stderr: provider
+       model is not set
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

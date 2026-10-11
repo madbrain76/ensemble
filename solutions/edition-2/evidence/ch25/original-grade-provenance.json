@@ -1,0 +1,22 @@
+{
+  "source_commit": "7175d33ebfd14c4d2807580a17320786a131a507",
+  "main_tree": "9528cdd0dbfda11a7c3b3b77bf33223a4dade259",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=25",
+    "DIR=/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch25-original-grade-qz6j6z1c"
+  ],
+  "isolated_exact_export": true,
+  "started_utc": "2026-10-11T18:20:28.290789+00:00",
+  "external_bound_seconds": 300,
+  "environment_note": "Inherited provider keys, selections and EN_HOME omitted; unchanged grader supplies local fake endpoint and dummy credentials.",
+  "timed_out": false,
+  "process_exit": 2,
+  "elapsed_seconds": 0.61,
+  "ended_utc": "2026-10-11T18:20:28.900320+00:00",
+  "raw_sha256": "d3ec8a3713d420a40ea72f6ac5ff3ea1c2a67ed35801fa2df474357dd378434f",
+  "grader_exit": 1,
+  "score": "0/100 FAIL",
+  "limitation": "All seven checks stop before inference: unchanged grader supplies no model; existing CLI requires explicit model. Valid fleet obligations remain subject to independent runtime/live evidence and reviewer disposition. No exception is preaccepted."
+}
