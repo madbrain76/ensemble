@@ -1300,3 +1300,15 @@ on disk as dirty/untracked paths and the immutable `edition-2-ch16-r1` tag still
 preserved them. Coordinator verified accepted main and snapshot tree identities,
 then re-recorded only its owned artifacts on current history alongside Bill’s
 Auto-Recall ruling. No reset, tag move or unrelated restoration was performed.
+
+
+Original17 pre-submission review supplied two concrete corrections. A real-Agent
+probe showed a 6,144-byte capped attachment repeated byte-for-byte on the next
+turn because deduplication compared the full untruncated source against context;
+a short-snippet control stayed single. Separately, substituting raw term frequency
+for BM25 passed the original ranking tests and related integration checks. The
+implementation’s formula was correct, but positive hits versus nonhits did not
+verify its promised ranking. Preserve this surviving defect and strengthen the
+competing-hit evidence. These are attributed reviewer assistance before final
+submission, not independent student discoveries or completed acceptance. Raw
+baseline/probe/mutation artifacts are retained in original-numbered ch17 evidence.

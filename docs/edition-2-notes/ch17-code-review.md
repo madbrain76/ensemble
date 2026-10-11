@@ -123,3 +123,92 @@ Thus the missing-type and wrong-module diagnoses are actual failed outcomes;
 corpus-path and vendor-message predicates remain unreached limitations. The
 0 score is not a measurement of failed BM25/judge behavior. Final acceptance
 remains pending complete student submission and independent review.
+
+## October11 source-review probe — capped recall duplicates
+
+During authorized postimplementation comparison, before final submission,
+reviewer reproduced one current-scope deduplication defect on the isolated
+`fcd091f` source above. The whole-source-content comparison in Recall precedes
+formatting; when formatting truncates a snippet, that complete source content
+never appears in the conversation. The next turn selects it again and appends
+identical capped bytes. This defeats §17.5's reason for checking already-present
+snippets and repeatedly spends context on material already delivered.
+
+The real public Agent received two Ask turns through its actor/history/renderers
+with only an external HTTP provider fake and mechanical recall enabled. A short
+control (435 source bytes,515 formatted) produced one recorded entry and one
+recall heading in the second request. The capped case (11,247 source bytes,
+6,144 formatted) produced two recorded entries with byte-identical Parts and two
+recall headings in the actual second request. Exit1 was the intended assertion,
+0.024s total; short control passed. No student source was changed.
+[Exact probe](../../solutions/edition-2/evidence/ch17/reviewer-capped-recall_test.go.txt),
+[output](../../solutions/edition-2/evidence/ch17/reviewer-capped-recall.txt),
+[provenance](../../solutions/edition-2/evidence/ch17/reviewer-capped-recall.json),
+and both [short](../../solutions/edition-2/evidence/ch17/reviewer-recall-short.json)
+and [capped](../../solutions/edition-2/evidence/ch17/reviewer-recall-capped.json)
+request/entry captures preserve the result. A subsequent metadata print initially
+used `Parts` instead of the JSON key `parts`; correcting that inspection confirmed
+identical attachment bytes and did not alter the test or recorded result.
+
+This finding requires correction of already-present capped attachment handling,
+with a positive short control and meaningful restored-defect sensitivity. It
+does not prescribe the old answer's attribution heuristic, new persistent IDs
+or a new retrieval policy. Final source/evidence and initial formal disposition
+remain pending; no correction round is consumed by this interim source finding.
+The coordinator is separately tracking the student's own pre-submission fixes
+for relative Agent/absolute skill paths and request-local judge model headers.
+
+### Comparative preparation and live inspection, awaiting final freeze
+
+Completed source reading of the student's new recall/index/judge code, shared
+interfaces, actor worker, Engine request-local judge route, reducer/skill changes
+and actual core integration/unit tests. Also read matching original Chapter17
+recall package (including its complete tests), common and Engine recall/judge
+code, and changed composition/actor/rendering/event paths against Chapter16.
+Original generated logs/binaries are support, not production lines; original
+removal of the virtual-user example must be separated from recall's own delta.
+No original answer code was sent to the student. Final counts/documentation
+assessment waits for its pending comment and regression changes.
+
+The student's unified actor begin path reaches actual recall for both public
+Ask and Post, without two parallel entrypoint hooks. A required parent pointer
+and common interface connect Recall to its owning Agent and Engine; recall owns
+the judge's reply format. Its cancellable bounded transport avoids merely
+abandoning a still-running judge goroutine. These are substantive improvements
+over the original's separate wiring and direct scripted judge test doubles,
+not reasons to claim every behavior verified. The current BM25 unit tests prove
+query/document filtering, positive smoothed IDF and floor, but do not yet directly
+discriminate competing-hit TF saturation/length normalization; final sensitivity
+evidence should address those core ranking claims.
+
+Independently parsed the retained actual api.log requests for all three live
+runs and read stdout against the fixture facts. Each has one tool-free judge
+request and two main requests. Both main requests carry QZ-731 with one recall
+heading and no cafeteria distractor; the judge sees both relevant and distractor
+material. Each event log contains one recall_attached and two completed response
+events. Anthropic/OpenAI/Gemini stdout correctly gives Morgan, October23, the
+rejected retry rationale, unresolved ledger placement and nine-day rollback.
+These are actual retrieved-request and answer observations, not marker matches
+in a judge prompt alone. They precede the final path/override/dedup refinements;
+no paid repetition is needed merely because those independent boundaries change.
+
+Coordinator relayed the confirmed cap finding as attributed pre-submission
+assistance, while the student was already correcting its own path/override bugs.
+It remains initial evidence, not an independently discovered student defect and
+not a consumed formal correction round. Preserve the failing probe for a final
+source recheck; final acceptance and formal initial disposition remain pending.
+
+The ranking sensitivity concern was subsequently tested with coordinator
+authorization in the isolated `fcd091f` copy. Replacing the BM25 contribution
+with raw term frequency (retaining the local IDF variable only to compile)
+**survived** TestBM25, TestRecallJudge and TestRecallTurnReplayCheckpoint in
+both packages. Baseline exits0 (0.005s/0.077s); mutant exits0 (0.006s/0.076s).
+This is a test gap for valid masked ranking obligations, not a production-formula
+defect or a compiler failure. Correct source was restored.
+[Exact mutation](../../solutions/edition-2/evidence/ch17/reviewer-ranking-mutation.json),
+[baseline](../../solutions/edition-2/evidence/ch17/reviewer-ranking-baseline.txt) and
+[survivor](../../solutions/edition-2/evidence/ch17/reviewer-ranking-mutant.txt)
+are retained. Representative competing-hit or independent score evidence must
+distinguish real BM25 from plausible raw counts; no old answer fixture or code
+was supplied to the student. Coordinator relayed this as further attributed
+pre-submission assistance, with final assessment still pending.
