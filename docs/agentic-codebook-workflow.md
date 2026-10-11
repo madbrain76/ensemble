@@ -23,9 +23,12 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 **Original19 / Edition2 ch18 is now active.** Fresh blind coder
 `student_continue_ch19` extends the accepted cache chapter in main. Current
 OAuth/Responses source preparation and narrow grader launch/observation facts
-are in `edition-2-notes/ch19.md`. Implementation, actual grading, live sign-in
-and formal review are pending; no account profile has been accessed by this
-preparation. Author remains stopped and original22/24 gates remain binding.
+are in `edition-2-notes/ch19.md`. First green stage `9998bad` adds per-model
+Responses transport and separate incremental reasoning summaries, with real-runtime
+fake checks plus core/GUI tests/vet and existing Node checks. OAuth/credential
+implementation follows; original grading, live sign-in and formal review remain
+pending. No account profile has been accessed by this preparation. Author remains
+stopped and original22/24 gates remain binding.
 
 **October 11 cache chapter accepted after correction round 1.** Original18 /
 Edition2 ch17 is independently accepted with recorded fixture exceptions at
