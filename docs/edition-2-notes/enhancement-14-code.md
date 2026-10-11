@@ -137,3 +137,12 @@ comments and explanations cover consequential boundaries without comment padding
 The original runner/harness/checks total1034physical lines; both versions reuse
 existing external vendor machinery. Final source/evidence is submitted for
 independent review; no Chapter15 work is released by this report.
+
+Post-review manuscript reconciliation: author `21c09849` corrects §14.5's
+projected-order explanation. Held survivors retain their Seq identities and land
+after batch completion; the projection is not globally Seq-sorted. Final manuscript
+SHA-256 is `6e29699fc23fa7a3b2d4a549524625b125ac7c69600baeb686754e86ad570117`.
+All15 executable Go/sh/Python/YAML/JSON fences are byte-identical to the actually
+executed55e3a4a manuscript (`manuscript-reconciliation.json`). No rerun is claimed;
+original sample/source receipts keep their actual execution-time binding.
+Independent combined review accepted the chapter at `f3d6e7f0`, zero formal rounds.

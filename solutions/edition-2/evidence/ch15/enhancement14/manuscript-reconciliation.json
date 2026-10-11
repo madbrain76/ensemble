@@ -1,0 +1,16 @@
+{
+  "executed_manuscript_sha256": "55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816",
+  "final_manuscript_sha256": "6e29699fc23fa7a3b2d4a549524625b125ac7c69600baeb686754e86ad570117",
+  "compared_source": "9244bf64:book/edition-2/chapter-14.md",
+  "final_author_commit": "21c09849",
+  "executable_fence_languages": [
+    "go",
+    "sh",
+    "python",
+    "yaml",
+    "json"
+  ],
+  "byte_identical_fences": 15,
+  "change": "Prose/text-diagram correction: retained Seq identities with held survivors appended at batch completion; no claim of global projected Seq sorting.",
+  "validation": "No sample or grader rerun; samples.json and final-source.json retain actual execution-time manuscript provenance."
+}
