@@ -1,0 +1,5 @@
+--- FAIL: TestNamedRegistryRestartAndTree (0.01s)
+    registry_test.go:54: unknown agent
+FAIL
+FAIL	ensemble/ensemble	0.013s
+FAIL

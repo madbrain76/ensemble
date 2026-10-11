@@ -1,0 +1,5 @@
+--- FAIL: TestManagementOwnership (0.01s)
+    management_test.go:114: join_agents wrong rejection: foreign accepted
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL

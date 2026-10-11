@@ -1,0 +1,9 @@
+--- FAIL: TestManagementActivityOutputAndSubmission (0.01s)
+    management_test.go:79: cursor repeats output {worker 10 tool text
+        exit_code: 0
+        
+        submitted: DONE_RESULT
+         {{idle  } {2 0 0 2} worker submitted DONE_RESULT }} <nil>
+FAIL
+FAIL	ensemble/ensemble	0.020s
+FAIL

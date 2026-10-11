@@ -1,0 +1,17 @@
+{"error":"locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-agent-key=\"peer/peer/peer\"]') to be visible\u001b[22m\n","requests":8,"frames":[{"type":"agent_activity","key":"peer/peer"},{"type":"agent_activity","key":"peer/peer"},{"type":"agent_tree"},{"type":"agent_tree"}],"stderr":"Open http://localhost:58434; terminal messages while busy are hints. /interrupt ends the turn.\n[submit]\nsubmitted: ROOT_RESULT\n[submit]\nsubmitted: PEER_RESULT\n[submit]\nsubmitted: ROOT_OTHER_RESULT\n[spawn_sub_agent]\n{\"activity\":{\"phase\":\"\"},\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0},\"agent_id\":\"peer\",\"state\":\"running\"}\n[spawn_sub_agent]\n{\"activity\":{\"phase\":\"\"},\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0},\"agent_id\":\"peer\",\"state\":\"running\"}\n[join_agents]\n[join_agents]\n"}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+locator.waitFor: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('[data-agent-key="peer/peer/peer"]') to be visible[22m
+
+    at /Users/bill/projects/ensemble/solutions/edition-2/main/gui/fleet.test.mjs:60:84 {
+  log: [
+    `  - waiting for locator('[data-agent-key="peer/peer/peer"]') to be visible`
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v24.20.0

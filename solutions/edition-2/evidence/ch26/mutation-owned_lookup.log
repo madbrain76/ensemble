@@ -1,0 +1,5 @@
+--- FAIL: TestManagementOwnership (0.01s)
+    management_test.go:114: interrupt_agent wrong rejection: interrupt delivered; agent remains available
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL

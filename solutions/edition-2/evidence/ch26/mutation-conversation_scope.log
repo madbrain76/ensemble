@@ -1,0 +1,16 @@
+{"error":"another tab's root output leaked into peer conversation","requests":3,"frames":[{"type":"usage"},{"type":"turn_ended","error":""},{"type":"agent_tree"},{"type":"agent_tree"}],"stderr":"Open http://localhost:58492; terminal messages while busy are hints. /interrupt ends the turn.\n[submit]\nsubmitted: ROOT_RESULT\n[submit]\nsubmitted: PEER_RESULT\n[submit]\nsubmitted: ROOT_OTHER_RESULT\n"}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: another tab's root output leaked into peer conversation
+    at file:///Users/bill/projects/ensemble/solutions/edition-2/main/gui/fleet.test.mjs:54:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.20.0

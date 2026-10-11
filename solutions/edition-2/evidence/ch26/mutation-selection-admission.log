@@ -1,0 +1,7 @@
+--- FAIL: TestSelectionSlowReceiverClose (4.01s)
+    selection_test.go:54: GUI close blocked after slow selection client disconnected
+FAIL
+FAIL	ensemble-gui-stub	4.035s
+?   	ensemble-gui-stub/cmd	[no test files]
+?   	ensemble-gui-stub/cmd/virtual-user	[no test files]
+FAIL

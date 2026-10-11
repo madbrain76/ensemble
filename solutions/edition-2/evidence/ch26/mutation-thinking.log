@@ -1,0 +1,5 @@
+--- FAIL: TestManagementActivityOutputAndSubmission (0.01s)
+    management_test.go:71: missing ordered phases tool_call,tool_call,idle
+FAIL
+FAIL	ensemble/ensemble	0.020s
+FAIL

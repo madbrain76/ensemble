@@ -1,0 +1,5 @@
+--- FAIL: TestNamedRegistryRestartAndTree (0.01s)
+    registry_test.go:60: restart lost peer history
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL

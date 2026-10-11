@@ -1,0 +1,5 @@
+--- FAIL: TestManagementWaitIgnoresOtherChildMessage (0.03s)
+    management_test.go:198: unselected child woke watch: [{"agent_id":"watched","reason":"message","status":{"activity":{"phase":"thinking"},"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0},"agent_id":"watched","state":"running"}}]
+FAIL
+FAIL	ensemble/ensemble	0.037s
+FAIL

@@ -1,0 +1,65 @@
+2026/10/11 12:00:49 httptest.Server blocked in Close after 5 seconds, waiting for connections:
+  *net.TCPConn 0x140001101f0 127.0.0.1:58133 in state active
+panic: test timed out after 10s
+	running tests:
+		TestManagementWaitAndShutdownLifetimes (10s)
+
+goroutine 49 [running]:
+testing.(*M).startAlarm.func1()
+	/usr/local/go/src/testing/testing.go:2682 +0x2b0
+created by time.goFunc
+	/usr/local/go/src/time/sleep.go:215 +0x38
+
+goroutine 1 [chan receive]:
+testing.(*T).Run(0x14000100540, {0x1010f56fb?, 0x14000185b38?}, 0x101288da8)
+	/usr/local/go/src/testing/testing.go:2005 +0x378
+testing.runTests.func1(0x14000100540)
+	/usr/local/go/src/testing/testing.go:2477 +0x38
+testing.tRunner(0x14000100540, 0x14000185c68)
+	/usr/local/go/src/testing/testing.go:1934 +0xc8
+testing.runTests(0x1400012a138, {0x10155b140, 0x7d, 0x7d}, {0x14000130380?, 0x7?, 0x10155f4e0?})
+	/usr/local/go/src/testing/testing.go:2475 +0x3b8
+testing.(*M).Run(0x1400011a320)
+	/usr/local/go/src/testing/testing.go:2337 +0x530
+main.main()
+	_testmain.go:295 +0x80
+
+goroutine 36 [sync.WaitGroup.Wait]:
+sync.runtime_SemacquireWaitGroup(0x0?, 0x0?)
+	/usr/local/go/src/runtime/sema.go:114 +0x38
+sync.(*WaitGroup).Wait(0x140001622e0)
+	/usr/local/go/src/sync/waitgroup.go:206 +0xa8
+net/http/httptest.(*Server).Close(0x140001622a0)
+	/usr/local/go/src/net/http/httptest/server.go:251 +0x280
+testing.(*common).Cleanup.func1()
+	/usr/local/go/src/testing/testing.go:1308 +0xdc
+testing.(*common).runCleanup(0x14000100700, 0x0?)
+	/usr/local/go/src/testing/testing.go:1572 +0xd8
+testing.tRunner.func2()
+	/usr/local/go/src/testing/testing.go:1928 +0x2c
+runtime.Goexit()
+	/usr/local/go/src/runtime/panic.go:615 +0x60
+testing.(*common).FailNow(0x14000100700)
+	/usr/local/go/src/testing/testing.go:1013 +0x48
+testing.(*common).Fatal(0x14000100700, {0x140001cde48?, 0x1010e24c6?, 0x0?})
+	/usr/local/go/src/testing/testing.go:1212 +0x54
+ensemble/ensemble_test.TestManagementWaitAndShutdownLifetimes(0x14000100700)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch26-mutations-8s0gm09t/main/ensemble/management_test.go:153 +0x414
+testing.tRunner(0x14000100700, 0x101288da8)
+	/usr/local/go/src/testing/testing.go:1934 +0xc8
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:1997 +0x364
+
+goroutine 43 [select]:
+ensemble/ensemble_test.TestManagementWaitAndShutdownLifetimes.func1({0x101292918, 0x140001922d0}, 0x140001daf00)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch26-mutations-8s0gm09t/main/ensemble/management_test.go:131 +0x90
+net/http.HandlerFunc.ServeHTTP(0x10?, {0x101292918?, 0x140001922d0?}, 0x140001922d0?)
+	/usr/local/go/src/net/http/server.go:2322 +0x38
+net/http.serverHandler.ServeHTTP({0x101291678?}, {0x101292918?, 0x140001922d0?}, 0x1?)
+	/usr/local/go/src/net/http/server.go:3340 +0xb0
+net/http.(*conn).serve(0x140001715f0, {0x101292d60, 0x14000096120})
+	/usr/local/go/src/net/http/server.go:2109 +0x528
+created by net/http.(*Server).Serve in goroutine 37
+	/usr/local/go/src/net/http/server.go:3493 +0x384
+FAIL	ensemble/ensemble	10.013s
+FAIL

@@ -1,0 +1,5 @@
+--- FAIL: TestManagementWaitAndShutdownLifetimes (0.11s)
+    management_test.go:154: graceful canceled active turn <nil>
+FAIL
+FAIL	ensemble/ensemble	0.113s
+FAIL

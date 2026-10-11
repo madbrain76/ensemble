@@ -1,0 +1,6 @@
+--- FAIL: TestManagementInterruptModesAndAsk (0.01s)
+    --- FAIL: TestManagementInterruptModesAndAsk/after_tool (0.01s)
+        management_test.go:269: interrupt=true completed tool=false
+FAIL
+FAIL	ensemble/ensemble	0.014s
+FAIL

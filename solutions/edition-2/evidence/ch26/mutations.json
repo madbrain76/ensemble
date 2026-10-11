@@ -1,0 +1,156 @@
+[
+  {
+    "claim": "thinking",
+    "file": "internal/agent/actor.go",
+    "before": "r.owner.setActivity(common.ActivityThinking, \"\", \"\")",
+    "after": "// thinking omitted",
+    "test": "TestManagementActivityOutputAndSubmission",
+    "exit": 1,
+    "seconds": 0.32,
+    "intended_failure": true,
+    "expected_diagnostic": "missing ordered phases"
+  },
+  {
+    "claim": "tool_phase",
+    "file": "internal/agent/dispatch.go",
+    "before": "r.owner.setActivity(common.ActivityToolCall, call.Name, string(call.Args))",
+    "after": "// tool activity omitted",
+    "test": "TestManagementActivityOutputAndSubmission",
+    "exit": 1,
+    "seconds": 0.318,
+    "intended_failure": true,
+    "expected_diagnostic": "missing ordered phases"
+  },
+  {
+    "claim": "usage",
+    "file": "internal/fleet/fleet.go",
+    "before": "Usage: m.parent.Engine().Usage()",
+    "after": "Usage: common.Usage{}",
+    "test": "TestManagementActivityOutputAndSubmission",
+    "exit": 1,
+    "seconds": 0.302,
+    "intended_failure": true,
+    "expected_diagnostic": "tool text"
+  },
+  {
+    "claim": "cursor",
+    "file": "internal/fleet/management.go",
+    "before": "a.History().EventsAfter(cursor)",
+    "after": "a.History().EventsAfter(0)",
+    "test": "TestManagementActivityOutputAndSubmission",
+    "exit": 1,
+    "seconds": 0.302,
+    "intended_failure": true,
+    "expected_diagnostic": "cursor repeats output"
+  },
+  {
+    "claim": "submission_disk",
+    "file": "internal/fleet/fleet.go",
+    "before": "err = errors.Join(json.NewEncoder(file).Encode(map[string]string{\"result\": result}), file.Close())",
+    "after": "err = file.Close()",
+    "test": "TestManagementActivityOutputAndSubmission",
+    "exit": 1,
+    "seconds": 0.311,
+    "intended_failure": true,
+    "expected_diagnostic": "durable fallback"
+  },
+  {
+    "claim": "owned_lookup",
+    "file": "internal/fleet/management.go",
+    "before": "return nil, fmt.Errorf(\"unknown agent %q\", id)",
+    "after": "for _,child:=range m.children{return child.agent,nil}; return nil, fmt.Errorf(\"unknown agent %q\", id)",
+    "test": "TestManagementOwnership",
+    "exit": 1,
+    "seconds": 0.305,
+    "intended_failure": true,
+    "expected_diagnostic": "wrong rejection"
+  },
+  {
+    "claim": "join_lookup",
+    "file": "internal/fleet/fleet.go",
+    "before": "return \"\", fmt.Errorf(\"unknown agent %q\", id)",
+    "after": "return \"foreign accepted\",nil",
+    "test": "TestManagementOwnership",
+    "exit": 1,
+    "seconds": 0.303,
+    "intended_failure": true,
+    "expected_diagnostic": "wrong rejection"
+  },
+  {
+    "claim": "selected_message",
+    "file": "internal/fleet/management.go",
+    "before": "if messages[id] != messageSeq[id] {",
+    "after": "if func()bool{m.mu.Lock();defer m.mu.Unlock();for key,v:=range m.messages{if v!=messageSeq[key]{return true}};return false}() {",
+    "test": "TestManagementWaitIgnoresOtherChildMessage",
+    "exit": 1,
+    "seconds": 0.641,
+    "intended_failure": true,
+    "expected_diagnostic": "unselected child woke watch"
+  },
+  {
+    "claim": "graceful",
+    "file": "internal/fleet/management.go",
+    "before": "if err = a.Flush(ctx); err != nil {",
+    "after": "if err = a.Post(common.Interrupt{}); err != nil {",
+    "test": "TestManagementWaitAndShutdownLifetimes",
+    "exit": 1,
+    "seconds": 10.617,
+    "intended_failure": false,
+    "expected_diagnostic": "graceful canceled active turn"
+  },
+  {
+    "claim": "after_tool",
+    "file": "internal/agent/actor.go",
+    "before": "if m.AfterTool && r.active != nil {",
+    "after": "if false && m.AfterTool && r.active != nil {",
+    "test": "TestManagementInterruptModesAndAsk/after_tool",
+    "exit": 1,
+    "seconds": 0.329,
+    "intended_failure": true,
+    "expected_diagnostic": "completed tool=false"
+  },
+  {
+    "claim": "idle_message",
+    "file": "internal/tools/management.go",
+    "before": "a.Post(common.UserMessage{Text: args.Content})",
+    "after": "a.Post(common.UserMessage{Text: \"wrong prompt\"})",
+    "test": "TestManagementInterruptModesAndAsk/now",
+    "exit": 1,
+    "seconds": 0.302,
+    "intended_failure": true,
+    "expected_diagnostic": "idle send_message was not delivered"
+  },
+  {
+    "claim": "registry_save",
+    "file": "ensemble/registry.go",
+    "before": "return os.Rename(file.Name(), filepath.Join(e.directory, \"ensemble.json\"))",
+    "after": "return nil",
+    "test": "TestNamedRegistryRestartAndTree",
+    "exit": 1,
+    "seconds": 0.548,
+    "intended_failure": true,
+    "expected_diagnostic": "unknown agent"
+  },
+  {
+    "claim": "peer_restore",
+    "file": "ensemble/registry.go",
+    "before": "if err = a.Load(); err == nil {",
+    "after": "if err = error(nil); err == nil {",
+    "test": "TestNamedRegistryRestartAndTree",
+    "exit": 1,
+    "seconds": 0.55,
+    "intended_failure": true,
+    "expected_diagnostic": "restart lost peer history"
+  },
+  {
+    "claim": "delete_guard",
+    "file": "internal/fleet/fleet.go",
+    "before": "if len(m.active()) > 0 {",
+    "after": "if false && len(m.active()) > 0 {",
+    "test": "TestNamedDeleteActiveChildGuard",
+    "exit": 1,
+    "seconds": 0.323,
+    "intended_failure": true,
+    "expected_diagnostic": "deleted active tree"
+  }
+]

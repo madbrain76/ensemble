@@ -1,0 +1,58 @@
+[
+  {
+    "claim": "graceful_corrected",
+    "file": "internal/fleet/management.go",
+    "before": "if err = a.Flush(ctx); err != nil {",
+    "after": "if err = a.Post(common.Interrupt{}); err != nil {",
+    "exit": 1,
+    "seconds": 0.69,
+    "intended_failure": true,
+    "expected_diagnostic": "graceful canceled active turn"
+  },
+  {
+    "claim": "stuck",
+    "file": "internal/fleet/management.go",
+    "before": "if stuck > 0 &&",
+    "after": "if false && stuck > 0 &&",
+    "exit": 1,
+    "seconds": 3.326,
+    "intended_failure": true,
+    "expected_diagnostic": "stuck wait"
+  },
+  {
+    "claim": "pattern",
+    "file": "internal/fleet/management.go",
+    "before": "if pattern != \"\" {",
+    "after": "if false && pattern != \"\" {",
+    "exit": 1,
+    "seconds": 0.315,
+    "intended_failure": true,
+    "expected_diagnostic": "pattern match missing"
+  },
+  {
+    "claim": "tree_children",
+    "file": "ensemble/registry.go",
+    "before": "n.Children = append(n.Children, treeNode(child, false, false))",
+    "after": "_ = child",
+    "exit": 1,
+    "seconds": 31.772,
+    "intended_failure": true,
+    "expected_diagnostic": "data-agent-key=\"peer/peer/peer\""
+  },
+  {
+    "claim": "conversation_scope",
+    "file": "gui/tree.go",
+    "before": "if v.parent.selected[conn] != v {",
+    "after": "if false && v.parent.selected[conn] != v {",
+    "exit": 1,
+    "seconds": 1.495,
+    "intended_failure": true,
+    "expected_diagnostic": "another tab's root output leaked"
+  },
+  {
+    "claim": "selection_admission",
+    "mutation": "replace nonblocking replay admission/disconnect with queue <- batch under server mutex",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

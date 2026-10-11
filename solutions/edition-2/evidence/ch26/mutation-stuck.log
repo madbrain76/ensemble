@@ -1,0 +1,5 @@
+--- FAIL: TestManagementWaitAndShutdownLifetimes (3.01s)
+    management_test.go:148: stuck wait  context deadline exceeded
+FAIL
+FAIL	ensemble/ensemble	3.022s
+FAIL

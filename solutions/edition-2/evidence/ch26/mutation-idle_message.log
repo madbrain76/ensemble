@@ -1,0 +1,6 @@
+--- FAIL: TestManagementInterruptModesAndAsk (0.01s)
+    --- FAIL: TestManagementInterruptModesAndAsk/now (0.01s)
+        management_test.go:279: idle send_message was not delivered <nil>
+FAIL
+FAIL	ensemble/ensemble	0.021s
+FAIL

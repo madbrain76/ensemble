@@ -1,0 +1,5 @@
+--- FAIL: TestManagementThreeChildMonitor (0.01s)
+    management_test.go:343: pattern match missing [{"agent_id":"one","reason":"complete","status":{"activity":{"phase":"idle"},"usage":{"input":1,"cache_write":0,"cache_read":0,"output":1},"agent_id":"one","state":"submitted","result":"RESULT_one"}}] <nil>
+FAIL
+FAIL	ensemble/ensemble	0.019s
+FAIL

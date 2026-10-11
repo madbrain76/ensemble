@@ -1,0 +1,5 @@
+--- FAIL: TestNamedDeleteActiveChildGuard (0.01s)
+    registry_test.go:118: deleted active tree <nil>
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
