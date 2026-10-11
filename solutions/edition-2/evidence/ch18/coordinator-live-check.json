@@ -1,0 +1,196 @@
+{
+  "reviewer": "coordinator",
+  "source_commit": "7436fcb35ef54e2996114a2d3fe68fae4cfac82e",
+  "method": "Independently decoded last raw usage per request, provider disjoint normalization, dated documented rates below tier thresholds, and exact comparison to browser meter and tooltip. No new inference.",
+  "results": {
+    "anthropic": {
+      "api_log_sha256": "5d8dc05bf2646dc1bbf29663ab93dd0cc451a907cf276ca158f0f566e21488c8",
+      "turns": [
+        {
+          "turn": 1,
+          "normalized_usage": {
+            "input": 4,
+            "cache_write": 21924,
+            "cache_read": 0,
+            "output": 20
+          },
+          "total_input": 21928,
+          "session_cost_usd": 0.0027509,
+          "session_hit_rate_percent": 0.0,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 2,
+          "normalized_usage": {
+            "input": 4,
+            "cache_write": 44,
+            "cache_read": 21924,
+            "output": 65
+          },
+          "total_input": 21972,
+          "session_cost_usd": 0.00300854,
+          "session_hit_rate_percent": 49.94077448747153,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 3,
+          "normalized_usage": {
+            "input": 4,
+            "cache_write": 90,
+            "cache_read": 21968,
+            "output": 18
+          },
+          "total_input": 22062,
+          "session_cost_usd": 0.00324887,
+          "session_hit_rate_percent": 66.54134198477911,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 4,
+          "normalized_usage": {
+            "input": 4,
+            "cache_write": 41,
+            "cache_read": 22058,
+            "output": 13
+          },
+          "total_input": 22103,
+          "session_cost_usd": 0.003481475,
+          "session_hit_rate_percent": 74.88786691648214,
+          "dom_and_tooltip_match": true
+        }
+      ],
+      "marker_counts": [
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    "openai": {
+      "api_log_sha256": "6fc301b4c6083eb1b4eac8d74ba354eae1c59c3d1fc71db19ff6e8984c3285f4",
+      "turns": [
+        {
+          "turn": 1,
+          "normalized_usage": {
+            "input": 3,
+            "cache_write": 16366,
+            "cache_read": 0,
+            "output": 15
+          },
+          "total_input": 16369,
+          "session_cost_usd": 0.082142,
+          "session_hit_rate_percent": 0.0,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 2,
+          "normalized_usage": {
+            "input": 3,
+            "cache_write": 55,
+            "cache_read": 16349,
+            "output": 20
+          },
+          "total_input": 16407,
+          "session_cost_usd": 0.0893686,
+          "session_hit_rate_percent": 49.8810104954845,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 3,
+          "normalized_usage": {
+            "input": 3,
+            "cache_write": 96,
+            "cache_read": 16349,
+            "output": 14
+          },
+          "total_input": 16448,
+          "session_cost_usd": 0.0966802,
+          "session_hit_rate_percent": 66.4269462051032,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 4,
+          "normalized_usage": {
+            "input": 3,
+            "cache_write": 132,
+            "cache_read": 16349,
+            "output": 10
+          },
+          "total_input": 16484,
+          "session_cost_usd": 0.1040918,
+          "session_hit_rate_percent": 74.6438789797285,
+          "dom_and_tooltip_match": true
+        }
+      ],
+      "marker_counts": [
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "gemini": {
+      "api_log_sha256": "73d4619734ee5c9971c5ad80b7e8dd7133a713a10c60ea2cc89e1de313002b99",
+      "turns": [
+        {
+          "turn": 1,
+          "normalized_usage": {
+            "input": 17779,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 56
+          },
+          "total_input": 17779,
+          "session_cost_usd": 0.01354425,
+          "session_hit_rate_percent": 0.0,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 2,
+          "normalized_usage": {
+            "input": 2129,
+            "cache_write": 0,
+            "cache_read": 15725,
+            "output": 90
+          },
+          "total_input": 17854,
+          "session_cost_usd": 0.016657875,
+          "session_hit_rate_percent": 44.13044088345073,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 3,
+          "normalized_usage": {
+            "input": 2161,
+            "cache_write": 0,
+            "cache_read": 15801,
+            "output": 59
+          },
+          "total_input": 17962,
+          "session_cost_usd": 0.01968495,
+          "session_hit_rate_percent": 58.82265136673197,
+          "dom_and_tooltip_match": true
+        },
+        {
+          "turn": 4,
+          "normalized_usage": {
+            "input": 2128,
+            "cache_write": 0,
+            "cache_read": 15910,
+            "output": 38
+          },
+          "total_input": 18038,
+          "session_cost_usd": 0.0226167,
+          "session_hit_rate_percent": 66.22087585330783,
+          "dom_and_tooltip_match": true
+        }
+      ],
+      "marker_counts": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}
