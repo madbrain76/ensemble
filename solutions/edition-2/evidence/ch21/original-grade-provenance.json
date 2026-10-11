@@ -1,0 +1,17 @@
+{
+  "source_commit": "5a00b98f489bc06b533ac612145e1102e9199a60",
+  "main_tree": "02e9bb14883f4dddc0e76c844656369bd91f6973",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=21",
+    "DIR=./solutions/edition-2/main/gui"
+  ],
+  "started_utc": "2026-10-11T16:31:15.583114+00:00",
+  "ended_utc": "2026-10-11T16:34:16.295988+00:00",
+  "make_exit": 2,
+  "raw_sha256": "83384811db3bb4aad2ed7af333039cc84e932e51e341e8e3d657f0ebaf2b38df",
+  "grader_exit": 1,
+  "score": "0/100 FAIL",
+  "limitation": "Both scenarios execute visible MCP operations then time out awaiting JSON completion envelopes absent from the human terminal output. All seven scored checks are masked; visible diagnostics do not establish every downstream assertion."
+}
