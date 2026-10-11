@@ -1,0 +1,9 @@
+{
+  "purpose": "One diagnostic replay of exact CLI request rejected with HTTP400; no policy changed",
+  "status": 400,
+  "elapsed_seconds": 0.78,
+  "body": "{\n  \"error\": {\n    \"message\": \"prompt_cache_options is not supported on this model\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"prompt_cache_options\",\n    \"code\": \"invalid_parameter\"\n  }\n}",
+  "billing": "chatgpt",
+  "api_key_configured": false,
+  "source_request": "live-plan-api.log"
+}

@@ -1,0 +1,4 @@
+Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+2026/10/11 08:06:39 cache lens openai/gpt-6.1-sol: tools:cold input:cold; prefix_bytes=0 prompt_bytes=5691 predicted=0.0000
+2026/10/11 08:06:39 OpenAI billing source: chatgpt
+2026/10/11 08:06:40 openai request failed: provider HTTP status 400

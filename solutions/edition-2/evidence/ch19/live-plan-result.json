@@ -1,0 +1,16 @@
+{
+  "source_commit": "7a2d562a8df6cd1504ee04871e662b6c3e654e33",
+  "main_tree": "f2435030abf494b287f8ce9a0bc9d1e7f0e1b720",
+  "binary_sha256": "e76105ba9ea55771d7ad5f95dc3c9580781d30a2db4cfba49ac50860645186ac",
+  "model": "gpt-6.1-sol",
+  "billing": "explicit chatgpt",
+  "api_key_configured": false,
+  "reasoning_effort": "high",
+  "reasoning_summary": "detailed",
+  "hint_sent_after_summary": false,
+  "exit_code": 0,
+  "elapsed_seconds": 1.37,
+  "timed_out": false,
+  "dedicated_profile_retained": true,
+  "logout": false
+}
