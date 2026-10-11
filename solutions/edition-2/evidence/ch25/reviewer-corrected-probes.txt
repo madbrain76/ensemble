@@ -1,0 +1,17 @@
+Source: 891d513bf142013d6888760cfae4fcaab1edd680; tree6cbf18933f82ee450d91750442161b176e469f8e; isolated exact git archive.
+Original two probe source files copied byte-for-byte from the preserved reviewer evidence. Added separate human/child omitted-ID selection control, using real objects and external HTTP fake.
+Command: go test -race ./ensemble -run ^TestReviewer -count=1 -timeout=20s -v
+Exit:0
+=== RUN TestReviewerEscalatedChildIsNotRunning
+human escalation from=main content=Agent main stopped without submit after three framework wakes requests=8
+post-escalation child status=[{ID:worker State:failed Result: Error:Agent worker stopped without submit after three framework wakes}]
+--- PASS: TestReviewerEscalatedChildIsNotRunning (0.17s)
+=== RUN TestReviewerQuestionIDsDoNotOverwrite
+root question=main-1 child question=main-2
+--- PASS: TestReviewerQuestionIDsDoNotOverwrite (0.02s)
+=== RUN TestReviewerHumanAndChildOmittedIDsStaySeparate
+root question=main-1 child question=main-2
+--- PASS: TestReviewerHumanAndChildOmittedIDsStaySeparate (0.02s)
+PASS
+ok ensemble/ensemble 1.229s
+The selection control answers the root first with both selection IDs omitted, checks From Bill/To main, verifies the child's waiter remains blocked, then answers the same-named child with omitted message ID and checks From main/To main. No real provider access.

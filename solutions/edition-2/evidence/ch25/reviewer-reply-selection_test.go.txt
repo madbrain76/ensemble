@@ -1,0 +1,23 @@
+package ensemble_test
+import("context";"encoding/json";"net/http";"net/http/httptest";"testing";"time";"fmt";"ensemble/ensemble")
+func TestReviewerHumanAndChildOmittedIDsStaySeparate(t *testing.T){
+ s:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fleetCall(w,"submit",map[string]any{"result":"done"})}));defer s.Close()
+ a,inbox,children:=fleetAgent(t,s)
+ ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second);defer cancel()
+ if _,err:=a.Fleet().Spawn("main","child task","");err!=nil{t.Fatal(err)}
+ if _,err:=a.Fleet().Join(ctx,[]string{"main"});err!=nil{t.Fatal(err)}
+ if len(*children)!=1{t.Fatal("child not constructed")}; child:=(*children)[0]
+ rootReply:=make(chan ensemble.FleetMessage,1);childReply:=make(chan ensemble.FleetMessage,1)
+ go func(){m,_:=a.Fleet().AskParent(ctx,"ROOT QUESTION");rootReply<-m}()
+ var rootQuestion ensemble.FleetMessage
+ select{case rootQuestion=<-inbox:case<-ctx.Done():t.Fatal(ctx.Err())}
+ go func(){m,_:=child.Fleet().AskParent(ctx,"CHILD QUESTION");childReply<-m}()
+ var childID string
+ for childID=="" { j,err:=a.Fleet().Join(ctx,[]string{"main"});if err!=nil{t.Fatal(err)};var messages []ensemble.FleetMessage;json.Unmarshal([]byte(j),&messages);for _,m:=range messages{if m.Content=="CHILD QUESTION"{childID=m.ID}};if childID==""{select{case<-time.After(time.Millisecond):case<-ctx.Done():t.Fatal(ctx.Err())}} }
+ fmt.Printf("root question=%s child question=%s\n",rootQuestion.ID,childID)
+ if err:=a.Fleet().Reply("","","ROOT ANSWER");err!=nil{t.Fatal("human selection confused by child",err)}
+ select{case m:=<-rootReply:if m.Content!="ROOT ANSWER"||m.From!="Bill"||m.To!="main"{t.Fatal("root reply identity",m)};case<-ctx.Done():t.Fatal(ctx.Err())}
+ select{case m:=<-childReply:t.Fatal("human reply prematurely released child",m);default:}
+ if err:=a.Fleet().Reply("main","","CHILD ANSWER");err!=nil{t.Fatal("child selection confused by human",err)}
+ select{case m:=<-childReply:if m.Content!="CHILD ANSWER"||m.From!="main"||m.To!="main"{t.Fatal("child reply identity",m)};case<-ctx.Done():t.Fatal(ctx.Err())}
+}

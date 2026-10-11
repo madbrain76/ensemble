@@ -91,3 +91,47 @@ Both probes use real Ensemble, Agents, managers, actors and persistence; only
 external HTTP inference is faked. The coder owns corrections and affected
 regressions. No production file was edited by this reviewer. Final source,
 mutation sensitivity, live evidence, full counts and disposition remain pending.
+
+## Corrected-green independent checks (not final acceptance)
+
+Source `891d513bf142013d6888760cfae4fcaab1edd680`, tree
+`6cbf18933f82ee450d91750442161b176e469f8e`, fixes both findings. The exact
+original probes plus a new omitted-ID human/child reply-selection control pass
+under the race detector (1.229s). Root and same-named child now receive distinct
+recipient-owned IDs; the human response releases only the root and retains
+`From: Bill`, while the child's response retains its actual parent sender.
+Exhausted child status is `failed`, with the explicit three-wake reason and
+empty `Result`; it is not silently promoted to submitted completion. The
+corrected join returns that failure. [Check output](../../solutions/edition-2/evidence/ch25/reviewer-corrected-probes.txt),
+[selection probe](../../solutions/edition-2/evidence/ch25/reviewer-reply-selection_test.go.txt).
+
+Preliminary own-predecessor counts at this freeze, in order physical / active /
+comment-only / blank: student production Go adds **802 / 645 / 112 / 45** and
+Go tests **711 / 659 / 36 / 16**; original25 adds **1698 / 950 / 593 / 155**
+production Go and **1754 / 1290 / 275 / 189** test lines over original24.
+Other counted implementation languages are unchanged. The lexical method and
+whole-source totals are in [counts](../../solutions/edition-2/evidence/ch25/reviewer-counts.json);
+tracked source only, inline code remains active, tests/support separate, net
+changes count moves once. An initial inventory excluded implementation folders
+named memory/data; corrected before recording these totals, whose predecessor
+matches the accepted original24 review.
+
+The reduced production size comes from reusing the existing actor, jobs,
+persistence and parent interfaces rather than a separate child execution path.
+The new fleet manager keeps immediate children and pending questions with their
+owner; the application factory decides provider configuration. Comments explain
+that ordering, recipient-owned IDs, cancellation, bounded correction and saving.
+Its added-comment share is about15% of nonblank production, below the roughly20%
+teaching target, but useful explanations and exported contracts are present;
+this is not a padding quota. Original explanations are more extensive and
+sometimes repeat the same rationale across adjacent types and methods.
+The student tests retain real actors and jobs behind small external HTTP fakes,
+and add actual CLI construction/human input; fewer lines alone are not acceptance.
+
+Factory installation selects the fleet protocol for the entire Ensemble, so
+shared-actor correction applies to roots and every recursively spawned child.
+The executable installs the factory. Existing non-fleet embedded/GUI clients
+retain their earlier protocol. Final review must explicitly assess this bounded
+compatibility departure against the manuscript's universal wording; it is not
+an unrecorded exception or permission for a fleet child to bypass correction.
+Final student review, live provenance and mutation classification remain pending.

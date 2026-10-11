@@ -1,0 +1,257 @@
+{
+  "method": "Physical/active/comment-only/blank; lexical comment-only starts //, /*, *, */, <!--; inline code remains active. Tracked Go/JS/MJS/HTML/CSS; tests and scripts support separated; docs/evidence/generated IO excluded. Net own-predecessor deltas count moves once.",
+  "student_source": "891d513bf142013d6888760cfae4fcaab1edd680",
+  "student_predecessor": "0430df4340fffac5234a94aea843f9a7c9d02282",
+  "original_source": "solutions/ch25 at 891d513bf142013d6888760cfae4fcaab1edd680",
+  "original_predecessor": "solutions/ch24 at 891d513bf142013d6888760cfae4fcaab1edd680",
+  "student": {
+    "before": {
+      "production_go": [
+        14177,
+        11360,
+        2082,
+        735
+      ],
+      "test_go": [
+        9298,
+        8502,
+        546,
+        250
+      ],
+      "test_mjs": [
+        909,
+        884,
+        20,
+        5
+      ],
+      "production_mjs": [
+        317,
+        300,
+        12,
+        5
+      ],
+      "production_js": [
+        733,
+        648,
+        74,
+        11
+      ],
+      "production_html": [
+        63,
+        62,
+        1,
+        0
+      ],
+      "production_css": [
+        165,
+        165,
+        0,
+        0
+      ]
+    },
+    "after": {
+      "production_go": [
+        14979,
+        12005,
+        2194,
+        780
+      ],
+      "test_go": [
+        10009,
+        9161,
+        582,
+        266
+      ],
+      "test_mjs": [
+        909,
+        884,
+        20,
+        5
+      ],
+      "production_mjs": [
+        317,
+        300,
+        12,
+        5
+      ],
+      "production_js": [
+        733,
+        648,
+        74,
+        11
+      ],
+      "production_html": [
+        63,
+        62,
+        1,
+        0
+      ],
+      "production_css": [
+        165,
+        165,
+        0,
+        0
+      ]
+    },
+    "delta": {
+      "production_css": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "production_go": [
+        802,
+        645,
+        112,
+        45
+      ],
+      "production_html": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "production_js": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "production_mjs": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "test_go": [
+        711,
+        659,
+        36,
+        16
+      ],
+      "test_mjs": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "original": {
+    "before": {
+      "test_go": [
+        13915,
+        10766,
+        1894,
+        1255
+      ],
+      "production_go": [
+        26294,
+        16102,
+        7942,
+        2250
+      ],
+      "production_js": [
+        1884,
+        1381,
+        313,
+        190
+      ],
+      "production_html": [
+        200,
+        177,
+        13,
+        10
+      ],
+      "production_css": [
+        674,
+        552,
+        31,
+        91
+      ],
+      "support_js": [
+        418,
+        288,
+        89,
+        41
+      ]
+    },
+    "after": {
+      "test_go": [
+        15669,
+        12056,
+        2169,
+        1444
+      ],
+      "production_go": [
+        27992,
+        17052,
+        8535,
+        2405
+      ],
+      "production_js": [
+        1884,
+        1381,
+        313,
+        190
+      ],
+      "production_html": [
+        200,
+        177,
+        13,
+        10
+      ],
+      "production_css": [
+        674,
+        552,
+        31,
+        91
+      ],
+      "support_js": [
+        418,
+        288,
+        89,
+        41
+      ]
+    },
+    "delta": {
+      "production_css": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "production_go": [
+        1698,
+        950,
+        593,
+        155
+      ],
+      "production_html": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "production_js": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "support_js": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "test_go": [
+        1754,
+        1290,
+        275,
+        189
+      ]
+    }
+  }
+}
