@@ -26,9 +26,15 @@ OAuth/Responses source preparation and narrow grader launch/observation facts
 are in `edition-2-notes/ch19.md`. First green stage `9998bad` adds per-model
 Responses transport and separate incremental reasoning summaries, with real-runtime
 fake checks plus core/GUI tests/vet and existing Node checks. OAuth/credential
-implementation follows; original grading, live sign-in and formal review remain
-pending. No account profile has been accessed by this preparation. Author remains
-stopped and original22/24 gates remain binding.
+and client integration then reached green `06cbf20`, tree
+`c550fa3c13faec59268cc8d7486a6ed8f590d68f`, with signed-JWT boundary tests,
+real CLI auth commands and focused race checks. One combined Node speech-pause
+failure passed on isolated repeat; its cause remains unproven, with both retained.
+The unchanged original grader on that freeze returned **15/100 FAIL**: six checks
+stop at missing-type GUI startup; the awarded billing check does not prove any
+inference took place. Raw/provenance is committed at `d44532b`. Live use, mutation
+evidence and formal review remain pending; no production account profile or
+sign-in has been accessed. Author remains stopped and original22/24 gates bind.
 
 **October 11 cache chapter accepted after correction round 1.** Original18 /
 Edition2 ch17 is independently accepted with recorded fixture exceptions at
