@@ -19,17 +19,24 @@ import (
 	gateway "github.com/waywardgeek/ensemble/agent/gateway"
 )
 
-// defaultQuestions are the self-improvement prompts the interviewer asks.
+// defaultQuestions returns the self-improvement prompts the interviewer
+// asks.
 //
 // They are fixed rather than model-generated so that an interview is
 // reproducible and can be checked. Generating follow-up questions from the
 // answers is the obvious extension, and it changes nothing about the
 // gateway.
-var defaultQuestions = []string{
-	"What friction points slow you down most in your current workflow?",
-	"Which tasks take the most turns or the most tokens?",
-	"Where do you get stuck and need human intervention?",
-	"What new tool or skill would most improve your work?",
+//
+// A function rather than a package-level slice: a package-level slice is
+// shared mutable state that any caller could reorder or truncate for
+// everyone else.
+func defaultQuestions() []string {
+	return []string{
+		"What friction points slow you down most in your current workflow?",
+		"Which tasks take the most turns or the most tokens?",
+		"Where do you get stuck and need human intervention?",
+		"What new tool or skill would most improve your work?",
+	}
 }
 
 func main() {
@@ -123,9 +130,9 @@ func run(cfg runConfig) error {
 	}
 
 	conversationID := "interview-" + time.Now().UTC().Format("20060102-150405")
-	transcript := make([]exchange, 0, len(defaultQuestions))
+	transcript := make([]exchange, 0, len(defaultQuestions()))
 
-	for _, question := range defaultQuestions {
+	for _, question := range defaultQuestions() {
 		answer, err := ask(ctx, client, handler, cfg, conversationID, question)
 		if err != nil {
 			return err
