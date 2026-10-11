@@ -1,4 +1,12 @@
-# Original26 / Edition2ch23: independent reviewer preparation
+# Original26 / Edition2ch23: independent code review
+
+**Current disposition: accepted with two narrow original-grader launch exceptions
+after one formal correction round.** Final source `450f7a9599295dafb260c1650b9b5553010e2a54`,
+main tree `27d7fcf9b8b31275068fa705d6969cfe3eafedc1`. Original grading remains
+0/100 FAIL; full rationale and final evidence are below. Historical preparation
+and failed initial review remain intact.
+
+## Initial preparation (historical)
 
 Reviewer `reviewer_astra`, GPT-6 Astra/high, October 11, 2026.
 **Preparation only; awaiting first-green implementation. Zero formal rounds.**
@@ -299,3 +307,70 @@ Bill's rough20% teaching target, but they explain lifecycle, path identity,
 admission and persistence decisions without padding. Exported contracts are
 documented, including the final multiline-submission field comment. The review
 judges those explanations useful; it does not require quota-driven expansion.
+
+## Round1 final disposition — accepted with exceptions
+
+Reviewed the full updated student review and exact source
+`450f7a9599295dafb260c1650b9b5553010e2a54`, main tree
+`27d7fcf9b8b31275068fa705d6969cfe3eafedc1` (180 tracked source files).
+**Accepted after one formal correction round**, with only the two original-grader
+launch exceptions justified in the initial review: omitted model for six CLI
+checks, and headless executable selected for the optional GUI probe. Original
+grading remains0/100 FAIL on974f67b; no altered-grader pass or additional waiver
+is claimed. All required capabilities remain in scope. No unresolved defect,
+architecture or bloat finding prevents the direct Edition2ch23 export.
+
+The correction records the existing successful turn_ended fact after the
+submitted batch drains and before final completion/save. Normal tool batches
+still continue to their next request; interrupt keeps its distinct event/state.
+Validation admits exactly the payloadless successful end while preserving the
+general tagged-union rule and existing failed-end payload checks. This is a small
+owner-level correction, not an unconditional idle display or new event framework.
+The comments explain why a completed submit differs from ordinary tool output.
+
+An isolated archive reran the **unchanged original independent state probe**
+alongside the coder's real retained-state/WebSocket/pending-request control.
+Both pass under race in1.219s: immediate and restarted completed peers replay
+idle, a parked later request remains in_flight, and its subsequent completion
+returns idle. [Independent round1 rerun](../../solutions/edition-2/evidence/ch26/reviewer-round1-state.txt).
+The coder's affected core race (5.235s), history/malformed-load/save race (1.050s),
+full GUI race (11.067s), both-module vet and clean formatting support the rest
+of this bounded change; unchanged broad checks were not needlessly repeated.
+
+Both round1 mutation outputs fail cleanly for their predicted reasons: removing
+the completion fact restores the completed/restarted pending-state failures;
+forcing every replay to idle breaks the genuinely in-flight control. Together
+with the assessed prior evidence, there are21 clean intended kills over22
+mutation attempts, retaining the earlier invalid graceful-cleanup timeout.
+The intermediate one-payload-validator failures remain recorded as implementation
+failures, not successful tests or extra mutation kills. No new mock was introduced.
+
+The paid live provenance stays at9e2b72a, binary
+`a42e9069d3c9b123ede0f44f635b58e8646b5e78b85c615526748b2c915ebfa5`.
+Its real fleet coding,15 Astra/high requests, measured tests, GUI selection and
+restart evidence remain valid within the previously recorded limits. The
+[coordinator's independent wire/artifact audit](../../solutions/edition-2/evidence/ch26/coordinator-live-check.json)
+agrees with the separately inspected GUI sequence. Its historical pending-state
+capture remains defective; deterministic real-runtime evidence establishes the
+correction, not a paid rerun or rewritten screenshot. Newly completed and restored
+conversations are verified; no old-save migration is implemented or claimed.
+
+[Final own-predecessor counts](../../solutions/edition-2/evidence/ch26/reviewer-final-counts.json)
+use the same language-separated tracked-source method and exclusions above.
+Student production Go adds1027physical/870active/109comment-only/48blank versus
+original1067/838/107/122. Student Go tests add636/585/30/21 and browser tests
+75/72/1/2; original Go tests add864/669/93/102. JS/HTML/CSS production deltas
+remain unchanged from the initial review, with original removals separately
+identified. More complete selection, cursor/durable-result and lifetime evidence
+justify the similar active-code size; no arbitrary line quota was used.
+Useful explanations and exported contracts are present; final added Go comment
+share is about11.1%, still below the rough teaching target, without warranting
+syntactic narration or padding. Existing code, actual parent ownership and
+optional-module boundaries carry the behavior with fewer special wiring paths
+than the reference. The correction strengthens the real state/replay contract
+without expanding chapter scope.
+
+Mandatory `.agents/skills/ensemble-coding/SKILL.md` governs this review and handoff.
+The coordinator may export this exact accepted source as Edition2ch23 under the
+approved map, preserving CodeRhapsody history and all original results. This
+acceptance does not itself claim Edition3 authorship or release an author agent.

@@ -1,0 +1,13 @@
+Source: 450f7a9599295dafb260c1650b9b5553010e2a54
+Exact original independent state probe plus real completed/restart/in-flight positive control
+go test -race -run ^(TestReviewerSubmittedSelectionState|TestSelectionSubmittedTurnState)$ -count=1 -timeout=15s -v
+=== RUN   TestReviewerSubmittedSelectionState
+    reviewer_state_test.go:16: completed: activity=idle selected replay=idle
+    reviewer_state_test.go:17: restarted: activity=idle selected replay=idle
+--- PASS: TestReviewerSubmittedSelectionState (0.06s)
+=== RUN   TestSelectionSubmittedTurnState
+--- PASS: TestSelectionSubmittedTurnState (0.14s)
+PASS
+ok  	ensemble-gui-stub	1.219s
+
+exit=0
