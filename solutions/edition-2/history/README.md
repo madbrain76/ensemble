@@ -39,6 +39,7 @@ book-facing Chapters 1–8 remain frozen. They extend the authoritative `../main
 | 10: Skills | [ch10](ch10/), [manifest](ch10-manifest.json), 75 files | `edition-2-ch10-r2` |
 | 11: Persistence | [ch11](ch11/), [manifest](ch11-manifest.json), 80 files | `edition-2-ch11-r1` |
 | 12: MCP | [ch12](ch12/), [manifest](ch12-manifest.json), 91 files | `edition-2-ch12-r1` |
+| 13: The Agent Sees Itself | [ch13](ch13/), [manifest](ch13-manifest.json), 93 files | `edition-2-ch13-r1` |
 
 Chapter 10 is accepted with independently recorded exceptions. The full original
 run was interrupted/unscored; focused unchanged skills checks earned 65/85, with
@@ -55,3 +56,9 @@ The full original run remains interrupted/unscored; unchanged interim current
 checks earned 80/90, with the fixed-path WebSocket check failing and recursive
 parity unrun. Actual browser and runtime evidence, including the corrected slow
 automatic-context case, is assessed in the [review](../../../docs/edition-2-notes/ch12-code-review.md).
+
+Chapter 13 is accepted after one correction round with missing-type fixture and
+structural parity exceptions. The complete original grade remains 0/100 FAIL.
+Actual browser/startup evidence and the native-speech pause correction support
+acceptance; both OpenAI live task failures remain recorded separately from their
+capability observations. See the [review](../../../docs/edition-2-notes/ch13-code-review.md).

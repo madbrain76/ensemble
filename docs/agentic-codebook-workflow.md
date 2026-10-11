@@ -2,19 +2,26 @@
 
 ## October 10: resumed original student run
 
-Original Chapter 13 is in correction round 1, not yet accepted. Startup skill
+Original Chapter 13 is accepted after one correction round. Startup skill
 activation and browser interaction are implemented. Its full original grader
 completed at 0/100: an omitted fixture type rejects startup, and its parity check
 requires particular MCP method names. Those failures remain separate from the
-actual integration/browser evidence and requested reviewer exceptions.
+actual integration/browser evidence and independently accepted reviewer exceptions.
 The initial input fix worked with speech disabled, but independent real-browser
 review found that later native speech transitions reclassified programmatic text
-as human typing and left the Agent paused. Correct that cause distinction without
-bringing the next speech chapter forward. A whole-request marker assertion also
+as human typing and left the Agent paused. Retaining the actual human-input cause
+fixed that distinction without bringing the next speech chapter forward. The
+same independent native-browser probe now passes, with human/whitespace, explicit
+other-tab unpause, actual submit and targeted-defect controls. A whole-request marker assertion also
 repeated Chapter 12's evidence error; its corrected check reads the actual snapshot.
 Anthropic and Gemini completed the live browser task; both OpenAI attempts remain
 task failures, even though the guided second attempt demonstrated the controls.
 Partial capability evidence must not become a claim of successful autonomous use.
+The exact 93-file export is `solutions/edition-2/history/ch13`, checkpoint
+`edition-2-ch13-r1`; see `edition-2-notes/ch13-code-review.md`. Original Chapter
+14, The Channel Nobody Tested, is next. The native two-tab queue observation
+retains its unknown cause; acceptance does not claim general multi-tab speech
+reliability. The author remains stopped.
 
 Original Chapter 12 is accepted after one correction round. Three-provider MCP
 chat and real browser/tunnel checks passed.
