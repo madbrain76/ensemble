@@ -2,6 +2,26 @@
 
 ## October11: combined Chapter22 accepted; original26 released
 
+Original26 full first green is `974f67b`, tree
+`c34e436798cead5d2dc9d8899887da7b6eeda485`. The unchanged original grader on an
+exact isolated archive returns **0/100 FAIL** in15.683 seconds, make2/grader1,
+no external timeout. Six CLI checks stop before inference without a supplied
+model; the GUI probe launches the headless executable with `--port` and cannot
+connect. Raw/provenance is `3b9c6c8`. Independent fixture disposition and final
+chapter acceptance remain pending; no direct `ch23` export exists yet.
+
+Pre-submission review caught a selected-set monitoring bug: an unselected child's
+question was attributed to the watched child. Per-sender progress fixes it;
+three independent race probes now pass, including selected/unselected controls.
+A later real slow-WebSocket probe reproduced conversation selection holding a
+server lock while blocked on replay admission, preventing shutdown after client
+disconnect. Corrected `9e2b72a` admits whole replay batches without blocking on the
+existing queue and disconnects a client when that queue cannot accept the batch.
+Student GUI race checks pass; independent verification and live use are pending.
+Initial fake cleanup failures are retained, not credited as clean results. These
+are genuine implementation corrections, distinct from original grader defects.
+
+
 Independent initial review `ed54abe` accepts original25 source `e00d5bc`, main
 tree `30fb05d154b9808eb88622aaff9c1424cd7e8af1`, with two narrow exceptions:
 missing-model grader launch and factory-selected protocol for existing non-fleet
