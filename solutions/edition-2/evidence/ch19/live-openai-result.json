@@ -1,0 +1,12 @@
+{
+  "source_commit": "9ca0e13b809663aa99a9e775e0322d9ef71c7533",
+  "model": "gpt-6.1-sol",
+  "billing": "explicit api",
+  "reasoning_effort": "high",
+  "reasoning_summary": "detailed",
+  "hint_sent_after_summary": true,
+  "exit_code": 0,
+  "elapsed_seconds": 14.51,
+  "selected_model_discovery": true,
+  "production_oauth_login": false
+}

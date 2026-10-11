@@ -1,0 +1,29 @@
+**Minimum makespan: 13 time units.**
+
+| Worker | Schedule |
+|---|---|
+| 1 | A [0,4), C [4,9), F [9,12), H [12,13) |
+| 2 | B [0,3), E [3,7), D [7,9), G [9,11) |
+
+All prerequisites are satisfied: F starts after C and D finish; G starts after D and E finish; H starts after F and G finish.
+
+**Optimality:** The prerequisite chain A → C → F → H requires \(4+5+3+1=13\) time units, so every valid schedule takes at least 13. This schedule achieves that bound.
+| Worker | Schedule |
+|---|---|
+| 1 | A: 0–4; C: 4–9; F: 9–12; H: 12–13 |
+| 2 | B: 0–3; E: 3–7; D: 7–9; G: 9–11; idle: 11–13 |
+
+**Dependency verification** (finish ≤ successor’s start):
+- A → C: \(4 \le 4\)
+- A → D: \(4 \le 7\)
+- B → E: \(3 \le 3\)
+- C → F: \(9 \le 9\)
+- D → F: \(9 \le 9\)
+- D → G: \(9 \le 9\)
+- E → G: \(7 \le 9\)
+- F → H: \(12 \le 12\)
+- G → H: \(11 \le 12\)
+
+Each job runs uninterrupted for its required duration, with no overlap on either worker.
+
+**Optimality:** The chain A → C → F → H takes \(4+5+3+1=13\) time units, so every valid schedule has makespan at least 13. This schedule finishes at 13, hence is optimal.

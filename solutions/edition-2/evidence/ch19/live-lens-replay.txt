@@ -1,0 +1,8 @@
+=== RUN   TestLiveLensReplay
+    live_lens_test.go:10: 2026/10/11 07:32:50 cache lens openai/gpt-6.1-sol: tools:cold input:cold; prefix_bytes=0 prompt_bytes=5605 predicted=0.0000
+        2026/10/11 07:32:50 cache lens openai/gpt-6.1-sol: tools:identical input:appended; prefix_bytes=5604 prompt_bytes=6068 predicted=0.9235
+        2026/10/11 07:32:50 cache lens openai/gpt-6.1-sol: tools:identical input:appended; prefix_bytes=6067 prompt_bytes=10540 predicted=0.5756
+        
+--- PASS: TestLiveLensReplay (0.00s)
+PASS
+ok  	ensemble/ensemble	0.008s

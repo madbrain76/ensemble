@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"ensemble/ensemble"
+	"ensemble/internal/common"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -109,7 +110,7 @@ func TestResponsesRequiresCompletion(t *testing.T) {
 				w.Header().Set("Content-Type", "text/event-stream")
 				frame(w, wireFrame{"response.output_text.delta", decoded(`{"output_index":0,"delta":"partial"}`)})
 				if ending != "" {
-					frame(w, wireFrame{ending, decoded(`{}`)})
+					frame(w, wireFrame{ending, decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"not completed"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
 				}
 			}))
 			defer server.Close()
@@ -150,5 +151,51 @@ func TestResponsesModelBoundary(t *testing.T) {
 				t.Fatalf("model transport: %s", body)
 			}
 		})
+	}
+}
+
+// A private reasoning item cannot cross model or transport boundaries, even
+// though the ordinary visible messages remain usable in the same conversation.
+func TestResponsesOpaqueProvenance(t *testing.T) {
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	for _, from := range []common.Provenance{
+		{Vendor: ensemble.OpenAI, Model: "other-model", Surface: common.Responses},
+		{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", Surface: common.ChatCompletions},
+	} {
+		body, err := a.Engine().Render(&ensemble.Context{Dialogue: []ensemble.Entry{{Actor: common.AgentActor, Parts: []ensemble.Part{{Type: "opaque", From: from, Data: json.RawMessage(`{"type":"reasoning","encrypted_content":"foreign"}`)}}}}})
+		if err != nil || strings.Contains(string(body), "foreign") {
+			t.Fatalf("foreign reasoning replayed: %v", err)
+		}
+	}
+}
+
+// Responses input is prompt content, including its role-free replay items. The
+// diagnostic must see appended bytes instead of reporting a tools-only 100% hit.
+func TestResponsesLensIncludesInput(t *testing.T) {
+	var log strings.Builder
+	a, err := ensemble.New(&log).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	c := &ensemble.Context{Dialogue: []ensemble.Entry{{Actor: ensemble.Human, Parts: []ensemble.Part{{Type: "text", Text: "first"}}}}}
+	first, err := a.Engine().Render(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	lens := a.Engine().CacheLens()
+	lens.ObserveRequest("responses", first)
+	c.Dialogue = append(c.Dialogue, ensemble.Entry{Actor: ensemble.Human, Parts: []ensemble.Part{{Type: "text", Text: "second response context"}}})
+	second, err := a.Engine().Render(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prediction := lens.ObserveRequest("responses", second)
+	if prediction <= 0 || prediction >= 1 || !strings.Contains(log.String(), "input:appended") {
+		t.Fatalf("Responses content omitted from prediction %.3f: %s", prediction, log.String())
 	}
 }

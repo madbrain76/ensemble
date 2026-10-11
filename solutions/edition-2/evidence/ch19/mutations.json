@@ -1,0 +1,198 @@
+[
+  {
+    "case": "signature",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.05s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/signature (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.059s\nFAIL\n"
+  },
+  {
+    "case": "issuer",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.07s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/issuer (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.076s\nFAIL\n"
+  },
+  {
+    "case": "audience",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.05s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/audience (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.051s\nFAIL\n"
+  },
+  {
+    "case": "nonce",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.01s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/nonce (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.019s\nFAIL\n"
+  },
+  {
+    "case": "expiry",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.04s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/expiry (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.050s\nFAIL\n"
+  },
+  {
+    "case": "subject",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.08s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/subject (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.083s\nFAIL\n"
+  },
+  {
+    "case": "state",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "invalid identity accepted",
+    "output": "--- FAIL: TestOAuthRejectsInvalidIdentity (0.03s)\n    --- FAIL: TestOAuthRejectsInvalidIdentity/state (0.00s)\n        oauth_test.go:271: invalid identity accepted\nFAIL\nFAIL\tensemble/ensemble\t0.037s\nFAIL\n"
+  },
+  {
+    "case": "host",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "returning registration",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.13s)\n    oauth_test.go:258: returning registration: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:c2b579e3-7c0d-4354-bf87-c0e476928fde ExpiresAt:2026-10-11 07:26:20.992305 -0700 PDT m=+1.132487584 Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.138s\nFAIL\n"
+  },
+  {
+    "case": "scope",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "missing grant permitted inference",
+    "output": "--- FAIL: TestOAuthMissingScopeAndTerminalRefresh (0.03s)\n    oauth_test.go:292: missing grant permitted inference\nFAIL\nFAIL\tensemble/ensemble\t0.041s\nFAIL\n"
+  },
+  {
+    "case": "proactive_refresh",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "wrong bearer",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.05s)\n    oauth_test.go:233: wrong bearer\nFAIL\nFAIL\tensemble/ensemble\t0.054s\nFAIL\n"
+  },
+  {
+    "case": "rotation_lock",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "stale rotating refresh token",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.03s)\n    oauth_test.go:110: stale rotating refresh token\n    oauth_test.go:233: wrong bearer\nFAIL\nFAIL\tensemble/ensemble\t0.031s\nFAIL\n"
+  },
+  {
+    "case": "terminal_cleanup",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "terminal cleanup",
+    "output": "--- FAIL: TestOAuthMissingScopeAndTerminalRefresh (0.03s)\n    --- FAIL: TestOAuthMissingScopeAndTerminalRefresh/invalid_grant (0.00s)\n        oauth_test.go:309: terminal cleanup: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:8bd5af58-63a4-493e-b8db-e61ccd299452 ExpiresAt:2026-10-11 07:26:22.79169 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\n    --- FAIL: TestOAuthMissingScopeAndTerminalRefresh/invalid_refresh_token (0.00s)\n        oauth_test.go:309: terminal cleanup: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:3fce2d9b-7564-4182-ade0-f60bf48ffaa6 ExpiresAt:2026-10-11 07:26:22.794225 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\n    --- FAIL: TestOAuthMissingScopeAndTerminalRefresh/token_expired (0.00s)\n        oauth_test.go:309: terminal cleanup: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:236ab2c6-98fd-4c53-8b41-ada67c14358e ExpiresAt:2026-10-11 07:26:22.796636 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\n    --- FAIL: TestOAuthMissingScopeAndTerminalRefresh/refresh_token_expired (0.00s)\n        oauth_test.go:309: terminal cleanup: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:a9710d11-091b-4147-bf36-7d8868264cab ExpiresAt:2026-10-11 07:26:22.798971 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\n    --- FAIL: TestOAuthMissingScopeAndTerminalRefresh/refresh_token_invalidated (0.00s)\n        oauth_test.go:309: terminal cleanup: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:823e6ddc-7080-4bdd-883b-d36a9c6b7039 ExpiresAt:2026-10-11 07:26:22.801274 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\n    --- FAIL: TestOAuthMissingScopeAndTerminalRefresh/refresh_token_reused (0.00s)\n        oauth_test.go:309: terminal cleanup: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:c7bbdb9f-7728-4fdb-a132-de172c00c52e ExpiresAt:2026-10-11 07:26:22.803668 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.037s\nFAIL\n"
+  },
+  {
+    "case": "transient_retry",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "transient state/retry",
+    "output": "--- FAIL: TestOAuthTransientRecovery (0.02s)\n    oauth_test.go:392: transient state/retry: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:a06c0a4c-4a55-4548-befd-086ddd01013f ExpiresAt:2026-10-11 07:26:23.113414 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt} attempts=1 err=<nil>\nFAIL\nFAIL\tensemble/ensemble\t0.031s\nFAIL\n"
+  },
+  {
+    "case": "logout_clear",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "logout changed identity or billing",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.06s)\n    oauth_test.go:251: logout changed identity or billing: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:6bf70395-8932-4a9b-be4c-730e90abf8d7 ExpiresAt:2026-10-11 08:26:22.640559 -0700 PDT Scopes:[openid chatgpt.tokens.use.direct] SignedIn:true PlanEnabled:true Billing:chatgpt}\nFAIL\nFAIL\tensemble/ensemble\t0.064s\nFAIL\n"
+  },
+  {
+    "case": "catalog_visibility",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "catalog:",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.05s)\n    oauth_test.go:241: catalog: [{gpt-ch19-course Course} {internal Hidden}] <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.061s\nFAIL\n"
+  },
+  {
+    "case": "owner_only",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "credentials are not owner-only",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.08s)\n    oauth_test.go:209: credentials are not owner-only\nFAIL\nFAIL\tensemble/ensemble\t0.087s\nFAIL\n"
+  },
+  {
+    "case": "billing_selection",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "incorrect selected bearer",
+    "output": "--- FAIL: TestOAuthInferenceBillingAndIsolation (0.03s)\n    oauth_test.go:333: request used incorrect selected bearer\n    oauth_test.go:343: plan functions missing namespace\n    oauth_test.go:362: secret echo reached answer: redacted=false err=provider HTTP status 401\nFAIL\nFAIL\tensemble/ensemble\t0.035s\nFAIL\n"
+  },
+  {
+    "case": "bearer_redaction",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "secret echo reached answer",
+    "output": "--- FAIL: TestOAuthInferenceBillingAndIsolation (0.04s)\n    oauth_test.go:362: secret echo reached answer: redacted=false err=<nil>\nFAIL\nFAIL\tensemble/ensemble\t0.048s\nFAIL\n"
+  },
+  {
+    "case": "plan_namespace",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "plan functions missing namespace",
+    "output": "--- FAIL: TestOAuthInferenceBillingAndIsolation (0.06s)\n    oauth_test.go:343: plan functions missing namespace\n    oauth_test.go:343: plan functions missing namespace\nFAIL\nFAIL\tensemble/ensemble\t0.065s\nFAIL\n"
+  },
+  {
+    "case": "stream_flag",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "Responses delivery flags missing",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (0.00s)\n    responses_test.go:31: Responses delivery flags missing\n    responses_test.go:31: Responses delivery flags missing\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "case": "developer",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "developer cache block missing",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (0.00s)\n    responses_test.go:36: developer cache block missing\n    responses_test.go:36: developer cache block missing\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "case": "cache_marker",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "developer cache block missing",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (0.00s)\n    responses_test.go:36: developer cache block missing\n    responses_test.go:36: developer cache block missing\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "case": "tool_result",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "result/reasoning replay absent",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (0.00s)\n    responses_test.go:63: result/reasoning replay absent: false / true\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "case": "opaque_replay",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "result/reasoning replay absent",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (0.00s)\n    responses_test.go:63: result/reasoning replay absent: true / false\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "case": "summary_channel",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "context deadline exceeded",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (3.00s)\n    responses_test.go:92: context deadline exceeded\nFAIL\nFAIL\tensemble/ensemble\t3.012s\nFAIL\n"
+  },
+  {
+    "case": "input_usage",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "disjoint usage",
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (0.00s)\n    responses_test.go:99: disjoint usage: {Input:32 CacheWrite:3 CacheRead:5 Output:6}\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "case": "model_boundary",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "model transport",
+    "output": "--- FAIL: TestResponsesModelBoundary (0.00s)\n    --- FAIL: TestResponsesModelBoundary/gpt-4o-mini (0.00s)\n        responses_test.go:150: model transport: {\"include\":[\"reasoning.encrypted_content\"],\"input\":[{\"content\":[{\"text\":\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\",\"type\":\"input_text\"}],\"role\":\"developer\",\"type\":\"message\"}],\"model\":\"gpt-4o-mini\",\"reasoning\":{\"summary\":\"auto\"},\"store\":false,\"stream\":true}\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "case": "input_lens",
+    "status": "killed",
+    "exit": 1,
+    "expected_failure": "Responses content omitted",
+    "output": "--- FAIL: TestResponsesLensIncludesInput (0.00s)\n    responses_test.go:179: Responses content omitted from prediction 0.000: 2026/10/11 07:26:30 cache lens responses: ; prefix_bytes=0 prompt_bytes=0 predicted=0.0000\n        2026/10/11 07:26:30 cache lens responses: ; prefix_bytes=0 prompt_bytes=0 predicted=0.0000\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  }
+]

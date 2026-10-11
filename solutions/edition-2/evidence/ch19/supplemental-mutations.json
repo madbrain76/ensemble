@@ -1,0 +1,44 @@
+[
+  {
+    "case": "pkce",
+    "exit": 1,
+    "status": "killed",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.07s)\n    oauth_test.go:121: PKCE/code/redirect not bound to attempt\n    oauth_test.go:121: PKCE/code/redirect not bound to attempt\nFAIL\nFAIL\tensemble/ensemble\t0.073s\nFAIL\n"
+  },
+  {
+    "case": "resource",
+    "exit": 1,
+    "status": "killed",
+    "output": "--- FAIL: TestOAuthLoginRefreshAndLogout (0.04s)\n    oauth_test.go:96: token exchange lost issued registration/resource\n    oauth_test.go:96: token exchange lost issued registration/resource\n    oauth_test.go:96: token exchange lost issued registration/resource\nFAIL\nFAIL\tensemble/ensemble\t0.047s\nFAIL\n"
+  },
+  {
+    "case": "transient_preservation",
+    "exit": 1,
+    "status": "killed",
+    "output": "--- FAIL: TestOAuthTransientRecovery (0.65s)\n    oauth_test.go:392: transient state/retry: {ClientID:issued-client Subject:subject-one Email:person@example.test HostID:urn:uuid:e821e7bf-e003-42dd-b2a7-1bbaf09becb8 ExpiresAt:0001-01-01 00:00:00 +0000 UTC Scopes:[] SignedIn:false PlanEnabled:false Billing:chatgpt} attempts=3 err=<nil>\nFAIL\nFAIL\tensemble/ensemble\t0.656s\nFAIL\n"
+  },
+  {
+    "case": "unauthorized_renewal",
+    "exit": 1,
+    "status": "killed",
+    "output": "--- FAIL: TestOAuthInferenceBillingAndIsolation (0.09s)\n    oauth_test.go:362: secret echo reached answer: redacted=false err=provider HTTP status 401\nFAIL\nFAIL\tensemble/ensemble\t0.102s\nFAIL\n"
+  },
+  {
+    "case": "foreign_replay",
+    "exit": 1,
+    "status": "killed",
+    "output": "--- FAIL: TestResponsesOpaqueProvenance (0.00s)\n    responses_test.go:171: foreign reasoning replayed: <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "case": "failed_completion",
+    "exit": 1,
+    "status": "killed",
+    "output": "--- FAIL: TestResponsesRequiresCompletion (0.00s)\n    --- FAIL: TestResponsesRequiresCompletion/response.failed (0.00s)\n        responses_test.go:123: incomplete stream accepted\n    --- FAIL: TestResponsesRequiresCompletion/response.incomplete (0.00s)\n        responses_test.go:123: incomplete stream accepted\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "case": "incremental_gui_speech",
+    "exit": 1,
+    "status": "killed",
+    "output": "\u2716 Responses summaries reach speech before completion without duplication (5775.60725ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 5945.234\n\n\u2716 failing tests:\n\ntest at responses.test.mjs:13:1\n\u2716 Responses summaries reach speech before completion without duplication (5775.60725ms)\n  page.waitForFunction: Timeout 5000ms exceeded.\n      at TestContext.<anonymous> (/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch19-supplemental-jird6hcf/main/gui/responses.test.mjs:44:14) {\n    name: 'TimeoutError',\n    log: []\n  }\n"
+  }
+]
