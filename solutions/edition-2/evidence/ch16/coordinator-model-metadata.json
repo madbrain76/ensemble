@@ -14,5 +14,20 @@
     "checked_at": "2026-10-11T11:54:04.362169+00:00",
     "http_status": 200,
     "returned_id": "gpt-4o-mini"
+  },
+  {
+    "provider": "gemini",
+    "model": "gemini-3.8-flash",
+    "checked_at": "2026-10-11T11:58:30.124481+00:00",
+    "http_status": 200,
+    "returned_id": "models/gemini-3.8-flash",
+    "inputTokenLimit": 1048576,
+    "outputTokenLimit": 65536,
+    "supportedGenerationMethods": [
+      "generateContent",
+      "countTokens",
+      "createCachedContent",
+      "batchGenerateContent"
+    ]
   }
 ]
