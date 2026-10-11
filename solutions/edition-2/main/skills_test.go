@@ -41,7 +41,8 @@ func TestPromptSkillEnvironment(t *testing.T) {
 	cmd := exec.Command(binary, "prompt", "hello")
 	cmd.Dir = t.TempDir()
 	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL=fake", "LLM_API_KEY=test", "LLM_BASE_URL="+server.URL, "EN_SKILLS_DIR="+dir, "EN_PRIMARY_SKILL=base", "EN_CUSTOM_VAR=cli-value")
-	output, err := cmd.CombinedOutput()
+	// Diagnostics are a separate CLI stream; cache observations must not alter stdout.
+	output, err := cmd.Output()
 	if err != nil || strings.TrimSpace(string(output)) != "prompt worked" {
 		t.Fatalf("prompt command: %q %v", output, err)
 	}

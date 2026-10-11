@@ -19,7 +19,7 @@ func (e *engine) Compress(ctx context.Context, source string, ratio int) (string
 	if err != nil {
 		return "", err
 	}
-	events, err := e.Send(ctx, body, common.StreamCallbacks{})
+	events, err := e.send(ctx, body, common.StreamCallbacks{}, e.parent.Config())
 	if err != nil {
 		return "", err
 	}

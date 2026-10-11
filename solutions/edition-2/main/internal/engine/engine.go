@@ -27,6 +27,7 @@ type engine struct {
 	parent common.Agent
 	client *http.Client
 	usage  common.Usage
+	lens   common.CacheLens
 	mu     sync.Mutex
 }
 
@@ -86,7 +87,24 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 // Send performs one HTTP exchange from already rendered bytes and returns facts
 // without changing conversation.
 func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
-	return e.send(ctx, body, cb, e.parent.Config())
+	cfg := e.parent.Config()
+	if e.lens != nil {
+		safe := body
+		if cfg.APIKey != "" {
+			safe = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
+		}
+		e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safe)
+	}
+	onEvent := cb.OnEvent
+	cb.OnEvent = func(event common.Event) {
+		if event.Response != nil && e.lens != nil {
+			e.lens.ObserveUsage(event.Response.Usage)
+		}
+		if onEvent != nil {
+			onEvent(event)
+		}
+	}
+	return e.send(ctx, body, cb, cfg)
 }
 
 // send accepts one request-local route, allowing the judge to choose a model
@@ -280,3 +298,14 @@ func (e *engine) declarations(c *common.Context) []common.ToolDeclaration {
 	}
 	return c.Tools
 }
+
+// AttachCacheLens links both sides at construction; a foreign owner is invalid.
+func (e *engine) AttachCacheLens(l common.CacheLens) {
+	if l == nil || l.Engine() != e {
+		panic("CacheLens requires owning Engine")
+	}
+	e.lens = l
+}
+
+// CacheLens exposes the optional Engine-owned instrument.
+func (e *engine) CacheLens() common.CacheLens { return e.lens }

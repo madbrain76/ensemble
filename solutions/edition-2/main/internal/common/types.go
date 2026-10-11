@@ -530,6 +530,10 @@ type History interface {
 // private to Engine, so adding a vendor cannot impose its roles on clients.
 // Send returns facts; the Agent appends them through the same history door.
 type Engine interface {
+	// AttachCacheLens installs the Engine-owned diagnostic before any exchanges.
+	AttachCacheLens(CacheLens)
+	// CacheLens returns the optional request diagnostic.
+	CacheLens() CacheLens
 	// SnippetJudge makes an isolated text exchange without a tool loop.
 	SnippetJudge
 	// Features returns capabilities of this Agent's selected model.

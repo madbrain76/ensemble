@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	"ensemble/internal/agent"
+	"ensemble/internal/cachelens"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
@@ -125,6 +126,7 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		return nil, err
 	}
 	a.AttachEngine(engine.New(a))
+	a.Engine().AttachCacheLens(cachelens.New(a.Engine()))
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
