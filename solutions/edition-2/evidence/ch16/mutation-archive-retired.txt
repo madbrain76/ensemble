@@ -1,0 +1,6 @@
+--- FAIL: TestMemoryWaterfall (0.01s)
+    --- FAIL: TestMemoryWaterfall/disabled-neighbor-false (0.01s)
+        memory_test.go:399: graduated files remained active: [/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestMemoryWaterfalldisabled-neighbor-false1846851113/001/memory/2026-10-01-1.md /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestMemoryWaterfalldisabled-neighbor-false1846851113/001/memory/2026-10-01-2.md /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestMemoryWaterfalldisabled-neighbor-false1846851113/001/memory/2026-10-01-3.md]
+FAIL
+FAIL	ensemble/ensemble	0.018s
+FAIL

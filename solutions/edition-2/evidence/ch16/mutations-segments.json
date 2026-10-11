@@ -1,0 +1,11 @@
+[
+  {
+    "claim": "whole-segments",
+    "file": "internal/memory/memory.go",
+    "old": "if total-removed <= s.Budget {",
+    "new": "if false && total-removed <= s.Budget {",
+    "test": "TestMemoryWholeSegments",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

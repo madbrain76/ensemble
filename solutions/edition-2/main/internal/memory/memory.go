@@ -47,13 +47,16 @@ func (m *memory) Settings(band common.Band) common.BandSettings {
 
 // Validate rejects nonsensical settings before a client saves or applies them.
 func Validate(m common.MemorySettings) error {
-	for _, s := range []common.BandSettings{m.Conversation, m.Soul, m.Memory, m.Tier64, m.Tier8, m.Session} {
+	for i, s := range []common.BandSettings{m.Conversation, m.Soul, m.Memory, m.Tier64, m.Tier8, m.Session} {
 		if s.Budget < 0 || s.HighWatermark < 0 || s.LowWatermark < 0 {
 			return fmt.Errorf("memory sizes must be nonnegative")
 		}
 		budget := s.Budget
 		if budget == 0 {
 			budget = 1500
+			if i == 0 {
+				budget = 3000
+			}
 		}
 		high, low := s.HighWatermark, s.LowWatermark
 		if high == 0 {

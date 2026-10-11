@@ -1,0 +1,89 @@
+**Analyzing Cedar Project**
+
+I'm focusing on the Cedar project. My objective is to avoid filesystem interactions and command tools. I'm carefully analyzing the details to synthesize the crucial facts and reasons for a concise `micro_handoff` call. I plan to execute this exactly once and then conclude the turn.
+
+
+**Revising Lantern Archive**
+
+I've been working on Lantern and the `CL-721` release. The automatic deletion of imported notes was rejected, so I'm now crafting a design to archive original notes while keeping accepted summaries separate. Morgan will review the archive on October 18th. Preserving a source identifier with each summary is key. I'm still figuring out if attachments belong in the same archive. The default retention is 30 days. Failed summarization must keep the original note available. I've also decoupled cleanup from request arrival, preventing premature deletion.
+
+
+**Clarifying micro_handoff Steps**
+
+I'm solidifying the `micro_handoff` workflow. The revised plan is now clear: first, I'll provide a concise explanation, then call `micro_handoff` with key facts and reasons, avoiding filesystem interactions and command tools. After the tool returns, I'll finalize the response, concluding the turn. The `micro_handoff` call will encapsulate facts, including Cedar Lantern's CL-721 status, the rejection of auto-deletion in favor of archiving, the reason (support needing original notes), and failure handling.
+
+
+micro_handoff {"text":"### Case Summary: Project Cedar Lantern (CL-721)\n\n- **Decision \u0026 Architecture:** Automatic deletion of imported notes was rejected in favor of retaining source notes in an archive while storing accepted summaries separately.\n- **Why Automatic Deletion Was Rejected:** The support team needs original notes to investigate and resolve issues when customers report mistakes.\n- **Cleanup Boundary Rationale:** Coupling cleanup to incoming request arrival meant an unrelated request could prematurely delete unreviewed work. Moving cleanup to an explicit completed-review boundary guarantees notes remain intact until review is formally completed.\n- **Key Requirements \u0026 Behaviors:**\n  - Failed summarization attempts must leave original source notes available.\n  - Acceptance requires preserving a source identifier with each accepted summary.\n  - Default archive retention period is 30 days.\n- **Ownership \u0026 Milestones:** Morgan owns the archive review, scheduled for October 18.\n- **Unresolved Question:** Whether attachments belong in the same archive or a separate archive remains undecided."}
+Understood. Here is a quick summary of the key points for Project Cedar Lantern (CL-721):
+
+- **Data Retention & Safety:** Automatic deletion of imported notes was rejected to support customer dispute investigations; originals must remain available if summarization fails.
+- **Cleanup Timing:** Decoupled from request arrivals and moved to an explicit completed-review boundary.
+- **Storage & Lineage:** Source notes stay in an archive (default 30-day retention) separate from accepted summaries, which must retain a source identifier.
+- **Ownership & Deadlines:** Morgan owns the archive review scheduled for October 18.
+- **Open Issue:** Whether attachments share the main archive or use a dedicated one remains unresolved.
+
+How can I assist you with this project?
+**Analyzing the Situation**
+
+I'm currently focused on dissecting the instructions and evaluating the provided scenario. It appears I need to render a concise explanation of a decision, focusing on key facts and reasons, followed by a single tool call. The memory constraints are also clear, meaning I have to be precise and efficient.
+
+
+**Revising Decision Strategy**
+
+I've refined the decision process based on rehearsal details. Automatic database migration retries are out; the risk of committing a remote operation is too high. The new strategy involves consulting a migration ledger to ensure retry safety. Operator data must include the migration identifier and error, not a guess. I'm still debating the ledger's location, and a child process issue now warrants a rehearsal check.
+
+
+**Confirming Execution Plan**
+
+I've confirmed the execution plan now! My revised approach centers on precisely following the instructions. I need to explain the decision-making process based on the worker stop log vs child process state to justify the process. I'll then invoke `micro_handoff` only once, followed by finishing the turn.
+
+
+micro_handoff {"text":"Project / Case: Harbor Finch (Diagnostic Tag: HF-934)\nOwner \u0026 Schedule: Priya; Rehearsal scheduled for October 21.\n\nKey Decisions \u0026 Rationale:\n1. Database Migration Timeouts:\n   - Rejected automatic retry after timeout because the remote operation may have already committed.\n   - Chosen procedure requires inspecting the migration ledger before determining if a retry is safe.\n   - Operators must retain the exact migration identifier and measured error (no speculative assumptions of success).\n2. Process Lifecycle \u0026 Verification:\n   - Evidence: Logs reported the worker stopped while its child process remained alive and held the port open.\n   - Decision change: Shifted from relying on process log messages to directly verifying child process lifetime before confirming clean shutdown.\n3. Rollback Package: Must remain available for 7 days post-deployment.\n\nUnresolved Issue:\n- Whether the migration ledger should reside alongside application data or in a separate control database remains unresolved."}
+**Acknowledge Project Context**
+
+I'm processing the information on Cedar Lantern CL-721 and Harbor Finch HF-934, recognizing this might be contextual data. My goal is to determine if a specific request or information is implied within the notes. I am looking for any explicit need for an acknowledgment or summarization, to decide on the next steps. I'm focusing on the implied purpose of this shared information.
+
+
+list_directory {"path":"."}
+**Summarizing The Task**
+
+I've got it - I'm acknowledging the absence of specific files or task instructions. I'm focusing on providing a clear summary of the two projects, as described in the prompt, after having reviewed the provided information. I'm moving forward with a concise summary/acknowledgment of the key points, given the provided details.
+
+
+Here is a brief summary of the key decisions, ownership, and open items:
+
+### Cedar Lantern (CL-721)
+* **Decisions:** Kept imported notes (needed for disputes/failed runs); tied cleanup to an explicit completed-review boundary rather than request arrival; source notes go to a separate archive (30-day retention) linked by source ID.
+* **Owner & Date:** Morgan — Archive review on **Oct 18**.
+* **Unresolved:** Whether attachments belong in the main archive or a separate archive.
+
+---
+
+### Harbor Finch (HF-934)
+* **Decisions:** Prohibited auto-retrying migration timeouts (requires ledger check, ID, and measured error); verified child process lifetime directly rather than worker exit logs; retained rollback packages for 7 days post-deployment.
+* **Owner & Date:** Priya — Rehearsal on **Oct 21**.
+* **Unresolved:** Whether the migration ledger resides with application data or in a dedicated control database.
+**Recalling Relevant Details**
+
+I'm focusing now on recalling the key details, without resorting to external tools. I've begun to list the specifics requested: project names, diagnostic codes, owners, dates, and rejected approaches. I'm carefully trying to identify the two outstanding unresolved questions, avoiding the temptation to prematurely offer answers.
+
+
+### Project 1: Cedar Lantern
+* **Diagnostic Code:** CL-721
+* **Owner:** Morgan
+* **Date:** Oct 18
+* **Rejected Approaches & Reasons:**
+  1. *Auto-deleting imported notes:* Rejected because support requires originals for customer disputes, and failed summarizations must keep notes available.
+  2. *Coupling cleanup to request arrival:* Rejected because it risked deleting unreviewed work.
+* **Unresolved Question:** Whether attachments belong in the main archive or a separate archive.
+
+---
+
+### Project 2: Harbor Finch
+* **Diagnostic Code:** HF-934
+* **Owner:** Priya
+* **Date:** Oct 21
+* **Rejected Approaches & Reasons:**
+  1. *Auto-retrying migration timeouts:* Rejected because remote operations may have committed (operators must verify the ledger, migration ID, and measured error).
+  2. *Relying on worker exit logs:* Rejected because a worker logged as stopped while its child process still held the port open.
+* **Unresolved Question:** Whether the migration ledger lives with application data or in a separate control database.

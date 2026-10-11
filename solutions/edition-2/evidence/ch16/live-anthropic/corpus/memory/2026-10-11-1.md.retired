@@ -1,0 +1,7 @@
+I worked on Cedar Lantern, release CL-721. I rejected automatic deletion of imported notes because support needs the originals when customers report mistakes. The replacement keeps source notes in an archive and stores accepted summaries separately. Every summary must preserve a source identifier. A failed summarization must leave the original note available. Default retention is thirty days.
+
+I moved cleanup from request arrival to an explicit completed-review boundary. The old coupling was the real hazard: any unrelated request could delete unreviewed work. Now nothing is removed until a person has finished reviewing it.
+
+Morgan owns archive review, scheduled for October 18.
+
+Open question, not decided: whether attachments belong in the same archive or a separate one.

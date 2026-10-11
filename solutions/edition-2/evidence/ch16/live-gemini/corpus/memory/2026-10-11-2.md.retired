@@ -1,0 +1,13 @@
+I worked on two project analyses:
+
+1. Project Cedar Lantern (CL-721):
+- Decisions & Rationale: Rejected automatic deletion of imported notes so originals remain available during customer dispute investigations and in case summarization fails. Decoupled cleanup timing from request arrivals, moving it to an explicit completed-review boundary.
+- Storage & Lineage Constraints: Source notes are stored in an archive (default 30-day retention) distinct from accepted summaries, and summaries must retain a source identifier.
+- Ownership & Schedule: Morgan owns the archive review scheduled for October 18.
+- Unresolved Question: Whether attachments share the main archive or use a dedicated one remains explicitly unresolved.
+
+2. Harbor Finch (HF-934):
+- Decisions & Rationale: Rejected automatic retries of database migrations following a timeout because remote operations may have already committed. The procedure requires checking the migration ledger before determining if a retry is safe, and operators must record the exact migration identifier and measured error rather than guessing. Also rejected relying on worker exit log lines after evidence showed a worker logged as stopped while its child process remained alive holding the port open; rehearsal now checks child lifetime directly.
+- Constraints: The rollback package must remain available for 7 days post-deployment.
+- Ownership & Schedule: Priya owns the rehearsal scheduled for October 21.
+- Unresolved Question: Whether the migration ledger resides alongside application data or in a separate control database remains explicitly unresolved.

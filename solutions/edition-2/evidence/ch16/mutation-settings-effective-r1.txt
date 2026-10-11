@@ -1,0 +1,4 @@
+FAIL	./ensemble [setup failed]
+FAIL
+# ./ensemble
+stat /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-mutants-m8hn4qkt/gui/ensemble: directory not found

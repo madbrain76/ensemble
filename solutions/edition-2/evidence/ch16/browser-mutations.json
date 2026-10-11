@@ -1,0 +1,16 @@
+[
+  {
+    "claim": "browser-toggle",
+    "old": "field === \"disabled\" ? !input.checked",
+    "new": "field === \"disabled\" ? input.checked",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "browser-budget",
+    "old": ": Number(input.value)",
+    "new": ": 0",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

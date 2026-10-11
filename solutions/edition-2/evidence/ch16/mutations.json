@@ -1,0 +1,164 @@
+[
+  {
+    "claim": "checkpoint-hook",
+    "file": "internal/agent/dispatch.go",
+    "old": "if t.checkpoint {",
+    "new": "if false && t.checkpoint {",
+    "test": "TestMemoryCompression",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "prior-not-lifetime",
+    "file": "internal/agent/memory.go",
+    "old": "u := c.LastUsage",
+    "new": "u := c.Usage",
+    "test": "TestMemoryForcing",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "include-cache-read",
+    "file": "internal/agent/memory.go",
+    "old": "input := u.Input + u.CacheRead + u.CacheWrite",
+    "new": "input := u.Input + u.CacheWrite",
+    "test": "TestMemoryForcing",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "exclude-output",
+    "file": "internal/agent/memory.go",
+    "old": "input := u.Input + u.CacheRead + u.CacheWrite",
+    "new": "input := u.Input + u.CacheRead + u.CacheWrite + u.Output",
+    "test": "TestMemoryForcing",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "restore-tools",
+    "file": "internal/agent/dispatch.go",
+    "old": "r.owner.forceHandoff.Store(false)",
+    "new": "r.owner.forceHandoff.Store(true)",
+    "test": "TestMemoryForcing",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "source-to-compressor",
+    "file": "internal/memory/memory.go",
+    "old": "task.Text = input.String()",
+    "new": "task.Text = \"lost source\"",
+    "test": "TestMemoryCompression",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "recorded-cut",
+    "file": "internal/history/reduce.go",
+    "old": "redact(c, pending.Cut)",
+    "new": "// deliberately omitted cut",
+    "test": "TestMemoryCompression",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "persist-memory",
+    "file": "internal/memory/memory.go",
+    "old": "return os.Rename(p+\".tmp\", p)",
+    "new": "return os.Remove(p+\".tmp\")",
+    "test": "TestMemoryCompression",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "fresh-disk",
+    "file": "internal/agent/memory.go",
+    "old": "fresh := r.owner.history.LastSeq() == 0",
+    "new": "fresh := false",
+    "test": "TestMemoryDiskAndToggles",
+    "exit": 1,
+    "intended_failure": false
+  },
+  {
+    "claim": "reenable-disk",
+    "file": "internal/agent/memory.go",
+    "old": "fresh || wasDisabled",
+    "new": "fresh",
+    "test": "TestMemoryDiskAndToggles",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "canonical-order",
+    "file": "internal/history/reduce.go",
+    "old": "return fileLess(a.File, b.File)",
+    "new": "return fileLess(b.File, a.File)",
+    "test": "TestMemoryDiskAndToggles",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "disabled-neighbor",
+    "file": "internal/memory/memory.go",
+    "old": "if m.Settings(b - 1).Disabled {",
+    "new": "if false && m.Settings(b - 1).Disabled {",
+    "test": "TestMemoryWaterfall",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "waterfall",
+    "file": "internal/agent/memory.go",
+    "old": "r.checkpoint(false)",
+    "new": "r.send()",
+    "test": "TestMemoryWaterfall",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "oldest-first",
+    "file": "internal/memory/memory.go",
+    "old": "files = append(files, e)",
+    "new": "files = append([]common.Entry{e}, files...)",
+    "test": "TestMemoryWaterfall",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "archive-retired",
+    "file": "internal/agent/memory.go",
+    "old": "if err := r.owner.memory.Archive(t); err != nil {",
+    "new": "if err := error(nil); err != nil {",
+    "test": "TestMemoryWaterfall",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "abandoned-cut",
+    "file": "internal/history/reduce.go",
+    "old": "c.Compression.Cut = e.Redact",
+    "new": "redact(c,e.Redact)",
+    "test": "TestMemoryAbandonment",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "empty-submit",
+    "file": "internal/engine/compress.go",
+    "old": "strings.TrimSpace(args.Memory) == \"\"",
+    "new": "strings.TrimSpace(args.Memory) == \"NEVER\"",
+    "test": "TestMemoryFailureKeepsSource/empty-submit",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "memory-data",
+    "file": "internal/engine/openai.go",
+    "old": "entry.Kind == common.KindSkill",
+    "new": "entry.Kind == common.KindSkill || entry.Kind == common.KindSession",
+    "test": "TestMemoryCompression/openai",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

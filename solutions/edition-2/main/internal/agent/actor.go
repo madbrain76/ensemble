@@ -533,6 +533,11 @@ func (r *runtime) run() {
 						r.sendRequest()
 					}
 				}
+			case memorySettings:
+				r.owner.configMu.Lock()
+				r.owner.config.Memory = m.value
+				r.owner.configMu.Unlock()
+				m.reply <- r.syncMemory()
 			case compressed:
 				r.compressed(m)
 			case response:

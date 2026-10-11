@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryRestartReenable (0.01s)
+    memory_test.go:573: restart re-enable missed edited disk bytes
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL

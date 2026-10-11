@@ -1,0 +1,47 @@
+[
+  {
+    "claim": "fresh-disk",
+    "file": "internal/agent/memory.go",
+    "old": "fresh := r.owner.history.LastSeq() == 0",
+    "new": "fresh := false",
+    "test": "TestMemoryDiskAndToggles",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "restart-reenable",
+    "file": "internal/agent/memory.go",
+    "old": "wasDisabled = r.owner.history.Context().DisabledBands[b]",
+    "new": "wasDisabled = false",
+    "test": "TestMemoryRestartReenable",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "interrupt-keeps-source",
+    "file": "internal/agent/memory.go",
+    "old": "t := r.active\n\tr.workers++",
+    "new": "if task.Source==0 { r.append(common.Event{Type:\"redacted\",Redact:&common.RedactData{From:task.From,To:task.To,Level:\"redact_summary\",Reason:\"premature cut\"}}) }\n t := r.active\n r.workers++",
+    "test": "TestMemoryInterruptedCompressor",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "settings-effective",
+    "file": "gui/settings.go",
+    "old": "s.agent.SetMemorySettings(next.Memory)\n\treturn next",
+    "new": "// omitted memory application\n return next",
+    "test": "TestSettingsWireAndDisk",
+    "exit": 1,
+    "intended_failure": false
+  },
+  {
+    "claim": "settings-load",
+    "file": "gui/settings.go",
+    "old": "if err := s.agent.SetMemorySettings(next.Memory); err != nil {",
+    "new": "if err := error(nil); err != nil {",
+    "test": "TestSettingsWireAndDisk",
+    "exit": 1,
+    "intended_failure": false
+  }
+]

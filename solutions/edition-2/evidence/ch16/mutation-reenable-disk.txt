@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryDiskAndToggles (0.01s)
+    memory_test.go:332: unchanged re-enabled entries differ
+FAIL
+FAIL	ensemble/ensemble	0.014s
+FAIL

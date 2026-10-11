@@ -1,0 +1,6 @@
+--- FAIL: TestMemoryFailureKeepsSource (0.01s)
+    --- FAIL: TestMemoryFailureKeepsSource/empty-submit (0.00s)
+        memory_test.go:461: failed compression lost source or retried
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL

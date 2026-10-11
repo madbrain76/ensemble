@@ -128,7 +128,7 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
 	a.AttachMemory(memory.New(a))
-	if err := a.SetMemorySettings(cfg.Memory); err != nil {
+	if err := a.Memory().Validate(cfg.Memory); err != nil {
 		return nil, err
 	}
 	assembled := false

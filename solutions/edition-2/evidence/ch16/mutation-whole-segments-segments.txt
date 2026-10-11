@@ -1,0 +1,6 @@
+--- FAIL: TestMemoryWholeSegments (0.01s)
+    memory_test.go:633: cut was not the oldest whole segment
+    memory_test.go:649: whole-segment retirement lost newer work or retained old work
+FAIL
+FAIL	ensemble/ensemble	0.013s
+FAIL

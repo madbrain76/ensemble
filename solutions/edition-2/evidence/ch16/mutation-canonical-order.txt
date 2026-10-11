@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryDiskAndToggles (0.00s)
+    memory_test.go:310: noncanonical startup
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL

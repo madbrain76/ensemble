@@ -107,3 +107,18 @@ Startup grants have dynamic provenance with sequence zero (before history).
 Unloading immediately disconnects MCP tools and peers while instruction removal
 remains pending. Programmatic browser input updates the control without taking
 the human typing pause; actual typing and explicit Agent-wide unpause still work.
+
+Memory uses the owning Agent's data directory: `SOUL.md`, `MEMORY.md`, session
+files in `memory/`, and graduated files in `bucket-0/` and `bucket-1/`.
+The optional GUI's Context Management tab controls each band. Budgets and
+watermarks are bytes; zero selects defaults (conversation 3,000, bands 1,500,
+high twice the budget, low the budget). Disabling a band preserves its files;
+re-enabling rereads edits. Graduated source files remain beside the originals
+with a `.retired` suffix and are not active memories.
+
+`micro_handoff` checkpoints completed work and is the only compression trigger.
+The compressor makes one bounded request using the current provider and one
+`submit` tool. Failed or interrupted calls preserve the old source. Recorded
+memory bytes and cuts replay without another model call. A compression target
+is a prompt guideline, not a guarantee that the model preserves every fact;
+review important memories on disk and correct them when necessary.

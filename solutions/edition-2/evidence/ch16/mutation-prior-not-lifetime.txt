@@ -1,0 +1,8 @@
+--- FAIL: TestMemoryForcing (0.02s)
+    --- FAIL: TestMemoryForcing/anthropic (0.01s)
+        memory_test.go:262: tools not restored after checkpoint
+    --- FAIL: TestMemoryForcing/openai (0.01s)
+        memory_test.go:262: tools not restored after checkpoint
+FAIL
+FAIL	ensemble/ensemble	0.023s
+FAIL

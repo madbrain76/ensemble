@@ -1,0 +1,8 @@
+--- FAIL: TestMemoryCompression (0.01s)
+    --- FAIL: TestMemoryCompression/anthropic (0.01s)
+        memory_test.go:178: compressor lost source or included tool result
+    --- FAIL: TestMemoryCompression/openai (0.00s)
+        memory_test.go:178: compressor lost source or included tool result
+FAIL
+FAIL	ensemble/ensemble	0.019s
+FAIL

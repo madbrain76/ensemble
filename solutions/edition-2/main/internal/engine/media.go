@@ -31,7 +31,9 @@ func LookupModel(model string) (common.ModelFeatures, bool) {
 		return common.ModelFeatures{ContextWindow: 128000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-5.4-mini", "gpt-4o", "gpt-6-astra", "gpt-5.6-sol":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
-	case "gemini-3.8-flash", "gemini-2.5-flash", "gemini-3.1-pro-preview":
+	case "gemini-3.8-flash":
+		return common.ModelFeatures{ContextWindow: 1048576, Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
+	case "gemini-2.5-flash", "gemini-3.1-pro-preview":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
 	}
 	return common.ModelFeatures{}, false

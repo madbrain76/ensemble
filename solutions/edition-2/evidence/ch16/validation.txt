@@ -1,0 +1,32 @@
+Original Chapter16 / Edition2 Chapter15 student validation, October11 2026
+All commands below ran in their corresponding module, not outer repository.
+
+Before final immediate-settings and enabled-startup corrections:
+main: go test ./...; go vet ./...; go test -race ./... => PASS
+main/gui: go test ./...; go vet ./... => PASS
+main/ch05, main/ch06, main/ch07: go test ./...; go vet ./... => PASS
+ch07 reported no test files (not claimed as execution coverage).
+main/gui/web/gui: node --test speech.test.mjs virtual-user.test.mjs => 4 PASS
+Actual browser: browser_settings.mjs => PASS, browser-settings.json
+System Chrome used after initial bundled Playwright executable missing.
+
+After both final settings/startup corrections:
+main: go test ./... && go vet ./... && go test -race ./ensemble -run TestMemory -count=1 => PASS
+main/gui: go test ./... && go vet ./... => PASS
+Last full ensemble package tests 11.117s; focused memory race tests 1.798s.
+No full core race repeat claimed after these final changes.
+Targeted restored startup and omitted idle-disable mutations => both intended failures,
+with clean real-runtime baseline; mutations-startup-idle.json and raw .txt outputs.
+
+Original grade was run by coordinator on ccd6350, not final source:
+make grade-dir CH=16 DIR=./solutions/edition-2/main/gui => 20/100 FAIL
+Exact raw output and provenance separately retained.
+No original grader modifications or retries.
+
+Live raw receipts separately retained; three completed turns / three compressor
+requests per run do not imply complete task success. See student semantic review.
+
+Final gofmt listing empty; source/student-note git diff --check clean.
+Raw live evidence retains vendor whitespace; staged all-evidence diff check reports
+those original trailing spaces/newlines, deliberately not rewritten. Exact selected private provider
+key values scanned in owned source/evidence without printing values: CLEAN.

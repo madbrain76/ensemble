@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryDiskAndToggles (0.00s)
+    memory_test.go:330: disabled session remains before next request
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

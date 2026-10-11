@@ -381,7 +381,9 @@ for (const band of ["soul", "memory", "64x", "8x", "session", "conversation"]) {
     input.setAttribute("aria-label", `${band} ${field} bytes (0 = default)`);
     input.style.width = "7em";
     input.addEventListener("input", () => editingContext.add(input));
-    controls[field] = input; row.append(input);
+    controls[field] = input;
+    const caption = document.createElement("label");
+    caption.append(` ${field.replaceAll("_", " ")} `, input); row.append(caption);
   }
   for (const [field, input] of Object.entries(controls)) input.addEventListener("change", () => {
     editingContext.delete(input);

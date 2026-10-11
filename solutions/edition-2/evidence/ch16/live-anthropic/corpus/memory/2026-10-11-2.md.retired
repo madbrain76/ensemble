@@ -1,0 +1,18 @@
+I compressed the completed work on two cases.
+
+Cedar Lantern CL-721 (owner: Morgan, archive review October 18):
+- I rejected automatic deletion of imported notes. Support needs originals for customer-reported mistakes.
+- Source notes go to an archive. Accepted summaries are stored separately, and each summary must keep its source identifier.
+- If summarization fails, the original note stays available.
+- Default retention is 30 days. Cleanup runs at an explicit completed-review boundary, not on request arrival, and nothing is removed until a person finishes reviewing it.
+- Open: whether attachments go in the same archive or a separate one. Not decided.
+
+Harbor Finch, diagnostic tag HF-934 (owner: Priya, deployment rehearsal October 21):
+- I rejected automatic retry of a database migration after a timeout, because the remote operation may already have committed.
+- Procedure: read the migration ledger first. Retry only if the ledger shows the migration did not complete.
+- The operator keeps the exact migration identifier and measured error, not a guess about success.
+- The rollback package stays available for seven days after deployment.
+- The rehearsal now checks child process lifetime directly. A log said the worker stopped, but the child was still alive holding the port, so I trust verified process state over log messages.
+- Open: whether the migration ledger lives with application data or in a separate control database.
+
+Common reasoning: in both cases, an unverified state claim or an unrelated action can cause irreversible harm, so I verify actual state before acting.

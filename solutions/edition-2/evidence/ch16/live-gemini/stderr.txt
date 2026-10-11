@@ -1,0 +1,15 @@
+Open http://localhost:61789; terminal messages while busy are hints. /interrupt ends the turn.
+[micro_handoff]
+Checkpoint recorded after this tool batch.
+[micro_handoff]
+Checkpoint recorded after this tool batch.
+[list_directory]
+api.log
+cr/
+debug.log
+event.log
+gui.log
+save.json.journal
+stderr.txt
+stdout.txt
+

@@ -1,0 +1,20 @@
+[
+  {
+    "claim": "enabled-restart",
+    "file": "internal/agent/memory.go",
+    "old": "} else {",
+    "new": "} else if r.owner.history.LastSeq() == 0 || wasDisabled {",
+    "test": "TestMemoryRestartEditedEnabled",
+    "exit": 1,
+    "intended_failure": true
+  },
+  {
+    "claim": "idle-disable",
+    "file": "internal/agent/actor.go",
+    "old": "m.reply <- r.syncMemory()",
+    "new": "m.reply <- error(nil)",
+    "test": "TestMemoryDiskAndToggles",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

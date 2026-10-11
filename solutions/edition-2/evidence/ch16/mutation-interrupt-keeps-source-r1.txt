@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryInterruptedCompressor (0.00s)
+    memory_test.go:622: interrupted compressor committed
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

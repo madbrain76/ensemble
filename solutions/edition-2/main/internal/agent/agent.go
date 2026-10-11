@@ -251,16 +251,22 @@ func (a *agent) SetContextSettings(target, retention int) error {
 	return nil
 }
 
-// SetMemorySettings updates the Agent's policy; its actor reconciles content at
-// the next request boundary, before rendering or admitting a new user message.
+// SetMemorySettings records content changes through the actor before acknowledging
+// the patch. A disabled band disappears even while the Agent is idle.
 func (a *agent) SetMemorySettings(settings common.MemorySettings) error {
 	if err := a.memory.Validate(settings); err != nil {
 		return err
 	}
-	a.configMu.Lock()
-	defer a.configMu.Unlock()
-	a.config.Memory = settings
-	return nil
+	reply := make(chan error, 1)
+	if err := a.post(memorySettings{settings, reply}); err != nil {
+		return err
+	}
+	select {
+	case err := <-reply:
+		return err
+	case <-a.done:
+		return common.ErrStopped
+	}
 }
 
 // AttachMemory establishes both sides of corpus ownership before runtime use.

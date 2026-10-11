@@ -6,6 +6,12 @@ import (
 	"ensemble/internal/common"
 )
 
+// Settings acknowledgments follow their recorded content changes, even when idle.
+type memorySettings struct {
+	value common.MemorySettings
+	reply chan error
+}
+
 // A compression worker owns only its HTTP call. The actor owns commits and
 // drops a late result after interruption, leaving the old source information live.
 type compressed struct {
@@ -15,10 +21,9 @@ type compressed struct {
 	err  error
 }
 
-// Startup uses disk only for fresh histories; restored events already contain
-// their bytes. Changed switches deliberately rescan files, even with the same ID.
+// Running startup and re-enable reread disk so human corrections replace logged
+// bytes with the same identity. Offline history replay itself never scans files.
 func (r *runtime) syncMemory() error {
-	fresh := r.owner.history.LastSeq() == 0
 	for b := common.BandSoul; b <= common.BandSession; b++ {
 		disabled := r.owner.memory.Settings(b).Disabled
 		wasDisabled := r.memoryDisabled[b]
@@ -30,7 +35,7 @@ func (r *runtime) syncMemory() error {
 				if err := r.append(common.Event{Type: "band_depopulated", Depopulated: &common.BandDepopulatedData{Band: b, Reason: "disabled"}}); err != nil {
 					return err
 				}
-			} else if fresh || wasDisabled {
+			} else {
 				files, err := r.owner.memory.Scan(b)
 				if err != nil {
 					return err

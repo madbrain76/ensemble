@@ -1,0 +1,8 @@
+--- FAIL: TestMemoryForcing (0.02s)
+    --- FAIL: TestMemoryForcing/anthropic (0.01s)
+        memory_test.go:256: 90% warning missing or forcing premature
+    --- FAIL: TestMemoryForcing/openai (0.01s)
+        memory_test.go:256: 90% warning missing or forcing premature
+FAIL
+FAIL	ensemble/ensemble	0.022s
+FAIL

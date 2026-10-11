@@ -1,0 +1,40 @@
+The explicit completed-review boundary matters because deletion should depend on a finished review, not on unrelated traffic. Under the old design, any request could trigger cleanup and remove notes nobody had reviewed yet. Support could then lose the originals they need when customers report mistakes. Tying cleanup to a completed review keeps originals available until that review is done.micro_handoff {"text": "Checkpoint for Cedar Lantern (release CL-721):\n- Decision: rejected automatic deletion of imported notes. Support needs originals when customers report mistakes.\n- Replacement design: source notes stay in an archive; the accepted summary is stored separately.\n- Acceptance requirement: each summary must preserve a source identifier.\n- Owner and date: Morgan owns the archive review, scheduled for October 18.\n- Open question (not decided): whether attachments belong in the same archive or a separate one.\n- Default retention: thirty days.\n- Failure rule: a failed summarization must leave the original note available.\n- Cleanup change: the initial design tied cleanup to request arrival, so an unrelated request could delete unreviewed work. Cleanup now runs at an explicit completed-review boundary instead.\n- Rationale for boundary: deletion waits for a finished review, so originals stay available until review is complete."}
+Your design is clear. Originals stay in the archive, accepted summaries are stored separately with a source identifier, summarization failures keep the original available, and cleanup runs only after a completed review, not on unrelated requests.
+
+Two things to settle:
+
+1. **Retention vs. review timing:** If the 30-day retention expires before the October 18 review is finished, does the original get deleted anyway, or is it held until the review completes? Your "originals remain available until that review is done" suggests holding, but the spec should say so explicitly.
+2. **Attachments:** This is still open. Whether they share the notes archive or get their own affects retention and review scope, so it's worth deciding before the review on October 18.
+
+I can draft the decision record for either of these if you'd like.
+The rehearsal's decision rests on two points. Retrying a migration after a timeout is unsafe, because the remote commit may already have happened, so the procedure reads the migration ledger first and records the exact migration identifier and measured error rather than guessing. The new evidence strengthens the rule to check reality directly: a log line said the worker stopped, but the child process was still alive and holding the port. A log message is not proof of process state, so the rehearsal now checks child lifetime directly before deployment proceeds. The ledger's location (alongside application data or in a separate control database) remains unresolved.micro_handoff {"text": "Case two (Harbor Finch, diagnostic tag HF-934; rehearsal owner Priya, scheduled October 21).\n\nDecided:\n- No automatic retry of a database migration after a timeout, because the remote operation may already have committed.\n- Procedure reads the migration ledger before deciding whether any retry is safe.\n- Operator must retain the exact migration identifier and measured error, not a guess about success.\n- Rollback package must remain available for seven days after deployment.\n\nEvidence change:\n- Last week a log line said the worker stopped, but the child process was still alive and held the port open.\n- Log messages are not proof of process state. The rehearsal now checks child lifetime directly.\n\nUnresolved (keep open):\n- Whether the migration ledger lives alongside application data or in a separate control database.\n\nNext steps:\n- Confirm the ledger location before the October 21 rehearsal.\n- Verify the child-lifetime check is in the rehearsal procedure."}
+Here's where things stand.
+
+**Cedar Lantern (CL-721): open items**
+1. **Retention past 30 days.** Not yet decided whether an original is deleted or held if review isn't finished when retention expires. Your reading (originals stay available until review completes) isn't in the spec yet, so it needs a written decision.
+2. **Attachments.** Same archive or a separate one is undecided. This affects retention and review scope, so settle it before **October 18** (Morgan's archive review).
+
+**Harbor Finch rehearsal (HF-934, Priya, October 21)**
+- **Ledger location.** Unresolved: application data or a separate control database. Confirm before the rehearsal.
+- **Child-lifetime check.** Confirm it's in the procedure. The "worker stopped" log line isn't evidence, so the check must verify the child process directly, since the child was still holding the port.
+
+Do you want me to draft decision records for the Cedar Lantern retention question and the attachments question, and a checklist for the Harbor Finch procedure covering the ledger location and child-lifetime check? Tell me where to save them.
+**Cedar Lantern (release CL-721)**
+- **Owner:** Morgan, archive review, scheduled **October 18**.
+- **Design:** Originals stay in an archive. Accepted summaries are stored separately, each tagged with its source identifier. If summarization fails, the original stays available. Default retention is 30 days.
+- **Rejected:**
+  - *Automatic deletion of imported notes.* Support needs originals when customers report mistakes.
+  - *Cleanup triggered by request arrival.* It could delete unreviewed work. Cleanup runs only after a completed review.
+
+**Harbor Finch deployment rehearsal (diagnostic tag HF-934)**
+- **Owner:** Priya, rehearsal scheduled **October 21**.
+- **Decided:** The operator reads the migration ledger before deciding whether a retry is safe. The operator records the exact migration identifier and the measured error. The rollback package stays available for seven days after deployment.
+- **Rejected:**
+  - *Automatic retry of a database migration after a timeout.* The remote operation may already have committed.
+  - *Treating a log line as proof of process state.* A "worker stopped" line didn't match reality: the child process was still alive holding the port. The rehearsal checks child lifetime directly.
+
+**The two unresolved questions (Cedar Lantern)**
+1. **Retention past 30 days:** If retention expires before the October 18 review finishes, it's undecided whether the original is deleted or held. Your reading (stay available until review is done) is not in the spec yet and has not been decided.
+2. **Attachments:** Same archive or a separate one is undecided. This affects retention and review scope and should be settled before October 18.
+
+**Also open (Harbor Finch):** Whether the migration ledger lives with application data or in a separate control database. This is unresolved and must be confirmed before October 21. Verifying that the child-lifetime check is in the procedure is a pending next step, not a decided item.

@@ -1,0 +1,49 @@
+The decision: rejected automatic deletion of imported notes, since support needs originals when customers report mistakes. The replacement keeps source notes in an archive and stores accepted summaries separately. Cleanup moved from request arrival to an explicit completed-review boundary. The old coupling was the real hazard: any unrelated request could delete unreviewed work. Tying cleanup to a completed review means nothing is removed until a person has finished reviewing it.micro_handoff {"text": "Checkpoint for Cedar Lantern, release CL-721.\n\nDecision: Automatic deletion of imported notes is rejected. Support needs originals when customers report mistakes. Source notes stay in an archive; accepted summaries are stored separately.\n\nCleanup trigger: Moved from request arrival to an explicit completed-review boundary. The original coupling let unrelated requests delete unreviewed work. Cleanup now runs only after review is completed.\n\nOwner and date: Morgan owns archive review, scheduled for October 18.\n\nAcceptance: Each summary must preserve a source identifier.\n\nOpen question: Whether attachments belong in the same archive or a separate one. NOT decided.\n\nRetention: Default is thirty days.\n\nFailure rule: A failed summarization must leave the original note available."}
+Got it. Here's what I have for Cedar Lantern CL-721:
+
+- **Deletion:** Automatic deletion of imported notes is rejected. Support needs originals for customer-reported mistakes.
+- **Storage:** Source notes go to an archive. Accepted summaries are stored separately.
+- **Summaries:** Each summary must preserve a source identifier.
+- **Failure handling:** If summarization fails, the original note stays available.
+- **Retention:** Default is 30 days.
+- **Cleanup trigger:** Cleanup now runs at an explicit completed-review boundary, not on request arrival. Nothing is removed until a person finishes reviewing it.
+- **Owner:** Morgan, archive review on October 18.
+- **Open:** Whether attachments go in the same archive or a separate one. Not decided.
+The timeout case is the same pattern as Cedar Lantern: a retry can be unsafe when the first attempt may have already changed state. Automatic retry is rejected because the remote migration may have committed. The procedure reads the migration ledger first, and retries only when the ledger shows the migration did not complete. The operator keeps the exact migration identifier and measured error, not a guess.
+
+The worker log line is a separate lesson. "Worker stopped" was not enough, because the child process still held the port. The rehearsal now checks child lifetime directly, so the evidence favors verifying real process state over trusting log messages.
+
+The ledger location (with application data or in a separate control database) is unresolved and stays that way.micro_handoff {"text": "Case two checkpoint (Harbor Finch, tag HF-934). Owner: Priya, deployment rehearsal on October 21.\n\nDecided:\n- Automatic retry of a database migration after a timeout is rejected, because the remote operation may already have committed.\n- Procedure: read the migration ledger before deciding whether any retry is safe. Retry only when the ledger shows the migration did not complete.\n- Operator must retain the exact migration identifier and the measured error, not a guess about success.\n- Rollback package stays available for seven days after deployment.\n- Rehearsal now checks child process lifetime directly. Evidence: a log line said the worker stopped, but the child process was still alive and holding the port.\n\nUnresolved (keep open):\n- Whether the migration ledger lives alongside application data or in a separate control database.\n\nReasoning: same pattern as Cedar Lantern (CL-721), where an unrelated action or an unverified state claim can cause irreversible harm. Verify actual state (ledger, process lifetime) before acting."}
+Got it. Here's what I've recorded:
+
+**CL-721 (Cedar Lantern)**, owner: Morgan, archive review Oct 18
+- Rejected: auto-deleting imported notes.
+- Archive originals. Store accepted summaries separately, each with its source ID.
+- If summarization fails, keep the original.
+- 30-day retention. Cleanup happens only at an explicit completed review, never when a request arrives.
+- **Open:** attachments in the same archive or a separate one?
+
+**HF-934 (Harbor Finch)**, owner: Priya, rehearsal Oct 21
+- Rejected: auto-retrying timed-out migrations.
+- On timeout, check the ledger and retry only if the migration hasn't completed.
+- Keep the exact migration ID and error.
+- Rollback kept for 7 days.
+- Verify child process state, not logs.
+- **Open:** is the ledger in the app or the control DB?
+
+I haven't taken any actions. Once the two open questions are settled, I can draft the implementation notes.
+**Project 1: Cedar Lantern (CL-721)**
+- Owner: Morgan, who owns archive review on Oct 18.
+- Rejected: auto-deleting imported notes. No reason was given.
+- Decided: archive originals, store accepted summaries separately with source IDs, keep the original if summarization fails, use 30-day retention, and clean up only at an explicit completed review, never on request arrival.
+
+**Project 2: Harbor Finch (HF-934)**
+- Owner: Priya, with rehearsal on Oct 21.
+- Rejected: auto-retrying timed-out migrations. No reason was given.
+- Decided: on timeout, check the ledger and retry only if the migration hasn't completed. Keep the exact migration ID and error. Keep rollback for 7 days. Verify child process state, not logs.
+
+Your message gives only the project IDs (CL-721, HF-934). It doesn't mention separate diagnostic codes, so I can't name any.
+
+**Unresolved questions:**
+1. **CL-721:** Are attachments archived in the same archive as the notes or in a separate one?
+2. **HF-934:** Is the migration ledger in the app or in the control DB?

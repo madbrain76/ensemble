@@ -1,0 +1,20 @@
+[
+  {
+    "claim": "settings-effective",
+    "file": "gui/settings.go",
+    "old": "s.agent.SetMemorySettings(next.Memory)\n\treturn next",
+    "new": "// omitted memory application\n return next",
+    "test": "TestSettingsWireAndDisk",
+    "exit": 1,
+    "intended_failure": false
+  },
+  {
+    "claim": "settings-load",
+    "file": "gui/settings.go",
+    "old": "if err := s.agent.SetMemorySettings(next.Memory); err != nil {",
+    "new": "if err := error(nil); err != nil {",
+    "test": "TestSettingsWireAndDisk",
+    "exit": 1,
+    "intended_failure": true
+  }
+]

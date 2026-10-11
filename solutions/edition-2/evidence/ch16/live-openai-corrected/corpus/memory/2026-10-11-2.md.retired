@@ -1,0 +1,18 @@
+I have worked on two projects: The Cedar Lantern project (release code CL-721) and the Harbor Finch deployment rehearsal (diagnostic tag HF-934).
+
+**Cedar Lantern Project (CL-721):**  
+1. **Controlled Deletion**: We avoid automatic deletion of imported notes to keep originals accessible for support.  
+2. **Archiving**: Source notes are archived with accepted summaries stored separately; each summary has a source identifier.  
+3. **Attachments**: An unresolved decision exists on whether attachments should be stored with source notes or separately.  
+4. **Retention Period**: Notes are retained for thirty days, with originals accessible for failed summarization.  
+5. **Cleanup Protocol**: Cleanup is performed after reviews to prevent premature deletions of unreviewed notes.
+   - Note: Morgan will lead the archive review on October 18.
+
+**Harbor Finch Deployment Rehearsal (HF-934)**:  
+1. Scheduled for October 21, owned by Priya.
+2. We rejected automatic retry of database migrations after timeouts, due to risks of earlier commits.  
+3. Instead, the migration ledger will determine the safety of retries, requiring exact migration identifiers and measured errors from operators.  
+4. An unresolved question remains about the ledger's location: within application data or a separate control database.  
+5. Rollback packages will be available for seven days post-deployment.  
+6. Evidence from a log showed that a worker stopped, but the child process was alive and holding the port open, necessitating a check on child lifetime in rehearsals.
+   - This evidence changed our decision to reinforce monitoring child processes' impact on resources.

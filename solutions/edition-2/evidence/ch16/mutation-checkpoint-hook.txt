@@ -1,0 +1,10 @@
+--- FAIL: TestMemoryCompression (0.01s)
+    --- FAIL: TestMemoryCompression/anthropic (0.00s)
+        memory_test.go:186: next request did not replace raw dialogue with memory
+        memory_test.go:198: compressions=0 requests=2
+    --- FAIL: TestMemoryCompression/openai (0.00s)
+        memory_test.go:186: next request did not replace raw dialogue with memory
+        memory_test.go:198: compressions=0 requests=2
+FAIL
+FAIL	ensemble/ensemble	0.013s
+FAIL

@@ -1,0 +1,8 @@
+file:///Users/bill/projects/ensemble/solutions/edition-2/evidence/ch16/browser_settings.mjs:32
+ if(saved.memory.session.budget!==77||!saved.memory.session.disabled)throw Error('browser changes not persisted');
+                                                                           ^
+
+Error: browser changes not persisted
+    at file:///Users/bill/projects/ensemble/solutions/edition-2/evidence/ch16/browser_settings.mjs:32:76
+
+Node.js v24.20.0

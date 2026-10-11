@@ -1,0 +1,175 @@
+[
+  {
+    "run": "anthropic",
+    "model": "claude-haiku-5-5",
+    "compressor_requests": 3,
+    "compression_request_bytes": [
+      3391,
+      4733,
+      3315
+    ],
+    "populated_bands": [
+      5,
+      5,
+      4
+    ],
+    "memory_text_utf8_bytes": [
+      780,
+      1596,
+      658
+    ],
+    "tool_calls": [
+      "micro_handoff",
+      "micro_handoff"
+    ],
+    "compression_source_utf8_bytes": [
+      2504,
+      3832,
+      2420
+    ],
+    "source_to_memory_ratios": [
+      3.21,
+      2.401,
+      3.678
+    ]
+  },
+  {
+    "run": "openai",
+    "model": "gpt-4o-mini",
+    "compressor_requests": 3,
+    "compression_request_bytes": [
+      3280,
+      3909,
+      3488
+    ],
+    "populated_bands": [
+      5,
+      5,
+      4
+    ],
+    "memory_text_utf8_bytes": [
+      934,
+      1596,
+      1146
+    ],
+    "tool_calls": [
+      "micro_handoff",
+      "micro_handoff",
+      "write_file",
+      "write_file"
+    ],
+    "compression_source_utf8_bytes": [
+      2368,
+      2996,
+      2574
+    ],
+    "source_to_memory_ratios": [
+      2.535,
+      1.877,
+      2.246
+    ]
+  },
+  {
+    "run": "anthropic-corrected",
+    "model": "claude-haiku-5-5",
+    "compressor_requests": 3,
+    "compression_request_bytes": [
+      3673,
+      4871,
+      3846
+    ],
+    "populated_bands": [
+      5,
+      5,
+      4
+    ],
+    "memory_text_utf8_bytes": [
+      825,
+      1866,
+      2014
+    ],
+    "tool_calls": [
+      "micro_handoff",
+      "micro_handoff"
+    ],
+    "compression_source_utf8_bytes": [
+      2558,
+      3738,
+      2735
+    ],
+    "source_to_memory_ratios": [
+      3.101,
+      2.003,
+      1.358
+    ]
+  },
+  {
+    "run": "openai-corrected",
+    "model": "gpt-4o-mini",
+    "compressor_requests": 3,
+    "compression_request_bytes": [
+      3226,
+      4336,
+      3961
+    ],
+    "populated_bands": [
+      5,
+      5,
+      4
+    ],
+    "memory_text_utf8_bytes": [
+      1099,
+      1654,
+      1491
+    ],
+    "tool_calls": [
+      "micro_handoff",
+      "micro_handoff"
+    ],
+    "compression_source_utf8_bytes": [
+      2081,
+      3182,
+      2797
+    ],
+    "source_to_memory_ratios": [
+      1.894,
+      1.924,
+      1.876
+    ]
+  },
+  {
+    "run": "gemini",
+    "model": "gemini-3.8-flash",
+    "compressor_requests": 3,
+    "compression_request_bytes": [
+      3480,
+      4202,
+      3574
+    ],
+    "populated_bands": [
+      5,
+      5,
+      4
+    ],
+    "memory_text_utf8_bytes": [
+      771,
+      1605,
+      1121
+    ],
+    "tool_calls": [
+      "micro_handoff",
+      "micro_handoff",
+      "list_directory"
+    ],
+    "compression_source_utf8_bytes": [
+      2329,
+      3038,
+      2420
+    ],
+    "source_to_memory_ratios": [
+      3.021,
+      1.893,
+      2.159
+    ]
+  }
+]

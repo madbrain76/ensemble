@@ -1,0 +1,7 @@
+--- FAIL: TestSettingsWireAndDisk (0.00s)
+    settings_test.go:66: memory patch not effective map[budget:0 disabled:false high_watermark:0 low_watermark:0]
+FAIL
+FAIL	ensemble-gui-stub	0.009s
+?   	ensemble-gui-stub/cmd	[no test files]
+?   	ensemble-gui-stub/cmd/virtual-user	[no test files]
+FAIL

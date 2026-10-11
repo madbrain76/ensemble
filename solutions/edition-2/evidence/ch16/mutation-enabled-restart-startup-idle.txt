@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryRestartEditedEnabled (0.01s)
+    memory_test.go:685: enabled restart missed human disk correction
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL

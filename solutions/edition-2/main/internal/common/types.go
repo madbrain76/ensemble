@@ -320,7 +320,7 @@ type Agent interface {
 	SetMaxToolRounds(int) error
 	// SetContextSettings updates tool-byte and saved-log policy on the owning Agent.
 	SetContextSettings(target, retention int) error
-	// SetMemorySettings selects content and budgets for the next request boundary.
+	// SetMemorySettings records corpus switches and applies byte budgets through the actor.
 	SetMemorySettings(MemorySettings) error
 	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config

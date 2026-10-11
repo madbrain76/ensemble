@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "real shipped GUI loaded",
+    "session budget77 persisted",
+    "disabled true persisted",
+    "reload restored77 and disabled"
+  ],
+  "saved_session": {
+    "budget": 77,
+    "high_watermark": 0,
+    "low_watermark": 0,
+    "disabled": true
+  }
+}

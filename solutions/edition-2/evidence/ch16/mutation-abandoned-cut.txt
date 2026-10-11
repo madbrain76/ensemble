@@ -1,0 +1,5 @@
+--- FAIL: TestMemoryAbandonment (0.00s)
+    memory_test.go:429: uncommitted cut lost source
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL

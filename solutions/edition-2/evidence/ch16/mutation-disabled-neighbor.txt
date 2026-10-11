@@ -1,0 +1,6 @@
+--- FAIL: TestMemoryWaterfall (0.01s)
+    --- FAIL: TestMemoryWaterfall/disabled-neighbor-true (0.00s)
+        memory_test.go:391: disabled destination did not preserve source and warn
+FAIL
+FAIL	ensemble/ensemble	0.019s
+FAIL

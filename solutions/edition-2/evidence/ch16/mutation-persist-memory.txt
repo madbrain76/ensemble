@@ -1,0 +1,8 @@
+--- FAIL: TestMemoryCompression (0.01s)
+    --- FAIL: TestMemoryCompression/anthropic (0.00s)
+        memory_test.go:203: memory not persisted: []
+    --- FAIL: TestMemoryCompression/openai (0.00s)
+        memory_test.go:203: memory not persisted: []
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
