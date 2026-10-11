@@ -140,6 +140,9 @@ func TestEnsembleDeleteRejectsWithActiveChildren(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected DeleteAgent to reject with active children")
 	}
+
+	// Stop the child so cleanup succeeds.
+	_ = parent.subs.Shutdown("child-1")
 }
 
 // TestEnsembleDuplicateRejected verifies that creating two agents with the

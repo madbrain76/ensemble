@@ -48,6 +48,7 @@ type Server struct {
 	mcpAgents    map[string]*Client               // source tag → WebSocket client (remote agents like virtual user)
 	selfReplies  *replyRouter                     // replies to the agent's own CallGUI requests
 	selfSeq      atomic.Int64                     // CallGUI request ids
+	tree         func() any                       // agent tree snapshot; nil when not wired
 }
 
 // AgentHooks bundles everything the GUI server needs from the agent side,
@@ -66,11 +67,11 @@ type AgentHooks struct {
 	Settings common.SettingsSource
 	// Usage provides the running session token tally for the status meter.
 	Usage common.UsageSource
-	// Model reports the model currently in force, for pricing. A closure
-	// rather than a string because the operator can switch models mid-session,
-	// and a value captured at construction would price every later turn at the
-	// old rate while looking entirely correct.
+	// Model reports the model currently in force, for pricing.
 	Model func() string
+	// Tree returns the current agent tree for the tree panel. May be nil
+	// if tree display is not wired (pre-ch26 callers).
+	Tree func() any
 }
 
 // New creates a GUI server bound to one agent's hooks. guiLogPath is the
@@ -90,6 +91,7 @@ func New(hooks AgentHooks, guiLogPath string) *Server {
 		mcpReceivers: make(map[string]func(json.RawMessage)),
 		mcpAgents:    make(map[string]*Client),
 		selfReplies:  newReplyRouter(),
+		tree:         hooks.Tree,
 	}
 	h.mcpReceivers[selfSource] = h.receiveSelf
 	// logLen is the hub's notion of how much of the log is renderable. It was
@@ -133,6 +135,30 @@ func (h *Server) RemoveMCPReceiver(source string) {
 	h.mu.Lock()
 	delete(h.mcpReceivers, source)
 	h.mu.Unlock()
+}
+
+// BroadcastTree sends the agent tree to all connected WebSocket clients.
+func (h *Server) BroadcastTree(tree any) {
+	msg, _ := json.Marshal(map[string]any{
+		"type": "agents_tree",
+		"root": tree,
+	})
+
+	h.mu.Lock()
+	clients := make([]*Client, 0, len(h.clients))
+	for c := range h.clients {
+		if c.live {
+			clients = append(clients, c)
+		}
+	}
+	h.mu.Unlock()
+
+	for _, c := range clients {
+		select {
+		case c.send <- msg:
+		default:
+		}
+	}
 }
 
 // BroadcastJSONRPC sends a JSON-RPC message to all connected WebSocket
@@ -393,6 +419,20 @@ replay:
 		default:
 		}
 		h.guiLog.Log("<", data)
+	}
+
+	// Send the initial agent tree so the panel populates immediately.
+	if h.tree != nil {
+		tree := h.tree()
+		if treeMsg, err := json.Marshal(map[string]any{
+			"type": "agents_tree",
+			"root": tree,
+		}); err == nil {
+			select {
+			case c.send <- treeMsg:
+			default:
+			}
+		}
 	}
 }
 

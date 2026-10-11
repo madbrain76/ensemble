@@ -466,11 +466,8 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 			EventLog: eng.Log,
 			Settings: settingsStore,
 			Usage:    eng.Usage(),
-			// The engine's config is the authority on which model is serving
-			// turns: it is validated at startup and refuses a model it does not
-			// know. The settings store can be empty, and pricing an empty name
-			// silently reports a paid model as free.
-			Model: func() string { return eng.Cfg.Model },
+			Model:    func() string { return eng.Cfg.Model },
+			Tree:     func() any { return en.TreeSnapshot() },
 		}, "gui.log")
 		// view_gui: the agent looks at its own GUI when it chooses to. Registered
 		// here because it needs the guiServer, and before the actor starts, so it is in
@@ -481,6 +478,12 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		defer guiServer.Close()
 		guiServer.SetTTSLog(ttsLogPath)
 		actor.Attach(guiServer)
+
+		// Wire the agent tree panel: when any agent's activity changes, push
+		// the updated tree to all connected browsers.
+		en.SetOnTreeChange(func() {
+			guiServer.BroadcastTree(en.TreeSnapshot())
+		})
 
 		mux := http.NewServeMux()
 		fs := gui.StaticHandler(guiDir)

@@ -339,13 +339,35 @@ body {
   padding: 8px 12px;
   font-size: 0.75rem;
   flex-shrink: 0;
+  overflow-y: auto;
+  max-height: 200px;
 }
 
-.agent-node {
+.tree-node {
+  padding: 1px 0;
+}
+
+.tree-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 0;
+  padding: 2px 0;
+}
+
+.tree-children {
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+  margin-left: 4px;
+}
+
+.tree-detail {
+  color: var(--text-dim);
+  font-size: 0.625rem;
+  opacity: 0.7;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agent-dot {
@@ -355,6 +377,7 @@ body {
 .agent-dot.idle { color: #4caf50; }
 .agent-dot.thinking { color: #ff9800; }
 .agent-dot.tools { color: #2196f3; }
+.agent-dot.waiting { color: #9c27b0; }
 
 .agent-label {
   color: var(--text-dim);

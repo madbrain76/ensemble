@@ -121,6 +121,10 @@
         renderUsage(msg);
         break;
 
+      case 'agents_tree':
+        renderAgentTree(msg.root);
+        break;
+
       case 'error':
         chatScroll.handleMessage(msg);
         break;
@@ -142,6 +146,63 @@
     } else {
       agentDot.classList.add('tools');
     }
+  }
+
+  // ── Agent tree rendering ──
+  // Receives the tree from the server and renders it recursively. Each node
+  // has: {id, activity, detail?, children?[]}.
+  function renderAgentTree(root) {
+    const container = document.getElementById('agent-tree');
+    if (!container || !root) return;
+    container.innerHTML = '';
+    container.appendChild(buildTreeNode(root));
+  }
+
+  function buildTreeNode(node) {
+    const div = document.createElement('div');
+    div.className = 'tree-node';
+
+    const row = document.createElement('div');
+    row.className = 'tree-row';
+
+    const dot = document.createElement('span');
+    dot.className = 'agent-dot';
+    switch (node.activity) {
+      case 'idle':     dot.classList.add('idle'); break;
+      case 'thinking': dot.classList.add('thinking'); break;
+      case 'tool_call':dot.classList.add('tools'); break;
+      case 'waiting':  dot.classList.add('waiting'); break;
+      default:         dot.classList.add('idle');
+    }
+    row.appendChild(dot);
+
+    const label = document.createElement('span');
+    label.className = 'agent-label';
+    label.textContent = node.id || 'main';
+    if (node.detail) {
+      label.title = node.detail;
+    }
+    row.appendChild(label);
+
+    if (node.activity === 'tool_call' && node.detail) {
+      const detail = document.createElement('span');
+      detail.className = 'tree-detail';
+      detail.textContent = node.detail;
+      row.appendChild(detail);
+    }
+
+    div.appendChild(row);
+
+    if (node.children && node.children.length > 0) {
+      const kids = document.createElement('div');
+      kids.className = 'tree-children';
+      for (const child of node.children) {
+        kids.appendChild(buildTreeNode(child));
+      }
+      div.appendChild(kids);
+    }
+
+    return div;
   }
 
   // ── Pause gate ──

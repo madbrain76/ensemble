@@ -40,6 +40,11 @@ type Ensemble struct {
 	skillMCPToolNames map[string][]string
 
 	gate *common.PauseGate
+
+	// Tree change callback. Called from any agent's observer when its
+	// activity changes, so the GUI (or any other subscriber) can refresh
+	// the tree panel. Set via SetOnTreeChange before Start.
+	onTreeChange func()
 }
 
 // AgentEntry is one row in the persistent registry.
@@ -103,10 +108,70 @@ func NewEnsemble(dir string, cfg Config, rootSpec AgentSpec) (*Ensemble, error) 
 	// Wire the pause gate.
 	root.Actor().SetPauseGate(e.gate)
 
+	// Observe activity changes on the root agent. Child agents are
+	// observed via the factory hook in agentFactory.
+	e.observeActivity(root)
+
 	// Wire skill-based MCP lifecycle on the root agent.
 	e.wireMCPLifecycle(root)
 
 	return e, nil
+}
+
+// AgentNode is one node in the agent tree snapshot.
+type AgentNode struct {
+	ID       string      `json:"id"`
+	Activity string      `json:"activity"`
+	Detail   string      `json:"detail,omitempty"`
+	Children []AgentNode `json:"children,omitempty"`
+}
+
+// TreeSnapshot returns the current agent hierarchy as a tree of nodes.
+// Safe to call from any goroutine.
+func (e *Ensemble) TreeSnapshot() AgentNode {
+	return e.nodeFor(e.root)
+}
+
+func (e *Ensemble) nodeFor(a *Agent) AgentNode {
+	if a == nil {
+		return AgentNode{ID: "?"}
+	}
+	act := a.Activity()
+	node := AgentNode{
+		ID:       a.Spec().ID,
+		Activity: act.Phase.String(),
+		Detail:   act.Detail,
+	}
+	for _, sub := range a.Children() {
+		if sub.Agent != nil {
+			node.Children = append(node.Children, e.nodeFor(sub.Agent))
+		}
+	}
+	return node
+}
+
+// SetOnTreeChange registers a callback that fires whenever any agent's
+// activity changes. The GUI server uses this to push tree updates.
+func (e *Ensemble) SetOnTreeChange(fn func()) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.onTreeChange = fn
+}
+
+// observeActivity attaches an observer to the given agent that fires the
+// tree-change callback whenever its activity transitions.
+func (e *Ensemble) observeActivity(a *Agent) {
+	a.Actor().Attach(observerFunc(func(obs common.Observation) {
+		switch obs.(type) {
+		case common.ActivityChanged:
+			e.mu.RLock()
+			fn := e.onTreeChange
+			e.mu.RUnlock()
+			if fn != nil {
+				fn()
+			}
+		}
+	}))
 }
 
 // Root returns the root agent.
@@ -206,6 +271,8 @@ func (e *Ensemble) agentFactory() AgentFactory {
 		// Propagate the factory. This is what chapter 25 bug #3 was: a child
 		// whose manager held nil because the factory was never propagated.
 		child.SetAgentFactory(e.agentFactory())
+		// Observe activity so the tree panel updates when children work.
+		e.observeActivity(child)
 		return child, nil
 	}
 }

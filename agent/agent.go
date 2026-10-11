@@ -855,6 +855,14 @@ func (a *Agent) ActiveChildIDs() []string {
 	return a.subs.ActiveChildIDs()
 }
 
+// Children returns the live sub-agents of this agent, for tree traversal.
+func (a *Agent) Children() []*SubAgent {
+	if a.subs == nil {
+		return nil
+	}
+	return a.subs.List()
+}
+
 // Ask sends a prompt and runs the full tool loop until the model replies.
 //
 // An agent that goes idle while sub-agents are still running has abandoned
