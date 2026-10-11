@@ -316,24 +316,15 @@ type stdinMsg struct {
 }
 
 func runActorLoop(cfg common.Config, logPath string, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string, textMode, verboseText bool, policy agent.AgentSpec) (vendorFailed bool) {
-	// One agent, built by the library's own constructor.
-	//
-	// Everything that follows used to be assembled here by hand: a second
-	// logging host, a second job table, a second tool registry, a second
-	// engine. None of it was deliberate. NewAgent had no caller, so when a
-	// capability arrived it was easier to staple it onto the engine here than
-	// to teach a constructor nobody was using.
+	// Build the root agent's specification from the security policy and
+	// environment. The policy arrives already decided; the rest is filled
+	// in around it.
 	skillDir := envOr("EN_SKILLS_DIR", "skills")
 	if skillsDir != "" {
 		skillDir = skillsDir
 	}
 	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
 
-	// The security policy arrives already decided, and the rest of the
-	// specification is filled in around it. Deriving the spec from the
-	// policy rather than assembling both here means a policy field added
-	// later reaches the agent without this site being touched, which is
-	// the mistake that made the old composition root drift.
 	spec := policy
 	spec.DataDir = "."
 	spec.SkillDir = skillDir
@@ -341,22 +332,18 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 	spec.LogPath = logPath
 	spec.SavePath = savePath
 
-	a, err := agent.NewAgent(cfg, spec)
+	// The Ensemble is the composition root. It creates the root agent,
+	// wires the factory (so children spawn at any depth), the MCP
+	// lifecycle (so load_skill connects servers), and the pause gate (so
+	// the GUI can pause the actor). The five bugs chapter 25 documented
+	// all traced to this wiring being done by hand and one piece being
+	// forgotten; doing it in one constructor prevents the class.
+	en, err := agent.NewEnsemble(".", cfg, spec)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-
-	// A spawned child is a full agent, so it is built the way this one was.
-	//
-	// The factory lives in the composition root rather than in the manager
-	// because model and credential policy belong here. The manager decides
-	// whether to spawn and with which permissions; this decides what the
-	// child is built with. Without it the manager can derive a perfectly
-	// good child specification and still have nothing to build.
-	a.SetAgentFactory(func(childSpec agent.AgentSpec, task string) (*agent.Agent, error) {
-		return agent.NewAgent(cfg, childSpec)
-	})
+	a := en.Root()
 
 	host := a
 	j := a.Jobs()
@@ -365,131 +352,23 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 	vars := a.Vars()
 	eng := a.Engine()
 
-	// Application-specific variable renderers, from the environment. These are
-	// registered after construction because only skills loaded later in the
-	// session can reference them; the primary skill body cannot, since it was
-	// rendered during NewAgent.
+	// Application-specific variable renderers, from the environment.
 	if cv := os.Getenv("EN_CUSTOM_VAR"); cv != "" {
 		vars.Register("CUSTOM_VAR", func() string { return cv })
 	}
 
+	// Credential attachment is a host-side policy decision: it reads the
+	// operator's filesystem to resolve OAuth tokens. It stays here because
+	// the library should not assume where credentials live.
 	attachCredentials(eng, cfg)
-	// The engine's capabilities -- the cache lens, restored context, the
-	// journal, settings, memory, memory bands and recall -- are built by
-	// NewAgent now, inside this agent's own data directory.
-	//
-	// All of them used to be stapled onto the engine here, one assignment at
-	// a time, over five chapters. That is precisely how the library's
-	// constructor fell sixteen chapters behind without anyone noticing: a
-	// capability added here cost one line, and a capability added to NewAgent
-	// would have had to be added to a function with no callers.
+
 	settingsStore := a.Settings()
 	actor := a.Actor()
 	defer a.Journal().Close()
 
 	// Wire load_skill/unload_skill now that we have the event log.
 	reg.WireSkills(sr, vars, eng.Log)
-	// Re-derive declarations so load_skill and unload_skill appear. This is
-	// the last time eng.Cfg.Tools is written once a session can start:
-	// Chapter 15 rule 1 freezes the startup declarations. A skill loaded
-	// later records ToolsChanged instead, and the renderer carries the
-	// change in the dialog (rule 2). Chapter 10 used to rewrite
-	// eng.Cfg.Tools here on every load, which changed the prefix and
-	// missed the cache on every request after it.
 	eng.Cfg.Tools = reg.Declarations()
-
-	// Track MCP clients per skill for lifecycle management.
-	skillMCPClients := make(map[string][]*mcp.Client)
-	skillMCPToolNames := make(map[string][]string)
-
-	// Skill-based MCP lifecycle: connect when a skill is loaded.
-	reg.SetOnSkillMCPConnect(func(skill string, servers []common.MCPServerConfig) ([]string, error) {
-		var allToolNames []string
-		for _, srv := range servers {
-			var t mcp.Transport
-			var tErr error
-			switch srv.Transport {
-			case "stdio":
-				t, tErr = mcp.NewStdioTransport(srv.Command, srv.Args, srv.Env)
-			case "url":
-				// Streamable HTTP. The Transport interface was written with
-				// this in mind -- "a future fourth (URL/port-based) can be
-				// added later" -- and MCPServerConfig has carried a URL field
-				// since Chapter 12. This case is the whole host-side cost of
-				// reaching a hosted MCP server.
-				//
-				// auth-env names an environment variable; the skill file never
-				// holds the key itself. If the variable is unset we still
-				// connect, because this endpoint also answers keyless requests
-				// -- at a lower daily limit. Degrading to anonymous is safe;
-				// doing it silently is not, so say so.
-				var headers map[string]string
-				if srv.AuthEnv != "" {
-					if token := os.Getenv(srv.AuthEnv); token != "" {
-						headers = map[string]string{
-							"Authorization": "Bearer " + token,
-						}
-					} else {
-						host.Logf("skill %s MCP %s: $%s is unset; connecting without a key",
-							skill, srv.Name, srv.AuthEnv)
-					}
-				}
-				t, tErr = mcp.NewHTTPTransport(srv.URL, headers)
-			default:
-				host.Logf("skill %s: unsupported MCP transport %q, skipping", skill, srv.Transport)
-				continue
-			}
-			if tErr != nil {
-				return nil, fmt.Errorf("skill %s MCP %s: %w", skill, srv.Name, tErr)
-			}
-
-			client := mcp.NewClient(t)
-			if err := client.Initialize(context.Background()); err != nil {
-				client.Close()
-				return nil, fmt.Errorf("skill %s MCP %s init: %w", skill, srv.Name, err)
-			}
-
-			mcpTools, err := client.ListTools(context.Background())
-			if err != nil {
-				client.Close()
-				return nil, fmt.Errorf("skill %s MCP %s list: %w", skill, srv.Name, err)
-			}
-
-			bridged := mcp.Bridge(client, mcpTools)
-			for _, bt := range bridged {
-				reg.RegisterTool(bt)
-				allToolNames = append(allToolNames, bt.Name)
-			}
-
-			client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
-				tool, lErr := reg.Lookup(name)
-				if lErr != nil {
-					return "", lErr
-				}
-				return tool.Run(&common.Call{Agent: host, Jobs: j}, args)
-			})
-
-			skillMCPClients[skill] = append(skillMCPClients[skill], client)
-		}
-		skillMCPToolNames[skill] = allToolNames
-		return allToolNames, nil
-	})
-
-	// Skill-based MCP lifecycle: disconnect when a skill is unloaded.
-	reg.SetOnSkillMCPDisconnect(func(skill string) error {
-		// Remove bridged tools from registry.
-		for _, name := range skillMCPToolNames[skill] {
-			reg.RemoveTool(name)
-		}
-		delete(skillMCPToolNames, skill)
-
-		// Close MCP clients.
-		for _, client := range skillMCPClients[skill] {
-			client.Close()
-		}
-		delete(skillMCPClients, skill)
-		return nil
-	})
 
 	// --gui-debug: auto-load the gui-debug skill on startup.
 	if guiDebug {
@@ -499,11 +378,6 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 			return true
 		}
 		args, _ := json.Marshal(map[string]string{"name": "gui-debug"})
-		// A real Call, so the skill's SkillLoaded event goes through
-		// Record like every other event (ch15: the reducer turns it into
-		// the Skill entry). Its ToolsChanged is dropped: this is startup,
-		// the prefix is not frozen yet, and the declarations are simply
-		// re-derived below.
 		c := &common.Call{Agent: host, Jobs: j}
 		if _, lErr = loadTool.Run(c, args); lErr != nil {
 			fmt.Fprintf(os.Stderr, "gui-debug: %v\n", lErr)
@@ -521,9 +395,8 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		eng.Cfg.Tools = reg.Declarations()
 	}
 
-	// Pause gate: shared between the actor and the WS guiServer.
-	gate := common.NewPauseGate()
-	actor.SetPauseGate(gate)
+	gate := en.PauseGate()
+
 
 	out := bufio.NewWriter(os.Stdout)
 	defer out.Flush()

@@ -15,7 +15,7 @@ func TestEnsembleCreateAndReload(t *testing.T) {
 	cfg := bareConfig(t)
 
 	// Phase 1: create an agent and shut down.
-	en, err := NewEnsemble(dir, cfg)
+	en, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestEnsembleCreateAndReload(t *testing.T) {
 	_ = en.Shutdown()
 
 	// Phase 2: reload from the same directory.
-	en2, err := NewEnsemble(dir, cfg)
+	en2, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble (reload): %v", err)
 	}
@@ -65,7 +65,7 @@ func TestEnsembleDelete(t *testing.T) {
 	dir := t.TempDir()
 	cfg := bareConfig(t)
 
-	en, err := NewEnsemble(dir, cfg)
+	en, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble: %v", err)
 	}
@@ -115,7 +115,7 @@ func TestEnsembleDeleteRejectsWithActiveChildren(t *testing.T) {
 		return toolUse("t1", "submit", map[string]any{"result": "busy"})
 	})
 
-	en, err := NewEnsemble(dir, cfg)
+	en, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestEnsembleDuplicateRejected(t *testing.T) {
 	dir := t.TempDir()
 	cfg := bareConfig(t)
 
-	en, err := NewEnsemble(dir, cfg)
+	en, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble: %v", err)
 	}

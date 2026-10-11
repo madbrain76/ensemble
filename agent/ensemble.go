@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,15 +9,19 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/mcp"
 )
 
-// Ensemble owns the agent map and replaces the manual wiring that used to
+// Ensemble owns the agent tree and replaces the manual wiring that used to
 // live in cmd/main.go. It IS the agent factory: when any agent spawns a
 // child, the Ensemble builds it, wires the factory and user sink, and
 // assigns the data directory. The five composition-root bugs from chapter 25
 // all traced to the host forgetting to wire one of these, and they are all
 // prevented structurally here because they are done in one place.
 type Ensemble struct {
+	root     *Agent                // the root agent (created by New)
 	dir      string                // root data directory
 	cfg      Config                // shared base config (model, API key, etc.)
 	registry []AgentEntry          // persisted to ensemble.json
@@ -24,6 +29,17 @@ type Ensemble struct {
 	mu       sync.RWMutex
 	userAddr string                // what to call the human ("user" by default)
 	userSink func(*Message)        // delivers messages to the human
+
+	// Skill-based MCP lifecycle. When a skill is loaded, its MCP servers
+	// are connected and bridged; when unloaded, the connections close.
+	// These maps live here instead of on a single agent because the
+	// Ensemble is the owner of the process lifetime, and MCP clients are
+	// process-scoped resources (a child agent does not start its own MCP
+	// servers — it inherits tool registrations from the parent).
+	skillMCPClients   map[string][]*mcp.Client
+	skillMCPToolNames map[string][]string
+
+	gate *common.PauseGate
 }
 
 // AgentEntry is one row in the persistent registry.
@@ -39,21 +55,29 @@ func (e *Ensemble) registryPath() string {
 	return filepath.Join(e.dir, "ensemble.json")
 }
 
-// NewEnsemble creates an Ensemble rooted at dir with the given base config.
+// NewEnsemble creates an Ensemble rooted at dir with the given base config
+// and root agent specification.
 //
-// It does NOT start any agents. Call Start after wiring the user sink
-// and any other configuration. Two-phase construction (New + Start) lets
-// the caller install the user sink before any agent can message it.
-func NewEnsemble(dir string, cfg Config) (*Ensemble, error) {
+// The root agent is created immediately: it is the anchor of the agent tree
+// and must exist before anything else. Factory, user sink, MCP lifecycle
+// hooks, and the pause gate are all wired during construction, which is what
+// prevents the five composition-root bugs chapter 25 documented.
+//
+// Two-phase startup: call Start to launch the actor and instantiate
+// registry agents. SetUser should be called between New and Start.
+func NewEnsemble(dir string, cfg Config, rootSpec AgentSpec) (*Ensemble, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, fmt.Errorf("ensemble: data directory: %w", err)
 	}
 
 	e := &Ensemble{
-		dir:      dir,
-		cfg:      cfg,
-		agents:   make(map[string]*Agent),
-		userAddr: UserID,
+		dir:               dir,
+		cfg:               cfg,
+		agents:            make(map[string]*Agent),
+		userAddr:          UserID,
+		skillMCPClients:   make(map[string][]*mcp.Client),
+		skillMCPToolNames: make(map[string][]string),
+		gate:              common.NewPauseGate(),
 	}
 
 	// Load the existing registry, or start empty.
@@ -66,7 +90,33 @@ func NewEnsemble(dir string, cfg Config) (*Ensemble, error) {
 		return nil, fmt.Errorf("ensemble: read %s: %w", e.registryPath(), err)
 	}
 
+	// Create the root agent.
+	root, err := NewAgent(cfg, rootSpec)
+	if err != nil {
+		return nil, fmt.Errorf("ensemble: root agent: %w", err)
+	}
+	e.root = root
+
+	// Wire the factory so children can spawn at any depth.
+	root.SetAgentFactory(e.agentFactory())
+
+	// Wire the pause gate.
+	root.Actor().SetPauseGate(e.gate)
+
+	// Wire skill-based MCP lifecycle on the root agent.
+	e.wireMCPLifecycle(root)
+
 	return e, nil
+}
+
+// Root returns the root agent.
+func (e *Ensemble) Root() *Agent {
+	return e.root
+}
+
+// PauseGate returns the shared pause gate.
+func (e *Ensemble) PauseGate() *common.PauseGate {
+	return e.gate
 }
 
 // SetUser configures the human's address and message sink. Call this before
@@ -78,6 +128,11 @@ func (e *Ensemble) SetUser(addr string, sink func(*Message)) {
 		e.userAddr = addr
 	}
 	e.userSink = sink
+
+	// Wire it into the root agent immediately.
+	if e.root != nil {
+		e.root.SetUser(e.userAddr, UserSinkFunc(sink))
+	}
 }
 
 // Start creates an Agent for every entry in the persistent registry.
@@ -153,6 +208,99 @@ func (e *Ensemble) agentFactory() AgentFactory {
 		child.SetAgentFactory(e.agentFactory())
 		return child, nil
 	}
+}
+
+// wireMCPLifecycle installs the MCP connect/disconnect hooks on an agent's
+// skill registry. When load_skill loads a skill that declares mcp_servers,
+// the hook creates the transport, initializes the client, bridges its tools
+// into the agent's registry, and sets up reverse handling. When unload_skill
+// removes the skill, the hook closes the clients and unregisters the tools.
+func (e *Ensemble) wireMCPLifecycle(a *Agent) {
+	host := a
+	j := a.Jobs()
+	reg := a.Registry()
+
+	reg.SetOnSkillMCPConnect(func(skill string, servers []common.MCPServerConfig) ([]string, error) {
+		var allToolNames []string
+		for _, srv := range servers {
+			var t mcp.Transport
+			var tErr error
+			switch srv.Transport {
+			case "stdio":
+				t, tErr = mcp.NewStdioTransport(srv.Command, srv.Args, srv.Env)
+			case "url":
+				var headers map[string]string
+				if srv.AuthEnv != "" {
+					if token := os.Getenv(srv.AuthEnv); token != "" {
+						headers = map[string]string{
+							"Authorization": "Bearer " + token,
+						}
+					} else {
+						host.Logf("skill %s MCP %s: $%s is unset; connecting without a key",
+							skill, srv.Name, srv.AuthEnv)
+					}
+				}
+				t, tErr = mcp.NewHTTPTransport(srv.URL, headers)
+			default:
+				host.Logf("skill %s: unsupported MCP transport %q, skipping", skill, srv.Transport)
+				continue
+			}
+			if tErr != nil {
+				return nil, fmt.Errorf("skill %s MCP %s: %w", skill, srv.Name, tErr)
+			}
+
+			client := mcp.NewClient(t)
+			if err := client.Initialize(context.Background()); err != nil {
+				client.Close()
+				return nil, fmt.Errorf("skill %s MCP %s init: %w", skill, srv.Name, err)
+			}
+
+			mcpTools, err := client.ListTools(context.Background())
+			if err != nil {
+				client.Close()
+				return nil, fmt.Errorf("skill %s MCP %s list: %w", skill, srv.Name, err)
+			}
+
+			bridged := mcp.Bridge(client, mcpTools)
+			for _, bt := range bridged {
+				reg.RegisterTool(bt)
+				allToolNames = append(allToolNames, bt.Name)
+			}
+
+			client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
+				tool, lErr := reg.Lookup(name)
+				if lErr != nil {
+					return "", lErr
+				}
+				return tool.Run(&common.Call{Agent: host, Jobs: j}, args)
+			})
+
+			e.mu.Lock()
+			e.skillMCPClients[skill] = append(e.skillMCPClients[skill], client)
+			e.mu.Unlock()
+		}
+		e.mu.Lock()
+		e.skillMCPToolNames[skill] = allToolNames
+		e.mu.Unlock()
+		return allToolNames, nil
+	})
+
+	reg.SetOnSkillMCPDisconnect(func(skill string) error {
+		e.mu.Lock()
+		names := e.skillMCPToolNames[skill]
+		clients := e.skillMCPClients[skill]
+		delete(e.skillMCPToolNames, skill)
+		delete(e.skillMCPClients, skill)
+		e.mu.Unlock()
+
+		for _, name := range names {
+			reg.RemoveTool(name)
+		}
+		for _, client := range clients {
+			client.Close()
+		}
+		return nil
+	})
 }
 
 // saveRegistryLocked writes ensemble.json. The caller must hold e.mu.
@@ -271,17 +419,35 @@ func (e *Ensemble) Agents() []*Agent {
 	return out
 }
 
-// Shutdown stops all agents and saves.
+// Shutdown stops all agents (including root) and closes MCP clients.
 func (e *Ensemble) Shutdown() error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var firstErr error
+
+	// Shut down named agents.
 	for name, agent := range e.agents {
 		if err := agent.Shutdown(); err != nil && firstErr == nil {
 			firstErr = fmt.Errorf("ensemble: shutdown %s: %w", name, err)
 		}
 	}
 	e.agents = make(map[string]*Agent)
+
+	// Shut down the root agent.
+	if e.root != nil {
+		if err := e.root.Shutdown(); err != nil && firstErr == nil {
+			firstErr = fmt.Errorf("ensemble: shutdown root: %w", err)
+		}
+	}
+
+	// Close all MCP clients.
+	for skill, clients := range e.skillMCPClients {
+		for _, client := range clients {
+			client.Close()
+		}
+		delete(e.skillMCPClients, skill)
+	}
+
 	return firstErr
 }
 

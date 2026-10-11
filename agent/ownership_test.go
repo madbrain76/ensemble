@@ -18,7 +18,7 @@ func TestOwnershipEnforcementCrossTreeRejected(t *testing.T) {
 		return toolUse("t1", "submit", map[string]any{"result": "ok"})
 	})
 
-	en, err := NewEnsemble(dir, cfg)
+	en, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestOwnershipEnforcementJoinRejectsUnknown(t *testing.T) {
 	dir := t.TempDir()
 	cfg := bareConfig(t)
 
-	en, err := NewEnsemble(dir, cfg)
+	en, err := NewEnsemble(dir, cfg, AgentSpec{DataDir: dir})
 	if err != nil {
 		t.Fatalf("NewEnsemble: %v", err)
 	}
