@@ -1,7 +1,10 @@
-# Original25 / Edition2ch22 completion: reviewer preparation
+# Original25 / Edition2ch22 completion: independent code review
 
 Reviewer `reviewer_astra`, GPT-6 Astra/high, October 11, 2026.
-**Preparation only; implementation and formal review pending; zero rounds.**
+**Accepted with two documented exceptions on initial formal review; zero correction rounds.**
+Final source `e00d5bcaf1412c50787428ef1fa08bed59b99e11`, main tree
+`30fb05d154b9808eb88622aaff9c1424cd7e8af1` (170 tracked source files).
+The preparation and pre-submission history below remain preserved.
 Mandatory `.agents/skills/ensemble-coding/SKILL.md` applies. Current full-source
 reading is recorded in [ch22 review](ch22-code-review.md) and [ch25 notes](ch25.md).
 No original answer, provider or grader execution was used for this preflight.
@@ -135,3 +138,106 @@ retain their earlier protocol. Final review must explicitly assess this bounded
 compatibility departure against the manuscript's universal wording; it is not
 an unrecorded exception or permission for a fleet child to bypass correction.
 Final student review, live provenance and mutation classification remain pending.
+
+## Final disposition — accepted with exceptions
+
+Read the **entire final student review** in [ch25.md](ch25.md), final source and
+README, original25 implementation/tests against original24, and the actual
+original grading, final checks, live artifacts and all mutation outputs. Final
+source `e00d5bc` differs from independently checked/live `891d513` only by README
+prose and two correlation-test diagnostics; production bytes are identical.
+The affected final correlation test independently passes (0.018s). Repeating the
+paid run or broad unchanged checks would not strengthen this delta's evidence.
+
+I accept these two narrowly bounded explanations under Bill's review exception
+rule:
+
+1. **Missing-model grader fixture.** Actual original25 result remains **0/100
+   FAIL**, make2/grader1,0.610s on exact first-green `7175d33`. The unchanged
+   harness provides a fake endpoint and dummy keys but no model; every scenario
+   exits before inference. Keeping explicit model selection is consistent with
+   the accepted application and avoids inventing a remembered provider default.
+   This waives that launch fixture, not the seven behavioral obligations. No
+   terminal-envelope or other unobserved failure is silently waived.
+2. **Factory-selected fleet protocol.** The chapter's universal “any Agent”
+   wording is narrowed for existing applications that never enable fleet mode.
+   Installing the factory selects the protocol for the entire Ensemble; the
+   shared actor enforces correction for root and recursive descendants, and the
+   actual CLI installs both factory and human sink. No-factory clients hide
+   fleet tools at declaration and dispatch and preserve their earlier completion
+   behavior. This is a small compatibility boundary for existing non-fleet
+   consumers, including the optional GUI, not application-managed correction
+   or a bypass for fleet children. README and student review disclose it.
+   Future fleet-enabled clients must install this composition explicitly.
+
+The valid masked obligations are covered by real runtime checks: recursive
+three-generation construction with both actual parents; isolated child files,
+restore and cascading shutdown; current child status/removal; all-selected fan-in;
+question yield and addressed replies; incoming-message wake while the same real
+job continues and later delivers bytes; and literal three-wake correction,
+escalation, active-child rejection, successful-submit reset and no failed-turn
+retry. Built-CLI checks exercise human reply during a blocked turn and root
+escalation. Core tests/vet, GUI tests/vet and focused fleet race results actually
+pass; no empty test selection is credited. Earlier sandbox/accounting behavior
+reuses accepted coverage. The two independent pre-submission regressions above
+now pass, including same-name routing and truthful failed-not-submitted status.
+There are no remaining blocking implementation findings.
+
+### Mutation assessment
+
+Read all 21 attempt records and raw outputs: **19 intended assertion failures,
+one initial eight-second liveness failure, and one initial collision diagnostic
+requiring inspection**. The initial generic early-join timeout is causally a
+failed liveness check with a working baseline, not the originally predicted
+output assertion. Its narrower parked-parent test detects missing question yield
+at 500ms without generic wait wakeup masking it. The collision's initial context
+failure is preserved; the final diagnostic reports one retained question after
+one child request, and the restored-collision defect fails that check. Both
+replacement runs are included in 19, not additional independent proofs. The
+factory bypass actually fails depth/ownership rather than its initially expected
+broad label; that revised interpretation is supported by the raw output.
+The missing-human-sink mutant reaches its intended six-second UI liveness checks
+and bounded child-process cancellation, not a package-wide test timeout.
+No compile/setup failures or unresolved survivors are counted as kills.
+
+### Live result and limits
+
+Independently verified the exact live binary SHA, all 20 actual Astra/high request
+records,20 Astra completions and matching created/completed response-ID sets.
+All 16 non-submit tool-return payloads match actual provider inputs by call ID.
+Root and three child logs show real question/reply, file creation, command tests,
+explicit submission and collected results. Actual artifact bytes match saved
+copies; independent Python assertions pass. Join 12 starts 55.751, receives stdin
+steering 55.885, returns running 55.887, then the same handle returns all three
+submissions at18:31:10.340. The full steering text occurs in actual provider
+input 15. The CLI exits 0 after 48.198s.
+
+The final submit omits `STEER_COBALT`. I accept the student's explicit limit:
+transport delivery and job continuity worked, while the model did not fully obey
+that instruction. This is not evidence of perfect steering compliance. Preserve
+also the add child's malformed shell command (exit1) and self-correction (exit0),
+which is ordinary tool-error recovery, not automatic failed-turn retry. Shared
+wire records do not justify ordinal request/response pairing. Raw wire bytes are
+preserved in `live-api.txt`; [reviewer receipt](../../solutions/edition-2/evidence/ch25/reviewer-live-check.json)
+records its verified hash and these limits. No fresh provider call, credential
+access, billing-charge claim or endpoint interception was performed by review.
+
+### Comparative conclusion and release
+
+The final counted delta remains the 802/645/112/45 production-Go and
+711/659/36/16 test-Go figures above. README adds 22 prose lines, kept outside
+implementation counts. The original 950 active-line delta includes three unrelated
+model-catalog additions; excluding those still leaves 947, versus student's 645.
+No source moves conceal growth. Exported additions have useful contracts and
+ownership/lifetime explanations; the useful comments are thinner than the
+original but not replaced by compressed syntax. Tests protect real earlier
+machinery and actual CLI wiring without mock substitution or a new framework.
+Required capabilities, not line count alone, support the simpler implementation.
+No optional fleet tools, GUI fleet controls or speculative registries were added.
+
+**Accept original25, completing combined original24+25 / Edition2 Chapter22.**
+Zero formal correction rounds used; the two real defects were corrected with
+attributed pre-submission assistance. Coordinator may now export the exact
+accepted main tree and perform Bill's conditional original26 readiness check.
+This acceptance neither authors Edition3 nor preaccepts original26.
+Mandatory `.agents/skills/ensemble-coding/SKILL.md` governs the next handoff.

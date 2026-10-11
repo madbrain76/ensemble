@@ -1,6 +1,6 @@
 {
   "method": "Physical/active/comment-only/blank; lexical comment-only starts //, /*, *, */, <!--; inline code remains active. Tracked Go/JS/MJS/HTML/CSS; tests and scripts support separated; docs/evidence/generated IO excluded. Net own-predecessor deltas count moves once.",
-  "student_source": "891d513bf142013d6888760cfae4fcaab1edd680",
+  "student_source": "e00d5bcaf1412c50787428ef1fa08bed59b99e11",
   "student_predecessor": "0430df4340fffac5234a94aea843f9a7c9d02282",
   "original_source": "solutions/ch25 at 891d513bf142013d6888760cfae4fcaab1edd680",
   "original_predecessor": "solutions/ch24 at 891d513bf142013d6888760cfae4fcaab1edd680",
@@ -253,5 +253,6 @@
         189
       ]
     }
-  }
+  },
+  "final_delta_note": "Compared against counted891d513: README adds22 prose lines; two test diagnostics change text only. All counted totals and production bytes unchanged."
 }

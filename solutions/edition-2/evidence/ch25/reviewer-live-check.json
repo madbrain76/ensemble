@@ -24,5 +24,9 @@
     "Interleaved wire log does not establish ordinal request-response pairing.",
     "No provider calls, profile reads, endpoint interception or billing-charge claim by reviewer."
   ],
-  "disposition": "Live transport/runtime/artifact verification; final chapter review pending."
+  "disposition": "Independent original25 review accepts live runtime/artifact evidence with recorded model-compliance limitation; final accepted production bytes equal live source.",
+  "raw_wire_path": "solutions/edition-2/evidence/ch25/live-api.txt",
+  "raw_wire_sha256": "b2f9ac4bc42e509357cdf3e273574dedc73e7c3335a0d80b0b1fae2b5efd031d",
+  "final_source_commit": "e00d5bcaf1412c50787428ef1fa08bed59b99e11",
+  "final_main_tree": "30fb05d154b9808eb88622aaff9c1424cd7e8af1"
 }
