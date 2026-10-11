@@ -20,6 +20,17 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 original18 / Edition2 ch17 is in progress.** Fresh blind student
+`student_continue_ch18` extends accepted original17. The instrument-first stage
+is green at `294aaf4`: main-request cache lens, real-rendered byte/append checks,
+auxiliary-call exclusion, and core/GUI tests/vet. Markers, session meter, original
+grading, live grants and formal comparative review remain. Coordinator recovered
+the missing external launch/usage/artifact contract in `edition-2-notes/ch18.md`,
+with exact sources and the repeated untyped-skill fixture issue; no compatibility
+features or grader changes are authorized. Reviewer completed public-contract
+preparation only. Original19 source/current official OAuth preparation is recorded
+separately, without authentication, private profile access or implementation.
+
 **October 11 Auto-Recall accepted at initial formal review.** Original17 /
 Edition2 ch16 is accepted with recorded fixture exceptions, zero formal correction
 rounds, source `a2f0a4f`, main tree `83e2f4cc85eb91ef9f62a54f638baa4d538cacf8`.
