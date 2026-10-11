@@ -4,6 +4,11 @@
 an accepted cumulative solution. `main/` remains the authoritative working
 implementation; extend it for future student work rather than editing snapshots.
 
+The original student run has resumed beyond the enhanced book. Its new accepted
+original-numbered exports live under [history](history/#resumed-original-student-run),
+starting with original Chapter 10; `main/` advances after each independent review.
+These new student checkpoints do not claim corresponding manuscript enhancements.
+
 Bill authorized the solution renumbering on October 10, 2026. The code is
 unchanged: the old Chapter 5 solution supplies the combined Chapter 4, including
 jobs and the separately built custom-tool consumer. Later snapshots shift down

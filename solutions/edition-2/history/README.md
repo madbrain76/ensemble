@@ -28,3 +28,17 @@ retain their original chapter numbers, scores and command transcripts.
 
 Do not edit these historical exports. This archive records the original student
 run and is distinct from the retired author-first attempt.
+
+## Resumed original student run
+
+New accepted snapshots keep original chapter numbers here while the completed
+book-facing Chapters 1–8 remain frozen. They extend the authoritative `../main/`.
+
+| Original chapter | Snapshot and source manifest | Checkpoint |
+| --- | --- | --- |
+| 10: Skills | [ch10](ch10/), [manifest](ch10-manifest.json), 75 files | `edition-2-ch10-r2` |
+
+Chapter 10 is accepted with independently recorded exceptions. The full original
+run was interrupted/unscored; focused unchanged skills checks earned 65/85, with
+two undefined `think` name checks failing. See the [review](../../../docs/edition-2-notes/ch10-code-review.md).
+This table supplements the immutable renumbering manifest above.

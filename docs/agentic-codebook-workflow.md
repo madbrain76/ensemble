@@ -2,6 +2,29 @@
 
 ## October 10: resumed original student run
 
+Original Chapter 10 is accepted with exceptions at initial review, with zero
+implementation correction rounds. The full original grader was interrupted and
+unscored (exit 2) during its known GUI/headless parity mismatch. The reviewer
+noticed that a new full-primary phase follows recursive parity, then invoked all
+unchanged Chapter 10 phases in an isolated bridge: 65/85, with only two undefined
+`think` declaration checks failing. The six other checks pass 65/65. These are
+focused results, not a full original grade; both exceptions have independent
+rationale in `edition-2-notes/ch10-code-review.md`. Tests/vet across five modules,
+core race checks, twenty targeted coder mutations and three-provider live skill
+sessions support acceptance. Review corrected a live claim: reading an initially
+enabled tool after unload does not prove a dynamically added tool remained.
+Source tests and a mutation establish that separate claim. No paid repeat was
+needed. A coordinator staging mistake briefly included three generated grader
+logs in the progress commit; they were removed after process cleanup, before
+the accepted export. Inspect generated files as well as the path boundary when
+staging a running tree.
+
+The exact 75-file original Chapter 10 snapshot is `solutions/edition-2/history/ch10`,
+with a sibling source manifest and fresh tag `edition-2-ch10-r2`; the existing
+retired attempt's r1 tag is unchanged. Continuing original-numbered student
+exports use `history/` while the completed book-facing Chapters 1–8 stay frozen.
+Original Chapter 11, Persistence, follows from this accepted working tree.
+
 Bill has now released the coder and reviewer after the completed early enhancement
 and solution renumbering: “Please set the coder and reviewer lose again. They
 should tear quickly through the book.” Resume at original Chapter 10, Skills,
