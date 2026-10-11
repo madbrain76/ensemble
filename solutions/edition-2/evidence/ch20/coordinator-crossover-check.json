@@ -1,0 +1,44 @@
+{
+  "reviewer": "coordinator",
+  "source_commit": "fab031529cda55a76d530478f09de0cd08e7db36",
+  "main_tree": "59010a4c2b333c2f74777b6d76079e8f2b3af90d",
+  "actual_requests": 5,
+  "model": "gpt-6-astra",
+  "reasoning_effort": "high",
+  "tool_sequence": [
+    "read_file",
+    "read_file",
+    "run_command",
+    "edit_file",
+    "run_command"
+  ],
+  "actual_command_exit_codes": [
+    1,
+    0
+  ],
+  "checks": [
+    "All five captured model requests select exact Astra/high.",
+    "Model-issued edit_file substitution reproduces final source exactly.",
+    "All six test definitions remain byte-identical.",
+    "Actual run_command results show three failures/three errors before edit and six passes afterward.",
+    "CLI returned0 with retained save; no timeout.",
+    "No current dedicated profile credentials or identity values found in inspected evidence."
+  ],
+  "limits": [
+    "One bounded scratch coding task, not broad reliability or Edition3 authorship.",
+    "Full URL derives from configured base and source, not independent network capture."
+  ],
+  "sha256": {
+    "live-api.log": "789b7f81686a84ee5ef2d147619e5acf134eb92fb8183e2f752158aaabda480d",
+    "live-events.jsonl": "691a6547496181afbc6b57a5998ab4bde1c487665840d6d4db07c47a12512915",
+    "live-stdout.txt": "0b96826c5b4b2501f3dddaf4a5cadb04771c3cf594530e58d73a9019d9203fe7",
+    "live-stderr.txt": "732f96be549f4c62a68efde6077131e249b71e4b0592f92ef2d94f24ce33030f",
+    "live-result.json": "26053f7d4025ea2b5d4d22b51c26369828aa53401db6a4b69d4077100ea51e88",
+    "live-save.json": "11f2ced0294858b1757c402030d20e8171c19b094e38eaf2692e8b5e08d09278",
+    "task.patch": "1a8814e5b65518b8189da3520b5158d3c378ff27a1281ea8139015c668db2fc6",
+    "task-before/aggregate.py": "5082bb1e0344e636cc545faab5b63e6c52806caf803adf131d50885089cb122a",
+    "task-after/aggregate.py": "ddd2fc03a1d7f4bfb780de840c0f6c6a682e3f5bafe388e0f369fa4c2f29b794",
+    "task-before/test_aggregate.py": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9",
+    "task-after/test_aggregate.py": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9"
+  }
+}
