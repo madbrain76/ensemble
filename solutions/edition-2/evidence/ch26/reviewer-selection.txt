@@ -1,0 +1,72 @@
+Source: 974f67be89272ea60fa17b460cefde0e478a137b
+go test -race -run ^TestReviewerSelectionDisconnect$ -count=1 -timeout=8s -v
+=== RUN   TestReviewerSelectionDisconnect
+--- PASS: TestReviewerSelectionDisconnect (0.61s)
+PASS
+ok  	ensemble-gui-stub	1.634s
+
+exit=0
+
+Longer admission window: 3s rather than 600ms; same actual client.
+=== RUN   TestReviewerSelectionDisconnect
+    reviewer_selection_test.go:18: GUI Close remained blocked after slow selecting browser disconnected
+--- FAIL: TestReviewerSelectionDisconnect (4.01s)
+FAIL
+exit status 1
+FAIL	ensemble-gui-stub	4.031s
+
+exit=1
+
+Final exact probe with one-selection positive control and parked-stack diagnostics:
+=== RUN   TestReviewerSelectionDisconnectControl
+--- PASS: TestReviewerSelectionDisconnectControl (0.11s)
+=== RUN   TestReviewerSelectionDisconnect
+    reviewer_selection_test.go:18: goroutine 43 [chan send]:
+        ensemble-gui-stub.(*Server).socket(0xc000224210, {0x104d6d148, 0xc00010c3c0}, 0xc00026cdc0)
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/gui/gui.go:332 +0x1c44
+        net/http.HandlerFunc.ServeHTTP(0xc000199100, {0x104d6d148, 0xc00010c3c0}, 0xc00026cdc0)
+        	/usr/local/go/src/net/http/server.go:2322 +0x4c
+        net/http.(*ServeMux).ServeHTTP(0xc00022a240, {0x104d6d148, 0xc00010c3c0}, 0xc00026cdc0)
+        	/usr/local/go/src/net/http/server.go:2861 +0x1b0
+        net/http.serverHandler.ServeHTTP({0xc000192480?}, {0x104d6d148, 0xc00010c3c0}, 0xc00026cdc0)
+        	/usr/local/go/src/net/http/server.go:3340 +0x274
+        net/http.(*conn).serve(0xc0001a8ea0, {0x104d6d5a8, 0xc0003b8240})
+        	/usr/local/go/src/net/http/server.go:2109 +0x9b4
+        created by net/http.(*Server).Serve in goroutine 41
+        	/usr/local/go/src/net/http/server.go:3493 +0x5e0
+    reviewer_selection_test.go:18: goroutine 54 [select]:
+        ensemble/internal/mcp.(*client).request(0xc000232000, {0x104d6d4b8, 0x10508ccc0}, {0x104ba2455, 0xa}, {0x104ceab40, 0xc000344ba0}, {0x104cbc220, 0xc000198350})
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/internal/mcp/client.go:118 +0x448
+        ensemble/internal/mcp.(*client).initialize(0xc000232000, {0x104d6d4b8, 0x10508ccc0})
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/internal/mcp/client.go:140 +0x284
+        ensemble/internal/mcp.(*manager).Connect(0xc000230320, {0x104d6d4b8, 0x10508ccc0}, {0x104ba0cbb, 0x7}, {0x104d6cde8, 0xc00009c8a0})
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/internal/mcp/mcp.go:122 +0x38c
+        ensemble/internal/mcp.(*manager).AttachBrowser(0xc000230320, {0x104d6d4b8, 0x10508ccc0}, {0x104d6cde8, 0xc00009c8a0})
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/internal/mcp/mcp.go:253 +0x1c4
+        ensemble-gui-stub.(*Server).socket.func4()
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/gui/gui.go:341 +0x74
+        created by ensemble-gui-stub.(*Server).socket in goroutine 43
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/gui/gui.go:340 +0x1db0
+    reviewer_selection_test.go:18: goroutine 55 [sync.Mutex.Lock]:
+        internal/sync.runtime_SemacquireMutex(0xc000230330?, 0x0?, 0xc00006df48?)
+        	/usr/local/go/src/runtime/sema.go:95 +0x28
+        internal/sync.(*Mutex).lockSlow(0xc000224258)
+        	/usr/local/go/src/internal/sync/mutex.go:149 +0x1e4
+        internal/sync.(*Mutex).Lock(0xc000224258)
+        	/usr/local/go/src/internal/sync/mutex.go:70 +0x5c
+        sync.(*Mutex).Lock(0xc000224258)
+        	/usr/local/go/src/sync/mutex.go:46 +0x30
+        ensemble-gui-stub.(*Server).Close(0xc000224210)
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/gui/gui.go:465 +0x3c
+        ensemble-gui-stub_test.TestReviewerSelectionDisconnect.func1()
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/gui/reviewer_selection_test.go:17 +0x34
+        created by ensemble-gui-stub_test.TestReviewerSelectionDisconnect in goroutine 38
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch26-full-review-z33bsr2_/solutions/edition-2/main/gui/reviewer_selection_test.go:17 +0x850
+        
+    reviewer_selection_test.go:18: GUI Close remained blocked after slow selecting browser disconnected
+--- FAIL: TestReviewerSelectionDisconnect (4.02s)
+FAIL
+exit status 1
+FAIL	ensemble-gui-stub	4.141s
+
+exit=1

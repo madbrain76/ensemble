@@ -1,0 +1,19 @@
+package gui_test
+import("testing";"runtime";"ensemble/ensemble";gui "ensemble-gui-stub";"io";"net";"net/http/httptest";"strings";"time";"github.com/gorilla/websocket")
+// A real slow browser selects repeatedly, then disconnects. Shutdown must join
+// the writer and receiver even when repeated replay fills the outgoing queue.
+func TestReviewerSelectionDisconnect(t *testing.T){
+ root:=ensemble.New(io.Discard)
+ a,err:=root.NewAgent(ensemble.Config{Model:"fake",DataDir:t.TempDir(),Recall:ensemble.RecallSettings{Disabled:true}});if err!=nil{t.Fatal(err)}
+ if err=a.Record(ensemble.Event{Type:"message_received",Message:&ensemble.MessageData{Actor:ensemble.Human,Parts:[]ensemble.Part{{Type:"text",Text:strings.Repeat("x",65536)}}}});err!=nil{t.Fatal(err)}
+ hub,err:=gui.New(root,a,io.Discard);if err!=nil{t.Fatal(err)}
+ server:=httptest.NewServer(hub.Handler(""))
+ c,_,err:=websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL,"http")+"/ws",nil);if err!=nil{t.Fatal(err)}
+ c.UnderlyingConn().(*net.TCPConn).SetReadBuffer(1024)
+ c.SetWriteDeadline(time.Now().Add(2*time.Second))
+ for i:=0;i<320;i++ {if err=c.WriteJSON(map[string]string{"type":"select_agent","key":"main"});err!=nil{t.Fatal(err)}}
+ time.Sleep(3*time.Second)
+ c.Close()
+ done:=make(chan struct{});go func(){hub.Close();close(done)}()
+ select{case <-done: a.Shutdown();server.Close();case <-time.After(time.Second):buf:=make([]byte,65536);n:=runtime.Stack(buf,true);for _,stack:=range strings.Split(string(buf[:n]),"\n\n"){if strings.Contains(stack,"ensemble-gui-stub.(*Server).socket")||strings.Contains(stack,"ensemble-gui-stub.(*Server).Close"){t.Log(stack)}};t.Fatal("GUI Close remained blocked after slow selecting browser disconnected")}
+}
