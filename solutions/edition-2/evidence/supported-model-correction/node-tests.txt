@@ -1,0 +1,70 @@
+✖ session meter renders measured usage and unknown price (859.801084ms)
+✖ speech pipeline, real delivery and blind capabilities (1337.326083ms)
+▶ peer EOF cancels pending sleep and the actual client can finish
+  ✔ peer keeps normal sleep but exits on EOF during sleep (1530.144834ms)
+  ✔ real client exits after its answer with a sleep job still active (4325.615417ms)
+✔ peer EOF cancels pending sleep and the actual client can finish (6483.759417ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9048.158041
+
+✖ failing tests:
+
+test at cache.test.mjs:13:1
+✖ session meter renders measured usage and unknown price (859.801084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Cost $0.0003 · Input 100 · Cache 80 · Hit 80.0%'
+  - 'Cost $0.0001 · Input 100 · Cache 80 · Hit 80.0%'
+  
+      at TestContext.<anonymous> (file:///Users/bill/projects/ensemble/solutions/edition-2/main/gui/cache.test.mjs:39:13)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Cost $0.0003 · Input 100 · Cache 80 · Hit 80.0%',
+    expected: 'Cost $0.0001 · Input 100 · Cache 80 · Hit 80.0%',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at speech.test.mjs:15:1
+✖ speech pipeline, real delivery and blind capabilities (1337.326083ms)
+  AssertionError [ERR_ASSERTION]: whole final is spoken
+  + actual - expected
+  
+    [
+      {
+        source: 'text',
+        text: 'Whole queue Chunk and max tool rounds.'
+      },
+  +   {
+  +     source: 'text',
+  +     text: 'Whole queue Chunk and max tool rounds.'
+  +   },
+  +   {
+  +     source: 'text',
+  +     text: 'Whole queue Chunk and max tool rounds.'
+  +   },
+  +   {
+  +     source: 'text',
+  +     text: 'Whole queue Chunk and max tool rounds.'
+  +   }
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/bill/projects/ensemble/solutions/edition-2/main/gui/speech.test.mjs:260:14)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],
+    expected: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

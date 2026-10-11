@@ -404,7 +404,7 @@ func TestRecallJudgeRoute(t *testing.T) {
 	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { beta <- r.Header.Get("anthropic-beta"); peer.serve(w, r) }))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.Anthropic, Model: "claude-opus-5-course", BaseURL: server.URL, DataDir: t.TempDir(), Recall: ensemble.RecallSettings{JudgeModel: "claude-haiku-5-5"}})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.Anthropic, Model: "claude-opus-5-course", BaseURL: server.URL, DataDir: t.TempDir(), Recall: ensemble.RecallSettings{JudgeModel: "claude-sonnet-5"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -415,7 +415,7 @@ func TestRecallJudgeRoute(t *testing.T) {
 	if <-beta != "" {
 		t.Fatal("judge inherited parent model header")
 	}
-	if !strings.Contains(peer.wires()[0], "claude-haiku-5-5") {
+	if !strings.Contains(peer.wires()[0], "claude-sonnet-5") {
 		t.Fatal("judge route model missing")
 	}
 }

@@ -1,0 +1,66 @@
+✖ session meter renders measured usage and unknown price (1334.421917ms)
+✖ speech pipeline, real delivery and blind capabilities (1227.451042ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2888.920875
+
+✖ failing tests:
+
+test at cache.test.mjs:13:1
+✖ session meter renders measured usage and unknown price (1334.421917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Session tokens: input 80, cache write 0, cache read 320, output 8'
+  - 'Session tokens: input 20, cache write 0, cache read 80, output 2'
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-model-baseline-i7vtoncm/solutions/edition-2/main/gui/cache.test.mjs:40:13)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Session tokens: input 80, cache write 0, cache read 320, output 8',
+    expected: 'Session tokens: input 20, cache write 0, cache read 80, output 2',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at speech.test.mjs:15:1
+✖ speech pipeline, real delivery and blind capabilities (1227.451042ms)
+  AssertionError [ERR_ASSERTION]: whole final is spoken
+  + actual - expected
+  
+    [
+      {
+        source: 'text',
+        text: 'Whole queue Chunk and max tool rounds.'
+      },
+  +   {
+  +     source: 'text',
+  +     text: 'Whole queue Chunk and max tool rounds.'
+  +   },
+  +   {
+  +     source: 'text',
+  +     text: 'Whole queue Chunk and max tool rounds.'
+  +   },
+  +   {
+  +     source: 'text',
+  +     text: 'Whole queue Chunk and max tool rounds.'
+  +   }
+    ]
+  
+      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-model-baseline-i7vtoncm/solutions/edition-2/main/gui/speech.test.mjs:260:14)
+      at async Test.run (node:internal/test_runner/test:1404:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],
+    expected: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

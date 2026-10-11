@@ -28,7 +28,7 @@ func TestModelSelectionWireAndRequest(t *testing.T) {
 	}))
 	defer provider.Close()
 	root := ensemble.New(io.Discard)
-	a, err := root.NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: provider.URL, DisableStreaming: true, DataDir: t.TempDir()})
+	a, err := root.NewAgent(ensemble.Config{Model: "claude-opus-5", BaseURL: provider.URL, DisableStreaming: true, DataDir: t.TempDir()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TestModelSelectionWireAndRequest(t *testing.T) {
 	if _, exists := saved["model"]; exists {
 		t.Fatal("session model persisted")
 	}
-	patch(map[string]any{"model": "claude-haiku-5-5", "theme": "dark"})
+	patch(map[string]any{"model": "claude-opus-5", "theme": "dark"})
 	until(t, first, kind("settings_error"))
 	if a.Config().Model != "claude-sonnet-5" {
 		t.Fatal("rejected mixed update changed model")

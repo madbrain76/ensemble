@@ -15,7 +15,7 @@ import (
 )
 
 // Actual provider responses establish the counts. Switching models must neither
-// erase them nor price the old Haiku work as the newly selected Sonnet model.
+// erase them nor conceal unknown cost after work on an unpriced model.
 func TestAgentStatusModelAccounting(t *testing.T) {
 	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -25,19 +25,19 @@ func TestAgentStatusModelAccounting(t *testing.T) {
 		}
 		json.NewDecoder(r.Body).Decode(&body)
 		if calls.Add(1) == 1 {
-			if body.Model != "claude-haiku-5-5" {
+			if body.Model != "claude-sonnet-5" {
 				t.Error("first request has wrong model")
 			}
 			io.WriteString(w, `{"content":[{"type":"text","text":"one"}],"usage":{"input_tokens":100,"output_tokens":10,"cache_read_input_tokens":20,"cache_creation_input_tokens":30}}`)
 		} else {
-			if body.Model != "claude-sonnet-5" {
+			if body.Model != "claude-opus-5" {
 				t.Error("model switch never reached provider")
 			}
 			io.WriteString(w, `{"content":[{"type":"text","text":"two"}],"usage":{"input_tokens":200,"output_tokens":20,"cache_read_input_tokens":40,"cache_creation_input_tokens":60}}`)
 		}
 	}))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.Anthropic, Model: "claude-haiku-5-5", ResolvedModel: "prior-resolved-id", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, DisableStreaming: true})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.Anthropic, Model: "claude-sonnet-5", ResolvedModel: "prior-resolved-id", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, DisableStreaming: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,31 +56,31 @@ func TestAgentStatusModelAccounting(t *testing.T) {
 			}
 		}
 	}
-	status("model: claude-haiku-5-5", "last response: 0 in, 0 out, 0 cache read, 0 cache write", "cache hit rate: 0.00%", "cost: $0.000000")
+	status("model: claude-sonnet-5", "last response: 0 in, 0 out, 0 cache read, 0 cache write", "cache hit rate: 0.00%", "cost: $0.000000")
 	if _, err := a.Ask(ctx, "first"); err != nil {
 		t.Fatal(err)
 	}
-	status("last response: 100 in, 10 out, 20 cache read, 30 cache write", "session total: 100 in, 10 out, 20 cache read, 30 cache write", "cost: $0.000019")
+	status("last response: 100 in, 10 out, 20 cache read, 30 cache write", "session total: 100 in, 10 out, 20 cache read, 30 cache write", "cost: $0.000379")
 	before := a.Engine().Meter()
-	if err := a.SetModel("claude-sonnet-5"); err != nil {
+	if err := a.SetModel("claude-opus-5"); err != nil {
 		t.Fatal(err)
 	}
 	if a.Engine().Meter() != before {
 		t.Fatal("selection changed historical counts or cost")
 	}
-	if a.Engine().Target().Model != "claude-sonnet-5" || a.Config().Vendor != ensemble.Anthropic {
+	if a.Engine().Target().Model != "claude-opus-5" || a.Config().Vendor != ensemble.Anthropic {
 		t.Fatal("selection retained stale identity or changed provider")
 	}
-	status("model: claude-sonnet-5", "cost: $0.000019")
+	status("model: claude-opus-5", "cost: $0.000379")
 	if _, err := a.Ask(ctx, "second"); err != nil {
 		t.Fatal(err)
 	}
-	status("last response: 200 in, 20 out, 40 cache read, 60 cache write", "session total: 300 in, 30 out, 60 cache read, 90 cache write", "cache hit rate: 13.33%", "cost: $0.000777")
+	status("last response: 200 in, 20 out, 40 cache read, 60 cache write", "session total: 300 in, 30 out, 60 cache read, 90 cache write", "cache hit rate: 13.33%", "cost: unknown")
 	if err := a.SetModel("unpriced-model"); err != nil {
 		t.Fatal(err)
 	}
-	// Selecting an unknown future price does not invalidate measured past spend.
-	status("model: unpriced-model", "cost: $0.000777")
+	// Once unpriced work occurs, another selection cannot make that total known.
+	status("model: unpriced-model", "cost: unknown")
 	fresh, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "unpriced-model", DataDir: t.TempDir(), BuiltinTools: true})
 	if err != nil {
 		t.Fatal(err)
@@ -131,7 +131,7 @@ func TestAgentStatusToolLoop(t *testing.T) {
 						continue
 					}
 					s := blocks[0].Text
-					found = strings.HasPrefix(s, "model: claude-haiku-5-5\n") && strings.Contains(s, "last response: 70 in, 3 out, 20 cache read, 10 cache write") && strings.Contains(s, "cache hit rate: 20.00%") && strings.Contains(s, "cost: $0.000010")
+					found = strings.HasPrefix(s, "model: claude-sonnet-5\n") && strings.Contains(s, "last response: 70 in, 3 out, 20 cache read, 10 cache write") && strings.Contains(s, "cache hit rate: 20.00%") && strings.Contains(s, "cost: $0.000199")
 				}
 			}
 		}
@@ -142,7 +142,7 @@ func TestAgentStatusToolLoop(t *testing.T) {
 	}))
 	defer server.Close()
 	dir := skillFiles(t, map[string]string{"base": "---\nname: base\ntype: primary\ntools: agent_status\n---\nUse status"})
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, DisableStreaming: true}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, DisableStreaming: true}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestModelSelectionBusyAndInvalid(t *testing.T) {
 		io.WriteString(w, `{"content":[{"type":"text","text":"done"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,8 +172,8 @@ func TestModelSelectionBusyAndInvalid(t *testing.T) {
 	}
 	result := a.Submit(context.Background(), "wait")
 	<-entered
-	err = a.SetModel("claude-sonnet-5")
-	unchanged := a.Config().Model == "claude-haiku-5-5"
+	err = a.SetModel("claude-opus-5")
+	unchanged := a.Config().Model == "claude-sonnet-5"
 	close(release)
 	if result := <-result; result.Err != nil {
 		t.Fatal(result.Err)
@@ -181,7 +181,7 @@ func TestModelSelectionBusyAndInvalid(t *testing.T) {
 	if err == nil || !unchanged {
 		t.Fatal("busy selection altered the running request")
 	}
-	if err := a.SetModel("claude-sonnet-5"); err != nil {
+	if err := a.SetModel("claude-opus-5"); err != nil {
 		t.Fatal("idle positive control:", err)
 	}
 }

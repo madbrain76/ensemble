@@ -1,0 +1,51 @@
+{
+  "commands": [
+    {
+      "cwd": "solutions/edition-2/main",
+      "command": "go test ./... -count=1",
+      "exit": 0,
+      "output": "core-tests.txt"
+    },
+    {
+      "cwd": "solutions/edition-2/main/gui",
+      "command": "go test ./... -count=1",
+      "exit": 0,
+      "output": "gui-tests.txt"
+    },
+    {
+      "cwd": ".",
+      "command": "go test ./internal/gradeedition2 -run '^TestChapter5Boundaries$' -count=1",
+      "exit": 0,
+      "output": "grader-tests.txt"
+    },
+    {
+      "cwd": ".",
+      "command": "go test -overlay /tmp/ensemble-model-overlay.json ./internal/gradeedition2 -run '^TestSupportedMediaAudit$' -v -count=1",
+      "exit": 0,
+      "output": "media-audit.txt",
+      "overlay": "media-audit.go.txt added as supported_model_audit_test.go"
+    },
+    {
+      "cwd": "solutions/edition-2/main",
+      "command": "go test -race ./ensemble -run '^Test(CacheMeter|AgentStatus|ModelSelection|Media)' -count=1",
+      "exit": 0,
+      "output": "race.txt"
+    },
+    {
+      "cwd": "solutions/edition-2/main/gui",
+      "command": "node --test --test-concurrency=1 cache.test.mjs speech.test.mjs virtual-user.test.mjs",
+      "exit": 1,
+      "output": "node-tests.txt"
+    },
+    {
+      "cwd": "isolated unchanged HEAD archive solutions/edition-2/main/gui",
+      "command": "node --test --test-concurrency=1 cache.test.mjs speech.test.mjs",
+      "exit": 1,
+      "output": "node-baseline.txt"
+    }
+  ],
+  "vet": "go vet ./... in active core and GUI; go vet ./internal/gradeedition2 ./cmd/grade-edition2; all exit0",
+  "syntax_and_describe": "node --check each of four changed mjs files; node tts-harness.mjs --describe; all exit0",
+  "chapter14": "chapter14-samples.py; exit0; samples.json preserves exact launch/manuscript binding",
+  "initial_chapter14_attempt": "ch14-samples.txt: hash guard rejected concurrent prose change before build or launch"
+}

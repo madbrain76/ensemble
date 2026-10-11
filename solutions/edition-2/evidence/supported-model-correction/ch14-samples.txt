@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/supported-model-correction/chapter14-samples.py", line 3, in <module>
+    sha=hashlib.sha256(chapter.read_bytes()).hexdigest();assert sha=='37e08514cb135976c943b21cd27b04d2104e26322623c1832ba51f2d9ec4b331'
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

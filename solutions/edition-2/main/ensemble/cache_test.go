@@ -118,7 +118,7 @@ func TestCacheMarkers(t *testing.T) {
 		vendor ensemble.Vendor
 		model  string
 		marker string
-	}{{ensemble.Anthropic, "claude-haiku-5-5", "cache_control"}, {ensemble.OpenAI, "gpt-5.6-sol", "prompt_cache_breakpoint"}, {ensemble.Gemini, "gemini-3.8-flash", ""}, {ensemble.OpenAI, "gpt-4o-mini", ""}} {
+	}{{ensemble.Anthropic, "claude-sonnet-5", "cache_control"}, {ensemble.OpenAI, "gpt-5.6-sol", "prompt_cache_breakpoint"}, {ensemble.Gemini, "gemini-3.8-flash", ""}, {ensemble.OpenAI, "gpt-4o-mini", ""}} {
 		t.Run(tc.model, func(t *testing.T) {
 			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: tc.vendor, Model: tc.model, DataDir: t.TempDir(), BuiltinTools: true})
 			if err != nil {
@@ -214,7 +214,7 @@ func TestCacheMeterSessionAndTiers(t *testing.T) {
 		want         common.Usage
 		cost         float64
 	}{
-		{ensemble.Anthropic, "claude-haiku-5-5", `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":100001,"cache_creation_input_tokens":40,"cache_read_input_tokens":60,"output_tokens":10}}`, common.Usage{Input: 100001, CacheWrite: 40, CacheRead: 60, Output: 10}, .0500535},
+		{ensemble.Anthropic, "claude-sonnet-5", `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":100001,"cache_creation_input_tokens":40,"cache_read_input_tokens":60,"output_tokens":10}}`, common.Usage{Input: 100001, CacheWrite: 40, CacheRead: 60, Output: 10}, .200214},
 		{ensemble.OpenAI, "gpt-5.6-sol", `{"choices":[{"message":{"content":"ok"}}],"usage":{"prompt_tokens":272001,"prompt_tokens_details":{"cache_write_tokens":40,"cached_tokens":60},"completion_tokens":10}}`, common.Usage{Input: 271901, CacheWrite: 40, CacheRead: 60, Output: 10}, 2.175956},
 		{ensemble.Gemini, "gemini-3.8-flash", `{"candidates":[{"content":{"parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":100,"cachedContentTokenCount":60,"candidatesTokenCount":7,"thoughtsTokenCount":3}}`, common.Usage{Input: 40, CacheRead: 60, Output: 10}, .000072},
 	} {
@@ -278,7 +278,7 @@ func TestCacheMeterAuxiliaryIdentity(t *testing.T) {
 	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
 	server := httptest.NewServer(http.HandlerFunc(peer.serve))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "unknown-priced-model"}})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "unknown-priced-model"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -337,13 +337,13 @@ func TestCacheEmptyOptIn(t *testing.T) {
 	}
 }
 
-// TestCacheMeterKnownJudge checks two known prices in one real Engine session.
-// The judge's route must retain its own rate while last conversation usage stays put.
-func TestCacheMeterKnownJudge(t *testing.T) {
+// TestCacheMeterSupportedUnpricedJudge keeps a supported but unpriced judge
+// from borrowing the main model’s rate; last conversation usage stays put.
+func TestCacheMeterSupportedUnpricedJudge(t *testing.T) {
 	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
 	server := httptest.NewServer(http.HandlerFunc(peer.serve))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "claude-sonnet-5"}})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "claude-opus-5"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,14 +352,14 @@ func TestCacheMeterKnownJudge(t *testing.T) {
 		t.Fatal(err)
 	}
 	before := a.Engine().Meter()
-	if math.Abs(before.CostUSD-.000002) > 1e-12 {
-		t.Fatalf("Haiku base price: %+v", before)
+	if math.Abs(before.CostUSD-.000040) > 1e-12 {
+		t.Fatalf("Sonnet base price: %+v", before)
 	}
 	if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
 		t.Fatal(err)
 	}
 	after := a.Engine().Meter()
-	if !after.Priced || math.Abs(after.CostUSD-.000042) > 1e-12 || after.Usage != before.Usage {
-		t.Fatalf("mixed model prices: %+v", after)
+	if after.Priced || after.CostUSD != 0 || after.Usage != before.Usage {
+		t.Fatalf("unpriced judge accounting: %+v", after)
 	}
 }

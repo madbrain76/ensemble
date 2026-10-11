@@ -227,13 +227,13 @@ Chapter 4's `-consumer` and `-consumer-case` flags remain available for the
 inherited external-consumer check.
 
 Media probes render a local image through each adapter, refuse unsupported
-audio and refuse an image on an unknown model. The default fixture identifiers
-are the historical accepted models, not a claim of current availability.
-To test another implemented capability table, save this grader-only mapping
+audio and refuse an image on an unknown model. The Anthropic fixture uses the
+older Sonnet 4.6 row declared by this chapter’s accepted solution. To test another
+implemented capability table, save this grader-only mapping
 as `media-models.json` and pass `-media-models media-models.json`:
 
 ```json
-{"anthropic":"claude-haiku-5-5","openai":"gpt-5.4-mini","gemini":"gemini-3.8-flash"}
+{"anthropic":"claude-sonnet-4-6","openai":"gpt-5.4-mini","gemini":"gemini-3.8-flash"}
 ```
 
 The replay check captures real HTTP requests and compares them with rendering

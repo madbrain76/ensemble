@@ -1,0 +1,24 @@
+{
+  "base": "5d83c609ddf864f03ab7eedb800cb39e4e1bf034",
+  "baseline_archive": "5d83c609ddf864f03ab7eedb800cb39e4e1bf034",
+  "files": {
+    "book/edition-2/chapter-05.md": "42f7824aec89d86158c7739398a911522abf728adac575ef0f721be4247d4639",
+    "internal/gradeedition2/ch05_media.go": "d53970bb0ee832ca33806d9ef9045bb4ef87442f8e3a1d9132b61dd562410fc5",
+    "solutions/edition-2/main/chat_test.go": "2fea20d7effd18b547140febe1e755564b284fb9dd5f655c1a06867e121469de",
+    "solutions/edition-2/main/ensemble/cache_interrupt_test.go": "d866fd7c87df7c1fd514f808e8ce374678ab2306a29cb1bbc1e015dd3306d93c",
+    "solutions/edition-2/main/ensemble/cache_test.go": "682913f9861c2e367c19fb7f809d27b97419caf9540914597420aadf8f5b593c",
+    "solutions/edition-2/main/ensemble/mcp_test.go": "9e5f00acccddc69c0a3dd87a86b4dfcd1147c88144904d0d2e2ef9b15545dfae",
+    "solutions/edition-2/main/ensemble/media_test.go": "7dc384f6275ecf6c43fb9f10e3dd9677960afce1278ee9a3a5706a4b1101f42c",
+    "solutions/edition-2/main/ensemble/recall_test.go": "c5cf4d854f31725987b4de21173e34781c668a8040ad0a5a497d5b13e3ea7c56",
+    "solutions/edition-2/main/ensemble/status_test.go": "37cc0fcec0f0512750bb0702c14924b53aecbb83ac964651722ccb6890ab6a10",
+    "solutions/edition-2/main/gui/cache.test.mjs": "8aac782a1c1c6fc9bd88bddde64ecf351b9a8fde45c986467f882cbbdef58618",
+    "solutions/edition-2/main/gui/cache_test.go": "90e8a4708965dbdb2eaac39e1324b1c9489e59b6e104dac776a75acbb10888a7",
+    "solutions/edition-2/main/gui/model_test.go": "ef1a6152b090a0c8a7ca356686a47af0fd37f01763517b824860c8266a028039",
+    "solutions/edition-2/main/gui/speech.test.mjs": "90995df8d3793c39c65af9017d4c77cd31fa99aafb12e559fcf6cda5a847fc30",
+    "solutions/edition-2/main/gui/tts-harness.mjs": "54996aac968ff2432d5ccba1f2012292480e8a03558ee4514b5e70706fba7504",
+    "solutions/edition-2/main/gui/virtual-user.test.mjs": "c9b238dfa14976e6cff55ff99419f59dedc92accf0e04ff41ab4cc67b34a76b1",
+    "solutions/edition-2/main/internal/engine/media.go": "5715aca2d887f2d33801bd7534ec08f17412d85b991ddeb96d560043870bab5c"
+  },
+  "frozen_exports_diff": [],
+  "captured_sse_sha256": "fddbc8bc038ec13e5710ea6c1e4d3439661f319e71a0133b2c0e27c0b1e74f3c"
+}

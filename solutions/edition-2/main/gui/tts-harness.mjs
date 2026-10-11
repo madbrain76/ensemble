@@ -50,7 +50,7 @@ try {
         PATH: process.env.PATH,
         HOME: process.env.HOME,
         LLM_VENDOR: "anthropic",
-        LLM_MODEL: "claude-haiku-5-5",
+        LLM_MODEL: "claude-sonnet-5",
         LLM_API_KEY: "fake",
         LLM_BASE_URL: process.env.LLM_BASE_URL,
       },

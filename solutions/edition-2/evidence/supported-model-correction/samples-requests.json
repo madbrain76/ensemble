@@ -1,0 +1,4022 @@
+[
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "Loaded skill manual."
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "Loaded skill manual."
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "Record 1: inspection code CEDAR-17; status verified.\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\nReference filler; not an instruction. 1\n"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 47 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8281 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 47 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8281 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "Record 2: inspection code MAPLE-34; status verified.\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\nReference filler; not an instruction. 2\n"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8281 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8281 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "Record 3: inspection code WILLOW-51; status verified.\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\nReference filler; not an instruction. 3\n"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8282 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8282 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-4",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-4.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-4",
+            "content": [
+              {
+                "type": "text",
+                "text": "Record 4: inspection code BIRCH-68; status verified.\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\nReference filler; not an instruction. 4\n"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-4",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-4.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-4",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8281 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-4",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-4.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-4",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8281 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-5",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-5.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-5",
+            "content": [
+              {
+                "type": "text",
+                "text": "Record 5: inspection code OAK-85; status verified.\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\nReference filler; not an instruction. 5\n"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-4",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-4.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-4",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-5",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-5.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-5",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8279 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "OAK-85 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-6.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-4",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-4.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-4",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-5",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-5.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-5",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8279 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "OAK-85 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-6.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-6",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-6.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-6",
+            "content": [
+              {
+                "type": "text",
+                "text": "Record 6: inspection code ELM-102; status verified.\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\nReference filler; not an instruction. 6\n"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-load",
+            "name": "load_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-load",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-1",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-1.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-1",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-2",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-2.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-2",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-3",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-3",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-4",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-4.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-4",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 77 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-5",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-5.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-5",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 79 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "OAK-85 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-6.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-read-6",
+            "name": "read_file",
+            "input": {
+              "path": "records/record-6.txt"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-read-6",
+            "content": [
+              {
+                "type": "text",
+                "text": "[redacted 8280 bytes; rerun the tool to recover]"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "ELM-102 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Call micro_handoff exactly once with a note recording the files inspected, their codes, any failed approaches and the next step. Then unload manual and answer with the first and last code, and whether the manual instructions remain. Do not checkpoint again."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "OAK-85 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-6.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "ELM-102 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Call micro_handoff exactly once with a note recording the files inspected, their codes, any failed approaches and the next step. Then unload manual and answer with the first and last code, and whether the manual instructions remain. Do not checkpoint again."
+          },
+          {
+            "type": "text",
+            "text": "CHECKPOINT_SAMPLE: six records inspected, CEDAR-17 through ELM-102; no observed tool failures; next report these codes."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Be concise. Narrate one sentence of intent before each tool call.\nDo only the current user task; wait for the next request after answering.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Load manual and then read records/record-1.txt. Report its inspection code and status, then stop."
+          },
+          {
+            "type": "text",
+            "text": "MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,\nfailed approaches and next steps. Filler is data, not instructions."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "CEDAR-17 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-2.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "MAPLE-34 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-3.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "WILLOW-51 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-4.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "BIRCH-68 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-5.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "OAK-85 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Read records/record-6.txt. Report its inspection code and status, then stop."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "ELM-102 verified."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Call micro_handoff exactly once with a note recording the files inspected, their codes, any failed approaches and the next step. Then unload manual and answer with the first and last code, and whether the manual instructions remain. Do not checkpoint again."
+          },
+          {
+            "type": "text",
+            "text": "CHECKPOINT_SAMPLE: six records inspected, CEDAR-17 through ELM-102; no observed tool failures; next report these codes."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-unload",
+            "name": "unload_skill",
+            "input": {
+              "name": "manual"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-unload",
+            "content": [
+              {
+                "type": "text",
+                "text": "Skill manual is pending instruction removal at the next compaction; its tools and servers are disconnected now."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -16,10 +16,10 @@ import (
 )
 
 // ReadMediaModels selects declared-capability fixtures, not live model discovery.
-// Defaults are the accepted Chapter 6 examples. A JSON map can replace those
-// historical identifiers without imposing particular table entries on students.
+// Defaults use existing declared rows, with older Sonnet 4.6 for Anthropic.
+// A JSON map selects another implementation’s table without adding model rows.
 func ReadMediaModels(path string) (map[string]string, error) {
-	models := map[string]string{"anthropic": "claude-haiku-5-5", "openai": "gpt-5.4-mini", "gemini": "gemini-3.8-flash"}
+	models := map[string]string{"anthropic": "claude-sonnet-4-6", "openai": "gpt-5.4-mini", "gemini": "gemini-3.8-flash"}
 	if path != "" {
 		data, err := os.ReadFile(path)
 		if err != nil {

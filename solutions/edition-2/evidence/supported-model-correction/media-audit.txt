@@ -1,0 +1,10 @@
+=== RUN   TestSupportedMediaAudit
+=== RUN   TestSupportedMediaAudit/accepted
+    supported_model_audit_test.go:7: {"id":"loud-refusal","title":"Local images contain file bytes; unsupported media fails explicitly","points":10,"earned":10,"passed":true}
+=== RUN   TestSupportedMediaAudit/legacy
+    supported_model_audit_test.go:7: {"id":"loud-refusal","title":"Local images contain file bytes; unsupported media fails explicitly","points":10,"earned":0,"passed":false,"details":["anthropic supported image: exit status 1: render: render: anthropic: rendering a blob part is not implemented in this chapter (image/png at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-media-729927053/pixel.png)","openai supported image: exit status 1: render: render: openai: rendering a blob part is not implemented in this chapter (image/png at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-media-729927053/pixel.png)","gemini supported image: exit status 1: render: render: gemini: cannot send a blob of kind path (/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-media-729927053/pixel.png): Gemini fetches remote references only, so this must be resolved to a uri before rendering"]}
+--- PASS: TestSupportedMediaAudit (0.66s)
+    --- PASS: TestSupportedMediaAudit/accepted (0.29s)
+    --- PASS: TestSupportedMediaAudit/legacy (0.37s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	0.667s

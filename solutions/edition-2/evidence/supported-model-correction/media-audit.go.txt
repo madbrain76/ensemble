@@ -1,0 +1,8 @@
+package gradeedition2
+import("testing";"encoding/json";"github.com/waywardgeek/ensemble/internal/grade")
+func TestSupportedMediaAudit(t *testing.T){
+ for _,tc:=range []struct{name,core string;models map[string]string}{
+ {"accepted","../../solutions/edition-2/ch05",nil},
+ {"legacy","../../solutions/ch06/agent",map[string]string{"anthropic":"claude-sonnet-5","openai":"gpt-6-astra","gemini":"gemini-3.8-flash"}},
+ }{t.Run(tc.name,func(t *testing.T){b,clean,e:=grade.Build(tc.core);if e!=nil{t.Fatal(e)};defer clean();if tc.models==nil{tc.models,e=ReadMediaModels("");if e!=nil{t.Fatal(e)}};c:=mediaCapabilities(b,tc.models);raw,_:=json.Marshal(c);t.Log(string(raw));if tc.name=="accepted"&&!c.Passed{t.Fatal(c.Details)};if tc.name=="legacy"&&c.Passed{t.Fatal("unexpected legacy pass")}})}
+}
