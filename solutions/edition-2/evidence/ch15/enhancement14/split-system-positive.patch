@@ -1,0 +1,13 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -113,7 +113,9 @@
+ 		thinking = map[string]string{"type": "adaptive"}
+ 		maxTokens = 4096
+ 	}
+-	return json.Marshal(struct {
++	var split []anthropicMessage
++ for _,m := range messages { if m.Role == "system" { for _,b := range m.Content { split=append(split,anthropicMessage{Role:"system",Content:[]json.RawMessage{b}}) } } else { split=append(split,m) } }; messages=split
++ return json.Marshal(struct {
+ 		// Thinking asks supported models for reasoning in either delivery mode.
+ 		Thinking map[string]string `json:"thinking,omitempty"`
+ 		// Stream requests SSE only when both caller and model permit it.

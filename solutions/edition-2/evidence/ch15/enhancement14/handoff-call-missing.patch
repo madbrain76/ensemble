@@ -1,0 +1,12 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -20,7 +20,8 @@
+ // Caller holds the history lock through encoding and any disk checkpoint.
+ func (h *history) encodeSave(w io.Writer) error {
+ 	cfg := h.parent.Config()
+-	log := h.events
++	log := append([]common.Event(nil),h.events...)
++ for i,e := range log { if e.Type == "tool_called" && e.Tool != nil && e.Tool.CallID == "H2" { log=append(log[:i],log[i+1:]...);break } }
+ 	if log == nil {
+ 		log = []common.Event{}
+ 	}

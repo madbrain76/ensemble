@@ -1,0 +1,11 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -145,7 +145,7 @@
+ 					out = append(out, raw)
+ 				}
+ 				for _, d := range p.Added {
+-					raw, _ := json.Marshal(map[string]any{"type": "tool_addition", "tool": map[string]any{"type": "tool_definition", "definition": map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema}}})
++					raw, _ := json.Marshal(map[string]any{"type": "text", "tool": map[string]any{"type": "tool_definition", "definition": map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema}}})
+ 					out = append(out, raw)
+ 				}
+ 			}

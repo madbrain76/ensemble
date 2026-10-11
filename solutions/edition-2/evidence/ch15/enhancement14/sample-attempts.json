@@ -1,0 +1,5 @@
+{
+  "initial_guard": "Stopped before execution because the author concurrently revised prose-only bytes; exact sample fences unchanged. Rebound to final55e3a4a manuscript.",
+  "first_execution_validator": "The first six-read assertion incorrectly selected each latest resent result, including later valid redacted stubs. Runtime completed, but validator failed. Changed to first correlated result and retained captured requests before validation.",
+  "corrected": "samples.json records successful exact-source execution and correctly inspected initial full results. No paid calls."
+}

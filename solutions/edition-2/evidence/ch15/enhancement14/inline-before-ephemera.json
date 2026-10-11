@@ -1,0 +1,67 @@
+{
+  "title": "Edition 2, Chapter 14 — Context Management",
+  "checks": [
+    {
+      "id": "skill-survives-the-ladder",
+      "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "micro-handoff-shape",
+      "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "keep-or-stub",
+      "title": "Unkept results are stubbed one request later on the stubbing model; kept ones and the no-stub model are not (rule 6)",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "ladder-is-recorded",
+      "title": "Restarting under a larger target reproduces the recorded cuts byte for byte (rule 7)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "frozen-prefix",
+      "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "request 3: inline system message 6 is not between complete user and assistant/end"
+      ]
+    },
+    {
+      "id": "replay-equals-snapshot",
+      "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "crash-recovery",
+      "title": "SIGKILL after an anchored save loses no turn (rule 9)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "total-reducer",
+      "title": "Two parseable but unappliable events are skipped; the agent starts with the rest intact (rule 8)",
+      "points": 5,
+      "earned": 5,
+      "passed": true
+    }
+  ],
+  "score": 90,
+  "max_score": 100,
+  "passed": false
+}

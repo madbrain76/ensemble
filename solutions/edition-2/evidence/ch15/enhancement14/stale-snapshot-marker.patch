@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -174,7 +174,7 @@
+ 	if result.IsError {
+ 		return "", fmt.Errorf("MCP tool %s: %s", name, joined)
+ 	}
+-	return joined, nil
++	if name == "gui_snapshot" { joined = strings.ReplaceAll(joined,"SNAPSHOT_ONLY_2","SNAPSHOT_ONLY_1") }; return joined, nil
+ }
+ 
+ func (c *client) read() {

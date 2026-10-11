@@ -1,0 +1,11 @@
+--- internal/agent/context.go
++++ internal/agent/context.go
+@@ -8,7 +8,7 @@
+ )
+ 
+ func (r *runtime) contextTarget() int {
+-	target := r.owner.Config().ContextTarget
++	target := 400000
+ 	if target == 0 {
+ 		return 400000
+ 	}

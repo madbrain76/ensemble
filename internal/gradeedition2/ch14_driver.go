@@ -503,7 +503,11 @@ func contextInline(req contextReq) (map[string]bool, map[string]bool, error) {
 		if m.Role != "system" {
 			continue
 		}
-		if i == 0 || req.Messages[i-1].Role != "user" || (i+1 < len(req.Messages) && req.Messages[i+1].Role != "assistant") {
+		// Consecutive system messages form one legal declaration group; the
+		// contract constrains its outer neighbors, not renderer coalescing.
+		first := i == 0 || req.Messages[i-1].Role != "system"
+		last := i+1 == len(req.Messages) || req.Messages[i+1].Role != "system"
+		if (first && (i == 0 || req.Messages[i-1].Role != "user")) || (last && i+1 < len(req.Messages) && req.Messages[i+1].Role != "assistant") {
 			return nil, nil, fmt.Errorf("inline system message %d is not between complete user and assistant/end", i)
 		}
 		var blocks []struct {

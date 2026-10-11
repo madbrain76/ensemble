@@ -1,0 +1,10 @@
+--- gui/gui.go
++++ gui/gui.go
+@@ -85,6 +85,7 @@
+ 	case ensemble.StateChanged:
+ 		s.broadcast(map[string]any{"type": "state_changed", "from": o.From, "to": o.To})
+ 	case ensemble.TurnEnded:
++ time.Sleep(650*time.Millisecond)
+ 		// Cancellation may leave a part without a final. Those abandoned bytes
+ 		// must not reappear as an active stream on the next subscription.
+ 		s.partials = make(map[uint64]map[string]any)

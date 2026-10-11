@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/tmp/grade-edition2-context",
+    "-ch",
+    "14",
+    "-json"
+  ],
+  "exit": 0,
+  "seconds": 0.755,
+  "binary_sha256": "b9e6fcf23157f06676a5e176211c9168d4931e73dde135c2b93a23ada8a3d70c"
+}

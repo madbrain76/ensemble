@@ -1,0 +1,70 @@
+{
+  "title": "Edition 2, Chapter 14 — Context Management",
+  "checks": [
+    {
+      "id": "skill-survives-the-ladder",
+      "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "micro-handoff-shape",
+      "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "handoff session: turn failed: tool result has no matching call: Open http://localhost:50519; terminal messages while busy are hints. /interrupt ends the turn.\n[read_file]\nFILE12-CONTENT-line 0000 of planted file 12\nFILE12-CONTENT-line 0044 of planted file 12\nFILE12-CONTENT-line 0088 of planted file 12\nFILE12-CONTENT-line 0132 of planted file 12\nFILE12-CONTENT-line 0176 of planted file 12\nFILE12-CONTENT-line 0220 of planted file 12\nFILE12-CONTENT-line 0264 of planted file 12\nFILE12-CONTENT-line 0308 of planted file 12\nFILE12-CONTENT-line 0352 of planted file 12\nFILE12-CONTENT-line 0396 of planted file 12\nFILE12-CONTENT-line 0440 of planted file 12\nFILE12-CONTENT-line 0484 of planted file 12\nFILE12-CONTENT-line 0528 of planted file 12\nFILE12-CONTENT-line 0572 of planted file 12\nFILE12-CONTENT-line 0616 of planted file 12\nFILE12-CONTENT-line 0660 of planted file 12\nFILE12-CONTENT-line 0704 of planted file 12\nFILE12-CONTENT-line 0748 of planted file 12\nFILE12-CONTENT-line 0792 of planted file 12\nFILE12-CONTENT-line 0836 of planted file 12\nFILE12-CONTENT-line 0880 of planted file 12\nFILE12-CONTENT-line 0924 of planted file 12\nFILE12-CONTENT-line 0968 of planted file 12\nFILE12-CONTENT-line 1012 of planted file 12\nFILE12-CONTENT-line 1056 of planted file 12\nFILE12-CONTENT-line 1100 of planted file 12\nFILE12-CONTENT-line 1144 of planted file 12\nFILE12-CONTENT-line 1188 of planted file 12\n\n[micro_handoff]\nCheckpoint recorded after this tool batch.\n[read_file]\nFILE12-CONTENT-line 0000 of planted file 12\nFILE12-CONTENT-line 0044 of planted file 12\nFILE12-CONTENT-line 0088 of planted file 12\nFILE12-CONTENT-line 0132 of planted file 12\nFILE12-CONTENT-line 0176 of planted file 12\nFILE12-CONTENT-line 0220 of planted file 12\nFILE12-CONTENT-line 0264 of planted file 12\nFILE12-CONTENT-line 0308 of planted file 12\nFILE12-CONTENT-line 0352 of planted file 12\nFILE12-CONTENT-line 0396 of planted file 12\nFILE12-CONTENT-line 0440 of planted file 12\nFILE12-CONTENT-line 0484 of planted file 12\nFILE12-CONTENT-line 0528 of planted file 12\nFILE12-CONTENT-line 0572 of planted file 12\nFILE12-CONTENT-line 0616 of planted file 12\nFILE12-CONTENT-line 0660 of planted file 12\nFILE12-CONTENT-line 0704 of planted file 12\nFILE12-CONTENT-line 0748 of planted file 12\nFILE12-CONTENT-line 0792 of planted file 12\nFILE12-CONTENT-line 0836 of planted file 12\nFILE12-CONTENT-line 0880 of planted file 12\nFILE12-CONTENT-line 0924 of planted file 12\nFILE12-CONTENT-line 0968 of planted file 12\nFILE12-CONTENT-line 1012 of planted file 12\nFILE12-CONTENT-line 1056 of planted file 12\nFILE12-CONTENT-line 1100 of planted file 12\nFILE12-CONTENT-line 1144 of planted file 12\nFILE12-CONTENT-line 1188 of planted file 12\n\ntool result has no matching call\n (requests: 2)"
+      ]
+    },
+    {
+      "id": "keep-or-stub",
+      "title": "Unkept results are stubbed one request later on the stubbing model; kept ones and the no-stub model are not (rule 6)",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "ladder-is-recorded",
+      "title": "Restarting under a larger target reproduces the recorded cuts byte for byte (rule 7)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "frozen-prefix",
+      "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "replay-equals-snapshot",
+      "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "the micro_handoff session it replays did not complete"
+      ]
+    },
+    {
+      "id": "crash-recovery",
+      "title": "SIGKILL after an anchored save loses no turn (rule 9)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "total-reducer",
+      "title": "Two parseable but unappliable events are skipped; the agent starts with the rest intact (rule 8)",
+      "points": 5,
+      "earned": 5,
+      "passed": true
+    }
+  ],
+  "score": 70,
+  "max_score": 100,
+  "passed": false
+}

@@ -1,0 +1,11 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -141,7 +141,7 @@
+ 		case "tool_decls":
+ 			if e.Features().InlineTools {
+ 				for _, name := range p.Removed {
+-					raw, _ := json.Marshal(map[string]any{"type": "tool_removal", "tool": map[string]string{"type": "tool_reference", "name": name}})
++					raw, _ := json.Marshal(map[string]any{"type": "text", "tool": map[string]string{"type": "tool_reference", "name": name}})
+ 					out = append(out, raw)
+ 				}
+ 				for _, d := range p.Added {

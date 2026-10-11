@@ -1,0 +1,11 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -62,7 +62,7 @@
+ 			continue
+ 		}
+ 		if entry.Kind == common.KindTools && e.Features().InlineTools {
+-			declarations = append(declarations, blocks...)
++			appendMessage("system", blocks)
+ 			continue
+ 		}
+ 		role := "user"

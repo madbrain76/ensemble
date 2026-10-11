@@ -1,0 +1,25 @@
+{
+  "manuscript_sha256": "55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816",
+  "source": "solutions/edition-2/ch14 (isolated copy)",
+  "go_excerpts": "exact current vocabulary compiled; exact survivor/replay substituted into actual owning package; Context tests pass",
+  "historical_excerpts": "not presented as current APIs; unchanged historical evidence",
+  "build_command": "(cd gui && go build -o /tmp/ensemble-ch14-gui ./cmd)\nmkdir -p cr skills/base skills/manual records\n",
+  "launch_command": "EN_PRIMARY_SKILL=base /tmp/ensemble-ch14-gui \\\n  --skills-dir ./skills --gui-dir gui/web/gui --port 8088 --no-stream\n",
+  "provider": "small external Anthropic HTTP peer; no paid run or model quality claim",
+  "model_fixture": "declared no-stub course model; both new flags false",
+  "settings": {
+    "context_target": 20000,
+    "max_tool_rounds": 4,
+    "tts_enabled": false
+  },
+  "requests": 16,
+  "successful_correlated_reads": 6,
+  "turns": 7,
+  "exit": 0,
+  "saved_events": {
+    "redacted": 6,
+    "micro_handoff": 1,
+    "skill_loaded": 1
+  },
+  "final_manual_and_handoff_once": true
+}

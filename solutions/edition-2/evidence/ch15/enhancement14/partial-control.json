@@ -1,0 +1,10 @@
+{
+  "case": "first-read-partial",
+  "initial_report": "first-read-partial-initial.json",
+  "initial_score": 85,
+  "initial_intended_delivery_check": "passed incorrectly; another restart check failed, not the claimed full-delivery predicate",
+  "correction": "compare the correlated result with all planted file bytes, not only its repeated marker",
+  "final_report": "first-read-partial-corrected.json",
+  "final_intended_failure": "skill-survives-the-ladder: read L1 was not delivered in full successfully before trimming",
+  "restored_control": "accepted-final-full.json"
+}

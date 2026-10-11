@@ -145,8 +145,9 @@ func contextLadder(run func(contextOpts) contextOut, dir string, r *contextResul
 	// result really reached the model. Inspect results, not echoed call arguments.
 	for n := 1; n <= contextLadderFiles; n++ {
 		text, failed, err := anthropicToolText(out.reqs[n+1].Body, fmt.Sprintf("L%d", n))
-		if err != nil || failed || !strings.Contains(text, contextFileMark(n)) {
-			r.fail(name, "read L%d was not delivered successfully before trimming: error=%t %v", n, failed, err)
+		full, readErr := os.ReadFile(filepath.Join(dir, contextPath(n)))
+		if err != nil || readErr != nil || failed || !strings.Contains(text, string(full)) {
+			r.fail(name, "read L%d was not delivered in full successfully before trimming: error=%t %v", n, failed, err)
 			return dir
 		}
 	}
@@ -594,8 +595,7 @@ func contextKeep(run func(contextOpts) contextOut, stubDir, plainDir string, r *
 	r.set(name, "")
 }
 
-// contextDiff keeps failure messages short: ch11's diff centred on the
-// first differing byte.
+// contextDiff reports differing request sizes without flooding the scored report.
 func contextDiff(nameA, a, nameB, b string) string {
 	return fmt.Sprintf("%s (%d bytes) differs from %s (%d bytes)", nameA, len(a), nameB, len(b))
 }

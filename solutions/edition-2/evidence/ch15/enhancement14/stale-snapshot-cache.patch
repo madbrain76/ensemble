@@ -1,0 +1,19 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -21,6 +21,7 @@
+ 	done      chan struct{}
+ 	once      sync.Once
+ 	tools     []toolInfo
++ cachedSnapshot string
+ }
+ 
+ type message struct {
+@@ -174,7 +175,7 @@
+ 	if result.IsError {
+ 		return "", fmt.Errorf("MCP tool %s: %s", name, joined)
+ 	}
+-	return joined, nil
++	if name == "gui_snapshot" { if c.cachedSnapshot != "" { return c.cachedSnapshot,nil }; c.cachedSnapshot=joined }; return joined, nil
+ }
+ 
+ func (c *client) read() {

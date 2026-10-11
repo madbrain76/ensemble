@@ -1,0 +1,11 @@
+--- internal/engine/engine.go
++++ internal/engine/engine.go
+@@ -269,7 +269,7 @@
+ 		return e.parent.Declarations()
+ 	}
+ 	if e.Features().InlineTools {
+-		return *c.StartupTools
++		return c.Tools
+ 	}
+ 	return c.Tools
+ }

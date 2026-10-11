@@ -1,0 +1,32 @@
+{
+  "grader": {
+    "internal/gradeedition2/ch14.go": "8befbd68343da1bc6539e28f6771fdbf8b1474d9577f9596a3e8b8c3de60845b",
+    "internal/gradeedition2/ch14_driver.go": "b971a8cb834311e0d4abf3df379daeb74c6228e627444119042eb73d4e971a75",
+    "internal/gradeedition2/ch14_test.go": "db805379e83a6477aaed2cbf3311319d361531ee42d92160850718990e04bea0",
+    "cmd/grade-edition2/main.go": "6f4e8a4cf6f8910e135f91b97b840d20bd3940c78ab37bdcd91d823eba8a1da6"
+  },
+  "manuscript_sha256": "55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816",
+  "accepted_tree": "0c751dbd3985dee1a80284461e31346471ccc984",
+  "legacy_tree": "86cb03d46dd900f382266343229908a38290aad9",
+  "counts": {
+    "internal/gradeedition2/ch14.go": {
+      "physical": 693,
+      "blank": 36,
+      "comment_only": 67,
+      "other": 590
+    },
+    "internal/gradeedition2/ch14_driver.go": {
+      "physical": 550,
+      "blank": 29,
+      "comment_only": 86,
+      "other": 435
+    },
+    "internal/gradeedition2/ch14_test.go": {
+      "physical": 63,
+      "blank": 3,
+      "comment_only": 4,
+      "other": 56
+    }
+  },
+  "count_method": "Physical lines, blank and // comment-only separated; other includes embedded fixture text and code, not parsed production LOC."
+}

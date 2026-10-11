@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -174,7 +174,7 @@
+ 	if result.IsError {
+ 		return "", fmt.Errorf("MCP tool %s: %s", name, joined)
+ 	}
+-	return joined, nil
++	if name == "gui_snapshot" || name == "tts_queue" { return "", nil }; return joined, nil
+ }
+ 
+ func (c *client) read() {

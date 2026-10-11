@@ -1,0 +1,11 @@
+--- internal/tools/tools.go
++++ internal/tools/tools.go
+@@ -135,7 +135,7 @@
+ 	if args.Max > 0 && len(result) > args.Max {
+ 		return result[:args.Max] + "\n[truncated; use a narrower line range or larger max_bytes]", nil
+ 	}
+-	return result, nil
++	return "", nil
+ }
+ 
+ // Orientation needs names, not a recursive dump. ReadDir sorts entries for

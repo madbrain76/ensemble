@@ -1,0 +1,462 @@
+[
+  {
+    "case": "wrong-effective-target",
+    "exit": 1,
+    "seconds": 0.865,
+    "intended_check": "skill-survives-the-ladder",
+    "intended_failure": true,
+    "score": 55,
+    "failures": [
+      {
+        "id": "skill-survives-the-ladder",
+        "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the ladder never fired: at target 20000 the first file's result is still in the last request after 12 reads"
+        ]
+      },
+      {
+        "id": "ladder-is-recorded",
+        "title": "Restarting under a larger target reproduces the recorded cuts byte for byte (rule 7)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "after restart the first file's result is back: the cuts were not replayed"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the save's log has no \"redacted\" event; the session should have produced one"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "read-empty-success",
+    "exit": 1,
+    "seconds": 0.705,
+    "intended_check": "skill-survives-the-ladder",
+    "intended_failure": true,
+    "score": 60,
+    "failures": [
+      {
+        "id": "skill-survives-the-ladder",
+        "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "read L1 was not delivered successfully before trimming: error=false <nil>"
+        ]
+      },
+      {
+        "id": "micro-handoff-shape",
+        "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "handoff log requires call < successful result < separate note and successful same-batch read: call=82 result=83 note=84 sibling=false"
+        ]
+      },
+      {
+        "id": "keep-or-stub",
+        "title": "Unkept results are stubbed one request later on the stubbing model; kept ones and the no-stub model are not (rule 6)",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the request right after a read must carry its full result: "
+        ]
+      }
+    ]
+  },
+  {
+    "case": "handoff-lands-mid-batch",
+    "exit": 1,
+    "seconds": 0.699,
+    "intended_check": "micro-handoff-shape",
+    "intended_failure": true,
+    "score": 70,
+    "failures": [
+      {
+        "id": "micro-handoff-shape",
+        "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "handoff session: turn failed: tool result has no matching call: Open http://localhost:50519; terminal messages while busy are hints. /interrupt ends the turn.\n[read_file]\nFILE12-CONTENT-line 0000 of planted file 12\nFILE12-CONTENT-line 0044 of planted file 12\nFILE12-CONTENT-line 0088 of planted file 12\nFILE12-CONTENT-line 0132 of planted file 12\nFILE12-CONTENT-line 0176 of planted file 12\nFILE12-CONTENT-line 0220 of planted file 12\nFILE12-CONTENT-line 0264 of planted file 12\nFILE12-CONTENT-line 0308 of planted file 12\nFILE12-CONTENT-line 0352 of planted file 12\nFILE12-CONTENT-line 0396 of planted file 12\nFILE12-CONTENT-line 0440 of planted file 12\nFILE12-CONTENT-line 0484 of planted file 12\nFILE12-CONTENT-line 0528 of planted file 12\nFILE12-CONTENT-line 0572 of planted file 12\nFILE12-CONTENT-line 0616 of planted file 12\nFILE12-CONTENT-line 0660 of planted file 12\nFILE12-CONTENT-line 0704 of planted file 12\nFILE12-CONTENT-line 0748 of planted file 12\nFILE12-CONTENT-line 0792 of planted file 12\nFILE12-CONTENT-line 0836 of planted file 12\nFILE12-CONTENT-line 0880 of planted file 12\nFILE12-CONTENT-line 0924 of planted file 12\nFILE12-CONTENT-line 0968 of planted file 12\nFILE12-CONTENT-line 1012 of planted file 12\nFILE12-CONTENT-line 1056 of planted file 12\nFILE12-CONTENT-line 1100 of planted file 12\nFILE12-CONTENT-line 1144 of planted file 12\nFILE12-CONTENT-line 1188 of planted file 12\n\n[micro_handoff]\nCheckpoint recorded after this tool batch.\n[read_file]\nFILE12-CONTENT-line 0000 of planted file 12\nFILE12-CONTENT-line 0044 of planted file 12\nFILE12-CONTENT-line 0088 of planted file 12\nFILE12-CONTENT-line 0132 of planted file 12\nFILE12-CONTENT-line 0176 of planted file 12\nFILE12-CONTENT-line 0220 of planted file 12\nFILE12-CONTENT-line 0264 of planted file 12\nFILE12-CONTENT-line 0308 of planted file 12\nFILE12-CONTENT-line 0352 of planted file 12\nFILE12-CONTENT-line 0396 of planted file 12\nFILE12-CONTENT-line 0440 of planted file 12\nFILE12-CONTENT-line 0484 of planted file 12\nFILE12-CONTENT-line 0528 of planted file 12\nFILE12-CONTENT-line 0572 of planted file 12\nFILE12-CONTENT-line 0616 of planted file 12\nFILE12-CONTENT-line 0660 of planted file 12\nFILE12-CONTENT-line 0704 of planted file 12\nFILE12-CONTENT-line 0748 of planted file 12\nFILE12-CONTENT-line 0792 of planted file 12\nFILE12-CONTENT-line 0836 of planted file 12\nFILE12-CONTENT-line 0880 of planted file 12\nFILE12-CONTENT-line 0924 of planted file 12\nFILE12-CONTENT-line 0968 of planted file 12\nFILE12-CONTENT-line 1012 of planted file 12\nFILE12-CONTENT-line 1056 of planted file 12\nFILE12-CONTENT-line 1100 of planted file 12\nFILE12-CONTENT-line 1144 of planted file 12\nFILE12-CONTENT-line 1188 of planted file 12\n\ntool result has no matching call\n (requests: 2)"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the micro_handoff session it replays did not complete"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "inline-before-ephemera",
+    "exit": 1,
+    "seconds": 0.78,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 3: inline system message 6 is not between complete user and assistant/end"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "addition-ordinary-text",
+    "exit": 1,
+    "seconds": 0.797,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 2 lacks manual's inline list_directory declaration"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "removal-ordinary-text",
+    "exit": 1,
+    "seconds": 0.777,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "unload lacks inline removal of gui_input"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "mcp-empty-result",
+    "exit": 1,
+    "seconds": 0.75,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "correlated gui_input result missing/wrong: error=false <nil> \"\""
+        ]
+      }
+    ]
+  },
+  {
+    "case": "mcp-wrong-arguments",
+    "exit": 1,
+    "seconds": 0.756,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "correlated gui_input result missing/wrong: error=false <nil> \"INPUT_RESULT_ONLY:WRONG\""
+        ]
+      }
+    ]
+  },
+  {
+    "case": "automatic-content-empty",
+    "exit": 1,
+    "seconds": 0.749,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 3 actual content SNAPSHOT_ONLY_1 count 0, want 1"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "ephemera-retained",
+    "exit": 1,
+    "seconds": 20.739,
+    "intended_check": "frozen-prefix",
+    "intended_failure": false,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "session: prompt 1 completion: WebSocket observation deadline: Open http://localhost:51206; terminal messages while busy are hints. /interrupt ends the turn.\n[load_skill]\nLoaded skill manual.\n[load_skill]\nLoaded skill mcp-tools.\n[gui_input]\nINPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY\n[unload_skill]\nSkill mcp-tools is pending instruction removal at the next compaction; its tools and servers are disconnected now.\n (requests 1416)"
+        ]
+      }
+    ],
+    "interpretation": "Actual runaway after retained pending input:1416 requests then completion timeout. Does not reach or prove freshness-count assertion; narrow renderer duplicate and client-cache controls supply that proof."
+  },
+  {
+    "case": "startup-prefix-rewritten",
+    "exit": 1,
+    "seconds": 0.773,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 2 changed/malformed startup prefix: <nil>"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "nonzero-after-valid-exit",
+    "exit": 1,
+    "seconds": 0.471,
+    "intended_check": "skill-survives-the-ladder",
+    "intended_failure": true,
+    "score": 0,
+    "failures": [
+      {
+        "id": "skill-survives-the-ladder",
+        "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "nonzero GUI exit after EOF: exit status 17: Open http://localhost:51350; terminal messages while busy are hints. /interrupt ends the turn.\n[load_skill]\nLoaded skill manual.\n[read_file]\nFILE01-CONTENT-line 0000 of planted file 01\nFILE01-CONTENT-line 0044 of planted file 01\nFILE01-CONTENT-line 0088 of planted file 01\nFILE01-CONTENT-line 0132 of planted file 01\nFILE01-CONTENT-line 0176 of planted file 01\nFILE01-CONTENT-line 0220 of planted file 01\nFILE01-CONTENT-line 0264 of planted file 01\nFILE01-CONTENT-line 0308 of planted file 01\nFILE01-CONTENT-line 0352 of planted file 01\nFILE01-CONTENT-line 0396 of planted file 01\nFILE01-CONTENT-line 0440 of planted file 01\nFILE01-CONTENT-line 0484 of planted file 01\nFILE01-CONTENT-line 0528 of planted file 01\nFILE01-CONTENT-line 0572 of planted file 01\nFILE01-CONTENT-line 0616 of planted file 01\nFILE01-CONTENT-line 0660 of planted file 01\nFILE01-CONTENT-line 0704 of planted file 01\nFILE01-CONTENT-line 0748 of planted file 01\nFILE01-CONTENT-line 0792 of planted file 01\nFILE01-CONTENT-line 0836 of planted file 01\nFILE01-CONTENT-line 0880 of planted file 01\nFILE01-CONTENT-line 0924 of planted file 01\nFILE01-CONTENT-line 0968 of planted file 01\nFILE01-CONTENT-line 1012 of planted file 01\nFILE01-CONTENT-line 1056 of planted file 01\nFILE01-CONTENT-line 1100 of planted file 01\nFILE01-CONTENT-line 1144 of planted file 01\nFILE01-CONTENT-line 1188 of planted file 01\n\n[read_file]\nFILE02-CONTENT-line 0000 of planted file 02\nFILE02-CONTENT-line 0044 of planted file 02\nFILE02-CONTENT-line 0088 of planted file 02\nFILE02-CONTENT-line 0132 of planted file 02\nFILE02-CONTENT-line 0176 of planted file 02\nFILE02-CONTENT-line 0220 of planted file 02\nFILE02-CONTENT-line 0264 of planted file 02\nFILE02-CONTENT-line 0308 of planted file 02\nFILE02-CONTENT-line 0352 of planted file 02\nFILE02-CONTENT-line 0396 of planted file 02\nFILE02-CONTENT-line 0440 of planted file 02\nFILE02-CONTENT-line 0484 of planted file 02\nFILE02-CONTENT-line 0528 of planted file 02\nFILE02-CONTENT-line 0572 of planted file 02\nFILE02-CONTENT-line 0616 of planted file 02\nFILE02-CONTENT-line 0660 of planted file 02\nFILE02-CONTENT-line 0704 of planted file 02\nFILE02-CONTENT-line 0748 of planted file 02\nFILE02-CONTENT-line 0792 of planted file 02\nFILE02-CONTENT-line 0836 of planted file 02\nFILE02-CONTENT-line 0880 of planted file 02\nFILE02-CONTENT-line 0924 of planted file 02\nFILE02-CONTENT-line 0968 of planted file 02\nFILE02-CONTENT-line 1012 of planted file 02\nFILE02-CONTENT-line 1056 of planted file 02\nFILE02-CONTENT-line 1100 of planted file 02\nFILE02-CONTENT-line 1144 of planted file 02\nFILE02-CONTENT-line 1188 of planted file 02\n\n[read_file]\nFILE03-CONTENT-line 0000 of planted file 03\nFILE03-CONTENT-line 0044 of planted file 03\nFILE03-CONTENT-line 0088 of planted file 03\nFILE03-CONTENT-line 0132 of planted file 03\nFILE03-CONTENT-line 0176 of planted file 03\nFILE03-CONTENT-line 0220 of planted file 03\nFILE03-CONTENT-line 0264 of planted file 03\nFILE03-CONTENT-line 0308 of planted file 03\nFILE03-CONTENT-line 0352 of planted file 03\nFILE03-CONTENT-line 0396 of planted file 03\nFILE03-CONTENT-line 0440 of planted file 03\nFILE03-CONTENT-line 0484 of planted file 03\nFILE03-CONTENT-line 0528 of planted file 03\nFILE03-CONTENT-line 0572 of planted file 03\nFILE03-CONTENT-line 0616 of planted file 03\nFILE03-CONTENT-line 0660 of planted file 03\nFILE03-CONTENT-line 0704 of planted file 03\nFILE03-CONTENT-line 0748 of planted file 03\nFILE03-CONTENT-line 0792 of planted file 03\nFILE03-CONTENT-line 0836 of planted file 03\nFILE03-CONTENT-line 0880 of planted file 03\nFILE03-CONTENT-line 0924 of planted file 03\nFILE03-CONTENT-line 0968 of planted file 03\nFILE03-CONTENT-line 1012 of planted file 03\nFILE03-CONTENT-line 1056 of planted file 03\nFILE03-CONTENT-line 1100 of planted file 03\nFILE03-CONTENT-line 1144 of planted file 03\nFILE03-CONTENT-line 1188 of planted file 03\n\n[read_file]\nFILE04-CONTENT-line 0000 of planted file 04\nFILE04-CONTENT-line 0044 of planted file 04\nFILE04-CONTENT-line 0088 of planted file 04\nFILE04-CONTENT-line 0132 of planted file 04\nFILE04-CONTENT-line 0176 of planted file 04\nFILE04-CONTENT-line 0220 of planted file 04\nFILE04-CONTENT-line 0264 of planted file 04\nFILE04-CONTENT-line 0308 of planted file 04\nFILE04-CONTENT-line 0352 of planted file 04\nFILE04-CONTENT-line 0396 of planted file 04\nFILE04-CONTENT-line 0440 of planted file 04\nFILE04-CONTENT-line 0484 of planted file 04\nFILE04-CONTENT-line 0528 of planted file 04\nFILE04-CONTENT-line 0572 of planted file 04\nFILE04-CONTENT-line 0616 of planted file 04\nFILE04-CONTENT-line 0660 of planted file 04\nFILE04-CONTENT-line 0704 of planted file 04\nFILE04-CONTENT-line 0748 of planted file 04\nFILE04-CONTENT-line 0792 of planted file 04\nFILE04-CONTENT-line 0836 of planted file 04\nFILE04-CONTENT-line 0880 of planted file 04\nFILE04-CONTENT-line 0924 of planted file 04\nFILE04-CONTENT-line 0968 of planted file 04\nFILE04-CONTENT-line 1012 of planted file 04\nFILE04-CONTENT-line 1056 of planted file 04\nFILE04-CONTENT-line 1100 of planted file 04\nFILE04-CONTENT-line 1144 of planted file 04\nFILE04-CONTENT-line 1188 of planted file 04\n\n[read_file]\nFILE05-CONTENT-line 0000 of planted file 05\nFILE05-CONTENT-line 0044 of planted file 05\nFILE05-CONTENT-line 0088 of planted file 05\nFILE05-CONTENT-line 0132 of planted file 05\nFILE05-CONTENT-line 0176 of planted file 05\nFILE05-CONTENT-line 0220 of planted file 05\nFILE05-CONTENT-line 0264 of planted file 05\nFILE05-CONTENT-line 0308 of planted file 05\nFILE05-CONTENT-line 0352 of planted file 05\nFILE05-CONTENT-line 0396 of planted file 05\nFILE05-CONTENT-line 0440 of planted file 05\nFILE05-CONTENT-line 0484 of planted file 05\nFILE05-CONTENT-line 0528 of planted file 05\nFILE05-CONTENT-line 0572 of planted file 05\nFILE05-CONTENT-line 0616 of planted file 05\nFILE05-CONTENT-line 0660 of planted file 05\nFILE05-CONTENT-line 0704 of planted file 05\nFILE05-CONTENT-line 0748 of planted file 05\nFILE05-CONTENT-line 0792 of planted file 05\nFILE05-CONTENT-line 0836 of planted file 05\nFILE05-CONTENT-line 0880 of planted file 05\nFILE05-CONTENT-line 0924 of planted file 05\nFILE05-CONTENT-line 0968 of planted file 05\nFILE05-CONTENT-line 1012 of planted file 05\nFILE05-CONTENT-line 1056 of planted file 05\nFILE05-CONTENT-line 1100 of planted file 05\nFILE05-CONTENT-line 1144 of planted file 05\nFILE05-CONTENT-line 1188 of planted file 05\n\n[read_file]\nFILE06-CONTENT-line 0000 of planted file 06\nFILE06-CONTENT-line 0044 of planted file 06\nFILE06-CONTENT-line 0088 of planted file 06\nFILE06-CONTENT-line 0132 of planted file 06\nFILE06-CONTENT-line 0176 of planted file 06\nFILE06-CONTENT-line 0220 of planted file 06\nFILE06-CONTENT-line 0264 of planted file 06\nFILE06-CONTENT-line 0308 of planted file 06\nFILE06-CONTENT-line 0352 of planted file 06\nFILE06-CONTENT-line 0396 of planted file 06\nFILE06-CONTENT-line 0440 of planted file 06\nFILE06-CONTENT-line 0484 of planted file 06\nFILE06-CONTENT-line 0528 of planted file 06\nFILE06-CONTENT-line 0572 of planted file 06\nFILE06-CONTENT-line 0616 of planted file 06\nFILE06-CONTENT-line 0660 of planted file 06\nFILE06-CONTENT-line 0704 of planted file 06\nFILE06-CONTENT-line 0748 of planted file 06\nFILE06-CONTENT-line 0792 of planted file 06\nFILE06-CONTENT-line 0836 of planted file 06\nFILE06-CONTENT-line 0880 of planted file 06\nFILE06-CONTENT-line 0924 of planted file 06\nFILE06-CONTENT-line 0968 of planted file 06\nFILE06-CONTENT-line 1012 of planted file 06\nFILE06-CONTENT-line 1056 of planted file 06\nFILE06-CONTENT-line 1100 of planted file 06\nFILE06-CONTENT-line 1144 of planted file 06\nFILE06-CONTENT-line 1188 of planted file 06\n\n[read_file]\nFILE07-CONTENT-line 0000 of planted file 07\nFILE07-CONTENT-line 0044 of planted file 07\nFILE07-CONTENT-line 0088 of planted file 07\nFILE07-CONTENT-line 0132 of planted file 07\nFILE07-CONTENT-line 0176 of planted file 07\nFILE07-CONTENT-line 0220 of planted file 07\nFILE07-CONTENT-line 0264 of planted file 07\nFILE07-CONTENT-line 0308 of planted file 07\nFILE07-CONTENT-line 0352 of planted file 07\nFILE07-CONTENT-line 0396 of planted file 07\nFILE07-CONTENT-line 0440 of planted file 07\nFILE07-CONTENT-line 0484 of planted file 07\nFILE07-CONTENT-line 0528 of planted file 07\nFILE07-CONTENT-line 0572 of planted file 07\nFILE07-CONTENT-line 0616 of planted file 07\nFILE07-CONTENT-line 0660 of planted file 07\nFILE07-CONTENT-line 0704 of planted file 07\nFILE07-CONTENT-line 0748 of planted file 07\nFILE07-CONTENT-line 0792 of planted file 07\nFILE07-CONTENT-line 0836 of planted file 07\nFILE07-CONTENT-line 0880 of planted file 07\nFILE07-CONTENT-line 0924 of planted file 07\nFILE07-CONTENT-line 0968 of planted file 07\nFILE07-CONTENT-line 1012 of planted file 07\nFILE07-CONTENT-line 1056 of planted file 07\nFILE07-CONTENT-line 1100 of planted file 07\nFILE07-CONTENT-line 1144 of planted file 07\nFILE07-CONTENT-line 1188 of planted file 07\n\n[read_file]\nFILE08-CONTENT-line 0000 of planted file 08\nFILE08-CONTENT-line 0044 of planted file 08\nFILE08-CONTENT-line 0088 of planted file 08\nFILE08-CONTENT-line 0132 of planted file 08\nFILE08-CONTENT-line 0176 of planted file 08\nFILE08-CONTENT-line 0220 of planted file 08\nFILE08-CONTENT-line 0264 of planted file 08\nFILE08-CONTENT-line 0308 of planted file 08\nFILE08-CONTENT-line 0352 of planted file 08\nFILE08-CONTENT-line 0396 of planted file 08\nFILE08-CONTENT-line 0440 of planted file 08\nFILE08-CONTENT-line 0484 of planted file 08\nFILE08-CONTENT-line 0528 of planted file 08\nFILE08-CONTENT-line 0572 of planted file 08\nFILE08-CONTENT-line 0616 of planted file 08\nFILE08-CONTENT-line 0660 of planted file 08\nFILE08-CONTENT-line 0704 of planted file 08\nFILE08-CONTENT-line 0748 of planted file 08\nFILE08-CONTENT-line 0792 of planted file 08\nFILE08-CONTENT-line 0836 of planted file 08\nFILE08-CONTENT-line 0880 of planted file 08\nFILE08-CONTENT-line 0924 of planted file 08\nFILE08-CONTENT-line 0968 of planted file 08\nFILE08-CONTENT-line 1012 of planted file 08\nFILE08-CONTENT-line 1056 of planted file 08\nFILE08-CONTENT-line 1100 of planted file 08\nFILE08-CONTENT-line 1144 of planted file 08\nFILE08-CONTENT-line 1188 of planted file 08\n\n[read_file]\nFILE09-CONTENT-line 0000 of planted file 09\nFILE09-CONTENT-line 0044 of planted file 09\nFILE09-CONTENT-line 0088 of planted file 09\nFILE09-CONTENT-line 0132 of planted file 09\nFILE09-CONTENT-line 0176 of planted file 09\nFILE09-CONTENT-line 0220 of planted file 09\nFILE09-CONTENT-line 0264 of planted file 09\nFILE09-CONTENT-line 0308 of planted file 09\nFILE09-CONTENT-line 0352 of planted file 09\nFILE09-CONTENT-line 0396 of planted file 09\nFILE09-CONTENT-line 0440 of planted file 09\nFILE09-CONTENT-line 0484 of planted file 09\nFILE09-CONTENT-line 0528 of planted file 09\nFILE09-CONTENT-line 0572 of planted file 09\nFILE09-CONTENT-line 0616 of planted file 09\nFILE09-CONTENT-line 0660 of planted file 09\nFILE09-CONTENT-line 0704 of planted file 09\nFILE09-CONTENT-line 0748 of planted file 09\nFILE09-CONTENT-line 0792 of planted file 09\nFILE09-CONTENT-line 0836 of planted file 09\nFILE09-CONTENT-line 0880 of planted file 09\nFILE09-CONTENT-line 0924 of planted file 09\nFILE09-CONTENT-line 0968 of planted file 09\nFILE09-CONTENT-line 1012 of planted file 09\nFILE09-CONTENT-line 1056 of planted file 09\nFILE09-CONTENT-line 1100 of planted file 09\nFILE09-CONTENT-line 1144 of planted file 09\nFILE09-CONTENT-line 1188 of planted file 09\n\n[read_file]\nFILE10-CONTENT-line 0000 of planted file 10\nFILE10-CONTENT-line 0044 of planted file 10\nFILE10-CONTENT-line 0088 of planted file 10\nFILE10-CONTENT-line 0132 of planted file 10\nFILE10-CONTENT-line 0176 of planted file 10\nFILE10-CONTENT-line 0220 of planted file 10\nFILE10-CONTENT-line 0264 of planted file 10\nFILE10-CONTENT-line 0308 of planted file 10\nFILE10-CONTENT-line 0352 of planted file 10\nFILE10-CONTENT-line 0396 of planted file 10\nFILE10-CONTENT-line 0440 of planted file 10\nFILE10-CONTENT-line 0484 of planted file 10\nFILE10-CONTENT-line 0528 of planted file 10\nFILE10-CONTENT-line 0572 of planted file 10\nFILE10-CONTENT-line 0616 of planted file 10\nFILE10-CONTENT-line 0660 of planted file 10\nFILE10-CONTENT-line 0704 of planted file 10\nFILE10-CONTENT-line 0748 of planted file 10\nFILE10-CONTENT-line 0792 of planted file 10\nFILE10-CONTENT-line 0836 of planted file 10\nFILE10-CONTENT-line 0880 of planted file 10\nFILE10-CONTENT-line 0924 of planted file 10\nFILE10-CONTENT-line 0968 of planted file 10\nFILE10-CONTENT-line 1012 of planted file 10\nFILE10-CONTENT-line 1056 of planted file 10\nFILE10-CONTENT-line 1100 of planted file 10\nFILE10-CONTENT-line 1144 of planted file 10\nFILE10-CONTENT-line 1188 of planted file 10\n\n[read_file]\nFILE11-CONTENT-line 0000 of planted file 11\nFILE11-CONTENT-line 0044 of planted file 11\nFILE11-CONTENT-line 0088 of planted file 11\nFILE11-CONTENT-line 0132 of planted file 11\nFILE11-CONTENT-line 0176 of planted file 11\nFILE11-CONTENT-line 0220 of planted file 11\nFILE11-CONTENT-line 0264 of planted file 11\nFILE11-CONTENT-line 0308 of planted file 11\nFILE11-CONTENT-line 0352 of planted file 11\nFILE11-CONTENT-line 0396 of planted file 11\nFILE11-CONTENT-line 0440 of planted file 11\nFILE11-CONTENT-line 0484 of planted file 11\nFILE11-CONTENT-line 0528 of planted file 11\nFILE11-CONTENT-line 0572 of planted file 11\nFILE11-CONTENT-line 0616 of planted file 11\nFILE11-CONTENT-line 0660 of planted file 11\nFILE11-CONTENT-line 0704 of planted file 11\nFILE11-CONTENT-line 0748 of planted file 11\nFILE11-CONTENT-line 0792 of planted file 11\nFILE11-CONTENT-line 0836 of planted file 11\nFILE11-CONTENT-line 0880 of planted file 11\nFILE11-CONTENT-line 0924 of planted file 11\nFILE11-CONTENT-line 0968 of planted file 11\nFILE11-CONTENT-line 1012 of planted file 11\nFILE11-CONTENT-line 1056 of planted file 11\nFILE11-CONTENT-line 1100 of planted file 11\nFILE11-CONTENT-line 1144 of planted file 11\nFILE11-CONTENT-line 1188 of planted file 11\n\n[read_file]\nFILE12-CONTENT-line 0000 of planted file 12\nFILE12-CONTENT-line 0044 of planted file 12\nFILE12-CONTENT-line 0088 of planted file 12\nFILE12-CONTENT-line 0132 of planted file 12\nFILE12-CONTENT-line 0176 of planted file 12\nFILE12-CONTENT-line 0220 of planted file 12\nFILE12-CONTENT-line 0264 of planted file 12\nFILE12-CONTENT-line 0308 of planted file 12\nFILE12-CONTENT-line 0352 of planted file 12\nFILE12-CONTENT-line 0396 of planted file 12\nFILE12-CONTENT-line 0440 of planted file 12\nFILE12-CONTENT-line 0484 of planted file 12\nFILE12-CONTENT-line 0528 of planted file 12\nFILE12-CONTENT-line 0572 of planted file 12\nFILE12-CONTENT-line 0616 of planted file 12\nFILE12-CONTENT-line 0660 of planted file 12\nFILE12-CONTENT-line 0704 of planted file 12\nFILE12-CONTENT-line 0748 of planted file 12\nFILE12-CONTENT-line 0792 of planted file 12\nFILE12-CONTENT-line 0836 of planted file 12\nFILE12-CONTENT-line 0880 of planted file 12\nFILE12-CONTENT-line 0924 of planted file 12\nFILE12-CONTENT-line 0968 of planted file 12\nFILE12-CONTENT-line 1012 of planted file 12\nFILE12-CONTENT-line 1056 of planted file 12\nFILE12-CONTENT-line 1100 of planted file 12\nFILE12-CONTENT-line 1144 of planted file 12\nFILE12-CONTENT-line 1188 of planted file 12\n\n"
+        ]
+      },
+      {
+        "id": "micro-handoff-shape",
+        "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the ladder session they build on did not complete"
+        ]
+      },
+      {
+        "id": "keep-or-stub",
+        "title": "Unkept results are stubbed one request later on the stubbing model; kept ones and the no-stub model are not (rule 6)",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "claude-opus-5-course session: nonzero GUI exit after EOF: exit status 17: Open http://localhost:51373; terminal messages while busy are hints. /interrupt ends the turn.\n[read_file]\nFILE21-CONTENT-line 0000 of planted file 21\nFILE21-CONTENT-line 0044 of planted file 21\nFILE21-CONTENT-line 0088 of planted file 21\nFILE21-CONTENT-line 0132 of planted file 21\nFILE21-CONTENT-line 0176 of planted file 21\nFILE21-CONTENT-line 0220 of planted file 21\nFILE21-CONTENT-line 0264 of planted file 21\nFILE21-CONTENT-line 0308 of planted file 21\nFILE21-CONTENT-line 0352 of planted file 21\nFILE21-CONTENT-line 0396 of planted file 21\nFILE21-CONTENT-line 0440 of planted file 21\nFILE21-CONTENT-line 0484 of planted file 21\nFILE21-CONTENT-line 0528 of planted file 21\nFILE21-CONTENT-line 0572 of planted file 21\nFILE21-CONTENT-line 0616 of planted file 21\nFILE21-CONTENT-line 0660 of planted file 21\nFILE21-CONTENT-line 0704 of planted file 21\nFILE21-CONTENT-line 0748 of planted file 21\nFILE21-CONTENT-line 0792 of planted file 21\nFILE21-CONTENT-line 0836 of planted file 21\nFILE21-CONTENT-line 0880 of planted file 21\nFILE21-CONTENT-line 0924 of planted file 21\nFILE21-CONTENT-line 0968 of planted file 21\nFILE21-CONTENT-line 1012 of planted file 21\nFILE21-CONTENT-line 1056 of planted file 21\nFILE21-CONTENT-line 1100 of planted file 21\nFILE21-CONTENT-line 1144 of planted file 21\nFILE21-CONTENT-line 1188 of planted file 21\nFILE21-CONTENT-line 1232 of planted file 21\nFILE21-CONTENT-line 1276 of planted file 21\nFILE21-CONTENT-line 1320 of planted file 21\nFILE21-CONTENT-line 1364 of planted file 21\nFILE21-CONTENT-line 1408 of planted file 21\nFILE21-CONTENT-line 1452 of planted file 21\nFILE21-CONTENT-line 1496 of planted file 21\nFILE21-CONTENT-line 1540 of planted file 21\nFILE21-CONTENT-line 1584 of planted file 21\nFILE21-CONTENT-line 1628 of planted file 21\nFILE21-CONTENT-line 1672 of planted file 21\nFILE21-CONTENT-line 1716 of planted file 21\nFILE21-CONTENT-line 1760 of planted file 21\nFILE21-CONTENT-line 1804 of planted file 21\nFILE21-CONTENT-line 1848 of planted file 21\nFILE21-CONTENT-line 1892 of planted file 21\nFILE21-CONTENT-line 1936 of planted file 21\nFILE21-CONTENT-line 1980 of planted file 21\nFILE21-CONTENT-line 2024 of planted file 21\nFILE21-CONTENT-line 2068 of planted file 21\nFILE21-CONTENT-line 2112 of planted file 21\nFILE21-CONTENT-line 2156 of planted file 21\nFILE21-CONTENT-line 2200 of planted file 21\nFILE21-CONTENT-line 2244 of planted file 21\nFILE21-CONTENT-line 2288 of planted file 21\nFILE21-CONTENT-line 2332 of planted file 21\nFILE21-CONTENT-line 2376 of planted file 21\nFILE21-CONTENT-line 2420 of planted file 21\nFILE21-CONTENT-line 2464 of planted file 21\nFILE21-CONTENT-line 2508 of planted file 21\nFILE21-CONTENT-line 2552 of planted file 21\nFILE21-CONTENT-line 2596 of planted file 21\nFILE21-CONTENT-line 2640 of planted file 21\nFILE21-CONTENT-line 2684 of planted file 21\nFILE21-CONTENT-line 2728 of planted file 21\nFILE21-CONTENT-line 2772 of planted file 21\nFILE21-CONTENT-line 2816 of planted file 21\nFILE21-CONTENT-line 2860 of planted file 21\nFILE21-CONTENT-line 2904 of planted file 21\nFILE21-CONTENT-line 2948 of planted file 21\nFILE21-CONTENT-line 2992 of planted file 21\nFILE21-CONTENT-line 3036 of planted file 21\nFILE21-CONTENT-line 3080 of planted file 21\nFILE21-CONTENT-line 3124 of planted file 21\nFILE21-CONTENT-line 3168 of planted file 21\nFILE21-CONTENT-line 3212 of planted file 21\nFILE21-CONTENT-line 3256 of planted file 21\nFILE21-CONTENT-line 3300 of planted file 21\nFILE21-CONTENT-line 3344 of planted file 21\nFILE21-CONTENT-line 3388 of planted file 21\nFILE21-CONTENT-line 3432 of planted file 21\nFILE21-CONTENT-line 3476 of planted file 21\nFILE21-CONTENT-line 3520 of planted file 21\nFILE21-CONTENT-line 3564 of planted file 21\nFILE21-CONTENT-line 3608 of planted file 21\nFILE21-CONTENT-line 3652 of planted file 21\nFILE21-CONTENT-line 3696 of planted file 21\nFILE21-CONTENT-line 3740 of planted file 21\nFILE21-CONTENT-line 3784 of planted file 21\nFILE21-CONTENT-line 3828 of planted file 21\nFILE21-CONTENT-line 3872 of planted file 21\nFILE21-CONTENT-line 3916 of planted file 21\nFILE21-CONTENT-line 3960 of planted file 21\nFILE21-CONTENT-line 4004 of planted file 21\nFILE21-CONTENT-line 4048 of planted file 21\nFILE21-CONTENT-line 4092 of planted file 21\nFILE21-CONTENT-line 4136 of planted file 21\nFILE21-CONTENT-line 4180 of planted file 21\nFILE21-CONTENT-line 4224 of planted file 21\nFILE21-CONTENT-line 4268 of planted file 21\nFILE21-CONTENT-line 4312 of planted file 21\nFILE21-CONTENT-line 4356 of planted file 21\nFILE21-CONTENT-line 4400 of planted file 21\nFILE21-CONTENT-line 4444 of planted file 21\nFILE21-CONTENT-line 4488 of planted file 21\nFILE21-CONTENT-line 4532 of planted file 21\nFILE21-CONTENT-line 4576 of planted file 21\nFILE21-CONTENT-line 4620 of planted file 21\nFILE21-CONTENT-line 4664 of planted file 21\nFILE21-CONTENT-line 4708 of planted file 21\nFILE21-CONTENT-line 4752 of planted file 21\nFILE21-CONTENT-line 4796 of planted file 21\nFILE21-CONTENT-line 4840 of planted file 21\nFILE21-CONTENT-line 4884 of planted file 21\nFILE21-CONTENT-line 4928 of planted file 21\nFILE21-CONTENT-line 4972 of planted file 21\nFILE21-CONTENT-line 5016 of planted file 21\nFILE21-CONTENT-line 5060 of planted file 21\nFILE21-CONTENT-line 5104 of planted file 21\nFILE21-CONTENT-line 5148 of planted file 21\nFILE21-CONTENT-line 5192 of planted file 21\nFILE21-CONTENT-line 5236 of planted file 21\nFILE21-CONTENT-line 5280 of planted file 21\nFILE21-CONTENT-line 5324 of planted file 21\nFILE21-CONTENT-line 5368 of planted file 21\nFILE21-CONTENT-line 5412 of planted file 21\nFILE21-CONTENT-line 5456 of planted file 21\nFILE21-CONTENT-line 5500 of planted file 21\nFILE21-CONTENT-line 5544 of planted file 21\nFILE21-CONTENT-line 5588 of planted file 21\nFILE21-CONTENT-line 5632 of planted file 21\nFILE21-CONTENT-line 5676 of planted file 21\nFILE21-CONTENT-line 5720 of planted file 21\nFILE21-CONTENT-line 5764 of planted file 21\nFILE21-CONTENT-line 5808 of planted file 21\nFILE21-CONTENT-line 5852 of planted file 21\nFILE21-CONTENT-line 5896 of planted file 21\nFILE21-CONTENT-line 5940 of planted file 21\nFILE21-CONTENT-line 5984 of planted file 21\n\n[keep_tool_results]\nPrevious tool results kept.\n[read_file]\nFILE22-CONTENT-line 0000 of planted file 22\nFILE22-CONTENT-line 0044 of planted file 22\nFILE22-CONTENT-line 0088 of planted file 22\nFILE22-CONTENT-line 0132 of planted file 22\nFILE22-CONTENT-line 0176 of planted file 22\nFILE22-CONTENT-line 0220 of planted file 22\nFILE22-CONTENT-line 0264 of planted file 22\nFILE22-CONTENT-line 0308 of planted file 22\nFILE22-CONTENT-line 0352 of planted file 22\nFILE22-CONTENT-line 0396 of planted file 22\nFILE22-CONTENT-line 0440 of planted file 22\nFILE22-CONTENT-line 0484 of planted file 22\nFILE22-CONTENT-line 0528 of planted file 22\nFILE22-CONTENT-line 0572 of planted file 22\nFILE22-CONTENT-line 0616 of planted file 22\nFILE22-CONTENT-line 0660 of planted file 22\nFILE22-CONTENT-line 0704 of planted file 22\nFILE22-CONTENT-line 0748 of planted file 22\nFILE22-CONTENT-line 0792 of planted file 22\nFILE22-CONTENT-line 0836 of planted file 22\nFILE22-CONTENT-line 0880 of planted file 22\nFILE22-CONTENT-line 0924 of planted file 22\nFILE22-CONTENT-line 0968 of planted file 22\nFILE22-CONTENT-line 1012 of planted file 22\nFILE22-CONTENT-line 1056 of planted file 22\nFILE22-CONTENT-line 1100 of planted file 22\nFILE22-CONTENT-line 1144 of planted file 22\nFILE22-CONTENT-line 1188 of planted file 22\nFILE22-CONTENT-line 1232 of planted file 22\nFILE22-CONTENT-line 1276 of planted file 22\nFILE22-CONTENT-line 1320 of planted file 22\nFILE22-CONTENT-line 1364 of planted file 22\nFILE22-CONTENT-line 1408 of planted file 22\nFILE22-CONTENT-line 1452 of planted file 22\nFILE22-CONTENT-line 1496 of planted file 22\nFILE22-CONTENT-line 1540 of planted file 22\nFILE22-CONTENT-line 1584 of planted file 22\nFILE22-CONTENT-line 1628 of planted file 22\nFILE22-CONTENT-line 1672 of planted file 22\nFILE22-CONTENT-line 1716 of planted file 22\nFILE22-CONTENT-line 1760 of planted file 22\nFILE22-CONTENT-line 1804 of planted file 22\nFILE22-CONTENT-line 1848 of planted file 22\nFILE22-CONTENT-line 1892 of planted file 22\nFILE22-CONTENT-line 1936 of planted file 22\nFILE22-CONTENT-line 1980 of planted file 22\nFILE22-CONTENT-line 2024 of planted file 22\nFILE22-CONTENT-line 2068 of planted file 22\nFILE22-CONTENT-line 2112 of planted file 22\nFILE22-CONTENT-line 2156 of planted file 22\nFILE22-CONTENT-line 2200 of planted file 22\nFILE22-CONTENT-line 2244 of planted file 22\nFILE22-CONTENT-line 2288 of planted file 22\nFILE22-CONTENT-line 2332 of planted file 22\nFILE22-CONTENT-line 2376 of planted file 22\nFILE22-CONTENT-line 2420 of planted file 22\nFILE22-CONTENT-line 2464 of planted file 22\nFILE22-CONTENT-line 2508 of planted file 22\nFILE22-CONTENT-line 2552 of planted file 22\nFILE22-CONTENT-line 2596 of planted file 22\nFILE22-CONTENT-line 2640 of planted file 22\nFILE22-CONTENT-line 2684 of planted file 22\nFILE22-CONTENT-line 2728 of planted file 22\nFILE22-CONTENT-line 2772 of planted file 22\nFILE22-CONTENT-line 2816 of planted file 22\nFILE22-CONTENT-line 2860 of planted file 22\nFILE22-CONTENT-line 2904 of planted file 22\nFILE22-CONTENT-line 2948 of planted file 22\nFILE22-CONTENT-line 2992 of planted file 22\nFILE22-CONTENT-line 3036 of planted file 22\nFILE22-CONTENT-line 3080 of planted file 22\nFILE22-CONTENT-line 3124 of planted file 22\nFILE22-CONTENT-line 3168 of planted file 22\nFILE22-CONTENT-line 3212 of planted file 22\nFILE22-CONTENT-line 3256 of planted file 22\nFILE22-CONTENT-line 3300 of planted file 22\nFILE22-CONTENT-line 3344 of planted file 22\nFILE22-CONTENT-line 3388 of planted file 22\nFILE22-CONTENT-line 3432 of planted file 22\nFILE22-CONTENT-line 3476 of planted file 22\nFILE22-CONTENT-line 3520 of planted file 22\nFILE22-CONTENT-line 3564 of planted file 22\nFILE22-CONTENT-line 3608 of planted file 22\nFILE22-CONTENT-line 3652 of planted file 22\nFILE22-CONTENT-line 3696 of planted file 22\nFILE22-CONTENT-line 3740 of planted file 22\nFILE22-CONTENT-line 3784 of planted file 22\nFILE22-CONTENT-line 3828 of planted file 22\nFILE22-CONTENT-line 3872 of planted file 22\nFILE22-CONTENT-line 3916 of planted file 22\nFILE22-CONTENT-line 3960 of planted file 22\nFILE22-CONTENT-line 4004 of planted file 22\nFILE22-CONTENT-line 4048 of planted file 22\nFILE22-CONTENT-line 4092 of planted file 22\nFILE22-CONTENT-line 4136 of planted file 22\nFILE22-CONTENT-line 4180 of planted file 22\nFILE22-CONTENT-line 4224 of planted file 22\nFILE22-CONTENT-line 4268 of planted file 22\nFILE22-CONTENT-line 4312 of planted file 22\nFILE22-CONTENT-line 4356 of planted file 22\nFILE22-CONTENT-line 4400 of planted file 22\nFILE22-CONTENT-line 4444 of planted file 22\nFILE22-CONTENT-line 4488 of planted file 22\nFILE22-CONTENT-line 4532 of planted file 22\nFILE22-CONTENT-line 4576 of planted file 22\nFILE22-CONTENT-line 4620 of planted file 22\nFILE22-CONTENT-line 4664 of planted file 22\nFILE22-CONTENT-line 4708 of planted file 22\nFILE22-CONTENT-line 4752 of planted file 22\nFILE22-CONTENT-line 4796 of planted file 22\nFILE22-CONTENT-line 4840 of planted file 22\nFILE22-CONTENT-line 4884 of planted file 22\nFILE22-CONTENT-line 4928 of planted file 22\nFILE22-CONTENT-line 4972 of planted file 22\nFILE22-CONTENT-line 5016 of planted file 22\nFILE22-CONTENT-line 5060 of planted file 22\nFILE22-CONTENT-line 5104 of planted file 22\nFILE22-CONTENT-line 5148 of planted file 22\nFILE22-CONTENT-line 5192 of planted file 22\nFILE22-CONTENT-line 5236 of planted file 22\nFILE22-CONTENT-line 5280 of planted file 22\nFILE22-CONTENT-line 5324 of planted file 22\nFILE22-CONTENT-line 5368 of planted file 22\nFILE22-CONTENT-line 5412 of planted file 22\nFILE22-CONTENT-line 5456 of planted file 22\nFILE22-CONTENT-line 5500 of planted file 22\nFILE22-CONTENT-line 5544 of planted file 22\nFILE22-CONTENT-line 5588 of planted file 22\nFILE22-CONTENT-line 5632 of planted file 22\nFILE22-CONTENT-line 5676 of planted file 22\nFILE22-CONTENT-line 5720 of planted file 22\nFILE22-CONTENT-line 5764 of planted file 22\nFILE22-CONTENT-line 5808 of planted file 22\nFILE22-CONTENT-line 5852 of planted file 22\nFILE22-CONTENT-line 5896 of planted file 22\nFILE22-CONTENT-line 5940 of planted file 22\nFILE22-CONTENT-line 5984 of planted file 22\n\n[read_file]\nFILE23-CONTENT-line 0000 of planted file 23\nFILE23-CONTENT-line 0044 of planted file 23\nFILE23-CONTENT-line 0088 of planted file 23\nFILE23-CONTENT-line 0132 of planted file 23\nFILE23-CONTENT-line 0176 of planted file 23\nFILE23-CONTENT-line 0220 of planted file 23\nFILE23-CONTENT-line 0264 of planted file 23\nFILE23-CONTENT-line 0308 of planted file 23\nFILE23-CONTENT-line 0352 of planted file 23\nFILE23-CONTENT-line 0396 of planted file 23\nFILE23-CONTENT-line 0440 of planted file 23\nFILE23-CONTENT-line 0484 of planted file 23\nFILE23-CONTENT-line 0528 of planted file 23\nFILE23-CONTENT-line 0572 of planted file 23\nFILE23-CONTENT-line 0616 of planted file 23\nFILE23-CONTENT-line 0660 of planted file 23\nFILE23-CONTENT-line 0704 of planted file 23\nFILE23-CONTENT-line 0748 of planted file 23\nFILE23-CONTENT-line 0792 of planted file 23\nFILE23-CONTENT-line 0836 of planted file 23\nFILE23-CONTENT-line 0880 of planted file 23\nFILE23-CONTENT-line 0924 of planted file 23\nFILE23-CONTENT-line 0968 of planted file 23\nFILE23-CONTENT-line 1012 of planted file 23\nFILE23-CONTENT-line 1056 of planted file 23\nFILE23-CONTENT-line 1100 of planted file 23\nFILE23-CONTENT-line 1144 of planted file 23\nFILE23-CONTENT-line 1188 of planted file 23\nFILE23-CONTENT-line 1232 of planted file 23\nFILE23-CONTENT-line 1276 of planted file 23\nFILE23-CONTENT-line 1320 of planted file 23\nFILE23-CONTENT-line 1364 of planted file 23\nFILE23-CONTENT-line 1408 of planted file 23\nFILE23-CONTENT-line 1452 of planted file 23\nFILE23-CONTENT-line 1496 of planted file 23\nFILE23-CONTENT-line 1540 of planted file 23\nFILE23-CONTENT-line 1584 of planted file 23\nFILE23-CONTENT-line 1628 of planted file 23\nFILE23-CONTENT-line 1672 of planted file 23\nFILE23-CONTENT-line 1716 of planted file 23\nFILE23-CONTENT-line 1760 of planted file 23\nFILE23-CONTENT-line 1804 of planted file 23\nFILE23-CONTENT-line 1848 of planted file 23\nFILE23-CONTENT-line 1892 of planted file 23\nFILE23-CONTENT-line 1936 of planted file 23\nFILE23-CONTENT-line 1980 of planted file 23\nFILE23-CONTENT-line 2024 of planted file 23\nFILE23-CONTENT-line 2068 of planted file 23\nFILE23-CONTENT-line 2112 of planted file 23\nFILE23-CONTENT-line 2156 of planted file 23\nFILE23-CONTENT-line 2200 of planted file 23\nFILE23-CONTENT-line 2244 of planted file 23\nFILE23-CONTENT-line 2288 of planted file 23\nFILE23-CONTENT-line 2332 of planted file 23\nFILE23-CONTENT-line 2376 of planted file 23\nFILE23-CONTENT-line 2420 of planted file 23\nFILE23-CONTENT-line 2464 of planted file 23\nFILE23-CONTENT-line 2508 of planted file 23\nFILE23-CONTENT-line 2552 of planted file 23\nFILE23-CONTENT-line 2596 of planted file 23\nFILE23-CONTENT-line 2640 of planted file 23\nFILE23-CONTENT-line 2684 of planted file 23\nFILE23-CONTENT-line 2728 of planted file 23\nFILE23-CONTENT-line 2772 of planted file 23\nFILE23-CONTENT-line 2816 of planted file 23\nFILE23-CONTENT-line 2860 of planted file 23\nFILE23-CONTENT-line 2904 of planted file 23\nFILE23-CONTENT-line 2948 of planted file 23\nFILE23-CONTENT-line 2992 of planted file 23\nFILE23-CONTENT-line 3036 of planted file 23\nFILE23-CONTENT-line 3080 of planted file 23\nFILE23-CONTENT-line 3124 of planted file 23\nFILE23-CONTENT-line 3168 of planted file 23\nFILE23-CONTENT-line 3212 of planted file 23\nFILE23-CONTENT-line 3256 of planted file 23\nFILE23-CONTENT-line 3300 of planted file 23\nFILE23-CONTENT-line 3344 of planted file 23\nFILE23-CONTENT-line 3388 of planted file 23\nFILE23-CONTENT-line 3432 of planted file 23\nFILE23-CONTENT-line 3476 of planted file 23\nFILE23-CONTENT-line 3520 of planted file 23\nFILE23-CONTENT-line 3564 of planted file 23\nFILE23-CONTENT-line 3608 of planted file 23\nFILE23-CONTENT-line 3652 of planted file 23\nFILE23-CONTENT-line 3696 of planted file 23\nFILE23-CONTENT-line 3740 of planted file 23\nFILE23-CONTENT-line 3784 of planted file 23\nFILE23-CONTENT-line 3828 of planted file 23\nFILE23-CONTENT-line 3872 of planted file 23\nFILE23-CONTENT-line 3916 of planted file 23\nFILE23-CONTENT-line 3960 of planted file 23\nFILE23-CONTENT-line 4004 of planted file 23\nFILE23-CONTENT-line 4048 of planted file 23\nFILE23-CONTENT-line 4092 of planted file 23\nFILE23-CONTENT-line 4136 of planted file 23\nFILE23-CONTENT-line 4180 of planted file 23\nFILE23-CONTENT-line 4224 of planted file 23\nFILE23-CONTENT-line 4268 of planted file 23\nFILE23-CONTENT-line 4312 of planted file 23\nFILE23-CONTENT-line 4356 of planted file 23\nFILE23-CONTENT-line 4400 of planted file 23\nFILE23-CONTENT-line 4444 of planted file 23\nFILE23-CONTENT-line 4488 of planted file 23\nFILE23-CONTENT-line 4532 of planted file 23\nFILE23-CONTENT-line 4576 of planted file 23\nFILE23-CONTENT-line 4620 of planted file 23\nFILE23-CONTENT-line 4664 of planted file 23\nFILE23-CONTENT-line 4708 of planted file 23\nFILE23-CONTENT-line 4752 of planted file 23\nFILE23-CONTENT-line 4796 of planted file 23\nFILE23-CONTENT-line 4840 of planted file 23\nFILE23-CONTENT-line 4884 of planted file 23\nFILE23-CONTENT-line 4928 of planted file 23\nFILE23-CONTENT-line 4972 of planted file 23\nFILE23-CONTENT-line 5016 of planted file 23\nFILE23-CONTENT-line 5060 of planted file 23\nFILE23-CONTENT-line 5104 of planted file 23\nFILE23-CONTENT-line 5148 of planted file 23\nFILE23-CONTENT-line 5192 of planted file 23\nFILE23-CONTENT-line 5236 of planted file 23\nFILE23-CONTENT-line 5280 of planted file 23\nFILE23-CONTENT-line 5324 of planted file 23\nFILE23-CONTENT-line 5368 of planted file 23\nFILE23-CONTENT-line 5412 of planted file 23\nFILE23-CONTENT-line 5456 of planted file 23\nFILE23-CONTENT-line 5500 of planted file 23\nFILE23-CONTENT-line 5544 of planted file 23\nFILE23-CONTENT-line 5588 of planted file 23\nFILE23-CONTENT-line 5632 of planted file 23\nFILE23-CONTENT-line 5676 of planted file 23\nFILE23-CONTENT-line 5720 of planted file 23\nFILE23-CONTENT-line 5764 of planted file 23\nFILE23-CONTENT-line 5808 of planted file 23\nFILE23-CONTENT-line 5852 of planted file 23\nFILE23-CONTENT-line 5896 of planted file 23\nFILE23-CONTENT-line 5940 of planted file 23\nFILE23-CONTENT-line 5984 of planted file 23\n\n (requests: 4)"
+        ]
+      },
+      {
+        "id": "ladder-is-recorded",
+        "title": "Restarting under a larger target reproduces the recorded cuts byte for byte (rule 7)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the ladder session they build on did not complete"
+        ]
+      },
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "session: nonzero GUI exit after EOF: exit status 17: Open http://localhost:51366; terminal messages while busy are hints. /interrupt ends the turn.\n[load_skill]\nLoaded skill manual.\n[load_skill]\nLoaded skill mcp-tools.\n[gui_input]\nINPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY\n[unload_skill]\nSkill mcp-tools is pending instruction removal at the next compaction; its tools and servers are disconnected now.\n (requests 5)"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the ladder session they build on did not complete"
+        ]
+      },
+      {
+        "id": "crash-recovery",
+        "title": "SIGKILL after an anchored save loses no turn (rule 9)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "clean session: nonzero GUI exit after EOF: exit status 17: Open http://localhost:51359; terminal messages while busy are hints. /interrupt ends the turn.\n"
+        ]
+      },
+      {
+        "id": "total-reducer",
+        "title": "Two parseable but unappliable events are skipped; the agent starts with the rest intact (rule 8)",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "the crash-recovery session it builds on did not complete"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "split-system-positive",
+    "exit": 0,
+    "seconds": 0.857,
+    "intended_check": null,
+    "intended_failure": null,
+    "score": 100,
+    "failures": []
+  },
+  {
+    "case": "handoff-call-missing",
+    "exit": 1,
+    "seconds": 0.894,
+    "intended_check": "micro-handoff-shape",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "micro-handoff-shape",
+        "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "handoff log requires call < successful result < separate note and successful same-batch read: call=0 result=88 note=89 sibling=true"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "delayed-completion-positive",
+    "exit": 0,
+    "seconds": 10.248,
+    "intended_check": null,
+    "intended_failure": null,
+    "score": 100,
+    "failures": []
+  },
+  {
+    "case": "duplicate-wire-ephemera",
+    "exit": 1,
+    "seconds": 0.912,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 3 actual content SNAPSHOT_ONLY_1 count 2, want 1"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "stale-snapshot-marker",
+    "exit": 1,
+    "seconds": 0.785,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 4 actual content SNAPSHOT_ONLY_1 count 1, want 0"
+        ]
+      }
+    ],
+    "interpretation": "Extra diagnostic perturbation of marker only; not counted as a distinct plausible defect. Actual client snapshot-cache mutation independently checks stale results."
+  },
+  {
+    "case": "stale-snapshot-cache",
+    "exit": 1,
+    "seconds": 0.908,
+    "intended_check": "frozen-prefix",
+    "intended_failure": true,
+    "score": 90,
+    "failures": [
+      {
+        "id": "frozen-prefix",
+        "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "request 4 actual content SNAPSHOT_ONLY_1 count 1, want 0"
+        ]
+      }
+    ]
+  }
+]

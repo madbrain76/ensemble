@@ -1,0 +1,11 @@
+--- internal/engine/engine.go
++++ internal/engine/engine.go
+@@ -190,7 +190,7 @@
+ func entries(c *common.Context) []common.Entry {
+ 	out := append([]common.Entry(nil), c.Dialogue...)
+ 	if len(c.Ephemera) > 0 {
+-		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera})
++		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera}, common.Entry{Actor: common.System, Parts: c.Ephemera})
+ 	}
+ 	return out
+ }

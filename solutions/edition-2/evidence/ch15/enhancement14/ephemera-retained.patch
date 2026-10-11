@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -28,7 +28,7 @@
+ 			c.StartupTools = e.Request.StartupTools
+ 			c.Tools = append([]common.ToolDeclaration(nil), (*c.StartupTools)...)
+ 		}
+-		c.Ephemera = nil // consumption is logged, so replay knows it was delivered once.
++		// c.Ephemera = nil // consumption is logged, so replay knows it was delivered once.
+ 		if c.Turn == "input_pending" || c.Turn == "idle" {
+ 			c.Turn = "in_flight"
+ 		}

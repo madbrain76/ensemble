@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -163,7 +163,7 @@
+ // Holding survivors preserves call/result pairing even under serial dispatch:
+ // another call from this same model reply may still be waiting to start.
+ func survivor(c *common.Context, entry common.Entry) {
+-	if !toolsComplete(c.Dialogue) {
++	if false {
+ 		c.Held = append(c.Held, entry)
+ 		return
+ 	}

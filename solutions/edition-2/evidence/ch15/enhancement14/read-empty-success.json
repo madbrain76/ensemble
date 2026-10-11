@@ -1,0 +1,73 @@
+{
+  "title": "Edition 2, Chapter 14 — Context Management",
+  "checks": [
+    {
+      "id": "skill-survives-the-ladder",
+      "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "read L1 was not delivered successfully before trimming: error=false \u003cnil\u003e"
+      ]
+    },
+    {
+      "id": "micro-handoff-shape",
+      "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "handoff log requires call \u003c successful result \u003c separate note and successful same-batch read: call=82 result=83 note=84 sibling=false"
+      ]
+    },
+    {
+      "id": "keep-or-stub",
+      "title": "Unkept results are stubbed one request later on the stubbing model; kept ones and the no-stub model are not (rule 6)",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "the request right after a read must carry its full result: "
+      ]
+    },
+    {
+      "id": "ladder-is-recorded",
+      "title": "Restarting under a larger target reproduces the recorded cuts byte for byte (rule 7)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "frozen-prefix",
+      "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "replay-equals-snapshot",
+      "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "crash-recovery",
+      "title": "SIGKILL after an anchored save loses no turn (rule 9)",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "total-reducer",
+      "title": "Two parseable but unappliable events are skipped; the agent starts with the rest intact (rule 8)",
+      "points": 5,
+      "earned": 5,
+      "passed": true
+    }
+  ],
+  "score": 60,
+  "max_score": 100,
+  "passed": false
+}

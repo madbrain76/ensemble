@@ -1,0 +1,10 @@
+--- gui/cmd/main.go
++++ gui/cmd/main.go
+@@ -20,6 +20,7 @@
+ )
+ 
+ func main() {
++ defer os.Exit(17)
+ 	if err := run(); err != nil {
+ 		fmt.Fprintln(os.Stderr, err)
+ 		os.Exit(1)
