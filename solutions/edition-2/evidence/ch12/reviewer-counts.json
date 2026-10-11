@@ -1,0 +1,107 @@
+{
+  "student11": {
+    "Go tests": {
+      "physical": 3618,
+      "blank": 105,
+      "comment": 233,
+      "active": 3280
+    },
+    "Go production": {
+      "physical": 6717,
+      "blank": 382,
+      "comment": 1176,
+      "active": 5159
+    },
+    "examples Go production": {
+      "physical": 469,
+      "blank": 17,
+      "comment": 37,
+      "active": 415
+    },
+    "examples Go tests": {
+      "physical": 234,
+      "blank": 5,
+      "comment": 25,
+      "active": 204
+    },
+    "JavaScript production": {
+      "physical": 461,
+      "blank": 4,
+      "comment": 44,
+      "active": 413
+    }
+  },
+  "student12": {
+    "Go tests": {
+      "physical": 4036,
+      "blank": 121,
+      "comment": 250,
+      "active": 3665
+    },
+    "Go production": {
+      "physical": 7832,
+      "blank": 449,
+      "comment": 1292,
+      "active": 6091
+    },
+    "examples Go production": {
+      "physical": 469,
+      "blank": 17,
+      "comment": 37,
+      "active": 415
+    },
+    "examples Go tests": {
+      "physical": 234,
+      "blank": 5,
+      "comment": 25,
+      "active": 204
+    },
+    "JavaScript production": {
+      "physical": 566,
+      "blank": 8,
+      "comment": 51,
+      "active": 507
+    }
+  },
+  "legacy11": {
+    "Go production": {
+      "physical": 9729,
+      "blank": 917,
+      "comment": 2087,
+      "active": 6725
+    },
+    "Go tests": {
+      "physical": 1012,
+      "blank": 83,
+      "comment": 160,
+      "active": 769
+    },
+    "JavaScript production": {
+      "physical": 589,
+      "blank": 79,
+      "comment": 30,
+      "active": 480
+    }
+  },
+  "legacy12": {
+    "Go production": {
+      "physical": 10932,
+      "blank": 1036,
+      "comment": 2265,
+      "active": 7631
+    },
+    "Go tests": {
+      "physical": 1137,
+      "blank": 96,
+      "comment": 168,
+      "active": 873
+    },
+    "JavaScript production": {
+      "physical": 981,
+      "blank": 117,
+      "comment": 64,
+      "active": 800
+    }
+  },
+  "method": "Go/JS physical lines split into blanks, whole-line // or /* comments, remaining active. Examples nested ch05/ch06/ch07 separate. No test fixtures/logs/docs/assets included."
+}

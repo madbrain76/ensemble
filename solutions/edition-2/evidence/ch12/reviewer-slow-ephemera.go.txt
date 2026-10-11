@@ -1,0 +1,12 @@
+package ensemble_test
+import("context";"encoding/json";"io";"net/http";"net/http/httptest";"strings";"testing";"time";"os";"ensemble/ensemble")
+func TestReviewerSlowTurnEphemera(t *testing.T) {
+ bodies:=make(chan string,1)
+ server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){b,_:=io.ReadAll(r.Body);bodies<-string(b);io.WriteString(w,`{"content":[{"type":"text","text":"done"}],"usage":{"input_tokens":1,"output_tokens":1}}`)}));defer server.Close()
+ a:=mcpAgent(t,server.URL);local,remote:=ensemble.MCPPipe();defer remote.Close()
+ go func(){for{data,err:=remote.Recv();if err!=nil{return};var m map[string]json.RawMessage;json.Unmarshal(data,&m);var method string;json.Unmarshal(m["method"],&method);var result any
+ switch method {case "initialize":result=map[string]any{"protocolVersion":"2024-11-05"};case "notifications/initialized":continue;case "tools/list":result=map[string]any{"tools":[]map[string]any{{"name":"slow_startup","description":"turn context","inputSchema":map[string]any{"type":"object"},"ephemeral":"turn"}}};case "tools/call":delay:=3400*time.Millisecond;if os.Getenv("REVIEW_FAST_PEER")=="1"{delay=0};time.Sleep(delay);result=map[string]any{"content":[]map[string]string{{"type":"text","text":"ACTUAL_SLOW_TURN_CONTEXT"}}};default:continue};reply,_:=json.Marshal(map[string]any{"jsonrpc":"2.0","id":m["id"],"result":result});remote.Send(reply)}}()
+ ctx,cancel:=context.WithTimeout(context.Background(),8*time.Second);defer cancel();if err:=a.MCP().Connect(ctx,"slow",local);err!=nil{t.Fatal(err)}
+ if _,err:=a.Ask(ctx,"use turn context");err!=nil{t.Fatal(err)}
+ body:=<-bodies;t.Log(body);if !strings.Contains(body,"ACTUAL_SLOW_TURN_CONTEXT"){t.Error("actual slow turn ephemera absent from provider request")}
+}

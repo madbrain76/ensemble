@@ -77,3 +77,131 @@ the checks SHA-256 is
 `9e3e74c172fb479376133a5a11b4e44cd3eb36e043502d74972fae95abeeb630`.
 No original grader, chapter or student implementation was edited. No additional
 paid call or broad test sweep was run. Scratch copies were removed after capture.
+
+## Initial formal review — correction required
+
+Reviewed the complete final student submission in `ch12.md`, production changes,
+new integration tests and retained evidence at source commit
+`2c459d945affd958ee547a7b6c58a2396221ce0a`. Independently verified all 91 file
+hashes in `student-source.json`. Compared the student's change with accepted
+original Chapter 11 (`f50837f`, exact `history/ch11`), and read the first-edition
+Chapter 12 MCP/browser code and its integration changes against `solutions/ch11`.
+This is the initial formal review; **one correction round is requested**.
+
+**Blocking finding: automatic context must wait for actual completion.**
+`internal/agent/mcp.go:116` gives automatic invocations the ordinary job callback
+wait; `ephemera` then treats its returned status text as completed tool content.
+The default wait is three seconds. A real pipe peer returning turn context after
+3.4 seconds produced a provider request at three seconds containing
+`job 1 running; 0 bytes total ... Use wait_for_job` instead of the actual context.
+The once-per-turn flag was already set, so its eventual result is never attached.
+The same peer with an immediate reply passes the identical assertion.
+
+The chapter explicitly combines automatic results into Ephemera before
+RequestSent. A model-facing job handle is not that result, particularly for a
+hidden tool the model cannot call. Preserve ordinary tool callback/wait behavior,
+real job supervision, turn interruption and shutdown while making automatic
+collection use completed content or an actual logged failure. Add a focused
+regression and restored-defect sensitivity check; no paid repeat or grader rewrite
+is needed. `reviewer-slow-ephemera.json` retains both observations and
+`reviewer-slow-ephemera.go.txt` the small external-peer probe. It exercises the
+real Agent, jobs, codec, reducer, renderer and HTTP boundary, not mocked machinery.
+
+One small evidence correction also belongs in the response: the browser check
+labeled “persisted and effective setting” reads the DOM value and computed font
+size. Those prove applied/effective state; that assertion does not read the saved
+file. Describe it accurately and cite the unchanged persistence evidence
+separately rather than adding a redundant new persistence suite.
+
+No other blocking source, architecture, scope or comment finding was identified.
+The proposed old-path WebSocket exception is justified: actual framing belongs
+in the optional GUI module and uses the public MCP transport interface. A named
+core file or substring would not establish routing. The 80/90 result remains
+the **interim-source** probe, not a final-source grade. Recursive parity remains
+unrun for the independently established optional-GUI/headless launch mismatch;
+neither exception waives actual inherited behavior or this chapter's new tests.
+Acceptance waits for the automatic-context correction.
+
+### Comparison and teaching quality
+
+Counts below are independent physical-line counts: exclude blanks and whole-line
+`//`/`/*` comments to get active lines, retaining physical totals for context.
+Go tests and JavaScript are separate. Nested student `ch05`/`ch06`/`ch07` example
+Go production/tests are separate and unchanged; logs, captured SSE, Markdown,
+HTML/CSS and evidence scripts are excluded. No production move needs adjustment.
+Detailed totals and method are in `reviewer-counts.json`.
+
+| Category | Student own-chapter delta: active / comments / physical | First-edition own-chapter delta: active / comments / physical |
+| --- | --- | --- |
+| Production Go | +932 / +116 / +1115 | +906 / +178 / +1203 |
+| Go tests | +385 / +17 / +418 | +104 / +8 / +125 |
+| Production JavaScript | +94 / +7 / +105 | +320 / +34 / +392 |
+
+Student production Go totals are 6091 active / 1292 comment / 7832 physical;
+legacy totals are 7631 / 2265 / 10932. Student production Go comments are about
+17.5% of nonblank lines overall and 11.1% of the delta; legacy is about 22.9%
+overall and 16.4% of its delta. The lighter new share is not a quota failure:
+the code explains correlation ownership, why reverse execution leaves the reader
+free, admission versus discovery, shutdown ordering, job versus wait lifetime,
+and GUI queue reliability. Exported contracts and members have useful comments.
+The newly documented inherited test fields are sensible local cleanup.
+
+The slightly larger active Go delta implements real skill startup/unload,
+per-server grants, Agent ownership and job cancellation that the old answer's
+new declarations/bridge do not themselves establish. A single correlation client
+instead of separate codec/client layers is a reasonable simplification. Runtime
+behavior stays in implementation packages; common adds data and interfaces.
+Manager→Agent→Ensemble and client→manager relationships reach admission and
+diagnostics without a service bag. Raw streams are external resources, not
+invented domain parents. The GUI transport keeps its actual Server parent and
+uses the public core vocabulary; source and import controls preserve the optional
+boundary. Browser code avoids replacing the global WebSocket constructor and
+implements current control-state/truncation obligations in fewer lines. No future
+resources/prompts protocol, journal, sandbox or generalized YAML framework appears.
+
+The new tests protect observable engine requests, out-of-order correlation,
+reverse file reads, job kill versus callback timeout, disconnect visibility,
+per-server admission and actual subprocess reaping. The old added test chiefly
+exercises handshake/discovery over a pipe. Extra tests here protect real behavior;
+they do not mock away the existing job/history/runtime. The browser's direct DOM
+checks do not claim to prove speech: its separate full app path observes native
+speech. No mocked core behavior or mock framework was found.
+
+### Evidence assessed independently
+
+- Existing MCP integration tests independently pass under race detection:
+  `go test -race ./ensemble -run '^TestMCP' -count=1 -timeout 20s`, 1.079 seconds.
+  `reviewer-focused-checks.json` records this. Their passing result coexists with
+  the separate slow-peer failure; a fast peer cannot establish the missing case.
+- Read the five-module test/vet and core/GUI race outputs in `checks.json`, and
+  the headless negative/GUI positive dependency controls. No broad repeat needed.
+- Inspected the 16 distinct core mutation claims and six browser mutations.
+  Preserved initial argument/admission survivors, the correlation mutation that
+  only broke handshake, and the compile-failed close mutation are not valid kills.
+  Corrected artifacts show intended failures: actual rendered result omission,
+  per-server grant escape, mismatched concurrent response, live subprocess after
+  unload, and hidden automatic dispatch. Restored controls pass. These demonstrate
+  sensitivity for their inputs, not completeness; the slow-peer finding exposes
+  a different valid timing case.
+- Browser source and raw artifact show 15 checks in actual Chrome 154.0.8037.99,
+  the real Go tunnel/Agent and an external provider fake. Three requests exercise
+  click/input and fresh hidden snapshots; a fourth observes native speech. Native
+  start was observed, the capped snapshot is 4027 UTF-8 bytes, state/truncation
+  disclosure is present, and missing selectors produce tool errors. This is not
+  a subjective audibility assessment. The persistence-label limit is noted above.
+- All three human CLI receipts show a marker-bearing final answer, two round
+  snapshots, one turn snapshot and one real local-server marker read: Anthropic
+  `claude-haiku-5-5`, OpenAI `gpt-4o-mini`, Gemini `gemini-3.8-flash`. These are
+  actual provider runs with a local MCP service, not live-browser/provider proof.
+  Credentials are loaded only in the launcher and passed to the intended child;
+  subprocess MCP peers receive a narrow ordinary environment.
+- The initial Anthropic attempt has exit zero but no answer and a parser error;
+  it remains a failure. The successful repeat captured empty `partial_json`
+  beside valid start-block `{}`. The narrow parser fix preserves that valid
+  input, and restoring the old condition kills its captured-wire regression.
+  Initial frames were not retained; the student correctly labels that capture
+  limitation instead of claiming inferred bytes were observed.
+
+Correction round 1 should resolve the single behavior finding and the evidence
+wording, then return source, affected checks and targeted sensitivity evidence.
+The original grading history and all initial failures remain unchanged.

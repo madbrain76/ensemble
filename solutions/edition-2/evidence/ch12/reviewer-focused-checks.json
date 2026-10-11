@@ -1,0 +1,8 @@
+{
+  "source_commit": "2c459d945affd958ee547a7b6c58a2396221ce0a",
+  "command": "go test -race ./ensemble -run ^TestMCP -count=1 -timeout 20s",
+  "cwd": "solutions/edition-2/main",
+  "exit": 0,
+  "output": "ok  ensemble/ensemble 1.079s\n",
+  "scope": "Existing MCP integration checks only; slow-ephemera failure recorded separately."
+}
