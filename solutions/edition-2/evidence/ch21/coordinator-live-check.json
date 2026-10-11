@@ -1,0 +1,42 @@
+{
+  "source_commit": "f35b6ae8ce43c91a52b9972361093db6258e3e20",
+  "source_manifest_files_verified": 148,
+  "live_source_commit": "2eac96a27c36520228956e35ae3a970d292e6ee3",
+  "live_main_tree": "c257777ba841665766b6ea6c5cd54480678e6822",
+  "binary_hash_verified": true,
+  "request_and_completed_response_pairs": 5,
+  "all_model": "gpt-6-astra",
+  "all_reasoning_effort": "high",
+  "remote_declarations": [
+    [],
+    [
+      "firecrawl_scrape",
+      "firecrawl_search"
+    ],
+    [
+      "firecrawl_scrape",
+      "firecrawl_search"
+    ],
+    [
+      "firecrawl_scrape",
+      "firecrawl_search"
+    ],
+    [
+      "firecrawl_scrape",
+      "firecrawl_search"
+    ]
+  ],
+  "actual_tool_calls": [
+    "load_skill",
+    "firecrawl_search",
+    "firecrawl_scrape",
+    "wait_for_job"
+  ],
+  "final_provider_tool_result_contains_claimed_download": true,
+  "initial_attempt_preserved": true,
+  "cli_exit_code": 0,
+  "timed_out": false,
+  "elapsed_seconds": 23.35,
+  "final_cached_input_tokens": 4096,
+  "limits": "Final source differs from live source by later credential-redaction/test changes. Page output to model was truncated. Endpoint comes from configuration/source, not independent interception. Original grader remains 0/100 FAIL."
+}
