@@ -1,0 +1,5 @@
+Original22 initial green stage, October11
+Core: go test ./... && go vet ./... — exit0; ensemble/ensemble29.289s; all other packages pass.
+GUI: go test ./... && go vet ./... — exit0; ensemble-gui-stub1.179s.
+Focused core: go test -race ./ensemble -run TestAgentStatus|TestModelSelection -count=1 -timeout=20s — exit0,1.099s.
+First core attempt failed TestRegistryDeclarationsAndIsolation: registry lacks twelve tools. Adding agent_status makes13; updated inherited assertion, then broad suite passed.

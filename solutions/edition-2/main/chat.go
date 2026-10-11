@@ -195,7 +195,7 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 		}
 	}()
 	if chat {
-		fmt.Fprintln(os.Stderr, "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.")
+		fmt.Fprintln(os.Stderr, "Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.")
 	}
 	input := bufio.NewReader(os.Stdin)
 	for {
@@ -208,7 +208,13 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 		}
 		text := strings.TrimRight(line, "\r\n")
 		if chat {
-			if text == "/interrupt" {
+			if strings.HasPrefix(text, "/model ") {
+				if err := a.SetModel(strings.TrimSpace(strings.TrimPrefix(text, "/model "))); err != nil {
+					fmt.Fprintln(os.Stderr, err)
+				} else {
+					fmt.Fprintln(os.Stderr, "Model:", a.Config().Model)
+				}
+			} else if text == "/interrupt" {
 				a.Post(ensemble.Interrupt{})
 			} else if strings.TrimSpace(text) != "" {
 				a.Post(ensemble.UserMessage{Text: text})

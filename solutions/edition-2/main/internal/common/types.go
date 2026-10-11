@@ -337,6 +337,8 @@ type Agent interface {
 	SetContextSettings(target, retention int) error
 	// SetMemorySettings records corpus switches and applies byte budgets through the actor.
 	SetMemorySettings(MemorySettings) error
+	// SetModel changes the selected model between turns, retaining provider, billing and usage.
+	SetModel(string) error
 	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config
 	// Engine reaches the transport and measured usage through the owning Agent.
