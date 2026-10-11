@@ -4,13 +4,16 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	gui "ensemble-gui-stub"
 	"ensemble/ensemble"
+	"errors"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -22,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 }
-func run() error {
+func run() (runErr error) {
 	// Flags are the public configuration surface. Existing provider environment
 	// defaults retain the earlier CLI setup and the original grader contract.
 	cfg, err := ensemble.ConfigFromEnv()
@@ -38,7 +41,12 @@ func run() error {
 	flag.StringVar(&cfg.APIKey, "api-key", cfg.APIKey, "provider credential (prefer environment for secrets)")
 	flag.StringVar(&cfg.LogPath, "event-log", "event.log", "event history destination")
 	flag.BoolVar(&cfg.DisableStreaming, "no-stream", cfg.DisableStreaming, "disable incremental delivery")
+	flag.StringVar(&cfg.SavePath, "save", "save.json", "save loaded at startup and written at exit")
 	flag.Parse()
+	cfg.SavePath, err = filepath.Abs(cfg.SavePath)
+	if err != nil {
+		return err
+	}
 	switch *vendor {
 	case "":
 	case "anthropic":
@@ -85,7 +93,10 @@ func run() error {
 	}
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,
 	// then ends Agent lifetime, then closes the application-owned log writers.
-	defer a.Shutdown()
+	if err := a.Load(); err != nil {
+		return err
+	}
+	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
 	hub, err := gui.New(root, a, trace)
 	if err != nil {
 		return err
@@ -98,12 +109,22 @@ func run() error {
 	go func() { failures <- server.ListenAndServe() }()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	// Terminal input never runs a second model loop. EOF detaches this view;
-	// browsers may continue until the application receives its shutdown signal.
+	// Terminal input shares the actor with browsers. EOF now ends the application
+	// after queued work is flushed, making save-on-exit usable from a pipe.
+	inputDone := make(chan error, 1)
 	go func() {
 		input := bufio.NewScanner(os.Stdin)
 		for input.Scan() {
 			text := input.Text()
+			// Keep the human terminal usable while accepting the chapter's prompt
+			// envelope on redirected stdin, just as the headless client does.
+			var prompt struct {
+				Kind string `json:"kind"`
+				Text string `json:"text"`
+			}
+			if json.Unmarshal([]byte(text), &prompt) == nil && prompt.Kind == "prompt" {
+				text = prompt.Text
+			}
 			switch text {
 			case "/interrupt":
 				a.Post(ensemble.Interrupt{})
@@ -113,6 +134,7 @@ func run() error {
 				}
 			}
 		}
+		inputDone <- input.Err()
 	}()
 	fmt.Fprintf(os.Stderr, "Open http://localhost:%d; terminal messages while busy are hints. /interrupt ends the turn.\n", *port)
 	select {
@@ -120,6 +142,8 @@ func run() error {
 		return err
 	case <-ctx.Done():
 		return server.Close()
+	case err := <-inputDone:
+		return errors.Join(err, a.Flush(context.Background()), server.Close())
 	}
 }
 

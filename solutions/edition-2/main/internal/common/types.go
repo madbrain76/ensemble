@@ -28,6 +28,8 @@ type Config struct {
 	// SystemPrompt overrides the default role instruction; LogPath selects saving before
 	// completion, or remains empty for caller-owned persistence.
 	SystemPrompt, LogPath string
+	// SavePath names this Agent's save; empty selects DataDir/save.json.
+	SavePath string
 	// MaxToolRounds permits this many dispatched batches per human turn; zero selects
 	// 200.
 	MaxToolRounds int
@@ -308,6 +310,10 @@ type Agent interface {
 	RegisterVar(string, func() string)
 	// Jobs reaches this Agent's collection of continuing and completed executions.
 	Jobs() Jobs
+	// Load restores the owned save before submitting work; a missing file is a fresh start.
+	Load() error
+	// Save writes a consistent snapshot; call after Shutdown to include final job facts.
+	Save() error
 	// Shutdown stops admission, stops managed processes and joins outstanding work.
 	Shutdown() error
 }
@@ -317,9 +323,11 @@ type Agent interface {
 // diagnostics and owned facts need neither globals nor copied configuration.
 type ToolDeclaration struct {
 	// Name is the dispatch identifier; Description explains the tool to the model.
-	Name, Description string
+	Name string `json:"name"`
+	// Description explains when the model should use this capability.
+	Description string `json:"description"`
 	// Schema is vendor-neutral JSON describing accepted arguments.
-	Schema json.RawMessage
+	Schema json.RawMessage `json:"schema"`
 }
 
 // ToolContext gives a handler its owning Engine and call-specific job limits.
@@ -427,7 +435,11 @@ type Job interface {
 // Context returns an independent snapshot. Append/Load are offline operations;
 // live clients send facts through Agent.Record so one actor owns their ordering.
 type History interface {
-	// LastSeq returns the latest captured fact sequence, or zero for empty history.
+	// Restore installs a save snapshot and reduces only its newer events.
+	Restore(io.Reader) error
+	// Save writes the four-field persistence object under the history lock.
+	Save(io.Writer) error
+	// LastSeq returns the latest folded sequence, including a snapshot without a log.
 	LastSeq() uint64
 	// EventsAfter returns independent ordered facts newer than seq under the history lock.
 	EventsAfter(seq uint64) []Event

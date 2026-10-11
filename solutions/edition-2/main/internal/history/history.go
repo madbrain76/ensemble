@@ -22,6 +22,7 @@ type history struct {
 	parent  common.Agent
 	events  []common.Event
 	context common.Context
+	asOf    uint64
 }
 
 // An empty history starts Idle. Explicit initialization keeps the zero string
@@ -51,10 +52,7 @@ func (h *history) Context() *common.Context {
 func (h *history) Append(e common.Event) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	e.Seq = uint64(len(h.events) + 1)
-	if len(h.events) > 0 {
-		e.Seq = h.events[len(h.events)-1].Seq + 1
-	}
+	e.Seq = h.asOf + 1
 	// Timestamps are capture metadata only. Loaded events retain theirs;
 	// ordering and deterministic rendering depend exclusively on Seq.
 	e.Time = time.Now().UTC()
@@ -73,6 +71,7 @@ func (h *history) Append(e common.Event) error {
 	}
 	h.events = append(h.events, e)
 	apply(&h.context, e)
+	h.asOf = e.Seq
 	return nil
 }
 
@@ -120,6 +119,7 @@ func (h *history) Load(r io.Reader) error {
 				}
 				next.events = append(next.events, e)
 				apply(&next.context, e)
+				next.asOf = e.Seq
 			}
 			first = false
 		}
@@ -127,7 +127,7 @@ func (h *history) Load(r io.Reader) error {
 			break
 		}
 	}
-	h.events, h.context = next.events, next.context
+	h.events, h.context, h.asOf = next.events, next.context, next.asOf
 	return nil
 }
 
@@ -281,8 +281,5 @@ func (h *history) EventsAfter(seq uint64) []common.Event {
 func (h *history) LastSeq() uint64 {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if len(h.events) == 0 {
-		return 0
-	}
-	return h.events[len(h.events)-1].Seq
+	return h.asOf
 }

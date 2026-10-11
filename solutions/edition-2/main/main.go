@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"ensemble/ensemble"
 )
@@ -21,12 +23,33 @@ func run() (runErr error) {
 	// Command selection is separate from configuration. In particular, render
 	// cannot accept model flags that would make byte-identity depend on a
 	// second source of request settings.
-	mode := "protocol"
-	if len(os.Args) > 1 {
-		mode = os.Args[1]
+	args := os.Args[1:]
+	savePath := "save.json"
+	// Accept the location flag beside any live command, without changing the
+	// existing positional protocol or making load an opt-in operation.
+	var positional []string
+	for i := 0; i < len(args); i++ {
+		if args[i] == "--save" {
+			i++
+			if i == len(args) || args[i] == "" {
+				return errors.New("--save requires a path")
+			}
+			savePath = args[i]
+		} else if strings.HasPrefix(args[i], "--save=") {
+			savePath = strings.TrimPrefix(args[i], "--save=")
+			if savePath == "" {
+				return errors.New("--save requires a path")
+			}
+		} else {
+			positional = append(positional, args[i])
+		}
 	}
-	if !((mode == "protocol" && len(os.Args) == 1) || ((mode == "chat" || mode == "dump") && len(os.Args) == 2) || ((mode == "render" || mode == "prompt") && len(os.Args) == 3)) {
-		return errors.New("usage: ensemble [chat | dump | render LOG | prompt TEXT]")
+	mode := "protocol"
+	if len(positional) > 0 {
+		mode = positional[0]
+	}
+	if !((mode == "protocol" && len(positional) == 0) || ((mode == "chat" || mode == "dump") && len(positional) == 1) || ((mode == "render" || mode == "prompt") && len(positional) == 2)) {
+		return errors.New("usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT]")
 	}
 	cfg, err := ensemble.ConfigFromEnv()
 	cfg.BuiltinTools, cfg.DataDir = true, "cr"
@@ -45,6 +68,12 @@ func run() (runErr error) {
 		logPath = "ch02.jsonl"
 	}
 	cfg.LogPath = logPath
+	// This single-Agent application chooses cwd/save.json. Library consumers
+	// default to their Agent's DataDir; the path remains owned by its configuration.
+	cfg.SavePath, err = filepath.Abs(savePath)
+	if err != nil {
+		return err
+	}
 	app := ensemble.New(os.Stderr)
 	if mode == "chat" || mode == "protocol" || mode == "prompt" {
 		trace, err := os.Create("api.log")
@@ -64,7 +93,7 @@ func run() (runErr error) {
 	if mode == "render" || mode == "dump" {
 		path := logPath
 		if mode == "render" {
-			path = os.Args[2]
+			path = positional[1]
 		}
 		file, err := os.Open(path)
 		if err != nil {
@@ -87,9 +116,14 @@ func run() (runErr error) {
 	if cfg.APIKey == "" {
 		return errors.New("provider API key is not set")
 	}
+	if err := a.Load(); err != nil {
+		return err
+	}
+	// Register saving only after a successful load. Joining first preserves final
+	// job facts and prevents a bad input file from ever reaching replacement.
+	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
 	if mode == "prompt" {
-		defer func() { runErr = errors.Join(runErr, a.Shutdown()) }()
-		answer, err := a.Ask(context.Background(), os.Args[2])
+		answer, err := a.Ask(context.Background(), positional[1])
 		if err == nil {
 			fmt.Fprintln(os.Stdout, answer)
 		}
