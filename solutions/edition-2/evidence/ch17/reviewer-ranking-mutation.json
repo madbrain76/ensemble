@@ -1,0 +1,13 @@
+{
+  "source_commit": "fcd091f619f879341d4bee318e5f1bf8fb4bb21b",
+  "file": "internal/recall/index.go",
+  "old": "score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+  "new": "_ = idf // keep compilation valid; plausible wrong raw-frequency scorer\nscore += f",
+  "mutant_sha256": "98aea0338b0f5183a8a450b603be15567e1ef23e2948abbc66c70da0d577e2b9",
+  "command": "go test ./internal/recall ./ensemble -run '^(TestBM25|TestRecallJudge|TestRecallTurnReplayCheckpoint)$' -count=1 -timeout=10s",
+  "baseline_exit": 0,
+  "mutant_exit": 0,
+  "result": "SURVIVED: positive-versus-nonhit and current ranked selection fixtures do not reject raw term frequency",
+  "scope": "Source formula itself is correct. This establishes missing sensitivity of these relied-on scoring/integration checks, not a production scoring defect.",
+  "restored_original_file": true
+}
