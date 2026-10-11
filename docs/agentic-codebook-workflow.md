@@ -1,5 +1,31 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 15 accepted
+
+Independent combined review `2083a1be` accepts the memory chapter at initial
+review, zero formal rounds, binding coder `3cf93102` and author `71f119bd`.
+Checkpoint `edition-2-enhanced-ch15-r1` preserves the original stories and
+explanatory TL;DR, corrected prior-request input accounting and actual memory
+quality limits. Exact executable examples and hard prose lint pass. Author and
+reviewer reloaded all four full governing documents after compaction.
+
+Final memory checks score 97/97; unchanged measured parity adds 3 for composed
+100/100. Earlier actual full 100/100 and strict legacy 3/100 remain distinct.
+Legacy's ignored live settings patch masks downstream behavior; separate
+disk-selected 35/97 diagnoses it without awarding the missing update. Its early
+graduation also causes coupled failures, not independent proof for every row.
+
+Do not grade free warning or compressor wording by literal phrases. Valid
+alternate wording passes; actual warning omission fails. First-person semantics
+remain source-reviewed. The 27 eventually detected defect cases retain their
+survivors, false rejections and causal limits; they are not 27 independent proofs.
+The held-fold crash now has its own passing baseline and intended loss failure.
+Fake propagation establishes mechanics, not semantic compression quality. See
+[the final review](edition-2-notes/enhancement-15-review.md) for exact evidence.
+
+Chapter 16 (original 17, Auto-Recall) is now released under the same enhancement,
+supported-model, original-preservation and independent-review requirements.
+
 ## October 11: editorial and supported-model correction accepted
 
 Independent review `0301637e` accepts author correction `6cfa0862` and supported

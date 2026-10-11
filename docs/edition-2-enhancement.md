@@ -4,7 +4,8 @@
 
 Independent review `0301637e` accepts the bounded Chapter 14 editorial correction
 and supported-model correction; checkpoint `edition-2-enhanced-ch14-r2`.
-Chapter 15 is released again. Preserve useful original TL;DR detail
+That gate released Chapter 15, now independently accepted at `2083a1be` and
+checkpoint `edition-2-enhanced-ch15-r1`. Preserve useful original TL;DR detail
 and voice; retain sourced technical corrections and the runnable exercise, and
 move repeated review bookkeeping to notes. There is no length target. Independent
 review remains required at each chapter; preserve the earlier acceptance as history.
@@ -34,9 +35,9 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapters 9–14 are accepted, including
-Chapter 14's editorial correction. Chapter 15 (original 16, Forgetting on Purpose)
-is now assigned again.
+acceptance and releases the next chapter. Chapters 9–15 are accepted, including
+Chapter 14's editorial correction. Chapter 16 (original 17, Auto-Recall) is now
+assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
