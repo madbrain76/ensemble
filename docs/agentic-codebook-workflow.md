@@ -2,43 +2,47 @@
 
 ## October 11: final merge decisions and released placement gates
 
-**Original22 accepted at initial review, zero correction rounds.** Review
-`3c7d66d` accepts source `1da0891`, main tree
+**Original Chapter 22 accepted at initial review, zero correction rounds.**
+Review `3c7d66d` accepts source `1da0891`, main tree
 `a801628b1dd631e5ea20ad03ea7d255584728d31`. The unchanged original grade remains
-20/100 FAIL with three independently justified detector/launch exceptions.
-The parent detector selected Config instead of the actual tool interface; the
+20/100 FAIL with three independently justified detector/launch exceptions. The
+parent detector selected Config instead of the actual tool interface; the
 composition detector skipped method calls; behavioral probes launched the
 headless command with GUI flags. Direct source/runtime evidence establishes the
 required paths; even the awarded import check is not alone proof of its intent.
 
-Existing ownership/accounting made status small, but the actual runtime lacked
-a session model control. The actor-applied switch and real CLI/GUI controls now
+Existing ownership/accounting made status small, but the actual runtime lacked a
+session model control. The actor-applied switch and real CLI/GUI controls now
 preserve history and per-model usage at the turn boundary. Real browser status
 reports match raw provider usage across Astra and Sol; prices are truthfully
 unknown, while deterministic real-runtime tests verify known-price arithmetic.
-The16.34-second live run exits normally; a missing bundled-browser launch attempt
-failed before inference and remains preserved. Fourteen targeted defects fail
-intended checks; the initial weak status-label survivor and failed assertion
-repair remain recorded. Independent race and built-CLI checks pass.
+The 16.34-second live run exits normally; a missing bundled-browser launch
+attempt failed before inference and remains preserved. Fourteen targeted defects
+fail intended checks; the initial weak status-label survivor and failed
+assertion repair remain recorded. Independent race and built-CLI checks pass.
 
-Direct `ch20` now contains exact reviewed21+22 source under `edition-2-ch22-r1`.
-The prior21-only source/manifest remain in immutable `edition-2-ch21-r1`; no tag
-was moved and no new history folder was added. Continue original23→Edition2ch21.
+Direct `ch20` now contains exact reviewed original 21 + 22 source under
+`edition-2-ch22-r1`. The prior original-21-only source/manifest remain in
+immutable `edition-2-ch21-r1`; no tag was moved and no new history folder was
+added. Continue original Chapter 23→Edition 2 Chapter 21.
 
-Bill said, “Your call,” and authorized autonomous decisions for both original22
-and24, with exactly three fewer chapters and matching solution directories.
-The coordinator read the relevant source in full and chose22into21,24into25.
-See [the chapter map](edition-2-chapter-map.md) for the reasons, preserved
-capabilities and precise export policy. The current sequence is original22→
-completed Edition2ch20, original23→ch21, original24+25→ch22, then original26→ch23
-if complete when25review finishes. Earlier placement-stop passages below are
-historical and superseded. No additional approval is required for these merges.
+Bill said, “Your call,” and authorized autonomous decisions for both original
+Chapter 22 and 24, with exactly three fewer chapters and matching solution
+directories. The coordinator read the relevant source in full and chose 22 into
+21 and 24 into 25. See [the chapter map](edition-2-chapter-map.md) for the
+reasons, preserved capabilities and precise export policy. The current sequence
+is original Chapter 22→ completed Edition 2 Chapter 20, original Chapter
+23→ch21, original Chapter 24+25→ch22, then original Chapter 26→ch23 if complete
+when the review of original Chapter 25 finishes. Earlier placement-stop passages
+below are historical and superseded. No additional approval is required for
+these merges.
 
-The21-only ch20 source remains in its existing immutable tag. Replace that direct
-export only after the22work is independently accepted; do not create another
-history directory or symlink. Original24 receives its own implementation/review
-checkpoint before25 but no standalone book-facing directory. At25acceptance,
-verify original26's actual completion, including its manuscript; do not infer
+The original-21-only ch20 source remains in its existing immutable tag. Replace
+that direct export only after the Chapter 22 work is independently accepted; do
+not create another history directory or symlink. Original Chapter 24 receives
+its own implementation/review checkpoint before original Chapter 25 but no
+standalone book-facing directory. At acceptance of original Chapter 25, verify
+original Chapter 26's actual completion, including its manuscript; do not infer
 completion from the newly available frozen solution alone. CodeRhapsody's
 concurrent work stays untouched. Original graders, scores, note/evidence numbers
 and existing tags remain historical; final directory numbers follow the book.
@@ -52,19 +56,20 @@ by the carryover. These are consolidation decisions, not feature removal.
 
 Accepted solutions belong directly under `solutions/edition-2/chNN/`, using
 Edition 2 numbers. Original Chapter 5 is absorbed into Chapter 4, so original
-Chapters 10–13 are now Edition 2 `ch09`–`ch12`. They were moved out of `history`,
-not linked. Earlier redundant archive copies were removed after exact tree
-comparison; their prior layouts and the superseded jobs-only stage remain in
-immutable Git tags. Only the retired original `history/ch05/` remains.
+Chapters 10–13 are now Edition 2 `ch09`–`ch12`. They were moved out of
+`history`, not linked. Earlier redundant archive copies were removed after exact
+tree comparison; their prior layouts and the superseded jobs-only stage remain
+in immutable Git tags. Only the retired original `history/ch05/` remains.
 
 The coder continues in `solutions/edition-2/main/`. Original Chapters 14–21 are
-accepted at **Edition 2 `ch13/`–`ch20/`**. All later
-accepted exports go directly to the next top-level solution, never to history.
-Original book, grader, note, evidence and existing tag numbers stay unchanged;
-state both numbers in handoffs. The stops before **original** Chapters 22 and 24
-remain as Bill specified. The coordinator's prior history-only policy was a
-mistake and is superseded here. Historical entries below retain the paths used
-at the time; use `solutions/edition-2/README.md` for the current mapping.
+accepted at **Edition 2 `ch13/`–`ch20/`**. All later accepted exports go
+directly to the next top-level solution, never to history. Original book,
+grader, note, evidence and existing tag numbers stay unchanged; state both
+numbers in handoffs. The October 11 merge authorization above supersedes the
+former stops before original Chapters 22 and 24. The coordinator's prior
+history-only policy was a mistake and is superseded here. Historical entries
+below retain the paths used at the time; use `solutions/edition-2/README.md` for
+the current mapping.
 
 ## October 10: resumed original student run
 
@@ -546,7 +551,7 @@ interrupts a wait. Its coupled mutation failures reinforce checking what a
 failure proves. The chapter's reported results are source claims, not new
 student evidence, and its fleet features remain deferred.
 
-## Required decisions at original Chapters 22 and 24
+## Historical placement gates, superseded October 11
 
 Bill specified these stops on October 10, using first-edition chapter numbers.
 After completing and reviewing original Chapter 21, stop before Chapter 22

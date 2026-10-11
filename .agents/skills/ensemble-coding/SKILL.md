@@ -5,19 +5,20 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
-**October 11 merge authorization.** Bill releases the original22/24 placement
-stops and delegates the merges:21+22→Edition2ch20,23→ch21,24+25→ch22,26→ch23
-if completed when25review finishes. Follow `docs/edition-2-chapter-map.md`;
-original exercise/review/evidence numbers stay unchanged. Preserve every valid
-capability and the normal student/reviewer gates. The combinedch20 export may
-replace its prior21-only version after acceptance, preserving the old immutable
-tag. No author phase starts ahead of implementation.
+**October 11 merge authorization.** Bill releases the original Chapter 22/24
+placement stops and delegates the merges: original 21 + 22 → Edition 2 Chapter
+20; original 23 → Chapter 21; original 24 + 25 → Chapter 22; original 26 →
+Chapter 23 if completed when the review of original 25 finishes. Follow
+`docs/edition-2-chapter-map.md`; original exercise, review and evidence numbers
+stay unchanged. Preserve every valid capability and the normal student/reviewer
+gates. The accepted combined `ch20` replaces its prior original-21-only version;
+the old immutable tag preserves that source. Authorship follows implementation.
 
 **October 11 model instruction.** Bill selected GPT-6 Astra (`gpt-6-astra`) at
 high reasoning for all coding tasks. Use it for new coding/code-review delegates
 and Ensemble live coding work. This supersedes the earlier GPT-5 Astra name and
-releases the crossover model-choice stop, without changing chapter scope or the
-original22/24 stops. Keep historical model/test evidence intact.
+releases the crossover model-choice stop. Keep historical model/test evidence
+intact; follow the current merge authorization above for subsequent chapters.
 
 **October 10 bounded enhancement authorization.** Bill now authorizes an author
 and coder to enhance original Chapters 1–9 into Edition 2 Chapters 1–8, with

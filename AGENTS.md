@@ -3,23 +3,25 @@
 ## October 11: remaining merges and autonomous continuation
 
 Bill delegates both remaining merge decisions and authorizes autonomous work.
-Original22 merges into21 as Edition2ch20; original23 becomesch21; original24
-merges into25 asch22; original26 becomesch23 if complete when25review finishes.
-Together with absorbedoriginal5, Edition2 has exactly three fewer standalone
+Original Chapter 22 merges into 21 as Edition 2 Chapter 20; original 23 becomes
+Chapter 21; original 24 merges into 25 as Chapter 22; original 26 becomes
+Chapter 23 if complete when the review of original 25 finishes. Together with
+absorbed original Chapter 5, Edition 2 has exactly three fewer standalone
 chapters. Follow `docs/edition-2-chapter-map.md` for capability preservation,
 review stages and solution exports. The earlier original22/24 placement stops
 are superseded. Preserve CodeRhapsody's ongoing original26 work.
 
-Original22 is now independently accepted; combined Edition2ch20 is exported.
-Continue in authoritative main from accepted tree
+Original Chapter 22 is independently accepted; combined Edition 2 Chapter 20 is
+exported. Continue in authoritative main from accepted tree
 `a801628b1dd631e5ea20ad03ea7d255584728d31`, implementing and reviewing original
-23,24,25 in order. Inspect original26 completion at the25review boundary;
-proceed if complete, otherwise retain a resumable checkpoint. Accepted solution
-directories use final Edition2 numbering, with no symlinks or new history paths.
-The combinedch20 replaces its earlier21-only export only after acceptance; its
-prior exact source remains in immutable `edition-2-ch21-r1`. Other frozen exports
-and original sources remain unchanged. Authorship still follows implementation.
-Use GPT-6 Astra/high for all coding and code review.
+23, 24 and 25 in order. Inspect original 26 completion at the original 25 review
+boundary; proceed if complete, otherwise retain a resumable checkpoint. Accepted
+solution directories use final Edition 2 numbering, with no symlinks or new
+history paths. The accepted combined `ch20` replaces its earlier
+original-21-only export; its prior exact source remains in immutable
+`edition-2-ch21-r1`. Other frozen exports and original sources remain unchanged.
+Authorship still follows implementation. Use GPT-6 Astra/high for all coding and
+code review.
 
 ## October 11: GPT-6 Astra for coding
 
@@ -27,9 +29,10 @@ Bill approved **GPT-6 Astra (`gpt-6-astra`) at high reasoning** and requested it
 for all coding tasks. Use that model for new coding and code-review delegates
 and for Ensemble's live coding work. This replaces the earlier GPT-5 Astra
 destination and resolves the original20 model-choice stop. Resume the crossover
-verification and then the authorized run through original21; the original22/24
-stops remain. Preserve historical results and frozen snapshots. A model setting
-alone does not demonstrate the crossover; retain actual coding/task evidence.
+verification and the subsequent student run. The merge authorization above
+supersedes the original Chapter 22/24 placement stops. Preserve historical
+results and frozen snapshots. A model setting alone does not demonstrate the
+crossover; retain actual coding/task evidence.
 
 ## October 11: preserve CodeRhapsody’s concurrent Edition 1 work
 
@@ -94,7 +97,7 @@ Original Chapter 25 is now available and has received full carryover reading;
 see `docs/edition-2-notes/ch25.md`. Earlier forthcoming references are historical.
 Its capabilities remain beyond the decision gates, not current implementation.
 
-## October 10: later refactor decision gates
+## October 10: historical refactor gates, superseded October 11
 
 Bill requires stops at original first-edition Chapters 22 and 24. Complete the
 preceding chapter and its review, then stop before implementing or drafting

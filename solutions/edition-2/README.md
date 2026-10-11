@@ -2,14 +2,15 @@
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
 Chapters **1–20 are accepted**. [`main/`](main/) is the authoritative working
-tree. Combined Chapter20 (original21+22) is accepted. Original23 / Edition2ch21,
-The Sandbox, is next.
+tree. Combined Chapter 20 (original 21 + 22) is accepted. Original Chapter 23 /
+Edition 2 Chapter 21, The Sandbox, is in progress.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
 
 Original Chapter 5 was absorbed into Chapter 4. From that point, Edition 2
-numbers are one lower than the original book's numbers. The remaining standalone
+numbers are one lower through original Chapter 21; the remaining merges below
+bring the final offset to three. The remaining standalone
 `ch05/` is the actor chapter, not the deleted refactor chapter.
 
 | Edition 2 chapter | Accepted solution | Original chapter | Original-numbered checkpoint |
@@ -69,9 +70,10 @@ immutable and extend `main/` for new work.
 ## Remaining chapter mapping
 
 [The authoritative map](../../docs/edition-2-chapter-map.md) absorbs exactly
-original Chapters5,22,24. Original21+22 share `ch20`; original23 uses `ch21`;
-original24+25 share `ch22`; original26 uses `ch23` if complete when25review finishes.
-The former21-only `ch20` remains preserved in immutable `edition-2-ch21-r1`.
-The direct `ch20` now contains the independently accepted combined21+22 source.
+original Chapters 5, 22 and 24. Original 21 + 22 share `ch20`; original 23 uses
+`ch21`; original 24 + 25 share `ch22`; original 26 uses `ch23` if complete when
+the review of original 25 finishes. The former original-21-only `ch20` remains
+preserved in immutable `edition-2-ch21-r1`. The direct `ch20` now contains the
+independently accepted combined source from original Chapters 21 and 22.
 Future directories appear only when their combined exercises are accepted.
-First-edition Chapters1–26 therefore map to second-edition Chapters1–23.
+First-edition Chapters 1–26 therefore map to second-edition Chapters 1–23.

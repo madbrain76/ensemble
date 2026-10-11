@@ -1,28 +1,30 @@
 # Edition 2 carryover: lessons for the fresh student
 
-**Current implementation:** original22 is independently accepted with documented
-grader exceptions and zero correction rounds. Combined21+22 is direct Edition2
-`ch20`, checkpoint `edition-2-ch22-r1`, main tree
-`a801628b1dd631e5ea20ad03ea7d255584728d31`. Original23 / Edition2ch21 is next.
-Actual original22 grading remains20/100 FAIL; live model switching/status and
-independent accounting checks support acceptance.
+**Current implementation:** original Chapter 22 is independently accepted with
+documented grader exceptions and zero correction rounds. Combined original 21 +
+22 is direct Edition 2 `ch20`, checkpoint `edition-2-ch22-r1`, main tree
+`a801628b1dd631e5ea20ad03ea7d255584728d31`. Original Chapter 23 / Edition 2
+Chapter 21 is next. Actual original Chapter 22 grading remains 20/100 FAIL; live
+model switching/status and independent accounting checks support acceptance.
 
 **Current authorization, October 11:** Bill delegated both placements and
-authorized autonomous continuation. Adopt21+22→Edition2ch20,23→ch21,24+25→ch22,
-and26→ch23 if complete at25review. The original22/24 stops are lifted. Preserve
-all capabilities in the table below and follow [the chapter map](edition-2-chapter-map.md)
-for review/export stages. Only original5,22,24 disappear as standalone chapters.
-The original exercises remain unchanged and independently reviewed.
+authorized autonomous continuation. Use original 21 + 22 → Edition 2 Chapter 20;
+original 23 → Chapter 21; original 24 + 25 → Chapter 22; original 26 → Chapter
+23 if complete at the review of original Chapter 25. The original Chapter 22/24
+stops are lifted. Preserve all capabilities in the table below and follow [the
+chapter map](edition-2-chapter-map.md) for review/export stages. Only original
+Chapters 5, 22 and 24 disappear as standalone chapters. The original exercises
+remain unchanged and independently reviewed.
 
-Coordinator reread all original22 (586 lines),23 (808),24 (565) and current25
-(582) on October11. Original25 now has revision
+Coordinator reread all original Chapter 22 (586 lines), 23 (808), 24 (565) and
+current 25 (582) on October 11. Original Chapter 25 now has revision
 `009d74c70b108681b2107b4c3a08685508567cee`, SHA-256
-`eb09ec25fe8a681479310ffe22f4cf19d0b4eba34bf507dbbfd8181f7302616f`.
-Its GUI fleet panel remains explicitly deferred. Prior coverage describes its
-earlier558-line version; chapter notes retain both. Original26 still lacks a
+`eb09ec25fe8a681479310ffe22f4cf19d0b4eba34bf507dbbfd8181f7302616f`. Its GUI
+fleet panel remains explicitly deferred. Prior coverage describes its earlier
+558-line version; chapter notes retain both. Original Chapter 26 still lacks a
 complete manuscript at this decision point despite a new frozen source snapshot.
 
-**Historical stop, superseded by the merge authorization below:** original21 / Edition2 ch20 is independently
+**Historical stop, superseded by the merge authorization above:** original21 / Edition2 ch20 is independently
 accepted with two narrow exceptions; exact source is exported directly to
 `solutions/edition-2/ch20/`. Coder and reviewer are stopped before original22
 for Bill’s placement decision. Original grading remains **0/100 FAIL**; actual
@@ -33,8 +35,8 @@ or advance to23. The original24 and author stops remain.
 **October 11 model decision:** Bill selected GPT-6 Astra (`gpt-6-astra`) at high
 reasoning for all coding tasks, including new coder/code-review delegates and
 Ensemble live coding work. This resolves the original20 stop and supersedes the
-earlier GPT-5 Astra destination. Continue the authorized run through original21,
-with independent review and the existing original22/24 stops.
+earlier GPT-5 Astra destination. Continue the authorized run with independent
+review and the current merge map; the former placement stops are superseded.
 
 **October 11, Bill’s Chapter 16 correction:** forcing uses total input tokens
 from the prior request, including cached input exactly once, not session
@@ -52,11 +54,12 @@ skip content already in actual context, without a newest-two exclusion.
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
 are Edition 2 `ch09`–`ch12`; original 14–21 are accepted at `ch13`–`ch20`.
 Original20's bounded GPT-6 Astra/high coding crossover is independently accepted;
-original21 / Edition2 ch20 is also accepted; original22 awaits Bill’s decision. See `edition-2-notes/ch20.md` for evidence
+original 21 + 22 are accepted together as Edition 2 Chapter 20. See
+`edition-2-notes/ch20.md` for crossover evidence
 and limits. This is not a claim that Edition3 has been authored.
 Only retired original `history/ch05` remains. No symlinks. Original exercises,
 graders, notes, evidence and existing tags retain original numbers; identify
-both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.
+both numbers in handoffs. The current merge map supersedes the former placement stops.
 
 **October 10 student resumption.** Bill has released coder and reviewer to resume
 original Chapter 10 after the completed early enhancement, proceeding through
@@ -66,7 +69,7 @@ The author remains stopped. Fresh student contexts preserve the old-answer
 boundary. The separate stops below still apply; the completed enhancement's
 temporary Chapter 10 hold is lifted for this resumed student run.
 
-**October 10 decision gates, original chapter numbering.** Complete and review
+**Historical October 10 decision gates, superseded October 11.** Complete and review
 Chapter 21, then stop before Chapter 22 implementation or authorship. Bill will
 decide whether and how to merge its material into Chapter 21 or 23. Complete and
 review Chapter 23, then stop before Chapter 24 for his separate placement
@@ -595,8 +598,10 @@ later results. Idle correction is reactive and bounded; failed turns are
 reported rather than automatically retried. These are deferred Chapter 25
 capabilities, not additions to Chapter 6 or the current assignment. The source's
 routing parent ID does not replace actual runtime owner interfaces. Its
-`tool_limits` wording and timer/message-wake discrepancy require resolution
-when reached; see the [sourced reading notes](edition-2-notes/ch25.md).
+`tool_limits` wording and timer/message-wake discrepancy are resolved by the
+coordinator’s sourced contract check: preserve the one-shot next-call limit and
+wake waits on incoming messages independently of the timer. See the
+[sourced reading notes](edition-2-notes/ch25.md).
 
 The chapter's broad isolation mutant causes several coupled failures. Those
 failures do not establish several independent behavioral proofs or prove that
@@ -605,18 +610,14 @@ the actual reason each claimed mutation check fails.
 
 ## Coverage of the architecture-repair chapters
 
-**Chapter 5, The Big Refactor**, has been absorbed into the enhanced early
-chapters. **Chapter 22, Architectural Decay**, has a required stop for Bill's
-decision about merging its material into original Chapter 21 or 23. Chapter 20
-is **The Crossover**, not the second repair chapter. The continuing student uses
-original numbering and exercises up to that gate; consolidation does not delete
-first-edition history or skip required capabilities.
-Chapter 24, **Freeing the GUI**, supplies further separation, reuse and deployment
-lessons. Its upfront architectural lessons are already above; its later
-capabilities and verification lessons are recorded below so consolidation cannot
-silently discard them. Their placement in later exercises is still to be decided;
-they do not expand the completed Chapters 0–8 enhancement or authorize new work.
-Stop before Chapter 24 as well; Bill decides its placement at that gate.
+**Chapter 5, The Big Refactor**, is absorbed into the enhanced early chapters.
+Original **Chapter 22, Architectural Decay**, is accepted together with original
+21 as Edition 2 Chapter 20. Original **Chapter 24, Freeing the GUI**, will join
+original 25 as Edition 2 Chapter 22. These placements follow Bill's October 11
+authorization and the [chapter map](edition-2-chapter-map.md). Chapter 20,
+**The Crossover**, remains Edition 2 Chapter 19. Consolidation preserves the
+capabilities below and first-edition history. Its architectural lessons already
+apply; later capabilities enter only at their original exercise stage.
 
 | Original lesson or capability | Carry forward and eventual placement |
 | --- | --- |
@@ -625,7 +626,7 @@ Stop before Chapter 24 as well; Bill decides its placement at that gate.
 | Ch22: the running binary actually uses the library's composition root; constructor and logging checks test relationships, not names | Apply throughout; the workflow's architecture review and mutation checks guard the real wiring. Do not recreate a flat root merely to refactor it later. |
 | Ch22: a tool dispatch context reaches Engine through a common interface and follows its parent accessors | Establish this when tool dispatch arrives. Expose the owning Engine, not copied usage/model values or a special status callback that creates a second route. See [Ch22 TL;DR](../book/chapter-22.md#tldr). |
 | Ch22: per-model usage and cost, without repricing old work after a model switch | Apply when accounting/model switching arrives; covered in the cost guidance above. |
-| Ch22: `agent_status` reports current model, last response input/output/cache-read usage, session totals, cache hit rate and USD cost through the ownership chain | Preserve this feature and its live model-switch exercise. Its placement follows Bill's Chapter 22 decision; it is not an extra early tools feature. |
+| Ch22: `agent_status` reports current model, last response input/output/cache-read usage, session totals, cache hit rate and USD cost through the ownership chain | Preserve this feature and its live model-switch exercise. It belongs in combined Edition 2 Chapter 20; it is not an extra early tools feature. |
 | Ch22: disconnect can race with observer sends; superficially defensive code and timing-heavy tests can both hide the defect | Apply when GUI connection lifetimes arrive, as described below. |
 | Ch24: external reuse requires both a public GUI boundary and constructible event vocabulary; headless core/MCP must not acquire GUI or WebSocket dependencies transitively | Keep the existing separate-module and public-interface rules. Exercise outside consumers and both positive/negative import controls when those features exist; inspect the actual executable's dependency graph. Do not import the original `AgentHooks` design. Sources: [§24.2](../book/chapter-24.md#242-two-paths-to-gorilla), [§24.5](../book/chapter-24.md#245-the-proof). |
 | Ch24: the deployed GUI starts away from the source tree; embedded assets have an explicit development override | Preserve this later deployment capability. Test a built binary from an unrelated working directory and test the selected disk override separately. Read-only embedded contents do not make an exported variable binding immune to reassignment; neither a blanket package-variable ban nor a broad globals exemption establishes safe ownership. Source: [§24.4](../book/chapter-24.md#244-embedding-the-assets). |
