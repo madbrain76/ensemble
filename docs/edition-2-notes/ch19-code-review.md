@@ -149,3 +149,45 @@ Keep grader-internal coverage analysis in this reviewer-only record. Only narrow
 public-contract corrections go through the coordinator to the student. Mandatory
 handoff `.agents/skills/ensemble-coding/SKILL.md`; preserve Edition1 work and the
 original22/24 stops. Await frozen submission for formal comparative review.
+
+## Original grader observation — before final submission
+
+October11 independent evidence check. The unchanged original command completed
+on `06cbf20000cf3592ac2966a1041ece12b33dbc04`, main tree
+`c550fa3c13faec59268cc8d7486a6ed8f590d68f`: **15/100 FAIL**, grader exit1,
+make exit2. Read [raw output](../../solutions/edition-2/evidence/ch19/original-grade.txt)
+and [provenance](../../solutions/edition-2/evidence/ch19/original-grade-provenance.json),
+independently matched the recorded source tree and raw SHA-256
+`bd940a590b17495f5789b0a6e39fa9c825e7e7997d5151ca83a3c914f92e1a6a`.
+Coordinator retained these at d44532b. No repeat was run.
+
+Six failed checks (85points) report the same actual GUI startup rejection:
+`skill "base" has invalid type ""`. Five first failures name scenario A and
+refresh names B. This confirms the preflight's fixture mismatch, not a discovered
+Responses, caching, refresh or reasoning implementation failure. From the
+unchanged launch order, reaching those GUI errors means their fake login command
+returned successfully; it does **not** establish all OAuth validation claims,
+because the later positive predicates were skipped. It is not real plan login.
+The first-failure aggregation does not separately expose every later scenario's
+observations, so do not infer them from repeated labels.
+
+The awarded billing15/15 supplies no positive billing proof. The unchanged C
+predicate explicitly accepts a launch fatal and requires neither a successful
+inference request nor a quota refusal. The common untyped-skill launch prevents
+inference; the aggregate PASS is therefore consistent with—and explained by—the
+preflight's vacuous path. No per-scenario positive C trace appears in this output.
+Likewise the bad-key scenario's absence of inference cannot alone separate
+correct signature rejection from unrelated startup failure. Preserve the actual
+15/100 rather than calling this an85-point implementation failure or a demonstrated
+billing success.
+
+Cache-route restrictions, default credential selection, refresh error classes,
+summary incrementality, replay and real tool outcomes remain **masked obligations**
+for final independent review. No cache rejection or private-save-path problem was
+observed by this run. The resource.invoke request/grant distinction remains the
+corrected observation above, not an accepted fixture defect. The narrow missing-
+type explanation is independently substantiated, but chapter acceptance and any
+final exception decision await frozen implementation, full student response and
+real supplemental evidence. No old answer or changing product was inspected in
+this check; zero formal correction rounds. Required handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.
