@@ -66,7 +66,7 @@ Original scores and past enhanced scores remain intact. No inherited whole-book
 sweep or paid freshness run was needed.
 
 Both browser failures reproduce in an isolated unchanged archive of
-`5d83c609ddf864f03ab7eedb800cb39e4e1bf034924` with its original model rows/tests.
+`5d83c609ddf864f03ab7eedb800cb39e4e1bf034` with its original model rows/tests.
 The actual GUI emits four replies where these earlier fixtures expect one,
 consistent with the later fleet idle-correction path. Baseline cache fails its
 session-token assertion (80/320/8 versus20/80/2); corrected Sonnet pricing exposes
