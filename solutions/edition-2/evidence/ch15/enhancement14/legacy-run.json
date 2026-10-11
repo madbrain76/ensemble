@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/tmp/grade-edition2-context",
+    "-ch",
+    "14",
+    "-json",
+    "-gui",
+    "solutions/ch15",
+    "solutions/ch15"
+  ],
+  "exit": 0,
+  "seconds": 0.842
+}

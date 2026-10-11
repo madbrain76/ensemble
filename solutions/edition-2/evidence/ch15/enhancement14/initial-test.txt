@@ -1,0 +1,16 @@
+--- FAIL: TestChapter14Context (12.64s)
+    ch14_test.go:27: skill-survives-the-ladder: [WebSocket observation deadline: Open http://localhost:49764; terminal messages while busy are hints. /interrupt ends the turn.
+        ]
+    ch14_test.go:27: micro-handoff-shape: [the ladder session they build on did not complete]
+    ch14_test.go:27: keep-or-stub: [claude-opus-5-course session: WebSocket observation deadline: Open http://localhost:49795; terminal messages while busy are hints. /interrupt ends the turn.
+         (requests: 0)]
+    ch14_test.go:27: ladder-is-recorded: [the ladder session they build on did not complete]
+    ch14_test.go:27: frozen-prefix: [session: WebSocket observation deadline: Open http://localhost:49785; terminal messages while busy are hints. /interrupt ends the turn.
+         (requests 0)]
+    ch14_test.go:27: replay-equals-snapshot: [the ladder session they build on did not complete]
+    ch14_test.go:27: crash-recovery: [clean session: WebSocket observation deadline: Open http://localhost:49775; terminal messages while busy are hints. /interrupt ends the turn.
+        ]
+    ch14_test.go:27: total-reducer: [the crash-recovery session it builds on did not complete]
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	12.647s
+FAIL

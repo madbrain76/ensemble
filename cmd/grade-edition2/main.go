@@ -26,11 +26,11 @@ func run() int {
 	mediaModels := flag.String("media-models", "", "Chapter 5–13 JSON vendor/model map (default: historical accepted fixtures)")
 	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6–13 declared Anthropic streaming fixture (historical default)")
 	streamExercise := flag.String("stream-exercise", "", "Chapter 6–13 external shape module (default: ch07 under or beside submission)")
-	gui := flag.String("gui", "", "Chapter 7–13 GUI module (default: gui under submission)")
+	gui := flag.String("gui", "", "Chapter 7–14 GUI module (default: gui under submission)")
 	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7–13 declared Anthropic GUI fixture (historical default)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 13 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7|8|9|10|11|12|13 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
+	if *chapter < 1 || *chapter > 14 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7|8|9|10|11|12|13|14 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -38,7 +38,7 @@ func run() int {
 		path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter)
 	}
 	var example gradeedition2.ConsumerCase
-	if *chapter >= 4 {
+	if *chapter >= 4 && *chapter < 14 {
 		var err error
 		example, err = gradeedition2.ReadConsumerCase(*consumerCase)
 		if err != nil {
@@ -50,7 +50,7 @@ func run() int {
 		}
 	}
 	var models map[string]string
-	if *chapter >= 5 {
+	if *chapter >= 5 && *chapter < 14 {
 		var err error
 		models, err = gradeedition2.ReadMediaModels(*mediaModels)
 		if err != nil {
@@ -61,13 +61,17 @@ func run() int {
 			*workflow = appDirectory(path, "ch06")
 		}
 	}
-	if *chapter >= 6 && *streamExercise == "" {
+	if *chapter >= 6 && *chapter < 14 && *streamExercise == "" {
 		*streamExercise = appDirectory(path, "ch07")
 	}
 	if *chapter >= 7 && *gui == "" {
 		*gui = filepath.Join(path, "gui")
 	}
-	bin, cleanup, err := grade.Build(path)
+	buildPath := path
+	if *chapter == 14 {
+		buildPath = *gui
+	}
+	bin, cleanup, err := grade.Build(buildPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "grader: %v\n", err)
 		return 2
@@ -103,6 +107,8 @@ func run() int {
 		report, err = gradeedition2.Chapter11(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	case 12:
 		report, err = gradeedition2.Chapter12(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
+	case 14:
+		report, err = gradeedition2.Chapter14(bin)
 	case 13:
 		report, err = gradeedition2.Chapter13(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	}

@@ -1,0 +1,6 @@
+{
+  "internal/gradeedition2/ch14.go": "312fc3e99325ce02869d2de63ab78ef9b922c035844280b5fe7b9a1ecec157e9",
+  "internal/gradeedition2/ch14_driver.go": "bbfe9efa7228533233f322efa05c2d7c5573c1dc44303ba75f87c549b6be473f",
+  "internal/gradeedition2/ch14_test.go": "c2b0206a3ada03a04b1ec886d9556484a4035fd06fab3a4751f35f51e406b7f1",
+  "cmd/grade-edition2/main.go": "6f4e8a4cf6f8910e135f91b97b840d20bd3940c78ab37bdcd91d823eba8a1da6"
+}
