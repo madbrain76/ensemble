@@ -14,7 +14,7 @@ const steps=new Map(),requests=[],frames=[];
 const provider=http.createServer(async(request,response)=>{
  let body="";for await(const bytes of request)body+=bytes;
  const value=JSON.parse(body);requests.push(value);
- const content=value.messages.filter(m=>m.role==="user" && ["ROOT","PEER","TREE_TASK","CHILD_TASK","LEAF_TASK"].includes(m.content)).at(-1)?.content;
+ const content=value.messages.filter(m=>m.role==="user" && ["ROOT","ROOT_OTHER","PEER","TREE_TASK","CHILD_TASK","LEAF_TASK"].includes(m.content)).at(-1)?.content;
  const prompt=typeof content==="string"?content:content?.map(part=>part.text||"").join("");
  const step=steps.get(prompt)||0;steps.set(prompt,step+1);
  let tool="submit",args={result:`${prompt}_RESULT`};
@@ -47,6 +47,13 @@ try{
  await page.locator("#agent-name").fill("peer");await page.locator("#agent-model").fill("gpt-4o-mini");await page.locator("#create-agent button").click();
  await page.locator('[data-agent-key="peer"]').click();await prompt("PEER");await complete("PEER_RESULT");
  assert.ok(!(await page.locator("#artifacts").textContent()).includes("ROOT_REPLY"));
+ const second=await browser.newPage();await second.goto(`http://127.0.0.1:${port}/?speech=transcript`);
+ await second.locator('[data-agent-key="main"]').waitFor();
+ await second.locator("#input").fill("ROOT_OTHER");await second.locator("#input-form button").click();
+ await second.waitForFunction(()=>document.querySelector("#actions").textContent.includes("ROOT_OTHER_RESULT"));
+ assert.ok(!(await page.locator("#artifacts").textContent()).includes("ROOT_OTHER_REPLY"),"another tab's root output leaked into peer conversation");
+ await second.close();
+
  await page.locator('[data-agent-key="main"]').click();await page.waitForFunction(()=>document.querySelector("#artifacts").textContent.includes("ROOT_REPLY"));
  assert.ok(!(await page.locator("#artifacts").textContent()).includes("PEER_REPLY"));
  await page.locator('[data-agent-key="peer"]').click();await page.waitForFunction(()=>document.querySelector("#artifacts").textContent.includes("PEER_REPLY"));

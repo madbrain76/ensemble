@@ -92,6 +92,9 @@ func TestManagementOwnership(t *testing.T) {
 	}))
 	t.Cleanup(server.Close)
 	a, _, _ := fleetAgent(t, server)
+	if _, err := a.Fleet().Spawn("owned", "OWN", ""); err != nil {
+		t.Fatal(err)
+	}
 	b, _, _ := fleetAgent(t, server)
 	if _, err := b.Fleet().Spawn("foreign", "TASK", ""); err != nil {
 		t.Fatal(err)
@@ -124,6 +127,7 @@ func TestManagementWaitAndShutdownLifetimes(t *testing.T) {
 	entered := make(chan struct{}, 2)
 	release := make(chan struct{})
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(io.Discard, r.Body)
 		entered <- struct{}{}
 		select {
 		case <-release:
@@ -277,5 +281,65 @@ func TestManagementInterruptModesAndAsk(t *testing.T) {
 			}
 
 		})
+	}
+}
+
+// Monitor three asynchronous children through change waits, then collect their
+// actual submissions through the inherited join path. Each provider is released
+// separately, making the observed child identity meaningful.
+func TestManagementThreeChildMonitor(t *testing.T) {
+	gates := map[string]chan struct{}{"one": make(chan struct{}), "two": make(chan struct{}), "three": make(chan struct{})}
+	entered := make(chan string, 3)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		for id, gate := range gates {
+			if strings.Contains(string(body), "TASK_"+id) {
+				entered <- id
+				select {
+				case <-gate:
+					fleetCall(w, "submit", map[string]string{"result": "RESULT_" + id})
+				case <-r.Context().Done():
+				}
+				return
+			}
+		}
+	}))
+	t.Cleanup(server.Close)
+	a, _, _ := fleetAgent(t, server)
+	for _, id := range []string{"one", "two", "three"} {
+		if _, err := a.Fleet().Spawn(id, "TASK_"+id, ""); err != nil {
+			t.Fatal(err)
+		}
+		<-entered
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	for _, id := range []string{"one", "two", "three"} {
+		done := make(chan string, 1)
+		go func() {
+			result, err := a.Fleet().WaitChange(ctx, []string{id}, "", 0)
+			if err != nil {
+				result = err.Error()
+			}
+			done <- result
+		}()
+		close(gates[id])
+		result := <-done
+		if !strings.Contains(result, `"agent_id":"`+id+`"`) {
+			t.Fatal("change did not identify released child", result)
+		}
+	}
+	joined, err := a.Fleet().Join(ctx, []string{"one", "two", "three"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for id := range gates {
+		if !strings.Contains(joined, "RESULT_"+id) {
+			t.Fatal("join lost result", joined)
+		}
+	}
+	pattern, err := a.Fleet().WaitChange(ctx, []string{"one"}, "RESULT_one", 0)
+	if err != nil || !strings.Contains(pattern, `"reason":"pattern"`) {
+		t.Fatal("pattern match missing", pattern, err)
 	}
 }

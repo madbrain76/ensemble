@@ -329,7 +329,16 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				// live progress buffer. Socket writes remain outside the observer lock.
 				batch := [][]byte{wire(map[string]any{"type": "agent_selected", "key": ensemble.AgentKey(selected)}), wire(map[string]any{"type": "agent_tree", "root": tree})}
 				batch = append(batch, v.replay()...)
-				queue <- batch
+				// Replay is indivisible. If this receiver cannot accept it,
+				// disconnect so it can replay afresh; never block all observers
+				// behind a dead writer while holding the server mutex.
+				select {
+				case queue <- batch:
+				default:
+					s.mu.Unlock()
+					s.settingsMu.Unlock()
+					return
+				}
 				s.clients[conn] = queue
 				s.selected[conn] = v
 			}
