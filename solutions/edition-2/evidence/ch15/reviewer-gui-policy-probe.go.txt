@@ -1,0 +1,8 @@
+package gui_test
+import("bytes";"context";"encoding/json";"io";"net/http";"net/http/httptest";"os";"path/filepath";"testing";gui "ensemble-gui-stub";"ensemble/ensemble")
+func TestReviewerGUIContextEffect(t *testing.T){for _,target:=range []int{0,20000}{t.Run(string(rune('a'+target/20000)),func(t *testing.T){
+ path:=filepath.Join(t.TempDir(),"data");os.WriteFile(path,bytes.Repeat([]byte("R"),8000),0600);var requests [][]byte
+ vendor:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){b,_:=io.ReadAll(r.Body);requests=append(requests,b);content:=[]map[string]any{{"type":"text","text":"done"}};if len(requests)<3{content=[]map[string]any{{"type":"tool_use","id":string(rune('a'+len(requests))),"name":"read_file","input":map[string]any{"path":path}}}};json.NewEncoder(w).Encode(map[string]any{"content":content,"usage":map[string]int{"input_tokens":1,"output_tokens":1}})}));defer vendor.Close()
+ root:=ensemble.New(io.Discard);a,err:=root.NewAgent(ensemble.Config{Model:"claude-sonnet-5-course",BaseURL:vendor.URL,BuiltinTools:true,DataDir:t.TempDir()});if err!=nil{t.Fatal(err)};defer a.Shutdown();hub,err:=gui.New(root,a,io.Discard);if err!=nil{t.Fatal(err)};defer hub.Close();server:=httptest.NewServer(hub.Handler("web/gui"));defer server.Close();peer:=dial(t,server.URL);until(t,peer,kind("current_settings"));peer.WriteJSON(map[string]any{"type":"update_settings","settings":map[string]int{"context_target":target}});until(t,peer,kind("settings_changed"))
+ if _,err:=a.Ask(context.Background(),"read");err!=nil{t.Fatal(err)};if len(requests)!=3{t.Fatal("requests",len(requests))};redacted:=bytes.Contains(requests[2],[]byte("redacted"));if redacted!=(target==20000){t.Fatalf("GUI target %d had redacted=%v",target,redacted)}
+})}}

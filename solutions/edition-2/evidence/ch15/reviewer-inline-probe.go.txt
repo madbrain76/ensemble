@@ -1,0 +1,16 @@
+package ensemble_test
+import("bytes";"context";"encoding/json";"io";"net/http";"net/http/httptest";"testing";"ensemble/ensemble")
+func TestReviewerMCPInline(t *testing.T){
+ var requests [][]byte
+ server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){ b,_:=io.ReadAll(r.Body);requests=append(requests,b);io.WriteString(w,`{"content":[{"type":"text","text":"done"}],"usage":{"input_tokens":1,"output_tokens":1}}`) }));defer server.Close()
+ a,err:=ensemble.New(io.Discard).NewAgent(ensemble.Config{Model:"claude-opus-5-course",BaseURL:server.URL,BuiltinTools:true,DataDir:t.TempDir()});if err!=nil{t.Fatal(err)};defer a.Shutdown()
+ if _,err=a.Ask(context.Background(),"before");err!=nil{t.Fatal(err)}
+ peer(t,a,"review")
+ if _,err=a.Ask(context.Background(),"after");err!=nil{t.Fatal(err)}
+ var messages struct { Messages []struct { Role string `json:"role"` } `json:"messages"` };json.Unmarshal(requests[1], &messages);t.Logf("captured message roles: %v",messages.Messages);for i,m:=range messages.Messages { if m.Role=="system" && i+1<len(messages.Messages) && messages.Messages[i+1].Role!="assistant" { t.Errorf("inline system at %d followed by %s",i,messages.Messages[i+1].Role) } }; var before,after map[string]json.RawMessage;json.Unmarshal(requests[0],&before);json.Unmarshal(requests[1],&after)
+ if !bytes.Equal(before["tools"],after["tools"])||!bytes.Equal(before["system"],after["system"]){t.Fatal("MCP changed frozen prefix")}
+ if bytes.Contains(before["tools"],[]byte(`"name":"echo"`))||!bytes.Contains(after["messages"],[]byte(`"name":"echo"`))||!bytes.Contains(after["messages"],[]byte(`"tool_addition"`)){t.Fatal("MCP addition absent or startup already enabled")}
+ var save,log bytes.Buffer;a.History().Save(&save);a.History().Dump(&log);want,_:=a.Engine().Render(a.History().Context())
+ b,_:=ensemble.New(io.Discard).NewAgent(ensemble.Config{Model:"claude-opus-5-course",BuiltinTools:true,DataDir:t.TempDir(),SystemPrompt:a.Engine().SystemPrompt()});defer b.Shutdown()
+ for _,restore:=range []func()error{func()error{return b.History().Restore(bytes.NewReader(save.Bytes()))},func()error{return b.History().Load(bytes.NewReader(log.Bytes()))}}{if err:=restore();err!=nil{t.Fatal(err)};got,err:=b.Engine().Render(b.History().Context());if err!=nil||!bytes.Equal(want,got){t.Fatal("MCP declaration replay differs",err)}}
+}

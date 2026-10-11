@@ -1,0 +1,143 @@
+{
+  "method": "tracked files; physical, nonblank non-comment-only active, comment-only; simple leading // /* * HTML detection; same-path deltas against own predecessor, examples separated",
+  "counts": {
+    "student_before": {
+      "example.go": [
+        469,
+        415,
+        37
+      ],
+      "test.go": [
+        4517,
+        4097,
+        289
+      ],
+      "production.go": [
+        7995,
+        6233,
+        1309
+      ],
+      "test.mjs": [
+        773,
+        757,
+        14
+      ],
+      "production.mjs": [
+        317,
+        300,
+        12
+      ],
+      "production.js": [
+        668,
+        590,
+        68
+      ],
+      "production.html": [
+        53,
+        52,
+        1
+      ],
+      "production.css": [
+        165,
+        165,
+        0
+      ]
+    },
+    "student_after": {
+      "example.go": [
+        469,
+        415,
+        37
+      ],
+      "test.go": [
+        4859,
+        4414,
+        306
+      ],
+      "production.go": [
+        8614,
+        6765,
+        1369
+      ],
+      "test.mjs": [
+        773,
+        757,
+        14
+      ],
+      "production.mjs": [
+        317,
+        300,
+        12
+      ],
+      "production.js": [
+        681,
+        601,
+        70
+      ],
+      "production.html": [
+        60,
+        59,
+        1
+      ],
+      "production.css": [
+        165,
+        165,
+        0
+      ]
+    },
+    "legacy_before": {
+      "production.go": [
+        11736,
+        8163,
+        2470
+      ],
+      "test.go": [
+        1343,
+        1041,
+        185
+      ],
+      "production.js": [
+        1944,
+        1452,
+        296
+      ],
+      "production.html": [
+        109,
+        94,
+        8
+      ],
+      "production.css": [
+        435,
+        359,
+        16
+      ]
+    },
+    "legacy_after": {
+      "production.go": [
+        12898,
+        8947,
+        2779
+      ],
+      "test.go": [
+        1343,
+        1041,
+        185
+      ],
+      "production.js": [
+        1948,
+        1456,
+        296
+      ],
+      "production.html": [
+        114,
+        99,
+        8
+      ],
+      "production.css": [
+        435,
+        359,
+        16
+      ]
+    }
+  }
+}

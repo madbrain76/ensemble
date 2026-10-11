@@ -1,0 +1,20 @@
+--- submitted/context_test.go
++++ scratch/context_test.go
+@@ -211,7 +211,7 @@
+ 		if n <= 13 {
+ 			return []map[string]any{contextCall(fmt.Sprint(n-1), "read_file", map[string]any{"path": path})}
+ 		}
+-		return nil
++		if n == 14 { return []map[string]any{contextCall("checkpoint", "micro_handoff", map[string]any{"text":"REVIEW CHECKPOINT"})} }; return nil
+ 	}, ensemble.AgentSpec{SkillsDir: skills, PrimarySkill: "base"})
+ 	cuts := map[string]int{}
+ 	for _, e := range a.History().EventsAfter(0) {
+@@ -225,7 +225,7 @@
+ 	if cuts["redact_result"] == 0 || cuts["redact_tool"] == 0 {
+ 		t.Fatalf("ladder did not exercise both bands: %v", cuts)
+ 	}
+-	for i := 2; i < len(requests); i++ {
++	for i := 2; i < len(requests)-1; i++ {
+ 		if !strings.Contains(toolResult(t, requests[i], fmt.Sprint(i-1)), "LADDER DATA") {
+ 			t.Fatalf("result %d cut before first presentation", i)
+ 		}

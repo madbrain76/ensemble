@@ -1,0 +1,32 @@
+{
+  "submission": "4cd143c",
+  "scratch": "tracked source copy; only reviewer supplemental tests and combined scenario changed",
+  "initial_boundary_checks": {
+    "command": "go test -race ./ensemble -run TestReviewerMCPInline|TestContext|TestCheckpointFailureRetainsJournal -count=1",
+    "exit": 0,
+    "output": "ok ensemble/ensemble 1.855s",
+    "limit": "Initial probe checked frozen prefix, actual MCP delta and replay only; the fake did not validate provider message placement."
+  },
+  "gui_effect": {
+    "command": "go test -race . -run TestReviewerGUIContextEffect|TestSettingsWireAndDisk -count=1",
+    "exit": 0,
+    "output": "ok ensemble-gui-stub 1.189s",
+    "claim": "Real GUI WebSocket setting changes actual next provider traffic; zero/default control preserves full results."
+  },
+  "placement_probe": {
+    "command": [
+      "go",
+      "test",
+      "./ensemble",
+      "-run",
+      "TestReviewerMCPInline",
+      "-count=1",
+      "-v"
+    ],
+    "exit": 1,
+    "output": "=== RUN   TestReviewerMCPInline\n    reviewer_test.go:10: captured message roles: [{user} {assistant} {user} {system} {user}]\n    reviewer_test.go:10: inline system at 3 followed by user\n--- FAIL: TestReviewerMCPInline (0.01s)\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n",
+    "claim": "Current Anthropic documented system-message placement, on actual Agent/MCP automatic ephemera path",
+    "documentation": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages"
+  },
+  "cleanup": "All probes finished; scratch source copy removed; no paid calls or original-grader repeat."
+}
