@@ -2,6 +2,21 @@
 
 ## October 10: resumed original student run
 
+Original Chapter 11 is accepted after one correction round. The reviewer caught
+saved system-prompt metadata disagreeing with the actual default instruction
+sent to the provider; a supplied primary had hidden the defect. Reusing Engine's
+effective instruction through the owner interface fixed the record without
+changing restoration policy or duplicating defaults. Real-CLI and empty-primary
+regressions, targeted mutations and independent checks verify the correction.
+Three-provider restart recall and snapshot/log-only demonstrations succeeded.
+The full original run remains interrupted/unscored; focused unchanged persistence
+checks scored 70/85, with the inherited undefined `think` name stopping the
+save-shape check before its later predicates. The reviewer independently checked
+those valid shape obligations on actual saves, retaining the original failure
+and initial-source provenance. See `edition-2-notes/ch11-code-review.md`.
+The exact 80-file export is `solutions/edition-2/history/ch11`, checkpoint
+`edition-2-ch11-r1`. Original Chapter 12, MCP, is next. No author is active.
+
 Original Chapter 10 is accepted with exceptions at initial review, with zero
 implementation correction rounds. The full original grader was interrupted and
 unscored (exit 2) during its known GUI/headless parity mismatch. The reviewer

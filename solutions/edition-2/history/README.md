@@ -37,8 +37,14 @@ book-facing Chapters 1–8 remain frozen. They extend the authoritative `../main
 | Original chapter | Snapshot and source manifest | Checkpoint |
 | --- | --- | --- |
 | 10: Skills | [ch10](ch10/), [manifest](ch10-manifest.json), 75 files | `edition-2-ch10-r2` |
+| 11: Persistence | [ch11](ch11/), [manifest](ch11-manifest.json), 80 files | `edition-2-ch11-r1` |
 
 Chapter 10 is accepted with independently recorded exceptions. The full original
 run was interrupted/unscored; focused unchanged skills checks earned 65/85, with
 two undefined `think` name checks failing. See the [review](../../../docs/edition-2-notes/ch10-code-review.md).
 This table supplements the immutable renumbering manifest above.
+
+Chapter 11 is accepted after one correction round with inherited exceptions.
+Its full original run remains interrupted/unscored; focused original checks
+earned 70/85 on the initial submission, with final correction evidence and the
+masked save-shape predicates documented in the [review](../../../docs/edition-2-notes/ch11-code-review.md).
