@@ -21,7 +21,8 @@ checks. `go run ./cmd/grade-edition2 -ch 12 [core-directory]` defaults to direct
 `ch12`; existing `-gui` and inherited fixture flags remain. A tested stage was
 checkpointed at `10dd7ffe` before final evidence and independent acceptance.
 
-The original omitted skill kind and grants, expected undefined `think`, launched
+The original chapter example omitted skill kind and grants. Its grader supplied
+grants but still omitted the loadable kind, expected undefined `think`, launched
 one command for different clients, and used implementation names to infer unload
 and parity. The revised driver exercises the actual headless and separately built
 GUI commands, both with `--gui-debug --skills-dir PATH`. An invalid environment
