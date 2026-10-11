@@ -3,8 +3,9 @@
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
 Chapters **1–21 are accepted**. [`main/`](main/) is the authoritative working
 tree. The Sandbox (original Chapter 23 / Edition 2 Chapter 21) is accepted.
-Original Chapter 24 is next, as the first reviewed stage of combined Edition 2
-Chapter 22 (original 24 + 25).
+Original Chapter 24 is accepted as an intermediate stage at
+`edition-2-ch24-r1`; original 25 is in progress to complete combined Edition 2
+Chapter 22 (original 24 + 25). The direct `ch22` export waits for that review.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
