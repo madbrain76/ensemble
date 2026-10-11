@@ -17,8 +17,8 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapter 9 is accepted; Chapter 10
-(original 11, Persistence) is now assigned.
+acceptance and releases the next chapter. Chapters 9–10 are accepted; Chapter 11
+(original 12, MCP) is now assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
@@ -151,6 +151,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 7 (old 8) | Complete | Accepted at initial formal review | `e6ae895`, `edition-2-enhanced-ch07-r1` |
 | 8 (old 9) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch08-r1` |
 | 9 (old 10) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch09-r1` |
+| 10 (old 11) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch10-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -473,3 +474,34 @@ fail the actual file-content assertion. Original interrupted grading and focused
 Continue Edition2 Chapter10 from original11, Persistence, matching direct `ch10`.
 Keep its small four-field save/replay exercise; no journal, custom canonical
 format or retired acceptance machinery. Author/coder/reviewer gates continue.
+
+
+### October 11 Chapter 10 acceptance
+
+Independent combined review `3cd08628` accepts Persistence at initial review,
+zero formal correction rounds. Prose `01103093`, final author reconciliation
+`373ce62b`, grader `91b96b1a` and receipt correction `443fe6e6`; checkpoint
+`edition-2-enhanced-ch10-r1`. The goldfish opener, Bill's default-load request
+and anchor explanation remain, with effective metadata, owner paths, staged
+restoration and complete-log limits taught from actual experience. Exact Go and
+CLI examples and hard prose lint pass. Author confirms all four full documents
+remain active without compaction; reviewer reloaded all four after compaction.
+
+Actual final full revised grading is accepted 100/100. Legacy persistence is
+80/85 and its total is explicitly composed 80/100, retaining unchanged failing
+Skills parity. Initial buffered-input, undeclared-model and independent-session
+fixture failures remain recorded. Fresh saves isolate only the old independent
+parity sessions; direct persistence checks still exercise restoration in both
+clients. Legacy JSON null acceptance sends HTTP and overwrites the save, a real
+failure. Twenty-four distinct defects fail their intended checks; four repeated
+observations are separate. Independent direct/wrapped/offline controls and an
+isolation defect yield pass/fail/pass. No new paid run or runtime edit occurred.
+
+Coordinator checked complete prose, grader, review, exact source hashes, raw
+scores and sample receipts; both frozen source trees remain unchanged. See
+[author notes](edition-2-notes/enhancement-10.md),
+[coder report](edition-2-notes/enhancement-10-code.md) and
+[independent review](edition-2-notes/enhancement-10-review.md).
+Continue Edition2 Chapter11 from original12, MCP, matching direct `ch11`.
+Keep existing job/owner/optional-GUI boundaries and the historical course
+protocol distinct from any current-standard claim. Sequential gates continue.

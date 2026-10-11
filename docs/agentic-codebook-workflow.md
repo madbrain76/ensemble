@@ -1,5 +1,26 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 10 accepted
+
+Independent combined review `3cd08628` accepts Persistence at initial review,
+zero formal rounds; checkpoint `edition-2-enhanced-ch10-r1`. Actual final revised
+grading is 100/100 on accepted source; legacy is 80/85 persistence and explicitly
+composed 80/100 total. Initial setup and historical results remain separate.
+Exact examples, affected checks and hard prose lint pass; frozen runtime source
+is unchanged. Twenty-four distinct targeted defects and the independent parity
+isolation defect fail their intended checks, with restored controls passing.
+
+Persistence changed an old fixture assumption: independent vendor sessions that
+reuse a directory now restore each other's conversations. Isolate those sessions
+with fresh selected save paths while retaining direct default/restart checks.
+Do not weaken persistence to accommodate an earlier harness. Likewise, a model
+fixture must come from the actual declared table before a failed launch can say
+anything about restoration. JSON null acceptance was a real legacy overwrite;
+undeclared-model failures were not. The author preserves the original teaching
+while explaining effective metadata, complete-log limits and refusal ordering.
+All four documents remain mandatory active context; the reviewer demonstrated
+full reload after compaction at this gate. Chapter11 (original12, MCP) follows.
+
 ## October 11: enhanced Chapter 9 accepted
 
 Independent prose/grader review `edc67c85` accepts Edition2 Chapter9 (original10)
