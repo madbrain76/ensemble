@@ -56,3 +56,38 @@ expiry and incoming messages are separate causes of ending a wait; neither
 means killing the job. This is sourced contract preparation, not an implemented
 result or advance acceptance. Current original22 review takes priority, and
 original26 remains conditional at the25 review boundary.
+
+## First-green comparative preflight, October 11
+
+Frozen source `7175d33ebfd14c4d2807580a17320786a131a507`, main tree
+`9528cdd0dbfda11a7c3b3b77bf33223a4dade259`. This is pre-submission feedback,
+not a formal disposition; zero correction rounds. Read the student's stage
+review, current implementation, and matching original fleet, messaging, idle,
+spawn, workflow-tool code and tests only after this implementation existed.
+The original grader actually scored **0/100 FAIL** in0.610s: all seven checks
+stopped before inference with `provider model is not set`. No fleet behavior
+ran; latent terminal-envelope differences are not observed failures. Final
+exception assessment awaits the complete student review and runtime evidence.
+
+Two independent real-runtime probes found implementation defects and were sent
+through the coordinator without old-answer code:
+
+- A child with its parent's accepted ID (`main`) generates the same first
+  question ID as the root. Its question overwrites the root's pending human
+  question; after answering the child, answering the root fails with `no matching
+  pending question`. The same test with distinct child/root names passes.
+  [Probe](../../solutions/edition-2/evidence/ch25/reviewer-question-collision_test.go.txt),
+  [failure and control](../../solutions/edition-2/evidence/ch25/reviewer-question-collision.txt).
+- A worker that exhausts its original request plus three wakes escalates and
+  stops, but still appears as `running` in the parent's fleet status. The probe
+  waits until the child's escalation also causes the root's bounded four
+  requests and human escalation: eight actual HTTP requests, then the stale
+  child status. This is current lifecycle truthfulness (§25.2/§25.4), not a
+  request for Chapter26 activity states.
+  [Probe](../../solutions/edition-2/evidence/ch25/reviewer-idle-status_test.go.txt),
+  [failure](../../solutions/edition-2/evidence/ch25/reviewer-idle-status.txt).
+
+Both probes use real Ensemble, Agents, managers, actors and persistence; only
+external HTTP inference is faked. The coder owns corrections and affected
+regressions. No production file was edited by this reviewer. Final source,
+mutation sensitivity, live evidence, full counts and disposition remain pending.

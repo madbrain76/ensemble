@@ -1,0 +1,15 @@
+package ensemble_test
+import("context";"encoding/json";"net/http";"net/http/httptest";"testing";"time";"fmt";"sync/atomic")
+func TestReviewerEscalatedChildIsNotRunning(t *testing.T){
+ var requests atomic.Int32
+ s:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){requests.Add(1);json.NewEncoder(w).Encode(map[string]any{"content":[]any{map[string]any{"type":"text","text":"I stopped without submitting"}},"usage":map[string]int{"input_tokens":1,"output_tokens":1}})}));defer s.Close()
+ a,inbox,_:=fleetAgent(t,s)
+ ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second);defer cancel()
+ if _,err:=a.Fleet().Spawn("worker","child task","");err!=nil{t.Fatal(err)}
+ // The child exhausts four responses and escalates to the root. That posted
+ // notice starts the root, which also exhausts four responses and reaches Bill.
+ select{case msg:=<-inbox:fmt.Printf("human escalation from=%s content=%s requests=%d\n",msg.From,msg.Content,requests.Load());case<-ctx.Done():t.Fatal(ctx.Err())}
+ statuses:=a.Fleet().List();fmt.Printf("post-escalation child status=%+v\n",statuses)
+ if len(statuses)!=1{t.Fatal(statuses)}
+ if statuses[0].State=="running"{t.Fatal("child is still reported running after its bounded correction stopped and escalated")}
+}

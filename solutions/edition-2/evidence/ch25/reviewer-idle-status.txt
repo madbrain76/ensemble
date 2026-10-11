@@ -1,0 +1,8 @@
+Source: 7175d33ebfd14c4d2807580a17320786a131a507, exact isolated git archive.
+Command: go test ./ensemble -run ^TestReviewerEscalatedChildIsNotRunning$ -count=1 -timeout=15s
+Exit: 1
+human escalation from=main content=Agent main stopped without submit after three framework wakes requests=8
+post-escalation child status=[{ID:worker State:running Result: Error:}]
+--- FAIL: TestReviewerEscalatedChildIsNotRunning (0.02s)
+    reviewer_idle_test.go:14: child is still reported running after its bounded correction stopped and escalated
+FAIL ensemble/ensemble 0.024s

@@ -1,0 +1,10 @@
+Source: 7175d33ebfd14c4d2807580a17320786a131a507; exact isolated git archive.
+Test uses real Ensemble, root/child Agents, their fleet managers, and HTTP boundary fake.
+Command: go test ./ensemble -run ^TestReviewerQuestionIDsDoNotOverwrite$ -count=1 -timeout=15s
+Exit: 1
+root question=main-1 child question=main-1
+--- FAIL: TestReviewerQuestionIDsDoNotOverwrite (0.01s)
+    reviewer_question_test.go:20: root pending question was overwritten by valid child: no matching pending question
+FAIL ensemble/ensemble 0.013s
+Initial probe compilation used Join as a struct; corrected to decode its documented JSON string before this behavioral run.
+Positive control: same probe with the child named different-child, both addressed replies retained: PASS,0.013s.
