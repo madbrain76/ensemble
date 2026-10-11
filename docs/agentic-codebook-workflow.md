@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapters 14–17 are
-accepted at **Edition 2 `ch13/`–`ch16/`**; original 18 will export to `ch17/`. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–18 are
+accepted at **Edition 2 `ch13/`–`ch17/`**; original 19 will export to `ch18/`. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,27 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+**October 11 cache chapter accepted after correction round 1.** Original18 /
+Edition2 ch17 is independently accepted with recorded fixture exceptions at
+`365186c`; final source `afc7dd7`, main tree
+`2ee06bb6189898809d80de97df2b73c695cfb0d5`. The lens now serializes comparison
+and artifact rotation while retaining each request’s prediction with its own
+response. The unchanged independent overlap, serial and attribution probes pass
+under race detection; restored-defect checks catch both race and attribution
+mistakes and missing rotation. Five final test-documentation lines change no
+behavior. Initial failures and the probe helper-collision setup error remain.
+
+Actual original grading stays **0/100 FAIL on 7436fcb**, with all seven checks
+masked by the missing skill type; acceptance is not a passing grade. Twelve real
+browser turns across three providers retain the same earlier provenance. Their
+raw usage, prices and displayed meter readings were independently verified;
+restart and concurrency have separate deterministic evidence. The exact 130-file
+export is `solutions/edition-2/ch17`, checkpoint `edition-2-ch18-r1` (original
+numbering). Original19 / Edition2 ch18 follows in main. Author remains stopped;
+stop before original22 and again before24. Preserve CodeRhapsody’s concurrent
+Edition 1 Chapters 25 and 26 commits and working changes. Earlier status entries
+below retain their dated intermediate observations.
 
 **October 11 original18 / Edition2 ch17 needs correction round 1.** Fresh blind student
 `student_continue_ch18` extends accepted original17. The instrument-first stage
