@@ -28,12 +28,20 @@ reached green `7436fcb`, tree `05e0d2e92a9f70f5d2433af76c1a3cbf5208b493`.
 The unchanged original grader completed **0/100 FAIL** on that source: its missing
 base-skill type prevents both launched scenarios from starting and masks all seven
 behavior checks. Raw result/provenance is committed at `2c7410a`; no actual cache
-or meter failure was observed in that run. Live grants, mutation evidence and
-formal comparative review remain. Coordinator recovered
+or meter failure was observed in that run. Twelve real browser turns then
+succeeded across Anthropic, OpenAI and Gemini; all three warmed after one cold
+request in this configuration. Coordinator and reviewer independently matched
+raw usage to every browser cost/rate/token reading, preserving the original
+`7436fcb` provenance. Live captures do not demonstrate a restart; that obligation
+retains separate real-runtime checks. Final submission `6194918` (main tree
+`0ba40790660cddb0044e376fedaea3d9e8d3f483`) adds verified Sonnet 5 pricing and
+focused test evidence: 32 intended mutation failures and three preserved invalid
+attempts. Initial formal comparative review is underway; zero correction rounds.
+Coordinator recovered
 the missing external launch/usage/artifact contract in `edition-2-notes/ch18.md`,
 with exact sources and the repeated untyped-skill fixture issue; no compatibility
-features or grader changes are authorized. Reviewer completed public-contract
-preparation only. Original19 source/current official OAuth preparation is recorded
+features or grader changes are authorized. Reviewer completed independent grader preflight and live-artifact inspection;
+final acceptance remains pending. Original19 source/current official OAuth preparation is recorded
 separately, without authentication, private profile access or implementation.
 
 **October 11 Auto-Recall accepted at initial formal review.** Original17 /
