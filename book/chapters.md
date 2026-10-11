@@ -42,6 +42,7 @@ purpose: no chapter count is fixed until a chapter is built.
   design): auth, credential flow, and what the agent may touch.
 - **Gateway.** Channels (chat, webhooks, voice) and a scheduler: the agent
   acting with no human at the keyboard. Must follow sandboxing.
+- Scheduler to work with gateway: Now you can wake up with a morning briefing.
 - **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
   program; then workflows the agent writes for itself. Also where the ch5
   three-agent exercise and the wake-once check were deferred.
@@ -52,6 +53,8 @@ purpose: no chapter count is fixed until a chapter is built.
   itself.
 - Ollama local support, asked for by multiple commenters on LinkedIn.
 - Message board for agents to collaborate.
+- Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
+- Goals: messages that don't compact away until explicity marked as done.
 
 ## AI Native chapters already covered here
 

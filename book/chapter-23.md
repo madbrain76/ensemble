@@ -540,7 +540,7 @@ func (s AgentSpec) Clamp(parent AgentSpec) (AgentSpec, error) {
     }
     if len(widened) > 0 {
         return s, fmt.Errorf("%w: %s",
-            ErrWidenedPermissions,
+            WidenedPermissionsError{},
             strings.Join(widened, ", "))
     }
     return s, nil
