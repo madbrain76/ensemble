@@ -175,9 +175,9 @@ and passing `corrected-baseline.txt` remain separate; the correction changes
 the fixture to the existing syntax, without weakening tool admission.
 
 The [mutation receipt](../../solutions/edition-2/evidence/ch12/enhancement11/mutations.json)
-records 21 distinct targeted defects failing their intended checks, with restored
+records 22 distinct targeted defects failing their intended checks, with restored
 control passing. Some defects cause related downstream failures; the count is
-not 21 independent proofs or complete coverage. Existing source/browser evidence
+not 22 independent proofs or complete coverage. Existing source/browser evidence
 still establishes the broader lifetime, ownership, admission and DOM/native
 speech obligations described in the manuscript. Frozen runtimes, original
 graders and historical paid/browser receipts remain unchanged.
@@ -193,3 +193,15 @@ now resolve. The preserved full legacy parity report includes inherited
 consumer/workflow/media fixture limitations; those are not new MCP behavior
 failures. Combined independent acceptance and the coordinator checkpoint remain
 the final gate.
+
+Final coder freeze `9be403dd` adds one distinct sensitivity case after the first
+author reconciliation: an automatic-tool error abandons the collector before
+it can release the provider request. The intended output deadline detects lost
+continuation, separately from the earlier failed-output-in-context check. Its
+focused baseline and restored controls pass; the receipt records 5.55 seconds
+for collecting the intended failed check report. The final coder total is 22,
+superseding the earlier 21 without recounting the original cases. The reviewer's
+independent bounded persistent-reverse-refusal check remains separate. Actual
+full scores and exact manuscript/sample hash are unchanged; no sample repeat
+was needed. All four full documents remain active, with no additional author
+compaction since the recorded reload.
