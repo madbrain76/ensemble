@@ -1,0 +1,10 @@
+**Minimum makespan: 13 time units.**
+
+| Worker | Schedule |
+|---|---|
+| 1 | A: 0–4 → C: 4–9 → F: 9–12 → H: 12–13 |
+| 2 | B: 0–3 → E: 3–7 → D: 7–9 → G: 9–11 |
+
+All prerequisites are satisfied: notably, F starts after both C and D finish at 9, and H starts after F finishes at 12 and G at 11.
+
+**Optimality:** The prerequisite chain A → C → F → H requires \(4+5+3+1=13\) time units, so no schedule can finish earlier than 13. This schedule attains that bound.
