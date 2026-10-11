@@ -1,5 +1,106 @@
 # Edition 2 Chapter 14 / original 15 independent review
 
+## October 11: bounded editorial and supported-model correction accepted
+
+Independent reviewer `reviewer_astra` accepts author correction `6cfa0862` and
+model correction `215ae6ac`, with report-only baseline-SHA repair `586b07bd`.
+Chapter14 manuscript SHA-256:
+`f786497ecda5dc700d8a2456fc86cea0239e2b88585b9f14876df4e574f7f802`.
+The author-note SHA is
+`9e170186a186fc4969194ac280da80b3e077222ecbf15d8499650eb6745941a5`.
+This closes one bounded post-acceptance editorial correction. It does not
+rewrite the initial enhancement's zero-round record or the original student's
+one implementation correction round. Chapter15 remains paused pending the
+coordinator's release; no further chapter work is part of this disposition.
+
+Before finalizing after compaction, reloaded all four complete documents:
+workflow, carryover, voice and chapter-writing procedure, plus the entire
+[`.agents/skills/ensemble-coding/SKILL.md`](../../.agents/skills/ensemble-coding/SKILL.md).
+All four remain active together. Reviewed updated authority headers, the complete
+corrected manuscript and author/coder reports, original-relative changes, active
+model/test diff and raw validation. The historical acceptance below is preserved,
+but its unqualified editorial judgment is superseded by this correction.
+
+### What the audit changed
+
+Bill's concern was justified. My earlier review checked source traceability and
+technical accuracy more effectively than it checked unnecessary rewriting and
+repetition. I accepted prose that repeatedly interrupted the explanation with
+review qualifications. Full-document reading had occurred; reading compliance
+did not establish good editing. No invented runtime design was found, but that
+did not excuse the editorial drift.
+
+The correction preserves the breakfast opener, original section progression,
+manual-loss example, narrated edit, destructive-summary story and stale-address
+lesson. It restores the TL;DR's useful numbered explanations instead of merely
+retaining their requirements. Necessary corrections still teach actual ownership,
+serial batch completion, immediate unload, event validation and the course-only
+feature matrix. Repeated certification language and review bookkeeping move to
+notes; the relevant cache limitation is explained at the law it qualifies. The
+runnable exercise remains because it lets readers apply the mechanism.
+
+The result is 6,569 prose words, with hard lint passing. Counts describe the
+change, not its target: the TL;DR returns to about1,100 raw words versus the
+original1,115, while the whole chapter is7,936 versus original7,104. Its additional
+material teaches verified corrections and an executable exercise. Both narrow
+review findings are resolved: tool bytes now explicitly gain a removal policy,
+and choosing cuts is described as a tradeoff involving useful work and rereads,
+not a categorical claim that rereading achieves nothing. No remaining editorial
+or scope blocker was found.
+
+The historical45/100 fixture failure stays separate from the independently found
+inline placement defect. Historical Opus5.5/Haiku5.5 identities remain historical;
+Bill's restriction and the observed Haiku failure do not become a claim that
+supported Sonnet5 failed or that the old failure's cause was experimentally proved.
+
+### Supported models and actual checks
+
+The [coder report](supported-model-correction.md) and
+[source bindings](../../solutions/edition-2/evidence/supported-model-correction/source.json)
+cover16 changed source/test files; I independently verified every hash. Chapter5
+uses its accepted snapshot's existing Sonnet4.6 row. The legacy snapshot declares
+Sonnet5 instead, so its explicit public model-map override is necessary. No
+shared compatible Anthropic row was invented and no frozen table was edited.
+
+Active main removes5.5 capability/pricing declarations and uses existing older
+rows in current tests and the speech harness. Production shrinks by two lines,
+with no new abstraction, export or model-name rejection policy. Unknown text
+model behavior remains unchanged. Distinct-model controls still distinguish a
+real switch; Sonnet5-to-unpriced-Opus5 checks retain prior measured cost until
+unpriced work makes total cost unknown. Removing the second priced Anthropic
+model reduces current mixed-known-rate coverage; I accept the documented limit,
+not a claim that the old check remains equivalent. Existing OpenAI tier arithmetic
+and historical frozen evidence remain. No unsupported prices were fabricated.
+
+Core and GUI Go checks, focused pricing/status/media race checks, revised
+Chapter5 boundary checks, vet and JavaScript syntax checks pass. Actual focused
+media grading is accepted10/10 and legacy0/10: the latter reaches rendering with
+declared models and fails actual blob support. This is not a fresh full Chapter5
+grade. The browser selection reports3 passes and2 failures. Both failures recur
+on isolated unchanged baseline `5d83c609ddf864f03ab7eedb800cb39e4e1bf034`:
+four replies violate earlier one-reply cache/speech expectations. The new known
+price exposes the cache discrepancy earlier; it does not create the extra turns.
+I accept leaving these reproduced pre-existing failures outside this narrow
+correction. Their precise runtime cause is not established by this review.
+Listener pending-sleep/EOF controls pass. No blanket browser-pass claim is made.
+
+Only fence22 of24 differs from the previous accepted Chapter14: the launch now
+explicitly selects Anthropic/Sonnet5. The exact final manuscript's real GUI and
+external-provider-fake run completes7 turns and16 Sonnet5 requests, with six
+correlated successful file reads, six cuts, handoff/unload and exit0. I checked
+the captured model fields, correlated results and final declarations. This proves
+the runnable selection and mechanics, not live provider compatibility or model
+quality. Unchanged excerpts and Chapter14 grader retain their earlier evidence;
+no redundant paid or broad grading run was performed. The initial stale-manuscript
+hash refusal remains a setup failure in the receipt.
+
+Frozen exports have no diff from the recorded baseline. Historical5.5 reports,
+raw captured SSE bytes, original chapters/graders and immutable checkpoints remain
+preserved. The paused Chapter15 draft is unchanged at SHA
+`583da1f152e5f355d2ae8222af30880b60c9cc12db4e984679b48a467387f510`.
+
+## Historical initial acceptance
+
 Independent reviewer `reviewer_astra`, October 11, 2026. **Accepted at initial
 combined prose/grader review, zero formal correction rounds.** The preparation
 below is retained; the final disposition follows it. Only this chapter is released.
