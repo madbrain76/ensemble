@@ -1,0 +1,14 @@
+Frozen source:55cbef230e675ed0d42547b7ad21e53c5b8a554f; main tree967ed4ff7d9379c37ce3eeadac2800803431e442; isolated exact archive.
+Only external HTTP is faked; real Ensemble/Agent/fleet/actor/history/job paths run.
+Failure command:go test -race ./ensemble -run ^TestReviewerWaitChangeDoesNotAttributeUnselectedQuestion$ -count=1 -timeout=10s
+Exit1,0.075s:
+selected watched; only other asked: result=[{"agent_id":"watched","reason":"message","status":{"activity":{"phase":"thinking"},"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0},"agent_id":"watched","state":"running"}}] err=<nil>
+--- FAIL: TestReviewerWaitChangeDoesNotAttributeUnselectedQuestion (0.07s)
+unselected child question was falsely attributed to watched child
+
+Control command:go test -race ./ensemble -run ^TestReviewerWaitChange(SelectedQuestionControl|NoQuestionControl)$ -count=1 -timeout=10s -v
+Exit0,1.458s:
+NoQuestionControl: selected watched; nobody asked: result= err=context deadline exceeded (PASS,0.35s)
+SelectedQuestionControl: selected other; only other asked: result agent_id=other,reason=message,thinking,running; err=nil (PASS,0.09s)
+
+Initial probe observed the same false watched/message result but then its HTTP fake cleanup blocked and the package timed out at10s. The fake had not drained request bodies or provided a cleanup release. Corrected the fake to consume the body and release handlers before shutdown. Only the clean failure above is credited as the intended bounded reproduction; production was never changed. Control diagnostic strings were corrected after an initial passing run that reused the failing probe's label; the final run above uses accurate labels.

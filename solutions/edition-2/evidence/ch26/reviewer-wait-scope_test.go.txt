@@ -1,0 +1,18 @@
+package ensemble_test
+import("context";"io";"net/http";"net/http/httptest";"testing";"time";"fmt")
+func TestReviewerWaitChangeDoesNotAttributeUnselectedQuestion(t *testing.T){
+ entered:=make(chan struct{},8); release:=make(chan struct{})
+ server:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){io.Copy(io.Discard,r.Body);entered<-struct{}{};select{case<-r.Context().Done():case<-release:}}));t.Cleanup(server.Close)
+ a,_,_:=fleetAgent(t,server);t.Cleanup(func(){close(release)})
+ for _,id:=range []string{"watched","other"}{if _,err:=a.Fleet().Spawn(id,"parked task","");err!=nil{t.Fatal(err)};<-entered}
+ ctx,cancel:=context.WithTimeout(context.Background(),300*time.Millisecond);defer cancel()
+ type outcome struct{s string;err error};done:=make(chan outcome,1)
+ go func(){s,err:=a.Fleet().WaitChange(ctx,[]string{"watched"},"",0);done<-outcome{s,err}}()
+ // Both selected and unselected child requests are parked without progress.
+ // Check the wait has not completed before introducing the unrelated question.
+ select{case got:=<-done:t.Fatal("baseline wait returned",got);case<-time.After(30*time.Millisecond):}
+ other,err:=a.Fleet().Find("other");if err!=nil{t.Fatal(err)}
+ go other.Fleet().AskParent(ctx,"QUESTION_FROM_OTHER")
+ got:=<-done;fmt.Printf("selected watched; only other asked: result=%s err=%v\n",got.s,got.err)
+ if got.err!=context.DeadlineExceeded{t.Fatalf("unselected child question was falsely attributed to watched child: %q %v",got.s,got.err)}
+}
