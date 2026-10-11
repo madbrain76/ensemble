@@ -20,6 +20,22 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 original19 resumed after sign-in; correction round 1 underway.**
+Bill completed the dedicated browser sign-in. Status confirms subscription
+selection and inference grant; the account's visible model catalog is retained.
+First live plan inference failed HTTP400: a diagnostic replay identifies
+`prompt_cache_options` as unsupported. Reviewer independently accepts omitting
+the paired explicit-cache controls on that route, retaining API-key caching.
+Only the options rejection is provider-proven; marker omission is a conservative
+paired-mode choice. The corrected source `dc74e25` reaches actual model SSE but
+misclassifies its framing and relies on terminal `output`, which is empty despite
+an earlier completed tool item. Reviewer reproduced both predicates against the
+captured bytes with controlled headers and a passing terminal-output control.
+The actual live Content-Type was not retained and is not inferred. Correct both
+parser predicates in round 1, then rerun affected checks and a bounded live test.
+Neither CLI exit zero nor successful authentication is a successful task result.
+Original grading remains 15/100 FAIL; acceptance/export remain pending.
+
 **October 11 original19 / Edition2 ch18 awaits human sign-in.** Automated work
 is committed at `7a2d562`, main tree `f2435030abf494b287f8ce9a0bc9d1e7f0e1b720`.
 Core/GUI tests and vet, focused OAuth/Responses race checks, incremental browser
