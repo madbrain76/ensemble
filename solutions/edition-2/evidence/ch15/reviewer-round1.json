@@ -1,0 +1,20 @@
+{
+  "source_commit": "80b3e09",
+  "verified_source_hashes": 108,
+  "command": "go test -race ./ensemble -run TestReviewerMCPInline|TestContextInlineWithEphemera|TestContextSurvivorsAndFrozenPrefix -count=1 -v",
+  "exit": 0,
+  "results": [
+    "TestContextInlineWithEphemera PASS",
+    "TestContextSurvivorsAndFrozenPrefix PASS",
+    "TestReviewerMCPInline PASS"
+  ],
+  "roles": [
+    "user",
+    "assistant",
+    "user",
+    "system"
+  ],
+  "setup_correction": "Initial manifest-print helper assumed files was a path map; it is count108. This metadata-only helper failed before tests, then sha256 map verified all108 hashes. No production/test correction.",
+  "source_review": "Renderer-only declaration staging; no event/reducer/policy lifetime changes. Exact initial strict supplemental probe reused.",
+  "cleanup": "Scratch source copy removed; all processes ended. No paid/browser/original-grader repeat."
+}

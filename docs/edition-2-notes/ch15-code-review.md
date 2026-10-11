@@ -157,3 +157,41 @@ proof is distinct from live ladder/handoff evidence. The current documented
 inline definition/header shape is supported, but neither the documentation nor
 the fake establishes successful live inline use. Acceptance remains pending the
 single renderer correction above; actual45/100 and these live limits will remain.
+
+## Correction round 1 — accepted with recorded grader exceptions
+
+Reviewed frozen `80b3e09`, the full appended student response and
+`round1-checks.json`, `round1-mutation.json`, `round1-source.json`.
+Independently verified all108 source hashes. **Accepted after one correction
+round**, with the two specific original-grader exceptions above; there are no
+remaining confirmed findings. Original **45/100 FAIL** and all recorded live
+outcomes remain unchanged.
+
+The renderer now retains declaration-block order while placing those blocks
+after the complete user/tool-result/ephemeral turn, before the next assistant
+or at the request end. This is a small rendering correction: event chronology,
+reducer behavior, Agent policy and automatic-context lifetime are unchanged.
+The added comments explain the provider restriction and correct the older
+blanket statement about system instructions. No new runtime abstraction or
+feature was introduced; the production change remains localized.
+
+The **exact independent strict probe** that failed initially now captures
+`user, assistant, user, system` and passes under race. The coder's real Agent/MCP
+regression also passes independently under race, checking both sides of the
+system boundary, actual echo results, connect/disconnect deltas, one-request
+round/turn ephemera, frozen prefix and byte-identical replay of each captured
+request before its consumption marker. The existing skill/handoff prefix test
+passes alongside it. Final focused command: three tests, exit0,
+`ok ensemble/ensemble 1.214s`.
+
+The retained restored-renderer mutant fails the intended placement assertion and
+HTTP400 path, not compilation or unrelated cleanup. All twelve recorded final
+module test/vet/race commands exit0. No paid, browser or full original grader
+repeat was needed for this renderer-only fix. The initial permissive probe's
+false confidence remains part of the record.
+
+[Independent round1 receipt](../../solutions/edition-2/evidence/ch15/reviewer-round1.json)
+records source verification, the small metadata-helper setup mistake and cleanup.
+All reviewer processes ended; scratch was removed. Coordinator owns the accepted
+checkpoint and direct Edition2 `ch14/` export. No subsequent chapter is released
+by this review itself.
