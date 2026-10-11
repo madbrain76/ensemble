@@ -68,3 +68,49 @@ and the script's narrower GUI assertions passed. Anthropic's successful control
 use/unload coexists with incorrect retained-tool narration. The two-tab native
 speech queue observation has an unproven cause; it does not establish general
 multi-tab speech reliability. These limits must survive the enhancement.
+
+## First-green and prose preflight
+
+After compaction, reloaded all four complete documents (workflow1844,
+carryover871, voice632, procedure599 lines), plus the entire366-line skill and
+AGENTS. All four remain together in active context for this review. This updates
+the earlier no-compaction reading statement; summaries were not substituted.
+
+Read the complete grader/test at `10dd7ffe` and its shared Chapter11 helper and
+command changes. Actual first full results are accepted100/100 in16.902s and
+legacy75/100 in15.408s; focused current checks are90/90 and75/90. These are
+pre-final source results, not acceptance. Initial missing-primary setup remains
+separate. Original13's0/100 result is unchanged.
+
+The legacy startup failure is real rather than merely a preferred prompt shape:
+its command calls the load tool and discards the returned manual. The original
+flag's equivalent-first-load promise requires instruction delivery. The new
+chapter explains accepted construction-time freezing versus later tool-result
+history. Independent source inspection confirms both runtimes synchronously
+close and reap the direct stdio peer. Testing its self-reported PID after two
+post-unload requests while the command stays alive observes skill cleanup rather
+than final process shutdown. It does not claim general descendant reaping.
+The shared EOF diagnostic reads stderr only after cmd.Wait and channel closure.
+
+Coordinator identified two valid-wire representation defects, independently
+confirmed here: comparing interface-valued system arrays with != can panic,
+and the context reader ignores string message content. Coder is correcting
+these with real-renderer representation controls; preserve tool-argument/result
+exclusion and frozen textual instructions. The additional post-unload marker
+guard correctly covers new automatic observations beyond the first three.
+These are pre-submission corrections, with zero formal rounds used.
+
+Read complete383-line draft and167-line author note at `d70588d`, manuscript
+SHA-256 `6e0fd380bc203701634f1bfde8861f58a177131765ed36a81c0e7f437da3ec6c`.
+No preliminary prose blocker. Its5273 words retain the observer, debugger,
+two-dispatcher and settings stories with room to explain their consequences.
+The new speech-callback failure develops the earlier pause story instead of
+turning the chapter into a checklist. Runnable current skills and commands are
+clearly separated from historical APIs and driver helpers. The source report's
+eight-tool historical inventory is not assigned as the four-tool exercise.
+Direct dated Git inspection additionally verifies the wrapped quotation exists
+at `3d7b7d19`, before the narrative at `6b37bb14`. The author correctly preserves
+the evidence lesson while correcting the unsupported invention claim.
+
+Final combined review still awaits corrected grader freeze, exact examples and
+complete evidence reconciliation. No next-chapter work is released.
