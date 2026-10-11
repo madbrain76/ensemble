@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"ensemble/ensemble"
 	"ensemble/internal/common"
@@ -25,6 +26,11 @@ func contextSession(t *testing.T, model string, script func(int) []map[string]an
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		raw, _ := io.ReadAll(r.Body)
 		requests = append(requests, raw)
+		if err := inlinePlacement(raw); err != nil {
+			t.Error(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		if model == "claude-opus-5-course" && r.Header.Get("anthropic-beta") != "inline-tools-2026-09-15" {
 			t.Error("inline beta missing")
 		}
@@ -44,6 +50,130 @@ func contextSession(t *testing.T, model string, script func(int) []map[string]an
 		t.Fatal(err)
 	}
 	return a, requests
+}
+
+// This provider-boundary rule comes from Anthropic's mid-conversation system
+// message contract. A permissive JSON receiver cannot establish wire validity.
+func inlinePlacement(raw []byte) error {
+	var wire struct {
+		// Messages exposes only the role boundaries relevant to this contract.
+		Messages []struct {
+			// Role distinguishes declaration updates from user and assistant turns.
+			Role string `json:"role"`
+		} `json:"messages"`
+	}
+	if err := json.Unmarshal(raw, &wire); err != nil {
+		return err
+	}
+	for i, m := range wire.Messages {
+		// This renderer emits only contentful system messages and merges adjacent
+		// equal roles, so there are no effort-only or consecutive-system cases.
+		if m.Role != "system" {
+			continue
+		}
+		if i == 0 || wire.Messages[i-1].Role != "user" {
+			return fmt.Errorf("inline system at %d must follow user", i)
+		}
+		if i+1 < len(wire.Messages) && wire.Messages[i+1].Role != "assistant" {
+			return fmt.Errorf("inline system at %d followed by %s", i, wire.Messages[i+1].Role)
+		}
+	}
+	return nil
+}
+
+// TestContextInlineWithEphemera connects the actual MCP registry after the
+// prefix is frozen. The provider rejects invalid placement while real automatic
+// context, jobs and tool results exercise both the current and historical delta.
+func TestContextInlineWithEphemera(t *testing.T) {
+	var requests [][]byte
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		raw, _ := io.ReadAll(r.Body)
+		requests = append(requests, raw)
+		if err := inlinePlacement(raw); err != nil {
+			t.Error(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if len(requests) == 2 {
+			io.WriteString(w, `{"content":[{"type":"tool_use","id":"echo-call","name":"echo","input":{"text":"actual-echo-result"}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		} else {
+			io.WriteString(w, `{"content":[{"type":"text","text":"done"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		}
+	}))
+	defer server.Close()
+	cfg := ensemble.Config{Model: "claude-opus-5-course", BaseURL: server.URL, BuiltinTools: true, DataDir: t.TempDir()}
+	a, err := ensemble.New(io.Discard).NewAgent(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err := a.Ask(ctx, "before connection"); err != nil {
+		t.Fatal(err)
+	}
+	p := peer(t, a, "inline")
+	if _, err := a.Ask(ctx, "use echo"); err != nil {
+		t.Fatal(err)
+	}
+	p.transport.Close()
+	select {
+	case <-a.MCP().Done("inline"):
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	if _, err := a.Ask(ctx, "after disconnection"); err != nil {
+		t.Fatal(err)
+	}
+	if len(requests) != 4 {
+		t.Fatalf("requests=%d", len(requests))
+	}
+	if !bytes.Contains(requests[1], []byte("snapshot-1")) ||
+		!bytes.Contains(requests[1], []byte("startup-1")) ||
+		!bytes.Contains(requests[2], []byte("snapshot-2")) ||
+		bytes.Contains(requests[2], []byte("startup-1")) ||
+		bytes.Contains(requests[2], []byte("snapshot-1")) ||
+		bytes.Contains(requests[3], []byte("snapshot-")) {
+		t.Fatal("automatic ephemera missing or retained beyond its request")
+	}
+	if !strings.Contains(toolResult(t, requests[2], "echo-call"), "actual-echo-result") {
+		t.Fatal("actual MCP result missing")
+	}
+	if !bytes.Contains(requests[1], []byte(`"tool_addition"`)) || !bytes.Contains(requests[3], []byte(`"tool_removal"`)) {
+		t.Fatal("MCP declaration changes missing")
+	}
+	var first map[string]json.RawMessage
+	json.Unmarshal(requests[0], &first)
+	for _, raw := range requests[1:] {
+		var current map[string]json.RawMessage
+		json.Unmarshal(raw, &current)
+		if !bytes.Equal(first["tools"], current["tools"]) || !bytes.Equal(first["system"], current["system"]) {
+			t.Fatal("MCP changed frozen prefix")
+		}
+	}
+	// Reconstruct each exact request before its consumption marker. This proves
+	// ephemeral content is delivered once without moving or rewriting log facts.
+	cfg.DataDir, cfg.SystemPrompt = t.TempDir(), a.Engine().SystemPrompt()
+	b, err := ensemble.New(io.Discard).NewAgent(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer b.Shutdown()
+	var log bytes.Buffer
+	n := 0
+	for _, event := range a.History().EventsAfter(0) {
+		if event.Type == "request_sent" {
+			if err := b.History().Load(bytes.NewReader(log.Bytes())); err != nil {
+				t.Fatal(err)
+			}
+			got, err := b.Engine().Render(b.History().Context())
+			if err != nil || !bytes.Equal(got, requests[n]) {
+				t.Fatalf("request %d replay differs: %v", n, err)
+			}
+			n++
+		}
+		json.NewEncoder(&log).Encode(event)
+	}
 }
 func contextCall(id, name string, args map[string]any) map[string]any {
 	return map[string]any{"type": "tool_use", "id": id, "name": name, "input": args}

@@ -37,19 +37,23 @@ type anthropicMessage struct {
 	Content []json.RawMessage `json:"content"`
 }
 
-// Anthropic keeps system instructions outside messages and gives tool results
-// no role of their own. Those are rendering decisions; the log retains the
-// distinct Human, Agent and Tool speakers.
+// Anthropic keeps the startup instruction outside messages and gives tool
+// results no role of their own. Inline declaration updates are system messages;
+// these wire decisions do not change the log's distinct speakers or event order.
 func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 	messages := []anthropicMessage{}
+	appendMessage := func(role string, blocks []json.RawMessage) {
+		if len(blocks) == 0 {
+			return
+		}
+		if len(messages) > 0 && messages[len(messages)-1].Role == role {
+			messages[len(messages)-1].Content = append(messages[len(messages)-1].Content, blocks...)
+		} else {
+			messages = append(messages, anthropicMessage{role, blocks})
+		}
+	}
+	var declarations []json.RawMessage
 	for _, entry := range entries(c) {
-		role := "user"
-		if entry.Kind == common.KindTools && e.Features().InlineTools {
-			role = "system"
-		}
-		if entry.Actor == common.AgentActor {
-			role = "assistant"
-		}
 		blocks, err := e.anthropicParts(c, entry)
 		if err != nil {
 			return nil, err
@@ -57,14 +61,22 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		if len(blocks) == 0 {
 			continue
 		}
-		// Merge adjacent equal roles without changing the conversation itself.
-		// User-block ordering is resolved after the complete merged turn exists.
-		if len(messages) > 0 && messages[len(messages)-1].Role == role {
-			messages[len(messages)-1].Content = append(messages[len(messages)-1].Content, blocks...)
-		} else {
-			messages = append(messages, anthropicMessage{role, blocks})
+		if entry.Kind == common.KindTools && e.Features().InlineTools {
+			declarations = append(declarations, blocks...)
+			continue
 		}
+		role := "user"
+		if entry.Actor == common.AgentActor {
+			// Contentful system messages must follow the complete user turn and
+			// precede its assistant continuation. In particular, automatic context
+			// remains user data; putting it after the delta would cause HTTP 400.
+			appendMessage("system", declarations)
+			declarations = nil
+			role = "assistant"
+		}
+		appendMessage(role, blocks)
 	}
+	appendMessage("system", declarations)
 	// Results can arrive on either side of human text. Anthropic requires every
 	// tool_result before all other content in the merged user message. Partition
 	// only this wire view, preserving order within each group and all raw bytes.

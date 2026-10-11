@@ -184,7 +184,8 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 	return events, err
 }
 
-// All renderers append pending ephemera at the request tail. It remains absent
+// Pending ephemera follows retained dialogue in the renderer input; Anthropic
+// places inline declarations after that complete user turn. It remains absent
 // from Dialogue; RequestSent consumes it during both live application and replay.
 func entries(c *common.Context) []common.Entry {
 	out := append([]common.Entry(nil), c.Dialogue...)

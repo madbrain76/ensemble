@@ -1,0 +1,31 @@
+{
+  "chapter": "original15 / Edition2ch14",
+  "round": 1,
+  "baseline": {
+    "command": [
+      "go",
+      "test",
+      "./ensemble",
+      "-run",
+      "TestContextInlineWithEphemera",
+      "-count=1"
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.018s\n"
+  },
+  "mutation": "Restore submitted 4cd143c Anthropic renderer while retaining new protocol regression.",
+  "mutation_applied": true,
+  "mutant": {
+    "command": [
+      "go",
+      "test",
+      "./ensemble",
+      "-run",
+      "TestContextInlineWithEphemera",
+      "-count=1"
+    ],
+    "exit": 1,
+    "output": "--- FAIL: TestContextInlineWithEphemera (0.01s)\n    context_test.go:93: inline system at 3 followed by user\n    context_test.go:117: provider HTTP status 400\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  "intended_kill": true
+}

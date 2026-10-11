@@ -1,0 +1,136 @@
+[
+  {
+    "module": ".",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 11.059,
+    "output": "ok  \tensemble\t(cached)\nok  \tensemble/ensemble\t10.749s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t(cached)\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/mcp\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n"
+  },
+  {
+    "module": ".",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.178,
+    "output": ""
+  },
+  {
+    "module": "gui",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 1.306,
+    "output": "ok  \tensemble-gui-stub\t1.020s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\n"
+  },
+  {
+    "module": "gui",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.129,
+    "output": ""
+  },
+  {
+    "module": "ch05",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.232,
+    "output": "ok  \tensemble-ch05\t0.008s\n"
+  },
+  {
+    "module": "ch05",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.107,
+    "output": ""
+  },
+  {
+    "module": "ch06",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.23,
+    "output": "ok  \tensemble-ch06\t(cached)\n"
+  },
+  {
+    "module": "ch06",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.107,
+    "output": ""
+  },
+  {
+    "module": "ch07",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.11,
+    "output": "?   \tensemble-stream-example\t[no test files]\n"
+  },
+  {
+    "module": "ch07",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 0.113,
+    "output": ""
+  },
+  {
+    "module": ".",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 54.696,
+    "output": "ok  \tensemble\t(cached)\nok  \tensemble/ensemble\t53.930s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t(cached)\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/mcp\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n"
+  },
+  {
+    "module": "gui",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./..."
+    ],
+    "exit": 0,
+    "seconds": 4.659,
+    "output": "ok  \tensemble-gui-stub\t4.280s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\n"
+  }
+]
