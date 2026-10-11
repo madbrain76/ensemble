@@ -20,6 +20,10 @@ type Config struct {
 	// ReasoningEffort and ReasoningSummary configure supported Responses models.
 	// Empty summary requests auto; empty effort leaves the provider default.
 	ReasoningEffort, ReasoningSummary string
+	// Credentials supplies transport-only authentication; it is never serialized.
+	Credentials CredentialProvider `json:"-"`
+	// BillingMode selects api or chatgpt; blank follows explicit saved login choice.
+	BillingMode CredentialKind
 	// Audio retains the earlier client input flag; explicit ModelFeatures now govern
 	// media rendering.
 	Audio bool
@@ -130,6 +134,8 @@ type Part struct {
 	Data json.RawMessage `json:"data,omitempty"`
 	// CallID correlates a tool call and its result across vendor role conventions.
 	CallID string `json:"call_id,omitempty"`
+	// Namespace preserves a Responses tool grouping without changing dispatch names.
+	Namespace string `json:"namespace,omitempty"`
 	// Name selects the declared tool for a tool_call part.
 	Name string `json:"name,omitempty"`
 	// Args holds canonical JSON arguments without interpreting them as prose.

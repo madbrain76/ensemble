@@ -18,6 +18,8 @@ type responseItem struct {
 	Type string `json:"type"`
 	// CallID correlates local tool execution with the following input item.
 	CallID string `json:"call_id"`
+	// Namespace preserves the provider grouping independently of the function name.
+	Namespace string `json:"namespace"`
 	// Name selects the caller-visible function.
 	Name string `json:"name"`
 	// Arguments contains the completed JSON string.
@@ -114,7 +116,7 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 				result = frame.Response
 				completed = true
 			case "response.failed", "response.incomplete", "error":
-				return errors.New("Responses inference did not complete")
+				return providerError(0, data)
 			}
 			return nil
 		})
@@ -180,7 +182,7 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 			if err != nil {
 				return err
 			}
-			add(key, common.Part{Type: "tool_call", CallID: item.CallID, Name: item.Name, Args: args, From: from}, common.DeltaToolCall, item.Name+" "+string(args))
+			add(key, common.Part{Type: "tool_call", CallID: item.CallID, Name: item.Name, Namespace: item.Namespace, Args: args, From: from}, common.DeltaToolCall, item.Name+" "+string(args))
 		case "reasoning":
 			add(key, common.Part{Type: "opaque", Data: raw, From: from}, common.DeltaReasoningSummary, reasoningSummary(raw))
 		default:

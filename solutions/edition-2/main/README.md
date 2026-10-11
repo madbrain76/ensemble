@@ -146,3 +146,39 @@ A `micro_handoff` removes recalled context at the existing checkpoint boundary.
 Each attachment also retains hashes of the source snippets it represents, so a
 byte-capped snippet is not injected repeatedly. These identities leave with the
 attachment; edited source content can be recalled again.
+
+Chapter 19 adds subscription authentication to both executables:
+
+    ensemble-cli auth login openai-chatgpt
+    ensemble-cli auth status
+    ensemble-cli auth models
+    ensemble-cli auth logout
+
+A successful login explicitly selects `chatgpt` billing for later OpenAI
+launches, including when an API key is also configured. Expiry, sign-out and
+quota errors never switch to that key. Set `OPENAI_BILLING_MODE=api` to explicitly
+select metered billing or `chatgpt` to require the subscription. Automatic
+`chatgpt_then_api` fallback is deferred. Other providers continue using their own
+API keys. Identity-only login is retained and displayed, but inference requires
+the actual `chatgpt.tokens.use.direct` grant.
+
+Select an account-available model with `LLM_MODEL`. `gpt-6.1-sol` uses Responses;
+earlier tested model rows retain Chat Completions. Subscription inference requires
+a supported Responses row. `OPENAI_REASONING_EFFORT` configures effort and
+`OPENAI_REASONING_SUMMARY` configures summary detail (`auto` by default). Responses
+always streams internally because terminal completion establishes success.
+Public summaries are distinct from assistant text and private reasoning bytes.
+
+Credentials live in the platform's user configuration directory under `ensemble`,
+or the explicit `EN_HOME` directory. The application never borrows Codex or
+CodeRhapsody profiles. Atomic owner-only files and a cross-process lock protect
+rotating refresh tokens. `auth login --print-url` exposes a browser handoff for
+headless use; optional identity-token hints are omitted so it cannot print a
+retained token. `EN_BROWSER_CMD` selects a browser executable and arguments;
+it is executed without a shell. `OPENAI_OIDC_ISSUER` and `LLM_BASE_URL` support
+isolated external peers for protocol tests. Production OAuth uses OpenAI's public
+issuer and `/v1` API endpoints.
+
+Model support and successful authentication do not prove subscription cache
+support. Explicit cache markers follow the current documented wire contract;
+route-specific live verification is recorded separately in the chapter notes.

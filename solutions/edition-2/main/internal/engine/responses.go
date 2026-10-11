@@ -51,7 +51,11 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 				}
 				input = append(input, map[string]any{"type": "message", "role": role, "content": []map[string]any{block}})
 			case "tool_call":
-				input = append(input, map[string]any{"type": "function_call", "call_id": callID(entry, i, p), "name": p.Name, "arguments": string(p.Args)})
+				item := map[string]any{"type": "function_call", "call_id": callID(entry, i, p), "name": p.Name, "arguments": string(p.Args)}
+				if p.Namespace != "" {
+					item["namespace"] = p.Namespace
+				}
+				input = append(input, item)
 			case "tool_result":
 				for _, part := range p.Parts {
 					if part.Type == "blob" {
@@ -94,8 +98,12 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 	for _, d := range e.declarations(c) {
 		tools = append(tools, map[string]any{"type": "function", "name": d.Name, "description": d.Description, "parameters": d.Schema, "strict": false})
 	}
+	caps := capabilitiesFor(cfg)
 	if len(tools) > 0 {
 		request["tools"] = tools
+		if caps.namespace != "" {
+			request["tools"] = []any{map[string]any{"type": "namespace", "name": caps.namespace, "description": "Ensemble local tools", "tools": tools}}
+		}
 	}
 	if e.Features().ExplicitCache {
 		landed := false
@@ -117,6 +125,9 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 		if landed {
 			request["prompt_cache_options"] = map[string]string{"mode": "explicit"}
 		}
+	}
+	for _, field := range caps.omit {
+		delete(request, field)
 	}
 	return json.Marshal(request)
 }

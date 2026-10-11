@@ -481,6 +481,10 @@ function connect() {
       speech.flush();
       speech.enqueue(message.error, "error");
     }
+    if (message.type === "billing_selected") {
+      state.textContent = `Billing: ${message.source}`;
+      speech.enqueue(`Billing: ${message.source}`, "status");
+    }
     if (message.type === "state_changed") {
       state.textContent = message.to;
       agents[0].state = message.to;

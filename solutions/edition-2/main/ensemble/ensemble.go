@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	"ensemble/internal/agent"
+	"ensemble/internal/auth"
 	"ensemble/internal/cachelens"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
@@ -47,6 +48,7 @@ type ToolContext = common.ToolContext
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
+	auth        common.AuthStore
 	logger      *log.Logger
 	api         io.Writer
 	apiMu       sync.Mutex
@@ -123,6 +125,31 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	cfg.Workspace = workspace
 	if cfg.DataDir == "" {
 		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
+	}
+	if cfg.Credentials == nil {
+		if cfg.BillingMode == "" && cfg.Vendor == common.OpenAI && e.auth != nil {
+			status, err := e.auth.Status(context.Background())
+			if err != nil {
+				return nil, err
+			}
+			cfg.BillingMode = status.Billing
+		}
+		switch cfg.BillingMode {
+		case "", common.CredentialAPIKey:
+			cfg.BillingMode = common.CredentialAPIKey
+			cfg.Credentials = auth.APIKey(cfg.APIKey)
+		case common.CredentialChatGPT:
+			if cfg.Vendor != common.OpenAI || e.auth == nil {
+				return nil, errors.New("ChatGPT billing requires OpenAI and configured authentication")
+			}
+			features, _ := engine.LookupModel(cfg.Model)
+			if !features.Responses {
+				return nil, errors.New("selected model has no supported ChatGPT Responses route")
+			}
+			cfg.Credentials = e.auth
+		default:
+			return nil, errors.New("billing mode must be api or chatgpt; automatic metered fallback is not implemented")
+		}
 	}
 	a := agent.New(e, cfg)
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {

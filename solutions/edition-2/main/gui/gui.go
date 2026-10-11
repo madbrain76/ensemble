@@ -72,6 +72,8 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 	// start must bring its already-recorded arguments along with it.
 	s.capture()
 	switch o := observation.(type) {
+	case ensemble.BillingSelected:
+		s.broadcast(map[string]any{"type": "billing_selected", "source": o.Source})
 	case ensemble.PartDelta:
 		// A reconnect needs the accumulated prefix; live subscribers need only the
 		// new fragment. Sending the accumulated value live would duplicate words.

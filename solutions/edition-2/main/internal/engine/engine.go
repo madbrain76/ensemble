@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -24,13 +25,14 @@ const systemPrompt = "You are a helpful assistant built from raw HTTP calls in C
 // remains reachable through Agent, so sibling Agents never share credentials
 // or a mutable vendor selection by accident.
 type engine struct {
-	parent  common.Agent
-	client  *http.Client
-	usage   common.Usage
-	last    common.Usage
-	byModel map[usageKey]common.Usage
-	lens    common.CacheLens
-	mu      sync.Mutex
+	parent      common.Agent
+	client      *http.Client
+	usage       common.Usage
+	last        common.Usage
+	byModel     map[usageKey]common.Usage
+	lens        common.CacheLens
+	mu          sync.Mutex
+	billingOnce sync.Once
 }
 
 // New creates an Agent-owned HTTP engine with bounded transport requests.
@@ -134,6 +136,35 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 			events = append(events, common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		}
 	}()
+	secrets := []string{cfg.APIKey}
+	// Resolve a request-local bearer. Rendered bytes and saved configuration never
+	// receive rotating OAuth tokens, including auxiliary judge/compressor calls.
+	if cfg.Credentials != nil {
+		cfg.APIKey, err = cfg.Credentials.GetBearerToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	secrets = append(secrets, cfg.APIKey)
+	redact := func(data []byte) []byte {
+		for _, secret := range secrets {
+			if secret != "" {
+				data = bytes.ReplaceAll(data, []byte(secret), []byte("[REDACTED]"))
+			}
+		}
+		return data
+	}
+	features, _ := LookupModel(cfg.Model)
+	if cfg.Vendor == common.OpenAI && features.Responses {
+		e.billingOnce.Do(func() {
+			kind := common.CredentialAPIKey
+			if cfg.Credentials != nil {
+				kind = cfg.Credentials.Kind()
+			}
+			e.parent.Ensemble().Observe(e.parent, common.BillingSelected{Source: kind})
+			e.parent.Ensemble().Logf("OpenAI billing source: %s", kind)
+		})
+	}
 	// URLs and authentication are deliberately outside Render. Offline replay
 	// needs neither credentials nor a reachable provider, and bodies cannot
 	// accidentally serialize an API key from the configuration.
@@ -172,12 +203,32 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	}
 	// The actor already recorded request_sent and consumed delivered ephemera.
 	// This worker returns response facts without borrowing the live projection.
-	safeBody := body
-	if cfg.APIKey != "" {
-		safeBody = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
-	}
+	safeBody := redact(body)
 	e.parent.Ensemble().APILog("request", safeBody)
 	resp, err := e.client.Do(req)
+	// Retry authentication once using the same billing source. A 401 alone does
+	// not delete credentials; only the token endpoint can reject their renewal.
+	if err == nil && resp.StatusCode == http.StatusUnauthorized && cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialChatGPT {
+		resp.Body.Close()
+		store, ok := cfg.Credentials.(common.AuthStore)
+		if !ok {
+			return nil, errors.New("ChatGPT credential cannot renew")
+		}
+		if err := store.Refresh(ctx, cfg.APIKey); err != nil {
+			return nil, err
+		}
+		cfg.APIKey, err = store.GetBearerToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, cfg.APIKey)
+		req.Body, err = req.GetBody()
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		resp, err = e.client.Do(req)
+	}
 	if err != nil {
 		if ctx.Err() != nil {
 			return events, ctx.Err()
@@ -191,24 +242,39 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	// provider error text is not trusted to avoid echoing supplied secrets.
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return events, fmt.Errorf("provider HTTP status %d", resp.StatusCode)
+		data, _ := io.ReadAll(io.LimitReader(resp.Body, 65536))
+		return events, providerError(resp.StatusCode, data)
 	}
 
 	// Frames share the owner's trace facility. Headers and URLs never enter it;
 	// remote bytes are redacted before leaving Engine, even if a server echoes a key.
 	onFrame := cb.OnFrame
 	cb.OnFrame = func(kind string, data []byte) {
-		safe := data
-		if cfg.APIKey != "" {
-			safe = []byte(strings.ReplaceAll(string(data), cfg.APIKey, "[REDACTED]"))
-		}
+		safe := redact(data)
 		e.parent.Ensemble().APILog(kind, safe)
 		if onFrame != nil {
 			onFrame(kind, safe)
 		}
 	}
+	// Remote content is untrusted too: a server echo must not turn the bearer
+	// into a saved fact, tool argument or observer fragment after safe logging.
+	onDelta, onFinal := cb.OnDelta, cb.OnPartFinal
+	cb.OnDelta = func(id uint64, kind common.DeltaKind, chunk string) {
+		if onDelta != nil {
+			onDelta(id, kind, string(redact([]byte(chunk))))
+		}
+	}
+	cb.OnPartFinal = func(id uint64, part common.Part) {
+		if onFinal != nil {
+			raw, _ := json.Marshal(part)
+			json.Unmarshal(redact(raw), &part)
+			onFinal(id, part)
+		}
+	}
 	onEvent := cb.OnEvent
 	cb.OnEvent = func(event common.Event) {
+		raw, _ := json.Marshal(event)
+		json.Unmarshal(redact(raw), &event)
 		events = append(events, event)
 		if event.Response != nil {
 			// Replay independently sums these same normalized categories. No vendor
@@ -219,7 +285,6 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 			onEvent(event)
 		}
 	}
-	features, _ := LookupModel(cfg.Model)
 	if cfg.Vendor == common.OpenAI && features.Responses {
 		err = e.parseResponses(resp, cb, cfg)
 	} else {
