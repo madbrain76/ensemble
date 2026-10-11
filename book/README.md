@@ -83,15 +83,20 @@ scripts/build-ebook.sh book/cover.png
 ```
 
 The script:
-- KEEPS the manuscript's "# Contents" section as the ebook's visible
-  contents page. An earlier version stripped it on the theory that Kindle
-  builds its own nav; Amazon did not reliably surface one, and the
-  published ebook ended up with no table of contents at all.
-- Does NOT pass `--toc` (would ALSO put nav in the spine — that is what
-  produced two contents pages originally). One visible page, ours.
+- Strips the printed "# Contents" section (Kindle builds its own nav)
+- Does NOT pass `--toc` (would duplicate the contents page in the spine)
 - Passes `--toc-depth=1` (keeps nav entries at chapter level, not 426 sections)
-- Verifies: nav not in spine, nav entries < 60, all images embedded, and
-  that a visible Contents page survived into the reading flow
+- Verifies: nav not in spine, nav entries < 60, all images embedded
+
+**This is deliberate, and it has flipped twice. Do not "fix" it again
+without asking Bill.** On 2026-10-11 the Contents section was restored
+(commit abd5f5c1) on the theory that the ebook had no table of contents
+at all, then removed again at Bill's direction. For the record: the EPUB
+is never navigation-free. This build populates both `EPUB/nav.xhtml`
+(`properties="nav"`) and `EPUB/toc.ncx`, and wires them via
+`<spine toc="ncx">` plus a guide `reference type="toc"`. Kindle builds
+its own contents from those. Keeping our "# Contents" section as well is
+what produced a book showing the table of contents twice.
 
 Output: `book/The Art of Building AI Coding Agents.epub`
 
