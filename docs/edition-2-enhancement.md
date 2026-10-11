@@ -17,8 +17,8 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapters 9–13 are accepted; Chapter 14
-(original 15, context management) is now assigned.
+acceptance and releases the next chapter. Chapters 9–14 are accepted; Chapter 15
+(original 16, Forgetting on Purpose) is now assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
@@ -155,6 +155,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 11 (old 12) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch11-r1` |
 | 12 (old 13) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch12-r1` |
 | 13 (old 14) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch13-r1` |
+| 14 (old 15) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch14-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -612,3 +613,41 @@ recorded cuts and survivor teaching, serial batch completion, the explicit cours
 feature matrix, process-crash durability limits, and the genuine inline-declaration
 ordering correction. Do not import future memory/compression or turn historical
 live failures into successes. Sequential acceptance gates continue.
+
+### October 11 Chapter 14 acceptance
+
+Independent combined review `f3d6e7f0` accepts the context-management chapter at
+initial review, zero formal correction rounds. Author `21c09849`, grader/evidence
+`4918a9b1`; checkpoint `edition-2-enhanced-ch14-r1`. Final manuscript SHA-256 is
+`6e29699fc23fa7a3b2d4a549524625b125ac7c69600baeb686754e86ad570117`.
+The breakfast opener, disappearing manual, narrated edit, destructive summary and
+stale-address stories remain. Recorded policy, held survivors and actual failed
+recollection teach their mechanisms and limits. Hard prose lint passes6774 words;
+independent review judges the useful length and preserved voice separately.
+
+Actual final complete grades are accepted100/100 in0.755s and legacy100/100
+in0.769s. All eight original weights remain. Fifteen distinct defects fail their
+intended predicates; two valid controls pass. First-green results, the partial
+read's missed delivery assertion, broad ephemera runaway and initial setup/validator
+failures remain separately recorded. The independent group-placement probe passes
+against exact final driver bytes. Exact examples ran at manuscript55e3a4a; only
+the layout diagram and explanatory wording changed afterward, so no new execution
+is claimed. Seven sample turns deliver six complete files and one handoff.
+
+Coordinator read the complete prose, grader and reports, checked final source
+bindings, raw results and unchanged accepted/legacy tree identities. Original
+45/100, historical inline correction and Anthropic/OpenAI task failures remain;
+only Gemini completed the retained live task. No new paid run, frozen-source edit,
+cache grant or reasoning-quality improvement is inferred. Author and reviewer
+each held all four complete governing documents after required reloads. See
+[author notes](edition-2-notes/enhancement-14.md),
+[coder report](edition-2-notes/enhancement-14-code.md) and
+[independent review](edition-2-notes/enhancement-14-review.md).
+
+Continue Edition2 Chapter15 from original16, matching direct `ch15`. Preserve
+the original memory stories and mechanisms, Bill's latest-main-request input
+correction with cache counted exactly once, disk authority and canonical memory
+placement, failed/interrupted compression recovery, and the real GUI settings
+deadlock lesson. Historical20/100 and all five live sessions retain their source
+and semantic/task limitations. Original source and grader preparation is recorded
+in `edition-2-notes/ch16.md`; no new runtime features or paid freshness repeats.

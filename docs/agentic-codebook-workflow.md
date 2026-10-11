@@ -1,5 +1,27 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 14 accepted
+
+Independent combined review `f3d6e7f0` accepts the context-management chapter at
+initial review, zero formal rounds; checkpoint `edition-2-enhanced-ch14-r1`.
+Actual final full grading is100/100 for both accepted and legacy solutions.
+Exact executable examples, affected checks and hard prose lint pass. Fifteen
+targeted defects fail intended predicates, with valid split-system and delayed
+completion controls passing. Original45/100 and live task failures remain.
+
+A marker in a result did not prove complete file delivery: the initial partial
+read failed an unrelated restart check while passing that intended assertion.
+Checking all planted bytes repaired the gap. Likewise, a broad ephemera defect
+looped before freshness inspection; narrower defects establish the actual content
+claims. Valid consecutive system messages exposed a grader representation bias.
+The corrected check judges their group boundaries without requiring coalescing.
+Recorded sequence identity is also distinct from context position: held survivors
+land after their complete batch, even after later-sequenced results. These lessons
+now appear in the chapter and review, without changing frozen runtime sources.
+Author and reviewer reloaded all four full documents after compaction. Continue
+Chapter15 (original16), preserving Bill's prior-request input correction and the
+distinction between working memory mechanics and faithful preservation/recall.
+
 ## October 11: enhanced Chapter 13 accepted
 
 Independent combined review `50e75462` accepts The Channel Nobody Tested at
