@@ -33,13 +33,7 @@ func (r *runtime) dispatch() {
 	}
 	call := t.calls[0]
 	t.calls = t.calls[1:]
-	var definition *common.ToolDefinition
-	for i := range r.owner.tools {
-		if r.owner.tools[i].Name == call.Name && r.owner.toolEnabled(call.Name) {
-			definition = &r.owner.tools[i]
-			break
-		}
-	}
+	definition := r.owner.definition(call.Name, false)
 	limits, notice, limitErr := r.owner.jobs.Consume(call.Args)
 	owner := &callContext{parent: r.owner, limits: limits}
 	called := &common.ToolData{CallID: call.CallID, Name: call.Name, Args: call.Args}

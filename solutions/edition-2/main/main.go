@@ -48,8 +48,8 @@ func run() (runErr error) {
 	if len(positional) > 0 {
 		mode = positional[0]
 	}
-	if !((mode == "protocol" && len(positional) == 0) || ((mode == "chat" || mode == "dump") && len(positional) == 1) || ((mode == "render" || mode == "prompt") && len(positional) == 2)) {
-		return errors.New("usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT]")
+	if !((mode == "protocol" && len(positional) == 0) || ((mode == "chat" || mode == "dump" || mode == "--mcp-pipe") && len(positional) == 1) || ((mode == "render" || mode == "prompt") && len(positional) == 2)) {
+		return errors.New("usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]")
 	}
 	cfg, err := ensemble.ConfigFromEnv()
 	cfg.BuiltinTools, cfg.DataDir = true, "cr"
@@ -57,7 +57,7 @@ func run() (runErr error) {
 		return err
 	}
 	// Dump only decodes the log; it does not require model setup to inspect facts.
-	if mode == "dump" && cfg.Model == "" {
+	if (mode == "dump" || mode == "--mcp-pipe") && cfg.Model == "" {
 		cfg.Model = "offline"
 	}
 	logPath := os.Getenv("CH07_AGENT_LOG")
@@ -113,7 +113,7 @@ func run() (runErr error) {
 		_, err = fmt.Fprintln(os.Stdout, string(body))
 		return err
 	}
-	if cfg.APIKey == "" {
+	if cfg.APIKey == "" && mode != "--mcp-pipe" {
 		return errors.New("provider API key is not set")
 	}
 	if err := a.Load(); err != nil {
@@ -122,6 +122,14 @@ func run() (runErr error) {
 	// Register saving only after a successful load. Joining first preserves final
 	// job facts and prevents a bad input file from ever reaching replacement.
 	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
+	if mode == "--mcp-pipe" {
+		transport := ensemble.NewMCPTransport(os.Stdin, os.Stdout, pipeBoundary{})
+		if err := a.MCP().Connect(context.Background(), "pipe", transport); err != nil {
+			return err
+		}
+		<-a.MCP().Done("pipe")
+		return nil
+	}
 	if mode == "prompt" {
 		answer, err := a.Ask(context.Background(), positional[1])
 		if err == nil {
@@ -131,3 +139,10 @@ func run() (runErr error) {
 	}
 	return converse(a, mode == "chat")
 }
+
+// The dedicated protocol owns both streams; closing only stdin could leave a
+// blocked reverse reply holding shutdown open when its peer has disconnected.
+type pipeBoundary struct{}
+
+// Close interrupts both directions of the dedicated command's protocol pipe.
+func (pipeBoundary) Close() error { return errors.Join(os.Stdin.Close(), os.Stdout.Close()) }

@@ -23,6 +23,7 @@ type agent struct {
 	tools       []common.ToolDefinition
 	jobs        common.Jobs
 	skills      common.Skills
+	mcp         common.MCP
 	once        sync.Once
 	box         *box
 	done        chan struct{}
@@ -68,8 +69,8 @@ func (a *agent) SetTools(definitions []common.ToolDefinition) { a.tools = defini
 // Declarations returns the ordered tools visible to this Agent's model.
 func (a *agent) Declarations() []common.ToolDeclaration {
 	var declarations []common.ToolDeclaration
-	for _, tool := range a.tools {
-		if !a.toolEnabled(tool.Name) {
+	for _, tool := range a.definitions() {
+		if tool.Ephemeral != "" || !a.toolEnabled(tool.Name) {
 			continue
 		}
 		declarations = append(declarations, tool.ToolDeclaration)
@@ -178,7 +179,11 @@ func (a *agent) RegisterVar(name string, render func() string) {
 }
 
 // SetSystemPrompt installs the rendered constitution during construction only.
-func (a *agent) SetSystemPrompt(prompt string) { a.config.SystemPrompt = prompt }
+func (a *agent) SetSystemPrompt(prompt string) {
+	a.configMu.Lock()
+	defer a.configMu.Unlock()
+	a.config.SystemPrompt = prompt
+}
 
 func (a *agent) toolEnabled(name string) bool {
 	if a.skills == nil {
@@ -186,4 +191,42 @@ func (a *agent) toolEnabled(name string) bool {
 	}
 	_, enabled := a.skills.ToolMeta(name)
 	return enabled
+}
+
+// MCP exposes this Agent's connection and discovered-tool lifetimes.
+func (a *agent) MCP() common.MCP { return a.mcp }
+
+// AttachMCP establishes both sides before connections or skills are loaded.
+func (a *agent) AttachMCP(m common.MCP) {
+	if m == nil || m.Agent() != a {
+		panic("MCP must belong to this Agent")
+	}
+	a.mcp = m
+}
+
+func (a *agent) definitions() []common.ToolDefinition {
+	definitions := append([]common.ToolDefinition(nil), a.tools...)
+	if a.mcp != nil {
+		// An external server cannot shadow a compiled capability. One name has
+		// one declaration and one dispatch target, even across multiple peers.
+		names := make(map[string]bool)
+		for _, definition := range definitions {
+			names[definition.Name] = true
+		}
+		for _, definition := range a.mcp.Tools() {
+			if !names[definition.Name] {
+				definitions = append(definitions, definition)
+				names[definition.Name] = true
+			}
+		}
+	}
+	return definitions
+}
+func (a *agent) definition(name string, automatic bool) *common.ToolDefinition {
+	for _, tool := range a.definitions() {
+		if tool.Name == name && a.toolEnabled(name) && (automatic || tool.Ephemeral == "") {
+			return &tool
+		}
+	}
+	return nil
 }

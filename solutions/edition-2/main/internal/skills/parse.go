@@ -2,15 +2,17 @@
 package skills
 
 import (
+	"encoding/json"
+	"ensemble/internal/common"
 	"fmt"
 	"strings"
 )
 
-// The chapter's frontmatter is deliberately a flat format, not arbitrary YAML.
-// Keeping its two list forms here avoids making a general document processor.
+// Parse only the chapter's frontmatter fields and MCP server list, not arbitrary YAML.
 type skill struct {
 	name, description, kind, body string
 	tools, depends, loadable      []string
+	servers                       []common.MCPServer
 }
 
 func (r *registry) parse(text string) (skill, error) {
@@ -20,8 +22,48 @@ func (r *registry) parse(text string) (skill, error) {
 	}
 	fields := make(map[string][]string)
 	key := ""
+	var servers []common.MCPServer
+	inServers := false
 	for _, line := range strings.Split(parts[1], "\n") {
-		line = strings.TrimSpace(line)
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "mcp_servers:" {
+			inServers = true
+			continue
+		}
+		if inServers && trimmed != "" && !strings.HasPrefix(trimmed, "#") {
+			if len(line) > 0 && (line[0] == ' ' || line[0] == '\t') {
+				if strings.HasPrefix(trimmed, "- ") {
+					servers = append(servers, common.MCPServer{})
+					trimmed = strings.TrimPrefix(trimmed, "- ")
+				}
+				if len(servers) == 0 {
+					return skill{}, fmt.Errorf("MCP server list requires - name")
+				}
+				field, value, ok := strings.Cut(trimmed, ":")
+				if !ok {
+					return skill{}, fmt.Errorf("invalid MCP server field")
+				}
+				value = strings.TrimSpace(value)
+				server := &servers[len(servers)-1]
+				switch field {
+				case "name":
+					server.Name = strings.Trim(value, "\"'")
+				case "transport":
+					server.Transport = strings.Trim(value, "\"'")
+				case "command":
+					server.Command = strings.Trim(value, "\"'")
+				case "args":
+					if err := json.Unmarshal([]byte(value), &server.Args); err != nil {
+						return skill{}, fmt.Errorf("MCP args must be a JSON-style string array: %w", err)
+					}
+				default:
+					return skill{}, fmt.Errorf("unknown MCP server field %q", field)
+				}
+				continue
+			}
+			inServers = false
+		}
+		line = trimmed
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -47,7 +89,7 @@ func (r *registry) parse(text string) (skill, error) {
 		}
 	}
 	one := func(key string) string { return strings.Join(fields[key], " ") }
-	s := skill{name: one("name"), description: one("description"), kind: one("type"), body: strings.TrimSpace(parts[2]), tools: fields["tools"], depends: fields["depends"], loadable: fields["loadable-skills"]}
+	s := skill{servers: servers, name: one("name"), description: one("description"), kind: one("type"), body: strings.TrimSpace(parts[2]), tools: fields["tools"], depends: fields["depends"], loadable: fields["loadable-skills"]}
 	if s.name == "" {
 		return s, fmt.Errorf("skill name is required")
 	}

@@ -1,0 +1,12 @@
+{
+  "headless": {
+    "gorilla_websocket_present": false,
+    "gui_package_present": false,
+    "core_mcp_present": true
+  },
+  "GUI": {
+    "gorilla_websocket_present": true,
+    "gui_package_present": true,
+    "core_mcp_present": true
+  }
+}

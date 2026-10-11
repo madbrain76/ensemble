@@ -304,6 +304,10 @@ type Agent interface {
 	// RegisterTool installs one Agent's handler before runtime use; duplicate names
 	// fail.
 	RegisterTool(ToolDeclaration, func(ToolContext, json.RawMessage) (string, error)) error
+	// MCP returns this Agent's external-tool connection owner.
+	MCP() MCP
+	// Invoke runs a reverse call through admission, history and real job supervision.
+	Invoke(context.Context, string, json.RawMessage) (string, error)
 	// Skills returns the optional Agent-owned capability registry, nil without a primary.
 	Skills() Skills
 	// RegisterVar changes future skill rendering without rewriting earlier instructions.
@@ -348,6 +352,8 @@ type ToolContext interface {
 type ToolDefinition struct {
 	// ToolDeclaration is the schema published only when this definition is visible.
 	ToolDeclaration
+	// Ephemeral selects automatic round or turn calls; these are never model tools.
+	Ephemeral string
 	// Supervision skips creation of a new job for an operation on existing jobs.
 	Supervision bool
 	// Run performs the handler work using its owning call context.
@@ -410,6 +416,8 @@ type Jobs interface {
 
 // Job owns execution state and recoverable output beyond any individual wait.
 type Job interface {
+	// Context is canceled on explicit kill or shutdown, never on a wait timeout.
+	Context() context.Context
 	// Jobs returns the owner of this execution's retained output and lookup lifetime.
 	Jobs() Jobs
 	// Data returns a synchronized snapshot that cannot mutate the underlying job.

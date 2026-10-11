@@ -1,0 +1,179 @@
+{
+  "vendor": "openai",
+  "model": "gpt-4o-mini",
+  "model_discovery": "Reuse same-day Chapter10 model receipt; this successful inference is live availability proof",
+  "prompt": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work.\n",
+  "exit": 0,
+  "timeout": false,
+  "elapsed_seconds": 2.09,
+  "stdout": "The exact marker is \"CH12_OPENAI_MCP_OK\" and the current automatic snapshot number is 2.\n",
+  "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nread_marker {}\n",
+  "peer_counts": {
+    "environment_snapshot": 2,
+    "session_brief": 1,
+    "read_marker": 1
+  },
+  "requests": [
+    {
+      "stream": true,
+      "stream_options": {
+        "include_usage": true
+      },
+      "tools": [
+        {
+          "function": {
+            "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "Read the exact marker file text",
+            "name": "read_marker",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "type": "function"
+        }
+      ],
+      "model": "gpt-4o-mini",
+      "max_completion_tokens": 1024,
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round."
+        },
+        {
+          "role": "user",
+          "content": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+        },
+        {
+          "role": "user",
+          "content": "## environment_snapshot (auto-updated)\n\nSnapshot number 1\n\n## session_brief (auto-updated)\n\nUse read_marker to inspect the local marker."
+        }
+      ]
+    },
+    {
+      "stream": true,
+      "stream_options": {
+        "include_usage": true
+      },
+      "tools": [
+        {
+          "function": {
+            "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "type": "function"
+        },
+        {
+          "function": {
+            "description": "Read the exact marker file text",
+            "name": "read_marker",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "type": "function"
+        }
+      ],
+      "model": "gpt-4o-mini",
+      "max_completion_tokens": 1024,
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round."
+        },
+        {
+          "role": "user",
+          "content": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+        },
+        {
+          "role": "assistant",
+          "tool_calls": [
+            {
+              "id": "call_tfFUAvITMmEkX4Q4GFnXFlYj",
+              "type": "function",
+              "function": {
+                "name": "read_marker",
+                "arguments": "{}"
+              }
+            }
+          ]
+        },
+        {
+          "role": "tool",
+          "content": "CH12_OPENAI_MCP_OK",
+          "tool_call_id": "call_tfFUAvITMmEkX4Q4GFnXFlYj"
+        },
+        {
+          "role": "user",
+          "content": "## environment_snapshot (auto-updated)\n\nSnapshot number 2"
+        }
+      ]
+    }
+  ],
+  "marker_reported": true
+}

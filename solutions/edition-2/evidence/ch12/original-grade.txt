@@ -1,0 +1,9 @@
+go run ./cmd/grade -ch 12 ./solutions/edition-2/main
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+make: *** [grade-dir] Terminated: 15

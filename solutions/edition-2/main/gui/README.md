@@ -66,3 +66,15 @@ The GUI command accepts the same `EN_SKILLS_DIR`, `EN_PRIMARY_SKILL` and
 `EN_CUSTOM_VAR` environment setup as the core CLI. The application passes an
 explicit per-Agent skill specification to the public constructor. Browser and
 terminal inputs see the same enabled tools and frozen primary prompt.
+
+The browser now serves MCP over `{"type":"jsonrpc","payload":{...}}` frames on
+its existing `/ws` connection. `gui_click` and `gui_input` operate visible controls;
+`gui_snapshot` and `tts_queue` run automatically before each model request. The
+snapshot reports control states and discloses any omissions within its 4KB cap.
+Speech observations contain the actual native utterance state and timing.
+
+Without skills, the first connected browser provides these tools. With skills,
+include their names in `tools:` and declare a server with `transport: websocket`;
+connection waits until a browser is available. A browser already present can
+also serve a subsequently loaded skill. Additional tabs still share chat and
+settings; the active MCP peer targets one browser, not a broadcast click.

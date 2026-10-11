@@ -1,0 +1,267 @@
+{
+  "vendor": "anthropic",
+  "model": "claude-haiku-5-5",
+  "model_discovery": "Reuse same-day Chapter10 model receipt; this successful inference is live availability proof",
+  "prompt": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work.\n",
+  "exit": 0,
+  "timeout": false,
+  "elapsed_seconds": 1.84,
+  "stdout": "The marker is CH12_ANTHROPIC_MCP_OK and the current automatic snapshot number is 2.\n",
+  "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nread_marker {}\n\n",
+  "peer_counts": {
+    "environment_snapshot": 2,
+    "session_brief": 1,
+    "read_marker": 1
+  },
+  "requests": [
+    {
+      "thinking": {
+        "type": "adaptive"
+      },
+      "stream": true,
+      "tools": [
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        },
+        {
+          "description": "Read the exact marker file text",
+          "input_schema": {
+            "type": "object",
+            "properties": {}
+          },
+          "name": "read_marker"
+        }
+      ],
+      "model": "claude-haiku-5-5",
+      "max_tokens": 4096,
+      "system": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+            },
+            {
+              "type": "text",
+              "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 1\n\n## session_brief (auto-updated)\n\nUse read_marker to inspect the local marker."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "thinking": {
+        "type": "adaptive"
+      },
+      "stream": true,
+      "tools": [
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        },
+        {
+          "description": "Read the exact marker file text",
+          "input_schema": {
+            "type": "object",
+            "properties": {}
+          },
+          "name": "read_marker"
+        }
+      ],
+      "model": "claude-haiku-5-5",
+      "max_tokens": 4096,
+      "system": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+            }
+          ]
+        },
+        {
+          "role": "assistant",
+          "content": [
+            {
+              "type": "tool_use",
+              "id": "toolu_01GtpZNE2DsL9xinhdd3Nh1J",
+              "name": "read_marker",
+              "input": {}
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "tool_result",
+              "tool_use_id": "toolu_01GtpZNE2DsL9xinhdd3Nh1J",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "CH12_ANTHROPIC_MCP_OK"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 2"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "frames": [
+    {
+      "data": "{\"type\":\"message_start\",\"message\":{\"model\":\"claude-haiku-5-5\",\"id\":\"msg_011Cfub66LtaiQyeGPxKE5H5\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"container\":null,\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":663,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":16,\"service_tier\":\"standard\",\"inference_geo\":\"global\"},\"diagnostics\":null}   }",
+      "event": "message_start"
+    },
+    {
+      "data": "{\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"tool_use\",\"id\":\"toolu_01GtpZNE2DsL9xinhdd3Nh1J\",\"name\":\"read_marker\",\"input\":{},\"caller\":{\"type\":\"direct\"}}  }",
+      "event": "content_block_start"
+    },
+    {
+      "data": "{\"type\": \"ping\"}",
+      "event": "ping"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"\"}          }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_stop\",\"index\":0       }",
+      "event": "content_block_stop"
+    },
+    {
+      "data": "{\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"tool_use\",\"stop_sequence\":null,\"stop_details\":null,\"container\":null},\"usage\":{\"input_tokens\":663,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":27,\"output_tokens_details\":{\"thinking_tokens\":0}}           }",
+      "event": "message_delta"
+    },
+    {
+      "data": "{\"type\":\"message_stop\"     }",
+      "event": "message_stop"
+    },
+    {
+      "data": "{\"type\":\"message_start\",\"message\":{\"model\":\"claude-haiku-5-5\",\"id\":\"msg_011Cfub69pk9Qz7WnYHhZuKS\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"container\":null,\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":689,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":4,\"service_tier\":\"standard\",\"inference_geo\":\"global\"},\"diagnostics\":null}       }",
+      "event": "message_start"
+    },
+    {
+      "data": "{\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"thinking\",\"thinking\":\"\",\"signature\":\"\"}    }",
+      "event": "content_block_start"
+    },
+    {
+      "data": "{\"type\": \"ping\"}",
+      "event": "ping"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"thinking_delta\",\"thinking\":\"\"}    }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"signature_delta\",\"signature\":\"CAQSqgYKEAgSGAI4AUIIdGhpbmtpbmcSDJxT76lzO21CC7noDhoMNSmjJDGQ962vN4jQIjC2245DsORNEyIdJCktPRSLBUSbpzO7n2W3mMaj2U58y/gj5xzBozJETQI7qN0a8HcqxwVRHNDs0QlhRvRdGVqGgMH0WO/wqRelGLhPHzcMTRUwhCxsLqtlCIOxB4ZHDK/elO4sEMBh4/1yi3fIqvpmh/J4EthwWecSNWLUZqFMO+UMnxd03Bym0AVc0P8twEHywSAVvRZ0LMf+gkzbipShm35LKQBvGNM2C+5VxDLxRh21iVBKoc2auUPt1y75uLiBru7Q+4uQguuZfgoFc9hQkIfT2serf2m/54R8GF7ItGV5QmUOiI5ZXPVDwd+3ma5dYdGJDPiizIORfQdrcuh/HQPt5zU7CmtZ+uothvN8nERNjMbLxqpLchLfHJFe/tyLVczl/AT9ogtE3G5z8Urw9sbYlorR9iCRjKuAAp89P9QGsRW5SQ0QXpjssyqiYKlHWnAC4hrGS3u7LQNr/2TpMGRxvbPYearZD3MyyC0boAeXgQ3JueeGdMxrfzd4+8QKJxFPLH+X5i50MLf6rGoQ0erJv77dQUZb7o4viigOh+nVhKs/BI4QXmECldQe4nWpeVBqOTNIz4mKeWk+q0KY26OMqWWfMnRdE3Vrlov3XGFZmuAHaj92gLR4X3nO1Pzr0hKr9A0g7s37yjLxSjq7qx+37t6WXl01fhmtq7rB0K6dD5CI4+A/X7+yNPjaQYN5t53rolVbM8Mse1xqEjYH5VnWmF0XjzLlzA2Yipap9La2eKfvmx6M4cvaKO8QhMhpj412SHqunIfQdXp1KmNMTNYs7MSRlhI1SAl7LD/kl56DOkNDSutdNlDOy8bf4sOUmLfDLrZawVRsjBrP86Mh4X20vV/mr8ccJbGE5t8oKeMKwasQ2ZzaZ3ZSX77fF72zKCmt4NsSvEWZjX+xV8I2uIL+Qigr6y6SPLRkmSOOMFUwIStpINUBJbYWyKadW65wq9Fik1AzPBdFyUjvwbJhstIJrfyemdq1pM5KIcNZ7ZSiz3MeVT0x/NYYAQ==\"}          }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_stop\",\"index\":0    }",
+      "event": "content_block_stop"
+    },
+    {
+      "data": "{\"type\":\"content_block_start\",\"index\":1,\"content_block\":{\"type\":\"text\",\"text\":\"\"}       }",
+      "event": "content_block_start"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"The mar\"}           }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ker is CH12_AN\"}          }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"THROPIC_M\"}          }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"CP_OK and the current\"}  }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" automatic snapshot number\"} }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" is 2.\"} }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_stop\",\"index\":1        }",
+      "event": "content_block_stop"
+    },
+    {
+      "data": "{\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\",\"stop_sequence\":null,\"stop_details\":null,\"container\":null},\"usage\":{\"input_tokens\":689,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":138,\"output_tokens_details\":{\"thinking_tokens\":98}}             }",
+      "event": "message_delta"
+    },
+    {
+      "data": "{\"type\":\"message_stop\"             }",
+      "event": "message_stop"
+    }
+  ],
+  "marker_reported": true
+}

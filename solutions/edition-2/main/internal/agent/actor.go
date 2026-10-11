@@ -54,6 +54,7 @@ type turn struct {
 	ids            map[uint64]uint64
 	current        *report
 	batches, limit int
+	ephemeralTurn  bool
 }
 
 // All fields below are owned by run. Workers own external work only, and return
@@ -316,7 +317,8 @@ func (r *runtime) begin(q request) {
 	}
 	r.send()
 }
-func (r *runtime) send() {
+func (r *runtime) send() { r.ephemera() }
+func (r *runtime) sendRequest() {
 	t := r.active
 	t.ids = make(map[uint64]uint64)
 	body, err := r.owner.engine.Render(r.owner.history.Context())
@@ -470,6 +472,23 @@ func (r *runtime) run() {
 						r.dispatch()
 					}
 				}
+			case invocationReady:
+				r.workers--
+				r.invoke(m.request)
+			case invocation:
+				r.invoke(m)
+			case ephemeralReady:
+				r.workers--
+				if m.turn == r.active {
+					if m.text != "" {
+						r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: m.text}}}})
+					}
+					if err := m.turn.request.ctx.Err(); err != nil {
+						r.interrupt(err)
+					} else {
+						r.sendRequest()
+					}
+				}
 			case response:
 				r.receive(m)
 			case report:
@@ -514,6 +533,8 @@ func (r *runtime) run() {
 			case stop:
 				if !r.stopping {
 					r.stopping = true
+					// Release reverse callers waiting at the same Agent-wide gate.
+					r.owner.Unpause()
 					r.interrupt(common.ErrStopped)
 					for _, q := range r.pending {
 						q.reply <- common.Result{Err: common.ErrStopped}
@@ -521,7 +542,7 @@ func (r *runtime) run() {
 					r.pending = nil
 					r.workers++
 					go func() {
-						err := r.owner.jobs.Shutdown()
+						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.mcp.Close())
 						r.owner.box.Post(workerDone{err: err})
 					}()
 				}

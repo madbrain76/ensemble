@@ -1,0 +1,141 @@
+[
+  {
+    "claim": "initialize notification",
+    "file": "internal/mcp/client.go",
+    "mutation": "Method: \"notifications/initialized\" -> Method: \"notifications/omitted\"",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.01s)\n    mcp_test.go:193: handshake/ephemeral error path: 0 3\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "request correlation",
+    "file": "internal/mcp/client.go",
+    "mutation": "reply := c.pending[id] -> reply := c.pending[id+1]",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPCorrelationKillAndDisconnect (3.00s)\n    mcp_test.go:199: context deadline exceeded\nFAIL\nFAIL\tensemble/ensemble\t3.012s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Failed handshake, not intended concurrent-response claim. Narrowed post-handshake mutant recorded separately."
+  },
+  {
+    "claim": "remote arguments",
+    "file": "internal/mcp/client.go",
+    "mutation": "\"arguments\": args -> \"arguments\": json.RawMessage(`{}`)",
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.011s\n",
+    "status": "SURVIVED",
+    "assessment": "Survived; corrected assertion or nonredundant grant scenario recorded in corrections."
+  },
+  {
+    "claim": "hidden declarations",
+    "file": "internal/agent/agent.go",
+    "mutation": "tool.Ephemeral != \"\" || !a.toolEnabled(tool.Name) -> !a.toolEnabled(tool.Name)",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.01s)\n    mcp_test.go:170: ephemeral tools exposed to model\n    mcp_test.go:170: ephemeral tools exposed to model\n    mcp_test.go:170: ephemeral tools exposed to model\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "fresh round snapshot",
+    "file": "internal/agent/mcp.go",
+    "mutation": "tool.Ephemeral == \"round\" || -> (tool.Ephemeral == \"round\" && !t.ephemeralTurn) ||",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.00s)\n    mcp_test.go:160: round 2 missing fresh snapshot\n    mcp_test.go:160: round 3 missing fresh snapshot\n    mcp_test.go:193: handshake/ephemeral error path: 1 2\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "turn frequency",
+    "file": "internal/agent/mcp.go",
+    "mutation": "tool.Ephemeral == \"turn\" && !t.ephemeralTurn -> tool.Ephemeral == \"turn\"",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.01s)\n    mcp_test.go:163: turn ephemera repeated in second round\n    mcp_test.go:166: turn ephemera absent\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "ephemeral error rejection",
+    "file": "internal/mcp/client.go",
+    "mutation": "if result.IsError { -> if false && result.IsError {",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.01s)\n    mcp_test.go:157: failed ephemeral result was injected\n    mcp_test.go:157: failed ephemeral result was injected\n    mcp_test.go:157: failed ephemeral result was injected\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "reverse dispatch",
+    "file": "internal/mcp/client.go",
+    "mutation": "Invoke(context.Background(), params.Name, params.Arguments) -> Invoke(context.Background(), \"missing_tool\", params.Arguments)",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.00s)\n    mcp_test.go:186: reverse reply: map[id:901 jsonrpc:\"2.0\" result:{\"content\":[{\"type\":\"text\",\"text\":\"unknown tool \\\"missing_tool\\\"\"}],\"isError\":true}]\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "kill cancellation",
+    "file": "internal/jobs/process.go",
+    "mutation": "j.data.Status = \"killed\"\n\tj.cancel() -> j.data.Status = \"killed\"",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPCorrelationKillAndDisconnect (3.01s)\n    mcp_test.go:245: MCP peer did not receive message\nFAIL\nFAIL\tensemble/ensemble\t3.013s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "callback is not cancellation",
+    "file": "internal/jobs/jobs.go",
+    "mutation": "func (j *job) Wait(limits common.Limits) (string, error) { -> func (j *job) Wait(limits common.Limits) (string, error) {\n defer j.cancel()",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPCorrelationKillAndDisconnect (0.00s)\n    mcp_test.go:240: callback delay canceled execution\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "disconnected visibility",
+    "file": "internal/mcp/mcp.go",
+    "mutation": "case <-c.done:\n\t\t\tcontinue -> case <-c.done:\n\t\t\t// mutant retains disconnected tools",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPCorrelationKillAndDisconnect (0.00s)\n    mcp_test.go:258: disconnected tool still advertised\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "skill admission",
+    "file": "internal/mcp/mcp.go",
+    "mutation": "allowed := entry.allowed == nil -> allowed := true",
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.023s\n",
+    "status": "SURVIVED",
+    "assessment": "Survived; corrected assertion or nonredundant grant scenario recorded in corrections."
+  },
+  {
+    "claim": "unload visibility",
+    "file": "internal/mcp/mcp.go",
+    "mutation": "if entry.skill == skill { -> if false && entry.skill == skill {",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPSkillStdioAdmissionAndUnload (0.02s)\n    mcp_skill_test.go:76: unload retained executable remote tool\nFAIL\nFAIL\tensemble/ensemble\t0.023s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "unload process lifetime",
+    "file": "internal/mcp/mcp.go",
+    "mutation": "failures = append(failures, c.close()) -> failures = append(failures, error(nil))",
+    "exit": 1,
+    "output": "FAIL\tensemble/ensemble [build failed]\nFAIL\n# ensemble/internal/mcp\ninternal/mcp/mcp.go:185:9: declared and not used: c\n",
+    "status": "failure to inspect",
+    "assessment": "Invalid mutation proof: compile failure. Corrected skipped-close mutant recorded separately."
+  },
+  {
+    "claim": "captured empty args",
+    "file": "internal/engine/anthropic_stream.go",
+    "mutation": "if args := arguments[frame.Index]; args != \"\" { -> if args, ok := arguments[frame.Index]; ok {",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPAnthropicEmptyToolArguments (0.00s)\n    mcp_test.go:301: captured empty arguments: \"\" invalid streamed Anthropic content\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "restored_checks_exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.032s\n"
+  }
+]

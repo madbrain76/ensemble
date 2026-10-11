@@ -86,7 +86,9 @@ func (e *engine) readAnthropic(r io.Reader, log func(string, []byte), delta func
 				return errors.New("Anthropic stop without block")
 			}
 			if rawString(block["type"]) == "tool_use" {
-				if args, ok := arguments[frame.Index]; ok {
+				// A zero-argument tool may send an empty input_json_delta. Keep
+				// its valid start-block input instead of replacing {} with no JSON.
+				if args := arguments[frame.Index]; args != "" {
 					block["input"] = json.RawMessage(args)
 				} else {
 					delta(id, common.DeltaToolCall, string(block["input"]))

@@ -1,0 +1,42 @@
+[
+  {
+    "claim": "request correlation",
+    "file": "internal/mcp/client.go",
+    "mutation": "reply := c.pending[id] -> reply := c.pending[id]; if id > 2 { reply = c.pending[id+1] }",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPCorrelationKillAndDisconnect (0.00s)\n    mcp_test.go:234: mis-correlated response \"first:second<nil>\"\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "remote arguments",
+    "file": "internal/mcp/client.go",
+    "mutation": "\"arguments\": args -> \"arguments\": json.RawMessage(`{}`)",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPLoopEphemeraAndReverse (0.03s)\n    mcp_test.go:188: MCP result never reached real renderer\nFAIL\nFAIL\tensemble/ensemble\t0.033s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "skill admission",
+    "file": "internal/mcp/mcp.go",
+    "mutation": "allowed := entry.allowed == nil -> allowed := true",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPSkillStdioAdmissionAndUnload (0.02s)\n    mcp_skill_test.go:57: skill discovery grants: [load_skill unload_skill echo forbidden]\nFAIL\nFAIL\tensemble/ensemble\t0.023s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "claim": "unload process lifetime",
+    "file": "internal/mcp/mcp.go",
+    "mutation": "failures = append(failures, c.close()) -> _ = c",
+    "exit": 1,
+    "output": "--- FAIL: TestMCPSkillStdioAdmissionAndUnload (0.02s)\n    mcp_skill_test.go:83: unload did not reap subprocess: <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.023s\nFAIL\n",
+    "status": "failure to inspect",
+    "assessment": "Killed by the intended behavioral assertion; full output inspected."
+  },
+  {
+    "restored_checks_exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.031s\n"
+  }
+]

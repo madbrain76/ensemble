@@ -2,6 +2,20 @@
 
 ## October 10: resumed original student run
 
+Original Chapter 12 is implemented and submitted for independent review, not
+yet accepted. Three-provider MCP chat and real browser/tunnel checks passed.
+The live Anthropic run exposed an inherited empty tool-argument streaming defect;
+a small parser correction, captured response regression and restored-defect check
+support its successful bounded repeat. An argument-forwarding mutation initially
+survived because the assertion found the marker in the earlier call arguments,
+not the result. Checking the actual rendered result repaired that evidence gap.
+The initial failure and ineffective mutation attempts remain in the chapter notes.
+The full original grader is interrupted/unscored; the unchanged interim current
+checks scored 80/90, with a fixed-path WebSocket source check failing. Several
+passing protocol checks do not actually exercise their named runtime behaviors;
+the independent review must assess those paths from real evidence. Original
+Chapter 13 is prepared but remains gated on Chapter 12 acceptance.
+
 Original Chapter 11 is accepted after one correction round. The reviewer caught
 saved system-prompt metadata disagreeing with the actual default instruction
 sent to the provider; a supplied primary had hidden the defect. Reusing Engine's

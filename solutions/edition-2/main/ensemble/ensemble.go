@@ -18,6 +18,7 @@ import (
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
+	"ensemble/internal/mcp"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -121,6 +122,15 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	a.AttachEngine(engine.New(a))
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
+	a.AttachMCP(mcp.New(a))
+	assembled := false
+	// A failed primary can already have launched a peer or admitted reverse work.
+	// Construction owns that cleanup because no caller receives the Agent.
+	defer func() {
+		if !assembled {
+			a.Shutdown()
+		}
+	}()
 	if cfg.BuiltinTools {
 		a.SetTools(tools.Builtins())
 	}
@@ -147,6 +157,7 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		a.SetSystemPrompt(prompt)
 	}
 	e.agents = append(e.agents, a)
+	assembled = true
 	return a, nil
 }
 
@@ -355,3 +366,17 @@ const (
 	// SourceDynamic marks a capability enabled by a load_skill call.
 	SourceDynamic = common.SourceDynamic
 )
+
+// MCPTransport is the transport-neutral message boundary for external peers.
+type MCPTransport = common.MCPTransport
+
+// NewMCPTransport wraps newline JSON streams; closer must interrupt both streams.
+func NewMCPTransport(reader io.Reader, writer io.Writer, closer io.Closer) MCPTransport {
+	return mcp.NewRaw(reader, writer, closer)
+}
+
+// MCPPipe returns connected external boundaries for in-process peers.
+func MCPPipe() (MCPTransport, MCPTransport) { return mcp.Pipe() }
+
+// MCPTransportOwner is the parent contract for optional transport implementations.
+type MCPTransportOwner = common.MCPTransportOwner

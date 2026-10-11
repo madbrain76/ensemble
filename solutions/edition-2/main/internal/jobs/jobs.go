@@ -2,6 +2,7 @@
 package jobs
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -55,7 +56,8 @@ func (j *jobs) Start() (common.Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	child := &job{parent: j, file: file, changed: make(chan struct{}), data: common.JobData{Handle: handle, Status: "running", Output: common.Ref{Kind: common.RefHandle, Locator: path}}}
+	ctx, cancel := context.WithCancel(context.Background())
+	child := &job{ctx: ctx, cancel: cancel, parent: j, file: file, changed: make(chan struct{}), data: common.JobData{Handle: handle, Status: "running", Output: common.Ref{Kind: common.RefHandle, Locator: path}}}
 	j.entries = append(j.entries, child)
 	return child, nil
 }
@@ -156,6 +158,8 @@ func (j *jobs) SetLimits(raw json.RawMessage) error {
 // notification channel while holding the same lock that tests its condition;
 // completion between that test and select therefore cannot be missed.
 type job struct {
+	ctx      context.Context
+	cancel   context.CancelFunc
 	parent   common.Jobs
 	mu       sync.Mutex
 	data     common.JobData
@@ -167,6 +171,9 @@ type job struct {
 	process  *process
 	stopping bool
 }
+
+// Context follows execution rather than a particular observer's wait.
+func (j *job) Context() context.Context { return j.ctx }
 
 // Jobs returns the owner of this execution's retained output and lookup lifetime.
 func (j *job) Jobs() common.Jobs { return j.parent }
@@ -214,6 +221,7 @@ func (j *job) complete(text string, err error) {
 		j.err = closeErr
 	}
 	j.data.Status = "done"
+	j.cancel()
 	j.notify()
 }
 

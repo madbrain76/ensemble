@@ -29,6 +29,7 @@ type Server struct {
 	log         io.Writer
 	closed      bool
 	connections map[*websocket.Conn]bool
+	tunnels     map[*websocket.Conn]*WSTransport
 	workers     sync.WaitGroup
 }
 
@@ -41,6 +42,7 @@ func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server,
 	}
 	s := &Server{agent: agent, clients: make(map[*websocket.Conn]chan [][]byte), partials: make(map[uint64]map[string]any), log: log}
 	s.connections = make(map[*websocket.Conn]bool)
+	s.tunnels = make(map[*websocket.Conn]*WSTransport)
 	if err := s.loadSettings(); err != nil {
 		return nil, fmt.Errorf("load settings: %w", err)
 	}
@@ -190,6 +192,12 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 	// The queue carries batches so replay has one admission point even when
 	// its history window exceeds the capacity chosen for live progress.
 	queue := make(chan [][]byte, 256)
+	tunnel := newWSTransport(s, queue)
+	s.mu.Lock()
+	s.tunnels[conn] = tunnel
+	s.mu.Unlock()
+	defer tunnel.Close()
+	var mcpStarted bool
 	// Separate lifetime signals keep teardown safe without closing a channel
 	// that the broadcaster can still reach. The writer is joined before return.
 	done, written := make(chan struct{}), make(chan struct{})
@@ -200,6 +208,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 		s.mu.Lock()
 		delete(s.clients, conn)
 		delete(s.connections, conn)
+		delete(s.tunnels, conn)
 		s.mu.Unlock()
 		s.workers.Done()
 	}()
@@ -233,11 +242,18 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 			Type, Text string
 			// Settings carries a sparse preference patch; absent fields stay unchanged.
 			Settings json.RawMessage
+			// Payload carries an opaque JSON-RPC object for this connection.
+			Payload json.RawMessage
 		}
 		if json.Unmarshal(data, &input) != nil {
 			continue
 		}
 		switch input.Type {
+		case "jsonrpc":
+			select {
+			case tunnel.incoming <- input.Payload:
+			case <-tunnel.done:
+			}
 		case "subscribe":
 			s.mu.Lock()
 			if s.closed {
@@ -252,6 +268,14 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				s.clients[conn] = queue
 			}
 			s.mu.Unlock()
+			if !mcpStarted {
+				mcpStarted = true
+				go func() {
+					if err := s.agent.MCP().AttachBrowser(context.Background(), tunnel); err != nil {
+						s.agent.Ensemble().Logf("browser MCP: %v", err)
+					}
+				}()
+			}
 		case "update_settings":
 			// Serialize apply and broadcast with subscribe: every tab observes the
 			// same ordering, even when two clients update at once.
@@ -349,3 +373,6 @@ func (s *Server) Close() {
 	// Join writers before the application closes gui.log.
 	s.workers.Wait()
 }
+
+// Agent reaches the conversation served by this server's transport children.
+func (s *Server) Agent() ensemble.Agent { return s.agent }

@@ -1,0 +1,100 @@
+[
+  {
+    "claim": "click effect",
+    "mutation": "element.click() -> void element",
+    "exit": 1,
+    "result": "FAIL",
+    "error": "MCP gui_click changed actual selected tab",
+    "checks": []
+  },
+  {
+    "claim": "input change event",
+    "mutation": "element.dispatchEvent(new Event(\"change\", { bubbles: true })); -> // change notification removed",
+    "exit": 1,
+    "result": "FAIL",
+    "error": "MCP gui_input changed persisted and effective setting",
+    "checks": [
+      "MCP gui_click changed actual selected tab"
+    ]
+  },
+  {
+    "claim": "byte cap",
+    "mutation": "4096 - 128 -> 8192 - 128",
+    "exit": 1,
+    "result": "FAIL",
+    "error": "snapshot byte cap discloses elision and omitted artifacts",
+    "checks": [
+      "MCP gui_click changed actual selected tab",
+      "MCP gui_input changed persisted and effective setting",
+      "actual tool loop made three provider requests",
+      "round 1 received browser ephemera",
+      "round 1 hides automatic tools",
+      "round 2 received browser ephemera",
+      "round 2 hides automatic tools",
+      "round 3 received browser ephemera",
+      "round 3 hides automatic tools",
+      "second snapshot exposes selected state",
+      "actual native utterance appears with TTS state and timing"
+    ]
+  },
+  {
+    "claim": "truncation disclosure",
+    "mutation": "${elided} characters elided; ${omitted} artifacts omitted -> 0 characters elided; 0 artifacts omitted",
+    "exit": 1,
+    "result": "FAIL",
+    "error": "snapshot byte cap discloses elision and omitted artifacts",
+    "checks": [
+      "MCP gui_click changed actual selected tab",
+      "MCP gui_input changed persisted and effective setting",
+      "actual tool loop made three provider requests",
+      "round 1 received browser ephemera",
+      "round 1 hides automatic tools",
+      "round 2 received browser ephemera",
+      "round 2 hides automatic tools",
+      "round 3 received browser ephemera",
+      "round 3 hides automatic tools",
+      "second snapshot exposes selected state",
+      "actual native utterance appears with TTS state and timing"
+    ]
+  },
+  {
+    "claim": "control state",
+    "mutation": "\"value\", \"checked\", \"disabled\" -> \"value\", \"disabled\"",
+    "exit": 1,
+    "result": "FAIL",
+    "error": "snapshot exposes native control state",
+    "checks": [
+      "MCP gui_click changed actual selected tab",
+      "MCP gui_input changed persisted and effective setting",
+      "actual tool loop made three provider requests",
+      "round 1 received browser ephemera",
+      "round 1 hides automatic tools",
+      "round 2 received browser ephemera",
+      "round 2 hides automatic tools",
+      "round 3 received browser ephemera",
+      "round 3 hides automatic tools",
+      "second snapshot exposes selected state",
+      "actual native utterance appears with TTS state and timing",
+      "snapshot byte cap discloses elision and omitted artifacts"
+    ]
+  },
+  {
+    "claim": "actual TTS queue",
+    "mutation": "return active.concat(this.queue.map -> return [].concat([].map",
+    "exit": 1,
+    "result": "FAIL",
+    "error": "actual native utterance appears with TTS state and timing",
+    "checks": [
+      "MCP gui_click changed actual selected tab",
+      "MCP gui_input changed persisted and effective setting",
+      "actual tool loop made three provider requests",
+      "round 1 received browser ephemera",
+      "round 1 hides automatic tools",
+      "round 2 received browser ephemera",
+      "round 2 hides automatic tools",
+      "round 3 received browser ephemera",
+      "round 3 hides automatic tools",
+      "second snapshot exposes selected state"
+    ]
+  }
+]

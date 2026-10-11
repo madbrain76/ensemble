@@ -1,0 +1,203 @@
+{
+  "vendor": "gemini",
+  "model": "gemini-3.8-flash",
+  "model_discovery": "Reuse same-day Chapter10 model receipt; this successful inference is live availability proof",
+  "prompt": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work.\n",
+  "exit": 0,
+  "timeout": false,
+  "elapsed_seconds": 4.59,
+  "stdout": "\nThe exact marker is CH12_GEMINI_MCP_OK and the current automatic snapshot number is 2.\n",
+  "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nread_marker {}\n",
+  "peer_counts": {
+    "environment_snapshot": 2,
+    "session_brief": 1,
+    "read_marker": 1
+  },
+  "requests": [
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 1\n\n## session_brief (auto-updated)\n\nUse read_marker to inspect the local marker."
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Read the exact marker file text",
+              "name": "read_marker",
+              "parameters": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_372639",
+                "name": "read_marker",
+                "args": {}
+              },
+              "thoughtSignature": "EqkCCqYCAWkUfRMoNXj2URaVbLNVsq36+PaJRcQM9BU72GM2HrcCqB/pz0AhpLzY7u1T9fp6fEjH7z+ORWXSU9hoYEuTaLYdWXFfAKKSp33Dg2MTgFe3vGMZKrVuI9rOjhlbZmnWWRa4Dry3qCgOgKmio/qJcQpaB3dnxlBsju9Fi+NeMgxU1ZaCftYvm81nTpVIqYZqJWNuh+f96c7ZkCUxb0dNe3Evc0eF1BoJ3Jb/LMTHszLCDlFKlsgXRBef65L9bjBMufvr3ZU4oHvXDDzeNjthbAAr7VlZOxjGpynqpLNtoOAphGUKuQcYRzuktSyXv0JE3XHPM4c6GUgYipa3PfKD4NQjcN5rgaqj7JRONFCGS/qLyoOCQrXpdZoCG/8v6US4sZ5G5xxu"
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_372639",
+                "name": "read_marker",
+                "response": {
+                  "result": "CH12_GEMINI_MCP_OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 2"
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Read the exact marker file text",
+              "name": "read_marker",
+              "parameters": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "marker_reported": true
+}

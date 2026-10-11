@@ -1,0 +1,11 @@
+{
+  "command": "make grade-dir CH=12 DIR=./solutions/edition-2/main",
+  "status": "interrupted/unscored after coordinator confirmed Chapter12 phase finished and inherited CLI/GUI parity begun",
+  "pids": [
+    70393,
+    70407,
+    70411,
+    70580
+  ],
+  "source": "interim Chapter12, before evidence/test completion"
+}

@@ -52,3 +52,34 @@ pending removal; compaction and actual removal are not implemented in Chapter 10
 Without a skill specification the earlier unrestricted registration API remains
 available. A skill can enable only installed handlers; declaring an unknown tool
 never creates an executable implementation.
+
+Chapter 12 adds MCP peers. `ensemble-cli --mcp-pipe` dedicates stdin/stdout to
+newline JSON-RPC 2.0; it initializes and discovers the peer, accepts reverse
+`tools/call`, and exits on disconnect. It does not start an implicit model turn.
+The exercise uses protocol version `2024-11-05`, including its `$/cancelRequest`
+notification. This is a historical exercise implementation, not a claim of
+compatibility with every current MCP server.
+
+A skill can add the following frontmatter, alongside an explicit `tools:` grant:
+
+```yaml
+tools: search_code
+mcp_servers:
+  - name: code-search
+    transport: stdio
+    command: python3
+    args: ["scripts/search_server.py"]
+```
+
+Arguments use a JSON-style string array and paths resolve from the Agent's
+workspace. Loading starts/discovers the server; only tools named by that skill
+are admitted. Unloading stops its MCP servers immediately, while compiled tools
+and instructions retain Chapter 10's pending-removal behavior. Subprocesses get
+basic OS environment values, not the model client's provider keys.
+
+For an external transport, embedders use `Agent.MCP().Connect`, with
+`ensemble.NewMCPTransport` for streams or `ensemble.MCPPipe` for an in-process
+peer. The optional GUI supplies its own WebSocket transport. Remote calls use
+real jobs: callback delays return a handle, explicit kill cancels the RPC, and
+Agent shutdown closes peers and joins its work. Discovered `round`/`turn`
+ephemeral tools run automatically and remain absent from model declarations.

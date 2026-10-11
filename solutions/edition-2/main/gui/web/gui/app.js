@@ -1,3 +1,5 @@
+import { browserMCP } from "./mcp.js";
+
 // Each pane owns its artifacts through the same renderer. Renderers construct DOM nodes from text;
 // filenames, tool results and model prose can never become executable markup.
 const input = document.querySelector("#input");
@@ -30,7 +32,7 @@ class Speech {
   fragments = new Map();
   enqueue(text) {
     if (!text.trim()) return;
-    this.queue.push(text);
+    this.queue.push({ text, queued_at: Date.now() });
     speaking = true;
     pace();
     this.advance();
@@ -39,13 +41,16 @@ class Speech {
   // JavaScript reference as well as the speech service's internal queued value.
   advance() {
     if (this.active) return;
-    const text = this.queue.shift();
-    if (text === undefined) {
+    const pending = this.queue.shift();
+    if (pending === undefined) {
       speaking = false;
       pace();
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(pending.text);
+    utterance.queued_at = pending.queued_at;
+    utterance.started_at = null;
+    utterance.onstart = () => { utterance.started_at = Date.now(); };
     utterance.rate = Number(document.querySelector("#tts-speed").value);
     this.active = utterance;
     const done = (event) => {
@@ -58,6 +63,11 @@ class Speech {
     utterance.onend = done;
     utterance.onerror = done;
     speechSynthesis.speak(utterance);
+  }
+  // MCP observes actual native speech progress, plus utterances waiting locally.
+  pending() {
+    const active = this.active ? [{ text: this.active.text, state: speechSynthesis.paused ? "paused" : this.active.started_at ? "speaking" : "starting", queued_at: this.active.queued_at, started_at: this.active.started_at, elapsed_ms: this.active.started_at ? Date.now() - this.active.started_at : 0 }] : [];
+    return active.concat(this.queue.map(item => ({ ...item, state: "queued", started_at: null, elapsed_ms: 0 })));
   }
   // Phrase buffers belong to artifact IDs, so a thinking fragment cannot finish
   // an unrelated chat sentence. Finals flush only the unspoken remainder.
@@ -86,6 +96,7 @@ class Speech {
   }
 }
 const speech = new Speech();
+const receiveMCP = browserMCP(send, speech);
 // Chrome can suspend its speech service after a tab switch. This silent nudge
 // is deliberately outside the audible queue and therefore does not hold pause.
 document.addEventListener("visibilitychange", () => {
@@ -410,6 +421,7 @@ function connect() {
   };
   socket.onmessage = (event) => {
     const message = JSON.parse(event.data);
+    if (message.type === "jsonrpc") { receiveMCP(message.payload); return; }
     route(message);
     if (["current_settings", "settings_changed"].includes(message.type)) applySettings(message.settings);
     if (message.type === "settings_error") document.querySelector("#settings-status").textContent = message.error;

@@ -11,7 +11,7 @@ func SkillTools() []common.ToolDefinition {
 	schema := json.RawMessage(`{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}`)
 	return []common.ToolDefinition{
 		{ToolDeclaration: common.ToolDeclaration{Name: "load_skill", Description: "Load an available skill and its dependencies. Returns its instructions and enables its tools.", Schema: schema}, Run: loadSkill},
-		{ToolDeclaration: common.ToolDeclaration{Name: "unload_skill", Description: "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.", Schema: schema}, Run: unloadSkill},
+		{ToolDeclaration: common.ToolDeclaration{Name: "unload_skill", Description: "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.", Schema: schema}, Run: unloadSkill},
 	}
 }
 

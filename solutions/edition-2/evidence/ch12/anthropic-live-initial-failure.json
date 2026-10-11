@@ -1,0 +1,82 @@
+{
+  "vendor": "anthropic",
+  "model": "claude-haiku-5-5",
+  "model_discovery": "Reuse same-day Chapter10 model receipt; this successful inference is live availability proof",
+  "prompt": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work.\n",
+  "exit": 0,
+  "timeout": false,
+  "elapsed_seconds": 0.98,
+  "stdout": "",
+  "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nread_marker 2026/10/10 18:32:42 anthropic request failed: invalid streamed Anthropic content\n",
+  "peer_counts": {
+    "environment_snapshot": 1,
+    "session_brief": 1
+  },
+  "requests": [
+    {
+      "thinking": {
+        "type": "adaptive"
+      },
+      "stream": true,
+      "tools": [
+        {
+          "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "load_skill"
+        },
+        {
+          "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "name": "unload_skill"
+        },
+        {
+          "description": "Read the exact marker file text",
+          "input_schema": {
+            "type": "object",
+            "properties": {}
+          },
+          "name": "read_marker"
+        }
+      ],
+      "model": "claude-haiku-5-5",
+      "max_tokens": 4096,
+      "system": "You are a concise assistant. Read the marker through read_marker when requested. Automatic snapshot data describes the current round.",
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+            },
+            {
+              "type": "text",
+              "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 1\n\n## session_brief (auto-updated)\n\nUse read_marker to inspect the local marker."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "marker_reported": false
+}

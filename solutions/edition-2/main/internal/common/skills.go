@@ -30,7 +30,7 @@ type ToolMeta struct {
 }
 
 // Skills owns one Agent's discovered capabilities and point-of-use renderers.
-// Unload is pending only: removal belongs to the later compaction lifecycle.
+// Compiled instruction removal is pending; MCP servers stop on unload.
 type Skills interface {
 	// Agent returns the owner whose declarations and services the registry uses.
 	Agent() Agent
@@ -38,7 +38,7 @@ type Skills interface {
 	LoadInitial(string) (string, error)
 	// LoadDynamic enables a reachable loadable skill and returns rendered instructions.
 	LoadDynamic(string, uint64) (string, error)
-	// MarkUnload records deferred removal without altering today's instructions/tools.
+	// MarkUnload stops this skill's MCP servers and defers compiled/body removal.
 	MarkUnload(string) error
 	// PendingUnload returns sorted skill names awaiting future compaction.
 	PendingUnload() []string

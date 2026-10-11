@@ -33,9 +33,12 @@ func TestSavedBudgetEntry(t *testing.T) {
 	defer once.Do(func() { close(release) })
 	provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
+			// Messages are the actual provider-bound conversation from the GUI command.
 			Messages []struct {
-				Role    string `json:"role"`
-				Content any    `json:"content"`
+				// Role identifies whether a retained message is human or assistant.
+				Role string `json:"role"`
+				// Content retains the real wire shape for the EOF/restart assertion.
+				Content any `json:"content"`
 			} `json:"messages"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

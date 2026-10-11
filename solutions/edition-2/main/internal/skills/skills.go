@@ -18,6 +18,7 @@ import (
 type registry struct {
 	parent   common.Agent
 	mu       sync.Mutex
+	loadMu   sync.Mutex
 	all      map[string]skill
 	loaded   map[string]bool
 	pending  map[string]bool
@@ -109,11 +110,43 @@ func (r *registry) LoadDynamic(name string, seq uint64) (string, error) {
 }
 
 func (r *registry) load(name string, meta common.ToolMeta) (string, error) {
+	r.loadMu.Lock()
+	defer r.loadMu.Unlock()
 	r.mu.Lock()
+	loaded := make(map[string]bool)
+	tools := make(map[string]common.ToolMeta)
+	for n, v := range r.loaded {
+		loaded[n] = v
+	}
+	for n, v := range r.tools {
+		tools[n] = v
+	}
 	bodies, err := r.enable(name, meta)
+	var added []skill
+	if err == nil {
+		for n := range r.loaded {
+			if !loaded[n] {
+				added = append(added, r.all[n])
+			}
+		}
+	}
 	r.mu.Unlock()
 	if err != nil {
 		return "", err
+	}
+	sort.Slice(added, func(i, j int) bool { return added[i].name < added[j].name })
+	// Do not hold the registry lock while a peer initializes: reverse requests
+	// need this same admission registry. Roll back grants if startup fails.
+	for _, s := range added {
+		if err := r.parent.MCP().StartSkill(s.name, s.servers, s.tools); err != nil {
+			for _, started := range added {
+				r.parent.MCP().StopSkill(started.name)
+			}
+			r.mu.Lock()
+			r.loaded, r.tools = loaded, tools
+			r.mu.Unlock()
+			return "", err
+		}
 	}
 	return r.render(strings.Join(bodies, "\n\n")), nil
 }
@@ -215,7 +248,7 @@ func (r *registry) ToolMeta(name string) (common.ToolMeta, bool) {
 	return meta, enabled
 }
 
-// MarkUnload defers removal to the future compaction boundary.
+// MarkUnload stops external servers while deferring compiled instruction removal.
 func (r *registry) MarkUnload(name string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -223,7 +256,9 @@ func (r *registry) MarkUnload(name string) error {
 		return fmt.Errorf("skill %q is not loaded", name)
 	}
 	r.pending[name] = true
-	return nil
+	// Chapter 12 stops external server lifetimes now; compiled grants and body
+	// removal remain pending until the later compaction exercise.
+	return r.parent.MCP().StopSkill(name)
 }
 
 // PendingUnload exposes the deferred state without prematurely removing capability.

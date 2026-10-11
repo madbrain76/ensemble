@@ -132,6 +132,7 @@ func (j *job) Kill(reason string) error {
 	// Killed is its own terminal state, not done with an exit code of -1.
 	// Clear the optional exit value before notifying waiters or recording it.
 	j.data.Status = "killed"
+	j.cancel()
 	j.data.ExitCode = nil
 	j.file.Close()
 	data := j.data
@@ -150,6 +151,7 @@ func (j *job) Kill(reason string) error {
 func (j *job) Shutdown() error {
 	j.mu.Lock()
 	j.stopping = true
+	j.cancel()
 	hasProcess := j.process != nil
 	j.mu.Unlock()
 	if hasProcess {

@@ -1,0 +1,81 @@
+{
+  "previous": {
+    "examples": {
+      "physical": 814,
+      "blank": 49,
+      "comment": 62,
+      "active": 703
+    },
+    "Go production": {
+      "physical": 6717,
+      "blank": 382,
+      "comment": 1176,
+      "active": 5159
+    },
+    "Go tests": {
+      "physical": 3618,
+      "blank": 105,
+      "comment": 233,
+      "active": 3280
+    },
+    "JavaScript production": {
+      "physical": 461,
+      "blank": 4,
+      "comment": 44,
+      "active": 413
+    }
+  },
+  "current": {
+    "Go tests": {
+      "physical": 4036,
+      "blank": 121,
+      "comment": 250,
+      "active": 3665
+    },
+    "Go production": {
+      "physical": 7832,
+      "blank": 449,
+      "comment": 1292,
+      "active": 6091
+    },
+    "examples": {
+      "physical": 814,
+      "blank": 49,
+      "comment": 62,
+      "active": 703
+    },
+    "JavaScript production": {
+      "physical": 566,
+      "blank": 8,
+      "comment": 51,
+      "active": 507
+    }
+  },
+  "delta": {
+    "examples": {
+      "physical": 0,
+      "blank": 0,
+      "comment": 0,
+      "active": 0
+    },
+    "Go production": {
+      "physical": 1115,
+      "blank": 67,
+      "comment": 116,
+      "active": 932
+    },
+    "Go tests": {
+      "physical": 418,
+      "blank": 16,
+      "comment": 17,
+      "active": 385
+    },
+    "JavaScript production": {
+      "physical": 105,
+      "blank": 4,
+      "comment": 7,
+      "active": 94
+    }
+  },
+  "method": "Physical lines; blanks excluded; whole-line //, /* blocks and HTML-comment starts counted as comments; remaining nonblank lines active; multiline compact statements count as their physical line. Examples kept separate. Baseline accepted own original11 f50837f."
+}
