@@ -12,7 +12,7 @@ are absorbed: 5, 22 and 24. This supersedes the earlier placement stops.
 | 21 + 22 | 20 | `solutions/edition-2/ch20` | Web access, status and accounting |
 | 23 | 21 | `solutions/edition-2/ch21` | The Sandbox |
 | 24 + 25 | 22 | `solutions/edition-2/ch22` | The Ensemble, including reusable GUI boundary |
-| 26 | 23 | `solutions/edition-2/ch23` | Conditional on completed original Chapter 26 |
+| 26 | 23 | `solutions/edition-2/ch23` | Fleet management and GUI; accepted |
 
 With first-edition Chapters 1–26 complete, Edition 2 has Chapters 1–23. Chapter
 0 remains introductory in both. Future chapters, if separately authorized,
@@ -43,13 +43,14 @@ a target word reduction.
 
 ## Execution and preservation
 
-Current checkpoint: original25 is independently accepted at `ed54abe`, source
-`e00d5bc`, tree `30fb05d154b9808eb88622aaff9c1424cd7e8af1`. Direct `ch22`
-contains exact combined original24+25 source, checkpoint `edition-2-ch25-r1`.
-Direct chapters1–22 are accepted. Original26 readiness was verified at this gate:
-manuscript, grader, reference snapshot and completion report remain present and
-unchanged. Continue original26 as Edition2 Chapter23; its acceptance/export is
-still pending. Original24's intermediate tag and every prior export/tag remain.
+Current checkpoint: original26 is independently accepted at `0d9e823` after
+one correction round, source `450f7a9`, main tree
+`27d7fcf9b8b31275068fa705d6969cfe3eafedc1`. Its exact direct `ch23` export is
+checkpointed as `edition-2-ch26-r1`. Direct chapters1–23 are accepted and match
+the table. Original26 was complete at original25 review, satisfying the condition.
+Original24's intermediate tag, the combined24+25 `ch22`, and prior tags remain.
+Original results and accepted exceptions are preserved; later prose/grader
+enhancement remains separate from these completed implementations.
 
 Use original exercises and unchanged graders in original order: 22, 23, 24, 25.
 Each original exercise still receives its own student review, actual grader/live

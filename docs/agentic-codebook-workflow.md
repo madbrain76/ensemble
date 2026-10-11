@@ -1,5 +1,44 @@
 # Agentic codebook: edition workflow and learning record
 
+## October11: original26 accepted; final solution mapping complete
+
+Independent review `0d9e823` accepts source `450f7a9`, main tree
+`27d7fcf9b8b31275068fa705d6969cfe3eafedc1`, after one formal correction round.
+The exact180-file export is direct Edition2 `ch23`, checkpoint `edition-2-ch26-r1`.
+Direct solutions1–23 now match the agreed mapping of original1–26: original5,
+22 and24 are absorbed, with no symlinks and only retired original history/ch05.
+Original26 was complete at original25 acceptance; Bill's condition is fulfilled.
+
+The original26 grade remains **0/100 FAIL** on `974f67b`. The reviewer accepts
+only the omitted-model CLI launch and headless-command GUI probe exceptions.
+The valid fleet, persistence, ownership, GUI and lifetime obligations have separate
+real-runtime evidence. Similar active-code size to the reference is justified by
+required conversation selection and stronger lifetime/cursor behavior, with useful
+comments and existing owner relationships; no scope or architecture blocker remains.
+
+Successful submit now records the existing turn-ended fact after its tool batch
+drains. The unchanged independent completed/restarted-state probe plus a genuinely
+pending-request control pass under race in1.219s. Two focused defects fail their
+intended assertions; forcing the display idle cannot pass the running control.
+The final affected core and full GUI race checks, vet and formatting pass.
+Intermediate validator failures remain recorded. This was one formal round,
+following two genuine pre-submission corrections, not a restart of the review count.
+
+The real browser fleet task retains `9e2b72a` provenance:15 Astra/high requests,
+a child implementing and testing the function, parent monitoring and independently
+testing it, conversation selection, and restart without new inference. Its stale
+input-pending label remains in the old capture; the corrected source is verified
+by deterministic real-runtime checks, without another paid run or old-save
+migration claim. A successful task and persistence do not alone prove truthful
+current-state display. Compare the visible state with actual ongoing work, and
+pair completed-state checks with genuinely pending work.
+
+All authorized student implementation and comparative reviews through original26
+are complete. The later author–coder manuscript/grader phase remains separate;
+prose/grader enhancement is currently accepted through Edition2 Chapter8. Preserve
+first-edition work and all historical scores, source versions and checkpoints.
+The dated intermediate entries below remain evidence of what was pending then.
+
 ## October11: combined Chapter22 accepted; original26 released
 
 Original26 initial formal review `1faddb5` requires correction round1 for one

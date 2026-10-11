@@ -1,14 +1,16 @@
 # Edition 2 carryover: lessons for the fresh student
 
-**Current implementation:** original25 is independently accepted at `ed54abe`,
-source `e00d5bc`, main tree `30fb05d154b9808eb88622aaff9c1424cd7e8af1`, with
-missing-model grader and non-fleet compatibility exceptions, zero formal rounds.
-Original grade remains0/100 FAIL. Combined original24+25 is direct Edition2
-`ch22`, checkpoint `edition-2-ch25-r1`. Runtime, mutation and actual Astra/high
-fleet evidence, including its steering-compliance limit, are recorded in ch25
-notes/review. Original26 completion was rechecked at this review boundary; its
-manuscript, grader, reference snapshot and completion records remain available
-and unchanged. Continue original26 as Edition2 Chapter23 from accepted main.
+**Current implementation:** original26 is independently accepted at `0d9e823`
+after one formal correction round, source `450f7a9`, main tree
+`27d7fcf9b8b31275068fa705d6969cfe3eafedc1`. Its exact180-file export is direct
+Edition2 `ch23`, checkpoint `edition-2-ch26-r1`. Original26 was complete at
+original25 acceptance, so the conditional continuation is fulfilled. Direct
+solutions1–23 now cover original chapters1–26, exactly three fewer. The actual
+original26 grade remains0/100 FAIL with two narrow launch-fixture exceptions.
+Real Astra/high fleet coding and corrected state/replay evidence are recorded
+separately in ch26 notes/review; the paid capture retains its earlier source.
+The implementation/review run is complete through this available source. Later
+manuscript/grader enhancement remains separate; Edition3 authorship is not claimed.
 
 **Current authorization, October 11:** Bill delegated both placements and
 authorized autonomous continuation. Use original 21 + 22 → Edition 2 Chapter 20;
@@ -650,7 +652,7 @@ it. [Reading notes](edition-2-notes/ch26.md) preserve these source limitations.
 
 **Chapter 5, The Big Refactor**, is absorbed into the enhanced early chapters.
 Original **Chapter 22, Architectural Decay**, is accepted together with original
-21 as Edition 2 Chapter 20. Original **Chapter 24, Freeing the GUI**, will join
+21 as Edition 2 Chapter 20. Original **Chapter 24, Freeing the GUI**, is accepted with
 original 25 as Edition 2 Chapter 22. These placements follow Bill's October 11
 authorization and the [chapter map](edition-2-chapter-map.md). Chapter 20,
 **The Crossover**, remains Edition 2 Chapter 19. Consolidation preserves the
