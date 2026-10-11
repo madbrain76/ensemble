@@ -115,3 +115,169 @@ repairs. Do not attribute all that growth to the HTTP feature. Relevant original
 HTTP transport/tests and integration were read separately. Final counts and
 comparative judgment will follow the submitted source, not the moving worktree.
 Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+## Final disposition: accepted with two narrow exceptions, initial review
+
+Read the complete final student review and frozen submission
+`f35b6ae8ce43c91a52b9972361093db6258e3e20`, main tree
+`f351d66a7bc456650e05ac6656a7db59bbbd725a`. Independently verified all148 manifest
+files. **Original21 / Edition2 Chapter20 is accepted with the two exceptions
+below, zero formal correction rounds.** The earlier reviewer assistance and
+failed live attempt remain pre-submission history, not erased or relabeled.
+No current implementation or scope finding remains open.
+
+### Exceptions and actual original result
+
+The unchanged original grade remains **0/100 FAIL on5a00b98**, make exit2/grader
+exit1,181seconds. Its raw SHA-256 independently matches
+`83384811db3bb4aad2ed7af333039cc84e932e51e341e8e3d657f0ebaf2b38df`.
+I accept the student's terminal-envelope exception: the existing GUI command
+accepts prompt input but presents human terminal output, whereas this harness
+waits for legacy JSON completion. Both scenarios perform visible remote work
+then wait90seconds; the first fatal masks all seven score predicates. This is
+not a passing grade, a final-source grade, or proof from visible output alone.
+Adding a second terminal protocol solely for that fixture is unnecessary here.
+The valid masked behavioral obligations remain binding and are covered below.
+
+I also accept the requested Rule5 exception. Existing primary loading starts
+declared MCP peers coherently after the composition root attaches the manager.
+The unchanged independent external-peer probe confirms that behavior on the
+final source. Deliberately making valid primary configuration silently do
+nothing would recreate the defect the chapter itself criticizes. The actual
+web skill remains loadable, does not connect before load, grants only its
+declared names, and unloads immediately. This exception preserves explicit
+primary configuration; it does not authorize automatic web access or expand
+remote grants. Both departures should be explained in later prose/grader work,
+while preserving this original chapter and score.
+
+### Implementation, comparative review and KISS
+
+The complete source delta uses the existing manager/client/registry/actor/jobs.
+URL/auth-name fields enter existing shared data and parsing. The manager owns
+the HTTP boundary; its parent interface reaches the real Agent/root logger.
+Agent still owns skill/configuration state and Engine retains rendering/usage.
+The small optional context-aware send interface is justified: HTTP Send can
+block before the client's ordinary reply-select, so job cancellation must reach
+the actual POST. Connection close cancels all requests and wakes Recv. No
+callback bag, new registry, mutable application global or GUI dependency appears.
+
+Read the corresponding original HTTP implementation, deterministic and opt-in
+live tests, skill parsing, host connection/auth wiring and MCP enablement test.
+The original uses a whole-body parser,300-character diagnostic clipping,
+host-owned callback wiring and a fixed HTTP timeout. The student retains complete
+diagnostics except its own credential, supports multiline SSE without a scanner
+cap, and connects cancellation to actual job/connection lifetime. Its integration
+tests exercise real earlier components through external HTTP peers. The original
+enablement test substitutes the connect callback and asserts registry state;
+the student also tries the unauthorized call through actual Agent dispatch.
+
+[Counts](../../solutions/edition-2/evidence/ch21/reviewer-counts.json) use physical
+source lines and active lines excluding blanks/comment-only lines; inline
+comments remain active. Each edition uses its own predecessor; tests, examples
+and languages are separate, with Markdown, manifests, module metadata, scripts
+and evidence excluded. No student source moves hide growth.
+
+| Delta | Physical / active / comment-only |
+| --- | ---: |
+| Student production Go | +230 / +192 / +25 |
+| Student Go tests | +405 / +369 / +27 |
+| Original19→21 production Go | +1472 / +856 / +513 |
+| Original19→21 Go tests | +2973 / +2440 / +333 |
+| Original19→21 JavaScript | +48 / +12 / +34 |
+| Original19→21 HTML | +6 / +6 / 0 |
+| Original19→21 CSS | +74 / +43 / +21 |
+
+There is no original20 snapshot. Original19→21 includes many unrelated crossover
+repairs, so those totals cannot measure HTTP alone. A useful narrower comparison
+is the new HTTP file: student204/172/20 versus original183/138/31. The original's
+direct HTTP tests are245/202/27, plus111/89/11 opt-in live-test lines; its separate
+grant test and host/parser changes are also relevant. The student's modestly
+larger transport pays for owner access, cancellable I/O, correct frame parsing
+and secret handling, not speculative features. The405 test lines include real
+runtime integration, actual blocked-job cancellation, deployed-skill regression,
+parked receive and redirect boundaries. Test volume alone is not an improvement.
+
+Production comment share in the delta is about11.5%, below the rough20% target.
+Useful explanations cover why the queue is unbounded, why HTTP needs job context,
+the two cancellation lifetimes, complete frame handling, owner access and
+credential boundaries. Existing explanations were preserved. All new exported
+types, fields, methods, functions and test entrypoints have useful attached
+documentation. Making the internal constructor exported permits the external
+boundary test to construct the real transport with its actual owner; it creates
+no additional abstraction. No padding or arbitrary line quota is warranted.
+
+### Verification and limits of the tests
+
+Read the final core/GUI test and vet receipts; they pass. Independently reran
+the final focused source with race detection: HTTP package1.018s and real-runtime
+suite1.148s. That run includes the primary-departure probe. The exact formerly
+surviving Broadcast removal now fails **close did not wake receiver** after one
+second, with no compile failure or unrelated timeout. The new check observes
+an actual receiver parked in Cond.Wait before closing; client Done is no longer
+misreported as receive completion. See [final receipt](../../solutions/edition-2/evidence/ch21/reviewer-final-check.json).
+
+Read all25 applied mutation outputs. Twenty-four have the intended behavioral
+failure; repeated grant/unload edits record strengthened assertions, not25 unique
+behaviors. The retained storage-detach survivor is correctly scoped: closed
+clients remain invisible for the observed capability-removal claim. It does
+not prove whole-program equivalence or correct future reconnection. Skipping
+unload fails connection-close evidence; independent skill admission still blocks
+the attempted call. Missing grant enforcement now fails both declarations and
+actual guessed dispatch. Header/session/framing, arguments/result bytes and
+kind, error flags/bodies, both credential-redaction boundaries, shipped skill
+access, cancellation, redirects and receive wakeup have causal checks. The5second
+kill/unload failures exercise actual blocked POSTs with working controls.
+
+The masked grader's search/nonce/result-kind/error obligations are supported by
+the real-Agent HTTP integration and live results, not merely the original score.
+The marker assertion inspects the actual provider tool-result block. Source
+review confirms fetched data does not mutate tool permissions or become system
+instructions; actual positive/negative dispatch controls protect the grant.
+The tests do not establish general prompt-injection immunity. The multiline
+progress notification in the framing fixture is intentionally ignored by the
+client, so its presence alone is not a separate delivery guarantee. No mock
+replaces the earlier runtime, and no extra paid run or original-grader repeat
+was necessary after the final local redaction change.
+
+### Actual live task, including the failed first attempt
+
+The first attempt completed transport work but answered before collecting the
+slow scrape. Its primary did not expose the existing wait_for_job capability.
+I accept the student's diagnosis and small correction: expose that supervisor
+and explain running notices in the web skill. Preserve the initial incomplete
+answer and27.04second process success; they are not a successful research task.
+
+The corrected source is `2eac96a`, main tree
+`c257777ba841665766b6ea6c5cd54480678e6822`; the later reflected-RPC redaction and
+test changes have local evidence, not retroactive live provenance. I independently
+checked all five raw request/completed-response pairs: Astra/high throughout,
+no remote tools in request1, then exactly search/scrape from the observed28-tool
+inventory. Actual correlated calls are load, one search, one scrape with maxAge0,
+and one wait_for_job. The scrape initially returns a running notice; the wait's
+actual output in the final provider request contains the requested filename and
+the explicit1,763,735-byte omission notice. It is not merely an earlier argument
+or a model-authored assertion.
+
+The retained full scratch job is1,775,735bytes and independently matches the
+excerpt receipt's SHA-256
+`73f611c1eafc3a5de053b7f9005a4efb5550cfeea3bff40491551fe3a3d87c55`.
+It contains the official Go page, HTTP200 metadata and the filename cited in the
+answer. Only the selected12,000 output bytes plus job metadata reached the model;
+the final answer accurately discloses truncation. The live record shows23.35seconds,
+normal CLI exit0 and save. The final provider response reports4,096 cached input
+tokens; no general cache or reliability conclusion follows from that one grant.
+
+The launcher selects explicit ChatGPT billing and the dedicated profile, omits
+model API keys and passes the named Firecrawl key. Source and runtime billing
+announcement support that route; no fallback is implemented or observed. I did
+not read credentials or make provider calls. Endpoint provenance remains explicit
+configuration plus source, not independently intercepted URL/auth headers. The
+final receipt records one reviewer assertion wording correction: the job says
+“bytes omitted,” not the literal word “truncated.” It was not a product defect.
+
+Coordinator may export exact direct Edition2 `ch20` and create the immutable
+checkpoint, then **STOP before original22** for Bill's placement decision. Do
+not implement or draft22, merge it, skip it or advance to23. Original24 and
+stopped authorship remain binding. Preserve CodeRhapsody's concurrent changes,
+all original sources and historical results. Mandatory handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.

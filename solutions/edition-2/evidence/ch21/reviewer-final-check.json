@@ -1,0 +1,158 @@
+{
+  "source": "f35b6ae8ce43c91a52b9972361093db6258e3e20",
+  "main_tree": "f351d66a7bc456650e05ac6656a7db59bbbd725a",
+  "manifest_files_verified": 148,
+  "baseline": {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./internal/mcp",
+      "./ensemble",
+      "-run",
+      "Test(MCPHTTP|HTTP|ShippedWebSkill|ReviewerPrimaryHTTP)",
+      "-count=1",
+      "-v",
+      "-timeout=20s"
+    ],
+    "exit": 0,
+    "output": "=== RUN   TestHTTPCloseWakesReceiver\n--- PASS: TestHTTPCloseWakesReceiver (0.00s)\n=== RUN   TestHTTPRedirectDoesNotForwardCredential\n--- PASS: TestHTTPRedirectDoesNotForwardCredential (0.00s)\nPASS\nok  \tensemble/internal/mcp\t1.018s\n=== RUN   TestMCPHTTPSkillAndResults\n--- PASS: TestMCPHTTPSkillAndResults (0.12s)\n=== RUN   TestMCPHTTPJobCancellationAndClose\n--- PASS: TestMCPHTTPJobCancellationAndClose (0.01s)\n=== RUN   TestShippedWebSkill\n--- PASS: TestShippedWebSkill (0.00s)\n=== RUN   TestReviewerPrimaryHTTP\n    reviewer_primary_test.go:37: observed three HTTP posts and enabled primary_tool during primary construction\n--- PASS: TestReviewerPrimaryHTTP (0.00s)\nPASS\nok  \tensemble/ensemble\t1.148s\n"
+  },
+  "restored_wakeup_defect": {
+    "command": [
+      "go",
+      "test",
+      "./internal/mcp",
+      "-run",
+      "TestHTTPCloseWakesReceiver",
+      "-count=1",
+      "-v",
+      "-timeout=5s"
+    ],
+    "exit": 1,
+    "output": "=== RUN   TestHTTPCloseWakesReceiver\n    http_test.go:60: close did not wake receiver\n--- FAIL: TestHTTPCloseWakesReceiver (1.00s)\nFAIL\nFAIL\tensemble/internal/mcp\t1.013s\nFAIL\n"
+  },
+  "original_grade": {
+    "source_commit": "5a00b98f489bc06b533ac612145e1102e9199a60",
+    "score": "0/100 FAIL",
+    "raw_sha256": "83384811db3bb4aad2ed7af333039cc84e932e51e341e8e3d657f0ebaf2b38df",
+    "make_exit": 2
+  },
+  "live": {
+    "source": "2eac96a27c36520228956e35ae3a970d292e6ee3",
+    "main_tree": "c257777ba841665766b6ea6c5cd54480678e6822",
+    "cli_exit": 0,
+    "timeout": false,
+    "seconds": 23.35,
+    "wire_sha256": "c05c15dbf8f403d5a751829d5169c6a0c3b3120054075615c7358b6a40938331",
+    "events_sha256": "a963717150a5661804a62a0b81535fc117e76fce6b7b335e640ce44afd84fca4",
+    "save_sha256": "537ed8121feb161f7b8da98c33deb0ededf7faccaac3b652bfc3a2eec6c97039",
+    "completed": [
+      {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "status": "completed",
+        "input": 869,
+        "output": 19,
+        "cached_input": 0
+      },
+      {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "status": "completed",
+        "input": 3836,
+        "output": 43,
+        "cached_input": 0
+      },
+      {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "status": "completed",
+        "input": 4090,
+        "output": 42,
+        "cached_input": 0
+      },
+      {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "status": "completed",
+        "input": 4181,
+        "output": 32,
+        "cached_input": 0
+      },
+      {
+        "model": "gpt-6-astra",
+        "effort": "high",
+        "status": "completed",
+        "input": 9381,
+        "output": 100,
+        "cached_input": 4096
+      }
+    ],
+    "remote_tools_by_request": [
+      [],
+      [
+        "firecrawl_scrape",
+        "firecrawl_search"
+      ],
+      [
+        "firecrawl_scrape",
+        "firecrawl_search"
+      ],
+      [
+        "firecrawl_scrape",
+        "firecrawl_search"
+      ],
+      [
+        "firecrawl_scrape",
+        "firecrawl_search"
+      ]
+    ],
+    "inventory_count": 28,
+    "calls": [
+      {
+        "name": "load_skill",
+        "arguments": {
+          "name": "web-search"
+        }
+      },
+      {
+        "name": "firecrawl_search",
+        "arguments": {
+          "query": "site:go.dev/dl/ Go latest stable release",
+          "limit": 3,
+          "sources": [
+            "web"
+          ],
+          "domainTools": false
+        }
+      },
+      {
+        "name": "firecrawl_scrape",
+        "arguments": {
+          "url": "https://go.dev/dl/",
+          "formats": [
+            "markdown"
+          ],
+          "onlyMainContent": true,
+          "maxAge": 0
+        }
+      },
+      {
+        "name": "wait_for_job",
+        "arguments": {
+          "handle": 3,
+          "ai_callback_delay": 10,
+          "max_output_bytes": 12000
+        }
+      }
+    ],
+    "full_job_bytes_verified": 1775735,
+    "full_job_sha256_verified": "73f611c1eafc3a5de053b7f9005a4efb5550cfeea3bff40491551fe3a3d87c55",
+    "full_scrape_http_status": 200,
+    "provider_received_selected_excerpt": true,
+    "whole_page_in_provider_request": false,
+    "endpoint_independently_captured": false
+  },
+  "check_correction": "An initial reviewer receipt assertion searched for the literal word truncated in the selected job output. Actual disclosure says bytes omitted. Corrected to the exact omitted-byte notice above; this was an assertion wording mistake, not a source defect or failed task."
+}

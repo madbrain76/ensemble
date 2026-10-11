@@ -1505,5 +1505,179 @@
         ]
       }
     ]
+  },
+  "student_initial_source": "5a00b98f489bc06b533ac612145e1102e9199a60",
+  "student_final_source": "f35b6ae8ce43c91a52b9972361093db6258e3e20",
+  "student_final": {
+    "delta": {
+      "test_go": [
+        405,
+        369,
+        27,
+        9
+      ],
+      "production_go": [
+        230,
+        192,
+        25,
+        13
+      ]
+    },
+    "changed": [
+      {
+        "path": "ensemble/mcp_http_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          310,
+          286,
+          19,
+          5
+        ],
+        "delta": [
+          310,
+          286,
+          19,
+          5
+        ]
+      },
+      {
+        "path": "internal/common/mcp.go",
+        "category": "production_go",
+        "before": [
+          56,
+          29,
+          22,
+          5
+        ],
+        "after": [
+          67,
+          34,
+          27,
+          6
+        ],
+        "delta": [
+          11,
+          5,
+          5,
+          1
+        ]
+      },
+      {
+        "path": "internal/mcp/client.go",
+        "category": "production_go",
+        "before": [
+          243,
+          205,
+          27,
+          11
+        ],
+        "after": [
+          252,
+          214,
+          27,
+          11
+        ],
+        "delta": [
+          9,
+          9,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/mcp/http.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          204,
+          172,
+          20,
+          12
+        ],
+        "delta": [
+          204,
+          172,
+          20,
+          12
+        ]
+      },
+      {
+        "path": "internal/mcp/http_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          95,
+          83,
+          8,
+          4
+        ],
+        "delta": [
+          95,
+          83,
+          8,
+          4
+        ]
+      },
+      {
+        "path": "internal/mcp/mcp.go",
+        "category": "production_go",
+        "before": [
+          258,
+          231,
+          15,
+          12
+        ],
+        "after": [
+          260,
+          233,
+          15,
+          12
+        ],
+        "delta": [
+          2,
+          2,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/skills/parse.go",
+        "category": "production_go",
+        "before": [
+          102,
+          97,
+          2,
+          3
+        ],
+        "after": [
+          106,
+          101,
+          2,
+          3
+        ],
+        "delta": [
+          4,
+          4,
+          0,
+          0
+        ]
+      }
+    ]
   }
 }
