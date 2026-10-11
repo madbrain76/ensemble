@@ -107,7 +107,7 @@ func run() (runErr error) {
 	displayDone := make(chan struct{})
 	defer close(displayDone)
 	go terminal.display(displayDone)
-	a, err := root.NewAgent(cfg, spec)
+	a, err := root.Start(".", cfg, spec, terminal)
 	if err != nil {
 		return err
 	}
@@ -116,10 +116,7 @@ func run() (runErr error) {
 	}
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,
 	// then ends Agent lifetime, then closes the application-owned log writers.
-	if err := a.Load(); err != nil {
-		return err
-	}
-	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
+	defer func() { runErr = errors.Join(runErr, root.Close()) }()
 	hub, err := gui.New(root, a, trace)
 	if err != nil {
 		return err
@@ -213,4 +210,10 @@ func (t *terminal) display(done <-chan struct{}) {
 			return
 		}
 	}
+}
+
+// Deliver presents an addressed human question without blocking any Agent actor.
+func (t *terminal) Deliver(message ensemble.FleetMessage) error {
+	fmt.Fprintf(os.Stderr, "[from %s, message %s] %s\n", message.From, message.ID, message.Content)
+	return nil
 }

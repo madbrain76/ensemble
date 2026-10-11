@@ -30,6 +30,7 @@ type manager struct {
 	mu        sync.Mutex
 	children  map[string]*child
 	pending   map[string]question
+	messages  map[string]uint64
 	changed   chan struct{}
 	stopped   bool
 	submitted bool
@@ -44,7 +45,7 @@ func New(parent common.Agent) common.SubAgentManager {
 	if parent == nil {
 		panic("fleet requires Agent")
 	}
-	return &manager{parent: parent, children: map[string]*child{}, pending: map[string]question{}, changed: make(chan struct{})}
+	return &manager{parent: parent, children: map[string]*child{}, pending: map[string]question{}, messages: map[string]uint64{}, changed: make(chan struct{})}
 }
 
 // Agent exposes the required owner, including its configuration and services.
@@ -257,6 +258,9 @@ func (m *manager) Receive(msg common.FleetMessage, reply chan common.FleetMessag
 	if m.stopped {
 		m.mu.Unlock()
 		return "", common.ErrStopped
+	}
+	if msg.To != m.parent.Ensemble().UserID() {
+		m.messages[msg.From]++
 	}
 	// IDs belong to the rendezvous owner. Sender-local counters collide when
 	// a child legitimately has the same address as its parent.

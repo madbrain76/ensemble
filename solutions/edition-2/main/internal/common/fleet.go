@@ -32,7 +32,7 @@ type ChildStatus struct {
 	Usage Usage `json:"usage"`
 	// ID names this parent's child.
 	ID string `json:"agent_id"`
-	// State is running, submitted, or failed.
+	// State is idle, running, submitted, or failed.
 	State string `json:"state"`
 	// Result is the explicit submitted payload, never inferred from an idle reply.
 	Result string `json:"result,omitempty"`

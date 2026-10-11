@@ -5,7 +5,7 @@ import (
 	"ensemble/internal/common"
 )
 
-// FleetTools returns the seven workflow declarations. They share ordinary job supervision. A question or join may
+// FleetTools returns the workflow and management declarations. They share ordinary job supervision. A question or join may
 // outlive its first wait, while a later wait_for_job recovers its real answer.
 func FleetTools() []common.ToolDefinition {
 	return append(managementTools(), []common.ToolDefinition{

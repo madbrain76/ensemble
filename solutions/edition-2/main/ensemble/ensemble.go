@@ -51,6 +51,13 @@ type ToolContext = common.ToolContext
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
+	registryMu  sync.Mutex
+	directory   string
+	defaults    Config
+	defaultSpec AgentSpec
+	root        Agent
+	named       map[string]Agent
+	registry    []NamedAgent
 	auth        common.AuthStore
 	logger      *log.Logger
 	api         io.Writer

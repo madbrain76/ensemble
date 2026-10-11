@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"ensemble/ensemble"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -38,7 +39,7 @@ func TestManagementActivityOutputAndSubmission(t *testing.T) {
 			fleetCall(w, "submit", map[string]string{"result": "DONE_RESULT"})
 		}
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 	a, _, _ := fleetAgent(t, server)
 	phases := &activityLog{}
 	root := a.Ensemble().(*ensemble.Ensemble)
@@ -88,7 +89,7 @@ func TestManagementOwnership(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fleetCall(w, "submit", map[string]string{"result": "owned"})
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 	a, _, _ := fleetAgent(t, server)
 	b, _, _ := fleetAgent(t, server)
 	if _, err := b.Fleet().Spawn("foreign", "TASK", ""); err != nil {
@@ -129,7 +130,7 @@ func TestManagementWaitAndShutdownLifetimes(t *testing.T) {
 		case <-r.Context().Done():
 		}
 	}))
-	defer server.Close()
+	t.Cleanup(server.Close)
 	a, _, _ := fleetAgent(t, server)
 	if _, err := a.Fleet().Spawn("worker", "TASK", ""); err != nil {
 		t.Fatal(err)
@@ -154,5 +155,42 @@ func TestManagementWaitAndShutdownLifetimes(t *testing.T) {
 	}
 	if _, err := a.Fleet().Find("worker"); err == nil {
 		t.Fatal("graceful retained child")
+	}
+}
+
+// Reviewer found manager-wide message counting attributed an unselected child's
+// question to the watched child. Keep the two real HTTP requests parked so the
+// only change is the other child's question; it must not satisfy this wait.
+func TestManagementWaitIgnoresOtherChildMessage(t *testing.T) {
+	entered := make(chan struct{}, 3)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(io.Discard, r.Body)
+		entered <- struct{}{}
+		<-r.Context().Done()
+	}))
+	t.Cleanup(server.Close)
+	a, _, _ := fleetAgent(t, server)
+	for _, id := range []string{"watched", "other"} {
+		if _, err := a.Fleet().Spawn(id, "PARK", ""); err != nil {
+			t.Fatal(err)
+		}
+		<-entered
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+	defer cancel()
+	done := make(chan error, 1)
+	go func() {
+		result, err := a.Fleet().WaitChange(ctx, []string{"watched"}, "", 0)
+		if err == nil {
+			done <- fmt.Errorf("unselected child woke watch: %s", result)
+		} else {
+			done <- err
+		}
+	}()
+	time.Sleep(20 * time.Millisecond)
+	other, _ := a.Fleet().Find("other")
+	go other.Fleet().AskParent(ctx, "OTHER_QUESTION")
+	if err := <-done; err != context.DeadlineExceeded {
+		t.Fatal(err)
 	}
 }

@@ -70,6 +70,11 @@ func TestSavedBudgetEntry(t *testing.T) {
 			message["content"] = nil
 			message["tool_calls"] = []any{map[string]any{"id": fmt.Sprintf("call-%d", results), "type": "function", "function": map[string]string{"name": "run_command", "arguments": `{"command":"printf budget","yield_time_ms":1000}`}}}
 		}
+		// Fleet completion is explicit; keep the budget at eighteen batches by
+		// making the final batch submit rather than an eighteenth shell call.
+		if results == 17 {
+			message["tool_calls"] = []any{map[string]any{"id": "submit", "type": "function", "function": map[string]string{"name": "submit", "arguments": `{"result":"finished eighteen"}`}}}
+		}
 		json.NewEncoder(w).Encode(map[string]any{"model": "gpt-4o-mini", "choices": []any{map[string]any{"message": message, "finish_reason": finish}}, "usage": map[string]int{"prompt_tokens": 1, "completion_tokens": 1}})
 	}))
 	defer provider.Close()

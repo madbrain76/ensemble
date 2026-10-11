@@ -131,7 +131,10 @@ func (m *manager) WaitChange(ctx context.Context, ids []string, pattern string, 
 	previous := map[string]string{}
 	lastProgress := map[string]time.Time{}
 	m.mu.Lock()
-	messageSeq := m.sequence
+	messageSeq := make(map[string]uint64, len(ids))
+	for _, id := range ids {
+		messageSeq[id] = m.messages[id]
+	}
 	m.mu.Unlock()
 	for _, id := range ids {
 		a, err := m.Find(id)
@@ -146,7 +149,10 @@ func (m *manager) WaitChange(ctx context.Context, ids []string, pattern string, 
 	for {
 		m.mu.Lock()
 		changed := m.changed
-		question := m.sequence != messageSeq
+		messages := make(map[string]uint64, len(ids))
+		for _, id := range ids {
+			messages[id] = m.messages[id]
+		}
 		m.mu.Unlock()
 		var events []map[string]any
 		for _, id := range ids {
@@ -165,7 +171,7 @@ func (m *manager) WaitChange(ctx context.Context, ids []string, pattern string, 
 				reason = "change"
 				lastProgress[id] = time.Now()
 			}
-			if question {
+			if messages[id] != messageSeq[id] {
 				reason = "message"
 			}
 			if pattern != "" {
