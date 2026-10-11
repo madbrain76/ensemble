@@ -21,8 +21,13 @@ current 25 (582) on October 11. Original Chapter 25 now has revision
 `009d74c70b108681b2107b4c3a08685508567cee`, SHA-256
 `eb09ec25fe8a681479310ffe22f4cf19d0b4eba34bf507dbbfd8181f7302616f`. Its GUI
 fleet panel remains explicitly deferred. Prior coverage describes its earlier
-558-line version; chapter notes retain both. Original Chapter 26 still lacks a
-complete manuscript at this decision point despite a new frozen source snapshot.
+558-line version; chapter notes retain both. Original Chapter 26 has since
+arrived with publication and completion records. Coordinator and reviewer read
+all 466 lines at `b451d2f14d8170b9075027a0a6606badfb442dad`, SHA-256
+`8db9779e9099d971e8fb8fd5c8f531e110d6a94c0bf234ed836f029aa159c56e`.
+Readiness will still be rechecked after original Chapter 25 review; this reading
+neither assigns Chapter 26 now nor reproduces its reported grading/live results.
+See `edition-2-notes/ch26.md` for completion evidence and source disagreements.
 
 **Historical stop, superseded by the merge authorization above:** original21 / Edition2 ch20 is independently
 accepted with two narrow exceptions; exact source is exported directly to
@@ -607,6 +612,36 @@ The chapter's broad isolation mutant causes several coupled failures. Those
 failures do not establish several independent behavioral proofs or prove that
 no narrower mutation is possible. Preserve the existing requirement to inspect
 the actual reason each claimed mutation check fails.
+
+**Chapter 26: observe the fleet through its real ownership and interface.**
+Activity (thinking, tool execution, waiting, idle) is distinct from lifecycle
+state. Carry known facts through the existing Observer; monitoring is not proof
+that an agent is harmless. A persistent registry of named peers has a different
+lifetime from task children. Verify create/restart/delete and conversation
+preservation through the actual public Ensemble and binary, retaining the rule
+against deleting an agent with active children. Compilation alone does not
+establish correct wiring. Sources: [§26.1–26.2](../book/chapter-26.md#261-why-running-is-not-enough).
+
+Every management operation must resolve targets through the caller's owned
+children, with the same unknown-target result for absent and foreign targets.
+Change waits and output cursors must observe actual progress; interrupts preserve
+the Agent, while shutdown and kill have different lifetimes. Reuse existing actor
+and job behavior rather than adding a general event framework. A single tree
+frame proves neither continuing updates nor conversation selection and visible
+create/delete controls. Exercise those through the browser when assigned, with
+nested-agent and retained submit/idle-correction checks. These are deferred
+Chapter 26 capabilities, not additions to the current sandbox exercise. Sources:
+[§26.3–26.7](../book/chapter-26.md#263-containment-boundaries).
+
+The Chapter 26 manuscript requires conversation selection; its historical coder
+review says it is deferred. The manuscript governs the student exercise unless
+revised before assignment or an independently justified exercise exception is
+accepted. Do not import brief-only persistent spawning. Message-name and startup
+contract inconsistencies need narrow clarification when assigned; preserve the
+student's existing public root and optional GUI. Reported mutation kills do not
+prove general check independence. The opener's incident is unverified in the
+source's own review and needs primary evidence before later authorship repeats
+it. [Reading notes](edition-2-notes/ch26.md) preserve these source limitations.
 
 ## Coverage of the architecture-repair chapters
 

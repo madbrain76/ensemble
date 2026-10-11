@@ -52,6 +52,23 @@ enhancement. Use GPT-6 Astra/high, current governing documents and every valid
 original exercise obligation; do not recreate refactor defects already prevented
 by the carryover. These are consolidation decisions, not feature removal.
 
+Original Chapter 23 / Edition 2 Chapter 21 first green source is `fcb98a9`,
+main tree `f2f8ff00229a4e198988b8756c8702b42b34ab1c`. The unchanged original grader
+on an exact isolated export returns **0/100 FAIL** in 0.623 seconds: six sessions
+cannot launch without a model, and its child probe imports the executable root
+rather than the public library. The isolated submission prevents its temporary
+probe from modifying main. Raw results/provenance are in original-numbered
+Chapter 23 evidence; exceptions and acceptance remain pending independent review.
+Core/GUI checks pass; the coder is completing live and mutation evidence.
+
+Original Chapter 26 has now arrived with its manuscript and completion records.
+Coordinator and reviewer read all 466 lines at `b451d2f`; sourced lessons and
+contradictions are in the carryover and `edition-2-notes/ch26.md`. Reported
+first-edition results remain historical claims. Recheck readiness after original
+25 review before assignment. The chapter's explicit conversation-selection
+exercise takes precedence over a contradictory historical coder-review deferral;
+do not import brief-only persistent spawning or recreate already repaired wiring.
+
 ## Current solution layout — Bill's October 10 correction
 
 Accepted solutions belong directly under `solutions/edition-2/chNN/`, using
