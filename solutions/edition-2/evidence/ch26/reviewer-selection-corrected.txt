@@ -1,0 +1,10 @@
+Source: 9e2b72aeaddc85cbe1afadec41909b4d66ad3b34
+Exact preserved reviewer probe and control; go test -race -run ^TestReviewerSelectionDisconnect -count=1 -timeout=10s -v
+=== RUN   TestReviewerSelectionDisconnectControl
+--- PASS: TestReviewerSelectionDisconnectControl (0.11s)
+=== RUN   TestReviewerSelectionDisconnect
+--- PASS: TestReviewerSelectionDisconnect (3.01s)
+PASS
+ok  	ensemble-gui-stub	4.150s
+
+exit=0

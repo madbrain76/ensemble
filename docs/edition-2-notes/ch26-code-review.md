@@ -187,3 +187,22 @@ ratio is below the teaching target; assess clarity rather than pad to a quota.
 Final checks still depend on correction of the demonstrated deadlock, targeted
 mutation outcomes, actual live/browser provenance and the full student review.
 No formal correction round consumed; no chapter acceptance or export.
+
+## Selection correction verification (pre-submission)
+
+Exact corrected source `9e2b72aeaddc85cbe1afadec41909b4d66ad3b34`, main tree
+`38aee9dd34ca180dedeed0fe17bf4cfe2173ef84`, was archived independently. Both
+preserved reviewer sources were copied unchanged: slow repeated selection and
+one-selection control now pass under race in4.150s. [Exact rerun](../../solutions/edition-2/evidence/ch26/reviewer-selection-corrected.txt).
+The failed first-green reproduction remains above; the defect is corrected.
+
+The source admits the complete replay as one existing queue batch, or releases
+both mutexes and returns through that connection's established teardown. It
+publishes the selected view only after successful admission. No buffer increase,
+new limit, silent history-loss success, Agent shutdown or other-client disconnect
+is added. A reconnect can replay from the authoritative history as before.
+Read the coder's corresponding real-socket regression and the second-browser-tab
+isolation addition; neither substitutes an internal mock. The three-child
+monitor addition also retains real actor/provider history and checks returned
+identity, submissions and pattern matching. Final mutation/live assessment is
+still pending; zero formal rounds and no final disposition.
