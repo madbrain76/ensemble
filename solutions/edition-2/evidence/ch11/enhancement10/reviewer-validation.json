@@ -1,0 +1,49 @@
+{
+  "reviewed_grader_commit": "91b96b1a",
+  "manuscript_sha256": "32723da4cf2531b5786330502708d58c62db613fd71a7a73acd855c2e83b6b22",
+  "verified_source_sha256": {
+    "internal/gradeedition2/ch10.go": "c7a63c5dc97a859f8d96f48f508edb0daad597dadbfb9a17dcd657c9240b1932",
+    "internal/gradeedition2/ch10_test.go": "b85aa4c954f2ef8f1dd6bcf1f45084104b2c248eedc34e58d62a92aeb7796124",
+    "cmd/grade-edition2/main.go": "9262bf780b7b5615dd358d64b958c559fffd7eb0cd73078d762f3290b22be576",
+    "book/edition-2/chapter-10.md": "32723da4cf2531b5786330502708d58c62db613fd71a7a73acd855c2e83b6b22"
+  },
+  "independent_command": "go test ./internal/gradeedition2 -run ^TestReviewerPersistenceBoundary$ -count=1 -v",
+  "environment": "isolated temporary copy of grader module, real accepted ch10 command, external provider fake only; no provider credentials/calls",
+  "baseline": {
+    "exit": 0,
+    "go_seconds": 0.45,
+    "output": "reviewer-parity-control.txt"
+  },
+  "mutation": {
+    "exit": 1,
+    "go_seconds": 0.332,
+    "patch": "reviewer-parity-no-isolation.patch",
+    "output": "reviewer-parity-no-isolation.txt",
+    "observed": "direct restart control passed; wrapped next request incorrectly retained prior conversation"
+  },
+  "restored": {
+    "exit": 0,
+    "go_seconds": 0.348,
+    "output": "reviewer-parity-restored.txt"
+  },
+  "controls": [
+    "unwrapped two-process default restart retains prior prompt and writes cwd save",
+    "wrapped no-argument processes have independent saves and retain cwd log access",
+    "dump/render actual bytes identical with and without wrapper",
+    "wrapper temporary directory removed by cleanup"
+  ],
+  "mutation_artifacts_checked": {
+    "distinct_defects": 24,
+    "repeated_final_config_observations": 4,
+    "all_raw_arrays_match_receipts": true,
+    "outside_json_compile_panic_race_cleanup_failure": false
+  },
+  "manuscript_go_fences_exact": true,
+  "chapter_local_links_resolve": true,
+  "lint": "hard PASS,2945 words; soft length/negation/person-gap retained for judgment",
+  "limits": [
+    "No repeated full grader or paid run",
+    "Historical live captures retain earlier-source provenance",
+    "Legacy final score composed from affected80/85 and unchanged failing Skills parity"
+  ]
+}

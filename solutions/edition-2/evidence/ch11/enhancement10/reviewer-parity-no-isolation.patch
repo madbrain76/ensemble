@@ -1,0 +1,11 @@
+--- internal/gradeedition2/ch10.go
++++ internal/gradeedition2/ch10.go
+@@ -55,7 +55,7 @@
+ 	cleanup := func() { _ = os.RemoveAll(dir) }
+ 	quote := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
+ 	path := filepath.Join(dir, "launch")
+-	script := "#!/bin/sh\nif [ \"$#\" -eq 0 ]; then\n exec " + quote(bin) + " --save " + quote(dir) + "/save-$$.json\nfi\nexec " + quote(bin) + " \"$@\"\n"
++	script := "#!/bin/sh\nif false; then\n exec " + quote(bin) + " --save " + quote(dir) + "/save-$$.json\nfi\nexec " + quote(bin) + " \"$@\"\n"
+ 	if err := os.WriteFile(path, []byte(script), 0700); err != nil {
+ 		cleanup()
+ 		return "", nil, err

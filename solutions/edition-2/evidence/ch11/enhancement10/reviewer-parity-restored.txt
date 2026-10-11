@@ -1,0 +1,6 @@
+=== RUN   TestReviewerPersistenceBoundary
+    reviewer_probe_test.go:18: isolated=false: actual next request prior=true; defaultsave absent=false; dump/render identical
+    reviewer_probe_test.go:18: isolated=true: actual next request prior=false; defaultsave absent=true; dump/render identical
+--- PASS: TestReviewerPersistenceBoundary (0.34s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	0.348s

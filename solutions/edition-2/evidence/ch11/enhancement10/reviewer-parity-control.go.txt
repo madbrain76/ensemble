@@ -1,0 +1,21 @@
+package gradeedition2
+import("bytes";"os";"os/exec";"path/filepath";"testing";"github.com/waywardgeek/ensemble/internal/grade")
+// TestReviewerPersistenceBoundary uses the real command on each side of isolation.
+func TestReviewerPersistenceBoundary(t *testing.T) {
+ bin,clean,err:=grade.Build(os.Getenv("REVIEW_CORE")); if err!=nil {t.Fatal(err)};defer clean()
+ wrapped,cleanup,err:=persistenceParityBinary(bin);if err!=nil {t.Fatal(err)};defer cleanup()
+ for _,isolated:=range []bool{false,true} {
+  work:=t.TempDir();command:=bin;if isolated {command=wrapped}
+  first:=runPersistence(command,work,nil,"anthropic","fake-model","","","PRIOR_REVIEWER")
+  second:=runPersistence(command,work,nil,"anthropic","fake-model","","","CURRENT_REVIEWER")
+  if first.err!=nil||second.err!=nil||len(second.requests)!=1 {t.Fatalf("isolated=%v process %v %v requests%d",isolated,first.err,second.err,len(second.requests))}
+  prior:=bytes.Contains(second.requests[0].Body,[]byte("PRIOR_REVIEWER"));if prior==isolated {t.Fatalf("isolated=%v prior retained=%v",isolated,prior)}
+  _,stat:=os.Stat(filepath.Join(work,"save.json"));if isolated != os.IsNotExist(stat) {t.Fatalf("isolated=%v defaultsave=%v",isolated,stat)}
+  for _,args:=range [][]string{{"dump"},{"render",filepath.Join(work,"events.jsonl")}} {
+   run:=func(exe string) []byte {c:=exec.Command(exe,args...);c.Dir=work;c.Env=append(os.Environ(),"LLM_VENDOR=anthropic","LLM_MODEL=fake-model","LLM_API_KEY=unused-fake","EN_SKILLS_DIR=","EN_PRIMARY_SKILL=","CH02_LOG="+filepath.Join(work,"events.jsonl"));out,e:=c.Output();if e!=nil{t.Fatal(e)};return out}
+   if a,b:=run(bin),run(wrapped);len(a)==0||!bytes.Equal(a,b){t.Fatalf("offline %v not identical",args)}
+  }
+  t.Logf("isolated=%v: actual next request prior=%v; defaultsave absent=%v; dump/render identical",isolated,prior,os.IsNotExist(stat))
+ }
+ cleanup();if _,err:=os.Stat(filepath.Dir(wrapped));!os.IsNotExist(err){t.Fatal("wrapper scratch remains")}
+}
