@@ -348,7 +348,7 @@ With four kinds and two laws, the request has one shape:
 ```
 [ frozen prefix   ]  system prompt; startup tools on inline-capable rows
 [ memory region   ]  empty until the agent has memories
-[ context         ]  dialogue and survivors, in Seq order
+[ context         ]  dialogue and survivors, with recorded Seq identities
                      ^ oldest                  newest ^
                      cheap to keep            cheap to change
 ```
@@ -359,10 +359,12 @@ Two independent arguments, one about cache economics and one about
 reading order, give the same layout, which is a good sign that the
 layout is right.
 
-Survivors land in `Seq` order among the dialogue, at the tail where
-they were created. Moving them up next to the prefix would read better
-and would edit bytes far from the end. Reordering is a verb of its
-own, and this exercise preserves sequence placement except for its explicitly recorded cuts.
+A survivor keeps the sequence identity of its recorded fact. If a tool batch
+is incomplete, the reducer holds it and appends it only after the companion
+results arrive, even when those results have later sequence numbers. That
+batch-completion placement preserves call/result pairing. Moving the survivor
+up next to the prefix would instead edit bytes far from the end; this exercise
+does not gather old manuals and notes into a newly sorted preamble.
 
 The kinds also preserve why an entry belongs in context. The system prompt
 and a skill body are instruction: the agent is meant to follow them. A

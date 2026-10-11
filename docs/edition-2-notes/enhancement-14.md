@@ -1,7 +1,6 @@
 # Edition 2 Chapter 14 enhancement: The World's Best Context Engineering, Before Breakfast
 
-Author: `edition2_author`, October 11, 2026. **Initial coherent manuscript;
-exact sample validation, revised grader and independent combined review pending.**
+Author: `edition2_author`, October 11, 2026. **Final author reconciliation complete; independent combined acceptance pending.**
 Only Edition 2 Chapter 14 (original 15) is released. No Chapter 15 drafting.
 
 ## Reading and outline
@@ -197,3 +196,95 @@ survives tool clearing alongside retained opaque material, and the retained
 experiments did not measure reasoning-quality effects. The prose no longer
 claims narration is the only survivor or that nobody has measured the question.
 These are prose corrections; exact sample bytes remain unchanged.
+
+## Exact sample reconciliation
+
+The coder's [sample receipt](../../solutions/edition-2/evidence/ch15/enhancement14/samples.json)
+binds unchanged manuscript SHA `55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816`.
+The exact published optional-GUI build/launch, both complete skills, Python
+records/settings and seven human prompts run through the actual application
+with a small external Anthropic HTTP fake and a declared non-stubbing course
+model. The process exits zero after 16 requests, six successful reads, six
+recorded cuts and one handoff. This is executable sample evidence, not a paid
+run, model-quality finding or native-browser replay.
+
+The author independently inspected [captured requests](../../solutions/edition-2/evidence/ch15/enhancement14/samples-requests.json),
+correlating calls and results: requests 3/5/7/9/11/13 first carry the six successful
+record results with their exact path and code. The last request retains the
+manual once and the checkpoint note, while its declaration array contains only
+micro_handoff, keep_tool_results, load_skill and unload_skill. The sample has
+actually removed the file reader rather than merely saying it did.
+
+The [Go receipt](../../solutions/edition-2/evidence/ch15/enhancement14/samples-go.txt)
+shows the vocabulary snippet compiling and the exact survivor/replay excerpts
+running in their actual owning packages with Context tests passing. Historical
+fragments remain labeled as historical; no old API is revived. No manuscript
+sample correction was required. Final grader source and mutation reconciliation
+still await the coder's frozen handoff.
+
+## Final grader and author reconciliation
+
+Read the complete [final coder report](enhancement-14-code.md) at `4918a9b1`,
+its final-source binding and both raw final command/results. All four grader
+source hashes match the binding; accepted and legacy frozen tree identities
+match their retained source. Actual final complete grades are **100/100 accepted**
+in 0.755 seconds and **100/100 legacy** in 0.769 seconds, both exit zero and all
+eight checks passing. These are full runs, not composed totals. Earlier
+`35fe32fe` full 100/100 runs in 0.814/0.842 seconds remain separate provenance.
+Original student 45/100 remains unchanged.
+
+The final grader observes public settings before traffic, waits for actual
+completed turns before EOF/SIGKILL, checks complete correlated file bytes and
+same-batch handoff chronology, and follows real external MCP additions, calls,
+automatic content and removals. No new runtime mode, fixture-only tool or
+settings-path behavior was added to frozen solutions. Revised placement is
+validated from observed requests; the historical strict fake's HTTP 400 remains
+a separate source regression, not a claimed feature of this revised HTTP peer.
+
+Fifteen distinct targeted defects fail their intended predicates, with two
+passing 100/100 positive controls: legal split system-message groups and delayed
+650 ms completion observations. The delay control's full run is 10.248 seconds.
+Coupled downstream failures after wrong target, early handoff or nonzero exit
+are not independent proofs. The first partial-read mutation incorrectly passed
+the intended whole-delivery check at total 85/100; a separate restart failure
+could not establish that claim. Requiring all planted bytes catches that exact
+defect. Its final total 70/100 retains both failures.
+
+The broad pending-ephemera mutant produced 1,416 requests and timed out before
+the intended content predicate. It remains an explicitly limited runaway result,
+excluded from the fifteen intended proofs. Narrow duplicate-wire and stale-cache
+mutations subsequently reach their intended assertions. An extra marker
+perturbation is also not counted as an independent defect. The initial missing
+subscribe setup, sample hash guard and mistaken latest-resent-result validator
+are retained as setup/verification failures, not product defects.
+
+The independent review's valid consecutive-system-group control found a grader
+representation error: separate system messages can form a legal group. The
+corrected check preserves rejection of user content after the group without
+requiring the implementation to coalesce it. The initial probe already used
+corrected source; the reviewer subsequently reproduced the old failure using
+an overlay of exact first-green driver source. Neither attempt is relabeled.
+
+Focused race checks and affected vet/formatting pass. Race instrumentation covers
+the grader test process, not its separately built application binaries. Existing
+source/integration/browser evidence retains its specific jobs, atomic reduction,
+journal/checkpoint, feature-table, settings and historical strict-boundary claims.
+No new paid inference, audible-quality result, provider cache saving, power-loss
+guarantee or universal context bound follows from these grades.
+
+A final reviewer source check corrected §14.5's inherited sorted-Seq claim.
+Held survivors retain their event identities but land after the completed batch,
+possibly after results with later sequence numbers. Both diagram and explanation
+now agree with §14.4 and the actual reducer. This is a prose/diagram correction;
+all executable examples remain byte-identical to the tested sample manuscript.
+The coder preserves the actual sample SHA rather than calling it a rerun.
+
+Final manuscript SHA-256:
+`6e29699fc23fa7a3b2d4a549524625b125ac7c69600baeb686754e86ad570117`.
+Direct hard prose lint passes at 6,774 words. Sample execution remains bound to
+`55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816` with the
+later diagram/wording difference recorded. Historical stories, model/task failures,
+source versions and course-only feature flags remain intact. All four complete
+governing documents remain active after the recorded reload; no further
+compaction has occurred. Independent combined acceptance and root checkpoint
+remain pending, and Chapter 15 is not released.
