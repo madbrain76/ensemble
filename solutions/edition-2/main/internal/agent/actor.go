@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -55,6 +56,7 @@ type turn struct {
 	current        *report
 	batches, limit int
 	ephemeralTurn  bool
+	presented      []common.Entry
 }
 
 // All fields below are owned by run. Workers own external work only, and return
@@ -251,7 +253,13 @@ func (r *runtime) append(event common.Event) error {
 	}
 	// Finalized dialogue has its stored Seq; transient deltas never enter history.
 	if len(after.Dialogue) > 0 && event.Type == "tool_returned" {
-		entry := after.Dialogue[len(after.Dialogue)-1]
+		var entry common.Entry
+		for _, candidate := range after.Dialogue {
+			if candidate.Seq == h.LastSeq() {
+				entry = candidate
+				break
+			}
+		}
 		for _, part := range entry.Parts {
 			r.partID++
 			r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: r.partID, Part: part})
@@ -262,7 +270,7 @@ func (r *runtime) append(event common.Event) error {
 
 // Saving is an owner operation. In particular, do not rewrite again immediately
 // after replying: the caller must be able to read the just-completed log.
-// Crash-safe journals and automatic restoration are later chapter concerns.
+// The independent crash journal is appended by History before each fact is published.
 func (r *runtime) save() error {
 	path := r.owner.config.LogPath
 	if path == "" {
@@ -321,6 +329,17 @@ func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
 	t := r.active
 	t.ids = make(map[uint64]uint64)
+	if err := r.prepareContext(); err != nil {
+		r.finish("", err)
+		return
+	}
+	before := r.owner.history.Context()
+	t.presented = nil
+	for _, entry := range before.Dialogue {
+		if entry.Seq > before.SentThrough {
+			t.presented = append(t.presented, entry)
+		}
+	}
 	body, err := r.owner.engine.Render(r.owner.history.Context())
 	if err != nil {
 		r.append(common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
@@ -329,7 +348,15 @@ func (r *runtime) sendRequest() {
 	}
 	// Capture delivery before releasing the owner. A hint arriving during HTTP
 	// belongs to the NEXT request and must not be consumed by this response.
-	if err = r.append(common.Event{Type: "request_sent", Request: &common.RequestData{To: r.owner.engine.Target()}}); err != nil {
+	request := &common.RequestData{To: r.owner.engine.Target()}
+	if before.StartupTools == nil {
+		declarations := r.owner.Declarations()
+		if declarations == nil {
+			declarations = []common.ToolDeclaration{}
+		}
+		request.StartupTools = &declarations
+	}
+	if err = r.append(common.Event{Type: "request_sent", Request: request}); err != nil {
 		r.finish("", err)
 		return
 	}
@@ -385,6 +412,12 @@ func (r *runtime) receive(m response) {
 					m.turn.calls = append(m.turn.calls, p)
 				}
 			}
+		}
+	}
+	if m.err == nil {
+		if err := r.stubPrevious(m.turn); err != nil {
+			r.finish("", err)
+			return
 		}
 	}
 	if m.err == nil && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
@@ -500,6 +533,12 @@ func (r *runtime) run() {
 					kind = "job_report"
 				}
 				err := r.append(common.Event{Type: kind, Tool: m.data})
+				if err == nil && kind == "tool_returned" && m.call.Name == "micro_handoff" && !m.data.IsError {
+					var handoff common.MicroHandoffData
+					if err = json.Unmarshal(m.call.Args, &handoff); err == nil {
+						err = r.append(common.Event{Type: "micro_handoff", Handoff: &handoff})
+					}
+				}
 				var result strings.Builder
 				for _, p := range m.data.Parts {
 					result.WriteString(p.Text)

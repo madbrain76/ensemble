@@ -117,6 +117,9 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 	case common.Anthropic:
 		req.Header.Set("x-api-key", cfg.APIKey)
 		req.Header.Set("anthropic-version", "2023-06-01")
+		if e.Features().InlineTools {
+			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
+		}
 	case common.OpenAI:
 		req.Header.Set("authorization", "Bearer "+cfg.APIKey)
 	case common.Gemini:
@@ -250,4 +253,22 @@ func (e *engine) SystemPrompt() string {
 		return s
 	}
 	return systemPrompt
+}
+
+// Features follows the Agent's model selection; fixture capabilities do not imply live support.
+func (e *engine) Features() common.ModelFeatures {
+	features, _ := LookupModel(e.parent.Config().Model)
+	return features
+}
+
+// Declarations come from recorded history after startup. Non-inline providers
+// pay the prefix rewrite; inline providers retain exactly their initial list.
+func (e *engine) declarations(c *common.Context) []common.ToolDeclaration {
+	if c.StartupTools == nil {
+		return e.parent.Declarations()
+	}
+	if e.Features().InlineTools {
+		return *c.StartupTools
+	}
+	return c.Tools
 }

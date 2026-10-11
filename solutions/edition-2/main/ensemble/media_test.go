@@ -94,14 +94,14 @@ func TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused(t *testing.T) {
 	}
 }
 
-// Removing media bytes from projection must leave their recovery address available.
+// Result redaction removes addresses from new stubs while the captured fact retains its Ref.
 func TestMediaRedactionRetainsReference(t *testing.T) {
 	a, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5"})
 	ref := common.Ref{Kind: common.RefPath, Locator: "recoverable-image.png"}
 	a.History().Append(common.Event{Type: "tool_returned", Tool: &common.ToolData{CallID: "image", Parts: []common.Part{{Type: "blob", MIME: "image/png", Ref: ref}}}})
 	a.History().Append(common.Event{Type: "redacted", Redact: &common.RedactData{From: 1, To: 1, Level: "redact_result"}})
 	p := a.History().Context().Dialogue[0].Parts[0].Parts[0]
-	if p.Type != "redacted" || p.Ref != ref {
-		t.Fatal("media redaction lost recovery Ref:", fmt.Sprint(p))
+	if p.Type != "redacted" || p.Ref.Kind != 0 {
+		t.Fatal("media stub retained an address:", fmt.Sprint(p))
 	}
 }

@@ -21,6 +21,10 @@ type Settings struct {
 	FontSize int `json:"font_size"`
 	// MaxToolRounds permits N tool batches per turn; zero selects default 200.
 	MaxToolRounds int `json:"max_tool_rounds"`
+	// ContextTarget sets the tool-byte target; zero selects 400,000.
+	ContextTarget int `json:"context_target"`
+	// LogRetention keeps this many saved events; zero keeps all.
+	LogRetention int `json:"log_retention"`
 }
 
 // Decode onto a copy: omitted fields retain their value, explicit false/zero
@@ -41,6 +45,11 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 	current.TTSSpeed = max(0.5, min(2, current.TTSSpeed))
 	current.FontSize = max(12, min(24, current.FontSize))
 	current.MaxToolRounds = max(0, current.MaxToolRounds)
+	current.ContextTarget = max(0, current.ContextTarget)
+	if current.ContextTarget > 0 {
+		current.ContextTarget = max(20000, current.ContextTarget)
+	}
+	current.LogRetention = max(0, current.LogRetention)
 	return current, nil
 }
 
@@ -49,6 +58,8 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 func (s *Server) snapshotSettings() Settings {
 	snapshot := s.settings
 	snapshot.MaxToolRounds = s.agent.Config().MaxToolRounds
+	snapshot.ContextTarget = s.agent.Config().ContextTarget
+	snapshot.LogRetention = s.agent.Config().LogRetention
 	return snapshot
 }
 func (s *Server) loadSettings() error {
@@ -65,7 +76,10 @@ func (s *Server) loadSettings() error {
 		return err
 	}
 	s.settings = next
-	return s.agent.SetMaxToolRounds(next.MaxToolRounds)
+	if err := s.agent.SetMaxToolRounds(next.MaxToolRounds); err != nil {
+		return err
+	}
+	return s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
 }
 func (s *Server) settingsPath() string {
 	return filepath.Join(s.agent.Config().DataDir, "settings.json")
@@ -96,5 +110,6 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	}
 	s.settings = next
 	s.agent.SetMaxToolRounds(next.MaxToolRounds) // Already clamped by settingsPatch.
+	s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
 	return next, nil
 }

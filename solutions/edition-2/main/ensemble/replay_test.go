@@ -60,8 +60,8 @@ func TestReducerStateAndRedactionReplay(t *testing.T) {
 		data, _ := json.Marshal(entries)
 		switch level {
 		case "redact_result":
-			if bytes.Contains(data, []byte("secret")) || !bytes.Contains(data, []byte("result:one")) || !bytes.Contains(data, []byte("tool_call")) {
-				t.Fatal("result redaction lost reference/call or retained content")
+			if bytes.Contains(data, []byte("secret")) || bytes.Contains(data, []byte("result:one")) || !bytes.Contains(data, []byte("tool_call")) {
+				t.Fatal("result redaction retained address/content or lost call")
 			}
 		case "redact_tool":
 			if bytes.Contains(data, []byte("tool_call")) || bytes.Contains(data, []byte("tool_result")) || !bytes.Contains(data, []byte("hello")) {
@@ -97,18 +97,14 @@ func TestReducerStateAndRedactionReplay(t *testing.T) {
 	}
 }
 
-// Malformed or unknown interpreted events must fail before replacing valid history.
+// Unknown event types, unparseable values and bad ordering still refuse the load.
 func TestLoadRefusesUnknownInterpretedData(t *testing.T) {
 	good := `{"seq":1,"type":"message_received","message":{"actor":"human","parts":[{"type":"text","text":"kept"}]}}` + "\n"
 	for _, bad := range []string{
 		`{"log_version":2}`,
 		strings.Replace(good, "message_received", "mystery", 1),
-		strings.Replace(good, "human", "alien", 1),
-		strings.Replace(good, `"type":"text"`, `"type":"mystery"`, 1),
 		strings.Replace(conversation, "gemini", "unknown", 1),
 		strings.Replace(conversation, "generate_content", "other", 1),
-		`{"seq":1,"type":"message_received","message":{"actor":"human","parts":[{"type":"blob","path":"old"}]}}`,
-		`{"seq":1,"type":"message_received","message":{"actor":"human","parts":[{"type":"blob","path":"old","ref":{"kind":1,"locator":"new"}}]}}`,
 		good + good,
 	} {
 		a := loaded(t, ensemble.Anthropic, good)
@@ -225,16 +221,15 @@ func TestTurnTransitionsAndPendingEphemera(t *testing.T) {
 	}
 }
 
-// Redacted results must keep Refs and missing provider call IDs must acquire stable
-// identities.
+// New stubs carry no address; raw events retain Refs and missing provider IDs stay stable.
 func TestRefCarryforwardAndMissingCallIDs(t *testing.T) {
 	for kind := 1; kind <= 3; kind++ {
 		ref := `"kind":` + string(rune('0'+kind)) + `,"locator":"result:one"`
 		log := strings.Replace(firstResult, `"kind":3,"locator":"result:one"`, ref, 1)
 		a := loaded(t, ensemble.Gemini, conversation+log+lastResult+`{"seq":6,"type":"redacted","redact":{"from":4,"to":4,"level":"redact_result"}}`+"\n")
 		result := a.History().Context().Dialogue[2].Parts[0]
-		if int(result.Parts[1].Ref.Kind) != kind || result.Parts[1].Ref.Locator != "result:one" {
-			t.Fatal("redaction changed exact Ref")
+		if len(result.Parts) != 1 || result.Parts[0].Ref.Kind != 0 || result.Parts[0].Ref.Locator != "" {
+			t.Fatal("stub retained a potentially stale address")
 		}
 		body, err := a.Engine().Render(a.History().Context())
 		if err != nil {

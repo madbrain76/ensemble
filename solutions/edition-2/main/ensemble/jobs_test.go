@@ -37,8 +37,7 @@ func events(t *testing.T, a common.Agent) []common.Event {
 	return result
 }
 
-// Bounded reports must preserve full recoverable bytes and their address through
-// redaction.
+// Bounded reports keep full bytes on disk; later stubs do not promise a durable job address.
 func TestJobFileCapCursorAndRedaction(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "large.txt")
 	full := "FIRST\n" + strings.Repeat("middle\n", 10000) + "LAST\n"
@@ -92,8 +91,8 @@ func TestJobFileCapCursorAndRedaction(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, entry := range a.History().Context().Dialogue {
-		if entry.Seq == returned.Seq && entry.Parts[0].Parts[0].Ref != returned.Tool.Job.Output {
-			t.Fatal("redaction lost recovery address")
+		if entry.Seq == returned.Seq && entry.Parts[0].Parts[0].Ref.Kind != 0 {
+			t.Fatal("stub retained potentially reused job address")
 		}
 	}
 }

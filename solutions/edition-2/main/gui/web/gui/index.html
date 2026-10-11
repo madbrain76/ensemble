@@ -12,6 +12,7 @@
         <h1>Ensemble</h1>
         <div role="tablist" aria-label="Sidebar">
           <button id="agents-tab" role="tab" aria-controls="agents-panel" aria-selected="true">Agents</button>
+          <button id="context-tab" role="tab" aria-controls="context-panel" aria-selected="false">Context Management</button>
           <button id="settings-tab" role="tab" aria-controls="settings-panel" aria-selected="false">Settings</button>
         </div>
         <section id="agents-panel" role="tabpanel" aria-labelledby="agents-tab">
@@ -27,6 +28,12 @@
           <label for="font-size">Font size</label>
           <select id="font-size"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>22</option><option>24</option></select>
           <p id="settings-status" role="status"></p>
+        </section>
+        <section id="context-panel" role="tabpanel" aria-labelledby="context-tab" hidden>
+          <label for="context-target">Context target (bytes; 0 = 400,000)</label>
+          <input id="context-target" type="number" min="0" step="1" value="0" />
+          <label for="log-retention">Saved log events (0 = all)</label>
+          <input id="log-retention" type="number" min="0" step="1" value="0" />
         </section>
       </aside>
       <div class="drag-bar" id="sidebar-drag" role="separator" aria-label="Sidebar width" aria-orientation="vertical" tabindex="0"></div>

@@ -17,12 +17,17 @@ func apply(c *common.Context, e common.Event) {
 		if e.Message.Actor == common.System || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending")) {
 			c.Ephemera = append(c.Ephemera, e.Message.Parts...)
 		} else {
-			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: e.Message.Actor, Parts: e.Message.Parts})
+			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: e.Message.Actor, Parts: e.Message.Parts})
 		}
 		if c.Turn == "idle" || c.Turn == "interrupted" {
 			c.Turn = "input_pending"
 		}
 	case "request_sent":
+		c.SentThrough = e.Seq - 1
+		if c.StartupTools == nil && e.Request.StartupTools != nil {
+			c.StartupTools = e.Request.StartupTools
+			c.Tools = append([]common.ToolDeclaration(nil), (*c.StartupTools)...)
+		}
 		c.Ephemera = nil // consumption is logged, so replay knows it was delivered once.
 		if c.Turn == "input_pending" || c.Turn == "idle" {
 			c.Turn = "in_flight"
@@ -30,7 +35,7 @@ func apply(c *common.Context, e common.Event) {
 	// Usage and dialogue are derived from the same completed response fact.
 	// A failed HTTP exchange records ErrorOccurred and never reaches this arm.
 	case "response_ended":
-		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.AgentActor, Parts: e.Response.Parts})
+		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: common.AgentActor, Parts: e.Response.Parts})
 		c.Usage.Input += e.Response.Usage.Input
 		c.Usage.CacheWrite += e.Response.Usage.CacheWrite
 		c.Usage.CacheRead += e.Response.Usage.CacheRead
@@ -54,10 +59,22 @@ func apply(c *common.Context, e common.Event) {
 		if e.Tool.Job != nil {
 			p.Ref = e.Tool.Job.Output
 		}
-		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.Tool, Parts: []common.Part{p}})
+		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: common.Tool, Parts: []common.Part{p}})
 		if c.Turn == "tools_pending" && toolsComplete(c.Dialogue) {
 			c.Turn = "input_pending"
 		}
+		if toolsComplete(c.Dialogue) {
+			for _, held := range c.Held {
+				land(c, held)
+			}
+			c.Held = nil
+		}
+	case "skill_loaded":
+		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindSkill, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Skill.Body}}})
+	case "micro_handoff":
+		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindHandoff, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Handoff.Text}}})
+	case "tools_changed":
+		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindTools, Actor: common.System, Parts: []common.Part{{Type: "tool_decls", Added: e.Tools.Added, Removed: e.Tools.Removed}}})
 	case "redacted":
 		redact(c, e.Redact)
 	case "error_occurred", "turn_ended":
@@ -98,7 +115,7 @@ func redact(c *common.Context, r *common.RedactData) {
 	var out []common.Entry
 	summarized := false
 	for _, entry := range c.Dialogue {
-		if entry.Seq < r.From || entry.Seq > r.To {
+		if entry.Seq < r.From || entry.Seq > r.To || entry.Kind > common.KindDialogue {
 			out = append(out, entry)
 			continue
 		}
@@ -118,17 +135,11 @@ func redact(c *common.Context, r *common.RedactData) {
 			// its own Ref rather than losing addresses in one combined string.
 			case "redact_result":
 				if p.Type == "tool_result" {
-					var stubs []common.Part
-					for _, old := range p.Parts {
-						// Count serialized part bytes, not guessed tokens. Replaying the
-						// same event then produces the same useful deletion marker.
-						encoded, _ := json.Marshal(old)
-						if old.Ref.Kind == 0 {
-							old.Ref = p.Ref
-						}
-						stubs = append(stubs, common.Part{Type: "redacted", Stub: fmt.Sprintf("[redacted %d bytes]", len(encoded)), Ref: old.Ref})
-					}
-					p.Parts = stubs
+					encoded, _ := json.Marshal(p.Parts)
+					// Stubs deliberately name no output path: job handles may be reused
+					// after restart. The original call remains the recovery instruction.
+					p.Parts = []common.Part{{Type: "redacted", Stub: fmt.Sprintf("[redacted %d bytes; rerun the tool to recover]", len(encoded))}}
+					p.Ref = common.Ref{}
 				}
 			case "redact_tool":
 				if p.Type == "tool_call" || p.Type == "tool_result" {
@@ -142,7 +153,43 @@ func redact(c *common.Context, r *common.RedactData) {
 			parts = append(parts, p)
 		}
 		entry.Parts = parts
-		out = append(out, entry)
+		if len(parts) > 0 {
+			out = append(out, entry)
+		}
 	}
 	c.Dialogue = out
+}
+
+// Holding survivors preserves call/result pairing even under serial dispatch:
+// another call from this same model reply may still be waiting to start.
+func survivor(c *common.Context, entry common.Entry) {
+	if !toolsComplete(c.Dialogue) {
+		c.Held = append(c.Held, entry)
+		return
+	}
+	land(c, entry)
+}
+func land(c *common.Context, entry common.Entry) {
+	if entry.Kind == common.KindTools {
+		for _, part := range entry.Parts {
+			names := map[string]bool{}
+			for _, name := range part.Removed {
+				names[name] = true
+			}
+			for _, d := range part.Added {
+				names[d.Name] = true
+			}
+			var kept []common.ToolDeclaration
+			for _, d := range c.Tools {
+				if !names[d.Name] {
+					kept = append(kept, d)
+				}
+			}
+			c.Tools = append(kept, part.Added...)
+		}
+	}
+	if entry.Kind == common.KindHandoff {
+		redact(c, &common.RedactData{From: 0, To: ^uint64(0), Level: "redact_tool"})
+	}
+	c.Dialogue = append(c.Dialogue, entry)
 }

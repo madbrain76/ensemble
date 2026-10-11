@@ -23,6 +23,7 @@ type history struct {
 	events  []common.Event
 	context common.Context
 	asOf    uint64
+	journal string
 }
 
 // An empty history starts Idle. Explicit initialization keeps the zero string
@@ -66,7 +67,10 @@ func (h *history) Append(e common.Event) error {
 			}
 		}
 	}
-	if err := validate(e); err != nil {
+	if err := validateFor(&h.context, e); err != nil {
+		return err
+	}
+	if err := h.journalEvent(e); err != nil {
 		return err
 	}
 	h.events = append(h.events, e)
@@ -109,8 +113,8 @@ func (h *history) Load(r io.Reader) error {
 				if err := json.Unmarshal(line, &e); err != nil {
 					return err
 				}
-				if err := validate(e); err != nil {
-					return err
+				if !knownEvent(e.Type) {
+					return fmt.Errorf("unknown event type %q", e.Type)
 				}
 				// Preserve recorded numbers instead of renumbering imported facts.
 				// Gaps are harmless; duplicates or reversal make redaction ambiguous.
@@ -118,7 +122,7 @@ func (h *history) Load(r io.Reader) error {
 					return errors.New("log seq must ascend")
 				}
 				next.events = append(next.events, e)
-				apply(&next.context, e)
+				next.replay(e)
 				next.asOf = e.Seq
 			}
 			first = false
@@ -159,7 +163,7 @@ func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
 	// Require both one payload and the payload appropriate for the tag.
 	count := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil} {
 		if present {
 			count++
 		}
@@ -179,6 +183,19 @@ func validate(e common.Event) error {
 			return fmt.Errorf("unknown actor %q", e.Message.Actor)
 		}
 		parts = e.Message.Parts
+	case "skill_loaded":
+		if e.Skill == nil || e.Skill.Name == "" {
+			return errors.New("skill payload missing")
+		}
+	case "micro_handoff":
+		if e.Handoff == nil || strings.TrimSpace(e.Handoff.Text) == "" {
+			return errors.New("handoff text missing")
+		}
+	case "tools_changed":
+		if e.Tools == nil {
+			return errors.New("tools payload missing")
+		}
+		return validateDeclarations(e.Tools.Added)
 	case "request_sent":
 		if e.Request == nil {
 			return errors.New("request payload missing")
@@ -236,6 +253,10 @@ func provenance(p common.Provenance) error {
 func validateParts(parts []common.Part) error {
 	for _, p := range parts {
 		switch p.Type {
+		case "tool_decls":
+			if err := validateDeclarations(p.Added); err != nil {
+				return err
+			}
 		case "text":
 		case "blob":
 			if p.Ref.Kind < common.RefPath || p.Ref.Kind > common.RefHandle || p.Ref.Locator == "" {
@@ -282,4 +303,46 @@ func (h *history) LastSeq() uint64 {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	return h.asOf
+}
+
+// Unknown vocabulary is refused; malformed familiar facts are diagnosed and
+// skipped atomically. Validation never mutates the projected context.
+func knownEvent(kind string) bool {
+	switch kind {
+	case "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed":
+		return true
+	}
+	return false
+}
+func validateDeclarations(declarations []common.ToolDeclaration) error {
+	for _, d := range declarations {
+		if d.Name == "" || !json.Valid(d.Schema) {
+			return errors.New("invalid tool declaration")
+		}
+	}
+	return nil
+}
+func validateFor(c *common.Context, e common.Event) error {
+	if err := validate(e); err != nil {
+		return err
+	}
+	if e.Redact != nil {
+		if e.Redact.From > e.Redact.To {
+			return errors.New("reversed redaction span")
+		}
+		for _, entry := range c.Dialogue {
+			if entry.Seq >= e.Redact.From && entry.Seq <= e.Redact.To {
+				return nil
+			}
+		}
+		return errors.New("redaction names no surviving entry")
+	}
+	return nil
+}
+func (h *history) replay(e common.Event) {
+	if err := validateFor(&h.context, e); err != nil {
+		h.parent.Ensemble().Logf("restore: skipped event %d: %v", e.Seq, err)
+		return
+	}
+	apply(&h.context, e)
 }

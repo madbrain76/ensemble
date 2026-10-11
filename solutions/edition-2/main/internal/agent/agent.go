@@ -230,3 +230,17 @@ func (a *agent) definition(name string, automatic bool) *common.ToolDefinition {
 	}
 	return nil
 }
+
+// SetContextSettings preserves zero defaults and clamps positive targets to the teaching floor.
+func (a *agent) SetContextSettings(target, retention int) error {
+	if target < 0 || retention < 0 {
+		return fmt.Errorf("context settings must be nonnegative")
+	}
+	if target > 0 {
+		target = max(20000, target)
+	}
+	a.configMu.Lock()
+	defer a.configMu.Unlock()
+	a.config.ContextTarget, a.config.LogRetention = target, retention
+	return nil
+}

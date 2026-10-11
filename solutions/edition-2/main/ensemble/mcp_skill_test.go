@@ -50,7 +50,7 @@ for line in sys.stdin:
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	body, err := a.Invoke(ctx, "load_skill", json.RawMessage(`{"name":"remote"}`))
-	if err != nil || !strings.Contains(body, "echo") {
+	if err != nil || !strings.Contains(body, "Loaded skill remote") {
 		t.Fatalf("load %q %v", body, err)
 	}
 	if !slices.Contains(toolNames(a), "echo") || slices.Contains(toolNames(a), "forbidden") {

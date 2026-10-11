@@ -360,7 +360,11 @@ function applyTheme() {
     (scheme.matches ? "dark" : "light") : theme.value;
 }
 scheme.addEventListener("change", applyTheme);
+const contextTarget = document.querySelector("#context-target");
+const logRetention = document.querySelector("#log-retention");
 function applySettings(settings) {
+  contextTarget.value = settings.context_target;
+  logRetention.value = settings.log_retention;
   theme.value = settings.theme;
   applyTheme();
   voice.checked = settings.tts_enabled;
@@ -376,6 +380,8 @@ function applySettings(settings) {
 }
 for (const [control, field, value] of [
   [theme, "theme", () => theme.value],
+  [contextTarget, "context_target", () => Number(contextTarget.value)],
+  [logRetention, "log_retention", () => Number(logRetention.value)],
   [voice, "tts_enabled", () => voice.checked],
   [speed, "tts_speed", () => Number(speed.value)],
   [font, "font_size", () => Number(font.value)],

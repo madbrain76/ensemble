@@ -119,6 +119,9 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
 	}
 	a := agent.New(e, cfg)
+	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
+		return nil, err
+	}
 	a.AttachEngine(engine.New(a))
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))

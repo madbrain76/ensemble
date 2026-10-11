@@ -147,6 +147,10 @@ const (
 
 // ModelFeatures describes known media inputs and incremental delivery channels.
 type ModelFeatures struct {
+	// InlineTools permits declaration changes in the dialogue without rewriting the prefix.
+	InlineTools bool
+	// StubsToolResults lets the model retain a batch explicitly before automatic stubbing.
+	StubsToolResults bool
 	// Media is the explicitly supported input-category bit set.
 	Media Media
 	// Stream identifies the channels this model can deliver incrementally.

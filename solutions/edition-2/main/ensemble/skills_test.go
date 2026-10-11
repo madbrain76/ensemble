@@ -98,7 +98,7 @@ func TestSkillsThroughLoop(t *testing.T) {
 	root := ensemble.New(io.Discard)
 	a := skillAgent(t, root, dir, "base", server.URL)
 	other := skillAgent(t, root, dir, "base", server.URL)
-	if got := toolNames(a); !reflect.DeepEqual(got, []string{"read_file", "load_skill", "unload_skill"}) {
+	if got := toolNames(a); !reflect.DeepEqual(got, []string{"read_file", "micro_handoff", "keep_tool_results", "load_skill", "unload_skill"}) {
 		t.Fatalf("initial declarations: %v", got)
 	}
 	if got := a.Skills().LoadableSkills(); !reflect.DeepEqual(got, []string{"code"}) {
@@ -128,7 +128,7 @@ func TestSkillsThroughLoop(t *testing.T) {
 			t.Errorf("missing dynamic %q: %s", fragment, wire)
 		}
 	}
-	for _, name := range []string{"write_file", "list_directory", "search_files"} {
+	for _, name := range []string{"list_directory", "search_files"} {
 		if !slices.Contains(toolNames(a), name) {
 			t.Errorf("tool not enabled: %s", name)
 		}
@@ -143,7 +143,7 @@ func TestSkillsThroughLoop(t *testing.T) {
 	if len(a.Skills().LoadableSkills()) != 0 {
 		t.Fatal("loaded or hidden skills still offered")
 	}
-	if !reflect.DeepEqual(toolNames(other), []string{"read_file", "load_skill", "unload_skill"}) {
+	if !reflect.DeepEqual(toolNames(other), []string{"read_file", "micro_handoff", "keep_tool_results", "load_skill", "unload_skill"}) {
 		t.Fatal("skills leaked between Agents")
 	}
 	if meta, ok := a.Skills().ToolMeta("read_file"); !ok || meta.Source != ensemble.SourceInitial || meta.EventSeq != 0 {
@@ -155,8 +155,8 @@ func TestSkillsThroughLoop(t *testing.T) {
 			seq = event.Seq
 		}
 	}
-	if meta, ok := a.Skills().ToolMeta("write_file"); !ok || meta.Source != ensemble.SourceDynamic || meta.EventSeq != seq || seq == 0 {
-		t.Fatalf("dynamic provenance: %+v, expected %d", meta, seq)
+	if _, ok := a.Skills().ToolMeta("write_file"); ok || seq == 0 {
+		t.Fatalf("unloaded compiled tool remained enabled; load seq %d", seq)
 	}
 }
 

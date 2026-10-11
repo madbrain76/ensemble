@@ -174,8 +174,8 @@ func TestRegistryDeclarationsAndIsolation(t *testing.T) {
 			if present != enabled {
 				t.Fatalf("%s registry enabled=%t tools present=%t", vendor, enabled, present)
 			}
-			if enabled && len(a.Declarations()) != 10 {
-				t.Fatal("registry lacks ten tools")
+			if enabled && len(a.Declarations()) != 12 {
+				t.Fatal("registry lacks twelve tools")
 			}
 		}
 	}

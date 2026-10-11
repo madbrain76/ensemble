@@ -33,6 +33,10 @@ type Config struct {
 	// MaxToolRounds permits this many dispatched batches per human turn; zero selects
 	// 200.
 	MaxToolRounds int
+	// ContextTarget is the tool-byte policy target; zero selects 400,000 bytes.
+	ContextTarget int
+	// LogRetention keeps this many saved events; zero preserves all.
+	LogRetention int
 	// DisableStreaming selects length-one delivery even for known streaming models.
 	DisableStreaming bool
 }
@@ -131,6 +135,10 @@ type Part struct {
 	IsError bool `json:"is_error,omitempty"`
 	// Stub is the visible replacement for bytes removed from the projection.
 	Stub string `json:"stub,omitempty"`
+	// Added and Removed carry a declaration delta, never executable tool traffic.
+	Added []ToolDeclaration `json:"added,omitempty"`
+	// Removed identifies declarations withdrawn at this position in the dialogue.
+	Removed []string `json:"removed,omitempty"`
 }
 
 // The arrival site reports the speaker and parts. Only the reducer decides
@@ -147,6 +155,8 @@ type MessageData struct {
 type RequestData struct {
 	// To identifies the target whose request consumed pending ephemera.
 	To Provenance `json:"to"`
+	// StartupTools records the initial prefix on the first request, including an empty set.
+	StartupTools *[]ToolDeclaration `json:"startup_tools,omitempty"`
 }
 
 // Parts retain the model's text/call order. ToolCalled records dispatch later;
@@ -223,11 +233,19 @@ type Event struct {
 	Error *ErrorData `json:"error,omitempty"`
 	// Job records an explicit job kill and its reason.
 	Job *JobKilledData `json:"job,omitempty"`
+	// Skill retains instructions independently of the loading tool result.
+	Skill *SkillData `json:"skill,omitempty"`
+	// Handoff records the actor's checkpoint independently of its call arguments.
+	Handoff *MicroHandoffData `json:"handoff,omitempty"`
+	// Tools records a change in available declarations after the frozen prefix.
+	Tools *ToolsChangedData `json:"tools,omitempty"`
 }
 
 // Seq connects projected content back to its original event. It survives
 // category filtering and supplies stable IDs when a provider omitted one.
 type Entry struct {
+	// Kind names the lifetime of this entry; zero in older saves means dialogue.
+	Kind EntryKind `json:"kind"`
 	// Seq refers back to the original fact even after projection rewrites.
 	Seq uint64 `json:"seq"`
 	// Actor retains authorship independently of provider role spelling.
@@ -240,6 +258,14 @@ type Entry struct {
 // projection; the Engine separately measures exchanges made in this process.
 // Ephemera is pending delivery, never a second retained conversation slice.
 type Context struct {
+	// Held waits for all current calls to have results before landing survivors.
+	Held []Entry `json:"held,omitempty"`
+	// StartupTools preserves the first request's declarations for inline-tool models.
+	StartupTools *[]ToolDeclaration `json:"startup_tools,omitempty"`
+	// Tools is the current declaration set derived from startup plus recorded deltas.
+	Tools []ToolDeclaration `json:"tools,omitempty"`
+	// SentThrough is the last fact already presented, protecting unseen results from cuts.
+	SentThrough uint64 `json:"sent_through,omitempty"`
 	// Turn is reducer state, including interrupted as a terminal turn state.
 	Turn string `json:"turn"`
 	// Dialogue contains retained projected entries in causal order.
@@ -274,6 +300,8 @@ type Agent interface {
 	Ensemble() Ensemble
 	// SetMaxToolRounds sets the next turn budget; zero selects default 200.
 	SetMaxToolRounds(int) error
+	// SetContextSettings updates tool-byte and saved-log policy on the owning Agent.
+	SetContextSettings(target, retention int) error
 	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config
 	// Engine reaches the transport and measured usage through the owning Agent.
@@ -443,6 +471,10 @@ type Job interface {
 // Context returns an independent snapshot. Append/Load are offline operations;
 // live clients send facts through Agent.Record so one actor owns their ordering.
 type History interface {
+	// Recover restores snapshot plus journal and enables journaling for subsequent facts.
+	Recover(path string) error
+	// Checkpoint writes a backed-up snapshot before trimming its journal.
+	Checkpoint(path string) error
 	// Restore installs a save snapshot and reduces only its newer events.
 	Restore(io.Reader) error
 	// Save writes the four-field persistence object under the history lock.
@@ -468,6 +500,8 @@ type History interface {
 // private to Engine, so adding a vendor cannot impose its roles on clients.
 // Send returns facts; the Agent appends them through the same history door.
 type Engine interface {
+	// Features returns capabilities of this Agent's selected model.
+	Features() ModelFeatures
 	// Agent returns the required owning Agent rather than a copied service bundle.
 	Agent() Agent
 	// Send performs one HTTP exchange from rendered bytes and returns normalized facts.

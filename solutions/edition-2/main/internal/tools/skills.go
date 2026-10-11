@@ -10,8 +10,8 @@ import (
 func SkillTools() []common.ToolDefinition {
 	schema := json.RawMessage(`{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}`)
 	return []common.ToolDefinition{
-		{ToolDeclaration: common.ToolDeclaration{Name: "load_skill", Description: "Load an available skill and its dependencies. Returns its instructions and enables its tools.", Schema: schema}, Run: loadSkill},
-		{ToolDeclaration: common.ToolDeclaration{Name: "unload_skill", Description: "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.", Schema: schema}, Run: unloadSkill},
+		{ToolDeclaration: common.ToolDeclaration{Name: "load_skill", Description: "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.", Schema: schema}, Run: loadSkill},
+		{ToolDeclaration: common.ToolDeclaration{Name: "unload_skill", Description: "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.", Schema: schema}, Run: unloadSkill},
 	}
 }
 
@@ -23,7 +23,14 @@ func loadSkill(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	if err := decode(raw, &args, "name"); err != nil {
 		return "", err
 	}
-	return owner.Agent().Skills().LoadDynamic(args.Name, owner.EventSeq())
+	body, err := owner.Agent().Skills().LoadDynamic(args.Name, owner.EventSeq())
+	if err != nil {
+		return "", err
+	}
+	if err := owner.Agent().Record(common.Event{Type: "skill_loaded", Skill: &common.SkillData{Name: args.Name, Body: body}}); err != nil {
+		return "", err
+	}
+	return "Loaded skill " + args.Name + ".", nil
 }
 
 func unloadSkill(owner common.ToolContext, raw json.RawMessage) (string, error) {
@@ -37,5 +44,5 @@ func unloadSkill(owner common.ToolContext, raw json.RawMessage) (string, error) 
 	if err := owner.Agent().Skills().MarkUnload(args.Name); err != nil {
 		return "", err
 	}
-	return "Skill " + args.Name + " is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now.", nil
+	return "Skill " + args.Name + " is pending instruction removal at the next compaction; its tools and servers are disconnected now.", nil
 }

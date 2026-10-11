@@ -62,6 +62,8 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 	// Lifecycle tools remain available even for a deliberately tiny primary.
 	r.tools["load_skill"] = common.ToolMeta{Source: common.SourceInitial}
 	r.tools["unload_skill"] = common.ToolMeta{Source: common.SourceInitial}
+	r.tools["micro_handoff"] = common.ToolMeta{Source: common.SourceInitial}
+	r.tools["keep_tool_results"] = common.ToolMeta{Source: common.SourceInitial}
 	r.RegisterVar("TOOLS", func() string {
 		var lines []string
 		for _, d := range r.parent.Declarations() {
@@ -256,8 +258,27 @@ func (r *registry) MarkUnload(name string) error {
 		return fmt.Errorf("skill %q is not loaded", name)
 	}
 	r.pending[name] = true
-	// Chapter 12 stops external server lifetimes now; compiled grants and body
-	// removal remain pending until the later compaction exercise.
+	// Instructions remain in context, but only non-pending skills grant tools.
+	// Shared grants survive while another loaded skill still owns them.
+	for tool := range r.tools {
+		if tool == "load_skill" || tool == "unload_skill" || tool == "micro_handoff" || tool == "keep_tool_results" {
+			continue
+		}
+		granted := false
+		for skillName := range r.loaded {
+			if r.pending[skillName] {
+				continue
+			}
+			for _, name := range r.all[skillName].tools {
+				if name == tool {
+					granted = true
+				}
+			}
+		}
+		if !granted {
+			delete(r.tools, tool)
+		}
+	}
 	return r.parent.MCP().StopSkill(name)
 }
 

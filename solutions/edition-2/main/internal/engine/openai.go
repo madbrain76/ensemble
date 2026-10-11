@@ -43,6 +43,9 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 	messages := []openAIMessage{{Role: "system", Content: &system}}
 	for _, entry := range entries(c) {
 		role := "user"
+		if entry.Kind == common.KindSkill {
+			role = "system"
+		}
 		if entry.Actor == common.AgentActor {
 			role = "assistant"
 		}
@@ -61,6 +64,8 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 				return nil, err
 			}
 			switch p.Type {
+			case "tool_decls":
+				continue
 			case "blob":
 				block, err := e.openAIBlob(p)
 				if err != nil {
@@ -118,7 +123,7 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 		}
 	}
 	var tools []map[string]any
-	for _, d := range e.parent.Declarations() {
+	for _, d := range e.declarations(c) {
 		tools = append(tools, map[string]any{"type": "function", "function": map[string]any{"name": d.Name, "description": d.Description, "parameters": d.Schema}})
 	}
 	var streamOptions map[string]bool

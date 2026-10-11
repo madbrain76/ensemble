@@ -44,6 +44,9 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 	messages := []anthropicMessage{}
 	for _, entry := range entries(c) {
 		role := "user"
+		if entry.Kind == common.KindTools && e.Features().InlineTools {
+			role = "system"
+		}
 		if entry.Actor == common.AgentActor {
 			role = "assistant"
 		}
@@ -88,7 +91,7 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 	}
 	// Declaration spelling stays here beside the matching call/result spelling.
 	var tools []map[string]any
-	for _, d := range e.parent.Declarations() {
+	for _, d := range e.declarations(c) {
 		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
 	}
 	features, _ := LookupModel(e.parent.Config().Model)
@@ -123,6 +126,18 @@ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.R
 		}
 		b := anthropicBlock{}
 		switch p.Type {
+		case "tool_decls":
+			if e.Features().InlineTools {
+				for _, name := range p.Removed {
+					raw, _ := json.Marshal(map[string]any{"type": "tool_removal", "tool": map[string]string{"type": "tool_reference", "name": name}})
+					out = append(out, raw)
+				}
+				for _, d := range p.Added {
+					raw, _ := json.Marshal(map[string]any{"type": "tool_addition", "tool": map[string]any{"type": "tool_definition", "definition": map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema}}})
+					out = append(out, raw)
+				}
+			}
+			continue
 		case "blob":
 			data, err := e.blob(p)
 			if err != nil {

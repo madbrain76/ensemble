@@ -15,6 +15,10 @@ import (
 // turn an omitted attachment into a plausible but misleading answer.
 func LookupModel(model string) (common.ModelFeatures, bool) {
 	switch model {
+	case "claude-opus-5-course":
+		return common.ModelFeatures{InlineTools: true, StubsToolResults: true}, true
+	case "claude-sonnet-5-course":
+		return common.ModelFeatures{}, true
 	case "claude-haiku-5-5", "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5", "claude-sonnet-5":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
 	case "claude-3-haiku-20240307":

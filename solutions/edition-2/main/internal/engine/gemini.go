@@ -70,6 +70,8 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 			}
 			part := geminiPart{}
 			switch p.Type {
+			case "tool_decls":
+				continue
 			case "blob":
 				data, err := e.blob(p)
 				if err != nil {
@@ -127,7 +129,7 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 		}
 	}
 	var declarations []map[string]any
-	for _, d := range e.parent.Declarations() {
+	for _, d := range e.declarations(c) {
 		declarations = append(declarations, map[string]any{"name": d.Name, "description": d.Description, "parameters": d.Schema})
 	}
 	var tools []map[string]any
