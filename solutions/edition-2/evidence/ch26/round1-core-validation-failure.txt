@@ -1,0 +1,18 @@
+--- FAIL: TestFleetRecursiveQuestionsIsolation (0.29s)
+    fleet_test.go:166: recursive fleet: "ROOT_RESULT" event requires one payload
+--- FAIL: TestFleetMessageWakesWaitAndRetainsResult (1.17s)
+    fleet_test.go:316: {finished event requires one payload}
+--- FAIL: TestFleetJoinQuestionYield (0.10s)
+    fleet_test.go:456: event requires one payload
+--- FAIL: TestFleetSameNameQuestionCorrelation (0.10s)
+    fleet_test.go:543: event requires one payload
+--- FAIL: TestManagementInterruptModesAndAsk (0.33s)
+    --- FAIL: TestManagementInterruptModesAndAsk/now (0.07s)
+        management_test.go:274: interrupt killed child event requires one payload event requires one payload
+    --- FAIL: TestManagementInterruptModesAndAsk/after_tool (0.26s)
+        management_test.go:274: interrupt killed child event requires one payload event requires one payload
+--- FAIL: TestNamedRegistryRestartAndTree (0.03s)
+    registry_test.go:45: event requires one payload
+FAIL
+FAIL	ensemble/ensemble	3.116s
+FAIL

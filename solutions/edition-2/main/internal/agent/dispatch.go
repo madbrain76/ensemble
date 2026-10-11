@@ -12,7 +12,11 @@ func (r *runtime) dispatch() {
 	t := r.active
 	if len(t.calls) == 0 {
 		if status := r.owner.fleet.Status(); status.State == "submitted" {
-			r.finish(status.Result, nil)
+			// A normal tool result prepares another request. Submission instead
+			// ends this turn after the whole batch drains; retain that fact so
+			// selection and restart do not resurrect input_pending work.
+			err := r.append(common.Event{Type: "turn_ended"})
+			r.finish(status.Result, err)
 			return
 		}
 		if t.checkpoint {

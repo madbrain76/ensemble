@@ -1,0 +1,10 @@
+Correction to initial submission 944c6ee; parent review 1faddb5.
+Real-runtime + WS completed/restart/in-flight regression: race PASS 1.166s.
+Affected fleet/management/registry/history/replay/save: race PASS 5.235s.
+Reducer/TurnTransitions/LoadRefuses/BadSave: race PASS 1.050s.
+Full optional GUI module: race PASS 11.067s.
+Core and GUI go vet ./...: exit0.
+gofmt -l changed Go files: no output.
+git diff --check owned paths: exit0.
+Two clean intended mutation failures; no survivors.
+Original live evidence unchanged; no paid rerun.

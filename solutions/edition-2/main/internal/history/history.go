@@ -161,12 +161,17 @@ func (h *history) Dump(w io.Writer) error {
 // vocabulary fails at the boundary instead of being silently skipped.
 func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
-	// Require both one payload and the payload appropriate for the tag.
+	// Require one matching payload, except for successful turn completion.
 	count := 0
 	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.Recall != nil} {
 		if present {
 			count++
 		}
+	}
+	// Completion is also a fact when there is no failure to attach. Keep the
+	// existing error payload for failed endings and reject other payloads below.
+	if e.Type == "turn_ended" && count == 0 {
+		return nil
 	}
 	if count != 1 {
 		return errors.New("event requires one payload")

@@ -1,0 +1,5 @@
+--- FAIL: TestSelectionSubmittedTurnState (0.04s)
+    selection_test.go:63: DONE event requires one payload
+FAIL
+FAIL	ensemble-gui-stub	0.049s
+FAIL

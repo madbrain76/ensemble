@@ -1,0 +1,5 @@
+--- FAIL: TestSelectionSubmittedTurnState (0.13s)
+    selection_test.go:107: request in flight selected state = idle, want in_flight
+FAIL
+FAIL	ensemble-gui-stub	0.140s
+FAIL

@@ -1,0 +1,20 @@
+[
+  {
+    "mutation": "missing_completion",
+    "file": "internal/agent/dispatch.go",
+    "before": "err := r.append(common.Event{Type: \"turn_ended\"})",
+    "after": "var err error",
+    "exit": 1,
+    "intended_failure": true,
+    "expected_diagnostic": "completed retained turn = input_pending"
+  },
+  {
+    "mutation": "idle_mask",
+    "file": "gui/gui.go",
+    "before": "state := s.agent.History().Context().Turn",
+    "after": "state := \"idle\"",
+    "exit": 1,
+    "intended_failure": true,
+    "expected_diagnostic": "request in flight selected state = idle, want in_flight"
+  }
+]

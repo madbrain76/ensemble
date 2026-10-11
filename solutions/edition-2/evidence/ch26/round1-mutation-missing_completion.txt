@@ -1,0 +1,10 @@
+--- FAIL: TestSelectionSubmittedTurnState (0.13s)
+    selection_test.go:90: completed retained turn = input_pending, want idle
+    selection_test.go:90: completed selected state = input_pending, want idle
+    selection_test.go:99: restarted retained turn = input_pending, want idle
+    selection_test.go:99: restarted selected state = input_pending, want idle
+    selection_test.go:112: next completion retained turn = input_pending, want idle
+    selection_test.go:112: next completion selected state = input_pending, want idle
+FAIL
+FAIL	ensemble-gui-stub	0.140s
+FAIL
