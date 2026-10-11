@@ -1,0 +1,52 @@
+go run ./cmd/grade -ch 24 /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-original-grade-cs0x242a
+usage: ensemble [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+usage: ensemble [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | dump | render LOG | prompt TEXT | --mcp-pipe]
+Chapter 24 — Freeing the GUI
+============================================================
+
+[FAIL]      A root-only consumer links no GUI package and no websocket library  (0/20)
+       external probe module could not be assembled: probe build failed:
+       guiapp/main.go:11:2: package ensemble/gui is not in std
+       (/usr/local/go/src/ensemble/gui) guiapp/main.go:10:2: import
+       "ensemble" is a program, not an importable package
+       headless/main.go:6:2: import "ensemble" is a program, not an
+       importable package
+
+[FAIL]      An application outside the module serves the GUI with fake hooks, and a planted event replays to a browser  (0/15)
+       external probe module could not be assembled: probe build failed:
+       guiapp/main.go:11:2: package ensemble/gui is not in std
+       (/usr/local/go/src/ensemble/gui) guiapp/main.go:10:2: import
+       "ensemble" is a program, not an importable package
+       headless/main.go:6:2: import "ensemble" is a program, not an
+       importable package
+
+[FAIL]      The browser wire protocol is unchanged: a ch22-style scripted session still works  (0/15)
+       agent never opened its GUI port
+
+[FAIL]      The binary serves the GUI from an unrelated working directory  (0/15)
+       binary never opened its GUI port
+
+[FAIL]      A consumer mounts the Artifact scroll from the exported FS without adopting index.html  (0/10)
+       external probe module could not be assembled: probe build failed:
+       guiapp/main.go:11:2: package ensemble/gui is not in std
+       (/usr/local/go/src/ensemble/gui) guiapp/main.go:10:2: import
+       "ensemble" is a program, not an importable package
+       headless/main.go:6:2: import "ensemble" is a program, not an
+       importable package
+
+[FAIL]      MCP is in the headless closure without gorilla; virtual-user still dials through mcpws  (0/15)
+       external probe module could not be assembled: probe build failed:
+       guiapp/main.go:11:2: package ensemble/gui is not in std
+       (/usr/local/go/src/ensemble/gui) guiapp/main.go:10:2: import
+       "ensemble" is a program, not an importable package
+       headless/main.go:6:2: import "ensemble" is a program, not an
+       importable package
+
+[FAIL]      The framework root exports no websocket-typed symbols and imports neither gui nor gorilla  (0/10)
+       positive control failed: the scanner never saw func NewAgent( in the
+       root package; it is not reading the right files
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

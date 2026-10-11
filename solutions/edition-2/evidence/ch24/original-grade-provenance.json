@@ -1,0 +1,22 @@
+{
+  "source_commit": "35df549210130f824fdc2a4eb632ea878b2c529b",
+  "main_tree": "5b36f28cbc8bac320febe1a9afa810efd27452e3",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=24",
+    "DIR=/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-original-grade-cs0x242a"
+  ],
+  "isolated_exact_export": true,
+  "started_utc": "2026-10-11T17:54:59.298261+00:00",
+  "external_bound_seconds": 300,
+  "environment_note": "Inherited provider keys, selections and EN_HOME omitted; unchanged grader supplies local fake endpoint and dummy credentials.",
+  "timed_out": false,
+  "process_exit": 2,
+  "elapsed_seconds": 20.89,
+  "ended_utc": "2026-10-11T17:55:20.188088+00:00",
+  "raw_sha256": "48d4a4003021e97c66e520ce7f5c2e657dcfdd96c403e3bd2289fafe63dc00bb",
+  "grader_exit": 1,
+  "score": "0/100 FAIL",
+  "limitation": "External probes assume an importable root and same-module GUI; two GUI checks launch the headless executable; root scanner misses method-based construction. Valid obligations require independent supplemental evidence; no exception is preaccepted."
+}
