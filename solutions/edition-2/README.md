@@ -2,7 +2,7 @@
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
 Chapters **1–20 are accepted**. [`main/`](main/) is the authoritative working
-tree. The team is stopped before original Chapter 22 for Bill’s placement decision.
+tree. Original22 now completes the combined Chapter20 under Bill’s merge authorization.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
@@ -41,7 +41,7 @@ Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Its bounded real codin
 demonstration with GPT-6 Astra/high is accepted; no original20 grader is claimed.
 Original21’s web-search exercise is independently accepted with two narrow
 exceptions; its actual original grade remains 0/100 FAIL. Live search/fetch and
-supplemental verification are recorded in the chapter review. Stop before original22.
+supplemental verification are recorded in the chapter review. The former original22/24 placement stops are lifted; follow the map below.
 
 The revised grader covers enhanced Chapters 1–8, for example:
 
@@ -64,3 +64,13 @@ Old reports describe the original paths and numbering at the time of their runs.
 Snapshot contents, nested example names and relative module replacements are
 unchanged. This table supplies their current numbering. Keep accepted snapshots
 immutable and extend `main/` for new work.
+
+## Remaining chapter mapping
+
+[The authoritative map](../../docs/edition-2-chapter-map.md) absorbs exactly
+original Chapters5,22,24. Original21+22 share `ch20`; original23 uses `ch21`;
+original24+25 share `ch22`; original26 uses `ch23` if complete when25review finishes.
+The existing21-only `ch20` is an accepted intermediate snapshot, preserved in its
+immutable tag; it is replaced by the combined export only after22acceptance.
+Future directories appear only when their combined exercises are accepted.
+First-edition Chapters1–26 therefore map to second-edition Chapters1–23.

@@ -5,6 +5,14 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
+**October 11 merge authorization.** Bill releases the original22/24 placement
+stops and delegates the merges:21+22→Edition2ch20,23→ch21,24+25→ch22,26→ch23
+if completed when25review finishes. Follow `docs/edition-2-chapter-map.md`;
+original exercise/review/evidence numbers stay unchanged. Preserve every valid
+capability and the normal student/reviewer gates. The combinedch20 export may
+replace its prior21-only version after acceptance, preserving the old immutable
+tag. No author phase starts ahead of implementation.
+
 **October 11 model instruction.** Bill selected GPT-6 Astra (`gpt-6-astra`) at
 high reasoning for all coding tasks. Use it for new coding/code-review delegates
 and Ensemble live coding work. This supersedes the earlier GPT-5 Astra name and

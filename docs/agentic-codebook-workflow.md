@@ -1,5 +1,30 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: final merge decisions and released placement gates
+
+Bill said, “Your call,” and authorized autonomous decisions for both original22
+and24, with exactly three fewer chapters and matching solution directories.
+The coordinator read the relevant source in full and chose22into21,24into25.
+See [the chapter map](edition-2-chapter-map.md) for the reasons, preserved
+capabilities and precise export policy. The current sequence is original22→
+completed Edition2ch20, original23→ch21, original24+25→ch22, then original26→ch23
+if complete when25review finishes. Earlier placement-stop passages below are
+historical and superseded. No additional approval is required for these merges.
+
+The21-only ch20 source remains in its existing immutable tag. Replace that direct
+export only after the22work is independently accepted; do not create another
+history directory or symlink. Original24 receives its own implementation/review
+checkpoint before25 but no standalone book-facing directory. At25acceptance,
+verify original26's actual completion, including its manuscript; do not infer
+completion from the newly available frozen solution alone. CodeRhapsody's
+concurrent work stays untouched. Original graders, scores, note/evidence numbers
+and existing tags remain historical; final directory numbers follow the book.
+
+The implementation and comparative review still precede later manuscript/grader
+enhancement. Use GPT-6 Astra/high, current governing documents and every valid
+original exercise obligation; do not recreate refactor defects already prevented
+by the carryover. These are consolidation decisions, not feature removal.
+
 ## Current solution layout — Bill's October 10 correction
 
 Accepted solutions belong directly under `solutions/edition-2/chNN/`, using

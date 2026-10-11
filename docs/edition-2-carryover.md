@@ -1,6 +1,21 @@
 # Edition 2 carryover: lessons for the fresh student
 
-**Current stop, October 11:** original21 / Edition2 ch20 is independently
+**Current authorization, October 11:** Bill delegated both placements and
+authorized autonomous continuation. Adopt21+22→Edition2ch20,23→ch21,24+25→ch22,
+and26→ch23 if complete at25review. The original22/24 stops are lifted. Preserve
+all capabilities in the table below and follow [the chapter map](edition-2-chapter-map.md)
+for review/export stages. Only original5,22,24 disappear as standalone chapters.
+The original exercises remain unchanged and independently reviewed.
+
+Coordinator reread all original22 (586 lines),23 (808),24 (565) and current25
+(582) on October11. Original25 now has revision
+`009d74c70b108681b2107b4c3a08685508567cee`, SHA-256
+`eb09ec25fe8a681479310ffe22f4cf19d0b4eba34bf507dbbfd8181f7302616f`.
+Its GUI fleet panel remains explicitly deferred. Prior coverage describes its
+earlier558-line version; chapter notes retain both. Original26 still lacks a
+complete manuscript at this decision point despite a new frozen source snapshot.
+
+**Historical stop, superseded by the merge authorization below:** original21 / Edition2 ch20 is independently
 accepted with two narrow exceptions; exact source is exported directly to
 `solutions/edition-2/ch20/`. Coder and reviewer are stopped before original22
 for Bill’s placement decision. Original grading remains **0/100 FAIL**; actual

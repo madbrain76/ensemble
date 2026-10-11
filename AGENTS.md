@@ -1,14 +1,24 @@
 # Ensemble student restart
 
-## October 11: stopped before original Chapter 22
+## October 11: remaining merges and autonomous continuation
 
-Original21 / Edition2 ch20 is independently accepted with recorded exceptions.
-The exact accepted export is `solutions/edition-2/ch20/`; main tree is
-`f351d66a7bc456650e05ac6656a7db59bbbd725a`. Coder and reviewer are stopped.
-Wait for Bill to decide the placement of original22 material before further
-implementation or authorship. Do not merge, skip, renumber or advance to23.
-The original24 and author-phase stops remain. Use GPT-6 Astra/high for subsequent
-authorized coding and code review. Preserve CodeRhapsody’s concurrent work.
+Bill delegates both remaining merge decisions and authorizes autonomous work.
+Original22 merges into21 as Edition2ch20; original23 becomesch21; original24
+merges into25 asch22; original26 becomesch23 if complete when25review finishes.
+Together with absorbedoriginal5, Edition2 has exactly three fewer standalone
+chapters. Follow `docs/edition-2-chapter-map.md` for capability preservation,
+review stages and solution exports. The earlier original22/24 placement stops
+are superseded. Preserve CodeRhapsody's ongoing original26 work.
+
+Continue in authoritative main from accepted original21 tree
+`f351d66a7bc456650e05ac6656a7db59bbbd725a`, implementing and reviewing original
+22,23,24,25 in order. Inspect original26 completion at the25review boundary;
+proceed if complete, otherwise retain a resumable checkpoint. Accepted solution
+directories use final Edition2 numbering, with no symlinks or new history paths.
+The combinedch20 replaces its earlier21-only export only after acceptance; its
+prior exact source remains in immutable `edition-2-ch21-r1`. Other frozen exports
+and original sources remain unchanged. Authorship still follows implementation.
+Use GPT-6 Astra/high for all coding and code review.
 
 ## October 11: GPT-6 Astra for coding
 
@@ -61,7 +71,7 @@ Edition 2 numbering, with no symlinks. Original Chapter 5 is absorbed into
 Chapter 4; original Chapters 10–13 are Edition 2 `ch09`–`ch12`. Only the retired
 original `history/ch05/` remains. The coder extends `solutions/edition-2/main/`;
 original Chapters 14–21 are accepted at top-level Edition 2 `ch13/`–`ch20/`.
-Stop before original22 for Bill’s placement decision. The bounded
+Continue under the merge map above. The bounded
 original20 coding crossover succeeded and was independently accepted.
 Never put new accepted solutions in history. Original exercise,
 grader, note, evidence and existing tag numbers remain unchanged; state both
