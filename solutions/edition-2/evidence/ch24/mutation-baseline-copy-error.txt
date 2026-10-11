@@ -1,0 +1,4 @@
+FAIL	ensemble-gui-stub [setup failed]
+FAIL
+# ensemble-gui-stub
+../ensemble/ensemble.go:25:2: package ensemble/internal/memory is not in std (/usr/local/go/src/ensemble/internal/memory)

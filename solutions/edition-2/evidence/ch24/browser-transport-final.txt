@@ -1,0 +1,13 @@
+✔ session meter renders measured usage and unknown price (1397.016916ms)
+▶ peer EOF cancels pending sleep and the actual client can finish
+  ✔ peer keeps normal sleep but exits on EOF during sleep (1755.560875ms)
+  ✔ real client exits after its answer with a sleep job still active (4290.553333ms)
+✔ peer EOF cancels pending sleep and the actual client can finish (6846.8525ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6900.999208

@@ -10,8 +10,8 @@ import (
 
 // ServeMCP relays JSONL requests to one connected browser. The application
 // supplies a listener (normally loopback) and chooses who can reach it. Close
-// stops this listener and its clients. No browser produces a correlated error;
-// a silent browser waits until that browser, client or Server disconnects.
+// stops this listener and its clients. Without a browser, requests receive a
+// correlated error; a silent browser waits until it, the client or Server closes.
 func (s *Server) ServeMCP(listener net.Listener) error {
 	s.mu.Lock()
 	if s.closed {

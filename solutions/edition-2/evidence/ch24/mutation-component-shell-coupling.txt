@@ -1,0 +1,25 @@
+--- FAIL: TestExternalReuse (0.99s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+            reuse_test.go:147: standalone browser: exit status 1
+                node:internal/modules/run_main:107
+                    triggerUncaughtException(
+                    ^
+                
+                page.evaluate: TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:49344/artifact-scroll.js
+                    at /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/components.test.mjs:13:29 {
+                  log: []
+                }
+                
+                Node.js v24.20.0
+        --- FAIL: TestReusableAssets (0.64s)
+        === RUN   TestPublicRelay
+        --- PASS: TestPublicRelay (0.00s)
+        FAIL
+        FAIL	outside.example/reuse	0.662s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	0.998s
+FAIL

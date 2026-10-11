@@ -1,0 +1,14 @@
+--- FAIL: TestExternalReuse (2.36s)
+    reuse_test.go:41: === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.74s)
+        === RUN   TestPublicRelay
+        --- PASS: TestPublicRelay (0.00s)
+        PASS
+        ok  	outside.example/reuse	1.778s
+        
+    reuse_test.go:65: dependency control ensemble: GUI=false WS=true want=false
+FAIL
+FAIL	ensemble-gui-stub	2.363s
+FAIL

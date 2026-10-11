@@ -1,0 +1,15 @@
+--- FAIL: TestExternalReuse (0.94s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.57s)
+        === RUN   TestPublicRelay
+            reuse_test.go:191: no-browser correlated error: map[error:map[code:-32000 message:no browser connected] id:0 jsonrpc:2.0]
+        --- FAIL: TestPublicRelay (0.00s)
+        FAIL
+        FAIL	outside.example/reuse	0.591s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	0.949s
+FAIL

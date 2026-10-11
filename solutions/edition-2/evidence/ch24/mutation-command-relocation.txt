@@ -1,0 +1,5 @@
+--- FAIL: TestSavedBudgetEntry (0.26s)
+    entry_test.go:163: relocated asset /: status=404 bytes=19 err=<nil>
+FAIL
+FAIL	ensemble-gui-stub	0.263s
+FAIL

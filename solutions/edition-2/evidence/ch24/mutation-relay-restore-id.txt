@@ -1,0 +1,15 @@
+--- FAIL: TestExternalReuse (1.00s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.65s)
+        === RUN   TestPublicRelay
+            reuse_test.go:244: relay correlation first: map[id:gui-relay-1 jsonrpc:2.0 result:map[marker:first]]
+        --- FAIL: TestPublicRelay (0.00s)
+        FAIL
+        FAIL	outside.example/reuse	0.672s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	1.009s
+FAIL

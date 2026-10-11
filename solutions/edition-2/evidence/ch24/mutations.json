@@ -1,0 +1,339 @@
+[
+  {
+    "name": "embedded-default",
+    "file": "gui/gui.go",
+    "before": "assets := http.FS(Assets())",
+    "after": "assets := http.FileSystem(http.Dir(\".\"))",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 0,
+    "seconds": 2.668,
+    "intended_failure": "asset status : 404",
+    "observed_intended_failure": false
+  },
+  {
+    "name": "disk-override",
+    "file": "gui/gui.go",
+    "before": "if directory != \"\" {",
+    "after": "if false {",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 0.659,
+    "intended_failure": "disk override did not select",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "asset-root",
+    "file": "gui/assets.go",
+    "before": "fs.Sub(assets, \"web/gui\")",
+    "after": "fs.Sub(assets, \"web\")",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 0.653,
+    "intended_failure": "embedded index.html",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "command-relocation",
+    "file": "gui/cmd/main.go",
+    "before": "flag.String(\"gui-dir\", \"\",",
+    "after": "flag.String(\"gui-dir\", \"web/gui\",",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestSavedBudgetEntry",
+      "-count=1",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 0.467,
+    "intended_failure": "relocated asset /: status=404",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "component-shell-coupling",
+    "file": "gui/web/gui/artifact-scroll.js",
+    "before": "import { markdown,",
+    "after": "import \"./app.js\";\nimport { markdown,",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 1.3,
+    "intended_failure": "Failed to fetch dynamically imported module",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "component-optional-speech",
+    "file": "gui/web/gui/artifact-scroll.js",
+    "before": "this.speech?.chunk",
+    "after": "this.speech.chunk",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 1.252,
+    "intended_failure": "Cannot read properties of null",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "application-speech-owner",
+    "file": "gui/web/gui/app.js",
+    "before": "document.querySelector(\"#artifacts\"), speech)",
+    "after": "document.querySelector(\"#artifacts\"))",
+    "command": [
+      "node",
+      "--test",
+      "responses.test.mjs"
+    ],
+    "exit": 1,
+    "seconds": 6.017,
+    "intended_failure": "Timeout",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "public-replay",
+    "file": "gui/gui.go",
+    "before": "if e.Message.Actor == ensemble.Human {",
+    "after": "if false {",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 1.299,
+    "intended_failure": "public planted event absent",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "public-prompt",
+    "file": "gui/gui.go",
+    "before": "s.agent.Post(ensemble.UserMessage{Text: input.Text})",
+    "after": "_ = input.Text",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 6.333,
+    "intended_failure": "i/o timeout",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-no-browser-id",
+    "file": "gui/relay.go",
+    "before": "\"id\": id,",
+    "after": "\"id\": 0,",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 1.256,
+    "intended_failure": "no-browser correlated error",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-restore-id",
+    "file": "gui/mcp.go",
+    "before": "response[\"id\"] = original",
+    "after": "response[\"id\"] = request[\"id\"]",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 1.309,
+    "intended_failure": "relay correlation",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-unique-id",
+    "file": "gui/mcp.go",
+    "before": "t.relayNext++",
+    "after": "t.relayNext = 1",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 1.314,
+    "intended_failure": "relay IDs collide",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-response-routing",
+    "file": "gui/gui.go",
+    "before": "if tunnel.relayReply(input.Payload) {",
+    "after": "if false && tunnel.relayReply(input.Payload) {",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 6.424,
+    "intended_failure": "i/o timeout",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-browser-disconnect",
+    "file": "gui/gui.go",
+    "before": "close(tunnel.relayDone)",
+    "after": "_ = tunnel.relayDone",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 6.254,
+    "intended_failure": "i/o timeout",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-listener-close",
+    "file": "gui/gui.go",
+    "before": "listener.Close()",
+    "after": "_ = listener",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 2.332,
+    "intended_failure": "relay listener survived close",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-client-close",
+    "file": "gui/gui.go",
+    "before": "for conn := range s.relayConnections {\n\t\tconn.Close()",
+    "after": "for conn := range s.relayConnections {\n\t\t_ = conn",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 45.692,
+    "intended_failure": "relay shutdown stuck",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "headless-mcp-import",
+    "file": "internal/mcp/mcp.go",
+    "before": "import (",
+    "after": "import (\n _ \"github.com/gorilla/websocket\"",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 2.8,
+    "intended_failure": "dependency control ./headless",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "headless-command-import",
+    "file": "main.go",
+    "before": "import (",
+    "after": "import (\n _ \"github.com/gorilla/websocket\"",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 2.565,
+    "intended_failure": "dependency control ensemble:",
+    "observed_intended_failure": true
+  }
+]

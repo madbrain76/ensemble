@@ -114,6 +114,9 @@ func TestReusableAssets(t *testing.T) {
 		if r.Code != 200 {
 			t.Fatalf("asset status %s: %d", directory, r.Code)
 		}
+		if directory == "" && !strings.Contains(r.Body.String(), `<title>Ensemble</title>`) {
+			t.Fatal("embedded default returned no application shell")
+		}
 		if (directory == disk) != strings.Contains(r.Body.String(), "DISK_OVERRIDE") {
 			t.Fatal("disk override did not select its explicit source")
 		}
@@ -185,6 +188,7 @@ func TestPublicRelay(t *testing.T) {
 		return value
 	}
 	first := connect()
+	defer first.Close()
 	fmt.Fprintln(first, `{"jsonrpc":"2.0","id":"same","method":"tools/list"}`)
 	value := read(first)
 	if value["id"] != "same" || value["error"] == nil {
@@ -217,6 +221,7 @@ func TestPublicRelay(t *testing.T) {
 		ws.WriteJSON(map[string]any{"type": "jsonrpc", "payload": map[string]any{"jsonrpc": "2.0", "id": rpc["id"], "result": result}})
 	}
 	second := connect()
+	defer second.Close()
 	fmt.Fprintln(first, `{"jsonrpc":"2.0","id":"same","method":"tools/list","params":{"marker":"first"}}`)
 	fmt.Fprintln(second, `{"jsonrpc":"2.0","id":"same","method":"tools/list","params":{"marker":"second"}}`)
 	var pending []map[string]any
@@ -244,7 +249,8 @@ func TestPublicRelay(t *testing.T) {
 			t.Fatalf("relay correlation %s: %v", want, value)
 		}
 	}
-	// Server shutdown must wake a pending silent-browser request and join it.
+	// Browser disconnect must return the pending error with its original ID.
+	// Then Server shutdown must wake a new silent-browser request and join it.
 	fmt.Fprintln(first, `{"jsonrpc":"2.0","id":7,"method":"tools/list"}`)
 	for {
 		var frame map[string]json.RawMessage
@@ -254,6 +260,25 @@ func TestPublicRelay(t *testing.T) {
 		if frame["payload"] != nil {
 			break
 		}
+	}
+	ws.Close()
+	value = read(first)
+	if value["id"] != float64(7) || value["error"] == nil {
+		t.Fatalf("browser disconnect lost request correlation: %v", value)
+	}
+	ws, _, err = websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http")+"/ws", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ws.Close()
+	ws.SetReadDeadline(time.Now().Add(5 * time.Second))
+	fmt.Fprintln(first, `{"jsonrpc":"2.0","id":8,"method":"tools/list"}`)
+	var pendingClose map[string]json.RawMessage
+	if err := ws.ReadJSON(&pendingClose); err != nil {
+		t.Fatal(err)
+	}
+	if pendingClose["payload"] == nil {
+		t.Fatal("shutdown probe did not reach browser")
 	}
 	closed := make(chan struct{})
 	go func() { hub.Close(); close(closed) }()

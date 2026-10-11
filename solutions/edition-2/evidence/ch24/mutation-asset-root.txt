@@ -1,0 +1,15 @@
+--- FAIL: TestExternalReuse (0.34s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+            reuse_test.go:106: embedded index.html: open index.html: file does not exist
+        --- FAIL: TestReusableAssets (0.00s)
+        === RUN   TestPublicRelay
+        --- PASS: TestPublicRelay (0.00s)
+        FAIL
+        FAIL	outside.example/reuse	0.019s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	0.351s
+FAIL

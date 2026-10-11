@@ -1,0 +1,40 @@
+[
+  {
+    "name": "embedded-default",
+    "file": "gui/gui.go",
+    "before": "assets := http.FS(Assets())",
+    "after": "assets := http.FileSystem(http.Dir(\".\"))",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 0.652,
+    "intended_failure": "embedded default returned no application shell",
+    "observed_intended_failure": true
+  },
+  {
+    "name": "relay-client-close",
+    "file": "gui/gui.go",
+    "before": "for conn := range s.relayConnections {\n\t\tconn.Close()",
+    "after": "for conn := range s.relayConnections {\n\t\t_ = conn",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "TestExternalReuse",
+      "-count=1",
+      "-timeout=60s",
+      "."
+    ],
+    "exit": 1,
+    "seconds": 4.28,
+    "intended_failure": "relay shutdown stuck",
+    "observed_intended_failure": true
+  }
+]

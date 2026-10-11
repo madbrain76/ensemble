@@ -1,0 +1,19 @@
+✖ Responses summaries reach speech before completion without duplication (5821.490125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5988.03025
+
+✖ failing tests:
+
+test at responses.test.mjs:13:1
+✖ Responses summaries reach speech before completion without duplication (5821.490125ms)
+  page.waitForFunction: Timeout 5000ms exceeded.
+      at TestContext.<anonymous> (/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/responses.test.mjs:44:14) {
+    name: 'TimeoutError',
+    log: []
+  }

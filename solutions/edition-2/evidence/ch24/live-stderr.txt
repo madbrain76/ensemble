@@ -1,0 +1,6 @@
+Open http://localhost:65441; terminal messages while busy are hints. /interrupt ends the turn.
+[billing: chatgpt]
+[write_file]
+wrote 42 bytes to deployment-demo.txt
+[read_file]
+Embedded GUI works from a fresh directory.

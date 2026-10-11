@@ -1,0 +1,15 @@
+--- FAIL: TestExternalReuse (0.99s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+            reuse_test.go:68: public planted event absent from replay
+        --- FAIL: TestPublicEvents (0.00s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.65s)
+        === RUN   TestPublicRelay
+        --- PASS: TestPublicRelay (0.00s)
+        FAIL
+        FAIL	outside.example/reuse	0.663s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	0.997s
+FAIL

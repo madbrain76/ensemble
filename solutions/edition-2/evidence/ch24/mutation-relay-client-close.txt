@@ -1,0 +1,116 @@
+--- FAIL: TestExternalReuse (45.37s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.63s)
+        === RUN   TestPublicRelay
+            reuse_test.go:283: relay shutdown stuck
+        panic: test timed out after 45s
+        	running tests:
+        		TestPublicRelay (44s)
+        
+        goroutine 99 [running]:
+        testing.(*M).startAlarm.func1()
+        	/usr/local/go/src/testing/testing.go:2682 +0x490
+        created by time.goFunc
+        	/usr/local/go/src/time/sleep.go:215 +0x44
+        
+        goroutine 1 [chan receive]:
+        testing.(*T).Run(0xc00008ae00, {0x10094f59d, 0xf}, 0x100b02da8)
+        	/usr/local/go/src/testing/testing.go:2005 +0x700
+        testing.runTests.func1(0xc00008ae00)
+        	/usr/local/go/src/testing/testing.go:2477 +0x78
+        testing.tRunner(0xc00008ae00, 0xc0000bdad8)
+        	/usr/local/go/src/testing/testing.go:1934 +0x168
+        testing.runTests(0xc0000b4138, {0x100de7b20, 0x3, 0x3}, {0x3c7bcd967f9f0e64?, 0x0?, 0x100df0c80?})
+        	/usr/local/go/src/testing/testing.go:2475 +0x738
+        testing.(*M).Run(0xc0000a6320)
+        	/usr/local/go/src/testing/testing.go:2337 +0xaf8
+        main.main()
+        	_testmain.go:49 +0x104
+        
+        goroutine 87 [sync.WaitGroup.Wait]:
+        sync.runtime_SemacquireWaitGroup(0xc000220c10?, 0x1?)
+        	/usr/local/go/src/runtime/sema.go:114 +0x38
+        sync.(*WaitGroup).Wait(0xc000220c10)
+        	/usr/local/go/src/sync/waitgroup.go:206 +0xc0
+        ensemble-gui-stub.(*Server).Close(0xc000220a80)
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/gui.go:405 +0x1e0
+        runtime.Goexit()
+        	/usr/local/go/src/runtime/panic.go:615 +0x60
+        testing.(*common).FailNow(0xc0002208c0)
+        	/usr/local/go/src/testing/testing.go:1013 +0x70
+        testing.(*common).Fatal(0xc0002208c0, {0xc000039e60, 0x1, 0x1})
+        	/usr/local/go/src/testing/testing.go:1212 +0x78
+        outside.example/reuse_test.TestPublicRelay(0xc0002208c0)
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestExternalReuse484909262/001/reuse_test.go:283 +0x23b0
+        testing.tRunner(0xc0002208c0, 0x100b02da8)
+        	/usr/local/go/src/testing/testing.go:1934 +0x168
+        created by testing.(*T).Run in goroutine 1
+        	/usr/local/go/src/testing/testing.go:1997 +0x6e4
+        
+        goroutine 67 [IO wait]:
+        internal/poll.runtime_pollWait(0x1022b4800, 0x72)
+        	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+        internal/poll.(*pollDesc).wait(0xc00010e820, 0x72, 0x0)
+        	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+        internal/poll.(*pollDesc).waitRead(...)
+        	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+        internal/poll.(*FD).Read(0xc00010e800, {0xc000388001, 0x5ff, 0x5ff})
+        	/usr/local/go/src/internal/poll/fd_unix.go:165 +0x2f8
+        net.(*netFD).Read(0xc00010e800, {0xc000388001, 0x5ff, 0x5ff})
+        	/usr/local/go/src/net/fd_posix.go:68 +0x48
+        net.(*conn).Read(0xc0000a41c8, {0xc000388001, 0x5ff, 0x5ff})
+        	/usr/local/go/src/net/net.go:196 +0x88
+        encoding/json.(*Decoder).refill(0xc00015ea00)
+        	/usr/local/go/src/encoding/json/stream.go:167 +0x2dc
+        encoding/json.(*Decoder).readValue(0xc00015ea00)
+        	/usr/local/go/src/encoding/json/stream.go:142 +0x104
+        encoding/json.(*Decoder).Decode(0xc00015ea00, {0x100a599e0, 0xc000520058})
+        	/usr/local/go/src/encoding/json/stream.go:65 +0x88
+        ensemble-gui-stub.(*Server).serveMCPConnection(0xc000220a80, {0x100b0d000, 0xc0000a41c8})
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/relay.go:64 +0x2e8
+        created by ensemble-gui-stub.(*Server).ServeMCP in goroutine 88
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/relay.go:44 +0x188
+        
+        goroutine 11 [IO wait]:
+        internal/poll.runtime_pollWait(0x1022b4400, 0x72)
+        	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+        internal/poll.(*pollDesc).wait(0xc000208fa0, 0x72, 0x0)
+        	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0xb8
+        internal/poll.(*pollDesc).waitRead(...)
+        	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+        internal/poll.(*FD).Read(0xc000208f80, {0xc000590001, 0x5ff, 0x5ff})
+        	/usr/local/go/src/internal/poll/fd_unix.go:165 +0x2f8
+        net.(*netFD).Read(0xc000208f80, {0xc000590001, 0x5ff, 0x5ff})
+        	/usr/local/go/src/net/fd_posix.go:68 +0x48
+        net.(*conn).Read(0xc00005e1b0, {0xc000590001, 0x5ff, 0x5ff})
+        	/usr/local/go/src/net/net.go:196 +0x88
+        encoding/json.(*Decoder).refill(0xc000001a40)
+        	/usr/local/go/src/encoding/json/stream.go:167 +0x2dc
+        encoding/json.(*Decoder).readValue(0xc000001a40)
+        	/usr/local/go/src/encoding/json/stream.go:142 +0x104
+        encoding/json.(*Decoder).Decode(0xc000001a40, {0x100a599e0, 0xc0005200c0})
+        	/usr/local/go/src/encoding/json/stream.go:65 +0x88
+        ensemble-gui-stub.(*Server).serveMCPConnection(0xc000220a80, {0x100b0d000, 0xc00005e1b0})
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/relay.go:64 +0x2e8
+        created by ensemble-gui-stub.(*Server).ServeMCP in goroutine 88
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/relay.go:44 +0x188
+        
+        goroutine 95 [sync.WaitGroup.Wait]:
+        sync.runtime_SemacquireWaitGroup(0xc000220c10?, 0x0?)
+        	/usr/local/go/src/runtime/sema.go:114 +0x38
+        sync.(*WaitGroup).Wait(0xc000220c10)
+        	/usr/local/go/src/sync/waitgroup.go:206 +0xc0
+        ensemble-gui-stub.(*Server).Close(0xc000220a80)
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch24-mutations-kn5idw1x/main/gui/gui.go:405 +0x1e0
+        outside.example/reuse_test.TestPublicRelay.func4()
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestExternalReuse484909262/001/reuse_test.go:279 +0x34
+        created by outside.example/reuse_test.TestPublicRelay in goroutine 87
+        	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestExternalReuse484909262/001/reuse_test.go:279 +0x2300
+        FAIL	outside.example/reuse	45.025s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	45.378s
+FAIL

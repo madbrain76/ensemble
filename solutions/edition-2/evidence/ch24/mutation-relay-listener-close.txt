@@ -1,0 +1,15 @@
+--- FAIL: TestExternalReuse (2.01s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+        --- PASS: TestReusableAssets (0.64s)
+        === RUN   TestPublicRelay
+            reuse_test.go:288: relay listener survived close
+        --- FAIL: TestPublicRelay (1.01s)
+        FAIL
+        FAIL	outside.example/reuse	1.665s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	2.020s
+FAIL

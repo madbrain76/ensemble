@@ -1,0 +1,1 @@
+write_file {"path":"deployment-demo.txt","content":"Embedded GUI works from a fresh directory."}read_file {"path":"deployment-demo.txt"}The file reads: “Embedded GUI works from a fresh directory.”

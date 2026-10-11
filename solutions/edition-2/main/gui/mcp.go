@@ -29,7 +29,11 @@ func newWSTransport(parent ensemble.MCPTransportOwner, queue chan [][]byte) *WST
 	if parent == nil {
 		panic("WebSocket transport requires Server")
 	}
-	return &WSTransport{parent: parent, queue: queue, incoming: make(chan json.RawMessage), done: make(chan struct{}), relayDone: make(chan struct{}), pending: make(map[string]chan json.RawMessage)}
+	return &WSTransport{
+		parent: parent, queue: queue, incoming: make(chan json.RawMessage),
+		done: make(chan struct{}), relayDone: make(chan struct{}),
+		pending: make(map[string]chan json.RawMessage),
+	}
 }
 
 // Server exposes the actual owner of this browser connection.

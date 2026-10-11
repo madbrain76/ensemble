@@ -1,0 +1,91 @@
+{
+  "requests": [
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "auto"
+      }
+    }
+  ],
+  "completed": [
+    {
+      "model": "gpt-6-astra",
+      "status": "completed"
+    },
+    {
+      "model": "gpt-6-astra",
+      "status": "completed"
+    },
+    {
+      "model": "gpt-6-astra",
+      "status": "completed"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/style.css",
+      "status": 200
+    },
+    {
+      "path": "/app.js",
+      "status": 200
+    },
+    {
+      "path": "/artifact-scroll.js",
+      "status": 200
+    },
+    {
+      "path": "/mcp.js",
+      "status": 200
+    },
+    {
+      "path": "/speech.js",
+      "status": 200
+    },
+    {
+      "path": "/renderers.js",
+      "status": 200
+    }
+  ],
+  "tool_results": [
+    {
+      "call_id": "call_uSdAheZuBxX101Jf4SDjk2ic",
+      "is_error": false,
+      "result": "wrote 42 bytes to deployment-demo.txt",
+      "type": "tool_finished"
+    },
+    {
+      "call_id": "call_7eEi0Np3MDh2dmmVJnUSwT6M",
+      "is_error": false,
+      "result": "Embedded GUI works from a fresh directory.",
+      "type": "tool_finished"
+    }
+  ],
+  "page_errors": [],
+  "task_success": true,
+  "exit": 0,
+  "seconds": 9.649,
+  "automatic_result_count": 6,
+  "assistant_finals": [
+    "The file reads: \u201cEmbedded GUI works from a fresh directory.\u201d"
+  ]
+}

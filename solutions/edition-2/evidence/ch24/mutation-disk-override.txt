@@ -1,0 +1,15 @@
+--- FAIL: TestExternalReuse (0.35s)
+    reuse_test.go:41: external [test -race -v -count=1 -timeout=45s .]: exit status 1
+        === RUN   TestPublicEvents
+        --- PASS: TestPublicEvents (0.01s)
+        === RUN   TestReusableAssets
+            reuse_test.go:118: disk override did not select its explicit source
+        --- FAIL: TestReusableAssets (0.01s)
+        === RUN   TestPublicRelay
+        --- PASS: TestPublicRelay (0.00s)
+        FAIL
+        FAIL	outside.example/reuse	0.025s
+        FAIL
+FAIL
+FAIL	ensemble-gui-stub	0.358s
+FAIL
