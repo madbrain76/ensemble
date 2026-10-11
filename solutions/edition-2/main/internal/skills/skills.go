@@ -69,6 +69,11 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 	r.tools["unload_skill"] = common.ToolMeta{Source: common.SourceInitial}
 	r.tools["micro_handoff"] = common.ToolMeta{Source: common.SourceInitial}
 	r.tools["keep_tool_results"] = common.ToolMeta{Source: common.SourceInitial}
+	// Submission is the fleet protocol's completion verb, like the existing
+	// framework handoff controls. A primary cannot accidentally make it impossible.
+	if parent.Ensemble().FleetEnabled() {
+		r.tools["submit"] = common.ToolMeta{Source: common.SourceInitial}
+	}
 	r.RegisterVar("TOOLS", func() string {
 		var lines []string
 		for _, d := range r.parent.Declarations() {
@@ -266,7 +271,7 @@ func (r *registry) MarkUnload(name string) error {
 	// Instructions remain in context, but only non-pending skills grant tools.
 	// Shared grants survive while another loaded skill still owns them.
 	for tool := range r.tools {
-		if tool == "load_skill" || tool == "unload_skill" || tool == "micro_handoff" || tool == "keep_tool_results" {
+		if tool == "load_skill" || tool == "unload_skill" || tool == "micro_handoff" || tool == "keep_tool_results" || tool == "submit" && r.parent.Ensemble().FleetEnabled() {
 			continue
 		}
 		granted := false

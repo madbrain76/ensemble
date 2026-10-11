@@ -17,6 +17,8 @@ import (
 // owner coordinate one actor without a second orchestration path.
 type agent struct {
 	parent       common.Ensemble
+	parentAgent  common.Agent
+	fleet        common.SubAgentManager
 	spec         common.AgentSpec
 	sandbox      common.Sandbox
 	config       common.Config
@@ -45,11 +47,18 @@ type agent struct {
 
 // New creates an Agent with a required Ensemble parent; the root installs its
 // children before use.
-func New(parent common.Ensemble, cfg common.Config, spec common.AgentSpec) *agent {
+func New(parent common.Ensemble, cfg common.Config, spec common.AgentSpec, parents ...common.Agent) *agent {
 	if parent == nil {
 		panic("Agent requires Ensemble")
 	}
-	return &agent{parent: parent, config: cfg, spec: spec, box: newBox(), done: make(chan struct{}), progress: make(chan common.Observation, 256)}
+	var spawning common.Agent
+	if len(parents) > 0 {
+		spawning = parents[0]
+		if spawning == nil {
+			panic("child Agent requires spawning parent")
+		}
+	}
+	return &agent{parentAgent: spawning, parent: parent, config: cfg, spec: spec, box: newBox(), done: make(chan struct{}), progress: make(chan common.Observation, 256)}
 }
 
 // Ensemble returns the owning application root, including its logging services.
@@ -202,6 +211,10 @@ func (a *agent) SetSystemPrompt(prompt string) {
 }
 
 func (a *agent) allowedTool(name string) bool {
+	switch name {
+	case "spawn_sub_agent", "join_agents", "agents_status", "shutdown_agent", "send_message_to_parent", "respond_to_parent_message", "submit":
+		return a.Ensemble().FleetEnabled()
+	}
 	if a.spec.SafeMode {
 		switch name {
 		case "run_command", "send_input", "wait_for_job", "kill_job", "tool_limits":
@@ -318,4 +331,18 @@ func (a *agent) AttachSandbox(s common.Sandbox) {
 		panic("Sandbox must belong to this Agent")
 	}
 	a.sandbox = s
+}
+
+// ParentAgent exposes the spawning owner independently of Ensemble ownership.
+func (a *agent) ParentAgent() common.Agent { return a.parentAgent }
+
+// Fleet returns the manager whose lifetime follows this Agent.
+func (a *agent) Fleet() common.SubAgentManager { return a.fleet }
+
+// AttachFleet establishes the manager side of the required ownership link.
+func (a *agent) AttachFleet(f common.SubAgentManager) {
+	if f == nil || f.Agent() != a {
+		panic("fleet must belong to Agent")
+	}
+	a.fleet = f
 }

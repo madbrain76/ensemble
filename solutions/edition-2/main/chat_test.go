@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -29,7 +30,12 @@ func TestChatFlushesChunksAndSeparatesChannels(t *testing.T) {
 	release := make(chan struct{})
 	var once sync.Once
 	defer once.Do(func() { close(release) })
+	var requests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if requests.Add(1) > 1 {
+			fmt.Fprint(w, `{"content":[{"type":"tool_use","id":"submit","name":"submit","input":{"result":""}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+			return
+		}
 		w.Header().Set("Content-Type", "text/event-stream")
 		send := func(data string) { fmt.Fprintf(w, "data: %s\n\n", data); w.(http.Flusher).Flush() }
 		send(`{"type":"message_start","message":{"usage":{"input_tokens":2,"output_tokens":1}}}`)
@@ -116,7 +122,7 @@ func TestChatModelSelection(t *testing.T) {
 		}
 		json.NewDecoder(r.Body).Decode(&body)
 		requested <- body.Model
-		fmt.Fprint(w, `{"content":[{"type":"text","text":"selected"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		fmt.Fprint(w, `{"content":[{"type":"tool_use","id":"submit","name":"submit","input":{"result":"selected"}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer server.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

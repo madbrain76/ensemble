@@ -3,6 +3,12 @@ package common
 // AgentSpec supplies per-Agent identity independently of provider configuration.
 // The composition root chooses full-access defaults when the caller omits a spec.
 type AgentSpec struct {
+	// ID is this Agent's address within its parent's children.
+	ID string
+	// ParentID names the spawning Agent or the configured human address.
+	ParentID string
+	// Model optionally requests a model from the application child factory.
+	Model string
 	// DataDir optionally selects this Agent's state directory.
 	DataDir string
 	// LogPath optionally selects its history log.

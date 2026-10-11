@@ -19,6 +19,7 @@ import (
 	"ensemble/internal/cachelens"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
+	"ensemble/internal/fleet"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
@@ -56,6 +57,10 @@ type Ensemble struct {
 	apiMu       sync.Mutex
 	secrets     []string
 	agents      []Agent
+	agentsMu    sync.Mutex
+	factory     AgentFactory
+	userID      string
+	userSink    common.UserSink
 	nextJob     atomic.Int64
 	merged      chan AgentObservation
 	observersMu sync.Mutex
@@ -100,6 +105,10 @@ const (
 
 // NewAgent assembles and retains an Agent with all required parent relationships.
 func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
+	return e.newAgent(nil, cfg, specs...)
+}
+
+func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent, error) {
 	if len(specs) > 1 {
 		return nil, errors.New("provide at most one AgentSpec")
 	}
@@ -109,6 +118,17 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	spec := AgentSpec{EnableWebSearch: true}
 	if len(specs) == 1 {
 		spec = specs[0]
+	}
+	if spec.ID == "" {
+		spec.ID = "main"
+	}
+	if parent == nil {
+		spec.ParentID = e.UserID()
+	} else {
+		spec.ParentID = parent.Spec().ID
+	}
+	if spec.ID == e.UserID() {
+		return nil, errors.New("human address cannot be an Agent")
 	}
 	if spec.DataDir != "" {
 		cfg.DataDir = spec.DataDir
@@ -174,7 +194,9 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	}
 	cfg.Workspace = workspace
 	if cfg.DataDir == "" {
+		e.agentsMu.Lock()
 		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
+		e.agentsMu.Unlock()
 	}
 	if cfg.Credentials == nil {
 		if cfg.BillingMode == "" && cfg.Vendor == common.OpenAI && e.auth != nil {
@@ -206,7 +228,12 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		e.secrets = append(e.secrets, cfg.APIKey)
 	}
 	e.apiMu.Unlock()
-	a := agent.New(e, cfg, common.AgentSpec(spec))
+	var parents []common.Agent
+	if parent != nil {
+		parents = append(parents, parent)
+	}
+	a := agent.New(e, cfg, common.AgentSpec(spec), parents...)
+	a.AttachFleet(fleet.New(a))
 	a.AttachSandbox(sandbox.New(a))
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
 		return nil, err
@@ -230,6 +257,8 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	}()
 	if cfg.BuiltinTools {
 		a.SetTools(tools.Builtins())
+	} else if e.FleetEnabled() {
+		a.SetTools(tools.FleetTools())
 	}
 	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "" || len(specs[0].StartupSkills) != 0) {
 		spec := specs[0]
@@ -268,7 +297,9 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	if !cfg.Recall.Disabled {
 		a.AttachRecaller(recall.New(a))
 	}
+	e.agentsMu.Lock()
 	e.agents = append(e.agents, a)
+	e.agentsMu.Unlock()
 	assembled = true
 	return a, nil
 }

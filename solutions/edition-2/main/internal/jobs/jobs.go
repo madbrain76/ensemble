@@ -287,6 +287,11 @@ func (j *job) Wait(limits common.Limits) (string, error) {
 		j.mu.Unlock()
 		select {
 		case <-changed:
+		case <-limits.Wake:
+			j.mu.Lock()
+			result, err := j.report(limits)
+			j.mu.Unlock()
+			return result, err
 		case <-timer.C:
 			j.mu.Lock()
 			result, err := j.report(limits)

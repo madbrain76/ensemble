@@ -36,6 +36,7 @@ type report struct {
 	turn *turn
 	call common.Part
 	data *common.ToolData
+	wake chan struct{}
 }
 type record struct {
 	event common.Event
@@ -295,6 +296,22 @@ func (r *runtime) finish(text string, err error) {
 		return
 	}
 	t := r.active
+	if err == nil && r.owner.Ensemble().FleetEnabled() {
+		correction, escalation := r.owner.fleet.Idle()
+		if correction != "" {
+			if err = r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: correction}}}}); err == nil {
+				r.owner.notify(common.PartDelta{Kind: common.DeltaText, Hint: true, Chunk: correction})
+				r.send()
+				return
+			}
+		}
+		if escalation != "" {
+			err = r.append(common.Event{Type: "fleet_notice", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: escalation}}}})
+			// Parent delivery may post to another actor or the human sink, never wait
+			// for a reply from inside this actor.
+			err = errors.Join(err, r.owner.fleet.Escalate(escalation))
+		}
+	}
 	t.cancel()
 	r.active = nil
 	ended := common.TurnEnded{Text: text}
@@ -323,6 +340,7 @@ func (r *runtime) begin(q request) {
 		}
 		return
 	}
+	r.owner.fleet.Begin()
 	ctx, cancel := context.WithCancel(q.ctx)
 	limit := r.owner.Config().MaxToolRounds
 	if limit == 0 {
@@ -604,7 +622,7 @@ func (r *runtime) run() {
 					r.pending = nil
 					r.workers++
 					go func() {
-						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.mcp.Close())
+						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.fleet.Shutdown(), r.owner.mcp.Close())
 						r.owner.box.Post(workerDone{err: err})
 					}()
 				}
@@ -648,6 +666,12 @@ func (r *runtime) input(text string) {
 	}
 	// Reducer uses active turn state to preserve a hint as pending context.
 	r.append(common.Event{Type: "hint_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: text}}}})
+	// Close only the current wait's signal. A message arriving with no waiter
+	// cannot leave a sticky interrupt for a future job.
+	if current := r.active.current; current != nil && current.wake != nil {
+		close(current.wake)
+		current.wake = nil
+	}
 }
 
 // Parser IDs restart each response. Assign display identities once in the actor,

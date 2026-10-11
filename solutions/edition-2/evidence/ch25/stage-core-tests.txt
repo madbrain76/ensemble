@@ -1,0 +1,17 @@
+ok  	ensemble	1.596s
+?   	ensemble/authcli	[no test files]
+ok  	ensemble/ensemble	30.569s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/auth	[no test files]
+?   	ensemble/internal/cachelens	[no test files]
+?   	ensemble/internal/common	[no test files]
+ok  	ensemble/internal/engine	(cached)
+?   	ensemble/internal/fleet	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+ok  	ensemble/internal/mcp	0.008s
+?   	ensemble/internal/memory	[no test files]
+ok  	ensemble/internal/recall	(cached)
+?   	ensemble/internal/sandbox	[no test files]
+?   	ensemble/internal/skills	[no test files]
+?   	ensemble/internal/tools	[no test files]

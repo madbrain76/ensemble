@@ -132,6 +132,16 @@ func run() (runErr error) {
 	if err := authcli.Configure(app); err != nil {
 		return err
 	}
+	// Provider and credential choices stay in this executable. Every generation
+	// uses this same factory through the shared Ensemble parent.
+	app.SetAgentFactory(func(parent ensemble.Agent, child ensemble.AgentSpec) (ensemble.Agent, error) {
+		config := parent.Config()
+		if child.Model != "" {
+			config.Model = child.Model
+		}
+		return app.NewChildAgent(parent, config, child)
+	})
+	app.SetUserSink("user", terminalUser{})
 	a, err := app.NewAgent(cfg, spec)
 	if err != nil {
 		return err
@@ -206,3 +216,16 @@ type pipeBoundary struct{}
 
 // Close interrupts both directions of the dedicated command's protocol pipe.
 func (pipeBoundary) Close() error { return errors.Join(os.Stdin.Close(), os.Stdout.Close()) }
+
+// terminalUser is the actual human delivery boundary, present in protocol and
+// chat modes. /reply sends an answer without turning it into a model hint.
+type terminalUser struct{}
+
+// Deliver makes fleet questions and escalation visible at the human terminal.
+func (terminalUser) Deliver(message ensemble.FleetMessage) error {
+	_, err := fmt.Fprintf(os.Stderr, "[from %s to %s] %s\n", message.From, message.To, message.Content)
+	if message.ID != "" {
+		fmt.Fprintln(os.Stderr, "Reply with /reply TEXT (or /reply MESSAGE_ID TEXT if several questions are pending).")
+	}
+	return err
+}

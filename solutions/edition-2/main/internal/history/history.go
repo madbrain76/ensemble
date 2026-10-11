@@ -173,7 +173,7 @@ func validate(e common.Event) error {
 	}
 	var parts []common.Part
 	switch e.Type {
-	case "message_received", "hint_received":
+	case "message_received", "hint_received", "fleet_notice":
 		if e.Message == nil {
 			return errors.New("message payload missing")
 		}
@@ -331,7 +331,7 @@ func (h *history) LastSeq() uint64 {
 // skipped atomically. Validation never mutates the projected context.
 func knownEvent(kind string) bool {
 	switch kind {
-	case "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "recall_attached":
+	case "fleet_notice", "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "recall_attached":
 		return true
 	}
 	return false

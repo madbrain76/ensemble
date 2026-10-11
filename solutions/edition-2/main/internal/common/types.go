@@ -311,6 +311,14 @@ type Context struct {
 
 // These are actual ownership links, not a bag of sibling service callbacks.
 type Ensemble interface {
+	// CreateChild invokes the application factory with the actual parent.
+	CreateChild(Agent, AgentSpec) (Agent, error)
+	// FleetEnabled reports whether the application installed the fleet protocol.
+	FleetEnabled() bool
+	// UserID is the addressable human, never a managed child.
+	UserID() string
+	// DeliverUser delivers a question or escalation to the application sink.
+	DeliverUser(FleetMessage) error
 	// Logf sends safe diagnostics through the application-owned logger.
 	Logf(format string, args ...any)
 	// APILog records sanitized wire payloads through the application-owned trace sink.
@@ -323,6 +331,10 @@ type Ensemble interface {
 
 // Agent owns one conversation, its tools and the actor that coordinates them.
 type Agent interface {
+	// ParentAgent is the actual spawning owner, nil for a top-level Agent.
+	ParentAgent() Agent
+	// Fleet owns this Agent's children and pending questions.
+	Fleet() SubAgentManager
 	// Spec returns construction-time identity and restrictions.
 	Spec() AgentSpec
 	// Sandbox exposes this Agent's file and subprocess boundary.
@@ -461,6 +473,8 @@ type JobKilledData struct {
 // Limits describe this observation, never the execution lifetime or the
 // amount of output that the job is allowed to retain on disk.
 type Limits struct {
+	// Wake releases only this live wait on incoming input; it never cancels work.
+	Wake <-chan struct{} `json:"-"`
 	// Delay bounds this wait, never the execution lifetime.
 	Delay time.Duration
 	// Pattern wakes on a regex match in output not yet reported.

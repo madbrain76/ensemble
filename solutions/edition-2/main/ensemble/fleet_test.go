@@ -1,0 +1,311 @@
+package ensemble_test
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"ensemble/ensemble"
+)
+
+type humanInbox chan ensemble.FleetMessage
+
+// Deliver models the external human's inbox without replacing fleet routing.
+func (h humanInbox) Deliver(m ensemble.FleetMessage) error { h <- m; return nil }
+
+func fleetCall(w http.ResponseWriter, name string, args any) {
+	json.NewEncoder(w).Encode(map[string]any{"content": []any{map[string]any{"type": "tool_use", "id": "call", "name": name, "input": args}}, "usage": map[string]int{"input_tokens": 1, "output_tokens": 1}})
+}
+
+// Extract only provider-visible tool results: markers in earlier tool arguments
+// do not prove that execution returned those bytes.
+func fleetResultText(body []byte) string {
+	var request struct {
+		// Messages preserves the provider's dialogue order.
+		Messages []struct {
+			// Content contains text and tool-result blocks.
+			Content []struct {
+				// Type distinguishes a result from a requested call.
+				Type string
+				// Content is the returned tool payload, never its arguments.
+				Content json.RawMessage
+			}
+		}
+	}
+	json.Unmarshal(body, &request)
+	var result strings.Builder
+	for _, m := range request.Messages {
+		for _, p := range m.Content {
+			if p.Type == "tool_result" {
+				result.Write(p.Content)
+			}
+		}
+	}
+	return result.String()
+}
+func fleetAgent(t *testing.T, server *httptest.Server) (ensemble.Agent, humanInbox, *[]ensemble.Agent) {
+	t.Helper()
+	app := ensemble.New(io.Discard)
+	inbox := make(humanInbox, 10)
+	app.SetUserSink("Bill", inbox)
+	var children []ensemble.Agent
+	var mu sync.Mutex
+	app.SetAgentFactory(func(parent ensemble.Agent, spec ensemble.AgentSpec) (ensemble.Agent, error) {
+		a, err := app.NewChildAgent(parent, parent.Config(), spec)
+		if err == nil {
+			mu.Lock()
+			children = append(children, a)
+			mu.Unlock()
+		}
+		return a, err
+	})
+	a, err := app.NewAgent(ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := a.Shutdown(); err != nil {
+			t.Error(err)
+		}
+	})
+	return a, inbox, &children
+}
+
+// A real three-generation runtime exercises the recursive factory, early join,
+// addressed reply, explicit fan-in and separate saved conversations together.
+func TestFleetRecursiveQuestionsIsolation(t *testing.T) {
+	var mu sync.Mutex
+	turns := map[string]int{}
+	var replySeen bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		text := string(body)
+		var prompt struct {
+			Messages []struct{ Content []struct{ Text string } }
+		}
+		json.Unmarshal(body, &prompt)
+		first := ""
+		if len(prompt.Messages) > 0 && len(prompt.Messages[0].Content) > 0 {
+			first = prompt.Messages[0].Content[0].Text
+		}
+		role := "root"
+		if first == "CHILD_TASK" {
+			role = "child"
+		}
+		if first == "LEAF_TASK" {
+			role = "leaf"
+		}
+		mu.Lock()
+		n := turns[role]
+		turns[role]++
+		mu.Unlock()
+		switch role {
+		case "root":
+			switch n {
+			case 0:
+				fleetCall(w, "spawn_sub_agent", map[string]string{"agent_id": "child", "task": "CHILD_TASK"})
+			case 1:
+				fleetCall(w, "join_agents", map[string]any{"agent_ids": []string{"child"}, "ai_callback_delay": 30})
+			default:
+				if !strings.Contains(fleetResultText(body), "CHILD_RESULT") {
+					t.Error("root join lost child's submission")
+				}
+				fleetCall(w, "submit", map[string]string{"result": "ROOT_RESULT"})
+			}
+		case "child":
+			switch n {
+			case 0:
+				fleetCall(w, "spawn_sub_agent", map[string]string{"agent_id": "leaf", "task": "LEAF_TASK"})
+			case 1:
+				fleetCall(w, "join_agents", map[string]any{"agent_ids": []string{"leaf"}, "ai_callback_delay": 30})
+			case 2:
+				if !strings.Contains(text, "leaf question") {
+					t.Error("join did not yield question")
+				}
+				fleetCall(w, "respond_to_parent_message", map[string]string{"agent_id": "leaf", "response": "use cobalt"})
+			case 3:
+				fleetCall(w, "join_agents", map[string]any{"agent_ids": []string{"leaf"}, "ai_callback_delay": 30})
+			default:
+				if !strings.Contains(fleetResultText(body), "LEAF_RESULT") {
+					t.Error("child join lost leaf submission")
+				}
+				fleetCall(w, "submit", map[string]string{"result": "CHILD_RESULT"})
+			}
+		case "leaf":
+			if n == 0 {
+				fleetCall(w, "send_message_to_parent", map[string]any{"content": "leaf question", "ai_callback_delay": 30})
+			} else {
+				// Check the actual returned payload, not the original request arguments.
+				returned := fleetResultText(body)
+				if strings.Contains(returned, "use cobalt") && strings.Contains(returned, "child") {
+					mu.Lock()
+					replySeen = true
+					mu.Unlock()
+				}
+
+				fleetCall(w, "submit", map[string]string{"result": "LEAF_RESULT"})
+			}
+		}
+	}))
+	defer server.Close()
+	a, _, children := fleetAgent(t, server)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	result, err := a.Ask(ctx, "ROOT_TASK")
+	if err != nil || result != "ROOT_RESULT" {
+		t.Fatalf("recursive fleet: %q %v", result, err)
+	}
+	if err := a.Shutdown(); err != nil {
+		t.Fatal(err)
+	}
+	if len(*children) != 2 || !replySeen {
+		t.Fatalf("factory depth=%d addressed reply=%v", len(*children), replySeen)
+	}
+	child, leaf := (*children)[0], (*children)[1]
+	if child.ParentAgent() != a || leaf.ParentAgent() != child {
+		t.Fatal("routing IDs replaced actual parent links")
+	}
+	if len(a.Fleet().List()) != 0 {
+		t.Fatal("cascade retained live children")
+	}
+	for _, c := range *children {
+		path := filepath.Join(c.Config().DataDir, "save.json")
+		data, err := os.ReadFile(path)
+		if err != nil || !strings.Contains(string(data), c.Spec().ID) {
+			t.Fatalf("child save %s: %v", path, err)
+		}
+		if !strings.HasPrefix(c.Config().DataDir, c.ParentAgent().Config().DataDir+string(os.PathSeparator)) {
+			t.Fatal("child directory escaped owner tree")
+		}
+	}
+}
+
+// The bound is literal: three reactive wakes produce four total requests, then
+// human escalation. HTTP failure has one request and no automatic retry.
+func TestFleetIdleBoundAndFailedTurn(t *testing.T) {
+	for _, fail := range []bool{false, true} {
+		t.Run(fmt.Sprint(fail), func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				if fail {
+					http.Error(w, "provider refused", http.StatusBadRequest)
+					return
+				}
+				replyText(w, "plain idle answer")
+			}))
+			defer server.Close()
+			a, inbox, _ := fleetAgent(t, server)
+			_, err := a.Ask(context.Background(), "idle test")
+			if fail {
+				if err == nil || calls.Load() != 1 {
+					t.Fatalf("failed turn retried: calls=%d err=%v", calls.Load(), err)
+				}
+				return
+			}
+			if err != nil || calls.Load() != 4 {
+				t.Fatalf("three-wake bound: calls=%d err=%v", calls.Load(), err)
+			}
+			select {
+			case m := <-inbox:
+				if m.From != "main" || m.To != "Bill" || !strings.Contains(m.Content, "three framework wakes") {
+					t.Fatal(m)
+				}
+			default:
+				t.Fatal("root escalation never reached human")
+			}
+			wakes := 0
+			notices := 0
+			for _, e := range a.History().EventsAfter(0) {
+				if e.Message != nil {
+					for _, p := range e.Message.Parts {
+						if strings.HasPrefix(p.Text, "Framework wake ") {
+							wakes++
+						}
+					}
+				}
+				if e.Type == "fleet_notice" {
+					notices++
+				}
+			}
+			if wakes != 3 || notices != 1 {
+				t.Fatalf("wake/escalation log missing: %d/%d", wakes, notices)
+			}
+		})
+	}
+}
+
+// An ordinary incoming prompt wakes the current slow shell wait before its
+// command finishes. The real continuing job later returns its actual result.
+func TestFleetMessageWakesWaitAndRetainsResult(t *testing.T) {
+	started := make(chan struct{})
+	steered := make(chan struct{})
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		switch calls.Add(1) {
+		case 1:
+			fleetCall(w, "tool_limits", map[string]int{"ai_callback_delay": 60})
+		case 2:
+			fleetCall(w, "run_command", map[string]string{"command": "sleep 1; printf REAL_JOB_RESULT"})
+			close(started)
+		case 3:
+			if !strings.Contains(string(body), "STEER_NOW") {
+				t.Error("wake request lacks message")
+			}
+			close(steered)
+			// The command is the first ordinary job; tool_limits is supervision only.
+			fleetCall(w, "wait_for_job", map[string]any{"handle": 1, "ai_callback_delay": 3})
+		default:
+			if !strings.Contains(fleetResultText(body), "REAL_JOB_RESULT") {
+				t.Error("background result lost")
+			}
+			fleetCall(w, "submit", map[string]string{"result": "finished"})
+		}
+	}))
+	defer server.Close()
+	a, _, _ := fleetAgent(t, server)
+	reply := a.Submit(context.Background(), "start slow work")
+	<-started
+	// Wait for the actual running job rather than guessing when HTTP was parsed.
+	deadline := time.Now().Add(time.Second)
+	for {
+		if job, err := a.Jobs().Find(1); err == nil && job.Data().Status == "running" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("shell job never started")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	if err := a.Post(ensemble.UserMessage{Text: "STEER_NOW"}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-steered:
+		if job, err := a.Jobs().Find(1); err != nil || job.Data().Status != "running" {
+			t.Fatal("wake did not precede command completion")
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("message waited for command or timer")
+	}
+	result := receive(t, reply)
+	if result.Err != nil || result.Text != "finished" {
+		t.Fatal(result)
+	}
+	job, _ := a.Jobs().Find(1)
+	data, err := os.ReadFile(job.Data().Output.Locator)
+	if err != nil || string(data) != "REAL_JOB_RESULT\nexit_code: 0\n" {
+		t.Fatalf("real result %q %v", data, err)
+	}
+}
