@@ -10,8 +10,9 @@ Preserve actual historical model identifiers and frozen results. The existing
 GPT-6 Astra/high coding-agent instruction remains in force.
 
 The Chapter 14 audit found unnecessary rewriting and repeated review caveats,
-despite the author's documented full reread. Correct that chapter before
-advancing Chapter 15. Preserve original voice and TL;DR explanations unless a
+despite the author's documented full reread. Independent review `0301637e`
+accepts the bounded correction; Chapter 15 is released again. Preserve original
+voice and TL;DR explanations unless a
 specific recorded correction requires a change; keep review bookkeeping in
 notes. There is no word-count target. See the workflow and enhancement plan.
 

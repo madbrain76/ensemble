@@ -10,6 +10,13 @@ Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
 
+Use older supported Anthropic models such as Sonnet-5; 5.5 models are excluded
+from current supported use under Bill's ephemeral-context restriction. Current
+`main/` and revised examples follow this rule. Frozen snapshots and past results
+retain their original model tables and identities. Chapter 5's revised media
+example uses its existing Sonnet 4.6 row. See the
+[supported-model correction](../../docs/edition-2-notes/supported-model-correction.md).
+
 Original Chapter 5 was absorbed into Chapter 4. From that point, Edition 2
 numbers are one lower through original Chapter 21; the remaining merges below
 bring the final offset to three. The remaining standalone

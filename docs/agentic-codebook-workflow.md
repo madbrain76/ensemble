@@ -1,5 +1,28 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: editorial and supported-model correction accepted
+
+Independent review `0301637e` accepts author correction `6cfa0862` and supported
+model correction `215ae6ac` (report-only repair `586b07bd`). Chapter 14 restores
+the original TL;DR explanations and voice while keeping sourced corrections and
+the runnable exercise. Hard lint passes at 6,569 prose words; its exact Sonnet-5
+launch passes the local external-provider-fake exercise. This is not a live
+Sonnet result. The earlier acceptance and actual historical runs remain intact.
+
+Current main removes Anthropic 5.5 support rows; active tests use existing older
+models. Chapter 5's example/default uses its declared Sonnet 4.6 row; legacy media
+validation uses its own declared Sonnet-5 override. Core/GUI Go, focused race,
+grader and vet checks pass. Two browser failures reproduce on unchanged source,
+and current two-priced-Anthropic coverage is reduced; both limits are accepted
+explicitly in the [review](edition-2-notes/enhancement-14-review.md). Frozen
+exports, original work and old model identities remain unchanged. Checkpoint:
+`edition-2-enhanced-ch14-r2`; no existing tag is moved.
+
+The correction gate is closed and Chapter 15 is released again. Carry the
+editing lesson and model restriction below forward. Author and reviewer have
+reloaded all four complete documents; every subsequent compaction still requires
+a full reload before work resumes. There is no length quota or expanded scope.
+
 ## October 11: model restriction and Chapter 14 editorial correction
 
 Bill requires older supported Anthropic models such as Sonnet-5, excluding 5.5
