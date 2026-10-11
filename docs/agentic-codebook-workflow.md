@@ -20,6 +20,19 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 initial memory review requires correction round 1.** Frozen
+submission `e1c8972` completed all three provider stages in Bill's requested
+order. Independent review accepts the scoped grader exceptions and replacement
+semantics, with the original score and live limits preserved. It caught one
+GUI/actor deadlock: a settings handler holds the GUI mutex while waiting for
+an actor acknowledgment, and active actor observation needs that same mutex.
+A bounded real-runtime probe passed its idle control, then reproduced the cycle
+and blocked shutdown during streaming. Keep truthful settings acknowledgments
+without holding a progress-delivery lock across the actor wait. Round 1 is in
+progress; no acceptance or export yet. Earlier read-only review also caught
+stale enabled-band memory after a human disk edit; the student's corrected
+startup and restored-defect regression are attributed pre-submission assistance.
+
 **October 11 memory implementation in progress, not accepted.** Anthropic and
 OpenAI reached the first green implementation checkpoint `ccd6350`, followed by
 bounded live compression/graduation demonstrations; Gemini follows in Bill's
