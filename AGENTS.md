@@ -11,6 +11,9 @@ enhancement coder's reference-answer access does not carry into this run.
 The stops before original Chapters 22 and 24 below remain binding. Work promptly
 without expanding exercises or repeating unchanged evidence unnecessarily;
 required grading, live use, comparative review and correction limits still apply.
+Original Chapter 25 is now available and has received full carryover reading;
+see `docs/edition-2-notes/ch25.md`. Earlier forthcoming references are historical.
+Its capabilities remain beyond the decision gates, not current implementation.
 
 ## October 10: later refactor decision gates
 

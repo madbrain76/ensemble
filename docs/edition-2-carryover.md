@@ -519,6 +519,32 @@ permission to invent the missing sub-agent exercise. Sources:
 [§23.3–23.7](../book/chapter-23.md#233-two-boundaries-not-one),
 [§23.9–23.10](../book/chapter-23.md#239-what-does-not-work).
 
+**Chapter 25: verify the product's actual wiring and preserve steering.**
+The newly published chapter reinforces checking the shipped executable: library
+fixtures supplied construction and message-delivery services that its command
+omitted, and missed stdin blocked by the turn it needed to steer. Exercise the
+actual human input path and required hierarchy depth when those capabilities
+arrive. Owner-scoped identity must stay with its fleet, not a package counter.
+Check launch directories and resolved paths before attributing different grader
+results to code. Sources: [§25.5](../book/chapter-25.md#255-five-bugs-the-tests-could-not-see),
+[§25.6](../book/chapter-25.md#256-what-the-sweep-found).
+
+At the later sub-agent exercise, preserve the difference between asking a
+question and submitting completed work: fan-in yields to a child's question,
+replies retain sender identity, and the addressable user is not a managed fleet
+member. Incoming messages wake tool waits without killing their jobs or losing
+later results. Idle correction is reactive and bounded; failed turns are
+reported rather than automatically retried. These are deferred Chapter 25
+capabilities, not additions to Chapter 6 or the current assignment. The source's
+routing parent ID does not replace actual runtime owner interfaces. Its
+`tool_limits` wording and timer/message-wake discrepancy require resolution
+when reached; see the [sourced reading notes](edition-2-notes/ch25.md).
+
+The chapter's broad isolation mutant causes several coupled failures. Those
+failures do not establish several independent behavioral proofs or prove that
+no narrower mutation is possible. Preserve the existing requirement to inspect
+the actual reason each claimed mutation check fails.
+
 ## Coverage of the architecture-repair chapters
 
 **Chapter 5, The Big Refactor**, has been absorbed into the enhanced early
@@ -627,6 +653,16 @@ were recorded in [the Chapter 24 reading notes](edition-2-notes/ch24.md) and do
 not prescribe a replacement framework.
 
 ## Reading coverage and later use
+
+October 10 addition: independent reviewer `enhancement_reviewer_resumed` and
+coordinator each read all 558 lines of newly published original Chapter 25 at
+`c933a093ece3c3efc78a2b9ddcd7a2a68e80c38b`, SHA-256
+`f4c632ae1d758d739c2e4d33f951e2057b77ec4318e299b9604ddbf4d9b02b68`.
+The chapter is now available; earlier forthcoming statements describe the
+previous source snapshot. Its reported grader/live results were not independently
+reproduced and are not student results. The coordinator checked the sourced
+lessons and preserved the deferred scope and unresolved contracts in
+`edition-2-notes/ch25.md`. Stops before original Chapters 22 and 24 remain.
 
 October 9 coordinator preparation reread all 373 lines of Chapter 9 at file
 revision `2b2fedbc8b50bc688c31ab823712553e589f8a3b`, SHA-256

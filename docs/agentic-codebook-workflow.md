@@ -19,6 +19,15 @@ avoid unnecessary reruns. Speed does not waive teaching quality, scope or review
 The newly published original Chapter 25 is assigned for sourced carryover
 reading only; it is not permission to implement beyond the decision gates.
 
+The reviewer and coordinator subsequently read that chapter in full at
+`c933a09`; source hash, coverage and deferred contract questions are in
+`edition-2-notes/ch25.md`. Its lessons now enter the carryover: verify actual
+binary construction and input delivery, retain owner-scoped identity, distinguish
+messages from completed submissions, and preserve running jobs when steering
+interrupts a wait. Its coupled mutation failures reinforce checking what a
+failure proves. The chapter's reported results are source claims, not new
+student evidence, and its fleet features remain deferred.
+
 ## Required decisions at original Chapters 22 and 24
 
 Bill specified these stops on October 10, using first-edition chapter numbers.
