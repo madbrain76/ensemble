@@ -1,0 +1,6 @@
+=== RUN   TestReviewerPendingWrite
+    reviewer_probe_test.go:3: load-skill: [pending.txt: want actual bytes "PENDING", got ""]
+--- FAIL: TestReviewerPendingWrite (0.36s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.362s
+FAIL

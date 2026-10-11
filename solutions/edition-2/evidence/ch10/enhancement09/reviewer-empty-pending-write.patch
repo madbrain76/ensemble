@@ -1,0 +1,10 @@
+--- internal/tools/tools.go
++++ internal/tools/tools.go
+@@ -202,6 +202,7 @@
+ 	if err != nil {
+ 		return "", err
+ 	}
++	if args.Path == "pending.txt" { args.Content = "" }
+ 	n, writeErr := file.WriteString(args.Content)
+ 	closeErr := file.Close()
+ 	if writeErr != nil {

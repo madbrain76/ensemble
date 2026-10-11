@@ -1,0 +1,29 @@
+{
+  "source_sha256": {
+    "cmd/grade-edition2/main.go": "0c3b5fc77dc5623e07ee5bb0cf421e8f4731f78cd30a836198429a4f52a8d584",
+    "internal/gradeedition2/ch07_driver.go": "b2812952e0defd31cec84b06d82335d65e1ac3ef0b387b9004beeb5e75a61e77",
+    "internal/gradeedition2/ch09.go": "77ffbe2a4703f9341021345366ef4ffaf8c3eb7b6f3fc74117fd26c1e77fa466",
+    "internal/gradeedition2/ch09_test.go": "dc52bc09f346ff550f68a1a88e884db83d203f19bf84c7b981ef5ad53ac39c49"
+  },
+  "runs": [
+    {
+      "label": "baseline",
+      "exit": 0,
+      "seconds": 1.837,
+      "command": "go test ./internal/gradeedition2 -run ^TestReviewerPendingWrite$ -count=1 -v"
+    },
+    {
+      "label": "empty-pending-write",
+      "exit": 1,
+      "seconds": 0.572,
+      "command": "go test ./internal/gradeedition2 -run ^TestReviewerPendingWrite$ -count=1 -v"
+    },
+    {
+      "label": "restored",
+      "exit": 0,
+      "seconds": 0.528,
+      "command": "go test ./internal/gradeedition2 -run ^TestReviewerPendingWrite$ -count=1 -v"
+    }
+  ],
+  "bridge": "package gradeedition2\nimport(\"os\";\"testing\")\nfunc TestReviewerPendingWrite(t *testing.T) { for _, c := range skillsChecks(os.Getenv(\"REVIEWER_GUI\"), \"claude-sonnet-5\") { if !c.Passed { t.Errorf(\"%s: %v\", c.ID, c.Details) } } }\n"
+}
