@@ -20,7 +20,7 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
-**October 11 original18 / Edition2 ch17 is in progress.** Fresh blind student
+**October 11 original18 / Edition2 ch17 needs correction round 1.** Fresh blind student
 `student_continue_ch18` extends accepted original17. The instrument-first stage
 is green at `294aaf4`: main-request cache lens, real-rendered byte/append checks,
 auxiliary-call exclusion, and core/GUI tests/vet. Markers and session meter then
@@ -36,7 +36,12 @@ raw usage to every browser cost/rate/token reading, preserving the original
 retains separate real-runtime checks. Final submission `6194918` (main tree
 `0ba40790660cddb0044e376fedaea3d9e8d3f483`) adds verified Sonnet 5 pricing and
 focused test evidence: 32 intended mutation failures and three preserved invalid
-attempts. Initial formal comparative review is underway; zero correction rounds.
+attempts. Initial formal review found one current-scope defect: interrupted and
+new HTTP workers overlap, racing shared cache-lens state and attributing an old
+response to the new request’s prediction. Independent real-Agent probes reproduce
+both problems; the serial control passes. Correction round 1 is underway, with
+interrupt semantics preserved and no new paid or original-grader run required.
+See `edition-2-notes/ch18-code-review.md`; acceptance/export remain pending.
 Coordinator recovered
 the missing external launch/usage/artifact contract in `edition-2-notes/ch18.md`,
 with exact sources and the repeated untyped-skill fixture issue; no compatibility
