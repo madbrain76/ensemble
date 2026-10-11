@@ -1,5 +1,20 @@
 # Ensemble student restart
 
+## October 11: supported models and bounded prose corrections
+
+Bill requires older supported Anthropic models, such as Sonnet-5, and excludes
+5.5 models because they do not work with Ensemble's ephemeral context in his
+experience. Do not add or recommend unsupported models. Apply this to current
+examples, defaults and future tests; discovery alone does not establish support.
+Preserve actual historical model identifiers and frozen results. The existing
+GPT-6 Astra/high coding-agent instruction remains in force.
+
+The Chapter 14 audit found unnecessary rewriting and repeated review caveats,
+despite the author's documented full reread. Correct that chapter before
+advancing Chapter 15. Preserve original voice and TL;DR explanations unless a
+specific recorded correction requires a change; keep review bookkeeping in
+notes. There is no word-count target. See the workflow and enhancement plan.
+
 ## October 11: remaining author–coder enhancement released
 
 Bill explicitly authorizes writing the remaining Edition 2 chapters to match

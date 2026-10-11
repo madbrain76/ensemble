@@ -5,6 +5,13 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
+**October 11 supported-model restriction.** Bill requires older supported
+Anthropic models such as Sonnet-5, with no 5.5 models in current examples,
+defaults or future tests: he reports they do not work with ephemeral context.
+Do not add models merely because discovery lists them. Preserve historical
+identifiers/results and frozen exports; do not relabel earlier runs. GPT-6
+Astra/high remains the explicitly selected coding-agent model.
+
 **October 11 author-phase release.** The student implementation and independent
 comparative reviews are complete through original26 / Edition2 Chapter23. Bill
 explicitly releases remaining manuscript enhancement from Edition2 Chapter9,

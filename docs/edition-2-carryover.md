@@ -1,5 +1,20 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 11 supported-model correction:** Bill requires older supported
+Anthropic models, such as Sonnet-5, and excludes 5.5 models because of their
+incompatibility with ephemeral context in his experience. Current examples,
+defaults and future tests must follow this restriction. Discovery is not proof
+of support. Preserve historical identifiers and results without presenting them
+as recommendations; preserve frozen exports. GPT-6 Astra/high remains selected
+for coding agents.
+
+**October 11 editorial correction:** Chapter 14's audit found unnecessary
+rewriting and repeated caveats, not a new runtime design. Keep useful original
+TL;DR explanations and Bill's voice, changing them only for a specific sourced
+correction. Keep internal review bookkeeping in chapter notes; explain a relevant
+limitation once where it helps the reader. Full document reloads remain mandatory
+but do not replace review of the actual diff. There is no length quota.
+
 **Current author phase, October 11:** Bill has explicitly released enhancement
 of remaining Edition 2 Chapters 9–23 from the accepted solutions, with the joint
 author/coder workflow and independent prose/grader review at each chapter.

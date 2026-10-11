@@ -1,5 +1,20 @@
 # Edition 2: chapter enhancement
 
+## Current correction gate, October 11
+
+Chapter 15 is paused while the author makes a bounded editorial correction to
+Chapter 14 following Bill's scope audit. Preserve useful original TL;DR detail
+and voice; retain sourced technical corrections and the runnable exercise, and
+move repeated review bookkeeping to notes. There is no length target. Independent
+review is required before progression; preserve the earlier acceptance as history.
+Author and reviewer reload all four governing documents after every compaction.
+
+Bill also requires older supported Anthropic models such as Sonnet-5, with no
+5.5 models in current examples, defaults or future tests. Do not add unsupported
+models. Preserve actual historical run identities/results and frozen exports.
+GPT-6 Astra/high remains the coding-agent choice. Correct the Chapter 5 runnable
+model mapping/default and audit active model selection under this restriction.
+
 ## October 11: continuation through Chapter 23
 
 Bill explicitly released the remaining author work after independent acceptance
@@ -17,8 +32,9 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapters 9–14 are accepted; Chapter 15
-(original 16, Forgetting on Purpose) is now assigned.
+acceptance and releases the next chapter. Chapters 9–14 have acceptance records;
+the current correction gate above pauses Chapter 15 (original 16, Forgetting on
+Purpose) pending Chapter 14's editorial correction.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no

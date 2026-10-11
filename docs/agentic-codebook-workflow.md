@@ -1,5 +1,34 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: model restriction and Chapter 14 editorial correction
+
+Bill requires older supported Anthropic models such as Sonnet-5, excluding 5.5
+models because they do not work with ephemeral context in his experience. Use
+supported older models in current examples, defaults and future tests; discovery
+alone does not establish support. Do not add unsupported model rows. Preserve
+historical model identities/results and frozen exports, without treating those
+identities as recommendations. GPT-6 Astra/high remains selected for coding.
+
+At Bill's request, coordinator and reviewer compared completed Edition 2 Chapter
+14 with original Chapter 15. Raw words grew from 7,104 to 8,141; prose-only lint
+counts grew from 6,106 to 6,774. The TL;DR remains but was substantially rewritten
+and shortened (1,115 to 710 raw words). The original section sequence remains;
+the new runnable exercise accounts for 698 raw words. No invented runtime design
+was found, but repeated qualifications and internal review provenance diluted
+Bill's voice. The author agreed; the reviewer withdrew editorial approval pending
+a bounded correction. Coordinator and reviewer accept responsibility for missing
+this in the earlier acceptance. Its historical checkpoint and results stay intact.
+
+Recorded full-document reads preceded the audited writing; rereading alone did
+not prevent the drift. After the subsequent compaction the author must reload all
+four documents before correcting Chapter 14. Chapter 15 is paused. Preserve useful
+original explanations, stories and TL;DR detail except where a specific recorded
+correction requires change. Keep the useful runnable exercise and demonstrated
+lessons. Put internal evidence bookkeeping in notes and explain each necessary
+limitation where it helps the reader, without repeated certification caveats.
+Review the diff against the original for necessity and voice, not just accuracy
+and section preservation. Neither growth nor shrinkage is a target.
+
 ## October 11: enhanced Chapter 14 accepted
 
 Independent combined review `f3d6e7f0` accepts the context-management chapter at
