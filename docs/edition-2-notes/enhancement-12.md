@@ -1,7 +1,6 @@
 # Edition 2 Chapter 12 enhancement: The Agent Sees Itself
 
-Author: `edition2_author`, October 11, 2026. **Draft awaiting exact-example,
-revised-grader and independent combined acceptance.** Only Edition2 Chapter12
+Author: `edition2_author`, October 11, 2026. **Final author reconciliation complete; independent combined acceptance pending.** Only Edition2 Chapter12
 (original13) is released; no Chapter13 drafting is authorized yet.
 
 ## Reading and outline
@@ -165,3 +164,71 @@ Root feedback reinforced original-number references and bounded model-behavior
 claims; both are reconciled before initial review. No formal correction round
 has occurred. All four full documents remain active; no further compaction since
 the reload recorded above.
+
+## Final author reconciliation
+
+The manuscript remains byte-identical at SHA-256
+`6e0fd380bc203701634f1bfde8861f58a177131765ed36a81c0e7f437da3ec6c`.
+No sample or prose correction was needed after the initial ready draft. Direct
+hard lint remains the recorded5273-word pass. The independent preliminary prose
+review finds no blocker; the combined acceptance decision belongs to the reviewer.
+
+Read [exact-sample results](../../solutions/edition-2/evidence/ch13/enhancement12/samples.json)
+and inspected both raw four-request captures. Actual published core and separate
+GUI build/launch commands exit0. The core uses the documented stdio server-entry
+substitution with the exact remaining skill/manual bytes and prompt. The GUI uses
+the exact WebSocket skills, assets and flags with a faithful external WebSocket
+peer and local HTTP provider. Actual requests carry correlated click/input
+results, evolving peer state, fresh snapshot/TTS content and an unchanged system
+manual. The fourth request omits browser tools and automatic context after actual
+unload. The GUI wire capture records the real tunnel. This is no new Chrome DOM,
+native-speech or paid-model run. Both current JavaScript excerpts match shipped
+source modulo whitespace and retain the accepted native-browser execution proof.
+Historical snippets remain historical, not newly executable current APIs.
+
+The actual full revised command `go run ./cmd/grade-edition2 -ch 12 -json`
+returned **100/100**, exit0,16.902 seconds. Actual legacy full grading returned
+**75/100**, exit1,15.408 seconds. These full runs precede the final representation
+corrections, with exact source delta retained. The final affected runs return
+**90/90** accepted and **75/90** legacy for current checks; combined with unchanged
+measured full-run parity10/10 and0/10, the final **composed** totals are100/100 and
+75/100. These are not additional full runs or final-source timings. See
+[source binding](../../solutions/edition-2/evidence/ch13/enhancement12/source-binding.json)
+and [final affected checks](../../solutions/edition-2/evidence/ch13/enhancement12/final-affected-checks.json).
+The author independently matched all four final grader source hashes in that
+binding to disk. Frozen accepted and legacy trees remain unchanged.
+
+Legacy's current15-point loss is missing startup instructions in both clients:
+the older command invokes loading but discards its returned manual. Remaining
+current checks observe actual behavior. Preserve the failed inherited parity and
+its earlier-launch limitations separately; a downstream check masked by startup
+is not evidence of every downstream defect. Initial missing-primary fixture
+failure is setup, not a new product finding; explicit `EN_PRIMARY_SKILL=ensemble`
+restores the original public setup. Default-primary choices remain documented
+application/source behavior, not an invented hidden grader requirement.
+
+Before final freeze, valid system text-block arrays caused an unsafe comparison
+to panic, and valid string message content was omitted by the grader's context
+reader. The two actual-renderer positive controls initially reproduce those
+failures and now pass90/90 each. These are representation corrections to the
+harness, not product mutants or runtime changes. Tool arguments/results remain
+excluded from automatic-context matching. A post-unload guard also rejects new
+automatic markers beyond the first three rather than checking only old markers.
+
+All **15** distinct targeted coder defects fail their intended checks, with
+passing original/restored controls. They cover each client's startup and directory
+override, startup-manual presence/retention, hidden automatic tools, stale
+snapshots, actual click/input arguments, TTS content/status, skipped disconnect,
+a detached but live peer, and a falsely successful guessed-call refusal. A launch
+failure detects the selected startup/override defect; its coupled downstream
+failures are not separate behavior proofs. These tests do not prove complete
+coverage. The historical student marker-in-arguments survivor remains in its old
+record; no new survivor is invented for this enhancement. Final affected race,
+command tests, vet and empty formatting output pass.
+
+No changes were made to frozen runtime sources, first-edition text, original
+graders, historical scores or CodeRhapsody work. No new paid inference or speech
+run was needed. The four required full documents remain active together; no
+compaction occurred after the complete reload recorded above, including this
+final reconciliation. Mandatory technical handoff:
+`.agents/skills/ensemble-coding/SKILL.md`. Coordinator retains the next release.
