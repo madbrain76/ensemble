@@ -1,7 +1,7 @@
 # Enhancement notes: Chapter 10 (original Chapter 11)
 
-Author: `edition2_author`, October 11, 2026. Complete initial prose draft;
-exact examples and independent combined review pending. Own only this record and
+Author: `edition2_author`, October 11, 2026. Prose and exact examples complete;
+initial independent prose review clear, combined grader review pending. Own only this record and
 `book/edition-2/chapter-10.md`. Mandatory technical handoff:
 `.agents/skills/ensemble-coding/SKILL.md`.
 
@@ -81,8 +81,53 @@ sessions. Historical captures predate the metadata correction and need no paid
 repetition to prove it. The two round1 restored defects fail their respective
 actual-wire/default and empty-primary assertions, with working controls retained.
 
-Initial direct chapter lint passes all hard checks, approximately2,950prosewords.
+Direct chapter lint passes all hard checks at2,945prosewords.
 Soft lowerlength, negation-density and person-gap warnings remain for human
 judgment; the returning reader's lost-work problem continues through the
-mechanism without inventing Bill mentions. Final hash, exact samples and combined
-review will be recorded after validation. No later manuscript drafted.
+mechanism without inventing Bill mentions. No later manuscript drafted.
+
+## Final author reconciliation
+
+No compaction occurred before this reconciliation. All four full required
+documents remain active together, including their subsequently read current-phase
+notices. Independent initial prose review of `01103093` finds no blocker and
+separately verifies the source lifecycle, historical live receipts and effective
+prompt correction. Final manuscript has412lines, with163/260original lines
+retained by exact SequenceMatcher alignment, SHA-256
+`32723da4cf2531b5786330502708d58c62db613fd71a7a73acd855c2e83b6b22`.
+
+The coder's [published-example receipt](../../solutions/edition-2/evidence/ch11/enhancement10/published-samples.json)
+binds that exact manuscript and both extracted Go fence hashes. Both fences
+compile; the private restore excerpt exercises the real existing validator and
+reducer across full-log, older-snapshot/tail, snapshot-only and invalid-event
+cases. The exact published build, chat and `--save chosen.json chat` commands
+exit0 in scratch. Four actual CLI processes use an external fake provider;
+captured requests retain the first prompt on each restart, and the override
+creates no default save. The existing GUI envelope and EOF are exercised through
+both-client persistence checks. These are deterministic sample checks, not a new
+paid or personal-human live demonstration. No manuscript sample change was needed.
+
+Author inspected the actual revised results: final accepted
+[full100/100](../../solutions/edition-2/evidence/ch11/enhancement10/accepted-final10.json),
+and final legacy [focused80/85](../../solutions/edition-2/evidence/ch11/enhancement10/legacy-declared-model-persistence.txt).
+Legacy accepts a JSON `null` save, sends a request and overwrites it, failing
+refusal; that is behavior, not a setup failure. An earlier legacy file named
+`legacy-final-persistence.txt` still has60/85 because its runtime-configuration
+probe could not launch the selected model. The later declared-model fixture
+separately resolves that setup failure; names do not supersede actual output.
+The original interrupted/unscored run and focused70/85 remain unchanged.
+
+Accepted's initial revised85/100 lost inherited parity: old independent fixture
+sessions reused a directory and the new automatic save correctly carried prior
+vendor history into them. The grader now isolates those independent sessions.
+This is a fixture-lifetime correction, not permission to disable persistence.
+The coder's report preserves the intermediate runs, corrected full run and
+legacy score composition; do not infer a final full legacy run from its focused
+80/85 result. Source race checks for the real save/replay/config/path/empty-primary
+cases pass, as do affected grader tests. Mutation records retain21initial
+intended failures plus7affected reruns/additions; these overlap and are not
+28independent guarantees of all persistence behavior.
+
+Independent combined review and coordinator acceptance remain pending. All
+runtime solutions, first-edition files, original results and immutable tags are
+preserved; this author only changed the two owned prose/note paths.
