@@ -1,0 +1,174 @@
+{
+  "request_count": 5,
+  "requests": [
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_items": 2,
+      "has_explicit_cache_options": false
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_items": 6,
+      "has_explicit_cache_options": false
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_items": 8,
+      "has_explicit_cache_options": false
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_items": 11,
+      "has_explicit_cache_options": false
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_items": 13,
+      "has_explicit_cache_options": false
+    }
+  ],
+  "completed": [
+    {
+      "status": "completed",
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "high",
+        "mode": "standard",
+        "summary": "detailed"
+      },
+      "usage": {
+        "input_tokens": 962,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 52,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1014
+      }
+    },
+    {
+      "status": "completed",
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "high",
+        "mode": "standard",
+        "summary": "detailed"
+      },
+      "usage": {
+        "input_tokens": 1715,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 24,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1739
+      }
+    },
+    {
+      "status": "completed",
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "high",
+        "mode": "standard",
+        "summary": "detailed"
+      },
+      "usage": {
+        "input_tokens": 3669,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 312,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 3981
+      }
+    },
+    {
+      "status": "completed",
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "high",
+        "mode": "standard",
+        "summary": "detailed"
+      },
+      "usage": {
+        "input_tokens": 4000,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 24,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 4024
+      }
+    },
+    {
+      "status": "completed",
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "context": "all_turns",
+        "effort": "high",
+        "mode": "standard",
+        "summary": "detailed"
+      },
+      "usage": {
+        "input_tokens": 4200,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 122,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 4322
+      }
+    }
+  ],
+  "public_summary_events": 0,
+  "test_sha256_before": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9",
+  "test_sha256_after": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9",
+  "event_types": {
+    "header": 1,
+    "message_received": 1,
+    "request_sent": 5,
+    "response_ended": 5,
+    "tool_called": 5,
+    "job_finished": 3,
+    "tool_returned": 5
+  }
+}

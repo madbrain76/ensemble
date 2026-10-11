@@ -1,0 +1,11 @@
+test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report) ... ok
+test_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision) ... ok
+test_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund) ... ok
+test_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants) ... ok
+test_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant) ... ok
+test_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.027s
+
+OK

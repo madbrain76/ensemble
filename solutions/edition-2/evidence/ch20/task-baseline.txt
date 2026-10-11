@@ -1,0 +1,104 @@
+test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report) ... ERROR
+test_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision) ... FAIL
+test_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund) ... FAIL
+test_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants) ... FAIL
+test_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant) ... ERROR
+test_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote) ... ERROR
+
+======================================================================
+ERROR: test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 40, in test_blank_rows_and_empty_report
+    self.check_csv("merchant,amount\n\nCafe,1.00\n\n", {"Cafe": Decimal("1.00")})
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 19, in check_csv
+    actual = totals(path)
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/aggregate.py", line 11, in totals
+    merchant, amount = line.split(",")
+    ^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 2, got 1)
+
+======================================================================
+ERROR: test_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 36, in test_multiline_quoted_merchant
+    self.check_csv('merchant,amount\n"Market\nAnnex",2.50\n',
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   {"Market\nAnnex": Decimal("2.50")})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 19, in check_csv
+    actual = totals(path)
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/aggregate.py", line 11, in totals
+    merchant, amount = line.split(",")
+    ^^^^^^^^^^^^^^^^
+ValueError: not enough values to unpack (expected 2, got 1)
+
+======================================================================
+ERROR: test_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 32, in test_quoted_comma_and_quote
+    self.check_csv('merchant,amount\n"Books, Inc.",3.20\n"Pat""s Cafe",1.10\n',
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   {"Books, Inc.": Decimal("3.20"), 'Pat"s Cafe': Decimal("1.10")})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 19, in check_csv
+    actual = totals(path)
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/aggregate.py", line 11, in totals
+    merchant, amount = line.split(",")
+    ^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 2)
+
+======================================================================
+FAIL: test_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 49, in test_cli_sorted_fixed_precision
+    self.assertEqual(run.returncode, 0, run.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0 : Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/aggregate.py", line 17, in <module>
+    for merchant, total in sorted(totals(sys.argv[1]).items()):
+                                  ~~~~~~^^^^^^^^^^^^^
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/aggregate.py", line 11, in totals
+    merchant, amount = line.split(",")
+    ^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 2)
+
+
+======================================================================
+FAIL: test_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 28, in test_decimal_exactness_and_refund
+    self.check_csv("merchant,amount\nCafe,0.10\nCafe,0.20\nCafe,-0.05\n",
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   {"Cafe": Decimal("0.25")})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 20, in check_csv
+    self.assertEqual(actual, expected)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: {'Cafe': 0.25000000000000006} != {'Cafe': Decimal('0.25')}
+- {'Cafe': 0.25000000000000006}
++ {'Cafe': Decimal('0.25')}
+
+======================================================================
+FAIL: test_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 24, in test_groups_merchants
+    self.check_csv("merchant,amount\nCafe,2.25\nBooks,4.50\nCafe,1.75\n",
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   {"Cafe": Decimal("4.00"), "Books": Decimal("4.50")})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6/test_aggregate.py", line 21, in check_csv
+    self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.027s
+
+FAILED (failures=3, errors=3)

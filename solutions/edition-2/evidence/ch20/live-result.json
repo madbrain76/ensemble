@@ -1,0 +1,23 @@
+{
+  "source_commit": "fab031529cda55a76d530478f09de0cd08e7db36",
+  "main_tree": "59010a4c2b333c2f74777b6d76079e8f2b3af90d",
+  "binary": "/Users/bill/ensemble-ch19-signin-01v0rmp3/ensemble-ch20",
+  "binary_sha256": "78ea07f26fdd9c88a100f6f33bcf90c9c5b18828b76838efde847ca5fa5c77c0",
+  "workspace": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch20-coding-xde5_yr6",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "high",
+  "billing": "explicit chatgpt",
+  "api_key_configured": false,
+  "endpoint_from_config_and_source": "https://api.openai.com/v1/responses",
+  "endpoint_independently_captured": false,
+  "baseline_exit_code": 1,
+  "final_exit_code": 0,
+  "cli_exit_code": 0,
+  "timed_out": false,
+  "elapsed_seconds": 27.46,
+  "stdin_closed_on_answer_or_error": true,
+  "tests_unchanged": true,
+  "source_changed": true,
+  "dedicated_profile_retained": true,
+  "logout": false
+}

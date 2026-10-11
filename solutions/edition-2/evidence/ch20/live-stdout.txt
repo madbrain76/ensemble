@@ -1,0 +1,9 @@
+The baseline has 3 failures and 3 errors: manual splitting breaks CSV quoting and blank rows, while floats lose decimal precision. I’ll use `csv.reader` and `Decimal`, leaving the CLI formatting unchanged.
+
+Repaired `aggregate.py` using only the standard library.
+
+- Replaced manual line/comma splitting with `csv.reader` and `newline=""` to handle embedded commas, escaped quotes, and quoted newlines.
+- Skipped blank rows and replaced float arithmetic with `Decimal` totals.
+- Preserved the CLI’s sorted, tab-separated, two-decimal output.
+
+Ran `python3 -m unittest -v` before editing: **3 failures, 3 errors**. Ran it again afterward: **all 6 tests passed**. `test_aggregate.py` was unchanged.

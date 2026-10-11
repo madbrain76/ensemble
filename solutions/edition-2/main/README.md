@@ -162,9 +162,12 @@ select metered billing or `chatgpt` to require the subscription. Automatic
 API keys. Identity-only login is retained and displayed, but inference requires
 the actual `chatgpt.tokens.use.direct` grant.
 
-Select an account-available model with `LLM_MODEL`. `gpt-6.1-sol` uses Responses;
-earlier tested model rows retain Chat Completions. Subscription inference requires
-a supported Responses row. `OPENAI_REASONING_EFFORT` configures effort and
+Select an account-available model with `LLM_MODEL`. `gpt-6-astra` and `gpt-6.1-sol`
+use Responses; the other tested OpenAI rows retain Chat Completions. For Bill's
+crossover configuration, set `LLM_VENDOR=openai`, `LLM_MODEL=gpt-6-astra`,
+`OPENAI_REASONING_EFFORT=high` and `OPENAI_BILLING_MODE=chatgpt`.
+Subscription inference requires a supported Responses row.
+`OPENAI_REASONING_EFFORT` configures effort and
 `OPENAI_REASONING_SUMMARY` configures summary detail (`auto` by default). Responses
 always streams internally because terminal completion establishes success.
 Public summaries are distinct from assistant text and private reasoning bytes.
