@@ -2,6 +2,20 @@
 
 ## October11: combined Chapter22 accepted; original26 released
 
+Original26 initial formal review `1faddb5` requires correction round1 for one
+current-state defect. Live source `9e2b72a` completed its real browser fleet task
+and restored the named conversation without new inference, but selected replay
+labels completed work `input_pending`. Coordinator noticed the screenshot;
+reviewer independently reproduced it immediately after successful submit and
+after Close/Start using the actual runtime and WebSocket. Pause is false and
+not a defect; the always-visible unpause control was not evidence of a pause.
+The reducer's post-tool state outlives the completed runtime turn. Correct state
+and replay, add the affected regression/restored-defect check, and retain the
+successful live artifacts without a paid freshness repeat. Review accepts the
+two original launch-fixture exceptions while preserving0/100 FAIL; no other
+blocking scope or architecture issue remains. Acceptance/export still pending.
+
+
 Original26 full first green is `974f67b`, tree
 `c34e436798cead5d2dc9d8899887da7b6eeda485`. The unchanged original grader on an
 exact isolated archive returns **0/100 FAIL** in15.683 seconds, make2/grader1,
