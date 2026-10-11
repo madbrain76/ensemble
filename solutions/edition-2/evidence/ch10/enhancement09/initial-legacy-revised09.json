@@ -1,0 +1,102 @@
+{
+  "title": "Edition 2, Chapter 9 — Skills",
+  "checks": [
+    {
+      "id": "initial-tools",
+      "title": "Primary limits declarations and actual dispatch",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "skill conversation: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-196407709/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "system-prompt",
+      "title": "Rendered primary instructions stay frozen",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "skill conversation: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-196407709/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "ensemble-tools",
+      "title": "Full primary declares the installed core tools",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "full primary: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-1303531653/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"ensemble\": unknown skill \"ensemble\""
+      ]
+    },
+    {
+      "id": "load-skill",
+      "title": "Loading enables instructions and tools; unload remains pending",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "skill conversation: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-196407709/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "progressive-disclosure",
+      "title": "Loaded skills reveal exactly the next discovery level",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "skill conversation: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-196407709/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "depends-autoload",
+      "title": "Dependencies supply tools and instructions",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "skill conversation: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-196407709/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "var-substitution",
+      "title": "Skill variables render at point of use",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "skill conversation: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-196407709/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "blocked-skill",
+      "title": "Unreachable skill returns an error without granting tools",
+      "points": 5,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "blocked skill: GUI did not serve HTTP: skills: parsing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-skills-2601084682/skills/base/SKILL.md: SKILL.md missing required field: description\nprimary skill \"base\": unknown skill \"base\""
+      ]
+    },
+    {
+      "id": "ch8-parity",
+      "title": "All corrected Chapter 8 checks pass",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "settings-roundtrip: sender patch 3: tts_enabled: want present false, got \u003cnil\u003e (present=false); sender patch 4: tts_enabled: want present false, got \u003cnil\u003e (present=false); sender patch 5: tts_enabled: want present false, got \u003cnil\u003e (present=false)",
+        "settings-on-connect: initial snapshot lacks four correctly typed visible preferences; initial snapshot lacks four correctly typed visible preferences; fresh subscriber: tts_enabled: want present false, got \u003cnil\u003e (present=false)",
+        "settings-broadcast: second client patch 3: tts_enabled: want present false, got \u003cnil\u003e (present=false); second client patch 4: tts_enabled: want present false, got \u003cnil\u003e (present=false); second client patch 5: tts_enabled: want present false, got \u003cnil\u003e (present=false)",
+        "settings-persist: restarted subscriber: tts_enabled: want present false, got \u003cnil\u003e (present=false); checks full visible preferences and explicit zero budget across actual restart; effective budget, validation, write failure and browser controls remain source/integration proof",
+        "ch7-parity: websocket-streams: final artifact identity reused: 1; final artifact identity reused: 1; GUI public dependency: core and consumer need distinct module declarations; observed wire checks passed before dependency assessment: false; event-replay: replay lost part_final content/identity (part=1 call=\u003cnil\u003e); replay lost part_final content/identity (part=2 call=\u003cnil\u003e); replay lost part_final content/identity (part=3 call=\u003cnil\u003e); replay lost part_final content/identity (part=1 call=\u003cnil\u003e); replay lost part_final content/identity (part=1 call=\u003cnil\u003e); completed-content/identity replay checked; active partials, handoff and fixed window retain required source/integration proof; ch6-parity: delivery-not-content: unknown model must complete in plain mode: error=exit status 1:  stream=false text-deltas=0; stream exercise dependency: core and consumer need distinct module declarations; compares observable finals and measured usage, unknown-model fallback and separate aggregate exercise; gated flush, SSE framing and complete opaque replay remain required source/integration proof; ch5-parity: ch4-parity: ch3parity: turning tool calls into jobs broke Chapter 3: ch2parity (0/10); toolsdecl (0/5); readtools (6/10); mutatetools (0/5); star-topology: core and consumer need distinct module declarations; external-consumer: consumer run: fork/exec /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-consumer-1729433341/consumer: permission denied: ; tool-diagnostic: consumer did not complete: consumer run: fork/exec /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-consumer-1729433341/consumer: permission denied: ; not-deaf: workflow needs its own module: solutions/ch10/ch06; replay-is-live: request 1 differs from replayed prefix: \u003cnil\u003e; request 2 differs from replayed prefix: \u003cnil\u003e; request 3 differs from replayed prefix: \u003cnil\u003e; observer-fires: workflow needs its own module: solutions/ch10/ch06; multi-agent-observations: workflow needs its own module: solutions/ch10/ch06; loud-refusal: anthropic supported image: exit status 1: render: render: cannot render image/png part: unknown model \"claude-haiku-5-5\" (no entry in the model table); openai supported image: exit status 1: render: render: cannot render image/png part: unknown model \"gpt-5.4-mini\" (no entry in the model table); gemini supported image: exit status 1: render: render: gemini: cannot send a blob of kind path (/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-media-2007638788/pixel.png): Gemini fetches remote references only, so this must be resolved to a uri before rendering"
+      ]
+    }
+  ],
+  "score": 0,
+  "max_score": 100,
+  "passed": false
+}

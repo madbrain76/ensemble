@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -177,7 +177,7 @@
+ 				r.tools[tool] = meta
+ 			}
+ 		}
+-		bodies = append(bodies, current.body)
++		if meta.Source == common.SourceInitial { bodies = append(bodies, current.body) }
+ 	}
+ 	return bodies, nil
+ }

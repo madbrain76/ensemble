@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -133,7 +133,7 @@
+ 		if s.kind != "loadable" {
+ 			return nil, fmt.Errorf("skill %q is not loadable", name)
+ 		}
+-		if !r.loaded[name] && !r.loadable()[name] {
++		if false {
+ 			return nil, fmt.Errorf("skill %q is not available to load", name)
+ 		}
+ 	}

@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -64,7 +64,7 @@
+ 	r.RegisterVar("TOOLS", func() string {
+ 		var lines []string
+ 		for _, d := range r.parent.Declarations() {
+-			lines = append(lines, d.Name+": "+d.Description)
++			if d.Name == "read_file" || d.Name == "load_skill" || d.Name == "unload_skill" { lines = append(lines, d.Name+": "+d.Description) }
+ 		}
+ 		return strings.Join(lines, "\n")
+ 	})

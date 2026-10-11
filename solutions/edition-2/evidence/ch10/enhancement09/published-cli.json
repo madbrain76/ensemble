@@ -1,0 +1,26 @@
+[
+  {
+    "label": "live-files",
+    "exit": 0,
+    "requests": 5,
+    "stdout": "SKILLS_OK\n",
+    "stderr": "",
+    "system_frozen": true
+  },
+  {
+    "label": "full-primary",
+    "exit": 0,
+    "requests": 1,
+    "stdout": "SKILLS_OK\n",
+    "stderr": "",
+    "system_frozen": true
+  },
+  {
+    "label": "frontmatter-example",
+    "exit": 0,
+    "requests": 2,
+    "stdout": "SKILLS_OK\n",
+    "stderr": "",
+    "system_frozen": true
+  }
+]

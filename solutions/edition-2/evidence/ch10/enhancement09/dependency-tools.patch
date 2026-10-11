@@ -1,0 +1,10 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -173,6 +173,7 @@
+ 		current := r.all[n]
+ 		r.loaded[n] = true
+ 		for _, tool := range current.tools {
++ if current.kind == "dependency" { continue }
+ 			if _, enabled := r.tools[tool]; !enabled {
+ 				r.tools[tool] = meta
+ 			}

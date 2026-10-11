@@ -1,0 +1,1306 @@
+[
+  {
+    "name": "baseline",
+    "target": null,
+    "exit": 0,
+    "seconds": 0.564,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": false
+  },
+  {
+    "name": "all-declarations",
+    "target": "initial-tools",
+    "exit": 0,
+    "seconds": 0.503,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [load_skill read_file unload_skill], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]"
+        ]
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file load_skill read_file unload_skill write_file], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]",
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]"
+        ]
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]"
+        ]
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "TOOLS expansion prematurely/incorrectly exposes write_file",
+          "TOOLS expansion prematurely/incorrectly exposes edit_file",
+          "TOOLS expansion prematurely/incorrectly exposes search_files",
+          "TOOLS expansion prematurely/incorrectly exposes list_directory",
+          "TOOLS expansion prematurely/incorrectly exposes search_files",
+          "TOOLS expansion prematurely/incorrectly exposes list_directory"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [load_skill read_file unload_skill], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]"
+        ]
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "hidden-dispatch",
+    "target": "initial-tools",
+    "exit": 0,
+    "seconds": 0.418,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result hidden: error=false want=true text=\"wrote 9 bytes to hidden.txt\" decode=<nil>",
+          "hidden write executed"
+        ]
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "primary-body",
+    "target": "system-prompt",
+    "exit": 0,
+    "seconds": 0.468,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "primary body/variables/horizontal rule not rendered: \"\""
+        ]
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "full primary body missing"
+        ]
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "missing rendered SKILLS expansion"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "missing rendered TOOLS expansion"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "mutable-primary",
+    "target": "system-prompt",
+    "exit": 0,
+    "seconds": 0.427,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "system prompt changed after dynamic activity"
+        ]
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "full-primary-tool",
+    "target": "ensemble-tools",
+    "exit": 0,
+    "seconds": 0.359,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file], got [edit_file kill_job list_directory load_skill read_file run_command search_files send_input unload_skill wait_for_job write_file]"
+        ]
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "body-horizontal-rule",
+    "target": "system-prompt",
+    "exit": 0,
+    "seconds": 0.354,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "primary body/variables/horizontal rule not rendered: \"PRIMARY_BODY\\nTOOLS_BEGIN\\nread_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\\nTOOLS_END\\nSKILLS_BEGIN\\ncode-tools\\nSKILLS_END\""
+        ]
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "list-tools",
+    "target": "load-skill",
+    "exit": 0,
+    "seconds": 0.343,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file load_skill read_file unload_skill write_file], got [load_skill read_file unload_skill]",
+          "result write: error=true want=false text=\"unknown tool \\\"write_file\\\"\" decode=<nil>",
+          "result pending: error=true want=false text=\"unknown tool \\\"write_file\\\"\" decode=<nil>",
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [list_directory load_skill read_file search_files unload_skill]",
+          "pending.txt: want actual bytes \"PENDING\", got \"\"",
+          "enabled.txt: want actual bytes \"ENABLED\", got \"\""
+        ]
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [list_directory load_skill read_file search_files unload_skill]"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [list_directory load_skill read_file search_files unload_skill]"
+        ]
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "TOOLS expansion lacks write_file",
+          "TOOLS expansion lacks edit_file",
+          "TOOLS expansion lacks write_file",
+          "TOOLS expansion lacks edit_file"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "dynamic-body",
+    "target": "load-skill",
+    "exit": 0,
+    "seconds": 0.352,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result code: error=false want=false text=\"\" decode=<nil>",
+          "loaded instructions absent from correlated result"
+        ]
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result search: error=false want=false text=\"\" decode=<nil>",
+          "missing rendered SKILLS expansion",
+          "missing rendered SKILLS expansion"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "dependency instructions absent from load result"
+        ]
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "custom variable missing/unrendered or appears before its skill loads",
+          "missing rendered TOOLS expansion",
+          "missing rendered TOOLS expansion"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "dependency-tools",
+    "target": "depends-autoload",
+    "exit": 0,
+    "seconds": 0.356,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [edit_file load_skill read_file search_files unload_skill write_file]"
+        ]
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [edit_file load_skill read_file search_files unload_skill write_file]"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [edit_file load_skill read_file search_files unload_skill write_file]"
+        ]
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "TOOLS expansion lacks list_directory"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "dependency-body",
+    "target": "depends-autoload",
+    "exit": 0,
+    "seconds": 0.365,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "dependency instructions absent from load result"
+        ]
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "stale-tools-variable",
+    "target": "var-substitution",
+    "exit": 0,
+    "seconds": 0.349,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "TOOLS expansion lacks write_file",
+          "TOOLS expansion lacks edit_file",
+          "TOOLS expansion lacks write_file",
+          "TOOLS expansion lacks edit_file",
+          "TOOLS expansion lacks search_files",
+          "TOOLS expansion lacks list_directory"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "stale-skills-variable",
+    "target": "progressive-disclosure",
+    "exit": 0,
+    "seconds": 0.352,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "SKILLS expansion lacks search-tools",
+          "SKILLS expansion prematurely/incorrectly exposes code-tools",
+          "SKILLS expansion prematurely/incorrectly exposes code-tools"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "premature-disclosure",
+    "target": "progressive-disclosure",
+    "exit": 0,
+    "seconds": 0.347,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "SKILLS expansion prematurely/incorrectly exposes search-tools"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "loaded-still-offered",
+    "target": "progressive-disclosure",
+    "exit": 0,
+    "seconds": 0.378,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "SKILLS expansion prematurely/incorrectly exposes code-tools",
+          "SKILLS expansion prematurely/incorrectly exposes code-tools",
+          "SKILLS expansion prematurely/incorrectly exposes search-tools"
+        ]
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "custom-variable",
+    "target": "var-substitution",
+    "exit": 0,
+    "seconds": 0.411,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "custom variable missing/unrendered or appears before its skill loads"
+        ]
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "allow-unreachable",
+    "target": "blocked-skill",
+    "exit": 0,
+    "seconds": 0.377,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result blocked: error=false want=true text=\"BLOCKED_BODY\" decode=<nil>",
+          "declarations: want [load_skill read_file unload_skill], got [load_skill read_file run_command unload_skill]"
+        ]
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "early-unload",
+    "target": "load-skill",
+    "exit": 0,
+    "seconds": 0.367,
+    "checks": [
+      {
+        "id": "initial-tools",
+        "title": "Primary limits declarations and actual dispatch",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "system-prompt",
+        "title": "Rendered primary instructions stay frozen",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "ensemble-tools",
+        "title": "Full primary declares the installed core tools",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "load-skill",
+        "title": "Loading enables instructions and tools; unload remains pending",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result pending: error=true want=false text=\"unknown tool \\\"write_file\\\"\" decode=<nil>",
+          "declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [list_directory load_skill read_file search_files unload_skill]",
+          "pending.txt: want actual bytes \"PENDING\", got \"\""
+        ]
+      },
+      {
+        "id": "progressive-disclosure",
+        "title": "Loaded skills reveal exactly the next discovery level",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "depends-autoload",
+        "title": "Dependencies supply tools and instructions",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "var-substitution",
+        "title": "Skill variables render at point of use",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "blocked-skill",
+        "title": "Unreachable skill returns an error without granting tools",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  }
+]

@@ -1,0 +1,11 @@
+--- internal/skills/parse.go
++++ internal/skills/parse.go
+@@ -47,7 +47,7 @@
+ 		}
+ 	}
+ 	one := func(key string) string { return strings.Join(fields[key], " ") }
+-	s := skill{name: one("name"), description: one("description"), kind: one("type"), body: strings.TrimSpace(parts[2]), tools: fields["tools"], depends: fields["depends"], loadable: fields["loadable-skills"]}
++	s := skill{name: one("name"), description: one("description"), kind: one("type"), body: strings.TrimSpace(strings.Split(parts[2], "---")[0]), tools: fields["tools"], depends: fields["depends"], loadable: fields["loadable-skills"]}
+ 	if s.name == "" {
+ 		return s, fmt.Errorf("skill name is required")
+ 	}

@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -185,7 +185,7 @@
+ // loadable is called under the lock and exposes exactly one discovery level.
+ func (r *registry) loadable() map[string]bool {
+ 	out := make(map[string]bool)
+-	for name := range r.loaded {
++	for name := range r.all {
+ 		for _, offered := range r.all[name].loadable {
+ 			if s, ok := r.all[offered]; ok && s.kind == "loadable" && !r.loaded[offered] {
+ 				out[offered] = true

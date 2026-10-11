@@ -1,0 +1,4 @@
+=== RUN   TestPublishedConstruction
+--- PASS: TestPublishedConstruction (0.00s)
+PASS
+ok  	samples	0.008s

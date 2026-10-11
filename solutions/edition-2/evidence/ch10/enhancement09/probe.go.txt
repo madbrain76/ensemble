@@ -1,0 +1,3 @@
+package gradeedition2
+import("encoding/json";"os";"testing")
+func TestChapter9Probe(t *testing.T){ if err:=json.NewEncoder(os.Stdout).Encode(skillsChecks(os.Getenv("SKILL_PROBE_DIR"),"claude-sonnet-5"));err!=nil{t.Fatal(err)} }

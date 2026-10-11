@@ -1,0 +1,10 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -223,6 +223,7 @@
+ 		return fmt.Errorf("skill %q is not loaded", name)
+ 	}
+ 	r.pending[name] = true
++ for _, tool := range r.all[name].tools { delete(r.tools, tool) }
+ 	return nil
+ }
+ 

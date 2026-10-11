@@ -1,0 +1,11 @@
+--- internal/engine/engine.go
++++ internal/engine/engine.go
+@@ -246,7 +246,7 @@
+ // Role instructions belong to the Agent; the default keeps earlier clients working.
+ func (e *engine) systemPrompt() string {
+ 	if s := e.parent.Config().SystemPrompt; s != "" || e.parent.Skills() != nil {
+-		return s
++		return fmt.Sprint(s, e.parent.Declarations())
+ 	}
+ 	return systemPrompt
+ }

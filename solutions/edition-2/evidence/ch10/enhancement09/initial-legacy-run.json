@@ -1,0 +1,5 @@
+{
+  "command": "go run ./cmd/grade-edition2 -ch 9 -json -gui solutions/ch10 solutions/ch10",
+  "exit": 1,
+  "seconds": 25.78624391555786
+}

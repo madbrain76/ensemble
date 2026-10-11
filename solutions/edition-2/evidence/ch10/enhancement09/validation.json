@@ -1,0 +1,42 @@
+[
+  {
+    "label": "grader-tests",
+    "cwd": "/Users/bill/projects/ensemble",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "./cmd/grade-edition2",
+      "-count=1"
+    ],
+    "exit": 0,
+    "seconds": 10.24474024772644
+  },
+  {
+    "label": "grader-vet",
+    "cwd": "/Users/bill/projects/ensemble",
+    "command": [
+      "go",
+      "vet",
+      "./internal/gradeedition2",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.19270586967468262
+  },
+  {
+    "label": "skills-race",
+    "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch09",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./ensemble",
+      "-run",
+      "^Test(SkillsThroughLoop|SkillLoadFailures)$",
+      "-count=1"
+    ],
+    "exit": 0,
+    "seconds": 2.145073175430298
+  }
+]

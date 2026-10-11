@@ -1,0 +1,88 @@
+{
+  "commands": [
+    {
+      "command": [
+        "go",
+        "test",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestChapter9Skills$",
+        "-count=1"
+      ],
+      "exit": 0,
+      "seconds": 0.7481658458709717
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "./internal/gradeedition2",
+        "./cmd/grade-edition2"
+      ],
+      "exit": 0,
+      "seconds": 0.21770071983337402
+    },
+    {
+      "command": [
+        "gofmt",
+        "-l",
+        "cmd/grade-edition2/main.go",
+        "internal/gradeedition2/ch07_driver.go",
+        "internal/gradeedition2/ch09.go",
+        "internal/gradeedition2/ch09_test.go"
+      ],
+      "exit": 0,
+      "seconds": 0.004206180572509766
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "cmd/grade-edition2/main.go",
+        "internal/gradeedition2"
+      ],
+      "exit": 0,
+      "seconds": 0.013022899627685547
+    }
+  ],
+  "source_sha256": {
+    "cmd/grade-edition2/main.go": "0c3b5fc77dc5623e07ee5bb0cf421e8f4731f78cd30a836198429a4f52a8d584",
+    "internal/gradeedition2/ch07_driver.go": "b2812952e0defd31cec84b06d82335d65e1ac3ef0b387b9004beeb5e75a61e77",
+    "internal/gradeedition2/ch09.go": "77ffbe2a4703f9341021345366ef4ffaf8c3eb7b6f3fc74117fd26c1e77fa466",
+    "internal/gradeedition2/ch09_test.go": "dc52bc09f346ff550f68a1a88e884db83d203f19bf84c7b981ef5ad53ac39c49"
+  },
+  "counts": {
+    "cmd/grade-edition2/main.go": {
+      "active": 118,
+      "comments": 5,
+      "physical": 128
+    },
+    "internal/gradeedition2/ch07_driver.go": {
+      "active": 345,
+      "comments": 20,
+      "physical": 374
+    },
+    "internal/gradeedition2/ch09.go": {
+      "active": 261,
+      "comments": 25,
+      "physical": 297
+    },
+    "internal/gradeedition2/ch09_test.go": {
+      "active": 16,
+      "comments": 2,
+      "physical": 20
+    },
+    "internal/grade/ch10_checks.go": {
+      "active": 247,
+      "comments": 18,
+      "physical": 324
+    },
+    "internal/grade/ch10_harness.go": {
+      "active": 581,
+      "comments": 86,
+      "physical": 767
+    }
+  }
+}

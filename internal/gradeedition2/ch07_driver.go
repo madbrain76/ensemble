@@ -114,7 +114,7 @@ func (p *guiPeer) pauseBarrier() error {
 
 // Run the actual GUI executable in a disposable workspace. Stdin stays open for
 // the historical combined CLI/GUI, but no protocol translation is performed.
-func startGUI(bin, static, model, base, work string) (string, func(), error) {
+func startGUI(bin, static, model, base, work string, extraEnv ...string) (string, func(), error) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return "", nil, err
@@ -125,6 +125,7 @@ func startGUI(bin, static, model, base, work string) (string, func(), error) {
 	cmd := exec.CommandContext(ctx, bin, "--port", port, "--gui-dir", static)
 	cmd.Dir = work
 	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL="+model, "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+base, "EN_DISABLE_STREAMING=0", "CH02_LOG="+filepath.Join(work, "event.log"))
+	cmd.Env = append(cmd.Env, extraEnv...)
 	// Discard terminal progress here: WebSocket traffic is the measured client.
 	// Drain stderr concurrently through exec and read it only after process exit.
 	var stderr bytes.Buffer

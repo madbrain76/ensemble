@@ -1,0 +1,11 @@
+--- internal/skills/parse.go
++++ internal/skills/parse.go
+@@ -29,7 +29,7 @@
+ 			if key != "tools" && key != "depends" && key != "loadable-skills" {
+ 				return skill{}, fmt.Errorf("list item outside a list field")
+ 			}
+-			fields[key] = append(fields[key], strings.TrimSpace(strings.TrimPrefix(line, "- ")))
++			_ = line
+ 			continue
+ 		}
+ 		var value string

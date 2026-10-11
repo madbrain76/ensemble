@@ -1,0 +1,7 @@
+{
+  "chapter_sha256": "804d37e6449f38421c0ad26b09835ee3301fc9caed0bff0b307f08ccc34d1393",
+  "go_fences": 2,
+  "markdown_skill_files": 3,
+  "command": "go test -mod=mod -v ./... (external module with exact extracted Go fences and three skill files)",
+  "exit": 0
+}

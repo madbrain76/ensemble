@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -187,7 +187,7 @@
+ 	out := make(map[string]bool)
+ 	for name := range r.loaded {
+ 		for _, offered := range r.all[name].loadable {
+-			if s, ok := r.all[offered]; ok && s.kind == "loadable" && !r.loaded[offered] {
++			if s, ok := r.all[offered]; ok && s.kind == "loadable"  {
+ 				out[offered] = true
+ 			}
+ 		}

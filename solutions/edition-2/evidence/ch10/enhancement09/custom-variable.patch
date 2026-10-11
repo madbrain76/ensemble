@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -91,7 +91,7 @@
+ 	r.mu.Unlock()
+ 	// Unknown placeholders remain visible so missing application setup is legible.
+ 	return r.variable.ReplaceAllStringFunc(body, func(token string) string {
+-		if render := vars[token[1:]]; render != nil {
++		if render := vars[token[1:]]; render != nil && token != "$CUSTOM_VAR" {
+ 			return render()
+ 		}
+ 		return token

@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -68,7 +68,7 @@
+ 		}
+ 		return strings.Join(lines, "\n")
+ 	})
+-	r.RegisterVar("SKILLS", func() string { return strings.Join(r.LoadableSkills(), ", ") })
++	r.RegisterVar("SKILLS", func() string { return "code-tools" })
+ 	return r, nil
+ }
+ 

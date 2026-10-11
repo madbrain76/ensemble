@@ -1,0 +1,11 @@
+--- internal/agent/dispatch.go
++++ internal/agent/dispatch.go
+@@ -35,7 +35,7 @@
+ 	t.calls = t.calls[1:]
+ 	var definition *common.ToolDefinition
+ 	for i := range r.owner.tools {
+-		if r.owner.tools[i].Name == call.Name && r.owner.toolEnabled(call.Name) {
++		if r.owner.tools[i].Name == call.Name {
+ 			definition = &r.owner.tools[i]
+ 			break
+ 		}
