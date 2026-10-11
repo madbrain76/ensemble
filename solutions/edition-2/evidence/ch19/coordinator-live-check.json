@@ -1,0 +1,68 @@
+{
+  "reviewer": "coordinator",
+  "source_commit": "9ca0e13b809663aa99a9e775e0322d9ef71c7533",
+  "main_tree": "c550fa3c13faec59268cc8d7486a6ed8f590d68f",
+  "actual_requests": 3,
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "reasoning_summary": "detailed",
+  "summary_delta_count": 90,
+  "hint_in_requests": [
+    false,
+    false,
+    true
+  ],
+  "raw_final_usage": [
+    {
+      "input_tokens": 831,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 20,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 851
+    },
+    {
+      "input_tokens": 957,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 356,
+      "output_tokens_details": {
+        "reasoning_tokens": 196
+      },
+      "total_tokens": 1313
+    },
+    {
+      "input_tokens": 1336,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 281,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 1617
+    }
+  ],
+  "task_check": "Actual read_file result matches eight-job puzzle; both stdout schedules meet durations, single-worker nonoverlap and all dependencies. A-C-F-H supplies 13-unit lower bound, achieved by reported schedule.",
+  "limits": [
+    "One prompt plus a hint-triggered continuation, not two separate prompted turns.",
+    "CLI API-key session only; no live OAuth or subscription access.",
+    "All cache reads/writes are zero; accepted marker wire does not prove a cache grant.",
+    "Inherited lens omits Responses input; its reported byte predictions are invalid for this run and are being corrected."
+  ],
+  "sha256": {
+    "live-openai-api.log": "dfbab20699717e9311b727a5c7bd196d88e2ae594a5ce8b92f3851476c6e858e",
+    "live-openai-events.jsonl": "b02c4d6d947080ca6432b3cf56a106d5e720ec126ea60e7fe3df08ede0cee1d6",
+    "live-openai-stdout.txt": "9d90e6ac25936507f4113e511e5101fad8809bbbdc2f18592c8ee9b7084685b7",
+    "live-openai-stderr.txt": "c01a63b1d9b33ddfa1e3c5364c1b40b1229df99e0e0bec3a778994b9bdd76d0e",
+    "live-openai-result.json": "ce5c3fefa9e2abd88aad079feab089ee022418d5ce17af2e8bfb6ce85a5ab9a8",
+    "live-openai.py": "1326b0536582ded5271b75e21789bb6ac49837bf15658ab48628702d14f34d77"
+  }
+}
