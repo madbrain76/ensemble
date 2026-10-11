@@ -159,3 +159,152 @@ Original15 harness/run are respectively `107c59d45ee2977d82910f1c1e734eabb73d538
 and `374916a10263c4b32cc3dc22999043f07202f95c` (unchanged original files).
 No source correction is requested by this preflight. Final comparative review,
 complete student response and authentic provider evidence are still required.
+
+## October 11 initial formal review — correction required
+
+Reviewer `enhancement_reviewer_resumed`; frozen submission
+`e1c89721d8ba266fd7521333ec2ba46f5258baa3`, extending accepted original15
+`6aa7fda`. Read the complete final student response above its evidence links in
+[ch16.md](ch16.md), original Chapter16, both editions' chapter deltas and relevant
+active code/tests. Reread the mandatory skill, carryover and workflow.
+**Not accepted: one confirmed current-scope blocker.** This is the initial
+formal review, with zero correction rounds used; the following finding releases
+round1 of the maximum three. Preparatory assistance remains separately attributed.
+
+### Blocking finding: GUI settings and actor observation deadlock
+
+`gui/gui.go:283` holds `Server.mu` across `updateSettings`; the new synchronous
+`SetMemorySettings` waits for the actor's acknowledgment (`agent.go:254–270`).
+During a response that actor can be inside synchronous Ensemble observation,
+blocked acquiring the same GUI mutex (`gui.go:64`). Neither can advance. This
+also prevents Agent shutdown. The settings implementation's intention to order
+apply/broadcast with subscription is valid, as is the new requirement that an
+idle settings acknowledgment follow its effective content change; neither
+justifies blocking the actor's progress behind this cycle.
+
+The independent [bounded real-runtime probe](../../solutions/edition-2/evidence/ch16/reviewer-gui-lock_test.go.txt)
+ran in an isolated `git archive` of the exact frozen submission. It uses the
+existing public-root/Agent/GUI/WebSocket helpers and a small HTTP SSE provider
+fake; no internal behavior was mocked or production source changed. An idle
+patch was acknowledged. After a real `part_delta`, the ninth active-response
+patch timed out; cleanup then blocked and the whole test ended at its 12-second
+bound. The [complete stack](../../solutions/edition-2/evidence/ch16/reviewer-gui-lock.txt)
+shows the WebSocket handler waiting in `SetMemorySettings` while holding the
+GUI lock and the actor waiting in `ObserveAgent` for that lock. This is observed
+liveness failure, not an inferred race or a timeout excused as flaky.
+
+Correction must preserve effective idle settings, ordered persistence/snapshots
+and the existing nonblocking-progress/Agent lifetime contract while breaking
+this wait cycle. Add a bounded real-runtime regression with an idle positive
+control and settings during an active response, including eventual completion
+and shutdown. Restore the defect to demonstrate that the check detects this
+liveness failure. No new product protocol, paid repeat or broad test sweep is
+required. All reviewer harnesses are released.
+
+### Scope, architecture and comparison
+
+The Memory child has its actual required Agent parent; common contains shared
+data/interfaces rather than memory operations. File selection/persistence live
+in the memory spoke, the actor commits history and worker results, and Engine
+performs a finite compressor call. The optional GUI uses public interfaces.
+No new global service, callback bundle, mock, sub-agent or recall machinery was
+introduced. Existing methods are extended instead of a second orchestration or
+transaction framework. Pending cuts, recorded replacement bytes and retained
+retired files provide a comprehensible failure boundary for this chapter.
+The GUI cycle above is the one implementation finding, not evidence that the
+overall ownership design needs replacement.
+
+Independent counts use tracked files at the recorded commits: physical lines,
+active lines excluding blank/comment-only lines, and comment-only lines. Inline
+comments count as active; the simple lexical method and full categories are in
+[reviewer-counts.json](../../solutions/edition-2/evidence/ch16/reviewer-counts.json).
+Each delta is against that edition's own predecessor, not mismatched tree totals.
+
+| Chapter delta | Physical | Active | Comment-only |
+| --- | ---: | ---: | ---: |
+| Student production Go | +900 | +732 | +122 |
+| Original production Go | +1,925 | +1,156 | +615 |
+| Student Go tests | +702 | +662 | +25 |
+| Original Go tests | +1,101 | +860 | +133 |
+| Student browser JS | +28 | +27 | +1 |
+| Student HTML | +1 | +1 | 0 |
+
+The student's three separate examples are unchanged (469 physical production
+Go lines and 234 test lines); browser test/peer MJS is unchanged. README adds
+15 lines. JSON, dependency locks and external evidence/launch scripts are
+support, excluded from production/test totals; no production move inflates this
+delta. Original browser JS/HTML is unchanged. The student's production-Go
+comment share is about 16.5% of active-plus-comment lines, and 14.3% for this
+delta, below the approximate teaching target. New exported types, fields,
+methods and aliases have useful contract documentation. Ownership, byte/token
+distinction, frozen work data, commit ordering, replay and interruption receive
+local explanations. Routine selection and file loops do not need commentary
+padding. The original has more explanatory prose but also larger common-package
+behavior and Engine-side memory orchestration. The student's smaller, separated
+implementation is clearer; line count is supporting evidence, not the verdict.
+
+**The `summarizeSpan` departure is accepted.** Keeping that inherited function
+literally untouched would retain an empty placeholder and the already-compressed
+handoff. Removing the selected completed dialogue plus its included handoff,
+while preserving independent skills/declarations, fulfills replacement rather
+than inventing a new clearing policy. Whole-segment and replay checks exercise
+that distinction; the change remains tied to a recorded successful replacement.
+The minimum-two-file waterfall, canonical front placement and verified/unknown
+model-window choices are also reasonable readings of the stated exercise and
+Bill's corrected forcing contract. None introduces a later capability.
+
+### Verification and exceptions assessed
+
+The independent final-source memory race run passes:
+`go test -race ./ensemble -run '^TestMemory' -count=1 -timeout=45s`,
+`ensemble/ensemble` 1.773s. [Probe provenance](../../solutions/edition-2/evidence/ch16/reviewer-initial-probes.json)
+records commands, source tree and artifact hashes. This run includes the new
+ordinary enabled-band restart regression: offline restoration retains recorded
+bytes, then actual startup rereads the human-edited file without duplicating its
+identity. It also exercises compression, graduation, failure/interruption,
+forcing, disk controls and replay through the real runtime. Its success does
+not contradict the separate GUI deadlock it never interleaved.
+
+Read the coder's actual validation/mutation records and intended failure outputs.
+The 27 distinct eventual mutation claims cover meaningful observable defects;
+the fresh-disk panic, wrong-module commands, initially indirect settings failure
+and interruption assertion repair remain failed/limited attempts, not clean
+kills. Tests use real earlier Agent/jobs/history/renderers with provider-boundary
+fakes. Compared with the original's more separated reducer/Engine fixtures,
+the student's integration tests protect the ownership and completion path as
+well as content. They still missed the new GUI/actor lock interaction.
+
+The eight masked memory obligations in the preflight table have supplemental
+evidence: selected source reaches the compressor and later requests; whole
+oldest segments leave only after success; minimum-two oldest files graduate
+through watermarks while retaining newer work; disabled neighbors retain source
+and warn; disk toggles and ordinary restart reread edits; pure snapshot/log
+replay makes no HTTP calls; all-provider memory is data outside instructions;
+fresh startup reads per-Agent files. Failed/malformed compression and an actual
+interrupted HTTP compressor retain source, while pending-cut restoration never
+launches another compressor. These do not become original-grader passes.
+
+I independently agree with the narrow settings-location and inherited
+undefined-tool/parity exceptions already detailed above. The original result
+remains **20/100 FAIL on intermediate `ccd6350`**, not the final source: 12 forcing
+points are actual observations; the awarded eight abandonment points are
+vacuous for recovery. Bill's prior-request/cache ruling is tested separately
+from that grader, including a lower later request despite growing session totals.
+The invalid fixture does not waive the GUI blocker or any valid memory behavior.
+Inherited journal/cut evidence is reused; no new claim of power-loss durability
+or arbitrary crash-interleaving exhaustiveness is made.
+
+I compared retained live stdout with actual graduated files, including initial
+Anthropic's missing rejection reasons, the corrected Anthropic's invented open
+question, and corrected OpenAI's wrong owner/date despite correct stored bytes.
+Gemini recalls the requested facts but violates the no-extra-tools constraint.
+All five runs show useful mechanics, not five fully successful tasks; three
+compressor calls and exit0 do not erase those quality/compliance failures.
+Measured reductions are roughly 1.36–3.68, not proof of an 8x ratio. The bounded
+repeats and honest limits satisfy the live exercise requirement; no further paid
+run is requested for this deterministic lock correction.
+
+**Initial disposition: needs correction for the single GUI/actor deadlock.**
+Other assessed departures/exceptions are justified within the scope above; final
+acceptance waits for round1 source, affected checks and a sensitive real-runtime
+regression. No next chapter or export is released by this review.

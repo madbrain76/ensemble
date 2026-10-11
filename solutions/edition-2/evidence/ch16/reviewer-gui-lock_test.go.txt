@@ -1,0 +1,38 @@
+package gui_test
+
+import (
+ "net/http"
+ "net/http/httptest"
+ "testing"
+ "time"
+)
+
+// TestReviewerSettingsDuringMemoryTurn exercises the real GUI/actor while the
+// only fake, an HTTP provider, delivers paced text. Idle changes are a control.
+func TestReviewerSettingsDuringMemoryTurn(t *testing.T) {
+ provider := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "text/event-stream")
+  for i:=0;i<500;i++ {
+   select {case <-r.Context().Done(): return; default:}
+   delta(w,map[string]string{"content":"word "})
+   time.Sleep(time.Millisecond)
+  }
+  end(w)
+ }))
+ defer provider.Close()
+ _,_,server,_ := setup(t,provider)
+ c:=dial(t,server.URL)
+ until(t,c,kind("current_settings"))
+ patch:=func(n int) {
+  t.Helper()
+  if err:=c.WriteJSON(map[string]any{"type":"update_settings","settings":map[string]any{"memory":map[string]any{"session":map[string]any{"budget":100+n}}}});err!=nil{t.Fatal(err)}
+  until(t,c,kind("settings_changed"))
+ }
+ patch(0)
+ t.Log("idle settings control acknowledged")
+ send(t,c,"prompt","stream while settings change")
+ until(t,c,kind("part_delta"))
+ for i:=1;i<=32;i++ {patch(i)}
+ t.Log("all active-stream settings acknowledged")
+ until(t,c,kind("turn_ended"))
+}

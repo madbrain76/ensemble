@@ -1,0 +1,15 @@
+{
+  "source_revision": "e1c89721d8ba266fd7521333ec2ba46f5258baa3",
+  "source_tree": "ebd0b7c95ad2f30d9551d6f52694f61e692d0d82",
+  "snapshot_method": "git archive of frozen revision, isolated scratch; only added reviewer GUI test",
+  "gui_command": "go test -run ^TestReviewerSettingsDuringMemoryTurn$ -count=1 -timeout=12s -v .",
+  "gui_result": "FAIL, idle control acknowledged; active patch9 times out, cycle between Server.mu and actor settings acknowledgment; cleanup also blocks; bounded overall12.016s",
+  "memory_command": "go test -race ./ensemble -run ^TestMemory -count=1 -timeout=45s",
+  "memory_result": "PASS ensemble/ensemble 1.773s",
+  "source_unchanged": true,
+  "artifacts": {
+    "reviewer-gui-lock.txt": "7e760b8cff67963e1010b7e4f89ad9494a2a949b4f861ea0e87e1be2cfe14311",
+    "reviewer-gui-lock_test.go.txt": "c73705214e8cad002db94777e7ed52d6b2ebfad3e11b64a255eba51650c7421b",
+    "reviewer-memory-checks.txt": "8ffceba993e13a28655882141f7014f3acf97d2cf8d4694ccc558619b4737e11"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "method": "Tracked files only; physical, active excluding blanks/comment-only lines, comment-only. Line-prefix lexical count (inline comments count active); languages/tests/examples separated. Support JSON/README/lockfiles excluded; no moved production files in current delta.",
+  "student_predecessor": {
+    "Examples Go production": [
+      469,
+      415,
+      37
+    ],
+    "Examples Go tests": [
+      234,
+      204,
+      25
+    ],
+    "Go production": [
+      8627,
+      6780,
+      1367
+    ],
+    "Go tests": [
+      4755,
+      4327,
+      292
+    ],
+    "Browser tests mjs": [
+      773,
+      757,
+      14
+    ],
+    "mjs": [
+      317,
+      300,
+      12
+    ],
+    "js": [
+      681,
+      601,
+      70
+    ],
+    "html": [
+      60,
+      59,
+      1
+    ]
+  },
+  "student_submission": {
+    "Examples Go production": [
+      469,
+      415,
+      37
+    ],
+    "Examples Go tests": [
+      234,
+      204,
+      25
+    ],
+    "Go production": [
+      9527,
+      7512,
+      1489
+    ],
+    "Go tests": [
+      5457,
+      4989,
+      317
+    ],
+    "Browser tests mjs": [
+      773,
+      757,
+      14
+    ],
+    "mjs": [
+      317,
+      300,
+      12
+    ],
+    "js": [
+      709,
+      628,
+      71
+    ],
+    "html": [
+      61,
+      60,
+      1
+    ]
+  },
+  "original_predecessor": {
+    "Go production": [
+      12898,
+      8958,
+      2768
+    ],
+    "Go tests": [
+      1343,
+      1041,
+      185
+    ],
+    "js": [
+      1948,
+      1456,
+      296
+    ],
+    "html": [
+      114,
+      99,
+      8
+    ]
+  },
+  "original_submission": {
+    "Go production": [
+      14823,
+      10114,
+      3383
+    ],
+    "Go tests": [
+      2444,
+      1901,
+      318
+    ],
+    "js": [
+      1948,
+      1456,
+      296
+    ],
+    "html": [
+      114,
+      99,
+      8
+    ]
+  }
+}
