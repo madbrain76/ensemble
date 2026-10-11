@@ -1,0 +1,1509 @@
+{
+  "method": "physical/active/comment-only/blank; inline comments remain active. Go/JS/HTML/CSS only; examples distinct; evidence/docs/module/support scripts excluded.",
+  "student": {
+    "delta": {
+      "test_go": [
+        307,
+        283,
+        19,
+        5
+      ],
+      "production_go": [
+        223,
+        189,
+        21,
+        13
+      ]
+    },
+    "changed": [
+      {
+        "path": "ensemble/mcp_http_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          307,
+          283,
+          19,
+          5
+        ],
+        "delta": [
+          307,
+          283,
+          19,
+          5
+        ]
+      },
+      {
+        "path": "internal/common/mcp.go",
+        "category": "production_go",
+        "before": [
+          56,
+          29,
+          22,
+          5
+        ],
+        "after": [
+          67,
+          34,
+          27,
+          6
+        ],
+        "delta": [
+          11,
+          5,
+          5,
+          1
+        ]
+      },
+      {
+        "path": "internal/mcp/client.go",
+        "category": "production_go",
+        "before": [
+          243,
+          205,
+          27,
+          11
+        ],
+        "after": [
+          252,
+          214,
+          27,
+          11
+        ],
+        "delta": [
+          9,
+          9,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/mcp/http.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          197,
+          169,
+          16,
+          12
+        ],
+        "delta": [
+          197,
+          169,
+          16,
+          12
+        ]
+      },
+      {
+        "path": "internal/mcp/mcp.go",
+        "category": "production_go",
+        "before": [
+          258,
+          231,
+          15,
+          12
+        ],
+        "after": [
+          260,
+          233,
+          15,
+          12
+        ],
+        "delta": [
+          2,
+          2,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/skills/parse.go",
+        "category": "production_go",
+        "before": [
+          102,
+          97,
+          2,
+          3
+        ],
+        "after": [
+          106,
+          101,
+          2,
+          3
+        ],
+        "delta": [
+          4,
+          4,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "original": {
+    "delta": {
+      "test_go": [
+        2973,
+        2440,
+        333,
+        200
+      ],
+      "production_go": [
+        1472,
+        856,
+        513,
+        103
+      ],
+      "production_js": [
+        48,
+        12,
+        34,
+        2
+      ],
+      "production_html": [
+        6,
+        6,
+        0,
+        0
+      ],
+      "production_css": [
+        74,
+        43,
+        21,
+        10
+      ]
+    },
+    "changed": [
+      {
+        "path": "actor_tool_wait_integration_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          112,
+          102,
+          5,
+          5
+        ],
+        "delta": [
+          112,
+          102,
+          5,
+          5
+        ]
+      },
+      {
+        "path": "agent.go",
+        "category": "production_go",
+        "before": [
+          508,
+          309,
+          129,
+          70
+        ],
+        "after": [
+          519,
+          315,
+          132,
+          72
+        ],
+        "delta": [
+          11,
+          6,
+          3,
+          2
+        ]
+      },
+      {
+        "path": "cmd/auth.go",
+        "category": "production_go",
+        "before": [
+          169,
+          136,
+          21,
+          12
+        ],
+        "after": [
+          198,
+          151,
+          34,
+          13
+        ],
+        "delta": [
+          29,
+          15,
+          13,
+          1
+        ]
+      },
+      {
+        "path": "cmd/main.go",
+        "category": "production_go",
+        "before": [
+          1139,
+          792,
+          234,
+          113
+        ],
+        "after": [
+          1154,
+          782,
+          264,
+          108
+        ],
+        "delta": [
+          15,
+          -10,
+          30,
+          -5
+        ]
+      },
+      {
+        "path": "cmd/single_loop_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          144,
+          138,
+          3,
+          3
+        ],
+        "delta": [
+          144,
+          138,
+          3,
+          3
+        ]
+      },
+      {
+        "path": "cmd/textui.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          253,
+          178,
+          44,
+          31
+        ],
+        "delta": [
+          253,
+          178,
+          44,
+          31
+        ]
+      },
+      {
+        "path": "cmd/tools_test.go",
+        "category": "test_go",
+        "before": [
+          199,
+          159,
+          26,
+          14
+        ],
+        "after": [
+          242,
+          202,
+          26,
+          14
+        ],
+        "delta": [
+          43,
+          43,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/cachelens/canonical.go",
+        "category": "production_go",
+        "before": [
+          158,
+          74,
+          72,
+          12
+        ],
+        "after": [
+          178,
+          81,
+          84,
+          13
+        ],
+        "delta": [
+          20,
+          7,
+          12,
+          1
+        ]
+      },
+      {
+        "path": "internal/cachelens/canonical_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          84,
+          62,
+          13,
+          9
+        ],
+        "delta": [
+          84,
+          62,
+          13,
+          9
+        ]
+      },
+      {
+        "path": "internal/cachelens/diff.go",
+        "category": "production_go",
+        "before": [
+          278,
+          130,
+          122,
+          26
+        ],
+        "after": [
+          310,
+          136,
+          146,
+          28
+        ],
+        "delta": [
+          32,
+          6,
+          24,
+          2
+        ]
+      },
+      {
+        "path": "internal/cachelens/diff_test.go",
+        "category": "test_go",
+        "before": [
+          318,
+          209,
+          79,
+          30
+        ],
+        "after": [
+          383,
+          245,
+          101,
+          37
+        ],
+        "delta": [
+          65,
+          36,
+          22,
+          7
+        ]
+      },
+      {
+        "path": "internal/cachelens/lens.go",
+        "category": "production_go",
+        "before": [
+          238,
+          140,
+          70,
+          28
+        ],
+        "after": [
+          252,
+          149,
+          74,
+          29
+        ],
+        "delta": [
+          14,
+          9,
+          4,
+          1
+        ]
+      },
+      {
+        "path": "internal/common/config.go",
+        "category": "production_go",
+        "before": [
+          263,
+          108,
+          132,
+          23
+        ],
+        "after": [
+          265,
+          109,
+          133,
+          23
+        ],
+        "delta": [
+          2,
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "path": "internal/common/credentials.go",
+        "category": "production_go",
+        "before": [
+          118,
+          31,
+          76,
+          11
+        ],
+        "after": [
+          136,
+          37,
+          87,
+          12
+        ],
+        "delta": [
+          18,
+          6,
+          11,
+          1
+        ]
+      },
+      {
+        "path": "internal/common/event.go",
+        "category": "production_go",
+        "before": [
+          374,
+          226,
+          110,
+          38
+        ],
+        "after": [
+          399,
+          228,
+          132,
+          39
+        ],
+        "delta": [
+          25,
+          2,
+          22,
+          1
+        ]
+      },
+      {
+        "path": "internal/common/interfaces.go",
+        "category": "production_go",
+        "before": [
+          250,
+          163,
+          58,
+          29
+        ],
+        "after": [
+          260,
+          165,
+          65,
+          30
+        ],
+        "delta": [
+          10,
+          2,
+          7,
+          1
+        ]
+      },
+      {
+        "path": "internal/common/mailbox.go",
+        "category": "production_go",
+        "before": [
+          101,
+          49,
+          37,
+          15
+        ],
+        "after": [
+          126,
+          66,
+          42,
+          18
+        ],
+        "delta": [
+          25,
+          17,
+          5,
+          3
+        ]
+      },
+      {
+        "path": "internal/common/model.go",
+        "category": "production_go",
+        "before": [
+          477,
+          155,
+          282,
+          40
+        ],
+        "after": [
+          523,
+          157,
+          325,
+          41
+        ],
+        "delta": [
+          46,
+          2,
+          43,
+          1
+        ]
+      },
+      {
+        "path": "internal/common/part.go",
+        "category": "production_go",
+        "before": [
+          309,
+          189,
+          94,
+          26
+        ],
+        "after": [
+          311,
+          191,
+          94,
+          26
+        ],
+        "delta": [
+          2,
+          2,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/common/reasoning_summary_test.go",
+        "category": "test_go",
+        "before": [
+          127,
+          86,
+          33,
+          8
+        ],
+        "after": [
+          137,
+          91,
+          38,
+          8
+        ],
+        "delta": [
+          10,
+          5,
+          5,
+          0
+        ]
+      },
+      {
+        "path": "internal/common/settings.go",
+        "category": "production_go",
+        "before": [
+          76,
+          36,
+          30,
+          10
+        ],
+        "after": [
+          76,
+          36,
+          30,
+          10
+        ],
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/common/skill_types.go",
+        "category": "production_go",
+        "before": [
+          89,
+          53,
+          25,
+          11
+        ],
+        "after": [
+          90,
+          54,
+          25,
+          11
+        ],
+        "delta": [
+          1,
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/jobs/jobs.go",
+        "category": "production_go",
+        "before": [
+          434,
+          315,
+          82,
+          37
+        ],
+        "after": [
+          455,
+          330,
+          86,
+          39
+        ],
+        "delta": [
+          21,
+          15,
+          4,
+          2
+        ]
+      },
+      {
+        "path": "internal/jobs/shutdown_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          64,
+          59,
+          0,
+          5
+        ],
+        "delta": [
+          64,
+          59,
+          0,
+          5
+        ]
+      },
+      {
+        "path": "internal/llm/actor.go",
+        "category": "production_go",
+        "before": [
+          697,
+          496,
+          133,
+          68
+        ],
+        "after": [
+          868,
+          584,
+          203,
+          81
+        ],
+        "delta": [
+          171,
+          88,
+          70,
+          13
+        ]
+      },
+      {
+        "path": "internal/llm/actor_runtime.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          213,
+          175,
+          24,
+          14
+        ],
+        "delta": [
+          213,
+          175,
+          24,
+          14
+        ]
+      },
+      {
+        "path": "internal/llm/actor_tool_wait_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          74,
+          61,
+          7,
+          6
+        ],
+        "delta": [
+          74,
+          61,
+          7,
+          6
+        ]
+      },
+      {
+        "path": "internal/llm/adjacency.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          143,
+          96,
+          36,
+          11
+        ],
+        "delta": [
+          143,
+          96,
+          36,
+          11
+        ]
+      },
+      {
+        "path": "internal/llm/adjacency_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          170,
+          121,
+          37,
+          12
+        ],
+        "delta": [
+          170,
+          121,
+          37,
+          12
+        ]
+      },
+      {
+        "path": "internal/llm/context_ops.go",
+        "category": "production_go",
+        "before": [
+          740,
+          453,
+          241,
+          46
+        ],
+        "after": [
+          831,
+          499,
+          280,
+          52
+        ],
+        "delta": [
+          91,
+          46,
+          39,
+          6
+        ]
+      },
+      {
+        "path": "internal/llm/engine.go",
+        "category": "production_go",
+        "before": [
+          695,
+          380,
+          255,
+          60
+        ],
+        "after": [
+          535,
+          282,
+          204,
+          49
+        ],
+        "delta": [
+          -160,
+          -98,
+          -51,
+          -11
+        ]
+      },
+      {
+        "path": "internal/llm/late_tool_result.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          78,
+          63,
+          11,
+          4
+        ],
+        "delta": [
+          78,
+          63,
+          11,
+          4
+        ]
+      },
+      {
+        "path": "internal/llm/late_tool_result_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          203,
+          190,
+          4,
+          9
+        ],
+        "delta": [
+          203,
+          190,
+          4,
+          9
+        ]
+      },
+      {
+        "path": "internal/llm/model_switch_test.go",
+        "category": "test_go",
+        "before": [
+          112,
+          81,
+          19,
+          12
+        ],
+        "after": [
+          181,
+          127,
+          36,
+          18
+        ],
+        "delta": [
+          69,
+          46,
+          17,
+          6
+        ]
+      },
+      {
+        "path": "internal/llm/openai_cachekey_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          103,
+          79,
+          10,
+          14
+        ],
+        "delta": [
+          103,
+          79,
+          10,
+          14
+        ]
+      },
+      {
+        "path": "internal/llm/openai_responses.go",
+        "category": "production_go",
+        "before": [
+          777,
+          497,
+          195,
+          85
+        ],
+        "after": [
+          842,
+          516,
+          239,
+          87
+        ],
+        "delta": [
+          65,
+          19,
+          44,
+          2
+        ]
+      },
+      {
+        "path": "internal/llm/openai_responses_test.go",
+        "category": "test_go",
+        "before": [
+          652,
+          526,
+          76,
+          50
+        ],
+        "after": [
+          669,
+          531,
+          88,
+          50
+        ],
+        "delta": [
+          17,
+          5,
+          12,
+          0
+        ]
+      },
+      {
+        "path": "internal/llm/openai_thinking_test.go",
+        "category": "test_go",
+        "before": [
+          100,
+          66,
+          27,
+          7
+        ],
+        "after": [
+          100,
+          66,
+          27,
+          7
+        ],
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/llm/openaicache_test.go",
+        "category": "test_go",
+        "before": [
+          161,
+          133,
+          13,
+          15
+        ],
+        "after": [
+          161,
+          133,
+          13,
+          15
+        ],
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/llm/policy.go",
+        "category": "production_go",
+        "before": [
+          317,
+          246,
+          54,
+          17
+        ],
+        "after": [
+          385,
+          279,
+          86,
+          20
+        ],
+        "delta": [
+          68,
+          33,
+          32,
+          3
+        ]
+      },
+      {
+        "path": "internal/llm/save.go",
+        "category": "production_go",
+        "before": [
+          179,
+          111,
+          58,
+          10
+        ],
+        "after": [
+          209,
+          127,
+          70,
+          12
+        ],
+        "delta": [
+          30,
+          16,
+          12,
+          2
+        ]
+      },
+      {
+        "path": "internal/llm/surface_wiring_test.go",
+        "category": "test_go",
+        "before": [
+          87,
+          63,
+          13,
+          11
+        ],
+        "after": [
+          96,
+          64,
+          21,
+          11
+        ],
+        "delta": [
+          9,
+          1,
+          8,
+          0
+        ]
+      },
+      {
+        "path": "internal/llm/thinking_test.go",
+        "category": "test_go",
+        "before": [
+          285,
+          221,
+          36,
+          28
+        ],
+        "after": [
+          285,
+          221,
+          36,
+          28
+        ],
+        "delta": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "internal/llm/tool_result_lost_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          442,
+          342,
+          64,
+          36
+        ],
+        "delta": [
+          442,
+          342,
+          64,
+          36
+        ]
+      },
+      {
+        "path": "internal/llm/visible_reasoning_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          170,
+          124,
+          32,
+          14
+        ],
+        "delta": [
+          170,
+          124,
+          32,
+          14
+        ]
+      },
+      {
+        "path": "internal/mcp/http.go",
+        "category": "production_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          183,
+          138,
+          31,
+          14
+        ],
+        "delta": [
+          183,
+          138,
+          31,
+          14
+        ]
+      },
+      {
+        "path": "internal/mcp/http_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          245,
+          202,
+          27,
+          16
+        ],
+        "delta": [
+          245,
+          202,
+          27,
+          16
+        ]
+      },
+      {
+        "path": "internal/mcp/live_firecrawl_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          111,
+          89,
+          11,
+          11
+        ],
+        "delta": [
+          111,
+          89,
+          11,
+          11
+        ]
+      },
+      {
+        "path": "internal/skills/skill.go",
+        "category": "production_go",
+        "before": [
+          225,
+          181,
+          24,
+          20
+        ],
+        "after": [
+          230,
+          183,
+          27,
+          20
+        ],
+        "delta": [
+          5,
+          2,
+          3,
+          0
+        ]
+      },
+      {
+        "path": "internal/tools/mcp_enablement_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          148,
+          115,
+          18,
+          15
+        ],
+        "delta": [
+          148,
+          115,
+          18,
+          15
+        ]
+      },
+      {
+        "path": "internal/tools/tools.go",
+        "category": "production_go",
+        "before": [
+          1230,
+          926,
+          229,
+          75
+        ],
+        "after": [
+          1256,
+          933,
+          247,
+          76
+        ],
+        "delta": [
+          26,
+          7,
+          18,
+          1
+        ]
+      },
+      {
+        "path": "internal/ws/gui_replay_browser_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          244,
+          227,
+          9,
+          8
+        ],
+        "delta": [
+          244,
+          227,
+          9,
+          8
+        ]
+      },
+      {
+        "path": "internal/ws/handler.go",
+        "category": "production_go",
+        "before": [
+          954,
+          703,
+          182,
+          69
+        ],
+        "after": [
+          989,
+          715,
+          203,
+          71
+        ],
+        "delta": [
+          35,
+          12,
+          21,
+          2
+        ]
+      },
+      {
+        "path": "internal/ws/replay_test.go",
+        "category": "test_go",
+        "before": [
+          280,
+          217,
+          34,
+          29
+        ],
+        "after": [
+          279,
+          217,
+          34,
+          28
+        ],
+        "delta": [
+          -1,
+          0,
+          0,
+          -1
+        ]
+      },
+      {
+        "path": "internal/ws/settings_display_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          76,
+          41,
+          22,
+          13
+        ],
+        "delta": [
+          76,
+          41,
+          22,
+          13
+        ]
+      },
+      {
+        "path": "single_loop_integration_test.go",
+        "category": "test_go",
+        "before": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "after": [
+          371,
+          352,
+          7,
+          12
+        ],
+        "delta": [
+          371,
+          352,
+          7,
+          12
+        ]
+      },
+      {
+        "path": "web/gui/artifact-scroll.js",
+        "category": "production_js",
+        "before": [
+          260,
+          182,
+          52,
+          26
+        ],
+        "after": [
+          264,
+          183,
+          54,
+          27
+        ],
+        "delta": [
+          4,
+          1,
+          2,
+          1
+        ]
+      },
+      {
+        "path": "web/gui/gui.js",
+        "category": "production_js",
+        "before": [
+          625,
+          444,
+          99,
+          82
+        ],
+        "after": [
+          669,
+          455,
+          131,
+          83
+        ],
+        "delta": [
+          44,
+          11,
+          32,
+          1
+        ]
+      },
+      {
+        "path": "web/gui/index.html",
+        "category": "production_html",
+        "before": [
+          194,
+          171,
+          13,
+          10
+        ],
+        "after": [
+          200,
+          177,
+          13,
+          10
+        ],
+        "delta": [
+          6,
+          6,
+          0,
+          0
+        ]
+      },
+      {
+        "path": "web/gui/style.css",
+        "category": "production_css",
+        "before": [
+          600,
+          488,
+          31,
+          81
+        ],
+        "after": [
+          674,
+          531,
+          52,
+          91
+        ],
+        "delta": [
+          74,
+          43,
+          21,
+          10
+        ]
+      }
+    ]
+  }
+}

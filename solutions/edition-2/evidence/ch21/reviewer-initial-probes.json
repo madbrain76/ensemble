@@ -1,0 +1,32 @@
+{
+  "source": "5a00b98f489bc06b533ac612145e1102e9199a60",
+  "baseline": {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./ensemble",
+      "-run",
+      "Test(MCPHTTP|ShippedWebSkill|ReviewerPrimaryHTTP)",
+      "-count=1",
+      "-v",
+      "-timeout=20s"
+    ],
+    "exit": 0,
+    "output": "=== RUN   TestMCPHTTPSkillAndResults\n--- PASS: TestMCPHTTPSkillAndResults (0.11s)\n=== RUN   TestMCPHTTPJobCancellationAndClose\n--- PASS: TestMCPHTTPJobCancellationAndClose (0.01s)\n=== RUN   TestShippedWebSkill\n--- PASS: TestShippedWebSkill (0.00s)\n=== RUN   TestReviewerPrimaryHTTP\n    reviewer_primary_test.go:37: observed three HTTP posts and enabled primary_tool during primary construction\n--- PASS: TestReviewerPrimaryHTTP (0.00s)\nPASS\nok  \tensemble/ensemble\t1.143s\n"
+  },
+  "no-receive-broadcast": {
+    "command": [
+      "go",
+      "test",
+      "./ensemble",
+      "-run",
+      "TestMCPHTTP",
+      "-count=1",
+      "-v",
+      "-timeout=15s"
+    ],
+    "exit": 0,
+    "output": "=== RUN   TestMCPHTTPSkillAndResults\n--- PASS: TestMCPHTTPSkillAndResults (0.02s)\n=== RUN   TestMCPHTTPJobCancellationAndClose\n--- PASS: TestMCPHTTPJobCancellationAndClose (0.00s)\nPASS\nok  \tensemble/ensemble\t0.025s\n"
+  }
+}

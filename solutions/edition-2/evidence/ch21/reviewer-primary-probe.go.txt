@@ -1,0 +1,38 @@
+package ensemble_test
+
+import (
+ "encoding/json"
+ "fmt"
+ "io"
+ "net/http"
+ "net/http/httptest"
+ "sync/atomic"
+ "testing"
+ "ensemble/ensemble"
+)
+
+// TestReviewerPrimaryHTTP observes the inherited primary-startup behavior against
+// an external peer. It does not silently reinterpret the chapter's Rule 5.
+func TestReviewerPrimaryHTTP(t *testing.T) {
+ var posts atomic.Int32
+ server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request) {
+  posts.Add(1)
+  var m struct { ID json.RawMessage; Method string }
+  json.NewDecoder(r.Body).Decode(&m)
+  if m.ID==nil { w.WriteHeader(202);return }
+  result:=`{"protocolVersion":"2024-11-05"}`
+  if m.Method=="tools/list" {result=`{"tools":[{"name":"primary_tool","description":"primary peer","inputSchema":{"type":"object"}}]}`}
+  w.Header().Set("Content-Type","application/json")
+  fmt.Fprintf(w,`{"jsonrpc":"2.0","id":%s,"result":%s}`,m.ID,result)
+ }))
+ defer server.Close()
+ dir:=skillFiles(t,map[string]string{"base":"---\nname: base\ntype: primary\ntools: primary_tool\nmcp_servers:\n  - name: primary\n    transport: url\n    url: "+server.URL+"\n---\nBase"})
+ a,err:=ensemble.New(io.Discard).NewAgent(ensemble.Config{Model:"fake",DataDir:t.TempDir()},ensemble.AgentSpec{SkillsDir:dir,PrimarySkill:"base"})
+ if err!=nil {t.Fatal(err)}
+ defer a.Shutdown()
+ if posts.Load()!=3 {t.Fatalf("expected actual initialize/notification/discovery; got %d",posts.Load())}
+ found:=false
+ for _,d:=range a.Declarations(){if d.Name=="primary_tool" {found=true}}
+ if !found {t.Fatal("primary peer initialized but tool absent")}
+ t.Log("observed three HTTP posts and enabled primary_tool during primary construction")
+}

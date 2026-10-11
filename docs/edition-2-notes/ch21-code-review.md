@@ -72,3 +72,46 @@ Wait for frozen source and the complete student review before comparative
 assessment. Original22 is the next binding stop after accepted21; original24
 and stopped authorship remain. Preserve CodeRhapsody's concurrent work.
 Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+## First frozen stage: independent probes, before final submission
+
+Inspected source `5a00b98f489bc06b533ac612145e1102e9199a60`, main tree
+`02e9bb14883f4dddc0e76c844656369bd91f6973`. No formal disposition yet; final
+student review, live results and targeted mutation work remain pending.
+
+The focused real-runtime HTTP tests and shipped-skill check pass independently
+under race detection,1.143s, together with a small external-peer primary probe.
+That probe confirms a departure from Rule5: constructing a primary with an HTTP
+MCP declaration performs initialize/initialized/discovery and exposes its selected
+tool. Existing primary loading already starts every newly enabled skill after
+the root attaches MCP. This coherent inherited behavior may warrant an explicit
+exception to the chapter's historical silent-no-connect trap rather than a
+deliberate regression. The coordinator asked the student to explain the departure
+in its review; no waiver or implementation change is imposed before that response.
+
+The independent **no-receive-broadcast mutant survives** both new HTTP tests,
+exit0 in0.025s. Removing only `t.ready.Broadcast()` preserves their apparent
+unload success because `client.close` closes its Done channel before transport
+shutdown. That channel is not evidence that the already-parked HTTP `Recv` exits.
+The production wakeup is present; this is a sensitivity gap, not an observed
+production failure. Return the finding for a focused receive-lifetime check and
+restored-defect proof before final submission. No additional runtime capability
+or paid run is requested. This is attributed pre-submission review assistance,
+zero formal correction rounds. See [probe receipt](../../solutions/edition-2/evidence/ch21/reviewer-initial-probes.json)
+and [primary probe](../../solutions/edition-2/evidence/ch21/reviewer-primary-probe.go.txt).
+Both isolated scratch checks were removed afterward.
+
+The original grader's completion wait also disagrees with the existing GUI
+terminal: the harness requires JSON `assistant`/`error` on stdout, while this
+command prints raw deltas/newlines and errors on stderr. Visible remote calls
+can complete while the harness waits90seconds. The eventual score and exact
+failure remain for the final evidence review; this source observation does not
+turn visible tool output into proof of every masked rubric assertion.
+
+Initial [comparative counts](../../solutions/edition-2/evidence/ch21/reviewer-counts.json)
+are tied to this frozen stage. Original21 has no original20 snapshot predecessor,
+so original19→21 includes the crossover's unrelated model, cache, actor and GUI
+repairs. Do not attribute all that growth to the HTTP feature. Relevant original
+HTTP transport/tests and integration were read separately. Final counts and
+comparative judgment will follow the submitted source, not the moving worktree.
+Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
