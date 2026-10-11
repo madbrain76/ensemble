@@ -1,5 +1,25 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 9 accepted
+
+Independent prose/grader review `edc67c85` accepts Edition2 Chapter9 (original10)
+at initial review, with zero corrections. Checkpoint `edition-2-enhanced-ch09-r1`.
+The Skills chapter preserves its original argument and teaches the verified
+ownership, disclosure, instruction and unload boundaries. Exact public examples,
+affected checks and hard prose lint pass. Final revised scores are composed
+100/100 accepted and40/100 legacy; the initial missing-description fixture error
+remains recorded separately. Seventeen targeted defects and an independent
+success-with-empty-file mutation detect their intended failures. Neither source
+counts nor mutation totals are claimed as proof of every requirement.
+
+An initially valid-looking legacy0/100 was a fixture that never let it start.
+Distinguish setup from behavior before interpreting a score. Likewise, retaining
+a dynamic tool means checking that tool's actual effect: an initially enabled
+reader cannot prove that a later writer survived unload. These findings now
+appear in the teaching and separately versioned grader. Original evidence and
+frozen implementations remain unchanged. Chapter10 (original11) follows under
+Bill's all-four-document active-context and after-compaction reload requirement.
+
 ## October 11: remaining manuscript enhancement authorized
 
 After the completed student run, Bill explicitly released the author to write

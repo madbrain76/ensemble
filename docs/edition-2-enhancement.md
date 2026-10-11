@@ -17,7 +17,8 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter; only Chapter 9 is currently assigned.
+acceptance and releases the next chapter. Chapter 9 is accepted; Chapter 10
+(original 11, Persistence) is now assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
@@ -149,6 +150,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 6 (old 7) | Complete | Accepted at initial formal review | `54939b6`, `edition-2-enhanced-ch06-r1` |
 | 7 (old 8) | Complete | Accepted at initial formal review | `e6ae895`, `edition-2-enhanced-ch07-r1` |
 | 8 (old 9) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch08-r1` |
+| 9 (old 10) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch09-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -445,3 +447,29 @@ historical scores remain preserved; this pass changed no runtime implementation.
 Author, coder and reviewer have no later chapter assignment. The student remains
 accepted through original Chapter 9. GPT-5 Astra at high reasoning and producing
 Edition 3 in Ensemble remain the destination, not an achieved crossover claim.
+
+
+### October 11 Chapter 9 acceptance
+
+Independent combined review `edc67c85` accepts the Skills enhancement at initial
+review, zero correction rounds. Prose `e533aa35`, author reconciliation `31242d48`,
+grader `c4f21b4f`; checkpoint `edition-2-enhanced-ch09-r1`. The original structure
+and constitution explanation remain, with explicit per-Agent ownership, dynamic
+instructions, honest pending-unload semantics and demonstrated teaching corrections.
+The author and reviewer confirmed all four full governing/craft documents in
+active context. Hard prose lint and the exact API/CLI examples pass.
+
+Revised final totals are explicitly composed: accepted100/100, legacy40/100,
+using final Skills reruns85/85 and40/85 with measured unchanged parity. The initial
+legacy fixture omitted required descriptions and blocked startup; that0/100 run
+is preserved as a setup failure, not proof of runtime defects. Seventeen targeted
+defects fail intended checks; independent successful-but-empty pending writes
+fail the actual file-content assertion. Original interrupted grading and focused
+65/85, historical live evidence and all frozen source remain unchanged. See
+[author notes](edition-2-notes/enhancement-09.md),
+[coder report](edition-2-notes/enhancement-09-code.md) and
+[independent review](edition-2-notes/enhancement-09-review.md).
+
+Continue Edition2 Chapter10 from original11, Persistence, matching direct `ch10`.
+Keep its small four-field save/replay exercise; no journal, custom canonical
+format or retired acceptance machinery. Author/coder/reviewer gates continue.
