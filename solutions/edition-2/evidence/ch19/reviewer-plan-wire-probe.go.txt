@@ -1,0 +1,12 @@
+package ensemble_test
+import("context";"encoding/json";"io";"net/http";"net/http/httptest";"os";"strings";"testing";"ensemble/ensemble")
+// This probe uses the captured plan body through the real HTTP Engine. Headers
+// below are controlled variants, not an assertion about an unrecorded live header.
+func TestReviewerCapturedPlanWire(t *testing.T){
+ raw,err:=os.ReadFile("reviewer_plan_wire.sse");if err!=nil{t.Fatal(err)}
+ blocks:=strings.Split(string(raw),"\n\n");var done []any
+ for _,b:=range blocks{for _,line:=range strings.Split(b,"\n"){if !strings.HasPrefix(line,"data: "){continue};var f map[string]any;json.Unmarshal([]byte(line[6:]),&f);if f["type"]=="response.output_item.done"{done=append(done,f["item"])}}}
+ fixed:=append([]string(nil),blocks...)
+ for i,b:=range fixed{lines:=strings.Split(b,"\n");for j,line:=range lines{if !strings.HasPrefix(line,"data: "){continue};var f map[string]any;json.Unmarshal([]byte(line[6:]),&f);if f["type"]=="response.completed"{f["response"].(map[string]any)["output"]=done;v,_:=json.Marshal(f);lines[j]="data: "+string(v)}};fixed[i]=strings.Join(lines,"\n")}
+ for _,tc:=range []struct{name,header,body,want string}{{"non_sse_header","application/json",string(raw),"invalid Responses response"},{"sse_header_empty_terminal","text/event-stream",string(raw),"Responses response has no content"},{"sse_header_full_terminal_control","text/event-stream",strings.Join(fixed,"\n\n"),""}}{t.Run(tc.name,func(t *testing.T){s:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){w.Header().Set("Content-Type",tc.header);io.WriteString(w,tc.body)}));defer s.Close();a,err:=ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor:ensemble.OpenAI,Model:"gpt-6.1-sol",BaseURL:s.URL,DataDir:t.TempDir()});if err!=nil{t.Fatal(err)};defer a.Shutdown();body,err:=a.Engine().Render(&ensemble.Context{});if err!=nil{t.Fatal(err)};events,err:=a.Engine().Send(context.Background(),body,ensemble.StreamCallbacks{});t.Logf("observed error=%v events=%d",err,len(events));if tc.want!=""{if err==nil||!strings.Contains(err.Error(),tc.want){t.Fatalf("wanted %s",tc.want)}}else if err!=nil{t.Fatal(err)}})}
+}

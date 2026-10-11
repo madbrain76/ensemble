@@ -1,0 +1,38 @@
+{
+  "source": "dc74e25ea51fbbab65f3fa86fead7ea1ec0dd3de",
+  "tree": "bb0a9102482209f95720bd2555b562820d7cba43",
+  "method": "git archive in isolated temp, real Ensemble/Agent/Engine with external HTTP replay; no credentials/providers accessed",
+  "captured_log_sha256": "6a6875cf2bd93dd87a7885bfc342a2ca7030589a9ed9f009c978780773b05d3c",
+  "focused_command": "go test -race ./ensemble -run 'TestOAuth|TestResponses' -count=1",
+  "focused_exit": 0,
+  "focused_output": "ok ensemble/ensemble 3.146s",
+  "probe_command": "go test ./ensemble -run '^TestReviewerCapturedPlanWire$' -count=1 -v",
+  "probe_exit": 0,
+  "probe_seconds": 0.01,
+  "cases": [
+    {
+      "controlled_header": "application/json",
+      "unchanged_captured_body": true,
+      "observed_error": "invalid Responses response"
+    },
+    {
+      "controlled_header": "text/event-stream",
+      "unchanged_captured_body": true,
+      "observed_error": "Responses response has no content"
+    },
+    {
+      "controlled_header": "text/event-stream",
+      "change": "positive control copies completed item into terminal output",
+      "observed_error": null
+    }
+  ],
+  "capture_observation": {
+    "done_item_count": 1,
+    "done_type": "function_call",
+    "completed_status": "completed",
+    "completed_output_count": 0,
+    "input": 831,
+    "output": 20
+  },
+  "limits": "Probe headers are controlled variants, not observed production headers. PASS means expected defects and positive control reproduced, not parser accepted. No paid call, grader, browser or student product edit."
+}

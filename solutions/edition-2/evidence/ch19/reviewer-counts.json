@@ -1,0 +1,262 @@
+{
+  "method": "Tracked physical/active/comment-only lines, blanks excluded from active; // and standalone block comments counted, inline comments remain active. Tests *_test.go or .test.; nested ch05/06/07 and cmd/mcp-connect examples separate. No source moves in student. Generated/runtime/markdown/module/lock/support excluded.",
+  "student_base": "edition-2-ch18-r1",
+  "student_submission": "dc74e25",
+  "original_revision": "7f742544bd26f6b0507f7bd00e4cc38347a25e0b",
+  "student": {
+    "production.css": {
+      "before": [
+        165,
+        165,
+        0
+      ],
+      "after": [
+        165,
+        165,
+        0
+      ],
+      "changed_files": 0,
+      "delta": [
+        0,
+        0,
+        0
+      ]
+    },
+    "production.go": {
+      "before": [
+        10883,
+        8573,
+        1718
+      ],
+      "after": [
+        12491,
+        9935,
+        1900
+      ],
+      "changed_files": 26,
+      "delta": [
+        1608,
+        1362,
+        182
+      ]
+    },
+    "tests.go": {
+      "before": [
+        7034,
+        6410,
+        426
+      ],
+      "after": [
+        7721,
+        7055,
+        452
+      ],
+      "changed_files": 2,
+      "delta": [
+        687,
+        645,
+        26
+      ]
+    },
+    "production.js": {
+      "before": [
+        717,
+        636,
+        71
+      ],
+      "after": [
+        722,
+        641,
+        71
+      ],
+      "changed_files": 1,
+      "delta": [
+        5,
+        5,
+        0
+      ]
+    },
+    "production.mjs": {
+      "before": [
+        317,
+        300,
+        12
+      ],
+      "after": [
+        317,
+        300,
+        12
+      ],
+      "changed_files": 0,
+      "delta": [
+        0,
+        0,
+        0
+      ]
+    },
+    "production.html": {
+      "before": [
+        62,
+        61,
+        1
+      ],
+      "after": [
+        62,
+        61,
+        1
+      ],
+      "changed_files": 0,
+      "delta": [
+        0,
+        0,
+        0
+      ]
+    },
+    "tests.mjs": {
+      "before": [
+        818,
+        799,
+        16
+      ],
+      "after": [
+        871,
+        849,
+        18
+      ],
+      "changed_files": 1,
+      "delta": [
+        53,
+        50,
+        2
+      ]
+    },
+    "examples.go": {
+      "before": [
+        469,
+        415,
+        37
+      ],
+      "after": [
+        469,
+        415,
+        37
+      ],
+      "changed_files": 0,
+      "delta": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "original": {
+    "tests.go": {
+      "before": [
+        4129,
+        3112,
+        627
+      ],
+      "after": [
+        8881,
+        6826,
+        1233
+      ],
+      "changed_files": 27,
+      "delta": [
+        4752,
+        3714,
+        606
+      ]
+    },
+    "production.go": {
+      "before": [
+        18352,
+        11969,
+        4783
+      ],
+      "after": [
+        23076,
+        14495,
+        6566
+      ],
+      "changed_files": 41,
+      "delta": [
+        4724,
+        2526,
+        1783
+      ]
+    },
+    "production.js": {
+      "before": [
+        2200,
+        1625,
+        349
+      ],
+      "after": [
+        2254,
+        1657,
+        368
+      ],
+      "changed_files": 2,
+      "delta": [
+        54,
+        32,
+        19
+      ]
+    },
+    "production.html": {
+      "before": [
+        190,
+        167,
+        13
+      ],
+      "after": [
+        194,
+        171,
+        13
+      ],
+      "changed_files": 1,
+      "delta": [
+        4,
+        4,
+        0
+      ]
+    },
+    "production.css": {
+      "before": [
+        599,
+        488,
+        30
+      ],
+      "after": [
+        600,
+        488,
+        31
+      ],
+      "changed_files": 1,
+      "delta": [
+        1,
+        0,
+        1
+      ]
+    },
+    "examples.go": {
+      "before": [
+        0,
+        0,
+        0
+      ],
+      "after": [
+        45,
+        28,
+        15
+      ],
+      "changed_files": 1,
+      "delta": [
+        45,
+        28,
+        15
+      ]
+    }
+  }
+}

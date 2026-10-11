@@ -191,3 +191,143 @@ final exception decision await frozen implementation, full student response and
 real supplemental evidence. No old answer or changing product was inspected in
 this check; zero formal correction rounds. Required handoff:
 `.agents/skills/ensemble-coding/SKILL.md`.
+
+
+## Initial formal review — correction required, October 11
+
+Read the complete student review through the production-plan attempt, original
+chapter and governing documents; inspected the submitted source and matching
+first-edition Chapter19 changes against each edition's own predecessor. Initial
+source was `7a2d562` / `f2435030`; the independently approved cache-only adaptation
+is `dc74e25` / `bb0a9102482209f95720bd2555b562820d7cba43`. Final acceptance is
+**withheld for one Responses transport blocker**, comprising two observed wire
+conditions below. Correction round1 is authorized; no other blocker is confirmed.
+This is not a request for another auth architecture, new model, metered fallback,
+full grader sweep or additional feature.
+
+### Confirmed finding and independent reproduction
+
+The compatible plan request passed admission, but the actual CLI still failed:
+`invalid Responses response`, no completed task, exit0. Its captured body begins
+with SSE `event:`/`data:` records, while the parser selected the whole-JSON path.
+The same capture delivers a function call in `response.output_item.done` and then
+`response.completed` with completed status, usage831 input/20 output and an empty
+output array. The current parser ignores the completed item and obtains final
+parts only from that empty terminal array. Correcting delivery detection alone
+therefore cannot complete the tool loop.
+
+The [independent probe](../../solutions/edition-2/evidence/ch19/reviewer-plan-wire-probe.go.txt)
+uses an isolated exact `dc74e25` archive, the real public Ensemble/Agent/Engine,
+and an external HTTP server replaying those captured bytes. Under a controlled
+application/json header it reproduces `invalid Responses response`; changing only
+the header to text/event-stream produces `Responses response has no content`.
+A positive control copies the already-completed item into the terminal output and
+succeeds. These controlled headers are not claims about an unrecorded production
+header. Preserve that distinction until the coder recovers exact header evidence.
+The [receipt](../../solutions/edition-2/evidence/ch19/reviewer-initial-probe.json)
+records source/body hashes, commands and observations. Its PASS means both defects
+and their control were reproduced, not that the submitted parser passes review.
+
+Preserve incremental delivery and part identities, the actual completed tool
+item/result, authoritative terminal success and usage, and failure on truncated
+streams when correcting these two supported wire conditions. The initial fakes
+supplied an SSE Content-Type and full terminal output, so their passing tests did
+not cover the live shape. Captured-wire tests must exercise the real parser and
+show restored defects failing for their intended reasons. No old solution code
+or implementation recipe was supplied to the student.
+
+### Independently accepted narrow exceptions
+
+The original **15/100 FAIL on06cbf20** remains unchanged. I accept the documented
+missing-type fixture exception: it prevents six checks from reaching the Agent;
+the awarded billing15 is vacuous, not demonstrated routing. The valid masked
+obligations remain binding and are assessed from supplemental source/tests/live
+evidence. No unconditional waiver of authentication, refresh, tools, summaries or
+billing follows from startup failure. Deferring chatgpt_then_api is expressly
+allowed by “Yours”; refusing it and retaining selected billing on errors is valid.
+
+I separately accept the live-supported exception to unconditional explicit plan
+caching. `live-plan-rejection.json` records HTTP400 invalid_parameter naming
+prompt_cache_options on the selected ChatGPT route; the same model's API-key
+request was accepted. The renderer sends options and markers as one explicit-mode
+mechanism, matching Chapter18's documented opt-in. Omitting the paired mechanism
+for ChatGPT is a proportionate compatibility choice, while keeping API-key
+explicit caching and both routes' lens. **Only options rejection was independently
+observed; marker omission is not a claim of separately observed marker rejection.**
+The small route-data delta and restored-plan-cache mutation support this accepted
+departure. It does not authorize another billing source or establish a cache grant.
+
+### Comparison, KISS and documentation
+
+[Counts](../../solutions/edition-2/evidence/ch19/reviewer-counts.json) use tracked
+source lines, excluding blanks/comment-only lines from active code; inline
+comments remain active. Tests, languages and example commands are separate;
+module files, Markdown/design documents, runtime artifacts and support evidence
+are excluded. Each edition is measured against its own preceding chapter.
+No student source move disguises the delta.
+
+| Chapter delta | Student physical / active / comment-only | Original physical / active / comment-only |
+| --- | ---: | ---: |
+| Production Go | +1608 / +1362 / +182 | +4724 / +2526 / +1783 |
+| Go tests | +687 / +645 / +26 | +4752 / +3714 / +606 |
+| Production JavaScript | +5 / +5 / 0 | +54 / +32 / +19 |
+| JavaScript tests | +53 / +50 / +2 | none |
+| Example Go command | unchanged | +45 / +28 / +15 |
+
+Original HTML adds4 active lines; CSS adds one comment. The student's three
+existing nested consumer/workflow/stream examples are unchanged. Original19 also
+contains a large design document and unrelated tool/cache/reset/MCP growth; those
+are not a target feature inventory for this exercise. The student's smaller
+production delta is meaningful because it retains the required protocol and
+public clients rather than compressing syntax or deleting explanations. Three
+auth implementation files, shared public auth CLI, existing Engine parser/renderer
+and a small route-data table are proportionate; no generalized auth framework or
+future provider-managed compaction is introduced.
+
+The original has extensive useful WHY prose about registration, rotating tokens
+and final/delta identity, but also old structural limitations: its common package
+contains credential/route behavior, its engine directly holds sibling services,
+and its command/library attachment paths differ. The student retains actual
+Ensemble-owned auth, Agent-owned configuration and Engine-owned transport/usage;
+GUI and headless clients construct the public root and share the small auth CLI.
+Common adds data/interfaces and standard JSON methods, not auth implementation.
+The browser-opening callback is a concrete client boundary, not a service bag.
+No new mutable application globals or mocked earlier runtime were found.
+
+New production comment share is about12% of net nonblank Go growth, below the
+rough20% teaching target. Useful attached explanations cover ownership, refresh
+serialization, registration persistence, request-local tokens, safe error prose,
+opaque provenance and terminal authority. Exported new symbols/fields/interface
+methods and the changed test entrypoints carry purpose comments; no missing
+exported documentation finding is open. The count is not a padding quota. The
+original's much higher comment share includes long design essays; retaining its
+useful reasons does not require copying those essays or its architecture.
+
+### Tests and honest evidence limits
+
+Reviewed all35 recorded mutation outputs and their actual test boundaries, plus
+the36th paired-cache control. They fail the intended identity/grant/refresh,
+selection/redaction, route, tool/replay, summary/completion/usage, lens and browser
+predicates rather than compilation. The summary timeout is causal: the external
+provider is gated until the live summary callback/browser pipeline observes it.
+Tests use real signed JWTs, local issuer/HTTP peers, the real Agent/tool loop and
+built CLI/browser; no mocked job/actor/auth implementation replaces the behavior.
+The independent exact-source OAuth/Responses race run passes3.146s. It still does
+not test the two captured conditions above. Positive fake results and mutation
+sensitivity do not establish completeness of their protocol assumptions.
+
+The API-key live session is one prompt plus hint continuation, three requests,
+90 summary deltas, actual read_file and an optimal makespan13 answer. Its zero
+cache counts remain zero; the offline lens replay is a byte-prefix diagnostic,
+not a provider grant. Production sign-in is real but performed by Bill/coordinator;
+I did not inspect the dedicated credential profile. The first plan task failed
+at admission; the paired-mode repeat failed in parsing. Neither exit0 establishes
+success. Existing Node speech-pause failure and isolated repeat remain an
+unresolved intermittent observation, not a proven pre-existing defect or a new
+speech feature requirement. Final chapter disposition awaits the corrected
+source, complete updated student response and meaningful plan-route evidence.
+
+All reviewer work used source/evidence and isolated scratch only: no production
+profile access, paid request, grader rewrite, original-source edit or future
+chapter work. Preserve CodeRhapsody's commits/working changes. Required handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.
