@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapter 14 is
-accepted at **Edition 2 `ch13/`**; original 15 will export to `ch14/`. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–15 are
+accepted at **Edition 2 `ch13/`–`ch14/`**; original 16 will export to `ch15/`. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,19 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+Edition 2 Chapter 14 / original 15 is accepted after one correction round.
+The original score remains **45/100 FAIL**, with independently justified settings
+path and undefined-tool fixture exceptions. Supplemental checks cover valid
+obligations those failures masked. The genuine inline-declaration/ephemera
+ordering defect is fixed, and the exact strict provider-boundary probe now passes,
+along with actual MCP/replay controls and restored-defect sensitivity. Gemini
+completed the live task; Anthropic and OpenAI task failures retain their partial
+feature evidence and quality limitations. No live inline/stubbing success is
+claimed. The exact 108-file export is directly `solutions/edition-2/ch14`,
+checkpoint `edition-2-ch15-r1` (original numbering). See the accepted
+`edition-2-notes/ch15-code-review.md`. Next is Edition 2 Chapter 15 / original 16,
+memory bands, from the accepted working tree; no author is active.
 
 Edition 2 Chapter 14 / original 15 is in progress with fresh student
 `student_continue_ch15`, extending accepted `edition-2-ch14-r1`. Its first

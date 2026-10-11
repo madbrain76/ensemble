@@ -3,8 +3,8 @@
 **Current solution paths, Bill's October 10 correction.** Work in
 `solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
-are Edition 2 `ch09`–`ch12`; original 14 is accepted at `ch13`. The next
-original 15 will export directly to `ch14` after acceptance.
+are Edition 2 `ch09`–`ch12`; original 14–15 are accepted at `ch13`–`ch14`.
+The next original 16 will export directly to `ch15` after acceptance.
 Only retired original `history/ch05` remains. No symlinks. Original exercises,
 graders, notes, evidence and existing tags retain original numbers; identify
 both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.
