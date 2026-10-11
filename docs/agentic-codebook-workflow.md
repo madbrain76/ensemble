@@ -23,8 +23,13 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 **October 11 original18 / Edition2 ch17 is in progress.** Fresh blind student
 `student_continue_ch18` extends accepted original17. The instrument-first stage
 is green at `294aaf4`: main-request cache lens, real-rendered byte/append checks,
-auxiliary-call exclusion, and core/GUI tests/vet. Markers, session meter, original
-grading, live grants and formal comparative review remain. Coordinator recovered
+auxiliary-call exclusion, and core/GUI tests/vet. Markers and session meter then
+reached green `7436fcb`, tree `05e0d2e92a9f70f5d2433af76c1a3cbf5208b493`.
+The unchanged original grader completed **0/100 FAIL** on that source: its missing
+base-skill type prevents both launched scenarios from starting and masks all seven
+behavior checks. Raw result/provenance is committed at `2c7410a`; no actual cache
+or meter failure was observed in that run. Live grants, mutation evidence and
+formal comparative review remain. Coordinator recovered
 the missing external launch/usage/artifact contract in `edition-2-notes/ch18.md`,
 with exact sources and the repeated untyped-skill fixture issue; no compatibility
 features or grader changes are authorized. Reviewer completed public-contract
