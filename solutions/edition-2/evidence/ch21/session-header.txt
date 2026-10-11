@@ -1,0 +1,10 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.01s)
+    mcp_http_test.go:47: session header missing
+    mcp_http_test.go:47: session header missing
+    mcp_http_test.go:47: session header missing
+    mcp_http_test.go:47: session header missing
+    mcp_http_test.go:47: session header missing
+    mcp_http_test.go:47: session header missing
+FAIL
+FAIL	ensemble/ensemble	0.021s
+FAIL

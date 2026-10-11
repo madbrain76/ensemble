@@ -1,0 +1,5 @@
+The current stable release listed on the [official Go download page](https://go.dev/dl/) is **Go 1.27.2**.
+
+Evidence: the “Stable versions” section lists `go1.27.2`, with the Linux x86-64 download **`go1.27.2.linux-amd64.tar.gz`**.
+
+The live fetch returned HTTP 200. Tool output was truncated, but the stable version and filename were visible.

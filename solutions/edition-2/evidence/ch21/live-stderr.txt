@@ -1,0 +1,17 @@
+Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+2026/10/11 09:36:01 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=5638 predicted=0.0000
+2026/10/11 09:36:01 OpenAI billing source: chatgpt
+load_skill {"name":"web-search"}2026/10/11 09:36:03 cache grant: input_tokens=869 read_tokens=0 granted=0.0000 predicted=0.0000
+
+2026/10/11 09:36:04 cache prefix changed: tools (changed)
+2026/10/11 09:36:04 cache lens openai/gpt-6-astra: tools:changed input:appended; prefix_bytes=4386 prompt_bytes=21703 predicted=0.2021
+firecrawl_search {"query":"site:go.dev/dl/ Go latest stable release","limit":3,"sources":["web"],"domainTools":false}2026/10/11 09:36:07 cache grant: input_tokens=3836 read_tokens=0 granted=0.0000 predicted=0.2021
+
+2026/10/11 09:36:08 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=21702 prompt_bytes=22762 predicted=0.9534
+firecrawl_scrape {"url":"https://go.dev/dl/","formats":["markdown"],"onlyMainContent":true,"maxAge":0}2026/10/11 09:36:13 cache grant: input_tokens=4090 read_tokens=0 granted=0.0000 predicted=0.9534
+
+2026/10/11 09:36:16 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=22761 prompt_bytes=23200 predicted=0.9811
+wait_for_job {"handle":3,"ai_callback_delay":10,"max_output_bytes":12000}2026/10/11 09:36:19 cache grant: input_tokens=4181 read_tokens=0 granted=0.0000 predicted=0.9811
+
+2026/10/11 09:36:19 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=23199 prompt_bytes=35883 predicted=0.6465
+2026/10/11 09:36:24 cache grant: input_tokens=9381 read_tokens=4096 granted=0.4366 predicted=0.6465

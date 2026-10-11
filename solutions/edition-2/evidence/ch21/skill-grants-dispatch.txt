@@ -1,0 +1,8 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.01s)
+    mcp_http_test.go:162: wrong skill tools: [load_skill unload_skill firecrawl_search firecrawl_scrape account_delete]
+    mcp_http_test.go:88: undeclared remote capability executed
+    mcp_http_test.go:165: undeclared capability admitted
+    mcp_http_test.go:181: unexpected remote calls: 5
+FAIL
+FAIL	ensemble/ensemble	0.020s
+FAIL

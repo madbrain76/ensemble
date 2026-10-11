@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPJobCancellationAndClose (0.00s)
+    mcp_http_test.go:252: missing auth degradation diagnostic
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

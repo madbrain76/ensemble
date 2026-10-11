@@ -151,6 +151,11 @@ func (t *httpTransport) events(body io.Reader) error {
 }
 
 func (t *httpTransport) enqueue(message json.RawMessage) error {
+	// A peer can reflect its Authorization value in a JSON-RPC error or even
+	// a successful result. Keep that transport secret out of model context too.
+	if t.token != "" {
+		message = bytes.ReplaceAll(message, []byte(t.token), []byte("[REDACTED]"))
+	}
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if t.closed {
@@ -190,7 +195,7 @@ func (t *httpTransport) Close() error {
 }
 
 // Preserve server diagnostics, but never return our Bearer token if a peer or
-// proxy reflects it in an error. Successful tool content remains the peer's data.
+// proxy reflects it in an error. Other diagnostic bytes remain intact.
 func (t *httpTransport) diagnostic(err error) error {
 	if t.token == "" {
 		return err

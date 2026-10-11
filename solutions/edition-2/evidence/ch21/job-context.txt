@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPJobCancellationAndClose (5.00s)
+    mcp_http_test.go:288: kill did not cancel blocked POST
+FAIL
+FAIL	ensemble/ensemble	5.013s
+FAIL

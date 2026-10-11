@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.00s)
+    mcp_http_test.go:162: wrong skill tools: [load_skill unload_skill firecrawl_search firecrawl_scrape account_delete]
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL

@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPSkillAndResults (5.01s)
+    mcp_http_test.go:196: unload did not close client
+FAIL
+FAIL	ensemble/ensemble	5.016s
+FAIL

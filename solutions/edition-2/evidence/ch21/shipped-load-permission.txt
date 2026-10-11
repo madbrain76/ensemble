@@ -1,0 +1,5 @@
+--- FAIL: TestShippedWebSkill (0.00s)
+    mcp_http_test.go:308: primary does not offer web-search
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL

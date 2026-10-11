@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPSkillAndResults (5.00s)
+    mcp_http_test.go:190: unload did not close HTTP reader
+FAIL
+FAIL	ensemble/ensemble	5.010s
+FAIL

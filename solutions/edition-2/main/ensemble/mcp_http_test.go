@@ -77,7 +77,7 @@ func TestMCPHTTPSkillAndResults(t *testing.T) {
 			case "firecrawl_scrape":
 				switch m.Params.Arguments["url"] {
 				case "tool-error":
-					text, failed = "remote scrape refused", true
+					text, failed = "remote scrape refused; test-bearer", true
 				case "http-error":
 					http.Error(w, "quota exhausted; test-bearer", http.StatusTooManyRequests)
 					return
@@ -159,10 +159,10 @@ func TestMCPHTTPSkillAndResults(t *testing.T) {
 	}
 	names := toolNames(a)
 	if !slices.Contains(names, "firecrawl_search") || !slices.Contains(names, "firecrawl_scrape") || slices.Contains(names, "account_delete") {
-		t.Fatalf("wrong skill tools: %v", names)
+		t.Errorf("wrong skill tools: %v", names)
 	}
 	if _, err := a.Invoke(ctx, "account_delete", nil); err == nil || !strings.Contains(err.Error(), "unknown tool") {
-		t.Fatal("undeclared capability admitted")
+		t.Error("undeclared capability admitted")
 	}
 	if got, err := a.Invoke(ctx, "firecrawl_search", json.RawMessage(`{"query":"primary source"}`)); err != nil || got != "search for primary source" {
 		t.Fatalf("search result %q %v", got, err)
@@ -184,16 +184,16 @@ func TestMCPHTTPSkillAndResults(t *testing.T) {
 	if _, err := a.Invoke(ctx, "unload_skill", json.RawMessage(`{"name":"web-search"}`)); err != nil {
 		t.Fatal(err)
 	}
+	if slices.Contains(toolNames(a), "firecrawl_search") {
+		t.Error("unload retained tool declaration")
+	}
+	if _, err := a.Invoke(ctx, "firecrawl_search", nil); err == nil || !strings.Contains(err.Error(), "unknown tool") {
+		t.Error("unloaded capability admitted")
+	}
 	select {
 	case <-done:
 	case <-ctx.Done():
-		t.Fatal("unload did not close HTTP reader")
-	}
-	if slices.Contains(toolNames(a), "firecrawl_search") {
-		t.Fatal("unload retained tool declaration")
-	}
-	if _, err := a.Invoke(ctx, "firecrawl_search", nil); err == nil || !strings.Contains(err.Error(), "unknown tool") {
-		t.Fatal("unloaded capability admitted")
+		t.Fatal("unload did not close client")
 	}
 }
 

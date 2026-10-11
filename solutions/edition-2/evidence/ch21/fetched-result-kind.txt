@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.01s)
+    mcp_http_test.go:139: full fetched page missing from model tool result
+FAIL
+FAIL	ensemble/ensemble	0.021s
+FAIL

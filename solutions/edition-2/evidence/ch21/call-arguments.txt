@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.00s)
+    mcp_http_test.go:168: search result "search for " <nil>
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

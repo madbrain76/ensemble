@@ -1,0 +1,11 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.01s)
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+    mcp_http_test.go:30: missing HTTP method, auth or content negotiation
+FAIL
+FAIL	ensemble/ensemble	0.022s
+FAIL

@@ -1,0 +1,5 @@
+--- FAIL: TestMCPHTTPSkillAndResults (0.00s)
+    mcp_http_test.go:158: invalid character ':' looking for beginning of value
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

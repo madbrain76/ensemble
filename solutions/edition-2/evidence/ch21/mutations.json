@@ -1,0 +1,203 @@
+[
+  {
+    "mutation": "url-construction",
+    "path": "internal/mcp/mcp.go",
+    "before": "t = NewHTTP(m, server)",
+    "after": "err = fmt.Errorf(\"URL transport disabled\")",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "bearer-header",
+    "path": "internal/mcp/http.go",
+    "before": "request.Header.Set(\"Authorization\", \"Bearer \"+t.token)",
+    "after": "// omitted bearer",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "session-header",
+    "path": "internal/mcp/http.go",
+    "before": "request.Header.Set(\"Mcp-Session-Id\", session)",
+    "after": "// omitted session",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "notification-202",
+    "path": "internal/mcp/http.go",
+    "before": "if response.StatusCode == http.StatusAccepted {",
+    "after": "if false && response.StatusCode == http.StatusAccepted {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "sse-body",
+    "path": "internal/mcp/http.go",
+    "before": "if strings.HasPrefix(response.Header.Get(\"Content-Type\"), \"text/event-stream\") {",
+    "after": "if false && strings.HasPrefix(response.Header.Get(\"Content-Type\"), \"text/event-stream\") {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "result-truncation",
+    "path": "internal/mcp/client.go",
+    "before": "joined := strings.Join(text, \"\\n\")",
+    "after": "joined := strings.Join(text, \"\\n\"); joined = joined[:min(len(joined),30)]",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "tool-error-flag",
+    "path": "internal/mcp/client.go",
+    "before": "if result.IsError {",
+    "after": "if false && result.IsError {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "http-error-body",
+    "path": "internal/mcp/http.go",
+    "before": "return t.diagnostic(fmt.Errorf(\"MCP HTTP %s: %s\", response.Status, body))",
+    "after": "return t.diagnostic(fmt.Errorf(\"MCP HTTP %s\", response.Status))",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "credential-redaction",
+    "path": "internal/mcp/http.go",
+    "before": "strings.ReplaceAll(err.Error(), t.token, \"[REDACTED]\")",
+    "after": "err.Error()",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "skill-grants",
+    "path": "internal/mcp/mcp.go",
+    "before": "if !allowed {",
+    "after": "if false && !allowed {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "unload-detach",
+    "path": "internal/mcp/mcp.go",
+    "before": "m.connections = retained",
+    "after": "m.connections = m.connections",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 0,
+    "interpretation": "Equivalent to observed capability removal: closed clients remain invisible even if retained in storage. Survivor preserved; separate no-op unload mutation tests actual missing removal."
+  },
+  {
+    "mutation": "job-context",
+    "path": "internal/mcp/client.go",
+    "before": "return transport.SendContext(ctx, raw)",
+    "after": "return transport.SendContext(context.Background(), raw)",
+    "test": "TestMCPHTTPJobCancellationAndClose",
+    "exit_code": 1
+  },
+  {
+    "mutation": "connection-cancel",
+    "path": "internal/mcp/http.go",
+    "before": "\tt.cancel()",
+    "after": "\t// omitted connection cancellation",
+    "test": "TestMCPHTTPJobCancellationAndClose",
+    "exit_code": 1
+  },
+  {
+    "mutation": "receiver-wakeup",
+    "path": "internal/mcp/http.go",
+    "before": "\tt.ready.Broadcast()",
+    "after": "\t// omitted receiver wakeup",
+    "test": "TestHTTPCloseWakesReceiver",
+    "exit_code": 1
+  },
+  {
+    "mutation": "redirect-credential",
+    "path": "internal/mcp/http.go",
+    "before": "return http.ErrUseLastResponse",
+    "after": "return nil",
+    "test": "TestHTTPRedirectDoesNotForwardCredential",
+    "exit_code": 1
+  },
+  {
+    "mutation": "missing-auth-warning",
+    "path": "internal/mcp/http.go",
+    "before": "if t.token == \"\" {\n\t\t\tparent.Agent()",
+    "after": "if false && t.token == \"\" {\n\t\t\tparent.Agent()",
+    "test": "TestMCPHTTPJobCancellationAndClose",
+    "exit_code": 1
+  },
+  {
+    "mutation": "shipped-load-permission",
+    "path": "skills/ensemble/SKILL.md",
+    "before": "loadable-skills: gui-debug web-search",
+    "after": "loadable-skills: gui-debug",
+    "test": "TestShippedWebSkill",
+    "exit_code": 1
+  },
+  {
+    "mutation": "shipped-job-collection",
+    "path": "skills/ensemble/SKILL.md",
+    "before": "run_command wait_for_job",
+    "after": "run_command",
+    "test": "TestShippedWebSkill",
+    "exit_code": 1
+  },
+  {
+    "mutation": "call-arguments",
+    "path": "internal/mcp/client.go",
+    "before": "\"arguments\": args",
+    "after": "\"arguments\": raw(map[string]any{})",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "unload-noop",
+    "path": "internal/mcp/mcp.go",
+    "before": "if entry.skill == skill {",
+    "after": "if false && entry.skill == skill {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "rpc-credential-redaction",
+    "path": "internal/mcp/http.go",
+    "before": "message = bytes.ReplaceAll(message, []byte(t.token), []byte(\"[REDACTED]\"))",
+    "after": "// omitted response credential redaction",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "skill-grants-dispatch",
+    "path": "internal/mcp/mcp.go",
+    "before": "if !allowed {",
+    "after": "if false && !allowed {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "unload-noop-dispatch",
+    "path": "internal/mcp/mcp.go",
+    "before": "if entry.skill == skill {",
+    "after": "if false && entry.skill == skill {",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "fetched-result-kind",
+    "path": "internal/engine/anthropic.go",
+    "before": "b.Type, b.ToolUseID, b.IsError = \"tool_result\",",
+    "after": "b.Type, b.ToolUseID, b.IsError = \"text\",",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  },
+  {
+    "mutation": "accept-header",
+    "path": "internal/mcp/http.go",
+    "before": "request.Header.Set(\"Accept\", \"application/json, text/event-stream\")",
+    "after": "// omitted negotiation",
+    "test": "TestMCPHTTPSkillAndResults",
+    "exit_code": 1
+  }
+]

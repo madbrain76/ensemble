@@ -1,0 +1,5 @@
+--- FAIL: TestHTTPCloseWakesReceiver (1.00s)
+    http_test.go:60: close did not wake receiver
+FAIL
+FAIL	ensemble/internal/mcp	1.010s
+FAIL
