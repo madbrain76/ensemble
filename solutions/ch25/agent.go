@@ -812,9 +812,39 @@ func (a *Agent) Debugf(format string, args ...any)  { a.Logger.Debugf(format, ar
 // a wall in the wrong place that nothing reports.
 func (a *Agent) SandboxRoot() string { return a.spec.SandboxRoot }
 
+// ActiveChildIDs returns the IDs of sub-agents that have not finished.
+// Returns nil when the agent has no fleet manager or no active children.
+func (a *Agent) ActiveChildIDs() []string {
+	if a.subs == nil {
+		return nil
+	}
+	return a.subs.ActiveChildIDs()
+}
+
 // Ask sends a prompt and runs the full tool loop until the model replies.
+//
+// An agent that goes idle while sub-agents are still running has abandoned
+// its post. Ask corrects this by re-prompting the agent to collect or shut
+// down its children before returning. The correction is bounded by
+// MaxIdleWakes to prevent infinite loops.
 func (a *Agent) Ask(prompt string) (string, error) {
-	return a.actor.Ask(prompt)
+	result, err := a.actor.Ask(prompt)
+
+	for retries := 0; err == nil && a.Submission() == nil; retries++ {
+		ids := a.ActiveChildIDs()
+		if len(ids) == 0 {
+			break
+		}
+		if retries >= MaxIdleWakes {
+			break
+		}
+		result, err = a.actor.Ask(fmt.Sprintf(
+			"You stopped but %d sub-agent(s) are still active: %s. "+
+				"Call join_agents to collect their results, or "+
+				"shutdown_agent to stop them, before ending your turn.",
+			len(ids), strings.Join(ids, ", ")))
+	}
+	return result, err
 }
 
 // Shutdown ends all running jobs, closes MCP connections, and saves the log.

@@ -740,6 +740,14 @@ func ch25Idle(bin string, r *Ch25Result) {
 					ToolArgs: ch25Args(map[string]any{"agent_id": ch25IdleChild, "task": ch25TaskIdle}),
 					ToolID:   "ch25d1",
 				}
+			case !strings.Contains(b, "ch25d1b"):
+				// Try to submit while the child is active. The framework
+				// must reject this: submits happen bottom-up.
+				return &fakevendor.Reply{
+					ToolName: "submit",
+					ToolArgs: ch25Args(map[string]any{"result": "premature"}),
+					ToolID:   "ch25d1b",
+				}
 			case !strings.Contains(b, "ch25d2"):
 				return &fakevendor.Reply{
 					ToolName: "join_agents",
@@ -758,10 +766,26 @@ func ch25Idle(bin string, r *Ch25Result) {
 		r.fail("idle-corrected", "could not drive the agent: %v", sess.err)
 		return
 	}
-	if !ch25RequireTools(r, srv, "idle-corrected", "spawn_sub_agent", "join_agents") {
+	if !ch25RequireTools(r, srv, "idle-corrected", "spawn_sub_agent", "submit", "join_agents") {
 		return
 	}
 	r.ran("idle-corrected")
+
+	// Verify submit-rejection: the parent tried to submit while the child
+	// was active, and the tool result must contain an error. The error text
+	// appears in the next request body as a tool_result message.
+	sawReject := false
+	for _, b := range ch25Bodies(srv) {
+		if strings.Contains(b, ch25Marker) &&
+			(strings.Contains(b, "cannot submit") || strings.Contains(b, "still active")) {
+			sawReject = true
+			break
+		}
+	}
+	if !sawReject {
+		r.fail("idle-corrected", "submit while the child %q is active was not rejected: submit must fail when active children exist", ch25IdleChild)
+		return
+	}
 
 	// The child makes no tool calls, so one turn is one request. Counting them
 	// pins both halves of the rule at once: a framework that treats stopping

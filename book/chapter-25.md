@@ -57,15 +57,16 @@ Build it in four stages:
    second trigger on the same select rather than a second code path. Tools you
    did not write take their timer from `tool_limits`.
 
-4. **Idle error correction.** An agent that stops without calling `submit` has
-   made a mistake, so correct it reactively instead of polling for it. Rule 1:
-   when an agent and all of its children are idle and nobody called `submit`,
-   wake the agent. Rule 2: when a parent waits on a child's `submit` and that
-   child goes idle, wake the child. Count the consecutive framework wakes an
-   agent receives and reset that count when it submits. After the third
-   consecutive wake, report the agent to its parent instead of waking it again,
-   which bounds the loop. A top-level agent reports to the user, so the chain
-   ends at a human rather than at an agent with nobody to tell.
+4. **Idle error correction.** An agent never sleeps until the job is done.
+   `submit` rejects when active children exist, enforcing bottom-up submission.
+   Any agent (including the root) that goes idle with active sub-agents is
+   re-prompted immediately. Any agent that goes idle without calling `submit`
+   and with no active children is also corrected. Count the consecutive
+   framework wakes an agent receives and reset that count when it submits.
+   After the third consecutive wake, report the agent to its parent instead of
+   waking it again, which bounds the loop. A top-level agent reports to the
+   user, so the chain ends at a human rather than at an agent with nobody to
+   tell.
 
 The grader pins the seven tool names above and the `tool_limits` setting.
 Everything else is yours, including type and field spellings. The reference
@@ -83,7 +84,7 @@ Build and grade: `make grade25`.
 | 4 | `join_agents` fans in | Blocks until every listed child finishes, then returns each child's result | 15 |
 | 5 | Agents address their parent and the user | `send_message_to_parent` blocks the child, `respond_to_parent_message` resumes it with the reply, `join_agents` returns early so the parent can answer, and a top-level agent's parent address is the user | 15 |
 | 6 | A message interrupts a tool wait | A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives | 15 |
-| 7 | Idle without `submit` is corrected | An agent that goes idle without submitting is woken, and after three wakes it escalates to the parent rather than looping | 15 |
+| 7 | Idle without `submit` is corrected | An agent that goes idle without submitting is woken, `submit` rejects while children are active, and after three wakes it escalates to the parent rather than looping | 15 |
 
 ## Two kinds of silence
 
@@ -325,20 +326,43 @@ would see a message that never existed. An interrupt that targets an
 empty wait queue is a no-op, because a ghost message surfacing minutes
 later in the wrong context is worse than a missed wake.
 
-Stage 4 addresses the idle problem. An agent that goes idle without
-calling `submit` has made a mistake. The model believed its work was
-done, and it was wrong. The correction is reactive: going idle is
-already an observed event, because the turn-complete callback fires
-exactly once per turn. No timer. No polling. The event the correction
-needs is the event the framework already produces.
+Stage 4 addresses the idle problem. An agent never sleeps until the
+job is done. "Done" has a precise definition: all children finished,
+and the agent itself has called `submit`. Anything short of that is
+abandonment, and the framework treats it accordingly.
 
-Two rules govern the correction:
+Two enforcements work together to close this off:
 
-1. When an agent and all of its children are idle, and nobody called
-   `submit`, wake the agent. It receives a message telling it that it
-   stopped without finishing.
-2. When a parent waits on a child's `submit` and that child goes idle,
-   wake the child. The parent's wait is proof that work remains.
+First, `submit` rejects when active children exist. An agent that
+tries to declare itself done while sub-agents are still running gets
+an error: shut them down or wait for them first. Submits happen
+bottom-up. Children first, then the parent. This is not a convention
+the model might forget. It is a tool-level rejection that returns an
+error string naming the active children by id.
+
+Second, any agent that goes idle with active children is corrected
+immediately. The correction lives in `Ask`, not in the composition
+root, because this is a library invariant. The framework re-prompts
+the agent with the list of active children and instructions to call
+`join_agents` or `shutdown_agent`. The correction is bounded by
+`MaxIdleWakes`: after three consecutive wakes without progress, the
+framework stops trying and escalates.
+
+These two rules cover every failure mode. An agent that tries to
+submit too early gets rejected. An agent that stops without submitting
+gets corrected. The only way out of a fleet is through `submit`, and
+`submit` requires an empty fleet below. In a swarm of a thousand
+agents, even one agent abandoning its post can leave an entire subtree
+of work permanently unmonitored. The framework makes that structurally
+impossible.
+
+An agent that goes idle without calling `submit` and with no active
+children has also made a mistake, but a simpler one: it forgot to
+submit. The correction for this case is the same. The model believed
+its work was done, and it was wrong. The correction is reactive: going
+idle is already an observed event, because the turn-complete callback
+fires exactly once per turn. No timer. No polling. The event the
+correction needs is the event the framework already produces.
 
 A counter tracks consecutive framework wakes per agent, reset to zero
 when the agent calls `submit`. After three consecutive wakes, the
@@ -541,7 +565,7 @@ The grader (`make grade25`) runs seven checks:
 | 4 | `join_agents` fans in | Blocks until every listed child finishes, then returns each child's result | 15 |
 | 5 | Agents address their parent and the user | `send_message_to_parent` blocks the child, `respond_to_parent_message` resumes it with the reply, `join_agents` returns early so the parent can answer, and a top-level agent's parent address is the user | 15 |
 | 6 | A message interrupts a tool wait | A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives | 15 |
-| 7 | Idle without `submit` is corrected | An agent that goes idle without submitting is woken, and after three wakes it escalates to the parent rather than looping | 15 |
+| 7 | Idle without `submit` is corrected | An agent that goes idle without submitting is woken, `submit` rejects while children are active, and after three wakes it escalates to the parent rather than looping | 15 |
 
 The mutation audit (`make grade25-audit`) runs seven mutants. One
 finding stands out. Mutant 2 removes child isolation by assigning the
