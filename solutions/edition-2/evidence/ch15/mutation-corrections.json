@@ -1,0 +1,71 @@
+[
+  {
+    "case": "baseline",
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.089s\n"
+  },
+  {
+    "case": "keep_previous",
+    "test": "TestContextKeepPreviousBatch",
+    "exit": 1,
+    "expected_failure": "keep did not preserve preceding batch",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextKeepPreviousBatch (0.02s)\n    --- FAIL: TestContextKeepPreviousBatch/claude-opus-5-course (0.01s)\n        context_test.go:110: keep did not preserve preceding batch\nFAIL\nFAIL\tensemble/ensemble\t0.023s\nFAIL\n"
+  },
+  {
+    "case": "unseen_results",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "cut before first presentation",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.03s)\n    context_test.go:230: result 2 cut before first presentation\nFAIL\nFAIL\tensemble/ensemble\t0.032s\nFAIL\n"
+  },
+  {
+    "case": "result_band",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "ladder did not exercise both bands",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.14s)\n    context_test.go:226: ladder did not exercise both bands: map[]\nFAIL\nFAIL\tensemble/ensemble\t0.143s\nFAIL\n"
+  },
+  {
+    "case": "calls_band",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "ladder did not exercise both bands",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.05s)\n    context_test.go:226: ladder did not exercise both bands: map[redact_result:11]\nFAIL\nFAIL\tensemble/ensemble\t0.060s\nFAIL\n"
+  },
+  {
+    "case": "skill_survivor",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "survivor missing or handoff duplicated",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.01s)\n    context_test.go:162: survivor missing or handoff duplicated\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "case": "inline_prefix",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "prefix changed",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.01s)\n    context_test.go:155: prefix changed\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "case": "apply_recorded_cut",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "old tool traffic was not removed",
+    "intended_kill": false,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.16s)\n    context_test.go:226: ladder did not exercise both bands: map[redact_result:11]\nFAIL\nFAIL\tensemble/ensemble\t0.170s\nFAIL\n"
+  },
+  {
+    "case": "truncate_before_snapshot",
+    "test": "TestCheckpointFailureRetainsJournal",
+    "exit": 1,
+    "expected_failure": "failed checkpoint truncated journal",
+    "intended_kill": true,
+    "output": "--- FAIL: TestCheckpointFailureRetainsJournal (0.00s)\n    context_test.go:341: failed checkpoint truncated journal\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  }
+]

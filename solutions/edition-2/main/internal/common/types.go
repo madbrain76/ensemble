@@ -83,7 +83,7 @@ const (
 )
 
 // Ref names bytes without deciding how a future transport should obtain them.
-// Redaction preserves this address even after the visible bytes become a stub.
+// Captured events retain addresses; new context stubs deliberately omit them.
 // There is deliberately no inline/base64 reference kind in the event log.
 type RefKind int
 
@@ -115,7 +115,7 @@ type Part struct {
 	Text string `json:"text,omitempty"`
 	// MIME identifies a blob's media format before capability checks and encoding.
 	MIME string `json:"mime,omitempty"`
-	// Ref preserves the address of blob bytes or recoverable redacted output.
+	// Ref identifies captured blob/output bytes; new redaction stubs omit addresses.
 	Ref Ref `json:"ref,omitzero"`
 	// From binds opaque content and calls to their producing model and surface.
 	From Provenance `json:"from,omitzero"`

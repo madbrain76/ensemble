@@ -362,9 +362,15 @@ function applyTheme() {
 scheme.addEventListener("change", applyTheme);
 const contextTarget = document.querySelector("#context-target");
 const logRetention = document.querySelector("#log-retention");
+// A snapshot acknowledging one field must not erase another field being edited.
+// Number inputs commit on change/blur, so retain only their unsent local text.
+const editingContext = new Set();
+for (const control of [contextTarget, logRetention]) {
+  control.addEventListener("input", () => editingContext.add(control));
+}
 function applySettings(settings) {
-  contextTarget.value = settings.context_target;
-  logRetention.value = settings.log_retention;
+  if (!editingContext.has(contextTarget)) contextTarget.value = settings.context_target;
+  if (!editingContext.has(logRetention)) logRetention.value = settings.log_retention;
   theme.value = settings.theme;
   applyTheme();
   voice.checked = settings.tts_enabled;
@@ -386,6 +392,7 @@ for (const [control, field, value] of [
   [speed, "tts_speed", () => Number(speed.value)],
   [font, "font_size", () => Number(font.value)],
 ]) control.addEventListener("change", () => {
+  editingContext.delete(control);
   send({ type: "update_settings", settings: { [field]: value() } });
 });
 // Native buttons and selected attributes expose the active panel to readers.

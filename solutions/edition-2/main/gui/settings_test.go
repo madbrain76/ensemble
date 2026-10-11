@@ -50,10 +50,10 @@ func TestSettingsWireAndDisk(t *testing.T) {
 		events := until(t, peer, kind(expected))
 		return events[len(events)-1]
 	}
-	patch(map[string]any{"theme": "light", "tts_speed": 1.7, "font_size": 20, "max_tool_rounds": 3})
+	patch(map[string]any{"theme": "light", "tts_speed": 1.7, "font_size": 20, "max_tool_rounds": 3, "context_target": 100, "log_retention": 7})
 	for _, peer := range []*websocket.Conn{first, second} {
 		s := read(peer, "settings_changed")["settings"].(map[string]any)
-		if s["theme"] != "light" || s["tts_speed"] != 1.7 || s["font_size"] != float64(20) || s["max_tool_rounds"] != float64(3) {
+		if s["theme"] != "light" || s["tts_speed"] != 1.7 || s["font_size"] != float64(20) || s["max_tool_rounds"] != float64(3) || s["context_target"] != float64(20000) || s["log_retention"] != float64(7) {
 			t.Fatal("roundtrip/broadcast", s)
 		}
 	}
@@ -67,13 +67,18 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	_, restored := start()
 	peer := dial(t, restored.URL)
 	s := read(peer, "current_settings")["settings"].(map[string]any)
-	if s["theme"] != "light" || s["tts_enabled"] != false || s["tts_speed"] != 1.7 {
+	if s["theme"] != "light" || s["tts_enabled"] != false || s["tts_speed"] != 1.7 || s["context_target"] != float64(20000) || s["log_retention"] != float64(7) {
 		t.Fatal("restart lost preferences", s)
 	}
 	patch(map[string]any{"theme": "invalid", "tts_speed": -5, "font_size": 99, "max_tool_rounds": -5})
 	s = read(first, "settings_changed")["settings"].(map[string]any)
 	if s["theme"] != "dark" || s["tts_speed"] != 0.5 || s["font_size"] != float64(24) || s["max_tool_rounds"] != float64(0) {
 		t.Fatal("entry not clamped", s)
+	}
+	patch(map[string]any{"context_target": 0, "log_retention": 0})
+	s = read(first, "settings_changed")["settings"].(map[string]any)
+	if s["context_target"] != float64(0) || s["log_retention"] != float64(0) {
+		t.Fatal("context zero defaults lost", s)
 	}
 	// A type error after a valid field must not partially change the object.
 	patch(map[string]any{"theme": "light", "tts_speed": "bad"})

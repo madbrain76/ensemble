@@ -54,8 +54,8 @@ func apply(c *common.Context, e common.Event) {
 	// supplies correlation without changing authorship to a vendor's user role.
 	case "tool_returned":
 		p := common.Part{Type: "tool_result", CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: e.Tool.IsError}
-		// A job address is result metadata, not an attachment. Preserve it when
-		// visible text is later redacted without asking a renderer to fetch bytes.
+		// A job address is result metadata, not an attachment. The live result
+		// may expose it; later stubs omit it while the captured event retains it.
 		if e.Tool.Job != nil {
 			p.Ref = e.Tool.Job.Output
 		}
@@ -131,8 +131,8 @@ func redact(c *common.Context, r *common.RedactData) {
 		var parts []common.Part
 		for _, p := range entry.Parts {
 			switch r.Level {
-			// The call survives result stubbing, and each removed part retains
-			// its own Ref rather than losing addresses in one combined string.
+			// The call survives result stubbing; its arguments describe how to
+			// recover data without trusting an old job-output address.
 			case "redact_result":
 				if p.Type == "tool_result" {
 					encoded, _ := json.Marshal(p.Parts)

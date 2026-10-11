@@ -1,0 +1,15 @@
+[
+  {
+    "case": "baseline",
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.091s\n"
+  },
+  {
+    "case": "remove_calls_and_results",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "old tool traffic was not removed",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.07s)\n    context_test.go:235: old tool traffic was not removed\nFAIL\nFAIL\tensemble/ensemble\t0.079s\nFAIL\n"
+  }
+]

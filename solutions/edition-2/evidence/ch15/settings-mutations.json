@@ -1,0 +1,14 @@
+[
+  {
+    "case": "apply_policy",
+    "exit": 1,
+    "output": "--- FAIL: TestSettingsWireAndDisk (0.00s)\n    settings_test.go:71: restart lost preferences map[context_target:0 font_size:20 log_retention:0 max_tool_rounds:0 theme:light tts_enabled:false tts_speed:1.7]\nFAIL\nFAIL\tensemble-gui-stub\t0.008s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\nFAIL\n",
+    "intended_failure": true
+  },
+  {
+    "case": "floor",
+    "exit": 1,
+    "output": "--- FAIL: TestSettingsWireAndDisk (0.00s)\n    settings_test.go:57: roundtrip/broadcast map[context_target:100 font_size:20 log_retention:7 max_tool_rounds:3 theme:light tts_enabled:true tts_speed:1.7]\nFAIL\nFAIL\tensemble-gui-stub\t0.008s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\nFAIL\n",
+    "intended_failure": true
+  }
+]

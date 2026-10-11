@@ -1,0 +1,22 @@
+{
+  "saved": {
+    "theme": "dark",
+    "tts_enabled": false,
+    "tts_speed": 1,
+    "font_size": 16,
+    "max_tool_rounds": 0,
+    "context_target": 20000,
+    "log_retention": 3
+  },
+  "zero": {
+    "theme": "dark",
+    "tts_enabled": false,
+    "tts_speed": 1,
+    "font_size": 16,
+    "max_tool_rounds": 0,
+    "context_target": 0,
+    "log_retention": 3
+  },
+  "error": "Error: explicit zero lost",
+  "stderr": "Open http://localhost:19417; terminal messages while busy are hints. /interrupt ends the turn.\n"
+}

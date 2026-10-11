@@ -1,0 +1,109 @@
+[
+  {
+    "receipt": "anthropic-live.json",
+    "vendor": "anthropic",
+    "model": "claude-haiku-5-5",
+    "exit": 0,
+    "requests": 9,
+    "codes_in_actual_provider_tool_results": [],
+    "rendered_stubs": 0,
+    "recorded_cuts": {},
+    "handoff_events": 0,
+    "last_event": "response_ended",
+    "final_text": " I couldn't complete the task. I have no inspection codes, so I haven't called micro_handoff or unloaded the manual skill.\n\n- **Loaded:** the manual skill loaded successfully.\n- **record-1.txt:** the read failed with `file name too long`. The full path you gave exceeds the filesystem's file name limit, so the file can't be opened at that path. I have no inspection code or status for it.\n- **record-2.txt:** I couldn't read it. My last several calls were sent without the `path` argument, so they failed before reaching the file. I didn't get a real result for this file.\n- **Not attempted:** records 3 through 6.\n\nBecause the micro-goal didn't complete, a handoff saying \"no approach failed\" would be inaccurate, so I left it out. The manual skill is still loaded, and its instructions remain in my context.\n\nTo continue, I need the actual path for each file. The paths you gave for the records appear to be placeholder names that are too long to open. If you can confirm the real paths or a shorter directory layout, I'll read each file once, report its code and status, and then complete the handoff and unload steps.",
+    "task_success": false
+  },
+  {
+    "receipt": "openai-live.json",
+    "vendor": "openai",
+    "model": "gpt-4o-mini",
+    "exit": 0,
+    "requests": 15,
+    "codes_in_actual_provider_tool_results": [
+      "BIRCH-68",
+      "CEDAR-17",
+      "ELM-102",
+      "MAPLE-34",
+      "OAK-85",
+      "WILLOW-51"
+    ],
+    "rendered_stubs": 0,
+    "recorded_cuts": {},
+    "handoff_events": 11,
+    "last_event": "turn_ended",
+    "final_text": "",
+    "task_success": false
+  },
+  {
+    "receipt": "gemini-live.json",
+    "vendor": "gemini",
+    "model": "gemini-3.8-flash",
+    "exit": 0,
+    "requests": 10,
+    "codes_in_actual_provider_tool_results": [
+      "BIRCH-68",
+      "CEDAR-17",
+      "ELM-102",
+      "MAPLE-34",
+      "OAK-85",
+      "WILLOW-51"
+    ],
+    "rendered_stubs": 6,
+    "recorded_cuts": {
+      "redact_result": 5,
+      "redact_tool": 2
+    },
+    "handoff_events": 1,
+    "last_event": "response_ended",
+    "final_text": " The first inspection code is **CEDAR-17** and the last inspection code is **ELM-102**. \n\nYes, the manual instructions currently remain in context (they are marked for removal and will persist until the next compaction, though the skill's tools are disconnected).",
+    "task_success": true
+  },
+  {
+    "receipt": "anthropic-live-repeat.json",
+    "vendor": "anthropic",
+    "model": "claude-haiku-5-5",
+    "exit": 0,
+    "requests": 15,
+    "codes_in_actual_provider_tool_results": [
+      "BIRCH-68",
+      "CEDAR-17",
+      "ELM-102",
+      "MAPLE-34",
+      "OAK-85",
+      "WILLOW-51"
+    ],
+    "rendered_stubs": 46,
+    "recorded_cuts": {
+      "redact_result": 6,
+      "redact_tool": 1
+    },
+    "handoff_events": 0,
+    "last_event": "response_ended",
+    "final_text": "I have not called micro_handoff. The text you specified would record unverified results as verified, so I left it out.\n\nThe manual skill is unloaded. Its tools are disconnected now, but its instructions stay in context until the next compaction.\n\nOn the codes, the first and last ones are:\n- **First (record 1):** CEDAR-17 is unverified. That file was redacted, so I never read it.\n- **Last (record 6):** ELM-102, status verified. It is the only record I read successfully.\n\nIf you want an accurate checkpoint, I can write one that lists record 6 as verified and records 1\u20135 as unreadable (redacted), then submit it. I can also retry reading records 1\u20135.",
+    "task_success": false
+  },
+  {
+    "receipt": "openai-live-repeat.json",
+    "vendor": "openai",
+    "model": "gpt-4o-mini",
+    "exit": 0,
+    "requests": 18,
+    "codes_in_actual_provider_tool_results": [
+      "BIRCH-68",
+      "CEDAR-17",
+      "ELM-102",
+      "MAPLE-34",
+      "OAK-85",
+      "WILLOW-51"
+    ],
+    "rendered_stubs": 46,
+    "recorded_cuts": {
+      "redact_result": 6,
+      "redact_tool": 1
+    },
+    "handoff_events": 4,
+    "last_event": "turn_ended",
+    "final_text": " ",
+    "task_success": false
+  }
+]

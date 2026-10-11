@@ -200,12 +200,19 @@ func TestContextLadderRecordedAndReplay(t *testing.T) {
 	os.MkdirAll(dir, 0700)
 	path := filepath.Join(dir, "data")
 	os.WriteFile(path, []byte(strings.Repeat("LADDER DATA ", 800)), 0600)
+	skills := skillFiles(t, map[string]string{
+		"base":   "---\nname: base\ntype: primary\nloadable-skills: manual\n---\nBASE",
+		"manual": "---\nname: manual\ntype: loadable\ntools: read_file\n---\nLADDER SURVIVOR MANUAL",
+	})
 	a, requests := contextSession(t, "claude-sonnet-5-course", func(n int) []map[string]any {
-		if n <= 12 {
-			return []map[string]any{contextCall(fmt.Sprint(n), "read_file", map[string]any{"path": path})}
+		if n == 1 {
+			return []map[string]any{contextCall("load", "load_skill", map[string]any{"name": "manual"})}
+		}
+		if n <= 13 {
+			return []map[string]any{contextCall(fmt.Sprint(n-1), "read_file", map[string]any{"path": path})}
 		}
 		return nil
-	}, ensemble.AgentSpec{})
+	}, ensemble.AgentSpec{SkillsDir: skills, PrimarySkill: "base"})
 	cuts := map[string]int{}
 	for _, e := range a.History().EventsAfter(0) {
 		if e.Redact != nil {
@@ -218,17 +225,24 @@ func TestContextLadderRecordedAndReplay(t *testing.T) {
 	if cuts["redact_result"] == 0 || cuts["redact_tool"] == 0 {
 		t.Fatalf("ladder did not exercise both bands: %v", cuts)
 	}
-	for i := 1; i < len(requests); i++ {
-		if !strings.Contains(toolResult(t, requests[i], fmt.Sprint(i)), "LADDER DATA") {
+	for i := 2; i < len(requests); i++ {
+		if !strings.Contains(toolResult(t, requests[i], fmt.Sprint(i-1)), "LADDER DATA") {
 			t.Fatalf("result %d cut before first presentation", i)
 		}
+	}
+	lastRequest := requests[len(requests)-1]
+	if toolResult(t, lastRequest, "1") != "" || bytes.Contains(lastRequest, []byte(`"id":"1"`)) {
+		t.Fatal("old tool traffic was not removed")
+	}
+	if strings.Count(string(lastRequest), "LADDER SURVIVOR MANUAL") != 1 {
+		t.Fatal("ladder removed skill instructions")
 	}
 	a.SetContextSettings(900000, 0)
 	var save, log bytes.Buffer
 	a.History().Save(&save)
 	a.History().Dump(&log)
 	want, _ := a.Engine().Render(a.History().Context())
-	b, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5-course", BuiltinTools: true, DataDir: t.TempDir(), ContextTarget: 900000})
+	b, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5-course", BuiltinTools: true, DataDir: t.TempDir(), ContextTarget: 900000, SystemPrompt: a.Engine().SystemPrompt()})
 	for _, restore := range []func() error{func() error { return b.History().Restore(bytes.NewReader(save.Bytes())) }, func() error { return b.History().Load(bytes.NewReader(log.Bytes())) }} {
 		if err := restore(); err != nil {
 			t.Fatal(err)
@@ -302,4 +316,28 @@ func TestContextTotalReducerAndJournal(t *testing.T) {
 	}
 	a.Shutdown()
 	b.Shutdown()
+}
+
+// A failed snapshot installation must leave the journal recoverable. Making
+// the destination a directory provides a real filesystem failure, not a mock.
+func TestCheckpointFailureRetainsJournal(t *testing.T) {
+	dir := t.TempDir()
+	a, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "model", DataDir: dir})
+	defer a.Shutdown()
+	if err := a.Load(); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "crash tail"}}}}); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "save.json")
+	before, _ := os.ReadFile(path + ".journal")
+	os.Mkdir(path, 0700)
+	if err := a.Save(); err == nil {
+		t.Fatal("invalid snapshot destination accepted")
+	}
+	after, _ := os.ReadFile(path + ".journal")
+	if len(before) == 0 || !bytes.Equal(before, after) {
+		t.Fatal("failed checkpoint truncated journal")
+	}
 }

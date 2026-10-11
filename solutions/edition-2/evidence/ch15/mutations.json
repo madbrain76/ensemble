@@ -1,0 +1,139 @@
+[
+  {
+    "case": "baseline",
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.096s\n"
+  },
+  {
+    "case": "keep_previous",
+    "test": "TestContextKeepPreviousBatch",
+    "exit": 1,
+    "expected_failure": "keep did not preserve preceding batch",
+    "intended_kill": false,
+    "output": "FAIL\tensemble/ensemble [build failed]\nFAIL\n# ensemble/internal/agent\ninternal/agent/context.go:58:9: declared and not used: call\n"
+  },
+  {
+    "case": "model_stubbing_gate",
+    "test": "TestContextKeepPreviousBatch",
+    "exit": 1,
+    "expected_failure": "stubbing ignored model",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextKeepPreviousBatch (0.02s)\n    --- FAIL: TestContextKeepPreviousBatch/claude-sonnet-5-course (0.01s)\n        context_test.go:114: stubbing ignored model or kept wrong batch\nFAIL\nFAIL\tensemble/ensemble\t0.023s\nFAIL\n"
+  },
+  {
+    "case": "unseen_results",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "cut before first presentation",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.03s)\n    context_test.go:223: result 1 cut before first presentation\nFAIL\nFAIL\tensemble/ensemble\t0.040s\nFAIL\n"
+  },
+  {
+    "case": "result_band",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "ladder did not exercise both bands",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.14s)\n    context_test.go:219: ladder did not exercise both bands: map[]\nFAIL\nFAIL\tensemble/ensemble\t0.148s\nFAIL\n"
+  },
+  {
+    "case": "calls_band",
+    "test": "TestContextLadderRecordedAndReplay",
+    "exit": 1,
+    "expected_failure": "ladder did not exercise both bands",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextLadderRecordedAndReplay (0.06s)\n    context_test.go:219: ladder did not exercise both bands: map[redact_result:11]\nFAIL\nFAIL\tensemble/ensemble\t0.066s\nFAIL\n"
+  },
+  {
+    "case": "batch_holding",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "tool result has no matching call",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.00s)\n    context_test.go:135: tool result has no matching call\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n"
+  },
+  {
+    "case": "handoff_clear",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "survivor missing or handoff duplicated",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.01s)\n    context_test.go:162: survivor missing or handoff duplicated\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "case": "skill_survivor",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "survivor missing or handoff duplicated",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.01s)\n    context_test.go:162: survivor missing or handoff duplicated\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "case": "inline_prefix",
+    "setup_error": "expected one edit site, found 2"
+  },
+  {
+    "case": "tool_deltas",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "declaration delta missing",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.01s)\n    context_test.go:168: declaration delta missing\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "case": "journal_append",
+    "test": "TestContextTotalReducerAndJournal",
+    "exit": 1,
+    "expected_failure": "journal tail lost",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextTotalReducerAndJournal (0.00s)\n    context_test.go:270: journal tail lost\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "case": "backup",
+    "test": "TestContextTotalReducerAndJournal",
+    "exit": 1,
+    "expected_failure": "previous snapshot backup lost",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextTotalReducerAndJournal (0.00s)\n    context_test.go:278: previous snapshot backup lost\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "case": "retention",
+    "test": "TestContextTotalReducerAndJournal",
+    "exit": 1,
+    "expected_failure": "retention crossed anchor",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextTotalReducerAndJournal (0.00s)\n    context_test.go:288: retention crossed anchor\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "case": "known_event_atomicity",
+    "test": "TestContextTotalReducerAndJournal",
+    "exit": 1,
+    "expected_failure": "bad event not skipped atomically",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextTotalReducerAndJournal (0.00s)\n    context_test.go:298: bad event not skipped atomically with diagnostic\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "case": "unknown_event_refusal",
+    "test": "TestContextTotalReducerAndJournal",
+    "exit": 1,
+    "expected_failure": "unknown event accepted",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextTotalReducerAndJournal (0.00s)\n    context_test.go:301: unknown event accepted\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  },
+  {
+    "case": "unload_admission",
+    "test": "TestContextSurvivorsAndFrozenPrefix",
+    "exit": 1,
+    "expected_failure": "declaration delta missing",
+    "intended_kill": true,
+    "output": "--- FAIL: TestContextSurvivorsAndFrozenPrefix (0.01s)\n    context_test.go:168: declaration delta missing\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "case": "stub_address",
+    "test": "TestJobFileCapCursorAndRedaction",
+    "exit": 1,
+    "expected_failure": "stub retained potentially reused job address",
+    "intended_kill": true,
+    "output": "--- FAIL: TestJobFileCapCursorAndRedaction (0.01s)\n    jobs_test.go:95: stub retained potentially reused job address\nFAIL\nFAIL\tensemble/ensemble\t0.018s\nFAIL\n"
+  }
+]

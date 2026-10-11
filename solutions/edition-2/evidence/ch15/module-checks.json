@@ -1,0 +1,139 @@
+[
+  {
+    "module": "main",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble\t1.158s\nok  \tensemble/ensemble\t10.743s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t(cached)\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/mcp\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n"
+  },
+  {
+    "module": "main",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "module": "main/gui",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble-gui-stub\t1.042s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\n"
+  },
+  {
+    "module": "main/gui",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "module": "main/ch05",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble-ch05\t0.008s\n"
+  },
+  {
+    "module": "main/ch05",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "module": "main/ch06",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble-ch06\t0.266s\n"
+  },
+  {
+    "module": "main/ch06",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "module": "main/ch07",
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "?   \tensemble-stream-example\t[no test files]\n"
+  },
+  {
+    "module": "main/ch07",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  },
+  {
+    "module": "main",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble\t2.515s\nok  \tensemble/ensemble\t54.056s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t1.021s\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/mcp\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n"
+  },
+  {
+    "module": "main/gui",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./..."
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble-gui-stub\t4.219s\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\n"
+  },
+  {
+    "module": "main/gui",
+    "command": [
+      "node",
+      "--test",
+      "speech.test.mjs",
+      "virtual-user.test.mjs"
+    ],
+    "exit": 0,
+    "tests": 4,
+    "passed": 4,
+    "failed": 0,
+    "duration_ms": 6943.787208,
+    "evidence": "Observed tool output; no separate raw capture retained."
+  }
+]
