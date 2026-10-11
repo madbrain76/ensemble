@@ -8,6 +8,11 @@ reset or rewrite shared history, or restore/stage unrelated files. Edition 2
 agents commit only their exact owned source, notes and evidence paths, using an
 isolated index while other writers are active. Reconcile only those owned index
 entries afterward; leave all other work untouched.
+Keep the isolated index’s base and the commit parent identical. Publish only if
+HEAD still equals that base, using an atomic expected-old-reference check; if a
+concurrent writer advanced it, rebuild the owned-path commit on the new HEAD.
+Do not attach an older whole-tree index to a newer parent: that can undo unrelated
+changes even without a reset. Preserve configured commit hooks where present.
 
 ## October 11: Auto-Recall decisions approved
 
