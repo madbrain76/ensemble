@@ -1,7 +1,8 @@
 # Edition 2 Chapter 15 enhancement: Forgetting on Purpose
 
-Author: `edition2_author`, October 11, 2026. Coherent manuscript stage; exact
-sample/grader validation and independent combined acceptance remain pending.
+Author: `edition2_author`, October 11, 2026. Final manuscript reconciliation;
+exact samples and revised grader validation complete. Independent combined
+acceptance remains pending.
 Chapter16 is not released. Mandatory technical handoff:
 `.agents/skills/ensemble-coding/SKILL.md`.
 
@@ -170,3 +171,81 @@ legacy diagnosis and source freeze remain pending, so this is not final grading.
 All four complete governing documents remain active after the reload above;
 there has been no subsequent compaction. Mandatory technical handoff:
 `.agents/skills/ensemble-coding/SKILL.md`.
+
+## Final wording review and evidence reconciliation
+
+Independent review found two remaining grader biases: matching the literal `90%`
+in the warning, and requiring a literal “first person” phrase in the compressor
+request despite the exercise leaving wording to the student. The corrected grader
+observes new nonempty warning text at the threshold without prescribing its words.
+Instruction semantics retain source review; the numeric data check observes the
+fake's submitted first-person memory in conversation, outside instructions.
+The author removed the two numerical-instruction claims from §15.11. The first-
+person requirement itself remains in the TL;DR and compressor explanation.
+
+Final prose SHA-256 is
+`933a67a7fae83951b47c64324e8be76eb8120c9cb1c8d7cd3ad3053534698b72`.
+Hard lint passes at 6,172 prose words. Every fence is unchanged from the exact
+sample execution at `bd2acd5c`; the sample receipt keeps that earlier hash.
+No paid run or further executable validation is needed for these claim-only edits.
+
+The author inspected the final source binding, raw final focused report,
+restored race output/command, strict legacy first-full provenance, supplemental
+legacy final report, sensitivity manifest and alternate-wording controls:
+
+- First actual full accepted result stays 100/100 at `bf0d733c`, exit 0 in
+  2.695 seconds. Final affected memory is 97/97; adding unchanged Chapter14 parity
+  3/3 gives **composed 100/100**. The final restored race package reports 2.261s,
+  command wall time 3.423s, exit 0. The separate earlier 2.286s artifact is not
+  relabeled as this final run.
+- Strict legacy's actual first full result is **3/100**, exit 1 in 1.136s.
+  Its public settings patch omits memory application, so setup prevents the ten
+  memory scenarios from establishing downstream behavior; these are not ten
+  independently observed runtime defects. Predecessor parity supplies its points.
+- A separately labeled, unmodified-runtime legacy compatibility probe preloads
+  that application's actual disk settings. Final focused outcome is **35/97**,
+  not a replacement full grade. Compression, neighbor refusal and forcing pass;
+  content, graduation, toggle, replay, recovery and fresh-start assertions fail
+  at their recorded predicates. In particular, missing initial session populations
+  stops the later recovery claim. The detailed causal diagnosis belongs in the
+  coder report, rather than implying every masked assertion ran.
+- `sensitivity-final.json` records 27 intended numeric defect cases and preserves
+  excluded/initial outcomes. Its original renamed-warning rejection was invalid;
+  a valid alternate warning and alternate first-person wording now each pass
+  97/97. A genuinely omitted warning fails at the new delivered-text assertion.
+  Literal first-person deletion is no longer claimed as numerical sensitivity.
+- The initial inline-system memory defect survived until the extractor included
+  that valid instruction channel. The injected auxiliary response-event defect
+  also survives in the retained record; an Engine-total mutation separately fails
+  at the actual auxiliary-usage predicate. A premature-retirement mutation first
+  failed the earlier HTTP-error branch, so the separate pending-only control is
+  needed for the held-request crash claim. Retaining graduated sources causes a
+  repeated-fold completion timeout; that is not a completed final-byte assertion.
+
+The raw sensitivity read was initially truncated. A bounded projection then read
+all 27 case names, scores, intended predicates and their actual failure details,
+plus every excluded attempt and limitation note. The final evidence is a record
+of tested distinctions, not a claim of complete behavioral coverage. Low-watermark
+arithmetic, disabled-neighbor diagnostics, all-provider normalization, semantic
+instructions, pure reducer replay and native GUI interleaving remain separately
+supported source/browser obligations.
+
+Independent combined acceptance remains the reviewer's decision. No Chapter16
+work is authorized by this reconciliation.
+
+### Final freeze and post-compaction reading
+
+Coder freeze `3cf93102` and the complete
+[final grader report](enhancement-15-code.md) were read before this handoff.
+The final source binding records prose `933a67a7` separately from executed sample
+`bd2acd5c`; all eleven fenced blocks are unchanged, including the seven executable
+fences. The restored race receipt confirms the 2.261s package / 3.423s command
+timing above. No additional sample or live run is claimed.
+
+Another compaction occurred before final reconciliation. Before any further edit,
+the author reloaded all four documents completely and without truncated output:
+workflow1–330,331–660,661–990,991–1320,1321–1650,1651–1960;
+carryover1–300,301–600,601–886; voice1–320,321–632; procedure1–300,301–599.
+All373 lines of `.agents/skills/ensemble-coding/SKILL.md`, all273 lines of AGENTS,
+and the current enhancement opening were also reread. All four full documents
+remain active together at this final handoff, with no subsequent compaction.

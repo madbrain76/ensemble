@@ -627,7 +627,7 @@ working compressor idle throughout a test.
 checkpoints to exceed the conversation budget. After the
 compression, the next request contains a session-band entry with
 the returned text, and the raw conversation it replaced is gone. The compressor
-request must actually contain the selected work and the first-person instruction.
+request must actually contain the selected work.
 
 **planted-fact-survives** (10) plants a distinctive token in early
 dialogue, pushes it through a checkpoint and compression. The token
@@ -674,8 +674,9 @@ retains the source without immediately retrying compression; a later checkpoint
 can try again. An empty band with zero attempts cannot pass as failure recovery.
 
 **memory-is-data** (5) checks that the returned memory appears in the
-conversation rather than the system prompt, and that the compressor request
-instructs first-person writing. It does not grade resistance to malicious text.
+conversation rather than the system prompt. The fake supplies first-person text;
+review of the compressor instructions establishes that the real model is asked
+to write that way. The numeric check does not grade resistance to malicious text.
 
 **fresh-start-populates** (5) places memory files on disk before
 the agent starts. The first request sent to the model contains
