@@ -1,0 +1,32 @@
+[
+  {
+    "case": "framing",
+    "mutation": {
+      "old": "bytes.HasPrefix(prefix, []byte(\"event:\"))",
+      "new": "false && bytes.HasPrefix(prefix, []byte(\"event:\"))"
+    },
+    "exit": 1,
+    "intended_kill": true,
+    "output": "--- FAIL: TestResponsesCapturedPlanStream (0.00s)\n    --- FAIL: TestResponsesCapturedPlanStream/application/json (0.00s)\n        responses_test.go:265: captured plan stream failed: answer=\"\" requests=1 err=invalid Responses response\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "case": "done_items",
+    "mutation": {
+      "old": "items[frame.Index] = frame.Item",
+      "new": "_ = frame.Item"
+    },
+    "exit": 1,
+    "intended_kill": true,
+    "output": "--- FAIL: TestResponsesCapturedPlanStream (0.00s)\n    --- FAIL: TestResponsesCapturedPlanStream/text/event-stream (0.00s)\n        responses_test.go:265: captured plan stream failed: answer=\"\" requests=1 err=Responses response has no content\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "case": "incremental_framing",
+    "mutation": {
+      "old": "prefix, _ := body.Peek(6)",
+      "new": "all, _ := io.ReadAll(body); body = bufio.NewReader(bytes.NewReader(all)); prefix, _ := body.Peek(6)"
+    },
+    "exit": 1,
+    "intended_kill": true,
+    "output": "--- FAIL: TestResponsesSummaryToolLoop (3.00s)\n    responses_test.go:97: context deadline exceeded\nFAIL\nFAIL\tensemble/ensemble\t3.012s\nFAIL\n"
+  }
+]

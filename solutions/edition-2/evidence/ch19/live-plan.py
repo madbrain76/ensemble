@@ -1,7 +1,8 @@
 """One bounded human CLI plan session using only Bill's dedicated new profile."""
-import hashlib,json,os,pathlib,subprocess,tempfile,time
+import hashlib,json,os,pathlib,subprocess,sys,tempfile,time
 repo=pathlib.Path.cwd(); evidence=repo/'solutions/edition-2/evidence/ch19'
-handoff=json.loads((evidence/'signin-handoff.json').read_text())
+handoff=json.loads((evidence/(sys.argv[1] if len(sys.argv)>1 else 'signin-handoff.json')).read_text())
+prefix=sys.argv[2] if len(sys.argv)>2 else 'live-plan'
 binary=pathlib.Path(handoff['binary']); auth=pathlib.Path(handoff['fresh_en_home'])
 assert hashlib.sha256(binary.read_bytes()).hexdigest()==handoff['binary_sha256']
 # The app logs no auth exchange/headers and redacts active/replaced bearers before
@@ -40,7 +41,7 @@ with tempfile.TemporaryDirectory(prefix='ensemble-ch19-plan-run-') as temporary:
    raw=path.read_bytes()
    for value in set(private):raw=raw.replace(value,b'[REDACTED]')
    assert not any(value in raw for value in private)
-   (evidence/('live-plan-'+name)).write_bytes(raw)
+   (evidence/(prefix+'-'+name)).write_bytes(raw)
  result={'source_commit':handoff['source_commit'],'main_tree':handoff['main_tree'],'binary_sha256':handoff['binary_sha256'],'model':'gpt-6.1-sol','billing':'explicit chatgpt','api_key_configured':False,'reasoning_effort':'high','reasoning_summary':'detailed','hint_sent_after_summary':hint,'exit_code':code,'elapsed_seconds':round(time.monotonic()-start,2),'timed_out':timed_out,'dedicated_profile_retained':True,'logout':False}
- (evidence/'live-plan-result.json').write_text(json.dumps(result,indent=2)+'\n')
+ (evidence/(prefix+'-result.json')).write_text(json.dumps(result,indent=2)+'\n')
  print(json.dumps(result,indent=2))

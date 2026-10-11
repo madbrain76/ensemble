@@ -1,11 +1,14 @@
 package engine
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 
 	"ensemble/internal/common"
@@ -78,8 +81,15 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 	}
 	var result responsesResult
 	completed := false
-	if strings.HasPrefix(resp.Header.Get("Content-Type"), "text/event-stream") {
-		err := frames(resp.Body, cb.OnFrame, func(event string, data []byte) error {
+	// The observed plan response carried SSE bytes despite not selecting the
+	// header-based branch. Peek without consuming or buffering the whole stream:
+	// progress must still arrive before the provider finishes the response.
+	body := bufio.NewReader(resp.Body)
+	prefix, _ := body.Peek(6)
+	streamed := strings.HasPrefix(resp.Header.Get("Content-Type"), "text/event-stream") || bytes.HasPrefix(prefix, []byte("event:")) || bytes.HasPrefix(prefix, []byte("data:"))
+	if streamed {
+		items := map[int]json.RawMessage{}
+		err := frames(body, cb.OnFrame, func(event string, data []byte) error {
 			var frame struct {
 				// Type is also supplied in the SSE event name by supported servers.
 				Type string `json:"type"`
@@ -90,7 +100,7 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 				// Delta is an incremental public display fragment.
 				Delta string `json:"delta"`
 				// Item supplies the function name before argument deltas arrive.
-				Item responseItem `json:"item"`
+				Item json.RawMessage `json:"item"`
 				// Response is authoritative only in response.completed.
 				Response responsesResult `json:"response"`
 			}
@@ -107,9 +117,13 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 			case "response.output_text.delta", "response.refusal.delta":
 				emit(fmt.Sprintf("%d/%d", frame.Index, frame.Content), common.DeltaText, frame.Delta)
 			case "response.output_item.added":
-				if frame.Item.Type == "function_call" {
-					emit(key, common.DeltaToolCall, frame.Item.Name+" ")
+				var item responseItem
+				json.Unmarshal(frame.Item, &item)
+				if item.Type == "function_call" {
+					emit(key, common.DeltaToolCall, item.Name+" ")
 				}
+			case "response.output_item.done":
+				items[frame.Index] = frame.Item
 			case "response.function_call_arguments.delta":
 				emit(key, common.DeltaToolCall, frame.Delta)
 			case "response.completed":
@@ -123,8 +137,21 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 		if err != nil {
 			return err
 		}
+		// The plan stream completes each item separately and can leave terminal
+		// output empty. These completed items are authoritative, but cannot become
+		// conversation facts or tools until terminal success passes below.
+		if len(result.Output) == 0 {
+			indices := make([]int, 0, len(items))
+			for index := range items {
+				indices = append(indices, index)
+			}
+			sort.Ints(indices)
+			for _, index := range indices {
+				result.Output = append(result.Output, items[index])
+			}
+		}
 	} else {
-		data, err := io.ReadAll(resp.Body)
+		data, err := io.ReadAll(body)
 		if err != nil {
 			return errors.New("reading Responses response failed")
 		}

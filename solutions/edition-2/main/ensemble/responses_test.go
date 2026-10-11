@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -36,7 +38,9 @@ func TestResponsesSummaryToolLoop(t *testing.T) {
 		if first["role"] != "developer" || first["content"].([]any)[0].(map[string]any)["prompt_cache_breakpoint"] == nil {
 			t.Error("developer cache block missing")
 		}
-		w.Header().Set("Content-Type", "text/event-stream")
+		// Misleading metadata must not turn the framing fallback into a buffered
+		// whole-response read; the summary itself releases the provider below.
+		w.Header().Set("Content-Type", "application/json")
 		if calls == 0 {
 			calls++
 			frame(w, wireFrame{"response.reasoning_summary_text.delta", decoded(`{"output_index":0,"delta":"consider "}`)})
@@ -109,6 +113,7 @@ func TestResponsesRequiresCompletion(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "text/event-stream")
 				frame(w, wireFrame{"response.output_text.delta", decoded(`{"output_index":0,"delta":"partial"}`)})
+				frame(w, wireFrame{"response.output_item.done", decoded(`{"output_index":0,"item":{"type":"message","content":[{"type":"output_text","text":"partial"}]}}`)})
 				if ending != "" {
 					frame(w, wireFrame{ending, decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"not completed"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
 				}
@@ -197,5 +202,68 @@ func TestResponsesLensIncludesInput(t *testing.T) {
 	prediction := lens.ObserveRequest("responses", second)
 	if prediction <= 0 || prediction >= 1 || !strings.Contains(log.String(), "input:appended") {
 		t.Fatalf("Responses content omitted from prediction %.3f: %s", prediction, log.String())
+	}
+}
+
+// This is the captured plan stream, with unrelated response metadata removed.
+// Its completed read_file item lives in item.done; terminal output is empty.
+// Controlled headers reproduce both parser defects without claiming knowledge
+// of the live response's unrecorded header. Tools/files/actor remain real.
+func TestResponsesCapturedPlanStream(t *testing.T) {
+	fixture, err := os.ReadFile("testdata/ch19-plan-tool.sse")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, header := range []string{"application/json", "text/event-stream"} {
+		t.Run(header, func(t *testing.T) {
+			workspace := t.TempDir()
+			t.Chdir(workspace)
+			if err := os.WriteFile(filepath.Join(workspace, "puzzle.txt"), []byte("actual captured-plan tool result"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			requests := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				requests++
+				if requests == 1 {
+					w.Header().Set("Content-Type", header)
+					w.Write(fixture)
+					return
+				}
+				body, _ := io.ReadAll(r.Body)
+				var request struct {
+					// Input contains the actual next-turn tool result, not earlier arguments.
+					Input []struct {
+						// Type selects a function result item.
+						Type string
+						// Output is the real handler's completed readout.
+						Output string
+						// CallID preserves provider correlation across the tool boundary.
+						CallID string `json:"call_id"`
+					} `json:"input"`
+				}
+				json.Unmarshal(body, &request)
+				found := false
+				for _, item := range request.Input {
+					if item.Type == "function_call_output" && item.CallID == "call_u83Vpd7Ol6P1ixYjORjuBVXU" && strings.Contains(item.Output, "actual captured-plan tool result") {
+						found = true
+					}
+				}
+				if !found {
+					t.Errorf("completed streamed tool/result lost: %+v", request.Input)
+				}
+				w.Header().Set("Content-Type", "text/event-stream")
+				frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"done"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
+			}))
+			defer server.Close()
+			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-6.1-sol", BaseURL: server.URL, Workspace: workspace, DataDir: t.TempDir(), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer a.Shutdown()
+			answer, err := a.Ask(context.Background(), "read puzzle")
+			if err != nil || answer != "done" || requests != 2 {
+				t.Fatalf("captured plan stream failed: answer=%q requests=%d err=%v", answer, requests, err)
+			}
+		})
 	}
 }

@@ -1,0 +1,23 @@
+{
+  "failed_live_source_commit": "dc74e25ea51fbbab65f3fa86fead7ea1ec0dd3de",
+  "captured_response_sha256": "3d6bf5b09bd59c0260e962a5facf54189d44b62edf63572ed53ea804a3511844",
+  "captured_response_bytes": 23959,
+  "captured_log_sha256": "6a6875cf2bd93dd87a7885bfc342a2ca7030589a9ed9f009c978780773b05d3c",
+  "fixture_sha256": "11600e076cc924f5606e5aec2427994c209f2aef939d37c516c3ce87a4b19b39",
+  "fixture_reduction": "Keep captured SSE events/items/indices/arguments. Response objects retain status/model/output/usage; omit unrelated metadata and usage attribution.",
+  "actual_response_content_type": "not retained; unknown",
+  "controlled_headers": [
+    "application/json",
+    "text/event-stream"
+  ],
+  "checks": {
+    "captured_tool_and_result": "PASS",
+    "core_test": "PASS",
+    "core_vet": "PASS",
+    "gui_test": "PASS",
+    "gui_vet": "PASS",
+    "focused_race": "PASS",
+    "round1_mutations_intended_kills": 3
+  },
+  "total_targeted_kills": 39
+}
