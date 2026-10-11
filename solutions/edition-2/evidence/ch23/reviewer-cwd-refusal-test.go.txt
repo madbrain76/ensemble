@@ -1,0 +1,10 @@
+package ensemble_test
+import("os";"path/filepath";"testing";"strings")
+func TestReviewerCwdRefusalSpelling(t *testing.T) {
+ root,outside:=t.TempDir(),t.TempDir();a:=sandboxAgent(t,root,false)
+ if err:=os.Symlink(outside,filepath.Join(root,"escape"));err!=nil{t.Fatal(err)}
+ out,err:=sandboxCall(t,a,"run_command",map[string]any{"command":"printf never","cwd":"escape"})
+ t.Logf("out=%q err=%v",out,err)
+ if err==nil{t.Fatal("escaping cwd accepted")}
+ if strings.Contains(err.Error(),a.Spec().SandboxRoot){t.Fatal("refusal revealed canonical root instead of caller cwd")}
+}

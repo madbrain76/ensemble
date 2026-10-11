@@ -1,0 +1,9 @@
+Frozen fcb98a9, exact archive plus reviewer-only probe; fake paths only.
+=== RUN   TestReviewerCwdRefusalSpelling
+    reviewer_boundary_test.go:17: out="sandbox refused \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestReviewerCwdRefusalSpelling3606609949/001/escape\"" err=sandbox refused "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestReviewerCwdRefusalSpelling3606609949/001/escape"
+    reviewer_boundary_test.go:19: refusal revealed canonical root instead of caller cwd
+--- FAIL: TestReviewerCwdRefusalSpelling (0.00s)
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL
+exit=1

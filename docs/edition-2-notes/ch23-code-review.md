@@ -73,3 +73,16 @@ allowance to actual toolchain cache paths, reject unrelated nested matching
 files, and retain Python/Git allowed-work controls. No original answer code or
 implementation recipe was supplied. Student main was not edited. This is
 attributed pre-submission assistance, not a completed formal correction round.
+
+A second real-runtime probe found a diagnostic leak at the same frozen source.
+`run_command` resolves a relative `cwd` to an absolute host path before the
+sandbox sees the request. With caller `cwd: "escape"` and a local symlink of that
+name pointing outside, refusal correctly prevents execution but exposes the
+canonical sandbox root in both error and tool result. The chapter requires the
+caller's own spelling. Coordinator received this narrow finding plus the need
+for a legitimate-cwd positive control. Preserved
+[probe](../../solutions/edition-2/evidence/ch23/reviewer-cwd-refusal-test.go.txt)
+and [failure](../../solutions/edition-2/evidence/ch23/reviewer-cwd-refusal.txt)
+use fake paths only. The coordinator reports that the student independently
+identified the same cwd leak at this point; retain both discoveries rather than
+crediting only reviewer assistance. Still pre-submission, zero formal rounds.
