@@ -1,0 +1,11 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -24,7 +24,7 @@
+ 		tools = []common.ToolDeclaration{}
+ 	}
+ 	return json.NewEncoder(w).Encode(common.SaveFile{
+-		Config: common.SaveConfig{Model: cfg.Model, Vendor: cfg.Vendor, SystemPrompt: h.parent.Engine().SystemPrompt(), Tools: tools},
++		Config: common.SaveConfig{Model: cfg.Model, Vendor: cfg.Vendor, SystemPrompt: h.parent.Engine().SystemPrompt() + cfg.BaseURL, Tools: tools},
+ 		AsOf:   h.asOf, Context: &h.context, Log: log,
+ 	})
+ }

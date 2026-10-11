@@ -1,0 +1,81 @@
+{
+  "chapter_sha256": "32723da4cf2531b5786330502708d58c62db613fd71a7a73acd855c2e83b6b22",
+  "fence_sha256": [
+    "0a2aa133ea8e92b74766a599bc5896229429127891cd583ec274b780ecdc0c61",
+    "8eae757a153f08d2593af46980bc34d308b0f12a8f5c354e168f6e55d510207c"
+  ],
+  "checks": [
+    {
+      "command": [
+        "go",
+        "test",
+        "./internal/bookexample",
+        "./internal/history",
+        "-run",
+        "^TestPublished",
+        "-v"
+      ],
+      "cwd": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch10-samples-6cympt9r/source",
+      "exit": 0,
+      "output": "=== RUN   TestPublishedTypes\n--- PASS: TestPublishedTypes (0.00s)\nPASS\nok  \tensemble/internal/bookexample\t0.007s\n=== RUN   TestPublishedRestore\n--- PASS: TestPublishedRestore (0.00s)\nPASS\nok  \tensemble/internal/history\t0.006s\n"
+    },
+    {
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "/tmp/ensemble-ch10",
+        "."
+      ],
+      "cwd": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch10-samples-6cympt9r/source",
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "/tmp/ensemble-ch10",
+        "chat"
+      ],
+      "cwd": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch10-samples-6cympt9r/default",
+      "exit": 0,
+      "output": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nremembered\n"
+    },
+    {
+      "command": [
+        "/tmp/ensemble-ch10",
+        "chat"
+      ],
+      "cwd": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch10-samples-6cympt9r/default",
+      "exit": 0,
+      "output": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nremembered\n"
+    },
+    {
+      "command": [
+        "/tmp/ensemble-ch10",
+        "--save",
+        "chosen.json",
+        "chat"
+      ],
+      "cwd": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch10-samples-6cympt9r/override",
+      "exit": 0,
+      "output": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nremembered\n"
+    },
+    {
+      "command": [
+        "/tmp/ensemble-ch10",
+        "--save",
+        "chosen.json",
+        "chat"
+      ],
+      "cwd": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch10-samples-6cympt9r/override",
+      "exit": 0,
+      "output": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nremembered\n"
+    },
+    {
+      "actual_human_chat_requests": 4,
+      "restart_retained_first_prompt": true,
+      "override_has_no_default_save": true,
+      "GUI_envelope": "covered by accepted-final-persistence.txt and accepted-final10.json"
+    }
+  ]
+}

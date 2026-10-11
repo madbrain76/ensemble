@@ -1,0 +1,65 @@
+{
+  "title": "Edition2 Chapter10 legacy COMPOSED final result",
+  "checks": [
+    {
+      "id": "save-shape",
+      "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "default-load",
+      "title": "A second start in the same directory, no flags, resumes the conversation",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "replay-equals-snapshot",
+      "title": "Loading a save, and loading it with context null, render identical requests",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "tail-applied-once",
+      "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "log-not-needed",
+      "title": "A snapshot with an empty log is a complete save, and numbering continues",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "bad-save-refused",
+      "title": "A save file that does not parse is fatal, and its bytes are left alone",
+      "points": 5,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "core: bad save 1: exit=<nil> named=false requests=1 unchanged=false",
+        "GUI: bad save 1: exit=<nil> named=false requests=1 unchanged=false"
+      ]
+    },
+    {
+      "id": "ch9-parity",
+      "title": "All corrected Chapter 9 checks pass",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "Retained prior legacy Chapter9 skills failures (initial-tools, load-skill, skill-deps, disclosure, vars); corrected Chapter2 parity not rerun for legacy. Full prior diagnostics retained in legacy-revised10.json."
+      ]
+    }
+  ],
+  "score": 80,
+  "max_score": 100,
+  "passed": false,
+  "provenance": "Final affected persistence run plus unchanged prior failing Chapter9 skills; not a fresh full run."
+}

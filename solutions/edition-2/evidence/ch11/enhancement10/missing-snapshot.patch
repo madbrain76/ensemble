@@ -1,0 +1,11 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -25,7 +25,7 @@
+ 	}
+ 	return json.NewEncoder(w).Encode(common.SaveFile{
+ 		Config: common.SaveConfig{Model: cfg.Model, Vendor: cfg.Vendor, SystemPrompt: h.parent.Engine().SystemPrompt(), Tools: tools},
+-		AsOf:   h.asOf, Context: &h.context, Log: log,
++		AsOf:   h.asOf, Context: nil, Log: log,
+ 	})
+ }
+ 

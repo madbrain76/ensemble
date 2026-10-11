@@ -1,0 +1,2 @@
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	10.439s
+?   	github.com/waywardgeek/ensemble/cmd/grade-edition2	[no test files]

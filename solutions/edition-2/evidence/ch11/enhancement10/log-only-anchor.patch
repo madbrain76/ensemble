@@ -1,0 +1,11 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -45,7 +45,7 @@
+ 	}
+ 	ctx, after := sf.Context, sf.AsOf
+ 	if ctx == nil {
+-		ctx, after = &common.Context{Turn: "idle"}, 0
++		ctx, after = &common.Context{Turn: "idle"}, sf.AsOf
+ 	}
+ 	switch ctx.Turn {
+ 	case "idle", "input_pending", "in_flight", "tools_pending", "interrupted":

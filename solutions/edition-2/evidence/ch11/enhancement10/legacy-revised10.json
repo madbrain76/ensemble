@@ -1,0 +1,72 @@
+{
+  "title": "Edition 2, Chapter 10 — Persistence",
+  "checks": [
+    {
+      "id": "save-shape",
+      "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "default-load",
+      "title": "A second start in the same directory, no flags, resumes the conversation",
+      "points": 20,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "core: current config launch: exit status 1 (0 requests)",
+        "GUI: current config launch: exit status 1 (0 requests)"
+      ]
+    },
+    {
+      "id": "replay-equals-snapshot",
+      "title": "Loading a save, and loading it with context null, render identical requests",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "tail-applied-once",
+      "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "log-not-needed",
+      "title": "A snapshot with an empty log is a complete save, and numbering continues",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "bad-save-refused",
+      "title": "A save file that does not parse is fatal, and its bytes are left alone",
+      "points": 5,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "core: bad save 1: exit=\u003cnil\u003e named=false requests=1 unchanged=false",
+        "GUI: bad save 1: exit=\u003cnil\u003e named=false requests=1 unchanged=false"
+      ]
+    },
+    {
+      "id": "ch9-parity",
+      "title": "All corrected Chapter 9 checks pass",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "initial-tools: result hidden: error=false want=true text=\"wrote 9 bytes to hidden.txt\" decode=\u003cnil\u003e; hidden write executed",
+        "progressive-disclosure: SKILLS expansion lacks code-tools; SKILLS expansion lacks search-tools; SKILLS expansion prematurely/incorrectly exposes code-tools; SKILLS expansion prematurely/incorrectly exposes search-tools",
+        "depends-autoload: dependency instructions absent from load result",
+        "var-substitution: TOOLS expansion lacks read_file; TOOLS expansion lacks load_skill; TOOLS expansion lacks unload_skill; TOOLS expansion lacks load_skill; TOOLS expansion lacks unload_skill; TOOLS expansion lacks write_file; TOOLS expansion lacks edit_file; TOOLS expansion lacks load_skill; TOOLS expansion lacks unload_skill; TOOLS expansion lacks search_files",
+        "ch8-parity: settings-roundtrip: sender patch 3: tts_enabled: want present false, got \u003cnil\u003e (present=false); sender patch 4: tts_enabled: want present false, got \u003cnil\u003e (present=false); sender patch 5: tts_enabled: want present false, got \u003cnil\u003e (present=false); settings-on-connect: initial snapshot lacks four correctly typed visible preferences; initial snapshot lacks four correctly typed visible preferences; fresh subscriber: tts_enabled: want present false, got \u003cnil\u003e (present=false); settings-broadcast: second client patch 3: tts_enabled: want present false, got \u003cnil\u003e (present=false); second client patch 4: tts_enabled: want present false, got \u003cnil\u003e (present=false); second client patch 5: tts_enabled: want present false, got \u003cnil\u003e (present=false); settings-persist: restarted subscriber: tts_enabled: want present false, got \u003cnil\u003e (present=false); checks full visible preferences and explicit zero budget across actual restart; effective budget, validation, write failure and browser controls remain source/integration proof; ch7-parity: websocket-streams: final artifact identity reused: 1; final artifact identity reused: 1; GUI public dependency: core and consumer need distinct module declarations; observed wire checks passed before dependency assessment: false; event-replay: replay lost part_final content/identity (part=1 call=\u003cnil\u003e); replay lost part_final content/identity (part=2 call=\u003cnil\u003e); replay lost part_final content/identity (part=3 call=\u003cnil\u003e); replay lost part_final content/identity (part=1 call=\u003cnil\u003e); replay lost part_final content/identity (part=1 call=\u003cnil\u003e); completed-content/identity replay checked; active partials, handoff and fixed window retain required source/integration proof; ch6-parity: delivery-not-content: unknown model must complete in plain mode: error=exit status 1:  stream=false text-deltas=0; stream exercise dependency: core and consumer need distinct module declarations; compares observable finals and measured usage, unknown-model fallback and separate aggregate exercise; gated flush, SSE framing and complete opaque replay remain required source/integration proof; ch5-parity: ch4-parity: ch3parity: turning tool calls into jobs broke Chapter 3: ch2parity (0/10); toolsdecl (0/5); readtools (6/10); mutatetools (0/5); star-topology: core and consumer need distinct module declarations; external-consumer: consumer run: fork/exec /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-consumer-2820790924/consumer: permission denied: ; tool-diagnostic: consumer did not complete: consumer run: fork/exec /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-consumer-2820790924/consumer: permission denied: ; not-deaf: workflow needs its own module: solutions/ch11/ch06; replay-is-live: request 1 differs from replayed prefix: \u003cnil\u003e; request 2 differs from replayed prefix: \u003cnil\u003e; request 3 differs from replayed prefix: \u003cnil\u003e; observer-fires: workflow needs its own module: solutions/ch11/ch06; multi-agent-observations: workflow needs its own module: solutions/ch11/ch06; loud-refusal: anthropic supported image: exit status 1: render: render: cannot render image/png part: unknown model \"claude-haiku-5-5\" (no entry in the model table); openai supported image: exit status 1: render: render: cannot render image/png part: unknown model \"gpt-5.4-mini\" (no entry in the model table); gemini supported image: exit status 1: render: render: gemini: cannot send a blob of kind path (/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-media-2809120236/pixel.png): Gemini fetches remote references only, so this must be resolved to a uri before rendering"
+      ]
+    }
+  ],
+  "score": 60,
+  "max_score": 100,
+  "passed": false
+}

@@ -1,0 +1,11 @@
+--- main.go
++++ main.go
+@@ -34,7 +34,7 @@
+ 			if i == len(args) || args[i] == "" {
+ 				return errors.New("--save requires a path")
+ 			}
+-			savePath = args[i]
++			savePath = "save.json"
+ 		} else if strings.HasPrefix(args[i], "--save=") {
+ 			savePath = strings.TrimPrefix(args[i], "--save=")
+ 			if savePath == "" {

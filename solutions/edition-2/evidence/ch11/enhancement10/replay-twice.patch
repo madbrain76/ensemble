@@ -1,0 +1,11 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -62,7 +62,7 @@
+ 		if err := validate(event); err != nil {
+ 			return fmt.Errorf("restore event %d: %w", event.Seq, err)
+ 		}
+-		if event.Seq > after {
++		if event.Seq > 0 && after >= 0 {
+ 			apply(ctx, event)
+ 		}
+ 		if event.Seq > last {

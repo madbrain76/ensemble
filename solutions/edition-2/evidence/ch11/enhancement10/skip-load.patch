@@ -1,0 +1,11 @@
+--- main.go
++++ main.go
+@@ -116,7 +116,7 @@
+ 	if cfg.APIKey == "" {
+ 		return errors.New("provider API key is not set")
+ 	}
+-	if err := a.Load(); err != nil {
++	if err := error(nil); err != nil {
+ 		return err
+ 	}
+ 	// Register saving only after a successful load. Joining first preserves final

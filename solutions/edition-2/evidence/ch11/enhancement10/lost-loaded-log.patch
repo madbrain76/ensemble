@@ -1,0 +1,10 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -71,6 +71,6 @@
+ 	}
+ 	h.mu.Lock()
+ 	defer h.mu.Unlock()
+-	h.events, h.context, h.asOf = sf.Log, *ctx, last
++	h.events, h.context, h.asOf = nil, *ctx, last
+ 	return nil
+ }

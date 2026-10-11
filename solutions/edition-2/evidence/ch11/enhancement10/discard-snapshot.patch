@@ -1,0 +1,11 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -43,7 +43,7 @@
+ 	if sf == nil || sf.Config.Model == "" || sf.Config.Vendor < common.Anthropic || sf.Config.Vendor > common.Gemini {
+ 		return errors.New("invalid save configuration")
+ 	}
+-	ctx, after := sf.Context, sf.AsOf
++	ctx, after := (*common.Context)(nil), sf.AsOf
+ 	if ctx == nil {
+ 		ctx, after = &common.Context{Turn: "idle"}, 0
+ 	}

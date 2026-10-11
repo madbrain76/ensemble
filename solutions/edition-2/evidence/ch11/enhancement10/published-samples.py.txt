@@ -1,0 +1,28 @@
+import pathlib,tempfile,shutil,re,subprocess,hashlib,json,http.server,threading,os
+root=pathlib.Path.cwd(); chapter=root/'book/edition-2/chapter-10.md'; text=chapter.read_text(); fences=re.findall(r'```go\n(.*?)```',text,re.S);out=root/'solutions/edition-2/evidence/ch11/enhancement10';work=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-ch10-samples-'));source=work/'source';shutil.copytree(root/'solutions/edition-2/ch10',source)
+rows=[]
+def command(args,cwd,input=None,env=None):
+ p=subprocess.run(args,cwd=cwd,input=input,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=45);rows.append({'command':args,'cwd':str(cwd),'exit':p.returncode,'output':p.stdout});assert p.returncode==0,p.stdout;return p.stdout
+try:
+ pkg=source/'internal/bookexample';pkg.mkdir();(pkg/'sample.go').write_text('package bookexample\nimport("encoding/json";"ensemble/internal/common")\ntype Context = common.Context\ntype Event = common.Event\ntype Vendor = common.Vendor\n'+fences[0]);(pkg/'sample_test.go').write_text('''package bookexample
+import("encoding/json";"testing";"ensemble/internal/common")
+func TestPublishedTypes(t *testing.T){b,e:=json.Marshal(SaveFile{Config:SaveConfig{Model:"example",Vendor:common.Anthropic,Tools:[]ToolDeclaration{{Name:"read_file",Description:"read",Schema:json.RawMessage(`{"type":"object"}`)}}},Context:&Context{Turn:"idle"},Log:[]Event{}});if e!=nil{t.Fatal(e)};var f map[string]json.RawMessage;if e=json.Unmarshal(b,&f);e!=nil||len(f)!=4||f["config"]==nil||f["context"]==nil||f["as_of"]==nil||f["log"]==nil{t.Fatalf("shape: %s %v",b,e)}}
+''')
+ (source/'internal/history/book_sample_test.go').write_text('package history\nimport("fmt";"testing";"reflect";"ensemble/internal/common")\n'+fences[1]+'''
+func TestPublishedRestore(t *testing.T){events:=[]common.Event{{Seq:1,Type:"message_received",Message:&common.MessageData{Actor:common.Human,Parts:[]common.Part{{Type:"text",Text:"first"}}}},{Seq:2,Type:"message_received",Message:&common.MessageData{Actor:common.Human,Parts:[]common.Part{{Type:"text",Text:"second"}}}}};full,e:=restoreContext(common.SaveFile{AsOf:2,Log:events});if e!=nil||len(full.Dialogue)!=2{t.Fatalf("full: %+v %v",full,e)};older,e:=restoreContext(common.SaveFile{Log:events[:1]});if e!=nil{t.Fatal(e)};tail,e:=restoreContext(common.SaveFile{Context:older,AsOf:1,Log:events});if e!=nil||!reflect.DeepEqual(full,tail){t.Fatalf("tail differs: %+v %v",tail,e)};only,e:=restoreContext(common.SaveFile{Context:full,AsOf:2});if e!=nil||!reflect.DeepEqual(full,only){t.Fatal("snapshot-only differs")};if _,e=restoreContext(common.SaveFile{Log:[]common.Event{{Seq:3,Type:"bogus"}}});e==nil{t.Fatal("unknown event accepted")}}
+''')
+ command(['go','test','./internal/bookexample','./internal/history','-run','^TestPublished','-v'],source)
+ # Build and use the exact published path, command spelling and override order.
+ command(['go','build','-o','/tmp/ensemble-ch10','.'],source)
+ requests=[]
+ class Handler(http.server.BaseHTTPRequestHandler):
+  def log_message(self,*args):pass
+  def do_POST(self):
+   requests.append(json.loads(self.rfile.read(int(self.headers['Content-Length']))));body=b'{"model":"fake-model","content":[{"type":"text","text":"remembered"}],"usage":{"input_tokens":1,"output_tokens":1}}';self.send_response(200);self.send_header('Content-Type','application/json');self.end_headers();self.wfile.write(body)
+ server=http.server.HTTPServer(('127.0.0.1',0),Handler);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start();env=dict(os.environ,LLM_VENDOR='anthropic',LLM_MODEL='fake-model',LLM_API_KEY='fake-only',LLM_BASE_URL=f'http://127.0.0.1:{server.server_port}',EN_DISABLE_STREAMING='1',EN_PRIMARY_SKILL='',EN_SKILLS_DIR='')
+ for override in [False,True]:
+  cwd=work/('override' if override else 'default');cwd.mkdir();args=['/tmp/ensemble-ch10']+(['--save','chosen.json'] if override else [])+['chat'];command(args,cwd,'Remember cobalt-juniper\n',env);command(args,cwd,'What word did I ask you to remember?\n',env);assert 'Remember cobalt-juniper' in json.dumps(requests[-1]);save=cwd/('chosen.json' if override else 'save.json');assert save.exists();assert not override or not (cwd/'save.json').exists()
+ server.shutdown();thread.join();server.server_close()
+ rows.append({'actual_human_chat_requests':len(requests),'restart_retained_first_prompt':True,'override_has_no_default_save':True,'GUI_envelope':'covered by accepted-final-persistence.txt and accepted-final10.json'})
+ (out/'published-samples.json').write_text(json.dumps({'chapter_sha256':hashlib.sha256(chapter.read_bytes()).hexdigest(),'fence_sha256':[hashlib.sha256(x.encode()).hexdigest() for x in fences],'checks':rows},indent=2)+'\n')
+finally:shutil.rmtree(work)

@@ -1,0 +1,45 @@
+import pathlib,subprocess,tempfile,shutil,os,json,time,difflib
+root=pathlib.Path.cwd();out=root/'solutions/edition-2/evidence/ch11/enhancement10';scratch=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-e2ch10-mutants-'));source=scratch/'source';shutil.copytree(root/'solutions/edition-2/ch10',source)
+save='internal/history/save.go';agent='internal/agent/save.go';main='main.go'
+cases=[
+ ('raw-prompt',save,'h.parent.Engine().SystemPrompt()','cfg.SystemPrompt','save-shape'),
+ ('missing-config-field','internal/common/save.go','json:"system_prompt"','json:"recorded_prompt"','save-shape'),
+ ('stale-anchor',save,'AsOf:   h.asOf','AsOf:   h.asOf - 1','save-shape'),
+ ('lost-loaded-log',save,'h.events, h.context, h.asOf = sf.Log, *ctx, last','h.events, h.context, h.asOf = nil, *ctx, last','save-shape'),
+ ('seq-gap',save,'h.events, h.context, h.asOf = sf.Log, *ctx, last','h.events, h.context, h.asOf = sf.Log, *ctx, last + 1','save-shape'),
+ ('ignore-tail',save,'if event.Seq > after {','if false && event.Seq > after {','tail-applied-once'),
+ ('replay-twice',save,'if event.Seq > after {','if event.Seq > 0 && after >= 0 {','tail-applied-once'),
+ ('log-only-anchor',save,'ctx, after = &common.Context{Turn: "idle"}, 0','ctx, after = &common.Context{Turn: "idle"}, sf.AsOf','replay-equals-snapshot'),
+ ('discard-snapshot',save,'ctx, after := sf.Context, sf.AsOf','ctx, after := (*common.Context)(nil), sf.AsOf','log-not-needed'),
+ ('lost-trimmed-anchor',save,'last := sf.AsOf','last := uint64(0)','log-not-needed'),
+ ('credential-leak',save,'SystemPrompt: h.parent.Engine().SystemPrompt()','SystemPrompt: h.parent.Engine().SystemPrompt() + cfg.APIKey','save-shape'),
+ ('endpoint-leak',save,'SystemPrompt: h.parent.Engine().SystemPrompt()','SystemPrompt: h.parent.Engine().SystemPrompt() + cfg.BaseURL','save-shape'),
+ ('ignore-override',agent,'if cfg.SavePath != "" {','if false && cfg.SavePath != "" {','default-load'),
+ ('restore-model',agent,'err = a.history.Restore(f)','err = a.history.Restore(f)\n a.config.Model = "fake-model"','default-load'),
+ ('restore-vendor',agent,'err = a.history.Restore(f)','err = a.history.Restore(f)\n a.config.Vendor = 1','default-load'),
+ ('restore-prompt',agent,'err = a.history.Restore(f)','err = a.history.Restore(f)\n a.config.SystemPrompt = "Historical prompt"','default-load'),
+ ('ignore-current-tools',agent,'err = a.history.Restore(f)','err = a.history.Restore(f)\n a.skills = nil','default-load'),
+ ('skip-load',main,'if err := a.Load(); err != nil {','if err := error(nil); err != nil {','default-load'),
+ ('skip-save',main,'errors.Join(runErr, a.Shutdown(), a.Save())','errors.Join(runErr, a.Shutdown())','save-shape'),
+ ('bad-save-fallback',main,'if err := a.Load(); err != nil {\n\t\treturn err\n\t}','if err := a.Load(); err != nil {\n _ = err\n }','bad-save-refused'),
+ ('save-after-refusal',main,'if err := a.Load(); err != nil {\n\t\treturn err\n\t}','if err := a.Load(); err != nil {\n _ = a.Save()\n return err\n }','bad-save-refused'),
+]
+# Preserve the application's cwd default while ignoring only a chosen override.
+cases[12]=('ignore-override',main,'savePath = args[i]','savePath = "save.json"','default-load')
+rows=[];env=dict(os.environ,PERSIST_PROBE_DIR=str(source))
+for name,path,old,new,target in [('baseline',None,None,None,None)]+cases:
+ file=source/path if path else None
+ if file:
+  original=file.read_text();assert original.count(old)==1,(name,original.count(old));mutated=original.replace(old,new);file.write_text(mutated)
+  (out/(name+'.patch')).write_text(''.join(difflib.unified_diff(original.splitlines(True),mutated.splitlines(True),fromfile=path,tofile=path)))
+ start=time.time()
+ try:
+  p=subprocess.run(['/tmp/ensemble-ch10-probe','-test.run','^TestChapter10Probe$','-test.v'],cwd=root/'internal/gradeedition2',env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=45)
+  (out/(name+'.txt')).write_text(p.stdout)
+  checks=next((json.loads(l) for l in p.stdout.splitlines() if l.startswith('[{')),[])
+  row={'name':name,'target':target,'exit':p.returncode,'seconds':round(time.time()-start,3),'checks':checks,'intended_failure':any(c['id']==target and not c['passed'] for c in checks)}
+  if not checks:row['intended_failure']=False;row['setup_failure']=True
+  rows.append(row);(out/'mutations.json').write_text(json.dumps(rows,indent=2)+'\n');print(name,[(c['id'],c['passed']) for c in checks],flush=True)
+ finally:
+  if file:file.write_text(original)
+shutil.rmtree(scratch)

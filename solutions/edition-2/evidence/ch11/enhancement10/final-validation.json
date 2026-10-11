@@ -1,0 +1,42 @@
+{
+  "commands": [
+    {
+      "command": "go run ./cmd/grade-edition2 -ch 10 -json",
+      "exit": 0,
+      "report": "accepted-final10.json",
+      "score": "100/100",
+      "elapsed_seconds": null,
+      "note": "Actual full run process exited0, confirmed tool session69025; no wall-clock measurement recorded. Later changes only grader comments/test import grouping."
+    },
+    {
+      "command": "go test ./internal/gradeedition2 ./cmd/grade-edition2",
+      "exit": 0,
+      "report": "affected-tests.txt"
+    },
+    {
+      "command": "go vet ./internal/gradeedition2 ./cmd/grade-edition2",
+      "exit": 0,
+      "report": "vet.txt"
+    },
+    {
+      "command": "go test -race ./ensemble -run '^Test(SaveSnapshotReplayAndTail|SaveOwnershipAndRuntimeConfig|BadSaveLeavesHistory|SaveIntentionallyEmptyPrimary)$' -count=1 -v",
+      "cwd": "solutions/edition-2/ch10",
+      "exit": 0,
+      "report": "source-race.txt"
+    }
+  ],
+  "sha256": {
+    "internal/gradeedition2/ch10.go": "c7a63c5dc97a859f8d96f48f508edb0daad597dadbfb9a17dcd657c9240b1932",
+    "internal/gradeedition2/ch10_test.go": "b85aa4c954f2ef8f1dd6bcf1f45084104b2c248eedc34e58d62a92aeb7796124",
+    "cmd/grade-edition2/main.go": "9262bf780b7b5615dd358d64b958c559fffd7eb0cd73078d762f3290b22be576",
+    "book/edition-2/chapter-10.md": "32723da4cf2531b5786330502708d58c62db613fd71a7a73acd855c2e83b6b22"
+  },
+  "source_trees": {
+    "solutions/edition-2/ch10": "cb536d845901cc9c7d097128203896185496f378",
+    "solutions/ch11": "b2f27d35cacd241d1882d7146f2456d514463692"
+  },
+  "final_legacy": "80/100 COMPOSED, not new full run",
+  "mutation_distinct": 24,
+  "mutation_repeats": 4,
+  "survivors": 0
+}

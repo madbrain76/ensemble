@@ -1,0 +1,11 @@
+--- internal/history/save.go
++++ internal/history/save.go
+@@ -54,7 +54,7 @@
+ 	}
+ 	// Retain the anchor even without any log: the next appended fact must not
+ 	// reuse an identity already present in the snapshot.
+-	last := sf.AsOf
++	last := uint64(0)
+ 	for i, event := range sf.Log {
+ 		if event.Seq == 0 || (i > 0 && event.Seq <= sf.Log[i-1].Seq) {
+ 			return errors.New("save log seq must ascend")

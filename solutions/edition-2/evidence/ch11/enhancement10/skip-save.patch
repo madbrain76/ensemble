@@ -1,0 +1,11 @@
+--- main.go
++++ main.go
+@@ -121,7 +121,7 @@
+ 	}
+ 	// Register saving only after a successful load. Joining first preserves final
+ 	// job facts and prevents a bad input file from ever reaching replacement.
+-	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
++	defer func() { runErr = errors.Join(runErr, a.Shutdown()) }()
+ 	if mode == "prompt" {
+ 		answer, err := a.Ask(context.Background(), positional[1])
+ 		if err == nil {

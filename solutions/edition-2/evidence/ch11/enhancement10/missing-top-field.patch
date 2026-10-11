@@ -1,0 +1,11 @@
+--- internal/common/save.go
++++ internal/common/save.go
+@@ -6,7 +6,7 @@
+ 	// Config records request identity, never transport credentials or endpoints.
+ 	Config SaveConfig `json:"config"`
+ 	// AsOf is the last event folded into Context, not the length of Log.
+-	AsOf uint64 `json:"as_of"`
++	AsOf uint64 `json:"anchor"`
+ 	// Context is the neutral snapshot; nil requests a complete log rebuild.
+ 	Context *Context `json:"context"`
+ 	// Log retains recorded facts in strictly increasing sequence order.

@@ -1,0 +1,7 @@
+// Temporary collection bridge; copied into internal/gradeedition2 only to compile.
+package gradeedition2
+import("encoding/json";"os";"testing";"github.com/waywardgeek/ensemble/internal/grade")
+func TestChapter10Probe(t *testing.T){bin,cleanup,err:=grade.Build(os.Getenv("PERSIST_PROBE_DIR"));if err!=nil{t.Fatal(err)};defer cleanup();if err=json.NewEncoder(os.Stdout).Encode(persistenceClient(bin,nil));err!=nil{t.Fatal(err)}}
+// Both-client receipt replaces persistenceClient(bin,nil) with
+// persistenceChecks(bin,os.Getenv("PERSIST_GUI_DIR")).
+// Focused parity receipt wraps bin with persistenceParityBinary and calls Chapter2.

@@ -1,0 +1,9 @@
+--- FAIL: TestChapter10Persistence (0.88s)
+    ch10_test.go:23: save-shape: [core: want exactly one user prompt SECOND_WORD in next request GUI: want exactly one user prompt SECOND_WORD in next request]
+    ch10_test.go:23: default-load: [core: want exactly one user prompt SECOND_WORD in next request core: want exactly one user prompt SECOND_WORD in next request GUI: want exactly one user prompt SECOND_WORD in next request; want exactly one user prompt SECOND_WORD in next request]
+    ch10_test.go:23: replay-equals-snapshot: [core: want exactly one user prompt SECOND_WORD in next request core: want exactly one user prompt SECOND_WORD in next request GUI: want exactly one user prompt SECOND_WORD in next request; want exactly one user prompt SECOND_WORD in next request]
+    ch10_test.go:23: tail-applied-once: [core: want exactly one user prompt SECOND_WORD in next request GUI: want exactly one user prompt SECOND_WORD in next request]
+    ch10_test.go:23: log-not-needed: [core: want exactly one user prompt SECOND_WORD in next request GUI: want exactly one user prompt SECOND_WORD in next request]
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.882s
+FAIL

@@ -1,0 +1,1337 @@
+[
+  {
+    "name": "baseline",
+    "target": null,
+    "exit": 0,
+    "seconds": 0.537,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": false
+  },
+  {
+    "name": "raw-prompt",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.371,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved config.system_prompt differs from actual wire",
+          "saved config.system_prompt differs from actual wire"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "missing-config-field",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.528,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "config lacks system_prompt",
+          "saved config.system_prompt differs from actual wire",
+          "config lacks system_prompt",
+          "saved config.system_prompt differs from actual wire"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "config lacks system_prompt",
+          "saved config.system_prompt differs from actual wire"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "stale-anchor",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.36,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved anchor 5 does not match nonempty log",
+          "saved anchor 8 does not match nonempty log"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved anchor 11 does not match nonempty log"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "snapshot next numbering: saved anchor 11 does not match nonempty log",
+          "log-only next request differs from full snapshot",
+          "log-only next numbering: saved anchor 11 does not match nonempty log"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tail next request differs from full snapshot",
+          "tail next numbering: saved anchor 11 does not match nonempty log"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "snapshot-only next request differs from full snapshot",
+          "snapshot-only next numbering: saved anchor 10 does not match nonempty log"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "lost-loaded-log",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.386,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "second save did not append to loaded log"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "snapshot first new seq must equal 10",
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "log-only next request differs from full snapshot",
+          "log-only first new seq must equal 10"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tail first new seq must equal 10"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "seq-gap",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.377,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first new sequence did not follow prior anchor exactly"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "snapshot first new seq must equal 12",
+          "log-only first new seq must equal 12"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "tail first new seq must equal 12"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "snapshot-only first new seq must equal 12"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "ignore-tail",
+    "target": "tail-applied-once",
+    "exit": 0,
+    "seconds": 0.404,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "log-only next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt THIRD_WORD in next request",
+          "tail next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "replay-twice",
+    "target": "tail-applied-once",
+    "exit": 0,
+    "seconds": 0.37,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "log-only next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "tail next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "snapshot-only next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "log-only-anchor",
+    "target": "replay-equals-snapshot",
+    "exit": 0,
+    "seconds": 0.387,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "log-only next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "discard-snapshot",
+    "target": "log-not-needed",
+    "exit": 0,
+    "seconds": 0.39,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "snapshot-only next request differs from full snapshot"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "lost-trimmed-anchor",
+    "target": "log-not-needed",
+    "exit": 0,
+    "seconds": 0.393,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "snapshot-only first new seq must equal 10"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "credential-leak",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.401,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved config.system_prompt differs from actual wire",
+          "save leaked provider credential or endpoint",
+          "saved config.system_prompt differs from actual wire",
+          "save leaked provider credential or endpoint"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved config.system_prompt differs from actual wire",
+          "save leaked provider credential or endpoint"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "endpoint-leak",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.363,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved config.system_prompt differs from actual wire",
+          "save leaked provider credential or endpoint",
+          "saved config.system_prompt differs from actual wire",
+          "save leaked provider credential or endpoint"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "saved config.system_prompt differs from actual wire",
+          "save leaked provider credential or endpoint"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "ignore-override",
+    "target": "default-load",
+    "exit": 0,
+    "seconds": 0.403,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "override path not saved: <nil>",
+          "override also created default save"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "restore-model",
+    "target": "default-load",
+    "exit": 0,
+    "seconds": 0.419,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "historical model/vendor/prompt replaced runtime configuration"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "restore-vendor",
+    "target": "default-load",
+    "exit": 0,
+    "seconds": 0.396,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "historical model/vendor/prompt replaced runtime configuration",
+          "historical declarations replaced current tools: [  ]",
+          "saved config.vendor differs from actual wire",
+          "saved config.system_prompt differs from actual wire",
+          "saved config.tools differs from actual wire"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "restore-prompt",
+    "target": "default-load",
+    "exit": 0,
+    "seconds": 0.445,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "historical model/vendor/prompt replaced runtime configuration"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "ignore-current-tools",
+    "target": "default-load",
+    "exit": 0,
+    "seconds": 0.361,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "historical declarations replaced current tools: [edit_file kill_job list_directory load_skill read_file run_command search_files send_input tool_limits unload_skill wait_for_job write_file]"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 5,
+        "passed": true
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "skip-load",
+    "target": "default-load",
+    "exit": 0,
+    "seconds": 0.374,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "second save did not append to loaded log"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "snapshot first new seq must equal 4",
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "log-only first new seq must equal 4"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "fixture has no tail above old anchor"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "want exactly one user prompt FIRST_WORD in next request",
+          "want exactly one user prompt SECOND_WORD in next request",
+          "want exactly one user prompt THIRD_WORD in next request",
+          "snapshot-only first new seq must equal 4"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "bad save 0: exit=<nil> named=false requests=1 unchanged=false",
+          "bad save 1: exit=<nil> named=false requests=1 unchanged=false"
+        ]
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "skip-save",
+    "target": "save-shape",
+    "exit": 0,
+    "seconds": 0.274,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first save: process=<nil> read=open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-persistence-3452926944/save.json: no such file or directory"
+        ]
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first save: process=<nil> read=open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-persistence-3452926944/save.json: no such file or directory"
+        ]
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first save: process=<nil> read=open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-persistence-3452926944/save.json: no such file or directory"
+        ]
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first save: process=<nil> read=open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-persistence-3452926944/save.json: no such file or directory"
+        ]
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first save: process=<nil> read=open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-persistence-3452926944/save.json: no such file or directory"
+        ]
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "first save: process=<nil> read=open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-persistence-3452926944/save.json: no such file or directory"
+        ]
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "bad-save-fallback",
+    "target": "bad-save-refused",
+    "exit": 0,
+    "seconds": 0.333,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "bad save 0: exit=<nil> named=false requests=1 unchanged=false",
+          "bad save 1: exit=<nil> named=false requests=1 unchanged=false"
+        ]
+      }
+    ],
+    "intended_failure": true
+  },
+  {
+    "name": "save-after-refusal",
+    "target": "bad-save-refused",
+    "exit": 0,
+    "seconds": 0.356,
+    "checks": [
+      {
+        "id": "save-shape",
+        "title": "Save file records config, anchors at the last log Seq, numbers strictly up",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "default-load",
+        "title": "A second start in the same directory, no flags, resumes the conversation",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "replay-equals-snapshot",
+        "title": "Loading a save, and loading it with context null, render identical requests",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "tail-applied-once",
+        "title": "An older snapshot spliced onto a newer log replays the tail exactly once",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "log-not-needed",
+        "title": "A snapshot with an empty log is a complete save, and numbering continues",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "bad-save-refused",
+        "title": "A save file that does not parse is fatal, and its bytes are left alone",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "bad save 0: exit=exit status 1 named=true requests=0 unchanged=false",
+          "bad save 1: exit=exit status 1 named=true requests=0 unchanged=false"
+        ]
+      }
+    ],
+    "intended_failure": true
+  }
+]

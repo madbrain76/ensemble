@@ -1,0 +1,118 @@
+Edition 2, Chapter 2 — One Log, Three Vendors
+============================================================
+
+[PASS]      stdio protocol, directives, request census  (0/0)
+       census: anthropic:3 requests, 2 answers; openai:3 requests, 2 answers;
+       gemini:3 requests, 2 answers; ephemera:3 requests
+
+[PASS]      all seven Chapter 1 checks still pass  (10/10)
+       7 Chapter 1 checks still pass
+
+[PASS]      log round-trips: dump -> render in a fresh process  (5/5)
+       11 events dumped and re-rendered
+
+[PASS]      two renders of one log are byte-identical  (10/10)
+       all three vendors render deterministically
+
+[PASS]      redacted content is absent from later renders  (10/10)
+       tool output stubbed, tool call preserved, on all three vendors
+
+[PASS]      delivered exactly once, then absent  (10/10)
+       delivered once, in request 1 of 3
+
+[PASS]      four token categories, normalized, disjoint  (10/10)
+       input/cache_write/cache_read/output normalized on all three vendors
+
+[PASS]      one log, three vendor request shapes  (15/15)
+       Exhibit A (three authorships) and Exhibit B (the merged message) both
+       correct
+       per-call replay material survives a Gemini round trip
+
+[FAIL]      three responses, one context, provenance preserved  (0/15)
+       openai: the parsed context differs from anthropic's beyond provenance.
+       anthropic: [message:human:text(read the configuration)
+       response:text(Reading the configuration now.) message:human:text(now
+       summarize it) response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.)] openai:
+       [message:human:text(read the configuration) response:text(Reading the
+       configuration now.) message:human:text(now summarize it)
+       response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.) message:human:text(read
+       the configuration) response:text(Reading the configuration now.)
+       message:human:text(now summarize it) response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.)] Everything the model SAID
+       must normalize; only the record of who said it survives.
+       gemini: the parsed context differs from anthropic's beyond provenance.
+       anthropic: [message:human:text(read the configuration)
+       response:text(Reading the configuration now.) message:human:text(now
+       summarize it) response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.)] gemini:
+       [message:human:text(read the configuration) response:text(Reading the
+       configuration now.) message:human:text(now summarize it)
+       response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.) message:human:text(read
+       the configuration) response:text(Reading the configuration now.)
+       message:human:text(now summarize it) response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.) message:human:text(read
+       the configuration) response:text(Reading the configuration now.)
+       message:human:text(now summarize it) response:text(Here is what I
+       found.)|call(read_file,{"limit":40,"path":"config.json"})
+       response:text(That is everything I needed.)] Everything the model SAID
+       must normalize; only the record of who said it survives.
+       openai: provenance "anthropic/claude-sonnet-5-fake" is identical to
+       anthropic's. The three contexts must differ here and nowhere else.
+       gemini: provenance "anthropic/claude-sonnet-5-fake" is identical to
+       openai's. The three contexts must differ here and nowhere else.
+       openai: captured response model = claude-sonnet-5-fake, expected
+       returned identity gpt-5-fake
+       openai: captured response model = claude-sonnet-5-fake, expected
+       returned identity gpt-5-fake
+       openai: captured tool-call model = claude-sonnet-5-fake, expected
+       returned identity gpt-5-fake
+       openai: captured response model = claude-sonnet-5-fake, expected
+       returned identity gpt-5-fake
+       gemini: captured response model = claude-sonnet-5-fake, expected
+       returned identity gemini-3.5-flash-fake
+       gemini: captured response model = claude-sonnet-5-fake, expected
+       returned identity gemini-3.5-flash-fake
+       gemini: captured tool-call model = claude-sonnet-5-fake, expected
+       returned identity gemini-3.5-flash-fake
+       Gemini: captured call "toolu_fake_1" lost its exact call-bound
+       signature
+       gemini: captured response model = claude-sonnet-5-fake, expected
+       returned identity gemini-3.5-flash-fake
+       gemini: captured response model = gpt-5-fake, expected returned
+       identity gemini-3.5-flash-fake
+       gemini: captured response model = gpt-5-fake, expected returned
+       identity gemini-3.5-flash-fake
+       gemini: captured tool-call model = gpt-5-fake, expected returned
+       identity gemini-3.5-flash-fake
+       Gemini: captured call "call_fake_1" lost its exact call-bound
+       signature
+       gemini: captured response model = gpt-5-fake, expected returned
+       identity gemini-3.5-flash-fake
+
+[PASS]      all three RefKinds survive the log  (3/3)
+       RefPath, RefURI and RefHandle all survive marshal/unmarshal
+
+[PASS]      a pre-Ref log is refused, not coerced  (2/2)
+       old-format log refused loudly; "path" is not coerced into a Ref
+
+[PASS]      the zero value is not a RefKind  (2/2)
+       kind 0 refused; the constants start at iota+1 so the zero value is not
+       a kind
+
+[PASS]      redacted view omits bytes; original Ref facts remain in the log  (8/8)
+       all three RefKinds retain original log facts and render a secret-free
+       result stub
+       exact Ref Kind/Locator inside reduced stubs is not exposed by the CLI;
+       verify it in source tests and review
+
+------------------------------------------------------------
+score: 85/100 — FAIL

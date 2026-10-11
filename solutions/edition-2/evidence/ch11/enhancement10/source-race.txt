@@ -1,0 +1,40 @@
+=== RUN   TestSaveSnapshotReplayAndTail
+=== RUN   TestSaveSnapshotReplayAndTail/"anthropic"
+=== RUN   TestSaveSnapshotReplayAndTail/"anthropic"/snapshot
+=== RUN   TestSaveSnapshotReplayAndTail/"anthropic"/log-only
+=== RUN   TestSaveSnapshotReplayAndTail/"anthropic"/tail
+=== RUN   TestSaveSnapshotReplayAndTail/"anthropic"/snapshot-only
+=== RUN   TestSaveSnapshotReplayAndTail/"openai"
+=== RUN   TestSaveSnapshotReplayAndTail/"openai"/snapshot
+=== RUN   TestSaveSnapshotReplayAndTail/"openai"/log-only
+=== RUN   TestSaveSnapshotReplayAndTail/"openai"/tail
+=== RUN   TestSaveSnapshotReplayAndTail/"openai"/snapshot-only
+=== RUN   TestSaveSnapshotReplayAndTail/"gemini"
+=== RUN   TestSaveSnapshotReplayAndTail/"gemini"/snapshot
+=== RUN   TestSaveSnapshotReplayAndTail/"gemini"/log-only
+=== RUN   TestSaveSnapshotReplayAndTail/"gemini"/tail
+=== RUN   TestSaveSnapshotReplayAndTail/"gemini"/snapshot-only
+--- PASS: TestSaveSnapshotReplayAndTail (0.03s)
+    --- PASS: TestSaveSnapshotReplayAndTail/"anthropic" (0.01s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"anthropic"/snapshot (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"anthropic"/log-only (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"anthropic"/tail (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"anthropic"/snapshot-only (0.00s)
+    --- PASS: TestSaveSnapshotReplayAndTail/"openai" (0.01s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"openai"/snapshot (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"openai"/log-only (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"openai"/tail (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"openai"/snapshot-only (0.00s)
+    --- PASS: TestSaveSnapshotReplayAndTail/"gemini" (0.01s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"gemini"/snapshot (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"gemini"/log-only (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"gemini"/tail (0.00s)
+        --- PASS: TestSaveSnapshotReplayAndTail/"gemini"/snapshot-only (0.00s)
+=== RUN   TestSaveOwnershipAndRuntimeConfig
+--- PASS: TestSaveOwnershipAndRuntimeConfig (0.00s)
+=== RUN   TestBadSaveLeavesHistory
+--- PASS: TestBadSaveLeavesHistory (0.00s)
+=== RUN   TestSaveIntentionallyEmptyPrimary
+--- PASS: TestSaveIntentionallyEmptyPrimary (0.00s)
+PASS
+ok  	ensemble/ensemble	1.048s
