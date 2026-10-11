@@ -179,6 +179,7 @@ it is executed without a shell. `OPENAI_OIDC_ISSUER` and `LLM_BASE_URL` support
 isolated external peers for protocol tests. Production OAuth uses OpenAI's public
 issuer and `/v1` API endpoints.
 
-Model support and successful authentication do not prove subscription cache
-support. Explicit cache markers follow the current documented wire contract;
-route-specific live verification is recorded separately in the chapter notes.
+The observed ChatGPT route rejects `prompt_cache_options`, so subscription
+requests omit that option and its paired explicit markers. API-key Responses
+requests retain explicit caching on supported models. Cache diagnostics remain
+active on both routes; an answered request does not establish a cache grant.

@@ -1,0 +1,10 @@
+{
+  "claim": "ChatGPT omits paired explicit cache mechanism while API route retains it",
+  "mutation": "Restore omitExplicitCache:false in ChatGPT route capabilities",
+  "source_sha256": "803e95d1578ee6a159b4adee9bb9152f5727dfec8bfc999a8c98b4e57d1bdccf",
+  "baseline_exit": 0,
+  "baseline_output": "ok  \tensemble/ensemble\t0.068s\n",
+  "mutant_exit": 1,
+  "mutant_output": "--- FAIL: TestOAuthInferenceBillingAndIsolation (0.08s)\n    oauth_test.go:341: plan explicit cache mechanism was not omitted\n    oauth_test.go:341: plan explicit cache mechanism was not omitted\nFAIL\nFAIL\tensemble/ensemble\t0.087s\nFAIL\n",
+  "intended_kill": true
+}

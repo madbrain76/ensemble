@@ -334,6 +334,12 @@ func TestOAuthInferenceBillingAndIsolation(t *testing.T) {
 		}
 		var body map[string]any
 		json.NewDecoder(r.Body).Decode(&body)
+		// Production plan admission rejects the explicit-mode option. Preserve
+		// the paired omission through 401 retry without weakening API-key caching.
+		wire, _ := json.Marshal(body)
+		if body["prompt_cache_options"] != nil || strings.Contains(string(wire), `"prompt_cache_breakpoint":`) {
+			t.Error("plan explicit cache mechanism was not omitted")
+		}
 		for _, field := range []string{"max_output_tokens", "temperature", "previous_response_id", "user"} {
 			if _, ok := body[field]; ok {
 				t.Errorf("plan route included %s", field)

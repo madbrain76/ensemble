@@ -105,7 +105,7 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 			request["tools"] = []any{map[string]any{"type": "namespace", "name": caps.namespace, "description": "Ensemble local tools", "tools": tools}}
 		}
 	}
-	if e.Features().ExplicitCache {
+	if e.Features().ExplicitCache && !caps.omitExplicitCache {
 		landed := false
 		for _, i := range []int{0, checkpoint, stable} {
 			if i < 0 {
