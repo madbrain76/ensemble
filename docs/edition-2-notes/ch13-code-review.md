@@ -122,3 +122,47 @@ mostly mundane flag parsing, not unexplained architecture; inherited ownership
 documentation remains. No padding or arbitrary quota is requested. The current
 speech correction is incomplete, so neither these comparisons nor passing checks
 constitute acceptance yet. Preserve this initial decision when appending round 1.
+
+## Correction round 1: accepted with the recorded grader exceptions
+
+Reviewed the full revised student response and stable correction
+`95fcd2c10559554f6281a89a63b050bd14edd39b`. All 93 manifest file hashes match the
+submitted tree. The only product change is `gui/web/gui/app.js`: retain the human
+typing cause from input provenance, combine that with speaking, and reset it on
+submission. Its adjacent comment explains why field contents cannot substitute
+for provenance. This is the small current-scope fix requested, without a new
+speech subsystem. Compared with the initial submission it adds three active and
+two comment-only JavaScript lines; production Go and other boundaries are unchanged.
+
+Independently rebuilt the actual GUI and repeated the original native-speech
+interleaving. The [round-1 result](../../solutions/edition-2/evidence/ch13/reviewer-round1-speech-probe.json)
+now records empty pause with `MCP submitted` still in the field after actual native
+speech completion; the original retained result records `paused` in the same
+situation. Empty-input speech also releases correctly. The retained script and
+result identify the exact correction revision. One reused cleanup-check label
+still says “releases stranded pause”; the artifact annotation clarifies that
+pause was already empty before clearing on corrected source. No observation was
+rewritten to manufacture a pass. Direct GUI/browser processes were shut down and
+the reviewer's scratch tree removed.
+
+Read the coder's expanded native regression and final restored-source result:
+all seven controls pass, including human whitespace preserving pause through
+speech, actual other-tab explicit unpause, subsequent MCP submit, and final speech
+completion with empty pause/input. Three restored defects fail cleanly for the
+intended reason: field-derived typing strands programmatic input after speech;
+ignored human typing leaves genuine input unpaused; missing submit reset leaves
+an empty submitted field paused. The submitted GUI tests/vet and JavaScript syntax
+check pass. These focused results and source inspection resolve the sole blocker.
+
+The two setup failures remain recorded. Closing the second control tab after its
+explicit-unpause observation isolates the intended single-tab speech regression;
+it does not establish why two simultaneous native speech queues failed to drain
+within the earlier bound or prove general multi-tab speech reliability. No wider
+speech claim or speculative fix is required for this chapter.
+
+**Accepted with exceptions after one correction round.** Original grading remains
+**0/100 FAIL** on its recorded earlier source; both narrowly justified exceptions
+above stand. The initial source failure, corrected-source proof, masked grader
+coverage, and both OpenAI task failures remain distinct. No original grader or
+paid demonstration was repeated, and no current runtime behavior is waived.
+Coordinator owns the accepted checkpoint/export and subsequent chapter release.
