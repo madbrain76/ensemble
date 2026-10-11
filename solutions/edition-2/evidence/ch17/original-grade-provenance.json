@@ -1,0 +1,20 @@
+{
+  "source_commit": "fcd091f619f879341d4bee318e5f1bf8fb4bb21b",
+  "main_tree": "a2fd5a4f71d8fde7f58cfdefd18a0cfc31206d0f",
+  "command": [
+    "make",
+    "grade-dir",
+    "CH=17",
+    "DIR=./solutions/edition-2/main/gui"
+  ],
+  "started_utc": "2026-10-11T12:56:34.502058+00:00",
+  "chapter_original": 17,
+  "chapter_edition_2": 16,
+  "status": "completed",
+  "exit_code": 2,
+  "finished_utc": "2026-10-11T12:57:45.050638+00:00",
+  "output_sha256": "23da91957bf4259cc5376b69932e962d8418a1060397f5424d332c2395dab4f5",
+  "score": "0/100 FAIL",
+  "grader_exit_code": 1,
+  "exit_code_description": "make exit 2 after grader exit 1"
+}

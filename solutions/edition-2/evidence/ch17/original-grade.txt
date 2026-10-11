@@ -1,0 +1,49 @@
+go run ./cmd/grade -ch 17 ./solutions/edition-2/main/gui
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch17-skills3524052296/base/SKILL.md: skill "base" has invalid type ""
+Chapter 17 — Auto-Recall
+============================================================
+
+[FAIL]      Archived text the user never mentioned reaches the model, so the archive is actually indexed and searched.  (0/10)
+       GUI server did not start
+
+[FAIL]      Results are ranked by term rarity, term frequency and document length, not merely by containing the word.  (0/10)
+       GUI server did not start
+
+[FAIL]      Words like "the" and "we" are stripped, so a short document full of them cannot outrank a real match.  (0/5)
+       GUI server did not start
+
+[FAIL]      A long document is indexed section by section, so retrieving one part does not cost the context of the whole file.  (0/10)
+       GUI server did not start
+
+[FAIL]      Each source keeps a share of the result, so the source with the most text on a topic cannot take every slot.  (0/10)
+       GUI server did not start
+
+[FAIL]      A model reads the candidates and its verdict decides what is attached; changing its answer changes the output.  (0/15)
+       GUI server did not start
+
+[FAIL]      Prose, HTTP 500, a hang, and an empty archive all degrade to top-N BM25 or to silence. Never a crash, never a dead turn.  (0/10)
+       when the judge answered in prose instead of with numbers, the turn did
+       not complete: GUI server did not start
+
+[FAIL]      internal/recall imports the hub and stdlib only, and no existing spoke imports it back.  (0/10)
+       no package at agent/internal/recall: open
+       solutions/edition-2/main/gui/internal/recall: no such file or
+       directory Retrieval belongs in its own spoke, not folded into the
+       package that talks to models.
+
+[FAIL]      Recalled material lands as its own permanent entry carrying its bytes, and is never merged into the user's message.  (0/10)
+       GUI server did not start
+
+[FAIL]      The attached block is bounded, so an archive that matches well everywhere cannot swallow the context window.  (0/10)
+       GUI server did not start
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1
