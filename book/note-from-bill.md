@@ -1,6 +1,6 @@
 # A Note from Bill
 
-This is the seventh update of *The Art of Building AI Coding Agents*.
+This is the eighth update of *The Art of Building AI Coding Agents*.
 
 I released it early, before writing all the advanced material still in my head: dynamic workflows, connectors, gateways, a message board so agents can collaborate, local model support, a deep dive on artifacts, and a self-wielding capstone. Sub-agents and managing the swarm have come off that list — they are chapters 25 and 26, written with the help of the swarm they describe. There are still several chapters I owe you. The free version will always be online and up to date.
 

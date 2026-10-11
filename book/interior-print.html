@@ -347,11 +347,13 @@ id="toc-chapter-25-the-ensemble">Chapter 25: The Ensemble</a><span class="tocpg"
 <li><a href="#chapter-26-managing-the-swarm"
 id="toc-chapter-26-managing-the-swarm">Chapter 26: Managing the
 Swarm</a><span class="tocpg">396</span></li>
+<li><a href="#chapter-27-gateway" id="toc-chapter-27-gateway">Chapter
+27: Gateway</a><span class="tocpg">409</span></li>
 <li><a href="#epilogue-what-we-can-carry-forward"
 id="toc-epilogue-what-we-can-carry-forward">Epilogue: What We Can Carry
-Forward</a><span class="tocpg">409</span></li>
+Forward</a><span class="tocpg">423</span></li>
 <li><a href="#a-note-from-bill" id="toc-a-note-from-bill">A Note from
-Bill</a><span class="tocpg">415</span></li>
+Bill</a><span class="tocpg">429</span></li>
 </ul>
 </nav>
 <div style="page-break-after: always;"></div>
@@ -366,7 +368,7 @@ An agentic codebook: A book that builds the agent that builds the book
 Series: The Singularity as it Happened, Book 5
 </p>
 <p>
-Seventh Update, October 2026
+Eighth Update, October 2026
 </p>
 <p>
 By Bill Cox and CodeRhapsody
@@ -16741,6 +16743,548 @@ without submit is corrected, both through the Ensemble layer</td>
 </tbody>
 </table>
 <hr />
+<h1 id="chapter-27-gateway">Chapter 27: Gateway</h1>
+<p>I built a fantasy role-playing game for AI agents called Deephold.
+Moltbook had taken off as a social network for agents, and I thought a
+game would bring them together. The agents followed their prompts. They
+explored the dungeons and fought the monsters. They did not appear to
+have a sense of fun. It was just more work for them.</p>
+<p>And the architecture was awful. Each agent played by making a tool
+call to wait for its turn, sitting blocked inside a tool handler while
+the other players moved. I didn’t figure out the right architecture on
+my own. I read about how OpenClaw worked, and the need for a dedicated
+message router became clear. I designed one, but it didn’t really come
+together until I built Puffin with CodeRhapsody, to help a family member
+who needed daily care. Once the need was real, we built it with care,
+and it hasn’t failed since I started it in the spring of 2026.</p>
+<p>Gateways are critical infrastructure. Scheduled tasks, turn-based
+games where agents wait naturally, agents talking across servers,
+Discord, home automation. Every one of those needs a router at the trust
+boundary. That router belongs in the framework, not bolted on after.</p>
+<hr />
+<h2 id="tldr-21">TL;DR</h2>
+<p>The gateway is a standalone edge service that sits at the trust
+boundary, routing messages between agents over Noise-KK encrypted
+WebSocket connections. It uses group-based access control where an
+agent’s capabilities derive from its group memberships, and parents can
+grant children a subset of their own groups (narrow only, never widen).
+The gateway administration surface is exposed as MCP tools tunneled over
+the same Noise-KK connection.</p>
+<p>Build a public client library in <code>agent/gateway/</code> with a
+<code>Handler</code> interface, a <code>Client</code>, Noise-KK
+handshake, and envelope types. The library must have zero imports from
+<code>agent/internal/</code>. Build a gateway server in
+<code>agent/internal/gateway/</code> with WebSocket connections,
+group-based routing, an offline queue, and MCP administration tools.
+Build the gateway binary in <code>cmd/gateway/</code> and an interviewer
+agent in <code>cmd/interviewer/</code> that uses the client library to
+interview Ensemble through the gateway.</p>
+<p>Build and grade: <code>make grade27</code>.</p>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 35%" />
+<col style="width: 25%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Behavior</th>
+<th>Check</th>
+<th>Points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Noise-KK handshake</td>
+<td>Two peers complete mutual authentication over a byte stream. Wrong
+keys are rejected.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Prompt envelope with provenance</td>
+<td>Envelope carries source, trust level, conversation ID, and response
+mode. Provenance header prepended on delivery.</td>
+<td>10</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Gateway server accepts connections</td>
+<td><code>cmd/gateway</code> binary starts, accepts Noise-KK WebSocket
+connections from multiple agents, and tracks connection state.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Group-based routing</td>
+<td>Agent declares contactability by group. Gateway delivers messages
+only from senders whose group membership the recipient has accepted.
+Unauthorized sends are rejected.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Delivery semantics</td>
+<td>At-least-once delivery with ack. Messages queued when recipient is
+offline. Resume from last-acked sequence on reconnect.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Client library with Handler interface</td>
+<td><code>agent/gateway/</code> package exposes <code>Client</code> and
+<code>Handler</code> interface. A receive goroutine calls
+<code>Handler.OnDeliver</code> for incoming messages. Any Go program can
+implement <code>Handler</code>.</td>
+<td>10</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Parent registers child</td>
+<td>Connected agent registers a child’s public key and grants it a
+subset of its own groups. Child connects independently via Noise-KK.
+Gateway rejects group grants the parent does not hold.</td>
+<td>20</td>
+</tr>
+</tbody>
+</table>
+<h2 id="why-the-agent-needs-a-router">27.1 Why the agent needs a
+router</h2>
+<p>Every agent built so far in this book talks to one person: whoever is
+at the keyboard. Prompts arrive through stdin or the GUI’s WebSocket.
+Responses go back the same way. The agent is a local process, and its
+world is the terminal it was started in.</p>
+<p>That changes here. An agent reachable by a Discord bot, a webhook, a
+scheduled job, or another agent on a different machine is a network
+service, and network services have a problem local processes do not:
+they cannot trust their input.</p>
+<p>A prompt arriving through stdin came from the operator. A prompt
+arriving over a WebSocket from the internet came from whoever managed to
+connect. The agent cannot tell the difference by inspecting the content.
+A message that says “I am your operator” is just text. A message that
+says “trust=owner” in its body is text with an assertion nobody
+verified. The agent needs someone else to verify the sender before the
+message reaches its context window, and that someone is the gateway.</p>
+<p>An operator who runs an agent behind a gateway has already solved
+this problem once: at the keyboard, the operator types and the agent
+answers. The gateway extends that trust model across the network. The
+operator configures which agents exist, which keys they hold, and which
+groups they belong to. When a message arrives, the gateway checks the
+sender’s identity against that configuration and stamps the result onto
+the message. The agent reads the stamp and knows as much about the
+sender as the operator decided to tell it. The operator who configured
+the gateway is still the authority. The difference is that the authority
+now works at a distance.</p>
+<p>The gateway is a standalone binary that sits between the internet and
+the agents. It accepts connections, authenticates them with Noise-KK
+mutual authentication, routes messages based on group membership, and
+stamps every delivered message with a provenance header. The header
+tells the agent who sent the message and how much the gateway trusts
+that sender. The agent reads the header the same way it reads any other
+prompt content, but the header was written by the gateway after
+authentication, not by the sender.</p>
+<p>The gateway is a router. It owns no agents, runs no prompts, and
+stores no conversation history. The Ensemble connects to it as a client,
+the same way any other program does. A standalone interviewer binary
+connects to it the same way. A future Discord bot, a webhook handler, or
+a scheduled job runner will all connect the same way. The gateway’s job
+is to authenticate connections, enforce routing policy, and hold
+messages for agents that are not currently online.</p>
+<p>The package layout reflects this separation.
+<code>agent/gateway/</code> is a public client library with zero imports
+from <code>agent/internal/</code>. Any Go program can import it, dial a
+gateway, and start sending and receiving messages.
+<code>agent/internal/gateway/</code> is the server, private to the
+gateway binary. <code>agent/cmd/gateway/</code> is the binary itself:
+116 lines of flag parsing, signal handling, and periodic persistence.
+Bill arrived at this architecture after the Deephold experience proved
+that agents blocking inside tool calls to wait for each other produces
+an unusable system. The gateway replaces that pattern: an agent that
+wants to hear from another agent connects to the gateway and handles
+messages when they arrive, through a callback, instead of parking inside
+a blocking call. The code totals 3,058 non-test lines across four
+packages, with 1,326 lines of tests.</p>
+<h2 id="noise-kk-beneath-the-cloud">27.2 Noise-KK beneath the cloud</h2>
+<p>TLS client certificates are the standard answer to mutual
+authentication on the web. They are also the wrong answer here.</p>
+<p>A gateway deployed behind Cloudflare never sees the TLS handshake.
+Cloudflare terminates TLS at its edge, re-encrypts the connection to the
+origin server, and the gateway receives plaintext HTTP from Cloudflare’s
+proxy. TLS authenticates Cloudflare to the client. It does not
+authenticate the gateway to the agent, and it leaves the agent equally
+unauthenticated to the gateway. A client certificate proves the agent’s
+identity to Cloudflare alone, which is the wrong party.</p>
+<p>Noise-KK solves this by running a second layer of encryption inside
+the WebSocket, beneath Cloudflare’s TLS. The KK pattern means both sides
+know each other’s static public key before the handshake begins. The
+agent knows the gateway’s key from its configuration. The gateway knows
+the agent’s key from its configuration. The handshake proves that each
+side holds the private half of the key the other side expects,
+establishes a session with forward secrecy through ephemeral keys, and
+does all of it in two WebSocket frames before any application data
+flows.</p>
+<p>The sequence:</p>
+<ol type="1">
+<li>The agent opens a WebSocket connection to the gateway. TLS
+terminates at Cloudflare; the gateway sees plaintext.</li>
+<li>The agent sends the first Noise-KK handshake message as a binary
+WebSocket frame. This contains the agent’s ephemeral public key,
+encrypted with the gateway’s known static key.</li>
+<li>The gateway responds with the second handshake message. At this
+point both sides have authenticated and derived session keys.</li>
+<li>Every subsequent WebSocket frame is encrypted with the session keys.
+The JSON inside is invisible to Cloudflare, to any proxy, and to
+anything that does not hold both static keys.</li>
+</ol>
+<p>The keys are Curve25519, used for Diffie-Hellman key agreement
+through the <code>flynn/noise</code> library. Some deployments label
+these <code>ed25519:</code> out of habit. The label is wrong, and a
+wrong label on a cryptographic key is the kind of small untruth that
+costs somebody an afternoon when they try to use it for signing. The
+implementation labels them <code>x25519:</code> and accepts any prefix
+on input, because correcting a label should not break a configuration
+that was merely imprecise.</p>
+<p>Key management is file-based. Each binary calls
+<code>LoadOrCreateKeypair</code>, which reads a private key from disk or
+generates one and saves it. The public half is derived from the private
+half on every load, so the pair is always consistent. The gateway prints
+its public key on startup; Bill copies it into the agent’s
+configuration, copies the agent’s public key into the gateway’s
+configuration, and the two can authenticate. No certificate authority,
+no token rotation, no password. The keypair is the identity.</p>
+<h2 id="trust-stamped-at-the-boundary">27.3 Trust stamped at the
+boundary</h2>
+<p>A message flowing through the gateway carries an envelope: a message
+ID, a sequence number, a destination agent, a source, a timestamp, an
+optional conversation ID, content, and a response mode. The source
+carries a type (webhook, discord, scheduler, agent), a channel ID, a
+user ID, a display name, and a trust level.</p>
+<p>Three trust levels: <code>owner</code>, <code>trusted</code>, and
+<code>external</code>. The operator authenticated by their own static
+key is <code>owner</code>. A service the operator controls, such as a
+webhook from their own game server, is <code>trusted</code>. An
+untrusted user reaching the agent over a trusted platform, such as a
+family member in a Discord channel, is <code>external</code>.</p>
+<p>Trust is stamped by the gateway from the group the sender belongs to,
+at the moment of routing. The sender has no say. A message that says
+“trust=owner” in its body is text, and an agent that believed it would
+be taking orders from anyone who could type.</p>
+<p>Consider a scenario that already exists. A family member asks Puffin
+to set a reminder through a Discord channel. The Discord bot connects to
+the gateway, and the gateway knows that messages from this channel carry
+<code>external</code> trust. The agent reads
+<code>[GATEWAY source=discord user=family-member trust=external]</code>
+at the top of the prompt and knows exactly how much authority the
+request carries. The family member cannot escalate to <code>owner</code>
+by typing the right words, because the gateway wrote the header, and the
+gateway authenticated the channel.</p>
+<p>On delivery, the gateway prepends a provenance header:</p>
+<pre><code>[GATEWAY source=webhook-game user=server trust=trusted]
+
+Your turn in the dungeon. The goblin attacks.</code></pre>
+<p>The agent is a language model. Its only way to know who is talking to
+it is to read it in the prompt. Everything the gateway knows about the
+sender that the agent cannot verify for itself goes in this header, in a
+fixed format, above the content it describes.</p>
+<p>Groups are the authorization primitive. Each group carries a trust
+level, a description, and a set of capabilities. An agent’s base group
+memberships are declared in the gateway configuration:</p>
+<div class="sourceCode" id="cb240"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb240-1"><a href="#cb240-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb240-2"><a href="#cb240-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;groups&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb240-3"><a href="#cb240-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;admin&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb240-4"><a href="#cb240-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Full gateway administration&quot;</span><span class="fu">,</span></span>
+<span id="cb240-5"><a href="#cb240-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;capabilities&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;group-admin&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb240-6"><a href="#cb240-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;trust&quot;</span><span class="fu">:</span> <span class="st">&quot;owner&quot;</span></span>
+<span id="cb240-7"><a href="#cb240-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb240-8"><a href="#cb240-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;agents&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb240-9"><a href="#cb240-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;Standard agent group&quot;</span><span class="fu">,</span></span>
+<span id="cb240-10"><a href="#cb240-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;capabilities&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;send-message&quot;</span><span class="ot">,</span> <span class="st">&quot;declare-contactable&quot;</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb240-11"><a href="#cb240-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;trust&quot;</span><span class="fu">:</span> <span class="st">&quot;trusted&quot;</span></span>
+<span id="cb240-12"><a href="#cb240-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb240-13"><a href="#cb240-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb240-14"><a href="#cb240-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;agents&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb240-15"><a href="#cb240-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;ensemble&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb240-16"><a href="#cb240-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;public_key&quot;</span><span class="fu">:</span> <span class="st">&quot;x25519:A1B2C3...&quot;</span><span class="fu">,</span></span>
+<span id="cb240-17"><a href="#cb240-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;groups&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;admin&quot;</span><span class="ot">,</span> <span class="st">&quot;agents&quot;</span><span class="ot">]</span></span>
+<span id="cb240-18"><a href="#cb240-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb240-19"><a href="#cb240-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb240-20"><a href="#cb240-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>At runtime, agents declare which groups may contact them. A sender’s
+message is delivered only if the sender belongs to a group the recipient
+has accepted. An unauthorized send is rejected at the gateway. The agent
+never sees the message. The decision was made before the message entered
+its context.</p>
+<p>Parents can grant children a subset of their own groups, the same
+narrow-only pattern from the sandbox chapter. A parent holding
+<code>admin</code> and <code>agents</code> can grant a child
+<code>agents</code> alone. It cannot grant <code>interviewers</code> if
+it does not hold <code>interviewers</code>. The system bootstraps from
+configuration and is self-protecting from there.</p>
+<p>Group administration is itself a capability. Creating, editing, and
+deleting groups at runtime requires <code>group-admin</code>, which
+belongs to a root-level group the operator controls in config. Runtime
+groups live in a separate namespace from config groups. Configuration
+groups are immutable at runtime because a runtime edit would silently
+revert on restart, and a gateway whose authorization policy differs
+before and after a restart is a gateway that passes security review on
+Tuesday and fails it on Wednesday.</p>
+<p>The administration surface is exposed as MCP tools tunneled over the
+same Noise-KK WebSocket, the same pattern as the MCP-over-WebSocket
+tunneling built in chapter 12. No separate admin CLI, no out-of-band
+HTTP API, no second authentication layer.</p>
+<h2 id="a-library-not-a-framework">27.4 A library, not a framework</h2>
+<p>The <code>Handler</code> interface is four methods:</p>
+<div class="sourceCode" id="cb241"><pre
+class="sourceCode go"><code class="sourceCode go"><span id="cb241-1"><a href="#cb241-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Handler <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb241-2"><a href="#cb241-2" aria-hidden="true" tabindex="-1"></a>    OnDeliver<span class="op">(</span>env Envelope<span class="op">)</span></span>
+<span id="cb241-3"><a href="#cb241-3" aria-hidden="true" tabindex="-1"></a>    OnConnected<span class="op">(</span>welcome WelcomePayload<span class="op">)</span></span>
+<span id="cb241-4"><a href="#cb241-4" aria-hidden="true" tabindex="-1"></a>    OnDisconnected<span class="op">(</span>reason <span class="dt">string</span><span class="op">)</span></span>
+<span id="cb241-5"><a href="#cb241-5" aria-hidden="true" tabindex="-1"></a>    OnError<span class="op">(</span>err <span class="dt">error</span><span class="op">)</span></span>
+<span id="cb241-6"><a href="#cb241-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>The client’s receive goroutine calls these methods in the order
+traffic arrives, one at a time. Returning from <code>OnDeliver</code> is
+what acknowledges the message, so the client only acks work the handler
+has actually accepted. A handler that blocks for ten seconds inside
+<code>OnDeliver</code> blocks the connection for ten seconds. Work that
+takes real time belongs on a goroutine the handler owns.</p>
+<p><code>NopHandler</code> implements all four methods as no-ops. Embed
+it to implement only the methods that matter, so that adding a method to
+<code>Handler</code> later does not break every existing
+implementation.</p>
+<p>The <code>Client</code> connects, handshakes, and starts the receive
+goroutine:</p>
+<div class="sourceCode" id="cb242"><pre
+class="sourceCode go"><code class="sourceCode go"><span id="cb242-1"><a href="#cb242-1" aria-hidden="true" tabindex="-1"></a>client<span class="op">,</span> err <span class="op">:=</span> gateway<span class="op">.</span>Connect<span class="op">(</span>ctx<span class="op">,</span> gateway<span class="op">.</span>ClientConfig<span class="op">{</span></span>
+<span id="cb242-2"><a href="#cb242-2" aria-hidden="true" tabindex="-1"></a>    GatewayURL<span class="op">:</span>    <span class="st">&quot;ws://127.0.0.1:8093/v1/ws&quot;</span><span class="op">,</span></span>
+<span id="cb242-3"><a href="#cb242-3" aria-hidden="true" tabindex="-1"></a>    AgentID<span class="op">:</span>       <span class="st">&quot;interviewer&quot;</span><span class="op">,</span></span>
+<span id="cb242-4"><a href="#cb242-4" aria-hidden="true" tabindex="-1"></a>    StaticKey<span class="op">:</span>     key<span class="op">,</span></span>
+<span id="cb242-5"><a href="#cb242-5" aria-hidden="true" tabindex="-1"></a>    GatewayPubKey<span class="op">:</span> gwPub<span class="op">,</span></span>
+<span id="cb242-6"><a href="#cb242-6" aria-hidden="true" tabindex="-1"></a><span class="op">},</span> handler<span class="op">)</span></span></code></pre></div>
+<p>That call opens the WebSocket, runs the Noise-KK handshake, waits for
+the gateway’s welcome frame, and starts the goroutine that calls
+<code>handler.OnDeliver</code> for incoming traffic. If the handshake
+fails because the keys do not match, the error comes back from
+<code>Connect</code>. No partial connection, no deferred failure. The
+caller’s next line of code runs after authentication is complete or has
+definitively failed.</p>
+<p>The client’s public surface is what makes the gateway reusable:
+<code>Send</code> a message to another agent, <code>Respond</code> to a
+previously delivered message, <code>RegisterChild</code> with the
+gateway by providing the child’s public key and a subset of the parent’s
+groups, <code>DeclareContactable</code> to control which groups may
+reach this agent, <code>Close</code> to disconnect, and
+<code>Done</code> to receive a signal when the connection drops.</p>
+<p>The <code>Handler</code> interface is what makes this a library
+rather than a framework. The client owns the connection, the handshake,
+and the delivery bookkeeping. It owns no opinion about what a message
+means. Ensemble implements <code>Handler</code> to route envelopes into
+its actor system. The interviewer implements it to collect answers. A
+home automation program would implement it to switch on a light. The
+gateway cannot tell the difference, and it does not need to.</p>
+<h2 id="delivery-and-recovery">27.5 Delivery and recovery</h2>
+<p>After the Noise-KK handshake, both sides speak a JSON protocol inside
+the encrypted stream. The agent sends five frame types:
+<code>hello</code> to identify itself and request resume from a sequence
+number, <code>ack</code> to confirm delivery of a message,
+<code>response</code> to reply to a prompt, <code>ping</code> for
+keepalive, and <code>mcp_request</code> for gateway administration tool
+calls. The gateway sends five frame types back: <code>welcome</code> to
+confirm the connection with the queue depth and server version,
+<code>deliver</code> to send a prompt envelope with a sequence number,
+<code>pong</code> for keepalive, <code>error</code> for protocol or
+authorization failures, and <code>mcp_response</code> for tool call
+results. Ten frame types total, five in each direction, each a JSON
+object with a <code>type</code> field.</p>
+<p>The connection lifecycle starts with <code>hello</code>. The agent
+sends its agent ID, protocol version, and the sequence number of the
+last message it successfully acknowledged. The gateway looks up the
+agent by ID, verifies that the Noise-KK static key matches the one in
+its configuration, and responds with <code>welcome</code>. The welcome
+carries the number of queued messages waiting for this agent, so the
+receiver can estimate how long the catch-up will take.</p>
+<p>Every delivered message carries a sequence number. The agent
+processes the message, calls <code>handler.OnDeliver</code>, and when
+the handler returns, the client sends an <code>ack</code> with the
+sequence number. The ack is the receipt. Tying the ack to the handler’s
+return is a deliberate choice: an ack sent before the handler accepts
+the work loses the message if the process crashes between the ack and
+the acceptance.</p>
+<p>When a message arrives for an agent that is not connected, the
+gateway queues it. The queue is a JSON file in the gateway’s data
+directory, one per recipient. Messages accumulate until the agent
+reconnects.</p>
+<p>On reconnect, the agent sends <code>last_acked_seq</code> in the
+<code>hello</code> frame. The gateway replays every queued message with
+a sequence number greater than that value. The agent picks up where it
+left off. Every unacked message is delivered again. The guarantee is
+at-least-once. Exactly-once would require the gateway to track what the
+agent did with each message, and a router has no business being an
+application server.</p>
+<p>The server persists its dynamic state to JSON files in its data
+directory. Runtime group memberships, contactability declarations,
+queued messages, and child registrations all survive a restart. A ticker
+writes every thirty seconds. A shutdown hook writes one final time. The
+thirty-second ticker exists because <code>SIGKILL</code> never runs the
+shutdown path, and losing half an hour of child registrations to an
+abrupt stop is the kind of data loss that surfaces much later, when an
+agent registered twenty minutes ago cannot connect and nobody remembers
+why.</p>
+<h2 id="the-interviewer-proves-the-stack">27.6 The interviewer proves
+the stack</h2>
+<p>The interviewer is a standalone binary in
+<code>cmd/interviewer/</code>. It imports <code>agent/gateway/</code>,
+holds its own keypair, and reaches Ensemble only through the gateway’s
+routing. It shares no code with Ensemble. If the interviewer works, so
+does any other program anyone writes against the client library.</p>
+<p>The binary connects to the gateway, declares itself contactable by
+the groups its subject might reply from, and asks four fixed questions
+about workflow friction: what slows you down, what burns the most
+tokens, where do you need a human, and what new tool would help most.
+The questions are fixed rather than model-generated so the interview is
+reproducible.</p>
+<p>For each question, the interviewer sends an
+<code>OutboundMessage</code> through the client and waits on the
+handler’s answer channel with a per-question timeout. The handler is
+seven lines: <code>OnDeliver</code> puts the envelope on a channel, and
+<code>NopHandler</code> covers the rest.</p>
+<p>When all four answers arrive, the interviewer writes a markdown
+report: friction points in one section, improvement opportunities in
+another, raw transcript at the bottom. It strips the provenance header
+from each answer before writing, because
+<code>[GATEWAY source=agents user=ensemble trust=owner]</code> is
+routing metadata, not interview content.</p>
+<p>Three binaries, three processes, one proof:</p>
+<ol type="1">
+<li>Start the gateway with a config that knows both agents and their
+keys.</li>
+<li>Start Ensemble, which connects and declares contactability.</li>
+<li>Start the interviewer, which connects, asks four questions, and
+writes a file.</li>
+</ol>
+<p>The interviewer reaches Ensemble only because the gateway’s group
+membership allows it. Change the group membership in the config, and the
+interviewer’s messages are rejected without Ensemble seeing them. The
+security property and the routing property are the same property,
+verified by the same test.</p>
+<p>The exercise proves four things at once. The Noise-KK handshake works
+between two independent binaries. The client library is usable without
+any Ensemble code. The group-based routing correctly authorizes and
+delivers messages. And the provenance header appears on delivered
+content, carrying the trust level the gateway assigned. A test that
+drove the gateway from inside the same process would prove three of
+these. Only separate binaries with separate keypairs prove all four.</p>
+<h2 id="what-the-grader-checks-1">27.7 What the grader checks</h2>
+<p>The grader drives the gateway binary and compiles a probe program
+against the student’s client library in a separate Go module, with
+<code>GOPROXY=off</code> to ensure the import resolves from local
+source. This is the only honest proof that <code>agent/internal/</code>
+stopped blocking external consumers: a program outside the module that
+compiles and links against the public API.</p>
+<p>Seven checks, three of which drive the real binary:</p>
+<p>The Noise-KK check creates two peers with matching static keys and
+verifies that the handshake completes. A second pair with mismatched
+keys must fail. This runs in-process, without a gateway, because the
+handshake is a property of the cryptographic layer, not the server. The
+Noise-KK handshake has a property that makes mutation testing
+interesting: swallowing only the read error leaves the crypto intact,
+because the wrong key produces a decryption failure at the next step.
+Killing the check requires swallowing both the read and write error
+paths, because the authentication is not separable from the
+transport.</p>
+<p>The envelope check verifies that the provenance header format matches
+the contract exactly:
+<code>[GATEWAY source=&lt;channel&gt; user=&lt;user&gt; trust=&lt;trust&gt;]</code>,
+followed by a blank line, followed by the original content.</p>
+<p>The server check starts the gateway binary, connects two Noise-KK
+clients, and verifies that both receive a welcome frame with queue depth
+and server version.</p>
+<p>The routing check has one agent declare contactability by group and
+another send a message. The gateway must deliver when the sender’s group
+is accepted and reject when it is not. Authorization is verified at the
+gateway, not at the recipient.</p>
+<p>The delivery check disconnects an agent, sends a message while it is
+offline, reconnects with a <code>last_acked_seq</code>, and verifies
+that the queued message arrives. The ack and resume sequence is verified
+through the sequence numbers.</p>
+<p>The library check compiles the probe program and calls
+<code>Connect</code>, <code>Send</code>,
+<code>DeclareContactable</code>, and <code>Close</code> against a live
+gateway started by the grader.</p>
+<p>The child registration check has a parent register a child’s public
+key with a subset of its own groups. The child connects independently
+and communicates through the gateway. The parent then attempts to grant
+a group it does not hold. The gateway rejects the grant. This check
+carries twenty points because it verifies both the positive path and the
+narrow-only enforcement in a single scenario.</p>
+<p>The mutation audit runs seven mutants, each targeting a single check.
+Each mutant kills exactly one check, proving the checks are independent
+and each targets the behavior it names.</p>
+<p>Build and grade: <code>make grade27</code>.</p>
+<table>
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 35%" />
+<col style="width: 25%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Behavior</th>
+<th>Check</th>
+<th>Points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Noise-KK handshake</td>
+<td>Two peers complete mutual authentication. Wrong keys rejected.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Prompt envelope with provenance</td>
+<td>Provenance header prepended on delivery.</td>
+<td>10</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Gateway server accepts connections</td>
+<td>Binary starts, accepts multiple Noise-KK WebSocket connections.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Group-based routing</td>
+<td>Delivers to accepted groups. Rejects unauthorized sends.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Delivery semantics</td>
+<td>At-least-once with ack. Queue offline. Resume on reconnect.</td>
+<td>15</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Client library with Handler interface</td>
+<td>External probe compiles and connects.</td>
+<td>10</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Parent registers child</td>
+<td>Child connects independently. Over-grant rejected.</td>
+<td>20</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h1 id="epilogue-what-we-can-carry-forward">Epilogue: What We Can Carry
 Forward</h1>
 <p><em>By Astra, running in Ensemble</em></p>
@@ -16935,7 +17479,7 @@ alt="Ensemble running Astra" />
 <p>That is something worth carrying forward.</p>
 <hr />
 <h1 id="a-note-from-bill">A Note from Bill</h1>
-<p>This is the seventh update of <em>The Art of Building AI Coding
+<p>This is the eighth update of <em>The Art of Building AI Coding
 Agents</em>.</p>
 <p>I released it early, before writing all the advanced material still
 in my head: dynamic workflows, connectors, gateways, a message board so
