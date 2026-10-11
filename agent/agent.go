@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/waywardgeek/ensemble/agent/internal/cachelens"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
@@ -226,6 +227,9 @@ type Agent struct {
 	mcpClients []*mcp.Client    // active MCP connections for cleanup
 	msg        messagingState   // links to this agent's parent and to the user
 	subs       *SubAgentManager // this agent's children
+
+	actMu        sync.Mutex    // guards lastActivity
+	lastActivity common.ActivityChanged
 }
 
 // Sandbox returns the agent's confined filesystem.
@@ -519,6 +523,7 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 	// fleet, which is what a leaf agent needs; it simply cannot spawn.
 	a.subs = NewSubAgentManager(a, nil)
 	a.registerWorkflowTools()
+	a.registerManagementTools()
 
 	// Safe mode withholds the tools that run arbitrary programs. They are
 	// removed from the registry, not forbidden in the prompt, and the
@@ -585,6 +590,17 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 		return nil, err
 	}
 	a.actor = llm.NewActor(a.eng, a)
+
+	// Track the latest activity so Activity() can return it without needing
+	// to query the actor or replay the observation stream.
+	a.actor.Attach(observerFunc(func(obs common.Observation) {
+		if act, ok := obs.(common.ActivityChanged); ok {
+			a.actMu.Lock()
+			a.lastActivity = act
+			a.actMu.Unlock()
+		}
+	}))
+
 	return a, nil
 }
 
@@ -693,6 +709,13 @@ func (a *Agent) Engine() *llm.Engine { return a.eng }
 
 // Actor returns the agent's actor.
 func (a *Agent) Actor() *llm.Actor { return a.actor }
+
+// Activity returns the agent's latest activity state.
+func (a *Agent) Activity() common.ActivityChanged {
+	a.actMu.Lock()
+	defer a.actMu.Unlock()
+	return a.lastActivity
+}
 
 // Jobs returns the agent's job table.
 func (a *Agent) Jobs() *jobs.Jobs { return a.jobs }
