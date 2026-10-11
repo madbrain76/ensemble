@@ -1,0 +1,11 @@
+{
+  "source_commit": "7a2d562a8df6cd1504ee04871e662b6c3e654e33",
+  "main_tree": "f2435030abf494b287f8ce9a0bc9d1e7f0e1b720",
+  "binary": "/Users/bill/ensemble-ch19-signin-01v0rmp3/ensemble",
+  "binary_sha256": "e76105ba9ea55771d7ad5f95dc3c9580781d30a2db4cfba49ac50860645186ac",
+  "fresh_en_home": "/Users/bill/ensemble-ch19-signin-01v0rmp3/auth",
+  "initial_status": "Account: \nSubject: \nClient ID: \nBilling: api\nSigned in: false\nPlan enabled: false\nExpires: 0001-01-01T00:00:00Z\nScopes: \n",
+  "login_command": "env -u LLM_API_KEY EN_HOME=/Users/bill/ensemble-ch19-signin-01v0rmp3/auth OPENAI_OIDC_ISSUER=https://auth.openai.com LLM_BASE_URL=https://api.openai.com OPENAI_BILLING_MODE=chatgpt EN_BROWSER_CMD=/usr/bin/open /Users/bill/ensemble-ch19-signin-01v0rmp3/ensemble auth login openai-chatgpt",
+  "browser_action": "Review the OpenAI page for this new Ensemble app, sign in with the intended ChatGPT account, approve plan inference permission if you choose, and let the browser return to the local callback. The command has a five-minute deadline.",
+  "production_flow_started": false
+}
