@@ -1,0 +1,5 @@
+--- FAIL: TestModelSelectionWireAndRequest (0.00s)
+    model_test.go:75: session model persisted
+FAIL
+FAIL	ensemble-gui-stub	0.009s
+FAIL

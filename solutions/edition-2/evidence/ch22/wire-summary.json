@@ -1,0 +1,119 @@
+{
+  "requests": [
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_tool_results": []
+    },
+    {
+      "model": "gpt-6-astra",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_tool_results": [
+        {
+          "call_id": "call_jdpjRFvRirxFSzz1UfPnDFfI",
+          "output": "model: gpt-6-astra\nlast response: 740 in, 14 out, 0 cache read, 0 cache write\nsession total: 740 in, 14 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)",
+          "type": "function_call_output"
+        }
+      ]
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_tool_results": [
+        {
+          "call_id": "call_jdpjRFvRirxFSzz1UfPnDFfI",
+          "output": "model: gpt-6-astra\nlast response: 740 in, 14 out, 0 cache read, 0 cache write\nsession total: 740 in, 14 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)",
+          "type": "function_call_output"
+        }
+      ]
+    },
+    {
+      "model": "gpt-6.1-sol",
+      "reasoning": {
+        "effort": "high",
+        "summary": "detailed"
+      },
+      "input_tool_results": [
+        {
+          "call_id": "call_jdpjRFvRirxFSzz1UfPnDFfI",
+          "output": "model: gpt-6-astra\nlast response: 740 in, 14 out, 0 cache read, 0 cache write\nsession total: 740 in, 14 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)",
+          "type": "function_call_output"
+        },
+        {
+          "call_id": "call_F689GGKQD2sDk79F07xrTWTV",
+          "output": "model: gpt-6.1-sol\nlast response: 977 in, 14 out, 0 cache read, 0 cache write\nsession total: 2553 in, 122 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)",
+          "type": "function_call_output"
+        }
+      ]
+    }
+  ],
+  "responses": [
+    {
+      "from": {
+        "vendor": "openai",
+        "model": "gpt-6-astra",
+        "surface": "responses"
+      },
+      "usage": {
+        "input": 740,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 14
+      }
+    },
+    {
+      "from": {
+        "vendor": "openai",
+        "model": "gpt-6-astra",
+        "surface": "responses"
+      },
+      "usage": {
+        "input": 836,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 94
+      }
+    },
+    {
+      "from": {
+        "vendor": "openai",
+        "model": "gpt-6.1-sol",
+        "surface": "responses"
+      },
+      "usage": {
+        "input": 977,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 14
+      }
+    },
+    {
+      "from": {
+        "vendor": "openai",
+        "model": "gpt-6.1-sol",
+        "surface": "responses"
+      },
+      "usage": {
+        "input": 1075,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 129
+      }
+    }
+  ],
+  "final_total": {
+    "input": 3628,
+    "output": 251,
+    "cache_read": 0,
+    "cache_write": 0
+  }
+}

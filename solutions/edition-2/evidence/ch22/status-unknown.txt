@@ -1,0 +1,5 @@
+--- FAIL: TestAgentStatusModelAccounting (0.01s)
+    status_test.go:91: unknown reported as measured dollars: "model: unpriced-model\nlast response: 0 in, 0 out, 0 cache read, 0 cache write\nsession total: 0 in, 0 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: $0.000000" <nil>
+FAIL
+FAIL	ensemble/ensemble	0.014s
+FAIL

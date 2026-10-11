@@ -1,0 +1,5 @@
+--- FAIL: TestChatModelSelection (0.23s)
+    chat_test.go:137: CLI model control did not reach provider claude-haiku-5-5
+FAIL
+FAIL	ensemble	0.239s
+FAIL

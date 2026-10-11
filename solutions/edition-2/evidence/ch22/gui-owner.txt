@@ -1,0 +1,5 @@
+--- FAIL: TestModelSelectionWireAndRequest (0.00s)
+    model_test.go:56: selection not broadcast
+FAIL
+FAIL	ensemble-gui-stub	0.008s
+FAIL

@@ -1,0 +1,255 @@
+[
+  {
+    "name": "status-last",
+    "file": "internal/tools/status.go",
+    "old": "meter.Input, meter.Output, meter.CacheRead, meter.CacheWrite,",
+    "new": "meter.Total.Input, meter.Total.Output, meter.Total.CacheRead, meter.Total.CacheWrite,",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusModelAccounting$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "status missing"
+  },
+  {
+    "name": "status-unknown",
+    "file": "internal/tools/status.go",
+    "old": "if meter.Priced {",
+    "new": "if true {",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusModelAccounting$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "unknown reported as measured dollars"
+  },
+  {
+    "name": "status-dispatch",
+    "file": "internal/tools/status.go",
+    "old": "return fmt.Sprintf(\"model: %s",
+    "new": "return fmt.Sprintf(\"wrong model: %s",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusToolLoop$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "actual status tool result",
+    "correction": "Initial substring assertion accepted wrong model: prefix; exact start-of-result assertion now rejects same mutant."
+  },
+  {
+    "name": "historical-prices",
+    "file": "internal/engine/usage.go",
+    "old": "LookupModel(key.model)",
+    "new": "LookupModel(e.Agent().Config().Model)",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusModelAccounting$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "selection changed historical counts or cost"
+  },
+  {
+    "name": "cache-denominator",
+    "file": "internal/engine/usage.go",
+    "old": "out.Total.Input + out.Total.CacheWrite + out.Total.CacheRead",
+    "new": "out.Total.Input + out.Total.CacheRead",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusModelAccounting$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "status missing"
+  },
+  {
+    "name": "model-noop",
+    "file": "internal/agent/model.go",
+    "old": "r.owner.config.Model = selection.model",
+    "new": "// Selection is accidentally ignored.",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusModelAccounting$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "selection retained stale identity or changed provider"
+  },
+  {
+    "name": "stale-identity",
+    "file": "internal/agent/model.go",
+    "old": "r.owner.config.ResolvedModel = \"\"",
+    "new": "// Stale resolved identity retained.",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestAgentStatusModelAccounting$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "selection retained stale identity or changed provider"
+  },
+  {
+    "name": "busy-selection",
+    "file": "internal/agent/model.go",
+    "old": "if r.active != nil {",
+    "new": "if false {",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestModelSelectionBusyAndInvalid$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "busy selection altered"
+  },
+  {
+    "name": "empty-selection",
+    "file": "internal/agent/model.go",
+    "old": "if model == \"\" {",
+    "new": "if false {",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestModelSelectionBusyAndInvalid$",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "empty model accepted"
+  },
+  {
+    "name": "gui-owner",
+    "file": "gui/settings.go",
+    "old": "s.agent.SetModel(model)",
+    "new": "s.agent.SetModel(s.agent.Config().Model)",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestModelSelectionWireAndRequest$",
+      "."
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "selection not broadcast"
+  },
+  {
+    "name": "gui-persist-model",
+    "file": "gui/settings.go",
+    "old": "Model *string `json:\"model,omitempty\"`",
+    "new": "Model *string `json:\"unused,omitempty\"`",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestModelSelectionWireAndRequest$",
+      "."
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "session model persisted"
+  },
+  {
+    "name": "gui-mixed-patch",
+    "file": "gui/settings.go",
+    "old": "if len(fields) != 1 {",
+    "new": "if false {",
+    "command": [
+      "go",
+      "test",
+      "-count=1",
+      "-timeout=15s",
+      "-run",
+      "^TestModelSelectionWireAndRequest$",
+      "."
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "waiting for wire event"
+  },
+  {
+    "name": "cli-control",
+    "file": "chat.go",
+    "old": "a.SetModel(strings.TrimSpace(strings.TrimPrefix(text, \"/model \")))",
+    "new": "a.SetModel(a.Config().Model)",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "^TestChatModelSelection$",
+      "-count=1",
+      "-timeout=15s",
+      "."
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "CLI model control did not reach provider"
+  },
+  {
+    "name": "status-declaration",
+    "file": "internal/tools/tools.go",
+    "old": "Name: \"agent_status\"",
+    "new": "Name: \"missing_status\"",
+    "command": [
+      "go",
+      "test",
+      "-run",
+      "^TestAgentStatusToolLoop$",
+      "-count=1",
+      "-timeout=15s",
+      "./ensemble"
+    ],
+    "exit": 1,
+    "killed": true,
+    "expected_failure": "status absent from declarations"
+  }
+]

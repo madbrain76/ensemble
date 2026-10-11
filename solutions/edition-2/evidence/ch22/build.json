@@ -1,0 +1,12 @@
+{
+  "cli": {
+    "binary": "/Users/bill/ensemble-ch19-signin-01v0rmp3/ensemble-ch22-cli",
+    "binary_sha256": "13e70cf170ef5f94ed9ca4b70a5a01ac93990c833492d25e99f03021c78a7212"
+  },
+  "gui": {
+    "binary": "/Users/bill/ensemble-ch19-signin-01v0rmp3/ensemble-ch22-gui",
+    "binary_sha256": "e67d04a08ef06b5d3cae08cb2be72f8d9a92237d628fad4579f2636363e9f251"
+  },
+  "source_commit": "18c2d48591ebdb59a52274c5b6fc4f857dde2cbf",
+  "main_tree": "dd1282c0672ba256b7c4f5099e9aec80257016d4"
+}

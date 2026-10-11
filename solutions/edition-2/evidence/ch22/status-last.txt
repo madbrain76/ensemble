@@ -1,0 +1,9 @@
+--- FAIL: TestAgentStatusModelAccounting (0.01s)
+    status_test.go:78: status missing "last response: 200 in, 20 out, 40 cache read, 60 cache write": model: claude-sonnet-5
+        last response: 300 in, 30 out, 60 cache read, 90 cache write
+        session total: 300 in, 30 out, 60 cache read, 90 cache write
+        cache hit rate: 13.33%
+        cost: $0.000777
+FAIL
+FAIL	ensemble/ensemble	0.014s
+FAIL

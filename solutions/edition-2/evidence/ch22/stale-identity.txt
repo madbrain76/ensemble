@@ -1,0 +1,5 @@
+--- FAIL: TestAgentStatusModelAccounting (0.00s)
+    status_test.go:72: selection retained stale identity or changed provider
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

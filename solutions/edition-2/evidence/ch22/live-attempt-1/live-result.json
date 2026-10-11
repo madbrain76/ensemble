@@ -1,0 +1,23 @@
+{
+  "source_commit": "18c2d48591ebdb59a52274c5b6fc4f857dde2cbf",
+  "main_tree": "dd1282c0672ba256b7c4f5099e9aec80257016d4",
+  "binary": {
+    "binary": "/Users/bill/ensemble-ch19-signin-01v0rmp3/ensemble-ch22-gui",
+    "binary_sha256": "e67d04a08ef06b5d3cae08cb2be72f8d9a92237d628fad4579f2636363e9f251"
+  },
+  "workspace": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch22-status-7vvpc9af",
+  "browser_exit": 1,
+  "gui_exit": 0,
+  "elapsed_seconds": 0.23,
+  "models": [
+    "gpt-6-astra",
+    "gpt-6.1-sol"
+  ],
+  "reasoning_effort": "high",
+  "billing": "explicit chatgpt",
+  "model_api_key_configured": false,
+  "profile_retained": true,
+  "logout": false,
+  "endpoint_from_config_and_source": "https://api.openai.com/v1/responses",
+  "endpoint_independently_captured": false
+}

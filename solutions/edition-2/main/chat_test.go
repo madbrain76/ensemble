@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -97,4 +99,47 @@ func (w *notifyingWriter) Write(p []byte) (int, error) {
 		w.once.Do(func() { close(w.seen) })
 	}
 	return n, err
+}
+
+// The delivered CLI must execute the owner's selection operation; merely
+// printing a confirmation would leave the next provider request unchanged.
+func TestChatModelSelection(t *testing.T) {
+	binary := filepath.Join(t.TempDir(), "ensemble")
+	if output, err := exec.Command("go", "build", "-o", binary, ".").CombinedOutput(); err != nil {
+		t.Fatal(err, string(output))
+	}
+	requested := make(chan string, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			// Model records routing at the actual external boundary.
+			Model string
+		}
+		json.NewDecoder(r.Body).Decode(&body)
+		requested <- body.Model
+		fmt.Fprint(w, `{"content":[{"type":"text","text":"selected"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+	}))
+	defer server.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, binary, "chat")
+	cmd.Dir = t.TempDir()
+	// A minimal child environment prevents unrelated provider credentials from
+	// entering a fake-only process or loading a user's private auth profile.
+	cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + t.TempDir(), "EN_HOME=" + t.TempDir(), "LLM_VENDOR=anthropic", "LLM_MODEL=claude-haiku-5-5", "LLM_API_KEY=fake", "LLM_BASE_URL=" + server.URL, "EN_DISABLE_STREAMING=1"}
+	cmd.Stdin = strings.NewReader("/model claude-sonnet-5\nhello\n")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err, string(out))
+	}
+	select {
+	case model := <-requested:
+		if model != "claude-sonnet-5" {
+			t.Fatal("CLI model control did not reach provider", model)
+		}
+	default:
+		t.Fatal("CLI never requested an answer")
+	}
+	if !strings.Contains(string(out), "selected") {
+		t.Fatal("CLI answer missing", string(out))
+	}
 }

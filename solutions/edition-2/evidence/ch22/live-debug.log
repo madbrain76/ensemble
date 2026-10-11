@@ -1,0 +1,9 @@
+2026/10/11 10:06:23 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=5164 predicted=0.0000
+2026/10/11 10:06:23 OpenAI billing source: chatgpt
+2026/10/11 10:06:26 cache grant: input_tokens=740 read_tokens=0 granted=0.0000 predicted=0.0000
+2026/10/11 10:06:26 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=5163 prompt_bytes=5594 predicted=0.9230
+2026/10/11 10:06:31 cache grant: input_tokens=836 read_tokens=0 granted=0.0000 predicted=0.9230
+2026/10/11 10:06:31 cache lens openai/gpt-6.1-sol: tools:cold input:cold; prefix_bytes=0 prompt_bytes=6288 predicted=0.0000
+2026/10/11 10:06:34 cache grant: input_tokens=977 read_tokens=0 granted=0.0000 predicted=0.0000
+2026/10/11 10:06:34 cache lens openai/gpt-6.1-sol: tools:identical input:appended; prefix_bytes=6287 prompt_bytes=6720 predicted=0.9356
+2026/10/11 10:06:39 cache grant: input_tokens=1075 read_tokens=0 granted=0.0000 predicted=0.9356

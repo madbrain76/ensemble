@@ -1,0 +1,14 @@
+Open http://localhost:59498; terminal messages while busy are hints. /interrupt ends the turn.
+[billing: chatgpt]
+[agent_status]
+model: gpt-6-astra
+last response: 740 in, 14 out, 0 cache read, 0 cache write
+session total: 740 in, 14 out, 0 cache read, 0 cache write
+cache hit rate: 0.00%
+cost: unknown (one or more model prices unavailable)
+[agent_status]
+model: gpt-6.1-sol
+last response: 977 in, 14 out, 0 cache read, 0 cache write
+session total: 2553 in, 122 out, 0 cache read, 0 cache write
+cache hit rate: 0.00%
+cost: unknown (one or more model prices unavailable)

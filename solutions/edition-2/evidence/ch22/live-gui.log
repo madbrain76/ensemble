@@ -1,0 +1,243 @@
+2026-10-11T17:06:23.785699Z > {"type":"subscribe"}
+2026-10-11T17:06:23.786227Z < {"from":"idle","replay":true,"to":"idle","type":"state_changed"}
+2026-10-11T17:06:23.78627Z < {"paused":false,"replay":true,"type":"pause_changed"}
+2026-10-11T17:06:23.786397Z < {"replay":true,"settings":{"context_target":0,"font_size":16,"log_retention":0,"max_tool_rounds":0,"memory":{"64x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"8x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"conversation":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"memory":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"session":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"soul":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0}},"model":"gpt-6-astra","theme":"dark","tts_enabled":true,"tts_speed":1},"type":"current_settings"}
+2026-10-11T17:06:23.786427Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":0,"output":0,"priced":false,"replay":true,"total":{"cache_read":0,"cache_write":0,"input":0,"output":0},"type":"usage"}
+2026-10-11T17:06:23.887035Z > {"type":"pause"}
+2026-10-11T17:06:23.887078Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T17:06:23.909527Z > {"text":"Call agent_status exactly once and report its result verbatim. Do not use any other tools. Explain briefly whether the dollar cost is known. This is a status demonstration, not a coding task.","type":"prompt"}
+2026-10-11T17:06:23.909591Z > {"type":"unpause"}
+2026-10-11T17:06:23.909645Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T17:06:23.910009Z < {"part":{"text":"Call agent_status exactly once and report its result verbatim. Do not use any other tools. Explain briefly whether the dollar cost is known. This is a status demonstration, not a coding task.","type":"text"},"part_id":"user-1-0","type":"user_message"}
+2026-10-11T17:06:23.910023Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T17:06:23.910282Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T17:06:23.910782Z < {"source":"chatgpt","type":"billing_selected"}
+2026-10-11T17:06:25.904803Z < {"chunk":"agent_status ","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-11T17:06:25.917207Z < {"chunk":"{}","kind":"tool_call","part_id":1,"type":"part_delta"}
+2026-10-11T17:06:26.092084Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":740,"output":14,"priced":false,"total":{"cache_read":0,"cache_write":0,"input":740,"output":14},"type":"usage"}
+2026-10-11T17:06:26.092159Z < {"part":{"args":{},"artifact_id":1,"call_id":"call_jdpjRFvRirxFSzz1UfPnDFfI","from":{"model":"gpt-6-astra","surface":"responses","vendor":"openai"},"name":"agent_status","namespace":"ensemble","type":"tool_call"},"part_id":1,"type":"part_final"}
+2026-10-11T17:06:26.092199Z < {"from":"in_flight","to":"tools_pending","type":"state_changed"}
+2026-10-11T17:06:26.09329Z < {"call_id":"call_jdpjRFvRirxFSzz1UfPnDFfI","input":{},"name":"agent_status","type":"tool_dispatched"}
+2026-10-11T17:06:26.094504Z < {"call_id":"call_jdpjRFvRirxFSzz1UfPnDFfI","is_error":false,"result":"model: gpt-6-astra\nlast response: 740 in, 14 out, 0 cache read, 0 cache write\nsession total: 740 in, 14 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)","type":"tool_finished"}
+2026-10-11T17:06:26.094543Z < {"from":"tools_pending","to":"input_pending","type":"state_changed"}
+2026-10-11T17:06:26.096116Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T17:06:29.052631Z < {"chunk":"```","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.055949Z < {"chunk":"text","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.060296Z < {"chunk":"\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.077637Z < {"chunk":"model","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.0777Z < {"chunk":":","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.077735Z < {"chunk":" g","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.203549Z < {"chunk":"pt","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.203625Z < {"chunk":"-","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.203742Z < {"chunk":"6","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.203802Z < {"chunk":"-as","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.203857Z < {"chunk":"tra","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.20391Z < {"chunk":"\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.203952Z < {"chunk":"last","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.204001Z < {"chunk":" response","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.330053Z < {"chunk":":","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.330138Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.339709Z < {"chunk":"740","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.339793Z < {"chunk":" in","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.339865Z < {"chunk":",","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.339922Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.339969Z < {"chunk":"14","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.519001Z < {"chunk":" out","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.519018Z < {"chunk":",","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.519027Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.526975Z < {"chunk":"0","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.535488Z < {"chunk":" cache","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.535506Z < {"chunk":" read","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.535528Z < {"chunk":",","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.535548Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.633539Z < {"chunk":"0","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.633556Z < {"chunk":" cache","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.637885Z < {"chunk":" write","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.637894Z < {"chunk":"\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.637901Z < {"chunk":"session","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.63791Z < {"chunk":" total","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.643232Z < {"chunk":":","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.643246Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.782425Z < {"chunk":"740","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.787562Z < {"chunk":" in","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.790147Z < {"chunk":",","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.790204Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.790214Z < {"chunk":"14","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.790222Z < {"chunk":" out","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.79312Z < {"chunk":",","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:29.79313Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.428401Z < {"chunk":"0","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.435708Z < {"chunk":" cache","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.442923Z < {"chunk":" read","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.46007Z < {"chunk":",","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.483068Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.497273Z < {"chunk":"0","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.80043Z < {"chunk":" cache","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.877554Z < {"chunk":" write","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.916327Z < {"chunk":"\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.932433Z < {"chunk":"cache","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.944781Z < {"chunk":" hit","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:30.960963Z < {"chunk":" rate","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.010192Z < {"chunk":":","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.168014Z < {"chunk":" ","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.175411Z < {"chunk":"0","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.177758Z < {"chunk":".","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.194222Z < {"chunk":"00","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.235507Z < {"chunk":"%\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.269772Z < {"chunk":"cost","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.34398Z < {"chunk":":","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.379747Z < {"chunk":" unknown","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.389359Z < {"chunk":" (","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.397003Z < {"chunk":"one","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.401171Z < {"chunk":" or","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.404212Z < {"chunk":" more","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.413828Z < {"chunk":" model","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.421105Z < {"chunk":" prices","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.425047Z < {"chunk":" unavailable","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.425838Z < {"chunk":")\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.429728Z < {"chunk":"``","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.441409Z < {"chunk":"`\n\n","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.480481Z < {"chunk":"The","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.491794Z < {"chunk":" dollar","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.491809Z < {"chunk":" cost","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.498088Z < {"chunk":" is","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.509776Z < {"chunk":" unknown","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.53066Z < {"chunk":" because","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.541259Z < {"chunk":" one","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.549939Z < {"chunk":" or","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.563302Z < {"chunk":" more","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.563316Z < {"chunk":" model","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.563325Z < {"chunk":" prices","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.563983Z < {"chunk":" are","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.573357Z < {"chunk":" unavailable","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.579338Z < {"chunk":".","kind":"text","part_id":3,"type":"part_delta"}
+2026-10-11T17:06:31.674847Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":836,"output":94,"priced":false,"total":{"cache_read":0,"cache_write":0,"input":1576,"output":108},"type":"usage"}
+2026-10-11T17:06:31.67487Z < {"part":{"artifact_id":3,"text":"```text\nmodel: gpt-6-astra\nlast response: 740 in, 14 out, 0 cache read, 0 cache write\nsession total: 740 in, 14 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)\n```\n\nThe dollar cost is unknown because one or more model prices are unavailable.","type":"text"},"part_id":3,"type":"part_final"}
+2026-10-11T17:06:31.674903Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T17:06:31.675067Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":836,"output":94,"priced":false,"total":{"cache_read":0,"cache_write":0,"input":1576,"output":108},"type":"usage"}
+2026-10-11T17:06:31.675092Z < {"error":"","text":"```text\nmodel: gpt-6-astra\nlast response: 740 in, 14 out, 0 cache read, 0 cache write\nsession total: 740 in, 14 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)\n```\n\nThe dollar cost is unknown because one or more model prices are unavailable.","type":"turn_ended"}
+2026-10-11T17:06:31.733614Z > {"settings":{"model":"gpt-6.1-sol"},"type":"update_settings"}
+2026-10-11T17:06:31.733699Z < {"settings":{"context_target":0,"font_size":16,"log_retention":0,"max_tool_rounds":0,"memory":{"64x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"8x":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"conversation":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"memory":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"session":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0},"soul":{"budget":0,"disabled":false,"high_watermark":0,"low_watermark":0}},"model":"gpt-6.1-sol","theme":"dark","tts_enabled":true,"tts_speed":1},"type":"settings_changed"}
+2026-10-11T17:06:31.761674Z > {"type":"pause"}
+2026-10-11T17:06:31.761733Z < {"paused":true,"type":"pause_changed"}
+2026-10-11T17:06:31.792793Z > {"text":"The human changed the selected model between turns. Call agent_status exactly once and report its result verbatim. State whether session usage includes earlier model work and whether dollars are known. Do not use other tools.","type":"prompt"}
+2026-10-11T17:06:31.792832Z > {"type":"unpause"}
+2026-10-11T17:06:31.792857Z < {"paused":false,"type":"pause_changed"}
+2026-10-11T17:06:31.793283Z < {"part":{"text":"The human changed the selected model between turns. Call agent_status exactly once and report its result verbatim. State whether session usage includes earlier model work and whether dollars are known. Do not use other tools.","type":"text"},"part_id":"user-9-0","type":"user_message"}
+2026-10-11T17:06:31.793327Z < {"from":"idle","to":"input_pending","type":"state_changed"}
+2026-10-11T17:06:31.79424Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T17:06:33.990415Z < {"chunk":"agent_status ","kind":"tool_call","part_id":4,"type":"part_delta"}
+2026-10-11T17:06:33.998537Z < {"chunk":"{}","kind":"tool_call","part_id":4,"type":"part_delta"}
+2026-10-11T17:06:34.238416Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":977,"output":14,"priced":false,"total":{"cache_read":0,"cache_write":0,"input":2553,"output":122},"type":"usage"}
+2026-10-11T17:06:34.238487Z < {"part":{"args":{},"artifact_id":4,"call_id":"call_F689GGKQD2sDk79F07xrTWTV","from":{"model":"gpt-6.1-sol","surface":"responses","vendor":"openai"},"name":"agent_status","namespace":"ensemble","type":"tool_call"},"part_id":4,"type":"part_final"}
+2026-10-11T17:06:34.238522Z < {"from":"in_flight","to":"tools_pending","type":"state_changed"}
+2026-10-11T17:06:34.239643Z < {"call_id":"call_F689GGKQD2sDk79F07xrTWTV","input":{},"name":"agent_status","type":"tool_dispatched"}
+2026-10-11T17:06:34.241146Z < {"call_id":"call_F689GGKQD2sDk79F07xrTWTV","is_error":false,"result":"model: gpt-6.1-sol\nlast response: 977 in, 14 out, 0 cache read, 0 cache write\nsession total: 2553 in, 122 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)","type":"tool_finished"}
+2026-10-11T17:06:34.241183Z < {"from":"tools_pending","to":"input_pending","type":"state_changed"}
+2026-10-11T17:06:34.243462Z < {"from":"input_pending","to":"in_flight","type":"state_changed"}
+2026-10-11T17:06:37.565597Z < {"chunk":"```","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565656Z < {"chunk":"text","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565691Z < {"chunk":"\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565775Z < {"chunk":"model","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565813Z < {"chunk":":","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565843Z < {"chunk":" g","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.56587Z < {"chunk":"pt","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565924Z < {"chunk":"-","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.565952Z < {"chunk":"6","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.56599Z < {"chunk":".","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.56602Z < {"chunk":"1","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.566048Z < {"chunk":"-sol","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.566072Z < {"chunk":"\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.609952Z < {"chunk":"last","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.610005Z < {"chunk":" response","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.610032Z < {"chunk":":","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.610171Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.610216Z < {"chunk":"977","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.612138Z < {"chunk":" in","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.612182Z < {"chunk":",","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.612211Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.756868Z < {"chunk":"14","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.756927Z < {"chunk":" out","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.75696Z < {"chunk":",","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.757002Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.757081Z < {"chunk":"0","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.757151Z < {"chunk":" cache","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.757204Z < {"chunk":" read","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.757239Z < {"chunk":",","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.757322Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.909794Z < {"chunk":"0","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.909931Z < {"chunk":" cache","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.910001Z < {"chunk":" write","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.91008Z < {"chunk":"\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.910141Z < {"chunk":"session","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.9102Z < {"chunk":" total","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.910246Z < {"chunk":":","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:37.910287Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.04679Z < {"chunk":"255","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.046813Z < {"chunk":"3","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.046829Z < {"chunk":" in","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.052132Z < {"chunk":",","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.056287Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.056327Z < {"chunk":"122","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.056381Z < {"chunk":" out","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.056404Z < {"chunk":",","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.189089Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.18916Z < {"chunk":"0","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.189211Z < {"chunk":" cache","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.193233Z < {"chunk":" read","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.194009Z < {"chunk":",","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.195716Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.195763Z < {"chunk":"0","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.330694Z < {"chunk":" cache","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.330737Z < {"chunk":" write","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.330774Z < {"chunk":"\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.340085Z < {"chunk":"cache","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.34014Z < {"chunk":" hit","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.340172Z < {"chunk":" rate","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.340215Z < {"chunk":":","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.34025Z < {"chunk":" ","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.473619Z < {"chunk":"0","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.473701Z < {"chunk":".","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.47375Z < {"chunk":"00","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.473791Z < {"chunk":"%\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.542817Z < {"chunk":"cost","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.542877Z < {"chunk":":","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.575619Z < {"chunk":" unknown","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.57567Z < {"chunk":" (","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.63336Z < {"chunk":"one","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.634982Z < {"chunk":" or","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.635111Z < {"chunk":" more","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.635255Z < {"chunk":" model","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.667022Z < {"chunk":" prices","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.667066Z < {"chunk":" unavailable","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.667097Z < {"chunk":")\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.667121Z < {"chunk":"``","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:38.667143Z < {"chunk":"`\n\n","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.051309Z < {"chunk":"Session","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.056952Z < {"chunk":" usage","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.059197Z < {"chunk":" includes","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.065346Z < {"chunk":" earlier","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.065388Z < {"chunk":" model","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.065411Z < {"chunk":" work","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.065433Z < {"chunk":".","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.06548Z < {"chunk":" The","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.065524Z < {"chunk":" dollar","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.06555Z < {"chunk":" cost","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067493Z < {"chunk":" is","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067551Z < {"chunk":" unknown","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067597Z < {"chunk":" because","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067625Z < {"chunk":" one","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067644Z < {"chunk":" or","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067662Z < {"chunk":" more","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067678Z < {"chunk":" model","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.067698Z < {"chunk":" prices","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.07636Z < {"chunk":" are","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.0764Z < {"chunk":" unavailable","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.104187Z < {"chunk":".","kind":"text","part_id":6,"type":"part_delta"}
+2026-10-11T17:06:39.257004Z < {"chunk":"","kind":"reasoning_summary","part_id":7,"type":"part_delta"}
+2026-10-11T17:06:39.25766Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":1075,"output":129,"priced":false,"total":{"cache_read":0,"cache_write":0,"input":3628,"output":251},"type":"usage"}
+2026-10-11T17:06:39.257691Z < {"part":{"artifact_id":7,"data":{"content":[],"encrypted_content":"gAAAAABqy8IdeIBHhuFd8d5Mk_6q922g4K4bLchBtamLWe2aJiEq7Ser7fFaaHxZ8ngEW3PbcCQHYBKaOrDKw2qOQS8cQLPELWHGAj3yUnJwZysBRPMQ-uowq4Dc0BcoSEiWnxfhEDqRTRVPgXkHJNqliSxgoaePlow_-MdvemEEC_Gr3R34f9H6Pdql0rB9b-tOomEhkFlne9g0diZ2qWzIDwjkhiSDo_gGkyxf2xdG8DkB02IIPx-LHI0LVCPTVLw-MMySCaZCukn8BKKcqawsesF94HHYwUFmqpwYy6NYMS0F356fMrpCy3y6BrS9-AxBfaURYRzxNfw7-z7mxvF_6X0xCaA235tB5DidSg9jXRpaYhIgu1mnYssxjS8v5VMeK4sYs2weOWJx3g_pSSD8dYBnijs1C6Ek_d5qroxDQidG0wGsR-jglXlIm7uH2a1TpeoOldT_FOORSYYZ6M5vbZZqjtKbvF0L9w5go2m6q0nWAyQaCP21-s4POEVJvZjudW6eoz4jMbgJdQ9JLPGbM1OvoQ5KdEbv2yxJuh_eDf1eYyMhk86fBuvRYNbvAiQgdE98_mccg0a2bvd1OIxZJyyWtPIMmGnn7V5-8ErSmFK09h_hFG03hRR2srHDZXDA69wCF__QkwfAnW2cGdEMZ5gBseRfXh5PTtt5rl-dzx6Z_vq6lbVi2PQXJjYBGFkvqwHxobemej-ypzEYD3UdaU76u1_YxieoKlm0MUCy-28-LxYiB707V1ide4LHLmxbYBoIkbor9Tc7QGQqlEoCXzY2O1zVFuZMXdRfwsj8HnMb33nXelvlxkf0mXzuJEpyZBBp7gcCtjTGT6AqLSJrkv1AXo29-eoi6gFs5BVpM7zX9TPzIBr45pODqdEf6ZCgHb-B-7cUAxDdeTOC7JEBjhWRoPRFtEmn3Sy8okv3lVz-oP0pgATdounIfn_iWUP4k4TcpMp0ahOdlpLssYLbhHD0Lo_krmxPZ7Oy796WxXtKiHLugHAzGlE-YvZz9Qml0ESekDRNUaAHwJPz8tj6JJj3pSyzJoyUbXL_Va8K11Bi1exKDWSvldqZgneHVV1txKodo-mW1E6Ad6r1hQTwmpFxAhxPm0J7uy8XWJVdl1OgrAG6f4nEv8lPjF87SwiBvoXYEW21Q_tKd_EWeDyXtj7A_h9nC5DC-DHwNpfJUuUJN0XaCf6j8vZJOFjsE0eUQHkuRaLW1RLx6tp2h_AqMRwlHZ28c6RvuefNpCBa_-48a5gFY6ZM7p5fQ1FA6DVTMp_vZj6iYCTztG6ufkoeFnsMlPKrm84lvlVGPqbBtm7-FNF2BKhrYZFBnlEwRZiEPV_nmd190IQ72eKU5SBWIIgrcMyvoszpEFiRKzZhYMv0rOa3A_oSa2CfdtCS0LeGbX0-8kmy1Fal0VXKK9c7OAomyKIpgMgFj0E1Lm_9WEY7UE9EmAH6s-oW7HZugBdctdhK3xgMVFgKd5tKhGCFNt3QzR6CmN0woY2MDqBMKoDTMFeg5boJ3CtNP_-0FlDl8-zoypNbFdg2dt2IWojf3Kb6fdxBesFNvdmc72h7eSxWHRdPsXrwWX-hWUalbUS31OALnkgdF0gxrGGmlb5O22V2ivYbgOUWUj9L4FBMRVO22N5OL3olP5akdEQoeS8Ap6TnAsNjD54I-Ze2FGOZ7Hab2mQ-_kqzG8nsz_c77lsfTB0OEG8IKgTsVjwBh0lyQ5jW1q1sQ9GrMsI4tX40Zgs_7aX3gd2MDDFbpmHeo6P8fvdyWfY2ulfwpjHvLvU34TrQUjMJOJzgTROaWjNP6RzLr_l39Nor9JlukgK_RnKap9X-W6x-xQsFyZiX_C_MNG1V-oZEtPO3AOmR_X06JS46e-IsMyr6bb3VKJUWJ1WV8iH9u9Q=","id":"rs_072d389024a48b45016acbc21c8f4487d093125054b692cff2","summary":[],"type":"reasoning"},"from":{"model":"gpt-6.1-sol","surface":"responses","vendor":"openai"},"type":"opaque"},"part_id":7,"type":"part_final"}
+2026-10-11T17:06:39.257751Z < {"part":{"artifact_id":6,"text":"```text\nmodel: gpt-6.1-sol\nlast response: 977 in, 14 out, 0 cache read, 0 cache write\nsession total: 2553 in, 122 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)\n```\n\nSession usage includes earlier model work. The dollar cost is unknown because one or more model prices are unavailable.","type":"text"},"part_id":6,"type":"part_final"}
+2026-10-11T17:06:39.257766Z < {"from":"in_flight","to":"idle","type":"state_changed"}
+2026-10-11T17:06:39.257977Z < {"cache_read":0,"cache_write":0,"cost_usd":0,"hit_rate":0,"input":1075,"output":129,"priced":false,"total":{"cache_read":0,"cache_write":0,"input":3628,"output":251},"type":"usage"}
+2026-10-11T17:06:39.257993Z < {"error":"","text":"```text\nmodel: gpt-6.1-sol\nlast response: 977 in, 14 out, 0 cache read, 0 cache write\nsession total: 2553 in, 122 out, 0 cache read, 0 cache write\ncache hit rate: 0.00%\ncost: unknown (one or more model prices unavailable)\n```\n\nSession usage includes earlier model work. The dollar cost is unknown because one or more model prices are unavailable.","type":"turn_ended"}

@@ -1,0 +1,3 @@
+Initial status-dispatch mutant prepended wrong to the model line and survived substring matching.
+First correction mistakenly asserted a prefix against raw JSON content, which is an array of text blocks; unmodified baseline failed actual status tool result missing or wrong. That failure is NOT mutant sensitivity.
+Corrected test decodes actual Anthropic text content and asserts its exact model line prefix. See later restored baseline and repeated mutant.

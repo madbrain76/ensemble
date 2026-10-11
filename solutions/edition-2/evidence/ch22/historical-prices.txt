@@ -1,0 +1,5 @@
+--- FAIL: TestAgentStatusModelAccounting (0.00s)
+    status_test.go:69: selection changed historical counts or cost
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

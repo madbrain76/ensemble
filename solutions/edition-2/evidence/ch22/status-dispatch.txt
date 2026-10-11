@@ -1,0 +1,5 @@
+--- FAIL: TestAgentStatusToolLoop (0.00s)
+    status_test.go:139: actual status tool result missing or wrong
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL

@@ -1,0 +1,5 @@
+--- FAIL: TestModelSelectionBusyAndInvalid (0.00s)
+    status_test.go:174: busy selection altered the running request
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL

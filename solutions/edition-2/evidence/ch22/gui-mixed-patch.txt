@@ -1,0 +1,5 @@
+--- FAIL: TestModelSelectionWireAndRequest (5.01s)
+    model_test.go:78: waiting for wire event: read tcp 127.0.0.1:59443->127.0.0.1:59442: i/o timeout
+FAIL
+FAIL	ensemble-gui-stub	5.015s
+FAIL

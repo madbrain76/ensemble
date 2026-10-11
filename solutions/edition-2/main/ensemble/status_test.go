@@ -122,8 +122,16 @@ func TestAgentStatusToolLoop(t *testing.T) {
 		for _, m := range request.Messages {
 			for _, b := range m.Content {
 				if b.Type == "tool_result" {
-					s := string(b.Content)
-					found = strings.Contains(s, "model: claude-haiku-5-5") && strings.Contains(s, "last response: 70 in, 3 out, 20 cache read, 10 cache write") && strings.Contains(s, "cache hit rate: 20.00%") && strings.Contains(s, "cost: $0.000010")
+					var blocks []struct {
+						// Text is the tool output inside Anthropic's content blocks.
+						Text string
+					}
+					if err := json.Unmarshal(b.Content, &blocks); err != nil || len(blocks) != 1 {
+						t.Error("tool result does not contain one text block")
+						continue
+					}
+					s := blocks[0].Text
+					found = strings.HasPrefix(s, "model: claude-haiku-5-5\n") && strings.Contains(s, "last response: 70 in, 3 out, 20 cache read, 10 cache write") && strings.Contains(s, "cache hit rate: 20.00%") && strings.Contains(s, "cost: $0.000010")
 				}
 			}
 		}
