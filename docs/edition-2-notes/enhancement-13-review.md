@@ -1,8 +1,9 @@
 # Edition 2 Chapter 13: independent prose and grader review
 
 Reviewer: `reviewer_astra`, GPT-6 Astra/high. Edition2 Chapter13 maps to
-original14, *The Channel Nobody Tested*. Initial preparation only; manuscript
-and revised-grader acceptance are pending. Zero formal correction rounds.
+original14, *The Channel Nobody Tested*. **Accepted at initial combined review,
+zero formal correction rounds.** Final disposition and exact bindings follow
+the preserved preparation record below.
 
 ## Reading and source boundaries
 
@@ -98,5 +99,114 @@ It illustrates the existing filter-order lesson; it does not authorize another
 feature. Historical review scores and mutation counts belong to its retired
 module-loader grader and remain attributed observations.
 
-Final manuscript, revised grader, exact examples, new mutation evidence and
-source/count bindings await submission. No Chapter14 enhancement is released.
+At this preparation checkpoint, final manuscript, revised grader, exact examples,
+new mutation evidence and source/count bindings awaited submission.
+
+## Final combined disposition
+
+Accepted manuscript `5af5fc50`, SHA-256
+`23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b`, with
+author reconciliation `ff1479a6`; grader/evidence submission `bd6c2703`, final
+driver SHA-256
+`f9c0fea9ec63042930fa9a98875956aa8b537f99f7ef1d29a00f4c6652332216`.
+Read the complete final author and coder reviews, the complete driver and command
+delta, every mutation patch and its actual failed-check array, final controls,
+samples and source bindings. All five bound file hashes and both frozen tree IDs
+match. No runtime or original source changed. The four full governing documents
+and exact mandatory `.agents/skills/ensemble-coding/SKILL.md` remain active
+together; no further compaction occurred after the full reload recorded above.
+
+### Teaching and prose
+
+The chapter retains its accessibility opener, alarm inspector, empty telemetry,
+six-entry exit-code surprise, incorrect fence hypothesis and silent-final story.
+These explain why the reader needs a different observation point instead of merely
+decorating a specification. The public five-tool client and measured EOF repair
+connect capability and ownership to a visible consequence. The prose distinguishes
+source inspection, human help, deterministic execution, native callbacks and actual
+listening; it does not repeat the earlier unsupported universal or speed claims.
+
+The original progression remains recognizable:171 of297 original lines survive
+exactly under a line-based SequenceMatcher comparison. This is a preservation
+observation, not a quality quota. The added mechanisms and corrections earn their
+space. Independent hard lint passes at4,627 prose words, with a person-gap advisory;
+the continuing listener's problem carries that passage without invented anecdotes.
+Relative manuscript links resolve. No arbitrary reduction or padding is needed.
+
+Draft-stage reviewer feedback corrected the rubric's claim that its numeric gate
+check proves human whitespace and both overlapping causes. The final row promises
+ordered typing pause/release, and the paragraph below assigns the stronger
+obligations to actual browser controls. This was a pre-submission clarification,
+not a formal correction round or runtime defect.
+
+### Grader and actual results
+
+The five-launch executable driver preserves all original95 speech points plus5
+corrected parity points. Assertions operate on observed speech, actual provider
+requests and correlated read results. Alternate fence wording and real harness
+OpenAI/Gemini controls each score95/95, supporting representation independence.
+It adds neither a source-name detector nor a substitute persona protocol. Final-only
+renderer delivery, full-Agent restrictions, native audio, two-cause ordering and
+peer lifetime remain explicitly separate accepted obligations.
+
+Actual complete runs at `1913a0d7` are accepted100/100 PASS in29.634s and
+legacy75/100 FAIL in41.824s. Final source adds only two individual-utterance
+assertions for existing adjacent sentences. Final accepted95/95 speech under race
+and legacy75/95 speech combine with unchanged earlier parity5/0 to give explicitly
+**composed100/100 and75/100**. They are not new complete runs. Command-package
+`go test` has no test files and establishes compilation only; the real-command
+speech race test, vet and formatting checks provide their separately stated proof.
+
+Accept the documented missing-dependency, relative-file and undeclared-model
+fixture explanations. Their failures remain distinct from speech behavior. The
+legacy second bullet marker is a real filtering defect in both delivery modes;
+compatibility is not a reason to restore the single-bullet blind spot. Nested
+parity includes both genuine failures and incompatible launch/consumer fixtures;
+its0/5 does not independently diagnose every masked downstream capability. The
+original95/100 student failure and its earlier build provenance remain unchanged.
+
+All21 targeted defects fail their intended assertions. The punctuation-removal
+defect initially survives95/95 when blank lines supply every tested boundary; the
+final same defect fails both adjacent-sentence checks. Preserve that survivor and
+the source-audit/correction order. Coupled fragmentation, duplication and gate
+failures are not multiple independent proofs. Gate removal also prevents the real
+read phase from completing, but its dedicated phase directly observes the missing
+release; this is not an unrelated cleanup failure. The empty-read mutation also
+touches dormant edit-file code, which is not exercised and provides no extra claim.
+Every collecting probe reaches its normal end; exit0 means results were collected,
+not that a mutant passed grading.
+
+The nonzero-exit control runs the actual harness, verifies19 valid JSON records,
+then exits17. The grader rejects it despite that artifact. This corroborates the
+reviewer's runner finding, without adding another independent defect count.
+
+### Examples, evidence and simplicity
+
+Independent artifact checks verify all15 exact manuscript fences, the unchanged
+chapter hash, six listener requests declaring exactly five tools each, and five
+successful correlated tool results matching actual history. The wait result has
+two source-labeled speech entries with the expanded identifiers and mango; the
+subsequent hear is empty and normal sleep returns. The one target request belongs
+to its separate primary Agent, whose lifecycle declarations are not the restricted
+listener's tools. These are real application/Chrome/MCP observations with external
+provider fakes, not fresh paid-model or sound-quality claims. The documented
+existing-browser option was used; no browser-download execution is invented.
+
+The reviewer also independently reconstructed the retained live transcript lists
+from actual call-ID-correlated results:2/3/11 entries, matching the historical
+summaries and their target-content limitations. No paid freshness repeat is needed.
+See [the independent artifact receipt](../../solutions/edition-2/evidence/ch14/enhancement13/reviewer-artifact-check.json).
+
+Counting nonblank, non-`//`-only Go lines gives the new driver309 active,
+42 comment-only and364 physical lines; its real-command test is16/2/20.
+The original three grader files total579/116/765. Command changes only add dispatch
+and update existing help ranges. These are chapter grader additions against their
+own predecessors, not runtime savings; the frozen runtime comparison remains in
+the original independent review. Reusing the rubric and provider fake avoids a new
+framework. Comments explain lifecycle, fixture and observation limits; every new
+exported symbol/member is documented. Its roughly12% comment proportion is below
+the teaching target but not a reason to pad clear, small code.
+
+No unresolved scope, correctness, teaching or bloat finding remains. The combined
+Chapter13 gate is accepted with zero formal correction rounds. The coordinator
+owns its checkpoint and any subsequent Chapter14 release.

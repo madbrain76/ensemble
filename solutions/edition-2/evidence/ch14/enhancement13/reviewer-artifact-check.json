@@ -1,0 +1,111 @@
+{
+  "status": "Independent final artifact inspection complete; combined disposition in reviewer note",
+  "chapter_sha256": "23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b",
+  "exact_fences": 15,
+  "sample_request_counts": {
+    "listener": 6,
+    "target": 1
+  },
+  "sample_listener_tools_on_every_request": [
+    "hear",
+    "sleep",
+    "submit",
+    "type",
+    "wait"
+  ],
+  "sample_correlated_results": {
+    "type-one": "typed",
+    "submit-one": "submitted",
+    "wait-one": "[{\"text\":\"queue Chunk buffers speech, max tool rounds bounds batches and HTTP Server serves requests.\",\"source\":\"text\"},{\"text\":\"My fruit is mango.\",\"source\":\"text\"}]",
+    "hear-one": "[]",
+    "sleep-one": "slept"
+  },
+  "sample_events_match_requests": true,
+  "actual_full_accepted_score": 100,
+  "actual_full_legacy_score": 75,
+  "actual_full_legacy_failing_checks": [
+    "tts-filters-markup",
+    "ch12-parity"
+  ],
+  "historical_live": [
+    {
+      "vendor": "anthropic",
+      "model": "claude-haiku-5-5",
+      "returned_entries": 2,
+      "tools": [
+        "type",
+        "submit",
+        "wait"
+      ],
+      "matches_summary": true,
+      "source_sha256": "892faffb1c1f0423a238c80344c972f55044993f85acc21f4961f7c524066823"
+    },
+    {
+      "vendor": "openai",
+      "model": "gpt-4o-mini",
+      "returned_entries": 3,
+      "tools": [
+        "type",
+        "submit",
+        "wait"
+      ],
+      "matches_summary": true,
+      "source_sha256": "3a2fb9dc167c626e8f6fef081320543241e97293d773edbb9df8b3405adfe45c"
+    },
+    {
+      "vendor": "gemini",
+      "model": "gemini-3.8-flash",
+      "returned_entries": 11,
+      "tools": [
+        "type",
+        "submit",
+        "wait",
+        "hear"
+      ],
+      "matches_summary": true,
+      "source_sha256": "64590863a063daf0dd01a134dfd2d9852ea6a48c22cc0633571bfa763c5fdcf3"
+    }
+  ],
+  "frozen_trees": {
+    "solutions/edition-2/ch13": "de3d609b27f72ef7b0ddfe384960b4155421f500",
+    "solutions/ch14": "a78aa44e9f125492d695f55753db6df70cefa45d"
+  },
+  "limits": [
+    "No new provider or native-speech run",
+    "Provider fakes establish interface execution, not model task compliance",
+    "Full grades precede final sentence-boundary assertion strengthening"
+  ],
+  "coder_final_commit": "bd6c2703",
+  "source_binding_verified": {
+    "grader_first_stage": "1913a0d771c45c2e7640664f517cd0fa1d9ee2dc",
+    "final_change": "Only two existing adjacent sentence utterances added to boundary check after actual full runs. Final focused/race and narrow mutation/control results bind these final bytes; parity unchanged.",
+    "sha256": {
+      "internal/gradeedition2/ch13.go": "f9c0fea9ec63042930fa9a98875956aa8b537f99f7ef1d29a00f4c6652332216",
+      "internal/gradeedition2/ch13_test.go": "2188f07a80165b0c234208a56599350558e256ce7465cedf80510ba4ec2a626a",
+      "cmd/grade-edition2/main.go": "b6b7cdfcad02bbb7615f515ecac6de842161448767c0e8f2ad3b295a37d1f2b0",
+      "book/edition-2/chapter-13.md": "23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b",
+      "book/chapter-14.md": "d39aa61438f05cfe1ff9b496b42952e23d16a67f9ea33aa5f5a51c35e5ee14b2"
+    },
+    "frozen_trees": {
+      "solutions/edition-2/ch13": "de3d609b27f72ef7b0ddfe384960b4155421f500",
+      "solutions/ch14": "a78aa44e9f125492d695f55753db6df70cefa45d"
+    },
+    "frozen_and_original_diff": ""
+  },
+  "mutation_defects_verified": 21,
+  "mutation_initial_survivor": "sentence-boundary-initial-survivor.txt;95/95 before revised adjacent-sentence assertions",
+  "positive_controls_verified": [
+    "fence-free-wording",
+    "openai-wire",
+    "gemini-wire"
+  ],
+  "final_composed_scores": {
+    "accepted": 100,
+    "legacy": 75
+  },
+  "independent_prose_lint": {
+    "exit": 0,
+    "words": 4627,
+    "soft_warning": "person gap2173"
+  }
+}
