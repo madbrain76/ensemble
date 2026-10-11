@@ -14,8 +14,10 @@ skip content already in actual context, without a newest-two exclusion.
 **Current solution paths, Bill's October 10 correction.** Work in
 `solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
-are Edition 2 `ch09`–`ch12`; original 14–18 are accepted at `ch13`–`ch17`.
-The next original 19 will export directly to `ch18` after acceptance.
+are Edition 2 `ch09`–`ch12`; original 14–19 are accepted at `ch13`–`ch18`.
+Before original20's crossover, wait for Bill's exact model choice: requested
+GPT-5 Astra is absent from the authenticated catalog, while GPT-6 Astra is listed.
+No substitution has been authorized. See `edition-2-notes/ch20.md`.
 Only retired original `history/ch05` remains. No symlinks. Original exercises,
 graders, notes, evidence and existing tags retain original numbers; identify
 both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.

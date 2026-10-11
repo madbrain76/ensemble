@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapters 14–18 are
-accepted at **Edition 2 `ch13/`–`ch17/`**; original 19 will export to `ch18/`. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–19 are
+accepted at **Edition 2 `ch13/`–`ch18/`**. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,28 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+**October 11 original19 / Edition2 ch18 accepted after correction round 1.**
+Independent acceptance `cebe1e1` covers source `534112a`, main tree
+`c72d29294763f23f51071d7484b0d4283ee70c33`, with documented missing-type grader
+and paired plan-cache exceptions. Original grading remains **15/100 FAIL on
+06cbf20**. The corrected parser consumes the actual SSE and completed streamed
+items while requiring terminal success. Independent captured-wire checks and
+the 39 intended mutation failures support the correction; the actual plan task
+completed correctly in 14.887 seconds with real file use and an optimal answer.
+Provider omission of public summaries left the launcher's hint unsent; it killed
+the idle CLI at 150.03 seconds. Preserve that harness failure and absent graceful
+shutdown/save separately from task success. Cache grants remain zero. The
+launcher correction has offline evidence only; no extra inference was spent.
+
+The exact 144-file export is direct `solutions/edition-2/ch18`, checkpoint
+`edition-2-ch19-r1` (original numbering), with source manifest and no symlinks.
+Both delegates stop before original20 / Edition2 ch19 for Bill's model decision:
+the authenticated catalog lists `gpt-6-astra` but not requested GPT-5 Astra.
+Do not substitute or declare the crossover achieved. Its chapter is prose-only;
+Bill's actual coding demonstration goal still applies. Author remains stopped;
+the original22/24 placement gates and CodeRhapsody preservation rule remain.
+Earlier entries below retain their intermediate states.
 
 **October 11 original19 resumed after sign-in; correction round 1 underway.**
 Bill completed the dedicated browser sign-in. Status confirms subscription

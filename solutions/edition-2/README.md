@@ -1,8 +1,8 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–17 are accepted**. [`main/`](main/) is the authoritative working
-tree. Chapter 18 (original 19, subscription authentication and reasoning) is next. Auto-Recall follows
+Chapters **1–18 are accepted**. [`main/`](main/) is the authoritative working
+tree. Chapter 19 (original 20, The Crossover) awaits Bill's model choice. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
 
@@ -29,11 +29,14 @@ numbers are one lower than the original book's numbers. The remaining standalone
 | 15: Memory bands | [ch15](ch15/), [manifest](ch15-manifest.json) | 16 | `edition-2-ch16-r1` |
 | 16: Auto-Recall | [ch16](ch16/), [manifest](ch16-manifest.json) | 17 | `edition-2-ch17-r1` |
 | 17: The Invisible Invoice | [ch17](ch17/), [manifest](ch17-manifest.json) | 18 | `edition-2-ch18-r1` |
+| 18: Subscription authentication and reasoning | [ch18](ch18/), [manifest](ch18-manifest.json) | 19 | `edition-2-ch19-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
-The next exercise is original Chapter 19 / Edition 2 Chapter 18.
+Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Before its crossover
+demonstration, Bill must identify the intended model: requested GPT-5 Astra is
+absent from the observed account catalog, while GPT-6 Astra is available.
 
 The revised grader covers enhanced Chapters 1–8, for example:
 
