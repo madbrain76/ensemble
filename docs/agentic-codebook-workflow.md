@@ -20,6 +20,20 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+Edition 2 Chapter 13 (original 14), speech and the blind persona, is submitted
+for independent review at `4a7816a`, not accepted. Its complete original grader
+scored 95/100 FAIL: all new checks pass 95/95, only inherited original Chapter 13
+parity fails. The mandatory five-tool persona needed a small public-only client:
+an ordinary skill-based CLI also exposes lifecycle tools, so narrowing its MCP
+peer alone would not establish the Agent's full capability boundary. A missing
+whole-final speech mutation initially survived because the Engine synthesizes
+display deltas even for nonstream provider responses; a final-only WebSocket
+delivery control now checks the actual renderer condition. Live listeners ran
+with all three providers, retaining target-content limitations and the absence
+of a subjective listening judgment. The source, failed attempts and precise
+claims are in `edition-2-notes/ch14.md`; the eventual accepted export is direct
+`solutions/edition-2/ch13`, never history.
+
 Original Chapter 13 is accepted after one correction round. Startup skill
 activation and browser interaction are implemented. Its full original grader
 completed at 0/100: an omitted fixture type rejects startup, and its parity check
