@@ -20,6 +20,17 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 Auto-Recall implementation checkpoint, review pending.** Original17 /
+Edition2 ch16 is implemented at `fcd091f`; core/GUI tests and vet pass. Original
+grading completed **0/100 FAIL** on that checkpoint. Its base skill omits the
+required type and prevents Agent/GUI startup, masking all nine runtime checks;
+the structural check assumes recall lives inside the submitted GUI directory.
+Independent preflight confirms those mismatches, but valid recall behavior still
+requires supplemental evidence and final review. The owner-data versus cwd corpus
+mismatch and Anthropic wire-role assumption are latent issues, not additional
+observed failures from this run. Coder is collecting actual live and mutation
+results; no acceptance/export is claimed. See original-numbered ch17 notes.
+
 **October 11: Bill approved both Auto-Recall decisions.** The decision stop below
 is resolved: quotas apply to final mechanical selection when the judge is absent
 or fails, without overriding successful judge choices; search all memory files
