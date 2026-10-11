@@ -1,0 +1,32 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "ok  \tensemble-gui-stub\t(cached)\n?   \tensemble-gui-stub/cmd\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "web/gui/app.js"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

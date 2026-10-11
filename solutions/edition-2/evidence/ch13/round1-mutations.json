@@ -1,0 +1,26 @@
+[
+  {
+    "claim": "speech reads programmatic text",
+    "original": "const next = speaking || humanTyping;",
+    "mutation": "const next = speaking || input.value.length > 0;",
+    "exit": 1,
+    "stdout": "{\"result\":\"FAIL\",\"checks\":[\"native speech completion unpauses with empty input\",\"native speech completion preserves human whitespace typing pause\",\"other tab explicitly unpauses Agent while human text remains\"],\"error\":\"page.waitForFunction: Timeout 2000ms exceeded.\",\"finalPause\":\"paused\",\"finalInput\":\"MCP submitted\"}\n",
+    "stderr": ""
+  },
+  {
+    "claim": "human typing ignored",
+    "original": "humanTyping = !event.detail?.mcp && input.value.length > 0;",
+    "mutation": "humanTyping = false;",
+    "exit": 1,
+    "stdout": "{\"result\":\"FAIL\",\"checks\":[\"native speech completion unpauses with empty input\"],\"error\":\"page.waitForFunction: Timeout 5000ms exceeded.\",\"finalPause\":\"\",\"finalInput\":\" \"}\n",
+    "stderr": ""
+  },
+  {
+    "claim": "submit retains human cause",
+    "original": "input.value = \"\";\n  humanTyping = false;",
+    "mutation": "input.value = \"\";",
+    "exit": 1,
+    "stdout": "{\"result\":\"FAIL\",\"checks\":[],\"error\":\"page.waitForFunction: Timeout 5000ms exceeded.\",\"finalPause\":\"paused\",\"finalInput\":\"\"}\n",
+    "stderr": ""
+  }
+]

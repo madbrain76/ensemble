@@ -9,7 +9,8 @@ const pauseState = document.querySelector("#pause-state");
 const speechStatus = document.querySelector("#speech-status");
 let socket,
   localPaused = false,
-  speaking = false;
+  speaking = false,
+  humanTyping = false;
 const send = (message) => {
   if (socket?.readyState === WebSocket.OPEN)
     socket.send(JSON.stringify(message));
@@ -17,7 +18,9 @@ const send = (message) => {
 // Only local cause transitions send automatic commands. An explicit unpause
 // elsewhere must remain effective while this tab has an unchanged local cause.
 function pace() {
-  const next = speaking || input.value.length > 0;
+  // Field contents can come from MCP. Keep the human cause separately so a
+  // later speech callback cannot reinterpret programmatic text as typing.
+  const next = speaking || humanTyping;
   if (next !== localPaused) {
     localPaused = next;
     send({ type: next ? "pause" : "unpause" });
@@ -446,13 +449,15 @@ function connect() {
 // Typing holds new tool starts even when speech is disabled. Submitting clears
 // that cause, but queued speech may independently keep the local cause true.
 input.addEventListener("input", event => {
-  if (!event.detail?.mcp) pace();
+  humanTyping = !event.detail?.mcp && input.value.length > 0;
+  pace();
 });
 document.querySelector("#input-form").addEventListener("submit", (event) => {
   event.preventDefault();
   if (!input.value.trim() || socket?.readyState !== WebSocket.OPEN) return;
   send({ type: "prompt", text: input.value });
   input.value = "";
+  humanTyping = false;
   pace();
 });
 input.addEventListener("keydown", (event) => {
