@@ -14,8 +14,10 @@ are superseded. Preserve CodeRhapsody's ongoing original26 work.
 Original Chapter 23 / Edition 2 Chapter 21 is independently accepted and exported
 under `edition-2-ch23-r1`, source tree
 `9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`. Combined original 21 + 22 remains
-accepted as Edition 2 Chapter 20. Continue in authoritative main, implementing
-and reviewing original 24 and 25 in order as combined Edition 2 Chapter 22.
+accepted as Edition 2 Chapter 20. Original24 is independently accepted at `d747be7`, main tree
+`8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, intermediate `edition-2-ch24-r1`.
+Continue original25 in authoritative main before exporting combined Edition2
+Chapter22.
 Inspect original 26 completion at the original 25 review
 boundary; proceed if complete, otherwise retain a resumable checkpoint. Accepted
 solution directories use final Edition 2 numbering, with no symlinks or new

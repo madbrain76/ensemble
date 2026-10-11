@@ -1,5 +1,29 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: original24 accepted; terminal fleet follows
+
+Independent review `d747be7` accepts original24 source `0430df4`, main tree
+`8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, with three narrow fixture exceptions
+and zero formal correction rounds. The unchanged original grade remains
+**0/100 FAIL**: external probes assume an executable import and same-module GUI,
+GUI probes launch the headless command, and a constructor-name detector misses
+the public root method. Real external consumers, transitive dependency controls,
+component-only Chrome rendering and relay lifetime/correlation checks establish
+the valid obligations separately. All 164 final source hashes were verified.
+
+The embedded GUI live task completed from an unrelated directory in 9.649 seconds,
+exit0, with three verified Astra/high request/completion pairs and the actual
+42-byte file result. Final production differences are comments/formatting only.
+A directory-listing200 defeated the first asset assertion; the corrected shell
+assertion detects that same defect. Relay-mutant cleanup initially timed out after
+its intended assertion; corrected cleanup yields a clean intended failure. Both
+initial outcomes remain recorded rather than being called clean mutation kills.
+
+Checkpoint `edition-2-ch24-r1` is intermediate only. Continue original25 in main;
+its acceptance completes combined direct Edition2 `ch22`. Original26 readiness
+is checked at that review boundary. Existing direct `ch01`–`ch21`, first-edition
+work and all historical results remain preserved. Authorship still waits.
+
 ## October 11: sandbox accepted; combined Chapter 22 follows
 
 Original Chapter 23 / Edition 2 Chapter 21 is accepted with two independently

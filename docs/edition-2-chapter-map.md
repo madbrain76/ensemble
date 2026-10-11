@@ -47,8 +47,9 @@ Current checkpoint: original Chapter 23 / Edition 2 Chapter 21 is independently
 accepted. Direct `ch21` preserves tree `9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`
 under `edition-2-ch23-r1`. Combined original 21 + 22 remains direct `ch20` at
 `edition-2-ch22-r1`; its earlier original-21-only snapshot remains in its prior
-tag. Original 24 is next, as an intermediate reviewed stage before original 25
-completes combined Edition 2 Chapter 22.
+tag. Original24 is now independently accepted at `d747be7`, source `0430df4`,
+main tree `8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, intermediate checkpoint
+`edition-2-ch24-r1`. Original25 follows before the combined `ch22` export.
 
 Use original exercises and unchanged graders in original order: 22, 23, 24, 25.
 Each original exercise still receives its own student review, actual grader/live
