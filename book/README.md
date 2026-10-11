@@ -95,8 +95,11 @@ Output: `book/The Art of Building AI Coding Agents.epub`
 python3 book/build-print.py
 ```
 
-This is a two-pass build:
-1. Generates `interior-print.html` from pandoc (with `--toc` for print TOC)
+This is a two-pass build with automatic HTML cleanup:
+1. Cleans `interior-print.html`: forces page break after the pandoc TOC,
+   strips the self-referential "Contents" entry from the pandoc TOC, and
+   removes the markdown-generated "# Contents" section (duplicate of
+   pandoc's `--toc` — it's for GitHub, not print)
 2. Pass 1: renders PDF with Chrome headless, reads where each chapter landed
 3. Pass 2: injects page numbers into the TOC, re-renders
 4. Verifies pagination didn't shift between passes (re-runs if it did)
