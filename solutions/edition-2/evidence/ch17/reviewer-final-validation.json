@@ -1,0 +1,14 @@
+{
+  "source": "a2f0a4f34f41bd6d75ed568a524ed5d055cc62cb",
+  "main_tree": "83e2f4cc85eb91ef9f62a54f638baa4d538cacf8",
+  "probe_sha256": "eceb01575c013b918ad494efe2f7df39ace7135eea557f1cbfcc054d47821fe6",
+  "probe_unchanged": true,
+  "race_command": "go test -race ./ensemble ./internal/recall -run 'TestReviewerCappedRecall|TestRecall|TestBM25|TestChunking|TestFinalQuotas|TestJudgeParsing|TestAttachmentCap' -count=1 -timeout=60s -v",
+  "race_exit": 0,
+  "mutation": {
+    "old": "score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))",
+    "new": "_ = idf // keep compilation valid; plausible wrong raw-frequency scorer\n\t\t\tscore += f",
+    "exit": 1,
+    "restored_exit": 0
+  }
+}

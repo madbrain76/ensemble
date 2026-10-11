@@ -1,0 +1,710 @@
+{
+  "student": {
+    "base": "edition-2-ch16-r1:solutions/edition-2/main",
+    "final": "a2f0a4f:solutions/edition-2/main",
+    "groups": {
+      "production .go": [
+        825,
+        643,
+        143
+      ],
+      "tests .go": [
+        612,
+        550,
+        39
+      ]
+    },
+    "changed": [
+      {
+        "file": "ensemble/config.go",
+        "before": [
+          47,
+          37,
+          7
+        ],
+        "after": [
+          51,
+          40,
+          8
+        ],
+        "delta": [
+          4,
+          3,
+          1
+        ]
+      },
+      {
+        "file": "ensemble/ensemble.go",
+        "before": [
+          408,
+          246,
+          96
+        ],
+        "after": [
+          418,
+          254,
+          97
+        ],
+        "delta": [
+          10,
+          8,
+          1
+        ]
+      },
+      {
+        "file": "ensemble/recall_test.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          479,
+          436,
+          27
+        ],
+        "delta": [
+          479,
+          436,
+          27
+        ]
+      },
+      {
+        "file": "internal/agent/actor.go",
+        "before": [
+          658,
+          569,
+          65
+        ],
+        "after": [
+          660,
+          571,
+          65
+        ],
+        "delta": [
+          2,
+          2,
+          0
+        ]
+      },
+      {
+        "file": "internal/agent/agent.go",
+        "before": [
+          281,
+          203,
+          44
+        ],
+        "after": [
+          282,
+          204,
+          44
+        ],
+        "delta": [
+          1,
+          1,
+          0
+        ]
+      },
+      {
+        "file": "internal/agent/recall.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          61,
+          47,
+          10
+        ],
+        "delta": [
+          61,
+          47,
+          10
+        ]
+      },
+      {
+        "file": "internal/common/context.go",
+        "before": [
+          47,
+          24,
+          18
+        ],
+        "after": [
+          49,
+          25,
+          19
+        ],
+        "delta": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "file": "internal/common/recall.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          49,
+          24,
+          20
+        ],
+        "delta": [
+          49,
+          24,
+          20
+        ]
+      },
+      {
+        "file": "internal/common/skills.go",
+        "before": [
+          54,
+          26,
+          23
+        ],
+        "after": [
+          56,
+          27,
+          24
+        ],
+        "delta": [
+          2,
+          1,
+          1
+        ]
+      },
+      {
+        "file": "internal/common/types.go",
+        "before": [
+          544,
+          254,
+          259
+        ],
+        "after": [
+          554,
+          259,
+          264
+        ],
+        "delta": [
+          10,
+          5,
+          5
+        ]
+      },
+      {
+        "file": "internal/engine/engine.go",
+        "before": [
+          275,
+          207,
+          49
+        ],
+        "after": [
+          282,
+          210,
+          52
+        ],
+        "delta": [
+          7,
+          3,
+          3
+        ]
+      },
+      {
+        "file": "internal/engine/judge.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          48,
+          38,
+          7
+        ],
+        "delta": [
+          48,
+          38,
+          7
+        ]
+      },
+      {
+        "file": "internal/history/history.go",
+        "before": [
+          360,
+          301,
+          44
+        ],
+        "after": [
+          370,
+          311,
+          44
+        ],
+        "delta": [
+          10,
+          10,
+          0
+        ]
+      },
+      {
+        "file": "internal/history/reduce.go",
+        "before": [
+          266,
+          229,
+          30
+        ],
+        "after": [
+          276,
+          238,
+          31
+        ],
+        "delta": [
+          10,
+          9,
+          1
+        ]
+      },
+      {
+        "file": "internal/recall/index.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          175,
+          139,
+          28
+        ],
+        "delta": [
+          175,
+          139,
+          28
+        ]
+      },
+      {
+        "file": "internal/recall/index_test.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          133,
+          114,
+          12
+        ],
+        "delta": [
+          133,
+          114,
+          12
+        ]
+      },
+      {
+        "file": "internal/recall/judge.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          103,
+          84,
+          15
+        ],
+        "delta": [
+          103,
+          84,
+          15
+        ]
+      },
+      {
+        "file": "internal/recall/recall.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          327,
+          266,
+          49
+        ],
+        "delta": [
+          327,
+          266,
+          49
+        ]
+      },
+      {
+        "file": "internal/skills/skills.go",
+        "before": [
+          295,
+          257,
+          22
+        ],
+        "after": [
+          299,
+          259,
+          23
+        ],
+        "delta": [
+          4,
+          2,
+          1
+        ]
+      }
+    ]
+  },
+  "original": {
+    "base": "a2f0a4f:solutions/ch16",
+    "final": "a2f0a4f:solutions/ch17",
+    "groups": {
+      "production .go": [
+        1876,
+        1064,
+        684
+      ],
+      "examples .go": [
+        -179,
+        -128,
+        -29
+      ],
+      "tests .go": [
+        479,
+        377,
+        68
+      ]
+    },
+    "changed": [
+      {
+        "file": "cmd/main.go",
+        "before": [
+          961,
+          698,
+          162
+        ],
+        "after": [
+          992,
+          707,
+          183
+        ],
+        "delta": [
+          31,
+          9,
+          21
+        ]
+      },
+      {
+        "file": "cmd/virtual-user/main.go",
+        "before": [
+          179,
+          128,
+          29
+        ],
+        "after": [
+          0,
+          0,
+          0
+        ],
+        "delta": [
+          -179,
+          -128,
+          -29
+        ]
+      },
+      {
+        "file": "internal/common/context.go",
+        "before": [
+          798,
+          502,
+          240
+        ],
+        "after": [
+          863,
+          521,
+          284
+        ],
+        "delta": [
+          65,
+          19,
+          44
+        ]
+      },
+      {
+        "file": "internal/common/event.go",
+        "before": [
+          333,
+          215,
+          82
+        ],
+        "after": [
+          357,
+          221,
+          99
+        ],
+        "delta": [
+          24,
+          6,
+          17
+        ]
+      },
+      {
+        "file": "internal/common/recall.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          60,
+          12,
+          44
+        ],
+        "delta": [
+          60,
+          12,
+          44
+        ]
+      },
+      {
+        "file": "internal/llm/actor.go",
+        "before": [
+          618,
+          455,
+          100
+        ],
+        "after": [
+          627,
+          456,
+          107
+        ],
+        "delta": [
+          9,
+          1,
+          7
+        ]
+      },
+      {
+        "file": "internal/llm/claude.go",
+        "before": [
+          698,
+          490,
+          151
+        ],
+        "after": [
+          741,
+          509,
+          174
+        ],
+        "delta": [
+          43,
+          19,
+          23
+        ]
+      },
+      {
+        "file": "internal/llm/engine.go",
+        "before": [
+          572,
+          345,
+          175
+        ],
+        "after": [
+          597,
+          347,
+          196
+        ],
+        "delta": [
+          25,
+          2,
+          21
+        ]
+      },
+      {
+        "file": "internal/llm/gemini.go",
+        "before": [
+          573,
+          403,
+          116
+        ],
+        "after": [
+          602,
+          412,
+          136
+        ],
+        "delta": [
+          29,
+          9,
+          20
+        ]
+      },
+      {
+        "file": "internal/llm/judge.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          130,
+          65,
+          51
+        ],
+        "delta": [
+          130,
+          65,
+          51
+        ]
+      },
+      {
+        "file": "internal/llm/openai.go",
+        "before": [
+          505,
+          346,
+          108
+        ],
+        "after": [
+          516,
+          352,
+          113
+        ],
+        "delta": [
+          11,
+          6,
+          5
+        ]
+      },
+      {
+        "file": "internal/llm/recall.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          122,
+          62,
+          52
+        ],
+        "delta": [
+          122,
+          62,
+          52
+        ]
+      },
+      {
+        "file": "internal/recall/bm25.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          268,
+          152,
+          98
+        ],
+        "delta": [
+          268,
+          152,
+          98
+        ]
+      },
+      {
+        "file": "internal/recall/chunk.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          146,
+          104,
+          32
+        ],
+        "delta": [
+          146,
+          104,
+          32
+        ]
+      },
+      {
+        "file": "internal/recall/judge.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          232,
+          143,
+          70
+        ],
+        "delta": [
+          232,
+          143,
+          70
+        ]
+      },
+      {
+        "file": "internal/recall/recall.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          534,
+          361,
+          138
+        ],
+        "delta": [
+          534,
+          361,
+          138
+        ]
+      },
+      {
+        "file": "internal/recall/recall_test.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          479,
+          377,
+          68
+        ],
+        "delta": [
+          479,
+          377,
+          68
+        ]
+      },
+      {
+        "file": "internal/recall/sources.go",
+        "before": [
+          0,
+          0,
+          0
+        ],
+        "after": [
+          147,
+          94,
+          41
+        ],
+        "delta": [
+          147,
+          94,
+          41
+        ]
+      }
+    ]
+  },
+  "method": "Tracked .go/.js/.mjs/.css/.html; physical splitlines, active nonblank excluding //, /*, *, */, <!-- line prefixes; mixed lines active. Tests/examples separated. Generated logs/binaries excluded."
+}

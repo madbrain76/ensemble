@@ -212,3 +212,119 @@ are retained. Representative competing-hit or independent score evidence must
 distinguish real BM25 from plausible raw counts; no old answer fixture or code
 was supplied to the student. Coordinator relayed this as further attributed
 pre-submission assistance, with final assessment still pending.
+
+## October11 initial formal review — accepted with recorded exceptions
+
+**Accepted with exceptions, zero formal correction rounds.** Reviewed frozen
+`a2f0a4f34f41bd6d75ed568a524ed5d055cc62cb`, main tree
+`83e2f4cc85eb91ef9f62a54f638baa4d538cacf8`; independently compared all121 tracked
+working source files byte-for-byte with that commit. Read the complete final
+[student review](ch17.md), final source changes, original chapter and matching
+original17/16 solution changes. The cap and ranking findings above were supplied
+before final submission and remain attributed reviewer assistance, not independent
+student discoveries or erased failures. No unresolved scope, implementation or
+teaching-documentation blocker remains. Original22/24 stops remain binding.
+
+The actual original result remains **0/100 FAIL on fcd091f**, not on final source.
+I accept the student's missing-primary-type and wrong-module structural exceptions
+for the reasons established above. Owner-scoped corpus paths must not become cwd
+global data to fit the unreached fixture. Likewise, a separately recorded recall
+entry need not become a separate Anthropic wire message: §17.5 permits renderer
+placement as a part of the turn, and actual Anthropic requests succeeded with that
+placement. These latter two are latent fixture limitations, not additional observed
+failed checks. Markdown learnings follow the supplied public corpus; an unspecified
+private JSON `long` envelope is not imposed. Bill's final-quota/all-memory rulings
+govern over the historical conflicting passages. No valid retrieval obligation,
+architecture rule or live-use requirement is waived, and no grader was changed.
+
+### Independent checks and evidence assessment
+
+Replayed the **unchanged** independent capped-recall probe in an isolated archive
+of final source, with the real public Agent/actor/history/renderers and only the
+external HTTP peer replaced. Short control remains435 source/515 attachment bytes;
+capped remains11247/6144. Both now produce exactly one recall entry and one heading
+in the second actual request. The previous duplicate is resolved. The full focused
+recall/index suite under race detection passes: ensemble16.389s, recall1.023s,
+including the real15-second judge cancellation, hint/interrupt control, all-provider
+replay/checkpoint, relative skill path, request-local judge header and capped
+source edit/replay cases. See [output](../../solutions/edition-2/evidence/ch17/reviewer-final-checks.txt),
+[provenance](../../solutions/edition-2/evidence/ch17/reviewer-final-validation.json),
+and [capped request capture](../../solutions/edition-2/evidence/ch17/reviewer-final-capped.json).
+
+Applied the **same raw-frequency replacement** that survived earlier to the final
+isolated index. All three new competing-document assertions fail for their intended
+reasons: common instead of rare, repeated instead of diverse, long instead of
+focused. Restored source passes. [Mutant](../../solutions/edition-2/evidence/ch17/reviewer-final-ranking-mutant.txt)
+and [restored control](../../solutions/edition-2/evidence/ch17/reviewer-final-ranking-restored.txt)
+preserve those results; no shared source changed. Student's individual IDF,
+saturation and length mutations likewise reach the corresponding ranking failures.
+
+Reviewed the recorded mutation changes and outputs across initial/follow-up,
+regression and cap/ranking batches. The short-query survivor, mixed-parser matcher
+mistake and wrong-owner-path unintended failure remain honestly distinguished.
+Corrected checks fail on the actual missing guard, parser output, missing corpus,
+relative path and request header respectively. The hash-propagation mutant fails
+the initial missing-identity assertion, so that mutation alone is not an isolated
+later replay proof; the real dump/load/second-turn control establishes retention
+through replay. Checkpoint removes the whole recall entry, including identity.
+The other meaningful mutations cover the valid obligations in the preflight table.
+These are representative sensitivity checks, not exhaustive retrieval-quality proof.
+
+The five-module test/vet receipts are consistent with the claimed coverage (the
+streaming example has no tests). Independently inspected the live launcher and
+retained requests/answers described above: prompts do not supply the target facts;
+the target is an archived `.md.retired` file. All three bounded live sessions
+demonstrate judged retrieval, correct answers and one retained attachment. Their
+source remains fcd091f; final deterministic path/header/cap corrections do not
+retroactively change live provenance or justify a paid repeat. No GUI/speech or
+broad corpus-quality result is inferred from these CLI sessions.
+
+### Comparative code, comments, tests and KISS
+
+Counts compare each implementation with its own predecessor, counting physical
+lines and nonblank lines after excluding comment-only line prefixes. Mixed code/
+comment lines count as active; this is a source-size measure, not Go statements.
+[Per-file counts](../../solutions/edition-2/evidence/ch17/reviewer-comparison-counts.json)
+record exact source pairs and method inputs. No production moves occurred.
+
+| Chapter delta | Physical | Active | Comment-only |
+| --- | ---: | ---: | ---: |
+| Student production Go | +825 | +643 | +143 |
+| Original production Go | +1876 | +1064 | +684 |
+| Student Go tests | +612 | +550 | +39 |
+| Original Go tests | +479 | +377 | +68 |
+| Original removed virtual-user example, separate | -179 | -128 | -29 |
+
+No JS/CSS/HTML product delta is hidden in these numbers. Student README adds24
+lines; five evidence Python launch/mutation scripts total194 physical lines and
+are support, not runtime. Original generated logs/binaries are excluded, as are
+student captured receipts. Other example modules are unchanged.
+
+The smaller active implementation reflects one turn-entry path, reused provider
+transport and straightforward per-source indexing/selection, rather than deleted
+explanations or compressed logic. The original has richer prose comments but
+duplicated entrypoint wiring and larger selection/judge machinery. Student's
+production delta has18.2% comment-only lines among active+comment lines; its six
+new files have17.7%. Useful explanations cover ownership, cancellation, query-only
+filtering, stable quotas, corpus refresh, recorded-byte ordering and capped identity.
+All new exported Go types, fields, methods and constants have useful documentation.
+This meets the teaching intent without padding to a numeric target.
+
+Student test growth is justified by real-runtime paths absent from the original's
+direct scripted judge tests: actual HTTP transport, Agent/Engine/history, entrypoint
+steering, disk edits, recorded replay and all-provider rendering. The small boundary
+fake does not substitute for the actor, jobs or retrieval under test. Pure algorithm
+tests complement those paths. No unapproved mocks or generic testing framework were
+introduced.
+
+Recall has an actual required Agent parent; the composition root attaches both
+sides and reaches configuration, skill directory, Engine and logging through owner
+interfaces. Common contains vocabulary, not retrieval behavior; implementation
+spokes retain the star import boundary. GUI remains an unchanged optional public
+consumer. The per-entry hash is proportionate to the demonstrated truncation bug:
+it records only represented complete-source identities, changes on edits, replays
+with recorded bytes and retires with the entry. It adds neither an external ledger
+nor a new retrieval policy. No later capability or grader-compatibility framework
+is needed. Reviewer scratch copies are removed after preserving the small evidence;
+coordinator owns the direct Edition2 ch16 export/checkpoint. Required handoff:
+`.agents/skills/ensemble-coding/SKILL.md`.

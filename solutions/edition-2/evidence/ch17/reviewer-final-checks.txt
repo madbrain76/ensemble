@@ -1,0 +1,63 @@
+=== RUN   TestRecallTurnReplayCheckpoint
+=== RUN   TestRecallTurnReplayCheckpoint/anthropic
+=== RUN   TestRecallTurnReplayCheckpoint/openai
+=== RUN   TestRecallTurnReplayCheckpoint/gemini
+--- PASS: TestRecallTurnReplayCheckpoint (0.10s)
+    --- PASS: TestRecallTurnReplayCheckpoint/anthropic (0.04s)
+    --- PASS: TestRecallTurnReplayCheckpoint/openai (0.03s)
+    --- PASS: TestRecallTurnReplayCheckpoint/gemini (0.03s)
+=== RUN   TestRecallJudge
+=== RUN   TestRecallJudge/selected
+=== RUN   TestRecallJudge/empty
+=== RUN   TestRecallJudge/malformed
+=== RUN   TestRecallJudge/failure
+--- PASS: TestRecallJudge (0.06s)
+    --- PASS: TestRecallJudge/selected (0.02s)
+    --- PASS: TestRecallJudge/empty (0.01s)
+    --- PASS: TestRecallJudge/malformed (0.02s)
+    --- PASS: TestRecallJudge/failure (0.02s)
+=== RUN   TestRecallDedupRefreshIsolation
+--- PASS: TestRecallDedupRefreshIsolation (0.02s)
+=== RUN   TestRecallInterrupt
+--- PASS: TestRecallInterrupt (0.01s)
+=== RUN   TestRecallJudgeTimeout
+--- PASS: TestRecallJudgeTimeout (15.02s)
+=== RUN   TestRecallJudgeContext
+--- PASS: TestRecallJudgeContext (0.02s)
+=== RUN   TestRecallSources
+--- PASS: TestRecallSources (0.00s)
+=== RUN   TestRecallJudgeRoute
+--- PASS: TestRecallJudgeRoute (0.00s)
+=== RUN   TestRecallCappedDedup
+--- PASS: TestRecallCappedDedup (0.07s)
+=== RUN   TestReviewerCappedRecall
+=== RUN   TestReviewerCappedRecall/short-control
+    reviewer_recall_test.go:17: source=435 attachment=515 entries=1 second-request-headings=1
+=== RUN   TestReviewerCappedRecall/capped
+    reviewer_recall_test.go:17: source=11247 attachment=6144 entries=1 second-request-headings=1
+--- PASS: TestReviewerCappedRecall (0.04s)
+    --- PASS: TestReviewerCappedRecall/short-control (0.02s)
+    --- PASS: TestReviewerCappedRecall/capped (0.03s)
+PASS
+ok  	ensemble/ensemble	16.389s
+=== RUN   TestBM25
+--- PASS: TestBM25 (0.00s)
+=== RUN   TestChunking
+--- PASS: TestChunking (0.00s)
+=== RUN   TestFinalQuotas
+--- PASS: TestFinalQuotas (0.00s)
+=== RUN   TestJudgeParsing
+--- PASS: TestJudgeParsing (0.00s)
+=== RUN   TestAttachmentCap
+--- PASS: TestAttachmentCap (0.00s)
+=== RUN   TestBM25CompetingDocuments
+=== RUN   TestBM25CompetingDocuments/rarity
+=== RUN   TestBM25CompetingDocuments/saturation
+=== RUN   TestBM25CompetingDocuments/length
+--- PASS: TestBM25CompetingDocuments (0.00s)
+    --- PASS: TestBM25CompetingDocuments/rarity (0.00s)
+    --- PASS: TestBM25CompetingDocuments/saturation (0.00s)
+    --- PASS: TestBM25CompetingDocuments/length (0.00s)
+PASS
+ok  	ensemble/internal/recall	1.023s
+
