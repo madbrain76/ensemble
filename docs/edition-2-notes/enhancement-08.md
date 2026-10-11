@@ -116,3 +116,12 @@ the launch example explicitly inherits Chapter 7's validated command.
 Author reconciliation is complete; the reviewer independently accepted it.
 No originals/frozen/runtime edits, author commits, mocks, paid calls
 or work beyond this final bounded chapter.
+
+
+## October 11 model-name continuity correction
+
+Coordinator: Bill explicitly selected GPT-6 Astra/high after this chapter was
+accepted. The closing destination now names GPT-6 Astra instead of GPT-5 Astra.
+This updates the stated goal only; all original source, implementation, grader
+results and live provenance remain unchanged. Independent review is recorded in
+`enhancement-08-review.md`.

@@ -572,7 +572,7 @@ does not establish sub-agent execution, and this chapter adds neither model
 selection nor API-key controls. The original next-chapter forecast ran ahead
 of the available exercise; it is not a requirement to invent those features.
 
-Bill's destination for the new Ensemble is explicit: run GPT-5 Astra at high
+Bill's destination for the new Ensemble is explicit: run GPT-6 Astra at high
 reasoning, then use that Ensemble agent to build Edition 3 instead of Codex.
 A usable workbench is progress toward that destination. Model access, the
 reasoning setting and real coding use still need their own verification before

@@ -239,3 +239,14 @@ at the path in [the coder report](enhancement-08-code.md). This acceptance close
 the independent gate for the final chapter of the bounded pass. The coordinator
 owns its commit/tag. It does **not** authorize Chapter 10 development, later
 authorship or a claim that Astra-high/Edition-3 crossover has been achieved.
+
+## October 11 model-name continuity review
+
+Reviewer `reviewer_astra` independently checked the exact chapter diff and author
+addendum against Bill's October 11 selection in `AGENTS.md`: **accepted**.
+The sole manuscript change replaces GPT-5 Astra with GPT-6 Astra in the closing
+destination; high reasoning and the distinction between a goal and demonstrated
+crossover remain intact. This changes no exercise, runtime, grader, historical
+score or live provenance. No new test or paid run was needed or claimed, and
+the earlier chapter acceptance is not reopened. Mandatory skill:
+`.agents/skills/ensemble-coding/SKILL.md`.
