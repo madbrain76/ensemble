@@ -1,11 +1,10 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–21 are accepted**. [`main/`](main/) is the authoritative working
-tree. The Sandbox (original Chapter 23 / Edition 2 Chapter 21) is accepted.
-Original Chapter 24 is accepted as an intermediate stage at
-`edition-2-ch24-r1`; original 25 is in progress to complete combined Edition 2
-Chapter 22 (original 24 + 25). The direct `ch22` export waits for that review.
+Chapters **1–22 are accepted**. [`main/`](main/) is the authoritative working
+tree. Original24+25 are accepted together as Edition2 Chapter22, The Ensemble.
+Original26 completion was checked at that review boundary; it now follows as
+Edition2 Chapter23. The direct `ch23` export waits for its independent acceptance.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
@@ -38,6 +37,7 @@ bring the final offset to three. The remaining standalone
 | 19: The Crossover | [ch19](ch19/), [manifest](ch19-manifest.json) | 20 | `edition-2-ch20-r1` |
 | 20: Web access, status and accounting | [ch20](ch20/), [manifest](ch20-manifest.json) | 21 + 22 | `edition-2-ch22-r1` |
 | 21: The Sandbox | [ch21](ch21/), [manifest](ch21-manifest.json) | 23 | `edition-2-ch23-r1` |
+| 22: The Ensemble, including reusable GUI | [ch22](ch22/), [manifest](ch22-manifest.json) | 24 + 25 | `edition-2-ch25-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader

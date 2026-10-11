@@ -11,19 +11,14 @@ chapters. Follow `docs/edition-2-chapter-map.md` for capability preservation,
 review stages and solution exports. The earlier original22/24 placement stops
 are superseded. Preserve CodeRhapsody's ongoing original26 work.
 
-Original Chapter 23 / Edition 2 Chapter 21 is independently accepted and exported
-under `edition-2-ch23-r1`, source tree
-`9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`. Combined original 21 + 22 remains
-accepted as Edition 2 Chapter 20. Original24 is independently accepted at `d747be7`, main tree
-`8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, intermediate `edition-2-ch24-r1`.
-Continue original25 in authoritative main before exporting combined Edition2
-Chapter22.
-Inspect original 26 completion at the original 25 review
-boundary; proceed if complete, otherwise retain a resumable checkpoint. Accepted
-solution directories use final Edition 2 numbering, with no symlinks or new
-history paths. The accepted combined `ch20` replaces its earlier
-original-21-only export; its prior exact source remains in immutable
-`edition-2-ch21-r1`. Other frozen exports and original sources remain unchanged.
+Original25 is independently accepted at `ed54abe`, source `e00d5bc`, main tree
+`30fb05d154b9808eb88622aaff9c1424cd7e8af1`. Combined original24+25 is exported
+as direct Edition2 `ch22` under `edition-2-ch25-r1`. Original26 completion was
+rechecked at this boundary: manuscript, grader, reference snapshot and completion
+report are present and unchanged from the recorded preparation. Continue original26
+in authoritative main as Edition2 Chapter23. Preserve CodeRhapsody's work.
+Accepted solution directories use final Edition2 numbers, no symlinks or new
+history paths; only retired `history/ch05` remains. Existing tags stay immutable.
 Authorship still follows implementation. Use GPT-6 Astra/high for all coding and
 code review.
 

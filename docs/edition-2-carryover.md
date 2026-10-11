@@ -1,13 +1,14 @@
 # Edition 2 carryover: lessons for the fresh student
 
-**Current implementation:** original24 is independently accepted at `d747be7`,
-source `0430df4`, main tree `8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, with
-three documented grader-fixture exceptions and zero formal correction rounds.
-Original grade remains 0/100 FAIL; external/race/browser/live evidence is in
-`edition-2-notes/ch24.md` and its independent review. Intermediate checkpoint
-`edition-2-ch24-r1` has no direct export. Original25 now follows in main to
-complete combined Edition2 `ch22`. Accepted direct `ch21` remains original23
-source tree `9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`, `edition-2-ch23-r1`.
+**Current implementation:** original25 is independently accepted at `ed54abe`,
+source `e00d5bc`, main tree `30fb05d154b9808eb88622aaff9c1424cd7e8af1`, with
+missing-model grader and non-fleet compatibility exceptions, zero formal rounds.
+Original grade remains0/100 FAIL. Combined original24+25 is direct Edition2
+`ch22`, checkpoint `edition-2-ch25-r1`. Runtime, mutation and actual Astra/high
+fleet evidence, including its steering-compliance limit, are recorded in ch25
+notes/review. Original26 completion was rechecked at this review boundary; its
+manuscript, grader, reference snapshot and completion records remain available
+and unchanged. Continue original26 as Edition2 Chapter23 from accepted main.
 
 **Current authorization, October 11:** Bill delegated both placements and
 authorized autonomous continuation. Use original 21 + 22 → Edition 2 Chapter 20;

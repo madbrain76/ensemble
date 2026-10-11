@@ -43,13 +43,13 @@ a target word reduction.
 
 ## Execution and preservation
 
-Current checkpoint: original Chapter 23 / Edition 2 Chapter 21 is independently
-accepted. Direct `ch21` preserves tree `9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`
-under `edition-2-ch23-r1`. Combined original 21 + 22 remains direct `ch20` at
-`edition-2-ch22-r1`; its earlier original-21-only snapshot remains in its prior
-tag. Original24 is now independently accepted at `d747be7`, source `0430df4`,
-main tree `8555e3cb9ab5200f0a1c52691007a7fc4a1c6797`, intermediate checkpoint
-`edition-2-ch24-r1`. Original25 follows before the combined `ch22` export.
+Current checkpoint: original25 is independently accepted at `ed54abe`, source
+`e00d5bc`, tree `30fb05d154b9808eb88622aaff9c1424cd7e8af1`. Direct `ch22`
+contains exact combined original24+25 source, checkpoint `edition-2-ch25-r1`.
+Direct chapters1–22 are accepted. Original26 readiness was verified at this gate:
+manuscript, grader, reference snapshot and completion report remain present and
+unchanged. Continue original26 as Edition2 Chapter23; its acceptance/export is
+still pending. Original24's intermediate tag and every prior export/tag remain.
 
 Use original exercises and unchanged graders in original order: 22, 23, 24, 25.
 Each original exercise still receives its own student review, actual grader/live

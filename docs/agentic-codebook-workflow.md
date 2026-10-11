@@ -1,5 +1,30 @@
 # Agentic codebook: edition workflow and learning record
 
+## October11: combined Chapter22 accepted; original26 released
+
+Independent initial review `ed54abe` accepts original25 source `e00d5bc`, main
+tree `30fb05d154b9808eb88622aaff9c1424cd7e8af1`, with two narrow exceptions:
+missing-model grader launch and factory-selected protocol for existing non-fleet
+embedders. All enabled fleet roots/descendants still enforce correction in the
+library. Original grading remains0/100 FAIL; zero formal correction rounds.
+The two real pre-submission defects and live limitations remain documented below.
+Final production matches the actual live `891d513`; final changes are README and
+test diagnostics. Independent review found no remaining ownership, scope or bloat
+issue. Active production Go grows645 lines versus original947 after excluding
+three unrelated catalog additions; these counts support, but do not alone prove,
+the simpler reuse of existing actors, jobs and persistence.
+
+The exact170-file combined original24+25 export is direct `ch22`, checkpoint
+`edition-2-ch25-r1`. Direct solutions now run1–22, with history only retiredch05.
+At original25 acceptance, coordinator rechecked original26 manuscript466lines,
+grader, reference snapshot and83-line completion report: no changes from recorded
+source hashes/revisions. The publication/completion evidence at `b451d2f` remains
+an ancestor of current history. Its reported100/100 and mutation results are
+historical claims, not newly reproduced student evidence. The conditional release
+is satisfied: assign original26 as Edition2 Chapter23, retain its source tensions
+in ch26 notes, and preserve all concurrent CodeRhapsody files. Authorship remains
+later; no Chapter26 result is preaccepted.
+
 ## October 11: original24 accepted; terminal fleet follows
 
 Original25 first green is `7175d33`, main tree
