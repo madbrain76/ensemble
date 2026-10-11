@@ -54,7 +54,7 @@
       "earned": 0,
       "passed": false,
       "details": [
-        "Retained prior legacy Chapter9 skills failures (initial-tools, load-skill, skill-deps, disclosure, vars); corrected Chapter2 parity not rerun for legacy. Full prior diagnostics retained in legacy-revised10.json."
+        "Retained prior legacy Chapter9 skills failures (initial-tools, progressive-disclosure, depends-autoload, var-substitution); corrected Chapter2 parity not rerun for legacy. Full prior diagnostics retained in legacy-revised10.json."
       ]
     }
   ],

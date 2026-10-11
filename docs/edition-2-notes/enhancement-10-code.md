@@ -193,3 +193,9 @@ owned files are committed and reconciled. Configured credential hook remains
 active. Raw mutation patches retain literal diff whitespace and are excluded
 only from whitespace lint. Preserve all CodeRhapsody and unrelated work.
 Stop after this submission until independent Chapter10 acceptance/release.
+
+Receipt correction after independent review: the initial composed JSON summary
+incorrectly included `load-skill`, which passed, and abbreviated other IDs.
+The corrected receipt names the actual four skill failures: `initial-tools`,
+`progressive-disclosure`, `depends-autoload`, `var-substitution`. Raw results and
+the80/100 composed score are unchanged; no rerun or source change was needed.
