@@ -1,11 +1,13 @@
 # Edition 2 carryover: lessons for the fresh student
 
-**Current implementation:** original Chapter 22 is independently accepted with
-documented grader exceptions and zero correction rounds. Combined original 21 +
-22 is direct Edition 2 `ch20`, checkpoint `edition-2-ch22-r1`, main tree
-`a801628b1dd631e5ea20ad03ea7d255584728d31`. Original Chapter 23 / Edition 2
-Chapter 21 is next. Actual original Chapter 22 grading remains 20/100 FAIL; live
-model switching/status and independent accounting checks support acceptance.
+**Current implementation:** original Chapter 23 / Edition 2 Chapter 21 is
+independently accepted with two documented grader-fixture exceptions and zero
+formal correction rounds. Direct `ch21` preserves source tree
+`9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`, checkpoint `edition-2-ch23-r1`.
+The original grade remains 0/100 FAIL. Earlier live source and corrected-source
+confinement evidence are distinguished in `edition-2-notes/ch23.md` and its
+independent review. Original 24 is next, reviewed as its own intermediate stage
+before original 25 completes combined Edition 2 Chapter 22.
 
 **Current authorization, October 11:** Bill delegated both placements and
 authorized autonomous continuation. Use original 21 + 22 → Edition 2 Chapter 20;

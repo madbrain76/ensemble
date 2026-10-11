@@ -11,10 +11,12 @@ chapters. Follow `docs/edition-2-chapter-map.md` for capability preservation,
 review stages and solution exports. The earlier original22/24 placement stops
 are superseded. Preserve CodeRhapsody's ongoing original26 work.
 
-Original Chapter 22 is independently accepted; combined Edition 2 Chapter 20 is
-exported. Continue in authoritative main from accepted tree
-`a801628b1dd631e5ea20ad03ea7d255584728d31`, implementing and reviewing original
-23, 24 and 25 in order. Inspect original 26 completion at the original 25 review
+Original Chapter 23 / Edition 2 Chapter 21 is independently accepted and exported
+under `edition-2-ch23-r1`, source tree
+`9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`. Combined original 21 + 22 remains
+accepted as Edition 2 Chapter 20. Continue in authoritative main, implementing
+and reviewing original 24 and 25 in order as combined Edition 2 Chapter 22.
+Inspect original 26 completion at the original 25 review
 boundary; proceed if complete, otherwise retain a resumable checkpoint. Accepted
 solution directories use final Edition 2 numbering, with no symlinks or new
 history paths. The accepted combined `ch20` replaces its earlier

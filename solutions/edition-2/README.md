@@ -1,9 +1,10 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–20 are accepted**. [`main/`](main/) is the authoritative working
-tree. Combined Chapter 20 (original 21 + 22) is accepted. Original Chapter 23 /
-Edition 2 Chapter 21, The Sandbox, is in progress.
+Chapters **1–21 are accepted**. [`main/`](main/) is the authoritative working
+tree. The Sandbox (original Chapter 23 / Edition 2 Chapter 21) is accepted.
+Original Chapter 24 is next, as the first reviewed stage of combined Edition 2
+Chapter 22 (original 24 + 25).
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
@@ -35,6 +36,7 @@ bring the final offset to three. The remaining standalone
 | 18: Subscription authentication and reasoning | [ch18](ch18/), [manifest](ch18-manifest.json) | 19 | `edition-2-ch19-r1` |
 | 19: The Crossover | [ch19](ch19/), [manifest](ch19-manifest.json) | 20 | `edition-2-ch20-r1` |
 | 20: Web access, status and accounting | [ch20](ch20/), [manifest](ch20-manifest.json) | 21 + 22 | `edition-2-ch22-r1` |
+| 21: The Sandbox | [ch21](ch21/), [manifest](ch21-manifest.json) | 23 | `edition-2-ch23-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader

@@ -1,5 +1,30 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: sandbox accepted; combined Chapter 22 follows
+
+Original Chapter 23 / Edition 2 Chapter 21 is accepted with two independently
+justified launch/public-import fixture exceptions, zero formal correction rounds.
+Source `64e5d0c`, final validation `320859a`, main tree
+`9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`; the direct 157-file export is `ch21`,
+checkpoint `edition-2-ch23-r1`. Actual original grading remains **0/100 FAIL**.
+
+Pre-submission review found a real nested temporary-file escape in a toolchain
+cache allowance; coder and reviewer also found a cwd refusal disclosing the host
+root. Both exact independent regressions pass on corrected source, alongside the
+sandbox race suite. Legitimate Git/Python/file operations still work. The two
+Astra/high live sessions retain their earlier `fcb98a9` source provenance and
+normal exits; their allowed/denied results and 12 + 3 request/completion pairs
+were independently checked. No live rerun or general security certification is
+claimed. Mutation evidence preserves an initial survivor and wrong-boundary
+failure alongside their corrected intended failures; 25 intended failures among
+27 attempts are not 25 independent security proofs.
+
+Continue with original Chapter 24 as an independently reviewed intermediate
+stage, then original 25 completes direct Edition 2 `ch22`. Do not create a
+standalone export for the unfinished combined chapter. The mapping and all
+remaining valid exercises are unchanged; recheck original 26 readiness at the
+original 25 review boundary. CodeRhapsody's work remains untouched.
+
 ## October 11: final merge decisions and released placement gates
 
 **Original Chapter 22 accepted at initial review, zero correction rounds.**
