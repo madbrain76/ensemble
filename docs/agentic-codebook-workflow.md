@@ -1,5 +1,21 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: remaining manuscript enhancement authorized
+
+After the completed student run, Bill explicitly released the author to write
+the new chapters matching accepted Edition 2 solutions. Resume at Chapter 9
+(original 10), then proceed through Chapter 23 using the final merge map and
+independent per-chapter prose/grader acceptance. The author, grader coder and
+reviewer work together as specified below; early Chapters 0–8 remain accepted.
+This supersedes historical author stops, not preservation or review requirements.
+
+Bill makes full active-context reading critical: the author loads this workflow,
+`edition-2-carryover.md`, `../book/voice.md` and
+`../book/chapter-writing-procedure.md` in full, and reloads all four after every
+compaction before further writing. Summaries and truncated reads do not suffice.
+The reviewer follows the same rereading rule. Current assignments and chapter
+gates are in [the enhancement record](edition-2-enhancement.md).
+
 ## October11: original26 accepted; final solution mapping complete
 
 Independent review `0d9e823` accepts source `450f7a9`, main tree

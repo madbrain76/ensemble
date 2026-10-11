@@ -1,4 +1,35 @@
-# Edition 2: bounded enhancement pass
+# Edition 2: chapter enhancement
+
+## October 11: continuation through Chapter 23
+
+Bill explicitly released the remaining author work after independent acceptance
+of all original Chapters 1–26, exported as Edition 2 solutions 1–23. Continue
+from Edition 2 Chapter 9, enhancing original Chapter 10 (Skills). Chapters 0–8
+remain accepted. The earlier bounded-pass stops below are historical; the same
+per-chapter author/coder/reviewer gates and preservation rules continue.
+
+The author must keep all four full documents in active context: this edition's
+`docs/agentic-codebook-workflow.md`, `docs/edition-2-carryover.md`, `book/voice.md`,
+and `book/chapter-writing-procedure.md`. Bill explicitly requires reloading all
+four immediately after every compaction, before writing resumes. Summaries do
+not count. The independent reviewer follows the same full-reading requirement.
+
+Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
+Astra/high) corrects the separately versioned graders and validates technical
+claims, and `reviewer_astra` independently reviews both. The coordinator records
+acceptance and releases the next chapter; only Chapter 9 is currently assigned.
+Read the original chapter, corresponding student/comparative reviews and exact
+accepted solution at each gate. Enhance the original text with demonstrated
+lessons; preserve stories, personality and sufficient explanation. There is no
+length-reduction target, new product scope or permission to edit frozen exports.
+
+Use the [final chapter map](edition-2-chapter-map.md): Edition 2 Chapters 9–19
+correspond to originals 10–20; Chapter 20 combines originals 21 and 22; Chapter
+21 is original 23; Chapter 22 combines originals 24 and 25; Chapter 23 is
+original 26. Include each merged capability in its TL;DR and exercise, and keep
+all reader solution paths aligned. Preserve original-numbered historical evidence.
+Apply the existing per-chapter handoff, correction limit and checkpoint process.
+No publication or push is authorized by this authoring pass.
 
 **Current layout correction, October 10:** Bill subsequently required all
 accepted Edition 2 solutions directly in `solutions/edition-2/chNN/`, with only

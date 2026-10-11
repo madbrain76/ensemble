@@ -1,5 +1,29 @@
 # Chapter writing procedure
 
+## Current phase and authority, October 11
+
+The student implementation and comparative reviews are complete through original
+Chapter 26, exported as Edition 2 solutions 1–23. Bill now authorizes the
+remaining manuscript/grader enhancement, beginning with Edition 2 Chapter 9;
+Chapters 0–8 are already accepted. Use `docs/agentic-codebook-workflow.md` and
+`docs/edition-2-enhancement.md` for the current sequence, assignments and gates,
+and `docs/edition-2-chapter-map.md` for numbering. The earlier author-first
+sequence, chapter count, deleted skill paths, expanded acceptance machinery and
+initialization instructions below are historical and do not restart the student
+run. The mandatory current skill is `.agents/skills/ensemble-coding/SKILL.md`.
+Existing enhancement notes remain the chapter records; do not create parallel
+validation ledgers or overwrite accepted solution exports.
+
+Bill requires the author to hold all four full documents in active context:
+this procedure, `book/voice.md`, `docs/agentic-codebook-workflow.md`, and
+`docs/edition-2-carryover.md`. After every compaction, reload all four completely
+before writing again. A summary is not a substitute. The independent reviewer
+also reloads all four before reviewing after compaction. Preserve the human story,
+explanations and right chapter length; there is no chapter-trimming target.
+
+The remaining craft and evidence guidance applies under that current workflow.
+The original text below is retained to preserve the procedure's history.
+
 The second-edition workflow for *The Art of Building AI Coding Agents*.
 Updated for Bill's instructions in this session. This replaces the old
 code-first outline procedure and its per-chapter approval ceremony.

@@ -5,6 +5,17 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
+**October 11 author-phase release.** The student implementation and independent
+comparative reviews are complete through original26 / Edition2 Chapter23. Bill
+explicitly releases remaining manuscript enhancement from Edition2 Chapter9,
+with author/coder collaboration and independent prose/grader review. Follow
+`docs/edition-2-enhancement.md`; preserve original graders and frozen solutions,
+and record revised grader results separately. Earlier student-phase prohibitions
+on authorship/grader revision do not prevent this authorized phase.
+Bill requires the author, and the reviewer, to load the complete workflow,
+carryover, `book/voice.md` and `book/chapter-writing-procedure.md` into active
+context and reload all four after every compaction before resuming their work.
+
 **October 11 merge authorization.** Bill releases the original Chapter 22/24
 placement stops and delegates the merges: original 21 + 22 → Edition 2 Chapter
 20; original 23 → Chapter 21; original 24 + 25 → Chapter 22; original 26 →

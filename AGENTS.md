@@ -1,5 +1,22 @@
 # Ensemble student restart
 
+## October 11: remaining author–coder enhancement released
+
+Bill explicitly authorizes writing the remaining Edition 2 chapters to match
+the accepted `solutions/edition-2/ch09`–`ch23` implementations. Continue the joint
+author–coder enhancement and independent prose/grader review, one chapter at a
+time, under `docs/edition-2-enhancement.md`. Chapters 0–8 are already accepted.
+The completed implementation gate is satisfied; earlier author stops below are
+historical. Preserve original text, graders, solutions and CodeRhapsody's work.
+
+Bill's critical context requirement: the author must hold the full contents of
+all four documents in active context: `docs/agentic-codebook-workflow.md`,
+`docs/edition-2-carryover.md`, `book/voice.md`, and
+`book/chapter-writing-procedure.md`. After every compaction, reload all four in
+full before further authorship. A compacted summary does not satisfy this rule.
+Use bounded reads and recover any truncated ranges. The reviewer also reads all
+four in full and reloads them after compaction before reviewing.
+
 ## October 11: remaining merges and autonomous continuation
 
 Bill delegates both remaining merge decisions and authorizes autonomous work.

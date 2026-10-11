@@ -1,5 +1,14 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**Current author phase, October 11:** Bill has explicitly released enhancement
+of remaining Edition 2 Chapters 9–23 from the accepted solutions, with the joint
+author/coder workflow and independent prose/grader review at each chapter.
+Historical author stops below are superseded. The author must hold this entire
+carryover, `agentic-codebook-workflow.md`, `../book/voice.md`, and
+`../book/chapter-writing-procedure.md` in active context. Reload all four in full
+after every compaction before writing resumes; summaries do not suffice. The
+reviewer follows the same reading rule. See [current assignments](edition-2-enhancement.md).
+
 **Current implementation:** original26 is independently accepted at `0d9e823`
 after one formal correction round, source `450f7a9`, main tree
 `27d7fcf9b8b31275068fa705d6969cfe3eafedc1`. Its exact180-file export is direct
