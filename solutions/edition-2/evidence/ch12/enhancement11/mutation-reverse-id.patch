@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -214,7 +214,7 @@
+ }
+ 
+ func (c *client) reverse(m message) {
+-	response := message{ID: m.ID}
++	response := message{ID: raw(1)}
+ 	if m.Method != "tools/call" {
+ 		response.Error = &rpcError{-32601, "method not found"}
+ 	} else {

@@ -1,0 +1,11 @@
+--- internal/agent/mcp.go
++++ internal/agent/mcp.go
+@@ -150,7 +150,7 @@
+ 	t := r.active
+ 	var names []string
+ 	for _, tool := range r.owner.definitions() {
+-		if r.owner.toolEnabled(tool.Name) && (tool.Ephemeral == "round" || (tool.Ephemeral == "turn" && !t.ephemeralTurn)) {
++		if r.owner.toolEnabled(tool.Name) && (false || (tool.Ephemeral == "turn" && !t.ephemeralTurn)) {
+ 			names = append(names, tool.Name)
+ 		}
+ 	}

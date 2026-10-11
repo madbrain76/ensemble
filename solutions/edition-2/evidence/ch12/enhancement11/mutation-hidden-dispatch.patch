@@ -1,0 +1,11 @@
+--- internal/agent/agent.go
++++ internal/agent/agent.go
+@@ -224,7 +224,7 @@
+ }
+ func (a *agent) definition(name string, automatic bool) *common.ToolDefinition {
+ 	for _, tool := range a.definitions() {
+-		if tool.Name == name && a.toolEnabled(name) && (automatic || tool.Ephemeral == "") {
++		if tool.Name == name && a.toolEnabled(name) && true {
+ 			return &tool
+ 		}
+ 	}

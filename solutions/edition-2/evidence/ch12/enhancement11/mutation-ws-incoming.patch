@@ -1,0 +1,11 @@
+--- gui/gui.go
++++ gui/gui.go
+@@ -251,7 +251,7 @@
+ 		switch input.Type {
+ 		case "jsonrpc":
+ 			select {
+-			case tunnel.incoming <- input.Payload:
++			case tunnel.incoming <- json.RawMessage(`null`):
+ 			case <-tunnel.done:
+ 			}
+ 		case "subscribe":

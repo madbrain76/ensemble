@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -23,7 +23,7 @@
+ 			c.Turn = "input_pending"
+ 		}
+ 	case "request_sent":
+-		c.Ephemera = nil // consumption is logged, so replay knows it was delivered once.
++		c.Ephemera = c.Ephemera // consumption is logged, so replay knows it was delivered once.
+ 		if c.Turn == "input_pending" || c.Turn == "idle" {
+ 			c.Turn = "in_flight"
+ 		}

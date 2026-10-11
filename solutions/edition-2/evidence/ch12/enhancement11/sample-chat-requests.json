@@ -1,0 +1,148 @@
+[
+  {
+    "tools": [
+      {
+        "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read the exact marker file text",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "read_marker"
+      }
+    ],
+    "model": "fake-model",
+    "max_tokens": 1024,
+    "system": "Read the marker through read_marker when requested.\nAutomatic snapshot data describes the current round.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+          },
+          {
+            "type": "text",
+            "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 1\n\n## session_brief (auto-updated)\n\nUse read_marker to inspect the local marker."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tools": [
+      {
+        "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "Read the exact marker file text",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "read_marker"
+      }
+    ],
+    "model": "fake-model",
+    "max_tokens": 1024,
+    "system": "Read the marker through read_marker when requested.\nAutomatic snapshot data describes the current round.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "published-read",
+            "name": "read_marker",
+            "input": {}
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "published-read",
+            "content": [
+              {
+                "type": "text",
+                "text": "PUBLISHED_FILE_CONTENT_ONLY"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "## environment_snapshot (auto-updated)\n\nSnapshot number 2"
+          }
+        ]
+      }
+    ]
+  }
+]

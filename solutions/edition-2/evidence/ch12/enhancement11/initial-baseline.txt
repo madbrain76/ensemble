@@ -1,0 +1,8 @@
+=== RUN   TestChapter11MCP
+    ch11_test.go:23: tool-discovery: [declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [load_skill unload_skill] declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [load_skill unload_skill] declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [load_skill unload_skill] declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [load_skill unload_skill] declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [load_skill unload_skill]]
+    ch11_test.go:23: mcp-tool-call: [result remote-echo: error=true want=false text="unknown tool \"remote_echo\"" decode=<nil> actual remote result/arguments or content blocks lost: "unknown tool \"remote_echo\"" remote isError/content did not reach model as a failed result external normal invocation counts: map[auto_broken:5]]
+    ch11_test.go:23: ephemeral-round: [request1 lacks only its fresh round1 context request1 has wrong once-per-turn context request2 lacks only its fresh round2 context request3 lacks only its fresh round3 context request4 lacks only its fresh round4 context request5 lacks only its fresh round5 context request5 has wrong once-per-turn context external auto_round calls=0 want5 external auto_turn calls=0 want2]
+--- FAIL: TestChapter11MCP (0.81s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.821s
+FAIL

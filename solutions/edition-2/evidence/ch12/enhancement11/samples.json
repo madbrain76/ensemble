@@ -1,0 +1,104 @@
+{
+  "chapter_sha256": "37ece94fb7c0cf0a3706dad8cd877d5238cb0e4c23b76455995787ed25a6e453",
+  "fences": [
+    {
+      "language": "go",
+      "sha256": "7f65a0e9bc8c2054ddd02664e6b33949c902b4c6f7069fbce64331aeff551abc"
+    },
+    {
+      "language": "go",
+      "sha256": "3e05ceba0fef332a8b684e163f9cd97cfb4e9e246f53c28b384ab5df8e96f51b"
+    },
+    {
+      "language": "markdown",
+      "sha256": "d6c1060f0148d22f8c505fea01abc7998c20a4e1931878df50e43951536c2f90"
+    },
+    {
+      "language": "yaml",
+      "sha256": "0b9331fb55600d6dd9a87ac214a202b64fbb74e859be4a6c15f50a2ee2afb56e"
+    },
+    {
+      "language": "sh",
+      "sha256": "fdd23291a99124956dfba373fc0cec3d46ca1f7506f94c5c052120a44d086d92"
+    },
+    {
+      "language": "sh",
+      "sha256": "42309525914779bcc2decc138c29eb401ebb4c250899c19aa8cbb94333320ebb"
+    },
+    {
+      "language": "python",
+      "sha256": "ec43d48e3827e4cb7411c1e7af8d4bd8ea404eb409147bbe8a9ccf7687576052"
+    },
+    {
+      "language": "markdown",
+      "sha256": "f5cf35dd887aab7cac319cde2ab9edae0aa5b60f5cde5548de56b700de72dd50"
+    },
+    {
+      "language": "sh",
+      "sha256": "86ac7bafcb402fbd8186dd0ed09de4243a36448edc48410e26fb620980d9908e"
+    },
+    {
+      "language": "sh",
+      "sha256": "16e22a5d9f4a960a578e4173a09e9fb49c2f48a87f4147efb08fb5f0773d87c2"
+    }
+  ],
+  "checks": [
+    {
+      "name": "sample-build",
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "/tmp/ensemble-ch11",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "sample-bridge-and-lifetime",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./ensemble",
+        "-run",
+        "^TestMCP",
+        "-count=1",
+        "-v"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "exact peer.py + base SKILL + /tmp/ensemble-ch11 chat",
+      "exit": 0,
+      "requests": 2,
+      "counts": {
+        "environment_snapshot": 2,
+        "session_brief": 1,
+        "read_marker": 1
+      },
+      "result_only_file_marker": true,
+      "boundary": "local faithful provider; not a paid/live-model repeat"
+    },
+    {
+      "name": "/tmp/ensemble-ch11 --mcp-pipe",
+      "exit": 0,
+      "handshake_and_correlated_read": true
+    },
+    {
+      "name": "sample-public-skills",
+      "command": [
+        "go",
+        "run",
+        "-mod=mod",
+        ".",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch11-samples-ljpsydc2/demo"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "code-search companion limitation",
+      "note": "Fragment tested with separately supplied faithful subprocess; no scripts/search_server.py exists in the published fragment and no generic search implementation is claimed."
+    }
+  ]
+}

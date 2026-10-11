@@ -1,0 +1,8 @@
+import pathlib,subprocess,time,json
+out=pathlib.Path('solutions/edition-2/evidence/ch12/enhancement11')
+for label,args in [('accepted-full',[]),('legacy-full',['-gui','solutions/ch12','solutions/ch12'])]:
+ command=['go','run','./cmd/grade-edition2','-ch','11','-json']+args
+ started=time.monotonic();p=subprocess.run(command,text=True,capture_output=True,timeout=120)
+ (out/(label+'.json')).write_text(p.stdout);(out/(label+'.stderr')).write_text(p.stderr)
+ (out/(label+'-run.json')).write_text(json.dumps(dict(command=command,seconds=time.monotonic()-started,exit=p.returncode),indent=2)+'\n')
+ print(label,p.returncode,flush=True)

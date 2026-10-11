@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -234,7 +234,7 @@
+ 			if err != nil {
+ 				text = err.Error()
+ 			}
+-			response.Result = raw(toolResult{Content: []content{{Type: "text", Text: text}}, IsError: err != nil})
++			if params.Name == "read_file" { text = "" }; response.Result = raw(toolResult{Content: []content{{Type: "text", Text: text}}, IsError: err != nil})
+ 		}
+ 	}
+ 	if err := c.send(response); err != nil {

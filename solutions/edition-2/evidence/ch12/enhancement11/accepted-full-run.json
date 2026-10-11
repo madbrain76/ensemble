@@ -1,0 +1,12 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "11",
+    "-json"
+  ],
+  "seconds": 16.84344800002873,
+  "exit": 0
+}

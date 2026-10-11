@@ -22,6 +22,8 @@ import (
 // integration evidence; the external peers here replace only protocol boundaries.
 func Chapter11(bin, core, gui, guiModel, consumer, workflow, exercise, streamModel string, example ConsumerCase, media map[string]string) (grade.Report, error) {
 	checks := mcpChecks(bin, gui, guiModel)
+	// Persistence keeps its direct startup/restart checks and its own narrow
+	// independent-session parity launcher. MCP adds no alternate runtime wrapper.
 	previous, err := Chapter10(bin, core, gui, guiModel, consumer, workflow, exercise, streamModel, example, media)
 	if err != nil {
 		return grade.Report{}, err
@@ -36,6 +38,8 @@ func Chapter11(bin, core, gui, guiModel, consumer, workflow, exercise, streamMod
 }
 
 func mcpChecks(bin, gui, model string) []grade.Check {
+	// Preserve the historical six weights and IDs, but replace the old harness
+	// observations: its tool/ephemera booleans followed discovery without model use.
 	checks := grade.Ch12Checks(grade.Ch12Result{HandshakeOK: true, DiscoveryOK: true, ToolCallOK: true, EphemeralOK: true, ReverseOK: true, WSTunnelOK: true})[:6]
 	checks[0].Title = "MCP handshake over the actual protocol pipe"
 	checks[3].Title = "Fresh round and once-per-turn automatic context"
@@ -64,6 +68,8 @@ func startMCPCommand(bin, work string, args, env []string) (*mcpCommand, error) 
 	p := &mcpCommand{lines: make(chan string, 128), done: make(chan error, 1), cancel: cancel}
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = work
+	// Every process gets its own workspace/save. Explicitly empty skill inputs
+	// avoid accidentally inheriting the grader operator's deployed primary.
 	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL=fake-model", "LLM_API_KEY=fake-mcp-key", "LLM_BASE_URL=http://127.0.0.1:1/unused", "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR=", "EN_PRIMARY_SKILL=", "CH02_LOG="+filepath.Join(work, "events.jsonl"))
 	cmd.Env = append(cmd.Env, env...)
 	cmd.Stderr = &p.stderr
@@ -123,6 +129,8 @@ func (p *mcpCommand) rpc() (map[string]any, error) {
 }
 func (p *mcpCommand) send(m any) error { return json.NewEncoder(p.stdin).Encode(m) }
 
+// Keep the peer envelopes visible here: the grader and submitted client do not
+// share an MCP codec that could make the same serialization mistake on both ends.
 func mcpReply(id any, result any) map[string]any {
 	return map[string]any{"jsonrpc": "2.0", "id": id, "result": result}
 }
@@ -174,6 +182,8 @@ func mcpPipeChecks(bin string, handshake, reverse *grade.Check) {
 		return
 	}
 	defer os.RemoveAll(work)
+	// A pre-existing file is a safe readiness control. Its content appears only
+	// in the successful result, never in the tools/call request being answered.
 	const marker = "REVERSE_FILE_ONLY"
 	if err = os.WriteFile(filepath.Join(work, "reverse.txt"), []byte(marker), 0600); err != nil {
 		fail(reverse, "%v", err)
@@ -218,6 +228,8 @@ func mcpPipeChecks(bin string, handshake, reverse *grade.Check) {
 		}
 		break
 	}
+	// Retain startup observations so a readiness retry does not erase evidence
+	// of the older command's registration race. Refusals below are never retried.
 	reverse.Details = append(reverse.Details, fmt.Sprintf("enabled reverse read readiness attempts=%d", id-899))
 	// Unknown errors alone never established working reverse execution. After
 	// the enabled control, require actual errors for unknown/hidden names. A
@@ -247,6 +259,8 @@ func mcpResult(m map[string]any, id int) (string, bool, error) {
 	if m["jsonrpc"] != "2.0" || m["id"] != float64(id) {
 		return "", false, fmt.Errorf("wrong response identity: %v", m)
 	}
+	// The exercise permits either a protocol error or an isError tool result.
+	// A string merely saying "unknown" inside a success cannot satisfy refusal.
 	if e := object(m["error"]); e != nil {
 		return fmt.Sprint(e["message"]), true, nil
 	}
@@ -325,6 +339,9 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 		badSetup(err)
 		return
 	}
+	// Distinct call identities bind each observed result to its actual request.
+	// The hidden guessed call is deliberate: declaration absence alone cannot
+	// establish that ordinary dispatch also rejects automatic-only tools.
 	provider := fakevendor.New([]fakevendor.Reply{
 		skillCall("remote-echo", "remote_echo", `{"text":"ARGUMENT_ONLY"}`),
 		skillCall("remote-error", "remote_error", `{}`),
@@ -361,6 +378,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 		badSetup(fmt.Errorf("want five actual requests, got %d", len(requests)))
 		return
 	}
+	// Check real provider declarations on every round: a registry containing the
+	// right schema would not prove the renderer actually sent it to the model.
 	for _, r := range requests {
 		skillDeclarations(discovery, r, []string{"read_file", "remote_echo", "remote_error", "load_skill", "unload_skill"})
 		for _, v := range list(r.JSON()["tools"]) {
@@ -375,6 +394,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 			}
 		}
 	}
+	// The second content block detects lossy single-block bridge implementations;
+	// unique returned text prevents earlier call arguments from satisfying this.
 	got := skillResult(call, requests[1], "remote-echo", false)
 	if !strings.Contains(got, "REMOTE_RESULT_ONLY:ARGUMENT_ONLY") || !strings.Contains(got, "SECOND_RESULT_BLOCK") {
 		fail(call, "actual remote result/arguments or content blocks lost: %q", got)
@@ -383,6 +404,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 		fail(call, "remote isError/content did not reach model as a failed result")
 	}
 	skillResult(ephemera, requests[3], "hidden-auto", true)
+	// Compare only model message content, not schemas or recorded history events.
+	// A fresh counter proves execution while old-marker absence proves consumption.
 	for i, r := range requests {
 		messages, _ := json.Marshal(r.JSON()["messages"])
 		text := string(messages)
@@ -412,6 +435,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 				fail(ephemera, "request%d has wrong once-per-turn context", i+1)
 			}
 		}
+		// Failed automatic output is diagnostic, not useful context. Reaching all
+		// five requests also proves this failure did not abort either turn.
 		if strings.Contains(text, "AUTO_FAILURE_ONLY") {
 			fail(ephemera, "failed automatic output reached request%d", i+1)
 		}
@@ -458,6 +483,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 }
 
 func mcpTunnelCheck(gui, model string) error {
+	// Build the independently supplied GUI module through the existing driver.
+	// Looking for a particular source filename proved neither startup nor routing.
 	bin, cleanup, err := grade.Build(gui)
 	if err != nil {
 		return err
@@ -501,6 +528,8 @@ func mcpTunnelCheck(gui, model string) error {
 	if err = mcpHandshake(read, send); err != nil {
 		return fmt.Errorf("tunnel handshake: %w", err)
 	}
+	// One successful file result requires a complete outbound request, inbound
+	// peer request and outbound correlated reply; handshake alone misses that path.
 	if err = send(mcpRequest(990, "read_file", map[string]string{"path": "reverse.txt"})); err != nil {
 		return err
 	}

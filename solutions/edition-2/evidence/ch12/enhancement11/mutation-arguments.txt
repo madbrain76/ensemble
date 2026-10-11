@@ -1,0 +1,4 @@
+=== RUN   TestChapter11Probe
+[{"id":"mcp-handshake","title":"MCP handshake over the actual protocol pipe","points":15,"earned":15,"passed":true},{"id":"tool-discovery","title":"tools/list populates agent registry with MCP tools","points":15,"earned":15,"passed":true},{"id":"mcp-tool-call","title":"MCP tool call via bridge returns result","points":15,"earned":0,"passed":false,"details":["actual remote result/arguments or content blocks lost: \"REMOTE_RESULT_ONLY:\\nSECOND_RESULT_BLOCK\"","outgoing MCP arguments changed"]},{"id":"ephemeral-round","title":"Fresh round and once-per-turn automatic context","points":20,"earned":20,"passed":true},{"id":"reverse-call","title":"MCP server calls agent tool via reverse handler","points":15,"earned":15,"passed":true,"details":["enabled reverse read readiness attempts=1"]},{"id":"ws-tunnel","title":"JSON-RPC messages routed through WebSocket hub","points":10,"earned":10,"passed":true}]
+--- PASS: TestChapter11Probe (0.66s)
+PASS

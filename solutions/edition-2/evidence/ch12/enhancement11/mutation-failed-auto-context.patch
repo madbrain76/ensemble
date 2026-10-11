@@ -1,0 +1,11 @@
+--- internal/agent/mcp.go
++++ internal/agent/mcp.go
+@@ -165,7 +165,7 @@
+ 		for _, name := range names {
+ 			text, err := r.owner.invoke(t.request.ctx, name, nil, true)
+ 			if err != nil {
+-				r.owner.Ensemble().Logf("ephemeral tool %s: %v", name, err)
++				r.owner.Ensemble().Logf("ephemeral tool %s: %v", name, err); parts = append(parts, err.Error())
+ 				continue
+ 			}
+ 			if text != "" {

@@ -1,0 +1,11 @@
+--- internal/mcp/mcp.go
++++ internal/mcp/mcp.go
+@@ -71,7 +71,7 @@
+ 				continue
+ 			}
+ 		} else {
+-			t, err = startStdio(m.parent, server)
++			return nil
+ 		}
+ 		if err == nil {
+ 			err = m.Connect(context.Background(), server.Name, t)

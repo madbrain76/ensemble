@@ -1,0 +1,81 @@
+import pathlib,re,json,hashlib,subprocess,tempfile,shutil,os,threading,http.server,time
+root=pathlib.Path.cwd();source=root/'solutions/edition-2/ch11';out=root/'solutions/edition-2/evidence/ch12/enhancement11'
+chapter=root/'book/edition-2/chapter-11.md';text=chapter.read_text();fences=re.findall(r'```([^\n]*)\n(.*?)```',text,re.S)
+scratch=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-ch11-samples-'));receipt={'chapter_sha256':hashlib.sha256(chapter.read_bytes()).hexdigest(),'fences':[{'language':lang,'sha256':hashlib.sha256(body.encode()).hexdigest()} for lang,body in fences],'checks':[]}
+def command(label,args,cwd,env=None):
+ p=subprocess.run(args,cwd=cwd,env=env,text=True,capture_output=True,timeout=90);(out/(label+'.txt')).write_text(p.stdout+p.stderr);receipt['checks'].append({'name':label,'command':args,'exit':p.returncode});assert p.returncode==0,(label,p.stdout,p.stderr);return p
+try:
+ snippets=[s for l,s in fences if l=='go'];md=[s for l,s in fences if l=='markdown'];python=next(s for l,s in fences if l=='python');yaml=next(s for l,s in fences if l=='yaml')
+ command('sample-build',['go','build','-o','/tmp/ensemble-ch11','.'],source)
+ # Substitute the exact bridge excerpt in its documented private method context.
+ tree=scratch/'source';shutil.copytree(source,tree)
+ file=tree/'internal/mcp/mcp.go';before=file.read_text();start=before.index('\t\t\ttools = append(tools, common.ToolDefinition{');end=before.index('\n\t\t}',start)
+ file.write_text(before[:start]+snippets[1]+'\n tools = append(tools, tool)'+before[end:])
+ command('sample-bridge-and-lifetime',['go','test','-race','./ensemble','-run','^TestMCP','-count=1','-v'],tree)
+ # Use the exact published Python peer and primary skill with the built real CLI.
+ work=scratch/'demo';work.mkdir();(work/'peer.py').write_text(python);(work/'marker.txt').write_text('PUBLISHED_FILE_CONTENT_ONLY')
+ (work/'skills/base').mkdir(parents=True);(work/'skills/base/SKILL.md').write_text(md[1])
+ requests=[]
+ class Provider(http.server.BaseHTTPRequestHandler):
+  def do_POST(self):
+   req=json.loads(self.rfile.read(int(self.headers['Content-Length'])));requests.append(req)
+   content=[{'type':'tool_use','id':'published-read','name':'read_marker','input':{}}] if len(requests)==1 else [{'type':'text','text':'PUBLISHED_SAMPLE_DONE'}]
+   data=json.dumps({'id':'sample-response','type':'message','role':'assistant','model':'fake-model','content':content,'stop_reason':'tool_use' if len(requests)==1 else 'end_turn','usage':{'input_tokens':1,'output_tokens':1}}).encode();self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+  def log_message(self,*args):pass
+ server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Provider);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+ env=dict(os.environ,LLM_VENDOR='anthropic',LLM_MODEL='fake-model',LLM_API_KEY='fake-sample-key',LLM_BASE_URL=f'http://127.0.0.1:{server.server_port}',EN_DISABLE_STREAMING='1',EN_SKILLS_DIR='./skills',EN_PRIMARY_SKILL='base')
+ p=subprocess.Popen(['/tmp/ensemble-ch11','chat'],cwd=work,env=env,text=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+ p.stdin.write('Use read_marker exactly once. Report the exact marker and current automatic snapshot number in one sentence. Do no other work.\n');p.stdin.flush();lines=[]
+ timer=threading.Timer(15,p.kill);timer.start()
+ for line in p.stdout:
+  lines.append(line)
+  if 'PUBLISHED_SAMPLE_DONE' in line:break
+ p.stdin.close();p.wait(timeout=10);timer.cancel();stderr=p.stderr.read();server.shutdown();server.server_close()
+ (out/'sample-chat.stdout').write_text(''.join(lines));(out/'sample-chat.stderr').write_text(stderr);(out/'sample-chat-requests.json').write_text(json.dumps(requests,indent=2)+'\n');counts=json.loads((work/'peer-counts.json').read_text())
+ assert p.returncode==0 and len(requests)==2 and counts=={'environment_snapshot':2,'session_brief':1,'read_marker':1},(p.returncode,counts)
+ results=[x for m in requests[1]['messages'] for x in m['content'] if x.get('type')=='tool_result' and x.get('tool_use_id')=='published-read'];assert len(results)==1 and 'PUBLISHED_FILE_CONTENT_ONLY' in json.dumps(results[0])
+ assert 'Snapshot number 1' in json.dumps(requests[0]['messages']) and 'Snapshot number 2' in json.dumps(requests[1]['messages']) and 'Snapshot number 1' not in json.dumps(requests[1]['messages'])
+ receipt['checks'].append({'name':'exact peer.py + base SKILL + /tmp/ensemble-ch11 chat','exit':p.returncode,'requests':2,'counts':counts,'result_only_file_marker':True,'boundary':'local faithful provider; not a paid/live-model repeat'})
+ # Run the exact dedicated protocol command; the peer supplies valid replies.
+ env.update(EN_SKILLS_DIR='',EN_PRIMARY_SKILL='')
+ p=subprocess.Popen(['/tmp/ensemble-ch11','--mcp-pipe'],cwd=work,env=env,text=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE);timer=threading.Timer(15,p.kill);timer.start();wire=[]
+ def read():
+  m=json.loads(p.stdout.readline());wire.append(m);return m
+ def reply(m,result):p.stdin.write(json.dumps({'jsonrpc':'2.0','id':m['id'],'result':result})+'\n');p.stdin.flush()
+ m=read();assert m['method']=='initialize';reply(m,{'protocolVersion':'2024-11-05','capabilities':{'tools':{}}});assert read()['method']=='notifications/initialized';m=read();assert m['method']=='tools/list';reply(m,{'tools':[]})
+ p.stdin.write(json.dumps({'jsonrpc':'2.0','id':77,'method':'tools/call','params':{'name':'read_file','arguments':{'path':'marker.txt'}}})+'\n');p.stdin.flush();m=read();assert m['id']==77 and 'PUBLISHED_FILE_CONTENT_ONLY' in json.dumps(m['result']) and not m['result'].get('isError')
+ p.stdin.close();p.wait(timeout=10);timer.cancel();assert p.returncode==0;(out/'sample-pipe.json').write_text(json.dumps(wire,indent=2)+'\n');receipt['checks'].append({'name':'/tmp/ensemble-ch11 --mcp-pipe','exit':0,'handshake_and_correlated_read':True})
+ # An independent module compiles the exact interface and loads both declarations.
+ external=scratch/'external';external.mkdir();(external/'go.mod').write_text('module chaptersample\n\ngo 1.25.0\n\nrequire ensemble v0.0.0\nreplace ensemble => '+str(source)+'\n')
+ (work/'skills/browser-tools').mkdir();(work/'skills/browser-tools/SKILL.md').write_text(md[0]);(work/'skills/search').mkdir();(work/'skills/search/SKILL.md').write_text('---\nname: search\ndescription: supplied faithful search companion\ntype: loadable\n'+yaml+'---\nSearch source.\n')
+ (work/'skills/base/SKILL.md').write_text('---\nname: base\ndescription: public sample loader\ntype: primary\nloadable-skills: browser-tools search\n---\nLoad the examples.\n')
+ (work/'scripts').mkdir();(work/'scripts/search_server.py').write_text("import json,sys\nfor line in sys.stdin:\n m=json.loads(line)\n if 'id' not in m: continue\n if m['method']=='initialize': r={'protocolVersion':'2024-11-05','capabilities':{'tools':{}}}\n elif m['method']=='tools/list': r={'tools':[{'name':'search_code','description':'Search companion','inputSchema':{'type':'object'}}]}\n elif m['method']=='tools/call': r={'content':[{'type':'text','text':'SEARCH_RESULT_ONLY'}]}\n else: continue\n print(json.dumps({'jsonrpc':'2.0','id':m['id'],'result':r}),flush=True)\n")
+ body='''package main
+import("context";"encoding/json";"fmt";"io";"os";"path/filepath";"strings";"time";"ensemble/ensemble")
+INTERFACE
+func must(err error){if err!=nil{panic(err)}}
+func main(){
+ work:=os.Args[1];ctx,cancel:=context.WithTimeout(context.Background(),5*time.Second);defer cancel()
+ left,right:=ensemble.MCPPipe();var boundary MCPTransport=left
+ go func(){must(boundary.Send(json.RawMessage(`{"public":"pipe"}`)))}();data,err:=right.Recv();must(err);if string(data)!=`{"public":"pipe"}`{panic("pipe payload")};left.Close();right.Close()
+ reader,writer:=io.Pipe();raw:=ensemble.NewMCPTransport(reader,writer,reader);go func(){must(raw.Send(json.RawMessage(`{"public":"raw"}`)))}();data,err=raw.Recv();must(err);if string(data)!=`{"public":"raw"}`{panic("raw payload")};raw.Close();writer.Close()
+ a,err:=ensemble.New(io.Discard).NewAgent(ensemble.Config{Model:"fake",Workspace:work,DataDir:filepath.Join(work,"owned")},ensemble.AgentSpec{SkillsDir:filepath.Join(work,"skills"),PrimarySkill:"base"});must(err);defer a.Shutdown()
+ local,remote:=ensemble.MCPPipe();defer remote.Close();done:=make(chan struct{})
+ go func(){defer close(done);for{data,err:=remote.Recv();if err!=nil{return};var m map[string]any;must(json.Unmarshal(data,&m));if m["id"]==nil{continue};var result any
+ switch m["method"]{case "initialize":result=map[string]any{"protocolVersion":"2024-11-05","capabilities":map[string]any{"tools":map[string]any{}}}
+ case "tools/list":var tools []any;for _,name:=range []string{"gui_snapshot","gui_click","gui_input","tts_queue"}{mode:="";if name=="gui_snapshot"||name=="tts_queue"{mode="round"};tools=append(tools,map[string]any{"name":name,"description":name,"inputSchema":map[string]any{"type":"object"},"ephemeral":mode})};result=map[string]any{"tools":tools}
+ case "tools/call":result=map[string]any{"content":[]map[string]string{{"type":"text","text":"BROWSER_PEER_RESULT_ONLY"}}}}
+ reply,_:=json.Marshal(map[string]any{"jsonrpc":"2.0","id":m["id"],"result":result});if remote.Send(reply)!=nil{return}
+ }}()
+ // Attach first: the complete loadable sample supplies admission later.
+ must(a.MCP().AttachBrowser(ctx,local));body,err:=a.Invoke(ctx,"load_skill",json.RawMessage(`{"name":"browser-tools"}`));must(err);if !strings.Contains(body,"current snapshot"){panic(body)}
+ names:=map[string]bool{};for _,tool:=range a.Declarations(){names[tool.Name]=true};if !names["gui_click"]||!names["gui_input"]||names["gui_snapshot"]||names["tts_queue"]{panic(fmt.Sprint(names))}
+ result,err:=a.Invoke(ctx,"gui_click",json.RawMessage(`{"selector":"#fixture"}`));must(err);if result!="BROWSER_PEER_RESULT_ONLY"{panic(result)}
+ _,err=a.Invoke(ctx,"load_skill",json.RawMessage(`{"name":"search"}`));must(err);result,err=a.Invoke(ctx,"search_code",json.RawMessage(`{}`));must(err);if result!="SEARCH_RESULT_ONLY"{panic(result)}
+ a.Shutdown();remote.Close();<-done;fmt.Println("PASS exact public transport interface, actual raw/pipe transport, browser skill admission/call and code-search fragment with supplied subprocess companion; no DOM claim")
+}
+'''.replace('INTERFACE',snippets[0]);(external/'main.go').write_text(body)
+ command('sample-public-skills',['go','run','-mod=mod','.',str(work)],external)
+ receipt['checks'].append({'name':'code-search companion limitation','note':'Fragment tested with separately supplied faithful subprocess; no scripts/search_server.py exists in the published fragment and no generic search implementation is claimed.'})
+finally:
+ (out/'samples.json').write_text(json.dumps(receipt,indent=2)+'\n');shutil.rmtree(scratch)

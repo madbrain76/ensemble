@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestChapter11MCP$",
+      "-count=1",
+      "-v"
+    ],
+    "exit": 0,
+    "seconds": 3.98,
+    "stdout": "=== RUN   TestChapter11MCP\n--- PASS: TestChapter11MCP (0.68s)\nPASS\nok  \tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t1.700s\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.13,
+    "stdout": "?   \tgithub.com/waywardgeek/ensemble/cmd/grade-edition2\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "./internal/gradeedition2",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.196,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gofmt",
+      "-l",
+      "internal/gradeedition2/ch11.go",
+      "internal/gradeedition2/ch11_test.go",
+      "cmd/grade-edition2/main.go"
+    ],
+    "exit": 0,
+    "seconds": 0.009,
+    "stdout": "",
+    "stderr": ""
+  }
+]

@@ -1,0 +1,4 @@
+=== RUN   TestChapter11MCP
+--- PASS: TestChapter11MCP (0.58s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	0.589s

@@ -1,0 +1,11 @@
+--- internal/mcp/mcp.go
++++ internal/mcp/mcp.go
+@@ -155,7 +155,7 @@
+ 				continue
+ 			}
+ 			info := info
+-			tools = append(tools, common.ToolDefinition{ToolDeclaration: common.ToolDeclaration{Name: info.Name, Description: info.Description, Schema: info.Schema}, Ephemeral: info.Ephemeral,
++			tools = append(tools, common.ToolDefinition{ToolDeclaration: common.ToolDeclaration{Name: info.Name, Description: info.Description, Schema: json.RawMessage(`{}`)}, Ephemeral: info.Ephemeral,
+ 				Run: func(call common.ToolContext, args json.RawMessage) (string, error) {
+ 					return c.call(call.Job().Context(), info.Name, args)
+ 				}})

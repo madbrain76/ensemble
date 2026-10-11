@@ -1,0 +1,50 @@
+{
+  "internal/gradeedition2/ch11.go": {
+    "sha256": "a5d98eb5412f2ddbebb2b2d7ee67adf1e9079f37628c757d980ee5fc70387489",
+    "physical": 545,
+    "active": 476,
+    "comment_only": 55
+  },
+  "internal/gradeedition2/ch11_test.go": {
+    "sha256": "f3c442bd2944e16da9217eda44fe6a6ae677ec12bac493e9b061b7e09cc0c1e2",
+    "physical": 27,
+    "active": 22,
+    "comment_only": 2
+  },
+  "cmd/grade-edition2/main.go": {
+    "sha256": "f30d0a6adb26320c95b7d362b0caa25d4f661fa602c3e73bc9e725de210f45ca",
+    "physical": 132,
+    "active": 122,
+    "comment_only": 5
+  },
+  "internal/grade/ch12_checks.go": {
+    "sha256": "9e3e74c172fb479376133a5a11b4e44cd3eb36e043502d74972fae95abeeb630",
+    "physical": 112,
+    "active": 103,
+    "comment_only": 1
+  },
+  "internal/grade/ch12_harness.go": {
+    "sha256": "a7c91fe21dc09412fd0bdb31427986f138ebfe45f8c3964697657aeaa6f3573d",
+    "physical": 379,
+    "active": 286,
+    "comment_only": 54
+  },
+  "book/edition-2/chapter-11.md": {
+    "sha256": "37ece94fb7c0cf0a3706dad8cd877d5238cb0e4c23b76455995787ed25a6e453",
+    "physical": 462,
+    "active": 381,
+    "comment_only": 5
+  },
+  "book/chapter-12.md": {
+    "sha256": "a754bd50ca7f3c7a2da868ff5acbdb98b4d5eddaa05349e7890c4a3dbf6cd4b9",
+    "physical": 172,
+    "active": 131,
+    "comment_only": 1
+  },
+  "source_trees": {
+    "solutions/edition-2/ch11": "f519c619cfea183b3755f45b4fd46c52dfca50db",
+    "solutions/ch12": "97a0f14733a85dca719f7b0ebc8a38f781928697"
+  },
+  "grader_behavior_checkpoint": "0b9a9abe0f07a6cd5ea1da066e361fed9e5fbdd2",
+  "after_checkpoint_changes": "Explanatory comments only; measured behavior unchanged."
+}

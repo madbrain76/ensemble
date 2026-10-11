@@ -1,0 +1,11 @@
+--- internal/agent/agent.go
++++ internal/agent/agent.go
+@@ -213,7 +213,7 @@
+ 		for _, definition := range definitions {
+ 			names[definition.Name] = true
+ 		}
+-		for _, definition := range a.mcp.Tools() {
++		for _, definition := range []common.ToolDefinition{} {
+ 			if !names[definition.Name] {
+ 				definitions = append(definitions, definition)
+ 				names[definition.Name] = true

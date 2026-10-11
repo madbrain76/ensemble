@@ -1,0 +1,11 @@
+--- internal/agent/mcp.go
++++ internal/agent/mcp.go
+@@ -166,7 +166,7 @@
+ 			text, err := r.owner.invoke(t.request.ctx, name, nil, true)
+ 			if err != nil {
+ 				r.owner.Ensemble().Logf("ephemeral tool %s: %v", name, err)
+-				continue
++				return
+ 			}
+ 			if text != "" {
+ 				parts = append(parts, fmt.Sprintf("## %s (auto-updated)\n\n%s", name, text))

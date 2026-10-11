@@ -1,0 +1,2 @@
+Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+read_marker {}

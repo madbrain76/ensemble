@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -134,7 +134,7 @@
+ 	if result.ProtocolVersion != "2024-11-05" {
+ 		return fmt.Errorf("unsupported MCP protocol version %q", result.ProtocolVersion)
+ 	}
+-	if err := c.send(message{Method: "notifications/initialized"}); err != nil {
++	if err := c.send(message{Method: "notifications/not-initialized"}); err != nil {
+ 		return err
+ 	}
+ 	var listed struct {

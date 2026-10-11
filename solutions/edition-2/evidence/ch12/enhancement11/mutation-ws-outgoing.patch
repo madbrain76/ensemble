@@ -1,0 +1,11 @@
+--- gui/mcp.go
++++ gui/mcp.go
+@@ -29,7 +29,7 @@
+ 
+ // Send frames one RPC onto the same serialized writer used by GUI messages.
+ func (t *WSTransport) Send(message json.RawMessage) error {
+-	data, err := json.Marshal(map[string]any{"type": "jsonrpc", "payload": message})
++	data, err := json.Marshal(map[string]any{"type": "jsonrpc", "data": message})
+ 	if err != nil {
+ 		return err
+ 	}
