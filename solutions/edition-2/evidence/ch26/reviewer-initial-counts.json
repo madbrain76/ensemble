@@ -1,0 +1,251 @@
+{
+  "method": "Physical/active/comment-only/blank; lexical comment-only starts //, /*, *, */, <!--; inline code active. Tracked Go/JS/MJS/HTML/CSS; tests/scripts separate; net own-predecessor totals count moves once. Initial formal submission counts.",
+  "student_source": "944c6ee0b329f9463e0d1b0aa7a7dc28472210ae",
+  "student_predecessor": "e00d5bcaf1412c50787428ef1fa08bed59b99e11",
+  "original_source": "solutions/ch26 at 974f67be89272ea60fa17b460cefde0e478a137b",
+  "original_predecessor": "solutions/ch25 at 974f67be89272ea60fa17b460cefde0e478a137b",
+  "student": {
+    "before": {
+      "production_go": [
+        14979,
+        12005,
+        2194,
+        780
+      ],
+      "test_go": [
+        10009,
+        9161,
+        582,
+        266
+      ],
+      "test_mjs": [
+        909,
+        884,
+        20,
+        5
+      ],
+      "production_mjs": [
+        317,
+        300,
+        12,
+        5
+      ],
+      "production_js": [
+        733,
+        648,
+        74,
+        11
+      ],
+      "production_html": [
+        63,
+        62,
+        1,
+        0
+      ],
+      "production_css": [
+        165,
+        165,
+        0,
+        0
+      ]
+    },
+    "after": {
+      "production_go": [
+        15997,
+        12871,
+        2298,
+        828
+      ],
+      "test_go": [
+        10546,
+        9654,
+        608,
+        284
+      ],
+      "test_mjs": [
+        984,
+        956,
+        21,
+        7
+      ],
+      "production_mjs": [
+        317,
+        300,
+        12,
+        5
+      ],
+      "production_js": [
+        767,
+        680,
+        76,
+        11
+      ],
+      "production_html": [
+        70,
+        69,
+        1,
+        0
+      ],
+      "production_css": [
+        174,
+        172,
+        1,
+        1
+      ]
+    },
+    "delta": {
+      "production_css": [
+        9,
+        7,
+        1,
+        1
+      ],
+      "production_go": [
+        1018,
+        866,
+        104,
+        48
+      ],
+      "production_html": [
+        7,
+        7,
+        0,
+        0
+      ],
+      "production_js": [
+        34,
+        32,
+        2,
+        0
+      ],
+      "production_mjs": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "test_go": [
+        537,
+        493,
+        26,
+        18
+      ],
+      "test_mjs": [
+        75,
+        72,
+        1,
+        2
+      ]
+    }
+  },
+  "original": {
+    "before": {
+      "test_go": [
+        15669,
+        12056,
+        2169,
+        1444
+      ],
+      "production_go": [
+        27992,
+        17052,
+        8535,
+        2405
+      ],
+      "production_js": [
+        1884,
+        1381,
+        313,
+        190
+      ],
+      "production_html": [
+        200,
+        177,
+        13,
+        10
+      ],
+      "production_css": [
+        674,
+        552,
+        31,
+        91
+      ],
+      "support_js": [
+        418,
+        288,
+        89,
+        41
+      ]
+    },
+    "after": {
+      "test_go": [
+        16533,
+        12725,
+        2262,
+        1546
+      ],
+      "production_go": [
+        29059,
+        17890,
+        8642,
+        2527
+      ],
+      "production_js": [
+        1982,
+        1460,
+        318,
+        204
+      ],
+      "production_html": [
+        197,
+        173,
+        14,
+        10
+      ],
+      "production_css": [
+        733,
+        605,
+        31,
+        97
+      ]
+    },
+    "delta": {
+      "production_css": [
+        59,
+        53,
+        0,
+        6
+      ],
+      "production_go": [
+        1067,
+        838,
+        107,
+        122
+      ],
+      "production_html": [
+        -3,
+        -4,
+        1,
+        0
+      ],
+      "production_js": [
+        98,
+        79,
+        5,
+        14
+      ],
+      "support_js": [
+        -418,
+        -288,
+        -89,
+        -41
+      ],
+      "test_go": [
+        864,
+        669,
+        93,
+        102
+      ]
+    }
+  }
+}

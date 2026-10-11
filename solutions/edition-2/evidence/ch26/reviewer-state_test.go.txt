@@ -1,0 +1,18 @@
+package gui_test
+import("context";"encoding/json";"ensemble/ensemble";gui "ensemble-gui-stub";"io";"net/http";"net/http/httptest";"strings";"testing";"time";"github.com/gorilla/websocket")
+type reviewerHumanSink struct{}
+func (reviewerHumanSink) Deliver(ensemble.FleetMessage) error{return nil}
+// Successful explicit submission must not replay a pending request when the
+// real runtime has completed and again after its named conversation is restored.
+func TestReviewerSubmittedSelectionState(t *testing.T){
+ provider:=httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){io.Copy(io.Discard,r.Body);json.NewEncoder(w).Encode(map[string]any{"content":[]any{map[string]any{"type":"tool_use","id":"submit-call","name":"submit","input":map[string]string{"result":"DONE"}}},"usage":map[string]int{"input_tokens":1,"output_tokens":1}})}));defer provider.Close()
+ dir:=t.TempDir();cfg:=ensemble.Config{Model:"fake",BaseURL:provider.URL,BuiltinTools:true,Recall:ensemble.RecallSettings{Disabled:true}}
+ start:=func()(*ensemble.Ensemble,ensemble.Agent){e:=ensemble.New(io.Discard);a,err:=e.Start(dir,cfg,ensemble.AgentSpec{},reviewerHumanSink{});if err!=nil{t.Fatal(err)};return e,a}
+ app,root:=start();peer,err:=app.CreateAgent("console","fake","");if err!=nil{t.Fatal(err)}
+ ctx,cancel:=context.WithTimeout(context.Background(),time.Second);defer cancel();if result,err:=peer.Ask(ctx,"TASK");err!=nil||result!="DONE"{t.Fatal(result,err)}
+ check:=func(stage string){t.Helper();hub,err:=gui.New(app,root,io.Discard);if err!=nil{t.Fatal(err)};server:=httptest.NewServer(hub.Handler(""));defer server.Close();defer hub.Close()
+ c,_,err:=websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL,"http")+"/ws",nil);if err!=nil{t.Fatal(err)};defer c.Close();if err=c.WriteJSON(map[string]string{"type":"select_agent","key":"console"});err!=nil{t.Fatal(err)}
+ frames:=until(t,c,kind("state_changed"));state:=frames[len(frames)-1]["to"];t.Logf("%s: activity=%s selected replay=%v",stage,peer.Activity().Phase,state);if state!="idle"{t.Errorf("%s completed idle Agent replays pending state %v",stage,state)}}
+ check("completed");if err=app.Close();err!=nil{t.Fatal(err)}
+ app,root=start();defer app.Close();peer,err=app.FindAgent("console",root);if err!=nil{t.Fatal(err)};check("restarted")
+}

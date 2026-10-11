@@ -1,0 +1,13 @@
+Source: 9e2b72aeaddc85cbe1afadec41909b4d66ad3b34
+Real submitted peer, selected replay, complete restart with same directory; go test -race -run ^TestReviewerSubmittedSelectionState$ -count=1 -timeout=10s -v
+=== RUN   TestReviewerSubmittedSelectionState
+    reviewer_state_test.go:16: completed: activity=idle selected replay=input_pending
+    reviewer_state_test.go:16: completed completed idle Agent replays pending state input_pending
+    reviewer_state_test.go:17: restarted: activity=idle selected replay=input_pending
+    reviewer_state_test.go:17: restarted completed idle Agent replays pending state input_pending
+--- FAIL: TestReviewerSubmittedSelectionState (0.05s)
+FAIL
+exit status 1
+FAIL	ensemble-gui-stub	0.064s
+
+exit=1

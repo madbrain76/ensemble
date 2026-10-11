@@ -1,0 +1,86 @@
+{
+  "live_source": "9e2b72aeaddc85cbe1afadec41909b4d66ad3b34",
+  "final_submission": "944c6ee0b329f9463e0d1b0aa7a7dc28472210ae",
+  "frames": 1432,
+  "frame_file_sha256": "281ffafc2add6b60c347fdf241a31dbef655a0b5b00d8a036de1c53328b2c243",
+  "selected": [
+    "main",
+    "console",
+    "console/helper",
+    "console",
+    "main",
+    "console"
+  ],
+  "activities": [
+    "idle",
+    "thinking",
+    "tool_call",
+    "waiting"
+  ],
+  "created": [
+    "console",
+    "spare"
+  ],
+  "deleted": [
+    "spare"
+  ],
+  "last_tree": {
+    "root": {
+      "id": "ensemble",
+      "key": "",
+      "parent": "",
+      "persistent": false,
+      "deletable": false,
+      "state": "running",
+      "activity": {
+        "phase": ""
+      },
+      "children": [
+        {
+          "id": "main",
+          "key": "main",
+          "parent": "",
+          "persistent": true,
+          "deletable": false,
+          "state": "idle",
+          "activity": {
+            "phase": "idle"
+          },
+          "children": []
+        },
+        {
+          "id": "console",
+          "key": "console",
+          "parent": "",
+          "persistent": true,
+          "deletable": true,
+          "state": "idle",
+          "activity": {
+            "phase": "idle"
+          },
+          "children": []
+        }
+      ]
+    },
+    "type": "agent_tree"
+  },
+  "last_replayed_state": {
+    "from": "input_pending",
+    "replay": true,
+    "to": "input_pending",
+    "type": "state_changed"
+  },
+  "last_pause": {
+    "paused": false,
+    "replay": true,
+    "type": "pause_changed"
+  },
+  "final_turn": {
+    "agent_key": "console",
+    "error": "",
+    "text": "CH26_LIVE_COMPLETE \u2014 Created slugify.py and test_slugify.py via the single helper child. Helper ran tests and submitted; independently reran python3 -m unittest -v: all 3 tests passed, exit code 0. Recorded measured outcome in fleet-result.txt. All work stayed in /tmp/ch26-live-0N7L6h.",
+    "type": "turn_ended"
+  },
+  "finding": "Successful explicit submit leaves selected replay input_pending before and after restart; actual activity idle. Pause is false. Independent real-submit/select/restart probe reproduces.",
+  "limits": "No provider or credential access by reviewer. Model/wire/file-test audit belongs to coordinator; selected GUI and state trace independently inspected."
+}

@@ -206,3 +206,96 @@ isolation addition; neither substitutes an internal mock. The three-child
 monitor addition also retains real actor/provider history and checks returned
 identity, submissions and pattern matching. Final mutation/live assessment is
 still pending; zero formal rounds and no final disposition.
+
+## Initial formal review — needs correction
+
+Submission `944c6ee0b329f9463e0d1b0aa7a7dc28472210ae`, main tree
+`edd8f498661273752353e8bd8df7a1ffc7e7ff11`. Read the complete final student
+review in [ch26.md](ch26.md), all20 mutation attempts and actual failure outputs,
+final source delta, live GUI frame/DOM evidence and preceding comparative source
+review. Final source differs from independently tested/live `9e2b72a` only in
+three documentation comments; the independent runtime reproduction below applies
+to this submitted behavior. **Not accepted. The next correction is round1 of3;
+zero formal correction rounds have been consumed.**
+
+One blocking finding remains. A successful explicit fleet submission ends the
+actual turn but selected-conversation replay reports `input_pending`, including
+after named-peer restart. The live trace first exposed this: final submission
+completes at frame1377, restart selects console at1394, tree1395 is idle/idle,
+but selected replay1428 reports input_pending. Frame1429 reports paused=false;
+the always-present Unpause everyone button is not evidence of a pause defect.
+The coordinator identified the screenshot discrepancy; the reviewer traced it
+and independently reproduced the actual behavior.
+
+The reducer enters input_pending after a completed tool batch in
+`internal/history/reduce.go`; normally another provider request consumes it.
+Successful fleet submission instead finishes directly through
+`internal/agent/dispatch.go`/`actor.go`, leaving that durable turn state pending.
+The new `agentView.replay` presents it as current state. A small external-provider
+fake exercises real Start/CreateAgent/Ask, successful submit, WebSocket selection,
+Close/Start and selection again. Both completed and restarted Agents have idle
+activity yet replay input_pending: clean intended race failure0.064s.
+[Exact regression](../../solutions/edition-2/evidence/ch26/reviewer-state.txt),
+[probe source](../../solutions/edition-2/evidence/ch26/reviewer-state_test.go.txt),
+and [independent live trace](../../solutions/edition-2/evidence/ch26/reviewer-live-state-check.json).
+Correct the actual completed-turn/current-replay disagreement, preserving true
+busy and interruption behavior. Demonstrate both immediate selection and saved
+restart through the real runtime, with an affected regression and targeted
+restored-defect mutation. No additional paid model run is needed merely to
+refresh source provenance for this local state correction.
+
+I agree with the student's two narrow original-grader explanations. Six checks
+fail at an omitted model before inference; the GUI probe launches the headless
+entry with GUI arguments. The actual original score remains0/100 FAIL at974f67b.
+An explicit configured model and the shipped optional GUI are the valid entry
+contracts; a hardcoded default or core GUI dependency would not repair a fleet
+behavior. These fixture assumptions are accepted exceptions, not waivers of
+activity, persistence, ownership, waiting, composition, GUI or inherited submit/
+idle-correction obligations. No unobserved downstream envelope failure is claimed.
+The current blocking state defect is not covered by either exception.
+
+The other student explanations are supported: finalized cursors avoid confusing
+partials with later final output; JSON-line submissions retain multiline results;
+named peers and ephemeral children retain distinct lifetimes; existing non-fleet
+consumers keep the previously accepted boundary while both shipped applications
+enable recursive fleet construction. Scope stays within the manuscript and
+Bill's actual-owner/optional-GUI rules. Real named conversation restoration,
+owned lookups, recursive controls and two-tab isolation improve on the matching
+reference's existence-only persistence and confirmation-only interruption checks.
+The reference's missing conversation selection/model-skill controls are not
+excuses for omitting them here. No bloat or architectural blocker remains.
+
+Mutation evidence supports19 clean intended kills over20 attempts. The initial
+graceful mutation ends in HTTP-fake cleanup timeout and is correctly excluded;
+the repaired request-body fixture produces the intended premature-shutdown
+failure. The nested-tree mutant's visible-node deadline detects missing recursive
+rendering with a passing browser baseline; the selection mutant fails the
+specific bounded Close assertion. Cursor, ownership, usage, phase, persistence,
+message, pattern and stuck failures match their claims. This evidence establishes
+those sensitivities, not exhaustive coverage or the validity of the stale-state
+assumption that the live run exposed.
+
+The independent GUI audit finds all1432 bidirectional frames, selections
+main→console→console/helper→console→main→console, all four activity phases,
+console/spare creation, spare deletion and restored console without helper.
+Actual artifacts and per-Agent history record the child implementation, measured
+three-test passes by child and parent, parent monitoring/join/submission retrieval
+and final CH26_LIVE_COMPLETE. The coordinator separately audits15 Astra/high
+requests/completions and raw tool/file correlation; no reviewer provider or
+credential access occurred. This is bounded real fleet coding evidence, not
+Edition3 authorship or a scale claim. The original live state discrepancy remains
+in history even after correction.
+
+[Initial-submission counts](../../solutions/edition-2/evidence/ch26/reviewer-initial-counts.json)
+refresh the same tracked lexical method: student production Go delta
+1018physical/866active/104comment/48blank versus original1067/838/107/122;
+student tests537/493/26/18 Go plus75/72/1/2 browser versus original864/669/93/102
+Go. Other production deltas remain as above. Moved code counts once; original
+MCP-transport deletion and removed script are explicitly distinguished above.
+These sizes are comparable; the student implements required selection and durable
+cursors omitted or weaker in the reference, while using existing ownership and
+transport boundaries. Added Go comments are about10.7% of nonblank lines, below
+Bill's rough20% teaching target, but they explain lifecycle, path identity,
+admission and persistence decisions without padding. Exported contracts are
+documented, including the final multiline-submission field comment. The review
+judges those explanations useful; it does not require quota-driven expansion.
