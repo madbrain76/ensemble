@@ -574,7 +574,7 @@ command they replace, a path like `cr/io/26`. When this chapter was
 designed, its handle counter started again at 1 on every launch, so
 after a restart `cr/io/26` named a different command's output. The
 agent that followed the stub read a file, got plausible output, and
-had no way to tell it was the wrong one. Chapter 13's rule applies:
+had no way to tell it was the wrong one. Chapter 12's rule applies:
 wrong data is worse than no data. The original account reports a subsequent counter correction. Ensemble's stubs say the bytes are gone and
 leave recovery to the tools that produced them.
 

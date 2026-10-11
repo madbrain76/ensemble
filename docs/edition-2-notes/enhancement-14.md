@@ -169,7 +169,7 @@ pending human edit, beyond an echoed settings value. No browser rerun is claimed
 ## Initial stage checks and next gate
 
 Stable initial manuscript SHA-256:
-`8466fe875c7310dc89114ffa8b86fb324f3dfedc886783f616f3b18defda2717`.
+`82d944af1fe5d64ed116115d69c8c8196f5162e72fb19a81d3db6752d8e35e34`.
 Direct `go run ./cmd/lintprose book/edition-2/chapter-14.md` passes hard checks,
 6,743 words. Soft negation/person-gap warnings were read; they do not justify
 removing necessary distinctions or adding invented people. The original teaching
@@ -188,3 +188,6 @@ Independent reviewer owns combined acceptance; root owns checkpoint and next
 release. All four full documents remain active after the reload recorded above;
 no further compaction occurred before this handoff. Every technical handoff
 requires `.agents/skills/ensemble-coding/SKILL.md`.
+
+The final cross-reference pass maps the inherited wrong-data observation to
+Edition 2 Chapter 12. Local links resolve; sample bytes are unchanged.
