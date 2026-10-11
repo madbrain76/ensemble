@@ -1,0 +1,20 @@
+[
+  {
+    "mutation": "paragraph-boundary",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (978.065959ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1135.626833\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (978.065959ms)\n  AssertionError [ERR_ASSERTION]: blank line alone ends a phrase\n  + actual - expected\n  \n    [\n  +   'First paragraph Second paragraph'\n  -   'First paragraph',\n  -   'Second paragraph'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-bo402pfi/main/gui/speech.test.mjs:195:14)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'First paragraph Second paragraph' ],\n    expected: [ 'First paragraph', 'Second paragraph' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "tool-flush",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (938.406958ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1099.1265\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (938.406958ms)\n  AssertionError [ERR_ASSERTION]: tool boundary order and silent result\n  + actual - expected\n  \n    [\n      'Before tool:',\n  -   'Tool boundary tail:',\n      'read file',\n      'Whole queue Chunk and max tool rounds.',\n  +   'Tool boundary tail:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-bo402pfi/main/gui/speech.test.mjs:272:14)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'Before tool:', 'read file', 'Whole queue Chunk and max tool rounds.', 'Tool boundary tail:' ],\n    expected: [ 'Before tool:', 'Tool boundary tail:', 'read file', 'Whole queue Chunk and max tool rounds.' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "turn-error-flush",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (956.652208ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1116.280334\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (956.652208ms)\n  AssertionError [ERR_ASSERTION]: error flushes unfinished text\n  + actual - expected\n  \n  + 'provider HTTP status 500'\n  - 'Unfinished error tail:'\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-bo402pfi/main/gui/speech.test.mjs:294:14)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 'provider HTTP status 500',\n    expected: 'Unfinished error tail:',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  }
+]

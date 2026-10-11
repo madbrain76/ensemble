@@ -1,0 +1,86 @@
+[
+  {
+    "mutation": "fragments",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (964.427667ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1123.0975\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (964.427667ms)\n  AssertionError [ERR_ASSERTION]: fragments/wrap/boundaries/flush\n  + actual - expected\n  \n    [\n  +   'A bro',\n  +   'ken wor',\n  +   'd wraps without a pause.',\n  -   'A broken word wraps without a pause.',\n      'Trailing:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:47:10)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'A bro', 'ken wor', 'd wraps without a pause.', 'Trailing:' ],\n    expected: [ 'A broken word wraps without a pause.', 'Trailing:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "wrapped-newline",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (681.912542ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 845.329542\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (681.912542ms)\n  AssertionError [ERR_ASSERTION]: fragments/wrap/boundaries/flush\n  + actual - expected\n  \n    [\n  +   'A broken word wraps',\n  +   'without a pause.',\n  -   'A broken word wraps without a pause.',\n      'Trailing:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:47:10)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'A broken word wraps', 'without a pause.', 'Trailing:' ],\n    expected: [ 'A broken word wraps without a pause.', 'Trailing:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "final-tail",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (745.428791ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 905.662333\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (745.428791ms)\n  AssertionError [ERR_ASSERTION]: fragments/wrap/boundaries/flush\n  + actual - expected\n  \n    [\n      'A broken word wraps without a pause.',\n  -   'Trailing:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:47:10)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'A broken word wraps without a pause.' ],\n    expected: [ 'A broken word wraps without a pause.', 'Trailing:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "fence-before-split",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (754.987875ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 916.668291\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (754.987875ms)\n  AssertionError [ERR_ASSERTION]: markup and fences false\n  + actual - expected\n  \n    [\n      'Heading queue Chunk uses max tool rounds and HTTP Server.',\n      'Read more.',\n  +   'code block'\n  -   'code block After:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:50:11)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'Heading queue Chunk uses max tool rounds and HTTP Server.', 'Read more.', 'code block' ],\n    expected: [ 'Heading queue Chunk uses max tool rounds and HTTP Server.', 'Read more.', 'code block After:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "emphasis-inline",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (741.178667ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 906.452958\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (741.178667ms)\n  AssertionError [ERR_ASSERTION]: markup and fences false\n  + actual - expected\n  \n    [\n  +   'Heading **queue Chunk** uses `max tool rounds` and HTTP Server.',\n  -   'Heading queue Chunk uses max tool rounds and HTTP Server.',\n      'Read more.',\n      'code block After:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:50:11)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'Heading **queue Chunk** uses `max tool rounds` and HTTP Server.', 'Read more.', 'code block After:' ],\n    expected: [ 'Heading queue Chunk uses max tool rounds and HTTP Server.', 'Read more.', 'code block After:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "link-filter",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (744.638208ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 906.465292\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (744.638208ms)\n  AssertionError [ERR_ASSERTION]: markup and fences false\n  + actual - expected\n  \n    [\n      'Heading queue Chunk uses max tool rounds and HTTP Server.',\n  +   '[Read more](https://example.test).',\n  -   'Read more.',\n      'code block After:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:50:11)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'Heading queue Chunk uses max tool rounds and HTTP Server.', '[Read more](https://example.test).', 'code block After:' ],\n    expected: [ 'Heading queue Chunk uses max tool rounds and HTTP Server.', 'Read more.', 'code block After:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "identifiers",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (739.790459ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 905.818833\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (739.790459ms)\n  AssertionError [ERR_ASSERTION]: markup and fences false\n  + actual - expected\n  \n    [\n  +   'Heading queueChunk uses max tool rounds and HTTP Server.',\n  -   'Heading queue Chunk uses max tool rounds and HTTP Server.',\n      'Read more.',\n      'code block After:'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:50:11)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'Heading queueChunk uses max tool rounds and HTTP Server.', 'Read more.', 'code block After:' ],\n    expected: [ 'Heading queue Chunk uses max tool rounds and HTTP Server.', 'Read more.', 'code block After:' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "source",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (739.616041ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 905.468334\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (739.616041ms)\n  AssertionError [ERR_ASSERTION]: source attribution\n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:51:11)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "audio-bypass",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (703.453375ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 867.688292\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (703.453375ms)\n  AssertionError [ERR_ASSERTION]: transcript bypass has no native audio\n  \n  4 !== 0\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:54:10)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: 4,\n    expected: 0,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "whole-part",
+    "applied": true,
+    "exit": 0,
+    "output": "\u2714 speech pipeline, real delivery and blind capabilities (1761.401625ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1929.043542\n"
+  },
+  {
+    "mutation": "stream-duplicate",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (813.544959ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 979.814375\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (813.544959ms)\n  AssertionError [ERR_ASSERTION]: whole final is spoken\n  + actual - expected\n  \n    [\n      {\n        source: 'text',\n        text: 'Whole queue Chunk and max tool rounds.'\n      },\n  +   {\n  +     source: 'text',\n  +     text: 'Whole queue Chunk and max tool rounds.'\n  +   }\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:56:41)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],\n    expected: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "error-speech",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (802.749084ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 970.371958\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (802.749084ms)\n  AssertionError [ERR_ASSERTION]: displayed provider error spoken\n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:59:236)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "silent-tool-result",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (823.028125ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 989.7325\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (823.028125ms)\n  AssertionError [ERR_ASSERTION]: tool boundary order and silent result\n  + actual - expected\n  \n    [\n      'Before tool:',\n      'read file',\n  +   'UNSPOKEN TOOL RESULT',\n      'Whole queue Chunk and max tool rounds.'\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:57:70)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'Before tool:', 'read file', 'UNSPOKEN TOOL RESULT', 'Whole queue Chunk and max tool rounds.' ],\n    expected: [ 'Before tool:', 'read file', 'Whole queue Chunk and max tool rounds.' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "escape-with-input",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (868.425ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1037.860541\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:13:1\n\u2716 speech pipeline, real delivery and blind capabilities (868.425ms)\n  AssertionError [ERR_ASSERTION]: Escape cancels with nonempty input\n  + actual - expected\n  \n  + {\n  +   queued_at: 1791686092881,\n  +   source: 'artifact',\n  +   started_at: 1791686092881\n  + }\n  - null\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-4nmkc2m2/main/gui/speech.test.mjs:66:158)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: { source: 'artifact', queued_at: 1791686092881, started_at: 1791686092881 },\n    expected: null,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  }
+]

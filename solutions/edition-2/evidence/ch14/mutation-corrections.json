@@ -1,0 +1,26 @@
+[
+  {
+    "mutation": "whole-part",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (1207.42ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1366.400625\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (1207.42ms)\n  AssertionError [ERR_ASSERTION]: whole final is spoken\n  + actual - expected\n  \n  + []\n  - [\n  -   {\n  -     source: 'text',\n  -     text: 'Whole queue Chunk and max tool rounds.'\n  -   }\n  - ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-njw8vmj1/main/gui/speech.test.mjs:245:14)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [],\n    expected: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "stream-duplicate",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (1990.478083ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 2284.401042\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (1990.478083ms)\n  AssertionError [ERR_ASSERTION]: blind completion hears actual pipeline\n  + actual - expected\n  \n    [\n      {\n        source: 'text',\n        text: 'Whole queue Chunk and max tool rounds.'\n      },\n  +   {\n  +     source: 'text',\n  +     text: 'Whole queue Chunk and max tool rounds.'\n  +   }\n    ]\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-njw8vmj1/main/gui/speech.test.mjs:386:14)\n      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' }, { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],\n    expected: [ { text: 'Whole queue Chunk and max tool rounds.', source: 'text' } ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "blind-registry",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (1648.878916ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1819.51325\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (1648.878916ms)\n  AssertionError [ERR_ASSERTION]: exact blind registry\n  + actual - expected\n  \n    [\n  +   'gui_snapshot',\n      'hear',\n      'type',\n      'submit',\n      'wait',\n      'sleep'\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-njw8vmj1/main/gui/speech.test.mjs:369:14)\n      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: [ 'gui_snapshot', 'hear', 'type', 'submit', 'wait', 'sleep' ],\n    expected: [ 'hear', 'type', 'submit', 'wait', 'sleep' ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }\n"
+  },
+  {
+    "mutation": "blind-dispatch",
+    "applied": true,
+    "exit": 1,
+    "output": "\u2716 speech pipeline, real delivery and blind capabilities (1714.996125ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 0\n\u2139 fail 1\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 1893.958958\n\n\u2716 failing tests:\n\ntest at speech.test.mjs:15:1\n\u2716 speech pipeline, real delivery and blind capabilities (1714.996125ms)\n  AssertionError [ERR_ASSERTION]: blind rejects gui_snapshot\n  + actual - expected\n  \n  + undefined\n  - true\n  \n      at TestContext.<anonymous> (file:///private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch14-mutants-njw8vmj1/main/gui/speech.test.mjs:375:16)\n      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n      at async Test.run (node:internal/test_runner/test:1404:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: undefined,\n    expected: true,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+  }
+]

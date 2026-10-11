@@ -1,0 +1,64 @@
+[
+  {
+    "command": [
+      "node",
+      "--test",
+      "speech.test.mjs"
+    ],
+    "exit": 0,
+    "stdout": "\u2714 speech pipeline, real delivery and blind capabilities (3121.279541ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 3279.883708\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "ok  \tensemble-gui-stub\t(cached)\n?   \tensemble-gui-stub/cmd\t[no test files]\n?   \tensemble-gui-stub/cmd/virtual-user\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "gofmt",
+      "-l",
+      "cmd/virtual-user/main.go"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--test",
+      "speech.test.mjs"
+    ],
+    "scope": "final source including independent paragraph/tool/error boundary assertions",
+    "exit": 0,
+    "stdout": "\u2714 speech pipeline, real delivery and blind capabilities (3115.16375ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 3272.896542\n",
+    "stderr": ""
+  }
+]

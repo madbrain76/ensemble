@@ -1,4 +1,5 @@
 import { browserMCP } from "./mcp.js";
+import { SpeechBuffer, speechText } from "./speech.js";
 
 // Each pane owns its artifacts through the same renderer. Renderers construct DOM nodes from text;
 // filenames, tool results and model prose can never become executable markup.
@@ -32,10 +33,17 @@ function pace() {
 class Speech {
   queue = [];
   active = null;
-  fragments = new Map();
-  enqueue(text) {
-    if (!text.trim()) return;
-    this.queue.push({ text, queued_at: Date.now() });
+  buffer = new SpeechBuffer(this);
+  transcript = [];
+  // Quiet observation still exercises this exact pipeline, not a second renderer.
+  audio = new URLSearchParams(location.search).get("speech") !== "transcript";
+  enqueue(text, source = "artifact") {
+    text = speechText(text);
+    if (!text) return;
+    this.transcript.push({ text, source });
+    window.dispatchEvent(new CustomEvent("ensemble-speech", { detail: { text, source } }));
+    if (!this.audio || !voice.checked) return;
+    this.queue.push({ text, source, queued_at: Date.now() });
     speaking = true;
     pace();
     this.advance();
@@ -51,6 +59,7 @@ class Speech {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(pending.text);
+    utterance.source = pending.source;
     utterance.queued_at = pending.queued_at;
     utterance.started_at = null;
     utterance.onstart = () => { utterance.started_at = Date.now(); };
@@ -69,30 +78,22 @@ class Speech {
   }
   // MCP observes actual native speech progress, plus utterances waiting locally.
   pending() {
-    const active = this.active ? [{ text: this.active.text, state: speechSynthesis.paused ? "paused" : this.active.started_at ? "speaking" : "starting", queued_at: this.active.queued_at, started_at: this.active.started_at, elapsed_ms: this.active.started_at ? Date.now() - this.active.started_at : 0 }] : [];
+    const active = this.active ? [{ text: this.active.text, source: this.active.source, state: speechSynthesis.paused ? "paused" : this.active.started_at ? "speaking" : "starting", queued_at: this.active.queued_at, started_at: this.active.started_at, elapsed_ms: this.active.started_at ? Date.now() - this.active.started_at : 0 }] : [];
     return active.concat(this.queue.map(item => ({ ...item, state: "queued", started_at: null, elapsed_ms: 0 })));
   }
-  // Phrase buffers belong to artifact IDs, so a thinking fragment cannot finish
-  // an unrelated chat sentence. Finals flush only the unspoken remainder.
-  chunk(id, text, final = false) {
-    if (!voice.checked) return;
-    let pending = (this.fragments.get(id) || "") + text;
-    let phrase;
-    while ((phrase = pending.match(/^([\s\S]*?(?:[.!?](?:\s+|$)|\n))/))) {
-      this.enqueue(phrase[1]);
-      pending = pending.slice(phrase[1].length);
-    }
-    if (final) {
-      this.enqueue(pending);
-      this.fragments.delete(id);
-    } else this.fragments.set(id, pending);
+  // Part identity prevents a thinking tail from joining response prose. The
+  // renderer already knows whether a final had deltas; reuse that information.
+  chunk(id, text, final = false, source = "text") {
+    this.buffer.chunk(id, text, source);
+    if (final) this.buffer.flush(id);
   }
+  flush() { this.buffer.flush(); }
   // Clear our generation before invoking native cancellation: its asynchronous
   // error callback may arrive after a new artifact has already queued speech.
   cancel() {
     this.active = null;
     this.queue = [];
-    this.fragments.clear();
+    this.buffer.fragments.clear();
     speechSynthesis.cancel();
     speaking = false;
     pace();
@@ -100,9 +101,15 @@ class Speech {
 }
 const speech = new Speech();
 const receiveMCP = browserMCP(send, speech);
+// The virtual listener receives only this transcript through its hear tool.
+// Exposing the application-owned object also lets browser checks inspect native
+// state without replacing the synthesizer or duplicating the speech algorithm.
+window.ensembleSpeech = speech;
+window.ensembleTurn = 0;
 // Chrome can suspend its speech service after a tab switch. This silent nudge
 // is deliberately outside the audible queue and therefore does not hold pause.
 document.addEventListener("visibilitychange", () => {
+  if (!speech.audio || !voice.checked) return;
   const wake = new SpeechSynthesisUtterance("");
   wake.volume = 0;
   speechSynthesis.speak(wake);
@@ -273,7 +280,7 @@ class ArtifactScroll {
       card.streamed = true;
       this.render(card);
       if (!message.replay && ["text", "thinking"].includes(message.kind))
-        speech.chunk(id, message.chunk);
+        speech.chunk(id, message.chunk, false, message.kind);
     } else if (
       message.type === "part_final" ||
       message.type === "user_message"
@@ -291,7 +298,7 @@ class ArtifactScroll {
       this.render(card);
       if (part.type === "tool_call") this.calls.set(part.call_id, card);
       if (!message.replay && ["text", "thinking"].includes(kind))
-        speech.chunk(id, card.streamed ? "" : card.text, true);
+        speech.chunk(id, card.streamed ? "" : card.text, true, kind);
     } else if (message.type === "tool_dispatched") {
       const card =
         this.calls.get(message.call_id) ||
@@ -301,10 +308,10 @@ class ArtifactScroll {
       card.label.textContent = message.name;
       card.text = `${message.name}\n${JSON.stringify(message.input, null, 2)}`;
       this.render(card);
-      if (!message.replay && voice.checked)
-        speech.enqueue(
-          `${message.name.replaceAll("_", " ")}: ${JSON.stringify(message.input).slice(0, 140)}`,
-        );
+      if (!message.replay) {
+        speech.flush();
+        speech.enqueue(message.name, "tool");
+      }
     } else if (message.type === "tool_finished") {
       // Tool output stays silent automatically, but the same speaker button
       // still provides full on-demand access to arguments and result text.
@@ -427,7 +434,11 @@ function connect() {
     if (message.type === "jsonrpc") { receiveMCP(message.payload); return; }
     route(message);
     if (["current_settings", "settings_changed"].includes(message.type)) applySettings(message.settings);
-    if (message.type === "settings_error") document.querySelector("#settings-status").textContent = message.error;
+    if (message.type === "settings_error") {
+      document.querySelector("#settings-status").textContent = message.error;
+      speech.flush();
+      speech.enqueue(message.error, "error");
+    }
     if (message.type === "state_changed") {
       state.textContent = message.to;
       agents[0].state = message.to;
@@ -436,9 +447,13 @@ function connect() {
     if (message.type === "pause_changed")
       pauseState.textContent = message.paused ? "paused" : "";
     if (message.type === "turn_ended") {
-      // An interrupted partial has no final callback to clear its phrase buffer.
-      speech.fragments.clear();
-      if (message.error) state.textContent = message.error;
+      // End of stream must release even a trailing colon or interrupted phrase.
+      speech.flush();
+      if (message.error) {
+        state.textContent = message.error;
+        speech.enqueue(message.error, "error");
+      }
+      window.ensembleTurn++;
     }
   };
   socket.onclose = () => {
@@ -468,7 +483,7 @@ input.addEventListener("keydown", (event) => {
 });
 // Escape works after a speaker click too, when focus is on the card button.
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && input.value === "") speech.cancel();
+  if (event.key === "Escape") speech.cancel();
 });
 document.querySelector("#interrupt").onclick = () => {
   speech.cancel();

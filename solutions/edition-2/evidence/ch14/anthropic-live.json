@@ -1,0 +1,572 @@
+{
+  "vendor": "anthropic",
+  "model": "claude-haiku-5-5",
+  "task": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools.",
+  "exit": 0,
+  "report": "The target's reply came back as two transcript entries, both with source \"text\":\n\n1. \"queue Chunk typically adds a piece of data, like a fruit-sized slice of a larger stream, to a queue for later processing, while max tool rounds caps how many tool-calling cycles an agent may run before stopping.\"\n2. \"HTTP Server is a class or program that listens for incoming HTTP requests and sends back responses.\"\n\nThat is the complete transcript. The first entry is one sentence and the second is another. The only fruit-related word I heard is \"fruit-sized\" in the first entry. I heard no explicit fruit choice, and no inline code markup was audible in either entry.\n",
+  "stderr": "",
+  "driver_events": [
+    {
+      "log_version": 1
+    },
+    {
+      "seq": 1,
+      "type": "message_received",
+      "time": "2026-10-11T02:34:01.98976Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "Ask the target to explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and to choose one fruit to mention. Then report exactly the spoken transcript, including its chosen fruit. Use only the five available tools."
+          }
+        ]
+      }
+    },
+    {
+      "seq": 2,
+      "type": "request_sent",
+      "time": "2026-10-11T02:34:01.989903Z",
+      "request": {
+        "to": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "type": "response_ended",
+      "time": "2026-10-11T02:34:03.276166Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 1,
+            "type": "tool_call",
+            "from": {
+              "vendor": "anthropic",
+              "model": "claude-haiku-5-5",
+              "surface": "messages"
+            },
+            "call_id": "toolu_013HDVdFi8eft3yYjvFw2yeg",
+            "name": "type",
+            "args": {
+              "text": "Please explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and choose one fruit to mention."
+            }
+          },
+          {
+            "artifact_id": 2,
+            "type": "tool_call",
+            "from": {
+              "vendor": "anthropic",
+              "model": "claude-haiku-5-5",
+              "surface": "messages"
+            },
+            "call_id": "toolu_01FtdtCrde5SkfmegLK6TTCT",
+            "name": "submit",
+            "args": {}
+          }
+        ],
+        "usage": {
+          "input": 801,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 115
+        },
+        "from": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "type": "tool_called",
+      "time": "2026-10-11T02:34:03.277697Z",
+      "tool": {
+        "job": {
+          "handle": 1,
+          "status": "running",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/1"
+          },
+          "bytes": 0
+        },
+        "name": "type",
+        "args": {
+          "text": "Please explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and choose one fruit to mention."
+        },
+        "call_id": "toolu_013HDVdFi8eft3yYjvFw2yeg"
+      }
+    },
+    {
+      "seq": 5,
+      "type": "job_finished",
+      "time": "2026-10-11T02:34:03.309221Z",
+      "tool": {
+        "job": {
+          "handle": 1,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/1"
+          },
+          "bytes": 5
+        },
+        "call_id": ""
+      }
+    },
+    {
+      "seq": 6,
+      "type": "tool_returned",
+      "time": "2026-10-11T02:34:03.30939Z",
+      "tool": {
+        "job": {
+          "handle": 1,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/1"
+          },
+          "bytes": 5
+        },
+        "call_id": "toolu_013HDVdFi8eft3yYjvFw2yeg",
+        "parts": [
+          {
+            "type": "text",
+            "text": "typed"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 7,
+      "type": "tool_called",
+      "time": "2026-10-11T02:34:03.309857Z",
+      "tool": {
+        "job": {
+          "handle": 2,
+          "status": "running",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/2"
+          },
+          "bytes": 0
+        },
+        "name": "submit",
+        "args": {},
+        "call_id": "toolu_01FtdtCrde5SkfmegLK6TTCT"
+      }
+    },
+    {
+      "seq": 8,
+      "type": "job_finished",
+      "time": "2026-10-11T02:34:03.317076Z",
+      "tool": {
+        "job": {
+          "handle": 2,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/2"
+          },
+          "bytes": 9
+        },
+        "call_id": ""
+      }
+    },
+    {
+      "seq": 9,
+      "type": "tool_returned",
+      "time": "2026-10-11T02:34:03.317131Z",
+      "tool": {
+        "job": {
+          "handle": 2,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/2"
+          },
+          "bytes": 9
+        },
+        "call_id": "toolu_01FtdtCrde5SkfmegLK6TTCT",
+        "parts": [
+          {
+            "type": "text",
+            "text": "submitted"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 10,
+      "type": "request_sent",
+      "time": "2026-10-11T02:34:03.317282Z",
+      "request": {
+        "to": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    },
+    {
+      "seq": 11,
+      "type": "response_ended",
+      "time": "2026-10-11T02:34:03.944172Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 5,
+            "type": "tool_call",
+            "from": {
+              "vendor": "anthropic",
+              "model": "claude-haiku-5-5",
+              "surface": "messages"
+            },
+            "call_id": "toolu_01R3hsYyiWfFLFDs6YnSWByA",
+            "name": "wait",
+            "args": {}
+          }
+        ],
+        "usage": {
+          "input": 974,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 25
+        },
+        "from": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "type": "tool_called",
+      "time": "2026-10-11T02:34:03.944491Z",
+      "tool": {
+        "job": {
+          "handle": 3,
+          "status": "running",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/3"
+          },
+          "bytes": 0
+        },
+        "name": "wait",
+        "args": {},
+        "call_id": "toolu_01R3hsYyiWfFLFDs6YnSWByA"
+      }
+    },
+    {
+      "seq": 13,
+      "type": "job_finished",
+      "time": "2026-10-11T02:34:05.380947Z",
+      "tool": {
+        "job": {
+          "handle": 3,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/3"
+          },
+          "bytes": 367
+        },
+        "call_id": ""
+      }
+    },
+    {
+      "seq": 14,
+      "type": "tool_returned",
+      "time": "2026-10-11T02:34:05.381087Z",
+      "tool": {
+        "job": {
+          "handle": 3,
+          "status": "done",
+          "output": {
+            "kind": 3,
+            "locator": "cr/agent-1/io/3"
+          },
+          "bytes": 367
+        },
+        "call_id": "toolu_01R3hsYyiWfFLFDs6YnSWByA",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[{\"text\":\"queue Chunk typically adds a piece of data, like a fruit-sized slice of a larger stream, to a queue for later processing, while max tool rounds caps how many tool-calling cycles an agent may run before stopping.\",\"source\":\"text\"},{\"text\":\"HTTP Server is a class or program that listens for incoming HTTP requests and sends back responses.\",\"source\":\"text\"}]"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 15,
+      "type": "request_sent",
+      "time": "2026-10-11T02:34:05.38145Z",
+      "request": {
+        "to": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    },
+    {
+      "seq": 16,
+      "type": "response_ended",
+      "time": "2026-10-11T02:34:07.486414Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 7,
+            "type": "opaque",
+            "from": {
+              "vendor": "anthropic",
+              "model": "claude-haiku-5-5",
+              "surface": "messages"
+            },
+            "data": {
+              "signature": "CAQS6QgKEAgSGAI4AUIIdGhpbmtpbmcSDHPdoFBowB4cFyNi3RoM3Z6lx5RzjT1I71uPIjA8TFTPDp8b3fVVAC3Fe0f6ae9cf0ZS4usHezuokJ5f+KiyZxd+Td3HLHNPSy7IVc0qhgid0AldEZcxN/z5HOU81f26ntBPVp2TSUYADGlnfnwHgUv/XbRagB92c4Fz8froUFHRG+j8l/ndsnzr8KZkMf77h7G/yBm2d/JN6yT5oA9nRFMsiJw4GRe4w7wgvDIyPc2n228kJLliwaJ7MJIzlp3NApSpRVC35Ztf565aTUnh8T+KVmMh7nIcor/qFNtM6q2LpckteX9fAGBhi7BEgCqe5qjzQwBSmcrPtTiw5ObiR9ZG7gXMcBqtdmLIWcrWJj4BT03Y0zRButEofA04fQqjxELpRv4tr+fDEvcuIAnT+u3Bc3zdd4Xa5NBF405DXaqc4DFS68P2Mc2CMrg87N6KJuBZ6sNUNpd0Ow2yf50xeA4rXc16QTVmR4m0+sqEDQRcQ+u8pNubtn1wm7qvyTJJh5Ku/4Uwvn7EqxAkxcfPgLmKmKaGx3NVUSTy9AtEjQAc94tA9J720Ed9qH1I+kqXohTGB14roXIh73SR1yyRbd/S+sXWBCGWY/pVWtVmBZHQ7EbyILlH4oZQfj9I/YVqC59uA4jx6gpTk5b4lCNTaoHF2VY9kUT5DKKfxz+arO367f8DE51rrqVnwKpjO4TmEeTpa8B+tLszrjSdtWlX7ryBIPn4QhlruSg5x3AiX/jcQGG8yCLzvfYdJz1zkgAkcqARIMhDFwZdygsDxggmG4qdedalRgJm+RSXPvoVg3Bik9qU7L0Zghw1Zv/65SmMqRmkMr+cF6bHDwErTdNyJeHYQtKFSSDqpOzQKCasGPL5yEuSWaaYHE3eXjly5GNe5HGsLP4et8Za4u6FsdIV33Ep93ZZNJOhGItzLGDwDuO4vgV6BVZQl8MvOStmymXEG0K8GNKC+5DfuyI2kkDkVs+e0DmRChizMP7+oDsIDFXp/rtGQLfkOxB6YD5JJ97JezLWzrlb0a4MDiQCLN/NlUEqmm/ei3a4GW63YhStcvngU80Swo3thVkhkHBA/b8GO9bMUrlDdJXyvoT0I+FVRDDOOnHUmh3+XyKuyUvK4zhgfgPM7Xrs992xcDWJ9Xt1l68GB3VwiDs89O1ATL0Bx6Uk2JuSjfDUOzm0+oKXBpFBNHC4701ltvDKh8KHpyALSazRpCTdjN06rb82bL9TKzDNvLG488ogI1HhfccJqXklttxOI/CFicKj7R6DphIrVztbZ8fQ2rwE+0OU62eFSkx92jswNkBOAX3FZv45B3GG+i0AFu96CshlXnqkIhAl9lzetKdVWsVpG3naO2gKNjeaPiLTg97KzBE4aAnDB9zer9XURwdbUossMTByHaqJLu7tCA7mh6RBM5JSEMwuRT35Ro929CfzkXGyJUkMOR3NREVCXsTZGLD/YzYAqmbHm4cZNZCoGAE=",
+              "thinking": "",
+              "type": "thinking"
+            }
+          },
+          {
+            "artifact_id": 8,
+            "type": "text",
+            "text": "The target's reply came back as two transcript entries, both with source \"text\":\n\n1. \"queue Chunk typically adds a piece of data, like a fruit-sized slice of a larger stream, to a queue for later processing, while max tool rounds caps how many tool-calling cycles an agent may run before stopping.\"\n2. \"HTTP Server is a class or program that listens for incoming HTTP requests and sends back responses.\"\n\nThat is the complete transcript. The first entry is one sentence and the second is another. The only fruit-related word I heard is \"fruit-sized\" in the first entry. I heard no explicit fruit choice, and no inline code markup was audible in either entry."
+          }
+        ],
+        "usage": {
+          "input": 1132,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 405
+        },
+        "from": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    }
+  ],
+  "target_events": [
+    {
+      "log_version": 1
+    },
+    {
+      "seq": 1,
+      "type": "message_received",
+      "time": "2026-10-11T02:34:03.316236Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "Please explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and choose one fruit to mention."
+          }
+        ]
+      }
+    },
+    {
+      "seq": 2,
+      "type": "request_sent",
+      "time": "2026-10-11T02:34:03.316494Z",
+      "request": {
+        "to": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "type": "response_ended",
+      "time": "2026-10-11T02:34:05.366737Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 1,
+            "type": "opaque",
+            "from": {
+              "vendor": "anthropic",
+              "model": "claude-haiku-5-5",
+              "surface": "messages"
+            },
+            "data": {
+              "signature": "CAQS0gkKEAgSGAI4AUIIdGhpbmtpbmcSDKQBNIamg/dSXcl8ShoMaCBpHZjhUyFiZUC6IjA82dxz9kTv7woJfsQsKAmMtwrAfN26j0iT4drGlKjvq/QiE5v+3VOK9bbJ9iajehQq7whxCWRHF28DXphzK1/ksbzt6CzYi0jWCQgAlX4DjgdpFzT0zyBXWiN1HMLJPMhx5FSP96HK85W9r8weNKpkvUoAeAu4v5bjf+WWBg6Stfn1YQEwCF1xTawR1/GzvYEHPo3KgaRIh0TV/TWfqHWqqSyyjR7yGANjWrZSeDEZ2JxSsYIsN+/T/LsRquj89CEf6V6UHNJAa8tWnRAOclRyg/d12Bt/FxAEM6q5tmikfZS7kQbSyFSJqOUASg0bgxqAtAvxzsz2a51hKyd+9+gJ1QIZS9FMP7cPk4tZb41GQTvb5zgxZYatIjbZ3AE3Y9aSqG6uG+7v/oOo9f66dXCgvwEwT0RECCRHGj88cz+X+jqTosgUQZcrtKuQTwhgSVL8knN/Vm4BGgFSOCkC7e1cOBhMyJwIsGmSrpMcS9sZg2qsYF1R6pr+aXjuJn57WLYKNmrkI1JQMbEQ/o/QdADiehJLFOJx90Hr8R9m52vR2J9k0JJiQhlQ2SeH9dDP2KM2ypCHzO1x7z5SqOmzngoZ5Y6KQ++LDH33OFhuziQUIwH1eoZhgEnrVw9Jbkj2id1U5szKgTvvPnqGm6mCMTXIXu9fLuZM8+/ca206lDZ6PyQQ6UR909HuB7dxzqeqrkZibS/CiSUSjVY5KWrek1T1raOFjxecBSaxZwdSfQd2R0MjqCfW+6NeY6U5H1oonBKXXVY0IhcXcywGCUmJGPK+pvv27j6MNXa+tjmPBTbTbrY4PTK8anpqbrT1ibAXwtpDZ7XVWRc/uSNcZj+QBp1ykG0rgDDU54WakupY2proiOuQtCEMnetjcXmArXZ+EFIgnEaLRZXDQ9da1Eo2Ga4q6WHYI0/p6ti9BcL2EgyaEWoui1+hzNU/0N7MhzhyvbJm82VI9sMabXdc+dWUxuxJ8YaRdJcYiwqxLGxX/SCVbsu5uJmVUaZ2OOmJNW3byH6SsqvhVEW/bPEMWYaK8B4XaO29ncIpEix3H6X487mli/Qwz9kWpGocHW2gC3OMKxMQaPhUW4MucuKEBX92sczHSQj3IBaZyOllMdhYSzc/oQ100oEoNll0VJlamnsR4HiQPLGqlpa5egVSe3Ba1YZiK9ORQscmuqjJy1l7mL1BtNeSAar897EJh1FTHr9R7dv0zyZPZ1OM6u5j+hWCo5UeGyIi8kF0KSDKl1ncV+R3/HH/16K5bnjFpWTdh70AacfN+1hyCjVKNh47aUIJjW1tXtKxNBVZh4Drn9wsI3gWqI9Maxhy8F015XLutz2EalA6PQ8P21ZGbJCkp5o4Gnil0a2rgZeXi+V5UzhXwuiNNKouBuaoamjLhVKYKGhchH/RHUZpQ/sb4DvAW7jxQEhMiSKEXdmgrJz41hGAVBsGA3ECXnfPHbiVoHKP2ABJ470HbPpIF0MelLKObae6NU8G+8p6xogo2i6EMV489K7NNgqbpkv348JWTD3RNL+ahr+vbealxYRpL82RWI7VsCOtvmxt5SDVCxDMMxNCHLuj4CzNGAE=",
+              "thinking": "",
+              "type": "thinking"
+            }
+          },
+          {
+            "artifact_id": 2,
+            "type": "text",
+            "text": "`queueChunk` typically adds a piece of data, like a fruit-sized slice of a larger stream, to a queue for later processing, while `max_tool_rounds` caps how many tool-calling cycles an agent may run before stopping. `HTTPServer` is a class or program that listens for incoming HTTP requests and sends back responses."
+          }
+        ],
+        "usage": {
+          "input": 559,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 345
+        },
+        "from": {
+          "vendor": "anthropic",
+          "model": "claude-haiku-5-5",
+          "surface": "messages"
+        }
+      }
+    }
+  ],
+  "target_api": [
+    {
+      "data": "{\"thinking\":{\"type\":\"adaptive\"},\"stream\":true,\"tools\":[{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]},\"name\":\"unload_skill\"}],\"model\":\"claude-haiku-5-5\",\"max_tokens\":4096,\"system\":\"Answer briefly in two sentences. No tools are needed.\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"Please explain queueChunk, max_tool_rounds and HTTPServer in two short sentences using inline code markup, and choose one fruit to mention.\"}]}]}",
+      "event": "request"
+    },
+    {
+      "data": "{\"type\":\"message_start\",\"message\":{\"model\":\"claude-haiku-5-5\",\"id\":\"msg_011Cfufif766zJMJFXyaeeEH\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"container\":null,\"stop_reason\":null,\"stop_sequence\":null,\"stop_details\":null,\"usage\":{\"input_tokens\":559,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":6,\"service_tier\":\"standard\",\"inference_geo\":\"global\"},\"diagnostics\":null}              }",
+      "event": "message_start"
+    },
+    {
+      "data": "{\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"thinking\",\"thinking\":\"\",\"signature\":\"\"}     }",
+      "event": "content_block_start"
+    },
+    {
+      "data": "{\"type\": \"ping\"}",
+      "event": "ping"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"thinking_delta\",\"thinking\":\"\"} }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"signature_delta\",\"signature\":\"CAQS0gkKEAgSGAI4AUIIdGhpbmtpbmcSDKQBNIamg/dSXcl8ShoMaCBpHZjhUyFiZUC6IjA82dxz9kTv7woJfsQsKAmMtwrAfN26j0iT4drGlKjvq/QiE5v+3VOK9bbJ9iajehQq7whxCWRHF28DXphzK1/ksbzt6CzYi0jWCQgAlX4DjgdpFzT0zyBXWiN1HMLJPMhx5FSP96HK85W9r8weNKpkvUoAeAu4v5bjf+WWBg6Stfn1YQEwCF1xTawR1/GzvYEHPo3KgaRIh0TV/TWfqHWqqSyyjR7yGANjWrZSeDEZ2JxSsYIsN+/T/LsRquj89CEf6V6UHNJAa8tWnRAOclRyg/d12Bt/FxAEM6q5tmikfZS7kQbSyFSJqOUASg0bgxqAtAvxzsz2a51hKyd+9+gJ1QIZS9FMP7cPk4tZb41GQTvb5zgxZYatIjbZ3AE3Y9aSqG6uG+7v/oOo9f66dXCgvwEwT0RECCRHGj88cz+X+jqTosgUQZcrtKuQTwhgSVL8knN/Vm4BGgFSOCkC7e1cOBhMyJwIsGmSrpMcS9sZg2qsYF1R6pr+aXjuJn57WLYKNmrkI1JQMbEQ/o/QdADiehJLFOJx90Hr8R9m52vR2J9k0JJiQhlQ2SeH9dDP2KM2ypCHzO1x7z5SqOmzngoZ5Y6KQ++LDH33OFhuziQUIwH1eoZhgEnrVw9Jbkj2id1U5szKgTvvPnqGm6mCMTXIXu9fLuZM8+/ca206lDZ6PyQQ6UR909HuB7dxzqeqrkZibS/CiSUSjVY5KWrek1T1raOFjxecBSaxZwdSfQd2R0MjqCfW+6NeY6U5H1oonBKXXVY0IhcXcywGCUmJGPK+pvv27j6MNXa+tjmPBTbTbrY4PTK8anpqbrT1ibAXwtpDZ7XVWRc/uSNcZj+QBp1ykG0rgDDU54WakupY2proiOuQtCEMnetjcXmArXZ+EFIgnEaLRZXDQ9da1Eo2Ga4q6WHYI0/p6ti9BcL2EgyaEWoui1+hzNU/0N7MhzhyvbJm82VI9sMabXdc+dWUxuxJ8YaRdJcYiwqxLGxX/SCVbsu5uJmVUaZ2OOmJNW3byH6SsqvhVEW/bPEMWYaK8B4XaO29ncIpEix3H6X487mli/Qwz9kWpGocHW2gC3OMKxMQaPhUW4MucuKEBX92sczHSQj3IBaZyOllMdhYSzc/oQ100oEoNll0VJlamnsR4HiQPLGqlpa5egVSe3Ba1YZiK9ORQscmuqjJy1l7mL1BtNeSAar897EJh1FTHr9R7dv0zyZPZ1OM6u5j+hWCo5UeGyIi8kF0KSDKl1ncV+R3/HH/16K5bnjFpWTdh70AacfN+1hyCjVKNh47aUIJjW1tXtKxNBVZh4Drn9wsI3gWqI9Maxhy8F015XLutz2EalA6PQ8P21ZGbJCkp5o4Gnil0a2rgZeXi+V5UzhXwuiNNKouBuaoamjLhVKYKGhchH/RHUZpQ/sb4DvAW7jxQEhMiSKEXdmgrJz41hGAVBsGA3ECXnfPHbiVoHKP2ABJ470HbPpIF0MelLKObae6NU8G+8p6xogo2i6EMV489K7NNgqbpkv348JWTD3RNL+ahr+vbealxYRpL82RWI7VsCOtvmxt5SDVCxDMMxNCHLuj4CzNGAE=\"}       }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_stop\",\"index\":0            }",
+      "event": "content_block_stop"
+    },
+    {
+      "data": "{\"type\":\"content_block_start\",\"index\":1,\"content_block\":{\"type\":\"text\",\"text\":\"\"}   }",
+      "event": "content_block_start"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"`\"}         }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"queueChunk` typ\"}               }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ically adds a piece of data\"}         }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\",\"}    }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" like\"}  }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" a f\"}       }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ru\"}        }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"it-\"}     }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"sized slice of\"}             }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" a lar\"}   }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ger stream, to a que\"}              }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ue for later processing, while `\"}        }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"max_tool_rounds\"}   }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"` caps how many tool-\"}         }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"cal\"}         }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ling cycles an ag\"}      }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ent may\"}      }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" run before st\"}  }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"opping. `HTTP\"} }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"Server` is a class\"}           }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" or program that listens for inco\"}  }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\"ming HTTP requests and\"}    }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" sends back\"}         }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"text_delta\",\"text\":\" responses.\"}   }",
+      "event": "content_block_delta"
+    },
+    {
+      "data": "{\"type\":\"content_block_stop\",\"index\":1        }",
+      "event": "content_block_stop"
+    },
+    {
+      "data": "{\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\",\"stop_sequence\":null,\"stop_details\":null,\"container\":null},\"usage\":{\"input_tokens\":559,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":345,\"output_tokens_details\":{\"thinking_tokens\":234}}          }",
+      "event": "message_delta"
+    },
+    {
+      "data": "{\"type\":\"message_stop\"  }",
+      "event": "message_stop"
+    }
+  ],
+  "target_stderr": "Open http://localhost:19415; terminal messages while busy are hints. /interrupt ends the turn.\n"
+}

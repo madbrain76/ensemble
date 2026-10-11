@@ -22,7 +22,7 @@ the application. Browser **Interrupt turn** leaves the Agent and other jobs aliv
 Typing or queued speech pauses subsequent tools, including with Read aloud off.
 **Unpause everyone** explicitly releases the Agent-wide gate from any tab.
 Running tools keep running. A tab's local cause does not veto another tab's
-explicit unpause. Escape in an empty input cancels speech; each speaker button
+explicit unpause. Escape always cancels speech; each speaker button
 reads that artifact's full text. Native speech availability depends on the browser;
 the page displays speech errors and handles them like completion so the queue
 cannot strand the gate.
@@ -87,3 +87,50 @@ The same skill can be loaded later through `load_skill` when using the primary
 without `--gui-debug`. Unload removes executable browser tools immediately.
 Programmatic prompt input does not take the typing pause, allowing the Agent to
 click Send on its next tool call. Human input keeps the existing pause behavior.
+
+
+Chapter 14 adds a transcript to the speech channel. Fragments reassemble before
+phrase splitting; a single newline becomes a space, blank lines and sentence
+endings separate phrases, and finals, tools and errors flush unfinished text.
+Markup is filtered, fenced code is named, and identifiers are expanded. Tool
+results remain silent automatically. Every utterance records its text and source,
+including when Read aloud is disabled. Opening `?speech=transcript` bypasses
+native audio without bypassing speech text processing. Native pronunciation and
+listening comfort still require a human listener.
+
+The blind virtual user is a separate application over the public core. It owns
+an Agent with exactly `hear`, `type`, `submit`, `wait`, and `sleep`; neither DOM
+inspection, arbitrary selectors, clicks, shell tools nor skill lifecycle tools
+are available to that Agent. The browser peer operates the actual chat form and
+reads the actual speech transcript. It starts a separate quiet browser tab, so
+close other talking tabs when measuring this channel in isolation.
+
+From this GUI directory, install the optional driver dependency and build:
+
+```sh
+npm ci
+npx playwright install chromium
+go build -o virtual-user ./cmd/virtual-user
+```
+
+Start the normal GUI with your chosen target model. Configure the listener's
+provider using `LLM_VENDOR`, `LLM_MODEL`, and `LLM_API_KEY`, then run:
+
+```sh
+./virtual-user --agent-url http://localhost:8088 --persona blind \
+  --task 'Ask the target to explain queueChunk and max_tool_rounds, then report exactly what you heard.'
+```
+
+Run from this directory or specify `--peer /absolute/path/to/virtual-user.mjs`.
+`--browser /path/to/chromium` selects an existing browser instead of Playwright's
+installation. The listener keeps its actual event history in
+`virtual-user.jsonl`; it reports a transcript, not a judgment of audible quality.
+Its browser subprocess receives no provider credentials. No new agent framework
+or alternate conversation loop is involved.
+
+`node --test speech.test.mjs` exercises the real GUI/Agent with external HTTP
+and speech fakes, plus the actual narrow client. Set `CHROME_BIN` if Chrome is
+not at the macOS default used by this test. The root `tts-harness.sh` implements
+the original grader's separate transcript interface; it uses the same application
+and a small asynchronous synthesizer fake. Neither fake establishes how speech
+sounds. Test setup and scoped limitations are recorded with the chapter evidence.

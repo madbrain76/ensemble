@@ -1,0 +1,112 @@
+[
+  {
+    "vendor": "anthropic",
+    "model": "claude-haiku-5-5",
+    "exit": 0,
+    "called_tools": [
+      "type",
+      "submit",
+      "wait"
+    ],
+    "heard": [
+      {
+        "text": "queue Chunk typically adds a piece of data, like a fruit-sized slice of a larger stream, to a queue for later processing, while max tool rounds caps how many tool-calling cycles an agent may run before stopping.",
+        "source": "text"
+      },
+      {
+        "text": "HTTP Server is a class or program that listens for incoming HTTP requests and sends back responses.",
+        "source": "text"
+      }
+    ],
+    "listener_result": "received and reported actual speech transcript",
+    "target_limit": "No explicit fruit choice; listener reported that absence.",
+    "audio_quality": "Not judged; transcript mode bypassed native audio."
+  },
+  {
+    "vendor": "openai",
+    "model": "gpt-4o-mini",
+    "exit": 0,
+    "called_tools": [
+      "type",
+      "submit",
+      "wait"
+    ],
+    "heard": [
+      {
+        "text": "queue Chunk typically refers to a segment of data queued for processing, often used in asynchronous programming to manage tasks efficiently.",
+        "source": "text"
+      },
+      {
+        "text": "max tool rounds specifies the maximum number of iterations or cycles allowed for a tool to operate, while HTTP Server is a server that handles incoming HTTP requests and serves web content to clients.",
+        "source": "text"
+      },
+      {
+        "text": "For a refreshing touch, let's mention an apple!",
+        "source": "text"
+      }
+    ],
+    "listener_result": "received and reported actual speech transcript",
+    "target_limit": "Three response sentences instead of requested two.",
+    "audio_quality": "Not judged; transcript mode bypassed native audio."
+  },
+  {
+    "vendor": "gemini",
+    "model": "gemini-3.8-flash",
+    "exit": 0,
+    "called_tools": [
+      "type",
+      "submit",
+      "wait",
+      "hear"
+    ],
+    "heard": [
+      {
+        "text": "Defining the Terms",
+        "source": "thinking"
+      },
+      {
+        "text": "I've zeroed in on the core terms: queue Chunk, max tool rounds, and HTTP Server.",
+        "source": "thinking"
+      },
+      {
+        "text": "The challenge is crafting precise definitions for the specialist in this field, using only two sentences, and ensuring proper inline code usage.",
+        "source": "thinking"
+      },
+      {
+        "text": "I'm focusing on clarity and conciseness, ready to move onto the explanations.",
+        "source": "thinking"
+      },
+      {
+        "text": "Refining Sentences",
+        "source": "thinking"
+      },
+      {
+        "text": "I'm now refining the sentences I drafted.",
+        "source": "thinking"
+      },
+      {
+        "text": "I've shortened and streamlined the first one, focusing on the connection between the HTTP Server and queue Chunk for buffering response data.",
+        "source": "thinking"
+      },
+      {
+        "text": "The second sentence, regarding max tool rounds, still feels a bit clunky, but I'm getting there.",
+        "source": "thinking"
+      },
+      {
+        "text": "I am ready to enjoy an apple now.",
+        "source": "thinking"
+      },
+      {
+        "text": "An HTTP Server listens for incoming web requests and uses queue Chunk to buffer and stream data packets incrementally to the client.",
+        "source": "text"
+      },
+      {
+        "text": "Meanwhile, max tool rounds caps the number of consecutive tool-execution cycles an agent can run before halting to enjoy an apple.",
+        "source": "text"
+      }
+    ],
+    "listener_result": "received and reported actual speech transcript",
+    "target_limit": null,
+    "audio_quality": "Not judged; transcript mode bypassed native audio."
+  }
+]
