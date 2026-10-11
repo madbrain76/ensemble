@@ -1,0 +1,39 @@
+{
+  "live_source": "18c2d48591ebdb59a52274c5b6fc4f857dde2cbf",
+  "main_tree": "dd1282c0672ba256b7c4f5099e9aec80257016d4",
+  "wire_models": [
+    "gpt-6-astra",
+    "gpt-6-astra",
+    "gpt-6.1-sol",
+    "gpt-6.1-sol"
+  ],
+  "reasoning_effort": "high",
+  "reports": [
+    {
+      "request_number": 2,
+      "preceding_usage": {
+        "input": 740,
+        "output": 14
+      },
+      "session": {
+        "input_tokens": 740,
+        "output_tokens": 14
+      }
+    },
+    {
+      "request_number": 4,
+      "preceding_usage": {
+        "input": 977,
+        "output": 14
+      },
+      "session": {
+        "input_tokens": 2553,
+        "output_tokens": 122
+      }
+    }
+  ],
+  "binary_sha256_verified": true,
+  "first_attempt_no_inference": true,
+  "provider_calls_by_reviewer": 0,
+  "limits": "Unknown live prices; no numeric-dollar or actual subscription-charge verification. Endpoint source/config derivation only. Raw sanitized API records independently inspected."
+}
