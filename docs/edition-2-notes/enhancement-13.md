@@ -159,3 +159,9 @@ graders, frozen solutions and CodeRhapsody work are untouched. No new paid or
 native-browser run is claimed. Independent reviewer owns combined acceptance;
 root owns the checkpoint and Chapter14 release. All four full documents remain
 active together after the reload above; no further compaction before this handoff.
+
+Draft-stage independent review corrected one numeric rubric overclaim: ordered
+typing pause/release does not independently prove whitespace or both overlapping
+cause orders. The row and supplemental-proof paragraph now preserve that limit;
+exact code examples and commands are unchanged. Updated manuscript SHA-256:
+`23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b`. This is a pre-acceptance prose clarification, not a runtime change.

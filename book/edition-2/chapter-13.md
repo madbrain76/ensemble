@@ -293,13 +293,13 @@ The default is `solutions/edition-2/ch13`; a positional argument selects your co
 | `tts-filters-markup` | 20 | Required markup is removed and a fence is named |
 | `tts-buffers-fragments` | 10 | Words survive fragment boundaries |
 | `tts-speaks-unstreamed` | 15 | Plain provider output is spoken exactly once |
-| `tts-gate-both-causes` | 10 | Speech/typing transitions retain a human space until cleared |
+| `tts-gate-both-causes` | 10 | Typing pause and subsequent release are observed in order |
 | `tts-speaks-errors` | 10 | The actual error reaches speech |
 | `tts-boundaries` | 5 | Wrap, paragraph and trailing-tail boundaries remain meaningful |
 | `tts-expands-identifiers` | 5 | Identifiers expand; ordinary capitalization survives |
 | Corrected Chapter 12 parity | 5 | Prior obligations remain intact |
 
-The transcript grader does not independently establish every clause in the TL;DR. The final-only renderer branch needs its direct delivery check because a nonstream provider can still produce synthetic deltas. The actual listener's five-tool boundary, dispatch refusal, hearing cursor, submission and pending-sleep shutdown need their public-client/browser evidence. Native audio and human listening remain separate again. Keep those obligations visible rather than claiming a numeric speech score proves them all.
+The transcript grader does not independently establish every clause in the TL;DR. The final-only renderer branch needs its direct delivery check because a nonstream provider can still produce synthetic deltas. The numeric gate check observes ordered typing pause and release; those edges alone do not prove human whitespace or both orders of overlapping speech and typing. Keep the actual browser controls for those causes. The actual listener's five-tool boundary, dispatch refusal, hearing cursor, submission and pending-sleep shutdown need their public-client/browser evidence. Native audio and human listening remain separate again. Keep those obligations visible rather than claiming a numeric speech score proves them all.
 
 The original student run scored **95/100 FAIL**: all new speech checks passed 95/95 and inherited parity failed 0/5 on the invalid earlier skill fixture. That build preceded the finished blind client and later cleanup correction. Its score is historical evidence, not a final-source pass.
 
