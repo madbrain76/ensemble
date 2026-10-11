@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/tmp/ensemble-ch13-probe",
+    "-test.run",
+    "^TestChapter13Probe$",
+    "-test.v"
+  ],
+  "core": "solutions/ch14",
+  "exit": 0,
+  "seconds": 26.734561666846275
+}

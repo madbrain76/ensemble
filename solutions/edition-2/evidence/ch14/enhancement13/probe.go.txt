@@ -1,0 +1,3 @@
+package gradeedition2
+import("encoding/json";"os";"testing")
+func TestChapter13Probe(t *testing.T){if err:=json.NewEncoder(os.Stdout).Encode(speechChecks(os.Getenv("SPEECH_PROBE_CORE")));err!=nil{t.Fatal(err)}}

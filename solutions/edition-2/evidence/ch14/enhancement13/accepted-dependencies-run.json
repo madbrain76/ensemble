@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/tmp/ensemble-ch13-probe",
+    "-test.run",
+    "^TestChapter13Probe$",
+    "-test.v"
+  ],
+  "exit": 0,
+  "seconds": 12.89503200002946,
+  "setup": "npm ci --ignore-scripts in accepted gui, locked dependency only; no tracked source change"
+}
