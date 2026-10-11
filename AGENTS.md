@@ -50,9 +50,10 @@ Bill requires accepted solutions directly in `solutions/edition-2/chNN/`, using
 Edition 2 numbering, with no symlinks. Original Chapter 5 is absorbed into
 Chapter 4; original Chapters 10–13 are Edition 2 `ch09`–`ch12`. Only the retired
 original `history/ch05/` remains. The coder extends `solutions/edition-2/main/`;
-original Chapters 14–19 are accepted at top-level Edition 2 `ch13/`–`ch18/`.
-Original 20 / Edition 2 Chapter 19 resumes with Bill's approved GPT-6 Astra/high
-choice. Never put new accepted solutions in history. Original exercise,
+original Chapters 14–20 are accepted at top-level Edition 2 `ch13/`–`ch19/`.
+Original 21 / Edition 2 Chapter 20 is next with GPT-6 Astra/high. The bounded
+original20 coding crossover succeeded and was independently accepted.
+Never put new accepted solutions in history. Original exercise,
 grader, note, evidence and existing tag numbers remain unchanged; state both
 numbers in handoffs. This explicitly supersedes the coordinator's history-only
 export policy. Preserve snapshot contents and existing Git tags when moving.

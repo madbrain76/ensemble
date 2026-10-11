@@ -20,9 +20,10 @@ skip content already in actual context, without a newest-two exclusion.
 **Current solution paths, Bill's October 10 correction.** Work in
 `solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
-are Edition 2 `ch09`–`ch12`; original 14–19 are accepted at `ch13`–`ch18`.
-Original20's crossover uses Bill's approved GPT-6 Astra/high choice.
-See `edition-2-notes/ch20.md` for the decision and actual verification status.
+are Edition 2 `ch09`–`ch12`; original 14–20 are accepted at `ch13`–`ch19`.
+Original20's bounded GPT-6 Astra/high coding crossover is independently accepted;
+original21 / Edition2 ch20 is next. See `edition-2-notes/ch20.md` for evidence
+and limits. This is not a claim that Edition3 has been authored.
 Only retired original `history/ch05` remains. No symlinks. Original exercises,
 graders, notes, evidence and existing tags retain original numbers; identify
 both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.

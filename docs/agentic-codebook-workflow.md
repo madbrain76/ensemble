@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapters 14–19 are
-accepted at **Edition 2 `ch13/`–`ch18/`**. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–20 are
+accepted at **Edition 2 `ch13/`–`ch19/`**. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,25 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+**October 11 original20 / Edition2 ch19 accepted at initial review.** Reviewer
+`reviewer_astra` accepted at `04e450d`, zero correction rounds. Final main tree
+`bd2998e68f976dbaf437b642b131d350e086242f` adds the small Astra Responses-row
+selection and boundary assertion; final README clarification followed live source
+`fab0315` (tree `59010a4c`). No grader or historical repair checklist was invented
+for this prose-only chapter. Two targeted defects fail the intended checks.
+
+The actual Ensemble CLI, configured GPT-6 Astra/high and subscription billing,
+read a scratch CSV program/tests, reproduced three failures and three errors,
+edited the source and passed all six unchanged tests. Independent review reran
+both preserved task versions. Five request/completed-response pairs verify the
+model/effort; runtime results and the exact file edit establish actual tool work.
+The 27.46-second run exited normally with a save. No public summary or cache grant
+was observed; the endpoint is derived from configuration/source, not independently
+captured. This is bounded coding evidence, not Edition3 authorship or general
+project reliability. The exact 144-file export is direct `ch19`, checkpoint
+`edition-2-ch20-r1`. Release original21 / Edition2 ch20 from this accepted source,
+then STOP before original22. Original24 and author stops remain unchanged.
 
 **October 11 model stop resolved.** Bill explicitly said, “Yes, please use GPT-6
 Astra for all coding tasks,” in response to the proposed high-reasoning choice.

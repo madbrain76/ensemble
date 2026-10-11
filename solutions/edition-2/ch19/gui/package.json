@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Optional browser driver for Ensemble's blind virtual user",
+  "dependencies": { "playwright": "1.64.0" }
+}
