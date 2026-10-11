@@ -25,6 +25,7 @@ book/
 ├── front-matter.md                    ← EPUB front matter (update edition number here)
 ├── front-matter-print.md             ← print PDF front matter (update edition number here)
 ├── cover.png                          ← book cover image
+├── print-header.html                  ← CSS for print PDF (margins, fonts, page numbers)
 ├── build-print.py                     ← two-pass print PDF builder
 │
 ├── the-art-of-building-ai-coding-agents.md   ← assembled manuscript (COMMITTED)
@@ -116,16 +117,16 @@ pandoc front-matter-print.md the-art-of-building-ai-coding-agents.md \
   --from=markdown --to=html --standalone --toc --toc-depth=1 \
   -M title="The Art of Building AI Coding Agents" \
   -M author="Bill Cox" \
-  -H /tmp/kdp-print-header.html
+  -H print-header.html
 ```
 
-The CSS header file (`/tmp/kdp-print-header.html`) must include:
+The CSS header file (`book/print-header.html`) includes:
 - `@page` with mirror margins: outside=0.25in, gutter=0.625in,
   top/bottom=0.75in. Even/odd pages swap left/right via `@page :left`
   and `@page :right` rules. Amazon's preview shows the mirrored layout.
 - `@page { @bottom-center { content: counter(page); ... } }` — page numbers
 - `.tocpg { float: right; }` — TOC page number positioning
-- `h1, h2 { page-break-before: always }` — chapter/section breaks
+- `h1 { page-break-before: always }` — chapter breaks (h1 only; h2 subsections flow continuously)
 - `pre { white-space: pre-wrap }` — prevent code overflow on 6-inch page
 
 Output: `book/The Art of Building AI Coding Agents - Print Interior.pdf`
