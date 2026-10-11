@@ -2,6 +2,29 @@
 
 ## October 11: final merge decisions and released placement gates
 
+**Original22 accepted at initial review, zero correction rounds.** Review
+`3c7d66d` accepts source `1da0891`, main tree
+`a801628b1dd631e5ea20ad03ea7d255584728d31`. The unchanged original grade remains
+20/100 FAIL with three independently justified detector/launch exceptions.
+The parent detector selected Config instead of the actual tool interface; the
+composition detector skipped method calls; behavioral probes launched the
+headless command with GUI flags. Direct source/runtime evidence establishes the
+required paths; even the awarded import check is not alone proof of its intent.
+
+Existing ownership/accounting made status small, but the actual runtime lacked
+a session model control. The actor-applied switch and real CLI/GUI controls now
+preserve history and per-model usage at the turn boundary. Real browser status
+reports match raw provider usage across Astra and Sol; prices are truthfully
+unknown, while deterministic real-runtime tests verify known-price arithmetic.
+The16.34-second live run exits normally; a missing bundled-browser launch attempt
+failed before inference and remains preserved. Fourteen targeted defects fail
+intended checks; the initial weak status-label survivor and failed assertion
+repair remain recorded. Independent race and built-CLI checks pass.
+
+Direct `ch20` now contains exact reviewed21+22 source under `edition-2-ch22-r1`.
+The prior21-only source/manifest remain in immutable `edition-2-ch21-r1`; no tag
+was moved and no new history folder was added. Continue original23→Edition2ch21.
+
 Bill said, “Your call,” and authorized autonomous decisions for both original22
 and24, with exactly three fewer chapters and matching solution directories.
 The coordinator read the relevant source in full and chose22into21,24into25.

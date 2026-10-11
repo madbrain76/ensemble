@@ -12,6 +12,8 @@ import (
 // Settings is a full snapshot of the GUI preferences and the Agent's saved turn budget. No field
 // uses omitempty: false and zero are real values that every client must receive.
 type Settings struct {
+	// Model is the effective session selection; launch configuration wins on restart.
+	Model string `json:"model"`
 	// Memory controls the Agent corpus; full snapshots preserve nested false and zero values.
 	Memory ensemble.MemorySettings `json:"memory"`
 	// Theme selects dark, light, or the browser's system preference.
@@ -60,6 +62,7 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 // Agent owns the effective budget; snapshots always read it from that owner.
 func (s *Server) snapshotSettings() Settings {
 	snapshot := s.settings
+	snapshot.Model = s.agent.Config().Model
 	snapshot.MaxToolRounds = s.agent.Config().MaxToolRounds
 	snapshot.ContextTarget = s.agent.Config().ContextTarget
 	snapshot.LogRetention = s.agent.Config().LogRetention
@@ -96,6 +99,29 @@ func (s *Server) settingsPath() string {
 // the observer mutex while waiting for the actor: streamed progress needs it.
 // Persist before applying/publishing so a failed write leaves accepted state alone.
 func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
+	// Model selection is an immediate session operation, not a persisted GUI
+	// preference. A separate patch avoids partially accepting a mixed update
+	// when an active turn rejects the model change.
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil {
+		return Settings{}, err
+	}
+	if value, present := fields["model"]; present {
+		if len(fields) != 1 {
+			return Settings{}, fmt.Errorf("send model selection separately from saved preferences")
+		}
+		var model string
+		if err := json.Unmarshal(value, &model); err != nil {
+			return Settings{}, err
+		}
+		if err := s.agent.SetModel(model); err != nil {
+			return Settings{}, err
+		}
+		s.mu.Lock()
+		snapshot := s.snapshotSettings()
+		s.mu.Unlock()
+		return snapshot, nil
+	}
 	s.mu.Lock()
 	current := s.snapshotSettings()
 	s.mu.Unlock()
@@ -107,7 +133,14 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	if err := ensemble.ValidateMemorySettings(next.Memory); err != nil {
 		return Settings{}, err
 	}
-	data, err := json.MarshalIndent(next, "", "  ")
+	// Shadow the display-only model field when writing preferences; a stored
+	// model must not override an explicitly selected launch provider/credential.
+	data, err := json.MarshalIndent(struct {
+		// Settings supplies the existing persisted preferences.
+		Settings
+		// Model suppresses the embedded, session-only display field on disk.
+		Model *string `json:"model,omitempty"`
+	}{Settings: next}, "", "  ")
 	if err != nil {
 		return Settings{}, err
 	}

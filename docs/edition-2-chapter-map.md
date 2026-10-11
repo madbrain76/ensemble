@@ -40,6 +40,11 @@ the right teaching length rather than a target word reduction.
 
 ## Execution and preservation
 
+Current checkpoint: original22 is independently accepted at review `3c7d66d`.
+Direct `ch20` now holds the combined21+22 source, tree
+`a801628b1dd631e5ea20ad03ea7d255584728d31`, tag `edition-2-ch22-r1`.
+Original23 / Edition2ch21 is next. The21-only snapshot remains in its prior tag.
+
 Use original exercises and unchanged graders in original order:22,23,24,25.
 Each original exercise still receives its own student review, actual grader/live
 results, independent comparative review and bounded correction loop. Notes,

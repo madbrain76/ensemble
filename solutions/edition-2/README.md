@@ -2,7 +2,8 @@
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
 Chapters **1–20 are accepted**. [`main/`](main/) is the authoritative working
-tree. Original22 now completes the combined Chapter20 under Bill’s merge authorization.
+tree. Combined Chapter20 (original21+22) is accepted. Original23 / Edition2ch21,
+The Sandbox, is next.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
@@ -32,7 +33,7 @@ numbers are one lower than the original book's numbers. The remaining standalone
 | 17: The Invisible Invoice | [ch17](ch17/), [manifest](ch17-manifest.json) | 18 | `edition-2-ch18-r1` |
 | 18: Subscription authentication and reasoning | [ch18](ch18/), [manifest](ch18-manifest.json) | 19 | `edition-2-ch19-r1` |
 | 19: The Crossover | [ch19](ch19/), [manifest](ch19-manifest.json) | 20 | `edition-2-ch20-r1` |
-| 20: Giving the Agent the Web | [ch20](ch20/), [manifest](ch20-manifest.json) | 21 | `edition-2-ch21-r1` |
+| 20: Web access, status and accounting | [ch20](ch20/), [manifest](ch20-manifest.json) | 21 + 22 | `edition-2-ch22-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader
@@ -70,7 +71,7 @@ immutable and extend `main/` for new work.
 [The authoritative map](../../docs/edition-2-chapter-map.md) absorbs exactly
 original Chapters5,22,24. Original21+22 share `ch20`; original23 uses `ch21`;
 original24+25 share `ch22`; original26 uses `ch23` if complete when25review finishes.
-The existing21-only `ch20` is an accepted intermediate snapshot, preserved in its
-immutable tag; it is replaced by the combined export only after22acceptance.
+The former21-only `ch20` remains preserved in immutable `edition-2-ch21-r1`.
+The direct `ch20` now contains the independently accepted combined21+22 source.
 Future directories appear only when their combined exercises are accepted.
 First-edition Chapters1–26 therefore map to second-edition Chapters1–23.

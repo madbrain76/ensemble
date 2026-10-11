@@ -533,6 +533,8 @@ func (r *runtime) run() {
 						r.sendRequest()
 					}
 				}
+			case modelSelection:
+				r.selectModel(m)
 			case memorySettings:
 				r.owner.configMu.Lock()
 				r.owner.config.Memory = m.value

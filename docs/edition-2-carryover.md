@@ -1,5 +1,12 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**Current implementation:** original22 is independently accepted with documented
+grader exceptions and zero correction rounds. Combined21+22 is direct Edition2
+`ch20`, checkpoint `edition-2-ch22-r1`, main tree
+`a801628b1dd631e5ea20ad03ea7d255584728d31`. Original23 / Edition2ch21 is next.
+Actual original22 grading remains20/100 FAIL; live model switching/status and
+independent accounting checks support acceptance.
+
 **Current authorization, October 11:** Bill delegated both placements and
 authorized autonomous continuation. Adopt21+22→Edition2ch20,23→ch21,24+25→ch22,
 and26→ch23 if complete at25review. The original22/24 stops are lifted. Preserve

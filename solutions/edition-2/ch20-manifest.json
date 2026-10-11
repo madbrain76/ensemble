@@ -1,13 +1,13 @@
 {
-  "source_commit": "209ab27ec41ed3979cb63b6b0cc336a1683c6a52",
+  "source_commit": "3c7d66d31bb9a84eef3a3ff5608fdbd40f6b3d0a",
   "source_prefix": "solutions/edition-2/main",
-  "source_tree": "f351d66a7bc456650e05ac6656a7db59bbbd725a",
+  "source_tree": "a801628b1dd631e5ea20ad03ea7d255584728d31",
   "files": [
     {
       "path": "README.md",
       "mode": "100644",
-      "git_blob": "be8a0b3e4e2583c03cdf7b6d9cf58b26387829e1",
-      "sha256": "e4107016ee194c8180dabf074c77436c19d66dd0b589246ee2d5f5404d038cc7"
+      "git_blob": "cf486f17b824625b8e50393ec9a6aa0faab31c39",
+      "sha256": "5513b833b084a890954bef8ba77448abcaced4f0743a385a26db7d22bdbdd943"
     },
     {
       "path": "authcli/authcli.go",
@@ -102,14 +102,14 @@
     {
       "path": "chat.go",
       "mode": "100644",
-      "git_blob": "52b047a0af1cae096e0760ac775df84bee857fd3",
-      "sha256": "7f641d19b4434172f7abf3510f4068d367eb5a1a564189f6e8525bc473abeaca"
+      "git_blob": "c02c27e10df1028bf42c4a124cee1eea254e61a6",
+      "sha256": "b80c99c88a9e75cc40bd789364ec326ea1798a069fb5d783ccc7a738f09081b3"
     },
     {
       "path": "chat_test.go",
       "mode": "100644",
-      "git_blob": "d6d117dc4a154efb0647c7e4bca24e4936700569",
-      "sha256": "3f64d9325a183bd7a2a498399c94aa3d1d65b3d888c16f55c8d713b7dc9466f7"
+      "git_blob": "7f5c6bc67f4df38c18171d3e014625e9209fe414",
+      "sha256": "261ad4130a1d3f5b7d0508bb9cd00809082d047a02c8c7366ffe71d5d26c292d"
     },
     {
       "path": "ensemble/actor_test.go",
@@ -250,6 +250,12 @@
       "sha256": "35a2f7bf01dd9679d29faadc3df1c57f33fe39131390d7b42b3dc650e4689e3e"
     },
     {
+      "path": "ensemble/status_test.go",
+      "mode": "100644",
+      "git_blob": "02a8bea2aee6909197c3712ae153a5f78ee49edf",
+      "sha256": "2fee19d83f6a13a38a63d6097f429e4e8b58e27227cc5875a44a507fd27975f4"
+    },
+    {
       "path": "ensemble/stream_test.go",
       "mode": "100644",
       "git_blob": "420e006d28970b2d05de85cc15363e15a795e555",
@@ -270,8 +276,8 @@
     {
       "path": "ensemble/tools_test.go",
       "mode": "100644",
-      "git_blob": "2e59b6befde79cf2b0faa239191be036ebf5090f",
-      "sha256": "37f8223c05a9c9884a5f74bd4fca3a5dff4448b47f984f40d955d8cccc483581"
+      "git_blob": "79bec46185eb061c03e58f6bcd5f558e712a740e",
+      "sha256": "ce68949ba235af99d592936c7b7a39bbee1e0a16e811e9e86ad0b8b93073935e"
     },
     {
       "path": "go.mod",
@@ -358,6 +364,12 @@
       "sha256": "7840083e2eeb398fc73d14264bec96f788274a781b7081b222f5e0f4dde16e73"
     },
     {
+      "path": "gui/model_test.go",
+      "mode": "100644",
+      "git_blob": "65ce7e58bcb8e9fc057268709ffcd7f74f809a4f",
+      "sha256": "ae569aba73bd4dbefa51405b43d00cb0ab3a3d9a443c1305bc2f3fb2a433597a"
+    },
+    {
       "path": "gui/package-lock.json",
       "mode": "100644",
       "git_blob": "1e9fdf28eb96a465bba89a36b13de8314796916f",
@@ -378,8 +390,8 @@
     {
       "path": "gui/settings.go",
       "mode": "100644",
-      "git_blob": "37cdd1cd085d24b23a71320ac97ce6464dcc62b2",
-      "sha256": "250f6f007da244cbc57d5398b8e44157f9151fd1656e9f30b4eb7c90d40581a3"
+      "git_blob": "21f3dc9413badd3d799b3633cbf23837f1f6cb3b",
+      "sha256": "4c33af694e82141979109c618084b9fa262db99d743e4487ec028802e89a43fe"
     },
     {
       "path": "gui/settings_test.go",
@@ -414,14 +426,14 @@
     {
       "path": "gui/web/gui/app.js",
       "mode": "100644",
-      "git_blob": "4dc74e884b489dc54f1ec0448c9270ddf4ac0425",
-      "sha256": "49b9659148d63d88ee27adaba476b8e31435aeac3ce5a889c63c57df5897a5b0"
+      "git_blob": "efa77158b20a7ca776d06bbfed164de2c9db07da",
+      "sha256": "d8587202f4151ef2f5249fd038dc2f1bf2b35ce48e265d6667c4dd5501834065"
     },
     {
       "path": "gui/web/gui/index.html",
       "mode": "100644",
-      "git_blob": "94bda24963bc423ab9e05f92af81f681d210403f",
-      "sha256": "cda349cccc8ad42c3fb777f709eef521dec6a40422be90c6f965461ea642819e"
+      "git_blob": "3c841893a56b902adfbe3c252716de33ec586e17",
+      "sha256": "4c65a7f35f8eeabecbd1981ebb71d85cb7998b92ead6b7d8dd0f6420daac070d"
     },
     {
       "path": "gui/web/gui/mcp.js",
@@ -444,8 +456,8 @@
     {
       "path": "internal/agent/actor.go",
       "mode": "100644",
-      "git_blob": "ef16a53d50a5d6ec808b4408a47e3d38a441b00b",
-      "sha256": "a9a8dd04d4512968b08e40ca2d19b73edf00f644939952ce638974d880a70c94"
+      "git_blob": "d3297f4d904ca9414cbaaf6aa2c5ee7a690a62a1",
+      "sha256": "2a43dfe03ce4a60911cfb955ac764c512f33fe57431cf9fd63ab0abd89b179de"
     },
     {
       "path": "internal/agent/agent.go",
@@ -482,6 +494,12 @@
       "mode": "100644",
       "git_blob": "077df1a015b2eb4a38fa3fe945cf0e2583c40453",
       "sha256": "effe5332e94faac59766f964de094dca884b91bf674cccb502c5537f64e3549d"
+    },
+    {
+      "path": "internal/agent/model.go",
+      "mode": "100644",
+      "git_blob": "7e6a10c4ffed9368bea348497b984668c8b26b21",
+      "sha256": "ef0048b585a41e10a220b2cbc669039ffbdc968a1769b5e63659b1bdac05c20d"
     },
     {
       "path": "internal/agent/pause.go",
@@ -594,8 +612,8 @@
     {
       "path": "internal/common/types.go",
       "mode": "100644",
-      "git_blob": "398d4d56cf90ffb15f47be008952ff40044b7c18",
-      "sha256": "4d1705ba298f57ede460d463f728788603af96e863cfe3d788ac27cb1adbf803"
+      "git_blob": "6ef901c2870a03bdfc73e9215bf090aefe2ce68f",
+      "sha256": "159d6010e4ac2ea19baa6a4fd53c4dc768419a869c655e0c12f941ba96d4d14f"
     },
     {
       "path": "internal/common/usage.go",
@@ -838,6 +856,12 @@
       "sha256": "beeaf7d53ac3ec815ceb867b8e3a55cacbe53e0456aca84e2358cf8bfe9e82f4"
     },
     {
+      "path": "internal/tools/status.go",
+      "mode": "100644",
+      "git_blob": "58657b8f5832b420fb40e355c22c343feb0abcd2",
+      "sha256": "012282f2467b7881dad0f044da3a44d923f3483c581d9da5e3f4dff7f950248d"
+    },
+    {
       "path": "internal/tools/supervision.go",
       "mode": "100644",
       "git_blob": "7c2e895ef4335312d6ccf357b58535bcee47f885",
@@ -846,8 +870,8 @@
     {
       "path": "internal/tools/tools.go",
       "mode": "100644",
-      "git_blob": "31705e80f82a0f94d83592bb7816d06533b9f0ce",
-      "sha256": "11a0cb70a39ce0c0e8d0652f5499a8810a0fd46212acc04f36f3bf9513241845"
+      "git_blob": "d375911ed5ac3bbe351a8e3733bdec135064e0f6",
+      "sha256": "7c2b1cc7b6c4bae4a16ee6d7bf56d14bbab81909f7d3f5f1c91ba7efecccdeba"
     },
     {
       "path": "main.go",
@@ -864,8 +888,8 @@
     {
       "path": "skills/ensemble/SKILL.md",
       "mode": "100644",
-      "git_blob": "ef33b1f02b71297809aab47eb4d4077cc0b7c2f7",
-      "sha256": "78759e12768186a935d31bb0fc8e5e98bc13dae55cbc5d3f85c56fd3cf6978ba"
+      "git_blob": "9a5f82429311a9606d95f63986c0b07e7caae367",
+      "sha256": "4046148048e11098e0e922e4174de28efe360837f3903e2cc4390dc9ca8f5f3e"
     },
     {
       "path": "skills/gui-debug/SKILL.md",
@@ -892,8 +916,11 @@
       "sha256": "904e6d7cd6fbf97f72c65cb3d6ca644ab0356be14d118a82a4568ab65cc575fb"
     }
   ],
-  "validation": "Source export only; chapter acceptance is recorded separately.",
+  "validation": "Combined original21+22 accepted source; earlier21-only snapshot preserved at edition-2-ch21-r1.",
   "edition_2_chapter": 20,
-  "original_chapter": 21,
+  "original_chapters": [
+    21,
+    22
+  ],
   "snapshot_path": "solutions/edition-2/ch20"
 }

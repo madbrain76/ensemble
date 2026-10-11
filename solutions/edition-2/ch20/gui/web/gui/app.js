@@ -353,6 +353,7 @@ function renderAgents(nodes, parent) {
 }
 renderAgents(agents, document.querySelector("#agent-tree"));
 const theme = document.querySelector("#theme");
+const model = document.querySelector("#model");
 const speed = document.querySelector("#tts-speed");
 const font = document.querySelector("#font-size");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
@@ -366,7 +367,7 @@ const logRetention = document.querySelector("#log-retention");
 // A snapshot acknowledging one field must not erase another field being edited.
 // Number inputs commit on change/blur, so retain only their unsent local text.
 const editingContext = new Set();
-for (const control of [contextTarget, logRetention]) {
+for (const control of [contextTarget, logRetention, model]) {
   control.addEventListener("input", () => editingContext.add(control));
 }
 // Band switches and byte budgets travel through the same persisted settings path.
@@ -394,6 +395,7 @@ for (const band of ["soul", "memory", "64x", "8x", "session", "conversation"]) {
   document.querySelector("#memory-settings").append(row);
 }
 function applySettings(settings) {
+  if (!editingContext.has(model)) model.value = settings.model;
   for (const [band, controls] of memoryControls) for (const [field, input] of Object.entries(controls)) {
     if (field === "disabled") input.checked = !settings.memory?.[band]?.disabled;
     else if (!editingContext.has(input)) input.value = settings.memory?.[band]?.[field] ?? 0;
@@ -415,6 +417,7 @@ function applySettings(settings) {
 }
 for (const [control, field, value] of [
   [theme, "theme", () => theme.value],
+  [model, "model", () => model.value.trim()],
   [contextTarget, "context_target", () => Number(contextTarget.value)],
   [logRetention, "log_retention", () => Number(logRetention.value)],
   [voice, "tts_enabled", () => voice.checked],
