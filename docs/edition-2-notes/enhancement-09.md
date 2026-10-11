@@ -1,7 +1,8 @@
 # Enhancement notes: Chapter 9 (original Chapter 10)
 
-Author: `edition2_author`, October 11, 2026. Initial prose draft, awaiting exact
-sample validation and independent combined review. Mandatory technical handoff:
+Author: `edition2_author`, October 11, 2026. Prose and exact samples complete;
+initial independent prose review has no blockers, combined review pending.
+Mandatory technical handoff:
 `.agents/skills/ensemble-coding/SKILL.md`. No later chapter drafted.
 
 ## Reading and source
@@ -81,7 +82,31 @@ comparison is relied on. No new paid sessions or current model-availability
 claims are made. The live launcher uses human chat input through pipes; no claim
 is made that Bill personally drove a PTY or listened.
 
-Initial direct chapter lint passes all hard checks (2,249 prose words, with only
-soft lower-length warning before final small edits). Existing receipt/review
-links resolve; the coder-owned enhancement09 report link awaits its file. Final
-sample checks, final lint and independent review remain pending.
+The published small skill files include description metadata for compatibility
+with the original parser; the historical live fixtures omitted it. The manuscript
+identifies the added descriptions/body wrapping rather than claiming identical
+historical bytes. The revised grader's first legacy attempt also omitted that
+metadata and failed at setup; the coder records its correction and later actual
+behavior results separately. This is a fixture defect, not missing legacy Skills.
+
+Final direct chapter lint passes all hard checks at2,275 prose words, with only
+the soft lower-length warning. Original-to-enhanced exact-line alignment retains
+172/240 lines; the submitted chapter has458lines, SHA-256
+`804d37e6449f38421c0ad26b09835ee3301fc9caed0bff0b307f08ccc34d1393`.
+No padding is warranted. Initial independent prose review of `e533aa35` found no
+blocking issue and separately verified all three raw live receipts and source
+claims. The grader report link awaits the coder-owned file; other links resolve.
+
+Coder validated both exact Go fences in an external module: construction and
+`RegisterVar` run through the real Agent HTTP loop, delivering load-time text
+while preserving system text. All three exact published skill files drive the
+actual CLI prompt through load/write/read/unload against a small external fake,
+five requests and actual `note.txt=SKILLS_OK`. Full-primary YAML declares all
+twelve tools; the first frontmatter example loads with small explicit dependency
+and offered-skill companion files. All processes exit0. Author checked the
+[Go result](../../solutions/edition-2/evidence/ch10/enhancement09/published-go.txt),
+[source binding](../../solutions/edition-2/evidence/ch10/enhancement09/published-samples.json)
+and [CLI results](../../solutions/edition-2/evidence/ch10/enhancement09/published-cli.json).
+These are deterministic published-example checks, not new paid or human-chat
+demonstrations. No prose correction was needed. Combined independent grader
+review and chapter acceptance remain pending.
