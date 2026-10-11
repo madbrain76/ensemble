@@ -1,0 +1,7 @@
+Open http://localhost:8088; terminal messages while busy are hints. /interrupt ends the turn.
+[gui_click]
+CLICK_RESULT_ONLY
+[gui_input]
+INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY
+[unload_skill]
+Skill gui-debug is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now.

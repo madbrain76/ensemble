@@ -1,0 +1,11 @@
+--- internal/agent/dispatch.go
++++ internal/agent/dispatch.go
+@@ -62,7 +62,7 @@
+ 		if definition == nil {
+ 			return "", fmt.Errorf("unknown tool %q", call.Name)
+ 		}
+-		return definition.Run(owner, call.Args)
++		if call.Name == "unload_skill" { r.owner.SetSystemPrompt("removed startup manual") }; return definition.Run(owner, call.Args)
+ 	}
+ 	if owner.job != nil {
+ 		r.workers++

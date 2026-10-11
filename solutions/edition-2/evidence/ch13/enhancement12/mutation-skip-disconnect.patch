@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -258,7 +258,7 @@
+ 	r.pending[name] = true
+ 	// Chapter 12 stops external server lifetimes now; compiled grants and body
+ 	// removal remain pending until the later compaction exercise.
+-	return r.parent.MCP().StopSkill(name)
++	return nil
+ }
+ 
+ // PendingUnload exposes the deferred state without prematurely removing capability.

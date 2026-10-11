@@ -173,12 +173,12 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 	} else if err = syscall.Kill(pid, 0); err != syscall.ESRCH {
 		fail(&checks[5], "%s peer still present after unload: %v", label, err)
 	}
-	system := requests[0].JSON()["system"]
+	system := skillSystem(requests[0])
 	if !strings.Contains(fmt.Sprint(system), "PRIMARY_MANUAL_ONLY") || !strings.Contains(fmt.Sprint(system), "STARTUP_MANUAL_ONLY") {
 		fail(&checks[0], "%s startup instructions missing", label)
 	}
 	for i, r := range requests {
-		if r.JSON()["system"] != system {
+		if skillSystem(r) != system {
 			fail(&checks[0], "%s request%d changed frozen startup instructions", label, i+1)
 		}
 		declared := []string{"load_skill", "unload_skill"}
@@ -189,6 +189,9 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 		}
 		skillDeclarations(target, r, declared)
 		content := guiDebugText(r)
+		if i >= 3 && (strings.Contains(content, "SNAPSHOT_ONLY_") || strings.Contains(content, "TTS_ONLY_")) {
+			fail(&checks[5], "%s request%d contains automatic context after unload", label, i+1)
+		}
 		// Check each observation once, then its absence on every later request.
 		// The event log may retain it; retained dialogue and current context may not.
 		for n := 1; n <= 3; n++ {
@@ -279,12 +282,17 @@ func guiDebugPID(work string) int {
 	return pid
 }
 
-// Only text blocks are automatic context in this fixture. Tool result text is
+// Messages may carry a plain string or text blocks. Tool result text is
 // checked separately by call identity, preventing earlier arguments from passing.
 func guiDebugText(r fakevendor.Recorded) string {
 	var text []string
 	for _, message := range list(r.JSON()["messages"]) {
-		for _, part := range list(object(message)["content"]) {
+		content := object(message)["content"]
+		if value, ok := content.(string); ok {
+			text = append(text, value)
+			continue
+		}
+		for _, part := range list(content) {
 			p := object(part)
 			if p["type"] == "text" {
 				text = append(text, fmt.Sprint(p["text"]))

@@ -1,0 +1,146 @@
+{
+  "chapter_sha256": "6e0fd380bc203701634f1bfde8861f58a177131765ed36a81c0e7f437da3ec6c",
+  "fences": [
+    {
+      "language": "yaml",
+      "sha256": "325b2fcb27832352fbb510023d59301c87df536b396b5beee279b9689519209a"
+    },
+    {
+      "language": "yaml",
+      "sha256": "c10ae0c37985b5926404b50f063314db55d7297586f0561cd4d7d8af7a8260bd"
+    },
+    {
+      "language": "sh",
+      "sha256": "eb88731ee905c8c69ce4f4efdc5c0d694bd10864e50eaa4d3010d537aab80144"
+    },
+    {
+      "language": "sh",
+      "sha256": "5dab38d1bc3b653a3834df66c1d48f26d8b19284db8ba0b4050bb316a31dbdb2"
+    },
+    {
+      "language": "json",
+      "sha256": "df6618862c0fd48e17bc0e7218f46cc1ac96b1e24439d408be644d0ca4327c25"
+    },
+    {
+      "language": "sh",
+      "sha256": "5ed018f8667d2f772b7bb187f0fa04c7c89edfe14d312775af7a2123efa69ce1"
+    },
+    {
+      "language": "",
+      "sha256": "377663f012f11d4ed3e976101c167152d22c1e48d4cb2574b22a37d9279dddfa"
+    },
+    {
+      "language": "javascript",
+      "sha256": "e0af454c7f6b3080ce15366ea2edc7c08ec4fefe0eb197c6d0c43c8f7c593b31"
+    },
+    {
+      "language": "javascript",
+      "sha256": "1f7b6b3cfbd331a3ae203c55fd8990067d384a48afad8736fca5b62d5f5535ff"
+    },
+    {
+      "language": "javascript",
+      "sha256": "b333a62923413398142884bfa6c64dd906b0586ee36caa33f5380594fc3ad9ee"
+    },
+    {
+      "language": "javascript",
+      "sha256": "0921b32ee14fdf79d8f4a713c123e4187c935fb5eca459028e827365eb5f12ae"
+    },
+    {
+      "language": "go",
+      "sha256": "49970615f5bce317901e9b31eb33eec8e1e4b613e62e55567fe39d4a1903dab4"
+    },
+    {
+      "language": "javascript",
+      "sha256": "e89aeea46e7a6f9bd29c5f08fe5b8fd9d8b569de01317c29db1aa3cc697ddeb3"
+    },
+    {
+      "language": "go",
+      "sha256": "099c4b41cfb7d378d18f06c0133e955bf435f15e0381aedd2e961e8b8ed5d222"
+    },
+    {
+      "language": "sh",
+      "sha256": "aef1352998a9cc95cf54b2176c9fe0c86411651a8a8e168d598b9a4047cefc7e"
+    },
+    {
+      "language": "sh",
+      "sha256": "92b08a365b84c8788cdf5808c81106443f0d906f0e2a2021f297ae14b99a3d5a"
+    }
+  ],
+  "checks": [
+    {
+      "name": "build core",
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "/tmp/ensemble-ch12",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "build gui",
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "/tmp/ensemble-ch12-gui",
+        "./cmd"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "current event excerpt 9",
+      "source": "solutions/edition-2/ch12/gui/web/gui/mcp.js",
+      "source_sha256": "432437efb3ab2114fe51f3361a26ba209083f8f49ff1b493e92ff8f247d7a580",
+      "whitespace_normalized_exact": true,
+      "execution_evidence": "solutions/edition-2/evidence/ch13/reviewer-round1-speech-probe.json",
+      "limit": "No new native speech/browser run; retained accepted source execution."
+    },
+    {
+      "name": "current event excerpt 10",
+      "source": "solutions/edition-2/ch12/gui/web/gui/app.js",
+      "source_sha256": "62878a53268031d4b718fbc93339a39bde6d84573c28493fb76494c9c1d38b45",
+      "whitespace_normalized_exact": true,
+      "execution_evidence": "solutions/edition-2/evidence/ch13/reviewer-round1-speech-probe.json",
+      "limit": "No new native speech/browser run; retained accepted source execution."
+    },
+    {
+      "name": "published core invocation and skills",
+      "command": [
+        "/tmp/ensemble-ch12",
+        "--gui-debug",
+        "--skills-dir",
+        "./skills"
+      ],
+      "exit": 0,
+      "requests": 4,
+      "exact_prompt": true,
+      "result_only_argument_and_state_assertions": true,
+      "post_unload_context_and_declarations_absent": true,
+      "manual_retained": true,
+      "boundary": "real command + local provider + faithful stdio server entry substituted as documented"
+    },
+    {
+      "name": "published gui invocation and skills",
+      "command": [
+        "/tmp/ensemble-ch12-gui",
+        "--gui-dir",
+        "gui/web/gui",
+        "--gui-debug",
+        "--skills-dir",
+        "./skills",
+        "--port",
+        "8088"
+      ],
+      "exit": 0,
+      "requests": 4,
+      "exact_prompt": true,
+      "result_only_argument_and_state_assertions": true,
+      "post_unload_context_and_declarations_absent": true,
+      "manual_retained": true,
+      "boundary": "real command + local provider + faithful WebSocket peer; exact published websocket skills and served assets; no DOM/native speech claim"
+    }
+  ],
+  "historical_excerpts": "Original pause flag, DeferFinish and Settings excerpts remain labeled historical, not current runnable APIs."
+}

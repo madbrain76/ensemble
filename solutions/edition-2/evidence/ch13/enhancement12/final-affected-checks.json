@@ -1,0 +1,173 @@
+[
+  {
+    "name": "accepted-final-focused",
+    "command": [
+      "/tmp/ensemble-ch12-probe",
+      "-test.run",
+      "^TestChapter12Probe$",
+      "-test.v"
+    ],
+    "core": "solutions/edition-2/ch12",
+    "gui": "solutions/edition-2/ch12/gui",
+    "exit": 0,
+    "seconds": 0.7163915829733014,
+    "earned": 90,
+    "possible": 90,
+    "checks": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      }
+    ]
+  },
+  {
+    "name": "legacy-final-focused",
+    "command": [
+      "/tmp/ensemble-ch12-probe",
+      "-test.run",
+      "^TestChapter12Probe$",
+      "-test.v"
+    ],
+    "core": "solutions/ch13",
+    "gui": "solutions/ch13",
+    "exit": 0,
+    "seconds": 0.8221029581036419,
+    "earned": 75,
+    "possible": 90,
+    "checks": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core startup instructions missing",
+          "GUI startup instructions missing"
+        ]
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 20,
+        "passed": true
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 10,
+        "passed": true
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      }
+    ]
+  },
+  {
+    "name": "race",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestChapter(11|12)",
+      "-count=1",
+      "-v"
+    ],
+    "exit": 0,
+    "seconds": 3.660967375151813
+  },
+  {
+    "name": "command",
+    "command": [
+      "go",
+      "test",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.34689166583120823
+  },
+  {
+    "name": "vet",
+    "command": [
+      "go",
+      "vet",
+      "./internal/gradeedition2",
+      "./cmd/grade-edition2"
+    ],
+    "exit": 0,
+    "seconds": 0.15584774990566075
+  },
+  {
+    "name": "format",
+    "command": [
+      "gofmt",
+      "-l",
+      "internal/gradeedition2/ch11.go",
+      "internal/gradeedition2/ch12.go",
+      "internal/gradeedition2/ch12_test.go",
+      "cmd/grade-edition2/main.go"
+    ],
+    "exit": 0,
+    "seconds": 0.009819332975894213
+  }
+]

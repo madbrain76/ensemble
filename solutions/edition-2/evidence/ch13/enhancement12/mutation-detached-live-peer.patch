@@ -1,0 +1,11 @@
+--- internal/mcp/mcp.go
++++ internal/mcp/mcp.go
+@@ -183,7 +183,7 @@
+ 	m.mu.Unlock()
+ 	var failures []error
+ 	for _, c := range stopped {
+-		failures = append(failures, c.close())
++		_ = c; failures = append(failures, nil)
+ 	}
+ 	return errors.Join(failures...)
+ }

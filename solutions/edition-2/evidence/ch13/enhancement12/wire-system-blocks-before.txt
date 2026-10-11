@@ -1,0 +1,21 @@
+=== RUN   TestChapter12Probe
+--- FAIL: TestChapter12Probe (0.99s)
+panic: runtime error: comparing uncomparable type []interface {} [recovered, repanicked]
+
+goroutine 33 [running]:
+testing.tRunner.func1.2({0x102f4ce20, 0x140002865d0})
+	/usr/local/go/src/testing/testing.go:1872 +0x190
+testing.tRunner.func1()
+	/usr/local/go/src/testing/testing.go:1875 +0x31c
+panic({0x102f4ce20?, 0x140002865d0?})
+	/usr/local/go/src/runtime/panic.go:783 +0x120
+github.com/waywardgeek/ensemble/internal/gradeedition2.guiDebugClient({0x140001761e0, 0x53}, {0x102e4cb16, 0xf}, {0x0, 0x0, 0x0?}, {0x102e47adf, 0x4}, {0x14000178248, ...})
+	/Users/bill/projects/ensemble/internal/gradeedition2/ch12.go:181 +0x127c
+github.com/waywardgeek/ensemble/internal/gradeedition2.guiDebugChecks({0x140001761e0, 0x53}, {0x14000030070, 0x50}, {0x102e4cb16, 0xf})
+	/Users/bill/projects/ensemble/internal/gradeedition2/ch12.go:38 +0xb8
+github.com/waywardgeek/ensemble/internal/gradeedition2.TestChapter12Probe(0x1400017c1c0)
+	/Users/bill/projects/ensemble/internal/gradeedition2/ch12_probe_test.go:3 +0xe8
+testing.tRunner(0x1400017c1c0, 0x102fc1358)
+	/usr/local/go/src/testing/testing.go:1934 +0xc8
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:1997 +0x364

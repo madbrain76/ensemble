@@ -1,0 +1,33 @@
+{"observation":"state_changed","from":"idle","to":"input_pending"}
+{"observation":"state_changed","from":"input_pending","to":"in_flight"}
+{"observation":"part_delta","part_id":1,"kind":"tool_call","chunk":"gui_click {\"selector\":\"#button-A\"}"}
+{"observation":"state_changed","from":"in_flight","to":"tools_pending"}
+{"observation":"part_final","tool":"gui_click","seq":10,"part_id":1,"part":{"artifact_id":1,"type":"tool_call","from":{"vendor":"anthropic","model":"claude-sonnet-5","surface":"messages"},"call_id":"sample-click","name":"gui_click","args":{"selector":"#button-A"}}}
+{"call_id":"sample-click","name":"gui_click","input":{"selector":"#button-A"}}
+{"observation":"state_changed","from":"tools_pending","to":"input_pending"}
+{"observation":"part_final","seq":13,"part_id":2,"part":{"type":"tool_result","ref":{"kind":3,"locator":"cr/io/3"},"call_id":"sample-click","parts":[{"type":"text","text":"CLICK_RESULT_ONLY"}]}}
+{"call_id":"sample-click","result":"CLICK_RESULT_ONLY","is_error":false}
+{"observation":"state_changed","from":"input_pending","to":"in_flight"}
+{"observation":"part_delta","part_id":3,"kind":"tool_call","chunk":"gui_input {\"selector\":\"#search-box\",\"text\":\"INPUT_ARGUMENT_ONLY\"}"}
+{"observation":"state_changed","from":"in_flight","to":"tools_pending"}
+{"observation":"part_final","tool":"gui_input","seq":22,"part_id":3,"part":{"artifact_id":3,"type":"tool_call","from":{"vendor":"anthropic","model":"claude-sonnet-5","surface":"messages"},"call_id":"sample-input","name":"gui_input","args":{"selector":"#search-box","text":"INPUT_ARGUMENT_ONLY"}}}
+{"call_id":"sample-input","name":"gui_input","input":{"selector":"#search-box","text":"INPUT_ARGUMENT_ONLY"}}
+{"observation":"state_changed","from":"tools_pending","to":"input_pending"}
+{"observation":"part_final","seq":25,"part_id":4,"part":{"type":"tool_result","ref":{"kind":3,"locator":"cr/io/6"},"call_id":"sample-input","parts":[{"type":"text","text":"INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY"}]}}
+{"call_id":"sample-input","result":"INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY","is_error":false}
+{"observation":"state_changed","from":"input_pending","to":"in_flight"}
+{"observation":"part_delta","part_id":5,"kind":"tool_call","chunk":"unload_skill {\"name\":\"gui-debug\"}"}
+{"observation":"state_changed","from":"in_flight","to":"tools_pending"}
+{"observation":"part_final","tool":"unload_skill","seq":34,"part_id":5,"part":{"artifact_id":5,"type":"tool_call","from":{"vendor":"anthropic","model":"claude-sonnet-5","surface":"messages"},"call_id":"sample-unload","name":"unload_skill","args":{"name":"gui-debug"}}}
+{"call_id":"sample-unload","name":"unload_skill","input":{"name":"gui-debug"}}
+{"observation":"state_changed","from":"tools_pending","to":"input_pending"}
+{"observation":"part_final","seq":37,"part_id":6,"part":{"type":"tool_result","ref":{"kind":3,"locator":"cr/io/9"},"call_id":"sample-unload","parts":[{"type":"text","text":"Skill gui-debug is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now."}]}}
+{"call_id":"sample-unload","result":"Skill gui-debug is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now.","is_error":false}
+{"observation":"state_changed","from":"input_pending","to":"in_flight"}
+{"observation":"part_delta","part_id":7,"kind":"text","chunk":"PUBLISHED_GUI_SAMPLE_DONE"}
+{"observation":"state_changed","from":"in_flight","to":"idle"}
+{"observation":"part_final","text":"PUBLISHED_GUI_SAMPLE_DONE","seq":39,"part_id":7,"part":{"artifact_id":7,"type":"text","text":"PUBLISHED_GUI_SAMPLE_DONE"}}
+{"text":"PUBLISHED_GUI_SAMPLE_DONE"}
+{"deltas":{"text":1,"tool_call":3},"first_delta_ms":2,"observation":"stream_stats","parts":{"text":1,"tool_call":3}}
+{"assistant":"PUBLISHED_GUI_SAMPLE_DONE"}
+{"usage":{"input":4,"cache_write":0,"cache_read":0,"output":4}}

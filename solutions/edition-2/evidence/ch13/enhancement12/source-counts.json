@@ -1,0 +1,29 @@
+{
+  "method": "Physical lines, blank lines, // comment-only lines; remaining lines include embedded Python fixture. Go package/import/data/brace lines count as active, not executable statements.",
+  "counts": {
+    "internal/gradeedition2/ch12.go": {
+      "physical": 303,
+      "blank": 8,
+      "comment_only": 20,
+      "nonblank_noncomment": 275
+    },
+    "internal/gradeedition2/ch12_test.go": {
+      "physical": 26,
+      "blank": 3,
+      "comment_only": 1,
+      "nonblank_noncomment": 22
+    },
+    "internal/grade/ch13_harness.go": {
+      "physical": 588,
+      "blank": 66,
+      "comment_only": 80,
+      "nonblank_noncomment": 442
+    },
+    "internal/grade/ch13_checks.go": {
+      "physical": 112,
+      "blank": 8,
+      "comment_only": 1,
+      "nonblank_noncomment": 103
+    }
+  }
+}

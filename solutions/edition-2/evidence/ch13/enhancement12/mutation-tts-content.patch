@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -170,7 +170,7 @@
+ 			text = append(text, part.Text)
+ 		}
+ 	}
+-	joined := strings.Join(text, "\n")
++	joined := strings.Join(text, "\n"); if name == "tts_queue" { joined = "" }
+ 	if result.IsError {
+ 		return "", fmt.Errorf("MCP tool %s: %s", name, joined)
+ 	}

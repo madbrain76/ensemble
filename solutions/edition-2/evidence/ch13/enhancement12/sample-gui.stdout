@@ -1,0 +1,1 @@
+gui_click {"selector":"#button-A"}gui_input {"selector":"#search-box","text":"INPUT_ARGUMENT_ONLY"}unload_skill {"name":"gui-debug"}PUBLISHED_GUI_SAMPLE_DONE

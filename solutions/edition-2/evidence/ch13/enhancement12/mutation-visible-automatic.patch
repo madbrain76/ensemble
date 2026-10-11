@@ -1,0 +1,11 @@
+--- internal/agent/agent.go
++++ internal/agent/agent.go
+@@ -70,7 +70,7 @@
+ func (a *agent) Declarations() []common.ToolDeclaration {
+ 	var declarations []common.ToolDeclaration
+ 	for _, tool := range a.definitions() {
+-		if tool.Ephemeral != "" || !a.toolEnabled(tool.Name) {
++		if !a.toolEnabled(tool.Name) {
+ 			continue
+ 		}
+ 		declarations = append(declarations, tool.ToolDeclaration)

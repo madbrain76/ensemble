@@ -1,0 +1,14 @@
+{
+  "stage": "10dd7ffe282770508ff3fefd2facff67f69aba0d",
+  "full_run_delta": "full-grader-source.patch",
+  "full_run_ch12_sha256": "5bb5dda90cb8b1746cb07def6fecb2b8760409e6d6cb5d32641262d0f99951e7",
+  "final_grader_sha256": {
+    "cmd/grade-edition2/main.go": "4979eb88008443f013bbc5bbb86b90a931c73b9afc4a2321b27e313eb67816f6",
+    "internal/gradeedition2/ch11.go": "f86645210fc8d33bceac5a30dd216f26b0343b889ac91cea811b49d9fc6a36d3",
+    "internal/gradeedition2/ch12.go": "4a0f5bd3b0750ae09e09e0f19a3414d6db9657db2351ffc8e820c6fc0325bb4e",
+    "internal/gradeedition2/ch12_test.go": "18ad33d58b669c66e6ef0ea432a4db299f1843494190cdacc9b7ee3319b37cd3"
+  },
+  "accepted_tree": "6db89522a1e5db9b8d5f7a5eedadd27315ff87eb",
+  "legacy_tree": "00f53fedc8a576e88942556ee9d88536b156dcb2",
+  "final_total_note": "Final composed accepted100/100 = new final90/90 + unchanged actual full-run parity10. Legacy75/100 = final75/90 + unchanged full-run parity0. These are not additional full runs."
+}

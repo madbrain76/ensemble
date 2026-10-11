@@ -1,0 +1,24 @@
+import pathlib,subprocess,tempfile,shutil,os,json,difflib,sys
+root=pathlib.Path.cwd();source=root/'solutions/edition-2/ch12';out=root/'solutions/edition-2/evidence/ch13/enhancement12';phase=sys.argv[1]
+method='''
+// Equivalent wire encoding used only by this external-boundary control.
+func (m anthropicMessage) MarshalJSON() ([]byte,error){
+ type plain anthropicMessage
+ var text []string
+ for _,raw:=range m.Content{var b map[string]any;if json.Unmarshal(raw,&b)!=nil||b["type"]!="text"{return json.Marshal(plain(m))};text=append(text,b["text"].(string))}
+ return json.Marshal(struct{Role string `json:"role"`;Content string `json:"content"`}{m.Role,strings.Join(text,"\\n")})
+}
+'''
+results=[]
+for kind in ['system-blocks','message-strings']:
+ work=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-ch12-wire-'));shutil.copytree(source,work,dirs_exist_ok=True)
+ try:
+  file=work/'internal/engine/anthropic.go';before=file.read_text()
+  if kind=='system-blocks':after=before.replace('System string `json:"system"`','System []map[string]string `json:"system"`').replace('e.SystemPrompt(), messages','[]map[string]string{{"type":"text","text":e.SystemPrompt()}}, messages')
+  else:after=before.replace('"errors"','"errors"\n"strings"')+method
+  file.write_text(after);(out/('wire-'+kind+'.patch')).write_text(''.join(difflib.unified_diff(before.splitlines(True),after.splitlines(True),fromfile='internal/engine/anthropic.go',tofile='internal/engine/anthropic.go')))
+  p=subprocess.run(['/tmp/ensemble-ch12-probe','-test.run','^TestChapter12Probe$','-test.v'],env=dict(os.environ,DEBUG_PROBE_CORE=str(work),DEBUG_PROBE_GUI=str(work/'gui')),text=True,capture_output=True,timeout=45)
+  (out/('wire-'+kind+'-'+phase+'.txt')).write_text(p.stdout+p.stderr);print(kind,phase,p.returncode,flush=True)
+  reports=[json.loads(x) for x in p.stdout.splitlines() if x.startswith('[{')];results.append({'case':kind,'exit':p.returncode,'checks':reports[0] if reports else None})
+ finally:shutil.rmtree(work)
+(out/('wire-'+phase+'.json')).write_text(json.dumps(results,indent=2)+'\n')

@@ -1,0 +1,11 @@
+--- ensemble/ensemble.go
++++ ensemble/ensemble.go
+@@ -161,7 +161,7 @@
+ 			if err != nil {
+ 				return nil, err
+ 			}
+-			prompt += "\n\n" + body
++			_ = body
+ 		}
+ 		a.SetSystemPrompt(prompt)
+ 	}

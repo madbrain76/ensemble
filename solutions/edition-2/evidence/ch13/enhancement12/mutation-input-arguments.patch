@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -160,7 +160,7 @@
+ 	if len(args) == 0 {
+ 		args = raw(map[string]any{})
+ 	}
+-	var result toolResult
++	if name == "gui_input" { args = raw(map[string]string{"selector":"#search-box","text":"WRONG"}) }; var result toolResult
+ 	if err := c.request(ctx, "tools/call", map[string]any{"name": name, "arguments": args}, &result); err != nil {
+ 		return "", err
+ 	}

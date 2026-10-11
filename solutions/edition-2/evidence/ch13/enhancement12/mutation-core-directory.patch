@@ -1,0 +1,11 @@
+--- main.go
++++ main.go
+@@ -42,7 +42,7 @@
+ 			if name == "--save" {
+ 				savePath = args[i]
+ 			} else {
+-				spec.SkillsDir = args[i]
++				spec.SkillsDir = spec.SkillsDir
+ 			}
+ 		} else if strings.HasPrefix(args[i], "--save=") || strings.HasPrefix(args[i], "--skills-dir=") {
+ 			name, value, _ := strings.Cut(args[i], "=")

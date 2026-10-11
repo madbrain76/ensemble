@@ -1,0 +1,15 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -110,10 +110,10 @@
+ 		// MaxTokens bounds generated response tokens on this provider surface.
+ 		MaxTokens int `json:"max_tokens"`
+ 		// System carries the role instruction outside ordinary Anthropic messages.
+-		System string `json:"system"`
++		System []map[string]string `json:"system"`
+ 		// Messages retains provider message order, including tool-result boundaries.
+ 		Messages []anthropicMessage `json:"messages"`
+-	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.SystemPrompt(), messages})
++	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, []map[string]string{{"type":"text","text":e.SystemPrompt()}}, messages})
+ }
+ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.RawMessage, error) {
+ 	var out []json.RawMessage

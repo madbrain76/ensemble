@@ -1,0 +1,69 @@
+[
+  {
+    "case": "system-blocks",
+    "exit": 2,
+    "checks": null
+  },
+  {
+    "case": "message-strings",
+    "exit": 0,
+    "checks": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 stale/missing snapshot1",
+          "GUI request1 stale/missing snapshot1"
+        ]
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 lacks changed peer state \"SNAPSHOT_ONLY_1 button=enabled input=<empty>\"",
+          "GUI request1 lacks changed peer state \"SNAPSHOT_ONLY_1 button=enabled input=<empty>\""
+        ]
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 stale/missing TTS1",
+          "core request1 lost utterance status",
+          "GUI request1 stale/missing TTS1",
+          "GUI request1 lost utterance status"
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 15,
+        "passed": true
+      }
+    ]
+  }
+]

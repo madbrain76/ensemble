@@ -1,0 +1,87 @@
+import pathlib,re,json,hashlib,subprocess,tempfile,shutil,os,threading,http.server,time,urllib.request,websocket
+root=pathlib.Path.cwd();source=root/'solutions/edition-2/ch12';out=root/'solutions/edition-2/evidence/ch13/enhancement12';chapter=root/'book/edition-2/chapter-12.md'
+fences=re.findall(r'```([^\n]*)\n(.*?)```',chapter.read_text(),re.S);receipt={'chapter_sha256':hashlib.sha256(chapter.read_bytes()).hexdigest(),'fences':[{'language':l,'sha256':hashlib.sha256(b.encode()).hexdigest()} for l,b in fences],'checks':[]}
+scratch=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-ch12-samples-'));process=None;server=None;ws=None
+try:
+ for label,cmd,cwd in [('core',['go','build','-o','/tmp/ensemble-ch12','.'],source),('gui',['go','build','-o','/tmp/ensemble-ch12-gui','./cmd'],source/'gui')]:
+  p=subprocess.run(cmd,cwd=cwd,text=True,capture_output=True,timeout=60);(out/('sample-build-'+label+'.txt')).write_text(p.stdout+p.stderr);assert p.returncode==0
+  receipt['checks'].append({'name':'build '+label,'command':cmd,'exit':p.returncode})
+ # Published current event excerpts are exact modulo whitespace in the shipped
+ # files exercised by the retained native Chrome evidence, not replacement DOMs.
+ for n,path in [(9,'gui/web/gui/mcp.js'),(10,'gui/web/gui/app.js')]:
+  clean=lambda s:re.sub(r'\s+','',s)
+  assert clean(fences[n][1]) in clean((source/path).read_text()),(n,path)
+  receipt['checks'].append({'name':'current event excerpt '+str(n),'source':str(source.relative_to(root)/path),'source_sha256':hashlib.sha256((source/path).read_bytes()).hexdigest(),'whitespace_normalized_exact':True,'execution_evidence':'solutions/edition-2/evidence/ch13/reviewer-round1-speech-probe.json','limit':'No new native speech/browser run; retained accepted source execution.'})
+ for mode in ['core','gui']:
+  work=scratch/mode;work.mkdir();shutil.copytree(source/'gui/web',work/'gui/web')
+  for name,body in [('ensemble',fences[0][1]),('gui-debug',fences[1][1])]:
+   (work/'skills'/name).mkdir(parents=True);(work/'skills'/name/'SKILL.md').write_text(body)
+  if mode=='core':
+   peer=re.search(r'const guiDebugPeer = `(.*?)`', (root/'internal/gradeedition2/ch12.go').read_text(),re.S)[1];(work/'peer.py').write_text(peer)
+   skill=work/'skills/gui-debug/SKILL.md';skill.write_text(skill.read_text().replace('    transport: websocket','    transport: stdio\n    command: '+shutil.which('python3')+'\n    args: '+json.dumps(['-u',str(work/'peer.py')])))
+  requests=[];wire=[];counts={};state={'button':'enabled','value':'<empty>'}
+  class Provider(http.server.BaseHTTPRequestHandler):
+   def do_POST(self):
+    requests.append(json.loads(self.rfile.read(int(self.headers['Content-Length']))));n=len(requests)
+    calls=[('sample-click','gui_click',{'selector':'#button-A'}),('sample-input','gui_input',{'selector':'#search-box','text':'INPUT_ARGUMENT_ONLY'}),('sample-unload','unload_skill',{'name':'gui-debug'})]
+    if n<=3:
+     ident,name,args=calls[n-1];content=[{'type':'tool_use','id':ident,'name':name,'input':args}]
+    else:content=[{'type':'text','text':'PUBLISHED_GUI_SAMPLE_DONE'}]
+    data=json.dumps({'id':'sample-response','type':'message','role':'assistant','model':'claude-sonnet-5','content':content,'stop_reason':'tool_use' if n<=3 else 'end_turn','usage':{'input_tokens':1,'output_tokens':1}}).encode();self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
+   def log_message(self,*args):pass
+  server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Provider);threading.Thread(target=server.serve_forever,daemon=True).start()
+  env=dict(os.environ,LLM_VENDOR='anthropic',LLM_MODEL='claude-sonnet-5',LLM_API_KEY='fake-sample-key',LLM_BASE_URL=f'http://127.0.0.1:{server.server_port}',EN_DISABLE_STREAMING='1',EN_SKILLS_DIR='',EN_PRIMARY_SKILL='')
+  cmd=['/tmp/ensemble-ch12','--gui-debug','--skills-dir','./skills'] if mode=='core' else ['/tmp/ensemble-ch12-gui','--gui-dir','gui/web/gui','--gui-debug','--skills-dir','./skills','--port','8088']
+  process=subprocess.Popen(cmd,cwd=work,env=env,text=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+  if mode=='core':stdout,stderr=process.communicate(fences[4][1],timeout=20)
+  else:
+   deadline=time.monotonic()+5
+   while True:
+    try:
+     html=urllib.request.urlopen('http://127.0.0.1:8088',timeout=1).read();assert b'<html' in html.lower();break
+    except Exception:
+     if process.poll() is not None or time.monotonic()>deadline:raise
+     time.sleep(.025)
+   ws=websocket.create_connection('ws://127.0.0.1:8088/ws',timeout=10);ws.send(json.dumps({'type':'subscribe'}));prompt_sent=False
+   while True:
+    message=json.loads(ws.recv());wire.append(message)
+    if message.get('type')!='jsonrpc':
+     if 'PUBLISHED_GUI_SAMPLE_DONE' in json.dumps(message):break
+     continue
+    m=message['payload'];method=m.get('method')
+    if 'id' not in m:continue
+    if method=='initialize':result={'protocolVersion':'2024-11-05','capabilities':{'tools':{}}}
+    elif method=='tools/list':result={'tools':[{'name':name,'description':name,'inputSchema':{'type':'object','properties':{'selector':{'type':'string'},'text':{'type':'string'}}},'ephemeral':timing} for name,timing in [('gui_snapshot','round'),('tts_queue','round'),('gui_click',''),('gui_input','')]]}
+    elif method=='tools/call':
+     name=m['params']['name'];args=m['params'].get('arguments',{});counts[name]=counts.get(name,0)+1;bad=False
+     if name=='gui_snapshot':text='SNAPSHOT_ONLY_'+str(counts[name])+' button='+state['button']+' input='+state['value']
+     elif name=='tts_queue':text=json.dumps([{'text':'TTS_ONLY_'+str(counts[name]),'status':'pending'}])
+     elif name=='gui_click' and args.get('selector')=='#button-A':state['button']='disabled';text='CLICK_RESULT_ONLY'
+     elif name=='gui_input' and args.get('selector')=='#search-box':state['value']=args.get('text','');text='INPUT_RESULT_ONLY:'+state['value']
+     else:text='BAD_BROWSER_OPERATION';bad=True
+     result={'content':[{'type':'text','text':text}],'isError':bad}
+    else:raise AssertionError(m)
+    ws.send(json.dumps({'type':'jsonrpc','payload':{'jsonrpc':'2.0','id':m['id'],'result':result}}))
+    if method=='tools/list' and not prompt_sent:
+     # Public stdin prompt is read concurrently with the actual GUI tunnel.
+     process.stdin.write(fences[4][1]);process.stdin.flush();prompt_sent=True
+   assert process.poll() is None
+   ws.close();ws=None;stdout,stderr=process.communicate(timeout=10)
+   (out/'sample-gui-wire.json').write_text(json.dumps(wire,indent=2)+'\n')
+  (out/('sample-'+mode+'.stdout')).write_text(stdout);(out/('sample-'+mode+'.stderr')).write_text(stderr);(out/('sample-'+mode+'-requests.json')).write_text(json.dumps(requests,indent=2)+'\n')
+  assert process.returncode==0 and len(requests)==4,(mode,process.returncode,len(requests),stderr)
+  def result(req,ident):return next(b for m in req['messages'] for b in m['content'] if b.get('type')=='tool_result' and b.get('tool_use_id')==ident)
+  assert 'CLICK_RESULT_ONLY' in json.dumps(result(requests[1],'sample-click'))
+  assert 'INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY' in json.dumps(result(requests[2],'sample-input'))
+  assert 'SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY' in json.dumps(requests[2]['messages'])
+  assert 'SNAPSHOT_ONLY_' not in json.dumps(requests[3]['messages']) and 'TTS_ONLY_' not in json.dumps(requests[3]['messages'])
+  assert requests[0]['system']==requests[3]['system'] and 'current browser snapshot' in requests[0]['system']
+  assert not any(t['name'].startswith('gui_') or t['name']=='tts_queue' for t in requests[3]['tools'])
+  receipt['checks'].append({'name':'published '+mode+' invocation and skills','command':cmd,'exit':process.returncode,'requests':4,'exact_prompt':True,'result_only_argument_and_state_assertions':True,'post_unload_context_and_declarations_absent':True,'manual_retained':True,'boundary':'real command + local provider + faithful '+('stdio server entry substituted as documented' if mode=='core' else 'WebSocket peer; exact published websocket skills and served assets; no DOM/native speech claim')})
+  process=None;server.shutdown();server.server_close();server=None
+ receipt['historical_excerpts']='Original pause flag, DeferFinish and Settings excerpts remain labeled historical, not current runnable APIs.'
+finally:
+ if ws:ws.close()
+ if process and process.poll() is None:process.kill();process.communicate()
+ if server:server.shutdown();server.server_close()
+ (out/'samples.json').write_text(json.dumps(receipt,indent=2)+'\n');shutil.rmtree(scratch)

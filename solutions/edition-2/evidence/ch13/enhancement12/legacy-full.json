@@ -1,0 +1,69 @@
+{
+  "title": "Edition 2, Chapter 12 — The Agent Sees Itself",
+  "checks": [
+    {
+      "id": "skill-loads",
+      "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "core startup instructions missing",
+        "GUI startup instructions missing"
+      ]
+    },
+    {
+      "id": "ephemeral-injected",
+      "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "snapshot-updates",
+      "title": "After gui_click, next round's gui_snapshot reflects the change",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "tts-visibility",
+      "title": "tts_queue returns utterance data in ephemeral context",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "gui-interaction",
+      "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "skill-unload",
+      "title": "Unloading gui-debug removes MCP tools and closes transport",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "ch11-parity",
+      "title": "All corrected Chapter 11 checks pass",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "tool-discovery: declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [edit_file kill_job list_directory read_file run_command search_files send_input think tool_limits wait_for_job write_file]; declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [edit_file kill_job list_directory read_file run_command search_files send_input think tool_limits wait_for_job write_file]; declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [edit_file kill_job list_directory read_file run_command search_files send_input think tool_limits wait_for_job write_file]; declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [edit_file kill_job list_directory read_file run_command search_files send_input think tool_limits wait_for_job write_file]; declarations: want [load_skill read_file remote_echo remote_error unload_skill], got [edit_file kill_job list_directory read_file run_command search_files send_input think tool_limits wait_for_job write_file]; stdio peer never started: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-mcp-model-2263110893/peer.jsonl: no such file or directory",
+        "mcp-tool-call: result remote-echo: error=true want=false text=\"no such tool \\\"remote_echo\\\"; available tools: edit_file, kill_job, list_directory, read_file, run_command, search_files, send_input, think, tool_limits, wait_for_job, write_file\" decode=\u003cnil\u003e; actual remote result/arguments or content blocks lost: \"no such tool \\\"remote_echo\\\"; available tools: edit_file, kill_job, list_directory, read_file, run_command, search_files, send_input, think, tool_limits, wait_for_job, write_file\"; remote isError/content did not reach model as a failed result",
+        "ephemeral-round: request1 lacks only its fresh round1 context; request1 has wrong once-per-turn context; request2 lacks only its fresh round2 context; request3 lacks only its fresh round3 context; request4 lacks only its fresh round4 context; request5 lacks only its fresh round5 context; request5 has wrong once-per-turn context; no external automatic invocations",
+        "reverse-call: auto_round: correlated=wrong response identity: map[id:3 jsonrpc:2.0 method:tools/call params:map[arguments:map[] name:auto_round]] error=false text=\"\"",
+        "ws-tunnel: tunnel handshake: WebSocket observation deadline",
+        "ch10-parity: bad-save-refused: core: bad save 1: exit=\u003cnil\u003e named=false requests=1 unchanged=false; GUI: bad save 1: exit=\u003cnil\u003e named=false requests=1 unchanged=false; ch9-parity: initial-tools: result hidden: error=false want=true text=\"wrote 9 bytes to hidden.txt\" decode=\u003cnil\u003e; hidden write executed; load-skill: declarations: want [edit_file list_directory load_skill read_file search_files unload_skill write_file], got [list_directory load_skill read_file search_files unload_skill]; progressive-disclosure: SKILLS expansion lacks code-tools; SKILLS expansion lacks search-tools; SKILLS expansion prematurely/incorrectly exposes code-tools; SKILLS expansion prematurely/incorrectly exposes search-tools; depends-autoload: dependency instructions absent from load result; var-substitution: TOOLS expansion lacks read_file; TOOLS expansion lacks load_skill; TOOLS expansion lacks unload_skill; TOOLS expansion lacks load_skill; TOOLS expansion lacks unload_skill; TOOLS expansion lacks write_file; TOOLS expansion lacks edit_file; TOOLS expansion lacks load_skill; TOOLS expansion lacks unload_skill; TOOLS expansion lacks search_files; ch8-parity: settings-roundtrip: sender patch 3: tts_enabled: want present false, got \u003cnil\u003e (present=false); sender patch 4: tts_enabled: want present false, got \u003cnil\u003e (present=false); sender patch 5: tts_enabled: want present false, got \u003cnil\u003e (present=false); settings-on-connect: initial snapshot lacks four correctly typed visible preferences; initial snapshot lacks four correctly typed visible preferences; fresh subscriber: tts_enabled: want present false, got \u003cnil\u003e (present=false); settings-broadcast: second client patch 3: tts_enabled: want present false, got \u003cnil\u003e (present=false); second client patch 4: tts_enabled: want present false, got \u003cnil\u003e (present=false); second client patch 5: tts_enabled: want present false, got \u003cnil\u003e (present=false); settings-persist: restarted subscriber: tts_enabled: want present false, got \u003cnil\u003e (present=false); checks full visible preferences and explicit zero budget across actual restart; effective budget, validation, write failure and browser controls remain source/integration proof; ch7-parity: websocket-streams: final artifact identity reused: 1; final artifact identity reused: 1; GUI public dependency: core and consumer need distinct module declarations; observed wire checks passed before dependency assessment: false; event-replay: replay lost part_final content/identity (part=1 call=\u003cnil\u003e); replay lost part_final content/identity (part=2 call=\u003cnil\u003e); replay lost part_final content/identity (part=3 call=\u003cnil\u003e); replay lost part_final content/identity (part=1 call=\u003cnil\u003e); replay lost part_final content/identity (part=1 call=\u003cnil\u003e); completed-content/identity replay checked; active partials, handoff and fixed window retain required source/integration proof; ch6-parity: delivery-not-content: unknown model must complete in plain mode: error=exit status 1:  stream=false text-deltas=0; stream exercise dependency: core and consumer need distinct module declarations; compares observable finals and measured usage, unknown-model fallback and separate aggregate exercise; gated flush, SSE framing and complete opaque replay remain required source/integration proof; ch5-parity: ch4-parity: ch3parity: turning tool calls into jobs broke Chapter 3: ch2parity (0/10); toolsdecl (0/5); readtools (6/10); mutatetools (0/5); star-topology: core and consumer need distinct module declarations; external-consumer: consumer run: fork/exec /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-consumer-1879234370/consumer: permission denied: ; tool-diagnostic: consumer did not complete: consumer run: fork/exec /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-consumer-1879234370/consumer: permission denied: ; not-deaf: workflow needs its own module: solutions/ch13/ch06; replay-is-live: request 1 differs from replayed prefix: \u003cnil\u003e; request 2 differs from replayed prefix: \u003cnil\u003e; request 3 differs from replayed prefix: \u003cnil\u003e; observer-fires: workflow needs its own module: solutions/ch13/ch06; multi-agent-observations: workflow needs its own module: solutions/ch13/ch06; loud-refusal: anthropic supported image: exit status 1: render: render: cannot render image/png part: unknown model \"claude-haiku-5-5\" (no entry in the model table); openai supported image: exit status 1: render: render: cannot render image/png part: unknown model \"gpt-5.4-mini\" (no entry in the model table); gemini supported image: exit status 1: render: render: gemini: cannot send a blob of kind path (/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-media-1650314483/pixel.png): Gemini fetches remote references only, so this must be resolved to a uri before rendering"
+      ]
+    }
+  ],
+  "score": 75,
+  "max_score": 100,
+  "passed": false
+}

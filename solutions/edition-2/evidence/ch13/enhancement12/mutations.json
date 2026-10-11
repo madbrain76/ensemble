@@ -1,0 +1,662 @@
+[
+  {
+    "name": "core-startup",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.514,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core no actual peer PID",
+          "core startup instructions missing",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [load_skill unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [load_skill unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [load_skill unload_skill]",
+          "core session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3865684670/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 stale/missing snapshot1",
+          "core request2 stale/missing snapshot2",
+          "core request3 stale/missing snapshot3",
+          "core session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3865684670/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 lacks changed peer state \"SNAPSHOT_ONLY_1 button=enabled input=<empty>\"",
+          "core request2 lacks changed peer state \"SNAPSHOT_ONLY_2 button=disabled input=<empty>\"",
+          "core request3 lacks changed peer state \"SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\"",
+          "core session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3865684670/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 stale/missing TTS1",
+          "core request1 lost utterance status",
+          "core request2 stale/missing TTS2",
+          "core request2 lost utterance status",
+          "core request3 stale/missing TTS3",
+          "core request3 lost utterance status",
+          "core session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3865684670/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result debug-click: error=true want=false text=\"unknown tool \\\"gui_click\\\"\" decode=<nil>",
+          "core actual click result missing",
+          "result debug-input: error=true want=false text=\"unknown tool \\\"gui_input\\\"\" decode=<nil>",
+          "core actual input result/arguments missing",
+          "core session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3865684670/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core cannot observe peer lifetime",
+          "result debug-unload: error=true want=false text=\"skill \\\"gui-debug\\\" is not loaded\" decode=<nil>",
+          "core session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3865684670/browser-rpc.jsonl: no such file or directory"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gui-startup",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.523,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI no actual peer PID",
+          "GUI startup instructions missing",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [load_skill unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [load_skill unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [load_skill unload_skill]",
+          "GUI session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3501598276/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI request1 stale/missing snapshot1",
+          "GUI request2 stale/missing snapshot2",
+          "GUI request3 stale/missing snapshot3",
+          "GUI session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3501598276/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI request1 lacks changed peer state \"SNAPSHOT_ONLY_1 button=enabled input=<empty>\"",
+          "GUI request2 lacks changed peer state \"SNAPSHOT_ONLY_2 button=disabled input=<empty>\"",
+          "GUI request3 lacks changed peer state \"SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\"",
+          "GUI session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3501598276/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI request1 stale/missing TTS1",
+          "GUI request1 lost utterance status",
+          "GUI request2 stale/missing TTS2",
+          "GUI request2 lost utterance status",
+          "GUI request3 stale/missing TTS3",
+          "GUI request3 lost utterance status",
+          "GUI session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3501598276/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result debug-click: error=true want=false text=\"unknown tool \\\"gui_click\\\"\" decode=<nil>",
+          "GUI actual click result missing",
+          "result debug-input: error=true want=false text=\"unknown tool \\\"gui_input\\\"\" decode=<nil>",
+          "GUI actual input result/arguments missing",
+          "GUI session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3501598276/browser-rpc.jsonl: no such file or directory"
+        ]
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI cannot observe peer lifetime",
+          "result debug-unload: error=true want=false text=\"skill \\\"gui-debug\\\" is not loaded\" decode=<nil>",
+          "GUI session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-3501598276/browser-rpc.jsonl: no such file or directory"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "core-directory",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.5,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-127969128/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-127969128/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-127969128/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-127969128/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-127969128/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-127969128/missing-env-skills: no such file or directory: EOF"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "gui-directory",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.504,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-1840931217/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-1840931217/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-1840931217/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-1840931217/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-1840931217/missing-env-skills: no such file or directory: EOF"
+        ]
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "GUI session: command stdout closed: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/edition2-gui-debug-1840931217/missing-env-skills: no such file or directory: EOF"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "startup-manual",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.628,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core startup instructions missing",
+          "GUI startup instructions missing"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "early-manual-removal",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.561,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request4 changed frozen startup instructions",
+          "core request5 changed frozen startup instructions",
+          "GUI request4 changed frozen startup instructions",
+          "GUI request5 changed frozen startup instructions"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "visible-automatic",
+    "intended": "skill-loads",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.58,
+    "failures": [
+      {
+        "id": "skill-loads",
+        "title": "gui-debug skill discovered and loaded, MCP handshake completes",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [gui_click gui_input gui_snapshot load_skill tts_queue unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [gui_click gui_input gui_snapshot load_skill tts_queue unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [gui_click gui_input gui_snapshot load_skill tts_queue unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [gui_click gui_input gui_snapshot load_skill tts_queue unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [gui_click gui_input gui_snapshot load_skill tts_queue unload_skill]",
+          "declarations: want [gui_click gui_input load_skill unload_skill], got [gui_click gui_input gui_snapshot load_skill tts_queue unload_skill]"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "stale-snapshot",
+    "intended": "ephemeral-injected",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.547,
+    "failures": [
+      {
+        "id": "ephemeral-injected",
+        "title": "gui_snapshot result appears in context sent to LLM (in Ephemera, not dialogue)",
+        "points": 20,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request2 stale/missing snapshot1",
+          "core request3 stale/missing snapshot1",
+          "core request3 stale/missing snapshot2",
+          "GUI request2 stale/missing snapshot1",
+          "GUI request3 stale/missing snapshot1",
+          "GUI request3 stale/missing snapshot2"
+        ]
+      },
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request2 stale/missing TTS1",
+          "core request3 stale/missing TTS1",
+          "core request3 stale/missing TTS2",
+          "GUI request2 stale/missing TTS1",
+          "GUI request3 stale/missing TTS1",
+          "GUI request3 stale/missing TTS2"
+        ]
+      },
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request4 contains automatic context after unload",
+          "core request4 stale/missing snapshot1",
+          "core request4 stale/missing TTS1",
+          "core request4 stale/missing snapshot2",
+          "core request4 stale/missing TTS2",
+          "core request4 stale/missing snapshot3",
+          "core request4 stale/missing TTS3",
+          "core request5 contains automatic context after unload",
+          "core request5 stale/missing snapshot1",
+          "core request5 stale/missing TTS1",
+          "core request5 stale/missing snapshot2",
+          "core request5 stale/missing TTS2",
+          "core request5 stale/missing snapshot3",
+          "core request5 stale/missing TTS3",
+          "GUI request4 contains automatic context after unload",
+          "GUI request4 stale/missing snapshot1",
+          "GUI request4 stale/missing TTS1",
+          "GUI request4 stale/missing snapshot2",
+          "GUI request4 stale/missing TTS2",
+          "GUI request4 stale/missing snapshot3",
+          "GUI request4 stale/missing TTS3",
+          "GUI request5 contains automatic context after unload",
+          "GUI request5 stale/missing snapshot1",
+          "GUI request5 stale/missing TTS1",
+          "GUI request5 stale/missing snapshot2",
+          "GUI request5 stale/missing TTS2",
+          "GUI request5 stale/missing snapshot3",
+          "GUI request5 stale/missing TTS3"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "click-arguments",
+    "intended": "snapshot-updates",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.552,
+    "failures": [
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request2 lacks changed peer state \"SNAPSHOT_ONLY_2 button=disabled input=<empty>\"",
+          "core request3 lacks changed peer state \"SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\"",
+          "GUI request2 lacks changed peer state \"SNAPSHOT_ONLY_2 button=disabled input=<empty>\"",
+          "GUI request3 lacks changed peer state \"SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\""
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result debug-click: error=true want=false text=\"MCP tool gui_click: BAD_BROWSER_OPERATION\" decode=<nil>",
+          "core actual click result missing",
+          "result debug-click: error=true want=false text=\"MCP tool gui_click: BAD_BROWSER_OPERATION\" decode=<nil>",
+          "GUI actual click result missing"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "input-arguments",
+    "intended": "gui-interaction",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.561,
+    "failures": [
+      {
+        "id": "snapshot-updates",
+        "title": "After gui_click, next round's gui_snapshot reflects the change",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request3 lacks changed peer state \"SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\"",
+          "GUI request3 lacks changed peer state \"SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\""
+        ]
+      },
+      {
+        "id": "gui-interaction",
+        "title": "Agent calls gui_click/gui_input correctly, gets confirmation",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core actual input result/arguments missing",
+          "GUI actual input result/arguments missing"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tts-content",
+    "intended": "tts-visibility",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.557,
+    "failures": [
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 stale/missing TTS1",
+          "core request1 lost utterance status",
+          "core request2 stale/missing TTS2",
+          "core request2 lost utterance status",
+          "core request3 stale/missing TTS3",
+          "core request3 lost utterance status",
+          "GUI request1 stale/missing TTS1",
+          "GUI request1 lost utterance status",
+          "GUI request2 stale/missing TTS2",
+          "GUI request2 lost utterance status",
+          "GUI request3 stale/missing TTS3",
+          "GUI request3 lost utterance status"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tts-status",
+    "intended": "tts-visibility",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.628,
+    "failures": [
+      {
+        "id": "tts-visibility",
+        "title": "tts_queue returns utterance data in ephemeral context",
+        "points": 10,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core request1 lost utterance status",
+          "core request2 lost utterance status",
+          "core request3 lost utterance status",
+          "GUI request1 lost utterance status",
+          "GUI request2 lost utterance status",
+          "GUI request3 lost utterance status"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "skip-disconnect",
+    "intended": "skill-unload",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.585,
+    "failures": [
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core peer still present after unload: <nil>",
+          "declarations: want [load_skill unload_skill], got [gui_click gui_input load_skill unload_skill]",
+          "core request4 contains automatic context after unload",
+          "declarations: want [load_skill unload_skill], got [gui_click gui_input load_skill unload_skill]",
+          "core request5 contains automatic context after unload",
+          "result debug-guessed: error=false want=true text=\"CLICK_RESULT_ONLY\" decode=<nil>",
+          "core external gui_click calls=2 want1",
+          "core external gui_snapshot calls=5 want3",
+          "core external tts_queue calls=5 want3",
+          "GUI peer still present after unload: <nil>",
+          "declarations: want [load_skill unload_skill], got [gui_click gui_input load_skill unload_skill]",
+          "GUI request4 contains automatic context after unload",
+          "declarations: want [load_skill unload_skill], got [gui_click gui_input load_skill unload_skill]",
+          "GUI request5 contains automatic context after unload",
+          "result debug-guessed: error=false want=true text=\"CLICK_RESULT_ONLY\" decode=<nil>",
+          "GUI external gui_snapshot calls=5 want3",
+          "GUI external tts_queue calls=5 want3",
+          "GUI external gui_click calls=2 want1"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "detached-live-peer",
+    "intended": "skill-unload",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.547,
+    "failures": [
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "core peer still present after unload: <nil>",
+          "GUI peer still present after unload: <nil>"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "guessed-success",
+    "intended": "skill-unload",
+    "killed": true,
+    "process_exit": 0,
+    "seconds": 0.569,
+    "failures": [
+      {
+        "id": "skill-unload",
+        "title": "Unloading gui-debug removes MCP tools and closes transport",
+        "points": 15,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "result debug-guessed: error=false want=true text=\"unknown tool \\\"gui_click\\\"\" decode=<nil>",
+          "result debug-guessed: error=false want=true text=\"unknown tool \\\"gui_click\\\"\" decode=<nil>"
+        ]
+      }
+    ]
+  }
+]

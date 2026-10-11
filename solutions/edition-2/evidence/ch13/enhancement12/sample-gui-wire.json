@@ -1,0 +1,414 @@
+[
+  {
+    "from": "idle",
+    "replay": true,
+    "to": "idle",
+    "type": "state_changed"
+  },
+  {
+    "paused": false,
+    "replay": true,
+    "type": "pause_changed"
+  },
+  {
+    "replay": true,
+    "settings": {
+      "theme": "dark",
+      "tts_enabled": true,
+      "tts_speed": 1,
+      "font_size": 16,
+      "max_tool_rounds": 0
+    },
+    "type": "current_settings"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "method": "initialize",
+      "params": {
+        "capabilities": {},
+        "clientInfo": {
+          "name": "Ensemble",
+          "version": "1"
+        },
+        "protocolVersion": "2024-11-05"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "method": "notifications/initialized"
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 2,
+      "method": "tools/list",
+      "params": {}
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "part": {
+      "type": "text",
+      "text": "Inspect the browser state, click a visible control, and report the change from the next snapshot."
+    },
+    "part_id": "user-1-0",
+    "type": "user_message"
+  },
+  {
+    "from": "idle",
+    "to": "input_pending",
+    "type": "state_changed"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 3,
+      "method": "tools/call",
+      "params": {
+        "arguments": {},
+        "name": "gui_snapshot"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 4,
+      "method": "tools/call",
+      "params": {
+        "arguments": {},
+        "name": "tts_queue"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "call_id": "external-2",
+    "input": {},
+    "name": "gui_snapshot",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "external-2",
+    "is_error": false,
+    "result": "SNAPSHOT_ONLY_1 button=enabled input=<empty>",
+    "type": "tool_finished"
+  },
+  {
+    "call_id": "external-5",
+    "input": {},
+    "name": "tts_queue",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "external-5",
+    "is_error": false,
+    "result": "[{\"text\": \"TTS_ONLY_1\", \"status\": \"pending\"}]",
+    "type": "tool_finished"
+  },
+  {
+    "from": "input_pending",
+    "to": "in_flight",
+    "type": "state_changed"
+  },
+  {
+    "chunk": "gui_click {\"selector\":\"#button-A\"}",
+    "kind": "tool_call",
+    "part_id": 1,
+    "type": "part_delta"
+  },
+  {
+    "part": {
+      "artifact_id": 1,
+      "type": "tool_call",
+      "from": {
+        "vendor": "anthropic",
+        "model": "claude-sonnet-5",
+        "surface": "messages"
+      },
+      "call_id": "sample-click",
+      "name": "gui_click",
+      "args": {
+        "selector": "#button-A"
+      }
+    },
+    "part_id": 1,
+    "type": "part_final"
+  },
+  {
+    "from": "in_flight",
+    "to": "tools_pending",
+    "type": "state_changed"
+  },
+  {
+    "call_id": "sample-click",
+    "input": {
+      "selector": "#button-A"
+    },
+    "name": "gui_click",
+    "type": "tool_dispatched"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 5,
+      "method": "tools/call",
+      "params": {
+        "arguments": {
+          "selector": "#button-A"
+        },
+        "name": "gui_click"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "call_id": "sample-click",
+    "is_error": false,
+    "result": "CLICK_RESULT_ONLY",
+    "type": "tool_finished"
+  },
+  {
+    "from": "tools_pending",
+    "to": "input_pending",
+    "type": "state_changed"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 6,
+      "method": "tools/call",
+      "params": {
+        "arguments": {},
+        "name": "gui_snapshot"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 7,
+      "method": "tools/call",
+      "params": {
+        "arguments": {},
+        "name": "tts_queue"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "call_id": "external-14",
+    "input": {},
+    "name": "gui_snapshot",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "external-14",
+    "is_error": false,
+    "result": "SNAPSHOT_ONLY_2 button=disabled input=<empty>",
+    "type": "tool_finished"
+  },
+  {
+    "call_id": "external-17",
+    "input": {},
+    "name": "tts_queue",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "external-17",
+    "is_error": false,
+    "result": "[{\"text\": \"TTS_ONLY_2\", \"status\": \"pending\"}]",
+    "type": "tool_finished"
+  },
+  {
+    "from": "input_pending",
+    "to": "in_flight",
+    "type": "state_changed"
+  },
+  {
+    "chunk": "gui_input {\"selector\":\"#search-box\",\"text\":\"INPUT_ARGUMENT_ONLY\"}",
+    "kind": "tool_call",
+    "part_id": 3,
+    "type": "part_delta"
+  },
+  {
+    "part": {
+      "artifact_id": 3,
+      "type": "tool_call",
+      "from": {
+        "vendor": "anthropic",
+        "model": "claude-sonnet-5",
+        "surface": "messages"
+      },
+      "call_id": "sample-input",
+      "name": "gui_input",
+      "args": {
+        "selector": "#search-box",
+        "text": "INPUT_ARGUMENT_ONLY"
+      }
+    },
+    "part_id": 3,
+    "type": "part_final"
+  },
+  {
+    "from": "in_flight",
+    "to": "tools_pending",
+    "type": "state_changed"
+  },
+  {
+    "call_id": "sample-input",
+    "input": {
+      "selector": "#search-box",
+      "text": "INPUT_ARGUMENT_ONLY"
+    },
+    "name": "gui_input",
+    "type": "tool_dispatched"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 8,
+      "method": "tools/call",
+      "params": {
+        "arguments": {
+          "selector": "#search-box",
+          "text": "INPUT_ARGUMENT_ONLY"
+        },
+        "name": "gui_input"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "call_id": "sample-input",
+    "is_error": false,
+    "result": "INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY",
+    "type": "tool_finished"
+  },
+  {
+    "from": "tools_pending",
+    "to": "input_pending",
+    "type": "state_changed"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 9,
+      "method": "tools/call",
+      "params": {
+        "arguments": {},
+        "name": "gui_snapshot"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "payload": {
+      "jsonrpc": "2.0",
+      "id": 10,
+      "method": "tools/call",
+      "params": {
+        "arguments": {},
+        "name": "tts_queue"
+      }
+    },
+    "type": "jsonrpc"
+  },
+  {
+    "call_id": "external-26",
+    "input": {},
+    "name": "gui_snapshot",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "external-26",
+    "is_error": false,
+    "result": "SNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY",
+    "type": "tool_finished"
+  },
+  {
+    "call_id": "external-29",
+    "input": {},
+    "name": "tts_queue",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "external-29",
+    "is_error": false,
+    "result": "[{\"text\": \"TTS_ONLY_3\", \"status\": \"pending\"}]",
+    "type": "tool_finished"
+  },
+  {
+    "from": "input_pending",
+    "to": "in_flight",
+    "type": "state_changed"
+  },
+  {
+    "chunk": "unload_skill {\"name\":\"gui-debug\"}",
+    "kind": "tool_call",
+    "part_id": 5,
+    "type": "part_delta"
+  },
+  {
+    "part": {
+      "artifact_id": 5,
+      "type": "tool_call",
+      "from": {
+        "vendor": "anthropic",
+        "model": "claude-sonnet-5",
+        "surface": "messages"
+      },
+      "call_id": "sample-unload",
+      "name": "unload_skill",
+      "args": {
+        "name": "gui-debug"
+      }
+    },
+    "part_id": 5,
+    "type": "part_final"
+  },
+  {
+    "from": "in_flight",
+    "to": "tools_pending",
+    "type": "state_changed"
+  },
+  {
+    "call_id": "sample-unload",
+    "input": {
+      "name": "gui-debug"
+    },
+    "name": "unload_skill",
+    "type": "tool_dispatched"
+  },
+  {
+    "call_id": "sample-unload",
+    "is_error": false,
+    "result": "Skill gui-debug is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now.",
+    "type": "tool_finished"
+  },
+  {
+    "from": "tools_pending",
+    "to": "input_pending",
+    "type": "state_changed"
+  },
+  {
+    "from": "input_pending",
+    "to": "in_flight",
+    "type": "state_changed"
+  },
+  {
+    "chunk": "PUBLISHED_GUI_SAMPLE_DONE",
+    "kind": "text",
+    "part_id": 7,
+    "type": "part_delta"
+  }
+]

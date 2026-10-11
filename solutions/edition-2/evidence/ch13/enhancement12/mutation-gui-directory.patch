@@ -1,0 +1,11 @@
+--- gui/cmd/main.go
++++ gui/cmd/main.go
+@@ -34,7 +34,7 @@
+ 	}
+ 	spec := ensemble.AgentSpecFromEnv()
+ 	guiDebug := flag.Bool("gui-debug", false, "load the gui-debug skill before accepting input")
+-	flag.StringVar(&spec.SkillsDir, "skills-dir", spec.SkillsDir, "skill directory (gui-debug defaults to skills)")
++	flag.String("skills-dir", spec.SkillsDir, "skill directory (gui-debug defaults to skills)")
+ 	port := flag.Int("port", 8088, "localhost HTTP port")
+ 	directory := flag.String("gui-dir", "web/gui", "static GUI directory")
+ 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")

@@ -1,0 +1,1034 @@
+[
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "context_lines": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "pattern"
+          ]
+        },
+        "name": "search_files"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "old_text": {
+              "type": "string"
+            },
+            "new_text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "old_text",
+            "new_text"
+          ]
+        },
+        "name": "edit_file"
+      },
+      {
+        "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "ai_callback_delay": {
+              "type": "number",
+              "description": "Seconds before looking again, default 3; never a job deadline"
+            },
+            "ai_callback_pattern": {
+              "type": "string",
+              "description": "Regex on unseen output"
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "description": "Inline output byte cap, default 16384"
+            }
+          },
+          "required": [
+            "command"
+          ]
+        },
+        "name": "run_command"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "gui_click",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "name": "gui_click"
+      },
+      {
+        "description": "gui_input",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "name": "gui_input"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.\n\nThe current browser snapshot and speech queue arrive automatically before each\nround. Use gui_click with a visible CSS selector and gui_input with selector and\ntext. Observe the next snapshot to confirm the effect. Hidden or omitted state\nis not evidence of success: report what you can actually observe.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Inspect the browser state, click a visible control, and report the change from the next snapshot."
+          },
+          {
+            "type": "text",
+            "text": "## gui_snapshot (auto-updated)\n\nSNAPSHOT_ONLY_1 button=enabled input=<empty>\n\n## tts_queue (auto-updated)\n\n[{\"text\": \"TTS_ONLY_1\", \"status\": \"pending\"}]"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "context_lines": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "pattern"
+          ]
+        },
+        "name": "search_files"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "old_text": {
+              "type": "string"
+            },
+            "new_text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "old_text",
+            "new_text"
+          ]
+        },
+        "name": "edit_file"
+      },
+      {
+        "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "ai_callback_delay": {
+              "type": "number",
+              "description": "Seconds before looking again, default 3; never a job deadline"
+            },
+            "ai_callback_pattern": {
+              "type": "string",
+              "description": "Regex on unseen output"
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "description": "Inline output byte cap, default 16384"
+            }
+          },
+          "required": [
+            "command"
+          ]
+        },
+        "name": "run_command"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "gui_click",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "name": "gui_click"
+      },
+      {
+        "description": "gui_input",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "name": "gui_input"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.\n\nThe current browser snapshot and speech queue arrive automatically before each\nround. Use gui_click with a visible CSS selector and gui_input with selector and\ntext. Observe the next snapshot to confirm the effect. Hidden or omitted state\nis not evidence of success: report what you can actually observe.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Inspect the browser state, click a visible control, and report the change from the next snapshot."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-click",
+            "name": "gui_click",
+            "input": {
+              "selector": "#button-A"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-click",
+            "content": [
+              {
+                "type": "text",
+                "text": "CLICK_RESULT_ONLY"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "## gui_snapshot (auto-updated)\n\nSNAPSHOT_ONLY_2 button=disabled input=<empty>\n\n## tts_queue (auto-updated)\n\n[{\"text\": \"TTS_ONLY_2\", \"status\": \"pending\"}]"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "context_lines": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "pattern"
+          ]
+        },
+        "name": "search_files"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "old_text": {
+              "type": "string"
+            },
+            "new_text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "old_text",
+            "new_text"
+          ]
+        },
+        "name": "edit_file"
+      },
+      {
+        "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "ai_callback_delay": {
+              "type": "number",
+              "description": "Seconds before looking again, default 3; never a job deadline"
+            },
+            "ai_callback_pattern": {
+              "type": "string",
+              "description": "Regex on unseen output"
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "description": "Inline output byte cap, default 16384"
+            }
+          },
+          "required": [
+            "command"
+          ]
+        },
+        "name": "run_command"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      },
+      {
+        "description": "gui_click",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "name": "gui_click"
+      },
+      {
+        "description": "gui_input",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "selector": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "name": "gui_input"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.\n\nThe current browser snapshot and speech queue arrive automatically before each\nround. Use gui_click with a visible CSS selector and gui_input with selector and\ntext. Observe the next snapshot to confirm the effect. Hidden or omitted state\nis not evidence of success: report what you can actually observe.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Inspect the browser state, click a visible control, and report the change from the next snapshot."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-click",
+            "name": "gui_click",
+            "input": {
+              "selector": "#button-A"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-click",
+            "content": [
+              {
+                "type": "text",
+                "text": "CLICK_RESULT_ONLY"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-input",
+            "name": "gui_input",
+            "input": {
+              "selector": "#search-box",
+              "text": "INPUT_ARGUMENT_ONLY"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-input",
+            "content": [
+              {
+                "type": "text",
+                "text": "INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "## gui_snapshot (auto-updated)\n\nSNAPSHOT_ONLY_3 button=disabled input=INPUT_ARGUMENT_ONLY\n\n## tts_queue (auto-updated)\n\n[{\"text\": \"TTS_ONLY_3\", \"status\": \"pending\"}]"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "pattern": {
+              "type": "string"
+            },
+            "context_lines": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "pattern"
+          ]
+        },
+        "name": "search_files"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "old_text": {
+              "type": "string"
+            },
+            "new_text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path",
+            "old_text",
+            "new_text"
+          ]
+        },
+        "name": "edit_file"
+      },
+      {
+        "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string"
+            },
+            "cwd": {
+              "type": "string"
+            },
+            "ai_callback_delay": {
+              "type": "number",
+              "description": "Seconds before looking again, default 3; never a job deadline"
+            },
+            "ai_callback_pattern": {
+              "type": "string",
+              "description": "Regex on unseen output"
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "description": "Inline output byte cap, default 16384"
+            }
+          },
+          "required": [
+            "command"
+          ]
+        },
+        "name": "run_command"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its MCP servers stop now; compiled tools and instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "You are a coding assistant. Use the available tools to inspect facts before\nclaiming results. Available skills: gui-debug.\n\nThe current browser snapshot and speech queue arrive automatically before each\nround. Use gui_click with a visible CSS selector and gui_input with selector and\ntext. Observe the next snapshot to confirm the effect. Hidden or omitted state\nis not evidence of success: report what you can actually observe.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Inspect the browser state, click a visible control, and report the change from the next snapshot."
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-click",
+            "name": "gui_click",
+            "input": {
+              "selector": "#button-A"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-click",
+            "content": [
+              {
+                "type": "text",
+                "text": "CLICK_RESULT_ONLY"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-input",
+            "name": "gui_input",
+            "input": {
+              "selector": "#search-box",
+              "text": "INPUT_ARGUMENT_ONLY"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-input",
+            "content": [
+              {
+                "type": "text",
+                "text": "INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "tool_use",
+            "id": "sample-unload",
+            "name": "unload_skill",
+            "input": {
+              "name": "gui-debug"
+            }
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "sample-unload",
+            "content": [
+              {
+                "type": "text",
+                "text": "Skill gui-debug is pending instruction removal at the next compaction; its MCP tools and servers are disconnected now."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

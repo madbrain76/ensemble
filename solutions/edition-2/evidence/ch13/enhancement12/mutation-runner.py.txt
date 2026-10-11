@@ -1,0 +1,44 @@
+import pathlib,subprocess,tempfile,shutil,os,json,difflib,time
+root=pathlib.Path.cwd();source=root/'solutions/edition-2/ch12';out=root/'solutions/edition-2/evidence/ch13/enhancement12'
+scratch=pathlib.Path(tempfile.mkdtemp(prefix='ensemble-ch12-mutant-'));shutil.copytree(source,scratch,dirs_exist_ok=True)
+client='internal/mcp/client.go';manager='internal/mcp/mcp.go';agent='internal/agent/agent.go';auto='internal/agent/mcp.go'
+cases=[
+ ('core-startup','main.go','spec.StartupSkills = []string{"gui-debug"}','spec.StartupSkills = nil','skill-loads'),
+ ('gui-startup','gui/cmd/main.go','spec.StartupSkills = []string{"gui-debug"}','spec.StartupSkills = nil','skill-loads'),
+ ('core-directory','main.go','spec.SkillsDir = args[i]','spec.SkillsDir = spec.SkillsDir','skill-loads'),
+ ('gui-directory','gui/cmd/main.go','flag.StringVar(&spec.SkillsDir, "skills-dir", spec.SkillsDir,','flag.String("skills-dir", spec.SkillsDir,','skill-loads'),
+ ('startup-manual','ensemble/ensemble.go','prompt += "\\n\\n" + body','_ = body','skill-loads'),
+ ('early-manual-removal','internal/agent/dispatch.go','return definition.Run(owner, call.Args)','if call.Name == "unload_skill" { r.owner.SetSystemPrompt("removed startup manual") }; return definition.Run(owner, call.Args)','skill-loads'),
+ ('visible-automatic',agent,'tool.Ephemeral != "" || !a.toolEnabled(tool.Name)','!a.toolEnabled(tool.Name)','skill-loads'),
+ ('stale-snapshot','internal/history/reduce.go','c.Ephemera = nil','c.Ephemera = c.Ephemera','ephemeral-injected'),
+ ('click-arguments',client,'var result toolResult','if name == "gui_click" { args = raw(map[string]string{"selector":"#wrong"}) }; var result toolResult','snapshot-updates'),
+ ('input-arguments',client,'var result toolResult','if name == "gui_input" { args = raw(map[string]string{"selector":"#search-box","text":"WRONG"}) }; var result toolResult','gui-interaction'),
+ ('tts-content',client,'joined := strings.Join(text, "\\n")','joined := strings.Join(text, "\\n"); if name == "tts_queue" { joined = "" }','tts-visibility'),
+ ('tts-status',client,'joined := strings.Join(text, "\\n")','joined := strings.Join(text, "\\n"); if name == "tts_queue" { joined = strings.ReplaceAll(joined,"pending", "") }','tts-visibility'),
+ ('skip-disconnect','internal/skills/skills.go','return r.parent.MCP().StopSkill(name)','return nil','skill-unload'),
+ ('detached-live-peer',manager,'failures = append(failures, c.close())','_ = c; failures = append(failures, nil)','skill-unload'),
+ ('guessed-success','internal/agent/dispatch.go','return "", fmt.Errorf("unknown tool %q", call.Name)','return fmt.Sprintf("unknown tool %q", call.Name), nil','skill-unload'),
+]
+
+results=[]
+def run(label):
+ env=dict(os.environ,DEBUG_PROBE_CORE=str(scratch),DEBUG_PROBE_GUI=str(scratch/'gui'))
+ started=time.monotonic();p=subprocess.run(['/tmp/ensemble-ch12-probe','-test.run','^TestChapter12Probe$','-test.v'],env=env,text=True,capture_output=True,timeout=60)
+ (out/(label+'.txt')).write_text(p.stdout+p.stderr)
+ records=[json.loads(line) for line in p.stdout.splitlines() if line.startswith('[{')]
+ return p.returncode,records[0] if records else None,round(time.monotonic()-started,3)
+try:
+ code,checks,elapsed=run('mutation-baseline');assert code==0 and all(c['passed'] for c in checks)
+ for name,path,old,new,intended in cases:
+  file=scratch/path;before=file.read_text();assert before.count(old)==1,(name,before.count(old),old)
+  after=before.replace(old,new);file.write_text(after)
+  (out/('mutation-'+name+'.patch')).write_text(''.join(difflib.unified_diff(before.splitlines(True),after.splitlines(True),fromfile=path,tofile=path)))
+  code,checks,elapsed=run('mutation-'+name)
+  failures=[c for c in checks or [] if not c['passed']]
+  killed=code==0 and any(c['id']==intended for c in failures)
+  results.append(dict(name=name,intended=intended,killed=killed,process_exit=code,seconds=elapsed,failures=failures))
+  (out/'mutations.json').write_text(json.dumps(results,indent=2)+'\n')
+  print(name,'KILLED' if killed else 'INVALID/SURVIVED',flush=True)
+  file.write_text(before)
+ code,checks,elapsed=run('mutation-restored');assert code==0 and all(c['passed'] for c in checks)
+finally:shutil.rmtree(scratch)

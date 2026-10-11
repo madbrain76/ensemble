@@ -1,0 +1,11 @@
+--- gui/cmd/main.go
++++ gui/cmd/main.go
+@@ -53,7 +53,7 @@
+ 		spec.PrimarySkill = "ensemble"
+ 	}
+ 	if *guiDebug {
+-		spec.StartupSkills = []string{"gui-debug"}
++		spec.StartupSkills = nil
+ 	}
+ 	cfg.SavePath, err = filepath.Abs(cfg.SavePath)
+ 	if err != nil {

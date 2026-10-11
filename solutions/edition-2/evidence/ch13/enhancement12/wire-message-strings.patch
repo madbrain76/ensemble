@@ -1,0 +1,22 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -3,6 +3,7 @@
+ import (
+ 	"encoding/json"
+ 	"errors"
++"strings"
+ 
+ 	"ensemble/internal/common"
+ )
+@@ -243,3 +244,11 @@
+ 	}
+ 	return result, nil
+ }
++
++// Equivalent wire encoding used only by this external-boundary control.
++func (m anthropicMessage) MarshalJSON() ([]byte,error){
++ type plain anthropicMessage
++ var text []string
++ for _,raw:=range m.Content{var b map[string]any;if json.Unmarshal(raw,&b)!=nil||b["type"]!="text"{return json.Marshal(plain(m))};text=append(text,b["text"].(string))}
++ return json.Marshal(struct{Role string `json:"role"`;Content string `json:"content"`}{m.Role,strings.Join(text,"\n")})
++}

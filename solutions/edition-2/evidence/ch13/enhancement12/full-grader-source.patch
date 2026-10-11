@@ -1,0 +1,12 @@
+--- internal/gradeedition2/ch12.go
++++ internal/gradeedition2/ch12.go
+@@ -189,6 +189,9 @@
+ 		}
+ 		skillDeclarations(target, r, declared)
+ 		content := guiDebugText(r)
++		if i >= 3 && (strings.Contains(content, "SNAPSHOT_ONLY_") || strings.Contains(content, "TTS_ONLY_")) {
++			fail(&checks[5], "%s request%d contains automatic context after unload", label, i+1)
++		}
+ 		// Check each observation once, then its absence on every later request.
+ 		// The event log may retain it; retained dialogue and current context may not.
+ 		for n := 1; n <= 3; n++ {

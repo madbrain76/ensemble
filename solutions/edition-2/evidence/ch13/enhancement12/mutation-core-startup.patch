@@ -1,0 +1,11 @@
+--- main.go
++++ main.go
+@@ -72,7 +72,7 @@
+ 		spec.PrimarySkill = "ensemble"
+ 	}
+ 	if guiDebug {
+-		spec.StartupSkills = []string{"gui-debug"}
++		spec.StartupSkills = nil
+ 	}
+ 	cfg, err := ensemble.ConfigFromEnv()
+ 	cfg.BuiltinTools, cfg.DataDir = true, "cr"

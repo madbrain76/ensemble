@@ -1,0 +1,11 @@
+--- internal/agent/dispatch.go
++++ internal/agent/dispatch.go
+@@ -60,7 +60,7 @@
+ 			return "", limitErr
+ 		}
+ 		if definition == nil {
+-			return "", fmt.Errorf("unknown tool %q", call.Name)
++			return fmt.Sprintf("unknown tool %q", call.Name), nil
+ 		}
+ 		return definition.Run(owner, call.Args)
+ 	}
