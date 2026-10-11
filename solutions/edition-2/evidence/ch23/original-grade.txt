@@ -1,0 +1,37 @@
+go run ./cmd/grade -ch 23 /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-original-grade-gvou8n8l
+Chapter 23 — The Sandbox
+============================================================
+
+[FAIL]      File tools refuse to escape the sandbox root  (0/15)
+       the agent did not complete a sandboxed session: the agent produced no
+       assistant turn; stderr: provider model is not set
+
+[FAIL]      Commands and their descendants cannot reach outside the root  (0/20)
+       the agent did not complete a sandboxed session: the agent produced no
+       assistant turn; stderr: provider model is not set
+
+[FAIL]      A sandboxed command cannot reach the network  (0/15)
+       the agent did not complete a sandboxed session: the agent produced no
+       assistant turn; stderr: provider model is not set
+
+[FAIL]      No credential reaches a tool result  (0/15)
+       the agent did not complete a sandboxed session: the agent produced no
+       assistant turn; stderr: provider model is not set
+
+[FAIL]      A child's permissions are clamped, and an over-request is reported  (0/10)
+       the probe did not compile or run against AgentSpec.Child and
+       AgentSpec.Clamp: exit status 1 ch23gradeprobe/main.go:7:2: import
+       "ensemble" is a program, not an importable package
+
+[FAIL]      Safe mode removes the exec tools and keeps the file tools  (0/15)
+       the agent did not complete a safe mode session: the agent produced no
+       assistant turn; stderr: provider model is not set
+
+[FAIL]      A refusal names the path the model asked for, not the host path  (0/10)
+       the agent did not complete a sandboxed session: the agent produced no
+       assistant turn; stderr: provider model is not set
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1
