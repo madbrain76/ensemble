@@ -38,6 +38,7 @@ book-facing Chapters 1–8 remain frozen. They extend the authoritative `../main
 | --- | --- | --- |
 | 10: Skills | [ch10](ch10/), [manifest](ch10-manifest.json), 75 files | `edition-2-ch10-r2` |
 | 11: Persistence | [ch11](ch11/), [manifest](ch11-manifest.json), 80 files | `edition-2-ch11-r1` |
+| 12: MCP | [ch12](ch12/), [manifest](ch12-manifest.json), 91 files | `edition-2-ch12-r1` |
 
 Chapter 10 is accepted with independently recorded exceptions. The full original
 run was interrupted/unscored; focused unchanged skills checks earned 65/85, with
@@ -48,3 +49,9 @@ Chapter 11 is accepted after one correction round with inherited exceptions.
 Its full original run remains interrupted/unscored; focused original checks
 earned 70/85 on the initial submission, with final correction evidence and the
 masked save-shape predicates documented in the [review](../../../docs/edition-2-notes/ch11-code-review.md).
+
+Chapter 12 is accepted after one correction round with recorded grader exceptions.
+The full original run remains interrupted/unscored; unchanged interim current
+checks earned 80/90, with the fixed-path WebSocket check failing and recursive
+parity unrun. Actual browser and runtime evidence, including the corrected slow
+automatic-context case, is assessed in the [review](../../../docs/edition-2-notes/ch12-code-review.md).

@@ -2,19 +2,32 @@
 
 ## October 10: resumed original student run
 
-Original Chapter 12 is implemented and submitted for independent review, not
-yet accepted. Three-provider MCP chat and real browser/tunnel checks passed.
+Original Chapter 12 is accepted after one correction round. Three-provider MCP
+chat and real browser/tunnel checks passed.
 The live Anthropic run exposed an inherited empty tool-argument streaming defect;
 a small parser correction, captured response regression and restored-defect check
 support its successful bounded repeat. An argument-forwarding mutation initially
 survived because the assertion found the marker in the earlier call arguments,
 not the result. Checking the actual rendered result repaired that evidence gap.
 The initial failure and ineffective mutation attempts remain in the chapter notes.
+Independent review found a separate timing defect: automatic context inherited
+the ordinary three-second job callback, replacing a slow tool's actual result
+with a running notice. The small correction waits for completed automatic
+content while preserving ordinary callback behavior and independent job lifetime
+on turn interruption. The same slow-peer probe now passes; focused regressions,
+two targeted defects and independent race checks verify the correction. The
+review also narrowed a browser assertion from persistence to applied/effective
+state, preserving the original observations and separate persistence evidence.
 The full original grader is interrupted/unscored; the unchanged interim current
 checks scored 80/90, with a fixed-path WebSocket source check failing. Several
 passing protocol checks do not actually exercise their named runtime behaviors;
-the independent review must assess those paths from real evidence. Original
-Chapter 13 is prepared but remains gated on Chapter 12 acceptance.
+the independent review assessed those paths from actual integration, browser and
+live evidence. See `edition-2-notes/ch12-code-review.md`. The exact 91-file export
+is `solutions/edition-2/history/ch12`, checkpoint `edition-2-ch12-r1`. Original
+Chapter 13, The Agent Sees Itself, is next. The author remains stopped.
+The checkpoint audit caught an ignored generated GUI grader log in the student's
+92-path final validation manifest. Preserve that measured manifest but distinguish
+it from the 91 tracked source files; the log is excluded from the frozen export.
 
 Original Chapter 11 is accepted after one correction round. The reviewer caught
 saved system-prompt metadata disagreeing with the actual default instruction
