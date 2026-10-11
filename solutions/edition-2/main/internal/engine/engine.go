@@ -64,6 +64,9 @@ func (e *engine) Target() common.Provenance {
 	switch cfg.Vendor {
 	case common.OpenAI:
 		surface = common.ChatCompletions
+		if e.Features().Responses {
+			surface = common.Responses
+		}
 	case common.Gemini:
 		surface = common.GenerateContent
 	}
@@ -78,6 +81,9 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 	case common.Anthropic:
 		return e.renderAnthropic(c)
 	case common.OpenAI:
+		if e.Features().Responses {
+			return e.renderResponses(c)
+		}
 		return e.renderOpenAI(c)
 	case common.Gemini:
 		return e.renderGemini(c)
@@ -135,6 +141,10 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	switch cfg.Vendor {
 	case common.OpenAI:
 		path = "/v1/chat/completions"
+		features, _ := LookupModel(cfg.Model)
+		if features.Responses {
+			path = "/v1/responses"
+		}
 	case common.Gemini:
 		path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":generateContent"
 		if StreamingFor(cfg) != 0 {
@@ -209,7 +219,12 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 			onEvent(event)
 		}
 	}
-	err = e.Parse(resp, cb)
+	features, _ := LookupModel(cfg.Model)
+	if cfg.Vendor == common.OpenAI && features.Responses {
+		err = e.parseResponses(resp, cb, cfg)
+	} else {
+		err = e.Parse(resp, cb)
+	}
 	return events, err
 }
 

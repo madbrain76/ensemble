@@ -17,6 +17,9 @@ type Config struct {
 	// BaseURL selects the endpoint; APIKey is transport-only. Model routes requests,
 	// while ResolvedModel optionally supplies exact replay identity.
 	BaseURL, APIKey, Model, ResolvedModel string
+	// ReasoningEffort and ReasoningSummary configure supported Responses models.
+	// Empty summary requests auto; empty effort leaves the provider default.
+	ReasoningEffort, ReasoningSummary string
 	// Audio retains the earlier client input flag; explicit ModelFeatures now govern
 	// media rendering.
 	Audio bool

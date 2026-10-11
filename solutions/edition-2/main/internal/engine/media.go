@@ -32,6 +32,8 @@ func LookupModel(model string) (common.ModelFeatures, bool) {
 		return common.ModelFeatures{Price: &common.Pricing{Input: 2, Output: 10, CacheWrite: 2.5, CacheRead: .2}, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
 	case "claude-3-haiku-20240307":
 		return common.ModelFeatures{Media: common.MediaImage, Stream: common.StreamText | common.StreamToolArgs}, true
+	case "gpt-6.1-sol", "gpt-ch19-course":
+		return common.ModelFeatures{Responses: true, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-4o-mini":
 		return common.ModelFeatures{ContextWindow: 128000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-5.6-sol":

@@ -352,6 +352,8 @@ const (
 	StreamAll = common.StreamAll
 	// DeltaThinking displays reasoning separately from the reply.
 	DeltaThinking = common.DeltaThinking
+	// DeltaReasoningSummary displays a public model summary separately from its answer.
+	DeltaReasoningSummary = common.DeltaReasoningSummary
 	// DeltaText displays reply text.
 	DeltaText = common.DeltaText
 	// DeltaToolCall displays a tool name and argument fragments.

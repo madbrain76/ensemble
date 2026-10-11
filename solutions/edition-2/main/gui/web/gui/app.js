@@ -181,6 +181,7 @@ function partText(part) {
   if (part.type === "opaque") {
     const value = part.data || {};
     // Signatures and redacted thinking are replay bytes, never spoken prose.
+    if (value.type === "reasoning") return (value.summary ?? []).map(part => part.text ?? "").join("");
     if (value.type === "thinking") return value.thinking ?? "";
     if (value.thought === true) return value.text ?? "";
     return "";
@@ -235,7 +236,7 @@ class ArtifactScroll {
     const shown = card.text.slice(0, 4000);
     const body = document.createElement("div");
     card.content.append(body);
-    if (card.kind === "text" || card.kind === "thinking") markdown(body, shown);
+    if (card.kind === "text" || ["thinking", "reasoning_summary"].includes(card.kind)) markdown(body, shown);
     else {
       const pre = document.createElement("pre");
       if (card.label.textContent === "edit_file") {
@@ -252,7 +253,7 @@ class ArtifactScroll {
       } else ansi(pre, shown);
       body.append(pre);
     }
-    if (card.kind === "thinking") {
+    if (["thinking", "reasoning_summary"].includes(card.kind)) {
       const details = document.createElement("details");
       const summary = document.createElement("summary");
       summary.textContent = "Thinking";
@@ -279,7 +280,7 @@ class ArtifactScroll {
       card.text += message.chunk;
       card.streamed = true;
       this.render(card);
-      if (!message.replay && ["text", "thinking"].includes(message.kind))
+      if (!message.replay && ["text", "thinking", "reasoning_summary"].includes(message.kind))
         speech.chunk(id, message.chunk, false, message.kind);
     } else if (
       message.type === "part_final" ||
@@ -290,14 +291,14 @@ class ArtifactScroll {
         message.type === "user_message"
           ? "user"
           : part.type === "opaque"
-            ? "thinking"
+            ? (part.from?.surface === "responses" ? "reasoning_summary" : "thinking")
             : part.type;
       const card = this.card(id, kind);
       card.kind = kind;
       card.text = partText(part);
       this.render(card);
       if (part.type === "tool_call") this.calls.set(part.call_id, card);
-      if (!message.replay && ["text", "thinking"].includes(kind))
+      if (!message.replay && ["text", "thinking", "reasoning_summary"].includes(kind))
         speech.chunk(id, card.streamed ? "" : card.text, true, kind);
     } else if (message.type === "tool_dispatched") {
       const card =

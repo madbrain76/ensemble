@@ -114,7 +114,7 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 					case ensemble.DeltaText:
 						// os.File is unbuffered: each write reaches the pipe/terminal now.
 						fmt.Fprint(os.Stdout, v.Chunk)
-					case ensemble.DeltaThinking, ensemble.DeltaToolCall:
+					case ensemble.DeltaThinking, ensemble.DeltaReasoningSummary, ensemble.DeltaToolCall:
 						style := "\x1b[2m"
 						if v.Kind == ensemble.DeltaToolCall {
 							style = "\x1b[33m"

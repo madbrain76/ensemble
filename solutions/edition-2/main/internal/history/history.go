@@ -263,7 +263,7 @@ func validate(e common.Event) error {
 // A known vendor with no model identity is still unusable provenance.
 // Never infer an old producer from the Agent's current target configuration.
 func provenance(p common.Provenance) error {
-	if p.Vendor < common.Anthropic || p.Vendor > common.Gemini || p.Surface < common.Messages || p.Surface > common.GenerateContent || p.Model == "" {
+	if p.Vendor < common.Anthropic || p.Vendor > common.Gemini || p.Surface < common.Messages || p.Surface > common.Responses || p.Model == "" {
 		return errors.New("missing or invalid provenance")
 	}
 	return nil

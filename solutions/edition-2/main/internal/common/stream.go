@@ -16,6 +16,8 @@ const (
 	DeltaText
 	// DeltaToolCall displays a tool name followed by its argument fragments.
 	DeltaToolCall
+	// DeltaReasoningSummary carries public summaries, never private reasoning traces.
+	DeltaReasoningSummary
 )
 
 // MarshalJSON refuses an unset kind rather than mislabeling a display channel.
@@ -25,6 +27,8 @@ func (k DeltaKind) MarshalJSON() ([]byte, error) {
 		return json.Marshal("thinking")
 	case DeltaText:
 		return json.Marshal("text")
+	case DeltaReasoningSummary:
+		return json.Marshal("reasoning_summary")
 	case DeltaToolCall:
 		return json.Marshal("tool_call")
 	}
