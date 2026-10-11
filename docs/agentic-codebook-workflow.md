@@ -1,5 +1,21 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: paused at Bill's request after Chapter 16 draft
+
+Bill asked to pause all sub-agents as soon as the author finished Chapter 16,
+then discuss what to do next. Author checkpoint `a6ca6757` already contains the
+coherent manuscript and author note; hard prose lint passes at 5,040 words.
+Coordinator interrupted the running coder and paused author/reviewer immediately.
+No Chapter 17 work is authorized while this pause remains in force.
+
+Chapter 16 is not accepted. Exact examples, revised grader and independent final
+review remain unfinished; reviewer preparation is at `141891ea`. Preserve the
+coder's uncommitted command dispatch and `ch16` grader files, review-note edits
+and `evidence/ch17/enhancement16/` captures. The initial 10/100 run diagnosed an
+event-log fixture mismatch, not nine established recall defects. Do not finish
+the gate or resume work merely because prior autonomy instructions allowed it.
+Wait for Bill's explicit direction after the discussion.
+
 ## October 11: enhanced Chapter 15 accepted
 
 Independent combined review `2083a1be` accepts the memory chapter at initial

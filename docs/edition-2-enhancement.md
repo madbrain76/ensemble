@@ -1,5 +1,14 @@
 # Edition 2: chapter enhancement
 
+## Current user-directed pause, October 11
+
+All three sub-agents are paused at Bill's request after the author completed
+the Chapter 16 draft (`a6ca6757`). Prose lint passes; exact sample validation,
+grader completion and independent acceptance remain pending. Preserve current
+working files and evidence. No Chapter 17 work or further Chapter 16 work until
+Bill explicitly resumes after discussing next steps with the coordinator.
+This supersedes the earlier chapter release below.
+
 ## Closed correction gate, October 11
 
 Independent review `0301637e` accepts the bounded Chapter 14 editorial correction

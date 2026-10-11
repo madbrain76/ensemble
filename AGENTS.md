@@ -1,5 +1,15 @@
 # Ensemble student restart
 
+## October 11: Bill's explicit pause after Chapter 16 authorship
+
+Bill requests all sub-agents pause as soon as the author finishes Chapter 16,
+so he and the coordinator can discuss next steps. The coherent author draft is
+committed at `a6ca6757`; that stop boundary is reached. Author, coder and reviewer
+are paused. Do not resume chapter edits, tests, review or Chapter 17 work until
+Bill explicitly resumes the work. Chapter 16 sample/grader validation and final
+acceptance are unfinished. Preserve the current uncommitted work and evidence.
+This pause supersedes earlier autonomous progression instructions.
+
 ## October 11: supported models and bounded prose corrections
 
 Bill requires older supported Anthropic models, such as Sonnet-5, and excludes
