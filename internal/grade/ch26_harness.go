@@ -318,18 +318,20 @@ func ch26WaitChange(bin string, r *Ch26Result) {
 	}
 
 	r.ran("wait-change-wakes")
-	// The wait_for_agent_change result should contain the child's ID,
-	// indicating it woke on a state change.
+	// The wait_for_agent_change result must contain "status_change" or
+	// "state" — which only appears in the wait tool's own result, not in
+	// spawn_sub_agent's result (which also mentions the child's name).
 	results := ch23ToolResults(srv.Requests())
-	sawChild := false
+	sawStateChange := false
 	for _, res := range results {
-		if strings.Contains(res, "wait-child") {
-			sawChild = true
+		if (strings.Contains(res, "status_change") || strings.Contains(res, "state_change")) &&
+			strings.Contains(res, "wait-child") {
+			sawStateChange = true
 			break
 		}
 	}
-	if !sawChild {
-		r.fail("wait-change-wakes", "wait_for_agent_change never reported wait-child in its result; the tool must wake when a monitored agent's state changes")
+	if !sawStateChange {
+		r.fail("wait-change-wakes", "wait_for_agent_change never reported a status_change event for wait-child; the tool must wake when a monitored agent's state changes")
 	}
 }
 
