@@ -1,7 +1,123 @@
 # Edition 2 Chapter 14 enhancement: The World's Best Context Engineering, Before Breakfast
 
-Author: `edition2_author`, October 11, 2026. **Final author reconciliation complete; independent combined acceptance pending.**
-Only Edition 2 Chapter 14 (original 15) is released. No Chapter 15 drafting.
+Author: `edition2_author`, October 11, 2026.
+
+## October 11 editorial audit and bounded correction
+
+**Current status: correction validated and submitted for independent review.
+Chapter 15 remains paused.** This supersedes the dated
+pending/acceptance states below without changing their evidence.
+
+Bill questioned the chapter's growth and preservation of his voice. The audit
+compared original Chapter 15 (7,104 raw words; 6,106 lint prose words) with the
+accepted Chapter 14 (8,141 raw; 6,774 prose). The original TL;DR had 1,115 raw
+words; the accepted version had 710. The new runnable section accounted for
+698 raw words. Root and reviewer found no invented runtime design, but the
+author agrees that repeated qualifications and review bookkeeping diluted the
+voice, and some sentence rewrites were unnecessary. Reviewer withdrew editorial
+approval pending this bounded correction. Earlier review `f3d6e7f0`, checkpoint
+`5f07a062` and tag `edition-2-enhanced-ch14-r1` remain historical.
+
+Writing stopped for the audit. Chapter 15 remains an untracked partial draft,
+unchanged SHA `583da1f152e5f355d2ae8222af30880b60c9cc12db4e984679b48a467387f510`;
+no Chapter 15 note, lint, validation or acceptance is claimed. A compaction
+occurred after that pause and was disclosed before any writing resumed.
+
+Before this correction, the author reloaded all four full documents, with every
+range returned completely: workflow 1–300, 301–650, 651–1000, 1001–1350,
+1351–1700, 1701–1937; carryover 1–300, 301–600, 601–886; voice 1–330,
+331–632; procedure 1–300, 301–599. No range was truncated. Also reread the
+entire mandatory `.agents/skills/ensemble-coding/SKILL.md` (1–373) and the
+new AGENTS/enhancement headers. All four remain active together; no subsequent
+compaction has occurred. Full original Chapter 15 and the audited Chapter 14
+were reread side by side in bounded chunks before editing.
+
+The correction restores the original explanatory TL;DR progression, including
+why survivors need kinds, the three handoff records, previous-batch keep,
+recorded sequence bounds and checkpoint ordering. It keeps the specific
+corrections for current ownership, serial dispatch, immediate executable
+unload, provider placement, known-event validation and course-only flags.
+The small tested vocabulary fence stays; the original obsolete numeric-event
+ellipsis and flat implementation snippets are not reinstated. The original
+opener, three byte questions, manual-loss explanation, two cache laws,
+narrated edit, checkpoint lineage and stale-address story remain. No new
+mechanism or requirement was introduced.
+
+Prose once again explains the mechanism directly instead of repeatedly saying
+what the review did or did not prove. Historical accounts are attributed at their
+entry; source hashes, mutation status, paid-run bookkeeping and detailed fixture
+provenance stay in this note and the linked records. Necessary limits remain
+where useful: prefix reuse versus billing in §14.3, tool budgets versus a total
+window cap in §14.7, process crash versus power loss and retention in §14.12.
+The runnable exercise and actual Haiku denied-read lesson remain.
+
+Bill's model restriction is stated separately from the transcript: use supported
+older Anthropic models such as Sonnet-5; no 5.5 recommendations or future tests.
+The historical Opus 5.5 and `claude-haiku-5-5` identities remain unchanged.
+The Haiku failure is not offered as a result for Sonnet-5 or as causal proof
+of Bill's reported incompatibility. No successful Sonnet live outcome is invented.
+The GUI launch now explicitly sets `LLM_VENDOR=anthropic` and
+`LLM_MODEL=claude-sonnet-5`, already present in the frozen model table.
+
+Exact artifact comparison against `5f07a062` finds 24 fenced blocks and only
+one changed block: the GUI launch's two model environment values. All Go,
+Python, YAML, JSON and prompt blocks remain byte-identical. The original
+sample binding `55e3a4a4…` remains the earlier execution, not a rerun of this
+revision. The existing numeric grader is unchanged; final full 100/100 accepted
+and legacy results retain `4918a9b1` provenance. No paid run or frozen edit is
+needed for this editorial correction.
+
+### Correction validation and final handoff
+
+The independent prose reviewer caught two draft-stage wording errors during this
+correction: the TL;DR's opening could imply tool bytes stop without a policy,
+and a new sentence incorrectly said repeated rereading gains nothing from a
+smaller request. The first now says tool bytes gain a removal policy; the second
+judges usefulness by the work and rereads required. The historical reread tradeoff
+remains. The original 45/100 fixture failures are also explicitly separate from
+the independent review's inline-placement finding. These corrections introduce
+no runtime or grader work.
+
+Final manuscript SHA-256: `f786497ecda5dc700d8a2456fc86cea0239e2b88585b9f14876df4e574f7f802`.
+Direct `go run ./cmd/lintprose book/edition-2/chapter-14.md` passes all hard
+checks at 6,569 prose words. Its one soft person-gap warning was read; no story
+was invented to satisfy it. Raw whitespace counts are 7,936 for the whole
+chapter and 1,100 for the TL;DR, versus 7,104/1,115 in the original and
+8,141/710 in the audited enhancement. These measure the edit, not its objective.
+The original-relative reading and complete correction diff were inspected;
+`git diff --check` passes. The chapter retains its original section sequence,
+with the previously authorized runnable section after the historical live account.
+
+The coder's [new sample receipt](../../solutions/edition-2/evidence/supported-model-correction/samples.json)
+binds that exact manuscript. The changed Sonnet-5 launch passes through the real
+GUI with the existing external HTTP fake: seven completed turns, sixteen actual
+requests, six successful correlated reads, six recorded redactions, one handoff,
+load/unload and normal exit zero. The author inspected the runner, receipt and
+[captured requests](../../solutions/edition-2/evidence/supported-model-correction/samples-requests.json):
+all sixteen select `claude-sonnet-5`; first successful result deliveries occur
+at requests 3/5/7/9/11/13. The final request has the manual and checkpoint once,
+and only the four lifecycle/context tools remain declared. This verifies model
+selection and runtime mechanics with an external fake, not live Sonnet judgment,
+ephemeral-context compatibility or provider cache behavior. Unchanged Go sample
+checks retain their earlier execution.
+
+The first launch-validation attempt stopped at its manuscript hash guard before
+launch because the author had changed a score-attribution sentence after supplying
+the earlier hash. That failed attempt remains recorded; it is not a runtime
+failure. The final run waited for the frozen hash above.
+
+Only this manuscript and author note are in the author commit. No first-edition
+file, frozen solution, grader, Chapter 5 or paused Chapter 15 file changed.
+Independent reviewer owns the correction decision; root owns its checkpoint and
+any later release. All four full governing documents remain active after the
+complete reload documented above, with no subsequent compaction. Mandatory
+technical handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+## Earlier author record (retained)
+
+The following sections describe the initial enhancement and its final handoff.
+Their pending statuses predate the acceptance and subsequent editorial audit.
+
 
 ## Reading and outline
 
