@@ -530,6 +530,8 @@ type History interface {
 // private to Engine, so adding a vendor cannot impose its roles on clients.
 // Send returns facts; the Agent appends them through the same history door.
 type Engine interface {
+	// Meter returns a disposable session-count and derived-price snapshot.
+	Meter() UsageMeter
 	// AttachCacheLens installs the Engine-owned diagnostic before any exchanges.
 	AttachCacheLens(CacheLens)
 	// CacheLens returns the optional request diagnostic.

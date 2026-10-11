@@ -487,6 +487,14 @@ function connect() {
     }
     if (message.type === "pause_changed")
       pauseState.textContent = message.paused ? "paused" : "";
+    if (message.type === "usage") {
+      const meter = document.querySelector("#usage");
+      const input = message.input + message.cache_write + message.cache_read;
+      const cost = message.priced ? `$${message.cost_usd.toFixed(4)}` : "—";
+      meter.textContent = `Cost ${cost} · Input ${input} · Cache ${message.cache_read} · Hit ${(100 * message.hit_rate).toFixed(1)}%`;
+      const total = message.total;
+      meter.title = `Session tokens: input ${total.input}, cache write ${total.cache_write}, cache read ${total.cache_read}, output ${total.output}`;
+    }
     if (message.type === "turn_ended") {
       // End of stream must release even a trailing colon or interrupted phrase.
       speech.flush();

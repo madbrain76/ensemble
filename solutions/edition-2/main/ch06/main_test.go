@@ -25,7 +25,7 @@ func TestWorkflowUsesRoleToolsAndEditedDraft(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var in struct {
 			// System carries the role instruction outside ordinary Anthropic messages.
-			System string
+			System json.RawMessage
 			// Messages retains provider message order, including tool-result boundaries.
 			Messages []struct {
 				// Content preserves the provider's ordered blocks or message text.
@@ -52,10 +52,10 @@ func TestWorkflowUsesRoleToolsAndEditedDraft(t *testing.T) {
 			return
 		}
 		role := "reviewer"
-		if strings.Contains(in.System, "You are the author.") {
+		if strings.Contains(string(in.System), "You are the author.") {
 			role = "author"
 		}
-		if strings.Contains(in.System, "You are the editor.") {
+		if strings.Contains(string(in.System), "You are the editor.") {
 			role = "editor"
 		}
 		mu.Lock()

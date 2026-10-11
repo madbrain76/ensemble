@@ -41,7 +41,9 @@ type openAIMessage struct {
 func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 	system := e.SystemPrompt()
 	messages := []openAIMessage{{Role: "system", Content: &system}}
-	for _, entry := range entries(c) {
+	bound := compactionBound(c)
+	boundMessage, stableMessage := -1, -1
+	for index, entry := range entries(c) {
 		role := "user"
 		if entry.Kind == common.KindSkill {
 			role = "system"
@@ -121,6 +123,19 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 		if hasText || len(message.ToolCalls) > 0 || media != nil {
 			messages = append(messages, message)
 		}
+		if index < len(c.Dialogue) {
+			// Tool-only assistant entries have no markable content. Preserve the
+			// previous supported boundary instead of opting into an empty marker.
+			for j := len(messages) - 1; j >= 0; j-- {
+				if messages[j].Content != nil {
+					stableMessage = j
+					break
+				}
+			}
+			if index == bound {
+				boundMessage = stableMessage
+			}
+		}
 	}
 	var tools []map[string]any
 	for _, d := range e.declarations(c) {
@@ -130,7 +145,38 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 	if StreamingFor(e.parent.Config()) != 0 {
 		streamOptions = map[string]bool{"include_usage": true}
 	}
+	// GPT-5.6 Chat Completions tool use requires non-reasoning delivery;
+	// its omitted-field default is medium. This is a surface compatibility choice,
+	// not the later Astra/high integration, which needs its own supported route.
+	effort := ""
+	if e.parent.Config().Model == "gpt-5.6-sol" && len(tools) > 0 {
+		effort = "none"
+	}
+	var cacheOptions map[string]string
+	if e.Features().ExplicitCache {
+		// Use one content encoding across all turns; moving metadata must not also
+		// change an old message from a string to an array in the diagnostic artifact.
+		for i := range messages {
+			if text, ok := messages[i].Content.(*string); ok && text != nil {
+				messages[i].Content = []map[string]any{{"type": "text", "text": *text}}
+			}
+		}
+		landed := markOpenAI(&messages[0])
+		for _, i := range []int{boundMessage, stableMessage} {
+			if i > 0 {
+				landed = markOpenAI(&messages[i]) || landed
+			}
+		}
+		if landed {
+			cacheOptions = map[string]string{"mode": "explicit"}
+		}
+	}
 	return json.Marshal(struct {
+		// ReasoningEffort preserves tool support on the verified GPT-5.6 surface.
+		ReasoningEffort string `json:"reasoning_effort,omitempty"`
+		// CacheOptions opts in only after at least one supported marker landed.
+		CacheOptions map[string]string `json:"prompt_cache_options,omitempty"`
+
 		// Stream requests incremental Chat Completions delivery.
 		Stream bool `json:"stream,omitempty"`
 		// StreamOptions asks for the final usage-only frame; otherwise accounting disappears.
@@ -143,7 +189,7 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 		MaxTokens int `json:"max_completion_tokens"`
 		// Messages retains provider message order, including tool-result boundaries.
 		Messages []openAIMessage `json:"messages"`
-	}{StreamingFor(e.parent.Config()) != 0, streamOptions, tools, e.parent.Config().Model, 1024, messages})
+	}{effort, cacheOptions, StreamingFor(e.parent.Config()) != 0, streamOptions, tools, e.parent.Config().Model, 1024, messages})
 }
 
 // This parser consumes the first response choice, matching one conversational

@@ -24,11 +24,13 @@ const systemPrompt = "You are a helpful assistant built from raw HTTP calls in C
 // remains reachable through Agent, so sibling Agents never share credentials
 // or a mutable vendor selection by accident.
 type engine struct {
-	parent common.Agent
-	client *http.Client
-	usage  common.Usage
-	lens   common.CacheLens
-	mu     sync.Mutex
+	parent  common.Agent
+	client  *http.Client
+	usage   common.Usage
+	last    common.Usage
+	byModel map[usageKey]common.Usage
+	lens    common.CacheLens
+	mu      sync.Mutex
 }
 
 // New creates an Agent-owned HTTP engine with bounded transport requests.
@@ -97,8 +99,13 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 	}
 	onEvent := cb.OnEvent
 	cb.OnEvent = func(event common.Event) {
-		if event.Response != nil && e.lens != nil {
-			e.lens.ObserveUsage(event.Response.Usage)
+		if event.Response != nil {
+			e.mu.Lock()
+			e.last = event.Response.Usage
+			e.mu.Unlock()
+			if e.lens != nil {
+				e.lens.ObserveUsage(event.Response.Usage)
+			}
 		}
 		if onEvent != nil {
 			onEvent(event)
@@ -193,13 +200,7 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		if event.Response != nil {
 			// Replay independently sums these same normalized categories. No vendor
 			// cache or reasoning interpretation belongs in session accounting.
-			u := event.Response.Usage
-			e.mu.Lock()
-			e.usage.Input += u.Input
-			e.usage.CacheRead += u.CacheRead
-			e.usage.CacheWrite += u.CacheWrite
-			e.usage.Output += u.Output
-			e.mu.Unlock()
+			e.account(cfg, event.Response.Usage)
 		}
 		if onEvent != nil {
 			onEvent(event)

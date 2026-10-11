@@ -7,11 +7,14 @@ import (
 	"ensemble/ensemble"
 	"ensemble/internal/common"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 )
 
@@ -99,5 +102,187 @@ func TestCacheLensSerializedMarkers(t *testing.T) {
 		if !bytes.Contains(current, []byte(`\u003cescaped\u003e`)) {
 			t.Fatal("escaped request bytes rewritten")
 		}
+	}
+}
+
+// TestCacheMarkers follows retained history through a checkpoint, ephemera and
+// another user turn. It checks wire positions, not marker counts alone.
+func TestCacheMarkers(t *testing.T) {
+	for _, tc := range []struct {
+		vendor ensemble.Vendor
+		model  string
+		marker string
+	}{{ensemble.Anthropic, "claude-haiku-5-5", "cache_control"}, {ensemble.OpenAI, "gpt-5.6-sol", "prompt_cache_breakpoint"}, {ensemble.Gemini, "gemini-3.8-flash", ""}, {ensemble.OpenAI, "gpt-4o-mini", ""}} {
+		t.Run(tc.model, func(t *testing.T) {
+			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: tc.vendor, Model: tc.model, DataDir: t.TempDir(), BuiltinTools: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer a.Shutdown()
+			a.Record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "old user"}}}})
+			a.Record(common.Event{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "settled boundary"}})
+			a.Record(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "stable tail"}}}})
+			a.Ephemeral("volatile once")
+			body, err := a.Engine().Render(a.History().Context())
+			if err != nil {
+				t.Fatal(err)
+			}
+			var wire map[string]any
+			json.Unmarshal(body, &wire)
+			var marked []string
+			var walk func(any)
+			walk = func(v any) {
+				switch x := v.(type) {
+				case []any:
+					for _, e := range x {
+						walk(e)
+					}
+				case map[string]any:
+					if tc.marker != "" && x[tc.marker] != nil {
+						if text, ok := x["text"].(string); ok {
+							marked = append(marked, text)
+						}
+					}
+					for _, e := range x {
+						walk(e)
+					}
+				}
+			}
+			walk(wire)
+			if tc.marker == "" {
+				if bytes.Contains(body, []byte("cache_control")) || bytes.Contains(body, []byte("prompt_cache_")) {
+					t.Fatalf("unsupported marker: %s", body)
+				}
+				return
+			}
+			if !slices.Contains(marked, "settled boundary") || !slices.Contains(marked, "stable tail") || slices.Contains(marked, "volatile once") {
+				t.Fatalf("wrong boundaries: %v", marked)
+			}
+			if tc.vendor == ensemble.Anthropic {
+				tools := wire["tools"].([]any)
+				if tools[len(tools)-1].(map[string]any)[tc.marker] == nil {
+					t.Fatal("tools not banked")
+				}
+				if len(marked) != 3 || bytes.Count(body, []byte(`"cache_control"`)) != 4 {
+					t.Fatal("Anthropic marker budget/system")
+				}
+			} else if wire["prompt_cache_options"] == nil || wire["reasoning_effort"] != "none" || len(marked) != 3 {
+				t.Fatal("explicit opt-in/system")
+			}
+			a.Record(common.Event{Type: "request_sent", Request: &common.RequestData{To: a.Engine().Target()}})
+			a.Record(common.Event{Type: "response_ended", Response: &common.ResponseData{From: a.Engine().Target(), Parts: []common.Part{{Type: "text", Text: "next tail"}}}})
+			next, _ := a.Engine().Render(a.History().Context())
+			marked = nil
+			json.Unmarshal(next, &wire)
+			walk(wire)
+			if !slices.Contains(marked, "next tail") || slices.Contains(marked, "stable tail") || bytes.Contains(next, []byte("volatile once")) {
+				t.Fatalf("rolling marker did not advance: %v %s", marked, next)
+			}
+			// Compression can retire a handoff. The marker must use the remaining
+			// memory prefix, without restoring discarded dialogue for cache convenience.
+			c := a.History().Context()
+			c.Dialogue = []common.Entry{{Kind: common.KindSession, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "surviving memory"}}}, {Kind: common.KindDialogue, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "after fold"}}}}
+			folded, _ := a.Engine().Render(c)
+			marked = nil
+			json.Unmarshal(folded, &wire)
+			walk(wire)
+			if !slices.Contains(marked, "surviving memory") || !slices.Contains(marked, "after fold") || bytes.Contains(folded, []byte("settled boundary")) {
+				t.Fatal("compacted boundary lost")
+			}
+		})
+	}
+}
+
+// TestCacheMeterSessionAndTiers uses independently specified provider usage:
+// Anthropic input excludes cache, OpenAI includes it, Gemini thinking is extra.
+func TestCacheMeterSessionAndTiers(t *testing.T) {
+	for _, tc := range []struct {
+		vendor       ensemble.Vendor
+		model, reply string
+		want         common.Usage
+		cost         float64
+	}{
+		{ensemble.Anthropic, "claude-haiku-5-5", `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":100001,"cache_creation_input_tokens":40,"cache_read_input_tokens":60,"output_tokens":10}}`, common.Usage{Input: 100001, CacheWrite: 40, CacheRead: 60, Output: 10}, .0500535},
+		{ensemble.OpenAI, "gpt-5.6-sol", `{"choices":[{"message":{"content":"ok"}}],"usage":{"prompt_tokens":272001,"prompt_tokens_details":{"cache_write_tokens":40,"cached_tokens":60},"completion_tokens":10}}`, common.Usage{Input: 271901, CacheWrite: 40, CacheRead: 60, Output: 10}, 2.175956},
+		{ensemble.Gemini, "gemini-3.8-flash", `{"candidates":[{"content":{"parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":100,"cachedContentTokenCount":60,"candidatesTokenCount":7,"thoughtsTokenCount":3}}`, common.Usage{Input: 40, CacheRead: 60, Output: 10}, .000072},
+	} {
+		t.Run(tc.model, func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls.Add(1); io.WriteString(w, tc.reply) }))
+			defer server.Close()
+			cfg := ensemble.Config{Vendor: tc.vendor, Model: tc.model, BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true}
+			a, err := ensemble.New(io.Discard).NewAgent(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := a.Ask(context.Background(), "one"); err != nil {
+				t.Fatal(err)
+			}
+			first := a.Engine().Meter()
+			if first.Usage != tc.want || first.Total != tc.want || !first.Priced || math.Abs(first.CostUSD-tc.cost) > 1e-9 {
+				t.Fatalf("usage/pricing: %+v want %v cost %.9f", first, tc.want, tc.cost)
+			}
+			if _, err := a.Ask(context.Background(), "two"); err != nil {
+				t.Fatal(err)
+			}
+			second := a.Engine().Meter()
+			if second.Usage != tc.want || second.Total.Output != 20 || math.Abs(second.CostUSD-2*tc.cost) > 1e-9 {
+				t.Fatalf("last/session counts: %+v", second)
+			}
+			wantRate := float64(tc.want.CacheRead) / float64(tc.want.Input+tc.want.CacheWrite+tc.want.CacheRead)
+			if math.Abs(second.HitRate-wantRate) > 1e-12 {
+				t.Fatal("token hit ratio")
+			}
+			if err := a.Save(); err != nil {
+				t.Fatal(err)
+			}
+			a.Shutdown()
+			saved, _ := os.ReadFile(filepath.Join(cfg.DataDir, "save.json"))
+			if bytes.Contains(saved, []byte("cost")) {
+				t.Fatal("dollars persisted")
+			}
+			restored, err := ensemble.New(io.Discard).NewAgent(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer restored.Shutdown()
+			if err := restored.Load(); err != nil {
+				t.Fatal(err)
+			}
+			meter := restored.Engine().Meter()
+			if meter.Total != (common.Usage{}) || meter.Usage != (common.Usage{}) || meter.CostUSD != 0 || restored.History().Context().Usage.Output != 20 {
+				t.Fatal("session restored lifetime spend")
+			}
+			if calls.Load() != 2 {
+				t.Fatal("restore contacted vendor")
+			}
+		})
+	}
+}
+
+// TestCacheMeterAuxiliaryIdentity verifies a differently routed judge contributes
+// counts without replacing last-response prompt size or concealing unknown cost.
+func TestCacheMeterAuxiliaryIdentity(t *testing.T) {
+	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
+	server := httptest.NewServer(http.HandlerFunc(peer.serve))
+	defer server.Close()
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "unknown-priced-model"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	if _, err := a.Ask(context.Background(), "hello"); err != nil {
+		t.Fatal(err)
+	}
+	before := a.Engine().Meter()
+	if !before.Priced || before.CostUSD <= 0 {
+		t.Fatal("effective environment model unpriced")
+	}
+	if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
+		t.Fatal(err)
+	}
+	after := a.Engine().Meter()
+	if after.Priced || after.CostUSD != 0 || after.Usage != before.Usage || after.Total.Output != 2*before.Total.Output {
+		t.Fatalf("auxiliary accounting: %+v", after)
 	}
 }

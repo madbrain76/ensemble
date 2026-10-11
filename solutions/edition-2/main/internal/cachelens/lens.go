@@ -102,6 +102,7 @@ func (l *Lens) ObserveRequest(name string, body []byte) {
 			json.Unmarshal(now, &b)
 			if len(a) > 0 && len(b) > 0 {
 				var head struct {
+					// Role identifies the embedded OpenAI system instruction.
 					Role string `json:"role"`
 				}
 				json.Unmarshal(b[0], &head)

@@ -147,6 +147,14 @@ const (
 
 // ModelFeatures describes known media inputs and incremental delivery channels.
 type ModelFeatures struct {
+	// Price is the ordinary USD-per-million rate, nil when unverified.
+	Price *Pricing
+	// PriceThreshold selects the large-prompt tier above this inclusive token limit.
+	PriceThreshold int
+	// LargePrice applies to the entire request when the threshold is exceeded.
+	LargePrice *Pricing
+	// ExplicitCache permits Chat Completions content breakpoints on verified models.
+	ExplicitCache bool
 	// ContextWindow is the supported input window in tokens; zero disables forcing.
 	ContextWindow int
 

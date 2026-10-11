@@ -28,7 +28,7 @@ func TestPromptSkillEnvironment(t *testing.T) {
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			t.Error(err)
 		}
-		if body["system"] != "Identity cli-value" {
+		if body["system"].([]any)[0].(map[string]any)["text"] != "Identity cli-value" {
 			t.Errorf("CLI primary: %v", body["system"])
 		}
 		fmt.Fprint(w, `{"content":[{"type":"text","text":"prompt worked"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
@@ -89,7 +89,7 @@ for line in sys.stdin:
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			// System must retain the startup skill's manual as well as its tools.
-			System string `json:"system"`
+			System json.RawMessage `json:"system"`
 			// Messages preserve the actual rendered ephemera and tool results.
 			Messages json.RawMessage `json:"messages"`
 			// Tools are declarations sent over the external provider boundary.
@@ -103,7 +103,7 @@ for line in sys.stdin:
 		}
 		round := rounds.Add(1)
 		text := string(body.Messages)
-		if !strings.Contains(body.System, "BROWSER_STARTUP_MANUAL") {
+		if !strings.Contains(string(body.System), "BROWSER_STARTUP_MANUAL") {
 			t.Error("startup manual missing")
 		}
 		names := map[string]bool{}

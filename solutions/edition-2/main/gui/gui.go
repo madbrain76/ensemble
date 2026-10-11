@@ -87,6 +87,7 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 	case ensemble.StateChanged:
 		s.broadcast(map[string]any{"type": "state_changed", "from": o.From, "to": o.To})
 	case ensemble.TurnEnded:
+		s.broadcast(s.usageWire())
 		// Cancellation may leave a part without a final. Those abandoned bytes
 		// must not reappear as an active stream on the next subscription.
 		s.partials = make(map[uint64]map[string]any)
@@ -101,6 +102,7 @@ func (s *Server) capture() {
 		s.seq = event.Seq
 		s.events = append(s.events, event)
 		if event.Type == "response_ended" {
+			s.broadcast(s.usageWire())
 			for _, p := range event.Response.Parts {
 				delete(s.partials, p.ArtifactID)
 			}
@@ -365,6 +367,7 @@ func (s *Server) replay() [][]byte {
 	add(map[string]any{"type": "state_changed", "from": state, "to": state})
 	add(map[string]any{"type": "pause_changed", "paused": s.agent.Paused()})
 	add(map[string]any{"type": "current_settings", "settings": s.snapshotSettings()})
+	add(s.usageWire())
 	return out
 }
 
@@ -383,3 +386,9 @@ func (s *Server) Close() {
 
 // Agent reaches the conversation served by this server's transport children.
 func (s *Server) Agent() ensemble.Agent { return s.agent }
+
+// usageWire reads Engine's session counter, never the replayed history total.
+func (s *Server) usageWire() map[string]any {
+	u := s.agent.Engine().Meter()
+	return map[string]any{"type": "usage", "input": u.Input, "cache_write": u.CacheWrite, "cache_read": u.CacheRead, "output": u.Output, "total": u.Total, "cost_usd": u.CostUSD, "priced": u.Priced, "hit_rate": u.HitRate}
+}
