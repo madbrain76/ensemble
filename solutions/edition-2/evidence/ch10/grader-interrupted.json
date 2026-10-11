@@ -1,0 +1,15 @@
+{
+  "status": "interrupted, unscored",
+  "reason": "Coordinator-directed stop of known inherited GUI/headless parity timeout cascade before focused unchanged Chapter10 phases",
+  "root_pids": [
+    66137
+  ],
+  "owned_pids": [
+    66137,
+    66141,
+    67170
+  ],
+  "sigkill_after_term": [],
+  "time_utc": "2026-10-11T00:59:41Z",
+  "owned_processes_verified_gone": true
+}

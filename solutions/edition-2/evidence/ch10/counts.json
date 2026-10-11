@@ -1,0 +1,37 @@
+{
+  "production": {
+    "before": {
+      "physical": 6444,
+      "active": 4988,
+      "comment_only": 1107
+    },
+    "after": {
+      "physical": 6951,
+      "active": 5390,
+      "comment_only": 1172
+    },
+    "delta": {
+      "physical": 507,
+      "active": 402,
+      "comment_only": 65
+    }
+  },
+  "tests": {
+    "before": {
+      "physical": 3284,
+      "active": 2961,
+      "comment_only": 231
+    },
+    "after": {
+      "physical": 3518,
+      "active": 3180,
+      "comment_only": 237
+    },
+    "delta": {
+      "physical": 234,
+      "active": 219,
+      "comment_only": 6
+    }
+  },
+  "method": "All main/ Go including optional modules/examples; no Go files moved or generated Go changed. Active excludes blank and // comment-only lines; inline-comment code stays active."
+}

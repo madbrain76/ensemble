@@ -1,0 +1,1062 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.8-flash",
+  "elapsed_seconds": 7.72,
+  "exit": 0,
+  "timed_out": false,
+  "prompt": "Load the code-tools skill, follow its instructions once, then call unload_skill for code-tools and answer with the verified file content. No other work.\n",
+  "stdout": "\n\n\n\nCH10_GEMINI_OK\n",
+  "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\nload_skill {\"name\":\"code-tools\"}\nwrite_file {\"content\":\"CH10_GEMINI_OK\",\"path\":\"note.txt\"}\nread_file {\"path\":\"note.txt\"}\nunload_skill {\"name\":\"code-tools\"}\n",
+  "calls": [
+    {
+      "job": {
+        "handle": 1,
+        "status": "running",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/1"
+        },
+        "bytes": 0
+      },
+      "name": "load_skill",
+      "args": {
+        "name": "code-tools"
+      },
+      "call_id": "call_194752"
+    },
+    {
+      "job": {
+        "handle": 2,
+        "status": "running",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/2"
+        },
+        "bytes": 0
+      },
+      "name": "write_file",
+      "args": {
+        "content": "CH10_GEMINI_OK",
+        "path": "note.txt"
+      },
+      "call_id": "call_213606"
+    },
+    {
+      "job": {
+        "handle": 3,
+        "status": "running",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/3"
+        },
+        "bytes": 0
+      },
+      "name": "read_file",
+      "args": {
+        "path": "note.txt"
+      },
+      "call_id": "call_293217"
+    },
+    {
+      "job": {
+        "handle": 4,
+        "status": "running",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/4"
+        },
+        "bytes": 0
+      },
+      "name": "unload_skill",
+      "args": {
+        "name": "code-tools"
+      },
+      "call_id": "call_260524"
+    }
+  ],
+  "results": [
+    {
+      "job": {
+        "handle": 1,
+        "status": "done",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/1"
+        },
+        "bytes": 163
+      },
+      "call_id": "call_194752",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Work only in the current scratch directory.\n\nWrite note.txt with content CH10_GEMINI_OK using write_file, then use read_file to verify it. Next available skills: ."
+        }
+      ]
+    },
+    {
+      "job": {
+        "handle": 2,
+        "status": "done",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/2"
+        },
+        "bytes": 26
+      },
+      "call_id": "call_213606",
+      "parts": [
+        {
+          "type": "text",
+          "text": "wrote 14 bytes to note.txt"
+        }
+      ]
+    },
+    {
+      "job": {
+        "handle": 3,
+        "status": "done",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/3"
+        },
+        "bytes": 14
+      },
+      "call_id": "call_293217",
+      "parts": [
+        {
+          "type": "text",
+          "text": "CH10_GEMINI_OK"
+        }
+      ]
+    },
+    {
+      "job": {
+        "handle": 4,
+        "status": "done",
+        "output": {
+          "kind": 3,
+          "locator": "cr/io/4"
+        },
+        "bytes": 58
+      },
+      "call_id": "call_260524",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Skill code-tools is pending unload at the next compaction."
+        }
+      ]
+    }
+  ],
+  "file_text": "CH10_GEMINI_OK",
+  "request_bodies": [
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Load the code-tools skill, follow its instructions once, then call unload_skill for code-tools and answer with the verified file content. No other work."
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise coding assistant. Available tools: read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Skills you can load: code-tools."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+              "name": "read_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "type": "integer"
+                  },
+                  "end_line": {
+                    "type": "integer"
+                  },
+                  "max_bytes": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Load the code-tools skill, follow its instructions once, then call unload_skill for code-tools and answer with the verified file content. No other work."
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "args": {
+                  "name": "code-tools"
+                }
+              },
+              "thoughtSignature": "EvICCu8CAWkUfRO1CtJrPZM0Z+zxvE7qGH97yIWhXMke/nABlPmr3MMGCYlcWRi8mAebUxl3jybp3oOwmnnueTp4Ek6B2t530bvWGWB+12YDYXhYRKg8JucLzczurH1nLKGQOLfviJK6tdEpMsDazTtWkCCATKH//4MRMtAzy+wcaWVDLRa8AvHFzYenIIrnLwJg7Flh35Il49/PwPR0Ea2OXTcbSCGt0GuPukIeh2oE48T11VcIpnQyFHkszg31oLjWma3uZvpXYfQMErvYPAqloUjD5eYFZIZpr+ja+CZL6Hg8E8Cb0g+OaOql20GfBzZd1Zo/lwSKr9cKnH6hPhFBVez2RqdgfkODWtE0PTsAhUJOWe5FGOpd2atohNd8LMg9agR99X+QJ0PbE+PXW+SXDiakUJnHaq6YiN0VwuesRtHF4dgv1YKI3nMa8qYOSYZJILB91pI78eb1uVEhlTKFf0obp6qSAOnFfwDj7N+n3T6Rvw=="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "response": {
+                  "result": "Work only in the current scratch directory.\n\nWrite note.txt with content CH10_GEMINI_OK using write_file, then use read_file to verify it. Next available skills: ."
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise coding assistant. Available tools: read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Skills you can load: code-tools."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+              "name": "read_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "type": "integer"
+                  },
+                  "end_line": {
+                    "type": "integer"
+                  },
+                  "max_bytes": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "List immediate entries, sorted by name; directories end with /.",
+              "name": "list_directory",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+              "name": "write_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "overwrite": {
+                    "type": "boolean"
+                  },
+                  "append": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "path",
+                  "content"
+                ]
+              }
+            },
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Load the code-tools skill, follow its instructions once, then call unload_skill for code-tools and answer with the verified file content. No other work."
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "args": {
+                  "name": "code-tools"
+                }
+              },
+              "thoughtSignature": "EvICCu8CAWkUfRO1CtJrPZM0Z+zxvE7qGH97yIWhXMke/nABlPmr3MMGCYlcWRi8mAebUxl3jybp3oOwmnnueTp4Ek6B2t530bvWGWB+12YDYXhYRKg8JucLzczurH1nLKGQOLfviJK6tdEpMsDazTtWkCCATKH//4MRMtAzy+wcaWVDLRa8AvHFzYenIIrnLwJg7Flh35Il49/PwPR0Ea2OXTcbSCGt0GuPukIeh2oE48T11VcIpnQyFHkszg31oLjWma3uZvpXYfQMErvYPAqloUjD5eYFZIZpr+ja+CZL6Hg8E8Cb0g+OaOql20GfBzZd1Zo/lwSKr9cKnH6hPhFBVez2RqdgfkODWtE0PTsAhUJOWe5FGOpd2atohNd8LMg9agR99X+QJ0PbE+PXW+SXDiakUJnHaq6YiN0VwuesRtHF4dgv1YKI3nMa8qYOSYZJILB91pI78eb1uVEhlTKFf0obp6qSAOnFfwDj7N+n3T6Rvw=="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "response": {
+                  "result": "Work only in the current scratch directory.\n\nWrite note.txt with content CH10_GEMINI_OK using write_file, then use read_file to verify it. Next available skills: ."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_213606",
+                "name": "write_file",
+                "args": {
+                  "content": "CH10_GEMINI_OK",
+                  "path": "note.txt"
+                }
+              },
+              "thoughtSignature": "EvQCCvECAWkUfRNqLSnsnH3xI1d7bK1x4Ku/f/K1VdwyES5PLK45bm8PCzAQN98kihoUiXTG3NBRsCts5OpkSQMbDw6sjmZOLPRgHZdQAqMcI7LE1adgF3DZEqoD1QAsUIbCElUiwnprnOZ5Iyk3bqUQ5By3V0mmEXrUsYIVcQE+c77mkJ/g+co696DwwQ4Ckf4lk6u1lXFsET4TjjJ4DwpXan3ba0nN3rTPjZimTbXoyORXWGzWXPBAugKNjlm6uU9wY+0kX4RIOJ8oi1ZgnH3d10cKf5m4pWM+sCtz3xjnYnl3hItSYEMEXg1raw6AUegLgQpCKwdMsmHKFEnZr6IQDDkckU0172YDOxwqKxwMqCKahN1ANT2ngNcwBDI9cGE40C9HaE12Ffew5SPnbr2A7jalBBdkrna8xl06+yV8dCVdWzsNCedpJWWjpvFnd7QLKSx4eyesndv2seFKYvV6dkvZvh1AztQeeONINb1l6+48FxT9"
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_213606",
+                "name": "write_file",
+                "response": {
+                  "result": "wrote 14 bytes to note.txt"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise coding assistant. Available tools: read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Skills you can load: code-tools."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+              "name": "read_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "type": "integer"
+                  },
+                  "end_line": {
+                    "type": "integer"
+                  },
+                  "max_bytes": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "List immediate entries, sorted by name; directories end with /.",
+              "name": "list_directory",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+              "name": "write_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "overwrite": {
+                    "type": "boolean"
+                  },
+                  "append": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "path",
+                  "content"
+                ]
+              }
+            },
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Load the code-tools skill, follow its instructions once, then call unload_skill for code-tools and answer with the verified file content. No other work."
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "args": {
+                  "name": "code-tools"
+                }
+              },
+              "thoughtSignature": "EvICCu8CAWkUfRO1CtJrPZM0Z+zxvE7qGH97yIWhXMke/nABlPmr3MMGCYlcWRi8mAebUxl3jybp3oOwmnnueTp4Ek6B2t530bvWGWB+12YDYXhYRKg8JucLzczurH1nLKGQOLfviJK6tdEpMsDazTtWkCCATKH//4MRMtAzy+wcaWVDLRa8AvHFzYenIIrnLwJg7Flh35Il49/PwPR0Ea2OXTcbSCGt0GuPukIeh2oE48T11VcIpnQyFHkszg31oLjWma3uZvpXYfQMErvYPAqloUjD5eYFZIZpr+ja+CZL6Hg8E8Cb0g+OaOql20GfBzZd1Zo/lwSKr9cKnH6hPhFBVez2RqdgfkODWtE0PTsAhUJOWe5FGOpd2atohNd8LMg9agR99X+QJ0PbE+PXW+SXDiakUJnHaq6YiN0VwuesRtHF4dgv1YKI3nMa8qYOSYZJILB91pI78eb1uVEhlTKFf0obp6qSAOnFfwDj7N+n3T6Rvw=="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "response": {
+                  "result": "Work only in the current scratch directory.\n\nWrite note.txt with content CH10_GEMINI_OK using write_file, then use read_file to verify it. Next available skills: ."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_213606",
+                "name": "write_file",
+                "args": {
+                  "content": "CH10_GEMINI_OK",
+                  "path": "note.txt"
+                }
+              },
+              "thoughtSignature": "EvQCCvECAWkUfRNqLSnsnH3xI1d7bK1x4Ku/f/K1VdwyES5PLK45bm8PCzAQN98kihoUiXTG3NBRsCts5OpkSQMbDw6sjmZOLPRgHZdQAqMcI7LE1adgF3DZEqoD1QAsUIbCElUiwnprnOZ5Iyk3bqUQ5By3V0mmEXrUsYIVcQE+c77mkJ/g+co696DwwQ4Ckf4lk6u1lXFsET4TjjJ4DwpXan3ba0nN3rTPjZimTbXoyORXWGzWXPBAugKNjlm6uU9wY+0kX4RIOJ8oi1ZgnH3d10cKf5m4pWM+sCtz3xjnYnl3hItSYEMEXg1raw6AUegLgQpCKwdMsmHKFEnZr6IQDDkckU0172YDOxwqKxwMqCKahN1ANT2ngNcwBDI9cGE40C9HaE12Ffew5SPnbr2A7jalBBdkrna8xl06+yV8dCVdWzsNCedpJWWjpvFnd7QLKSx4eyesndv2seFKYvV6dkvZvh1AztQeeONINb1l6+48FxT9"
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_213606",
+                "name": "write_file",
+                "response": {
+                  "result": "wrote 14 bytes to note.txt"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_293217",
+                "name": "read_file",
+                "args": {
+                  "path": "note.txt"
+                }
+              },
+              "thoughtSignature": "EpoBCpcBAWkUfRNvw0IgyioJn2WXez6LNd//+gbfBZA3bdrXQpJjmSHDWDjV4TMoxs+rWYX3N3u+SrM+aLuweMo/mAbLKI1M9phlCsNYjFpVfobVVPCuGvQnJ2/pZqeMKXCWByY9LOdfxdUvtej+24wsaD3NkjG+JukVeZFzn4auafwgEOXF7pWn+KWYDBCz7uwk6Zz1232Iqbpo/g=="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_293217",
+                "name": "read_file",
+                "response": {
+                  "result": "CH10_GEMINI_OK"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise coding assistant. Available tools: read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Skills you can load: code-tools."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+              "name": "read_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "type": "integer"
+                  },
+                  "end_line": {
+                    "type": "integer"
+                  },
+                  "max_bytes": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "List immediate entries, sorted by name; directories end with /.",
+              "name": "list_directory",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+              "name": "write_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "overwrite": {
+                    "type": "boolean"
+                  },
+                  "append": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "path",
+                  "content"
+                ]
+              }
+            },
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "contents": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "Load the code-tools skill, follow its instructions once, then call unload_skill for code-tools and answer with the verified file content. No other work."
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "args": {
+                  "name": "code-tools"
+                }
+              },
+              "thoughtSignature": "EvICCu8CAWkUfRO1CtJrPZM0Z+zxvE7qGH97yIWhXMke/nABlPmr3MMGCYlcWRi8mAebUxl3jybp3oOwmnnueTp4Ek6B2t530bvWGWB+12YDYXhYRKg8JucLzczurH1nLKGQOLfviJK6tdEpMsDazTtWkCCATKH//4MRMtAzy+wcaWVDLRa8AvHFzYenIIrnLwJg7Flh35Il49/PwPR0Ea2OXTcbSCGt0GuPukIeh2oE48T11VcIpnQyFHkszg31oLjWma3uZvpXYfQMErvYPAqloUjD5eYFZIZpr+ja+CZL6Hg8E8Cb0g+OaOql20GfBzZd1Zo/lwSKr9cKnH6hPhFBVez2RqdgfkODWtE0PTsAhUJOWe5FGOpd2atohNd8LMg9agR99X+QJ0PbE+PXW+SXDiakUJnHaq6YiN0VwuesRtHF4dgv1YKI3nMa8qYOSYZJILB91pI78eb1uVEhlTKFf0obp6qSAOnFfwDj7N+n3T6Rvw=="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_194752",
+                "name": "load_skill",
+                "response": {
+                  "result": "Work only in the current scratch directory.\n\nWrite note.txt with content CH10_GEMINI_OK using write_file, then use read_file to verify it. Next available skills: ."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_213606",
+                "name": "write_file",
+                "args": {
+                  "content": "CH10_GEMINI_OK",
+                  "path": "note.txt"
+                }
+              },
+              "thoughtSignature": "EvQCCvECAWkUfRNqLSnsnH3xI1d7bK1x4Ku/f/K1VdwyES5PLK45bm8PCzAQN98kihoUiXTG3NBRsCts5OpkSQMbDw6sjmZOLPRgHZdQAqMcI7LE1adgF3DZEqoD1QAsUIbCElUiwnprnOZ5Iyk3bqUQ5By3V0mmEXrUsYIVcQE+c77mkJ/g+co696DwwQ4Ckf4lk6u1lXFsET4TjjJ4DwpXan3ba0nN3rTPjZimTbXoyORXWGzWXPBAugKNjlm6uU9wY+0kX4RIOJ8oi1ZgnH3d10cKf5m4pWM+sCtz3xjnYnl3hItSYEMEXg1raw6AUegLgQpCKwdMsmHKFEnZr6IQDDkckU0172YDOxwqKxwMqCKahN1ANT2ngNcwBDI9cGE40C9HaE12Ffew5SPnbr2A7jalBBdkrna8xl06+yV8dCVdWzsNCedpJWWjpvFnd7QLKSx4eyesndv2seFKYvV6dkvZvh1AztQeeONINb1l6+48FxT9"
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_213606",
+                "name": "write_file",
+                "response": {
+                  "result": "wrote 14 bytes to note.txt"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_293217",
+                "name": "read_file",
+                "args": {
+                  "path": "note.txt"
+                }
+              },
+              "thoughtSignature": "EpoBCpcBAWkUfRNvw0IgyioJn2WXez6LNd//+gbfBZA3bdrXQpJjmSHDWDjV4TMoxs+rWYX3N3u+SrM+aLuweMo/mAbLKI1M9phlCsNYjFpVfobVVPCuGvQnJ2/pZqeMKXCWByY9LOdfxdUvtej+24wsaD3NkjG+JukVeZFzn4auafwgEOXF7pWn+KWYDBCz7uwk6Zz1232Iqbpo/g=="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_293217",
+                "name": "read_file",
+                "response": {
+                  "result": "CH10_GEMINI_OK"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "functionCall": {
+                "id": "call_260524",
+                "name": "unload_skill",
+                "args": {
+                  "name": "code-tools"
+                }
+              },
+              "thoughtSignature": "EvIBCu8BAWkUfRNme7NjsejvYH1nNnM1MP47FVHOz4ywpIqxmVMvBj2jjhDcw57OiQAxJAX57FN0XSMkWetUNXk6BDys7YGlpcSCRQggcm1nUUDt9YOLpIY5mRS4uTgYyGnoGWTXn/4s6kemhxzUZNhei+H8RHw+YK8+F87p7CWuQCZWupLTZIRzrLF6SD/OwEcB+zL/ooVshbGuLJ1Si5PQB++1wbJqcy0/uUCA48GGEmf/KX32XmaGjAx9rmNZFA1Lkku293fIKD02pO4nW/K+ZCo9NS6ua4MhxYYRoqRnNgAxnGBoDNWWrZ5192yPVhh1l6w="
+            },
+            {
+              "text": ""
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "functionResponse": {
+                "id": "call_260524",
+                "name": "unload_skill",
+                "response": {
+                  "result": "Skill code-tools is pending unload at the next compaction."
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "generationConfig": {
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {
+          "includeThoughts": true
+        }
+      },
+      "systemInstruction": {
+        "parts": [
+          {
+            "text": "You are a concise coding assistant. Available tools: read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Skills you can load: code-tools."
+          }
+        ]
+      },
+      "tools": [
+        {
+          "functionDeclarations": [
+            {
+              "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+              "name": "read_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "start_line": {
+                    "type": "integer"
+                  },
+                  "end_line": {
+                    "type": "integer"
+                  },
+                  "max_bytes": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "List immediate entries, sorted by name; directories end with /.",
+              "name": "list_directory",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ]
+              }
+            },
+            {
+              "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+              "name": "write_file",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "overwrite": {
+                    "type": "boolean"
+                  },
+                  "append": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "path",
+                  "content"
+                ]
+              }
+            },
+            {
+              "description": "Load an available skill and its dependencies. Returns its instructions and enables its tools.",
+              "name": "load_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            },
+            {
+              "description": "Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.",
+              "name": "unload_skill",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

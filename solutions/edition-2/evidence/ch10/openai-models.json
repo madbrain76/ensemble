@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "selected_candidates": [
+    "gpt-4o-mini"
+  ],
+  "model_count": 139
+}

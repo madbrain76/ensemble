@@ -1,0 +1,175 @@
+=== RUN   TestReviewerCh10Skills
+Open http://localhost:51222; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+You now have code editing capabilities.
+Open http://localhost:51231; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+You now have code editing capabilities.
+[load_skill]
+Search helper internals loaded.
+
+Search tools loaded. Custom value: hello-from-grader
+Open http://localhost:51240; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+skill "blocked" is not available to load
+Open http://localhost:51250; terminal messages while busy are hints. /interrupt ends the turn.
+Ensemble agent ready with all tools.
+    reviewer_ch10_test.go:15: {
+          "Result": {
+            "Base": "/Users/bill/projects/ensemble/solutions/edition-2/main/gui",
+            "BuildOK": true,
+            "BuildErr": "",
+            "InitialTools": [
+              "read_file",
+              "load_skill",
+              "unload_skill"
+            ],
+            "InitialToolsErr": "",
+            "SystemPrompt": "You are a helpful agent.\n\nAvailable skills to load: code-tools",
+            "SystemPromptErr": "",
+            "LoadSkillOK": true,
+            "LoadSkillErr": "",
+            "PostLoadTools": [
+              "read_file",
+              "write_file",
+              "edit_file",
+              "load_skill",
+              "unload_skill"
+            ],
+            "LoadSkillResult": "You now have code editing capabilities.",
+            "DisclosureOK": true,
+            "DisclosureErr": "",
+            "PostDisclosureTools": [
+              "read_file",
+              "list_directory",
+              "search_files",
+              "write_file",
+              "edit_file",
+              "load_skill",
+              "unload_skill"
+            ],
+            "DisclosureResult": "Search helper internals loaded.\n\nSearch tools loaded. Custom value: hello-from-grader",
+            "DependsOK": true,
+            "DependsErr": "",
+            "VarSubOK": true,
+            "VarSubErr": "",
+            "VarSubBody": "{\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"},\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"}},\"required\":[\"path\"]},\"name\":\"read_file\"},{\"description\":\"List immediate entries, sorted by name; directories end with /.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"]},\"name\":\"list_directory\"},{\"description\":\"Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"pattern\":{\"type\":\"string\"},\"context_lines\":{\"type\":\"integer\"}},\"required\":[\"path\",\"pattern\"]},\"name\":\"search_files\"},{\"description\":\"Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"content\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"append\":{\"type\":\"boolean\"}},\"required\":[\"path\",\"content\"]},\"name\":\"write_file\"},{\"description\":\"Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"path\":{\"type\":\"string\"},\"old_text\":{\"type\":\"string\"},\"new_text\":{\"type\":\"string\"}},\"required\":[\"path\",\"old_text\",\"new_text\"]},\"name\":\"edit_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]},\"name\":\"unload_skill\"}],\"model\":\"fake-model\",\"max_tokens\":1024,\"system\":\"You are a helpful agent.\\n\\nAvailable skills to load: code-tools\",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"Load code-tools then search-tools.\"}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"call_disc_1\",\"name\":\"load_skill\",\"input\":{\"name\":\"code-tools\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"call_disc_1\",\"content\":[{\"type\":\"text\",\"text\":\"You now have code editing capabilities.\"}]}]},{\"role\":\"assistant\",\"content\":[{\"type\":\"tool_use\",\"id\":\"call_disc_2\",\"name\":\"load_skill\",\"input\":{\"name\":\"search-tools\"}}]},{\"role\":\"user\",\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"call_disc_2\",\"content\":[{\"type\":\"text\",\"text\":\"Search helper internals loaded.\\n\\nSearch tools loaded. Custom value: hello-from-grader\"}]}]}]}",
+            "BlockedOK": true,
+            "BlockedErr": "",
+            "BlockedResult": "skill \"blocked\" is not available to load",
+            "SystemPromptOK": true,
+            "EnsembleTools": [
+              "read_file",
+              "list_directory",
+              "search_files",
+              "write_file",
+              "edit_file",
+              "run_command",
+              "wait_for_job",
+              "send_input",
+              "kill_job",
+              "load_skill",
+              "unload_skill"
+            ],
+            "EnsemblePrompt": "You are the Ensemble agent. You have full access to all tools.\n\nAvailable skills to load: code-tools, search-tools",
+            "EnsembleToolsErr": "",
+            "Ch9Result": null,
+            "Ch9Err": "SKIPPED: documented incompatible recursive GUI/headless parity; not a full original grade",
+            "HelpersErr": ""
+          },
+          "Checks": [
+            {
+              "id": "initial-tools",
+              "title": "Initial tool declarations match primary skill",
+              "points": 10,
+              "earned": 0,
+              "passed": false,
+              "details": [
+                "missing expected initial tools: [think] (got: [read_file load_skill unload_skill])"
+              ]
+            },
+            {
+              "id": "system-prompt",
+              "title": "System prompt contains primary skill body",
+              "points": 10,
+              "earned": 10,
+              "passed": true,
+              "details": [
+                "system prompt contains base skill body (len=62)"
+              ]
+            },
+            {
+              "id": "ensemble-tools",
+              "title": "Ensemble skill declares all core tools",
+              "points": 10,
+              "earned": 0,
+              "passed": false,
+              "details": [
+                "missing tools: [think] (got 11: [read_file list_directory search_files write_file edit_file run_command wait_for_job send_input kill_job load_skill unload_skill])"
+              ]
+            },
+            {
+              "id": "load-skill",
+              "title": "load_skill adds new tool declarations",
+              "points": 15,
+              "earned": 15,
+              "passed": true,
+              "details": [
+                "post-load tools: [read_file write_file edit_file load_skill unload_skill]"
+              ]
+            },
+            {
+              "id": "progressive-disclosure",
+              "title": "Loading a skill reveals new loadable skills",
+              "points": 15,
+              "earned": 15,
+              "passed": true,
+              "details": [
+                "post-disclosure tools: [read_file list_directory search_files write_file edit_file load_skill unload_skill]"
+              ]
+            },
+            {
+              "id": "depends-autoload",
+              "title": "Skill dependencies auto-loaded",
+              "points": 10,
+              "earned": 10,
+              "passed": true,
+              "details": [
+                "depends chain verified: search-tools → search-helpers (list_directory present)"
+              ]
+            },
+            {
+              "id": "var-substitution",
+              "title": "$VAR tokens rendered in skill body",
+              "points": 10,
+              "earned": 10,
+              "passed": true,
+              "details": [
+                "rendered body contains 'hello-from-grader' — substitution works"
+              ]
+            },
+            {
+              "id": "blocked-skill",
+              "title": "Unreachable skill rejected by load_skill",
+              "points": 5,
+              "earned": 5,
+              "passed": true,
+              "details": [
+                "blocked skill correctly rejected: skill \"blocked\" is not available to load"
+              ]
+            },
+            {
+              "id": "ch9-parity",
+              "title": "Chapter 9 checks still pass",
+              "points": 15,
+              "earned": 0,
+              "passed": false,
+              "details": [
+                "ch9 harness error: SKIPPED: documented incompatible recursive GUI/headless parity; not a full original grade"
+              ]
+            }
+          ]
+        }
+--- PASS: TestReviewerCh10Skills (1.32s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/grade	1.333s

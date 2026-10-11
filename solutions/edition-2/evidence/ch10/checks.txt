@@ -1,0 +1,13 @@
+October 10 student checks (original Chapter 10):
+- Core go test -race ./...: PASS (ensemble/ensemble 31.103s).
+- Core go vet ./...: PASS.
+- Final core go test ./...: PASS; raw output checks-final-core.txt.
+- GUI go vet ./... && go test ./...: PASS (0.795s initial, cached final).
+- ch05 go vet ./... && go test ./...: PASS (0.015s).
+- ch06 go vet ./... && go test ./...: PASS (0.330s).
+- ch07 go vet ./... && go test ./...: PASS, no tests.
+- CLI TestPromptSkillEnvironment: PASS (0.260s), actual built binary.
+- 20 targeted compiling mutations: intended failure, see mutations.json.
+- Initial dependency mutation compile failure: NOT a kill, corrected and retained.
+- Original Chapter 10 grader remains running; no score claimed yet.
+Update: original recursive Chapter10 invocation deliberately interrupted on coordinator instruction during known inherited parity mismatch. Actual make-wrapper exit2 after SIGTERM15; no aggregate numerical grade. Three owned processes terminated, verified gone; generated gui/test_ch06.log.* removed. Reviewer runs focused unchanged Chapter10 phases separately.

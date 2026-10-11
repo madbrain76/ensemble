@@ -1,0 +1,16 @@
+package grade
+import("encoding/json";"os";"path/filepath";"strings";"testing")
+// Reviewer-only bridge invokes unchanged Chapter 10 phases. Recursive parity is deliberately unrun.
+func TestReviewerCh10Skills(t *testing.T) {
+ dir:=os.Getenv("REVIEW_SUBMISSION"); if dir=="" { t.Fatal("REVIEW_SUBMISSION required") }
+ r:=&Ch10Result{Base:dir,Ch9Err:"SKIPPED: documented incompatible recursive GUI/headless parity; not a full original grade"}
+ bin,cleanup,err:=Build(dir);if err!=nil {t.Fatal(err)};defer cleanup();r.BuildOK=true
+ gui:=filepath.Join(dir,"web","gui")
+ ch10DriveInitialAndLoad(r,bin,gui)
+ if r.SystemPrompt!="" {if strings.Contains(r.SystemPrompt,"You are a helpful agent"){r.SystemPromptOK=true}else{r.SystemPromptErr="system prompt does not contain base skill body"}}else if r.SystemPromptErr==""{r.SystemPromptErr="system prompt not captured from first request"}
+ ch10DriveDisclosure(r,bin,gui);ch10DriveBlocked(r,bin,gui);ch10DriveEnsemble(r,bin,gui)
+ output:=struct{Result *Ch10Result;Checks []Check}{r,Ch10Evaluate(r)}
+ data,err:=json.MarshalIndent(output,"","  ");if err!=nil{t.Fatal(err)}
+ if err=os.WriteFile(os.Getenv("REVIEW_REPORT"),append(data,'\n'),0644);err!=nil{t.Fatal(err)}
+ t.Log(string(data))
+}

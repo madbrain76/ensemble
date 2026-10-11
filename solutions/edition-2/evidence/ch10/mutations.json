@@ -1,0 +1,240 @@
+[
+  {
+    "baseline_exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.014s\n"
+  },
+  {
+    "claim": "initial declaration filtering",
+    "file": "internal/agent/agent.go",
+    "before": "if !a.toolEnabled(tool.Name) {",
+    "after": "if false {",
+    "exit": 1,
+    "intended_failure": "initial declarations",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.00s)\n    skills_test.go:102: initial declarations: [read_file list_directory search_files write_file edit_file run_command wait_for_job send_input kill_job tool_limits load_skill unload_skill]\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "dispatch filtering",
+    "file": "internal/agent/dispatch.go",
+    "before": " && r.owner.toolEnabled(call.Name)",
+    "after": "",
+    "exit": 1,
+    "intended_failure": "hidden tool executed",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:84: hidden tool executed\n    skills_test.go:128: missing dynamic \"unknown tool\": {\"max_tokens\":1024,\"messages\":[{\"content\":[{\"text\":\"exercise skills\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"id\":\"denied\",\"input\":{\"content\":\"forbidden\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop2478298814/002/output.txt\"},\"name\":\"write_file\",\"type\":\"tool_use\"},{\"id\":\"load\",\"input\":{\"name\":\"code\"},\"name\":\"load_skill\",\"type\":\"tool_use\"}],\"role\":\"assistant\"},{\"content\":[{\"content\":[{\"text\":\"wrote 9 bytes to /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop2478298814/002/output.txt\",\"type\":\"text\"}],\"tool_use_id\":\"denied\",\"type\":\"tool_result\"},{\"content\":[{\"text\":\"Helper instructions.\\n\\nCode dynamic. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nlist_directory: List immediate entries, sorted by name; directories end with /.\\nwrite_file: Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: next.\",\"type\":\"text\"}],\"tool_use_id\":\"load\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"fake\",\"system\":\"Constitution creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: code. $UNKNOWN\\n---\\nBody after rule.\",\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"properties\":{\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"read_file\"},{\"description\":\"List immediate entries, sorted by name; directories end with /.\",\"input_schema\":{\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"list_directory\"},{\"description\":\"Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\",\"input_schema\":{\"properties\":{\"append\":{\"type\":\"boolean\"},\"content\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"path\":{\"type\":\"string\"}},\"required\":[\"path\",\"content\"],\"type\":\"object\"},\"name\":\"write_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"unload_skill\"}]}\n    skills_test.go:138: enabled dispatch: \"forbidden\" <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "claim": "space-separated tool list",
+    "file": "internal/skills/parse.go",
+    "before": "fields[key] = strings.Fields(value)",
+    "after": "fields[key] = nil",
+    "exit": 1,
+    "intended_failure": "initial declarations",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.00s)\n    skills_test.go:102: initial declarations: [load_skill unload_skill]\n--- FAIL: TestSkillLoadFailures (0.00s)\n    skills_test.go:178: load missing: skill \"missing\" is not available to load\nFAIL\nFAIL\tensemble/ensemble\t0.011s\nFAIL\n"
+  },
+  {
+    "claim": "YAML list entries",
+    "file": "internal/skills/parse.go",
+    "before": "fields[key] = append(fields[key], strings.TrimSpace(strings.TrimPrefix(line, \"- \")))",
+    "after": "fields[key] = nil",
+    "exit": 1,
+    "intended_failure": "missing dynamic",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:128: missing dynamic \"Helper instructions.\": {\"max_tokens\":1024,\"messages\":[{\"content\":[{\"text\":\"exercise skills\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"id\":\"denied\",\"input\":{\"content\":\"forbidden\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop2912836906/002/output.txt\"},\"name\":\"write_file\",\"type\":\"tool_use\"},{\"id\":\"load\",\"input\":{\"name\":\"code\"},\"name\":\"load_skill\",\"type\":\"tool_use\"}],\"role\":\"assistant\"},{\"content\":[{\"content\":[{\"text\":\"unknown tool \\\"write_file\\\"\",\"type\":\"text\"}],\"is_error\":true,\"tool_use_id\":\"denied\",\"type\":\"tool_result\"},{\"content\":[{\"text\":\"Code dynamic. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: next.\",\"type\":\"text\"}],\"tool_use_id\":\"load\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"fake\",\"system\":\"Constitution creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: code. $UNKNOWN\\n---\\nBody after rule.\",\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"properties\":{\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"read_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"unload_skill\"}]}\n    skills_test.go:128: missing dynamic \"list_directory\": {\"max_tokens\":1024,\"messages\":[{\"content\":[{\"text\":\"exercise skills\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"id\":\"denied\",\"input\":{\"content\":\"forbidden\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop2912836906/002/output.txt\"},\"name\":\"write_file\",\"type\":\"tool_use\"},{\"id\":\"load\",\"input\":{\"name\":\"code\"},\"name\":\"load_skill\",\"type\":\"tool_use\"}],\"role\":\"assistant\"},{\"content\":[{\"content\":[{\"text\":\"unknown tool \\\"write_file\\\"\",\"type\":\"text\"}],\"is_error\":true,\"tool_use_id\":\"denied\",\"type\":\"tool_result\"},{\"content\":[{\"text\":\"Code dynamic. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: next.\",\"type\":\"text\"}],\"tool_use_id\":\"load\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"fake\",\"system\":\"Constitution creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: code. $UNKNOWN\\n---\\nBody after rule.\",\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"properties\":{\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"read_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"unload_skill\"}]}\n    skills_test.go:133: tool not enabled: write_file\n    skills_test.go:133: tool not enabled: list_directory\n    skills_test.go:138: enabled dispatch: \"\" open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop2912836906/002/output.txt: no such file or directory\nFAIL\nFAIL\tensemble/ensemble\t0.015s\nFAIL\n"
+  },
+  {
+    "claim": "horizontal rule retained",
+    "file": "internal/skills/parse.go",
+    "before": "strings.SplitN(text, \"---\", 3)",
+    "after": "strings.Split(text, \"---\")",
+    "exit": 1,
+    "intended_failure": "skill requires ---",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.00s)\n    skills_test.go:99: /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop2328981624/001/base/SKILL.md: skill requires --- frontmatter markers\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "claim": "primary body rendered",
+    "file": "ensemble/ensemble.go",
+    "before": "a.SetSystemPrompt(prompt)",
+    "after": "a.SetSystemPrompt(\"\"); _ = prompt",
+    "exit": 1,
+    "intended_failure": "missing initial",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:117: missing initial \"Constitution creation\": \n    skills_test.go:117: missing initial \"read_file\": \n    skills_test.go:117: missing initial \"Next: code\": \n    skills_test.go:117: missing initial \"$UNKNOWN\": \n    skills_test.go:117: missing initial \"---\\nBody after rule.\": \nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "variable rerender at use",
+    "file": "internal/skills/skills.go",
+    "before": "r.vars[name] = render",
+    "after": "if _, exists := r.vars[name]; !exists { r.vars[name] = render }",
+    "exit": 1,
+    "intended_failure": "missing dynamic \"Code dynamic\"",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:128: missing dynamic \"Code dynamic\": {\"max_tokens\":1024,\"messages\":[{\"content\":[{\"text\":\"exercise skills\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"id\":\"denied\",\"input\":{\"content\":\"forbidden\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop3427851103/002/output.txt\"},\"name\":\"write_file\",\"type\":\"tool_use\"},{\"id\":\"load\",\"input\":{\"name\":\"code\"},\"name\":\"load_skill\",\"type\":\"tool_use\"}],\"role\":\"assistant\"},{\"content\":[{\"content\":[{\"text\":\"unknown tool \\\"write_file\\\"\",\"type\":\"text\"}],\"is_error\":true,\"tool_use_id\":\"denied\",\"type\":\"tool_result\"},{\"content\":[{\"text\":\"Helper instructions.\\n\\nCode creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nlist_directory: List immediate entries, sorted by name; directories end with /.\\nwrite_file: Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: next.\",\"type\":\"text\"}],\"tool_use_id\":\"load\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"fake\",\"system\":\"Constitution creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: code. $UNKNOWN\\n---\\nBody after rule.\",\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"properties\":{\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"read_file\"},{\"description\":\"List immediate entries, sorted by name; directories end with /.\",\"input_schema\":{\"properties\":{\"path\":{\"type\":\"string\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"list_directory\"},{\"description\":\"Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\",\"input_schema\":{\"properties\":{\"append\":{\"type\":\"boolean\"},\"content\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"path\":{\"type\":\"string\"}},\"required\":[\"path\",\"content\"],\"type\":\"object\"},\"name\":\"write_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"unload_skill\"}]}\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "claim": "progressive disclosure",
+    "file": "internal/skills/skills.go",
+    "before": "for name := range r.loaded {",
+    "after": "for name := range r.all {",
+    "exit": 1,
+    "intended_failure": "initial disclosure",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.00s)\n    skills_test.go:105: initial disclosure: [code next]\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "claim": "dependencies enabled and instructions returned",
+    "file": "internal/skills/skills.go",
+    "before": "for _, dependency := range current.depends {",
+    "after": "for _, dependency := range []string{} {",
+    "exit": 1,
+    "intended_failure": "missing dynamic",
+    "killed": false,
+    "output": "FAIL\tensemble/ensemble [build failed]\nFAIL\n# ensemble/internal/skills\ninternal/skills/skills.go:150:3: declared and not used: current\n"
+  },
+  {
+    "baseline_exit": 0,
+    "output": "ok  \tensemble/ensemble\t0.013s\n"
+  },
+  {
+    "claim": "dependencies enabled and instructions returned",
+    "file": "internal/skills/skills.go",
+    "before": "for _, dependency := range current.depends {",
+    "after": "for _, dependency := range current.depends[:0] {",
+    "exit": 1,
+    "intended_failure": "missing dynamic",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:128: missing dynamic \"Helper instructions.\": {\"max_tokens\":1024,\"messages\":[{\"content\":[{\"text\":\"exercise skills\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"id\":\"denied\",\"input\":{\"content\":\"forbidden\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop1222351425/002/output.txt\"},\"name\":\"write_file\",\"type\":\"tool_use\"},{\"id\":\"load\",\"input\":{\"name\":\"code\"},\"name\":\"load_skill\",\"type\":\"tool_use\"}],\"role\":\"assistant\"},{\"content\":[{\"content\":[{\"text\":\"unknown tool \\\"write_file\\\"\",\"type\":\"text\"}],\"is_error\":true,\"tool_use_id\":\"denied\",\"type\":\"tool_result\"},{\"content\":[{\"text\":\"Code dynamic. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nwrite_file: Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: next.\",\"type\":\"text\"}],\"tool_use_id\":\"load\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"fake\",\"system\":\"Constitution creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: code. $UNKNOWN\\n---\\nBody after rule.\",\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"properties\":{\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"read_file\"},{\"description\":\"Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\",\"input_schema\":{\"properties\":{\"append\":{\"type\":\"boolean\"},\"content\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"path\":{\"type\":\"string\"}},\"required\":[\"path\",\"content\"],\"type\":\"object\"},\"name\":\"write_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"unload_skill\"}]}\n    skills_test.go:128: missing dynamic \"list_directory\": {\"max_tokens\":1024,\"messages\":[{\"content\":[{\"text\":\"exercise skills\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"id\":\"denied\",\"input\":{\"content\":\"forbidden\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSkillsThroughLoop1222351425/002/output.txt\"},\"name\":\"write_file\",\"type\":\"tool_use\"},{\"id\":\"load\",\"input\":{\"name\":\"code\"},\"name\":\"load_skill\",\"type\":\"tool_use\"}],\"role\":\"assistant\"},{\"content\":[{\"content\":[{\"text\":\"unknown tool \\\"write_file\\\"\",\"type\":\"text\"}],\"is_error\":true,\"tool_use_id\":\"denied\",\"type\":\"tool_result\"},{\"content\":[{\"text\":\"Code dynamic. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nwrite_file: Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: next.\",\"type\":\"text\"}],\"tool_use_id\":\"load\",\"type\":\"tool_result\"}],\"role\":\"user\"}],\"model\":\"fake\",\"system\":\"Constitution creation. read_file: Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\nload_skill: Load an available skill and its dependencies. Returns its instructions and enables its tools.\\nunload_skill: Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.. Next: code. $UNKNOWN\\n---\\nBody after rule.\",\"tools\":[{\"description\":\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\",\"input_schema\":{\"properties\":{\"end_line\":{\"type\":\"integer\"},\"max_bytes\":{\"type\":\"integer\"},\"path\":{\"type\":\"string\"},\"start_line\":{\"type\":\"integer\"}},\"required\":[\"path\"],\"type\":\"object\"},\"name\":\"read_file\"},{\"description\":\"Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\",\"input_schema\":{\"properties\":{\"append\":{\"type\":\"boolean\"},\"content\":{\"type\":\"string\"},\"overwrite\":{\"type\":\"boolean\"},\"path\":{\"type\":\"string\"}},\"required\":[\"path\",\"content\"],\"type\":\"object\"},\"name\":\"write_file\"},{\"description\":\"Load an available skill and its dependencies. Returns its instructions and enables its tools.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"load_skill\"},{\"description\":\"Mark a loaded skill for removal at the next compaction. Its instructions and tools remain available until then.\",\"input_schema\":{\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"],\"type\":\"object\"},\"name\":\"unload_skill\"}]}\n    skills_test.go:133: tool not enabled: list_directory\n--- FAIL: TestSkillLoadFailures (0.00s)\n    skills_test.go:178: load cycle: <nil>\n    skills_test.go:178: load missing: <nil>\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "cycle detection",
+    "file": "internal/skills/skills.go",
+    "before": "return fmt.Errorf(\"skill dependency cycle at %q\", n)",
+    "after": "return nil",
+    "exit": 1,
+    "intended_failure": "load cycle",
+    "killed": true,
+    "output": "--- FAIL: TestSkillLoadFailures (0.00s)\n    skills_test.go:178: load cycle: <nil>\n    skills_test.go:181: failed cycle changed declarations\n    skills_test.go:181: failed missing changed declarations\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "loadability type",
+    "file": "internal/skills/skills.go",
+    "before": "if s.kind != \"loadable\" {",
+    "after": "if false {",
+    "exit": 1,
+    "intended_failure": "load base",
+    "killed": true,
+    "output": "--- FAIL: TestSkillLoadFailures (0.00s)\n    skills_test.go:178: load base: <nil>\n    skills_test.go:178: load good: skill \"good\" is not available to load\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "reachability",
+    "file": "internal/skills/skills.go",
+    "before": "if !r.loaded[name] && !r.loadable()[name] {",
+    "after": "if false {",
+    "exit": 1,
+    "intended_failure": "load unreachable",
+    "killed": true,
+    "output": "--- FAIL: TestSkillLoadFailures (0.00s)\n    skills_test.go:178: load unreachable: <nil>\n    skills_test.go:185: unloaded skill marked pending\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "initial provenance retained",
+    "file": "internal/skills/skills.go",
+    "before": "if _, enabled := r.tools[tool]; !enabled {",
+    "after": "if true {",
+    "exit": 1,
+    "intended_failure": "shared initial provenance changed",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:150: shared initial provenance changed: {Source:dynamic EventSeq:7}\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "claim": "dynamic event provenance",
+    "file": "internal/skills/skills.go",
+    "before": "EventSeq: seq",
+    "after": "EventSeq: 0",
+    "exit": 1,
+    "intended_failure": "dynamic provenance",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:159: dynamic provenance: {Source:dynamic EventSeq:0}, expected 7\nFAIL\nFAIL\tensemble/ensemble\t0.014s\nFAIL\n"
+  },
+  {
+    "claim": "pending unload recorded",
+    "file": "internal/skills/skills.go",
+    "before": "r.pending[name] = true",
+    "after": "r.pending[name] = false; delete(r.pending, name)",
+    "exit": 1,
+    "intended_failure": "pending:",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:141: pending: []\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "claim": "failed loads remain atomic",
+    "file": "internal/skills/skills.go",
+    "before": "visiting[n] = true",
+    "after": "visiting[n] = true\nfor _, tool := range current.tools { r.tools[tool] = meta }",
+    "exit": 1,
+    "intended_failure": "changed declarations",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:150: shared initial provenance changed: {Source:dynamic EventSeq:7}\n--- FAIL: TestSkillLoadFailures (0.00s)\n    skills_test.go:181: failed cycle changed declarations\n    skills_test.go:181: failed missing changed declarations\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "claim": "unload retains current capability",
+    "file": "internal/skills/skills.go",
+    "edits": [
+      [
+        "r.pending[name] = true",
+        "r.pending[name] = true\nfor _, tool := range r.all[name].tools { delete(r.tools, tool) }"
+      ]
+    ],
+    "exit": 1,
+    "intended_failure": "tool not enabled: write_file",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:133: tool not enabled: write_file\n    skills_test.go:159: dynamic provenance: {Source: EventSeq:0}, expected 7\nFAIL\nFAIL\tensemble/ensemble\t0.013s\nFAIL\n"
+  },
+  {
+    "claim": "Agent isolation",
+    "file": "internal/skills/skills.go",
+    "edits": [
+      [
+        "type registry struct {",
+        "var sharedMutationTools = make(map[string]common.ToolMeta)\n\ntype registry struct {"
+      ],
+      [
+        "entries, err := os.ReadDir(directory)",
+        "r.tools = sharedMutationTools\nentries, err := os.ReadDir(directory)"
+      ]
+    ],
+    "exit": 1,
+    "intended_failure": "skills leaked between Agents",
+    "killed": true,
+    "output": "--- FAIL: TestSkillsThroughLoop (0.01s)\n    skills_test.go:147: skills leaked between Agents\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "claim": "CLI environment reaches primary",
+    "file": "main.go",
+    "edits": [
+      [
+        "app.NewAgent(cfg, ensemble.AgentSpecFromEnv())",
+        "app.NewAgent(cfg)"
+      ]
+    ],
+    "exit": 1,
+    "intended_failure": "CLI primary:",
+    "killed": true,
+    "output": "--- FAIL: TestPromptSkillEnvironment (0.21s)\n    skills_test.go:31: CLI primary: You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\nFAIL\nFAIL\tensemble\t0.218s\nFAIL\n"
+  },
+  {
+    "claim": "CLI prompt is executed",
+    "file": "main.go",
+    "edits": [
+      [
+        "answer, err := a.Ask(context.Background(), os.Args[2])",
+        "answer, err := \"\", error(nil); _ = context.Background()"
+      ]
+    ],
+    "exit": 1,
+    "intended_failure": "prompt command:",
+    "killed": true,
+    "output": "--- FAIL: TestPromptSkillEnvironment (0.21s)\n    skills_test.go:45: prompt command: \"\\n\" <nil>\nFAIL\nFAIL\tensemble\t0.214s\nFAIL\n"
+  }
+]

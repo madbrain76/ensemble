@@ -1,0 +1,6 @@
+--- FAIL: TestSkillsThroughLoop (0.01s)
+    skills_test.go:122: system prompt changed after load
+    skills_test.go:122: system prompt changed after load
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL

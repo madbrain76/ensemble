@@ -1,0 +1,33 @@
+go run ./cmd/grade -ch 10 solutions/edition-2/main/gui
+Open http://localhost:50803; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+You now have code editing capabilities.
+Open http://localhost:50812; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+You now have code editing capabilities.
+[load_skill]
+Search helper internals loaded.
+
+Search tools loaded. Custom value: hello-from-grader
+Open http://localhost:50821; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+skill "blocked" is not available to load
+Open http://localhost:50831; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:50901; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:50915; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:50923; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+Open http://localhost:50932; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+Open http://localhost:50943; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+[think]
+unknown tool "think"
+[think]
+unknown tool "think"
+make: *** [grade-dir] Terminated: 15
+
+Original grade command exit: 2

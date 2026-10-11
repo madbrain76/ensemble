@@ -1,4 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-11T00:51:38.90932Z","message":{"actor":"human","parts":[{"type":"text","text":"I have improved the draft with better flow."}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-11T00:51:38.90939Z","request":{"to":{"vendor":"anthropic","model":"fake-model","surface":"messages"}}}
-{"seq":3,"type":"response_ended","time":"2026-10-11T00:51:38.909709Z","response":{"parts":[{"artifact_id":1,"type":"text","text":"APPROVED. The draft is excellent."}],"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0},"from":{"vendor":"anthropic","model":"claude-sonnet-5-fake","surface":"messages"}}}

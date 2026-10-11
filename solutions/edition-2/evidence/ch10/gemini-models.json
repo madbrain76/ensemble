@@ -1,0 +1,9 @@
+{
+  "provider": "gemini",
+  "selected_candidates": [
+    "models/gemini-3.8-flash",
+    "models/gemini-3.8-flash-tts",
+    "models/gemini-3.8-flash-lite-tts"
+  ],
+  "model_count": 50
+}
