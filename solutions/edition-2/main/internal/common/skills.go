@@ -1,7 +1,7 @@
 package common
 
 // AgentSpec supplies per-Agent identity independently of provider configuration.
-// Omit it to retain the unrestricted tool setup used before skills.
+// The composition root chooses full-access defaults when the caller omits a spec.
 type AgentSpec struct {
 	// DataDir optionally selects this Agent's state directory.
 	DataDir string

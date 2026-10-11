@@ -1,0 +1,173 @@
+[
+  {
+    "name": "file-read-absolute",
+    "file": "internal/sandbox/files.go",
+    "old": "func (s *sandbox) ReadFile(path string) ([]byte, error) {",
+    "new": "func (s *sandbox) ReadFile(path string) ([]byte, error) {\n if filepath.IsAbs(path) { return os.ReadFile(path) }",
+    "test": "TestSandboxFiles",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxFiles\n    sandbox_test.go:73: escape accepted read_file /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles1988726382/002/outside.txt: \"OUTSIDE_FILE_MARKER\"\n--- FAIL: TestSandboxFiles (0.01s)\nFAIL\nFAIL\tensemble/ensemble\t0.018s\nFAIL\n"
+  },
+  {
+    "name": "file-write-absolute",
+    "file": "internal/sandbox/files.go",
+    "old": "func (s *sandbox) OpenFile(path string, flags int, mode fs.FileMode) (*os.File, error) {",
+    "new": "func (s *sandbox) OpenFile(path string, flags int, mode fs.FileMode) (*os.File, error) {\n if filepath.IsAbs(path) { return os.OpenFile(path,flags,mode) }",
+    "test": "TestSandboxFiles",
+    "exit": 0,
+    "output": "=== RUN   TestSandboxFiles\n--- PASS: TestSandboxFiles (0.01s)\nPASS\nok  \tensemble/ensemble\t0.014s\n"
+  },
+  {
+    "name": "file-boundary-disabled",
+    "file": "internal/sandbox/files.go",
+    "old": "root := s.parent.Spec().SandboxRoot",
+    "new": "root := \"\"",
+    "test": "TestSandboxFiles",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxFiles\n    sandbox_test.go:73: escape accepted read_file /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles2187441481/002/outside.txt: \"OUTSIDE_FILE_MARKER\"\n    sandbox_test.go:73: escape accepted write_file /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles2187441481/002/outside.txt: \"wrote 3 bytes to /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles2187441481/002/outside.txt\"\n    sandbox_test.go:73: escape accepted search_files /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles2187441481/002/outside.txt: \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles2187441481/002/outside.txt:1:bad\\n\"\n    sandbox_test.go:73: escape accepted write_file ../002/outside.txt: \"wrote 3 bytes to ../002/outside.txt\"\n    sandbox_test.go:73: escape accepted search_files ../002/outside.txt: \"../002/outside.txt:1:bad\\n\"\n    sandbox_test.go:73: escape accepted write_file escape/outside.txt: \"wrote 3 bytes to escape/outside.txt\"\n    sandbox_test.go:73: escape accepted search_files escape/outside.txt: \"escape/outside.txt:1:bad\\n\"\n    sandbox_test.go:73: escape accepted write_file escape/missing/new.txt: \"wrote 3 bytes to escape/missing/new.txt\"\n    sandbox_test.go:73: escape accepted search_files escape/missing/new.txt: \"escape/missing/new.txt:1:bad\\n\"\n    sandbox_test.go:83: outside file changed\n--- FAIL: TestSandboxFiles (0.01s)\nFAIL\nFAIL\tensemble/ensemble\t0.012s\nFAIL\n"
+  },
+  {
+    "name": "host-path-error",
+    "file": "internal/sandbox/files.go",
+    "old": "return \"\", refusal(path)\n\t}\n\treturn resolved, nil",
+    "new": "return \"\", fmt.Errorf(\"sandbox root %s refused %s\",root,path)\n\t}\n\treturn resolved, nil",
+    "test": "TestSandboxFiles",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxFiles\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused ../002/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/outside.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\n    sandbox_test.go:77: host root leaked: \"sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\" sandbox root /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxFiles941274051/001 refused escape/missing/new.txt\n--- FAIL: TestSandboxFiles (0.01s)\nFAIL\nFAIL\tensemble/ensemble\t0.017s\nFAIL\n"
+  },
+  {
+    "name": "kernel-read",
+    "file": "internal/sandbox/command.go",
+    "old": "(deny file-read*)",
+    "new": "; read denial removed",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:139: kernel escape: OUTSIDE_COMMAND_MARKER\n        exit_code: 0\n--- FAIL: TestSandboxCommands (0.13s)\nFAIL\nFAIL\tensemble/ensemble\t0.134s\nFAIL\n"
+  },
+  {
+    "name": "kernel-write",
+    "file": "internal/sandbox/command.go",
+    "old": "(deny file-write*)",
+    "new": "; write denial removed",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:139: kernel escape: \n        exit_code: 0\n--- FAIL: TestSandboxCommands (0.15s)\nFAIL\nFAIL\tensemble/ensemble\t0.159s\nFAIL\n"
+  },
+  {
+    "name": "network",
+    "file": "internal/sandbox/command.go",
+    "old": "(deny network*)",
+    "new": "; network denial removed",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:167: command network escape: network-control\n        exit_code: 0\n         hits=2\n--- FAIL: TestSandboxCommands (0.19s)\nFAIL\nFAIL\tensemble/ensemble\t0.195s\nFAIL\n"
+  },
+  {
+    "name": "environment",
+    "file": "internal/sandbox/command.go",
+    "old": "out = append(out, \"TERM=dumb\")",
+    "new": "out = append(out, \"TERM=dumb\", \"ODD_CREDENTIAL=\"+os.Getenv(\"ODD_CREDENTIAL\"))",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:148: environment leaked FAKE_ENV_CREDENTIAL_MARKER\n--- FAIL: TestSandboxCommands (0.19s)\nFAIL\nFAIL\tensemble/ensemble\t0.196s\nFAIL\n"
+  },
+  {
+    "name": "home",
+    "file": "internal/sandbox/command.go",
+    "old": "\"HOME=\"+root",
+    "new": "\"HOME=/not-the-workspace\"",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:152: HOME not rooted\n--- FAIL: TestSandboxCommands (0.17s)\nFAIL\nFAIL\tensemble/ensemble\t0.178s\nFAIL\n"
+  },
+  {
+    "name": "git-config",
+    "file": "internal/sandbox/command.go",
+    "old": "\"GIT_CONFIG_GLOBAL=\"+filepath.Join(root, \".ensemble-gitconfig\")",
+    "new": "\"GIT_CONFIG_GLOBAL=\"+os.Getenv(\"GIT_CONFIG_GLOBAL\")",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:128: positive command: fatal: unable to access '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxCommands2808354840/002/outside.txt': Operation not permitted\n        \n        exit_code: 128\n--- FAIL: TestSandboxCommands (0.08s)\nFAIL\nFAIL\tensemble/ensemble\t0.084s\nFAIL\n"
+  },
+  {
+    "name": "child-derive",
+    "file": "ensemble/spec.go",
+    "old": "s.DataDir, s.LogPath, s.SavePath = dataDir, \"\", \"\"",
+    "new": "s = AgentSpec{DataDir:dataDir}",
+    "test": "TestSandboxChildSpec",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxChildSpec\n    sandbox_test.go:178: derivation: {DataDir:child LogPath: SavePath: SandboxRoot: SafeMode:false EnableWebSearch:false SkillsDir: PrimarySkill: StartupSkills:[] Variables:map[]}\n    sandbox_test.go:192: valid narrowing refused: {DataDir:child LogPath: SavePath: SandboxRoot:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxChildSpec503770218/001/not-yet-created SafeMode:true EnableWebSearch:false SkillsDir: PrimarySkill: StartupSkills:[] Variables:map[]} child permissions narrowed: safe mode\n--- FAIL: TestSandboxChildSpec (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "name": "child-safe",
+    "file": "ensemble/spec.go",
+    "old": "s.SafeMode = true",
+    "new": "s.SafeMode = false",
+    "test": "TestSandboxChildSpec",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxChildSpec\n    sandbox_test.go:183: narrowing: {DataDir: LogPath: SavePath: SandboxRoot:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxChildSpec4148010558/001 SafeMode:false EnableWebSearch:false SkillsDir: PrimarySkill: StartupSkills:[] Variables:map[]}\n--- FAIL: TestSandboxChildSpec (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "name": "child-web",
+    "file": "ensemble/spec.go",
+    "old": "s.EnableWebSearch = false",
+    "new": "s.EnableWebSearch = true",
+    "test": "TestSandboxChildSpec",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxChildSpec\n    sandbox_test.go:183: narrowing: {DataDir: LogPath: SavePath: SandboxRoot:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxChildSpec1511883735/001 SafeMode:true EnableWebSearch:true SkillsDir: PrimarySkill: StartupSkills:[] Variables:map[]}\n--- FAIL: TestSandboxChildSpec (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "name": "child-root",
+    "file": "ensemble/spec.go",
+    "old": "s.SandboxRoot = parent.SandboxRoot",
+    "new": "s.SandboxRoot = \"\"",
+    "test": "TestSandboxChildSpec",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxChildSpec\n    sandbox_test.go:183: narrowing: {DataDir: LogPath: SavePath: SandboxRoot: SafeMode:true EnableWebSearch:false SkillsDir: PrimarySkill: StartupSkills:[] Variables:map[]}\n    sandbox_test.go:199: symlink child widened\n--- FAIL: TestSandboxChildSpec (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "name": "child-alarm",
+    "file": "ensemble/spec.go",
+    "old": "return s, fmt.Errorf(\"child permissions narrowed: %s\", strings.Join(widened, \", \"))",
+    "new": "_ = fmt.Sprint(strings.Join(widened, \", \")); return s, nil",
+    "test": "TestSandboxChildSpec",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxChildSpec\n    sandbox_test.go:186: widening diagnostic absent\n    sandbox_test.go:199: symlink child widened\n--- FAIL: TestSandboxChildSpec (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  },
+  {
+    "name": "safe-mode",
+    "file": "internal/agent/agent.go",
+    "old": "if a.spec.SafeMode {",
+    "new": "if false {",
+    "test": "TestSandboxSafeMode",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxSafeMode\n    sandbox_test.go:210: safe declaration run_command\n    sandbox_test.go:214: safe dispatch run_command\n    sandbox_test.go:210: safe declaration send_input\n    sandbox_test.go:210: safe declaration wait_for_job\n    sandbox_test.go:210: safe declaration kill_job\n    sandbox_test.go:210: safe declaration tool_limits\n    sandbox_test.go:214: safe dispatch tool_limits\n--- FAIL: TestSandboxSafeMode (0.02s)\nFAIL\nFAIL\tensemble/ensemble\t0.027s\nFAIL\n"
+  },
+  {
+    "name": "web-gate",
+    "file": "internal/skills/skills.go",
+    "old": "s.name == \"web-search\" && !parent.Spec().EnableWebSearch",
+    "new": "s.name == \"web-search\" && false",
+    "test": "TestSandboxWebGate",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxWebGate\n    sandbox_test.go:298: web gate enabled=false names=[web-search] err=<nil>\n    sandbox_test.go:301: disabled skill contacted peer\n    sandbox_test.go:310: web bridge enabled=false bridged=true\n--- FAIL: TestSandboxWebGate (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "diagnostic-redaction",
+    "file": "ensemble/ensemble.go",
+    "old": "e.logger.Print(e.sanitize(fmt.Sprintf(format, args...)))",
+    "new": "e.logger.Print(fmt.Sprintf(format,args...))",
+    "test": "TestSandboxCredentialLogs",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCredentialLogs\n    sandbox_test.go:253: credential reached context or log\n--- FAIL: TestSandboxCredentialLogs (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "response-redaction",
+    "file": "internal/engine/engine.go",
+    "old": "if secret != \"\" {",
+    "new": "if false {",
+    "test": "TestSandboxCredentialLogs",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCredentialLogs\n    sandbox_test.go:253: credential reached context or log\n--- FAIL: TestSandboxCredentialLogs (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.009s\nFAIL\n"
+  }
+]

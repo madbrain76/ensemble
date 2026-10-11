@@ -403,7 +403,11 @@ const Human = common.Human
 
 // SetAPILog selects the root's wire-trace destination before starting Agents.
 // The caller owns closing the writer; nil disables tracing.
-func (e *Ensemble) SetAPILog(w io.Writer) { e.api = w }
+func (e *Ensemble) SetAPILog(w io.Writer) {
+	e.apiMu.Lock()
+	defer e.apiMu.Unlock()
+	e.api = w
+}
 
 // APILog writes one JSON record per sanitized payload, retaining frame order.
 // Auth headers and credential-bearing URLs never enter this facility.
@@ -465,7 +469,7 @@ type ToolFinished = common.ToolFinished
 // TurnEnded reports turn completion as display progress.
 type TurnEnded = common.TurnEnded
 
-// AgentSpec supplies skills identity separately from provider request settings.
+// AgentSpec supplies identity and confinement separately from provider request settings.
 type AgentSpec common.AgentSpec
 
 // ToolMeta records the first event that enabled a capability for one Agent.

@@ -207,3 +207,23 @@ or a skill. Discovery does not grant additional tools. Unload removes the web
 capabilities immediately. Search/page text is untrusted evidence; check source
 URLs and scrape metadata before citing it. Provider tools, schemas, access and
 quotas can change; this is not a promise of URL-only provider interchangeability.
+
+Chapter 23 adds per-Agent confinement. Run `ensemble chat --sandbox /absolute/work`
+(and optionally `--safe-mode` or `--no-web-search`). File-tool relative paths use
+that root. Commands and descendants use macOS Seatbelt with no network; ordinary
+system tools remain readable so Python and Git work. Other platforms refuse
+confined commands. File tools use Go's rooted filesystem operations, including
+state-file writes, so checking a path and later following an escaping symlink is
+not an allowed shortcut. CLI saves, history, trace and Agent data live under the
+selected root. Library callers must choose data/log/save paths inside their root.
+
+Safe mode removes `run_command`, `send_input`, `wait_for_job`, `kill_job`, and
+`tool_limits`, while ordinary file tools remain usable. Disabling web search
+withholds its skill and MCP connection. An omitted library AgentSpec retains the
+prior full-access defaults; an explicit spec's `EnableWebSearch` must be true to
+permit that skill. `AgentSpec.Child` derives restrictions, and `Clamp` returns an
+unconditionally narrowed spec plus a diagnostic for attempted widening. This
+chapter adds specifications, not agent spawning. The binary's credential provider
+and model HTTP client remain outside the command sandbox. The tested boundary is
+file tools, retained state and macOS command descendants, not a claim of immunity
+to arbitrary compromised native code or all forms of prompt injection.

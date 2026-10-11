@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -48,6 +49,8 @@ func (s *sandbox) Command(script, cwd string) (*exec.Cmd, error) {
 	}
 	if cwd == "" {
 		cwd = s.parent.Config().Workspace
+	} else if root == "" && !filepath.IsAbs(cwd) {
+		cwd = filepath.Join(s.parent.Config().Workspace, cwd)
 	}
 	cwd, err = s.Resolve(cwd)
 	if err != nil {
@@ -94,9 +97,10 @@ func (s *sandbox) Command(script, cwd string) (*exec.Cmd, error) {
 		if err != nil {
 			return nil, errors.New("sandbox cannot resolve toolchain cache")
 		}
-		// QuoteMeta is unnecessary for SBPL's literal prefix when using a subpath
-		// filter plus a basename regex: both must match the same file.
-		profile += fmt.Sprintf("(allow file-read* file-write* (require-all (subpath %s) (regex #\"/xcrun_db[^/]*$\")))\n", strconv.Quote(temp))
+		// Match immediate cache files only. A subpath plus basename match would
+		// also admit unrelated nested temp files with an xcrun_db-looking name.
+		cachePattern := "^" + regexp.QuoteMeta(filepath.Join(temp, "xcrun_db")) + "[^/]*$"
+		profile += fmt.Sprintf("(allow file-read* file-write* (regex #%s))\n", strconv.Quote(cachePattern))
 		command = exec.Command("/usr/bin/sandbox-exec", "-p", profile, "/bin/sh", "-c", script)
 	}
 	command.Dir = cwd

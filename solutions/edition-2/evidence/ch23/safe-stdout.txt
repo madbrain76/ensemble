@@ -1,0 +1,3 @@
+- Wrote and read `safe.txt`: `safe mode file works`
+- Attempted to read `../notes.txt`; the sandbox refused.
+- `run_command` and attendant execution tools do not appear in my actual tool list. No commands or alternate execution were attempted.

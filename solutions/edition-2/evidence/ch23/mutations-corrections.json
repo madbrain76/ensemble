@@ -1,0 +1,65 @@
+[
+  {
+    "name": "file-write-absolute-repaired",
+    "file": "internal/sandbox/files.go",
+    "old": "func (s *sandbox) OpenFile(path string, flags int, mode fs.FileMode) (*os.File, error) {",
+    "new": "func (s *sandbox) OpenFile(path string, flags int, mode fs.FileMode) (*os.File, error) {\n if filepath.IsAbs(path) { return os.OpenFile(path,flags,mode) }",
+    "test": "TestSandboxFiles",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxFiles\n    sandbox_test.go:87: direct confined open escaped\n    sandbox_test.go:91: outside file changed\n--- FAIL: TestSandboxFiles (0.01s)\nFAIL\nFAIL\tensemble/ensemble\t0.015s\nFAIL\n"
+  },
+  {
+    "name": "grandchild-wrapper",
+    "file": "internal/sandbox/command.go",
+    "old": "if root != \"\" {\n\t\tif runtime.GOOS",
+    "new": "if root != \"\" && !strings.HasPrefix(script,\"sh -c\") {\n\t\tif runtime.GOOS",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:151: kernel escape: OUTSIDE_COMMAND_MARKER\n        exit_code: 0\n--- FAIL: TestSandboxCommands (0.16s)\nFAIL\nFAIL\tensemble/ensemble\t0.171s\nFAIL\n"
+  },
+  {
+    "name": "nested-cache-regression",
+    "file": "internal/sandbox/command.go",
+    "old": "cachePattern := \"^\" + regexp.QuoteMeta(filepath.Join(temp, \"xcrun_db\")) + \"[^/]*$\"",
+    "new": "cachePattern := \"^\" + regexp.QuoteMeta(temp) + \"/.*/xcrun_db[^/]*$\"",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:151: kernel escape: OUTSIDE_COMMAND_MARKER\n        exit_code: 0\n--- FAIL: TestSandboxCommands (0.14s)\nFAIL\nFAIL\tensemble/ensemble\t0.149s\nFAIL\n"
+  },
+  {
+    "name": "cwd-path-leak",
+    "file": "internal/sandbox/command.go",
+    "old": "cwd, err = s.Resolve(cwd)",
+    "new": "if cwd != \"\" && !filepath.IsAbs(cwd) { cwd=filepath.Join(s.parent.Config().Workspace,cwd) }; cwd, err = s.Resolve(cwd)",
+    "test": "TestSandboxCommands",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxCommands\n    sandbox_test.go:164: cwd refusal leaked root: \"sandbox refused \\\"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxCommands3619115282/escape\\\"\" sandbox refused \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxCommands3619115282/escape\"\n    sandbox_test.go:164: cwd refusal leaked root: \"sandbox refused \\\"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxCommands3619115282/001/escape\\\"\" sandbox refused \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestSandboxCommands3619115282/001/escape\"\n--- FAIL: TestSandboxCommands (0.22s)\nFAIL\nFAIL\tensemble/ensemble\t0.232s\nFAIL\n"
+  },
+  {
+    "name": "snapshot-backup",
+    "file": "internal/history/journal.go",
+    "old": "h.parent.Sandbox().WriteFile(path+\".bak\", old, 0600)",
+    "new": "os.WriteFile(path+\".bak\", old, 0600)",
+    "test": "TestSandboxStateFiles",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxStateFiles\n    sandbox_test.go:374: snapshot backup followed outside symlink\n    sandbox_test.go:383: state write escaped: \"{\\\"config\\\":{\\\"model\\\":\\\"offline\\\",\\\"vendor\\\":\\\"anthropic\\\",\\\"system_prompt\\\":\\\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\\\",\\\"tools\\\":[{\\\"name\\\":\\\"agent_status\\\",\\\"description\\\":\\\"Report the selected model, last response and session token counts, cache hit rate and derived session USD cost (unknown when prices are unavailable).\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{}}},{\\\"name\\\":\\\"read_file\\\",\\\"description\\\":\\\"Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"path\\\":{\\\"type\\\":\\\"string\\\"},\\\"start_line\\\":{\\\"type\\\":\\\"integer\\\"},\\\"end_line\\\":{\\\"type\\\":\\\"integer\\\"},\\\"max_bytes\\\":{\\\"type\\\":\\\"integer\\\"}},\\\"required\\\":[\\\"path\\\"]}},{\\\"name\\\":\\\"list_directory\\\",\\\"description\\\":\\\"List immediate entries, sorted by name; directories end with /.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"path\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"path\\\"]}},{\\\"name\\\":\\\"search_files\\\",\\\"description\\\":\\\"Search files recursively using a regular expression. context_lines defaults to zero. Output uses grep path:line:text and path-line-context with merged windows.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"path\\\":{\\\"type\\\":\\\"string\\\"},\\\"pattern\\\":{\\\"type\\\":\\\"string\\\"},\\\"context_lines\\\":{\\\"type\\\":\\\"integer\\\"}},\\\"required\\\":[\\\"path\\\",\\\"pattern\\\"]}},{\\\"name\\\":\\\"write_file\\\",\\\"description\\\":\\\"Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"path\\\":{\\\"type\\\":\\\"string\\\"},\\\"content\\\":{\\\"type\\\":\\\"string\\\"},\\\"overwrite\\\":{\\\"type\\\":\\\"boolean\\\"},\\\"append\\\":{\\\"type\\\":\\\"boolean\\\"}},\\\"required\\\":[\\\"path\\\",\\\"content\\\"]}},{\\\"name\\\":\\\"edit_file\\\",\\\"description\\\":\\\"Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"path\\\":{\\\"type\\\":\\\"string\\\"},\\\"old_text\\\":{\\\"type\\\":\\\"string\\\"},\\\"new_text\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"path\\\",\\\"old_text\\\",\\\"new_text\\\"]}},{\\\"name\\\":\\\"run_command\\\",\\\"description\\\":\\\"Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"command\\\":{\\\"type\\\":\\\"string\\\"},\\\"cwd\\\":{\\\"type\\\":\\\"string\\\"},\\\"ai_callback_delay\\\":{\\\"type\\\":\\\"number\\\",\\\"description\\\":\\\"Seconds before looking again, default 3; never a job deadline\\\"},\\\"ai_callback_pattern\\\":{\\\"type\\\":\\\"string\\\",\\\"description\\\":\\\"Regex on unseen output\\\"},\\\"max_output_bytes\\\":{\\\"type\\\":\\\"integer\\\",\\\"description\\\":\\\"Inline output byte cap, default 16384\\\"}},\\\"required\\\":[\\\"command\\\"]}},{\\\"name\\\":\\\"wait_for_job\\\",\\\"description\\\":\\\"Wait for a job, including a finished job. Return only unseen output; waiting does not stop execution.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"handle\\\":{\\\"type\\\":\\\"integer\\\"},\\\"ai_callback_delay\\\":{\\\"type\\\":\\\"number\\\",\\\"description\\\":\\\"Seconds before looking again, default 3; never a job deadline\\\"},\\\"ai_callback_pattern\\\":{\\\"type\\\":\\\"string\\\",\\\"description\\\":\\\"Regex on unseen output\\\"},\\\"max_output_bytes\\\":{\\\"type\\\":\\\"integer\\\",\\\"description\\\":\\\"Inline output byte cap, default 16384\\\"}},\\\"required\\\":[\\\"handle\\\"]}},{\\\"name\\\":\\\"send_input\\\",\\\"description\\\":\\\"Send a line of input to a running PTY job, then wait. A missing trailing newline is added.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"handle\\\":{\\\"type\\\":\\\"integer\\\"},\\\"input\\\":{\\\"type\\\":\\\"string\\\"},\\\"ai_callback_delay\\\":{\\\"type\\\":\\\"number\\\",\\\"description\\\":\\\"Seconds before looking again, default 3; never a job deadline\\\"},\\\"ai_callback_pattern\\\":{\\\"type\\\":\\\"string\\\",\\\"description\\\":\\\"Regex on unseen output\\\"},\\\"max_output_bytes\\\":{\\\"type\\\":\\\"integer\\\",\\\"description\\\":\\\"Inline output byte cap, default 16384\\\"}},\\\"required\\\":[\\\"handle\\\",\\\"input\\\"]}},{\\\"name\\\":\\\"kill_job\\\",\\\"description\\\":\\\"Kill a job's process group. Go-only work is marked killed but its goroutine cannot be stopped.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"handle\\\":{\\\"type\\\":\\\"integer\\\"}},\\\"required\\\":[\\\"handle\\\"]}},{\\\"name\\\":\\\"tool_limits\\\",\\\"description\\\":\\\"Set one-shot wait/output limits for the very next call, whichever tool it is. That call reports consumption; explicit call arguments override these limits.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"ai_callback_delay\\\":{\\\"type\\\":\\\"number\\\",\\\"description\\\":\\\"Seconds before looking again, default 3; never a job deadline\\\"},\\\"ai_callback_pattern\\\":{\\\"type\\\":\\\"string\\\",\\\"description\\\":\\\"Regex on unseen output\\\"},\\\"max_output_bytes\\\":{\\\"type\\\":\\\"integer\\\",\\\"description\\\":\\\"Inline output byte cap, default 16384\\\"}},\\\"required\\\":[]}},{\\\"name\\\":\\\"micro_handoff\\\",\\\"description\\\":\\\"Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{\\\"text\\\":{\\\"type\\\":\\\"string\\\"}},\\\"required\\\":[\\\"text\\\"]}},{\\\"name\\\":\\\"keep_tool_results\\\",\\\"description\\\":\\\"Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.\\\",\\\"schema\\\":{\\\"type\\\":\\\"object\\\",\\\"properties\\\":{}}}]},\\\"as_of\\\":0,\\\"context\\\":{\\\"disabled_bands\\\":[false,false,false,false,false,false],\\\"turn\\\":\\\"idle\\\",\\\"dialogue\\\":null,\\\"ephemera\\\":null,\\\"usage\\\":{\\\"input\\\":0,\\\"cache_write\\\":0,\\\"cache_read\\\":0,\\\"output\\\":0},\\\"last_usage\\\":{\\\"input\\\":0,\\\"cache_write\\\":0,\\\"cache_read\\\":0,\\\"output\\\":0}},\\\"log\\\":[]}\\n\" <nil>\n--- FAIL: TestSandboxStateFiles (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "job-output",
+    "file": "internal/jobs/jobs.go",
+    "old": "j.parent.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)",
+    "new": "os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)",
+    "test": "TestSandboxStateFiles",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxStateFiles\n    sandbox_test.go:383: state write escaped: \"openat absent: no such file or directory\" <nil>\n--- FAIL: TestSandboxStateFiles (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "media-read",
+    "file": "internal/engine/media.go",
+    "old": "e.parent.Sandbox().ReadFile(p.Ref.Locator)",
+    "new": "os.ReadFile(p.Ref.Locator)",
+    "test": "TestSandboxMedia",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxMedia\n    sandbox_test.go:403: allowed media missing:  model \"gpt-4o-mini\" reading image/png media: open media.bin: no such file or directory\n--- FAIL: TestSandboxMedia (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  }
+]

@@ -1,0 +1,16 @@
+Completed with one attempt per operation; no retries or further investigation.
+
+| Operation | Observed result |
+|---|---|
+| Create/read `notes.txt` | Allowed; read `amber apple\n` |
+| Edit and search | Allowed; found `notes.txt:1:amber plum` |
+| List current directory | Allowed; listed `api.log`, `cr/`, `notes.txt`, `save.json.journal` |
+| Local command | Allowed; printed `LOCAL_COMMAND_OK` |
+| Create `escape` symlink | Allowed; exit 0 |
+| Grandchild-shell `cat` of outside file | Denied: `Operation not permitted`; exit 1 |
+| Write outside `bad.txt` | Denied: `Operation not permitted`; exit 1 |
+| `read_file escape` | Denied: `sandbox refused "escape"` |
+| `read_file ../outside/private.txt` | Denied: `sandbox refused "../outside/private.txt"` |
+| Curl localhost port 62327 | Failed; exit 7, couldn't connect. Output alone does not establish sandbox denial. |
+| Credential environment check | Printed `unset`, as expected |
+| Git init/add/commit/log | Allowed; created and displayed commit `68628f1` (`Add small file`) |

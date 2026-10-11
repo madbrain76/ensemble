@@ -1,0 +1,11 @@
+[
+  {
+    "name": "media-read-repaired",
+    "file": "internal/engine/media.go",
+    "old": "e.parent.Sandbox().ReadFile(p.Ref.Locator)",
+    "new": "os.ReadFile(p.Ref.Locator)",
+    "test": "TestSandboxMedia",
+    "exit": 1,
+    "output": "=== RUN   TestSandboxMedia\n    sandbox_test.go:406: outside media encoded: {\"stream\":true,\"stream_options\":{\"include_usage\":true},\"model\":\"gpt-4o-mini\",\"max_completion_tokens\":1024,\"messages\":[{\"role\":\"system\",\"content\":\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\"},{\"role\":\"user\",\"content\":[{\"image_url\":{\"url\":\"data:image/png;base64,T1VUU0lERV9NRURJQV9NQVJLRVI=\"},\"type\":\"image_url\"}]}]}\n--- FAIL: TestSandboxMedia (0.00s)\nFAIL\nFAIL\tensemble/ensemble\t0.008s\nFAIL\n"
+  }
+]

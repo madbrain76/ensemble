@@ -1,0 +1,30 @@
+[
+  {
+    "mode": "confined",
+    "requests": 12,
+    "models": [
+      "gpt-6-astra"
+    ],
+    "reasoning": [
+      "{\"effort\": \"high\", \"summary\": \"auto\"}"
+    ],
+    "completed_response_frames": 12,
+    "completion_models": [
+      "gpt-6-astra"
+    ]
+  },
+  {
+    "mode": "safe",
+    "requests": 3,
+    "models": [
+      "gpt-6-astra"
+    ],
+    "reasoning": [
+      "{\"effort\": \"high\", \"summary\": \"auto\"}"
+    ],
+    "completed_response_frames": 3,
+    "completion_models": [
+      "gpt-6-astra"
+    ]
+  }
+]

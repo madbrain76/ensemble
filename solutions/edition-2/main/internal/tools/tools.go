@@ -278,14 +278,7 @@ func runCommand(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	if strings.TrimSpace(args.Command) == "" {
 		return "", errors.New("command must not be empty")
 	}
-	cwd := owner.Agent().Config().Workspace
-	if args.Cwd != "" {
-		cwd = args.Cwd
-		if !filepath.IsAbs(cwd) {
-			cwd = filepath.Join(owner.Agent().Config().Workspace, cwd)
-		}
-	}
-	command, err := owner.Agent().Sandbox().Command(args.Command, cwd)
+	command, err := owner.Agent().Sandbox().Command(args.Command, args.Cwd)
 	if err != nil {
 		return "", err
 	}

@@ -1,0 +1,38 @@
+Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+2026/10/11 10:27:11 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=6780 predicted=0.0000
+2026/10/11 10:27:11 cache lens: rotate: sandbox refused "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/confined/cr/cache-prior.txt"
+2026/10/11 10:27:13 OpenAI billing source: chatgpt
+write_file {"path":"notes.txt","content":"amber apple\n"}2026/10/11 10:27:15 cache grant: input_tokens=1095 read_tokens=0 granted=0.0000 predicted=0.0000
+
+2026/10/11 10:27:15 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=6779 prompt_bytes=7073 predicted=0.9584
+read_file {"path":"notes.txt"}2026/10/11 10:27:18 cache grant: input_tokens=1139 read_tokens=0 granted=0.0000 predicted=0.9584
+
+2026/10/11 10:27:18 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=7072 prompt_bytes=7320 predicted=0.9661
+edit_file {"path":"notes.txt","old_text":"apple","new_text":"plum"}2026/10/11 10:27:21 cache grant: input_tokens=1172 read_tokens=0 granted=0.0000 predicted=0.9661
+
+2026/10/11 10:27:21 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=7319 prompt_bytes=7636 predicted=0.9585
+search_files {"path":".","pattern":"plum"}2026/10/11 10:27:24 cache grant: input_tokens=1221 read_tokens=0 granted=0.0000 predicted=0.9585
+
+2026/10/11 10:27:24 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=7635 prompt_bytes=26897 predicted=0.2839
+list_directory {"path":"."}2026/10/11 10:27:27 cache grant: input_tokens=5589 read_tokens=0 granted=0.0000 predicted=0.2839
+
+2026/10/11 10:27:27 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=26896 prompt_bytes=27172 predicted=0.9898
+run_command {"command":"printf 'LOCAL_COMMAND_OK\\n'\nln -s /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/private.txt escape\nprintf 'symlink exit=%s\\n' \"$?\"\n/bin/sh -c '/bin/sh -c '\\''cat /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/private.txt; r=$?; exit \"$r\"'\\''; r=$?; exit \"$r\"'\nprintf 'grandchild cat exit=%s\\n' \"$?\"\nprintf 'test\\n' > /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/bad.txt\nprintf 'outside write exit=%s\\n' \"$?\""}2026/10/11 10:27:33 cache grant: input_tokens=5631 read_tokens=0 granted=0.0000 predicted=0.9898
+
+2026/10/11 10:27:34 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=27171 prompt_bytes=28354 predicted=0.9583
+read_file {"path":"escape"}2026/10/11 10:27:36 cache grant: input_tokens=6001 read_tokens=0 granted=0.0000 predicted=0.9583
+
+2026/10/11 10:27:36 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=28353 prompt_bytes=28611 predicted=0.9910
+read_file {"path":"../outside/private.txt"}2026/10/11 10:27:40 cache grant: input_tokens=6035 read_tokens=0 granted=0.0000 predicted=0.9910
+
+2026/10/11 10:27:40 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=28610 prompt_bytes=28900 predicted=0.9900
+run_command {"command":"curl -sS --max-time 2 http://127.0.0.1:62327"}2026/10/11 10:27:43 cache grant: input_tokens=6074 read_tokens=0 granted=0.0000 predicted=0.9900
+
+2026/10/11 10:27:43 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=28899 prompt_bytes=29282 predicted=0.9869
+run_command {"command":"printf '%s\\n' \"${ODD_CREDENTIAL-unset}\""}2026/10/11 10:27:47 cache grant: input_tokens=6160 read_tokens=0 granted=0.0000 predicted=0.9869
+
+2026/10/11 10:27:47 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=29281 prompt_bytes=29583 predicted=0.9898
+run_command {"command":"git init localrepo && cd localrepo && printf 'small file\\n' > sample.txt && git add sample.txt && git -c user.name='Sandbox Test' -c user.email='sandbox@example.invalid' commit -m 'Add small file' && git --no-pager log -1"}2026/10/11 10:27:51 cache grant: input_tokens=6211 read_tokens=0 granted=0.0000 predicted=0.9898
+
+2026/10/11 10:27:51 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=29582 prompt_bytes=30565 predicted=0.9678
+2026/10/11 10:28:00 cache grant: input_tokens=6454 read_tokens=0 granted=0.0000 predicted=0.9678

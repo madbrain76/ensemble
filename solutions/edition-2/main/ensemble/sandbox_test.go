@@ -3,6 +3,7 @@ package ensemble_test
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -78,6 +79,13 @@ func TestSandboxFiles(t *testing.T) {
 			}
 		}
 	}
+	// Exercise the operation boundary independently: write_file's earlier parent
+	// directory check must not hide a broken OpenFile used by state persistence.
+	f, openErr := a.Sandbox().OpenFile(secret, os.O_WRONLY|os.O_TRUNC, 0600)
+	if openErr == nil {
+		f.Close()
+		t.Error("direct confined open escaped")
+	}
 	data, _ := os.ReadFile(secret)
 	if string(data) != "OUTSIDE_FILE_MARKER" {
 		t.Fatal("outside file changed")
@@ -104,6 +112,8 @@ func TestSandboxCommands(t *testing.T) {
 	}
 	root, outside := t.TempDir(), t.TempDir()
 	secret := filepath.Join(outside, "outside.txt")
+	cacheLookalike := filepath.Join(outside, "xcrun_db-private-marker")
+	os.WriteFile(cacheLookalike, []byte("OUTSIDE_COMMAND_MARKER"), 0600)
 	os.WriteFile(secret, []byte("OUTSIDE_COMMAND_MARKER"), 0600)
 	t.Setenv("ODD_CREDENTIAL", "FAKE_ENV_CREDENTIAL_MARKER")
 	t.Setenv("SERVICE_TOKEN", "FAKE_TOKEN_MARKER")
@@ -130,6 +140,8 @@ func TestSandboxCommands(t *testing.T) {
 	}
 	for _, script := range []string{
 		"cat " + secret,
+		"cat " + cacheLookalike,
+		"printf bad > " + cacheLookalike,
 		"sh -c 'sh -c \"cat " + secret + "\"'",
 		"printf bad > " + filepath.Join(outside, "written"),
 		"cat /etc/hosts",
@@ -139,9 +151,24 @@ func TestSandboxCommands(t *testing.T) {
 			t.Fatalf("kernel escape: %s", out)
 		}
 	}
+	if data, err := os.ReadFile(cacheLookalike); err != nil || string(data) != "OUTSIDE_COMMAND_MARKER" {
+		t.Errorf("nested cache lookalike changed: %q %v", data, err)
+	}
 	if _, err := os.Stat(filepath.Join(outside, "written")); !os.IsNotExist(err) {
 		t.Fatal("outside write occurred")
 	}
+	os.Symlink(outside, filepath.Join(root, "escape"))
+	for _, cwd := range []string{"../escape", "escape"} {
+		outCwd, errCwd := sandboxCall(t, a, "run_command", map[string]any{"command": "true", "cwd": cwd})
+		if errCwd == nil || !strings.Contains(outCwd, cwd) || strings.Contains(outCwd, root) || strings.Contains(outCwd, a.Spec().SandboxRoot) {
+			t.Errorf("cwd refusal leaked root: %q %v", outCwd, errCwd)
+		}
+	}
+	outCwd, errCwd := sandboxCall(t, a, "run_command", map[string]any{"command": "cat note", "cwd": "repo"})
+	if errCwd != nil || !strings.Contains(outCwd, "allowed") || !strings.Contains(outCwd, "exit_code: 0") {
+		t.Fatalf("allowed cwd: %q %v", outCwd, errCwd)
+	}
+
 	out := run("env")
 	for _, forbidden := range []string{"FAKE_ENV_CREDENTIAL_MARKER", "FAKE_TOKEN_MARKER", "SSH_AUTH_SOCK=", secret} {
 		if strings.Contains(out, forbidden) {
@@ -235,9 +262,16 @@ func TestSandboxCredentialLogs(t *testing.T) {
 	}))
 	defer server.Close()
 	var log bytes.Buffer
-	app := ensemble.New(&log)
-	app.SetAPILog(&log)
-	a, err := app.NewAgent(ensemble.Config{Model: "offline", APIKey: marker, BaseURL: server.URL}, ensemble.AgentSpec{SandboxRoot: t.TempDir()})
+	root := t.TempDir()
+	logFile, err := os.Create(filepath.Join(root, "api.log"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer logFile.Close()
+	sink := io.MultiWriter(&log, logFile)
+	app := ensemble.New(sink)
+	app.SetAPILog(sink)
+	a, err := app.NewAgent(ensemble.Config{Model: "offline", APIKey: marker, BaseURL: server.URL, BuiltinTools: true}, ensemble.AgentSpec{SandboxRoot: root})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,6 +281,10 @@ func TestSandboxCredentialLogs(t *testing.T) {
 		t.Fatalf("trusted HTTP: %q %v", answer, err)
 	}
 	app.Logf("credential diagnostic %s", marker)
+	logText, logErr := sandboxCall(t, a, "read_file", map[string]any{"path": "api.log"})
+	if logErr != nil || !strings.Contains(logText, "reply") || strings.Contains(logText, marker) {
+		t.Fatalf("readable trace credential: %q %v", logText, logErr)
+	}
 	var history bytes.Buffer
 	a.History().Dump(&history)
 	if strings.Contains(answer+log.String()+history.String(), marker) {
@@ -313,5 +351,58 @@ func TestSandboxWebGate(t *testing.T) {
 	}
 	if contacts.Load() == 0 {
 		t.Fatal("enabled peer control never ran")
+	}
+}
+
+// Model-writable symlinks also target trusted state filenames. Retained job
+// output and snapshot backups must use the same confined operations as tools.
+func TestSandboxStateFiles(t *testing.T) {
+	root := t.TempDir()
+	a := sandboxAgent(t, root, false)
+	outside := filepath.Join(t.TempDir(), "outside.txt")
+	os.WriteFile(outside, []byte("STATE_OUTSIDE_MARKER"), 0600)
+	if err := a.Save(); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Save(); err != nil {
+		t.Fatal(err)
+	}
+	backup := filepath.Join(a.Config().DataDir, "save.json.bak")
+	os.Remove(backup)
+	os.Symlink(outside, backup)
+	if err := a.Save(); err == nil {
+		t.Error("snapshot backup followed outside symlink")
+	}
+	os.MkdirAll(filepath.Join(a.Config().DataDir, "io"), 0700)
+	os.Symlink(outside, filepath.Join(a.Config().DataDir, "io", "1"))
+	if _, err := sandboxCall(t, a, "read_file", map[string]any{"path": "absent"}); err == nil {
+		t.Error("job output symlink accepted")
+	}
+	data, err := os.ReadFile(outside)
+	if err != nil || string(data) != "STATE_OUTSIDE_MARKER" {
+		t.Fatalf("state write escaped: %q %v", data, err)
+	}
+}
+
+// Local media uses the same owner boundary as read_file, before provider encoding.
+func TestSandboxMedia(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "media.bin")
+	os.WriteFile(outside, []byte("OUTSIDE_MEDIA_MARKER"), 0600)
+	os.WriteFile(filepath.Join(root, "media.bin"), []byte("inside media"), 0600)
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-4o-mini"}, ensemble.AgentSpec{SandboxRoot: root})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	render := func(path string) ([]byte, error) {
+		return a.Engine().Render(&ensemble.Context{Dialogue: []ensemble.Entry{{Actor: ensemble.Human, Parts: []ensemble.Part{{Type: "blob", MIME: "image/png", Ref: ensemble.Ref{Kind: ensemble.RefPath, Locator: path}}}}}})
+	}
+	body, err := render(filepath.Join(root, "media.bin"))
+	if err != nil || !bytes.Contains(body, []byte(base64.StdEncoding.EncodeToString([]byte("inside media")))) {
+		t.Fatalf("allowed media missing: %s %v", body, err)
+	}
+	if body, err := render(outside); err == nil {
+		t.Errorf("outside media encoded: %s", body)
 	}
 }

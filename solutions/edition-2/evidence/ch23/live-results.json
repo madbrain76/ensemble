@@ -1,0 +1,33 @@
+{
+  "source": "fcb98a9459b328314f0a7ff06efbb5e7c85fe07e",
+  "sessions": [
+    {
+      "mode": "confined",
+      "exit": 0,
+      "timeout": false,
+      "seconds": 48.394,
+      "prompt": "Exercise this sandbox with real tools, bounded to one attempt per operation. Create notes.txt containing \"amber apple\\n\", read it, edit apple to plum, search for plum and list the current directory. Use run_command to print LOCAL_COMMAND_OK, create a symlink named escape to /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/private.txt, attempt cat on that outside file in a grandchild shell, and attempt writing /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/outside/bad.txt. Read escape through read_file and attempt read_file ../outside/private.txt; report the refusals. Run curl -sS --max-time 2 http://127.0.0.1:62327. Check run_command prints ${ODD_CREDENTIAL-unset} (it should be unset). Use git init localrepo, add/commit a small file, and git --no-pager log -1. Finish with a concise table of observed allowed/denied results; no retries and no further investigation.",
+      "root": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/confined",
+      "network_hits": 1,
+      "outside_write_exists": false
+    },
+    {
+      "mode": "safe",
+      "exit": 0,
+      "timeout": false,
+      "seconds": 9.847,
+      "prompt": "Exercise safe mode using real available tools. Write safe.txt with \"safe mode file works\", read it, and attempt read_file ../notes.txt, which is above this sandbox root. State whether run_command and its attendant tools appear in your actual tool list. Do not invent a command result or try alternate execution; finish concisely.",
+      "root": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch23-live-c975akeg/confined/sub",
+      "network_hits": 1,
+      "outside_write_exists": false
+    }
+  ],
+  "binary": {
+    "path": "/tmp/ensemble-ch23-student",
+    "sha256": "5e1b80b16d886affb89610e133641de0ec4798d56853c17eec213bb42662aa8d",
+    "build_command": "go build -o /tmp/ensemble-ch23-student .",
+    "build_cwd": "solutions/edition-2/main",
+    "main_tree": "f2f8ff00229a4e198988b8756c8702b42b34ab1c"
+  },
+  "network_hit_provenance": "The launcher performed urllib.request.urlopen(url) and asserted network-positive before either CLI was launched. Peer.hits was 1 after confined CLI and remained 1 after safe CLI. The server stayed alive until both sessions ended. No child request reached its handler."
+}
