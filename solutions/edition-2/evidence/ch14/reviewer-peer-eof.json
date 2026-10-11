@@ -1,24 +1,32 @@
-[
-  {
-    "sleep_ms": 0,
-    "initialize_ok": true,
-    "exited_within_750ms": true,
-    "exit_elapsed_ms": 125,
-    "exit": {
-      "code": 0,
-      "signal": null
-    },
-    "stderr": ""
+{
+  "source_revision": "4a7816ae1dd203f1fc7ea4904965f58ad2a9cb92",
+  "file_sha256": {
+    "gui/virtual-user.mjs": "1bc1634393771158114e79718eeee971558ef8c2ee702bee1f61d48324f0fdd2",
+    "gui/cmd/virtual-user/main.go": "f8ebbcf8beecf86b711a1dbe58de2edfa1688a5ca14befddce0a79b861f4c477"
   },
-  {
-    "sleep_ms": 4000,
-    "initialize_ok": true,
-    "exited_within_750ms": false,
-    "exit_elapsed_ms": 3865,
-    "exit": {
-      "code": 0,
-      "signal": null
+  "measurements": [
+    {
+      "sleep_ms": 0,
+      "initialize_ok": true,
+      "exited_within_750ms": true,
+      "exit_elapsed_ms": 125,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stderr": ""
     },
-    "stderr": ""
-  }
-]
+    {
+      "sleep_ms": 4000,
+      "initialize_ok": true,
+      "exited_within_750ms": false,
+      "exit_elapsed_ms": 3865,
+      "exit": {
+        "code": 0,
+        "signal": null
+      },
+      "stderr": ""
+    }
+  ],
+  "interpretation": "EOF closes browser promptly, but a pending sleep timer keeps its owning peer alive until the requested duration; idle EOF is the positive control. No provider/model request was sent."
+}
