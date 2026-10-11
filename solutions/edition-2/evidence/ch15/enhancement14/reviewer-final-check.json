@@ -1,0 +1,21 @@
+{
+  "grader_commit": "4918a9b1",
+  "grader_hashes_verified": {
+    "internal/gradeedition2/ch14.go": "8befbd68343da1bc6539e28f6771fdbf8b1474d9577f9596a3e8b8c3de60845b",
+    "internal/gradeedition2/ch14_driver.go": "b971a8cb834311e0d4abf3df379daeb74c6228e627444119042eb73d4e971a75",
+    "internal/gradeedition2/ch14_test.go": "db805379e83a6477aaed2cbf3311319d361531ee42d92160850718990e04bea0",
+    "cmd/grade-edition2/main.go": "6f4e8a4cf6f8910e135f91b97b840d20bd3940c78ab37bdcd91d823eba8a1da6"
+  },
+  "manuscript_sha256": "6e29699fc23fa7a3b2d4a549524625b125ac7c69600baeb686754e86ad570117",
+  "sample_manuscript_sha256": "55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816",
+  "fences_compared": 24,
+  "only_changed_fence": 9,
+  "changed_fence_type": "unexecutable layout diagram; all executable samples unchanged",
+  "accepted_tree": "0c751dbd3985dee1a80284461e31346471ccc984",
+  "legacy_tree": "86cb03d46dd900f382266343229908a38290aad9",
+  "sample_raw_requests": 16,
+  "sample_successful_first_results": 6,
+  "final_manual_and_handoff_each_once": true,
+  "independent_inline_group_probe": "reviewer-inline-groups.json",
+  "live_quote_check": "anthropic-live-repeat.json request3 has actual successful CEDAR-17 result; later stdout denies ever reading it; no new provider call"
+}

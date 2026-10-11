@@ -1,0 +1,15 @@
+=== RUN   TestReviewerChapter14InlineGroups
+=== RUN   TestReviewerChapter14InlineGroups/single
+=== RUN   TestReviewerChapter14InlineGroups/consecutive_end
+    reviewer_ch14_inline_test.go:15: valid=true got error inline system message 1 is not between complete user and assistant/end
+=== RUN   TestReviewerChapter14InlineGroups/consecutive_before_assistant
+    reviewer_ch14_inline_test.go:15: valid=true got error inline system message 1 is not between complete user and assistant/end
+=== RUN   TestReviewerChapter14InlineGroups/post_group_user
+--- FAIL: TestReviewerChapter14InlineGroups (0.00s)
+    --- PASS: TestReviewerChapter14InlineGroups/single (0.00s)
+    --- FAIL: TestReviewerChapter14InlineGroups/consecutive_end (0.00s)
+    --- FAIL: TestReviewerChapter14InlineGroups/consecutive_before_assistant (0.00s)
+    --- PASS: TestReviewerChapter14InlineGroups/post_group_user (0.00s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.006s
+FAIL

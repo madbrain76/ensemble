@@ -1,0 +1,12 @@
+=== RUN   TestReviewerChapter14InlineGroups
+=== RUN   TestReviewerChapter14InlineGroups/single
+=== RUN   TestReviewerChapter14InlineGroups/consecutive_end
+=== RUN   TestReviewerChapter14InlineGroups/consecutive_before_assistant
+=== RUN   TestReviewerChapter14InlineGroups/post_group_user
+--- PASS: TestReviewerChapter14InlineGroups (0.00s)
+    --- PASS: TestReviewerChapter14InlineGroups/single (0.00s)
+    --- PASS: TestReviewerChapter14InlineGroups/consecutive_end (0.00s)
+    --- PASS: TestReviewerChapter14InlineGroups/consecutive_before_assistant (0.00s)
+    --- PASS: TestReviewerChapter14InlineGroups/post_group_user (0.00s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	0.010s

@@ -1,0 +1,21 @@
+{
+  "initial_attempt": "Coder corrected source before first direct probe; that passing output retained as reviewer-inline-groups-initial-after.txt, not claimed as baseline failure.",
+  "before_commit": "35fe32fe",
+  "before_driver_sha256": "bbfe9efa7228533233f322efa05c2d7c5573c1dc44303ba75f87c549b6be473f",
+  "before_exit": 1,
+  "before_method": "Go overlay of exact frozen driver; current source untouched",
+  "probe_sha256": "5777514cc1ccd43714d83a5cdc1fbcee7064ab7e94d70ca09e8c807e465d3046",
+  "public_contract": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages",
+  "placement": "Consecutive system messages judged together; group follows complete user and precedes assistant/end.",
+  "after_driver_sha256": "b971a8cb834311e0d4abf3df379daeb74c6228e627444119042eb73d4e971a75",
+  "after_exit": 0,
+  "after_command": [
+    "go",
+    "test",
+    "./internal/gradeedition2",
+    "-run",
+    "^TestReviewerChapter14InlineGroups$",
+    "-count=1",
+    "-v"
+  ]
+}
