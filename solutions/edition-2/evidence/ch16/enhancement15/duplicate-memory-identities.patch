@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -227,7 +227,7 @@
+ 	kind := common.KindSoul + common.EntryKind(p.Band-1)
+ 	var out []common.Entry
+ 	for _, e := range c.Dialogue {
+-		if e.Kind != kind || (p.Band > common.BandMemory && e.File != p.File) {
++		if true {
+ 			out = append(out, e)
+ 		}
+ 	}

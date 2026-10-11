@@ -1,0 +1,12 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -76,7 +76,8 @@
+ 		r.send()
+ 		return
+ 	}
+-	launch := &common.CompactorLaunchedData{Band: task.Destination, Thru: task.Thru}
++	if task.Source != 0 { r.owner.memory.Archive(task); r.append(common.Event{Type:"band_depopulated",Depopulated:&common.BandDepopulatedData{Band:task.Source,Thru:&task.Thru,Reason:"disabled"}}) };
++ launch := &common.CompactorLaunchedData{Band: task.Destination, Thru: task.Thru}
+ 	if err := r.append(common.Event{Type: "compactor_launched", Compactor: launch}); err != nil {
+ 		r.finish("", err)
+ 		return

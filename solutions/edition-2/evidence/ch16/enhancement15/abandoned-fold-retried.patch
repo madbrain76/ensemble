@@ -1,0 +1,19 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"fmt"
++ "context"
+ 
+ 	"ensemble/internal/common"
+ )
+@@ -50,7 +51,7 @@
+ 		r.memoryDisabled[b] = disabled
+ 	}
+ 	if !r.memoryReady && r.owner.history.Context().Compression != nil {
+-		r.owner.Ensemble().Logf("memory: abandoned compressor; source retained until a later checkpoint")
++		r.owner.Ensemble().Logf("memory: abandoned compressor; source retained until a later checkpoint"); if task,_ := r.owner.memory.Graduation(); task != nil { r.owner.engine.Compress(context.Background(),task.Text,task.Ratio) }
+ 	}
+ 	r.memoryReady = true
+ 	return nil

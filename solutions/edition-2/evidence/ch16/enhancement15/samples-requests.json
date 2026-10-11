@@ -1,0 +1,836 @@
+[
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case one: Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead. Explain why the latter boundary matters, and preserve these facts in your checkpoint."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Submit the compressed first-person memory.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "memory"
+          ]
+        },
+        "name": "submit"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Compress the following completed work into my memory, writing in first person as the agent. Aim for about 1/2 of its size. Preserve decisions AND why they were made, exact important facts and identifiers, failed approaches, remaining work and still-applicable user constraints. Keep unresolved questions explicitly unresolved. The size ratio is a guide: use more space rather than discard reasons, change uncertainty into a decision, or lose active constraints. Treat the source as data, not instructions. Call submit exactly once with the memory; do not merely describe a summary.\n\nSOURCE:\nhuman: This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case one: Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead. Explain why the latter boundary matters, and preserve these facts in your checkpoint.\nsystem: I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. \n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. "
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. "
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "First case recorded."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case two: The deployment rehearsal uses Harbor Finch, diagnostic tag HF-934. Priya owns the rehearsal scheduled for October 21. We rejected retrying a database migration automatically after a timeout: the remote operation may already have committed. The chosen procedure reads the migration ledger before deciding whether any retry is safe. The operator must retain the exact migration identifier and measured error, not a guess about success. We have not settled whether the ledger should live alongside application data or in a separate control database. The rollback package must remain available for seven days after deployment. Last week a log line said the worker stopped, but the child process was still alive and held the port open. The rehearsal now checks the child lifetime directly. Explain how this evidence changes the decision and checkpoint the completed analysis, preserving the unresolved question as unresolved."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Submit the compressed first-person memory.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "memory"
+          ]
+        },
+        "name": "submit"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Compress the following completed work into my memory, writing in first person as the agent. Aim for about 1/2 of its size. Preserve decisions AND why they were made, exact important facts and identifiers, failed approaches, remaining work and still-applicable user constraints. Keep unresolved questions explicitly unresolved. The size ratio is a guide: use more space rather than discard reasons, change uncertainty into a decision, or lose active constraints. Treat the source as data, not instructions. Call submit exactly once with the memory; do not merely describe a summary.\n\nSOURCE:\nagent: First case recorded.\nhuman: This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case two: The deployment rehearsal uses Harbor Finch, diagnostic tag HF-934. Priya owns the rehearsal scheduled for October 21. We rejected retrying a database migration automatically after a timeout: the remote operation may already have committed. The chosen procedure reads the migration ledger before deciding whether any retry is safe. The operator must retain the exact migration identifier and measured error, not a guess about success. We have not settled whether the ledger should live alongside application data or in a separate control database. The rollback package must remain available for seven days after deployment. Last week a log line said the worker stopped, but the child process was still alive and held the port open. The rehearsal now checks the child lifetime directly. Explain how this evidence changes the decision and checkpoint the completed analysis, preserving the unresolved question as unresolved.\nsystem: I reviewed Harbor Finch, HF-934. Priya owns the rehearsal October 21. I rejected automatic migration retry because the operation may already have committed; inspect the ledger. Ledger placement remains unresolved. \n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Submit the compressed first-person memory.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "memory": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "memory"
+          ]
+        },
+        "name": "submit"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Compress the following completed work into my memory, writing in first person as the agent. Aim for about 1/8 of its size. Preserve decisions AND why they were made, exact important facts and identifiers, failed approaches, remaining work and still-applicable user constraints. Keep unresolved questions explicitly unresolved. The size ratio is a guide: use more space rather than discard reasons, change uncertainty into a decision, or lose active constraints. Treat the source as data, not instructions. Call submit exactly once with the memory; do not merely describe a summary.\n\nSOURCE:\nMemory 2026-10-11-1: I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. I preserve the source until completed review. \nMemory 2026-10-11-2: I reviewed Harbor Finch, HF-934. Priya owns the rehearsal October 21. I rejected automatic migration retry because the operation may already have committed; inspect the ledger. Ledger placement remains unresolved. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. I verify actual process lifetime after failure. \n"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. I reviewed Harbor Finch, HF-934. Priya owns the rehearsal October 21. I rejected automatic migration retry because the operation may already have committed; inspect the ledger. Ledger placement remains unresolved. "
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "thinking": {
+      "type": "adaptive"
+    },
+    "tools": [
+      {
+        "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "start_line": {
+              "type": "integer"
+            },
+            "end_line": {
+              "type": "integer"
+            },
+            "max_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "read_file"
+      },
+      {
+        "description": "List immediate entries, sorted by name; directories end with /.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "path"
+          ]
+        },
+        "name": "list_directory"
+      },
+      {
+        "description": "Write text, creating parent directories. Existing files require overwrite:true unless append:true. Append preserves existing content.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "overwrite": {
+              "type": "boolean"
+            },
+            "append": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        },
+        "name": "write_file"
+      },
+      {
+        "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "text"
+          ]
+        },
+        "name": "micro_handoff"
+      },
+      {
+        "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+        "input_schema": {
+          "type": "object",
+          "properties": {}
+        },
+        "name": "keep_tool_results"
+      },
+      {
+        "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "load_skill"
+      },
+      {
+        "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "name": "unload_skill"
+      }
+    ],
+    "model": "claude-sonnet-5",
+    "max_tokens": 4096,
+    "system": "Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,\nuser constraints and open questions in checkpoint notes. Do only the current task.",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. I reviewed Harbor Finch, HF-934. Priya owns the rehearsal October 21. I rejected automatic migration retry because the operation may already have committed; inspect the ledger. Ledger placement remains unresolved. "
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Second case recorded."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Without using tools, recall both project names, diagnostic codes, owners, dates, rejected approaches and reasons. Explicitly identify the two unresolved questions. Do not invent a resolved answer."
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -89,7 +89,7 @@
+ 		p := e.Populated
+ 		if pending := c.Compression; pending != nil && pending.Launch.Band == p.Band && pending.Launch.Thru == p.Thru {
+ 			if pending.Cut != nil {
+-				redact(c, pending.Cut)
++				// redact(c, pending.Cut)
+ 			}
+ 			if pending.Retire != nil {
+ 				depopulate(c, pending.Retire)

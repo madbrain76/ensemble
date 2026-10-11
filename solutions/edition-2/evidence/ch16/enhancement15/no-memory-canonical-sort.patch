@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -232,7 +232,7 @@
+ 		}
+ 	}
+ 	out = append(out, common.Entry{Kind: kind, File: p.File, Thru: p.Thru, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: p.Text}}})
+-	sort.SliceStable(out, func(i, j int) bool {
++	sort.SliceStable(out, func(i, j int) bool { return false;
+ 		a, b := out[i], out[j]
+ 		am, bm := a.Kind >= common.KindSoul, b.Kind >= common.KindSoul
+ 		if am != bm {

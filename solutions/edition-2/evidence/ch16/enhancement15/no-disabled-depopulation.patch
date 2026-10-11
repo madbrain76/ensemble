@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -31,7 +31,7 @@
+ 			wasDisabled = r.owner.history.Context().DisabledBands[b]
+ 		}
+ 		if !r.memoryReady || wasDisabled != disabled {
+-			if disabled {
++			if false {
+ 				if err := r.append(common.Event{Type: "band_depopulated", Depopulated: &common.BandDepopulatedData{Band: b, Reason: "disabled"}}); err != nil {
+ 					return err
+ 				}

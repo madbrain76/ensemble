@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -135,7 +135,7 @@
+ // small compressor response. All three normalized input categories are disjoint.
+ func (r *runtime) forceCheckpoint() error {
+ 	c := r.owner.history.Context()
+-	u := c.LastUsage
++	u := c.Usage
+ 	window := r.owner.engine.Features().ContextWindow
+ 	input := u.Input + u.CacheRead + u.CacheWrite
+ 	if window == 0 || r.forcingChecked == c.SentThrough {

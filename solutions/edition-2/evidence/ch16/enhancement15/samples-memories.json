@@ -1,0 +1,3 @@
+{
+  "cr/bucket-0/2026-10-11-1_2026-10-11-2.md": "I reviewed Cedar Lantern, CL-721. Morgan owns archive review October 18. I rejected automatic deletion because support needs originals; accepted summaries retain a source identifier. Attachment placement remains unresolved. I reviewed Harbor Finch, HF-934. Priya owns the rehearsal October 21. I rejected automatic migration retry because the operation may already have committed; inspect the ledger. Ledger placement remains unresolved. "
+}

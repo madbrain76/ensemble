@@ -1,0 +1,34 @@
+--- ch15_driver.go
++++ supplemental-only-driver.go
+@@ -31,8 +31,11 @@
+ 	unblock func()
+ }
+ 
++var legacyEvidenceNumber int
+ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) {
+-	srv := fakevendor.NewWithOptions(o.replies, fakevendor.Options{Route: o.route})
++	diskSettings,_ := json.Marshal(o.settings)
++ if err := os.WriteFile(filepath.Join(o.dir,"settings.json"),diskSettings,0644);err!=nil{return contextOut{fatal:err.Error()}}
++ srv := fakevendor.NewWithOptions(o.replies, fakevendor.Options{Route: o.route})
+ 	defer srv.Close()
+ 	listener, err := net.Listen("tcp", "127.0.0.1:0")
+ 	if err != nil {
+@@ -65,7 +68,7 @@
+ 		if o.unblock != nil {
+ 			o.unblock()
+ 		}
+-		out.reqs = srv.Requests()
++		out.reqs = srv.Requests(); legacyEvidenceNumber++; data,_:=json.MarshalIndent(out.reqs,"","  "); os.WriteFile(fmt.Sprintf("/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch16/enhancement15/legacy-observed-%02d.json",legacyEvidenceNumber),data,0644)
+ 		if out.fatal != "" {
+ 			out.fatal += ": " + stderr.String()
+ 		}
+@@ -172,7 +175,8 @@
+ 			}
+ 			continue
+ 		}
+-		a, _ := json.Marshal(got[k])
++		if _,present:=got[k]; !present && v == false { continue }
++ a, _ := json.Marshal(got[k])
+ 		b, _ := json.Marshal(v)
+ 		if !bytes.Equal(a, b) {
+ 			return fmt.Sprintf("%s=%s, want %s", k, a, b)

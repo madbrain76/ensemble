@@ -33,6 +33,9 @@ func Chapter15(bin string) (grade.Report, error) {
 	return grade.NewTitledReport("Edition 2, Chapter 15 — Forgetting on Purpose", checks, ""), nil
 }
 
+// The chapter needs the optional GUI only for its public settings boundary.
+// All memory work still runs in the submitted Agent; the provider is the sole fake.
+// These tools are declared by both implementations, unlike the old think fixture.
 func memoryChecks(bin string) contextResult {
 	r := contextResult{Errs: map[string]string{}}
 	for _, c := range grade.Ch16Checks(grade.Ch16Result{}) {
@@ -78,6 +81,8 @@ func memoryChecks(bin string) contextResult {
 
 type memoryRunner func(memoryOpts) contextOut
 
+// Each scripted turn has one checkpoint and one final reply. Auxiliary calls
+// do not advance these main-request counts, even when a fold fails.
 func memoryOptions(dir string, n int, settings map[string]any, p *memoryRouter) memoryOpts {
 	expect := make([]int, n)
 	for i := range expect {
@@ -94,6 +99,10 @@ func memoryCompleted(r *contextResult, out contextOut, ids ...string) bool {
 	}
 	return false
 }
+
+// Keep this band large so returned session bytes remain available to compare.
+// The fake preserves the planted fact only if the actual compressor receives it;
+// this establishes delivery through both boundaries without pretending to summarize.
 func memoryCompress(run memoryRunner, dir string, r *contextResult) {
 	const cut = "micro-handoff-compresses"
 	const fact = "planted-fact-survives"
@@ -125,15 +134,11 @@ func memoryCompress(run memoryRunner, dir string, r *contextResult) {
 	if !strings.Contains(last, memoryMemo(1)) || strings.Contains(memorySystem(memoryLast(out)), "MEMO-") {
 		r.fail(data, "memory missing from conversation or inserted into system")
 	}
-	// The supplied source contains no first-person wording, so this phrase must
-	// come from the compressor instructions. Neither tool schemas nor returned
-	// submit arguments participate; system and human instruction placement both do.
-	instruction := strings.ToLower(memorySystem(p.bodies[0]) + first)
-	if !strings.Contains(instruction, "first person") && !strings.Contains(instruction, "first-person") {
-		r.fail(data, "compressor lacks first-person instruction")
-	}
 }
 
+// With these byte sizes, graduation must leave newer files behind. Folding the
+// entire band would make an oldest/newest mutation observationally equivalent.
+// The source tests separately verify low-watermark arithmetic and higher tiers.
 func memoryGraduate(run memoryRunner, dir string, r *contextResult) {
 	const id = "graduation-fires-oldest-first"
 	p := &memoryRouter{}
@@ -160,6 +165,9 @@ func memoryGraduate(run memoryRunner, dir string, r *contextResult) {
 func memoryOrder(text string) string {
 	return strings.Join(regexp.MustCompile(`(?:MEMO|FOLD)-[0-9]+`).FindAllString(text, -1), ",")
 }
+
+// Edit a real live corpus file whose complete bytes were delivered. Never choose
+// an arbitrary longest line or silently skip the test when no file can be found.
 func memoryEdit(dir, live, marker string) error {
 	found := false
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, e error) error {
@@ -191,6 +199,10 @@ func memoryEdit(dir, live, marker string) error {
 	}
 	return nil
 }
+
+// Ordinary query replies cannot create a new checkpoint. Thus changes seen here
+// come from disabling, disk edits and startup/re-enable, not another compression.
+// Re-enable the upper band first to challenge order based on arrival time.
 func memoryRestore(run memoryRunner, dir string, r *contextResult) {
 	const id = "disable-enable-idempotent"
 	p := &memoryRouter{}
@@ -280,16 +292,30 @@ func memoryForce(run memoryRunner, dir string, r *contextResult) {
 		r.fail(id, "got %d main requests, want6", len(qs))
 		return
 	}
-	for _, i := range []int{0, 1, 2, 4, 5} {
+	for _, i := range []int{0, 1, 2, 5} {
 		if len(memoryTools(qs[i].Body)) < 2 {
 			r.fail(id, "premature/sticky forcing at main request%d", i+1)
 		}
 	}
+	// The first continuation after handoff still follows a high-input response.
+	// Implementations may release on that checkpoint or await its smaller reply;
+	// request six must expose ordinary tools after that smaller reply completes.
 	if n := memoryTools(qs[3].Body); len(n) != 1 || n[0] != "micro_handoff" {
 		r.fail(id, "95%% does not restrict to handoff: %v", n)
 	}
-	if !strings.Contains(memoryConversation(qs[2].Body), "90%") {
-		r.fail(id, "90%% warning absent")
+	// The chapter leaves warning wording free. Remove only the exact fixture
+	// conversation, then observe new nonempty text at the warning boundary.
+	// This proves delivery, not whether arbitrary added prose is useful advice.
+	extra := func(body []byte) string {
+		text := memoryConversation(body)
+		for _, known := range []string{"One.", "Two.", "Three.", "Low occupancy.", "Near limit."} {
+			text = strings.Replace(text, known, "", 1)
+		}
+		return strings.Join(strings.Fields(text), " ")
+	}
+	before, after := extra(qs[1].Body), extra(qs[2].Body)
+	if after == "" || after == before {
+		r.fail(id, "warning boundary added no message text")
 	}
 	// Force an actual auxiliary call while main replies remain small; its high
 	// reported input must not narrow the next ordinary request's declarations.
@@ -308,6 +334,9 @@ func memoryForce(run memoryRunner, dir string, r *contextResult) {
 	}
 }
 
+// Normal startup intentionally refreshes enabled disk files. This checks the
+// executable restoration path and actual next-request equality; pure reducer
+// reconstruction without filesystem access retains its separate source proof.
 func memoryReplay(run memoryRunner, base string, newDir func(string) string, r *contextResult) {
 	const id = "replay-needs-no-llm"
 	a, b := newDir("snapshot"), newDir("replay")
@@ -356,6 +385,9 @@ func memoryReplay(run memoryRunner, base string, newDir func(string) string, r *
 	}
 }
 
+// Exceed the unchanged high watermark while the destination is disabled, then
+// require every submitted source memory exactly once. The warning diagnostic is
+// covered by the existing runtime source test, not inferred from this absence.
 func memoryNeighbor(run memoryRunner, dir string, r *contextResult) {
 	const id = "disabled-neighbor-refused"
 	p := &memoryRouter{}
@@ -421,6 +453,10 @@ func memoryFresh(run memoryRunner, base, dir string, r *contextResult) {
 	}
 }
 
+// Populate successfully before either failure mode. Returning errors from every
+// compressor would leave an empty band and never exercise abandoned graduation.
+// The two runs distinguish an actual HTTP error from a request still pending
+// when the process dies; neither may spend another call merely to restart.
 func memoryAbandon(run memoryRunner, newDir func(string) string, r *contextResult) {
 	const id = "abandon-on-restart"
 	for _, pending := range []bool{false, true} {

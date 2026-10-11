@@ -1,0 +1,10 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -225,6 +225,7 @@
+ func populate(c *common.Context, p *common.BandPopulatedData) {
+ 	c.DisabledBands[p.Band] = false
+ 	kind := common.KindSoul + common.EntryKind(p.Band-1)
++ if p.Source == "disk" { for _,e := range c.Dialogue { if e.Kind == kind && e.File == p.File { return } } }
+ 	var out []common.Entry
+ 	for _, e := range c.Dialogue {
+ 		if e.Kind != kind || (p.Band > common.BandMemory && e.File != p.File) {

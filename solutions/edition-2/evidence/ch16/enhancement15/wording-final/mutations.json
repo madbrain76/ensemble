@@ -1,0 +1,40 @@
+[
+  {
+    "case": "warning-alternate-wording",
+    "exit": 0,
+    "seconds": 2.2,
+    "intended_check": null,
+    "intended_failure": false,
+    "score": 97,
+    "failures": []
+  },
+  {
+    "case": "first-person-alternate-wording",
+    "exit": 0,
+    "seconds": 1.318,
+    "intended_check": null,
+    "intended_failure": false,
+    "score": 97,
+    "failures": []
+  },
+  {
+    "case": "warning-omitted",
+    "exit": 1,
+    "seconds": 1.257,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "warning boundary added no message text"
+        ]
+      }
+    ]
+  }
+]

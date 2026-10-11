@@ -1,0 +1,3 @@
+package gradeedition2
+import("testing";"os";"encoding/json";"github.com/waywardgeek/ensemble/internal/grade")
+func TestMemoryProbe(t *testing.T){bin,clean,e:=grade.Build(os.Getenv("MEMORY_PROBE_GUI"));if e!=nil{t.Fatal(e)};defer clean();r:=memoryChecks(bin);checks:=grade.Ch16Checks(grade.Ch16Result{Fatal:r.Fatal,Errs:r.Errs});checks=checks[:len(checks)-1];report:=grade.NewTitledReport("Focused memory",checks,"");b,_:=json.Marshal(report);if e=os.WriteFile(os.Getenv("MEMORY_PROBE_RESULT"),b,0644);e!=nil{t.Fatal(e)};if !report.Passed{t.Fail()}}

@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -146,7 +146,7 @@
+ 		r.warned = false
+ 		return nil
+ 	}
+-	if !r.warned {
++	if false {
+ 		r.warned = true
+ 		if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: "Context is at least 90% full. Finish this micro-goal and call micro_handoff now to preserve what you learned."}}}}); err != nil {
+ 			return err

@@ -1,0 +1,11 @@
+--- internal/agent/dispatch.go
++++ internal/agent/dispatch.go
+@@ -13,7 +13,7 @@
+ 	if len(t.calls) == 0 {
+ 		if t.checkpoint {
+ 			t.checkpoint = false
+-			r.owner.forceHandoff.Store(false)
++			// r.owner.forceHandoff.Store(false)
+ 			r.forcingChecked = r.owner.history.Context().SentThrough
+ 			r.checkpoint(true)
+ 			return

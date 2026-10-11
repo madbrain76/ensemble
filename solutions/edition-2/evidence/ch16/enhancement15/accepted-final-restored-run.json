@@ -1,0 +1,15 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-overlay",
+    "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch15-final-_b42yonf/overlay.json",
+    "./internal/gradeedition2",
+    "-run",
+    "^TestMemoryProbe$",
+    "-count=1"
+  ],
+  "exit": 0,
+  "seconds": 3.423
+}

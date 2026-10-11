@@ -1,0 +1,1 @@
+Overlay selects only memoryAbandon and changes its existing []bool{false,true} loop to []bool{true}; actual held HTTP response, SIGKILL, restart and later successful checkpoint are unchanged. No other check is credited.

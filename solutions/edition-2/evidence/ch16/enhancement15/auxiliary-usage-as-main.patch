@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -96,7 +96,7 @@
+ 	if m.turn != r.active {
+ 		return
+ 	}
+-	t := m.task
++	t := m.task; r.append(common.Event{Type:"response_ended",Response:&common.ResponseData{Usage:common.Usage{Input:12000}}})
+ 	// A settings change during the HTTP call must not smuggle data into a band
+ 	// that the user just disabled. No cut has taken effect at this point.
+ 	if m.err == nil && (r.owner.memory.Settings(t.Destination).Disabled || r.owner.memory.Settings(t.Source).Disabled) {

@@ -1,0 +1,11 @@
+--- internal/memory/memory.go
++++ internal/memory/memory.go
+@@ -197,7 +197,7 @@
+ 			total += len(text(e))
+ 		}
+ 	}
+-	if total <= s.Budget {
++	if true {
+ 		return nil, nil
+ 	}
+ 	task := &common.Compression{Destination: common.BandSession, Ratio: 2}

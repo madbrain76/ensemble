@@ -1,0 +1,70 @@
+{
+  "manuscript_sha256": "bd2acd5cef67062ee2d9700e5349bc62fdea60ea7d4236ffc2094f00c24a78da",
+  "source": "solutions/edition-2/ch15 isolated exact copy",
+  "provider": "External local Anthropic HTTP fake; no paid inference or semantic quality proof",
+  "go": "Exact vocabulary fence compiled",
+  "build": "(cd gui && go build -o /tmp/ensemble-ch15-gui ./cmd)\nmkdir -p cr skills/base\n",
+  "launch": "LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \\\nEN_PRIMARY_SKILL=base EN_SKILLS_DIR=\"$PWD/skills\" \\\n/tmp/ensemble-ch15-gui --port 8088 --gui-dir \"$PWD/gui/web/gui\"\n",
+  "model": "claude-sonnet-5",
+  "context_window": 0,
+  "forcing_tested": false,
+  "settings": {
+    "memory": {
+      "conversation": {
+        "budget": 600,
+        "high_watermark": 0,
+        "low_watermark": 0,
+        "disabled": false
+      },
+      "soul": {
+        "budget": 0,
+        "high_watermark": 0,
+        "low_watermark": 0,
+        "disabled": false
+      },
+      "memory": {
+        "budget": 0,
+        "high_watermark": 0,
+        "low_watermark": 0,
+        "disabled": false
+      },
+      "64x": {
+        "budget": 0,
+        "high_watermark": 0,
+        "low_watermark": 0,
+        "disabled": false
+      },
+      "8x": {
+        "budget": 0,
+        "high_watermark": 0,
+        "low_watermark": 0,
+        "disabled": false
+      },
+      "session": {
+        "budget": 500,
+        "high_watermark": 1000,
+        "low_watermark": 500,
+        "disabled": false
+      }
+    },
+    "theme": "dark",
+    "tts_enabled": false,
+    "tts_speed": 1,
+    "font_size": 16,
+    "max_tool_rounds": 3,
+    "context_target": 0,
+    "log_retention": 0
+  },
+  "main_requests": 5,
+  "compressor_requests": 3,
+  "turns": 3,
+  "exit": 0,
+  "event_counts": {
+    "compactor_launched": 3,
+    "band_populated": 3,
+    "band_depopulated": 1,
+    "redacted": 2,
+    "micro_handoff": 2
+  },
+  "actual_returned_memories_in_final_request": true
+}

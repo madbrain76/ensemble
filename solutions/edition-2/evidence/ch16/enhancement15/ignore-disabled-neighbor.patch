@@ -1,0 +1,11 @@
+--- internal/memory/memory.go
++++ internal/memory/memory.go
+@@ -251,7 +251,7 @@
+ 		if size <= s.HighWatermark || len(files) < 2 {
+ 			continue
+ 		}
+-		if m.Settings(b - 1).Disabled {
++		if false {
+ 			a.Ensemble().Logf("memory: cannot graduate band %d into disabled band %d", b, b-1)
+ 			continue
+ 		}

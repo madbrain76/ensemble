@@ -1,0 +1,23 @@
+--- ch15_driver.go
++++ supplemental-only-driver.go
+@@ -32,7 +32,9 @@
+ }
+ 
+ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) {
+-	srv := fakevendor.NewWithOptions(o.replies, fakevendor.Options{Route: o.route})
++	diskSettings,_ := json.Marshal(o.settings)
++ if err := os.WriteFile(filepath.Join(o.dir,"settings.json"),diskSettings,0644);err!=nil{return contextOut{fatal:err.Error()}}
++ srv := fakevendor.NewWithOptions(o.replies, fakevendor.Options{Route: o.route})
+ 	defer srv.Close()
+ 	listener, err := net.Listen("tcp", "127.0.0.1:0")
+ 	if err != nil {
+@@ -172,7 +174,8 @@
+ 			}
+ 			continue
+ 		}
+-		a, _ := json.Marshal(got[k])
++		if _,present:=got[k]; !present && v == false { continue }
++ a, _ := json.Marshal(got[k])
+ 		b, _ := json.Marshal(v)
+ 		if !bytes.Equal(a, b) {
+ 			return fmt.Sprintf("%s=%s, want %s", k, a, b)

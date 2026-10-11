@@ -1,0 +1,11 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -65,7 +65,7 @@
+ 			declarations = append(declarations, blocks...)
+ 			continue
+ 		}
+-		role := "user"
++		role := "user"; if entry.Kind >= common.KindSoul { role = "system" }
+ 		if entry.Actor == common.AgentActor {
+ 			// Contentful system messages must follow the complete user turn and
+ 			// precede its assistant continuation. In particular, automatic context

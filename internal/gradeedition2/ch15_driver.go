@@ -31,6 +31,9 @@ type memoryOpts struct {
 	unblock func()
 }
 
+// The settings snapshot and turn-ended event are causal barriers. Counting
+// received HTTP requests or sleeping after the last one cannot establish that
+// compression, journaling and the final response have completed.
 func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) {
 	srv := fakevendor.NewWithOptions(o.replies, fakevendor.Options{Route: o.route})
 	defer srv.Close()
@@ -56,6 +59,8 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	finished := false
+	// Join the real child before inspecting capture state. A deliberately held
+	// provider reply is then released so fake-server cleanup cannot hang.
 	defer func() {
 		stdin.Close()
 		if !finished {
@@ -216,9 +221,24 @@ func memoryConversation(body []byte) string {
 	return b.String()
 }
 func memorySystem(body []byte) string {
-	var r struct{ System json.RawMessage }
+	var r struct {
+		System   json.RawMessage
+		Messages []struct {
+			Role    string
+			Content json.RawMessage
+		}
+	}
 	json.Unmarshal(body, &r)
-	return memoryText(r.System)
+	text := memoryText(r.System)
+	// Instruction placement includes inline system messages, not only the top
+	// field. Otherwise moving memory into that channel could satisfy both the
+	// presence assertion and a misleading "not in system" absence assertion.
+	for _, message := range r.Messages {
+		if message.Role == "system" {
+			text += "\n" + memoryText(message.Content)
+		}
+	}
+	return text
 }
 func memoryTools(body []byte) []string {
 	var r struct{ Tools []struct{ Name string } }
@@ -282,6 +302,10 @@ func (r *memoryRouter) unblock() {
 		}
 	})
 }
+
+// Only the public submit-only request is auxiliary. Main tool declarations and
+// requests remain real. Unique source markers distinguish session compression
+// from graduation without recognizing implementation-specific prompt wording.
 func (r *memoryRouter) route(body []byte) *fakevendor.Reply {
 	if !memoryCompressor(body) {
 		return nil
@@ -334,6 +358,9 @@ func memoryPrompts(n int) []string {
 	}
 	return out
 }
+
+// Explicit false matters on a persisted restart: omission would retain the
+// preceding disabled value and falsely turn a re-enable experiment into no-op.
 func memorySettings(budget int, off ...string) map[string]any {
 	m := map[string]any{"conversation": map[string]any{"budget": 300}, "session": map[string]any{"budget": budget}, "8x": map[string]any{"budget": 5000}, "64x": map[string]any{"budget": 5000}}
 	for _, v := range m {

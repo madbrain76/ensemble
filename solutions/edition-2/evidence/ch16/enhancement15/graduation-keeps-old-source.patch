@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -92,7 +92,7 @@
+ 				redact(c, pending.Cut)
+ 			}
+ 			if pending.Retire != nil {
+-				depopulate(c, pending.Retire)
++				// depopulate(c, pending.Retire)
+ 			}
+ 			c.Compression = nil
+ 		}

@@ -1,0 +1,11 @@
+--- internal/memory/memory.go
++++ internal/memory/memory.go
+@@ -187,7 +187,7 @@
+ func (m *memory) Conversation() (*common.Compression, error) {
+ 	a := m.parent
+ 	s := m.Settings(0)
+-	if s.Disabled || m.Settings(common.BandSession).Disabled {
++	if s.Disabled {
+ 		return nil, nil
+ 	}
+ 	c := a.History().Context()

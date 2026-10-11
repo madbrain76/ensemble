@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -120,7 +120,7 @@
+ 		r.finish("", err)
+ 		return
+ 	}
+-	populated := &common.BandPopulatedData{Band: t.Destination, File: t.File, Thru: t.Thru, Text: m.text, Source: "compression"}
++	populated := &common.BandPopulatedData{Band: t.Destination, File: t.File, Thru: t.Thru, Text: "I forgot the returned memory.", Source: "compression"}
+ 	if err := r.append(common.Event{Type: "band_populated", Populated: populated}); err != nil {
+ 		r.finish("", err)
+ 		return

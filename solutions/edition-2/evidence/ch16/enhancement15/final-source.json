@@ -1,0 +1,15 @@
+{
+  "grader_sha256": {
+    "cmd/grade-edition2/main.go": "5bc2692bb01fb93fc1a83622b3f42f664ac8df8e8600e14f85e29195c076f6f6",
+    "internal/gradeedition2/ch15.go": "7fe831c3c9ef4e1c5d0a662467118e5ce8f357676c486d2c2269317e3af2299c",
+    "internal/gradeedition2/ch15_driver.go": "ccd753bad81445a570f19c522242837924a3c973e9d9e1ce00a276626644596d",
+    "internal/gradeedition2/ch15_test.go": "3af0a08b586a77dd276c2589433ada8c4e7d0c5375bc32ec35113e3db21cfee1"
+  },
+  "accepted_tree": "4a253c57dd62b4a6ad086618574ef46af7c2d724",
+  "legacy_tree": "13591b9185ec9d53641ada874cb82c0681f3f8db",
+  "sample_executed_manuscript_sha256": "bd2acd5cef67062ee2d9700e5349bc62fdea60ea7d4236ffc2094f00c24a78da",
+  "final_manuscript_sha256": "933a67a7fae83951b47c64324e8be76eb8120c9cb1c8d7cd3ad3053534698b72",
+  "executable_fences_unchanged": 7,
+  "all_fenced_blocks_unchanged": 11,
+  "sample_reconciliation": "Executed manuscript remains bd2acd5c; subsequent rubric/prose-only corrections preserve all exact fenced blocks. No rerun is implied."
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-overlay",
+    "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch15-legacy-disk-wv4llz5z/overlay.json",
+    "./internal/gradeedition2",
+    "-run",
+    "^TestMemoryProbe$",
+    "-count=1",
+    "-timeout",
+    "90s"
+  ],
+  "exit": 1,
+  "seconds": 1.781,
+  "scope": "Supplemental only: preseed actual legacy cwd settings before launch; omitted disabled=false means default enabled per legacy public type. Normal patch still sent and other supplied snapshot fields still compared. Runtime unmodified; default watermarks unchanged.",
+  "driver_sha256": "d5deac63a4a7a68d832dc8e1956a98f02bece594b92a4cc7addf3899b4a68a32"
+}

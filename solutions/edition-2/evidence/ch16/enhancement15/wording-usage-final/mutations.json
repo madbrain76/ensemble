@@ -1,0 +1,42 @@
+[
+  {
+    "case": "omit-cache-occupancy",
+    "exit": 1,
+    "seconds": 2.086,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "warning boundary added no message text"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "output-occupancy",
+    "exit": 1,
+    "seconds": 1.261,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "warning boundary added no message text"
+        ]
+      }
+    ]
+  }
+]

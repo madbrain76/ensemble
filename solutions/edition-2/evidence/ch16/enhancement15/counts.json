@@ -1,0 +1,23 @@
+{
+  "method": "Physical lines; comment-only // lines and blanks separate; embedded strings remain code/support.",
+  "files": {
+    "internal/gradeedition2/ch15.go": {
+      "physical": 517,
+      "blank": 16,
+      "comment_only": 48,
+      "other": 453
+    },
+    "internal/gradeedition2/ch15_driver.go": {
+      "physical": 373,
+      "blank": 13,
+      "comment_only": 26,
+      "other": 334
+    },
+    "internal/gradeedition2/ch15_test.go": {
+      "physical": 26,
+      "blank": 3,
+      "comment_only": 2,
+      "other": 21
+    }
+  }
+}

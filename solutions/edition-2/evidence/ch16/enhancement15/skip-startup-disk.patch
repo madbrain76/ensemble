@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -36,7 +36,7 @@
+ 					return err
+ 				}
+ 			} else {
+-				files, err := r.owner.memory.Scan(b)
++				files, err := r.owner.memory.Scan(b); if !r.memoryReady { files = nil }
+ 				if err != nil {
+ 					return err
+ 				}

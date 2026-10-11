@@ -1,0 +1,4 @@
+--- FAIL: TestMemoryProbe (0.82s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.834s
+FAIL

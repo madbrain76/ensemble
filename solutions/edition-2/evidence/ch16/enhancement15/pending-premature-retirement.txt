@@ -1,0 +1,4 @@
+--- FAIL: TestPendingProbe (0.37s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.374s
+FAIL

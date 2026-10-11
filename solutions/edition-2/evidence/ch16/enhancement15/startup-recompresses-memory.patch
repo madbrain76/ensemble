@@ -1,0 +1,19 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"fmt"
++ "context"
+ 
+ 	"ensemble/internal/common"
+ )
+@@ -52,7 +53,7 @@
+ 	if !r.memoryReady && r.owner.history.Context().Compression != nil {
+ 		r.owner.Ensemble().Logf("memory: abandoned compressor; source retained until a later checkpoint")
+ 	}
+-	r.memoryReady = true
++	if !r.memoryReady { for _,e := range r.owner.history.Context().Dialogue { if e.Kind >= common.KindSoul && len(e.Parts)>0 { r.owner.engine.Compress(context.Background(),e.Parts[0].Text,2); break } } }; r.memoryReady = true
+ 	return nil
+ }
+ 

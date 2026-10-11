@@ -1,0 +1,142 @@
+[
+  {
+    "case": "lifetime-occupancy",
+    "exit": 1,
+    "seconds": 1.577,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "auxiliary usage restricted main request3"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "omit-cache-occupancy",
+    "exit": 1,
+    "seconds": 1.257,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "90% warning absent"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "double-cache-occupancy",
+    "exit": 1,
+    "seconds": 1.248,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "premature/sticky forcing at main request3"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "output-occupancy",
+    "exit": 1,
+    "seconds": 1.257,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "90% warning absent"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "sticky-handoff-restriction",
+    "exit": 1,
+    "seconds": 1.246,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "premature/sticky forcing at main request6"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "no-near-limit-warning",
+    "exit": 1,
+    "seconds": 1.253,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "90% warning absent"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "engine-total-occupancy",
+    "exit": 1,
+    "seconds": 1.269,
+    "intended_check": "forced-handoff",
+    "intended_failure": true,
+    "score": 85,
+    "failures": [
+      {
+        "id": "forced-handoff",
+        "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+        "points": 12,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "auxiliary usage restricted main request3"
+        ]
+      }
+    ]
+  }
+]

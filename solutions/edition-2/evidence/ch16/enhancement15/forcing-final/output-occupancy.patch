@@ -1,0 +1,11 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -137,7 +137,7 @@
+ 	c := r.owner.history.Context()
+ 	u := c.LastUsage
+ 	window := r.owner.engine.Features().ContextWindow
+-	input := u.Input + u.CacheRead + u.CacheWrite
++	input := u.Input + u.CacheRead + u.CacheWrite + u.Output
+ 	if window == 0 || r.forcingChecked == c.SentThrough {
+ 		return nil
+ 	}

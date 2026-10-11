@@ -1,0 +1,11 @@
+--- internal/memory/memory.go
++++ internal/memory/memory.go
+@@ -258,7 +258,7 @@
+ 		task := &common.Compression{Source: b, Destination: b - 1, Ratio: 8}
+ 		var input strings.Builder
+ 		// Watermarks, not a required batch of eight, choose how much must retire.
+-		for _, e := range files {
++		for i := len(files)-1; i >= 0; i-- { e := files[i]
+ 			if size <= s.LowWatermark && len(task.Retired) >= 2 {
+ 				break
+ 			}

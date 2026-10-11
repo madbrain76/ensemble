@@ -1,0 +1,11 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -128,7 +128,7 @@
+ 		System string `json:"system"`
+ 		// Messages retains provider message order, including tool-result boundaries.
+ 		Messages []anthropicMessage `json:"messages"`
+-	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.SystemPrompt(), messages})
++	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.SystemPrompt()+func()string{ s:="";for _,entry:=range c.Dialogue{if entry.Kind>=common.KindSoul{for _,p:=range entry.Parts{s+=p.Text}}};return s}(), messages})
+ }
+ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.RawMessage, error) {
+ 	var out []json.RawMessage

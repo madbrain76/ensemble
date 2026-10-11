@@ -1,0 +1,62 @@
+[
+  {
+    "case": "missing-first-person",
+    "exit": 1,
+    "seconds": 1.582,
+    "intended_check": "memory-is-data",
+    "intended_failure": true,
+    "score": 92,
+    "failures": [
+      {
+        "id": "memory-is-data",
+        "title": "Memory arrives in the conversation, written in the first person, not bolted onto the system prompt.",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "compressor lacks first-person instruction"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "memory-added-to-system",
+    "exit": 1,
+    "seconds": 1.306,
+    "intended_check": "memory-is-data",
+    "intended_failure": true,
+    "score": 92,
+    "failures": [
+      {
+        "id": "memory-is-data",
+        "title": "Memory arrives in the conversation, written in the first person, not bolted onto the system prompt.",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "memory missing from conversation or inserted into system"
+        ]
+      }
+    ]
+  },
+  {
+    "case": "memory-in-inline-system",
+    "exit": 1,
+    "seconds": 1.259,
+    "intended_check": "memory-is-data",
+    "intended_failure": true,
+    "score": 92,
+    "failures": [
+      {
+        "id": "memory-is-data",
+        "title": "Memory arrives in the conversation, written in the first person, not bolted onto the system prompt.",
+        "points": 5,
+        "earned": 0,
+        "passed": false,
+        "details": [
+          "memory missing from conversation or inserted into system"
+        ]
+      }
+    ]
+  }
+]

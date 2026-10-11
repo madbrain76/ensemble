@@ -1,0 +1,10 @@
+--- internal/agent/memory.go
++++ internal/agent/memory.go
+@@ -106,6 +106,7 @@
+ 		m.err = r.owner.memory.Write(t, m.text)
+ 	}
+ 	if m.err != nil {
++ if t.Source != 0 { r.owner.memory.Archive(t); r.append(common.Event{Type:"band_depopulated",Depopulated:&common.BandDepopulatedData{Band:t.Source,Thru:&t.Thru,Reason:"disabled"}}) };
+ 		r.compressionWarning(m.err)
+ 		r.send()
+ 		return

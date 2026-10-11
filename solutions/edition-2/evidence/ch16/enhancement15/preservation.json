@@ -1,0 +1,19 @@
+{
+  "preserved_paths": [
+    "solutions/edition-2/ch15",
+    "solutions/ch16",
+    "book/chapter-16.md",
+    "internal/grade/ch16_run.go",
+    "internal/grade/ch16_checks.go",
+    "internal/grade/ch16_harness.go"
+  ],
+  "tracked_changes": [],
+  "accepted_tree": "4a253c57dd62b4a6ad086618574ef46af7c2d724",
+  "legacy_tree": "13591b9185ec9d53641ada874cb82c0681f3f8db",
+  "original_chapter_sha256": "4e8bb1ce58f73aa64b71b5fd57e531460e64d80ca6b2f1e934a1e222deb77791",
+  "original_grader_physical_lines": {
+    "internal/grade/ch16_run.go": 1011,
+    "internal/grade/ch16_checks.go": 59,
+    "internal/grade/ch16_harness.go": 251
+  }
+}
