@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapters 14–16 are
-accepted at **Edition 2 `ch13/`–`ch15/`**; original 17 will export to `ch16/`. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–17 are
+accepted at **Edition 2 `ch13/`–`ch16/`**; original 18 will export to `ch17/`. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,23 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+**October 11 Auto-Recall accepted at initial formal review.** Original17 /
+Edition2 ch16 is accepted with recorded fixture exceptions, zero formal correction
+rounds, source `a2f0a4f`, main tree `83e2f4cc85eb91ef9f62a54f638baa4d538cacf8`.
+Independent review `0a724de` verifies the unchanged capped-recall probe, real-runtime
+race suite, and that the formerly surviving raw-frequency mutation now fails all
+three competing-ranking checks. Earlier failures and reviewer assistance remain
+recorded. Actual original grading remains **0/100 FAIL on fcd091f**; the three
+successful bounded provider sessions also retain that source provenance. No grader
+or original chapter changed. See `edition-2-notes/ch17-code-review.md`.
+
+The accepted 121-file export is direct `solutions/edition-2/ch16`, with fresh
+original-numbered checkpoint `edition-2-ch17-r1`. Next is original18 / Edition2 ch17,
+The Invisible Invoice, in the same authoritative main tree. Its sourced provider
+preparation is in `edition-2-notes/ch18.md`. The author remains stopped; proceed
+through original21 with the existing gates, then stop before original22 and24.
+Earlier status entries below describe their dated intermediate states.
 
 **October 11 Auto-Recall implementation checkpoint, review pending.** Original17 /
 Edition2 ch16 is implemented at `fcd091f`; core/GUI tests and vet pass. Original

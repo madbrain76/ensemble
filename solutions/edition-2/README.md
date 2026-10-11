@@ -1,9 +1,9 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–15 are accepted**. [`main/`](main/) is the authoritative working
-tree, matching accepted Chapter 15. Chapter 16 (original 17, Auto-Recall) is released under Bill’s October 11
-quota/corpus decisions, recorded in the chapter notes.
+Chapters **1–16 are accepted**. [`main/`](main/) is the authoritative working
+tree. Chapter 17 (original 18, The Invisible Invoice) is next. Auto-Recall follows
+Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
 
 Original Chapter 5 was absorbed into Chapter 4. From that point, Edition 2
@@ -27,11 +27,12 @@ numbers are one lower than the original book's numbers. The remaining standalone
 | 13: Speech and blind persona | [ch13](ch13/), [manifest](ch13-manifest.json) | 14 | `edition-2-ch14-r1` |
 | 14: Context management | [ch14](ch14/), [manifest](ch14-manifest.json) | 15 | `edition-2-ch15-r1` |
 | 15: Memory bands | [ch15](ch15/), [manifest](ch15-manifest.json) | 16 | `edition-2-ch16-r1` |
+| 16: Auto-Recall | [ch16](ch16/), [manifest](ch16-manifest.json) | 17 | `edition-2-ch17-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
-The next exercise is Auto-Recall, original Chapter 17 / Edition 2 Chapter 16.
+The next exercise is The Invisible Invoice, original Chapter 18 / Edition 2 Chapter 17.
 
 The revised grader covers enhanced Chapters 1–8, for example:
 
