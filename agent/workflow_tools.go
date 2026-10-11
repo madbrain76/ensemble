@@ -3,6 +3,7 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
@@ -249,6 +250,17 @@ func (a *Agent) toolSubmit(c *common.Call, args json.RawMessage) (string, error)
 	if err := json.Unmarshal(args, &in); err != nil {
 		return "", fmt.Errorf("submit: %w", err)
 	}
+
+	// An agent cannot declare itself done while children are still working.
+	// Submits happen bottom-up: children first, then the parent.
+	if ids := a.ActiveChildIDs(); len(ids) > 0 {
+		return "", fmt.Errorf(
+			"cannot submit: %d sub-agent(s) still active (%s). "+
+				"Wait for them (join_agents) or shut them down "+
+				"(shutdown_agent) before submitting.",
+			len(ids), strings.Join(ids, ", "))
+	}
+
 	a.Submit(in.Result)
 	return "Result submitted.", nil
 }

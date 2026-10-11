@@ -258,6 +258,20 @@ func (r *JoinResult) Render() string {
 	return b.String()
 }
 
+// ActiveChildIDs returns the IDs of sub-agents that have not finished
+// (neither submitted nor failed). An agent with active children cannot
+// submit and should not go idle.
+func (m *SubAgentManager) ActiveChildIDs() []string {
+	subs := m.List()
+	var ids []string
+	for _, sub := range subs {
+		if !sub.Finished() {
+			ids = append(ids, sub.ID)
+		}
+	}
+	return ids
+}
+
 // Status renders the fleet for the model.
 //
 // Ordered by id so two readings a turn apart can be compared by eye, and so

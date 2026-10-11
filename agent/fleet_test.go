@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -285,6 +286,170 @@ func TestBlockingWorkflowToolsRunAsJobs(t *testing.T) {
 		}
 	}
 }
+
+// TestSubmitRejectsWithActiveChildren verifies that an agent cannot declare
+// itself done while sub-agents are still running. Submits must happen
+// bottom-up: children first, then the parent.
+//
+// Without this, a parent could submit and go idle while its children run
+// forever with no one listening for their results.
+// firstUserMessage extracts the text of the first user message from a
+// request's messages array. This is the only reliable way to distinguish
+// parent from child in a shared fake vendor, because the parent's
+// conversation will eventually contain the child's task text inside tool
+// arguments.
+func firstUserMessage(req map[string]any) string {
+	msgs, _ := req["messages"].([]any)
+	for _, m := range msgs {
+		msg, _ := m.(map[string]any)
+		if msg["role"] == "user" {
+			// Content may be a string or an array of blocks.
+			if s, ok := msg["content"].(string); ok {
+				return s
+			}
+			blocks, _ := msg["content"].([]any)
+			for _, b := range blocks {
+				blk, _ := b.(map[string]any)
+				if s, _ := blk["text"].(string); s != "" {
+					return s
+				}
+			}
+		}
+	}
+	return ""
+}
+
+func TestSubmitRejectsWithActiveChildren(t *testing.T) {
+	childReady := make(chan struct{})
+	childRelease := make(chan struct{})
+	var childReadyOnce sync.Once
+	parentCalls := 0
+
+	t.Cleanup(func() {
+		// Prevent leaked handler goroutines from blocking forever.
+		select {
+		case <-childRelease:
+		default:
+			close(childRelease)
+		}
+	})
+
+	cfg := fleetConfig(t, func(req map[string]any) []map[string]any {
+		if firstUserMessage(req) == "child task" {
+			childReadyOnce.Do(func() { close(childReady) })
+			<-childRelease
+			if sawToolResult(req) {
+				return []map[string]any{{"type": "text", "text": "ok"}}
+			}
+			return toolUse("c1", "submit", map[string]any{"result": "child done"})
+		}
+
+		parentCalls++
+		switch parentCalls {
+		case 1:
+			// Spawn a child.
+			return toolUse("t1", "spawn_sub_agent", map[string]any{
+				"agent_id": "worker", "task": "child task",
+			})
+		case 2:
+			// Child is in its LLM handler, so it's Running.
+			<-childReady
+			// Try to submit — should be rejected.
+			return toolUse("t2", "submit", map[string]any{"result": "premature"})
+		case 3:
+			// Got the error. Release the child so it can finish, then
+			// wait for it properly.
+			close(childRelease)
+			return toolUse("t3", "join_agents", map[string]any{
+				"agent_ids": []string{"worker"}, "timeout_seconds": 10,
+			})
+		case 4:
+			// Now submit should succeed.
+			return toolUse("t4", "submit", map[string]any{"result": "after cleanup"})
+		default:
+			return []map[string]any{{"type": "text", "text": "done"}}
+		}
+	})
+	parent := fleetParent(t, cfg)
+
+	_, err := parent.Ask("manage a fleet")
+	if err != nil {
+		t.Fatalf("Ask: %v", err)
+	}
+
+	sub := parent.Submission()
+	if sub == nil {
+		t.Fatal("parent never submitted")
+	}
+	if sub.Payload != "after cleanup" {
+		t.Errorf("payload = %q, want %q", sub.Payload, "after cleanup")
+	}
+}
+
+// TestIdleWithActiveChildrenCorrected verifies that ANY agent (including the
+// root) is re-prompted if it goes idle while sub-agents are still running.
+//
+// An agent that goes idle with active children has abandoned its post. In a
+// swarm of a thousand agents, even one abandonment can leave a subtree of
+// work permanently unmonitored.
+func TestIdleWithActiveChildrenCorrected(t *testing.T) {
+	childReady := make(chan struct{})
+	childRelease := make(chan struct{})
+	var childReadyOnce sync.Once
+	parentCalls := 0
+
+	t.Cleanup(func() {
+		select {
+		case <-childRelease:
+		default:
+			close(childRelease)
+		}
+	})
+
+	cfg := fleetConfig(t, func(req map[string]any) []map[string]any {
+		if firstUserMessage(req) == "child task" {
+			childReadyOnce.Do(func() { close(childReady) })
+			<-childRelease
+			if sawToolResult(req) {
+				return []map[string]any{{"type": "text", "text": "ok"}}
+			}
+			return toolUse("c1", "submit", map[string]any{"result": "child done"})
+		}
+
+		parentCalls++
+		switch parentCalls {
+		case 1:
+			return toolUse("t1", "spawn_sub_agent", map[string]any{
+				"agent_id": "worker", "task": "child task",
+			})
+		case 2:
+			// Child is active. Go idle without joining — the mistake.
+			<-childReady
+			return []map[string]any{{"type": "text", "text": "I will wait"}}
+		case 3:
+			// Corrected by Ask's active-children loop. Join the child.
+			close(childRelease)
+			return toolUse("t3", "join_agents", map[string]any{
+				"agent_ids": []string{"worker"}, "timeout_seconds": 10,
+			})
+		default:
+			return []map[string]any{{"type": "text", "text": "all done"}}
+		}
+	})
+	parent := fleetParent(t, cfg)
+
+	_, err := parent.Ask("manage a fleet")
+	if err != nil {
+		t.Fatalf("Ask: %v", err)
+	}
+
+	if parentCalls < 3 {
+		t.Errorf("parent only made %d calls, want >= 3 (correction never fired)", parentCalls)
+	}
+}
+
+
+
 
 // TestSubmitIsRecordedOnTheChildItself checks that finishing needs no
 // back-pointer to a parent.
