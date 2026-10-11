@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -24,8 +25,8 @@ func run() (runErr error) {
 	if len(os.Args) > 1 {
 		mode = os.Args[1]
 	}
-	if !((mode == "protocol" && len(os.Args) == 1) || ((mode == "chat" || mode == "dump") && len(os.Args) == 2) || (mode == "render" && len(os.Args) == 3)) {
-		return errors.New("usage: ensemble [chat | dump | render LOG]")
+	if !((mode == "protocol" && len(os.Args) == 1) || ((mode == "chat" || mode == "dump") && len(os.Args) == 2) || ((mode == "render" || mode == "prompt") && len(os.Args) == 3)) {
+		return errors.New("usage: ensemble [chat | dump | render LOG | prompt TEXT]")
 	}
 	cfg, err := ensemble.ConfigFromEnv()
 	cfg.BuiltinTools, cfg.DataDir = true, "cr"
@@ -45,7 +46,7 @@ func run() (runErr error) {
 	}
 	cfg.LogPath = logPath
 	app := ensemble.New(os.Stderr)
-	if mode == "chat" || mode == "protocol" {
+	if mode == "chat" || mode == "protocol" || mode == "prompt" {
 		trace, err := os.Create("api.log")
 		if err != nil {
 			return err
@@ -53,7 +54,7 @@ func run() (runErr error) {
 		defer trace.Close()
 		app.SetAPILog(trace)
 	}
-	a, err := app.NewAgent(cfg)
+	a, err := app.NewAgent(cfg, ensemble.AgentSpecFromEnv())
 	if err != nil {
 		return err
 	}
@@ -85,6 +86,14 @@ func run() (runErr error) {
 	}
 	if cfg.APIKey == "" {
 		return errors.New("provider API key is not set")
+	}
+	if mode == "prompt" {
+		defer func() { runErr = errors.Join(runErr, a.Shutdown()) }()
+		answer, err := a.Ask(context.Background(), os.Args[2])
+		if err == nil {
+			fmt.Fprintln(os.Stdout, answer)
+		}
+		return err
 	}
 	return converse(a, mode == "chat")
 }

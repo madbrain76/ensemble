@@ -61,3 +61,8 @@ Run `go test -race ./...` and `go vet ./...` here, separately from the core modu
 Browser/native speech checks and targeted mutation evidence are documented in
 `docs/edition-2-notes/ch08.md` in the outer repository. No Node dependency is
 required to serve or use this page.
+
+The GUI command accepts the same `EN_SKILLS_DIR`, `EN_PRIMARY_SKILL` and
+`EN_CUSTOM_VAR` environment setup as the core CLI. The application passes an
+explicit per-Agent skill specification to the public constructor. Browser and
+terminal inputs see the same enabled tools and frozen primary prompt.

@@ -18,6 +18,7 @@ import (
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
+	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
 
@@ -74,7 +75,10 @@ const (
 )
 
 // NewAgent assembles and retains an Agent with all required parent relationships.
-func (e *Ensemble) NewAgent(cfg Config) (Agent, error) {
+func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
+	if len(specs) > 1 {
+		return nil, errors.New("provide at most one AgentSpec")
+	}
 	if cfg.MaxToolRounds < 0 {
 		return nil, errors.New("MaxToolRounds must be nonnegative")
 	}
@@ -119,6 +123,28 @@ func (e *Ensemble) NewAgent(cfg Config) (Agent, error) {
 	a.AttachJobs(jobs.New(a))
 	if cfg.BuiltinTools {
 		a.SetTools(tools.Builtins())
+	}
+	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "") {
+		spec := specs[0]
+		sr, err := skills.New(a, spec.SkillsDir)
+		if err != nil {
+			return nil, err
+		}
+		a.AttachSkills(sr)
+		// Lifecycle tools exist even when the application omitted builtin file tools.
+		for _, definition := range tools.SkillTools() {
+			if err := a.RegisterTool(definition.ToolDeclaration, definition.Run); err != nil {
+				return nil, err
+			}
+		}
+		for name, render := range spec.Variables {
+			a.RegisterVar(name, render)
+		}
+		prompt, err := sr.LoadInitial(spec.PrimarySkill)
+		if err != nil {
+			return nil, err
+		}
+		a.SetSystemPrompt(prompt)
 	}
 	e.agents = append(e.agents, a)
 	return a, nil
@@ -313,3 +339,19 @@ type ToolFinished = common.ToolFinished
 
 // TurnEnded reports turn completion as display progress.
 type TurnEnded = common.TurnEnded
+
+// AgentSpec supplies skills identity separately from provider request settings.
+type AgentSpec = common.AgentSpec
+
+// ToolMeta records the first event that enabled a capability for one Agent.
+type ToolMeta = common.ToolMeta
+
+// ToolSource distinguishes initial declarations from dynamic additions.
+type ToolSource = common.ToolSource
+
+const (
+	// SourceInitial marks a capability enabled at Agent construction.
+	SourceInitial = common.SourceInitial
+	// SourceDynamic marks a capability enabled by a load_skill call.
+	SourceDynamic = common.SourceDynamic
+)

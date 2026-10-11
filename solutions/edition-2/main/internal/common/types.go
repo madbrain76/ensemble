@@ -302,6 +302,10 @@ type Agent interface {
 	// RegisterTool installs one Agent's handler before runtime use; duplicate names
 	// fail.
 	RegisterTool(ToolDeclaration, func(ToolContext, json.RawMessage) (string, error)) error
+	// Skills returns the optional Agent-owned capability registry, nil without a primary.
+	Skills() Skills
+	// RegisterVar changes future skill rendering without rewriting earlier instructions.
+	RegisterVar(string, func() string)
 	// Jobs reaches this Agent's collection of continuing and completed executions.
 	Jobs() Jobs
 	// Shutdown stops admission, stops managed processes and joins outstanding work.
@@ -326,6 +330,8 @@ type ToolContext interface {
 	Engine() Engine
 	// Job returns this call's execution handle; supervision calls have no new job.
 	Job() Job
+	// EventSeq identifies the recorded tool_called fact for capability provenance.
+	EventSeq() uint64
 	// Limits returns this call's wait/output policy, never an execution deadline.
 	Limits() Limits
 }
@@ -421,6 +427,8 @@ type Job interface {
 // Context returns an independent snapshot. Append/Load are offline operations;
 // live clients send facts through Agent.Record so one actor owns their ordering.
 type History interface {
+	// LastSeq returns the latest captured fact sequence, or zero for empty history.
+	LastSeq() uint64
 	// EventsAfter returns independent ordered facts newer than seq under the history lock.
 	EventsAfter(seq uint64) []Event
 	// Agent returns the required owning Agent rather than a copied service bundle.

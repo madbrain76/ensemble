@@ -245,7 +245,7 @@ func canonical(raw json.RawMessage) (json.RawMessage, error) {
 
 // Role instructions belong to the Agent; the default keeps earlier clients working.
 func (e *engine) systemPrompt() string {
-	if s := e.parent.Config().SystemPrompt; s != "" {
+	if s := e.parent.Config().SystemPrompt; s != "" || e.parent.Skills() != nil {
 		return s
 	}
 	return systemPrompt

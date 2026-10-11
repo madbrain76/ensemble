@@ -22,6 +22,7 @@ type agent struct {
 	history     common.History
 	tools       []common.ToolDefinition
 	jobs        common.Jobs
+	skills      common.Skills
 	once        sync.Once
 	box         *box
 	done        chan struct{}
@@ -68,6 +69,9 @@ func (a *agent) SetTools(definitions []common.ToolDefinition) { a.tools = defini
 func (a *agent) Declarations() []common.ToolDeclaration {
 	var declarations []common.ToolDeclaration
 	for _, tool := range a.tools {
+		if !a.toolEnabled(tool.Name) {
+			continue
+		}
 		declarations = append(declarations, tool.ToolDeclaration)
 	}
 	return declarations
@@ -97,6 +101,7 @@ type callContext struct {
 	parent common.Agent
 	job    common.Job
 	limits common.Limits
+	seq    uint64
 }
 
 // Agent returns the required owning Agent rather than a copied service bundle.
@@ -149,4 +154,36 @@ func (a *agent) SetMaxToolRounds(limit int) error {
 	defer a.configMu.Unlock()
 	a.config.MaxToolRounds = limit
 	return nil
+}
+
+// EventSeq identifies the dispatch fact that enabled a dynamically loaded tool.
+func (c *callContext) EventSeq() uint64 { return c.seq }
+
+// Skills returns this Agent's optional capability registry.
+func (a *agent) Skills() common.Skills { return a.skills }
+
+// AttachSkills establishes the Agent side of the registry's ownership link.
+func (a *agent) AttachSkills(s common.Skills) {
+	if s == nil || s.Agent() != a {
+		panic("Skills must belong to this Agent")
+	}
+	a.skills = s
+}
+
+// RegisterVar affects future dynamic loads; construction already froze the primary.
+func (a *agent) RegisterVar(name string, render func() string) {
+	if a.skills != nil {
+		a.skills.RegisterVar(name, render)
+	}
+}
+
+// SetSystemPrompt installs the rendered constitution during construction only.
+func (a *agent) SetSystemPrompt(prompt string) { a.config.SystemPrompt = prompt }
+
+func (a *agent) toolEnabled(name string) bool {
+	if a.skills == nil {
+		return true
+	}
+	_, enabled := a.skills.ToolMeta(name)
+	return enabled
 }

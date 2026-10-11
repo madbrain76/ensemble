@@ -35,7 +35,7 @@ func (r *runtime) dispatch() {
 	t.calls = t.calls[1:]
 	var definition *common.ToolDefinition
 	for i := range r.owner.tools {
-		if r.owner.tools[i].Name == call.Name {
+		if r.owner.tools[i].Name == call.Name && r.owner.toolEnabled(call.Name) {
 			definition = &r.owner.tools[i]
 			break
 		}
@@ -57,6 +57,8 @@ func (r *runtime) dispatch() {
 		r.finish("", err)
 		return
 	}
+	// The appended dispatch fact, not a guessed future result number, owns provenance.
+	owner.seq = r.owner.history.LastSeq()
 	r.owner.notify(common.ToolDispatched{CallID: call.CallID, Name: call.Name, Input: call.Args})
 	t.current = &report{turn: t, call: call, data: called}
 	run := func() (string, error) {

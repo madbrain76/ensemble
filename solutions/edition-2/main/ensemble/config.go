@@ -37,3 +37,11 @@ func ConfigFromEnv() (Config, error) {
 	cfg.ResolvedModel = os.Getenv("LLM_RESOLVED_MODEL")
 	return cfg, nil
 }
+
+// AgentSpecFromEnv translates CLI settings into explicit per-Agent identity.
+// CUSTOM_VAR is the exercise's application variable, not a core environment reader.
+func AgentSpecFromEnv() AgentSpec {
+	return AgentSpec{SkillsDir: os.Getenv("EN_SKILLS_DIR"), PrimarySkill: os.Getenv("EN_PRIMARY_SKILL"), Variables: map[string]func() string{
+		"CUSTOM_VAR": func() string { return os.Getenv("EN_CUSTOM_VAR") },
+	}}
+}

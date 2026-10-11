@@ -79,7 +79,7 @@ func run() error {
 	displayDone := make(chan struct{})
 	defer close(displayDone)
 	go terminal.display(displayDone)
-	a, err := root.NewAgent(cfg)
+	a, err := root.NewAgent(cfg, ensemble.AgentSpecFromEnv())
 	if err != nil {
 		return err
 	}

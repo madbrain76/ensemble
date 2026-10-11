@@ -276,3 +276,13 @@ func (h *history) EventsAfter(seq uint64) []common.Event {
 	json.Unmarshal(data, &events)
 	return events
 }
+
+// LastSeq lets dispatch retain provenance without copying the whole event log.
+func (h *history) LastSeq() uint64 {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if len(h.events) == 0 {
+		return 0
+	}
+	return h.events[len(h.events)-1].Seq
+}
