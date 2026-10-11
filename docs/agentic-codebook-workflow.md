@@ -1,5 +1,24 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 10: resumed original student run
+
+Bill has now released the coder and reviewer after the completed early enhancement
+and solution renumbering: “Please set the coder and reviewer lose again. They
+should tear quickly through the book.” Resume at original Chapter 10, Skills,
+extending `solutions/edition-2/main/`; the coordinator verified that tree still
+matches accepted `edition-2-ch09-r2`. Proceed sequentially through original
+Chapter 21 with the existing grading, live-use, comparative-review and checkpoint
+gates. Stop before original Chapter 22 for Bill's placement decision, and retain
+the later Chapter 24 stop. No author is active in this resumed student phase.
+
+The Chapter 10 student starts in a fresh context as `student_continue_ch10`;
+the enhancement coder had seen reference answers and cannot become a blind
+student merely by receiving a new task. `enhancement_reviewer_resumed` continues
+as independent reviewer. Keep work focused, reuse valid unchanged evidence and
+avoid unnecessary reruns. Speed does not waive teaching quality, scope or review.
+The newly published original Chapter 25 is assigned for sourced carryover
+reading only; it is not permission to implement beyond the decision gates.
+
 ## Required decisions at original Chapters 22 and 24
 
 Bill specified these stops on October 10, using first-edition chapter numbers.

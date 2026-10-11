@@ -1,5 +1,13 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 10 student resumption.** Bill has released coder and reviewer to resume
+original Chapter 10 after the completed early enhancement, proceeding through
+original Chapter 21 with the existing acceptance gates. Extend the accepted
+`solutions/edition-2/main/`; do not restart from empty or edit reader snapshots.
+The author remains stopped. Fresh student contexts preserve the old-answer
+boundary. The separate stops below still apply; the completed enhancement's
+temporary Chapter 10 hold is lifted for this resumed student run.
+
 **October 10 decision gates, original chapter numbering.** Complete and review
 Chapter 21, then stop before Chapter 22 implementation or authorship. Bill will
 decide whether and how to merge its material into Chapter 21 or 23. Complete and

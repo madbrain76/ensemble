@@ -1,5 +1,17 @@
 # Ensemble student restart
 
+## October 10: student run resumed
+
+After completion of the early enhancement and solution renumbering, Bill asked
+the coordinator to release the coder and reviewer again. Resume the original
+student exercises at Chapter 10 in `solutions/edition-2/main/`, proceeding through
+Chapter 21 with independent review and checkpoints at each chapter. The author
+remains stopped. Use fresh student contexts without old-answer exposure; the
+enhancement coder's reference-answer access does not carry into this run.
+The stops before original Chapters 22 and 24 below remain binding. Work promptly
+without expanding exercises or repeating unchanged evidence unnecessarily;
+required grading, live use, comparative review and correction limits still apply.
+
 ## October 10: later refactor decision gates
 
 Bill requires stops at original first-edition Chapters 22 and 24. Complete the
