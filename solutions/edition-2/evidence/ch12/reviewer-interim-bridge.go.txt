@@ -1,0 +1,10 @@
+package grade
+import("encoding/json";"os";"testing")
+// Interim reviewer-only probe; original current-chapter phases are unchanged, recursive parity unrun.
+func TestReviewerCh12Probe(t *testing.T){
+ path:=os.Getenv("REVIEW_SUBMISSION");if path==""{t.Fatal("missing submission")}
+ r:=Ch12Run(path);r.Ch11ParityErr="SKIPPED: inherited GUI/headless mismatch; this is an interim current-chapter-only probe"
+ data,err:=json.MarshalIndent(struct{Result Ch12Result;Checks []Check}{r,Ch12Checks(r)},"","  ");if err!=nil{t.Fatal(err)}
+ if err=os.WriteFile(os.Getenv("REVIEW_REPORT"),data,0644);err!=nil{t.Fatal(err)}
+ t.Log(string(data))
+}

@@ -1,0 +1,79 @@
+=== RUN   TestReviewerCh12Probe
+    reviewer_ch12_test.go:9: {
+          "Result": {
+            "HandshakeOK": true,
+            "HandshakeErr": "",
+            "DiscoveryOK": true,
+            "DiscoveryErr": "",
+            "ToolCallOK": true,
+            "ToolCallErr": "",
+            "EphemeralOK": true,
+            "EphemeralErr": "",
+            "ReverseOK": true,
+            "ReverseErr": "",
+            "WSTunnelOK": false,
+            "WSTunnelErr": "could not find gui/handler.go or internal/ws/handler.go",
+            "Ch11Parity": false,
+            "Ch11ParityErr": "SKIPPED: inherited GUI/headless mismatch; this is an interim current-chapter-only probe"
+          },
+          "Checks": [
+            {
+              "id": "mcp-handshake",
+              "title": "MCP initialize/initialized exchange over PipeTransport",
+              "points": 15,
+              "earned": 15,
+              "passed": true
+            },
+            {
+              "id": "tool-discovery",
+              "title": "tools/list populates agent registry with MCP tools",
+              "points": 15,
+              "earned": 15,
+              "passed": true
+            },
+            {
+              "id": "mcp-tool-call",
+              "title": "MCP tool call via bridge returns result",
+              "points": 15,
+              "earned": 15,
+              "passed": true
+            },
+            {
+              "id": "ephemeral-round",
+              "title": "Ephemeral tool auto-called each round; result in Ephemera",
+              "points": 20,
+              "earned": 20,
+              "passed": true
+            },
+            {
+              "id": "reverse-call",
+              "title": "MCP server calls agent tool via reverse handler",
+              "points": 15,
+              "earned": 15,
+              "passed": true
+            },
+            {
+              "id": "ws-tunnel",
+              "title": "JSON-RPC messages routed through WebSocket hub",
+              "points": 10,
+              "earned": 0,
+              "passed": false,
+              "details": [
+                "ws-tunnel: could not find gui/handler.go or internal/ws/handler.go"
+              ]
+            },
+            {
+              "id": "ch11-parity",
+              "title": "All ch11 behavior preserved",
+              "points": 10,
+              "earned": 0,
+              "passed": false,
+              "details": [
+                "ch11 parity: SKIPPED: inherited GUI/headless mismatch; this is an interim current-chapter-only probe"
+              ]
+            }
+          ]
+        }
+--- PASS: TestReviewerCh12Probe (0.40s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/grade	0.404s
