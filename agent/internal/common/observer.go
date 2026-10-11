@@ -94,6 +94,56 @@ type ConversationCleared struct {
 	Agent AgentID `json:"agent,omitempty"`
 }
 
+// ActivityPhase says what an agent is doing right now at a granularity the
+// operator can act on. The four SubAgentState values govern lifecycle (spawn,
+// correct, escalate, shutdown); this governs display. "Running" is a single
+// bucket that hides everything interesting, and this replaces it with four
+// that do not.
+type ActivityPhase int
+
+const (
+	// ActivityIdle means the agent is between turns.
+	ActivityIdle ActivityPhase = iota + 1
+
+	// ActivityThinking means the LLM is streaming a response.
+	ActivityThinking
+
+	// ActivityToolCall means the agent is executing a tool.
+	ActivityToolCall
+
+	// ActivityWaiting means the agent is blocked on a fleet management
+	// tool: join_agents, wait_for_agent_change, ask_agent, or
+	// send_message_to_parent.
+	ActivityWaiting
+)
+
+// String renders a phase for status output and JSON.
+func (p ActivityPhase) String() string {
+	switch p {
+	case ActivityIdle:
+		return "idle"
+	case ActivityThinking:
+		return "thinking"
+	case ActivityToolCall:
+		return "tool_call"
+	case ActivityWaiting:
+		return "waiting"
+	default:
+		return "unknown"
+	}
+}
+
+// ActivityChanged fires when an agent's activity phase transitions. The
+// combination of Phase + ToolName + Detail gives the GUI enough to render
+// a one-line summary of what every agent in the tree is doing.
+type ActivityChanged struct {
+	Agent    AgentID       `json:"agent,omitempty"`
+	Phase    ActivityPhase `json:"phase"`
+	ToolName string        `json:"tool_name,omitempty"`
+	Detail   string        `json:"detail,omitempty"`
+}
+
+func (ActivityChanged) isObservation()      {}
 func (ConversationCleared) isObservation() {}
 func (PartDelta) isObservation()           {}
 func (PartFinal) isObservation()           {}

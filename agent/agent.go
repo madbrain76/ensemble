@@ -91,6 +91,17 @@ type ToolDispatched = common.ToolDispatched
 type ToolFinished = common.ToolFinished
 type PauseGate = common.PauseGate
 
+// Chapter 26: Activity tracking.
+type ActivityChanged = common.ActivityChanged
+type ActivityPhase = common.ActivityPhase
+
+const (
+	ActivityIdle     = common.ActivityIdle
+	ActivityThinking = common.ActivityThinking
+	ActivityToolCall = common.ActivityToolCall
+	ActivityWaiting  = common.ActivityWaiting
+)
+
 // Settings and SettingsStore are re-exported for the WebSocket hub
 // constructor and the settings management protocol.
 type Settings = common.Settings

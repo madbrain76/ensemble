@@ -181,6 +181,10 @@ func (a *Agent) toolJoinAgents(c *common.Call, args json.RawMessage) (string, er
 	if in.Timeout > 0 {
 		timeout = time.Duration(in.Timeout * float64(time.Second))
 	}
+	a.Actor().Notify(common.ActivityChanged{
+		Phase:  common.ActivityWaiting,
+		Detail: fmt.Sprintf("join_agents: %s", strings.Join(in.AgentIDs, ", ")),
+	})
 	return a.subs.Join(in.AgentIDs, timeout).Render(), nil
 }
 
@@ -215,6 +219,10 @@ func (a *Agent) toolSendMessageToParent(c *common.Call, args json.RawMessage) (s
 		timeout = time.Duration(in.Timeout * float64(time.Second))
 	}
 
+	a.Actor().Notify(common.ActivityChanged{
+		Phase:  common.ActivityWaiting,
+		Detail: "send_message_to_parent",
+	})
 	reply, err := a.MessageParent(in.Content, timeout)
 	if err != nil {
 		return "", err

@@ -111,7 +111,16 @@ func (a *Actor) setState(s common.TurnState) {
 	}
 }
 
-// notify fires an observation to all observers (non-blocking) and to the obs
+// Notify emits an observation through the actor's observer chain.
+//
+// This is the exported counterpart of notify, used by the outer agent
+// package to emit observations (such as ActivityChanged) that originate
+// outside the turn loop. Tools that block on fleet operations need to
+// announce what the agent is waiting for, and they live in the outer
+// package where notify is not reachable.
+func (a *Actor) Notify(obs common.Observation) { a.notify(obs) }
+
+// notify fans an observation to all attached observers and the obs
 // channel for Wait consumers.
 func (a *Actor) notify(obs common.Observation) {
 	a.mu.Lock()
@@ -233,6 +242,7 @@ func (a *Actor) runTurnLoop(limit int) {
 			return
 		}
 
+		a.notify(common.ActivityChanged{Phase: common.ActivityThinking})
 		reply, err := a.eng.TurnContext(a.turnCtx, a.streamWatch())
 		if err != nil {
 			a.finishTurn("", err)
@@ -284,6 +294,11 @@ func (a *Actor) runTurnLoop(limit int) {
 				CallID: call.CallID,
 				Name:   call.Name,
 				Input:  json.RawMessage(call.Args),
+			})
+			a.notify(common.ActivityChanged{
+				Phase:    common.ActivityToolCall,
+				ToolName: call.Name,
+				Detail:   truncateDetail(string(call.Args), 120),
 			})
 			if err := a.dispatchTool(call); err != nil {
 				a.finishTurn("", err)
@@ -688,6 +703,7 @@ func (a *Actor) handleInterrupt() {
 
 // finishTurn transitions to Idle and notifies observers.
 func (a *Actor) finishTurn(text string, err error) {
+	a.notify(common.ActivityChanged{Phase: common.ActivityIdle})
 	a.setState(common.Idle)
 	a.endTurn(text, err)
 }
@@ -863,6 +879,9 @@ func tagObservation(obs common.Observation, id common.AgentID) common.Observatio
 	case common.ToolFinished:
 		v.Agent = id
 		return v
+	case common.ActivityChanged:
+		v.Agent = id
+		return v
 	}
 	return obs
 }
@@ -880,4 +899,14 @@ func WithTimeout(d time.Duration) (context.Context, context.CancelFunc) {
 // produced. Loud, not different.
 func pendingNote(tool string, l common.Limits) string {
 	return fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", tool, l)
+}
+
+// truncateDetail shortens a string to at most n bytes, appending "..." when
+// truncated. Used for the activity observation's Detail field, which is
+// display-only and should not carry a full JSON blob.
+func truncateDetail(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "..."
 }
