@@ -19,7 +19,7 @@ Install poppler on macOS: `brew install poppler`
 book/
 ├── README.md                          ← this file
 ├── preface.md                         ← preface
-├── chapter-01.md ... chapter-25.md    ← chapter source (single source of truth)
+├── chapter-01.md ... chapter-26.md    ← chapter source (single source of truth)
 ├── epilogue.md                        ← epilogue
 ├── note-from-bill.md                  ← author's note (update edition number here)
 ├── front-matter.md                    ← EPUB front matter (update edition number here)
@@ -97,6 +97,8 @@ python3 book/build-print.py
 ```
 
 This is a two-pass build with automatic HTML cleanup:
+0. **Pass 0 — regenerates `interior-print.html` from the assembled manuscript
+   via pandoc.** You no longer run pandoc by hand; see the warning below.
 1. Cleans `interior-print.html`: forces page break after the pandoc TOC,
    strips the self-referential "Contents" entry from the pandoc TOC, and
    removes the markdown-generated "# Contents" section (duplicate of

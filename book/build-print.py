@@ -154,9 +154,42 @@ def clean_html(html: str) -> str:
     return html
 
 
+def run_pandoc(src: Path) -> None:
+    """Regenerate interior-print.html from the assembled manuscript.
+
+    This used to be a manual step documented in book/README.md, and skipping
+    it failed SILENTLY: build-print.py would re-render a stale HTML left over
+    from an earlier chapter, producing a freshly-timestamped PDF with an old
+    TOC and the newest chapter missing entirely. Nothing in the two-pass build
+    noticed, because every heading the stale TOC listed did match a page.
+    Running pandoc here makes that class of staleness impossible.
+    """
+    manuscript = BOOK / "the-art-of-building-ai-coding-agents.md"
+    front = BOOK / "front-matter-print.md"
+    header = BOOK / "print-header.html"
+    for f in (front, manuscript, header):
+        if not f.exists():
+            sys.exit(f"FATAL: missing build input {f}")
+    cmd = [
+        "pandoc", front.name, manuscript.name,
+        "-o", src.name,
+        "--from=markdown", "--to=html", "--standalone",
+        "--toc", "--toc-depth=1",
+        "-M", "title=The Art of Building AI Coding Agents",
+        "-M", "author=Bill Cox",
+        "-H", header.name,
+    ]
+    print("pass 0: pandoc regenerate interior-print.html")
+    r = subprocess.run(cmd, cwd=BOOK, capture_output=True, text=True)
+    if r.returncode != 0:
+        sys.exit(f"FATAL: pandoc failed:\n{r.stderr}")
+
+
 def main() -> None:
     src = BOOK / "interior-print.html"
     pdf = BOOK / "The Art of Building AI Coding Agents - Print Interior.pdf"
+
+    run_pandoc(src)
     html = src.read_text()
 
     print("cleaning HTML: TOC page break, strip duplicate Contents")
