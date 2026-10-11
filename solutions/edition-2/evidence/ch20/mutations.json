@@ -1,0 +1,14 @@
+[
+  {
+    "name": "baseline",
+    "exit_code": 0
+  },
+  {
+    "name": "astra-chat-route",
+    "exit_code": 1
+  },
+  {
+    "name": "drop-reasoning-effort",
+    "exit_code": 1
+  }
+]

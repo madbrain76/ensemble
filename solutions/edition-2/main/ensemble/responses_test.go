@@ -138,9 +138,9 @@ func TestResponsesRequiresCompletion(t *testing.T) {
 
 // Earlier models retain their tested API surface; migration is not vendor-wide.
 func TestResponsesModelBoundary(t *testing.T) {
-	for _, model := range []string{"gpt-4o-mini", "gpt-5.6-sol", "gpt-6.1-sol", "gpt-ch19-course"} {
+	for _, model := range []string{"gpt-4o-mini", "gpt-5.6-sol", "gpt-6-astra", "gpt-6.1-sol", "gpt-ch19-course"} {
 		t.Run(model, func(t *testing.T) {
-			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: model, DataDir: t.TempDir()})
+			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: model, ReasoningEffort: "high", DataDir: t.TempDir()})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -151,9 +151,15 @@ func TestResponsesModelBoundary(t *testing.T) {
 			}
 			var req map[string]any
 			json.Unmarshal(body, &req)
-			want := model == "gpt-6.1-sol" || model == "gpt-ch19-course"
+			want := model == "gpt-6-astra" || model == "gpt-6.1-sol" || model == "gpt-ch19-course"
 			if (req["input"] != nil) != want {
 				t.Fatalf("model transport: %s", body)
+			}
+			if want {
+				reasoning, _ := req["reasoning"].(map[string]any)
+				if req["model"] != model || reasoning["effort"] != "high" {
+					t.Fatalf("configured model/reasoning lost: %s", body)
+				}
 			}
 		})
 	}

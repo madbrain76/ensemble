@@ -1,0 +1,6 @@
+--- FAIL: TestResponsesModelBoundary (0.00s)
+    --- FAIL: TestResponsesModelBoundary/gpt-6-astra (0.00s)
+        responses_test.go:156: model transport: {"model":"gpt-6-astra","max_completion_tokens":1024,"messages":[{"role":"system","content":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."}]}
+FAIL
+FAIL	ensemble/ensemble	0.069s
+FAIL

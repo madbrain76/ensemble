@@ -32,13 +32,15 @@ func LookupModel(model string) (common.ModelFeatures, bool) {
 		return common.ModelFeatures{Price: &common.Pricing{Input: 2, Output: 10, CacheWrite: 2.5, CacheRead: .2}, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
 	case "claude-3-haiku-20240307":
 		return common.ModelFeatures{Media: common.MediaImage, Stream: common.StreamText | common.StreamToolArgs}, true
-	case "gpt-6.1-sol", "gpt-ch19-course":
+	// Astra tool calling requires Responses; the existing per-Agent reasoning
+	// settings then reach that renderer without a second configuration path.
+	case "gpt-6-astra", "gpt-6.1-sol", "gpt-ch19-course":
 		return common.ModelFeatures{Responses: true, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-4o-mini":
 		return common.ModelFeatures{ContextWindow: 128000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-5.6-sol":
 		return common.ModelFeatures{Price: &common.Pricing{Input: 4, Output: 20, CacheWrite: 5, CacheRead: .4}, PriceThreshold: 272000, LargePrice: &common.Pricing{Input: 8, Output: 30, CacheWrite: 10, CacheRead: .8}, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
-	case "gpt-5.4-mini", "gpt-4o", "gpt-6-astra":
+	case "gpt-5.4-mini", "gpt-4o":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gemini-3.8-flash":
 		return common.ModelFeatures{Price: &common.Pricing{Input: .75, Output: 3.75, CacheRead: .075}, ContextWindow: 1048576, Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true

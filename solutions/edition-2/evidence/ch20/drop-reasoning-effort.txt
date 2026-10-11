@@ -1,0 +1,6 @@
+--- FAIL: TestResponsesModelBoundary (0.00s)
+    --- FAIL: TestResponsesModelBoundary/gpt-6-astra (0.00s)
+        responses_test.go:161: configured model/reasoning lost: {"include":["reasoning.encrypted_content"],"input":[{"content":[{"prompt_cache_breakpoint":{"mode":"explicit"},"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","type":"input_text"}],"role":"developer","type":"message"}],"model":"gpt-6-astra","prompt_cache_options":{"mode":"explicit"},"reasoning":{"effort":"low","summary":"auto"},"store":false,"stream":true}
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
