@@ -1,0 +1,1 @@
+ok  	ensemble-gui-stub	1.023s [no tests to run]

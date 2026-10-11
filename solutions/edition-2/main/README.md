@@ -94,9 +94,10 @@ accept `--skills-dir PATH` (overriding `EN_SKILLS_DIR`) and `--gui-debug` to loa
 that optional skill before accepting input. With `--gui-debug`, the directory
 otherwise defaults to `./skills`; selecting a directory defaults the primary
 name to `ensemble` unless `EN_PRIMARY_SKILL` explicitly selects another one.
-For the browser, build the separate GUI command and launch from this directory:
+For the browser, build the separate GUI command. Its assets are embedded; this
+skill-enabled example uses paths relative to this directory:
 
-    ensemble-gui --gui-dir gui/web/gui --gui-debug --skills-dir ./skills
+    ensemble-gui --gui-debug --skills-dir ./skills
 
 Open its browser before sending a prompt. The supplied skill declares a
 WebSocket peer, so connection/discovery waits for the browser. An application
@@ -227,3 +228,32 @@ chapter adds specifications, not agent spawning. The binary's credential provide
 and model HTTP client remain outside the command sandbox. The tested boundary is
 file tools, retained state and macOS command descendants, not a claim of immunity
 to arbitrary compromised native code or all forms of prompt injection.
+
+
+Chapter 24 makes browser assets reusable and deployment independent of the source
+tree. Build with `cd gui && go build -o /tmp/ensemble-gui ./cmd`; the binary serves
+its embedded GUI from any working directory. `--gui-dir /absolute/path/to/web/gui`
+explicitly selects editable disk assets during development.
+
+External applications import the optional `ensemble-gui-stub` module and the
+core's `ensemble/ensemble` public package. Construct the actual Ensemble and Agent,
+then `gui.New(root, agent, log)`. Public `Event`, `MessageData`, `Part` and `Human`
+already allow a consumer to plant history before attaching the GUI. `Handler("")`
+provides embedded HTTP assets and the unchanged `/ws` protocol. The separate GUI
+module keeps WebSocket dependencies outside both headless executables and MCP.
+
+`gui.Assets()` returns a read-only `fs.FS` rooted at the browser filenames. Mount
+only `artifact-scroll.js` and `renderers.js` to reuse `new ArtifactScroll(element)`
+without serving the application shell. Feed it the existing display messages via
+`receive(message)` and call `reset()` before a fresh replay. A speech service is
+optional; importing the component neither queries application controls nor opens
+a socket. The full application passes its existing speech owner explicitly.
+
+`server.ServeMCP(listener)` exposes a JSONL browser relay on a caller-supplied
+listener, normally loopback. It preserves request IDs, including concurrent
+clients reusing an ID, independently of the Agent's own MCP session. With no
+browser it returns a correlated error. A connected but silent browser waits until
+that browser, the TCP client or the Server closes; no timeout is promised. The
+application chooses access to this listener; `Server.Close` closes its listeners
+and clients. The externally built test in `gui/testdata/reuse` demonstrates these
+public boundaries with real core objects and fake external peers.

@@ -44,7 +44,7 @@ func run() (runErr error) {
 	guiDebug := flag.Bool("gui-debug", false, "load the gui-debug skill before accepting input")
 	flag.StringVar(&spec.SkillsDir, "skills-dir", spec.SkillsDir, "skill directory (gui-debug defaults to skills)")
 	port := flag.Int("port", 8088, "localhost HTTP port")
-	directory := flag.String("gui-dir", "web/gui", "static GUI directory")
+	directory := flag.String("gui-dir", "", "override embedded GUI assets with a disk directory")
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
 	flag.StringVar(&cfg.Model, "model", cfg.Model, "discovered provider model")
 	flag.StringVar(&cfg.BaseURL, "base-url", cfg.BaseURL, "provider API base URL")

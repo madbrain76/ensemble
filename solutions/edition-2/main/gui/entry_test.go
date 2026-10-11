@@ -121,6 +121,19 @@ func TestSavedBudgetEntry(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		// This executable runs away from the source tree with no --gui-dir. A
+		// working WebSocket alone would not establish deployable browser assets.
+		for _, asset := range []string{"/", "/app.js", "/artifact-scroll.js", "/renderers.js"} {
+			response, err := http.Get(url + asset)
+			if err != nil {
+				t.Fatal(err)
+			}
+			body, err := io.ReadAll(response.Body)
+			response.Body.Close()
+			if err != nil || response.StatusCode != 200 || len(body) == 0 {
+				t.Fatalf("relocated asset %s: status=%d bytes=%d err=%v", asset, response.StatusCode, len(body), err)
+			}
+		}
 		t.Cleanup(func() { peer.Close() })
 		send(t, peer, "subscribe", "")
 		until(t, peer, kind("current_settings"))

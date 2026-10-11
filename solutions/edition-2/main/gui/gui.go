@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"io"
+	"net"
 	"net/http"
 	"sort"
 	"strings"
@@ -21,18 +22,20 @@ type Server struct {
 	agent    ensemble.Agent
 	settings Settings
 	// settingsMu orders patches and subscriptions without blocking actor observations.
-	settingsMu  sync.Mutex
-	mu          sync.Mutex
-	clients     map[*websocket.Conn]chan [][]byte
-	partials    map[uint64]map[string]any
-	events      []ensemble.Event
-	seq         uint64
-	logMu       sync.Mutex
-	log         io.Writer
-	closed      bool
-	connections map[*websocket.Conn]bool
-	tunnels     map[*websocket.Conn]*WSTransport
-	workers     sync.WaitGroup
+	settingsMu       sync.Mutex
+	mu               sync.Mutex
+	clients          map[*websocket.Conn]chan [][]byte
+	partials         map[uint64]map[string]any
+	events           []ensemble.Event
+	seq              uint64
+	logMu            sync.Mutex
+	log              io.Writer
+	closed           bool
+	connections      map[*websocket.Conn]bool
+	tunnels          map[*websocket.Conn]*WSTransport
+	workers          sync.WaitGroup
+	relays           map[net.Listener]bool
+	relayConnections map[net.Conn]bool
 }
 
 // New attaches a root observer. Ensemble and Agent are application services,
@@ -45,6 +48,8 @@ func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server,
 	s := &Server{agent: agent, clients: make(map[*websocket.Conn]chan [][]byte), partials: make(map[uint64]map[string]any), log: log}
 	s.connections = make(map[*websocket.Conn]bool)
 	s.tunnels = make(map[*websocket.Conn]*WSTransport)
+	s.relays = make(map[net.Listener]bool)
+	s.relayConnections = make(map[net.Conn]bool)
 	if err := s.loadSettings(); err != nil {
 		return nil, fmt.Errorf("load settings: %w", err)
 	}
@@ -172,10 +177,15 @@ func (s *Server) trace(direction string, data []byte) {
 	fmt.Fprintf(s.log, "%s %s %s\n", time.Now().UTC().Format(time.RFC3339Nano), direction, data)
 }
 
-// Handler serves the static page and transport without global HTTP registration.
+// Handler serves embedded assets by default; a nonempty directory explicitly
+// selects editable disk assets. HTTP registration remains local to this Server.
 func (s *Server) Handler(directory string) http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(directory)))
+	assets := http.FS(Assets())
+	if directory != "" {
+		assets = http.Dir(directory)
+	}
+	mux.Handle("/", http.FileServer(assets))
 	mux.HandleFunc("/ws", s.socket)
 	return mux
 }
@@ -202,7 +212,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	s.tunnels[conn] = tunnel
 	s.mu.Unlock()
-	defer tunnel.Close()
+	defer func() { tunnel.Close(); close(tunnel.relayDone) }()
 	var mcpStarted bool
 	// Separate lifetime signals keep teardown safe without closing a channel
 	// that the broadcaster can still reach. The writer is joined before return.
@@ -256,6 +266,9 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 		}
 		switch input.Type {
 		case "jsonrpc":
+			if tunnel.relayReply(input.Payload) {
+				continue
+			}
 			select {
 			case tunnel.incoming <- input.Payload:
 			case <-tunnel.done:
@@ -378,6 +391,12 @@ func (s *Server) replay() [][]byte {
 func (s *Server) Close() {
 	s.mu.Lock()
 	s.closed = true
+	for listener := range s.relays {
+		listener.Close()
+	}
+	for conn := range s.relayConnections {
+		conn.Close()
+	}
 	for conn := range s.connections {
 		conn.Close()
 	}
