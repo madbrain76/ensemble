@@ -22,6 +22,8 @@ const (
 	Kind8x
 	// KindSession holds compressed completed conversation.
 	KindSession
+	// KindRecall holds retrieved source data until the next checkpoint.
+	KindRecall
 )
 
 // SkillData captures rendered instructions, so replay never rereads a changed file.

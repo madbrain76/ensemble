@@ -334,7 +334,7 @@ func (r *runtime) begin(q request) {
 		r.finish("", err)
 		return
 	}
-	r.send()
+	r.recall()
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
@@ -538,6 +538,8 @@ func (r *runtime) run() {
 				r.owner.config.Memory = m.value
 				r.owner.configMu.Unlock()
 				m.reply <- r.syncMemory()
+			case recalled:
+				r.recalled(m)
 			case compressed:
 				r.compressed(m)
 			case response:

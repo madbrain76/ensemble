@@ -15,7 +15,7 @@ func apply(c *common.Context, e common.Event) {
 	// Classification belongs here, after capture. Replaying a System arrival
 	// recovers pending instructions even before the first request is sent.
 	case "message_received", "hint_received":
-		if e.Message.Actor == common.System || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending")) {
+		if e.Type == "hint_received" || e.Message.Actor == common.System || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending")) {
 			c.Ephemera = append(c.Ephemera, e.Message.Parts...)
 		} else {
 			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: e.Message.Actor, Parts: e.Message.Parts})
@@ -73,6 +73,8 @@ func apply(c *common.Context, e common.Event) {
 		}
 	case "skill_loaded":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindSkill, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Skill.Body}}})
+	case "recall_attached":
+		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindRecall, Actor: common.Human, Parts: e.Recall.Parts})
 	case "micro_handoff":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindHandoff, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Handoff.Text}}})
 	case "tools_changed":
@@ -216,6 +218,14 @@ func land(c *common.Context, entry common.Entry) {
 	}
 	if entry.Kind == common.KindHandoff {
 		redact(c, &common.RedactData{From: 0, To: ^uint64(0), Level: "redact_tool"})
+		// A checkpoint already pays for a prefix rewrite; retire retrieved bytes now.
+		var kept []common.Entry
+		for _, old := range c.Dialogue {
+			if old.Kind != common.KindRecall {
+				kept = append(kept, old)
+			}
+		}
+		c.Dialogue = kept
 	}
 	c.Dialogue = append(c.Dialogue, entry)
 }
@@ -234,7 +244,7 @@ func populate(c *common.Context, p *common.BandPopulatedData) {
 	out = append(out, common.Entry{Kind: kind, File: p.File, Thru: p.Thru, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: p.Text}}})
 	sort.SliceStable(out, func(i, j int) bool {
 		a, b := out[i], out[j]
-		am, bm := a.Kind >= common.KindSoul, b.Kind >= common.KindSoul
+		am, bm := a.Kind >= common.KindSoul && a.Kind <= common.KindSession, b.Kind >= common.KindSoul && b.Kind <= common.KindSession
 		if am != bm {
 			return am
 		}

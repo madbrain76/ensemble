@@ -163,7 +163,7 @@ func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
 	// Require both one payload and the payload appropriate for the tag.
 	count := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.Recall != nil} {
 		if present {
 			count++
 		}
@@ -198,6 +198,16 @@ func validate(e common.Event) error {
 	case "skill_loaded":
 		if e.Skill == nil || e.Skill.Name == "" {
 			return errors.New("skill payload missing")
+		}
+	case "recall_attached":
+		if e.Recall == nil {
+			return errors.New("recall payload missing")
+		}
+		parts = e.Recall.Parts
+		for _, p := range parts {
+			if p.Type != "text" {
+				return errors.New("recall must contain text")
+			}
 		}
 	case "micro_handoff":
 		if e.Handoff == nil || strings.TrimSpace(e.Handoff.Text) == "" {
@@ -321,7 +331,7 @@ func (h *history) LastSeq() uint64 {
 // skipped atomically. Validation never mutates the projected context.
 func knownEvent(kind string) bool {
 	switch kind {
-	case "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched":
+	case "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "recall_attached":
 		return true
 	}
 	return false

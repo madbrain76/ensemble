@@ -20,6 +20,7 @@ import (
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
 	"ensemble/internal/memory"
+	"ensemble/internal/recall"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -172,6 +173,12 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 			prompt += "\n\n" + body
 		}
 		a.SetSystemPrompt(prompt)
+	}
+	if err := recall.Validate(cfg.Recall); err != nil {
+		return nil, err
+	}
+	if !cfg.Recall.Disabled {
+		a.AttachRecaller(recall.New(a))
 	}
 	e.agents = append(e.agents, a)
 	assembled = true
@@ -406,3 +413,6 @@ type BandSettings = common.BandSettings
 
 // ValidateMemorySettings checks corpus policy before a client persists a patch.
 func ValidateMemorySettings(settings MemorySettings) error { return memory.Validate(settings) }
+
+// RecallSettings configures passive retrieval independently for each Agent.
+type RecallSettings = common.RecallSettings

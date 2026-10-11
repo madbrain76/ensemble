@@ -26,6 +26,7 @@ type agent struct {
 	skills       common.Skills
 	mcp          common.MCP
 	memory       common.Memory
+	recaller     common.Recaller
 	forceHandoff atomic.Bool
 	once         sync.Once
 	box          *box

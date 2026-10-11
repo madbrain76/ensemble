@@ -16,15 +16,16 @@ import (
 // The lock permits observation while a tool worker loads instructions. Renderers
 // run outside it because $TOOLS queries declarations through this same registry.
 type registry struct {
-	parent   common.Agent
-	mu       sync.Mutex
-	loadMu   sync.Mutex
-	all      map[string]skill
-	loaded   map[string]bool
-	pending  map[string]bool
-	tools    map[string]common.ToolMeta
-	vars     map[string]func() string
-	variable *regexp.Regexp
+	parent    common.Agent
+	directory string
+	mu        sync.Mutex
+	loadMu    sync.Mutex
+	all       map[string]skill
+	loaded    map[string]bool
+	pending   map[string]bool
+	tools     map[string]common.ToolMeta
+	vars      map[string]func() string
+	variable  *regexp.Regexp
 }
 
 // New discovers files without enabling them; the root attaches this child before
@@ -33,7 +34,7 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 	if parent == nil {
 		panic("Skills requires Agent")
 	}
-	r := &registry{parent: parent, all: make(map[string]skill), loaded: make(map[string]bool), pending: make(map[string]bool), tools: make(map[string]common.ToolMeta), vars: make(map[string]func() string), variable: regexp.MustCompile(`\$[A-Za-z_][A-Za-z0-9_]*`)}
+	r := &registry{parent: parent, directory: directory, all: make(map[string]skill), loaded: make(map[string]bool), pending: make(map[string]bool), tools: make(map[string]common.ToolMeta), vars: make(map[string]func() string), variable: regexp.MustCompile(`\$[A-Za-z_][A-Za-z0-9_]*`)}
 	entries, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
@@ -293,3 +294,6 @@ func (r *registry) PendingUnload() []string {
 	sort.Strings(names)
 	return names
 }
+
+// Directory returns the corpus selected at construction, without enabling skills.
+func (r *registry) Directory() string { return r.directory }

@@ -86,6 +86,12 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 // Send performs one HTTP exchange from already rendered bytes and returns facts
 // without changing conversation.
 func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
+	return e.send(ctx, body, cb, e.parent.Config())
+}
+
+// send accepts one request-local route, allowing the judge to choose a model
+// without mutating the Agent or constructing a second Engine.
+func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallbacks, cfg common.Config) (events []common.Event, err error) {
 	// Error bodies and URLs may echo credentials. Preserve useful status/error
 	// identity but never return remote error prose or log authentication headers.
 	defer func() {
@@ -97,7 +103,6 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 	// URLs and authentication are deliberately outside Render. Offline replay
 	// needs neither credentials nor a reachable provider, and bodies cannot
 	// accidentally serialize an API key from the configuration.
-	cfg := e.parent.Config()
 	path := "/v1/messages"
 	switch cfg.Vendor {
 	case common.OpenAI:

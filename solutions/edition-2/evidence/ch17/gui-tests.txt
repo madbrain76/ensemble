@@ -1,0 +1,3 @@
+ok  	ensemble-gui-stub	1.136s
+?   	ensemble-gui-stub/cmd	[no test files]
+?   	ensemble-gui-stub/cmd/virtual-user	[no test files]

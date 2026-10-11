@@ -122,3 +122,24 @@ The compressor makes one bounded request using the current provider and one
 memory bytes and cuts replay without another model call. A compression target
 is a prompt guideline, not a guarantee that the model preserves every fact;
 review important memories on disk and correct them when necessary.
+
+Auto-recall searches the Agent's memory files (including retired originals),
+`docs/`, `handoffs/`, `learnings/` markdown, and its configured skill directory.
+These directories are relative to `Config.DataDir` (`cr/` in the commands).
+It skips text already present in context, including the newest memories when
+already loaded by a band. Markdown learnings are the supported public corpus
+format; this application does not read another application's private JSON files.
+
+Each user turn of at least 80 characters searches per-source BM25 indexes. The
+stateless judge defaults to the current provider/model; set
+`EN_RECALL_JUDGE_MODEL` to a cheaper compatible model on that same provider.
+`EN_RECALL_DISABLE_JUDGE=1` selects mechanical recall, and
+`EN_RECALL_DISABLED=1` bypasses recall. Embedders can set `Config.Recall` limits;
+zero selects the chapter defaults (3 snippets, 20 candidates, 3 recent messages,
+6,144 attachment bytes). Judge failure falls back to final source quotas:
+memories receive half the slots rounded up, and unused slots are redistributed.
+A successful judge's selections, including none, stand unchanged.
+
+Recall is recorded under `recall_attached.parts`, separately from the user's
+words. Renderers retain its position; offline replay never searches or judges.
+A `micro_handoff` removes recalled context at the existing checkpoint boundary.

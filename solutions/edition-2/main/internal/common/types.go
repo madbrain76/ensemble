@@ -39,6 +39,8 @@ type Config struct {
 	LogRetention int
 	// Memory selects per-band byte budgets and enabled content.
 	Memory MemorySettings
+	// Recall selects passive retrieval and its bounded stateless judge.
+	Recall RecallSettings
 	// DisableStreaming selects length-one delivery even for known streaming models.
 	DisableStreaming bool
 }
@@ -241,6 +243,8 @@ type Event struct {
 	Handoff *MicroHandoffData `json:"handoff,omitempty"`
 	// Tools records a change in available declarations after the frozen prefix.
 	Tools *ToolsChangedData `json:"tools,omitempty"`
+	// Recall records selected source bytes for deterministic replay.
+	Recall *RecallData `json:"recall_attached,omitempty"`
 	// Populated records memory bytes, independent of the current filesystem.
 	Populated *BandPopulatedData `json:"populated,omitempty"`
 	// Depopulated retires a band or its oldest file range.
@@ -356,6 +360,8 @@ type Agent interface {
 	MCP() MCP
 	// Memory exposes the Agent-owned corpus child and its ownership relationship.
 	Memory() Memory
+	// Recaller exposes this Agent's passive retrieval child.
+	Recaller() Recaller
 	// Invoke runs a reverse call through admission, history and real job supervision.
 	Invoke(context.Context, string, json.RawMessage) (string, error)
 	// Skills returns the optional Agent-owned capability registry, nil without a primary.
@@ -522,6 +528,8 @@ type History interface {
 // private to Engine, so adding a vendor cannot impose its roles on clients.
 // Send returns facts; the Agent appends them through the same history door.
 type Engine interface {
+	// SnippetJudge makes an isolated text exchange without a tool loop.
+	SnippetJudge
 	// Features returns capabilities of this Agent's selected model.
 	Features() ModelFeatures
 	// Agent returns the required owning Agent rather than a copied service bundle.
