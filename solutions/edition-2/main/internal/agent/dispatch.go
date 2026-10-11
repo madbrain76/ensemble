@@ -11,6 +11,13 @@ import (
 func (r *runtime) dispatch() {
 	t := r.active
 	if len(t.calls) == 0 {
+		if t.checkpoint {
+			t.checkpoint = false
+			r.owner.forceHandoff.Store(false)
+			r.forcingChecked = r.owner.history.Context().SentThrough
+			r.checkpoint(true)
+			return
+		}
 		r.send()
 		return
 	}

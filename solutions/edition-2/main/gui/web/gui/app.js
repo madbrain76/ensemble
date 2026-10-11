@@ -368,7 +368,33 @@ const editingContext = new Set();
 for (const control of [contextTarget, logRetention]) {
   control.addEventListener("input", () => editingContext.add(control));
 }
+// Band switches and byte budgets travel through the same persisted settings path.
+const memoryControls = new Map();
+for (const band of ["soul", "memory", "64x", "8x", "session", "conversation"]) {
+  const row = document.createElement("div");
+  const enabled = document.createElement("input"); enabled.type = "checkbox";
+  const label = document.createElement("label"); label.append(enabled, ` ${band} enabled `);
+  row.append(label);
+  const controls = { disabled: enabled };
+  for (const field of ["budget", "high_watermark", "low_watermark"]) {
+    const input = document.createElement("input"); input.type = "number"; input.min = "0"; input.step = "1";
+    input.setAttribute("aria-label", `${band} ${field} bytes (0 = default)`);
+    input.style.width = "7em";
+    input.addEventListener("input", () => editingContext.add(input));
+    controls[field] = input; row.append(input);
+  }
+  for (const [field, input] of Object.entries(controls)) input.addEventListener("change", () => {
+    editingContext.delete(input);
+    send({ type: "update_settings", settings: { memory: { [band]: { [field]: field === "disabled" ? !input.checked : Number(input.value) } } } });
+  });
+  memoryControls.set(band, controls);
+  document.querySelector("#memory-settings").append(row);
+}
 function applySettings(settings) {
+  for (const [band, controls] of memoryControls) for (const [field, input] of Object.entries(controls)) {
+    if (field === "disabled") input.checked = !settings.memory?.[band]?.disabled;
+    else if (!editingContext.has(input)) input.value = settings.memory?.[band]?.[field] ?? 0;
+  }
   if (!editingContext.has(contextTarget)) contextTarget.value = settings.context_target;
   if (!editingContext.has(logRetention)) logRetention.value = settings.log_retention;
   theme.value = settings.theme;

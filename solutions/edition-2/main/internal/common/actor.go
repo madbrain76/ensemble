@@ -147,6 +147,9 @@ const (
 
 // ModelFeatures describes known media inputs and incremental delivery channels.
 type ModelFeatures struct {
+	// ContextWindow is the supported input window in tokens; zero disables forcing.
+	ContextWindow int
+
 	// InlineTools permits declaration changes in the dialogue without rewriting the prefix.
 	InlineTools bool
 	// StubsToolResults lets the model retain a batch explicitly before automatic stubbing.

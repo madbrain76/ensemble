@@ -3,6 +3,7 @@ package gui
 import (
 	"bytes"
 	"encoding/json"
+	"ensemble/ensemble"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,8 @@ import (
 // Settings is a full snapshot of the GUI preferences and the Agent's saved turn budget. No field
 // uses omitempty: false and zero are real values that every client must receive.
 type Settings struct {
+	// Memory controls the Agent corpus; full snapshots preserve nested false and zero values.
+	Memory ensemble.MemorySettings `json:"memory"`
 	// Theme selects dark, light, or the browser's system preference.
 	Theme string `json:"theme"`
 	// TTSEnabled controls automatic speech in connected browsers.
@@ -60,6 +63,7 @@ func (s *Server) snapshotSettings() Settings {
 	snapshot.MaxToolRounds = s.agent.Config().MaxToolRounds
 	snapshot.ContextTarget = s.agent.Config().ContextTarget
 	snapshot.LogRetention = s.agent.Config().LogRetention
+	snapshot.Memory = s.agent.Config().Memory
 	return snapshot
 }
 func (s *Server) loadSettings() error {
@@ -79,6 +83,9 @@ func (s *Server) loadSettings() error {
 	if err := s.agent.SetMaxToolRounds(next.MaxToolRounds); err != nil {
 		return err
 	}
+	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
+		return err
+	}
 	return s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
 }
 func (s *Server) settingsPath() string {
@@ -90,6 +97,10 @@ func (s *Server) settingsPath() string {
 func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	next, err := settingsPatch(s.snapshotSettings(), raw)
 	if err != nil {
+		return Settings{}, err
+	}
+	// Validate before persistence; a rejected patch must not change the saved file.
+	if err := ensemble.ValidateMemorySettings(next.Memory); err != nil {
 		return Settings{}, err
 	}
 	data, err := json.MarshalIndent(next, "", "  ")
@@ -111,5 +122,6 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	s.settings = next
 	s.agent.SetMaxToolRounds(next.MaxToolRounds) // Already clamped by settingsPatch.
 	s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
+	s.agent.SetMemorySettings(next.Memory)
 	return next, nil
 }

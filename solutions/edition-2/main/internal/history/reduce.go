@@ -3,6 +3,7 @@ package history
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"ensemble/internal/common"
 )
@@ -36,6 +37,7 @@ func apply(c *common.Context, e common.Event) {
 	// A failed HTTP exchange records ErrorOccurred and never reaches this arm.
 	case "response_ended":
 		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: common.AgentActor, Parts: e.Response.Parts})
+		c.LastUsage = e.Response.Usage
 		c.Usage.Input += e.Response.Usage.Input
 		c.Usage.CacheWrite += e.Response.Usage.CacheWrite
 		c.Usage.CacheRead += e.Response.Usage.CacheRead
@@ -75,8 +77,32 @@ func apply(c *common.Context, e common.Event) {
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindHandoff, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Handoff.Text}}})
 	case "tools_changed":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindTools, Actor: common.System, Parts: []common.Part{{Type: "tool_decls", Added: e.Tools.Added, Removed: e.Tools.Removed}}})
+	case "compactor_launched":
+		c.Compression = &common.PendingCompression{Launch: *e.Compactor}
+	case "band_depopulated":
+		if e.Depopulated.Reason == "graduation" && c.Compression != nil {
+			c.Compression.Retire = e.Depopulated
+		} else {
+			depopulate(c, e.Depopulated)
+		}
+	case "band_populated":
+		p := e.Populated
+		if pending := c.Compression; pending != nil && pending.Launch.Band == p.Band && pending.Launch.Thru == p.Thru {
+			if pending.Cut != nil {
+				redact(c, pending.Cut)
+			}
+			if pending.Retire != nil {
+				depopulate(c, pending.Retire)
+			}
+			c.Compression = nil
+		}
+		populate(c, p)
 	case "redacted":
-		redact(c, e.Redact)
+		if e.Redact.Reason == "memory compression" && c.Compression != nil {
+			c.Compression.Cut = e.Redact
+		} else {
+			redact(c, e.Redact)
+		}
 	case "error_occurred", "turn_ended":
 		c.Turn = "idle"
 	case "turn_interrupted":
@@ -115,14 +141,14 @@ func redact(c *common.Context, r *common.RedactData) {
 	var out []common.Entry
 	summarized := false
 	for _, entry := range c.Dialogue {
-		if entry.Seq < r.From || entry.Seq > r.To || entry.Kind > common.KindDialogue {
+		if entry.Seq < r.From || entry.Seq > r.To || entry.Kind > common.KindDialogue && !(r.Level == "redact_summary" && entry.Kind == common.KindHandoff) {
 			out = append(out, entry)
 			continue
 		}
 		// A fold is different from a per-entry filter: insert the replacement
 		// once even when the span crosses speakers. System owns that summary.
 		if r.Level == "redact_summary" {
-			if !summarized {
+			if !summarized && len(r.Replacement) > 0 {
 				out = append(out, common.Entry{Seq: r.From, Actor: common.System, Parts: r.Replacement})
 				summarized = true
 			}
@@ -192,4 +218,49 @@ func land(c *common.Context, entry common.Entry) {
 		redact(c, &common.RedactData{From: 0, To: ^uint64(0), Level: "redact_tool"})
 	}
 	c.Dialogue = append(c.Dialogue, entry)
+}
+
+// Band events are data. Stable placement ignores the order in which bands were
+// re-enabled, and replacing one identity exposes edits made while it was off.
+func populate(c *common.Context, p *common.BandPopulatedData) {
+	c.DisabledBands[p.Band] = false
+	kind := common.KindSoul + common.EntryKind(p.Band-1)
+	var out []common.Entry
+	for _, e := range c.Dialogue {
+		if e.Kind != kind || (p.Band > common.BandMemory && e.File != p.File) {
+			out = append(out, e)
+		}
+	}
+	out = append(out, common.Entry{Kind: kind, File: p.File, Thru: p.Thru, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: p.Text}}})
+	sort.SliceStable(out, func(i, j int) bool {
+		a, b := out[i], out[j]
+		am, bm := a.Kind >= common.KindSoul, b.Kind >= common.KindSoul
+		if am != bm {
+			return am
+		}
+		if !am {
+			return false
+		}
+		if a.Kind != b.Kind {
+			return a.Kind < b.Kind
+		}
+		return fileLess(a.File, b.File)
+	})
+	c.Dialogue = out
+}
+func fileLess(a, b common.MemoryFileID) bool {
+	return a.Date < b.Date || a.Date == b.Date && a.Num < b.Num
+}
+func depopulate(c *common.Context, p *common.BandDepopulatedData) {
+	if p.Reason == "disabled" {
+		c.DisabledBands[p.Band] = true
+	}
+	kind := common.KindSoul + common.EntryKind(p.Band-1)
+	var out []common.Entry
+	for _, e := range c.Dialogue {
+		if e.Kind != kind || p.Thru != nil && fileLess(*p.Thru, e.File) {
+			out = append(out, e)
+		}
+	}
+	c.Dialogue = out
 }

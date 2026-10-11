@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"ensemble/internal/common"
 )
@@ -15,26 +16,28 @@ import (
 // imports the other implementation package. Their shared interfaces let the
 // owner coordinate one actor without a second orchestration path.
 type agent struct {
-	parent      common.Ensemble
-	config      common.Config
-	configMu    sync.Mutex
-	engine      common.Engine
-	history     common.History
-	tools       []common.ToolDefinition
-	jobs        common.Jobs
-	skills      common.Skills
-	mcp         common.MCP
-	once        sync.Once
-	box         *box
-	done        chan struct{}
-	observersMu sync.Mutex
-	observers   []common.Observer
-	progress    chan common.Observation
-	stopErr     error
-	lifecycle   sync.Mutex
-	stopping    bool
-	pauseMu     sync.Mutex
-	resume      chan struct{}
+	parent       common.Ensemble
+	config       common.Config
+	configMu     sync.Mutex
+	engine       common.Engine
+	history      common.History
+	tools        []common.ToolDefinition
+	jobs         common.Jobs
+	skills       common.Skills
+	mcp          common.MCP
+	memory       common.Memory
+	forceHandoff atomic.Bool
+	once         sync.Once
+	box          *box
+	done         chan struct{}
+	observersMu  sync.Mutex
+	observers    []common.Observer
+	progress     chan common.Observation
+	stopErr      error
+	lifecycle    sync.Mutex
+	stopping     bool
+	pauseMu      sync.Mutex
+	resume       chan struct{}
 }
 
 // New creates an Agent with a required Ensemble parent; the root installs its
@@ -186,6 +189,9 @@ func (a *agent) SetSystemPrompt(prompt string) {
 }
 
 func (a *agent) toolEnabled(name string) bool {
+	if a.forceHandoff.Load() && name != "micro_handoff" {
+		return false
+	}
 	if a.skills == nil {
 		return true
 	}
@@ -244,3 +250,26 @@ func (a *agent) SetContextSettings(target, retention int) error {
 	a.config.ContextTarget, a.config.LogRetention = target, retention
 	return nil
 }
+
+// SetMemorySettings updates the Agent's policy; its actor reconciles content at
+// the next request boundary, before rendering or admitting a new user message.
+func (a *agent) SetMemorySettings(settings common.MemorySettings) error {
+	if err := a.memory.Validate(settings); err != nil {
+		return err
+	}
+	a.configMu.Lock()
+	defer a.configMu.Unlock()
+	a.config.Memory = settings
+	return nil
+}
+
+// AttachMemory establishes both sides of corpus ownership before runtime use.
+func (a *agent) AttachMemory(m common.Memory) {
+	if m == nil || m.Agent() != a {
+		panic("Memory must belong to this Agent")
+	}
+	a.memory = m
+}
+
+// Memory returns the corpus service owned by this Agent.
+func (a *agent) Memory() common.Memory { return a.memory }

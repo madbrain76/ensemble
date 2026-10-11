@@ -19,6 +19,7 @@ import (
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
+	"ensemble/internal/memory"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -126,6 +127,10 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
+	a.AttachMemory(memory.New(a))
+	if err := a.SetMemorySettings(cfg.Memory); err != nil {
+		return nil, err
+	}
 	assembled := false
 	// A failed primary can already have launched a peer or admitted reverse work.
 	// Construction owns that cleanup because no caller receives the Agent.
@@ -392,3 +397,12 @@ func MCPPipe() (MCPTransport, MCPTransport) { return mcp.Pipe() }
 
 // MCPTransportOwner is the parent contract for optional transport implementations.
 type MCPTransportOwner = common.MCPTransportOwner
+
+// MemorySettings selects the Agent's corpus switches and byte budgets.
+type MemorySettings = common.MemorySettings
+
+// BandSettings controls one memory band, preserving zero defaults and false switches.
+type BandSettings = common.BandSettings
+
+// ValidateMemorySettings checks corpus policy before a client persists a patch.
+func ValidateMemorySettings(settings MemorySettings) error { return memory.Validate(settings) }
