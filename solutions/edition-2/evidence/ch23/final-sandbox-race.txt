@@ -1,7 +1,7 @@
 === RUN   TestSandboxFiles
---- PASS: TestSandboxFiles (0.03s)
+--- PASS: TestSandboxFiles (0.02s)
 === RUN   TestSandboxCommands
---- PASS: TestSandboxCommands (0.25s)
+--- PASS: TestSandboxCommands (0.24s)
 === RUN   TestSandboxChildSpec
 --- PASS: TestSandboxChildSpec (0.00s)
 === RUN   TestSandboxSafeMode
@@ -15,4 +15,4 @@
 === RUN   TestSandboxMedia
 --- PASS: TestSandboxMedia (0.00s)
 PASS
-ok  	ensemble/ensemble	1.335s
+ok  	ensemble/ensemble	1.320s
