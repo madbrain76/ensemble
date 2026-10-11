@@ -1,5 +1,15 @@
 # Ensemble student restart
 
+## October 11: stopped before original Chapter 22
+
+Original21 / Edition2 ch20 is independently accepted with recorded exceptions.
+The exact accepted export is `solutions/edition-2/ch20/`; main tree is
+`f351d66a7bc456650e05ac6656a7db59bbbd725a`. Coder and reviewer are stopped.
+Wait for Bill to decide the placement of original22 material before further
+implementation or authorship. Do not merge, skip, renumber or advance to23.
+The original24 and author-phase stops remain. Use GPT-6 Astra/high for subsequent
+authorized coding and code review. Preserve CodeRhapsody’s concurrent work.
+
 ## October 11: GPT-6 Astra for coding
 
 Bill approved **GPT-6 Astra (`gpt-6-astra`) at high reasoning** and requested it
@@ -50,8 +60,8 @@ Bill requires accepted solutions directly in `solutions/edition-2/chNN/`, using
 Edition 2 numbering, with no symlinks. Original Chapter 5 is absorbed into
 Chapter 4; original Chapters 10–13 are Edition 2 `ch09`–`ch12`. Only the retired
 original `history/ch05/` remains. The coder extends `solutions/edition-2/main/`;
-original Chapters 14–20 are accepted at top-level Edition 2 `ch13/`–`ch19/`.
-Original 21 / Edition 2 Chapter 20 is next with GPT-6 Astra/high. The bounded
+original Chapters 14–21 are accepted at top-level Edition 2 `ch13/`–`ch20/`.
+Stop before original22 for Bill’s placement decision. The bounded
 original20 coding crossover succeeded and was independently accepted.
 Never put new accepted solutions in history. Original exercise,
 grader, note, evidence and existing tag numbers remain unchanged; state both

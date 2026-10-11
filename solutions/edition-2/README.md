@@ -1,8 +1,9 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–19 are accepted**. [`main/`](main/) is the authoritative working
-tree. Chapter 20 (original 21, web search) is next, using GPT-6 Astra/high. Auto-Recall follows
+Chapters **1–20 are accepted**. [`main/`](main/) is the authoritative working
+tree. The team is stopped before original Chapter 22 for Bill’s placement decision.
+Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
 
@@ -31,13 +32,16 @@ numbers are one lower than the original book's numbers. The remaining standalone
 | 17: The Invisible Invoice | [ch17](ch17/), [manifest](ch17-manifest.json) | 18 | `edition-2-ch18-r1` |
 | 18: Subscription authentication and reasoning | [ch18](ch18/), [manifest](ch18-manifest.json) | 19 | `edition-2-ch19-r1` |
 | 19: The Crossover | [ch19](ch19/), [manifest](ch19-manifest.json) | 20 | `edition-2-ch20-r1` |
+| 20: Giving the Agent the Web | [ch20](ch20/), [manifest](ch20-manifest.json) | 21 | `edition-2-ch21-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
 Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Its bounded real coding
 demonstration with GPT-6 Astra/high is accepted; no original20 grader is claimed.
-Original21's web-search exercise follows, then stop before original22.
+Original21’s web-search exercise is independently accepted with two narrow
+exceptions; its actual original grade remains 0/100 FAIL. Live search/fetch and
+supplemental verification are recorded in the chapter review. Stop before original22.
 
 The revised grader covers enhanced Chapters 1–8, for example:
 

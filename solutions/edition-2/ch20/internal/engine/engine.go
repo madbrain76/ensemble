@@ -1,0 +1,395 @@
+// Package engine owns vendor translation, HTTP exchanges and measured usage.
+package engine
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"sync"
+	"time"
+
+	"ensemble/internal/common"
+)
+
+// This is rendered output, not conversation state. Later instruction generation
+// can replace the constant without rewriting any saved conversation.
+const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+
+// One client and accounting accumulator belong to one Engine. Configuration
+// remains reachable through Agent, so sibling Agents never share credentials
+// or a mutable vendor selection by accident.
+type engine struct {
+	parent      common.Agent
+	client      *http.Client
+	usage       common.Usage
+	last        common.Usage
+	byModel     map[usageKey]common.Usage
+	lens        common.CacheLens
+	mu          sync.Mutex
+	billingOnce sync.Once
+}
+
+// New creates an Agent-owned HTTP engine with bounded transport requests.
+func New(parent common.Agent) common.Engine {
+	if parent == nil {
+		panic("Engine requires Agent")
+	}
+	return &engine{parent: parent, client: &http.Client{Timeout: 60 * time.Second}}
+}
+
+// Agent returns the required owning Agent rather than a copied service bundle.
+func (e *engine) Agent() common.Agent { return e.parent }
+
+// Usage returns measured session counts under the Engine's accounting lock.
+func (e *engine) Usage() common.Usage {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.usage
+}
+
+// An explicitly resolved identity controls replay matching while Model still
+// routes the HTTP request. Without resolution, equality is conservative: an
+// alias differing from the captured producer will not receive opaque bytes.
+func (e *engine) Target() common.Provenance {
+	cfg := e.parent.Config()
+	model := cfg.ResolvedModel
+	if model == "" {
+		model = cfg.Model
+	}
+	surface := common.Messages
+	switch cfg.Vendor {
+	case common.OpenAI:
+		surface = common.ChatCompletions
+		if e.Features().Responses {
+			surface = common.Responses
+		}
+	case common.Gemini:
+		surface = common.GenerateContent
+	}
+	return common.Provenance{Vendor: cfg.Vendor, Model: model, Surface: surface}
+}
+
+// Render has no clock or conversation mutation. Local media reads its Ref.
+// Offline replay and live requests share these bytes; credentials and URL
+// construction are transport-only. Referenced files must still contain the same bytes.
+func (e *engine) Render(c *common.Context) ([]byte, error) {
+	switch e.parent.Config().Vendor {
+	case common.Anthropic:
+		return e.renderAnthropic(c)
+	case common.OpenAI:
+		if e.Features().Responses {
+			return e.renderResponses(c)
+		}
+		return e.renderOpenAI(c)
+	case common.Gemini:
+		return e.renderGemini(c)
+	default:
+		return nil, errors.New("unknown vendor")
+	}
+}
+
+// Send performs one HTTP exchange from already rendered bytes and returns facts
+// without changing conversation.
+func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
+	cfg := e.parent.Config()
+	// Keep the prediction with this exchange: an interrupted worker may report
+	// its usage after the next turn has already observed another request.
+	predicted := 0.0
+	if e.lens != nil {
+		safe := body
+		if cfg.APIKey != "" {
+			safe = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
+		}
+		predicted = e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safe)
+	}
+	onEvent := cb.OnEvent
+	cb.OnEvent = func(event common.Event) {
+		if event.Response != nil {
+			e.mu.Lock()
+			e.last = event.Response.Usage
+			e.mu.Unlock()
+			if e.lens != nil {
+				e.lens.ObserveUsage(event.Response.Usage, predicted)
+			}
+		}
+		if onEvent != nil {
+			onEvent(event)
+		}
+	}
+	return e.send(ctx, body, cb, cfg)
+}
+
+// send accepts one request-local route, allowing the judge to choose a model
+// without mutating the Agent or constructing a second Engine.
+func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallbacks, cfg common.Config) (events []common.Event, err error) {
+	// Error bodies and URLs may echo credentials. Preserve useful status/error
+	// identity but never return remote error prose or log authentication headers.
+	defer func() {
+		if err != nil {
+			e.parent.Ensemble().Logf("%s request failed: %v", e.parent.Config().Vendor, err)
+			events = append(events, common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
+		}
+	}()
+	secrets := []string{cfg.APIKey}
+	// Resolve a request-local bearer. Rendered bytes and saved configuration never
+	// receive rotating OAuth tokens, including auxiliary judge/compressor calls.
+	if cfg.Credentials != nil {
+		cfg.APIKey, err = cfg.Credentials.GetBearerToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	secrets = append(secrets, cfg.APIKey)
+	redact := func(data []byte) []byte {
+		for _, secret := range secrets {
+			if secret != "" {
+				data = bytes.ReplaceAll(data, []byte(secret), []byte("[REDACTED]"))
+			}
+		}
+		return data
+	}
+	features, _ := LookupModel(cfg.Model)
+	if cfg.Vendor == common.OpenAI && features.Responses {
+		e.billingOnce.Do(func() {
+			kind := common.CredentialAPIKey
+			if cfg.Credentials != nil {
+				kind = cfg.Credentials.Kind()
+			}
+			e.parent.Ensemble().Observe(e.parent, common.BillingSelected{Source: kind})
+			e.parent.Ensemble().Logf("OpenAI billing source: %s", kind)
+		})
+	}
+	// URLs and authentication are deliberately outside Render. Offline replay
+	// needs neither credentials nor a reachable provider, and bodies cannot
+	// accidentally serialize an API key from the configuration.
+	path := "/v1/messages"
+	switch cfg.Vendor {
+	case common.OpenAI:
+		path = "/v1/chat/completions"
+		features, _ := LookupModel(cfg.Model)
+		if features.Responses {
+			path = "/v1/responses"
+		}
+	case common.Gemini:
+		path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":generateContent"
+		if StreamingFor(cfg) != 0 {
+			path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":streamGenerateContent?alt=sse"
+		}
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(cfg.BaseURL, "/")+path, bytes.NewReader(body))
+	if err != nil {
+		return nil, errors.New("invalid provider endpoint")
+	}
+	req.Header.Set("content-type", "application/json")
+	switch cfg.Vendor {
+	case common.Anthropic:
+		req.Header.Set("x-api-key", cfg.APIKey)
+		req.Header.Set("anthropic-version", "2023-06-01")
+		// Judge overrides must use the selected request model's protocol features.
+		features, _ := LookupModel(cfg.Model)
+		if features.InlineTools {
+			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
+		}
+	case common.OpenAI:
+		req.Header.Set("authorization", "Bearer "+cfg.APIKey)
+	case common.Gemini:
+		req.Header.Set("x-goog-api-key", cfg.APIKey)
+	}
+	// The actor already recorded request_sent and consumed delivered ephemera.
+	// This worker returns response facts without borrowing the live projection.
+	safeBody := redact(body)
+	e.parent.Ensemble().APILog("request", safeBody)
+	resp, err := e.client.Do(req)
+	// Retry authentication once using the same billing source. A 401 alone does
+	// not delete credentials; only the token endpoint can reject their renewal.
+	if err == nil && resp.StatusCode == http.StatusUnauthorized && cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialChatGPT {
+		resp.Body.Close()
+		store, ok := cfg.Credentials.(common.AuthStore)
+		if !ok {
+			return nil, errors.New("ChatGPT credential cannot renew")
+		}
+		if err := store.Refresh(ctx, cfg.APIKey); err != nil {
+			return nil, err
+		}
+		cfg.APIKey, err = store.GetBearerToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, cfg.APIKey)
+		req.Body, err = req.GetBody()
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		resp, err = e.client.Do(req)
+	}
+	if err != nil {
+		if ctx.Err() != nil {
+			return events, ctx.Err()
+		}
+		if errors.Is(err, context.DeadlineExceeded) {
+			return events, context.DeadlineExceeded
+		}
+		return events, errors.New("provider transport failed")
+	}
+	// Close even rejected responses. HTTP status is enough for a safe diagnostic;
+	// provider error text is not trusted to avoid echoing supplied secrets.
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(io.LimitReader(resp.Body, 65536))
+		return events, providerError(resp.StatusCode, data)
+	}
+
+	// Frames share the owner's trace facility. Headers and URLs never enter it;
+	// remote bytes are redacted before leaving Engine, even if a server echoes a key.
+	onFrame := cb.OnFrame
+	cb.OnFrame = func(kind string, data []byte) {
+		safe := redact(data)
+		e.parent.Ensemble().APILog(kind, safe)
+		if onFrame != nil {
+			onFrame(kind, safe)
+		}
+	}
+	// Remote content is untrusted too: a server echo must not turn the bearer
+	// into a saved fact, tool argument or observer fragment after safe logging.
+	onDelta, onFinal := cb.OnDelta, cb.OnPartFinal
+	cb.OnDelta = func(id uint64, kind common.DeltaKind, chunk string) {
+		if onDelta != nil {
+			onDelta(id, kind, string(redact([]byte(chunk))))
+		}
+	}
+	cb.OnPartFinal = func(id uint64, part common.Part) {
+		if onFinal != nil {
+			raw, _ := json.Marshal(part)
+			json.Unmarshal(redact(raw), &part)
+			onFinal(id, part)
+		}
+	}
+	onEvent := cb.OnEvent
+	cb.OnEvent = func(event common.Event) {
+		raw, _ := json.Marshal(event)
+		json.Unmarshal(redact(raw), &event)
+		events = append(events, event)
+		if event.Response != nil {
+			// Replay independently sums these same normalized categories. No vendor
+			// cache or reasoning interpretation belongs in session accounting.
+			e.account(cfg, event.Response.Usage)
+		}
+		if onEvent != nil {
+			onEvent(event)
+		}
+	}
+	if cfg.Vendor == common.OpenAI && features.Responses {
+		err = e.parseResponses(resp, cb, cfg)
+	} else {
+		err = e.Parse(resp, cb)
+	}
+	return events, err
+}
+
+// Pending ephemera follows retained dialogue in the renderer input; Anthropic
+// places inline declarations after that complete user turn. It remains absent
+// from Dialogue; RequestSent consumes it during both live application and replay.
+func entries(c *common.Context) []common.Entry {
+	out := append([]common.Entry(nil), c.Dialogue...)
+	if len(c.Ephemera) > 0 {
+		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera})
+	}
+	return out
+}
+
+// A textual tool result may contain redaction stubs. Opaque bytes and tool
+// arguments must not turn into visible prose merely because a vendor wants
+// its result content represented as a string.
+func text(parts []common.Part) string {
+	var b strings.Builder
+	for _, p := range parts {
+		if p.Type == "text" {
+			b.WriteString(p.Text)
+		}
+		if p.Type == "redacted" {
+			b.WriteString(p.Stub)
+		}
+	}
+	return b.String()
+}
+
+// Missing correlation IDs are deterministic, including multiple calls in one
+// entry. Existing vendor-issued IDs always pass through unchanged.
+func callID(entry common.Entry, index int, p common.Part) string {
+	if p.CallID != "" {
+		return p.CallID
+	}
+	return fmt.Sprintf("call_%d_%d", entry.Seq, index)
+}
+
+// Gemini needs the function name on a result, though the result fact only
+// needs CallID. Resolve existing information here instead of copying a second
+// name into every tool return and risking disagreement.
+func callFor(c *common.Context, id string) (common.Entry, int, common.Part, error) {
+	for _, entry := range c.Dialogue {
+		for i, p := range entry.Parts {
+			if p.Type == "tool_call" && p.CallID == id {
+				return entry, i, p, nil
+			}
+		}
+	}
+	return common.Entry{}, 0, common.Part{}, errors.New("tool result has no matching call")
+}
+
+// OpenAI wraps arguments in a JSON string; the other providers send objects.
+// Normalize object ordering at capture so that difference does not leak past
+// parsing. This does not interpret or execute the function's arguments.
+func canonical(raw json.RawMessage) (json.RawMessage, error) {
+	var value any
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber() // Arguments may contain integers beyond float64 precision.
+	if err := decoder.Decode(&value); err != nil {
+		return nil, errors.New("invalid tool arguments")
+	}
+	return json.Marshal(value)
+}
+
+// SystemPrompt resolves the Agent's role instruction for rendering and save metadata.
+// An explicitly empty primary skill suppresses the earlier clients' default.
+func (e *engine) SystemPrompt() string {
+	if s := e.parent.Config().SystemPrompt; s != "" || e.parent.Skills() != nil {
+		return s
+	}
+	return systemPrompt
+}
+
+// Features follows the Agent's model selection; fixture capabilities do not imply live support.
+func (e *engine) Features() common.ModelFeatures {
+	features, _ := LookupModel(e.parent.Config().Model)
+	return features
+}
+
+// Declarations come from recorded history after startup. Non-inline providers
+// pay the prefix rewrite; inline providers retain exactly their initial list.
+func (e *engine) declarations(c *common.Context) []common.ToolDeclaration {
+	if c.StartupTools == nil {
+		return e.parent.Declarations()
+	}
+	if e.Features().InlineTools {
+		return *c.StartupTools
+	}
+	return c.Tools
+}
+
+// AttachCacheLens links both sides at construction; a foreign owner is invalid.
+func (e *engine) AttachCacheLens(l common.CacheLens) {
+	if l == nil || l.Engine() != e {
+		panic("CacheLens requires owning Engine")
+	}
+	e.lens = l
+}
+
+// CacheLens exposes the optional Engine-owned instrument.
+func (e *engine) CacheLens() common.CacheLens { return e.lens }

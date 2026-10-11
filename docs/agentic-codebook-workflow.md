@@ -9,8 +9,8 @@ not linked. Earlier redundant archive copies were removed after exact tree
 comparison; their prior layouts and the superseded jobs-only stage remain in
 immutable Git tags. Only the retired original `history/ch05/` remains.
 
-The coder continues in `solutions/edition-2/main/`. Original Chapters 14–20 are
-accepted at **Edition 2 `ch13/`–`ch19/`**. All later
+The coder continues in `solutions/edition-2/main/`. Original Chapters 14–21 are
+accepted at **Edition 2 `ch13/`–`ch20/`**. All later
 accepted exports go directly to the next top-level solution, never to history.
 Original book, grader, note, evidence and existing tag numbers stay unchanged;
 state both numbers in handoffs. The stops before **original** Chapters 22 and 24
@@ -19,6 +19,40 @@ mistake and is superseded here. Historical entries below retain the paths used
 at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
+
+**October 11 original21 / Edition2 ch20 accepted; STOP before original 22.**
+Independent review `209ab27` accepts final source `f35b6ae`, main tree
+`f351d66a7bc456650e05ac6656a7db59bbbd725a`, at initial formal review with zero
+correction rounds and two narrow exceptions. The original grader remains
+**0/100 FAIL on 5a00b98**: both scenarios execute MCP operations then time out
+waiting for legacy JSON completion envelopes. Human terminal output differs;
+valid masked obligations have separate real-runtime, source and live evidence.
+The second exception preserves coherent primary-skill MCP startup instead of
+deliberately recreating the chapter’s criticized silent-no-connect trap.
+
+The first live task exposed a deployed capability gap: a completed slow scrape
+was inaccessible to the model because its primary omitted existing wait_for_job.
+Exposing that supervisor and explaining running notices fixed the bounded task.
+The corrected 23.35-second Astra/high run performed one search, one scrape and
+one wait, then cited the official page and fetched filename. Five request and
+completed-response pairs verify the chosen model/effort. Only selected output
+reached the model; truncation, the incomplete first run and source-version
+differences remain explicit. No additional paid run followed the final local
+credential-redaction correction.
+
+Pre-submission review also caught a surviving receive-wakeup mutation: client
+Done closed before transport shutdown, so it did not prove blocked Recv woke.
+The corrected test observes the actual parked receiver; restoring the defect
+now fails the intended assertion. Of 25 applied mutation cases, 24 fail as intended
+and one scoped storage-detachment survivor remains honestly recorded. Independent
+race checks pass; no production or scope finding remains open. See the chapter
+notes and comparative review for counts, rationale and evidence limits.
+
+The exact 148-file accepted export is direct `solutions/edition-2/ch20`, checkpoint
+`edition-2-ch21-r1` (original numbering). Both delegates are stopped. Wait for
+Bill’s original 22 placement decision; do not implement, draft, merge, skip or
+advance to 23. Original24 and stopped authorship remain binding. Preserve all
+CodeRhapsody Edition 1 commits and working changes.
 
 **October 11 original20 / Edition2 ch19 accepted at initial review.** Reviewer
 `reviewer_astra` accepted at `04e450d`, zero correction rounds. Final main tree
