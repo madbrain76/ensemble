@@ -38,8 +38,15 @@ type NoiseKK struct {
 	handshakeHash     []byte
 }
 
-// CipherSuite is the standard Noise cipher suite used by the gateway.
-var CipherSuite = noiselib.NewCipherSuite(noiselib.DH25519, noiselib.CipherAESGCM, noiselib.HashSHA256)
+// cipherSuite is the standard Noise cipher suite used by the gateway.
+//
+// It is a function rather than a package-level variable so that there is no
+// mutable process-wide state here: a variable holding a cipher suite is a
+// variable any other package could reassign, and the suite is part of the
+// protocol rather than a setting.
+func cipherSuite() noiselib.CipherSuite {
+	return noiselib.NewCipherSuite(noiselib.DH25519, noiselib.CipherAESGCM, noiselib.HashSHA256)
+}
 
 // NewNoiseKK creates a new Noise-KK endpoint. Both parties must provide their
 // own static keypair and the other party's public key.
@@ -72,7 +79,7 @@ func NewNoiseKK(role string, localKey noiselib.DHKey, remotePublicKey []byte, pr
 // initializeHandshake sets up the Noise handshake state.
 func (kk *NoiseKK) initializeHandshake(random io.Reader) error {
 	config := noiselib.Config{
-		CipherSuite:   CipherSuite,
+		CipherSuite:   cipherSuite(),
 		Random:        random,
 		Pattern:       noiselib.HandshakeKK,
 		Initiator:     kk.isInitiator,
