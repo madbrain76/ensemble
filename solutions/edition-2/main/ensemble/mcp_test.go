@@ -28,7 +28,7 @@ type mcpPeer struct {
 	responses chan map[string]json.RawMessage
 }
 
-func peer(t *testing.T, a ensemble.Agent, name string) *mcpPeer {
+func peer(t *testing.T, a ensemble.Agent, name string, held ...string) *mcpPeer {
 	t.Helper()
 	local, remote := ensemble.MCPPipe()
 	p := &mcpPeer{transport: remote, counts: map[string]int{}, requests: make(chan map[string]json.RawMessage, 20), responses: make(chan map[string]json.RawMessage, 20)}
@@ -77,7 +77,7 @@ func peer(t *testing.T, a ensemble.Agent, name string) *mcpPeer {
 				p.counts[params.Name]++
 				n := p.counts[params.Name]
 				p.mu.Unlock()
-				if params.Name == "slow" || params.Name == "paired" {
+				if params.Name == "slow" || params.Name == "paired" || slices.Contains(held, params.Name) {
 					p.requests <- m
 					continue
 				}

@@ -34,7 +34,7 @@ try {
  await page.locator('#input').fill('Exercise browser tools');await page.locator('#input').press('Enter');
  await page.getByText('Browser tools completed.',{exact:true}).waitFor({timeout:10000});
  check(await page.locator('#settings-tab').getAttribute('aria-selected')==='true','MCP gui_click changed actual selected tab');
- check(await page.locator('#font-size').inputValue()==='20'&&await page.evaluate(()=>getComputedStyle(document.body).fontSize)==='20px','MCP gui_input changed persisted and effective setting');
+ check(await page.locator('#font-size').inputValue()==='20'&&await page.evaluate(()=>getComputedStyle(document.body).fontSize)==='20px','MCP gui_input changed applied and effective setting');
  check(requests.length===3,'actual tool loop made three provider requests');
  for(const [i,request] of requests.entries()) {
   const text=JSON.stringify(request.messages);

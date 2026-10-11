@@ -98,11 +98,16 @@ func (r *runtime) invoke(q invocation) {
 	call.seq = r.owner.history.LastSeq()
 	// These are real jobs, with the same one-shot limits and completion ownership
 	// as model dispatch. Interrupting a turn still cannot kill another caller's job.
+	completed := make(chan common.Result, 1)
 	if call.job != nil {
 		r.workers++
 		go func() {
 			text, err := definition.Run(call, q.args)
 			call.job.Finish(text, err)
+			// Automatic context needs the actual result, not a callback's running
+			// notice. Ordinary callback callers may already have returned, so
+			// publishing completion must not hold up the job's final history fact.
+			completed <- common.Result{Text: text, Err: err}
 			r.owner.box.Post(workerDone{job: call.job})
 		}()
 	}
@@ -112,6 +117,14 @@ func (r *runtime) invoke(q invocation) {
 		var err error
 		if call.job == nil {
 			text, err = definition.Run(call, q.args)
+		} else if q.automatic {
+			// invoke's caller can abandon this collection on turn interruption;
+			// execution still completes and records its real result independently.
+			result := <-completed
+			text, err = result.Text, result.Err
+			if call.job.Data().Status == "killed" {
+				text, err = "", fmt.Errorf("automatic tool job was killed")
+			}
 		} else {
 			text, err = call.job.Wait(limits)
 		}

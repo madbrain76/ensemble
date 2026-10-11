@@ -1,0 +1,51 @@
+{
+  "module": "solutions/edition-2/main",
+  "checks": [
+    {
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./ensemble",
+        "-run",
+        "^TestMCP",
+        "-count=1",
+        "-timeout",
+        "25s"
+      ],
+      "exit": 0,
+      "output": "ok  \tensemble/ensemble\t7.943s\n",
+      "note": "Initial corrected-source baseline, captured from exec session 59310."
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "./..."
+      ],
+      "exit": 0,
+      "output": "ok  \tensemble\t(cached)\nok  \tensemble/ensemble\t9.600s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t(cached)\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/mcp\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n"
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "gofmt",
+        "-l",
+        "internal/agent/mcp.go",
+        "ensemble/mcp_test.go",
+        "ensemble/mcp_completion_test.go"
+      ],
+      "exit": 0,
+      "output": ""
+    }
+  ],
+  "note": "Only core module affected. No repeated paid, browser, other-module or original-grader runs."
+}
