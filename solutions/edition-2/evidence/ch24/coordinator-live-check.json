@@ -1,0 +1,32 @@
+{
+  "source_commit": "35df549210130f824fdc2a4eb632ea878b2c529b",
+  "main_tree": "5b36f28cbc8bac320febe1a9afa810efd27452e3",
+  "binary_sha256_verified": "86d5734eb0beeb176a7ba87c95f082a44c47f9e0e3c3077362988f8a36c0e1df",
+  "raw_api_sha256": "079c5bbbdaf69e39969541087105ebd34e0307dee8af5ca175b2240264e00299",
+  "requests": 3,
+  "completed_responses": 3,
+  "all_model": "gpt-6-astra",
+  "all_reasoning": "high",
+  "actual_file_tool_calls_and_results": 2,
+  "browser_results_match_provider_history": true,
+  "artifact_bytes": 42,
+  "disk_artifact_and_browser_dom_match": true,
+  "asset_http_statuses": [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "source_web_directory_absent": true,
+  "page_errors": [],
+  "exit": 0,
+  "seconds": 9.649,
+  "limits": [
+    "Direct observation of configuration and captured request body, not endpoint interception.",
+    "This live run demonstrates embedded full-GUI deployment; component-only and relay behavior have separate external-consumer/browser tests.",
+    "Model switching retains unchanged original22 live and deterministic evidence, not a new paid switch here."
+  ]
+}
