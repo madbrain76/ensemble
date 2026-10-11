@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -192,5 +193,89 @@ func TestManagementWaitIgnoresOtherChildMessage(t *testing.T) {
 	go other.Fleet().AskParent(ctx, "OTHER_QUESTION")
 	if err := <-done; err != context.DeadlineExceeded {
 		t.Fatal(err)
+	}
+}
+
+type dispatchedTool chan struct{}
+
+// Observe exposes the real serial-dispatch boundary before the shell completes.
+func (c dispatchedTool) Observe(o ensemble.Observation) {
+	if d, ok := o.(ensemble.ToolDispatched); ok && d.Name == "run_command" {
+		c <- struct{}{}
+	}
+}
+
+// Both interrupt modes retain the child for another task. after_tool keeps the
+// actual tool result; now cancels the in-flight HTTP request instead of waiting.
+func TestManagementInterruptModesAndAsk(t *testing.T) {
+	for _, mode := range []string{"now", "after_tool"} {
+		t.Run(mode, func(t *testing.T) {
+			entered := make(chan struct{}, 1)
+			var calls atomic.Int32
+			var thirdSeen atomic.Bool
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				body, _ := io.ReadAll(r.Body)
+				if strings.Contains(string(body), "THIRD") {
+					thirdSeen.Store(true)
+				}
+				if calls.Add(1) == 1 {
+					if mode == "now" {
+						entered <- struct{}{}
+						<-r.Context().Done()
+						return
+					}
+					fleetCall(w, "run_command", map[string]any{"command": "sleep 0.15; printf TOOL_FINISHED", "ai_callback_delay": 2})
+					return
+				}
+				fleetCall(w, "submit", map[string]string{"result": "SECOND_RESULT"})
+			}))
+			t.Cleanup(server.Close)
+			a, _, _ := fleetAgent(t, server)
+			root := a.Ensemble().(*ensemble.Ensemble)
+			root.SetAgentFactory(func(parent ensemble.Agent, spec ensemble.AgentSpec) (ensemble.Agent, error) {
+				child, err := root.NewChildAgent(parent, parent.Config(), spec)
+				if err == nil && mode == "after_tool" {
+					child.Observe(dispatchedTool(entered))
+				}
+				return child, err
+			})
+			if _, err := a.Fleet().Spawn("worker", "FIRST", ""); err != nil {
+				t.Fatal(err)
+			}
+			<-entered
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			args, _ := json.Marshal(map[string]string{"agent_id": "worker", "mode": mode})
+			if _, err := a.Invoke(ctx, "interrupt_agent", args); err != nil {
+				t.Fatal(err)
+			}
+			child, _ := a.Fleet().Find("worker")
+			if err := child.Flush(ctx); err != nil {
+				t.Fatal(err)
+			}
+			interrupted, toolResult := false, false
+			for _, event := range child.History().EventsAfter(0) {
+				interrupted = interrupted || event.Type == "turn_interrupted"
+				if event.Type == "tool_returned" {
+					for _, part := range event.Tool.Parts {
+						toolResult = toolResult || strings.Contains(part.Text, "TOOL_FINISHED")
+					}
+				}
+			}
+			if !interrupted || mode == "after_tool" && !toolResult {
+				t.Fatalf("interrupt=%v completed tool=%v", interrupted, toolResult)
+			}
+			answer, err := a.Invoke(ctx, "ask_agent", json.RawMessage(`{"agent_id":"worker","content":"SECOND"}`))
+			if err != nil || !strings.Contains(answer, "SECOND_RESULT") {
+				t.Fatal("interrupt killed child", answer, err)
+			}
+			if _, err = a.Invoke(ctx, "send_message", json.RawMessage(`{"agent_id":"worker","content":"THIRD"}`)); err != nil {
+				t.Fatal(err)
+			}
+			if err = child.Flush(ctx); err != nil || !thirdSeen.Load() {
+				t.Fatal("idle send_message was not delivered", err)
+			}
+
+		})
 	}
 }

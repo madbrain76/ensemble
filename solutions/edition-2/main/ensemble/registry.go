@@ -49,6 +49,11 @@ func (e *Ensemble) Start(dir string, cfg Config, spec AgentSpec, sink UserSink) 
 			return nil, err
 		}
 	}
+	if cfg.DataDir == "" {
+		cfg.DataDir = filepath.Join(absolute, "main")
+	} else if !filepath.IsAbs(cfg.DataDir) {
+		cfg.DataDir = filepath.Join(absolute, cfg.DataDir)
+	}
 	e.directory, e.defaults, e.defaultSpec = absolute, cfg, spec
 	e.named = map[string]Agent{}
 	e.EnableFleet(sink)
@@ -158,10 +163,8 @@ func (e *Ensemble) DeleteAgent(name string) error {
 	if a == nil {
 		return fmt.Errorf("unknown agent %q", name)
 	}
-	for _, child := range a.Fleet().List() {
-		if child.State != "submitted" {
-			return errors.New("agent has active children; join or shut them down first")
-		}
+	if err := a.Fleet().PrepareDelete(); err != nil {
+		return err
 	}
 	// Stop admission before deleting identity or files. No new children can appear
 	// after this boundary, even if a browser races a model's final tool call.

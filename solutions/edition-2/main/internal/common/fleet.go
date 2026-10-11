@@ -64,6 +64,8 @@ type SubAgentManager interface {
 	Join(context.Context, []string) (string, error)
 	// ShutdownChild joins and saves one child, then removes it, preserving its files.
 	ShutdownChild(string) error
+	// PrepareDelete atomically refuses active children or closes child admission.
+	PrepareDelete() error
 	// Shutdown closes admission and recursively joins all owned children.
 	Shutdown() error
 	// AskParent blocks until the addressed parent or human replies.

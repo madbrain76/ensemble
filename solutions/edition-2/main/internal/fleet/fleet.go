@@ -400,3 +400,16 @@ func (m *manager) End(err error) {
 	}
 	m.signal()
 }
+
+// PrepareDelete closes child admission under the same lock as the active check.
+// This prevents a racing spawn from orphaning new work after a GUI deletion gate.
+func (m *manager) PrepareDelete() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if len(m.active()) > 0 {
+		return errors.New("agent has active children; join or shut them down first")
+	}
+	m.stopped = true
+	m.signal()
+	return nil
+}

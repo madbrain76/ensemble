@@ -279,3 +279,24 @@ cfg, spec)`. Configure `SetUserSink` to receive human questions and escalation,
 and answer through the root's `Fleet().Reply`. Without a factory, the prior
 single-Agent turn protocol remains and fleet tools are hidden. The optional
 GUI retains its existing single-Agent interface at this chapter.
+
+## Fleet console (original Chapter 26 / Edition 2 Chapter 23)
+
+The shipped CLI and optional GUI call `Ensemble.Start` to restore named peers
+from `ensemble.json`. The GUI's Agents sidebar creates peers with a name, model
+and defining skill, selects their conversations, and deletes completed peers.
+Peers retain their own data under `agents/NAME`; task children remain scoped to
+the spawning Agent and are not registered as persistent peers. Tree keys follow
+actual parent paths, so repeated names in different branches stay distinct.
+
+Activity (thinking, tool call, waiting, idle) is separate from lifecycle state.
+The fleet tools include scoped status, change/output waiting, live messages,
+synchronous questions and durable submissions. `shutdown_agent` waits for a
+child's current/queued turns; `kill_agent` cancels its lifetime immediately.
+`interrupt_agent` ends only a turn (`now` or `after_tool`), leaving the Agent
+and independent jobs available. Output cursors address finalized history events;
+streamed partials are a GUI display concern.
+
+Build the optional browser app in `gui` with `go build -o /tmp/ensemble-gui ./cmd`.
+Run the browser regression with `GUI_BINARY=/tmp/ensemble-gui node fleet.test.mjs`
+from that module. It uses a local provider fake and real Chrome, not paid inference.

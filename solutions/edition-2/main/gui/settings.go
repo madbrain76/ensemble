@@ -60,7 +60,7 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 
 // The optional GUI owns browser preferences and the startup envelope. The
 // Agent owns the effective budget; snapshots always read it from that owner.
-func (s *Server) snapshotSettings() Settings {
+func (s *agentView) snapshotSettings() Settings {
 	snapshot := s.settings
 	snapshot.Model = s.agent.Config().Model
 	snapshot.MaxToolRounds = s.agent.Config().MaxToolRounds
@@ -69,7 +69,7 @@ func (s *Server) snapshotSettings() Settings {
 	snapshot.Memory = s.agent.Config().Memory
 	return snapshot
 }
-func (s *Server) loadSettings() error {
+func (s *agentView) loadSettings() error {
 	s.settings = Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
 	data, err := os.ReadFile(s.settingsPath())
 	if os.IsNotExist(err) {
@@ -91,14 +91,14 @@ func (s *Server) loadSettings() error {
 	}
 	return s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
 }
-func (s *Server) settingsPath() string {
+func (s *agentView) settingsPath() string {
 	return filepath.Join(s.agent.Config().DataDir, "settings.json")
 }
 
 // Called under settingsMu, together with broadcast and subscription. Never hold
 // the observer mutex while waiting for the actor: streamed progress needs it.
 // Persist before applying/publishing so a failed write leaves accepted state alone.
-func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
+func (s *agentView) updateSettings(raw json.RawMessage) (Settings, error) {
 	// Model selection is an immediate session operation, not a persisted GUI
 	// preference. A separate patch avoids partially accepting a mixed update
 	// when an active turn rejects the model change.
@@ -117,14 +117,14 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 		if err := s.agent.SetModel(model); err != nil {
 			return Settings{}, err
 		}
-		s.mu.Lock()
+		s.parent.mu.Lock()
 		snapshot := s.snapshotSettings()
-		s.mu.Unlock()
+		s.parent.mu.Unlock()
 		return snapshot, nil
 	}
-	s.mu.Lock()
+	s.parent.mu.Lock()
 	current := s.snapshotSettings()
-	s.mu.Unlock()
+	s.parent.mu.Unlock()
 	next, err := settingsPatch(current, raw)
 	if err != nil {
 		return Settings{}, err
@@ -161,8 +161,8 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
 		return Settings{}, err
 	}
-	s.mu.Lock()
+	s.parent.mu.Lock()
 	s.settings = next
-	s.mu.Unlock()
+	s.parent.mu.Unlock()
 	return next, nil
 }
