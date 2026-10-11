@@ -121,9 +121,12 @@ Accepted's initial revised85/100 lost inherited parity: old independent fixture
 sessions reused a directory and the new automatic save correctly carried prior
 vendor history into them. The grader now isolates those independent sessions.
 This is a fixture-lifetime correction, not permission to disable persistence.
-The coder's report preserves the intermediate runs, corrected full run and
-legacy score composition; do not infer a final full legacy run from its focused
-80/85 result. Source race checks for the real save/replay/config/path/empty-primary
+The [coder report](enhancement-10-code.md) preserves the intermediate runs,
+corrected full run and final **80/100 composed** legacy total; do not infer a
+fresh full legacy run from its focused80/85 result. The
+[final validation receipt](../../solutions/edition-2/evidence/ch11/enhancement10/final-validation.json)
+binds accepted's actual full command, exit0 and report; no duration was recorded,
+so no earlier run's timing is reused. Source race checks for the real save/replay/config/path/empty-primary
 cases pass, as do affected grader tests. Mutation records retain21initial
 intended failures plus7affected reruns/additions; these overlap and are not
 28independent guarantees of all persistence behavior.
