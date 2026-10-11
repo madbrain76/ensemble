@@ -1,0 +1,70 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.8-flash",
+  "discovery_source": "../ch10/gemini-models.json (same-day discovered model reused)",
+  "runs": [
+    {
+      "label": "first process",
+      "prompt": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.45,
+      "stdout": "Understood, I will remember the secret word cobalt-juniper.\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "contents": [
+            {
+              "role": "user",
+              "parts": [
+                {
+                  "text": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "second process",
+      "prompt": "What secret word did I ask you to remember? Reply only with that word, without tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.75,
+      "stdout": "cobalt-juniper\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "contents": [
+            {
+              "role": "user",
+              "parts": [
+                {
+                  "text": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+                }
+              ]
+            },
+            {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "Understood, I will remember the secret word cobalt-juniper.",
+                  "thoughtSignature": "EpQCCpECAWkUfRMTCAI38HmfdCZymTJo3ofmOkW56Oq8e+n/1kWAHZossi/eHWsNRyCO8lCMGTqtQliMK5i0bfvZb4Q5C09RZv61PAYsqrVJSEoD3QHjpAWk2evTjoofYzATlxrJ6VYseYzpwxKuy5n0NE1KigHeqoZZNa93bUb+1FIJC6Qq7CXMn0ucK9mZzRPbp485OdKtPvrncVh7+oGvGmI2fPtMblU1j1RNBuTptxdG9UsuqUzqjuLxdFi8pnk/yG1+5Wm7ozt0llT+T3g9oX2pZI1yeFL2CT6wM0NggSY0gPKa6Z8C3OnGaL5ULiOl7yohkV3WlPkgDfNq37wWUJGda1UgDh0s/ip5eWoUS6k5ErCL"
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "parts": [
+                {
+                  "text": "What secret word did I ask you to remember? Reply only with that word, without tools."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

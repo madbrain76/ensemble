@@ -1,0 +1,32 @@
+[
+  {
+    "name": "raw configured prompt recorded",
+    "file": "internal/history/save.go",
+    "change": {
+      "from": "SystemPrompt: h.parent.Engine().SystemPrompt()",
+      "to": "SystemPrompt: cfg.SystemPrompt"
+    },
+    "test": "TestCLISaveLifecycle",
+    "baseline_exit": 0,
+    "mutated_exit": 1,
+    "restored_exit": 0,
+    "intended_failure": "saved prompt differs from actual default wire instruction",
+    "killed": true,
+    "output": "--- FAIL: TestCLISaveLifecycle (0.19s)\n    --- FAIL: TestCLISaveLifecycle/default (0.01s)\n        save_test.go:94: saved prompt differs from actual default wire instruction: saved=\"\" wire=\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\" err=<nil>\n    --- FAIL: TestCLISaveLifecycle/override (0.00s)\n        save_test.go:94: saved prompt differs from actual default wire instruction: saved=\"\" wire=\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\" err=<nil>\nFAIL\nFAIL\tensemble\t0.194s\nFAIL\n"
+  },
+  {
+    "name": "empty primary replaced by default",
+    "file": "internal/engine/engine.go",
+    "change": {
+      "from": "s != \"\" || e.parent.Skills() != nil",
+      "to": "s != \"\""
+    },
+    "test": "TestSaveIntentionallyEmptyPrimary",
+    "baseline_exit": 0,
+    "mutated_exit": 1,
+    "restored_exit": 0,
+    "intended_failure": "empty primary acquired default instructions",
+    "killed": true,
+    "output": "--- FAIL: TestSaveIntentionallyEmptyPrimary (0.00s)\n    save_test.go:199: empty primary acquired default instructions: save=\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\" wire=\"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.\"\nFAIL\nFAIL\tensemble/ensemble\t0.007s\nFAIL\n"
+  }
+]

@@ -1,0 +1,189 @@
+{
+  "baseline": "8f64ce3",
+  "method": "Changed .go files against own accepted predecessor. Active excludes blank and // comment-only lines; no block comments in changed files. No moves or generated files. Physical includes blanks/comments.",
+  "files": [
+    {
+      "file": "ensemble/save_test.go",
+      "category": "tests",
+      "before": {
+        "physical": 0,
+        "comment_only": 0,
+        "active": 0
+      },
+      "after": {
+        "physical": 166,
+        "comment_only": 9,
+        "active": 151
+      },
+      "delta": {
+        "physical": 166,
+        "comment_only": 9,
+        "active": 151
+      }
+    },
+    {
+      "file": "gui/cmd/main.go",
+      "category": "production",
+      "before": {
+        "physical": 165,
+        "comment_only": 16,
+        "active": 145
+      },
+      "after": {
+        "physical": 191,
+        "comment_only": 20,
+        "active": 167
+      },
+      "delta": {
+        "physical": 26,
+        "comment_only": 4,
+        "active": 22
+      }
+    },
+    {
+      "file": "internal/agent/save.go",
+      "category": "production",
+      "before": {
+        "physical": 0,
+        "comment_only": 0,
+        "active": 0
+      },
+      "after": {
+        "physical": 61,
+        "comment_only": 6,
+        "active": 51
+      },
+      "delta": {
+        "physical": 61,
+        "comment_only": 6,
+        "active": 51
+      }
+    },
+    {
+      "file": "internal/common/save.go",
+      "category": "production",
+      "before": {
+        "physical": 0,
+        "comment_only": 0,
+        "active": 0
+      },
+      "after": {
+        "physical": 26,
+        "comment_only": 11,
+        "active": 13
+      },
+      "delta": {
+        "physical": 26,
+        "comment_only": 11,
+        "active": 13
+      }
+    },
+    {
+      "file": "internal/common/types.go",
+      "category": "production",
+      "before": {
+        "physical": 464,
+        "comment_only": 219,
+        "active": 214
+      },
+      "after": {
+        "physical": 476,
+        "comment_only": 225,
+        "active": 220
+      },
+      "delta": {
+        "physical": 12,
+        "comment_only": 6,
+        "active": 6
+      }
+    },
+    {
+      "file": "internal/history/history.go",
+      "category": "production",
+      "before": {
+        "physical": 288,
+        "comment_only": 42,
+        "active": 232
+      },
+      "after": {
+        "physical": 285,
+        "comment_only": 42,
+        "active": 229
+      },
+      "delta": {
+        "physical": -3,
+        "comment_only": 0,
+        "active": -3
+      }
+    },
+    {
+      "file": "internal/history/save.go",
+      "category": "production",
+      "before": {
+        "physical": 0,
+        "comment_only": 0,
+        "active": 0
+      },
+      "after": {
+        "physical": 76,
+        "comment_only": 6,
+        "active": 66
+      },
+      "delta": {
+        "physical": 76,
+        "comment_only": 6,
+        "active": 66
+      }
+    },
+    {
+      "file": "main.go",
+      "category": "production",
+      "before": {
+        "physical": 99,
+        "comment_only": 8,
+        "active": 87
+      },
+      "after": {
+        "physical": 133,
+        "comment_only": 14,
+        "active": 115
+      },
+      "delta": {
+        "physical": 34,
+        "comment_only": 6,
+        "active": 28
+      }
+    },
+    {
+      "file": "save_test.go",
+      "category": "tests",
+      "before": {
+        "physical": 0,
+        "comment_only": 0,
+        "active": 0
+      },
+      "after": {
+        "physical": 123,
+        "comment_only": 6,
+        "active": 115
+      },
+      "delta": {
+        "physical": 123,
+        "comment_only": 6,
+        "active": 115
+      }
+    }
+  ],
+  "delta_totals": {
+    "production": {
+      "physical": 232,
+      "comment_only": 39,
+      "active": 183
+    },
+    "tests": {
+      "physical": 289,
+      "comment_only": 15,
+      "active": 266
+    }
+  }
+}

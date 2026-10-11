@@ -1,0 +1,63 @@
+{
+  "provider": "openai",
+  "model": "gpt-4o-mini",
+  "discovery_source": "../ch10/openai-models.json (same-day discovered model reused)",
+  "runs": [
+    {
+      "label": "first process",
+      "prompt": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 1.37,
+      "stdout": "Understood! The secret word is \"cobalt-juniper.\"\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "model": "gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+            },
+            {
+              "role": "user",
+              "content": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "second process",
+      "prompt": "What secret word did I ask you to remember? Reply only with that word, without tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.67,
+      "stdout": "cobalt-juniper\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "model": "gpt-4o-mini",
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+            },
+            {
+              "role": "user",
+              "content": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+            },
+            {
+              "role": "assistant",
+              "content": "Understood! The secret word is \"cobalt-juniper.\""
+            },
+            {
+              "role": "user",
+              "content": "What secret word did I ask you to remember? Reply only with that word, without tools."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

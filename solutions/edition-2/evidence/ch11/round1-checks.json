@@ -1,0 +1,20 @@
+{
+  "command": "go test ./... && go vet ./...",
+  "modules": {
+    "core": {
+      "chunk_id": "9a6cc7",
+      "wall_time_seconds": 0.000016292,
+      "exit_code": 0,
+      "original_token_count": 91,
+      "output": "ok  \tensemble\t0.886s\nok  \tensemble/ensemble\t2.782s\n?   \tensemble/internal/agent\t[no test files]\n?   \tensemble/internal/common\t[no test files]\nok  \tensemble/internal/engine\t(cached)\n?   \tensemble/internal/history\t[no test files]\n?   \tensemble/internal/jobs\t[no test files]\n?   \tensemble/internal/skills\t[no test files]\n?   \tensemble/internal/tools\t[no test files]\n"
+    },
+    "gui": {
+      "chunk_id": "e56bdb",
+      "wall_time_seconds": 0.000009,
+      "exit_code": 0,
+      "original_token_count": 19,
+      "output": "ok  \tensemble-gui-stub\t0.972s\n?   \tensemble-gui-stub/cmd\t[no test files]\n"
+    }
+  },
+  "note": "Round1 only adds an Engine interface accessor for existing effective-prompt behavior, routes save metadata through it and adds narrow regressions. Other consumer checks reuse the passing initial run."
+}

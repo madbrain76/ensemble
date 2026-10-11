@@ -1,0 +1,172 @@
+{
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "discovery_source": "../ch10/anthropic-models.json (same-day discovered model reused)",
+  "runs": [
+    {
+      "label": "first process",
+      "prompt": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.87,
+      "stdout": "Got it. I'll remember the secret word: cobalt-juniper.\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "model": "claude-haiku-5-5",
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "second process",
+      "prompt": "What secret word did I ask you to remember? Reply only with that word, without tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.68,
+      "stdout": "cobalt-juniper\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "model": "claude-haiku-5-5",
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Got it. I'll remember the secret word: cobalt-juniper."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What secret word did I ask you to remember? Reply only with that word, without tools."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "snapshot-only",
+      "prompt": "What secret word did I ask you to remember? Reply only with that word, without tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.68,
+      "stdout": "cobalt-juniper\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "model": "claude-haiku-5-5",
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Got it. I'll remember the secret word: cobalt-juniper."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What secret word did I ask you to remember? Reply only with that word, without tools."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "log-only",
+      "prompt": "What secret word did I ask you to remember? Reply only with that word, without tools.",
+      "exit": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.64,
+      "stdout": "cobalt-juniper\n",
+      "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n",
+      "requests": [
+        {
+          "model": "claude-haiku-5-5",
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Remember the secret word cobalt-juniper. Reply briefly; do not use tools."
+                }
+              ]
+            },
+            {
+              "role": "assistant",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Got it. I'll remember the secret word: cobalt-juniper."
+                }
+              ]
+            },
+            {
+              "role": "user",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "What secret word did I ask you to remember? Reply only with that word, without tools."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "corrupt refusal",
+      "prompt": "What was the word?",
+      "exit": 1,
+      "timed_out": false,
+      "elapsed_seconds": 0.01,
+      "stdout": "",
+      "stderr": "load /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch11-live-doydmb9t/save.json: unexpected end of JSON input\n",
+      "requests": [],
+      "file_unchanged": true
+    }
+  ]
+}

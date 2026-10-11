@@ -1,0 +1,11 @@
+package grade
+import("encoding/json";"os";"testing")
+// Reviewer-only collection of unchanged new Chapter11 checks; inherited parity is deliberately unrun.
+func TestReviewerCh11Persistence(t *testing.T){
+ dir:=os.Getenv("REVIEW_SUBMISSION");if dir==""{t.Fatal("missing submission")}
+ r:=Ch11Run(dir);r.Ch10ParityErr="SKIPPED: known inherited GUI/headless mismatch; no full original grade"
+ report:=struct{Result Ch11Result;Checks []Check}{r,Ch11Checks(r)}
+ data,err:=json.MarshalIndent(report,"","  ");if err!=nil{t.Fatal(err)}
+ if err=os.WriteFile(os.Getenv("REVIEW_REPORT"),data,0644);err!=nil{t.Fatal(err)}
+ t.Log(string(data))
+}

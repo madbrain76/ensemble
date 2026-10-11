@@ -1,0 +1,9 @@
+Initial control setup failed vet: %q used with *string; corrected control below. Not a behavioral failure.
+--- FAIL: TestCLISaveLifecycle (0.23s)
+    --- FAIL: TestCLISaveLifecycle/default (0.02s)
+        save_test.go:87: saved system prompt "" differs from actual wire "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+    --- FAIL: TestCLISaveLifecycle/override (0.01s)
+        save_test.go:87: saved system prompt "" differs from actual wire "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+FAIL
+FAIL	ensemble	0.238s
+FAIL

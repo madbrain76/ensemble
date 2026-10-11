@@ -1,0 +1,13 @@
+{
+  "command": "make grade-dir CH=11 DIR=solutions/edition-2/main/gui",
+  "exit": 2,
+  "status": "interrupted and unscored",
+  "reason": "Coordinator authorized bounding inherited recursive GUI/headless parity after new persistence process sequence and Chapter10 skill phases. No overall score was emitted.",
+  "provenance": "Build included persistence wiring but preceded narrow GUI stdin JSON prompt-envelope decoding; final source requires focused unchanged grader review.",
+  "owned_grader_pid": 67875,
+  "newly_generated_files_removed": [
+    "main/gui/test_ch06.log.author",
+    "main/gui/test_ch06.log.editor",
+    "main/gui/test_ch06.log.reviewer"
+  ]
+}

@@ -1,0 +1,69 @@
+go run ./cmd/grade -ch 11 solutions/edition-2/main/gui
+Open http://localhost:51499; terminal messages while busy are hints. /interrupt ends the turn.
+Hello! I am your assistant.
+The meaning of life is 42.
+Open http://localhost:51509; terminal messages while busy are hints. /interrupt ends the turn.
+Goodbye, and thanks for all the fish.
+Open http://localhost:51516; terminal messages while busy are hints. /interrupt ends the turn.
+I remember our conversation!
+Open http://localhost:51524; terminal messages while busy are hints. /interrupt ends the turn.
+I remember our conversation!
+Open http://localhost:51533; terminal messages while busy are hints. /interrupt ends the turn.
+I remember our conversation!
+Open http://localhost:51540; terminal messages while busy are hints. /interrupt ends the turn.
+Of course I remember you.
+load /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch11-grade-3299936679/bad-save/save.json: invalid character 'h' in literal true (expecting 'r')
+Open http://localhost:51548; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+You now have code editing capabilities.
+Open http://localhost:51557; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+You now have code editing capabilities.
+[load_skill]
+Search helper internals loaded.
+
+Search tools loaded. Custom value: hello-from-grader
+Open http://localhost:51566; terminal messages while busy are hints. /interrupt ends the turn.
+[load_skill]
+skill "blocked" is not available to load
+Open http://localhost:51575; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:51583; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:51594; terminal messages while busy are hints. /interrupt ends the turn.
+Open http://localhost:51602; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+Open http://localhost:51611; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+Open http://localhost:51622; terminal messages while busy are hints. /interrupt ends the turn.
+[think]
+unknown tool "think"
+[think]
+unknown tool "think"
+[think]
+unknown tool "think"
+Open http://localhost:51708; terminal messages while busy are hints. /interrupt ends the turn.
+Ensemble agent ready with all tools.
+Chapter 11 — Persistence
+============================================================
+
+[FAIL]      Save file records config, anchors at the last log Seq, numbers strictly up  (0/15)
+       save-shape: config.tools is missing "think"
+
+[PASS]      A second start in the same directory, no flags, resumes the conversation  (20/20)
+
+[PASS]      Loading a save, and loading it with context null, render identical requests  (20/20)
+
+[PASS]      An older snapshot spliced onto a newer log replays the tail exactly once  (15/15)
+
+[PASS]      A snapshot with an empty log is a complete save, and numbering continues  (10/10)
+
+[PASS]      A save file that does not parse is fatal, and its bytes are left alone  (5/5)
+
+[FAIL]      Chapter 10 checks still pass  (0/15)
+       ch10 parity: one or more ch10 checks failed
+
+------------------------------------------------------------
+score: 70/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

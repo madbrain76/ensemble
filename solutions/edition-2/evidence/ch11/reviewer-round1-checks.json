@@ -1,0 +1,39 @@
+[
+  {
+    "name": "save-race",
+    "command": [
+      "go",
+      "test",
+      "-race",
+      "./ensemble",
+      "-run",
+      "TestSave|TestBadSave",
+      "-count=1"
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble/ensemble\t1.057s\n"
+  },
+  {
+    "name": "cli-shape",
+    "command": [
+      "go",
+      "test",
+      ".",
+      "-run",
+      "^TestCLISaveLifecycle$",
+      "-count=1"
+    ],
+    "exit": 0,
+    "output": "ok  \tensemble\t0.237s\n"
+  },
+  {
+    "name": "vet",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "output": ""
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "modules": {
+    "core": {
+      "go test ./...": "PASS",
+      "go vet ./...": "PASS"
+    },
+    "gui": {
+      "go test ./...": "PASS",
+      "go vet ./...": "PASS"
+    },
+    "ch05": {
+      "go test ./...": "PASS",
+      "go vet ./...": "PASS"
+    },
+    "ch06": {
+      "go test ./...": "PASS",
+      "go vet ./...": "PASS"
+    },
+    "ch07": {
+      "go test ./...": "PASS (ch07 has no tests)",
+      "go vet ./...": "PASS"
+    }
+  },
+  "note": "Final module checks after implementation; final subsequent source edits added only documentation to anonymous fields, then gofmt. Existing implementation tests reused; no mocks."
+}

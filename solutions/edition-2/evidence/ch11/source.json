@@ -1,0 +1,20 @@
+{
+  "baseline": "8f64ce3",
+  "scope": "Thirteen changed source files, correction round1 effective prompt and regressions",
+  "sha256": {
+    "solutions/edition-2/main/ensemble/save_test.go": "3940837df0dd84bf807bb855cab6a8b92c3ab4c486c1e1ac4b253900442638f9",
+    "solutions/edition-2/main/gui/cmd/main.go": "9d0609f81ea29cf6982ec809804520a3d05ab0a2d6c4440795467797d72a23ac",
+    "solutions/edition-2/main/internal/agent/save.go": "0339c8db97f6497bc71deec85caf8f9e2793a4b7f6fc3219a77ceed7f6641fe3",
+    "solutions/edition-2/main/internal/common/save.go": "4a166d4b13f532b42a5765cbf96266b55d9bdbf903c78b7f68efcc5de1467c2a",
+    "solutions/edition-2/main/internal/common/types.go": "9bf0136688f22754a950cdb7975fffb78d1ea5c30500dca2c2d0015d071127d1",
+    "solutions/edition-2/main/internal/engine/anthropic.go": "932dde72b0b206d3b5087e57281d3c75ea7f60d485ddf8bb08a20c8100e5cb8c",
+    "solutions/edition-2/main/internal/engine/engine.go": "0c6ca76b741ebcbb21b7bd9bf4f258db6a076ce425482ab917736b3503b080a3",
+    "solutions/edition-2/main/internal/engine/gemini.go": "2746a27bfca68542cc564aba6aee63674ecb1e8715153dbad735fde0a217f4af",
+    "solutions/edition-2/main/internal/engine/openai.go": "db5f1b49b8e9397d2767c8267dcb8d148101d2ec298c061ddbdcabbbd3f65090",
+    "solutions/edition-2/main/internal/history/history.go": "8a4fccd260ac87980f94de7dfcf765565ce99a545a1b4f2b20cf2a3c4b666403",
+    "solutions/edition-2/main/internal/history/save.go": "a2af97cbc6a11f34d4e0b222850fad1ff0e92ccd494a7fab5d775c3c582eff7c",
+    "solutions/edition-2/main/main.go": "92b8dd44cf2a7ae4bae6e837c03fd71776a524e348e11afd95b24a717ab6ca28",
+    "solutions/edition-2/main/save_test.go": "5051b1fa6068cd7f6d599ef1c440bb2d133e349349cce4cc667910f31aa4e6fb"
+  },
+  "aggregate_sha256": "a8ad2cec304e81b68a8a71e553c84ac0f33cb487580efca8aa263b4cf2490ed9"
+}
