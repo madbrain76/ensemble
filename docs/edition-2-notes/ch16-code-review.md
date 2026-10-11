@@ -78,3 +78,84 @@ original Chapters 17, 18 and 22 (same SHA-256 above). The distinction was alread
 correct in Chapter 16; it was not introduced by those later snapshots. This is
 not a review of their other implementation or provider behavior. No formal
 student review round has begun.
+
+## October 11 grader preflight — intermediate source, no acceptance
+
+Reviewer reread the mandatory skill and the current student checkpoint in
+[ch16.md](ch16.md). This assessment uses committed student source
+`ccd63509c3b2e08ff5a231b0409423b236953022` (tree
+`58dd0d51c9eb34e1096a1134fa2d045c97d07c97`), not the coder's changing working tree.
+Final provider, mutation and live evidence remains pending. No formal review
+round or chapter acceptance begins here; no grader/live call was repeated.
+
+The original grader completed **20/100 FAIL**, grader exit1 / make exit2, on
+that intermediate source. The committed [provenance](../../solutions/edition-2/evidence/ch16/original-grade-provenance.json)
+and [output](../../solutions/edition-2/evidence/ch16/original-grade.txt) are from
+`bd4213bf0d52adafc5d9bc6b5112416201da7aea`; output SHA-256 is
+`6be427fd976941c65c215f09d8332ec0eba2fe83ef03a0a57132d422ce06ca5d`.
+
+**The settings-path exception is independently justified, narrowly.** Original
+`ch16_harness.go:50–72` writes `cwd/settings.json`, launches the GUI in that cwd
+and supplies no Agent-directory override. The student's GUI command at
+`gui/cmd/main.go:77` selects `DataDir="cr"`; its existing owner-based settings
+path is `gui/settings.go:91–92`, and the loader applies memory settings to the
+public Agent at lines85–88. The grader's small conversation/band budgets and
+disabled flags therefore never reach the Agent. Its normal conversation budget
+is 3,000 bytes (`internal/memory/memory.go:16–39`), rather than the fixture's 300.
+The output consistently reports zero compressors/memories. This is the same
+pre-existing ownership mismatch as original15, not grounds to relocate settings
+to global cwd or waive compression behavior. The chapter expressly leaves disk
+layout to the student; Bill's Agent ownership remains binding.
+
+The proposed exception covers the **fixture location**, and hence the following
+eight failed check outcomes (77 points), not their valid behavioral obligations:
+
+| Check (actual earned/possible) | Still requires independent supplemental proof on final source |
+| --- | --- |
+| `micro-handoff-compresses` 0/15 | A real checkpoint crossing an effective budget compresses oldest complete segments and removes replaced raw work. |
+| `planted-fact-survives` 0/10 | The actual compressor receives the selected work; its returned memory reaches later provider context. |
+| `graduation-fires-oldest-first` 0/12 | Crossing effective watermarks folds oldest files, publishes their replacement, removes those originals from active context, and leaves newer work. |
+| `disable-enable-idempotent` 0/12 | Disabled bands leave context and stop receiving compression; re-enable rescans edited disk files, preserves canonical order, and ordinary restart respects disk edits. |
+| `disabled-neighbor-refused` 0/8 | An actually full source refuses a disabled destination without losing old content, with the required warning. |
+| `replay-needs-no-llm` 0/10 | Actual recorded compactions rebuild memory without another compressor call. |
+| `memory-is-data` 0/5 | First-person compressor instruction and actual conversation memory, separate from the frozen system prefix. |
+| `fresh-start-populates` 0/5 | Real disk memories populate before the first request with no prior save/log needed. |
+
+Each fails before its later meaningful assertions. In particular, “no memory”
+does not establish a replay, ordering or data-placement defect; neither does a
+fixture exception establish those behaviors passed. Final review must assess
+the student's real-runtime tests, captured effects, targeted mutations and live
+quality, without treating names of passing tests as proof.
+
+**The two awarded checks need different interpretations.** `forced-handoff`
+12/12 actually presents high reported input and observes only `micro_handoff`
+on the later request (`ch16_run.go:740–803`). Its fixture does not establish
+Bill's latest-versus-lifetime distinction, provider cache arithmetic, 90% warning
+or eventual restoration; those remain separate obligations. `abandon-on-restart`
+8/8 (`863–917`) does not require a compressor to run or return its scripted500.
+With no compression, old work remains and zero copies satisfy its at-most-one
+memory test. It also does not launch a SIGKILL case. Thus the actual awarded
+eight points are retained, but this run proves neither failed/abandoned-fold
+recovery nor crash safety. Supplemental proof needs an actually launched fold,
+its failure/interruption, retained source information and nonduplicating recovery.
+
+**Inherited parity remains 0/3**, with exactly the four reported original15
+failures: `skill-survives-the-ladder`, `ladder-is-recorded`,
+`replay-equals-snapshot`, and `frozen-prefix`. Reinspection confirms the first
+three retain the cwd-settings mismatch (`ch15_harness.go:366–369`) and stop on
+missing cuts/uncut content before their later comparisons. The fourth passes
+the preceding system/tools prefix comparisons, then stops at undefined `think`
+before the MCP declaration predicate (`ch15_run.go:500–549`). The independently
+accepted [original15 exceptions](ch15-code-review.md) continue to explain those
+specific failures. They do not waive memory's interactions with recorded cuts,
+skills, declarations, journal recovery or request replay; reuse unchanged valid
+evidence and check affected behavior at the final gate.
+
+Source provenance: original `ch16_harness.go` and `ch16_run.go` still match the
+revisions/hashes recorded in the student-safe launch erratum. `ch16_checks.go`
+is revision `174eb9778243914db251aa99f4ef9d61889ce5cd`, SHA-256
+`4e99b4427dc115ced53c92747e73b3299de5f1995122a51fb226949ec9497521`.
+Original15 harness/run are respectively `107c59d45ee2977d82910f1c1e734eabb73d538a`
+and `374916a10263c4b32cc3dc22999043f07202f95c` (unchanged original files).
+No source correction is requested by this preflight. Final comparative review,
+complete student response and authentic provider evidence are still required.

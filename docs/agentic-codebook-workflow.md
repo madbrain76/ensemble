@@ -20,6 +20,25 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 memory implementation in progress, not accepted.** Anthropic and
+OpenAI reached the first green implementation checkpoint `ccd6350`, followed by
+bounded live compression/graduation demonstrations; Gemini follows in Bill's
+requested order. The original grader on that initial checkpoint is **20/100
+FAIL**. Independent preflight confirms its settings fixture misses the owning
+Agent's configuration path, masking eight memory checks; inherited original15
+parity defects persist. Its awarded abandoned-fold check never required a fold,
+so the score cannot prove failure recovery. Valid masked behaviors still need
+real-runtime supplemental evidence and final comparative review.
+
+The first Anthropic live compression preserved decisions but discarded why two
+approaches were rejected. A bounded prompt correction improved reason retention,
+while corrected live recall still has semantic limitations: invented uncertainty
+on Anthropic and misreported facts already present in OpenAI's stored memory.
+Preserve those distinctions and the actual receipts in original-numbered ch16
+evidence. Working mechanics, stored information and correct model recall are
+three separate claims; fake summaries or reduced byte counts prove no semantic
+quality. See `edition-2-notes/ch16.md` and its independent review.
+
 **October 11: Bill resolved the forcing question and released implementation.**
 Use total input tokens from the prior request, including cached input exactly
 once. Lifetime cumulative usage was erroneous book wording. Get Anthropic and
