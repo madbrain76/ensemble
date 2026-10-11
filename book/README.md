@@ -83,10 +83,15 @@ scripts/build-ebook.sh book/cover.png
 ```
 
 The script:
-- Strips the printed "# Contents" section (Kindle builds its own nav)
-- Does NOT pass `--toc` (would duplicate the contents page in the spine)
+- KEEPS the manuscript's "# Contents" section as the ebook's visible
+  contents page. An earlier version stripped it on the theory that Kindle
+  builds its own nav; Amazon did not reliably surface one, and the
+  published ebook ended up with no table of contents at all.
+- Does NOT pass `--toc` (would ALSO put nav in the spine — that is what
+  produced two contents pages originally). One visible page, ours.
 - Passes `--toc-depth=1` (keeps nav entries at chapter level, not 426 sections)
-- Verifies: nav not in spine, nav entries < 60, all images embedded
+- Verifies: nav not in spine, nav entries < 60, all images embedded, and
+  that a visible Contents page survived into the reading flow
 
 Output: `book/The Art of Building AI Coding Agents.epub`
 
