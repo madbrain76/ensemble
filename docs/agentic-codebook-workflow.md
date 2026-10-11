@@ -20,6 +20,21 @@ at the time; use `solutions/edition-2/README.md` for the current mapping.
 
 ## October 10: resumed original student run
 
+**October 11 model stop resolved.** Bill explicitly said, “Yes, please use GPT-6
+Astra for all coding tasks,” in response to the proposed high-reasoning choice.
+Use `gpt-6-astra` at high for new coding/code-review delegates and Ensemble live
+coding work. The previous GPT-5 Astra name is superseded. Original20 resumes from
+accepted main tree `c72d29294763f23f51071d7484b0d4283ee70c33`: verify the selected
+model doing actual coding through the new Ensemble, with small integration
+changes only if needed. Original20 is prose-only, so do not invent a grader or
+implement all historical repairs. Continue to original21 after independent
+review; stop before original22 and24 as agreed. Earlier model-hold entries below
+are historical. CodeRhapsody's Edition 1 work remains protected.
+Fresh blind coder `student_ch20_astra` and independent reviewer `reviewer_astra`
+were both explicitly started with `gpt-6-astra`, high reasoning. The coordinator
+continues orchestration; this records the delegates' actual selection, not a
+claim that the coordinator's own model changed.
+
 **October 11 original19 / Edition2 ch18 accepted after correction round 1.**
 Independent acceptance `cebe1e1` covers source `534112a`, main tree
 `c72d29294763f23f51071d7484b0d4283ee70c33`, with documented missing-type grader
@@ -801,7 +816,8 @@ allocation, keeping resumable notes and the existing chapter acceptance gates.
 
 ## Explicit crossover goal
 
-Bill requires the coder's new Ensemble to run **GPT-5 Astra at high reasoning**.
+Bill requires the coder's new Ensemble to run **GPT-6 Astra at high reasoning**
+(his October 11 correction), and selected that model for all coding tasks.
 The third edition of the book is to be built using that new Ensemble agent,
 rather than Codex. The framework must become the working agent for the next
 iteration; completing chapter exercises alone does not establish that crossover.

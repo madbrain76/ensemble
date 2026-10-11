@@ -5,6 +5,12 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
+**October 11 model instruction.** Bill selected GPT-6 Astra (`gpt-6-astra`) at
+high reasoning for all coding tasks. Use it for new coding/code-review delegates
+and Ensemble live coding work. This supersedes the earlier GPT-5 Astra name and
+releases the crossover model-choice stop, without changing chapter scope or the
+original22/24 stops. Keep historical model/test evidence intact.
+
 **October 10 bounded enhancement authorization.** Bill now authorizes an author
 and coder to enhance original Chapters 1–9 into Edition 2 Chapters 1–8, with
 Chapter 0 guidance and independent prose/code review for each chapter. For this

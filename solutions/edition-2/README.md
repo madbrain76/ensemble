@@ -2,7 +2,7 @@
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
 Chapters **1–18 are accepted**. [`main/`](main/) is the authoritative working
-tree. Chapter 19 (original 20, The Crossover) awaits Bill's model choice. Auto-Recall follows
+tree. Chapter 19 (original 20, The Crossover) proceeds with GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
 
@@ -34,9 +34,8 @@ numbers are one lower than the original book's numbers. The remaining standalone
 The prose/grader enhancement pass is complete through Edition 2 Chapter 8.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
-Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Before its crossover
-demonstration, Bill must identify the intended model: requested GPT-5 Astra is
-absent from the observed account catalog, while GPT-6 Astra is available.
+Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Bill approved GPT-6
+Astra at high reasoning for its crossover demonstration and all coding tasks.
 
 The revised grader covers enhanced Chapters 1–8, for example:
 

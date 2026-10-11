@@ -1,5 +1,11 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 11 model decision:** Bill selected GPT-6 Astra (`gpt-6-astra`) at high
+reasoning for all coding tasks, including new coder/code-review delegates and
+Ensemble live coding work. This resolves the original20 stop and supersedes the
+earlier GPT-5 Astra destination. Continue the authorized run through original21,
+with independent review and the existing original22/24 stops.
+
 **October 11, Bill’s Chapter 16 correction:** forcing uses total input tokens
 from the prior request, including cached input exactly once, not session
 cumulative usage. Anthropic and OpenAI come first, then Gemini. Raw provider
@@ -15,9 +21,8 @@ skip content already in actual context, without a newest-two exclusion.
 `solutions/edition-2/main/`; accepted exports go directly to Edition 2 `chNN/`
 directories, not `history`. Original Chapter 5 is absorbed, so original 10–13
 are Edition 2 `ch09`–`ch12`; original 14–19 are accepted at `ch13`–`ch18`.
-Before original20's crossover, wait for Bill's exact model choice: requested
-GPT-5 Astra is absent from the authenticated catalog, while GPT-6 Astra is listed.
-No substitution has been authorized. See `edition-2-notes/ch20.md`.
+Original20's crossover uses Bill's approved GPT-6 Astra/high choice.
+See `edition-2-notes/ch20.md` for the decision and actual verification status.
 Only retired original `history/ch05` remains. No symlinks. Original exercises,
 graders, notes, evidence and existing tags retain original numbers; identify
 both numbers in handoffs. Stops before original Chapters 22 and 24 are unchanged.
@@ -83,7 +88,7 @@ acceptance or, if still unable to pass, bringing Bill the unresolved evidence
 before further work. The limit is adjustable by Bill; failed grader tests can
 still receive documented reviewer acceptance as described above.
 
-**Destination.** Bill requires the new Ensemble to run **GPT-5 Astra at high
+**Destination.** Bill requires the new Ensemble to run **GPT-6 Astra at high
 reasoning**, and Edition 3 to be built using that Ensemble rather than Codex.
 Verify the supported model identifier, access method, reasoning setting and real
 coding use when integration reaches that point. Do not infer an API identifier

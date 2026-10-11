@@ -1,5 +1,15 @@
 # Ensemble student restart
 
+## October 11: GPT-6 Astra for coding
+
+Bill approved **GPT-6 Astra (`gpt-6-astra`) at high reasoning** and requested it
+for all coding tasks. Use that model for new coding and code-review delegates
+and for Ensemble's live coding work. This replaces the earlier GPT-5 Astra
+destination and resolves the original20 model-choice stop. Resume the crossover
+verification and then the authorized run through original21; the original22/24
+stops remain. Preserve historical results and frozen snapshots. A model setting
+alone does not demonstrate the crossover; retain actual coding/task evidence.
+
 ## October 11: preserve CodeRhapsody’s concurrent Edition 1 work
 
 Bill explicitly reiterates that CodeRhapsody is writing new Edition 1 Chapters
@@ -41,9 +51,8 @@ Edition 2 numbering, with no symlinks. Original Chapter 5 is absorbed into
 Chapter 4; original Chapters 10–13 are Edition 2 `ch09`–`ch12`. Only the retired
 original `history/ch05/` remains. The coder extends `solutions/edition-2/main/`;
 original Chapters 14–19 are accepted at top-level Edition 2 `ch13/`–`ch18/`.
-Before original 20 / Edition 2 Chapter 19, stop for Bill's crossover model choice:
-requested GPT-5 Astra is absent from the authenticated account catalog, which
-lists GPT-6 Astra. Do not substitute it without his decision. Never put new accepted solutions in history. Original exercise,
+Original 20 / Edition 2 Chapter 19 resumes with Bill's approved GPT-6 Astra/high
+choice. Never put new accepted solutions in history. Original exercise,
 grader, note, evidence and existing tag numbers remain unchanged; state both
 numbers in handoffs. This explicitly supersedes the coordinator's history-only
 export policy. Preserve snapshot contents and existing Git tags when moving.
@@ -88,7 +97,7 @@ Follow `docs/edition-2-enhancement.md` for mapping, assignments and gates.
 The student remains accepted through original Chapter 9; do not advance Chapter
 10 during this pass. No future features or expanded exercises are authorized.
 
-Bill's explicit crossover goal: the coder's new Ensemble must run GPT-5 Astra
+Bill's explicit crossover goal: the coder's new Ensemble must run GPT-6 Astra
 at high reasoning, and Edition 3 of the book is to be built using that Ensemble
 agent rather than Codex. Keep this destination in view without implementing
 later features early. See the workflow's crossover goal and verification notes.
