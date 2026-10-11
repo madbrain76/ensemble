@@ -1,0 +1,1517 @@
+go run ./cmd/grade -ch 16 ./solutions/edition-2/main/gui
+Open http://localhost:61443; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+micro_handoff {"text":"Checkpoint 5. I finished step 5 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 5 is recorded.
+Open http://localhost:61450; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+micro_handoff {"text":"Checkpoint 5. I finished step 5 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 5 is recorded.
+micro_handoff {"text":"Checkpoint 6. I finished step 6 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 6 is recorded.
+micro_handoff {"text":"Checkpoint 7. I finished step 7 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 7 is recorded.
+micro_handoff {"text":"Checkpoint 8. I finished step 8 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 8 is recorded.
+micro_handoff {"text":"Checkpoint 9. I finished step 9 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 9 is recorded.
+micro_handoff {"text":"Checkpoint 10. I finished step 10 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 10 is recorded.
+micro_handoff {"text":"Checkpoint 11. I finished step 11 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 11 is recorded.
+micro_handoff {"text":"Checkpoint 12. I finished step 12 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 12 is recorded.
+micro_handoff {"text":"Checkpoint 13. I finished step 13 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 13 is recorded.
+micro_handoff {"text":"Checkpoint 14. I finished step 14 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 14 is recorded.
+micro_handoff {"text":"Checkpoint 15. I finished step 15 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 15 is recorded.
+Open http://localhost:61458; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+micro_handoff {"text":"Checkpoint 5. I finished step 5 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 5 is recorded.
+micro_handoff {"text":"Checkpoint 6. I finished step 6 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 6 is recorded.
+micro_handoff {"text":"Checkpoint 7. I finished step 7 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 7 is recorded.
+Open http://localhost:61468; terminal messages while busy are hints. /interrupt ends the turn.
+Working.
+Still working.
+Still working.
+Open http://localhost:61476; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+micro_handoff {"text":"Checkpoint 5. I finished step 5 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 5 is recorded.
+Open http://localhost:61484; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+Open http://localhost:61493; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+Open http://localhost:61500; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+micro_handoff {"text":"Checkpoint 5. I finished step 5 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 5 is recorded.
+micro_handoff {"text":"Checkpoint 6. I finished step 6 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 6 is recorded.
+micro_handoff {"text":"Checkpoint 7. I finished step 7 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 7 is recorded.
+micro_handoff {"text":"Checkpoint 8. I finished step 8 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 8 is recorded.
+micro_handoff {"text":"Checkpoint 9. I finished step 9 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 9 is recorded.
+micro_handoff {"text":"Checkpoint 10. I finished step 10 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 10 is recorded.
+micro_handoff {"text":"Checkpoint 11. I finished step 11 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 11 is recorded.
+micro_handoff {"text":"Checkpoint 12. I finished step 12 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 12 is recorded.
+micro_handoff {"text":"Checkpoint 13. I finished step 13 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 13 is recorded.
+micro_handoff {"text":"Checkpoint 14. I finished step 14 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 14 is recorded.
+micro_handoff {"text":"Checkpoint 15. I finished step 15 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 15 is recorded.
+Open http://localhost:61511; terminal messages while busy are hints. /interrupt ends the turn.
+micro_handoff {"text":"Checkpoint 0. I finished step 0 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 0 is recorded.
+micro_handoff {"text":"Checkpoint 1. I finished step 1 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 1 is recorded.
+micro_handoff {"text":"Checkpoint 2. I finished step 2 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 2 is recorded.
+micro_handoff {"text":"Checkpoint 3. I finished step 3 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 3 is recorded.
+micro_handoff {"text":"Checkpoint 4. I finished step 4 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 4 is recorded.
+micro_handoff {"text":"Checkpoint 5. I finished step 5 and am moving on to the next piece of work."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Step 5 is recorded.
+Open http://localhost:61519; terminal messages while busy are hints. /interrupt ends the turn.
+load_skill {"name":"manual"}[load_skill]
+Loaded skill manual.
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f01-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE01-CONTENT-line 0000 of planted file 01
+FILE01-CONTENT-line 0044 of planted file 01
+FILE01-CONTENT-line 0088 of planted file 01
+FILE01-CONTENT-line 0132 of planted file 01
+FILE01-CONTENT-line 0176 of planted file 01
+FILE01-CONTENT-line 0220 of planted file 01
+FILE01-CONTENT-line 0264 of planted file 01
+FILE01-CONTENT-line 0308 of planted file 01
+FILE01-CONTENT-line 0352 of planted file 01
+FILE01-CONTENT-line 0396 of planted file 01
+FILE01-CONTENT-line 0440 of planted file 01
+FILE01-CONTENT-line 0484 of planted file 01
+FILE01-CONTENT-line 0528 of planted file 01
+FILE01-CONTENT-line 0572 of planted file 01
+FILE01-CONTENT-line 0616 of planted file 01
+FILE01-CONTENT-line 0660 of planted file 01
+FILE01-CONTENT-line 0704 of planted file 01
+FILE01-CONTENT-line 0748 of planted file 01
+FILE01-CONTENT-line 0792 of planted file 01
+FILE01-CONTENT-line 0836 of planted file 01
+FILE01-CONTENT-line 0880 of planted file 01
+FILE01-CONTENT-line 0924 of planted file 01
+FILE01-CONTENT-line 0968 of planted file 01
+FILE01-CONTENT-line 1012 of planted file 01
+FILE01-CONTENT-line 1056 of planted file 01
+FILE01-CONTENT-line 1100 of planted file 01
+FILE01-CONTENT-line 1144 of planted file 01
+FILE01-CONTENT-line 1188 of planted file 01
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f02-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE02-CONTENT-line 0000 of planted file 02
+FILE02-CONTENT-line 0044 of planted file 02
+FILE02-CONTENT-line 0088 of planted file 02
+FILE02-CONTENT-line 0132 of planted file 02
+FILE02-CONTENT-line 0176 of planted file 02
+FILE02-CONTENT-line 0220 of planted file 02
+FILE02-CONTENT-line 0264 of planted file 02
+FILE02-CONTENT-line 0308 of planted file 02
+FILE02-CONTENT-line 0352 of planted file 02
+FILE02-CONTENT-line 0396 of planted file 02
+FILE02-CONTENT-line 0440 of planted file 02
+FILE02-CONTENT-line 0484 of planted file 02
+FILE02-CONTENT-line 0528 of planted file 02
+FILE02-CONTENT-line 0572 of planted file 02
+FILE02-CONTENT-line 0616 of planted file 02
+FILE02-CONTENT-line 0660 of planted file 02
+FILE02-CONTENT-line 0704 of planted file 02
+FILE02-CONTENT-line 0748 of planted file 02
+FILE02-CONTENT-line 0792 of planted file 02
+FILE02-CONTENT-line 0836 of planted file 02
+FILE02-CONTENT-line 0880 of planted file 02
+FILE02-CONTENT-line 0924 of planted file 02
+FILE02-CONTENT-line 0968 of planted file 02
+FILE02-CONTENT-line 1012 of planted file 02
+FILE02-CONTENT-line 1056 of planted file 02
+FILE02-CONTENT-line 1100 of planted file 02
+FILE02-CONTENT-line 1144 of planted file 02
+FILE02-CONTENT-line 1188 of planted file 02
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE03-CONTENT-line 0000 of planted file 03
+FILE03-CONTENT-line 0044 of planted file 03
+FILE03-CONTENT-line 0088 of planted file 03
+FILE03-CONTENT-line 0132 of planted file 03
+FILE03-CONTENT-line 0176 of planted file 03
+FILE03-CONTENT-line 0220 of planted file 03
+FILE03-CONTENT-line 0264 of planted file 03
+FILE03-CONTENT-line 0308 of planted file 03
+FILE03-CONTENT-line 0352 of planted file 03
+FILE03-CONTENT-line 0396 of planted file 03
+FILE03-CONTENT-line 0440 of planted file 03
+FILE03-CONTENT-line 0484 of planted file 03
+FILE03-CONTENT-line 0528 of planted file 03
+FILE03-CONTENT-line 0572 of planted file 03
+FILE03-CONTENT-line 0616 of planted file 03
+FILE03-CONTENT-line 0660 of planted file 03
+FILE03-CONTENT-line 0704 of planted file 03
+FILE03-CONTENT-line 0748 of planted file 03
+FILE03-CONTENT-line 0792 of planted file 03
+FILE03-CONTENT-line 0836 of planted file 03
+FILE03-CONTENT-line 0880 of planted file 03
+FILE03-CONTENT-line 0924 of planted file 03
+FILE03-CONTENT-line 0968 of planted file 03
+FILE03-CONTENT-line 1012 of planted file 03
+FILE03-CONTENT-line 1056 of planted file 03
+FILE03-CONTENT-line 1100 of planted file 03
+FILE03-CONTENT-line 1144 of planted file 03
+FILE03-CONTENT-line 1188 of planted file 03
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f04-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE04-CONTENT-line 0000 of planted file 04
+FILE04-CONTENT-line 0044 of planted file 04
+FILE04-CONTENT-line 0088 of planted file 04
+FILE04-CONTENT-line 0132 of planted file 04
+FILE04-CONTENT-line 0176 of planted file 04
+FILE04-CONTENT-line 0220 of planted file 04
+FILE04-CONTENT-line 0264 of planted file 04
+FILE04-CONTENT-line 0308 of planted file 04
+FILE04-CONTENT-line 0352 of planted file 04
+FILE04-CONTENT-line 0396 of planted file 04
+FILE04-CONTENT-line 0440 of planted file 04
+FILE04-CONTENT-line 0484 of planted file 04
+FILE04-CONTENT-line 0528 of planted file 04
+FILE04-CONTENT-line 0572 of planted file 04
+FILE04-CONTENT-line 0616 of planted file 04
+FILE04-CONTENT-line 0660 of planted file 04
+FILE04-CONTENT-line 0704 of planted file 04
+FILE04-CONTENT-line 0748 of planted file 04
+FILE04-CONTENT-line 0792 of planted file 04
+FILE04-CONTENT-line 0836 of planted file 04
+FILE04-CONTENT-line 0880 of planted file 04
+FILE04-CONTENT-line 0924 of planted file 04
+FILE04-CONTENT-line 0968 of planted file 04
+FILE04-CONTENT-line 1012 of planted file 04
+FILE04-CONTENT-line 1056 of planted file 04
+FILE04-CONTENT-line 1100 of planted file 04
+FILE04-CONTENT-line 1144 of planted file 04
+FILE04-CONTENT-line 1188 of planted file 04
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f05-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE05-CONTENT-line 0000 of planted file 05
+FILE05-CONTENT-line 0044 of planted file 05
+FILE05-CONTENT-line 0088 of planted file 05
+FILE05-CONTENT-line 0132 of planted file 05
+FILE05-CONTENT-line 0176 of planted file 05
+FILE05-CONTENT-line 0220 of planted file 05
+FILE05-CONTENT-line 0264 of planted file 05
+FILE05-CONTENT-line 0308 of planted file 05
+FILE05-CONTENT-line 0352 of planted file 05
+FILE05-CONTENT-line 0396 of planted file 05
+FILE05-CONTENT-line 0440 of planted file 05
+FILE05-CONTENT-line 0484 of planted file 05
+FILE05-CONTENT-line 0528 of planted file 05
+FILE05-CONTENT-line 0572 of planted file 05
+FILE05-CONTENT-line 0616 of planted file 05
+FILE05-CONTENT-line 0660 of planted file 05
+FILE05-CONTENT-line 0704 of planted file 05
+FILE05-CONTENT-line 0748 of planted file 05
+FILE05-CONTENT-line 0792 of planted file 05
+FILE05-CONTENT-line 0836 of planted file 05
+FILE05-CONTENT-line 0880 of planted file 05
+FILE05-CONTENT-line 0924 of planted file 05
+FILE05-CONTENT-line 0968 of planted file 05
+FILE05-CONTENT-line 1012 of planted file 05
+FILE05-CONTENT-line 1056 of planted file 05
+FILE05-CONTENT-line 1100 of planted file 05
+FILE05-CONTENT-line 1144 of planted file 05
+FILE05-CONTENT-line 1188 of planted file 05
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f06-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE06-CONTENT-line 0000 of planted file 06
+FILE06-CONTENT-line 0044 of planted file 06
+FILE06-CONTENT-line 0088 of planted file 06
+FILE06-CONTENT-line 0132 of planted file 06
+FILE06-CONTENT-line 0176 of planted file 06
+FILE06-CONTENT-line 0220 of planted file 06
+FILE06-CONTENT-line 0264 of planted file 06
+FILE06-CONTENT-line 0308 of planted file 06
+FILE06-CONTENT-line 0352 of planted file 06
+FILE06-CONTENT-line 0396 of planted file 06
+FILE06-CONTENT-line 0440 of planted file 06
+FILE06-CONTENT-line 0484 of planted file 06
+FILE06-CONTENT-line 0528 of planted file 06
+FILE06-CONTENT-line 0572 of planted file 06
+FILE06-CONTENT-line 0616 of planted file 06
+FILE06-CONTENT-line 0660 of planted file 06
+FILE06-CONTENT-line 0704 of planted file 06
+FILE06-CONTENT-line 0748 of planted file 06
+FILE06-CONTENT-line 0792 of planted file 06
+FILE06-CONTENT-line 0836 of planted file 06
+FILE06-CONTENT-line 0880 of planted file 06
+FILE06-CONTENT-line 0924 of planted file 06
+FILE06-CONTENT-line 0968 of planted file 06
+FILE06-CONTENT-line 1012 of planted file 06
+FILE06-CONTENT-line 1056 of planted file 06
+FILE06-CONTENT-line 1100 of planted file 06
+FILE06-CONTENT-line 1144 of planted file 06
+FILE06-CONTENT-line 1188 of planted file 06
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f07-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE07-CONTENT-line 0000 of planted file 07
+FILE07-CONTENT-line 0044 of planted file 07
+FILE07-CONTENT-line 0088 of planted file 07
+FILE07-CONTENT-line 0132 of planted file 07
+FILE07-CONTENT-line 0176 of planted file 07
+FILE07-CONTENT-line 0220 of planted file 07
+FILE07-CONTENT-line 0264 of planted file 07
+FILE07-CONTENT-line 0308 of planted file 07
+FILE07-CONTENT-line 0352 of planted file 07
+FILE07-CONTENT-line 0396 of planted file 07
+FILE07-CONTENT-line 0440 of planted file 07
+FILE07-CONTENT-line 0484 of planted file 07
+FILE07-CONTENT-line 0528 of planted file 07
+FILE07-CONTENT-line 0572 of planted file 07
+FILE07-CONTENT-line 0616 of planted file 07
+FILE07-CONTENT-line 0660 of planted file 07
+FILE07-CONTENT-line 0704 of planted file 07
+FILE07-CONTENT-line 0748 of planted file 07
+FILE07-CONTENT-line 0792 of planted file 07
+FILE07-CONTENT-line 0836 of planted file 07
+FILE07-CONTENT-line 0880 of planted file 07
+FILE07-CONTENT-line 0924 of planted file 07
+FILE07-CONTENT-line 0968 of planted file 07
+FILE07-CONTENT-line 1012 of planted file 07
+FILE07-CONTENT-line 1056 of planted file 07
+FILE07-CONTENT-line 1100 of planted file 07
+FILE07-CONTENT-line 1144 of planted file 07
+FILE07-CONTENT-line 1188 of planted file 07
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f08-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE08-CONTENT-line 0000 of planted file 08
+FILE08-CONTENT-line 0044 of planted file 08
+FILE08-CONTENT-line 0088 of planted file 08
+FILE08-CONTENT-line 0132 of planted file 08
+FILE08-CONTENT-line 0176 of planted file 08
+FILE08-CONTENT-line 0220 of planted file 08
+FILE08-CONTENT-line 0264 of planted file 08
+FILE08-CONTENT-line 0308 of planted file 08
+FILE08-CONTENT-line 0352 of planted file 08
+FILE08-CONTENT-line 0396 of planted file 08
+FILE08-CONTENT-line 0440 of planted file 08
+FILE08-CONTENT-line 0484 of planted file 08
+FILE08-CONTENT-line 0528 of planted file 08
+FILE08-CONTENT-line 0572 of planted file 08
+FILE08-CONTENT-line 0616 of planted file 08
+FILE08-CONTENT-line 0660 of planted file 08
+FILE08-CONTENT-line 0704 of planted file 08
+FILE08-CONTENT-line 0748 of planted file 08
+FILE08-CONTENT-line 0792 of planted file 08
+FILE08-CONTENT-line 0836 of planted file 08
+FILE08-CONTENT-line 0880 of planted file 08
+FILE08-CONTENT-line 0924 of planted file 08
+FILE08-CONTENT-line 0968 of planted file 08
+FILE08-CONTENT-line 1012 of planted file 08
+FILE08-CONTENT-line 1056 of planted file 08
+FILE08-CONTENT-line 1100 of planted file 08
+FILE08-CONTENT-line 1144 of planted file 08
+FILE08-CONTENT-line 1188 of planted file 08
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f09-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE09-CONTENT-line 0000 of planted file 09
+FILE09-CONTENT-line 0044 of planted file 09
+FILE09-CONTENT-line 0088 of planted file 09
+FILE09-CONTENT-line 0132 of planted file 09
+FILE09-CONTENT-line 0176 of planted file 09
+FILE09-CONTENT-line 0220 of planted file 09
+FILE09-CONTENT-line 0264 of planted file 09
+FILE09-CONTENT-line 0308 of planted file 09
+FILE09-CONTENT-line 0352 of planted file 09
+FILE09-CONTENT-line 0396 of planted file 09
+FILE09-CONTENT-line 0440 of planted file 09
+FILE09-CONTENT-line 0484 of planted file 09
+FILE09-CONTENT-line 0528 of planted file 09
+FILE09-CONTENT-line 0572 of planted file 09
+FILE09-CONTENT-line 0616 of planted file 09
+FILE09-CONTENT-line 0660 of planted file 09
+FILE09-CONTENT-line 0704 of planted file 09
+FILE09-CONTENT-line 0748 of planted file 09
+FILE09-CONTENT-line 0792 of planted file 09
+FILE09-CONTENT-line 0836 of planted file 09
+FILE09-CONTENT-line 0880 of planted file 09
+FILE09-CONTENT-line 0924 of planted file 09
+FILE09-CONTENT-line 0968 of planted file 09
+FILE09-CONTENT-line 1012 of planted file 09
+FILE09-CONTENT-line 1056 of planted file 09
+FILE09-CONTENT-line 1100 of planted file 09
+FILE09-CONTENT-line 1144 of planted file 09
+FILE09-CONTENT-line 1188 of planted file 09
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f10-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE10-CONTENT-line 0000 of planted file 10
+FILE10-CONTENT-line 0044 of planted file 10
+FILE10-CONTENT-line 0088 of planted file 10
+FILE10-CONTENT-line 0132 of planted file 10
+FILE10-CONTENT-line 0176 of planted file 10
+FILE10-CONTENT-line 0220 of planted file 10
+FILE10-CONTENT-line 0264 of planted file 10
+FILE10-CONTENT-line 0308 of planted file 10
+FILE10-CONTENT-line 0352 of planted file 10
+FILE10-CONTENT-line 0396 of planted file 10
+FILE10-CONTENT-line 0440 of planted file 10
+FILE10-CONTENT-line 0484 of planted file 10
+FILE10-CONTENT-line 0528 of planted file 10
+FILE10-CONTENT-line 0572 of planted file 10
+FILE10-CONTENT-line 0616 of planted file 10
+FILE10-CONTENT-line 0660 of planted file 10
+FILE10-CONTENT-line 0704 of planted file 10
+FILE10-CONTENT-line 0748 of planted file 10
+FILE10-CONTENT-line 0792 of planted file 10
+FILE10-CONTENT-line 0836 of planted file 10
+FILE10-CONTENT-line 0880 of planted file 10
+FILE10-CONTENT-line 0924 of planted file 10
+FILE10-CONTENT-line 0968 of planted file 10
+FILE10-CONTENT-line 1012 of planted file 10
+FILE10-CONTENT-line 1056 of planted file 10
+FILE10-CONTENT-line 1100 of planted file 10
+FILE10-CONTENT-line 1144 of planted file 10
+FILE10-CONTENT-line 1188 of planted file 10
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f11-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE11-CONTENT-line 0000 of planted file 11
+FILE11-CONTENT-line 0044 of planted file 11
+FILE11-CONTENT-line 0088 of planted file 11
+FILE11-CONTENT-line 0132 of planted file 11
+FILE11-CONTENT-line 0176 of planted file 11
+FILE11-CONTENT-line 0220 of planted file 11
+FILE11-CONTENT-line 0264 of planted file 11
+FILE11-CONTENT-line 0308 of planted file 11
+FILE11-CONTENT-line 0352 of planted file 11
+FILE11-CONTENT-line 0396 of planted file 11
+FILE11-CONTENT-line 0440 of planted file 11
+FILE11-CONTENT-line 0484 of planted file 11
+FILE11-CONTENT-line 0528 of planted file 11
+FILE11-CONTENT-line 0572 of planted file 11
+FILE11-CONTENT-line 0616 of planted file 11
+FILE11-CONTENT-line 0660 of planted file 11
+FILE11-CONTENT-line 0704 of planted file 11
+FILE11-CONTENT-line 0748 of planted file 11
+FILE11-CONTENT-line 0792 of planted file 11
+FILE11-CONTENT-line 0836 of planted file 11
+FILE11-CONTENT-line 0880 of planted file 11
+FILE11-CONTENT-line 0924 of planted file 11
+FILE11-CONTENT-line 0968 of planted file 11
+FILE11-CONTENT-line 1012 of planted file 11
+FILE11-CONTENT-line 1056 of planted file 11
+FILE11-CONTENT-line 1100 of planted file 11
+FILE11-CONTENT-line 1144 of planted file 11
+FILE11-CONTENT-line 1188 of planted file 11
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE12-CONTENT-line 0000 of planted file 12
+FILE12-CONTENT-line 0044 of planted file 12
+FILE12-CONTENT-line 0088 of planted file 12
+FILE12-CONTENT-line 0132 of planted file 12
+FILE12-CONTENT-line 0176 of planted file 12
+FILE12-CONTENT-line 0220 of planted file 12
+FILE12-CONTENT-line 0264 of planted file 12
+FILE12-CONTENT-line 0308 of planted file 12
+FILE12-CONTENT-line 0352 of planted file 12
+FILE12-CONTENT-line 0396 of planted file 12
+FILE12-CONTENT-line 0440 of planted file 12
+FILE12-CONTENT-line 0484 of planted file 12
+FILE12-CONTENT-line 0528 of planted file 12
+FILE12-CONTENT-line 0572 of planted file 12
+FILE12-CONTENT-line 0616 of planted file 12
+FILE12-CONTENT-line 0660 of planted file 12
+FILE12-CONTENT-line 0704 of planted file 12
+FILE12-CONTENT-line 0748 of planted file 12
+FILE12-CONTENT-line 0792 of planted file 12
+FILE12-CONTENT-line 0836 of planted file 12
+FILE12-CONTENT-line 0880 of planted file 12
+FILE12-CONTENT-line 0924 of planted file 12
+FILE12-CONTENT-line 0968 of planted file 12
+FILE12-CONTENT-line 1012 of planted file 12
+FILE12-CONTENT-line 1056 of planted file 12
+FILE12-CONTENT-line 1100 of planted file 12
+FILE12-CONTENT-line 1144 of planted file 12
+FILE12-CONTENT-line 1188 of planted file 12
+
+All files read.
+Open http://localhost:61526; terminal messages while busy are hints. /interrupt ends the turn.
+Yes.
+Open http://localhost:61533; terminal messages while busy are hints. /interrupt ends the turn.
+Yes.
+Open http://localhost:61540; terminal messages while busy are hints. /interrupt ends the turn.
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f12-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE12-CONTENT-line 0000 of planted file 12
+FILE12-CONTENT-line 0044 of planted file 12
+FILE12-CONTENT-line 0088 of planted file 12
+FILE12-CONTENT-line 0132 of planted file 12
+FILE12-CONTENT-line 0176 of planted file 12
+FILE12-CONTENT-line 0220 of planted file 12
+FILE12-CONTENT-line 0264 of planted file 12
+FILE12-CONTENT-line 0308 of planted file 12
+FILE12-CONTENT-line 0352 of planted file 12
+FILE12-CONTENT-line 0396 of planted file 12
+FILE12-CONTENT-line 0440 of planted file 12
+FILE12-CONTENT-line 0484 of planted file 12
+FILE12-CONTENT-line 0528 of planted file 12
+FILE12-CONTENT-line 0572 of planted file 12
+FILE12-CONTENT-line 0616 of planted file 12
+FILE12-CONTENT-line 0660 of planted file 12
+FILE12-CONTENT-line 0704 of planted file 12
+FILE12-CONTENT-line 0748 of planted file 12
+FILE12-CONTENT-line 0792 of planted file 12
+FILE12-CONTENT-line 0836 of planted file 12
+FILE12-CONTENT-line 0880 of planted file 12
+FILE12-CONTENT-line 0924 of planted file 12
+FILE12-CONTENT-line 0968 of planted file 12
+FILE12-CONTENT-line 1012 of planted file 12
+FILE12-CONTENT-line 1056 of planted file 12
+FILE12-CONTENT-line 1100 of planted file 12
+FILE12-CONTENT-line 1144 of planted file 12
+FILE12-CONTENT-line 1188 of planted file 12
+
+micro_handoff {"text":"HANDOFF-NOTE-c41e: reads done, ladder fired, next step is the summary."}[micro_handoff]
+Checkpoint recorded after this tool batch.
+Checkpoint written.
+Open http://localhost:61547; terminal messages while busy are hints. /interrupt ends the turn.
+REPLY-ONE
+Open http://localhost:61554; terminal messages while busy are hints. /interrupt ends the turn.
+REPLY-TWO
+REPLY-THREE
+Open http://localhost:61561; terminal messages while busy are hints. /interrupt ends the turn.
+REPLY-FOUR
+Open http://localhost:61568; terminal messages while busy are hints. /interrupt ends the turn.
+Whole.
+Open http://localhost:61575; terminal messages while busy are hints. /interrupt ends the turn.
+load_skill {"name":"manual"}[load_skill]
+Loaded skill manual.
+load_skill {"name":"mcp-tools"}[load_skill]
+Loaded skill mcp-tools.
+Both loaded.
+Open http://localhost:61582; terminal messages while busy are hints. /interrupt ends the turn.
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f21-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE21-CONTENT-line 0000 of planted file 21
+FILE21-CONTENT-line 0044 of planted file 21
+FILE21-CONTENT-line 0088 of planted file 21
+FILE21-CONTENT-line 0132 of planted file 21
+FILE21-CONTENT-line 0176 of planted file 21
+FILE21-CONTENT-line 0220 of planted file 21
+FILE21-CONTENT-line 0264 of planted file 21
+FILE21-CONTENT-line 0308 of planted file 21
+FILE21-CONTENT-line 0352 of planted file 21
+FILE21-CONTENT-line 0396 of planted file 21
+FILE21-CONTENT-line 0440 of planted file 21
+FILE21-CONTENT-line 0484 of planted file 21
+FILE21-CONTENT-line 0528 of planted file 21
+FILE21-CONTENT-line 0572 of planted file 21
+FILE21-CONTENT-line 0616 of planted file 21
+FILE21-CONTENT-line 0660 of planted file 21
+FILE21-CONTENT-line 0704 of planted file 21
+FILE21-CONTENT-line 0748 of planted file 21
+FILE21-CONTENT-line 0792 of planted file 21
+FILE21-CONTENT-line 0836 of planted file 21
+FILE21-CONTENT-line 0880 of planted file 21
+FILE21-CONTENT-line 0924 of planted file 21
+FILE21-CONTENT-line 0968 of planted file 21
+FILE21-CONTENT-line 1012 of planted file 21
+FILE21-CONTENT-line 1056 of planted file 21
+FILE21-CONTENT-line 1100 of planted file 21
+FILE21-CONTENT-line 1144 of planted file 21
+FILE21-CONTENT-line 1188 of planted file 21
+FILE21-CONTENT-line 1232 of planted file 21
+FILE21-CONTENT-line 1276 of planted file 21
+FILE21-CONTENT-line 1320 of planted file 21
+FILE21-CONTENT-line 1364 of planted file 21
+FILE21-CONTENT-line 1408 of planted file 21
+FILE21-CONTENT-line 1452 of planted file 21
+FILE21-CONTENT-line 1496 of planted file 21
+FILE21-CONTENT-line 1540 of planted file 21
+FILE21-CONTENT-line 1584 of planted file 21
+FILE21-CONTENT-line 1628 of planted file 21
+FILE21-CONTENT-line 1672 of planted file 21
+FILE21-CONTENT-line 1716 of planted file 21
+FILE21-CONTENT-line 1760 of planted file 21
+FILE21-CONTENT-line 1804 of planted file 21
+FILE21-CONTENT-line 1848 of planted file 21
+FILE21-CONTENT-line 1892 of planted file 21
+FILE21-CONTENT-line 1936 of planted file 21
+FILE21-CONTENT-line 1980 of planted file 21
+FILE21-CONTENT-line 2024 of planted file 21
+FILE21-CONTENT-line 2068 of planted file 21
+FILE21-CONTENT-line 2112 of planted file 21
+FILE21-CONTENT-line 2156 of planted file 21
+FILE21-CONTENT-line 2200 of planted file 21
+FILE21-CONTENT-line 2244 of planted file 21
+FILE21-CONTENT-line 2288 of planted file 21
+FILE21-CONTENT-line 2332 of planted file 21
+FILE21-CONTENT-line 2376 of planted file 21
+FILE21-CONTENT-line 2420 of planted file 21
+FILE21-CONTENT-line 2464 of planted file 21
+FILE21-CONTENT-line 2508 of planted file 21
+FILE21-CONTENT-line 2552 of planted file 21
+FILE21-CONTENT-line 2596 of planted file 21
+FILE21-CONTENT-line 2640 of planted file 21
+FILE21-CONTENT-line 2684 of planted file 21
+FILE21-CONTENT-line 2728 of planted file 21
+FILE21-CONTENT-line 2772 of planted file 21
+FILE21-CONTENT-line 2816 of planted file 21
+FILE21-CONTENT-line 2860 of planted file 21
+FILE21-CONTENT-line 2904 of planted file 21
+FILE21-CONTENT-line 2948 of planted file 21
+FILE21-CONTENT-line 2992 of planted file 21
+FILE21-CONTENT-line 3036 of planted file 21
+FILE21-CONTENT-line 3080 of planted file 21
+FILE21-CONTENT-line 3124 of planted file 21
+FILE21-CONTENT-line 3168 of planted file 21
+FILE21-CONTENT-line 3212 of planted file 21
+FILE21-CONTENT-line 3256 of planted file 21
+FILE21-CONTENT-line 3300 of planted file 21
+FILE21-CONTENT-line 3344 of planted file 21
+FILE21-CONTENT-line 3388 of planted file 21
+FILE21-CONTENT-line 3432 of planted file 21
+FILE21-CONTENT-line 3476 of planted file 21
+FILE21-CONTENT-line 3520 of planted file 21
+FILE21-CONTENT-line 3564 of planted file 21
+FILE21-CONTENT-line 3608 of planted file 21
+FILE21-CONTENT-line 3652 of planted file 21
+FILE21-CONTENT-line 3696 of planted file 21
+FILE21-CONTENT-line 3740 of planted file 21
+FILE21-CONTENT-line 3784 of planted file 21
+FILE21-CONTENT-line 3828 of planted file 21
+FILE21-CONTENT-line 3872 of planted file 21
+FILE21-CONTENT-line 3916 of planted file 21
+FILE21-CONTENT-line 3960 of planted file 21
+FILE21-CONTENT-line 4004 of planted file 21
+FILE21-CONTENT-line 4048 of planted file 21
+FILE21-CONTENT-line 4092 of planted file 21
+FILE21-CONTENT-line 4136 of planted file 21
+FILE21-CONTENT-line 4180 of planted file 21
+FILE21-CONTENT-line 4224 of planted file 21
+FILE21-CONTENT-line 4268 of planted file 21
+FILE21-CONTENT-line 4312 of planted file 21
+FILE21-CONTENT-line 4356 of planted file 21
+FILE21-CONTENT-line 4400 of planted file 21
+FILE21-CONTENT-line 4444 of planted file 21
+FILE21-CONTENT-line 4488 of planted file 21
+FILE21-CONTENT-line 4532 of planted file 21
+FILE21-CONTENT-line 4576 of planted file 21
+FILE21-CONTENT-line 4620 of planted file 21
+FILE21-CONTENT-line 4664 of planted file 21
+FILE21-CONTENT-line 4708 of planted file 21
+FILE21-CONTENT-line 4752 of planted file 21
+FILE21-CONTENT-line 4796 of planted file 21
+FILE21-CONTENT-line 4840 of planted file 21
+FILE21-CONTENT-line 4884 of planted file 21
+FILE21-CONTENT-line 4928 of planted file 21
+FILE21-CONTENT-line 4972 of planted file 21
+FILE21-CONTENT-line 5016 of planted file 21
+FILE21-CONTENT-line 5060 of planted file 21
+FILE21-CONTENT-line 5104 of planted file 21
+FILE21-CONTENT-line 5148 of planted file 21
+FILE21-CONTENT-line 5192 of planted file 21
+FILE21-CONTENT-line 5236 of planted file 21
+FILE21-CONTENT-line 5280 of planted file 21
+FILE21-CONTENT-line 5324 of planted file 21
+FILE21-CONTENT-line 5368 of planted file 21
+FILE21-CONTENT-line 5412 of planted file 21
+FILE21-CONTENT-line 5456 of planted file 21
+FILE21-CONTENT-line 5500 of planted file 21
+FILE21-CONTENT-line 5544 of planted file 21
+FILE21-CONTENT-line 5588 of planted file 21
+FILE21-CONTENT-line 5632 of planted file 21
+FILE21-CONTENT-line 5676 of planted file 21
+FILE21-CONTENT-line 5720 of planted file 21
+FILE21-CONTENT-line 5764 of planted file 21
+FILE21-CONTENT-line 5808 of planted file 21
+FILE21-CONTENT-line 5852 of planted file 21
+FILE21-CONTENT-line 5896 of planted file 21
+FILE21-CONTENT-line 5940 of planted file 21
+FILE21-CONTENT-line 5984 of planted file 21
+
+keep_tool_results {}read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f22-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[keep_tool_results]
+Previous tool results kept.
+[read_file]
+FILE22-CONTENT-line 0000 of planted file 22
+FILE22-CONTENT-line 0044 of planted file 22
+FILE22-CONTENT-line 0088 of planted file 22
+FILE22-CONTENT-line 0132 of planted file 22
+FILE22-CONTENT-line 0176 of planted file 22
+FILE22-CONTENT-line 0220 of planted file 22
+FILE22-CONTENT-line 0264 of planted file 22
+FILE22-CONTENT-line 0308 of planted file 22
+FILE22-CONTENT-line 0352 of planted file 22
+FILE22-CONTENT-line 0396 of planted file 22
+FILE22-CONTENT-line 0440 of planted file 22
+FILE22-CONTENT-line 0484 of planted file 22
+FILE22-CONTENT-line 0528 of planted file 22
+FILE22-CONTENT-line 0572 of planted file 22
+FILE22-CONTENT-line 0616 of planted file 22
+FILE22-CONTENT-line 0660 of planted file 22
+FILE22-CONTENT-line 0704 of planted file 22
+FILE22-CONTENT-line 0748 of planted file 22
+FILE22-CONTENT-line 0792 of planted file 22
+FILE22-CONTENT-line 0836 of planted file 22
+FILE22-CONTENT-line 0880 of planted file 22
+FILE22-CONTENT-line 0924 of planted file 22
+FILE22-CONTENT-line 0968 of planted file 22
+FILE22-CONTENT-line 1012 of planted file 22
+FILE22-CONTENT-line 1056 of planted file 22
+FILE22-CONTENT-line 1100 of planted file 22
+FILE22-CONTENT-line 1144 of planted file 22
+FILE22-CONTENT-line 1188 of planted file 22
+FILE22-CONTENT-line 1232 of planted file 22
+FILE22-CONTENT-line 1276 of planted file 22
+FILE22-CONTENT-line 1320 of planted file 22
+FILE22-CONTENT-line 1364 of planted file 22
+FILE22-CONTENT-line 1408 of planted file 22
+FILE22-CONTENT-line 1452 of planted file 22
+FILE22-CONTENT-line 1496 of planted file 22
+FILE22-CONTENT-line 1540 of planted file 22
+FILE22-CONTENT-line 1584 of planted file 22
+FILE22-CONTENT-line 1628 of planted file 22
+FILE22-CONTENT-line 1672 of planted file 22
+FILE22-CONTENT-line 1716 of planted file 22
+FILE22-CONTENT-line 1760 of planted file 22
+FILE22-CONTENT-line 1804 of planted file 22
+FILE22-CONTENT-line 1848 of planted file 22
+FILE22-CONTENT-line 1892 of planted file 22
+FILE22-CONTENT-line 1936 of planted file 22
+FILE22-CONTENT-line 1980 of planted file 22
+FILE22-CONTENT-line 2024 of planted file 22
+FILE22-CONTENT-line 2068 of planted file 22
+FILE22-CONTENT-line 2112 of planted file 22
+FILE22-CONTENT-line 2156 of planted file 22
+FILE22-CONTENT-line 2200 of planted file 22
+FILE22-CONTENT-line 2244 of planted file 22
+FILE22-CONTENT-line 2288 of planted file 22
+FILE22-CONTENT-line 2332 of planted file 22
+FILE22-CONTENT-line 2376 of planted file 22
+FILE22-CONTENT-line 2420 of planted file 22
+FILE22-CONTENT-line 2464 of planted file 22
+FILE22-CONTENT-line 2508 of planted file 22
+FILE22-CONTENT-line 2552 of planted file 22
+FILE22-CONTENT-line 2596 of planted file 22
+FILE22-CONTENT-line 2640 of planted file 22
+FILE22-CONTENT-line 2684 of planted file 22
+FILE22-CONTENT-line 2728 of planted file 22
+FILE22-CONTENT-line 2772 of planted file 22
+FILE22-CONTENT-line 2816 of planted file 22
+FILE22-CONTENT-line 2860 of planted file 22
+FILE22-CONTENT-line 2904 of planted file 22
+FILE22-CONTENT-line 2948 of planted file 22
+FILE22-CONTENT-line 2992 of planted file 22
+FILE22-CONTENT-line 3036 of planted file 22
+FILE22-CONTENT-line 3080 of planted file 22
+FILE22-CONTENT-line 3124 of planted file 22
+FILE22-CONTENT-line 3168 of planted file 22
+FILE22-CONTENT-line 3212 of planted file 22
+FILE22-CONTENT-line 3256 of planted file 22
+FILE22-CONTENT-line 3300 of planted file 22
+FILE22-CONTENT-line 3344 of planted file 22
+FILE22-CONTENT-line 3388 of planted file 22
+FILE22-CONTENT-line 3432 of planted file 22
+FILE22-CONTENT-line 3476 of planted file 22
+FILE22-CONTENT-line 3520 of planted file 22
+FILE22-CONTENT-line 3564 of planted file 22
+FILE22-CONTENT-line 3608 of planted file 22
+FILE22-CONTENT-line 3652 of planted file 22
+FILE22-CONTENT-line 3696 of planted file 22
+FILE22-CONTENT-line 3740 of planted file 22
+FILE22-CONTENT-line 3784 of planted file 22
+FILE22-CONTENT-line 3828 of planted file 22
+FILE22-CONTENT-line 3872 of planted file 22
+FILE22-CONTENT-line 3916 of planted file 22
+FILE22-CONTENT-line 3960 of planted file 22
+FILE22-CONTENT-line 4004 of planted file 22
+FILE22-CONTENT-line 4048 of planted file 22
+FILE22-CONTENT-line 4092 of planted file 22
+FILE22-CONTENT-line 4136 of planted file 22
+FILE22-CONTENT-line 4180 of planted file 22
+FILE22-CONTENT-line 4224 of planted file 22
+FILE22-CONTENT-line 4268 of planted file 22
+FILE22-CONTENT-line 4312 of planted file 22
+FILE22-CONTENT-line 4356 of planted file 22
+FILE22-CONTENT-line 4400 of planted file 22
+FILE22-CONTENT-line 4444 of planted file 22
+FILE22-CONTENT-line 4488 of planted file 22
+FILE22-CONTENT-line 4532 of planted file 22
+FILE22-CONTENT-line 4576 of planted file 22
+FILE22-CONTENT-line 4620 of planted file 22
+FILE22-CONTENT-line 4664 of planted file 22
+FILE22-CONTENT-line 4708 of planted file 22
+FILE22-CONTENT-line 4752 of planted file 22
+FILE22-CONTENT-line 4796 of planted file 22
+FILE22-CONTENT-line 4840 of planted file 22
+FILE22-CONTENT-line 4884 of planted file 22
+FILE22-CONTENT-line 4928 of planted file 22
+FILE22-CONTENT-line 4972 of planted file 22
+FILE22-CONTENT-line 5016 of planted file 22
+FILE22-CONTENT-line 5060 of planted file 22
+FILE22-CONTENT-line 5104 of planted file 22
+FILE22-CONTENT-line 5148 of planted file 22
+FILE22-CONTENT-line 5192 of planted file 22
+FILE22-CONTENT-line 5236 of planted file 22
+FILE22-CONTENT-line 5280 of planted file 22
+FILE22-CONTENT-line 5324 of planted file 22
+FILE22-CONTENT-line 5368 of planted file 22
+FILE22-CONTENT-line 5412 of planted file 22
+FILE22-CONTENT-line 5456 of planted file 22
+FILE22-CONTENT-line 5500 of planted file 22
+FILE22-CONTENT-line 5544 of planted file 22
+FILE22-CONTENT-line 5588 of planted file 22
+FILE22-CONTENT-line 5632 of planted file 22
+FILE22-CONTENT-line 5676 of planted file 22
+FILE22-CONTENT-line 5720 of planted file 22
+FILE22-CONTENT-line 5764 of planted file 22
+FILE22-CONTENT-line 5808 of planted file 22
+FILE22-CONTENT-line 5852 of planted file 22
+FILE22-CONTENT-line 5896 of planted file 22
+FILE22-CONTENT-line 5940 of planted file 22
+FILE22-CONTENT-line 5984 of planted file 22
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f23-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE23-CONTENT-line 0000 of planted file 23
+FILE23-CONTENT-line 0044 of planted file 23
+FILE23-CONTENT-line 0088 of planted file 23
+FILE23-CONTENT-line 0132 of planted file 23
+FILE23-CONTENT-line 0176 of planted file 23
+FILE23-CONTENT-line 0220 of planted file 23
+FILE23-CONTENT-line 0264 of planted file 23
+FILE23-CONTENT-line 0308 of planted file 23
+FILE23-CONTENT-line 0352 of planted file 23
+FILE23-CONTENT-line 0396 of planted file 23
+FILE23-CONTENT-line 0440 of planted file 23
+FILE23-CONTENT-line 0484 of planted file 23
+FILE23-CONTENT-line 0528 of planted file 23
+FILE23-CONTENT-line 0572 of planted file 23
+FILE23-CONTENT-line 0616 of planted file 23
+FILE23-CONTENT-line 0660 of planted file 23
+FILE23-CONTENT-line 0704 of planted file 23
+FILE23-CONTENT-line 0748 of planted file 23
+FILE23-CONTENT-line 0792 of planted file 23
+FILE23-CONTENT-line 0836 of planted file 23
+FILE23-CONTENT-line 0880 of planted file 23
+FILE23-CONTENT-line 0924 of planted file 23
+FILE23-CONTENT-line 0968 of planted file 23
+FILE23-CONTENT-line 1012 of planted file 23
+FILE23-CONTENT-line 1056 of planted file 23
+FILE23-CONTENT-line 1100 of planted file 23
+FILE23-CONTENT-line 1144 of planted file 23
+FILE23-CONTENT-line 1188 of planted file 23
+FILE23-CONTENT-line 1232 of planted file 23
+FILE23-CONTENT-line 1276 of planted file 23
+FILE23-CONTENT-line 1320 of planted file 23
+FILE23-CONTENT-line 1364 of planted file 23
+FILE23-CONTENT-line 1408 of planted file 23
+FILE23-CONTENT-line 1452 of planted file 23
+FILE23-CONTENT-line 1496 of planted file 23
+FILE23-CONTENT-line 1540 of planted file 23
+FILE23-CONTENT-line 1584 of planted file 23
+FILE23-CONTENT-line 1628 of planted file 23
+FILE23-CONTENT-line 1672 of planted file 23
+FILE23-CONTENT-line 1716 of planted file 23
+FILE23-CONTENT-line 1760 of planted file 23
+FILE23-CONTENT-line 1804 of planted file 23
+FILE23-CONTENT-line 1848 of planted file 23
+FILE23-CONTENT-line 1892 of planted file 23
+FILE23-CONTENT-line 1936 of planted file 23
+FILE23-CONTENT-line 1980 of planted file 23
+FILE23-CONTENT-line 2024 of planted file 23
+FILE23-CONTENT-line 2068 of planted file 23
+FILE23-CONTENT-line 2112 of planted file 23
+FILE23-CONTENT-line 2156 of planted file 23
+FILE23-CONTENT-line 2200 of planted file 23
+FILE23-CONTENT-line 2244 of planted file 23
+FILE23-CONTENT-line 2288 of planted file 23
+FILE23-CONTENT-line 2332 of planted file 23
+FILE23-CONTENT-line 2376 of planted file 23
+FILE23-CONTENT-line 2420 of planted file 23
+FILE23-CONTENT-line 2464 of planted file 23
+FILE23-CONTENT-line 2508 of planted file 23
+FILE23-CONTENT-line 2552 of planted file 23
+FILE23-CONTENT-line 2596 of planted file 23
+FILE23-CONTENT-line 2640 of planted file 23
+FILE23-CONTENT-line 2684 of planted file 23
+FILE23-CONTENT-line 2728 of planted file 23
+FILE23-CONTENT-line 2772 of planted file 23
+FILE23-CONTENT-line 2816 of planted file 23
+FILE23-CONTENT-line 2860 of planted file 23
+FILE23-CONTENT-line 2904 of planted file 23
+FILE23-CONTENT-line 2948 of planted file 23
+FILE23-CONTENT-line 2992 of planted file 23
+FILE23-CONTENT-line 3036 of planted file 23
+FILE23-CONTENT-line 3080 of planted file 23
+FILE23-CONTENT-line 3124 of planted file 23
+FILE23-CONTENT-line 3168 of planted file 23
+FILE23-CONTENT-line 3212 of planted file 23
+FILE23-CONTENT-line 3256 of planted file 23
+FILE23-CONTENT-line 3300 of planted file 23
+FILE23-CONTENT-line 3344 of planted file 23
+FILE23-CONTENT-line 3388 of planted file 23
+FILE23-CONTENT-line 3432 of planted file 23
+FILE23-CONTENT-line 3476 of planted file 23
+FILE23-CONTENT-line 3520 of planted file 23
+FILE23-CONTENT-line 3564 of planted file 23
+FILE23-CONTENT-line 3608 of planted file 23
+FILE23-CONTENT-line 3652 of planted file 23
+FILE23-CONTENT-line 3696 of planted file 23
+FILE23-CONTENT-line 3740 of planted file 23
+FILE23-CONTENT-line 3784 of planted file 23
+FILE23-CONTENT-line 3828 of planted file 23
+FILE23-CONTENT-line 3872 of planted file 23
+FILE23-CONTENT-line 3916 of planted file 23
+FILE23-CONTENT-line 3960 of planted file 23
+FILE23-CONTENT-line 4004 of planted file 23
+FILE23-CONTENT-line 4048 of planted file 23
+FILE23-CONTENT-line 4092 of planted file 23
+FILE23-CONTENT-line 4136 of planted file 23
+FILE23-CONTENT-line 4180 of planted file 23
+FILE23-CONTENT-line 4224 of planted file 23
+FILE23-CONTENT-line 4268 of planted file 23
+FILE23-CONTENT-line 4312 of planted file 23
+FILE23-CONTENT-line 4356 of planted file 23
+FILE23-CONTENT-line 4400 of planted file 23
+FILE23-CONTENT-line 4444 of planted file 23
+FILE23-CONTENT-line 4488 of planted file 23
+FILE23-CONTENT-line 4532 of planted file 23
+FILE23-CONTENT-line 4576 of planted file 23
+FILE23-CONTENT-line 4620 of planted file 23
+FILE23-CONTENT-line 4664 of planted file 23
+FILE23-CONTENT-line 4708 of planted file 23
+FILE23-CONTENT-line 4752 of planted file 23
+FILE23-CONTENT-line 4796 of planted file 23
+FILE23-CONTENT-line 4840 of planted file 23
+FILE23-CONTENT-line 4884 of planted file 23
+FILE23-CONTENT-line 4928 of planted file 23
+FILE23-CONTENT-line 4972 of planted file 23
+FILE23-CONTENT-line 5016 of planted file 23
+FILE23-CONTENT-line 5060 of planted file 23
+FILE23-CONTENT-line 5104 of planted file 23
+FILE23-CONTENT-line 5148 of planted file 23
+FILE23-CONTENT-line 5192 of planted file 23
+FILE23-CONTENT-line 5236 of planted file 23
+FILE23-CONTENT-line 5280 of planted file 23
+FILE23-CONTENT-line 5324 of planted file 23
+FILE23-CONTENT-line 5368 of planted file 23
+FILE23-CONTENT-line 5412 of planted file 23
+FILE23-CONTENT-line 5456 of planted file 23
+FILE23-CONTENT-line 5500 of planted file 23
+FILE23-CONTENT-line 5544 of planted file 23
+FILE23-CONTENT-line 5588 of planted file 23
+FILE23-CONTENT-line 5632 of planted file 23
+FILE23-CONTENT-line 5676 of planted file 23
+FILE23-CONTENT-line 5720 of planted file 23
+FILE23-CONTENT-line 5764 of planted file 23
+FILE23-CONTENT-line 5808 of planted file 23
+FILE23-CONTENT-line 5852 of planted file 23
+FILE23-CONTENT-line 5896 of planted file 23
+FILE23-CONTENT-line 5940 of planted file 23
+FILE23-CONTENT-line 5984 of planted file 23
+
+Three files read.
+Open http://localhost:61590; terminal messages while busy are hints. /interrupt ends the turn.
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f21-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE21-CONTENT-line 0000 of planted file 21
+FILE21-CONTENT-line 0044 of planted file 21
+FILE21-CONTENT-line 0088 of planted file 21
+FILE21-CONTENT-line 0132 of planted file 21
+FILE21-CONTENT-line 0176 of planted file 21
+FILE21-CONTENT-line 0220 of planted file 21
+FILE21-CONTENT-line 0264 of planted file 21
+FILE21-CONTENT-line 0308 of planted file 21
+FILE21-CONTENT-line 0352 of planted file 21
+FILE21-CONTENT-line 0396 of planted file 21
+FILE21-CONTENT-line 0440 of planted file 21
+FILE21-CONTENT-line 0484 of planted file 21
+FILE21-CONTENT-line 0528 of planted file 21
+FILE21-CONTENT-line 0572 of planted file 21
+FILE21-CONTENT-line 0616 of planted file 21
+FILE21-CONTENT-line 0660 of planted file 21
+FILE21-CONTENT-line 0704 of planted file 21
+FILE21-CONTENT-line 0748 of planted file 21
+FILE21-CONTENT-line 0792 of planted file 21
+FILE21-CONTENT-line 0836 of planted file 21
+FILE21-CONTENT-line 0880 of planted file 21
+FILE21-CONTENT-line 0924 of planted file 21
+FILE21-CONTENT-line 0968 of planted file 21
+FILE21-CONTENT-line 1012 of planted file 21
+FILE21-CONTENT-line 1056 of planted file 21
+FILE21-CONTENT-line 1100 of planted file 21
+FILE21-CONTENT-line 1144 of planted file 21
+FILE21-CONTENT-line 1188 of planted file 21
+FILE21-CONTENT-line 1232 of planted file 21
+FILE21-CONTENT-line 1276 of planted file 21
+FILE21-CONTENT-line 1320 of planted file 21
+FILE21-CONTENT-line 1364 of planted file 21
+FILE21-CONTENT-line 1408 of planted file 21
+FILE21-CONTENT-line 1452 of planted file 21
+FILE21-CONTENT-line 1496 of planted file 21
+FILE21-CONTENT-line 1540 of planted file 21
+FILE21-CONTENT-line 1584 of planted file 21
+FILE21-CONTENT-line 1628 of planted file 21
+FILE21-CONTENT-line 1672 of planted file 21
+FILE21-CONTENT-line 1716 of planted file 21
+FILE21-CONTENT-line 1760 of planted file 21
+FILE21-CONTENT-line 1804 of planted file 21
+FILE21-CONTENT-line 1848 of planted file 21
+FILE21-CONTENT-line 1892 of planted file 21
+FILE21-CONTENT-line 1936 of planted file 21
+FILE21-CONTENT-line 1980 of planted file 21
+FILE21-CONTENT-line 2024 of planted file 21
+FILE21-CONTENT-line 2068 of planted file 21
+FILE21-CONTENT-line 2112 of planted file 21
+FILE21-CONTENT-line 2156 of planted file 21
+FILE21-CONTENT-line 2200 of planted file 21
+FILE21-CONTENT-line 2244 of planted file 21
+FILE21-CONTENT-line 2288 of planted file 21
+FILE21-CONTENT-line 2332 of planted file 21
+FILE21-CONTENT-line 2376 of planted file 21
+FILE21-CONTENT-line 2420 of planted file 21
+FILE21-CONTENT-line 2464 of planted file 21
+FILE21-CONTENT-line 2508 of planted file 21
+FILE21-CONTENT-line 2552 of planted file 21
+FILE21-CONTENT-line 2596 of planted file 21
+FILE21-CONTENT-line 2640 of planted file 21
+FILE21-CONTENT-line 2684 of planted file 21
+FILE21-CONTENT-line 2728 of planted file 21
+FILE21-CONTENT-line 2772 of planted file 21
+FILE21-CONTENT-line 2816 of planted file 21
+FILE21-CONTENT-line 2860 of planted file 21
+FILE21-CONTENT-line 2904 of planted file 21
+FILE21-CONTENT-line 2948 of planted file 21
+FILE21-CONTENT-line 2992 of planted file 21
+FILE21-CONTENT-line 3036 of planted file 21
+FILE21-CONTENT-line 3080 of planted file 21
+FILE21-CONTENT-line 3124 of planted file 21
+FILE21-CONTENT-line 3168 of planted file 21
+FILE21-CONTENT-line 3212 of planted file 21
+FILE21-CONTENT-line 3256 of planted file 21
+FILE21-CONTENT-line 3300 of planted file 21
+FILE21-CONTENT-line 3344 of planted file 21
+FILE21-CONTENT-line 3388 of planted file 21
+FILE21-CONTENT-line 3432 of planted file 21
+FILE21-CONTENT-line 3476 of planted file 21
+FILE21-CONTENT-line 3520 of planted file 21
+FILE21-CONTENT-line 3564 of planted file 21
+FILE21-CONTENT-line 3608 of planted file 21
+FILE21-CONTENT-line 3652 of planted file 21
+FILE21-CONTENT-line 3696 of planted file 21
+FILE21-CONTENT-line 3740 of planted file 21
+FILE21-CONTENT-line 3784 of planted file 21
+FILE21-CONTENT-line 3828 of planted file 21
+FILE21-CONTENT-line 3872 of planted file 21
+FILE21-CONTENT-line 3916 of planted file 21
+FILE21-CONTENT-line 3960 of planted file 21
+FILE21-CONTENT-line 4004 of planted file 21
+FILE21-CONTENT-line 4048 of planted file 21
+FILE21-CONTENT-line 4092 of planted file 21
+FILE21-CONTENT-line 4136 of planted file 21
+FILE21-CONTENT-line 4180 of planted file 21
+FILE21-CONTENT-line 4224 of planted file 21
+FILE21-CONTENT-line 4268 of planted file 21
+FILE21-CONTENT-line 4312 of planted file 21
+FILE21-CONTENT-line 4356 of planted file 21
+FILE21-CONTENT-line 4400 of planted file 21
+FILE21-CONTENT-line 4444 of planted file 21
+FILE21-CONTENT-line 4488 of planted file 21
+FILE21-CONTENT-line 4532 of planted file 21
+FILE21-CONTENT-line 4576 of planted file 21
+FILE21-CONTENT-line 4620 of planted file 21
+FILE21-CONTENT-line 4664 of planted file 21
+FILE21-CONTENT-line 4708 of planted file 21
+FILE21-CONTENT-line 4752 of planted file 21
+FILE21-CONTENT-line 4796 of planted file 21
+FILE21-CONTENT-line 4840 of planted file 21
+FILE21-CONTENT-line 4884 of planted file 21
+FILE21-CONTENT-line 4928 of planted file 21
+FILE21-CONTENT-line 4972 of planted file 21
+FILE21-CONTENT-line 5016 of planted file 21
+FILE21-CONTENT-line 5060 of planted file 21
+FILE21-CONTENT-line 5104 of planted file 21
+FILE21-CONTENT-line 5148 of planted file 21
+FILE21-CONTENT-line 5192 of planted file 21
+FILE21-CONTENT-line 5236 of planted file 21
+FILE21-CONTENT-line 5280 of planted file 21
+FILE21-CONTENT-line 5324 of planted file 21
+FILE21-CONTENT-line 5368 of planted file 21
+FILE21-CONTENT-line 5412 of planted file 21
+FILE21-CONTENT-line 5456 of planted file 21
+FILE21-CONTENT-line 5500 of planted file 21
+FILE21-CONTENT-line 5544 of planted file 21
+FILE21-CONTENT-line 5588 of planted file 21
+FILE21-CONTENT-line 5632 of planted file 21
+FILE21-CONTENT-line 5676 of planted file 21
+FILE21-CONTENT-line 5720 of planted file 21
+FILE21-CONTENT-line 5764 of planted file 21
+FILE21-CONTENT-line 5808 of planted file 21
+FILE21-CONTENT-line 5852 of planted file 21
+FILE21-CONTENT-line 5896 of planted file 21
+FILE21-CONTENT-line 5940 of planted file 21
+FILE21-CONTENT-line 5984 of planted file 21
+
+keep_tool_results {}read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f22-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[keep_tool_results]
+Previous tool results kept.
+[read_file]
+FILE22-CONTENT-line 0000 of planted file 22
+FILE22-CONTENT-line 0044 of planted file 22
+FILE22-CONTENT-line 0088 of planted file 22
+FILE22-CONTENT-line 0132 of planted file 22
+FILE22-CONTENT-line 0176 of planted file 22
+FILE22-CONTENT-line 0220 of planted file 22
+FILE22-CONTENT-line 0264 of planted file 22
+FILE22-CONTENT-line 0308 of planted file 22
+FILE22-CONTENT-line 0352 of planted file 22
+FILE22-CONTENT-line 0396 of planted file 22
+FILE22-CONTENT-line 0440 of planted file 22
+FILE22-CONTENT-line 0484 of planted file 22
+FILE22-CONTENT-line 0528 of planted file 22
+FILE22-CONTENT-line 0572 of planted file 22
+FILE22-CONTENT-line 0616 of planted file 22
+FILE22-CONTENT-line 0660 of planted file 22
+FILE22-CONTENT-line 0704 of planted file 22
+FILE22-CONTENT-line 0748 of planted file 22
+FILE22-CONTENT-line 0792 of planted file 22
+FILE22-CONTENT-line 0836 of planted file 22
+FILE22-CONTENT-line 0880 of planted file 22
+FILE22-CONTENT-line 0924 of planted file 22
+FILE22-CONTENT-line 0968 of planted file 22
+FILE22-CONTENT-line 1012 of planted file 22
+FILE22-CONTENT-line 1056 of planted file 22
+FILE22-CONTENT-line 1100 of planted file 22
+FILE22-CONTENT-line 1144 of planted file 22
+FILE22-CONTENT-line 1188 of planted file 22
+FILE22-CONTENT-line 1232 of planted file 22
+FILE22-CONTENT-line 1276 of planted file 22
+FILE22-CONTENT-line 1320 of planted file 22
+FILE22-CONTENT-line 1364 of planted file 22
+FILE22-CONTENT-line 1408 of planted file 22
+FILE22-CONTENT-line 1452 of planted file 22
+FILE22-CONTENT-line 1496 of planted file 22
+FILE22-CONTENT-line 1540 of planted file 22
+FILE22-CONTENT-line 1584 of planted file 22
+FILE22-CONTENT-line 1628 of planted file 22
+FILE22-CONTENT-line 1672 of planted file 22
+FILE22-CONTENT-line 1716 of planted file 22
+FILE22-CONTENT-line 1760 of planted file 22
+FILE22-CONTENT-line 1804 of planted file 22
+FILE22-CONTENT-line 1848 of planted file 22
+FILE22-CONTENT-line 1892 of planted file 22
+FILE22-CONTENT-line 1936 of planted file 22
+FILE22-CONTENT-line 1980 of planted file 22
+FILE22-CONTENT-line 2024 of planted file 22
+FILE22-CONTENT-line 2068 of planted file 22
+FILE22-CONTENT-line 2112 of planted file 22
+FILE22-CONTENT-line 2156 of planted file 22
+FILE22-CONTENT-line 2200 of planted file 22
+FILE22-CONTENT-line 2244 of planted file 22
+FILE22-CONTENT-line 2288 of planted file 22
+FILE22-CONTENT-line 2332 of planted file 22
+FILE22-CONTENT-line 2376 of planted file 22
+FILE22-CONTENT-line 2420 of planted file 22
+FILE22-CONTENT-line 2464 of planted file 22
+FILE22-CONTENT-line 2508 of planted file 22
+FILE22-CONTENT-line 2552 of planted file 22
+FILE22-CONTENT-line 2596 of planted file 22
+FILE22-CONTENT-line 2640 of planted file 22
+FILE22-CONTENT-line 2684 of planted file 22
+FILE22-CONTENT-line 2728 of planted file 22
+FILE22-CONTENT-line 2772 of planted file 22
+FILE22-CONTENT-line 2816 of planted file 22
+FILE22-CONTENT-line 2860 of planted file 22
+FILE22-CONTENT-line 2904 of planted file 22
+FILE22-CONTENT-line 2948 of planted file 22
+FILE22-CONTENT-line 2992 of planted file 22
+FILE22-CONTENT-line 3036 of planted file 22
+FILE22-CONTENT-line 3080 of planted file 22
+FILE22-CONTENT-line 3124 of planted file 22
+FILE22-CONTENT-line 3168 of planted file 22
+FILE22-CONTENT-line 3212 of planted file 22
+FILE22-CONTENT-line 3256 of planted file 22
+FILE22-CONTENT-line 3300 of planted file 22
+FILE22-CONTENT-line 3344 of planted file 22
+FILE22-CONTENT-line 3388 of planted file 22
+FILE22-CONTENT-line 3432 of planted file 22
+FILE22-CONTENT-line 3476 of planted file 22
+FILE22-CONTENT-line 3520 of planted file 22
+FILE22-CONTENT-line 3564 of planted file 22
+FILE22-CONTENT-line 3608 of planted file 22
+FILE22-CONTENT-line 3652 of planted file 22
+FILE22-CONTENT-line 3696 of planted file 22
+FILE22-CONTENT-line 3740 of planted file 22
+FILE22-CONTENT-line 3784 of planted file 22
+FILE22-CONTENT-line 3828 of planted file 22
+FILE22-CONTENT-line 3872 of planted file 22
+FILE22-CONTENT-line 3916 of planted file 22
+FILE22-CONTENT-line 3960 of planted file 22
+FILE22-CONTENT-line 4004 of planted file 22
+FILE22-CONTENT-line 4048 of planted file 22
+FILE22-CONTENT-line 4092 of planted file 22
+FILE22-CONTENT-line 4136 of planted file 22
+FILE22-CONTENT-line 4180 of planted file 22
+FILE22-CONTENT-line 4224 of planted file 22
+FILE22-CONTENT-line 4268 of planted file 22
+FILE22-CONTENT-line 4312 of planted file 22
+FILE22-CONTENT-line 4356 of planted file 22
+FILE22-CONTENT-line 4400 of planted file 22
+FILE22-CONTENT-line 4444 of planted file 22
+FILE22-CONTENT-line 4488 of planted file 22
+FILE22-CONTENT-line 4532 of planted file 22
+FILE22-CONTENT-line 4576 of planted file 22
+FILE22-CONTENT-line 4620 of planted file 22
+FILE22-CONTENT-line 4664 of planted file 22
+FILE22-CONTENT-line 4708 of planted file 22
+FILE22-CONTENT-line 4752 of planted file 22
+FILE22-CONTENT-line 4796 of planted file 22
+FILE22-CONTENT-line 4840 of planted file 22
+FILE22-CONTENT-line 4884 of planted file 22
+FILE22-CONTENT-line 4928 of planted file 22
+FILE22-CONTENT-line 4972 of planted file 22
+FILE22-CONTENT-line 5016 of planted file 22
+FILE22-CONTENT-line 5060 of planted file 22
+FILE22-CONTENT-line 5104 of planted file 22
+FILE22-CONTENT-line 5148 of planted file 22
+FILE22-CONTENT-line 5192 of planted file 22
+FILE22-CONTENT-line 5236 of planted file 22
+FILE22-CONTENT-line 5280 of planted file 22
+FILE22-CONTENT-line 5324 of planted file 22
+FILE22-CONTENT-line 5368 of planted file 22
+FILE22-CONTENT-line 5412 of planted file 22
+FILE22-CONTENT-line 5456 of planted file 22
+FILE22-CONTENT-line 5500 of planted file 22
+FILE22-CONTENT-line 5544 of planted file 22
+FILE22-CONTENT-line 5588 of planted file 22
+FILE22-CONTENT-line 5632 of planted file 22
+FILE22-CONTENT-line 5676 of planted file 22
+FILE22-CONTENT-line 5720 of planted file 22
+FILE22-CONTENT-line 5764 of planted file 22
+FILE22-CONTENT-line 5808 of planted file 22
+FILE22-CONTENT-line 5852 of planted file 22
+FILE22-CONTENT-line 5896 of planted file 22
+FILE22-CONTENT-line 5940 of planted file 22
+FILE22-CONTENT-line 5984 of planted file 22
+
+read_file {"path":"notes-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/f23-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.txt"}[read_file]
+FILE23-CONTENT-line 0000 of planted file 23
+FILE23-CONTENT-line 0044 of planted file 23
+FILE23-CONTENT-line 0088 of planted file 23
+FILE23-CONTENT-line 0132 of planted file 23
+FILE23-CONTENT-line 0176 of planted file 23
+FILE23-CONTENT-line 0220 of planted file 23
+FILE23-CONTENT-line 0264 of planted file 23
+FILE23-CONTENT-line 0308 of planted file 23
+FILE23-CONTENT-line 0352 of planted file 23
+FILE23-CONTENT-line 0396 of planted file 23
+FILE23-CONTENT-line 0440 of planted file 23
+FILE23-CONTENT-line 0484 of planted file 23
+FILE23-CONTENT-line 0528 of planted file 23
+FILE23-CONTENT-line 0572 of planted file 23
+FILE23-CONTENT-line 0616 of planted file 23
+FILE23-CONTENT-line 0660 of planted file 23
+FILE23-CONTENT-line 0704 of planted file 23
+FILE23-CONTENT-line 0748 of planted file 23
+FILE23-CONTENT-line 0792 of planted file 23
+FILE23-CONTENT-line 0836 of planted file 23
+FILE23-CONTENT-line 0880 of planted file 23
+FILE23-CONTENT-line 0924 of planted file 23
+FILE23-CONTENT-line 0968 of planted file 23
+FILE23-CONTENT-line 1012 of planted file 23
+FILE23-CONTENT-line 1056 of planted file 23
+FILE23-CONTENT-line 1100 of planted file 23
+FILE23-CONTENT-line 1144 of planted file 23
+FILE23-CONTENT-line 1188 of planted file 23
+FILE23-CONTENT-line 1232 of planted file 23
+FILE23-CONTENT-line 1276 of planted file 23
+FILE23-CONTENT-line 1320 of planted file 23
+FILE23-CONTENT-line 1364 of planted file 23
+FILE23-CONTENT-line 1408 of planted file 23
+FILE23-CONTENT-line 1452 of planted file 23
+FILE23-CONTENT-line 1496 of planted file 23
+FILE23-CONTENT-line 1540 of planted file 23
+FILE23-CONTENT-line 1584 of planted file 23
+FILE23-CONTENT-line 1628 of planted file 23
+FILE23-CONTENT-line 1672 of planted file 23
+FILE23-CONTENT-line 1716 of planted file 23
+FILE23-CONTENT-line 1760 of planted file 23
+FILE23-CONTENT-line 1804 of planted file 23
+FILE23-CONTENT-line 1848 of planted file 23
+FILE23-CONTENT-line 1892 of planted file 23
+FILE23-CONTENT-line 1936 of planted file 23
+FILE23-CONTENT-line 1980 of planted file 23
+FILE23-CONTENT-line 2024 of planted file 23
+FILE23-CONTENT-line 2068 of planted file 23
+FILE23-CONTENT-line 2112 of planted file 23
+FILE23-CONTENT-line 2156 of planted file 23
+FILE23-CONTENT-line 2200 of planted file 23
+FILE23-CONTENT-line 2244 of planted file 23
+FILE23-CONTENT-line 2288 of planted file 23
+FILE23-CONTENT-line 2332 of planted file 23
+FILE23-CONTENT-line 2376 of planted file 23
+FILE23-CONTENT-line 2420 of planted file 23
+FILE23-CONTENT-line 2464 of planted file 23
+FILE23-CONTENT-line 2508 of planted file 23
+FILE23-CONTENT-line 2552 of planted file 23
+FILE23-CONTENT-line 2596 of planted file 23
+FILE23-CONTENT-line 2640 of planted file 23
+FILE23-CONTENT-line 2684 of planted file 23
+FILE23-CONTENT-line 2728 of planted file 23
+FILE23-CONTENT-line 2772 of planted file 23
+FILE23-CONTENT-line 2816 of planted file 23
+FILE23-CONTENT-line 2860 of planted file 23
+FILE23-CONTENT-line 2904 of planted file 23
+FILE23-CONTENT-line 2948 of planted file 23
+FILE23-CONTENT-line 2992 of planted file 23
+FILE23-CONTENT-line 3036 of planted file 23
+FILE23-CONTENT-line 3080 of planted file 23
+FILE23-CONTENT-line 3124 of planted file 23
+FILE23-CONTENT-line 3168 of planted file 23
+FILE23-CONTENT-line 3212 of planted file 23
+FILE23-CONTENT-line 3256 of planted file 23
+FILE23-CONTENT-line 3300 of planted file 23
+FILE23-CONTENT-line 3344 of planted file 23
+FILE23-CONTENT-line 3388 of planted file 23
+FILE23-CONTENT-line 3432 of planted file 23
+FILE23-CONTENT-line 3476 of planted file 23
+FILE23-CONTENT-line 3520 of planted file 23
+FILE23-CONTENT-line 3564 of planted file 23
+FILE23-CONTENT-line 3608 of planted file 23
+FILE23-CONTENT-line 3652 of planted file 23
+FILE23-CONTENT-line 3696 of planted file 23
+FILE23-CONTENT-line 3740 of planted file 23
+FILE23-CONTENT-line 3784 of planted file 23
+FILE23-CONTENT-line 3828 of planted file 23
+FILE23-CONTENT-line 3872 of planted file 23
+FILE23-CONTENT-line 3916 of planted file 23
+FILE23-CONTENT-line 3960 of planted file 23
+FILE23-CONTENT-line 4004 of planted file 23
+FILE23-CONTENT-line 4048 of planted file 23
+FILE23-CONTENT-line 4092 of planted file 23
+FILE23-CONTENT-line 4136 of planted file 23
+FILE23-CONTENT-line 4180 of planted file 23
+FILE23-CONTENT-line 4224 of planted file 23
+FILE23-CONTENT-line 4268 of planted file 23
+FILE23-CONTENT-line 4312 of planted file 23
+FILE23-CONTENT-line 4356 of planted file 23
+FILE23-CONTENT-line 4400 of planted file 23
+FILE23-CONTENT-line 4444 of planted file 23
+FILE23-CONTENT-line 4488 of planted file 23
+FILE23-CONTENT-line 4532 of planted file 23
+FILE23-CONTENT-line 4576 of planted file 23
+FILE23-CONTENT-line 4620 of planted file 23
+FILE23-CONTENT-line 4664 of planted file 23
+FILE23-CONTENT-line 4708 of planted file 23
+FILE23-CONTENT-line 4752 of planted file 23
+FILE23-CONTENT-line 4796 of planted file 23
+FILE23-CONTENT-line 4840 of planted file 23
+FILE23-CONTENT-line 4884 of planted file 23
+FILE23-CONTENT-line 4928 of planted file 23
+FILE23-CONTENT-line 4972 of planted file 23
+FILE23-CONTENT-line 5016 of planted file 23
+FILE23-CONTENT-line 5060 of planted file 23
+FILE23-CONTENT-line 5104 of planted file 23
+FILE23-CONTENT-line 5148 of planted file 23
+FILE23-CONTENT-line 5192 of planted file 23
+FILE23-CONTENT-line 5236 of planted file 23
+FILE23-CONTENT-line 5280 of planted file 23
+FILE23-CONTENT-line 5324 of planted file 23
+FILE23-CONTENT-line 5368 of planted file 23
+FILE23-CONTENT-line 5412 of planted file 23
+FILE23-CONTENT-line 5456 of planted file 23
+FILE23-CONTENT-line 5500 of planted file 23
+FILE23-CONTENT-line 5544 of planted file 23
+FILE23-CONTENT-line 5588 of planted file 23
+FILE23-CONTENT-line 5632 of planted file 23
+FILE23-CONTENT-line 5676 of planted file 23
+FILE23-CONTENT-line 5720 of planted file 23
+FILE23-CONTENT-line 5764 of planted file 23
+FILE23-CONTENT-line 5808 of planted file 23
+FILE23-CONTENT-line 5852 of planted file 23
+FILE23-CONTENT-line 5896 of planted file 23
+FILE23-CONTENT-line 5940 of planted file 23
+FILE23-CONTENT-line 5984 of planted file 23
+
+Three files read.
+Chapter 16 — What You Keep When You Forget
+============================================================
+
+[FAIL]      A checkpoint that crosses the budget turns the oldest finished work into a memory, and the raw work it replaces leaves the context.  (0/15)
+       the conversation grew past its budget across 12 turns and no
+       compressor ever ran. A request offering exactly one tool named submit
+       is what this grader recognises as a compressor.
+
+[FAIL]      The compressor is shown the work it is folding, and what it writes comes back as context.  (0/10)
+       no compressor ran, so nothing could be remembered
+
+[FAIL]      A band over its budget folds its OLDEST contents into the band above, leaving the newest alone.  (0/12)
+       0 session memories were written and the session band's budget is 200
+       bytes, but no compressor was ever asked to fold memories into the band
+       above. A band that only ever grows is not a ladder.
+
+[FAIL]      Switching bands off and back on - in any order - restores exactly the memory that was there before.  (0/12)
+       no memories were produced, so there is nothing to switch off
+
+[FAIL]      A band whose upper neighbour is switched off refuses to graduate rather than dropping memories on the floor.  (0/8)
+       no session memories were written at all, so refusing to graduate
+       proves nothing. This scenario needs the session band to fill up first.
+
+[PASS]      A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.  (12/12)
+
+[FAIL]      Rebuilding a context replays recorded decisions instead of re-running the model that made them.  (0/10)
+       no memories were produced, so replay proves nothing
+
+[PASS]      A fold that fails or is interrupted loses no work and is never applied twice.  (8/8)
+
+[FAIL]      Memory arrives in the conversation, written in the first person, not bolted onto the system prompt.  (0/5)
+       no compressor ran, so no memory reached the context
+
+[FAIL]      An agent starting with memory files on disk comes up with them already in context.  (0/5)
+       no memories were written, so there is nothing to come back to
+
+[FAIL]      Chapter 15's ladder and journal still work; memory is added on top of them, not instead of them.  (0/3)
+       chapter 15 checks now fail: frozen-prefix (the tool think never
+       reached the dialog after its skill loaded); ladder-is-recorded (after
+       restart the first file's result is back: the cuts were not replayed);
+       replay-equals-snapshot (the save's log has no "redacted" event; the
+       session should have produced one); skill-survives-the-ladder (the
+       ladder never fired: at target 20000 the first file's result is still
+       in the last request after 12 reads). Memory is added on top of the
+       ladder, not instead of it.
+
+------------------------------------------------------------
+score: 20/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

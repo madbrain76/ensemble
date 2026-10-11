@@ -1,0 +1,13 @@
+{
+  "command": "make grade-dir CH=16 DIR=./solutions/edition-2/main/gui",
+  "started_at": "2026-10-11T11:58:10.922158+00:00",
+  "source_commit": "ccd63509c3b2e08ff5a231b0409423b236953022",
+  "source_tree": "58dd0d51c9eb34e1096a1134fa2d045c97d07c97",
+  "status": "completed",
+  "finished_at": "2026-10-11T11:59:21.790722+00:00",
+  "make_exit_code": 2,
+  "grader_exit_code": 1,
+  "score": 20,
+  "total": 100,
+  "result": "FAIL"
+}
