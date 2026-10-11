@@ -1,5 +1,26 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 12 accepted
+
+Independent combined review `cf56e575` accepts The Agent Sees Itself at initial
+review, zero formal rounds; checkpoint `edition-2-enhanced-ch12-r1`. Exact
+examples, affected race checks and hard prose lint pass. Actual revised full
+runs scored accepted100/100 and legacy75/100 before two grader representation
+corrections; final focused90/90 and75/90 plus unchanged parity give explicitly
+composed100/100 and75/100. Fifteen targeted defects fail as intended. Original
+0/100, both OpenAI task failures and separate native-speech evidence remain.
+
+Valid alternate request forms exposed a grader panic and false rejection; real
+renderer controls now pass without weakening result/context distinctions. Legacy
+startup actually discards its manual, whereas the initial missing-primary launch
+was a fixture error. Keep those different causes separate. Historical source
+checks also corrected the debugger's run size, human/source attribution and a
+supposed invented quotation that exists across a newline. A search miss cannot
+establish absence; a confident correction needs evidence too. The author retains
+the stories while teaching these limits. Author and reviewer each reloaded all
+four complete documents after compaction. Chapter13 (original14, The Channel
+Nobody Tested) follows, preserving speech-only capability and listening limits.
+
 ## October 11: enhanced Chapter 11 accepted
 
 Independent combined review `dfc263c5` accepts MCP at initial review, zero formal

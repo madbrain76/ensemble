@@ -17,8 +17,8 @@ not count. The independent reviewer follows the same full-reading requirement.
 Current team: `edition2_author` writes prose, `edition2_grader_coder` (GPT-6
 Astra/high) corrects the separately versioned graders and validates technical
 claims, and `reviewer_astra` independently reviews both. The coordinator records
-acceptance and releases the next chapter. Chapters 9–11 are accepted; Chapter 12
-(original 13, The Agent Sees Itself) is now assigned.
+acceptance and releases the next chapter. Chapters 9–12 are accepted; Chapter 13
+(original 14, The Channel Nobody Tested) is now assigned.
 Read the original chapter, corresponding student/comparative reviews and exact
 accepted solution at each gate. Enhance the original text with demonstrated
 lessons; preserve stories, personality and sufficient explanation. There is no
@@ -153,6 +153,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 9 (old 10) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch09-r1` |
 | 10 (old 11) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch10-r1` |
 | 11 (old 12) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch11-r1` |
+| 12 (old 13) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch12-r1` |
 
 ### Chapters 0–1 acceptance
 
@@ -539,3 +540,37 @@ Continue Edition2 Chapter12 from original13, The Agent Sees Itself, matching
 `ch12`. Preserve the original human-observer story while correcting sourced
 contradictions; the coordinator's quotation check is recorded in original13
 notes at `8b03f758`. Sequential author/coder/reviewer gates continue.
+
+
+### October 11 Chapter 12 acceptance
+
+Independent combined review `cf56e575` accepts The Agent Sees Itself at initial
+review, zero formal correction rounds. Prose `d70588d1`, author reconciliation
+`d6f08143`, grader/evidence `9a7e2529` and report clarification `3ed84c05`;
+checkpoint `edition-2-enhanced-ch12-r1`. The original observer, debugger,
+two-dispatcher and settings stories remain, with sourced historical corrections
+and the student's speech/input-cause failure developed into teaching. All16
+example blocks match the checked manuscript, actual published launches pass,
+and hard prose lint passes5273 words. Author and reviewer each reloaded all four
+documents completely after compaction; no summaries substituted for those reads.
+
+Actual pre-final full grading is accepted100/100 in16.902s and legacy75/100
+in15.408s. Final focused90/90 and75/90 plus unchanged measured parity10/0 yield
+explicitly composed100/100 and75/100, not new full runs. Two valid alternate
+wire representations initially caused a panic and false failure; their real
+renderer controls now pass. The legacy startup drops the manual, a real defect;
+the initial omitted primary was only a launch-fixture error. All15 targeted
+defects fail intended checks with restored baselines. Existing native-browser
+proof remains separate from numeric subprocess and sample-tunnel observations.
+No new paid run, runtime edit or frozen-source change occurred.
+
+Coordinator read the complete prose, grader and reviews, checked all final
+grader/sample hashes, actual scores and both frozen tree identities. Historical
+original0/100, both OpenAI task failures and earlier-source live limits remain.
+See [author notes](edition-2-notes/enhancement-12.md),
+[coder report](edition-2-notes/enhancement-12-code.md) and
+[independent review](edition-2-notes/enhancement-12-review.md).
+Continue Edition2 Chapter13 from original14, The Channel Nobody Tested, matching
+direct `ch13`. Preserve the speech-only observer, actual five-tool restriction,
+whole-final and teardown lessons, with transcript/native/audio-quality claims
+kept distinct. Sequential gates continue.
