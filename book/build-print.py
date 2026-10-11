@@ -114,10 +114,54 @@ def inject(html: str, entries: list[tuple[str, str]], mapping: dict[str, int]) -
     return html.replace(block, new)
 
 
+def clean_html(html: str) -> str:
+    """Fix pandoc output for print before the two-pass TOC build.
+
+    1. Force a page break after the pandoc TOC so it doesn't flow into the
+       front matter.
+    2. Remove the self-referential "Contents" entry from the pandoc TOC
+       (the markdown TOC heading appears as a TOC entry pointing at itself).
+    3. Strip the markdown-generated "# Contents" section entirely — the
+       pandoc --toc generates the real TOC with page numbers; the markdown
+       one is for GitHub and has only anchor links (useless in print).
+    """
+    # 1. Page break after TOC nav
+    html = html.replace(
+        '</nav>',
+        '</nav>\n<div style="page-break-after: always;"></div>',
+        1,  # only the first </nav> (the TOC)
+    )
+
+    # 2. Remove "Contents" entry from pandoc TOC (self-referential)
+    html = re.sub(
+        r'<li><a\s[^>]*href="#contents"[^>]*>Contents</a>.*?</li>\s*',
+        '',
+        html,
+        count=1,
+        flags=re.S,
+    )
+
+    # 3. Strip the markdown "# Contents" section from the body.
+    #    It starts with <h1 id="contents"> and ends just before the next <h1>.
+    html = re.sub(
+        r'<h1 id="contents">Contents</h1>.*?(?=<h1[ >])',
+        '',
+        html,
+        count=1,
+        flags=re.S,
+    )
+
+    return html
+
+
 def main() -> None:
     src = BOOK / "interior-print.html"
     pdf = BOOK / "The Art of Building AI Coding Agents - Print Interior.pdf"
     html = src.read_text()
+
+    print("cleaning HTML: TOC page break, strip duplicate Contents")
+    html = clean_html(html)
+    src.write_text(html)
 
     entries = toc_entries(html)
     titles = [strip_tags(t) for _, t in entries]
