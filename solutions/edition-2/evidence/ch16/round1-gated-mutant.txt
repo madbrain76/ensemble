@@ -1,0 +1,166 @@
+=== RUN   TestMemorySettingsDuringStream
+    settings_test.go:222: idle settings control acknowledged
+    settings_test.go:248: waiting for wire event: read tcp 127.0.0.1:63848->127.0.0.1:63847: i/o timeout
+panic: test timed out after 12s
+	running tests:
+		TestMemorySettingsDuringStream (12s)
+
+goroutine 36 [running]:
+testing.(*M).startAlarm.func1()
+	/usr/local/go/src/testing/testing.go:2682 +0x2b0
+created by time.goFunc
+	/usr/local/go/src/time/sleep.go:215 +0x38
+
+goroutine 1 [chan receive]:
+testing.(*T).Run(0x14000003880, {0x10082665d?, 0x14000157b38?}, 0x1009855a0)
+	/usr/local/go/src/testing/testing.go:2005 +0x378
+testing.runTests.func1(0x14000003880)
+	/usr/local/go/src/testing/testing.go:2477 +0x38
+testing.tRunner(0x14000003880, 0x14000157c68)
+	/usr/local/go/src/testing/testing.go:1934 +0xc8
+testing.runTests(0x1400000e150, {0x100c12560, 0x7, 0x7}, {0x1400007e3e0?, 0x7?, 0x100c1a1c0?})
+	/usr/local/go/src/testing/testing.go:2475 +0x3b8
+testing.(*M).Run(0x1400010c320)
+	/usr/local/go/src/testing/testing.go:2337 +0x530
+main.main()
+	_testmain.go:59 +0x80
+
+goroutine 8 [chan receive]:
+ensemble/internal/agent.(*agent).Shutdown(0x14000022b08)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/agent/actor.go:198 +0x114
+ensemble-gui-stub_test.TestMemorySettingsDuringStream.func4()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/settings_test.go:200 +0x50
+testing.(*common).Cleanup.func1()
+	/usr/local/go/src/testing/testing.go:1308 +0xdc
+testing.(*common).runCleanup(0x14000003a40, 0x14000102230?)
+	/usr/local/go/src/testing/testing.go:1572 +0xd8
+testing.tRunner.func2()
+	/usr/local/go/src/testing/testing.go:1928 +0x2c
+runtime.Goexit()
+	/usr/local/go/src/runtime/panic.go:615 +0x60
+testing.(*common).FailNow(0x14000003a40)
+	/usr/local/go/src/testing/testing.go:1013 +0x48
+testing.(*common).Fatal(0x14000003a40, {0x14000159980?, 0x140002c4080?, 0x100c1a1c0?})
+	/usr/local/go/src/testing/testing.go:1212 +0x54
+ensemble-gui-stub_test.until(0x14000003a40, 0x1400019e000, 0x14000159e58)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui_test.go:66 +0x100
+ensemble-gui-stub_test.TestMemorySettingsDuringStream(0x14000003a40)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/settings_test.go:248 +0x8ec
+testing.tRunner(0x14000003a40, 0x1009855a0)
+	/usr/local/go/src/testing/testing.go:1934 +0xc8
+created by testing.(*T).Run in goroutine 1
+	/usr/local/go/src/testing/testing.go:1997 +0x364
+
+goroutine 10 [IO wait]:
+internal/poll.runtime_pollWait(0x100f86a00, 0x72)
+	/usr/local/go/src/runtime/netpoll.go:351 +0xa0
+internal/poll.(*pollDesc).wait(0x14000150180?, 0x1004ff8b0?, 0x0)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:84 +0x28
+internal/poll.(*pollDesc).waitRead(...)
+	/usr/local/go/src/internal/poll/fd_poll_runtime.go:89
+internal/poll.(*FD).Accept(0x14000150180)
+	/usr/local/go/src/internal/poll/fd_unix.go:613 +0x21c
+net.(*netFD).accept(0x14000150180)
+	/usr/local/go/src/net/fd_unix.go:161 +0x28
+net.(*TCPListener).accept(0x14000100b80)
+	/usr/local/go/src/net/tcpsock_posix.go:159 +0x24
+net.(*TCPListener).Accept(0x14000100b80)
+	/usr/local/go/src/net/tcpsock.go:380 +0x2c
+net/http.(*Server).Serve(0x14000162100, {0x10098d098, 0x14000100b80})
+	/usr/local/go/src/net/http/server.go:3463 +0x24c
+net/http/httptest.(*Server).goServe.func1()
+	/usr/local/go/src/net/http/httptest/server.go:311 +0x54
+created by net/http/httptest.(*Server).goServe in goroutine 8
+	/usr/local/go/src/net/http/httptest/server.go:309 +0x6c
+
+goroutine 12 [select]:
+ensemble/internal/agent.(*agent).SetMemorySettings(0x14000022b08, {{0x0, 0x0, 0x0, 0x0}, {0x0, 0x0, 0x0, 0x0}, {0x0, ...}, ...})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/agent/agent.go:264 +0x10c
+ensemble-gui-stub.(*Server).updateSettings(_, {_, _, _})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/settings.go:125 +0x27c
+ensemble-gui-stub.(*Server).socket(0x140001149c0, {0x10098d008?, 0x1400015e3c0?}, 0x140000325f0?)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:283 +0xbc0
+net/http.HandlerFunc.ServeHTTP(0x1400012e0c0?, {0x10098d008?, 0x1400015e3c0?}, 0x100759e08?)
+	/usr/local/go/src/net/http/server.go:2322 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x10098d008, 0x1400015e3c0}, 0x14000000500)
+	/usr/local/go/src/net/http/server.go:2861 +0x190
+net/http.serverHandler.ServeHTTP({0x14000100c80?}, {0x10098d008?, 0x1400015e3c0?}, 0x1?)
+	/usr/local/go/src/net/http/server.go:3340 +0xb0
+net/http.(*conn).serve(0x14000146360, {0x10098d4b8, 0x14000182210})
+	/usr/local/go/src/net/http/server.go:2109 +0x528
+created by net/http.(*Server).Serve in goroutine 10
+	/usr/local/go/src/net/http/server.go:3493 +0x384
+
+goroutine 14 [select]:
+ensemble-gui-stub.(*Server).socket.func2()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:220 +0xa0
+created by ensemble-gui-stub.(*Server).socket in goroutine 12
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:217 +0x450
+
+goroutine 33 [sync.Mutex.Lock]:
+internal/sync.runtime_SemacquireMutex(0x0?, 0x0?, 0x140000d5558?)
+	/usr/local/go/src/runtime/sema.go:95 +0x28
+internal/sync.(*Mutex).lockSlow(0x14000114ad0)
+	/usr/local/go/src/internal/sync/mutex.go:149 +0x170
+internal/sync.(*Mutex).Lock(...)
+	/usr/local/go/src/internal/sync/mutex.go:70
+sync.(*Mutex).Lock(...)
+	/usr/local/go/src/sync/mutex.go:46
+ensemble-gui-stub.(*Server).socket.func1()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:208 +0xb4
+ensemble-gui-stub.(*Server).socket(0x140001149c0, {0x10098d008?, 0x1400015e4b0?}, 0x140000326b0?)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:237 +0xf18
+net/http.HandlerFunc.ServeHTTP(0x1400012e0c0?, {0x10098d008?, 0x1400015e4b0?}, 0x100759e08?)
+	/usr/local/go/src/net/http/server.go:2322 +0x38
+net/http.(*ServeMux).ServeHTTP(0x0?, {0x10098d008, 0x1400015e4b0}, 0x14000000640)
+	/usr/local/go/src/net/http/server.go:2861 +0x190
+net/http.serverHandler.ServeHTTP({0x14000100e40?}, {0x10098d008?, 0x1400015e4b0?}, 0x1?)
+	/usr/local/go/src/net/http/server.go:3340 +0xb0
+net/http.(*conn).serve(0x14000096000, {0x10098d4b8, 0x14000182210})
+	/usr/local/go/src/net/http/server.go:2109 +0x528
+created by net/http.(*Server).Serve in goroutine 10
+	/usr/local/go/src/net/http/server.go:3493 +0x384
+
+goroutine 18 [select]:
+ensemble/internal/mcp.(*client).request(0x140001841c0, {0x10098d3d8, 0x100c420a0}, {0x10081b4ae, 0xa}, {0x100916600, 0x140001deea0}, {0x1008eb8a0, 0x14000180a80})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/mcp/client.go:109 +0x2e0
+ensemble/internal/mcp.(*client).initialize(0x140001841c0, {0x10098d3d8, 0x100c420a0})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/mcp/client.go:131 +0x204
+ensemble/internal/mcp.(*manager).Connect(0x1400003c1e0, {0x10098d3d8, 0x100c420a0}, {0x100819fa0, 0x7}, {0x10098cdf8, 0x14000100dc0})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/mcp/mcp.go:120 +0x460
+ensemble/internal/mcp.(*manager).AttachBrowser(0x1400003c1e0, {0x10098d3d8, 0x100c420a0}, {0x10098cdf8, 0x14000100dc0})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/mcp/mcp.go:251 +0x2a4
+ensemble-gui-stub.(*Server).socket.func3()
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:274 +0x5c
+created by ensemble-gui-stub.(*Server).socket in goroutine 12
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:273 +0xad0
+
+goroutine 19 [select]:
+ensemble-gui-stub.(*WSTransport).Recv(0x100b51168?)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/mcp.go:46 +0x58
+ensemble/internal/mcp.(*client).read(0x140001841c0)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/mcp/client.go:183 +0x5c
+created by ensemble/internal/mcp.newClient in goroutine 18
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/mcp/client.go:74 +0x100
+
+goroutine 49 [sync.Mutex.Lock]:
+internal/sync.runtime_SemacquireMutex(0x14000231868?, 0x9c?, 0x14000102378?)
+	/usr/local/go/src/runtime/sema.go:95 +0x28
+internal/sync.(*Mutex).lockSlow(0x14000114ad0)
+	/usr/local/go/src/internal/sync/mutex.go:149 +0x170
+internal/sync.(*Mutex).Lock(...)
+	/usr/local/go/src/internal/sync/mutex.go:70
+sync.(*Mutex).Lock(...)
+	/usr/local/go/src/sync/mutex.go:46
+ensemble-gui-stub.(*Server).ObserveAgent(0x140001149c0, {0x1009912c0?, 0x14000022b08?}, {0x100989ce0, 0x1400029a340})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/gui/gui.go:64 +0xb8
+ensemble/ensemble.(*Ensemble).Observe(0x14000136380, {0x1009912c0, 0x14000022b08}, {0x100989ce0, 0x1400029a340})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/ensemble/ensemble.go:195 +0x1a8
+ensemble/internal/agent.(*agent).notify(0x14000022b08, {0x100989ce0, 0x1400029a340})
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/agent/actor.go:226 +0x48
+ensemble/internal/agent.(*runtime).run(0x1400033a000)
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/agent/actor.go:505 +0x420
+created by ensemble/internal/agent.(*agent).start.func1 in goroutine 12
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch16-lock-r1-gated-e6l675_t/internal/agent/actor.go:82 +0x94
+FAIL	ensemble-gui-stub	12.012s
+FAIL

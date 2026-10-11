@@ -1,0 +1,7 @@
+=== RUN   TestMemorySettingsDuringStream
+    settings_test.go:192: idle settings control acknowledged
+    settings_test.go:198: all active-stream patches acknowledged on both tabs
+    settings_test.go:211: stream completed and Agent shutdown returned
+--- PASS: TestMemorySettingsDuringStream (0.01s)
+PASS
+ok  	ensemble-gui-stub	0.019s

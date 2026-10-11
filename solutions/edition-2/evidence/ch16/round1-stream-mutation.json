@@ -1,0 +1,21 @@
+{
+  "claim": "active settings acknowledgment, progress and shutdown do not deadlock",
+  "mutation": "hold GUI observer mutex across synchronous Agent.SetMemorySettings in updateSettings",
+  "command": [
+    "go",
+    "test",
+    "-run",
+    "^TestMemorySettingsDuringStream$",
+    "-count=1",
+    "-timeout=12s",
+    "-v",
+    "."
+  ],
+  "baseline_exit": 0,
+  "mutant_exit": 0,
+  "idle_control_passed": true,
+  "active_patch_completed": true,
+  "actor_observation_stack": false,
+  "settings_wait_stack": false,
+  "timeout": false
+}

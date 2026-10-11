@@ -1,0 +1,14 @@
+Original16 / Edition2ch15 correction round1; October11 2026
+Affected module: solutions/edition-2/main/gui
+Final go test ./... && go vet ./... && go test -race ./...: exit0
+GUI package: normal1.218s; race4.738s; command packages no test files.
+No core production change or broader unchanged checks repeated.
+Gofmt clean, source/student-note diff check clean.
+
+Initial new regression was merely paced. First targeted restored-lock mutant
+survived exit0; retain round1-stream-* evidence, do not count it as a kill.
+Revised regression establishes interleaving with a real subscriber gate and
+actual persisted settings file. Frozen own-source restoration mutant catches
+exact original GUI lock cycle with idle positive control. Raw stack retained.
+A wrong-cwd first command returned no Go files in outer repo; it was setup
+failure, not a product failure or successful baseline.

@@ -92,10 +92,14 @@ func (s *Server) settingsPath() string {
 	return filepath.Join(s.agent.Config().DataDir, "settings.json")
 }
 
-// Called under Server.mu, together with broadcast and subscription. Persist
-// before publishing so a failed write cannot claim a successful saved update.
+// Called under settingsMu, together with broadcast and subscription. Never hold
+// the observer mutex while waiting for the actor: streamed progress needs it.
+// Persist before applying/publishing so a failed write leaves accepted state alone.
 func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
-	next, err := settingsPatch(s.snapshotSettings(), raw)
+	s.mu.Lock()
+	current := s.snapshotSettings()
+	s.mu.Unlock()
+	next, err := settingsPatch(current, raw)
 	if err != nil {
 		return Settings{}, err
 	}
@@ -119,9 +123,13 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 		os.Remove(path + ".tmp")
 		return Settings{}, err
 	}
-	s.settings = next
 	s.agent.SetMaxToolRounds(next.MaxToolRounds) // Already clamped by settingsPatch.
 	s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
-	s.agent.SetMemorySettings(next.Memory)
+	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
+		return Settings{}, err
+	}
+	s.mu.Lock()
+	s.settings = next
+	s.mu.Unlock()
 	return next, nil
 }

@@ -1,0 +1,21 @@
+{
+  "claim": "active settings acknowledgment, progress and shutdown do not deadlock",
+  "mutation": "restore exact student e1c8972 GUI settings.go and gui.go; keep new causal regression",
+  "command": [
+    "go",
+    "test",
+    "-run",
+    "^TestMemorySettingsDuringStream$",
+    "-count=1",
+    "-timeout=12s",
+    "-v",
+    "."
+  ],
+  "baseline_exit": 0,
+  "mutant_exit": 1,
+  "idle_control_passed": true,
+  "active_patch_completed": false,
+  "actor_observation_stack": true,
+  "settings_wait_stack": true,
+  "timeout": true
+}
