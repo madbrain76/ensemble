@@ -39,7 +39,17 @@ func run() (runErr error) {
 	// existing positional protocol or making load an opt-in operation.
 	var positional []string
 	for i := 0; i < len(args); i++ {
-		if args[i] == "--gui-debug" {
+		if args[i] == "--safe-mode" {
+			spec.SafeMode = true
+		} else if args[i] == "--no-web-search" {
+			spec.EnableWebSearch = false
+		} else if args[i] == "--sandbox" {
+			i++
+			if i == len(args) || args[i] == "" {
+				return errors.New("--sandbox requires a path")
+			}
+			spec.SandboxRoot = args[i]
+		} else if args[i] == "--gui-debug" {
 			guiDebug = true
 		} else if args[i] == "--save" || args[i] == "--skills-dir" {
 			name := args[i]
@@ -98,6 +108,19 @@ func run() (runErr error) {
 	if logPath == "" {
 		logPath = "ch02.jsonl"
 	}
+	if spec.SandboxRoot != "" {
+		root, err := filepath.Abs(spec.SandboxRoot)
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(root, 0700); err != nil {
+			return err
+		}
+		spec.SandboxRoot = root
+		cfg.DataDir = filepath.Join(root, "cr")
+		logPath = filepath.Join(root, filepath.Base(logPath))
+		savePath = filepath.Join(root, filepath.Base(savePath))
+	}
 	cfg.LogPath = logPath
 	// This single-Agent application chooses cwd/save.json. Library consumers
 	// default to their Agent's DataDir; the path remains owned by its configuration.
@@ -109,18 +132,21 @@ func run() (runErr error) {
 	if err := authcli.Configure(app); err != nil {
 		return err
 	}
+	a, err := app.NewAgent(cfg, spec)
+	if err != nil {
+		return err
+	}
 	if mode == "chat" || mode == "protocol" || mode == "prompt" {
-		trace, err := os.Create("api.log")
+		tracePath := "api.log"
+		trace, err := a.Sandbox().OpenFile(tracePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
+			a.Shutdown()
 			return err
 		}
 		defer trace.Close()
 		app.SetAPILog(trace)
 	}
-	a, err := app.NewAgent(cfg, spec)
-	if err != nil {
-		return err
-	}
+
 	// These branches terminate before the live key check and input loop.
 	// Dump reproduces recorded facts; render projects them onto today's target.
 	// Neither command sends HTTP or consults a provider-owned conversation.

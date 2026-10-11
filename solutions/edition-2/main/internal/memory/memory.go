@@ -128,7 +128,7 @@ func (m *memory) Scan(b common.Band) ([]common.BandPopulatedData, error) {
 	}
 	var out []common.BandPopulatedData
 	for _, p := range paths {
-		data, err := os.ReadFile(p)
+		data, err := m.parent.Sandbox().ReadFile(p)
 		if os.IsNotExist(err) {
 			continue
 		}
@@ -291,13 +291,13 @@ func (m *memory) Graduation() (*common.Compression, error) {
 func (m *memory) Write(t *common.Compression, summary string) error {
 	a := m.parent
 	p := path(a, t.Destination, t.File, t.Thru)
-	if err := os.MkdirAll(filepath.Dir(p), 0700); err != nil {
+	if err := m.parent.Sandbox().MkdirAll(filepath.Dir(p), 0700); err != nil {
 		return err
 	}
-	if err := os.WriteFile(p+".tmp", []byte(summary), 0600); err != nil {
+	if err := m.parent.Sandbox().WriteFile(p+".tmp", []byte(summary), 0600); err != nil {
 		return err
 	}
-	return os.Rename(p+".tmp", p)
+	return m.parent.Sandbox().Rename(p+".tmp", p)
 }
 
 // Archive removes graduated files from future scans without destroying the corpus.
@@ -305,7 +305,7 @@ func (m *memory) Archive(t *common.Compression) error {
 	a := m.parent
 	for _, e := range t.Retired {
 		p := path(a, t.Source, e.File, e.Thru)
-		if err := os.Rename(p, p+".retired"); err != nil && !os.IsNotExist(err) {
+		if err := m.parent.Sandbox().Rename(p, p+".retired"); err != nil && !os.IsNotExist(err) {
 			return err
 		}
 	}

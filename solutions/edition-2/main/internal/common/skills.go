@@ -3,6 +3,18 @@ package common
 // AgentSpec supplies per-Agent identity independently of provider configuration.
 // Omit it to retain the unrestricted tool setup used before skills.
 type AgentSpec struct {
+	// DataDir optionally selects this Agent's state directory.
+	DataDir string
+	// LogPath optionally selects its history log.
+	LogPath string
+	// SavePath optionally selects its snapshot.
+	SavePath string
+	// SandboxRoot confines file tools and command descendants when nonempty.
+	SandboxRoot string
+	// SafeMode removes shell execution and its attendant tools.
+	SafeMode bool
+	// EnableWebSearch permits discovery and loading of the web-search skill.
+	EnableWebSearch bool
 	// SkillsDir contains one named directory per SKILL.md.
 	SkillsDir string
 	// PrimarySkill selects the identity loaded before the first request.

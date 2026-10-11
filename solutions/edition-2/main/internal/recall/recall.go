@@ -101,7 +101,34 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 	type document struct{ source, file, text string }
 	var documents []document
 	for _, source := range sources {
-		err := filepath.WalkDir(source.path, func(path string, entry fs.DirEntry, err error) error {
+		walk := r.parent.Sandbox().WalkDir
+		read := r.parent.Sandbox().ReadFile
+		// Application-installed skills may intentionally live outside the workspace.
+		// That trusted corpus is distinct from model-writable memory and handoffs.
+		if source.name == "skills" {
+			if r.parent.Spec().SandboxRoot == "" {
+				walk, read = filepath.WalkDir, os.ReadFile
+			} else if _, err := r.parent.Sandbox().Resolve(source.path); err != nil {
+				// An explicitly selected external skill directory is trusted input, but
+				// even there a skill file may not redirect recall outside its own corpus.
+				root, err := os.OpenRoot(source.path)
+				if err != nil {
+					return nil, err
+				}
+				defer root.Close()
+				read = func(path string) ([]byte, error) {
+					rel, err := filepath.Rel(source.path, path)
+					if err != nil {
+						return nil, err
+					}
+					return root.ReadFile(rel)
+				}
+				walk = func(path string, visit fs.WalkDirFunc) error {
+					return fs.WalkDir(root.FS(), ".", func(name string, d fs.DirEntry, err error) error { return visit(filepath.Join(path, name), d, err) })
+				}
+			}
+		}
+		err := walk(source.path, func(path string, entry fs.DirEntry, err error) error {
 			// Optional corpus directories need not exist on a fresh Agent.
 			// Other I/O failures remain diagnostic errors, not empty successes.
 			if os.IsNotExist(err) {
@@ -116,7 +143,13 @@ func (r *recaller) search(query []string, floor float64) ([]hit, error) {
 			if filepath.Ext(path) != ".md" && !(source.name == "memory" && strings.HasSuffix(path, ".md.retired")) || source.name == "skills" && entry.Name() != "SKILL.md" {
 				return nil
 			}
-			body, err := os.ReadFile(path)
+			if !entry.Type().IsRegular() {
+				return nil
+			}
+			if source.name == "skills" && !r.parent.Spec().EnableWebSearch && filepath.Base(filepath.Dir(path)) == "web-search" {
+				return nil
+			}
+			body, err := read(path)
 			if err != nil {
 				return err
 			}

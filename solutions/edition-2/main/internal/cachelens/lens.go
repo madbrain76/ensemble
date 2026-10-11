@@ -143,14 +143,14 @@ func (l *Lens) ObserveRequest(name string, body []byte) float64 {
 	}
 	root.Logf("cache lens %s: %s; prefix_bytes=%d prompt_bytes=%d predicted=%.4f", name, strings.Join(verdicts, " "), prefix, total, predicted)
 	dir := l.parent.Agent().Config().DataDir
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	if err := l.parent.Agent().Sandbox().MkdirAll(dir, 0700); err != nil {
 		root.Logf("cache lens: create directory: %v", err)
 	} else {
 		current := filepath.Join(dir, "cache-current.txt")
-		if err := os.Rename(current, filepath.Join(dir, "cache-prior.txt")); err != nil && !os.IsNotExist(err) {
+		if err := l.parent.Agent().Sandbox().Rename(current, filepath.Join(dir, "cache-prior.txt")); err != nil && !os.IsNotExist(err) {
 			root.Logf("cache lens: rotate: %v", err)
 		}
-		if err := os.WriteFile(current, []byte(artifact.String()), 0600); err != nil {
+		if err := l.parent.Agent().Sandbox().WriteFile(current, []byte(artifact.String()), 0600); err != nil {
 			root.Logf("cache lens: write: %v", err)
 		}
 	}

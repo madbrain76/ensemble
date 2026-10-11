@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -23,6 +24,7 @@ import (
 	"ensemble/internal/mcp"
 	"ensemble/internal/memory"
 	"ensemble/internal/recall"
+	"ensemble/internal/sandbox"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -52,6 +54,7 @@ type Ensemble struct {
 	logger      *log.Logger
 	api         io.Writer
 	apiMu       sync.Mutex
+	secrets     []string
 	agents      []Agent
 	nextJob     atomic.Int64
 	merged      chan AgentObservation
@@ -69,7 +72,19 @@ func (e *Ensemble) NextJobHandle() int { return int(e.nextJob.Add(1)) }
 
 // Logf exposes logging without giving children the concrete logger to reconfigure.
 // The standard logger serializes writers and stamps each diagnostic.
-func (e *Ensemble) Logf(format string, args ...any) { e.logger.Printf(format, args...) }
+func (e *Ensemble) Logf(format string, args ...any) {
+	e.apiMu.Lock()
+	defer e.apiMu.Unlock()
+	e.logger.Print(e.sanitize(fmt.Sprintf(format, args...)))
+}
+func (e *Ensemble) sanitize(text string) string {
+	for _, secret := range e.secrets {
+		if secret != "" {
+			text = strings.ReplaceAll(text, secret, "[redacted]")
+		}
+	}
+	return text
+}
 
 // Public vendor names allow optional clients to configure the same core.
 type Vendor = common.Vendor
@@ -90,6 +105,41 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	}
 	if cfg.MaxToolRounds < 0 {
 		return nil, errors.New("MaxToolRounds must be nonnegative")
+	}
+	spec := AgentSpec{EnableWebSearch: true}
+	if len(specs) == 1 {
+		spec = specs[0]
+	}
+	if spec.DataDir != "" {
+		cfg.DataDir = spec.DataDir
+	}
+	if spec.LogPath != "" {
+		cfg.LogPath = spec.LogPath
+	}
+	if spec.SavePath != "" {
+		cfg.SavePath = spec.SavePath
+	}
+	if spec.SandboxRoot != "" {
+		root, err := filepath.Abs(spec.SandboxRoot)
+		if err != nil {
+			return nil, errors.New("invalid sandbox root")
+		}
+		if err := os.MkdirAll(root, 0700); err != nil {
+			return nil, errors.New("cannot create sandbox root")
+		}
+		spec.SandboxRoot, err = filepath.EvalSymlinks(root)
+		if err != nil {
+			return nil, errors.New("cannot resolve sandbox root")
+		}
+		cfg.Workspace = spec.SandboxRoot
+		if cfg.DataDir == "" {
+			cfg.DataDir = filepath.Join(spec.SandboxRoot, "cr")
+		}
+		for _, path := range []string{cfg.DataDir, cfg.LogPath, cfg.SavePath} {
+			if path != "" && !sandbox.Within(spec.SandboxRoot, path) {
+				return nil, errors.New("Agent data paths must be inside sandbox")
+			}
+		}
 	}
 	// A zero vendor retains Chapter 1's public API default. Provenance itself
 	// always receives a concrete nonzero vendor before any event is captured.
@@ -151,7 +201,13 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 			return nil, errors.New("billing mode must be api or chatgpt; automatic metered fallback is not implemented")
 		}
 	}
-	a := agent.New(e, cfg)
+	e.apiMu.Lock()
+	if cfg.APIKey != "" {
+		e.secrets = append(e.secrets, cfg.APIKey)
+	}
+	e.apiMu.Unlock()
+	a := agent.New(e, cfg, common.AgentSpec(spec))
+	a.AttachSandbox(sandbox.New(a))
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
 		return nil, err
 	}
@@ -355,7 +411,7 @@ func (e *Ensemble) APILog(kind string, data []byte) {
 	e.apiMu.Lock()
 	defer e.apiMu.Unlock()
 	if e.api != nil {
-		json.NewEncoder(e.api).Encode(map[string]string{"event": kind, "data": string(data)})
+		json.NewEncoder(e.api).Encode(map[string]string{"event": kind, "data": e.sanitize(string(data))})
 	}
 }
 
@@ -410,7 +466,7 @@ type ToolFinished = common.ToolFinished
 type TurnEnded = common.TurnEnded
 
 // AgentSpec supplies skills identity separately from provider request settings.
-type AgentSpec = common.AgentSpec
+type AgentSpec common.AgentSpec
 
 // ToolMeta records the first event that enabled a capability for one Agent.
 type ToolMeta = common.ToolMeta

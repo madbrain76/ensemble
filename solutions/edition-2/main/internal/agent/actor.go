@@ -281,7 +281,7 @@ func (r *runtime) save() error {
 	if path == "" {
 		return nil
 	}
-	file, err := os.Create(path)
+	file, err := r.owner.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

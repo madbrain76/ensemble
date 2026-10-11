@@ -17,7 +17,7 @@ func (h *history) journalEvent(e common.Event) error {
 	if h.journal == "" {
 		return nil
 	}
-	f, err := os.OpenFile(h.journal, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	f, err := h.parent.Sandbox().OpenFile(h.journal, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (h *history) journalEvent(e common.Event) error {
 // if a process died after installing the snapshot but before resetting its journal.
 func (h *history) Recover(path string) error {
 	next := &history{parent: h.parent, context: common.Context{Turn: "idle"}}
-	f, err := os.Open(path)
+	f, err := h.parent.Sandbox().OpenFile(path, os.O_RDONLY, 0)
 	if err == nil {
 		err = next.Restore(f)
 		f.Close()
@@ -41,7 +41,7 @@ func (h *history) Recover(path string) error {
 	if err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("load %s: %w", path, err)
 	}
-	f, err = os.Open(path + ".journal")
+	f, err = h.parent.Sandbox().OpenFile(path+".journal", os.O_RDONLY, 0)
 	if err == nil {
 		defer f.Close()
 		reader := bufio.NewReader(f)
@@ -76,7 +76,7 @@ func (h *history) Recover(path string) error {
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := h.parent.Sandbox().MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
 	h.mu.Lock()
@@ -92,14 +92,14 @@ func (h *history) Recover(path string) error {
 func (h *history) Checkpoint(path string) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err := h.parent.Sandbox().MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
-	f, err := os.CreateTemp(filepath.Dir(path), ".save-*")
+	f, err := h.parent.Sandbox().CreateTemp(filepath.Dir(path))
 	if err != nil {
 		return err
 	}
-	defer os.Remove(f.Name())
+	defer h.parent.Sandbox().Remove(f.Name())
 	err = h.encodeSave(f)
 	closeErr := f.Close()
 	if err == nil {
@@ -108,20 +108,20 @@ func (h *history) Checkpoint(path string) error {
 	if err != nil {
 		return err
 	}
-	old, err := os.ReadFile(path)
+	old, err := h.parent.Sandbox().ReadFile(path)
 	if err == nil {
-		if err = os.WriteFile(path+".bak", old, 0600); err != nil {
+		if err = h.parent.Sandbox().WriteFile(path+".bak", old, 0600); err != nil {
 			return err
 		}
 	} else if !os.IsNotExist(err) {
 		return err
 	}
-	if err = os.Rename(f.Name(), path); err != nil {
+	if err = h.parent.Sandbox().Rename(f.Name(), path); err != nil {
 		return err
 	}
 	// Every journal fact is at or below the just-installed anchor. Keeping it
 	// until this point makes either side of a crash recoverable without guessing.
-	if err = os.WriteFile(path+".journal", nil, 0600); err != nil {
+	if err = h.parent.Sandbox().WriteFile(path+".journal", nil, 0600); err != nil {
 		return err
 	}
 	retention := h.parent.Config().LogRetention

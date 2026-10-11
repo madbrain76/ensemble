@@ -55,6 +55,10 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", path, err)
 		}
+		// Withholding the skill also withholds its dependency graph and MCP startup.
+		if s.name == "web-search" && !parent.Spec().EnableWebSearch {
+			continue
+		}
 		if _, exists := r.all[s.name]; exists {
 			return nil, fmt.Errorf("duplicate skill %q", s.name)
 		}

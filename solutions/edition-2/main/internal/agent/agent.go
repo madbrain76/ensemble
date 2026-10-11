@@ -17,6 +17,8 @@ import (
 // owner coordinate one actor without a second orchestration path.
 type agent struct {
 	parent       common.Ensemble
+	spec         common.AgentSpec
+	sandbox      common.Sandbox
 	config       common.Config
 	configMu     sync.Mutex
 	engine       common.Engine
@@ -43,11 +45,11 @@ type agent struct {
 
 // New creates an Agent with a required Ensemble parent; the root installs its
 // children before use.
-func New(parent common.Ensemble, cfg common.Config) *agent {
+func New(parent common.Ensemble, cfg common.Config, spec common.AgentSpec) *agent {
 	if parent == nil {
 		panic("Agent requires Ensemble")
 	}
-	return &agent{parent: parent, config: cfg, box: newBox(), done: make(chan struct{}), progress: make(chan common.Observation, 256)}
+	return &agent{parent: parent, config: cfg, spec: spec, box: newBox(), done: make(chan struct{}), progress: make(chan common.Observation, 256)}
 }
 
 // Ensemble returns the owning application root, including its logging services.
@@ -68,7 +70,14 @@ func (a *agent) History() common.History { return a.history }
 
 // The composition root installs this Agent's visible registry. Keeping one
 // ordered slice makes declaration order stable and dispatch agree with visibility.
-func (a *agent) SetTools(definitions []common.ToolDefinition) { a.tools = definitions }
+func (a *agent) SetTools(definitions []common.ToolDefinition) {
+	a.tools = nil
+	for _, definition := range definitions {
+		if a.allowedTool(definition.Name) {
+			a.tools = append(a.tools, definition)
+		}
+	}
+}
 
 // Declarations returns the ordered tools visible to this Agent's model.
 func (a *agent) Declarations() []common.ToolDeclaration {
@@ -86,6 +95,9 @@ func (a *agent) Declarations() []common.ToolDeclaration {
 // registration are synchronous application operations, not concurrent inputs.
 // Reject duplicate names so declarations and dispatch cannot silently disagree.
 func (a *agent) RegisterTool(declaration common.ToolDeclaration, handler func(common.ToolContext, json.RawMessage) (string, error)) error {
+	if !a.allowedTool(declaration.Name) {
+		return errors.New("tool unavailable in safe mode")
+	}
 	if strings.TrimSpace(declaration.Name) == "" || handler == nil || !json.Valid(declaration.Schema) {
 		return errors.New("tool requires a name, JSON schema and handler")
 	}
@@ -189,7 +201,20 @@ func (a *agent) SetSystemPrompt(prompt string) {
 	a.config.SystemPrompt = prompt
 }
 
+func (a *agent) allowedTool(name string) bool {
+	if a.spec.SafeMode {
+		switch name {
+		case "run_command", "send_input", "wait_for_job", "kill_job", "tool_limits":
+			return false
+		}
+	}
+	return true
+}
+
 func (a *agent) toolEnabled(name string) bool {
+	if !a.allowedTool(name) {
+		return false
+	}
 	if a.forceHandoff.Load() && name != "micro_handoff" {
 		return false
 	}
@@ -280,3 +305,17 @@ func (a *agent) AttachMemory(m common.Memory) {
 
 // Memory returns the corpus service owned by this Agent.
 func (a *agent) Memory() common.Memory { return a.memory }
+
+// Spec returns identity and restrictions owned by this Agent.
+func (a *agent) Spec() common.AgentSpec { return a.spec }
+
+// Sandbox reaches the child enforcing this Agent's policy.
+func (a *agent) Sandbox() common.Sandbox { return a.sandbox }
+
+// AttachSandbox establishes both sides of the required ownership link.
+func (a *agent) AttachSandbox(s common.Sandbox) {
+	if s == nil || s.Agent() != a {
+		panic("Sandbox must belong to this Agent")
+	}
+	a.sandbox = s
+}

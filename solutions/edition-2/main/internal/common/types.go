@@ -323,6 +323,10 @@ type Ensemble interface {
 
 // Agent owns one conversation, its tools and the actor that coordinates them.
 type Agent interface {
+	// Spec returns construction-time identity and restrictions.
+	Spec() AgentSpec
+	// Sandbox exposes this Agent's file and subprocess boundary.
+	Sandbox() Sandbox
 	// Pause holds subsequent tool starts; current execution and input remain live.
 	Pause()
 	// Unpause releases the Agent-wide gate regardless of which client paused it.

@@ -3,7 +3,6 @@ package engine
 import (
 	"encoding/base64"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -81,7 +80,7 @@ func (e *engine) blob(p common.Part) (string, error) {
 	if err := e.refuseBlob(p); err != nil {
 		return "", err
 	}
-	bytes, err := os.ReadFile(p.Ref.Locator)
+	bytes, err := e.parent.Sandbox().ReadFile(p.Ref.Locator)
 	if err != nil {
 		return "", fmt.Errorf("model %q reading %s media: %w", e.parent.Config().Model, p.MIME, err)
 	}
