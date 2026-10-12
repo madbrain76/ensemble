@@ -68,3 +68,19 @@ Next: assess the coder's bounded combined grader proposal and the author's
 original-relative draft, then their frozen evidence and exact examples. No
 acceptance or Chapter23 release follows from this preparation.
 Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+
+### Revised-grader proposal concurrence
+
+Concur with the proposed 14 original rows / 200 points, no parity: reusable
+GUI100 plus terminal fleet100. The root-clean row may verify resolved public-root
+dependencies and public API compilation through real consumers. It cannot infer
+actual owner construction from that graph; both shipped composition paths and
+recursive factory propagation retain mandatory independent source review.
+Component HTTP serving stays distinct from the retained real Chrome rendering
+proof. Three-generation addressed messaging does not alone cover the human
+reply path; measure that path or name its existing built-CLI evidence explicitly.
+A causally held real command can establish message wake before release, followed
+by the same handle's actual completion. These boundaries were sent to author,
+coder and coordinator before implementation. Reread the original two check tables
+and accepted external-consumer/browser/relay tests; no new execution was needed.
