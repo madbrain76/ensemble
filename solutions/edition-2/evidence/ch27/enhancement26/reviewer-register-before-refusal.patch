@@ -1,0 +1,11 @@
+--- a/internal/gateway/admin.go
++++ b/internal/gateway/admin.go
+@@ -129,6 +129,8 @@
+ 		// authenticated parent. An existing identity can never be taken over.
+ 		for _, g := range child.Groups {
+ 			if !slices.Contains(s.memberships(id), g) {
++				s.state.Children[child.AgentID] = AgentConfig{PublicKey: wire.EncodePublicKey(child.PublicKey), Groups: slices.Clone(child.Groups)}
++				s.queues[child.AgentID] = &queue{}
+ 				return nil, errors.New("child group grant would widen parent authority")
+ 			}
+ 		}
