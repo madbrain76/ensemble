@@ -1,0 +1,10 @@
+--- internal/jobs/jobs.go
++++ internal/jobs/jobs.go
+@@ -347,5 +347,5 @@
+ 	if j.data.Status == "running" {
+ 		text += fmt.Sprintf("\nUse wait_for_job(%d), send_input or kill_job to supervise this job.", j.data.Handle)
+ 	}
+-	return header + text, j.err
+-}
++	return header + "lost output", j.err
++}

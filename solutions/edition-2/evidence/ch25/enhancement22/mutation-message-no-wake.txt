@@ -1,0 +1,14 @@
+=== RUN   TestFleet22
+    ch22_test.go:25: wait-interrupt: [message-wake session: command output deadline; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+        2026/10/12 05:29:43 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=6374 predicted=0.0000
+        2026/10/12 05:29:43 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000
+        tool_limits {"ai_callback_delay":60}
+        2026/10/12 05:29:43 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6373 prompt_bytes=6696 predicted=0.9518
+        run_command {"command":"printf started \u003e \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3821102679/started\"; while [ ! -f \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3821102679/release\" ]; do sleep 0.02; done; printf 'WAKE_RESULT_%s' $((700+22))"}2026/10/12 05:29:43 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9518
+        
+        hint:STEER_WAKE_22
+        ]
+--- FAIL: TestFleet22 (10.17s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	10.172s
+FAIL

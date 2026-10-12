@@ -1,0 +1,11 @@
+--- internal/fleet/fleet.go
++++ internal/fleet/fleet.go
+@@ -365,7 +365,7 @@
+ 	if m.submitted || m.stopped {
+ 		return "", ""
+ 	}
+-	if m.wakes >= 3 {
++	if m.wakes >= 4 {
+ 		m.failure = fmt.Sprintf("Agent %s stopped without submit after three framework wakes", m.parent.Spec().ID)
+ 		return "", m.failure
+ 	}

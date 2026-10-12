@@ -1,0 +1,11 @@
+--- gui/gui.go
++++ gui/gui.go
+@@ -182,7 +182,7 @@
+ func (s *Server) Handler(directory string) http.Handler {
+ 	mux := http.NewServeMux()
+ 	assets := http.FS(Assets())
+-	if directory != "" {
++	if false {
+ 		assets = http.Dir(directory)
+ 	}
+ 	mux.Handle("/", http.FileServer(assets))

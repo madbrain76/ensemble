@@ -1,0 +1,11 @@
+--- internal/fleet/fleet.go
++++ internal/fleet/fleet.go
+@@ -130,7 +130,7 @@
+ 			s.State = "failed"
+ 			s.Error = c.failure
+ 		}
+-		out = append(out, s)
++		if s.State != "running" { out = append(out, s) }
+ 	}
+ 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
+ 	return out

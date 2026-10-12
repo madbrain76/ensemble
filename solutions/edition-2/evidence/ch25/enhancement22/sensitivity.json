@@ -1,0 +1,265 @@
+[
+  {
+    "name": "child-save-shared",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.405,
+    "intended": "distinct valid parent/child",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: spawn-reports-back: [result join-both: error=true want=false text=\"child worker-b failed: Agent worker-b stopped without submit after three framework wakes\" decode=<nil> join lost submitted child payload]",
+      "    ch22_test.go:25: child-isolated: [distinct valid parent/child saved conversations absent: map[FLEET_ROOT_22:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3649530130 TASK_A_22:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3649530130/cr TASK_B_22:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3649530130/cr]]",
+      "    ch22_test.go:25: join-fans-in: [one correlated join did not contain both submissions: child worker-b failed: Agent worker-b stopped without submit after three framework wakes]"
+    ]
+  },
+  {
+    "name": "fanin-truncated",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.386,
+    "intended": "one correlated join did not contain both",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: join-fans-in: [one correlated join did not contain both submissions: [{\"agent_id\":\"worker-a\",\"state\":\"submitted\",\"result\":\"CHILD_A_22\"}]]"
+    ]
+  },
+  {
+    "name": "live-child-hidden",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 5.364,
+    "intended": "status omitted the held live child",
+    "detected": false,
+    "failures": [
+      "    ch22_test.go:25: idle-corrected: [idle session: command output deadline; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints."
+    ]
+  },
+  {
+    "name": "reply-sender-lost",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 0,
+    "seconds": 0.382,
+    "intended": "ask lost middle",
+    "detected": false,
+    "failures": []
+  },
+  {
+    "name": "four-idle-wakes",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.388,
+    "intended": "want its initial response plus exactly three wakes",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: idle-corrected: [unsubmitted child received 5 completed prose responses, want its initial response plus exactly three wakes]"
+    ]
+  },
+  {
+    "name": "late-output-lost",
+    "file": "internal/jobs/jobs.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.389,
+    "intended": "lost completed output",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: wait-interrupt: [same handle 1 lost completed output: job 1 done; 29 bytes total at cr/io/1"
+    ]
+  },
+  {
+    "name": "message-no-wake",
+    "file": "internal/jobs/jobs.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 10.386,
+    "intended": "message-wake session",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: wait-interrupt: [message-wake session: command output deadline; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints."
+    ]
+  },
+  {
+    "name": "embedded-directory-listing",
+    "file": "gui/gui.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 1.272,
+    "intended": "marker \"<script\" present=false",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:46: assets-embedded: [GET http://127.0.0.1:51372/full/ status=200 marker \"<script\" present=false error=<nil> GET http://127.0.0.1:51390/ status=200 marker \"<script\" present=false error=<nil> GET http://127.0.0.1:51390/artifact-scroll.js status=404 marker \"ArtifactScroll\" present=false error=<nil> GET http://127.0.0.1:51390/renderers.js status=404 marker \"\" present=true error=<nil>]"
+    ]
+  },
+  {
+    "name": "override-ignored",
+    "file": "gui/gui.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.945,
+    "intended": "EXPLICIT_DISK_22",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:46: assets-embedded: [GET http://127.0.0.1:51399/disk/ status=200 marker \"EXPLICIT_DISK_22\" present=false error=<nil>]"
+    ]
+  },
+  {
+    "name": "public-final-lost",
+    "file": "gui/gui.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 0,
+    "seconds": 0.953,
+    "intended": "actual Agent reply did not reach",
+    "detected": false,
+    "failures": []
+  },
+  {
+    "name": "relay-caller-id-lost",
+    "file": "gui/mcp.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.948,
+    "intended": "lost caller/result correlation",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:46: public-reuse: [successful relay lost caller/result correlation: map[id:gui-relay-1 jsonrpc:2.0 result:map[marker:RELAY_RESULT_22]] <nil>]"
+    ]
+  },
+  {
+    "name": "headless-websocket-edge",
+    "file": "internal/mcp/mcp.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 1.056,
+    "intended": "WebSocket=true wanted=false",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:46: headless-linkage: [resolved target ./headless: GUI=false WebSocket=true wanted=false resolved target ensemble/ensemble: GUI=false WebSocket=true wanted=false resolved target .: GUI=false WebSocket=true wanted=false]",
+      "    ch22_test.go:46: root-clean: [public root imports optional client Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review.]"
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+--- gui/gui.go
++++ gui/gui.go
+@@ -133,7 +133,7 @@
+ 				out = append(out, map[string]any{"type": "user_message", "part_id": fmt.Sprintf("user-%d-%d", e.Seq, i), "part": p})
+ 			}
+ 		}
+-	case "response_ended":
++	case "no-response_ended":
+ 		// Artifact IDs were captured by the actor before storage. Replay and live
+ 		// finals therefore address exactly the cards created by streamed deltas.
+ 		for _, p := range e.Response.Parts {

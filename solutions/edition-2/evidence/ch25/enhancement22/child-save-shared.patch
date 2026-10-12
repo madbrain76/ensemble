@@ -1,0 +1,11 @@
+--- internal/fleet/fleet.go
++++ internal/fleet/fleet.go
+@@ -72,7 +72,7 @@
+ 	spec.ID, spec.ParentID, spec.Model = id, m.parent.Spec().ID, model
+ 	spec.DataDir = filepath.Join(m.parent.Config().DataDir, "children", id)
+ 	spec.LogPath = filepath.Join(spec.DataDir, "events.jsonl")
+-	spec.SavePath = filepath.Join(spec.DataDir, "save.json")
++	spec.SavePath = filepath.Join(m.parent.Config().DataDir, "save.json")
+ 	a, err := m.parent.Ensemble().CreateChild(m.parent, spec)
+ 	if err != nil {
+ 		return common.ChildStatus{}, err

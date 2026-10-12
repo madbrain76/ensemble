@@ -1,6 +1,7 @@
 package gradeedition2
 
 import (
+	"context"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -78,7 +80,7 @@ func reuseChecks(core, gui string, legacy bool, checks []grade.Check) {
 	source := strings.NewReplacer("CORE_PACKAGE", strconv.Quote(library), "GUI_PACKAGE", strconv.Quote(guiPackage), "SETUP_AGENT", setup, "PLANT_EVENT", plant, "SETUP_GUI", bind).Replace(reuseConsumer)
 	headSource := `package main
 import("context";"fmt";"io";"net";"os";api ` + strconv.Quote(library) + `)
-func main(){c,err:=net.Dial("tcp",os.Getenv("MCP_ADDR"));if err!=nil{panic(err)};defer c.Close();` + head + `;fmt.Println("HEADLESS_MCP_22");_ = io.Discard}`
+func main(){if err:=os.MkdirAll("headless-data",0700);err!=nil{panic(err)};c,err:=net.Dial("tcp",os.Getenv("MCP_ADDR"));if err!=nil{panic(err)};defer c.Close();` + head + `;fmt.Println("HEADLESS_MCP_22");_ = io.Discard}`
 	if err = recallWrite(work, map[string]string{"go.mod": mod, "guiapp/main.go": source, "headless/main.go": headSource}); err != nil {
 		reuseFail(checks, err, 0, 1, 4, 5, 6)
 		return
@@ -170,13 +172,15 @@ func reuseHeadless(bin, work string, c *grade.Check) {
 		}
 		observed <- methods
 	}()
-	cmd := exec.Command(bin)
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin)
 	cmd.Dir = work
 	cmd.Env = append(os.Environ(), "MCP_ADDR="+listener.Addr().String())
 	out, err := cmd.CombinedOutput()
 	listener.Close()
 	methods := <-observed
-	if err != nil || !strings.Contains(string(out), "HEADLESS_MCP_22") || !strings.Contains(strings.Join(methods, " "), "initialize") || !strings.Contains(strings.Join(methods, " "), "tools/list") {
+	if err != nil || !strings.Contains(string(out), "HEADLESS_MCP_22") || !slices.Contains(methods, "initialize") || !slices.Contains(methods, "tools/list") {
 		fail(c, "actual external core MCP handshake: %v %s methods=%v", err, out, methods)
 	}
 }
@@ -190,7 +194,7 @@ func reuseHTTP(c *grade.Check, url, marker string, status int) {
 	}
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
-	if err != nil || r.StatusCode != status || !strings.Contains(string(b), marker) {
+	if err != nil || r.StatusCode != status || (status == 200 && len(b) == 0) || !strings.Contains(string(b), marker) {
 		fail(c, "GET %s status=%d marker %q present=%v error=%v", url, r.StatusCode, marker, strings.Contains(string(b), marker), err)
 	}
 }
@@ -216,7 +220,7 @@ func reuseApp(bin, work string, checks []grade.Check) {
 	reuseHTTP(&checks[4], url+"/artifact-scroll.js", "ArtifactScroll", 200)
 	reuseHTTP(&checks[4], url+"/renderers.js", "", 200)
 	reuseHTTP(&checks[4], url+"/index.html", "", 404)
-	reuseHTTP(&checks[3], url+"/full/", "<title>Ensemble</title>", 200)
+	reuseHTTP(&checks[3], url+"/full/", "<script", 200)
 	reuseHTTP(&checks[3], url+"/disk/", "EXPLICIT_DISK_22", 200)
 	tcp, err := net.DialTimeout("tcp", address["mcp"], time.Second)
 	if err != nil {
@@ -253,6 +257,7 @@ func reuseApp(bin, work string, checks []grade.Check) {
 		reuseBrowser(ws, m)
 	}
 	ws.WriteJSON(map[string]string{"type": "prompt", "text": "PUBLIC_PROMPT_22"})
+	reply := false
 	for {
 		var m map[string]any
 		if err = ws.ReadJSON(&m); err != nil {
@@ -260,9 +265,16 @@ func reuseApp(bin, work string, checks []grade.Check) {
 			return
 		}
 		reuseBrowser(ws, m)
+		reply = reply || (m["type"] == "part_final" && strings.Contains(guiPart(m).text, "PUBLIC_REPLY_22"))
 		if m["type"] == "turn_ended" {
+			if problem, _ := m["error"].(string); problem != "" {
+				fail(&checks[1], "real prompt completion: %s", problem)
+			}
 			break
 		}
+	}
+	if !reply {
+		fail(&checks[1], "actual Agent reply did not reach the outside GUI client")
 	}
 	reqs := provider.Requests()
 	if len(reqs) != 1 || !strings.Contains(string(reqs[0].Body), "PUBLIC_PROMPT_22") || !strings.Contains(string(reqs[0].Body), "PUBLIC_EVENT_22") {
@@ -363,7 +375,7 @@ func reuseDeploy(bin string, c *grade.Check) {
 		fail(c, "deployed child did not serve its chosen port")
 		return
 	}
-	reuseHTTP(c, url+"/", "<title>Ensemble</title>", 200)
+	reuseHTTP(c, url+"/", "<script", 200)
 	reuseHTTP(c, url+"/artifact-scroll.js", "ArtifactScroll", 200)
 	reuseHTTP(c, url+"/renderers.js", "", 200)
 	p.stdin.Close()

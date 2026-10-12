@@ -1,8 +1,10 @@
 package gradeedition2
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -26,6 +28,16 @@ func fleetRun(bin, work string, route func([]byte) *fakevendor.Reply, steer func
 		return
 	}
 	provider := fakevendor.NewWithOptions(nil, fakevendor.Options{Route: func(body []byte) *fakevendor.Reply {
+		// Successful submit may end immediately or receive a final tool-free
+		// assistant response. Tool absence alone does not identify a recall judge.
+		if fleetHas(body, "finish") {
+			return &fakevendor.Reply{Text: fleetDone}
+		}
+		for _, id := range []string{"child-submit", "mid-submit", "leaf-submit"} {
+			if fleetHas(body, id) {
+				return &fakevendor.Reply{Text: "Submitted work is complete."}
+			}
+		}
 		var request map[string]any
 		_ = json.Unmarshal(body, &request)
 		if len(list(request["tools"])) == 0 {
@@ -97,11 +109,11 @@ func fleetResult(c *grade.Check, reqs []fakevendor.Recorded, id string, wantErro
 	fail(c, "no actual result for %s", id)
 	return ""
 }
-func fleetTemp(checks []grade.Check, run func(string)) {
+func fleetTemp(checks []*grade.Check, run func(string)) {
 	work, err := os.MkdirTemp("", "fleet-grade-")
 	if err != nil {
 		for i := range checks {
-			fail(&checks[i], "%v", err)
+			fail(checks[i], "%v", err)
 		}
 		return
 	}
@@ -119,7 +131,7 @@ func fleetFailed(checks []grade.Check, err error) bool {
 }
 
 func fleetChecks(bin string, checks []grade.Check) {
-	fleetTemp(checks[:4], func(work string) {
+	fleetTemp([]*grade.Check{&checks[0], &checks[1], &checks[2], &checks[3]}, func(work string) {
 		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
 			b := string(body)
 			if !strings.Contains(b, fleetRoot) {
@@ -157,19 +169,30 @@ func fleetChecks(bin string, checks []grade.Check) {
 		// creating two empty files or observing two paths is not isolation evidence.
 		owners := map[string]string{}
 		_ = filepath.WalkDir(work, func(path string, d os.DirEntry, e error) error {
-			if e != nil || d.IsDir() || d.Name() != "save.json" {
+			if e != nil || d.IsDir() || !strings.HasPrefix(d.Name(), "save.json") {
 				return nil
 			}
 			raw, e := os.ReadFile(path)
 			if e != nil {
 				return nil
 			}
-			var save map[string]any
-			if json.Unmarshal(raw, &save) != nil {
-				return nil
+			// The original contract accepts a snapshot or its live journal.
+			// Decode complete JSON values rather than awarding an arbitrary file.
+			decoder := json.NewDecoder(bytes.NewReader(raw))
+			var values []any
+			for {
+				var v any
+				e := decoder.Decode(&v)
+				if e == io.EOF {
+					break
+				}
+				if e != nil {
+					return nil
+				}
+				values = append(values, v)
 			}
 			for _, token := range []string{fleetRoot, "TASK_A_22", "TASK_B_22"} {
-				if fleetExactText(save, token) {
+				if fleetExactText(values, token) {
 					owners[token] = filepath.Dir(path)
 				}
 			}
@@ -181,11 +204,11 @@ func fleetChecks(bin string, checks []grade.Check) {
 	})
 	fleetMessaging(bin, &checks[4])
 	fleetWake(bin, &checks[5])
-	fleetIdle(bin, &checks[6])
+	fleetIdle(bin, &checks[6], &checks[2])
 }
 
 func fleetMessaging(bin string, c *grade.Check) {
-	fleetTemp([]grade.Check{*c}, func(work string) {
+	fleetTemp([]*grade.Check{c}, func(work string) {
 		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
 			b := string(body)
 			if strings.Contains(b, fleetRoot) {
@@ -223,6 +246,17 @@ func fleetMessaging(bin string, c *grade.Check) {
 		}
 		for id, parts := range map[string][]string{"question-join": {"QUESTION_22", "leaf"}, "ask": {"ANSWER_22", "middle"}, "leaf-join": {"LEAF_DONE_22"}, "join-mid": {"MIDDLE_DONE_22"}} {
 			text := fleetResult(c, reqs, id, false)
+			// A correlation ID can contain the parent's name even when the reply
+			// loses its sender. Keep content/attribution, excluding those IDs.
+			if id == "ask" {
+				var message map[string]any
+				if json.Unmarshal([]byte(text), &message) == nil {
+					delete(message, "message_id")
+					delete(message, "id")
+					encoded, _ := json.Marshal(message)
+					text = string(encoded)
+				}
+			}
 			for _, part := range parts {
 				if !strings.Contains(text, part) {
 					fail(c, "%s lost %s: %s", id, part, text)
@@ -237,7 +271,7 @@ func fleetMessaging(bin string, c *grade.Check) {
 var fleetHandle = regexp.MustCompile(`(?i)\b(?:handle|job)[" :=]+([0-9]+)`)
 
 func fleetWake(bin string, c *grade.Check) {
-	fleetTemp([]grade.Check{*c}, func(work string) {
+	fleetTemp([]*grade.Check{c}, func(work string) {
 		start, release := filepath.Join(work, "started"), filepath.Join(work, "release")
 		command := fmt.Sprintf("printf started > %q; while [ ! -f %q ]; do sleep 0.02; done; printf 'WAKE_RESULT_%%s' $((700+22))", start, release)
 		var mu sync.Mutex
@@ -301,8 +335,8 @@ func fleetWake(bin string, c *grade.Check) {
 	})
 }
 
-func fleetIdle(bin string, c *grade.Check) {
-	fleetTemp([]grade.Check{*c}, func(work string) {
+func fleetIdle(bin string, c, visibility *grade.Check) {
+	fleetTemp([]*grade.Check{c}, func(work string) {
 		release := filepath.Join(work, "idle-release")
 		count := 0
 		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
@@ -313,7 +347,7 @@ func fleetIdle(bin string, c *grade.Check) {
 				count++
 				return &fakevendor.Reply{Text: "I stopped without submitting."}
 			}
-			for _, p := range []sandboxProbe{{"spawn-idle", "spawn_sub_agent", map[string]any{"agent_id": "drifter", "task": "IDLE_TASK_22"}}, {"premature", "submit", map[string]any{"result": "PREMATURE_22"}}, {"release-idle", "write_file", map[string]any{"path": release, "content": "release"}}, {"idle-join", "join_agents", map[string]any{"agent_ids": []string{"drifter"}, "ai_callback_delay": 5}}, {"stop-idle", "shutdown_agent", map[string]any{"agent_id": "drifter"}}} {
+			for _, p := range []sandboxProbe{{"spawn-idle", "spawn_sub_agent", map[string]any{"agent_id": "drifter", "task": "IDLE_TASK_22"}}, {"status-live", "agents_status", map[string]any{}}, {"premature", "submit", map[string]any{"result": "PREMATURE_22"}}, {"release-idle", "write_file", map[string]any{"path": release, "content": "release"}}, {"idle-join", "join_agents", map[string]any{"agent_ids": []string{"drifter"}, "ai_callback_delay": 5}}, {"stop-idle", "shutdown_agent", map[string]any{"agent_id": "drifter"}}} {
 				if !fleetHas(body, p.id) {
 					r := p.reply()
 					return &r
@@ -321,6 +355,10 @@ func fleetIdle(bin string, c *grade.Check) {
 			}
 			return fleetFinish()
 		}, nil)
+		live := fleetResult(visibility, reqs, "status-live", false)
+		if !strings.Contains(live, "drifter") || !strings.Contains(strings.ToLower(live), "running") {
+			fail(visibility, "status omitted the held live child: %s", live)
+		}
 		if err != nil {
 			fail(c, "idle session: %v", err)
 			return
@@ -336,7 +374,7 @@ func fleetIdle(bin string, c *grade.Check) {
 				break
 			}
 		}
-		if !strings.Contains(joined, "drifter") || (!strings.Contains(strings.ToLower(joined), "fail") && !strings.Contains(strings.ToLower(joined), "without submit")) {
+		if !strings.Contains(joined, "drifter") || (!strings.Contains(strings.ToLower(joined), "fail") && !strings.Contains(strings.ToLower(joined), "without submit") && !strings.Contains(strings.ToLower(joined), "idle_without_submit")) {
 			fail(c, "join lost actual exhausted-child escalation: %s", joined)
 		}
 	})

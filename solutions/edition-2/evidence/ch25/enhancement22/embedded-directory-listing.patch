@@ -1,0 +1,11 @@
+--- gui/gui.go
++++ gui/gui.go
+@@ -181,7 +181,7 @@
+ // selects editable disk assets. HTTP registration remains local to this Server.
+ func (s *Server) Handler(directory string) http.Handler {
+ 	mux := http.NewServeMux()
+-	assets := http.FS(Assets())
++	assets := http.FileSystem(http.Dir("."))
+ 	if directory != "" {
+ 		assets = http.Dir(directory)
+ 	}

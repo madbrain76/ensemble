@@ -1,0 +1,19 @@
+=== RUN   TestFleet22
+    ch22_test.go:25: fleet-visibility: [status omitted the held live child: []]
+    ch22_test.go:25: idle-corrected: [idle session: command output deadline; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.
+        2026/10/12 05:31:32 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=6374 predicted=0.0000
+        spawn_sub_agent {"agent_id":"drifter","task":"IDLE_TASK_22"}2026/10/12 05:31:32 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000
+        
+        2026/10/12 05:31:32 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=6373 predicted=0.0000
+        2026/10/12 05:31:32 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000
+        2026/10/12 05:31:32 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6373 prompt_bytes=6687 predicted=0.9530
+        agents_status {}2026/10/12 05:31:32 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9530
+        
+        2026/10/12 05:31:32 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6686 prompt_bytes=6912 predicted=0.9673
+        submit {"result":"PREMATURE_22"}2026/10/12 05:31:32 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9673
+        
+        ]
+--- FAIL: TestFleet22 (5.14s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	5.149s
+FAIL

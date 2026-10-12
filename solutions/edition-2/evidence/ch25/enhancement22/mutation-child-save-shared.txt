@@ -1,0 +1,8 @@
+=== RUN   TestFleet22
+    ch22_test.go:25: spawn-reports-back: [result join-both: error=true want=false text="child worker-b failed: Agent worker-b stopped without submit after three framework wakes" decode=<nil> join lost submitted child payload]
+    ch22_test.go:25: child-isolated: [distinct valid parent/child saved conversations absent: map[FLEET_ROOT_22:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3649530130 TASK_A_22:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3649530130/cr TASK_B_22:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3649530130/cr]]
+    ch22_test.go:25: join-fans-in: [one correlated join did not contain both submissions: child worker-b failed: Agent worker-b stopped without submit after three framework wakes]
+--- FAIL: TestFleet22 (0.19s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.197s
+FAIL

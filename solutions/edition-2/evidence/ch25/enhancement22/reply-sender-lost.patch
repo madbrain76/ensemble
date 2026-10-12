@@ -1,0 +1,11 @@
+--- internal/fleet/fleet.go
++++ internal/fleet/fleet.go
+@@ -314,7 +314,7 @@
+ 	if selected.message.To == m.parent.Ensemble().UserID() {
+ 		from = m.parent.Ensemble().UserID()
+ 	}
+-	selected.reply <- common.FleetMessage{ID: selected.message.ID, From: from, To: selected.message.From, Content: content}
++	selected.reply <- common.FleetMessage{ID: selected.message.ID, From: from[:0], To: selected.message.From, Content: content}
+ 	m.signal()
+ 	return nil
+ }

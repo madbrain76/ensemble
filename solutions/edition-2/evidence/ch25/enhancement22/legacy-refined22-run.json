@@ -1,0 +1,14 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "22",
+    "-json",
+    "-reuse-legacy",
+    "solutions/ch25"
+  ],
+  "exit": 0,
+  "seconds": 1.6015884999651462
+}

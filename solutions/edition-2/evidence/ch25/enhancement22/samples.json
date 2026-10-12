@@ -1,0 +1,89 @@
+{
+  "result": "PASS",
+  "manuscript_sha256": "d2f514380905245e14720fbf3d9d9a1a6555e813077487da3385ab5505bfdf3e",
+  "fences": [
+    {
+      "index": 0,
+      "language": "sh",
+      "sha256": "aa2e5792d6ce1d96106945a0eee88896f70c5c2e118060de1d44cb2a04b0edec"
+    },
+    {
+      "index": 1,
+      "language": "text",
+      "sha256": "ee22fba85b6c34699d92e69f2e716b7399afd3ae00ac92f8e9c652a791fdd979"
+    },
+    {
+      "index": 2,
+      "language": "go",
+      "sha256": "fc1aec630c90cb2f93917e977a5765774e4fe9f7eca086db9b943121f18692b0"
+    },
+    {
+      "index": 3,
+      "language": "go",
+      "sha256": "ec26d9443ed5c86f6d7cb1447a2407babc8cf957cf4d6be571d2e12d5691d171"
+    },
+    {
+      "index": 4,
+      "language": "go",
+      "sha256": "7833abe37adaed3ac178215a919deff671ab2b12631a66c84f082658e67c361d"
+    },
+    {
+      "index": 5,
+      "language": "go",
+      "sha256": "0ef444ffeaba52a48db1d3a323294f5e98fd95247923b6a7c61f96f65463d39e"
+    },
+    {
+      "index": 6,
+      "language": "go",
+      "sha256": "1888698b3f27d0e7a8585566f113af1196672bda1a49939043e86a4bcd325e51"
+    },
+    {
+      "index": 7,
+      "language": "sh",
+      "sha256": "e60ecdd230ef81e504e9284599fd39697897665b6fd85a707aae7fb6ad677261"
+    },
+    {
+      "index": 8,
+      "language": "go",
+      "sha256": "4014783f84a33daa58c21cbad708e1bb76c52b74709f546d7e5a0a0c8dc25af9"
+    },
+    {
+      "index": 9,
+      "language": "sh",
+      "sha256": "23505643bde86ecb2bf410a842977ac4f8feb423fe692817546f7deffacaa9fd"
+    },
+    {
+      "index": 10,
+      "language": "sh",
+      "sha256": "8bc8bab29e4467dfacf72d5a3fe5b8a2a08b02b75bd7e77d3ca183a0feae01f5"
+    },
+    {
+      "index": 11,
+      "language": "json",
+      "sha256": "a8f016e532a275fedd133b55cecc4e293cb65a78ee1d767a18a520bd80865382"
+    },
+    {
+      "index": 12,
+      "language": "sh",
+      "sha256": "e7b589b403f0653825e9b1255a69a3aa1531bef38b99c75bfbaa1665099dd063"
+    },
+    {
+      "index": 13,
+      "language": "sh",
+      "sha256": "0566c88f77b8344bb8edc04a8deb04eefd88d581f8b2d75a94cf300d28b8370c"
+    },
+    {
+      "index": 14,
+      "language": "text",
+      "sha256": "60001dedc3f80d1d2c80599094e1a30562abe7d6d0453da88296559723a015d7"
+    },
+    {
+      "index": 15,
+      "language": "text",
+      "sha256": "b3989e52a2ea4c07b8896ae5ec66bafe48c13acf81b0af4ca97a9aa16375dcd6"
+    }
+  ],
+  "requests": 22,
+  "judges": 4,
+  "limits": "Faithful scripted remote decisions prove actual client/tool mechanics and component rendering, not new autonomous coding. Only fresh printed listener addresses used; selected fake API-key environment, no real profile or provider."
+}

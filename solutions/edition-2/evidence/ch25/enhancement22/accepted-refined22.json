@@ -1,0 +1,112 @@
+{
+  "title": "Edition 2, Chapter 22 — The Ensemble",
+  "checks": [
+    {
+      "id": "headless-linkage",
+      "title": "A root-only consumer links no GUI package and no websocket library",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "public-reuse",
+      "title": "An outside application uses real Agent history, prompt delivery and correlated browser relay",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "wire-compat",
+      "title": "The browser wire protocol is unchanged: a ch22-style scripted session still works",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "details": [
+        "Actual stdin turns and WebSocket settings select Sonnet-5, Opus 4.6 and Sonnet-5 on subsequent provider requests."
+      ]
+    },
+    {
+      "id": "assets-embedded",
+      "title": "The binary serves the GUI from an unrelated working directory",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "components-without-shell",
+      "title": "A consumer mounts the Artifact scroll from the exported FS without adopting index.html",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "mcp-without-gorilla",
+      "title": "The public headless consumer completes MCP without GUI/WebSocket dependencies",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "root-clean",
+      "title": "Public root has a resolved GUI-free dependency graph and constructible API",
+      "points": 10,
+      "earned": 10,
+      "passed": true,
+      "details": [
+        "Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review."
+      ]
+    },
+    {
+      "id": "spawn-reports-back",
+      "title": "A spawned child runs and reports back: the parent calls spawn_sub_agent and the child's submitted payload reaches the parent",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "child-isolated",
+      "title": "Parent and two children retain distinct valid saved conversations",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "fleet-visibility",
+      "title": "Fleet visibility and teardown: agents_status lists a live child, and shutdown_agent removes it",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "join-fans-in",
+      "title": "join_agents blocks until every listed child finishes, then returns each child's result",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "addressed-messaging",
+      "title": "Three generations yield a child question and return an addressed parent reply",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "wait-interrupt",
+      "title": "A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "idle-corrected",
+      "title": "A child that goes idle without submitting is woken rather than treated as finished, and after three wakes it escalates to its parent",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    }
+  ],
+  "score": 200,
+  "max_score": 200,
+  "passed": true
+}

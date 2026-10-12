@@ -1,0 +1,7 @@
+=== RUN   TestFleet22
+    ch22_test.go:25: wait-interrupt: [same handle 1 lost completed output: job 1 done; 29 bytes total at cr/io/1
+        lost output]
+--- FAIL: TestFleet22 (0.17s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.180s
+FAIL

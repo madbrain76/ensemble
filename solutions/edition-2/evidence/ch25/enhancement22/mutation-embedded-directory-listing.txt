@@ -1,0 +1,6 @@
+=== RUN   TestReuse22
+    ch22_test.go:46: assets-embedded: [GET http://127.0.0.1:51372/full/ status=200 marker "<script" present=false error=<nil> GET http://127.0.0.1:51390/ status=200 marker "<script" present=false error=<nil> GET http://127.0.0.1:51390/artifact-scroll.js status=404 marker "ArtifactScroll" present=false error=<nil> GET http://127.0.0.1:51390/renderers.js status=404 marker "" present=true error=<nil>]
+--- FAIL: TestReuse22 (0.80s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.808s
+FAIL

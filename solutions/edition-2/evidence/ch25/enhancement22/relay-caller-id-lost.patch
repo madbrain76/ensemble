@@ -1,0 +1,11 @@
+--- gui/mcp.go
++++ gui/mcp.go
+@@ -102,7 +102,7 @@
+ 		if err := json.Unmarshal(data, &response); err != nil {
+ 			return nil, err
+ 		}
+-		response["id"] = original
++		response["id"] = request["id"]
+ 		return json.Marshal(response)
+ 	case <-ctx.Done():
+ 		return nil, ctx.Err()

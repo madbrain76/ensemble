@@ -1,0 +1,72 @@
+{
+  "method": "physical lines, blank and whole-line // or block-comment lines separated; inline comments count with code; templates counted separately; no runtime delta",
+  "groups": {
+    "new_grader": [
+      {
+        "path": "internal/gradeedition2/ch22_reuse.go",
+        "active": 371,
+        "comment_only": 9,
+        "blank": 11,
+        "physical": 391
+      },
+      {
+        "path": "internal/gradeedition2/ch22.go",
+        "active": 42,
+        "comment_only": 6,
+        "blank": 4,
+        "physical": 52
+      },
+      {
+        "path": "internal/gradeedition2/ch22_fleet.go",
+        "active": 376,
+        "comment_only": 16,
+        "blank": 12,
+        "physical": 404
+      },
+      {
+        "path": "internal/gradeedition2/ch22_test.go",
+        "active": 42,
+        "comment_only": 4,
+        "blank": 3,
+        "physical": 49
+      },
+      {
+        "path": "internal/gradeedition2/ch22_consumer.go.txt",
+        "active": 35,
+        "comment_only": 3,
+        "blank": 2,
+        "physical": 40
+      }
+    ],
+    "original_grader": [
+      {
+        "path": "internal/grade/ch24_checks.go",
+        "active": 55,
+        "comment_only": 14,
+        "blank": 7,
+        "physical": 76
+      },
+      {
+        "path": "internal/grade/ch24_harness.go",
+        "active": 501,
+        "comment_only": 69,
+        "blank": 50,
+        "physical": 620
+      },
+      {
+        "path": "internal/grade/ch25_harness.go",
+        "active": 587,
+        "comment_only": 159,
+        "blank": 62,
+        "physical": 808
+      },
+      {
+        "path": "internal/grade/ch25_checks.go",
+        "active": 55,
+        "comment_only": 19,
+        "blank": 7,
+        "physical": 81
+      }
+    ]
+  }
+}

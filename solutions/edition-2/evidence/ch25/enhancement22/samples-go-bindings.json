@@ -1,0 +1,31 @@
+[
+  {
+    "fence": 2,
+    "source": "gui/gui.go",
+    "sha256": "bfafc79b3a059fe3c1304f390818be974fc0eae9792f30f3f58cf804bfc33753",
+    "comparison": "exact tokens after whitespace and line-comment removal"
+  },
+  {
+    "fence": 3,
+    "source": "gui/assets.go",
+    "sha256": "7d5c6d002bbe4d05018f53dc22591bc5f8cb0e673cabaf1337e9eb63871bea32",
+    "comparison": "exact tokens after whitespace and line-comment removal"
+  },
+  {
+    "fence": 4,
+    "source": "ensemble/fleet.go",
+    "sha256": "b9cc5cfec183e217c08a60d09a462b5e7019477d73cb40f67e9c192326be6bce",
+    "comparison": "exact tokens after whitespace and line-comment removal"
+  },
+  {
+    "fence": 5,
+    "source": "main.go",
+    "sha256": "d3f31f106cb2d90435d84c81ac0180f74c38d980c3f9a6935cd295cc3807c4af",
+    "comparison": "exact tokens after whitespace and line-comment removal"
+  },
+  {
+    "fence": 6,
+    "source": "internal/common/skills.go",
+    "comparison": "explicit partial vocabulary excerpt: both string fields exist; ellipsis is not a standalone definition"
+  }
+]

@@ -1,0 +1,6 @@
+=== RUN   TestFleet22
+    ch22_test.go:25: idle-corrected: [unsubmitted child received 5 completed prose responses, want its initial response plus exactly three wakes]
+--- FAIL: TestFleet22 (0.17s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.181s
+FAIL

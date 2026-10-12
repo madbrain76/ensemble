@@ -1,0 +1,4 @@
+=== RUN   TestReuse22
+--- PASS: TestReuse22 (0.67s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	0.680s

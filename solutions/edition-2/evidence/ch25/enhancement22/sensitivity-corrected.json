@@ -1,0 +1,69 @@
+[
+  {
+    "name": "live-child-hidden",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 5.37,
+    "intended": "status omitted the held live child",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: fleet-visibility: [status omitted the held live child: []]",
+      "    ch22_test.go:25: idle-corrected: [idle session: command output deadline; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints."
+    ]
+  },
+  {
+    "name": "reply-sender-lost",
+    "file": "internal/fleet/fleet.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestFleet22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.384,
+    "intended": "ask lost middle",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:25: addressed-messaging: [ask lost middle: {\"content\":\"ANSWER_22\",\"from\":\"\",\"to\":\"leaf\"}]"
+    ]
+  },
+  {
+    "name": "public-final-lost",
+    "file": "gui/gui.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 0.94,
+    "intended": "actual Agent reply did not reach",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:46: public-reuse: [actual Agent reply did not reach the outside GUI client]"
+    ]
+  }
+]

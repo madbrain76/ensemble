@@ -1,0 +1,10 @@
+--- internal/mcp/mcp.go
++++ internal/mcp/mcp.go
+@@ -1,6 +1,7 @@
+ package mcp
+ 
+ import (
++ _ "github.com/gorilla/websocket"
+ 	"context"
+ 	"encoding/json"
+ 	"errors"

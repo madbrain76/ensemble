@@ -1,0 +1,6 @@
+=== RUN   TestReuse22
+    ch22_test.go:46: public-reuse: [actual Agent reply did not reach the outside GUI client]
+--- FAIL: TestReuse22 (0.73s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.735s
+FAIL

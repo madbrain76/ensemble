@@ -1,0 +1,6 @@
+=== RUN   TestReuse22
+    ch22_test.go:46: public-reuse: [successful relay lost caller/result correlation: map[id:gui-relay-1 jsonrpc:2.0 result:map[marker:RELAY_RESULT_22]] <nil>]
+--- FAIL: TestReuse22 (0.73s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.736s
+FAIL

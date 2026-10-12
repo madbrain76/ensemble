@@ -1,0 +1,37 @@
+Traceback (most recent call last):
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_socket.py", line 127, in recv
+    bytes_ = _recv()
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_socket.py", line 99, in _recv
+    return sock.recv(bufsize)
+           ~~~~~~~~~^^^^^^^^^
+TimeoutError: timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch25/enhancement22/samples.py", line 98, in <module>
+    m=json.loads(ws.recv());reply_mcp(ws,m);replay=m.get('type')=='part_final' and 'PUBLIC_REPLAY' in json.dumps(m.get('part',{}))
+                 ~~~~~~~^^
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_core.py", line 395, in recv
+    opcode, data = self.recv_data()
+                   ~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_core.py", line 423, in recv_data
+    opcode, frame = self.recv_data_frame(control_frame)
+                    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_core.py", line 444, in recv_data_frame
+    frame = self.recv_frame()
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_core.py", line 485, in recv_frame
+    return self.frame_buffer.recv_frame()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_abnf.py", line 375, in recv_frame
+    self.recv_header()
+    ~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_abnf.py", line 329, in recv_header
+    header = self.recv_strict(2)
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_abnf.py", line 418, in recv_strict
+    bytes_ = self.recv(min(16384, shortage))
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_core.py", line 581, in _recv
+    return recv(self.sock, bufsize)
+  File "/opt/homebrew/lib/python3.13/site-packages/websocket/_socket.py", line 129, in recv
+    raise WebSocketTimeoutException("Connection timed out")
+websocket._exceptions.WebSocketTimeoutException: Connection timed out

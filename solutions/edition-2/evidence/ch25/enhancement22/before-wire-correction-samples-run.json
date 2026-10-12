@@ -1,0 +1,26 @@
+[
+  {
+    "command": "ensemble_source=$(pwd)/solutions/edition-2/ch22\nreuse_dir=$(mktemp -d /tmp/ensemble-ch22-reuse.XXXXXX)\ncd \"$reuse_dir\"\ngo mod init example.org/ensemble-reuse\ngo mod edit -require=ensemble@v0.0.0 -require=ensemble-gui-stub@v0.0.0\ngo mod edit -replace=\"ensemble=$ensemble_source\"\ngo mod edit -replace=\"ensemble-gui-stub=$ensemble_source/gui\"\n\nprintf \"REUSE_DIR=%s\\n\" \"$reuse_dir\"\n",
+    "exit": 0,
+    "stdout": "REUSE_DIR=/tmp/ensemble-ch22-reuse.bCTRek\n",
+    "stderr": "go: creating new go.mod: module example.org/ensemble-reuse\n"
+  },
+  {
+    "command": "go mod tidy\ngo build -o /tmp/ensemble-ch22-reuse .\n",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "node /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch22-profile-gs6ggolq/component.mjs http://127.0.0.1:51001",
+    "exit": 0,
+    "stdout": "text\n\nAn Artifact without the application shell.\n",
+    "stderr": ""
+  },
+  {
+    "command": "/tmp/ensemble-ch22-reuse --components",
+    "exit": 0,
+    "stdout": "HTTP http://127.0.0.1:51001\n",
+    "stderr": ""
+  }
+]

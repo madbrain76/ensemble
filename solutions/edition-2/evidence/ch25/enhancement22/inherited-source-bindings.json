@@ -1,0 +1,86 @@
+[
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/gui.go",
+    "historical_sha256": "bfafc79b3a059fe3c1304f390818be974fc0eae9792f30f3f58cf804bfc33753",
+    "current_sha256": "bfafc79b3a059fe3c1304f390818be974fc0eae9792f30f3f58cf804bfc33753",
+    "identical": true
+  },
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/relay.go",
+    "historical_sha256": "cbec4f60766ab3daf3804317d788adfc0adf6bcc12132c33643b5651ccfe21d5",
+    "current_sha256": "cbec4f60766ab3daf3804317d788adfc0adf6bcc12132c33643b5651ccfe21d5",
+    "identical": true
+  },
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/mcp.go",
+    "historical_sha256": "d581b7b4f28f932a8a8dbdedf60c7ede2106f7d2f5f468aa7f3b86ac1fe79ca2",
+    "current_sha256": "d581b7b4f28f932a8a8dbdedf60c7ede2106f7d2f5f468aa7f3b86ac1fe79ca2",
+    "identical": true
+  },
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/assets.go",
+    "historical_sha256": "7d5c6d002bbe4d05018f53dc22591bc5f8cb0e673cabaf1337e9eb63871bea32",
+    "current_sha256": "7d5c6d002bbe4d05018f53dc22591bc5f8cb0e673cabaf1337e9eb63871bea32",
+    "identical": true
+  },
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/web/gui/artifact-scroll.js",
+    "historical_sha256": "37e7b041b8a28b69e8933fb67a0c72e38f51804b27fcd0920b0d32789dc87f49",
+    "current_sha256": "37e7b041b8a28b69e8933fb67a0c72e38f51804b27fcd0920b0d32789dc87f49",
+    "identical": true
+  },
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/testdata/reuse/reuse_test.go",
+    "historical_sha256": "bfe883075cbd13cf793cbaac7ed6e4ddfc7cfdd582fe83621f9c00f80ad7b25f",
+    "current_sha256": "bfe883075cbd13cf793cbaac7ed6e4ddfc7cfdd582fe83621f9c00f80ad7b25f",
+    "identical": true
+  },
+  {
+    "historical_revision": "0430df4",
+    "path": "gui/components.test.mjs",
+    "historical_sha256": "c9a8e3d4c40dd2f291aeb89c2deab95e7945295553840080c919f8b3e4646dac",
+    "current_sha256": "c9a8e3d4c40dd2f291aeb89c2deab95e7945295553840080c919f8b3e4646dac",
+    "identical": true
+  },
+  {
+    "historical_revision": "891d513",
+    "path": "ensemble/fleet.go",
+    "historical_sha256": "b9cc5cfec183e217c08a60d09a462b5e7019477d73cb40f67e9c192326be6bce",
+    "current_sha256": "b9cc5cfec183e217c08a60d09a462b5e7019477d73cb40f67e9c192326be6bce",
+    "identical": true
+  },
+  {
+    "historical_revision": "891d513",
+    "path": "internal/fleet/fleet.go",
+    "historical_sha256": "be084d217ae583233a99dda0cf9681803c2b441fd0bbd160d9fd516a156ef4ac",
+    "current_sha256": "be084d217ae583233a99dda0cf9681803c2b441fd0bbd160d9fd516a156ef4ac",
+    "identical": true
+  },
+  {
+    "historical_revision": "891d513",
+    "path": "internal/jobs/jobs.go",
+    "historical_sha256": "d5b890e4a9e6e87a8f57b8c875e94bd92a7cd4b9d8fdae4144abf2e0b7e49c55",
+    "current_sha256": "d5b890e4a9e6e87a8f57b8c875e94bd92a7cd4b9d8fdae4144abf2e0b7e49c55",
+    "identical": true
+  },
+  {
+    "historical_revision": "891d513",
+    "path": "internal/agent/actor.go",
+    "historical_sha256": "11642d8915fb4ab0236162b9230890f7a68b8d8dc4ab1f18f7b782eadfb98438",
+    "current_sha256": "11642d8915fb4ab0236162b9230890f7a68b8d8dc4ab1f18f7b782eadfb98438",
+    "identical": true
+  },
+  {
+    "historical_revision": "891d513",
+    "path": "main.go",
+    "historical_sha256": "d3f31f106cb2d90435d84c81ac0180f74c38d980c3f9a6935cd295cc3807c4af",
+    "current_sha256": "d3f31f106cb2d90435d84c81ac0180f74c38d980c3f9a6935cd295cc3807c4af",
+    "identical": true
+  }
+]

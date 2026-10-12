@@ -1,0 +1,11 @@
+--- internal/fleet/fleet.go
++++ internal/fleet/fleet.go
+@@ -186,7 +186,7 @@
+ 		}
+ 		if done {
+ 			m.mu.Unlock()
+-			return encoded(results), nil
++			return encoded(results[:1]), nil
+ 		}
+ 		changed := m.changed
+ 		m.mu.Unlock()

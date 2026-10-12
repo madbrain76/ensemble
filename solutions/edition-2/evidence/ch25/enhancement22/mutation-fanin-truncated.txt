@@ -1,0 +1,6 @@
+=== RUN   TestFleet22
+    ch22_test.go:25: join-fans-in: [one correlated join did not contain both submissions: [{"agent_id":"worker-a","state":"submitted","result":"CHILD_A_22"}]]
+--- FAIL: TestFleet22 (0.17s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.176s
+FAIL

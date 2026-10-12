@@ -1,0 +1,6 @@
+=== RUN   TestReuse22
+    ch22_test.go:46: assets-embedded: [GET http://127.0.0.1:51399/disk/ status=200 marker "EXPLICIT_DISK_22" present=false error=<nil>]
+--- FAIL: TestReuse22 (0.73s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.737s
+FAIL
