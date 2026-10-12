@@ -125,3 +125,68 @@ No blocking tooling or chapter-path finding remains at this stage. Final
 epilogue, assembled Markdown, full EPUB, print interior and cover-prefixed PDF
 inspection are still pending; public repository links require the separately
 authorized publication/push before remote readers can reach unpushed material.
+
+## October 12: final local reading copy accepted
+
+Accept the current publication preparation as **ready for Bill's local reading**,
+including final tooling/artifact commit `ca3f4764d554ba5e7d67144faa33d66dd7068ee5`,
+root publication/path work `7594d62a`, and epilogue attribution correction
+`c842bbda`. This closes the technical review-copy gate, not Bill's editorial
+approval or publication. Bill explicitly intends to read the book first.
+Nothing was uploaded or pushed by this review.
+
+After the latest compaction, fully reloaded workflow1–2394,
+carryover1–1069, voice1–632, procedure1–622 and the entire397-line mandatory
+`.agents/skills/ensemble-coding/SKILL.md`, recovering all content in bounded
+untruncated reads. All four documents were active together for final review.
+
+Read the new epilogue and checked its principal examples against their records:
+the254/4585 first-attempt chapter deltas, Chapter3's55/90 scores, the student-raised
+memory contradiction resolved by Bill, the Gateway admission survivor, the1475/
+2155 active-code comparison and the bounded six-test coding task. The initial
+memory attribution was corrected before the final build. Its first-person Astra
+voice follows Bill's explicit exception; it claims neither completed crossover
+nor an authored Edition3. Reviewed current reader-entry documents and the
+historical-note link redirection; the91 changed historical notes preserve prose,
+results and source identities apart from Markdown link destinations.
+
+Independently matched every tooling source, publication input and all five
+artifact hashes in [the final binding](../../solutions/evidence/publication-tooling/final-source.json).
+Read the final report, actual command receipts and retained earlier build/validator
+attempts. The corrected epilogue and directory-link filter are in these final
+bytes. Directory targets use GitHub `tree/main`; file targets use `blob/main`.
+Those remote targets remain subject to the later authorized push, not evidence
+that unpublished repository material is already remotely accessible.
+
+Actual PDF inspection covered the cover; interior1–4; chapter openings50,195,
+318,353; the Gateway code/table on360 and its continuation361; long commands and
+JSON on364; placeholder352; epilogue368; and Bill note370. The inspected pages
+are readable, with no visible clipping or overlapping footers. Table headers
+repeat on the continuation page. Independently checked every interior page's
+footer1–370 and text-word bounds, and geometrically paired all30 printed TOC
+numbers with their titles and actual destination headings. Two initial reviewer
+coordinate thresholds were too narrow for that right-hand column; corrected
+coordinates establish the pairs rather than treating those probe errors as
+artifact defects. The cover-prefixed copy adds one physical page while retaining
+the interior's printed numbering.
+
+The final interior has370 pages and the cover-prefixed PDF371; every page is
+432×648 points. No cause or quality inference is made from length. Independently
+inspected EPUB package/navigation XML: all27 chapters and closing sections are
+present, navigation is outside the spine, internal file targets resolve, and
+repository directory links have the corrected form. The extra generated title
+and navigation landmarks explain the separate counts in the coder's receipt.
+Also rendered the extracted Gateway XHTML with its bundled styling in an isolated
+Chrome profile. This is a browser reflow observation, not a Kindle reader test;
+the screenshot succeeded, and the lingering owned Chrome process was terminated.
+
+Final PDF SHA-256: `f8e67905bfee519c4e8ade47b4c699d47a703f6648df91b96fdfbe5c5ea11640`.
+Interior: `1e439a4ee8497e445bab2cccfa3d1be526d61f3e6ce47ad275bb321a8607636e`.
+EPUB: `8b4320ed3536dafd0a0e5b6048c47f333b81c32c418af4dfe99b0ea6d5133bb6`.
+The full binding also identifies assembled Markdown and print HTML.
+
+No blocking finding remains for the local review copy. This was representative
+visual inspection plus the stated complete mechanical checks, not an exhaustive
+visual reading of every page, Kindle/KDP preview, physical proof or security
+certification. Bill's unfinished runtime/crossover edits, frozen sources and the
+existing port8088 process remain outside this acceptance and untouched.
