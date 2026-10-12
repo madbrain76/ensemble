@@ -1,0 +1,28 @@
+{
+  "runs": [
+    {
+      "stage": "defect",
+      "exit": 1,
+      "wall_seconds": 0.5681989160366356,
+      "failed": {
+        "wait-change-wakes": [
+          "change wait completed while selected child had no progress"
+        ]
+      }
+    },
+    {
+      "stage": "restored",
+      "exit": 0,
+      "wall_seconds": 1.5792527080047876,
+      "failed": {}
+    }
+  ],
+  "patch": "reviewer-wait-immediate.patch",
+  "source": {
+    "internal/gradeedition2/ch23_driver.go": "3788690bda3a18fb49a81f2f79722c6c3ce57366a4dd8976bc38994542cc70d7",
+    "internal/gradeedition2/ch23.go": "ae223dec9a1092d1368a395cdc6a7fb416a71db5c321b1bede990e19fc38621a",
+    "internal/gradeedition2/ch23_test.go": "58562659fd69268a7852963e4f1b6492712328daef16dc5ffeae2acaa9d3653f"
+  },
+  "absence_interval_ms": 200,
+  "scope": "Actual shell readiness before wait-producing response; bounded no-progress observation, then real release/completion. Not an exact handler-entry timing proof."
+}

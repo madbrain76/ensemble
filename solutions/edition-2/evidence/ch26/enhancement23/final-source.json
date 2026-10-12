@@ -1,7 +1,7 @@
 {
   "source": {
-    "internal/gradeedition2/ch23.go": "f3836550a23f4eeacf0b9f4a5d4f90c200c285e014c9761bbe5078882da08bde",
-    "internal/gradeedition2/ch23_driver.go": "681323e59f3e2427afafe5a68a7ed826c5918f4ebd1e6ce883988cedf555f889",
+    "internal/gradeedition2/ch23.go": "ae223dec9a1092d1368a395cdc6a7fb416a71db5c321b1bede990e19fc38621a",
+    "internal/gradeedition2/ch23_driver.go": "3788690bda3a18fb49a81f2f79722c6c3ce57366a4dd8976bc38994542cc70d7",
     "internal/gradeedition2/ch23_test.go": "58562659fd69268a7852963e4f1b6492712328daef16dc5ffeae2acaa9d3653f",
     "cmd/grade-edition2/main.go": "03881de4270f084ecbbb8acc9fbd57a0de76d6676aaac2b3e82f02176fe29991"
   },
@@ -16,9 +16,9 @@
       "blank": 5
     },
     "internal/gradeedition2/ch23_driver.go": {
-      "physical": 339,
-      "active": 316,
-      "comment_only": 16,
+      "physical": 373,
+      "active": 346,
+      "comment_only": 20,
       "blank": 7
     },
     "internal/gradeedition2/ch23_test.go": {
@@ -29,5 +29,5 @@
     }
   },
   "count_method": "Physical lines, blank and //-only lines; remaining active lines. No block comments in these files. Test separately identified.",
-  "post_check_changes": "Only the wait row title was aligned with its existing predicate and three explanatory comments added after the focused check; no behavior changed."
+  "final_validation": "wait-causal-baseline.txt, exact reviewer-wait-immediate.patch failure and restored control, wait-causal-legacy.txt; source hashes match wait-causal-check.json."
 }

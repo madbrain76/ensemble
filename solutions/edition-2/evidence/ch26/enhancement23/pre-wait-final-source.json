@@ -1,0 +1,33 @@
+{
+  "source": {
+    "internal/gradeedition2/ch23.go": "f3836550a23f4eeacf0b9f4a5d4f90c200c285e014c9761bbe5078882da08bde",
+    "internal/gradeedition2/ch23_driver.go": "681323e59f3e2427afafe5a68a7ed826c5918f4ebd1e6ce883988cedf555f889",
+    "internal/gradeedition2/ch23_test.go": "58562659fd69268a7852963e4f1b6492712328daef16dc5ffeae2acaa9d3653f",
+    "cmd/grade-edition2/main.go": "03881de4270f084ecbbb8acc9fbd57a0de76d6676aaac2b3e82f02176fe29991"
+  },
+  "accepted_tree": "27d7fcf9b8b31275068fa705d6969cfe3eafedc1",
+  "legacy_tree": "e2a6983b1c20b54238f3d7f57f7fb8c6ab1f755d",
+  "manuscript_sha256": "6ce1110e7011d47171694deef26b64f88e8a0297b9cbc9dd6fedd6ee2973b06f",
+  "counts": {
+    "internal/gradeedition2/ch23.go": {
+      "physical": 118,
+      "active": 107,
+      "comment_only": 6,
+      "blank": 5
+    },
+    "internal/gradeedition2/ch23_driver.go": {
+      "physical": 339,
+      "active": 316,
+      "comment_only": 16,
+      "blank": 7
+    },
+    "internal/gradeedition2/ch23_test.go": {
+      "physical": 50,
+      "active": 43,
+      "comment_only": 3,
+      "blank": 4
+    }
+  },
+  "count_method": "Physical lines, blank and //-only lines; remaining active lines. No block comments in these files. Test separately identified.",
+  "post_check_changes": "Only the wait row title was aligned with its existing predicate and three explanatory comments added after the focused check; no behavior changed."
+}

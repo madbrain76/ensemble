@@ -79,25 +79,65 @@ predicate reads only a text part's text, a tool result, or final turn text;
 argument-only input fails and all three legitimate representations pass under
 race. No new runtime schema or exact output wording was introduced.
 
-The final affected real-GUI check passes **75/75** on accepted source; legacy
+The replay-text-corrected real-GUI check passes **75/75** on accepted source; legacy
 scores **45/75**, with the same selection limitation. Combined with unchanged
 measured CLI construction/idle checks (25/25 each), final totals are explicitly
 **composed 100/100 accepted and 70/100 legacy**, in `final-composed.json`.
 The earlier actual full runs remain 100/100 (1.407 seconds, exit 0) and 70/100
 (3.103 seconds, exit 1); they are not relabeled final-source runs.
-`accepted-final-focused.txt` records the final behavioral checks under race
+`accepted-final-focused.txt` records that intermediate behavioral check under race
 (package 1.344 seconds); `legacy-final-focused.txt` records 2.175 seconds.
 A preliminary legacy focused attempt built its library root as an archive,
 then failed permission-to-execute before any behavior. That setup error remains
 in `legacy-library-build-attempt.txt`; rebuilding its actual `./cmd` supplies the
 correct executable. It is not another legacy product defect.
 
-Final source binding is `final-source.json`. After these focused checks, only
+That intermediate binding is retained as `pre-wait-final-source.json`. After
+those focused checks, only
 explanatory comments and the change-wait row title were aligned with its existing
 predicate. The title does not claim the wait returns only on final submission:
 actual selected progress wakes it, and the same held child command and submission
 subsequently complete. Affected-package vet passes. There is no repeated broad
 runtime suite or paid run for freshness.
+
+## Reviewer causal-wait correction
+
+Independent review at `9b00463f` found a genuine coverage gap: the same runtime
+with `WaitChange` replaced by an immediate current-status return still passed
+all numeric rows. `reviewer-wait-check.json`, its exact patch and raw output
+retain that **survivor** against `363e83ce`; the prior twelve detected defects
+did not establish this distinct waiting claim. ActivityWaiting is emitted before
+the handler executes, so releasing the child on that observation was too early.
+
+The small correction makes the actual child shell write a startup marker before
+waiting for release. The external forwarding peer holds the parent's wait-producing
+response until that marker exists, outside the fake vendor's capture lock.
+After the parent's waiting activity, the GUI inbox observes a **200 ms bounded
+no-progress interval**. A correlated `wait-change` completion during that interval
+fails the row. Only then does the fixture release the real child command and
+require the selected result, command output and submission to complete. This is
+not a claim to observe exact handler entry or an unbounded liveness guarantee.
+No internal runtime method is mocked, no product acknowledgment is added, and
+there is no requirement that a wait return only on terminal submission.
+
+`wait-causal-baseline.txt` passes under race (package 1.556 seconds). The reviewer's
+unchanged exact immediate-return patch now fails **only** `wait-change-wakes`
+with “change wait completed while selected child had no progress” (wall 0.568
+seconds). The restored actual runtime passes (wall 1.579 seconds).
+`wait-causal-check.json` binds all three grader files and the patch;
+`wait-causal.py` retains the isolated build/run procedure and cleans its scratch
+copy. The final legacy focused run still scores 45/75 (package 2.386 seconds):
+its legitimate wait passes, while absent named selection continues to mask later
+GUI/persistence observations. Affected-package vet passes.
+
+`final-source.json` now binds these final bytes; earlier bindings and composed
+receipts remain in `pre-wait-*`. Final totals remain **composed 100/100 accepted
+and 70/100 legacy**, using restored/focused GUI 75/45 and unchanged CLI 25 each.
+Earlier actual full scores and timings stay historical. Samples and prose do
+not change; their independently exercised GUI/fleet behavior remains valid.
+There are now thirteen distinct detected runtime defects, including this initially
+surviving one, with the separate replay-argument assertion control and historical
+source-version limits retained. No broad or paid rerun was performed.
 
 ## Sensitivity and reused proof
 
@@ -211,7 +251,7 @@ migration of an old save. Original grading remains **0/100 FAIL**.
 
 ## Size, preservation and handoff
 
-The new grader/check driver has 457 physical lines (423 active, 22 comment-only,
+The new grader/check driver has 491 physical lines (453 active, 26 comment-only,
 12 blank); exact per-file counts are in `final-source.json`.
 The focused tests are separate (50 physical, 43 active, 3 comment-only). Counts
 classify blank lines and `//`-only lines, with remaining lines active; there are

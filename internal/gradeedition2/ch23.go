@@ -94,7 +94,7 @@ func managementReply(body []byte, work string) *fakevendor.Reply {
 	}
 	if !strings.Contains(b, "MANAGEMENT_ROOT_23") && strings.Contains(b, "WORKER_TASK_23") {
 		if !fleetHas(body, "child-command") {
-			return fleetCall("child-command", "run_command", map[string]any{"command": fmt.Sprintf("while [ ! -f %q ]; do sleep .02; done; printf COMMAND_RESULT_23", work+"/release"), "ai_callback_delay": 10})
+			return fleetCall("child-command", "run_command", map[string]any{"command": fmt.Sprintf("printf ready > %q; while [ ! -f %q ]; do sleep .02; done; printf COMMAND_RESULT_23", work+"/ready", work+"/release"), "ai_callback_delay": 10})
 		}
 		return fleetCall("child-submit", "submit", map[string]any{"result": "WORKER_RESULT_23"})
 	}

@@ -2,7 +2,7 @@
   "accepted": {
     "focused_score": 75,
     "focused_max": 75,
-    "focused_receipt": "accepted-final-focused.txt",
+    "focused_receipt": "wait-causal-restored.txt",
     "unchanged_cli_score": 25,
     "unchanged_cli_receipt": "accepted-completion-corrected.json",
     "composed_score": 100,
@@ -13,7 +13,7 @@
   "legacy": {
     "focused_score": 45,
     "focused_max": 75,
-    "focused_receipt": "legacy-final-focused.txt",
+    "focused_receipt": "wait-causal-legacy.txt",
     "unchanged_cli_score": 25,
     "unchanged_cli_receipt": "legacy-completion-corrected.json",
     "composed_score": 70,

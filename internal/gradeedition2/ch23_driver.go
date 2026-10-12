@@ -166,6 +166,28 @@ func managementGUI(bin string, checks []grade.Check) {
 					return
 				}
 			}
+			// Child-start acknowledgment comes from the actual shell, not an
+			// earlier activity event. Hold the parent's next response outside
+			// the capture mutex so the child can receive its own tool call.
+			if strings.Contains(string(raw), "MANAGEMENT_ROOT_23") && fleetHas(raw, "spawn-worker") && !fleetHas(raw, "wait-change") {
+				deadline := time.NewTimer(2 * time.Second)
+				defer deadline.Stop()
+				tick := time.NewTicker(10 * time.Millisecond)
+				defer tick.Stop()
+				for {
+					if _, err := os.Stat(filepath.Join(work, "ready")); err == nil {
+						break
+					}
+					select {
+					case <-tick.C:
+					case <-r.Context().Done():
+						return
+					case <-deadline.C:
+						http.Error(w, "child command never acknowledged startup", http.StatusGatewayTimeout)
+						return
+					}
+				}
+			}
 			forward.ServeHTTP(w, r)
 		}))
 		defer boundary.Close()
@@ -201,12 +223,24 @@ func managementGUI(bin string, checks []grade.Check) {
 			if phase != "" && (len(phases) == 0 || phases[len(phases)-1] != phase) {
 				phases = append(phases, phase)
 			}
-			// The real parent's waiting observation admits the deliberately held child
-			// command. Provider replies themselves never manufacture a child transition.
+			// Waiting activity precedes handler execution. It only starts this
+			// bounded no-progress control; it is not an entry acknowledgment.
+			// The child's shell is already held and has no output/state change.
 			raw, _ := json.Marshal(m)
 			if !released && strings.Contains(string(raw), "wait_for_agent_change") && strings.Contains(string(raw), "waiting") {
+				quiet, e := peer.until(200*time.Millisecond, nil)
+				if e != nil {
+					fail(&checks[3], "held wait observation: %v", e)
+				}
+				for _, observed := range quiet {
+					if observed["type"] == "tool_finished" && observed["call_id"] == "wait-change" {
+						fail(&checks[3], "change wait completed while selected child had no progress")
+					}
+				}
 				released = true
-				_ = os.WriteFile(filepath.Join(work, "release"), nil, 0600)
+				if e = os.WriteFile(filepath.Join(work, "release"), nil, 0600); e != nil {
+					fail(&checks[3], "release selected child: %v", e)
+				}
 			}
 			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "MANAGEMENT_DONE_23")
 		})
