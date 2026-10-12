@@ -1,297 +1,971 @@
-# Chapter 14: The Channel Nobody Tested
+# Chapter 14: The World's Best Context Engineering, Before Breakfast
 
-This chapter is for me. Accessibility is an afterthought everywhere, never in the critical path of creating a product. Since I am in control here, your AI coding agent gets decent a11y from the start, if you follow this codebook accurately.
+This may be the most important chapter in the book.
 
-The test has to run over data as close as possible to what a blind or low-vision coder actually receives. So in this chapter we build a virtual blind coder, one that can only hear TTS output, and it has to drive the AI coding agent successfully.
+If you've ever started a new chat because your agent seemed confused,
+well, that's yesterday's context engineering. I did it myself, several
+times, on the day I designed this chapter. As of September 2026, what
+follows is tomorrow's. The book is evergreen, so I hope it always has
+modern advice.
 
-If you care about SWEs with low vision, please do not skip this chapter.
+The design had been in my head for a couple of months. On a Tuesday
+morning I typed it out for about twenty minutes while CodeRhapsody
+turned it into a design record and checked it against the code. Then I
+took a shower. The first commit landed at 7:42, before breakfast, and
+frankly it felt good to get it out.
 
-An automated observer only finds bugs in the channel it needs to succeed. Chapter 13 built an observer that reads the DOM, and it found real defects: an XSS hole in a tool card, truncation nobody could reach, controls whose state lived only in a CSS class. Every one of those bugs was visible. The observer was looking, so the observer found them.
+This is how long-running actors should work: what the actor knows,
+organized by section at several levels of detail, with the most
+critical parts kept longest, instead of some lame summary of the first
+half of the context.
 
-The same agent had a speech channel running the entire time. That channel was broken in six separate ways, and the observer reported nothing, because the observer never had to listen to finish its work. This chapter builds the observer that does.
+A long session with a coding agent can degrade in a familiar way. The
+answers get vaguer. The agent re-reads a file it read an hour ago, then
+forgets a decision made before lunch. A fresh chat helps because a
+human decides what to carry over. This chapter moves tool-traffic
+cleanup inside the agent and records every cut as an event, so nothing
+leaves the window without a record of what removed it.
 
 ## TL;DR
 
-Two deliverables. A speech pipeline that turns a stream of arbitrary text fragments into utterances a person can listen to, and a blind persona for the Chapter 13 virtual user that perceives the agent through speech alone.
+Tool bytes gain a removal policy. Every entry gets
+a kind that says which verb removes it. Tool bytes fall off a ladder of
+recorded redaction events. On a model configured for stubbing, each round
+trip's results are stubbed unless the model keeps them. The actor can
+checkpoint with `micro_handoff`. Loaded skills survive as entries instead
+of as tool results. The system prompt stays frozen. The log reaches disk
+as it grows, so a process crash can recover the journaled work.
 
-### The speech pipeline contract
-
-Text arrives as arbitrary fragments. A streaming model emits deltas on byte boundaries, frequently mid-word, and the pipeline owns the job of turning that into speech.
-
-1. **Buffer until a phrase boundary.** Never speak a fragment as it arrives. A word split across three chunks is one word.
-2. **A sentence-ending period is a boundary. A single newline is not.** Prose wraps, and splitting at the wrap breaks the sentence. Treat a lone newline as a space and a blank line as a boundary.
-3. **Provide an explicit `flush()`.** End of stream, a tool announcement, and an error each force the buffer to be spoken. Without this, a response ending in a colon is never heard.
-4. **Filter for the ear before speaking.** Emphasis markers, inline code markers, headings, bullets, and link syntax are removed. A fenced code block is named rather than read.
-5. **Resolve fenced blocks against the whole buffer, before splitting.** A fence broken into separate lines can never match a fence pattern, and the orphaned markers get spoken aloud.
-6. **Expand identifiers.** `camelCase`, `snake_case`, and `HTTPServer` are read as separate words. Ordinary words are left alone.
-7. **Speak parts that arrive whole.** A part delivered without deltas is still spoken, and a part that streamed is not spoken twice.
-8. **Speak errors.** An error that is displayed and not spoken does not exist for a listener.
-9. **Record a transcript.** Every utterance entering the channel is recorded with its text and its source, whether or not audio is produced.
-
-### The pause gate
-
-The agent pauses tool dispatch while the user is reading or typing:
-
-```
-paused = speaking OR input_non_empty
-```
-
-10. **One derived predicate, not three call sites.** Compute the value, compare it against the previous value, and send only on an edge.
-11. **A space counts as input.** Trimming the field is wrong here.
-12. **Unpausing requires both causes clear**, whichever one changed.
-
-### The blind persona
-
-13. **Deny the DOM.** The blind persona has no snapshot tool and no click tool. Remove them from the registry rather than discouraging them in a prompt.
-14. **Bypass audio.** A test that waits for real speech runs in real time. Record to the transcript and return immediately.
-15. **It keeps** the ability to hear, type, submit, wait, and sleep. Nothing else.
-
-### Yours
-
-Which markdown constructs to filter beyond the required set. What to call a fenced block when you skip it. Whether the transcript is a ring buffer and how large. The wording of a tool announcement. Whether an error preempts the queue or joins the back of it.
-
-### Exercise
-
-```
-make grade14
-```
-
-## 14.1 The idea in plain words
-
-A fire alarm inspector who checks the panel will never discover that a speaker in the east stairwell is disconnected. The wiring diagram is correct, the current draw is nominal, the panel reports green. Finding that fault requires somebody to stand in the stairwell during a test and notice the silence.
-
-Automated observers have the same blind spot, for the same reason. Chapter 13's virtual user completed every task by calling `gui_snapshot` and reading the DOM that came back. Speech was never part of finishing the job. The speech module could have been deleted from the tree entirely and every one of those runs would still have passed, because nothing the observer needed came through that channel.
-
-The instinct at this point is to give the observer better reporting. Add a tool that returns the speech queue, describe it well, and ask the agent to check it. That instinct is wrong, and Chapter 13 explains why: an agent asked to evaluate something it does not depend on will produce a confident answer in either direction. It has no way to be wrong that it can feel.
-
-The alternative is to remove the channel the observer has been leaning on. Take away the DOM, leave speech, and give it a task it cannot finish without listening. Now a defect in the speech channel is not a line in a report. It is a task that fails.
-
-The principle generalizes beyond accessibility: test over data as close as possible to what the user actually receives. A DOM snapshot is not what a listener receives. It is a different signal, richer in some ways and poorer in others, and an observer consuming it will faithfully report on a system no human is using.
-
-## 14.2 The channel that reported on itself
-
-This investigation started with a suspicion rather than a bug report. Bill, who listens to this agent for hours a day and had no way to audit the channel he was listening to, put it this way:
-
-> I'm worried the TTS feedback, available via the MCP tunnel, isn't evaluated by any agent. It needs work.
-
-That is a claim about the instrument rather than about the artifact, and it was exactly right. Before building the listener, it helps to see how right.
-
-Four call sites fed it, all in the artifact renderer. Streaming deltas went in as they arrived, for both text and thinking. Tool dispatch announced itself. A part arriving complete flushed the buffer. Errors rendered to the screen.
-
-Three of those four had defects. The fourth, error rendering, had no speech call at all: it built a div, set its text, appended it, scrolled, and returned. For a user who works by listening, the one message class that most needs to interrupt was the only class that made no sound.
-
-The agent did have a tool for inspecting speech state. It was called `tts_queue`, and it read a variable named `window._ttsQueue`. A search of the source tree found exactly two references to that name, and both of them were reads inside the tool itself. Nothing in the codebase ever assigned it. The tool always fell through to its backup path, which returned either an empty array or a single synthetic entry whose text was the string `(speaking)`.
-
-That tool was declared `ephemeral: "round"`, the Chapter 12 mechanism that injects a tool's output into every round automatically. So the agent had been receiving speech telemetry continuously, and the telemetry had been contentless the entire time.
-
-Chapter 13's grader checks that this injection works, and it passes. It asserts that `tts_queue` output reaches the request context, which is a claim about the engine rather than about speech. A pipe that carries nothing is still a pipe. The check was green while the channel behind it was dead, which is a useful thing to know about green checks.
-
-The pause gate has the same shape. The design document specifies it precisely:
-
-```
-paused = tts_speaking OR user_typing
-```
-
-Only the typing half was ever wired. Every pause and unpause message in the client came from a keystroke handler, and the client contained no reference to speech state at all. The Go side was correct, checking the gate before every tool dispatch. One of the mechanism's two inputs had simply never been connected.
-
-The speech module had been advertising the missing feature since the day it was written. Line 1 reads:
-
-```javascript
-// TTS — Text-to-speech for artifacts with Chrome wake-up and pause integration.
-```
-
-Searching that file for the word `pause` returns that comment and nothing else.
-
-The repair is smaller than the diagnosis, and it is worth showing because the original shape is the one most people write first. Three handlers each sent pause and unpause on their own, and each knew about only one of the two causes. A handler that noticed the input field had emptied sent unpause without any idea whether speech was still playing.
-
-Deriving the value in one place removes the entire class of mistake:
-
-```javascript
-function updateGate() {
-  const blocked = userTyping || TTS.speaking;
-  if (blocked === gatePaused) return;
-  gatePaused = blocked;
-  // WebSocket readiness guard elided
-  ws.send(JSON.stringify({type: blocked ? 'pause' : 'unpause'}));
-}
-```
-
-Every event calls that same function. Speech starting, speech ending, a keystroke, a submission. It computes the predicate, compares the answer against the last value it sent, and sends only when the answer changed. Checking both causes before releasing the gate stops being a rule anyone has to remember, because both terms are sitting in the expression.
-
-Two details earn their place. Comparing against `gatePaused` makes the messages edge-triggered, so forty keystrokes produce one pause rather than forty. And `userTyping` is set from the field's length rather than from a trimmed copy of it, because a user who has typed a single space is composing.
-
-Wiring the missing half then costs one line, and its comment says what the line is for:
-
-```javascript
-// The speaking half of the gate. This subscription is the whole reason TTS state
-// is exported: without it the agent runs tools while it is still talking.
-TTS.onStateChange = updateGate;
-```
-
-One related ruling came out of the same session. The escape key now always cancels speech:
-
-```javascript
-if (e.key === 'Escape') {
-  TTS.cancel();          // Escape always silences speech, whatever is typed.
-```
-
-It had been cancelling only when the input field was empty, which is what happens when cancellation is implemented as a side effect of clearing the box instead of as a command in its own right. A listener who wants the talking to stop wants it to stop.
-
-## 14.3 A user who can only listen
-
-The blind persona is the Chapter 13 driver with its eyes removed.
-
-Removal is the operative word. A prompt instructing an agent to avoid a tool is a suggestion it will follow until the task gets hard. The persona deletes the DOM tools from the registry after the MCP bridge connects, so the capability does not exist:
+The shared entry vocabulary gains four kinds. These definitions belong in
+`internal/common`; reduction belongs in History, not on common-package structs:
 
 ```go
-if *persona == "blind" {
-    for _, name := range []string{"gui_snapshot", "gui_click"} {
-        a.RemoveTool(name)
-    }
-    // logging elided
+// EntryKind identifies what removes an entry. Survivors never contain tool parts.
+type EntryKind uint8
+
+const (
+    KindDialogue EntryKind = iota + 1
+    KindHandoff
+    KindSkill
+    KindTools
+)
+
+// MicroHandoffData records the checkpoint text that survives its tool call.
+type MicroHandoffData struct {
+    Text string `json:"text"`
 }
 ```
 
-`RemoveTool` came from Chapter 13, where it served skill unloading. It works here unchanged, which is the payoff for having put tool removal in the registry rather than in the skill system.
+Each context entry carries its kind alongside sequence, actor and parts. Reuse
+the existing skill body and redaction payloads. Add `micro_handoff` and
+`tools_changed` facts; the latter carries full `added` declarations and `removed`
+names. A `tool_decls` part holds that delta without becoming a call or result.
 
-What remains is hearing, typing, submitting, waiting, and sleeping. The persona can queue a prompt, send it, wait for the agent to go idle, and read back everything that entered the speech channel while it waited.
+1. **Frozen prefix.** The system prompt is byte-identical on every request
+   of a session. Only a refreshed Agent changes it. Startup tool declarations
+   stay frozen too on a model that can carry tool changes in the dialog;
+   other models re-declare when tools change, as rule 2 describes.
+2. **Tools arrive through the dialog.** A skill load, a skill unload,
+   or an MCP connect mid-session emits `ToolsChanged`, and the reducer
+   turns it into a `Tools` entry. On a model whose features row sets
+   `InlineTools`, that entry carries the declarations in the dialog.
+   The `tool_decls` part is neither a call nor a result, so rule 3 still
+   holds. The renderer places inline declarations after the complete
+   user/tool-result/ephemeral turn. A model without `InlineTools` folds
+   every delta into the startup set and re-declares, changing the prefix.
+3. **Survivors carry no tool parts.** A `Handoff`, `Skill` or `Tools`
+   entry never holds a tool call or a tool result, so no tool clearing
+   can touch it.
+4. **Skills are entries.** The reducer turns `SkillLoaded` into a
+   `Skill` entry holding the rendered body. The `load_skill` tool result
+   is an acknowledgement only. Replay uses the recorded body, without
+   rereading the file. `unload_skill` removes grants no other active skill
+   supplies and stops its servers, but leaves the `Skill` entry where it
+   is: deleting old bytes would change the prefix. A later chapter's verb
+   removes it.
+5. **`micro_handoff` is three records:** the tool call, an ordinary
+   result, then a `MicroHandoff` event. Its reducer waits until the
+   batch's last result has arrived, so a call made alongside
+   `micro_handoff` is cleared with it, even if it has not started yet in
+   the serial dispatcher. Then it removes every tool call and tool
+   result part from the context, drops entries left empty, and appends
+   one `Handoff` entry. The text appears in the next request exactly
+   once, and no call is ever left without its result or a result without
+   its call. The tool takes `{"text":"..."}`.
+6. **Keep or stub, per round trip.** On a model whose features row sets
+   `StubsToolResults`, every tool result above the stub threshold is
+   replaced by a stub in the request after the one that carried it,
+   unless the actor's next message calls `keep_tool_results({})`, which
+   keeps that whole batch. Called alongside other tools, it keeps the
+   previous batch, not the one it rides in, and its own result is never
+   stubbed. The call survives either way. The stub is an ordinary
+   `RedactResult` event, so replay reproduces it. Other models get no
+   per-round-trip stubbing; the ladder alone applies.
+7. **The ladder records a Seq.** With target size T, whole tool traffic
+   has a T/8 budget. Older results become stubs (`RedactResult`) and
+   their calls stay, for a T/16 budget of calls and stubs. Older tool
+   traffic goes entirely (`RedactTool`). A band is cut in steps: when it
+   passes twice its budget, one event cuts an old prefix back toward its
+   budget. Cut only completed batches the model has already seen. Each
+   event stores `To` as a number, never as "the watermark", so a later
+   settings change cannot rewrite the past.
+8. **The reducer is total over known events.** A save file that does not
+   parse is still refused (Chapter 10). A familiar event that parses but
+   cannot be applied, such as a malformed payload or a redaction naming
+   an entry already gone, is skipped with a diagnostic and loading
+   continues. Validate before mutation; unknown event types and invalid
+   sequence ordering remain errors.
+9. **Crash-safe.** Events reach the journal before publication, so a
+   process crash leaves a tail after Chapter 10's `as_of` anchor.
+   Recovery loads the snapshot, its tail and the journal. A normal
+   shutdown snapshots. Write the new snapshot before truncating the
+   journal, never truncate past the anchor, and keep one backup of the
+   previous snapshot. Power loss is out of scope; the log is never fsynced.
+10. **One knob.** The Context Management settings tab sets
+    `context_target`: T in bytes, 0 for the default of 400,000, clamped
+    to at least 20,000. The stub threshold is T/100 and the bands are
+    rule 7's, so the default gives 4,000, 50,000 and 25,000. The tab's
+    other setting, `log_retention`, is the number of events kept in the
+    saved log, 0 for all. Store settings at the owning Agent's path and
+    preserve unsent browser edits when a settings snapshot arrives.
 
-Speech in this mode does not produce audio. A test that waits for real utterances runs at the speed of talking, and a long reasoning trace is ten minutes of it. The pipeline records to the transcript and returns immediately, so a run finishes in seconds and the machine stays quiet. The transcript is the artifact under test, and the transcript is complete whether or not a speaker was involved.
+The model-feature matrix is part of the exercise:
 
-One scope decision saves a week of work here. Hover-to-speak, arrow-key navigation, and element announcement belong to the operating system's screen reader. Chrome cooperates with JAWS, NVDA, and VoiceOver well enough that a developer who cannot see the screen already has a working way to move around a page, and building a second navigation model on top of that would duplicate the screen reader and do it worse. What this application owns is the self-speaking layer: the running commentary of thinking and response text that the agent produces while it works. A user turns that on, listens while the agent is talking, and navigates with their screen reader when it goes quiet.
+| Row | `InlineTools` | `StubsToolResults` |
+| --- | --- | --- |
+| `claude-opus-5-course` | true | true |
+| `claude-sonnet-5-course` | false | false |
+| All existing real-model rows | false | false |
 
-For this stack, a low-vision persona and a blind persona collapse into the same instrument, because the part under test is the same part. There is no second persona worth building, and the entire testable accessibility surface of the application is one channel carrying two kinds of text.
+The course rows are deterministic fixtures. Keep both new flags false on
+existing real-model rows. Dialogue and survivors remain outside the tool
+budgets; this chapter does not yet bound the whole window.
 
-## 14.4 The run that succeeded for the wrong reason
+For live Anthropic use, choose an older supported model such as Sonnet-5.
+Bill reports that 5.5 models do not work with ephemeral context and has
+excluded them from supported use. Historical 5.5 runs below retain their
+actual names; they are not reader model choices.
 
-The first task given to the blind persona was chosen to fail.
+Yours: the on-disk layout of the journal, what a diagnostic says, and the
+settings tab's appearance.
 
-Tool results never reach the speech channel. Only dispatch is announced, so a listener hears that a command is running and then hears nothing about what it did. The task was to run a command against a path that does not exist and report the exit code, and the prediction, written down before the run, was that the listener would come back empty.
+**Exercise.** Start from your Chapter 13 agent. Add context management until
+the following command, run from the repository root, scores 100/100:
 
-It came back with the correct exit code.
-
-The transcript explains how. Six utterances entered the channel, in this order:
-
+```sh
+go run ./cmd/grade-edition2 -ch 14
 ```
-1. "run command"
-2. "The command failed with exit code 1:"
-3. "`"
-4. "ls: /nonexistent-path-xyz: No such file or directory"
-5. "`"
-6. "This is expected since..."
+
+The default core is `solutions/edition-2/ch14`; a positional core directory and
+existing `-gui` option select another implementation. Section 14.14 gives the
+actual launch, settings and eight-check contract.
+
+## §14.1 In Plain Words
+
+The context window is not storage. The log is storage: Chapter 2 made
+it append-only, recording what the agent saw or said. The window is a
+working set rendered from that log, sent again on every request. Every
+byte has to answer three questions: why is it here, who put it here, and what removes it. A byte
+that cannot answer the third question stays forever, and a window full
+of such bytes can crowd out the work a person wanted the agent to remember.
+
+Most of the bytes in Chapter 2's measured sessions were tool bytes:
+results were about 42 percent of conversation history by volume, and
+call arguments another 30 percent. Nearly all of those bytes are needed
+once. The agent reads a file, decides, edits; after that, the file's
+contents are recoverable from disk and the decision lives in what the
+agent said about it. Hence the chapter's rule: keep the words, let the
+bytes go. Dialogue stays. Tool results go first, then the calls that
+produced them, oldest first.
+
+Some things must never go with them. A loaded skill's instructions and
+the note an agent writes to its future self at a checkpoint look like
+tool traffic today, because they arrive through tools. If they stay
+tool traffic, the first cleanup deletes the manual and keeps the tools
+it explains. Anything that must survive becomes its own kind of
+entry, removed only by its own verb. Survivors are safe by
+construction.
+
+Every cut is an event in the log with an exact number in it; nothing is
+re-evaluated later. That is what keeps Chapter 10's promise:
+replaying the log reproduces the same window, byte for byte, even after
+the settings that chose the cuts have changed.
+
+Two laws decide where cuts may happen. The front of the request, the
+system prompt and, on an inline-capable model, the startup tools, is
+frozen so a prefix cache can keep serving it. Changing a byte near the
+front invalidates more of that prefix than changing one near the end.
+So cuts come in steps, not a trickle: one larger cut now and then
+invalidates that region less often than a small one every turn.
+
+The redaction levels are Chapter 2's, the frozen prompt is Chapter 9's,
+the snapshot and replay are Chapter 10's. What was missing is the
+policy that decides when to use them, and kinds for the entries that
+must survive.
+
+## §14.2 Why Is This Byte Here?
+
+Chapter 2 built the machinery for this chapter before it had a cleanup
+policy to call it. `RedactData` has four levels. `RedactResult` turns a
+tool result into a stub and keeps the call. `RedactTool` removes both
+and keeps the reasoning around them. `RedactDialogue` and
+`RedactSummary` reach into the conversation itself. The first edition
+left a comment at that boundary:
+
+```go
+case RedactDialogue:
+        // Prose and reasoning go. Survivors are defined by the compaction
+        // policy, which is a later chapter's problem.
 ```
 
-Utterance 1 is the dispatch announcement. Utterances 2 through 6 are the model's own prose, describing what happened. No tool result appears anywhere in the transcript. The listener learned the exit code because the model chose to mention it.
+This chapter supplies the tool-traffic policy. Dialogue removal remains a later exercise. Context engineering, as the book uses the term,
+is managing every byte in the context data structure as well as
+today's models allow. The management is a policy: for each byte, a
+reason it is in the window, a record of what put it there, and a verb
+that takes it out.
 
-The observer reported its transcript accurately and drew the wrong conclusion from it, writing that no gap had been found. That conclusion was reasonable given what it could perceive, which is the whole problem. From inside the channel, narration is indistinguishable from delivered data. A listener receiving the right information cannot tell whether the system delivered it or the model happened to be chatty that turn.
+Walk a request from a Chapter 13 agent after an hour of work and ask each
+byte the three questions. The system prompt answers all three: the
+agent's constitution, written at startup, removed by nothing. A user
+prompt answers them. A 9,000-byte file read forty minutes ago answers
+the first question with "the agent needed it once", the second with
+`read_file`, and the third with silence. Nothing removes it. It rides
+along on every request until the session ends or a human copies the
+good parts into a fresh chat.
 
-Accessibility resting on a model's prose habits is discoverability by luck. A terser response, a different system prompt, a model tuned to skip the summary, and the same task yields silence with no warning and no error.
+The fix is that silence. Give the old tool traffic a remover.
 
-The ruling closed the gap rather than leaving it open. Tool results are not spoken, by design: "I listen to your thinking, and that is enough." Thinking and response text are both fed to the channel, so the channel a listener depends on is fully wired, and the exit code arriving through prose is the system working as specified.
+## §14.3 Two Laws
 
-That ruling also redirected the instrument. A blind persona that hunts for unspoken tool results is testing a decision rather than a defect. The right question is whether thinking and response text arrive completely, in order, and intelligibly.
+The vendor's prompt cache decides where a cut may happen. Under prefix
+caching, everything after the first changed position loses its match.
+This describes reuse, not a bill: bytes are not tokens, and the provider
+must actually grant caching for the stable prefix to save money.
 
-Utterances 3 and 5 say they do not.
+**Law 1: the prefix is frozen.** The system prompt and, on an inline-capable
+model, the startup tool declarations are byte-identical on every request
+of a session. Chapter 9 already made the system prompt a constitution and put dynamic
+skills in the dialog. It left one leak: a skill that brings tools
+changed the tool list, and the tool list is the first thing in the
+request. Loading one skill could invalidate reuse from the tool array onward.
 
-## 14.5 A bug found by ear
+The chapter closes the leak with an event. A skill load, a skill
+unload, or an MCP server connecting mid-session emits `ToolsChanged`,
+a delta of declarations added and names removed. The reducer turns it
+into a `Tools` entry at the tail of the context, where it preserves the earlier declaration prefix. On a model whose features row sets
+`InlineTools`, the renderer sends that entry as a mid-conversation
+system message:
 
-Two of the six utterances were a single backtick. The listener was hearing punctuation read aloud.
-
-The obvious explanation is streaming. Deltas arrive on arbitrary boundaries, a fenced code block gets split across two chunks, and each half is filtered separately, so neither half contains a complete fence and the markers survive. That explanation is clean, mechanical, and wrong.
-
-A test disproved it. Feeding the entire fenced block as one chunk, with no split anywhere near it, still produced spoken backticks.
-
-The real cause sat one layer earlier. Filtering ran per phrase, and phrases were produced by splitting the buffer on newlines. A fenced block contains newlines by construction, so by the time the filter saw anything, the fence had already been cut into separate lines. A pattern that needs an opening marker and a closing marker to match will never match a line containing exactly one of them. The filter examined three fragments, found no fences, and passed all three through.
-
-The fix resolves fences against the whole buffer before any splitting happens. The filter then sees a complete block and replaces it with a name, and the listener hears "code block" where a wall of syntax used to be.
-
-The same test run surfaced a second problem with splitting on newlines, and it came from a listener rather than from the code. Prose wraps. A sentence broken across two source lines is one sentence, and splitting at the wrap produces two utterances with an unnatural pause between them. Speech engines work a phrase at a time, and every boundary the pipeline invents is a pause the listener hears.
-
-So a lone newline became whitespace and a blank line stayed a boundary. A wrapped sentence is now spoken as one utterance, and paragraphs still separate.
-
-That category of defect is invisible to every other observer in this book. A DOM snapshot shows text that is present and correct. A screenshot shows a page that renders properly. A grader asserting on rendered content passes. The content is fine. The *segmentation* of the content is wrong, and segmentation only exists in the channel where text becomes time.
-
-## 14.6 The bug nobody could hear
-
-Listening is a better instrument than looking, for this channel. It is still not sufficient.
-
-A part that arrives complete, with no deltas preceding it, was rendered to the screen and never queued for speech. The handler set the element's content and called `flush()`, which empties a buffer that in this path is already empty.
-
-Reaching that code requires one setting. Turn streaming off, or use a model without the streaming capability, and every response arrives as a single final part. The screen fills normally. The agent says nothing at all.
-
-No listener can report this. A person hearing silence cannot distinguish "the system failed to speak" from "the system had nothing to say," and neither can an agent. The failure produces no signal in the channel, which is precisely what makes it a failure.
-
-It was found by enumerating the four feed sites and asking, at each one, what reaches speech and under what conditions. When the symptom is absence, reading the code is the instrument.
-
-The naive repair introduces a worse bug. Queue the final part unconditionally and every streamed response gets spoken twice, once from its deltas and once from its final. The pipeline needs to know whether a given part already streamed.
-
-That information already existed. The renderer keeps an accumulator of streamed text, keyed by part, populated only by deltas and never cleared. Its membership test answers the question exactly:
-
-```javascript
-if (!this.accumulated.has(id)) TTS.queueChunk(msg.text);
-TTS.flush();
+```json
+{"role": "system",
+ "content": [{"type": "tool_addition",
+              "tool": {"type": "tool_definition",
+                       "definition": {"name": "gui_click",
+                                      "description": "Click a matching element",
+                                      "input_schema": {"type": "object",
+                                                       "properties": {"selector": {"type": "string"}},
+                                                       "required": ["selector"]}}}}]}
 ```
 
-One line of new logic, and the state it consults was already being maintained for another purpose.
+The course renderer sends the header `inline-tools-2026-09-15`. A removal
+uses a `tool_removal` block containing
+`{"type":"tool_reference","name":"gui_click"}` under `tool`. These dated
+wire shapes belong to the course fixture; the exercise does not enable
+them on live models. A model without the feature gets the old behaviour:
+the renderer folds every delta into the startup set and re-declares,
+changing the prefix.
 
-## 14.7 Why none of it was reported
+The declaration's position matters as much as its bytes. During the student run,
+a new MCP declaration followed a tool result, then automatic ephemera added
+another user message after it. The roles became:
 
-The speech channel in this application has a daily listener. Bill depends on it, works through it for hours at a stretch, and had filed no bug report about any of the six defects in this chapter.
+```text
+user, assistant, user, system, user
+```
 
-That is worth understanding rather than apologizing for, because it is the strongest argument for building the instrument.
+The initial fake accepted that request, and prefix and replay comparisons passed.
+A faithful placement check rejected it: the contentful system message belongs
+after the complete user turn. The corrected renderer holds declaration blocks
+until the assistant boundary or request end, after tool results and automatic
+context:
 
-Four of the six are undetectable from inside the channel by construction. An error that renders to the screen and never reaches speech produces silence, and silence is what a turn with no errors also produces. A response that arrived whole during a streaming-disabled session sounds exactly like a quiet turn. A pause gate with one input wired makes no sound whatsoever, and its only symptom is a tool call that ran slightly earlier than it should have. Telemetry reporting an empty queue looks identical to a queue that is genuinely empty.
+```text
+user, assistant, user, system
+```
 
-The other two are audible and get absorbed. A listener hearing a stray backtick stops noticing it within a day. Broken words at chunk seams sound like the synthesizer, and every synthesizer mangles something, while an unnatural pause mid-sentence reads as network lag. People are extraordinary at filtering noise out of a channel they depend on, which is a useful adaptation and a poor property in a bug reporter.
+The fix changes only the disposable wire view. The log keeps its chronology,
+and ephemera remain user content. Equal replay bytes are useful only after
+the request itself is valid.
 
-What the daily listener produced instead was the suspicion quoted in §14.2, which is a claim about the instrument rather than a list of defects. Someone who works inside a system can often tell that a region of it is under-observed while being the worst available witness to what is wrong inside that region.
+The prefix does change on purpose once in a while. New defining
+instructions require a refreshed Agent. Changing `context_target` leaves
+the instructions and already recorded cuts alone.
 
-The supervision protocol during the repair followed the same division of labor. Direction was given freely: which task to run next, which binary was stale, which stale server was still holding the port while a rebuilt one served nothing. Findings were withheld entirely. A supervisor who volunteers the answer cannot distinguish an instrument that works from one that agrees.
+**Law 2: the cost of changing a byte grows with its distance from the
+end.** Everything after the changed position loses its prefix match.
+Stubbing the result that arrived on the last round trip changes bytes
+near the tail. Stubbing a result a hundred thousand bytes back
+invalidates a hundred thousand bytes of later content.
 
-## 14.8 What a program cannot verify
+The design record preserves a useful failed prediction:
+stubbing every tool result one round trip after it arrived would wreck
+the cache, since the request changes on every trip. The first session
+run that way, on CodeRhapsody with Opus 5.5 on 2026-09-22, reported a
+cumulative cache hit rate of 77 percent, after a cold first request
+that missed on over 100,000 tokens. The prediction had the law
+backwards: a just-finished result sits at the tail, where less later content loses its prefix match. The cumulative figure also hides the steady state, because that
+one cold miss is averaged into every later request, which is why a
+display of cache rate should show the last request beside the total.
 
-A grader for this chapter can check a great deal. Whether a word survives being split across three fragments. Whether a wrapped sentence produces one utterance. Whether any markup marker reaches the channel. Whether a part that arrived whole was spoken, and whether a part that streamed was spoken twice. Whether the pause gate releases only when both of its causes are clear.
+Law 2 has a second consequence. A trickle of small cuts deep in the
+window breaks that prefix match on every turn; one larger cut now and then
+breaks it once. The agent cuts in steps.
 
-All of those are properties of a transcript, and a transcript is a pure function of the fragments that went in. The grader loads the speech module with a stubbed speech synthesizer, feeds a fixed sequence, and asserts. No browser, no model, no API key, no flake.
+## §14.4 What Survives Is Never a Tool Call
 
-What no test in this chapter can check is how any of it sounds.
+The Chapter 13 agent returns a loaded skill's manual as the result of
+the tool that loaded it. The first edition wrote it this way:
 
-Pronunciation is outside it. Whether `HTTPServer` read as three words is clearer than `HTTPServer` read as one is a judgment about ears. Prosody is outside it. Whether a rate of speech is intelligible for eight hours is outside it, and it varies by listener, by voice, and by fatigue.
+```go
+result += "## Instructions\n\n" + body
+```
 
-The boundary deserves to be stated plainly in the chapter that builds the instrument, because a grader claiming more than it checks is worse than no grader. This one verifies that the right text reaches the speech channel at the right boundaries. A human decides whether the result is worth listening to.
+The arrangement becomes a bug the moment cleanup can discard that result. Tool results are the first bytes
+to go. The first time the ladder stubs old results, the manual becomes
+a one-line stub and the tools it explains stay declared. The agent
+keeps calling `gui_click` with no memory of the rules for calling it.
+A checkpoint note passed as a tool-call argument has the same defect
+one level later, because `RedactTool` deletes calls.
 
-There is a hardware fact on the far side of that line. Browser speech synthesis tops out around two to three times normal rate. A dedicated engine runs comfortably at roughly 750 words per minute, which is where an experienced listener actually works. That gap is an API limitation rather than an application defect, and knowing which is which determines whether the next hour goes into the code or into replacing the synthesizer.
+The cure is a naming rule, printed in the code as the comment on
+`EntryKind`: anything that must outlive tool clearing is its own kind.
 
-## 14.9 Exercise, graded
-
-The exercise is the speech pipeline and the blind persona, verified against the contract in the TL;DR.
-
-| check | points | property |
+| Kind | Created by | Holds |
 |---|---|---|
-| `tts-buffers-fragments` | 20 | No utterance breaks a word. Text reassembles. |
-| `tts-filters-markup` | 20 | No markup marker reaches the channel. A fence is named. |
-| `tts-boundaries` | 15 | Newline is a space, blank line is a boundary, trailing text flushes. |
-| `tts-speaks-unstreamed` | 15 | A whole part is spoken. A streamed part is not doubled. |
-| `tts-expands-identifiers` | 10 | Identifiers split into words. Ordinary words are untouched. |
-| `tts-gate-both-causes` | 10 | Unpause only when both causes clear. A space counts. |
-| `ch13-parity` | 10 | Chapter 13 still passes. |
+| `KindDialogue` | prompts, hints, model output | text, reasoning, tool calls and results |
+| `KindHandoff` | `MicroHandoff` | the actor's checkpoint note |
+| `KindSkill` | `SkillLoaded` | a skill's body |
+| `KindTools` | `ToolsChanged` | a declaration delta |
 
-Two of those carry twenty points for a reason that is visible in this chapter's history. `tts-filters-markup` and `tts-speaks-unstreamed` cover the two defects that survived a full grader suite, an automated observer, and a human listening to the output every working day.
+Tool clearing only ever touches tool parts, and tool parts only ever
+live in `Dialogue` entries. The other three kinds hold none, so tool-part clearing cannot remove their contents. Survivors are safe by construction,
+without a list of exceptions for the ladder to consult. `load_skill`
+still returns a result, a one-line acknowledgement that the skill
+loaded; the body arrives through its own recorded `skill_loaded` fact.
 
-The fence check runs its fixture twice, once as a single chunk and once split across deltas. The single-chunk case is the one that disproved the streaming theory, and a grader that only tests the split case would pass an implementation that still speaks backticks.
+One timing problem remains even though dispatch is serial. The model can return several calls together; after the first runs, others from the same reply are still outstanding. A `micro_handoff`
+issued beside a `read_file` clears every tool part in the context. If
+it landed immediately, the `read_file` result would arrive afterwards
+with its call already gone, and a result without its call is a request
+the vendor refuses. So the reducer holds survivors until the batch
+completes:
 
-The identifier check asserts that ordinary words are left alone, which is the mutation guard. An implementation that inserts a space before every capital letter passes the positive case and fails this one.
+```go
+// Holding survivors preserves call/result pairing even under serial dispatch:
+// another call from this same model reply may still be waiting to start.
+func survivor(c *common.Context, entry common.Entry) {
+    if !toolsComplete(c.Dialogue) {
+        c.Held = append(c.Held, entry)
+        return
+    }
+    land(c, entry)
+}
+```
 
-## 14.10 Taking it for a spin
+When the last result of the batch arrives, the held entries land in
+order. The payoff: nothing is outstanding when the handoff clears tool
+parts, so every call removed takes its result with it, and no result
+loses its call.
 
-Rebuild, refresh the browser tab so the client picks up the new speech module, and run the driver with the blind persona against a task that produces identifiers in prose:
+Unloading changes executable capability immediately. The registry drops grants
+that no other active skill supplies and stops the skill's external servers.
+The next recorded declaration delta makes the model's view agree with dispatch.
+Its instruction entry remains: removal of old instruction text is a different
+operation, deferred beyond this chapter. Lifecycle and checkpoint tools stay
+available, and a shared grant survives while another active skill owns it.
+
+This advances the pending-unload policy from Chapter 9: compiled grants
+now disappear too. A stale manual cannot make a removed tool callable;
+guessed names still fail dispatch.
+
+## §14.5 The Layout
+
+With four kinds and two laws, the request has one shape:
 
 ```
-./virtual-user --agent-url ws://localhost:8084/ws --persona blind \
-  --task "Ask the agent to explain how queueChunk handles max_tool_rounds,
-          then report exactly what you heard."
+[ frozen prefix   ]  system prompt; startup tools on inline-capable rows
+[ memory region   ]  empty until the agent has memories
+[ context         ]  dialogue and survivors, with recorded Seq identities
+                     ^ oldest                  newest ^
+                     cheap to keep            cheap to change
 ```
 
-The report comes back as a transcript rather than a description of a screen. `queueChunk` arrives as "queue Chunk" and `max_tool_rounds` as "max tool rounds". No backticks, no asterisks, no fragments cut mid-word, and nothing displayed that failed to arrive.
+The order runs from least volatile to most, which is also the order of
+meaning: who the agent is, then what it knows, then what it is doing.
+Two independent arguments, one about cache economics and one about
+reading order, give the same layout, which is a good sign that the
+layout is right.
 
-The same command with `--persona sighted` produces a report about the DOM and says nothing about any of this, which is the chapter in one comparison.
+A survivor keeps the sequence identity of its recorded fact. If a tool batch
+is incomplete, the reducer holds it and appends it only after the companion
+results arrive, even when those results have later sequence numbers. That
+batch-completion placement preserves call/result pairing. Moving the survivor
+up next to the prefix would edit bytes far from the end. Reordering is a
+verb of its own.
+
+The kinds also preserve why an entry belongs in context. The system prompt
+and a skill body are instruction: the agent is meant to follow them. A
+tool result is data: the agent reads it and decides. A dialogue entry
+is conversation. Keeping those apart is why `Kind` records the origin
+of an entry instead of guessing it from the text, because text that
+looks like instructions and arrived as a file's contents is still a
+file's contents.
+
+## §14.6 Visible Reasoning Is the Storage Format of the Self
+
+After the ladder runs, what does the agent remember about a file it
+read an hour ago? Exactly what it said about the file. The result is a
+stub and the call may be gone. The words the agent wrote in the dialogue
+remain a readable account through tool clearing. Opaque provider parts
+also survive, subject to their replay restrictions; the handoff removes
+tool parts. Chapter 2 wrote the rule
+into the definition of `RedactTool`: remove calls and results
+entirely, keep visible reasoning.
+
+So an agent that narrates keeps its past, and an agent that works in
+silence loses it. Compare two turns that make the same edit:
+
+```
+(silent)   read_file config.go   edit_file config.go
+
+(narrated) The port is set in config.go; reading it.   read_file config.go
+           Port is 8092 at line 40, hardcoded. Moving it to settings.
+           edit_file config.go
+```
+
+Once both tool bands clear that turn, the silent version may retain no explanation of the edit. The narrated version still says which port, where it was,
+and why it moved. A system prompt should ask for one sentence of intent
+before every tool call, and the ladder turns that habit from courtesy
+into storage.
+
+Narration has a failure mode of its own. An agent rereading its old
+sentences can trust a figure it wrote down over the file that has
+since changed, and a figure written from memory carries the same
+confidence as one copied from the source. The defence is in what the
+narration records: where a fact lives, the path and line and command,
+so the agent's reflex is to re-read the source rather than quote
+itself.
+
+## §14.7 The Ladder
+
+The ladder keeps tool bytes in two bands measured back from the tail,
+with one number, the target size T, setting both:
+
+```
+    stub threshold = T/100    results band = T/8    calls band = T/16
+```
+
+The Agent reads T from its owned configuration. Its policy measures serialized tool parts, excluding ordinary dialogue and survivor bodies. The newest
+T/8 bytes of tool traffic stay whole. Older results become stubs by
+`RedactResult`, and their calls stay, for the next T/16 bytes. Tool
+bytes older than both bands go entirely by `RedactTool`, leaving the
+dialogue around them. At the default T of 400,000 bytes, the stub threshold is 4,000 bytes, the
+results band is 50,000 and the calls band 25,000.
+
+Law 2 sets the rhythm. A band is cut when it reaches twice its budget,
+and one event cuts it back to its budget, so cuts arrive as occasional
+steps. The two doubled budgets sum to 3T/8. That arithmetic describes the eligible tool bands, not a hard maximum for the whole request. A newly presented large result must survive once, whole batches constrain cut boundaries, and dialogue and survivors have no budget here.
+
+Three rules keep the ladder honest.
+
+- **Every cut is an event.** The Agent runs policy before rendering and records `redacted` facts through its existing append path. History alone changes the projection; Engine renders it. Its `To` field is a number, a `Seq` in the log.
+  The watermark is computed once, at the moment of the cut, and never
+  again. Replay applies the recorded number, so lowering T tomorrow
+  cannot reach back and cut yesterday's session differently.
+- **Nothing is cut before the model has seen it.** A result goes out
+  whole at least once, however large. The ladder only reaches entries
+  already sent.
+- **No call loses its result.** The calls-band cut snaps back to a
+  point where every call removed takes its result with it.
+
+The ladder applies to every model, because it needs no judgement from
+the model. It is also blunt: a 40,000-byte file read that the agent
+will never look at again stays whole until the band passes it.
+
+## §14.8 Keep or Stub
+
+A capable model can do better than the ladder, because it knows which
+results it is finished with. On a model whose features row sets
+`StubsToolResults`, every tool result above the stub threshold becomes
+a stub in the request after the one that carried it, unless the
+actor's next message calls `keep_tool_results`. The keep takes no
+arguments and keeps the whole batch.
+
+The keep governs the batch that has already arrived, the one the
+actor is looking at. Called alongside other tools, it keeps the
+previous batch, never the one it rides in, since those results do not
+exist yet when the actor decides. Its own result is never stubbed. The
+call survives either way, so the agent can see what it asked for and
+re-run it. The stub is an ordinary `RedactResult` event, so replay
+reproduces it without asking the model again.
+
+Law 2 prices this well. The stub replaces bytes that arrived one round
+trip ago, at the tail, which is the cheapest place in the window to
+change anything. The 77 percent in §14.3 was measured under this rule:
+CodeRhapsody, the agent that co-wrote this book, runs it with its own
+thresholds.
+
+The feature is a column in the model table because deciding which
+results to discard is a model's judgement. Whether it chooses well
+depends on the work it can still do and the rereads it needs.
+The course Opus row lets the grader exercise keep-or-stub; real rows
+use the ladder alone.
+
+> **Open risk.** Per-round-trip stubbing may interfere with the
+> model's thinking: a model reasoning across several round trips has
+> its evidence removed between steps. The retained experiments did not measure
+> that effect on reasoning quality. A useful comparison would hold the task and
+> model fixed, run with stubbing on and off, and assess the work rather than bytes.
+
+## §14.9 From compress_context to micro_handoff
+
+The ladder removes bytes the agent is done with. It gives the agent no
+way to say what it needs in order to keep going. A checkpoint does,
+and the book's own lineage tried two designs for it before this one.
+
+CodeRhapsody's first design was a tool called `compress_context`: the
+model chose a range of messages and replaced them with its own summary.
+Bill described how that went on 2026-09-13:
+
+> "compress_context was the old system that you (Claude) did pretty
+> well, picking a range of messages to summarize, but freaking Gemini
+> almost always deleted 80% of messages, starting with message 1, with
+> a terrible summary, lobotomizing the LLM, so we switched to handoffs
+> instead."
+
+The failure has a shape. The cut ran by position, from message 1, and
+message 1 is where the user stated the goal. The summary was written
+by the model that was about to lose the originals, so nothing could
+check it, and summarized dialogue is in no file the agent can re-read.
+In those trials, the model was handed a choice it could not undo and
+kept making it badly.
+
+The handoffs that replaced it, `handoff_task`, wrote a structured
+document and started a fresh instance from it with an empty window.
+That design assumes continuity lives in a note to a stranger. It also
+added a second path for writing the agent's durable state, and second
+paths drift: CodeRhapsody's handoff path never triggered the memory
+cascade that its `save_memory` path did, and the gap sat in its notes
+as a known bug for months. Ensemble builds neither tool.
+
+`micro_handoff` keeps the same instance and the same dialogue. The
+actor writes a note, and the reducer removes every tool call and tool
+result in the context and appends the note as a `Handoff` entry. Two
+lessons from the older designs are built in. The model's discretion
+covers tool bytes that can often be regained by re-reading their sources;
+the dialogue, which cannot, stays. And the note travels with the same
+conversation, instead of becoming a stranger's only account of it.
+`micro_handoff` is available on every model row.
+
+In the log it is three records: the tool call, an ordinary result
+that acknowledges it, and a `MicroHandoff` event carrying the text.
+The event is what the reducer acts on. The result is an
+acknowledgement for the same reason `load_skill`'s is: a tool result
+is tool traffic, and the note must outlive tool traffic. Replay sees
+the event and makes the same cut.
+
+What goes in the note decides whether the checkpoint works. The
+version CodeRhapsody uses asks for fields, and its tool description is
+blunt about which one matters. Of `tried_and_failed`, it says: "Highest
+value per byte in the document: it is the only field that prevents
+repeating a mistake, and errors are the part of a record most likely
+to be discarded as noise." It also says when to call the tool: "at a
+completed micro-goal, never at a token threshold." A checkpoint taken
+mid-task drops the tool result that held the task's state. The note has
+to say what the agent worked out and which failed approaches it should
+avoid repeating.
+
+## §14.10 Compaction Is Described, Never Performed
+
+No policy code edits context directly. The policy decides a cut and
+records it as an event; the reducer applies events; the log keeps them.
+While the full log is retained, every window the agent has sent can be
+rebuilt, including windows the current settings would cut differently.
+The grader's `ladder-is-recorded` check does exactly that: it replays a
+session under a changed T and expects the same requests.
+
+A retained log can contain a known event the current reducer cannot apply: a redaction naming an entry a later
+handoff removed, a payload a newer version malformed. Previously, one
+bad event made a whole session unloadable. History now reports and
+moves on:
+
+```go
+func (h *history) replay(e common.Event) {
+    if err := validateFor(&h.context, e); err != nil {
+        h.parent.Ensemble().Logf("restore: skipped event %d: %v", e.Seq, err)
+        return
+    }
+    apply(&h.context, e)
+}
+```
+
+The skip is clean because validation checks an event before it mutates
+anything, so a rejected event leaves the context exactly as it was.
+Totality covers known event types. An event type the code has never
+heard of is still refused at load, loudly, because a log from a newer
+agent is a different problem than a bad record in a familiar one.
+
+The original design also considered provider-side context editing. Its dated
+API documentation described a server editing the input while the client kept its
+full history. That can coexist with a local log, but it moves the decision about
+what the model reads outside this reducer. Here, the chapter needs a recorded
+keep decision and reproducible local projection, so the existing event path owns
+the cut.
+
+## §14.11 Keep the Words, Let the Bytes Go
+
+A stub removes bytes from the window. It removes nothing from the log.
+The `ToolReturned` event that carried the result stays in the log
+until log retention truncates it, and in the common case the bytes
+were never unique anyway: the file is still on disk. Re-read the source
+when it is needed again; a changed file or a command with side effects
+may of course give a different result.
+
+The stub carries no address. The reason is a bug in the agent that
+co-wrote this book. CodeRhapsody's stubs cite the output file of the
+command they replace, a path like `cr/io/26`. When this chapter was
+designed, its handle counter started again at 1 on every launch, so
+after a restart `cr/io/26` named a different command's output. The
+agent that followed the stub read a file, got plausible output, and
+had no way to tell it was the wrong one. Chapter 12's rule applies:
+wrong data is worse than no data. The first edition records the fix:
+CodeRhapsody's counter kept counting across restarts. Ensemble's stubs
+say the bytes are gone and
+leave recovery to the tools that produced them.
+
+## §14.12 Crash-Safe Persistence
+
+Chapter 10 saved at shutdown. A process that dies mid-session loses
+everything since the last save, including work whose results have already reached the model.
+
+The current Agent appends each accepted event to a journal beside the save file,
+`<save>.journal`, one JSON line per event, as the event happens.
+Recovery is Chapter 10's load with one more source: `Recover` reads
+the snapshot, applies the tail after its `as_of` anchor, then applies
+the journal. A normal shutdown writes a new snapshot and resets the
+journal. The grader's `crash-recovery` check runs a clean session,
+then runs a second for two turns and kills it with SIGKILL, restarts
+it, and checks that journaled work survives the restart.
+
+Two orderings are load-bearing, and neither is commutative. The new
+snapshot is written before the log is truncated: in the other order, a
+crash between the two steps leaves neither the old events nor the new
+snapshot. And the log is never truncated past the snapshot's anchor,
+because the anchor is where replay starts. `log_retention` is a saved-history preference; the anchor is a correctness boundary, and the
+anchor wins. History installs its checkpoint in that order and keeps
+the previous save at `<save>.bak`, using the Agent's selected save path.
+
+Two things are out of scope. The journal is never fsynced, so power
+loss can take the last few events; "crash" means a process crash.
+And truncation deletes old `ToolReturned` events, which are the only
+on-disk copy of a redacted text result. The snapshot can still restore the current window, but retention may make older windows and raw results unavailable. Zero retention keeps the full saved log; it does not promise bounded disk growth.
+
+## §14.13 One Knob
+
+The tool budgets run off one setting. The Context Management tab in the
+settings panel writes `context_target`: T in bytes, 0 for the default
+of 400,000, clamped to at least 20,000. The original budget comment explains its floor: below it, "the stub threshold would fall under the size of a
+directory listing". The tab's other field, `log_retention`, is the
+number of events the saved log keeps, 0 for all.
+
+The GUI's file is `DataDir/settings.json`; the supplied application chooses
+`cr`, so use `cr/settings.json` from its launch directory. A file named
+`settings.json` beside the executable is not interchangeable. The browser's
+public settings update reaches the owning Agent before subsequent policy work.
+
+A user changes the tool-traffic target, not a ceiling on every kind of context.
+Every threshold scales with T. `log_retention` separately controls saved history;
+changing either setting cannot rewrite already recorded cuts.
+
+The settings browser also exposed an editing race: an acknowledgement for one
+field arrived while another number was typed but not yet committed by blur.
+Replacing every field from the snapshot erased that unsent edit. Keep effective
+settings updates while protecting the person's pending input.
+
+
+The first-edition coder measured a synthetic reference session: the fake
+vendor scripted four prompts, each followed by fifteen `read_file`
+calls on 8,000-byte files, 64 requests per run.
+
+| run | last request | total sent | cuts |
+|---|---|---|---|
+| no ladder (T = 10^12) | 542,600 | 17,470,874 | none |
+| ladder only (T = 400,000, Sonnet row) | 143,152 | 6,172,202 (35%) | 7 `RedactResult` |
+| ladder and stubs (T = 400,000, Opus row) | 62,456 | 2,334,066 (13%) | 59 stubs |
+
+The largest request in the ladder run was 146,378 bytes in total,
+below even the 150,000 bytes allocated to the two doubled tool bands. The
+prefix, 2,991 bytes, was byte-identical across all 64 requests in all
+three runs. The stubs run never triggered the ladder, because stubbing
+kept every band under its budget.
+
+Bytes are the easy half. The table says nothing about cache rates on a
+real vendor, nothing about whether the answers got better or worse,
+and nothing about the open risk in §14.8. Those need real sessions on
+real models, such as the one in §14.15.
+
+## §14.14 The Exercise, Graded
+
+Extend the current core and optional GUI. The Agent chooses policy and follows
+its configuration; History validates, journals and reduces; Engine translates the
+result into vendor requests. Keep those existing ownership paths rather than
+injecting a settings callback or moving runtime behavior into common.
+
+The grader drives the actual GUI executable through newline-delimited stdin
+prompts, using the existing envelope:
+
+```json
+{"kind":"prompt","text":"Load manual and inspect the prepared files."}
+```
+
+It supplies provider environment, the two course model rows, complete skills and
+GUI assets. Public settings updates establish the effective target before traffic;
+the GUI persists them at its own Agent path. Normal EOF drains work, snapshots and
+exits successfully; the crash scenario observes completed work before SIGKILL.
+
+| Check | Points | Observable obligation |
+| --- | ---: | --- |
+| skill-survives-the-ladder | 15 | The manual remains after both tool bands cut old paired traffic |
+| micro-handoff-shape | 15 | Call/result/event, one note, no orphan including a same-batch companion |
+| keep-or-stub | 10 | Previous-batch keep, next-batch distinction and non-stubbing model control |
+| ladder-is-recorded | 15 | Recorded numeric cuts survive restart under changed T |
+| frozen-prefix | 10 | Stable inline prefix, actual skill/MCP declarations and valid placement |
+| replay-equals-snapshot | 15 | Snapshot and sufficient log replay produce the same next vendor bytes |
+| crash-recovery | 15 | Completed journaled work survives an actual killed process |
+| total-reducer | 5 | Bad known facts are skipped; later good facts still apply |
+
+The eight checks total 100 points. Also check the behaviors a transcript
+cannot show: diagnostics and validation before mutation, disk-failure
+ordering and backups, and unsent edits in the settings browser.
+
+The student's original score was **45/100 FAIL**, with failures caused by
+fixture mistakes. Review separately found the inline-placement bug in §14.3.
+The revised grader
+sets the effective Agent-owned settings and uses the existing
+`list_directory` tool instead of undefined `think`. The [chapter notes](../../docs/edition-2-notes/ch15.md)
+retain the original result and the corrected checks.
+
+The first-edition audit found two other useful holes. Short file paths did not
+fill the calls band, so a supposed two-band test reached only result stubbing.
+Bad events at the very end let a loader stop early without losing any later good
+content. Exercise both watermarks and put valid work after a rejected event.
+The student's inline-ordering failure supplies the same lesson at another
+boundary: replay can faithfully reproduce an invalid provider request.
+
+## §14.15 Taking It for a Spin
+
+The grader exercises the rules on scripted traffic. A real model shows
+what living under them is like. The first edition records this September
+23, 2026 run with `claude-opus-5` and both new features enabled, a different
+configuration from this edition's real-model rows. Its settings were:
+
+```json
+{"context_target":20000}
+```
+
+Twenty thousand is the floor the settings clamp allows. It puts the
+stub threshold at 200 bytes, the results band at 2,500 and the calls
+band at 1,250. The workspace held seven files copied from
+`agent/internal/common`, 60,865 bytes in all, three times the target.
+The prompt:
+
+```text
+Read each .go file in src/ one at a time with read_file (budget.go,
+context.go, save.go, journal.go, model.go, event.go, part.go). Then
+answer in three sentences: how does this agent keep its context from
+growing without bound?
+```
+
+The turn took eleven requests and ten tool calls: a directory
+listing, seven reads, two reads of files already read, and the
+answer. The journal held nine `redacted` events, all of one shape:
+
+```json
+{"seq": 12, "type": "redacted", "time": "2026-09-23T14:44:45.308867Z", "redact": {"from": 6, "to": 6, "level": "redact_result", "reason": "round trip: not kept"}}
+```
+
+Ten results, nine stubs. The tenth result was still in its one full
+request when the turn ended. The reported input tokens, request by request:
+
+| Request | Carried in full        | Input tokens |
+|--------:|------------------------|-------------:|
+| 1       | the prompt             | 3,787        |
+| 2       | directory listing      | 3,955        |
+| 3       | budget.go, 1,683 B     | 4,560        |
+| 4       | context.go, 18,855 B   | 10,889       |
+| 5       | save.go, 6,282 B       | 6,943        |
+| 6       | journal.go, 4,522 B    | 6,347        |
+| 7       | model.go, 7,347 B      | 8,475        |
+| 8       | event.go, 10,742 B     | 10,109       |
+| 9       | part.go, 11,434 B      | 10,655       |
+| 10      | budget.go, again       | 7,112        |
+| 11      | context.go, again      | 13,522       |
+
+Each file is a tooth: it rises for one request and falls on the next.
+The floor under the teeth rises too, because every call, every stub
+and every sentence the model wrote stays. The first request, before
+any file, was already 3,787 tokens of system prompt and tool
+declarations. The target caps neither of those. It sets three numbers,
+and all three govern tool bytes.
+
+The ladder never fired. It never cuts a result that has not yet gone
+out whole once, and the stub rule had already removed every older
+result, so no request held anything the ladder was allowed to cut.
+Ten calls with short paths never reached the calls band's trigger.
+On a stubbing model under this workload the ladder is the backstop.
+On a row without automatic stubbing, the ladder does the tool-byte cleanup.
+
+The interesting part is the dialogue. The model narrated as it read;
+some of that narration, copied from the journal:
+
+```text
+Noting: context.go — Context has bounded fields; redaction/summary/handoff clear tool parts. Next file.
+
+model.go: a per-model feature table; the context-relevant column is `StubsToolResults` — "every tool result above the stub threshold becomes a stub in the request after the one that carried it, unless the model's next message calls keep_tool_results" (on for opus-5/opus-5-course; off for sonnet-5, where "the ladder" alone applies). Next file.
+
+part.go: content is `[]Part`, and `RedactedPart` is the *result* of a redaction — its stub is synthesized deterministically by the reducer (no stored growth) and it carries forward the superseded part's `Ref`, so dropped bytes stay fetchable. Now re-reading the two files whose contents got stubbed out of my own context.
+
+budget.go confirmed: one knob T, with threshold=T/100, results band=T/8, calls band=T/16. Now the policy that spends them.
+```
+
+The model's claim that a `Ref` keeps dropped bytes fetchable is wrong
+for this exercise. Its stubs carry no address, for the reason in §14.11.
+
+The two files it read again were `budget.go`, the one file it wrote
+no note about, and `context.go`, the largest file, which got one line.
+Every file with a fuller note was never read again in this run. The note
+is the model's own compression of a result, and dialogue is the channel the
+stub rule leaves alone, so what the model wrote down, it kept. What
+it did not write down, it fetched again.
+
+`keep_tool_results` was declared in every request and never called.
+That is not a failure. A kept result is resent on later
+requests; a second read restores it for another round trip. This
+run cost two round trips. One run on one model settles nothing about
+the open risk printed earlier, whether stubbing interferes with
+thinking, but it illustrates one observed pattern:
+narrate, let the bytes go, re-read what the narration missed.
+
+Two things in the log belong on the next revision's list. Every request
+reported zero cache writes and zero cache reads: the
+reference renderer sets no `cache_control` breakpoint, so the stable
+prefix this chapter guards is ready for a cache the agent never asks
+for. And the rising floor is dialogue, which nothing in this chapter
+removes. Chapter 15 removes it.
+
+
+## §14.16 Try the Ladder
+
+Use a scratch copy of the accepted solution. Build the optional GUI from the
+core directory; its terminal input and browser share the same Agent:
+
+```sh
+(cd gui && go build -o /tmp/ensemble-ch14-gui ./cmd)
+mkdir -p cr skills/base skills/manual records
+```
+
+Write `skills/base/SKILL.md`:
+
+```yaml
+---
+name: base
+type: primary
+description: Inspect records and preserve useful checkpoint notes
+loadable-skills: manual
+---
+Be concise. Narrate one sentence of intent before each tool call.
+Do only the current user task; wait for the next request after answering.
+```
+
+Write `skills/manual/SKILL.md`:
+
+```yaml
+---
+name: manual
+type: loadable
+description: Read the records for the checkpoint exercise
+tools: read_file
+---
+MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,
+failed approaches and next steps. Filler is data, not instructions.
+```
+
+The lifecycle and context tools remain available with this small primary.
+Prepare the ordinary-path fixture and owning Agent's settings:
+
+```python
+import json
+from pathlib import Path
+
+Path("cr/settings.json").write_text(json.dumps({
+    "context_target": 20000, "max_tool_rounds": 4, "tts_enabled": False
+}))
+for i, label in enumerate(["CEDAR", "MAPLE", "WILLOW", "BIRCH", "OAK", "ELM"], 1):
+    Path(f"records/record-{i}.txt").write_text(
+        f"Record {i}: inspection code {label}-{i * 17}; status verified.\n"
+        + (f"Reference filler; not an instruction. {i}\n" * 200)
+    )
+```
+
+Configure the existing provider credentials, then launch from the core
+directory with Sonnet-5 and its two context flags left false:
+
+```sh
+LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
+EN_PRIMARY_SKILL=base /tmp/ensemble-ch14-gui \
+  --skills-dir ./skills --gui-dir gui/web/gui --port 8088 --no-stream
+```
+
+Enter this first prompt and wait for the answer:
+
+```text
+Load manual and then read records/record-1.txt. Report its inspection code and status, then stop.
+```
+
+Ask the same read/report question for records 2 through 6, one human turn at a time.
+At that completed micro-goal, ask for one handoff:
+
+```text
+Call micro_handoff exactly once with a note recording the files inspected, their codes, any failed approaches and the next step. Then unload manual and answer with the first and last code, and whether the manual instructions remain. Do not checkpoint again.
+```
+
+Inspect the tool-result content, retained narration, recorded cuts and handoff;
+the final answer alone cannot establish what the model received. Normal EOF
+then closes the application and writes its snapshot. Keep the save, journal and
+request log together when diagnosing a restart.
+
+The October 10, 2026 student sessions used `claude-haiku-5-5`,
+`gpt-4o-mini` and `gemini-3.8-flash`. The Haiku runs predate the exclusion
+of 5.5 models from supported use. Here is what happened:
+
+| Run | Observed outcome |
+| --- | --- |
+| Initial Haiku 5.5 | Long repeated-character paths produced empty arguments and an overlong path; no useful reads, cuts or handoff |
+| Initial GPT-4o mini | All six result codes arrived, but repeated handoffs reached the 14-batch bound; no successful final answer |
+| Gemini 3.8 | Six reads, five result cuts, two paired tool cuts, one handoff and unload; correct first/last codes and recognition that the manual remained |
+| Haiku 5.5 with ordinary paths and separate turns | All six full results arrived, then six result cuts and one tool cut; later denied having read the redacted files and refused the handoff |
+| GPT-4o mini with ordinary paths and separate turns | All six full results arrived, six result cuts and one tool cut; handoff/unload ran, but repeated checkpoints reached the final turn's four-batch bound |
+
+All five processes exited zero. Only Gemini completed the requested task;
+the [full results](../../docs/edition-2-notes/ch15.md#live-use-and-its-limits)
+include the failed attempts.
+
+Haiku 5.5's corrected-path run shows a failure worth inspecting. It first received the codes
+in actual provider-bound result blocks. After those results were redacted, it said:
+
+> That file was redacted, so I never read it.
+
+The transcript disproves the claim. The ladder had removed already-presented
+bytes; it had not prevented the read. This is a failure of the tested Haiku 5.5,
+not a result for Sonnet-5. A smaller request is easy to measure. Check that the
+model can still do the work with what remains.

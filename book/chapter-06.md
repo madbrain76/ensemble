@@ -1,939 +1,855 @@
-# Chapter 6: Two Seams and a Loop
+# Chapter 6: Streaming, or the Same Answer in Pieces
 
-The agent framework from Chapter 5 is good enough to write an
-author-editor orchestrator. Imagine what it could do with a GUI
-built exactly the way you want it. Your layout, your keybindings,
-your idea of what coding with AI should feel like. That is where this
-book is headed. But the tools that shipped GUI-first paid for it:
-the GUI imported the framework, the framework imported the GUI, and
-by the time anyone noticed the cycle it was load-bearing.
-CodeRhapsody made the same mistake, and refactoring it out took weeks
-of focused work. This chapter exists so you do not repeat it. By the
-end, your framework will have an API clean enough to host any GUI,
-any gateway, any agentic application. The GUI chapter comes next.
-This one builds the surface it plugs into.
+Ask the Chapter 5 agent something hard and the cursor stops. Twenty seconds,
+or ninety. Behind the curtain a model is reasoning, writing, deciding to call
+a tool, spelling out arguments one token at a time. You get none of it, then
+all of it at once.
 
-That surface is two seams and a loop. Right now, ask a question while
-a tool runs and the agent does not notice until the tool finishes.
-Send a hint and it arrives one round too late. Run two agents at once
-and the second one blocks until the first is done. The package
-structure is right and the engine is deaf.
+Every vendor has been willing to send that along as it is produced for years.
+The agent never asked. Chapter 5 built an observer seam with `PartDelta`
+observations, but a whole response still arrived before its length-one deltas.
+This chapter makes those observations arrive while the response is being read.
 
-This chapter fixes the deafness. Three additions and one retirement:
-an outbound seam so the framework tells the world what
-happened instead of the world reaching in to ask; an inbound queue so
-prompts, hints, tool completions, and interrupts enter through one
-door; and a loop between them that drains the queue and notifies
-observers on every event. Retire the old synchronous orchestration loop;
-keep its public API as an adapter to the actor. Two loops over one engine
-are two owners of mutable state, not backward compatibility.
-A framework is two seams and a loop. By the end, the same core runs
-a three-agent workflow where each agent
-has its own tools, its own prompt, and its own observers, and a hint
-mid-tool-call arrives before the tool finishes.
+The result is not beautiful. Reasoning, reply, and half-finished tool
+arguments land on one terminal in three colours with no layout. The mess is
+the point: once you can watch the agent think, you will want somewhere better
+to watch it. Chapter 7 builds that. This chapter earns it.
+
+---
 
 ## TL;DR
 
-**What you build.** Three things added to Chapter 5's star topology:
+Streaming changes how a response is **delivered**, not what it **is**.
+Everything below follows from that one sentence.
 
-1. An **observer** interface in the hub (outbound seam).
-2. A **mailbox** queue in a new implementation package (inbound seam).
-3. An **actor loop** in the engine that drains the mailbox and notifies
-   observers.
+### The seam
 
-Plus a multi-agent coordinator, `Ref` and `ModelFeatures` types in the
-hub, and a three-agent exercise that proves the framework can run
-completely different agents without changing a line inside it.
+The first-edition incidents and measurements below remain historical. The
+interfaces shown here follow the accepted Ensemble implementation.
 
-**The observer seam.** One interface, three event types:
+`Parse` changes signature. It gains no sibling.
 
 ```go
-// Observer receives notifications. Observe must not block.
-type Observer interface {
-    Observe(Observation)
-}
-
-type Observation interface{ observation() }
-
-type PartDelta struct {          // streaming chunk
-    PartID uint64 `json:"part_id"`
-    Chunk  string `json:"chunk"`
-}
-
-type PartFinal struct {          // completed part
-    Seq    Seq      `json:"seq"`
-    PartID uint64   `json:"part_id"`
-    Part   TextPart `json:"part"`
-}
-
-type StateChanged struct {       // turn-state transition
-    From   TurnState `json:"from"`
-    To     TurnState `json:"to"`
-}
-
-type AgentID string
-```
-
-`Observe` must not block: a slow observer that holds up the loop
-recreates the deafness this chapter exists to fix. Single-agent logs
-stay unchanged from Chapter 5; the framework tags agent identity
-externally when coordinating multiple agents.
-
-**The mailbox.** One inbound queue carries everything:
-
-```go
-type Inbound interface{ inbound() }
-
-type UserMessage struct{ Text string }
-type Hint        struct{ Text string }
-type Interrupt   struct{}
-type ToolCompleted struct {
-    CallID  string
-    Result  string
-    IsError bool
+// internal/common/stream.go
+type Parser interface {
+	Parse(resp *http.Response, cb StreamCallbacks) error
 }
 ```
 
-A prompt, a hint, a tool finishing, and an interrupt are the same
-kind of event to the loop. `Post(msg Inbound)` must not block or
-drop. The queue is a mutex-guarded slice with a signal channel;
-nothing in it is clever.
+No `ParseStream`. Non-streaming is a stream of length one, so one method
+covers both modes. `Render` still renders the context through its owning
+Engine; configuration comes from the Agent parent. The accepted signature
+is `Render(*Context) ([]byte, error)`. Transport builds the URL and headers
+separately. Streaming changes those existing request decisions.
 
-**The actor loop.** The engine runs on its own goroutine. When the
-mailbox has a message, the loop drains it:
+### The notifications
 
-- `UserMessage`: start a new turn (render context, send to vendor, record
-  events).
-- `Hint`: attach to the current turn's pending context.
-- `ToolCompleted`: record the result, check for outstanding calls, continue
-  the turn or go idle.
-- `Interrupt`: set state to `Interrupted`, stop processing.
-
-The synchronous `Ask(text) (string, error)` still exists. It posts a
-request with its own buffered reply channel and waits for that request's
-text or error. Concurrent blocking requests queue as separate turns;
-they are not hints for the active turn. Callers that do not need blocking
-use `Post` directly and watch through an observer. One agent owns one
-actor, whether a caller uses the blocking or non-blocking API.
-
-**The Wait primitive.**
+`StreamCallbacks` lives in `internal/common`, alongside `Parser`. These are
+response notifications, not copied configuration, sibling services or substitutes
+for parent interfaces. They run synchronously; their consumers queue slow work.
+The parser remains attached to its Engine and can reach its Agent and Ensemble.
 
 ```go
-func (a *Actor) Wait(ctx context.Context,
-    pred func(Observation) bool) (Observation, error)
+// internal/common/stream.go
+type StreamCallbacks struct {
+	// One incremental chunk. partID identifies the PART, not the chunk.
+	OnDelta func(partID uint64, kind DeltaKind, chunk string)
+
+	// Each finalized event, in order, for the event log.
+	OnEvent func(Event)
+
+	// Each completed part, carrying THE SAME partID its deltas carried.
+	OnPartFinal func(partID uint64, part Part)
+
+	// Each frame payload: for SSE, one event's data bytes.
+	OnFrame func(eventType string, data []byte)
+}
 ```
 
-Blocks until an observation satisfies `pred` or the context cancels.
-Use it for observing progress, not acknowledging a blocking request.
-The observation stream is bounded and may drop events; waiters can also
-consume one another's events. Neither an idle notification nor shared
-last-text state identifies which request completed. Request replies are
-reliable control messages, separate from this non-blocking observation seam.
+| callback | wired by | to |
+|---|---|---|
+| `OnDelta` | Agent actor | mailbox message, then observer |
+| `OnPartFinal` | Agent actor | parser ID retained until stored-part publication |
+| `OnEvent` | Engine | finalized facts returned to the actor for recording |
+| `OnFrame` | Engine | sanitized root-owned API trace |
 
-**Ref and ModelFeatures.** `BlobPart` gains a `Ref` instead of a bare
-path string:
+A caller wanting request-scoped notifications can pass them to `AskWatching`;
+it uses the same actor as Ask. The accepted CLI attaches an ordinary observer
+and queues its display work. Neither path starts a second orchestration loop.
+
+### The taxonomy
 
 ```go
-type RefKind uint8
+type DeltaKind uint8
+
 const (
-    RefPath   RefKind = iota + 1
-    RefURI
-    RefHandle
+	DeltaThinking DeltaKind = iota + 1 // wire: "thinking"
+	DeltaText                          // wire: "text"
+	DeltaToolCall                      // wire: "tool_call"
 )
-
-type Ref struct {
-    Kind    RefKind `json:"kind"`
-    Locator string  `json:"locator"`
-}
-
-func (r Ref) Zero() bool { return r.Kind == 0 }
 ```
 
-`ModelFeatures` declares what media a model accepts:
-
-```go
-type Media uint8
-const (
-    MediaImage    Media = 1 << iota
-    MediaAudio
-    MediaVideo
-    MediaDocument
-)
-
-type ModelFeatures struct {
-    Media Media
-}
-
-func LookupModel(model string) (ModelFeatures, bool)
-```
-
-No default row. An unknown model returns `false`, and the renderer
-refuses with an error naming the model and the unsupported media type.
-Dropping a part silently is the Chapter 1 mistake: a format the model
-cannot read is a lie, not a degradation.
-
-**Rules.** Seven checks.
-
-1. **Chapter 5 still passes.** The actor upgrade changes no observable
-   behavior from Chapter 5's star topology. (`ch5-parity`, 10)
-2. **The agent hears hints mid-tool.** A slow tool runs for three
-   seconds. One second in, a hint arrives. The observer stream shows
-   the hint *before* the tool completion. (`not-deaf`, 25)
-3. **Replay matches live.** Truncate the event log at the last
-   `request_sent`, replay it, and the resulting context matches the
-   live context byte for byte. (`replay-is-live`, 15)
-4. **Observers fire.** The observation stream contains both state
-   transitions (`StateChanged`) and completed content (`PartFinal`).
-   (`observer-fires`, 15)
-5. **Two agents, one wakeup.** Two agents finish in the same turn
-   window. The parent's observation stream shows one wakeup, not two.
-   (`wake-once`, 15)
-6. **Unsupported media refused.** Present media the model does not
-   support. The renderer returns an error naming the model and the
-   media type, not a silent drop. (`loud-refusal`, 10)
-7. **Hub stays clean.** `go list -deps` on `internal/common/` shows
-   only the standard library and first-party leaf packages.
-   (`hub-clean`, 10)
-
-Seven checks, sum 100: `ch5-parity` 10, `not-deaf` 25,
-`replay-is-live` 15, `observer-fires` 15, `wake-once` 15,
-`loud-refusal` 10, `hub-clean` 10.
-
-**Yours.** The shape of the mailbox, the structure of the actor loop,
-how many goroutines the framework uses. The grader checks the
-properties, not the implementation.
-
-**Exercise.** Build a three-agent workflow in `ch06/`. An author
-writes a draft, an editor improves it, a reviewer approves it. Each
-agent has its own prompt and tools. The framework coordinates them.
-A single binary reads JSON events on stdin, writes observations on
-stdout, and logs to `CH06_LOG`.
-
-```sh
-make grade-dir CH=6 DIR=path/to/yours
-make grade6
-```
-
-## §6.1 The idea in plain words
-
-Chapter 2 built a renderer that turned the event log into
-`history.md`. It watched the stream and produced a view: an
-observer. The reader has already built one and can now name it.
-
-A deaf loop processes one request at a time. The model sends back a
-tool call, the engine runs the tool, and nothing else can happen
-until the tool finishes. A user typing a hint while a three-second
-build runs gets no acknowledgment. A second agent waiting for its
-turn gets nothing at all. The engine is a for-loop, and a for-loop
-has no ears.
-
-The fix is three pieces that work together.
-
-**An observer is a one-way window.** The engine notifies observers
-when something happens: a state transition, a completed response, a
-streaming chunk. Observers cannot call back into the engine. They
-watch and react. A logger is an observer. A GUI is an observer. A
-parent managing a child agent is an observer. What matters is that
-the framework defines the interface, observers implement it, and
-nothing inside the framework knows what the observers do. A GUI, a gateway, and a sub-agent
-supervisor all plug in here without any of them changing a line of
-framework code.
-
-**A mailbox is a one-way door.** The engine accepts messages through
-a queue: prompts, hints, tool completions, interrupts. `Post` never
-blocks. The queue is a slice guarded by a mutex with a channel to
-signal "something arrived." Prompts, hints, and tool completions
-enter through the same door because the loop that processes them
-needs to see them in order. A hint that arrives while a tool is
-running goes into the queue after the prompt that started the turn
-and before the tool completion that ends it. The ordering is the
-whole point. A separate queue per message type destroys it.
-
-**An actor loop drains the mailbox.** The engine runs on its own
-goroutine. It blocks on the mailbox's signal channel until something
-arrives, drains the queue, and processes each message in order. After
-processing, it notifies observers. The loop is the smallest possible
-concurrency primitive: one goroutine, one queue, one notify step. It
-replaces the synchronous for-loop from Chapter 4 with something that
-can hear. The mailbox synchronizes delivery; the job subsystem synchronizes
-worker state. Neither gives workers permission to mutate the conversation.
-
-These three pieces are independent additions to the star topology
-from Chapter 5. The observer interface and the mailbox message types
-go into `internal/common/` as two new interfaces in the hub. The
-mailbox implementation goes into a new spoke or an existing one. The
-actor loop replaces the engine's synchronous ask while preserving the public
-blocking API. Internal orchestration helpers are retired, not retained as a
-second execution path.
-
-## §6.2 The framework that imported its own GUI
-
-CodeRhapsody built the GUI before it had a framework seam. The React
-frontend connected to a Go server, the Go server imported the
-framework, and the framework reached back into the server for test
-scaffolding. `test_support.go` built a real GUI server for the
-twenty-three tests that needed a UI attached. The import graph formed
-a cycle, and the cycle hid inside convenience: nobody noticed because
-every test passed.
-
-The dependency surfaced as a question: can the framework run without
-the GUI? No. It compiled without it, but tests could not run.
-Untangling it took five commits across two days. The load-bearing
-commit was titled *"Test scaffolding takes a UIObserver, not a GUI
-server."*
-
-The fix was not deletion. The GUI was demoted to an observer. Instead
-of the framework importing the GUI, the framework broadcasts events,
-and the GUI subscribes to them. The import arrow reversed direction.
-After the fix, the framework does not know the GUI exists, the GUI
-is one of several observers, and tests run without building a server.
-
-> The guard that enforces this boundary exempts test files and ratchets
-> them downward, on the principle that a guard that fails today guards
-> nothing. Twenty-three tests needed a GUI server. Now thirteen do,
-> and the ratchet prevents the number from climbing back. The boundary
-> found problems, it did not create them: two encapsulation reaches
-> appeared as compile errors the moment the `internal/` wall went up,
-> one where a tool file grew a method on a job type and another where
-> the engine called an unexported function on a job.
-
-The fix's shape is this chapter's thesis. The GUI went from a
-component the framework knows about to an observer the framework
-broadcasts at. Chapter 5's facade measured who actually uses a
-framework: two-thirds of the API surface serves tool authoring, five
-percent serves agent lifecycle. Design the observer seam for the
-ninety-five percent of the world that is not the engine.
-
-## §6.3 The outbound seam
-
-An observer receives events. It does not ask for them, it does not
-call back into the engine, and it does not block. Those three
-constraints are the interface:
-
-```go
-type Observer interface {
-    Observe(Observation)
-}
-```
-
-`Observe` takes one argument. The argument is a sealed interface:
-the framework defines every type that implements it, and external
-code cannot add new ones. Three types carry the information:
-
-```go
-type PartDelta struct {          // streaming chunk
-    PartID uint64 `json:"part_id"`
-    Chunk  string `json:"chunk"`
-}
-```
-
-A `PartDelta` arrives for every streaming chunk the vendor sends.
-`PartID` identifies which part is being streamed so that an observer
-can assemble the complete response without buffering. `Chunk` is a
-string, not `[]byte`, because the event log is JSON and base64
-doubles the size of everything.
-
-The streaming rule: do not model streaming as a mode. Model
-non-streaming as a stream of length one. A non-streaming vendor emits
-one delta plus the finalizer. Observers that care about liveness
-render deltas; observers that do not ignore them and act on
-finalizers. Adding streaming later therefore adds no new event kinds.
-
-Tool results are the proof the rule is right: they are observable but
-never stream, which needs no special case. They are always length one.
-
-Deltas are transient. They are never appended to the durable log;
-only finalized parts are recorded. The log is the state. The stream
-is the experience. Replaying the log must produce the same context
-as the live run, minus the animation. The `replay-is-live` check
-tests exactly this: truncate the log at the last `request_sent`,
-replay it, and compare byte for byte against what the live engine
-sent to the vendor.
-
-```go
-type PartFinal struct {          // completed part
-    Seq    Seq      `json:"seq"`
-    PartID uint64   `json:"part_id"`
-    Part   TextPart `json:"part"`
-}
-```
-
-A `PartFinal` arrives when a part is complete: the full `TextPart` or
-`ToolCallPart`, with its sequence number and position. This is what
-replay uses. If you can reconstruct the context from `PartFinal`
-events alone, the observer seam is complete.
-
-```go
-type StateChanged struct {       // turn-state transition
-    From   TurnState `json:"from"`
-    To     TurnState `json:"to"`
-}
-```
-
-A `StateChanged` fires on every transition: `Idle` to
-`InputPending`, `InputPending` to `InFlight`, `InFlight` to
-`ToolsPending`, any terminal state back to `Idle`. The GUI uses this
-to show a spinner. The parent uses this to know when a child finished.
-The grader uses this to verify the observer seam works.
-
-The observation types carry no agent identity. For a single agent,
-that is all you need. For a multi-agent framework, the coordinator
-tags agent identity externally when it routes observations. The type
-is cheap because external tagging is just a wrapper.
-
-The observer is told, never asked. The engine calls `Observe` after
-every action: after recording a response, after transitioning state,
-after a tool completes. Observers see the same events whether they
-are attached to a running agent or to a freshly started one, because
-the events are generated from the same code path that updates the
-context.
-
-### Why Observe must not block
-
-A blocking observer recreates the deafness. The engine calls
-`Observe` on the actor goroutine. If `Observe` takes a lock, writes
-to a slow network, or waits for a response, the actor goroutine
-stalls. The mailbox fills up. Hints arrive and wait. The queue that
-was supposed to fix the problem becomes the problem.
-
-If an observer needs to do slow work, it copies the observation and
-posts it to its own queue. The observer's goroutine drains its own
-queue. The engine never waits.
-
-## §6.4 The inbound seam
-
-The agent is deaf, but the obvious explanation is wrong. It is not
-that the tool runs inline. The tool already runs on its own goroutine
-since Chapter 4. It is that the engine parks in a `select` awaiting
-the tool's result, and that engine is the same loop that would drain
-inbound events. The drainer is parked. Hints arrive and sit in a
-channel that nobody reads until the tool finishes.
-
-The fix: deliver tool completions INTO the queue instead of awaiting
-them in a `select`. The mailbox carries everything the engine can
-hear:
-
-```go
-type Inbound interface{ inbound() }
-
-type UserMessage   struct{ Text string }
-type Hint          struct{ Text string }
-type ToolCompleted struct {
-    CallID  string
-    Result  string
-    IsError bool
-}
-type Interrupt struct{}
-```
-
-One queue. One `Post` method. Four message types. The implementation
-is a mutex-guarded slice with a buffered channel of capacity one as
-the signal:
-
-```go
-type Box struct {
-    mu    sync.Mutex
-    queue []Inbound
-    wake  chan struct{}
-}
-
-func (b *Box) Post(msg Inbound) {
-    b.mu.Lock()
-    b.queue = append(b.queue, msg)
-    b.mu.Unlock()
-    select {
-    case b.wake <- struct{}{}:
-    default:
-    }
-}
-
-func (b *Box) Drain() []Inbound {
-    b.mu.Lock()
-    q := b.queue
-    b.queue = nil
-    b.mu.Unlock()
-    return q
-}
-```
-
-`Post` never blocks. If the channel is full, the signal is already
-pending and the loop will drain the queue. `Drain` returns everything
-and clears the queue. The mutex protects the slice; the channel is
-just a wake signal. The queue preserves arrival order and nothing else.
-
-### Why one queue
-
-A prompt, a hint, a tool completion, and an interrupt arrive through
-the same door because the order they arrived in is the order they
-matter in. A hint that arrived during a tool call matters now. A
-tool completion that arrived after an interrupt matters never.
-
-Separate queues destroy this ordering. If prompts and hints go to
-different channels, a `select` chooses between them, and Go's
-`select` is pseudo-random when both are ready. The hint might be
-processed before the prompt that it was meant to modify, or after
-the tool that it was meant to interrupt. A single FIFO preserves
-arrival order, and arrival order is causal order.
-
-### Tool completions enter the mailbox
-
-This is the change that breaks the deafness. In Chapter 4, the engine
-calls `Execute(call)` and blocks until the tool finishes. The return
-value is the tool result, and the engine records it immediately.
-
-In Chapter 6, the engine dispatches the tool call on a separate
-goroutine. When the tool finishes, it posts a `ToolCompleted` to the
-mailbox. The engine is back at its mailbox drain loop, free to
-process hints and interrupts while the tool runs. The tool result
-arrives as a message, not a return value, and the engine processes it
-in queue order alongside everything else.
-
-## §6.5 The actor loop
-
-The actor is a goroutine with a mailbox. It blocks on the signal
-channel, drains the queue, and processes each message. After
-processing, it notifies observers.
-
-```go
-func (e *Engine) run() {
-    for {
-        <-e.box.wake
-
-        for _, msg := range e.box.Drain() {
-            switch m := msg.(type) {
-            case UserMessage:
-                e.startTurn(m.Text)
-            case Hint:
-                e.applyHint(m.Text)
-            case ToolCompleted:
-                e.recordResult(m)
-            case Interrupt:
-                e.interrupt()
-                return
-            }
-            e.notifyObservers()
-        }
-    }
-}
-```
-
-The pseudocode above omits error handling, round limits, and the
-multi-turn tool loop. The real implementation is longer. The shape
-is the same: drain, switch, notify.
-
-**`startTurn`** records the prompt as a `MessageReceived` event,
-renders the context, sends it to the vendor, and records the
-response. If the response contains tool calls, the engine dispatches
-each one on its own goroutine and sets the turn state to
-`ToolsPending`. If no tool calls, the turn ends and the state goes
-to `Idle`.
-
-**`applyHint`** records the hint as a `HintReceived` event and
-attaches it to the pending context. The next vendor request will
-include it. The hint does not start a new turn and does not change
-the turn state.
-
-**`recordResult`** records the tool result as a `ToolReturned` event,
-checks whether all outstanding calls have results, and if so, sends
-the accumulated results back to the vendor for the next round.
-
-**`interrupt`** sets the turn state to `Interrupted` and stops
-processing. Outstanding tool calls may still be running, but their
-results will be discarded when they post to the mailbox of a stopped
-engine.
-
-### Ask, rebuilt
-
-The synchronous `Ask(text) (string, error)` from Chapter 4 still
-works. It delegates to the agent's owned actor:
-
-```go
-func (a *Agent) Ask(text string) (string, error) {
-    return a.actor.Ask(text)
-}
-```
-
-The actor creates a one-element buffered reply channel for each request,
-posts the request, and waits for its reply, caller cancellation, or actor
-shutdown. The buffer lets the actor finish even if the caller has cancelled.
-The actor returns that request's text and error, not shared last-text state.
-Save before replying; a failed save is a failed completion, not durable
-success. Notify observers of the same outcome without making observation
-delivery a prerequisite for returning to the caller.
-
-Starting the actor is lazy and idempotent. `NewActor` on an existing agent
-returns that same owner; `Run` must not create another mailbox consumer.
-Shutdown stops new work, cancels in-flight model requests, stops managed
-processes, joins workers, records their outcomes and saves. An arbitrary Go
-tool may not be cancellable: shutdown must wait for it, not discard its real
-result and pretend it stopped. Repeated shutdown is safe; later requests
-return a distinguishable stopped error.
-
-Delete `Engine.Ask` and any sibling orchestration loop after migrating their
-callers, including legacy CLI prompt formats and embedding programs. Keep
-one-request rendering, parsing, reduction and persistence in the engine.
-Keep multi-round orchestration, turn setup and runtime context mutation in
-the actor. The synchronous API survives; the duplicate implementation does not.
-
-The same ownership rule applies to the tool-round limit. A positive N permits
-N dispatched tool batches in one human turn. Zero selects the named default
-of 200, not infinity. Read the effective setting once at turn start; chapter
-9's persisted setting must feed this same policy. After the Nth batch, allow
-the model to consume its results and finish. If it asks for another batch,
-execute none of it, record explicit not-executed results for every call and
-return a distinguishable limit error. Do not leave dangling calls or edit
-signed assistant content. A later instruction can start a new turn.
-
-### Where is the concurrency?
-
-One actor goroutine owns the engine. A tool execution worker runs the
-handler; a separate job-report worker waits for completion, the callback
-deadline or an output pattern. These must be separate: a blocked handler
-must not prevent the model from receiving a running-job report. A callback
-is not cancellation. Both workers belong to the shutdown join.
-
-Workers return results and context effects through the mailbox rather than
-mutating the engine. The job subsystem synchronizes process state, output
-and completion; the actor owns the conversation. Count ownership boundaries,
-not a fixed number of goroutines.
-
-The minimalism is deliberate. Every lock is a place where two
-goroutines disagree about what is happening. Two goroutines can
-disagree in testable ways. Ten goroutines with a shared map disagree
-in ways that show up in production at 3 AM on a Saturday.
-
-> CodeRhapsody's Chapter 4 grader exposed five real concurrency bugs
-> in 120 parallel test runs. The root cause of every one was a parent
-> holding stale facts about a child: reading a field on one goroutine
-> while the actor goroutine wrote it. The fix each time was the same:
-> move the read to the actor goroutine, or make the mailbox the only
-> path between them. Two goroutines with one lock is not a style
-> preference. It is what survived the race detector.
-
-That historical two-goroutine fix established the ownership boundary.
-The job-report worker preserves it while allowing callbacks before a tool
-returns. The goal is still minimal concurrency, with one execution owner
-and explicit messages across every boundary.
-
-## §6.6 The Wait primitive
-
-This chapter does not introduce agent state. It exposes it. The
-reader has had a state machine since Chapter 2: `TurnState` with
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. This chapter adds
-`Interrupted`, deliberately as a state rather than a flag, because
-replay re-executes tool calls that were cancelled if `Interrupted`
-is not terminal. The state machine is a fact. The observer seam
-makes it visible. `Wait` makes it waitable.
-
-```go
-func (a *Agent) Wait(ctx context.Context,
-    pred func(Observation) bool) (Observation, error)
-```
-
-`Wait` blocks until an observation satisfies `pred` or the context
-cancels. The current actor consumes a bounded observation channel; it is
-not a subscription replaying every event to every waiter.
-
-**Blocking send** uses the request-scoped completion described above, not
-`Wait` for a shared idle transition.
-
-**Wait for agent**, **join**, and **wake-any** can use observations to watch
-agent state. But an orchestration decision that requires completion cannot
-rest on a lossy progress stream. Track the relevant request completions
-reliably, then publish the resulting progress. A shared idle event cannot
-acknowledge a particular prompt, and a slow observer must not stall the
-actor just to prevent a dropped progress notification.
-
-The `wake-once` grader check tests this directly. Two agents finish
-in the same turn window. The parent waits for both. The observation
-stream shows one wakeup that delivers both completions, not two
-separate wakeups. If the implementation polls or uses one channel per
-agent, the check fails.
-
-## §6.7 Hints and interrupts
-
-A hint is the same event as a prompt, distinguished by turn state.
-A message that arrives while the turn is idle starts a new turn. A
-message that arrives while the turn is in flight or tools-pending
-is a hint. The classification happens in the reducer (`Apply`), not
-at the capture site, because only the reducer holds the state that
-makes the decision correct.
-
-The `HintReceived` event type exists for exactly this reason:
-without it, the reducer cannot distinguish
-"a new prompt arrived" from "a hint arrived during an active turn."
-Both carry text. The difference is when they arrived relative to
-the turn, and the turn state is the reducer's business.
-
-> Bill's ruling on callbacks is absolute: a callback added to break
-> a Go dependency cycle is a red flag. The mailbox breaks no cycles.
-> It is the mechanism by which concurrent events enter a sequential
-> loop, not a workaround for a dependency the compiler rejected.
-> The engine has one goroutine, one queue, and one notify step.
-> If you find yourself adding function-pointer fields to break a
-> compile error, the dependency is real, and the fix is to move the
-> interface to the hub.
-
-An `Interrupt` ends the active turn, not the actor's lifetime. The actor
-continues draining its mailbox and recording results. A Go handler may
-still complete after the interrupt; its real output is not garbage. An
-explicit job kill has different semantics: it suppresses late output for
-that killed job. Shutdown must stop managed processes, join workers and
-save their outcomes rather than silently applying kill semantics to every
-non-cancellable Go function.
-
-### The stdin protocol
-
-`cmd/main.go` reads stdin on its own goroutine and posts to the
-agent's mailbox. The protocol is JSON lines:
+An enum, not a string, because every consumer switches on every case: the
+terminal picks an ANSI colour, a GUI picks a CSS class. Constants start at
+`iota + 1` so the zero value is invalid, and `MarshalJSON` refuses an unset
+kind rather than emitting a plausible default. Serialized:
 
 ```json
-{"kind":"prompt","text":"Write a haiku about refactoring"}
-{"kind":"hint","text":"Use a metaphor about gardens"}
-{"kind":"interrupt"}
+{"observation":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
 ```
 
-Backward compatibility with the Chapter 1 format:
+`PartDelta` retains an optional `agent` label for clients combining streams.
+The actual Ensemble routing still supplies the source Agent in its observation
+envelope. A display label does not replace that ownership relationship.
+
+### The capability
+
+```go
+type Stream uint8
+
+const (
+	StreamText Stream = 1 << iota
+	StreamThinking
+	StreamToolArgs
+)
+
+const StreamAll = StreamText | StreamThinking | StreamToolArgs
+```
+
+A bitmask on `ModelFeatures`, not a bool, because vendors ship this capability
+in pieces. `Config` gains one field, `DisableStreaming bool`. Effective
+behaviour is the AND of caller and table:
+
+```go
+func StreamingFor(cfg Config) Stream {
+	if cfg.DisableStreaming {
+		return 0
+	}
+	features, ok := LookupModel(cfg.Model)
+	if !ok {
+		return 0
+	}
+	return features.Stream
+}
+```
+
+An unknown model gets no streaming, and that is **not** an error, which is the
+deliberate opposite of what the same table does for media. Section 6.7 is why.
+
+### The reader
+
+One shared reader takes an `io.Reader` and yields
+`(eventType string, data []byte)` pairs. The original `internal/llm/sse.go` measured 111 lines with 14 tests.
+Those are historical measurements, not target counts; the accepted implementation
+keeps its smaller reader with translation in `internal/engine/sse.go`.
+
+### The request
+
+| vendor | asks for streaming with | parser's oddity |
+|---|---|---|
+| Anthropic | `"stream": true` in the body | dispatch on `content_block_delta`, then on `text_delta` / `thinking_delta` / `input_json_delta` |
+| OpenAI | `"stream": true` plus `"stream_options": {"include_usage": true}` | without `include_usage`, final usage is absent; absence is not measured zero |
+| Gemini | `:streamGenerateContent?alt=sse` endpoint | each frame is a whole response object with no block indices; continuation is inferred |
+
+### What does not change
+
+The event log. A `ResponseEnded` event still carries the complete response as
+`ResponseData{Parts, From, Usage}`, the context still replays from finalized
+events, and replay still equals live. Deltas are **ephemeral**: they reach
+observers and are never recorded. Sanitized frame payloads go to the root-owned `api.log` trace as they arrive.
+
+### The part id rule
+
+> **Within one response**, a part id identifies exactly one part. Two parts
+> never share an id, one part never uses two ids, and an id never crosses
+> kinds.
+
+The parser chooses IDs from vendor indices or its local continuation mapping.
+They can restart with each response, so a turn containing a tool call can
+go around the loop twice and reuse them. The key a
+consumer needs is therefore (response, part id), not part id alone.
+
+The parser supplies the id on every delta and reports the matching
+final identity; the actor publishes the stored `PartFinal`. The caller never
+reconstructs an ID from final position, because real wire formats can defeat
+that guess. Section 6.4 has the receipt.
+
+### The exercise
+
+`ch07/main.go`: one agent, one observer, a report on the shape of the stream
+including time to first delta. `CH07_NO_STREAM=1` runs the identical script
+with streaming disabled.
+
+```
+go run ./cmd/grade-edition2 -ch 6 path/to/core
+```
+
+The local streaming fixture uses a declared model, by default the historical
+`claude-sonnet-5` row shared by the references. `-stream-model MODEL` selects
+another implemented streaming-capable Anthropic row; it is a grader input,
+not provider discovery. A separate deliberately unlisted model tests plain
+fallback without teaching a special capability for a fake.
+
+`-stream-exercise DIR` selects the separately built shape module; otherwise
+the grader finds `ch07` inside or beside the core directory. Earlier consumer,
+workflow and media-model flags still apply to inherited parity. The core's
+incremental JSON observations and the external application's aggregate report
+serve different checks; neither substitutes for the other.
+
+
+| check | points | what it tests |
+|---|---|---|
+| `stream-deltas` | 20 | Asking for the stream produces one: many deltas per turn, not one per part |
+| `deltas-match-final` | 20 | Text deltas grouped **by response and part id** concatenate exactly to that part; at least one part arrived in several deltas |
+| `thinking-streamed` | 15 | Reasoning arrives as `DeltaThinking`, correlated by part id, never leaking into the reply |
+| `tool-params-streamed` | 15 | A tool call's name and arguments arrive as `DeltaToolCall`, correlated by part id |
+| `delivery-not-content` | 10 | Streaming off: same final content and usage, different delta count; unknown-model fallback and the separate shape report remain usable |
+| `ch5-parity` | 20 | Every Chapter 5 check still passes |
+| **total** | **100** | |
+
+---
+
+## 6.1 The idea in plain words
+
+An HTTP response is a stream of bytes. `io.ReadAll` is a choice to ignore
+that, convenient enough that it stops looking like a choice.
+
+Non-streaming does not mean the vendor produces the answer atomically. The
+model emits tokens one at a time either way; the server holds them until the
+last one is written. The latency a user feels is the cost of thinking plus a
+decision to say nothing while it happens.
+
+Three things change. The **HTTP client** hands the open response to the parser
+instead of reading the body. The **parser** takes a live stream and calls back
+per chunk. The **Agent actor** receives those chunks through its mailbox and
+fires observations instead of buffering the whole response behind a blank terminal.
+Each worker message carries its turn identity, so stale progress after an
+interrupt cannot contaminate the new turn.
+
+One thing pointedly does not change: the record. At end of turn the event log
+holds what it held before, and rebuilding context from it yields the same
+bytes. Recording deltas as additional conversation content would duplicate finalized
+parts or force replay to assemble them. Keeping display fragments out of the
+durable log preserves the existing replay contract.
+
+Hence the sentence that makes the seam small. **Non-streaming is streaming
+with a length of one.** A response in one piece is the same kind of thing as a
+response in forty pieces. No code downstream of the observer asks whether
+something was streamed; it receives deltas and the only question is how many.
+Which buys one `Parse` instead of two, one path per vendor instead of two, and
+a grader that runs the identical exercise both ways and demands identical
+content byte for byte.
+
+---
+
+## 6.2 Server-sent events, and the reader that survives them
+
+Streaming from an LLM vendor uses plain HTTP. The response body is framed in
+server-sent events, a text format older than all of this.
+
+```
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hello"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" world"}}
+
+```
+
+Lines of `field: value`; a blank line ends an event. Those rules carry every
+streamed token you have ever watched appear in a chat window.
+
+Each vendor parser could scan for `data: ` itself in six lines, and those six
+lines pass every happy-path test. Then:
+
+| case | what a naive scanner does |
+|---|---|
+| multi-line `data:` field | keeps the first line only, truncating content with no error |
+| comment line, starting `:` | treats a keepalive as an event with an empty payload to unmarshal |
+| CRLF | fails to recognize the separator because the line still contains `\r` |
+| `data: [DONE]` | tries to unmarshal a sentinel, erroring on a stream that completed |
+| unterminated final event | drops the last chunk, which usually holds the stop reason |
+
+None is hard. All share a shape: a framing imprecision that produces plausible
+output and fails later, somewhere with no mention of SSE in the stack trace.
+
+The first edition collected these cases in one reader with 14 tests.
+Keep the framing function small; line and test counts are consequences. Vendor-specific work starts after framing is
+resolved, with an event type and a slice of JSON in hand. The same "fakes
+first" pattern from Chapter 3 in different clothes: the framing is
+deterministic, ugly, and testable without touching the network or spending a
+token.
+
+---
+
+## 6.3 One `Parse`, not two
+
+The obvious design keeps `Parse(status int, body []byte)` and adds
+`ParseStream`. Nothing existing breaks and each method is simpler than a
+method doing both.
+
+Three vendors times two methods is six implementations. Each vendor's pair
+must agree exactly about what a tool call is, what a thinking block is, which
+stop reasons map to which events, and how usage is counted. Nothing in the
+type system enforces that, and nothing in the test suite does unless somebody
+keeps writing a test that runs both and compares. Fixes land in the streaming
+path because that is the path in production, and the other drifts until
+somebody disables streaming to debug something and finds the framework behaves
+differently in the mode they picked to have fewer variables.
+
+One entry point keeps the modes together; shared final construction prevents
+the semantic drift:
+
+```go
+Parse(resp *http.Response, cb StreamCallbacks) error
+```
+
+On SSE, `Parse` reads frames and calls `OnDelta` per chunk. On a plain JSON
+body it reads the body whole and calls `OnDelta` once per part with that
+part's entire content. Both routes then run the same semantic decoder to
+build events and call `OnEvent` and `OnPartFinal`. The accepted stream readers
+accumulate provider messages before using that decoder, preserving one place
+for canonical arguments, provenance, opaque replay material and usage.
+
+The non-streaming route could skip `OnDelta` entirely, since nothing is
+incremental. It fires anyway, because "length one" has to be true in code and
+not only in prose. Were it silent, every observer would need a second
+rendering path fed from finalized events, and the seam would have bought
+nothing except a longer interface.
+
+The seam still has exactly two methods, `Render` and `Parse`, which is what
+the vendor-independence claim has rested on since Chapter 2. Adding a third to
+ship a feature would concede that the seam was shaped around the features that
+existed when it was drawn, which is the thing a seam exists to deny.
+
+---
+
+## 6.4 Part ids: who is allowed to name a part
+
+A stream delivers forty chunks belonging to a paragraph of reasoning, a reply,
+and a tool call's arguments. A GUI appends each chunk into the right widget,
+then replaces that widget's content with the finalized part. It needs to know
+which chunks belong together. A part id is nothing more than that.
+
+The first-edition brief originally minted a fresh id per chunk with an
+`atomic.AddUint64`. Forty unique ids tell a consumer that forty things
+happened and nothing about which were the same thing. The field would exist,
+be populated, look reasonable in a log, and carry no information.
+
+So ids are per part. The question is who assigns them.
+
+The instinct is the caller, leaving the parser a pure translation layer, with
+the obvious formula being the part's position in the finished response. That
+formula is wrong on the wire, and OpenAI is the proof: it streams a tool
+call's arguments **before** it is knowable whether a text part will occupy
+index zero. When the first tool-argument chunk arrives the response is
+unfinished, positions are undefined, and any id the caller computes is a guess
+a later chunk can falsify.
+
+> The code that **chose** an id is the only code that can be trusted to
+> **repeat** it.
+
+Anthropic can retain block indices. The accepted OpenAI parser reserves zero
+for text and maps tool index i to i+1, avoiding a collision when a tool arrives
+first. Gemini must infer continuation locally. Zero is a valid ID; insisting
+that all IDs are positive tests a different contract.
+
+The parser chose it, so the parser owns both ends: it supplies the id on every
+`OnDelta` and reports `OnPartFinal` carrying the same id. Finals carry the
+parser-chosen ID, not a position recomputed from the finished list. The id is thereby
+freed from meaning "where", and only ever means "the same part as that other
+one", which is the sole property a consumer can rely on.
+
+These parser-local IDs have a consequence worth stating before
+Chapter 7 trips over it: **the ids may restart with each response**. A turn that
+calls a tool goes around the loop at least twice; if part id 0 is reused in
+the second response, it names a different part from part id 0 in the first. Uniqueness holds
+within a response, not within a turn. The grader for this chapter had to learn
+the same lesson, and its harness now tracks response boundaries rather than
+assuming ids are unique across a turn.
+
+So a consumer keying widgets needs (response, part id). The current
+`state_changed` transition to `in_flight` lets the grader separate live
+responses. That transient boundary does not itself give a reconnecting GUI a
+persistent response identity. Keep that distinction in view when Chapter 7
+reaches for the seam.
+
+`OnPartFinal` exists for this. It looks redundant beside `OnEvent`, since
+finalized parts are inside the events, but the events do not carry the ids the
+deltas used, and reconstructing that mapping from outside is the same guess
+that fails on the wire.
+
+Ordering matters too. Parse reports a completed event before its part finals.
+The HTTP worker collects those facts and IDs; it does not mutate History. The
+actor records the response, then publishes `PartFinal` using the stored parts
+and the parser's IDs. A request watcher receives its final notification there
+too. An observer re-rendering on finalization reads a log that already contains it. Reversed, every consumer gets an intermittent view of a
+log one event behind.
+
+`deltas-match-final` grades this the hard way. A check that concatenated every
+text delta in a turn and compared against the final message would pass on a
+submission whose ids were noise, including the fresh-id-per-chunk submission
+this section rules out. So the check groups by id first, requires each group
+to concatenate exactly to its own part, and requires at least one part to have
+arrived in several deltas. Grouping by id is the real check; concatenation
+afterward is arithmetic.
+
+Text and readable thinking fragments reconstruct their corresponding content.
+Tool arguments need one additional distinction: the transient JSON fragments
+are displayed as received, while the complete tool part retains canonical
+JSON. Whitespace can differ without losing an argument. Compare the decoded
+complete argument value when testing that boundary, and never execute fragments.
+
+---
+
+## 6.5 Three vendors, three dialects
+
+The framing is shared. The meaning is not, and the differences are listed in
+the TL;DR table above. Two deserve a closer look.
+
+OpenAI's `stream_options.include_usage` is not decoration. Omit it and a
+streamed response contains no `usage` object at all, just an absent field, so
+a careless accumulator can record zeros for every
+streamed turn. The answers are correct, the tools run, the log is well formed,
+and careless cost tracking reads zero forever. Missing accounting must still
+be treated as missing, rather than converted into measured zero. A silent success that is wrong, one JSON
+field deep.
+
+Gemini sends response-shaped frames containing new content, rather than
+Anthropic-style named delta events. Text can still arrive incrementally. There
+are no equivalent block indices, so continuation is inferred from position
+and the shape of what arrived before. Preserve the thought flag and trailing
+signatures, including signatures on ordinary text; a signature-only frame
+must not disappear just because it has no new visible words.
+
+The seam does not make vendors identical. It makes their differences
+**local**: all three oddities live inside one vendor's `Parse`, and none
+escapes the translation implementation into the actor, observer, event log
+or terminal. Locality is
+the whole claim, and it is smaller than "vendors are interchangeable", which
+was never true.
+
+---
+
+## 6.6 When a capability table pays for itself
+
+Gemini's row has `StreamToolArgs` clear.
+
+```go
+"gemini-3.8-flash": {
+	Media:  MediaImage | MediaAudio | MediaVideo | MediaDocument,
+	Stream: StreamText | StreamThinking,
+},
+```
+
+In the retained implementation and observations, function parameters arrive
+as complete objects there. The parser handles that dialect locally; the actor
+and terminal need no vendor-specific workaround. The table says the bit is off, `StreamingFor` returns a
+mask without it, and the parser emits the complete tool object as one
+display chunk. It does not manufacture fragments that the wire never sent. Behaviour degrades exactly as far as the
+capability is missing and stops there.
+
+The following are historical capability rows retained in this implementation,
+not a current provider-availability or crossover-readiness claim:
+
+| model family | text | thinking | tool arguments |
+|---|---|---|---|
+| `claude-opus-5`, `claude-sonnet-5` | yes | yes | yes |
+| `gpt-6-astra`, `gpt-5.6-sol` | yes | no | yes |
+| `gemini-3.8-flash`, `gemini-3.1-pro-preview` | yes | yes | no |
+
+Three families, three combinations, no two the same shape. A single
+`Streaming bool` would force two of those rows to choose between losing text
+streaming and inventing tool-argument chunks that never arrived. The bitmask
+is the minimum structure the observed facts require.
+
+The table will go stale; vendors ship these bits on their own schedule. An
+updated row can enable a capability the translator already supports. A new
+wire shape still needs parser work and evidence; changing a bit cannot create
+a decoder. The table gives the reader a clear place to start.
+
+---
+
+## 6.7 Guessing about delivery is not guessing about content
+
+Given a model name it has never seen, `StreamingFor` shrugs: no error, no
+refusal, a non-streaming request, turn proceeds. Asked whether the same
+unknown model accepts an image, the same table produces a loud refusal, which
+Chapter 5 spent real effort keeping. Two lookups, two opposite answers on a
+miss. An inconsistency like that is either a bug or a principle.
+
+> A guess about **content** can corrupt the conversation. A guess about
+> **delivery** cannot.
+
+Silently drop an image because a model cannot see and the request
+may still succeed. The model answers confidently about a picture it never
+received, and nothing downstream can recover the missing input. Fall back to plain delivery and
+the same scripted response arrives, same text and parts, in fewer pieces.
+The cost of that conservative choice is a slower first token, not a missing
+image. Separate live generations can differ; deterministic parity compares
+the same scripted content in both delivery modes.
+
+The practical half matters as much. Model names are an **open set**: this
+framework's own tests already use `gpt-5-2025-08-07`, `fake-model`, and
+several `-fake` suffixes no honest table would claim to know. A framework that
+refuses to send any request until its table has heard of your model is one
+whose first patch in every deployment removes that check. Refusing to guess is
+right; refusing to work is not. The line is drawn per capability, which is why
+the two lookups disagree.
+
+### The negative boolean
+
+```go
+DisableStreaming bool
+```
+
+`Stream bool` is the better name and the wrong field, because in Go the zero
+value picks your default. `Stream bool` makes a hand-built `Config{}` mean
+streaming **off**, the opposite of the intended default, recoverable only
+inside a constructor other people are free not to call. In a framework whose
+premise is that other people construct these structs, a default holding only
+when someone uses the front door is not a default. When the zero value and the
+good name point in opposite directions, the zero value wins: the compiler
+enforces it and the name does not.
+
+---
+
+## 6.8 Three record-keepers
+
+**The event log** is unchanged. Deltas fire at observers and are never
+recorded; a `ResponseEnded` event carries the full text as before, and
+`replay-is-live` still holds.
+
+**`api.log`** records wire payloads separately. In the first-edition story,
+the preceding engine logged the response JSON after
+reading the body, and under streaming there is no moment when the body exists
+as a blob, because the parser consumes it as it arrives. Left alone, the
+response half of the API log would have gone dark the day streaming shipped,
+silently, which is the worst way for a debugging facility to fail. `OnFrame`
+carries each raw frame out as it arrives and the engine writes it, so the
+trace retains payloads in order in both modes. This is not a byte-for-byte
+HTTP transcript: SSE framing/comments and authentication headers are not the
+payloads delivered by `OnFrame`.
+
+The wiring follows ownership. Parser methods belong to Engine and reach its
+Agent parent; Engine reaches `Agent.Ensemble()` for logging. Ensemble owns and
+serializes the trace writer. Notification callbacks carry parser output, not
+logger services smuggled around this chain. The accepted Engine redacts a
+reflected configured key before logging a frame or forwarding `OnFrame`, and
+keeps authentication headers and credential-bearing URLs out of the trace.
+
+**Observers** get deltas as they arrive, `PartFinal` on completion, and events
+through the normal path. A widget streams chunks in for immediate reading,
+then re-renders from the authoritative part. The fast path may be approximate
+because the slow path corrects it, and the correction is safe because the
+part id links each streamed approximation to the authoritative version that
+replaces it.
+
+---
+
+## 6.9 The terminal, and the flush that makes it real
+
+| content | stream | style |
+|---|---|---|
+| reply text | stdout | plain |
+| thinking | stderr | dim |
+| tool call arguments | stderr | yellow |
+
+So `agent chat < prompts.txt > answer.txt` yields exactly what the assistant
+said and nothing else, while a human sees all three interleaved. One binary
+serves the pipeline and the person with no flag, because the stream split
+already encodes the difference between output and commentary. Colour is
+chosen by `isTerminal(stderr)`, so redirected output is never salted with
+escape codes.
+
+With a buffered writer, the line that decides whether any of this is visible:
+
+```go
+case common.DeltaText:
+	clear()
+	fmt.Fprint(out, chunk)
+	// Flush per chunk. Without it the buffer holds the whole
+	// answer and releases it in one lump at the end, which looks
+	// exactly like streaming having no effect.
+	out.Flush()
+```
+
+A buffered writer does its job perfectly and destroys the feature. Every delta
+delivered correctly, every chunk written correctly, and the user sees a blank
+terminal then the whole answer at once, indistinguishable from never having
+implemented streaming. No error, no warning, no failing test unless somebody
+wrote one about timing. A pipeline can be correct at every stage and useless
+end to end when the property that matters, here "arrives incrementally",
+belongs to no single stage.
+
+The accepted CLI instead writes each chunk directly to `os.Stdout`, an
+unbuffered file. Either approach must deliver bytes before the response ends.
+Its observer queues display work without dropping reply chunks or waiting on
+a slow terminal; after the Agent joins producers, the display drains before
+its summary. Finals add separators, not a second copy of the streamed reply.
+
+The initial student streaming CLI had another quiet routing defect. It treated
+any chunk beginning `hint:` as a human-hint acknowledgment and moved it to
+stderr. A real parser/actor/CLI test sent `hint:early` and then `late`; stdout
+contained only `late`. The final implementation marks actual acknowledgments
+with `PartDelta.Hint` and routes by origin, leaving assistant prose untouched.
+A display prefix is not a protocol discriminator.
+
+The corrected test withholds the rest of the HTTP response until stdout
+contains `hint:early`, then requires the complete `hint:earlylate` reply.
+That proves flushing while work remains, rather than merely observing several
+reads after the provider has finished. Restoring the prefix heuristic fails
+this same test; removing the actor's origin marker fails the acknowledgment
+check. The observation vocabulary still has the same three content kinds.
+
+The output is a mess: dim reasoning, plain reply, yellow half-formed JSON, all
+at once, wrapping at terminal width. Development tooling, honest about it.
+
+---
+
+## 6.10 The exercise
+
+`ch07/main.go` is a separate public-library module. It builds one agent,
+attaches one observer, and reports the
+**shape** of the stream rather than its content: deltas per kind, parts they
+group into, and time to first delta. Total turn latency barely moves, because
+the model takes as long as it takes; what changes is how long the human stares
+at a blank terminal before the first word appears.
+
+`CH07_NO_STREAM=1` runs the identical script with `DisableStreaming` on.
+
+
+The reference application is in
+[`solutions/edition-2/ch06/ch07/`](../../solutions/edition-2/ch06/ch07/).
+Keep the historical `ch07` directory and environment names. The core's
+no-argument JSON protocol receives this prompt, followed by EOF:
 
 ```json
-{"user":"Write a haiku about refactoring"}
+{"kind":"prompt","text":"what does the configuration say?"}
 ```
 
-A message with a `"user"` key and no `"kind"` key is treated as a
-prompt. This keeps every grader from Chapters 1 through 5 working
-without changes.
+Its delta records use `observation:"part_delta"`, `part_id`, `kind` and
+`chunk`. Finals use `observation:"part_final"` and the matching ID. The
+existing exercise envelope exposes top-level `text` or `tool` names; the
+neutral `part` retains full content, including tool `args`. The grader also
+accepts complete arguments in the envelope. Tool-result finals are distinct
+from model-response finals and must not be folded into the streamed response.
+A final `assistant` record carries the completed answer.
 
-## §6.8 Managing multiple agents
+`EN_DISABLE_STREAMING=1` controls the core CLI, while `CH07_NO_STREAM=1`
+controls the separate exercise. Do not silently depend on one name while
+testing the other. The original grader launched only the core, despite the
+chapter asking for an external exercise; the revised grader builds and runs
+both through the actual public library.
 
-A single-agent framework is a special case. The same engine, the same
-mailbox, the same observer seam scales to N agents with one addition:
-a coordinator that tracks which agents exist and routes observations.
+The external observer can count in memory and print a summary after reliable
+request completion. It need not print individual deltas. Its JSON record uses
+`observation:"stream_stats"`, with per-kind `deltas`, finalized `parts`,
+`first_delta_ms`, and the final `assistant` text (or a separate answer record).
+The accepted example also reports `elapsed_ms`, effective `streaming` and
+`usage`. The grader checks all three delta counts, a nonnegative
+`first_delta_ms`, and answer delivery. Review the observer's timing and finalized
+part counting in source; the summary alone does not prove those measurements
+or that a human terminal flushed before completion. The gated CLI regression
+described above supplies the flush evidence.
 
-```go
-type Framework struct {
-    actors    map[AgentID]*Actor
-    host      Host
-    merged    chan Observation
-}
+The original deterministic fixture produced this shape, not a promise about
+how many chunks a live provider will choose:
 
-func (f *Framework) Add(id AgentID, actor *Actor)
-func (f *Framework) Remove(id AgentID)
-func (f *Framework) WaitAny(ctx context.Context,
-    pred func(Observation) bool) (Observation, error)
-```
+| measurement | streaming on | streaming off |
+|---|---|---|
+| text deltas | 36, across 2 parts | 2 |
+| thinking deltas | 27, none leaking into the reply | 1 per part |
+| tool call deltas | 19 | 1 per part |
+| final reply text | identical | identical |
+| finalized parts | identical | identical |
 
-`Add` registers an actor with its own mailbox and its own actor
-goroutine. The framework attaches itself as an observer on every
-actor it manages, multiplexing their observations into a single
-merged channel. `WaitAny` on the framework blocks until any actor
-fires an observation that satisfies the predicate.
+Thirty-six pieces or two pieces. Same answer. `delivery-not-content` grades
+this rather than leaving it as a remark, because the claim carries the
+chapter: it is why one `Parse` suffices, why the event log needed no changes,
+why replay still equals live, and why no observer needs to ask whether a
+response arrived in one piece or forty.
 
-A Go program constructing three agents and passing messages between
-them is not an agent spawning children through its own tool surface.
-Multi-agent requires nothing beyond a framework, a prompt, and
-tools. This exercise is just Go. The
-distinction matters because a sub-agent chapter adds a tool surface
-for spawning; this chapter proves it is not necessary.
+### The mutant that states the thesis
 
-> A framework that manages agents is a parent. The
-> observation stream is how the parent watches its children. An
-> agent that spawns another watches it through this same observer
-> seam and decides what to do based on what it sees. Nothing needs
-> to be added to the observer interface. Everything is already here.
-> The alternative is reading the child's history file. One
-> supervision call built that way returned 307,984 bytes, roughly
-> 13% of a context window, because it had no volume contract. The
-> observer seam, delivering events as they happen, returned 3,447
-> bytes for the same purpose.
-
-The third agent is the proof. If adding it requires a single
-change inside the framework package, the seam is incomplete.
-
-## §6.9 Media capabilities
-
-A model that accepts images does not accept audio. A model that
-accepts audio does not accept video. A renderer that silently drops
-an unsupported part is the Chapter 1 mistake: the model does not see
-what the programmer sent, and neither one knows.
-
-`ModelFeatures` declares what a model accepts:
-
-```go
-type Media uint8
-const (
-    MediaImage    Media = 1 << iota
-    MediaAudio
-    MediaVideo
-    MediaDocument
-)
-
-type ModelFeatures struct {
-    Media Media
-}
-```
-
-`LookupModel(model) (ModelFeatures, bool)` has no default row.
-An unknown model returns `false`, and the renderer refuses loudly:
+In the first-edition audit, `no-stream-flag` removed the request field asking for streaming and nothing
+else. Final text identical, parts identical, event log identical byte for
+byte, and the grader says:
 
 ```
-error: model "claude-3-haiku-20240307" does not support audio;
-       cannot render BlobPart with Ref{Kind:RefPath, Locator:"recording.mp3"}
+saw 2 text deltas, want at least 8
 ```
 
-The error names the model and the media type. The programmer reads
-the error and knows what to change. A silent drop would do nothing,
-and the programmer would debug the prompt for an hour before
-discovering the audio was never sent.
+Nothing about the content changed. Only the shape of its arrival did.
 
-`Ref` replaces the bare path string on `BlobPart`:
+Two predictions from that audit were wrong, and both are worth keeping. The
+first `per-chunk-part-ids` mutant used a package-level counter; it failed its
+intended check and also historical `ch6-parity`, by tripping original Chapter 5's
+`no-mutable-globals`. Two failures for one deleted behaviour means the audit
+stops telling you which check does which job, so the mutant was rewritten to
+derive the id from the chunk. Catching it required logging each failing
+check's **details**, not only its id: *which* checks failed says a mutant is
+wrong, *why* says whether it is wrong for the intended reason.
 
-```go
-type RefKind uint8
-const (
-    RefPath   RefKind = iota + 1
-    RefURI
-    RefHandle
-)
+Second, `no-thinking-deltas` does not cascade into `deltas-match-final`,
+contrary to prediction, because that check walks text parts and ignores the
+reasoning stream. Recording that division of labour here keeps it from
+looking accidental when a reader sees the two checks side by side.
 
-type Ref struct {
-    Kind    RefKind `json:"kind"`
-    Locator string  `json:"locator"`
-}
-```
+---
 
-Three locator kinds cover the three ways content arrives: a local
-file path, a remote URI, and a handle to a job's output. The Ref
-carries through redaction: when a `BlobPart` is superseded, its `Ref`
-survives in the `RedactedPart`, so the content is recoverable by
-construction.
+## 6.11 What this chapter does not build
 
-## §6.10 Exercise: Author, Editor, Reviewer
+**No re-rendering.** The terminal appends and never redraws a finalized part,
+though `PartFinal` provides everything needed. Doing it well needs cursor
+control, wrapping, and terminal width, which is Chapter 7's problem wearing a
+different hat.
 
-Build `ch06/main.go`. Three agents, three roles:
+**No acting on partial tool arguments.** Streaming tool arguments is for
+**display only**; the arguments are incomplete JSON until the part finalizes.
+Starting early, opening the file as soon as the path appears, is how an agent
+runs a tool call with half its arguments. Deltas render, finalized parts
+execute.
 
-**The author** receives a topic and writes a first draft. Its tools
-are `write_draft` (stores text) and `word_count` (returns the count).
+**No observer backpressure.** Observers are told, never asked, and `Observe` must not
+block. A slow observer stalling the actor is a deaf agent by another route,
+which Chapter 5 was about. An observer that cannot keep up drops optional progress or buffers
+without holding up the actor. A terminal promising the full reply must preserve
+its bytes; lossy observation queues are not reliable request completion.
 
-**The editor** receives the author's draft and improves it. Its tools
-are `read_draft` (retrieves text) and `edit_draft` (replaces text).
-
-**The reviewer** receives the editor's draft and approves or rejects
-it. Its tool is `review` (returns accept or reject with notes).
-
-The workflow is sequential: author writes, editor edits, reviewer
-reviews. The framework coordinates them through `Post` and `Wait`.
-Each agent uses the same vendor (the fake from Chapter 2) with a
-different system prompt. The workflow is hardcoded Go. Every new
-collaboration pattern is a new Go program. That is the limit this
-chapter reaches and the next several chapters work to remove. The
-framework works; the rigidity is in the glue code, not in the
-framework itself.
-
-Three agents prove the cost was paid once. The first agent might work
-because the framework was tested with it. The second might work
-because the code was debugged for two. The third works because the
-framework is general. If adding the reviewer required a single line
-inside the framework package, the seam is wrong.
-
-The binary reads JSON events on stdin, writes observations as JSON
-lines on stdout, and logs to the path in `CH06_LOG`. The grader
-drives the fake vendor to script specific responses for each agent.
-
-```sh
-CH06_LOG=/tmp/ch06.jsonl LLM_VENDOR=fake \
-  LLM_BASE_URL=http://localhost:PORT ./ch06
-```
-
-## §6.11 What this chapter does not build
-
-Streaming observations arrive as `PartDelta`, but the vendor seam
-from Chapter 2 does not stream yet. It returns a complete response in
-one block. The `PartDelta` type exists so that when streaming lands,
-observers get incremental updates without an interface change.
-
-The `Ref` type supports `RefURI` and `RefHandle` alongside `RefPath`,
-but the renderers only handle `RefPath` so far. A vendor that accepts
-a URL instead of inlined bytes needs the URI form; a tool whose
-output is too large for inline needs the handle form. Both are future
-extensions to the renderer, not to the Ref type.
-
-Sub-agent spawning, where one agent creates and supervises another
-through the observer seam, uses everything built here and adds
-nothing to the framework's interfaces. The observer is already the
-parent's view of the child. The mailbox is already the child's
-inbox. The Wait primitive is already the join. You now have a hint
-channel and nowhere to type into it.
+---
 
 ## Taking it for a spin
 
-Run the exercise against the fake vendor and watch the observations
-stream on stdout. Three agents start, each with its own state
-transitions:
+Build your own CLI from the core module root, and run it from a scratch
+workspace with the provider environment configured as in Chapter 0. Discover
+an available streaming-capable model; keep the key in the intended child's
+environment without printing it or putting it in a command argument.
 
-```
-{"agent":"author","from":"idle","to":"input_pending"}
-{"agent":"author","from":"input_pending","to":"in_flight"}
-{"agent":"author","part_id":1,"chunk":"Let me write about "}
-{"agent":"author","part_id":1,"chunk":"refactoring..."}
-{"agent":"author","seq":3,"part_id":1,"part":{"type":"text","text":"Let me write about refactoring..."}}
-{"agent":"author","from":"in_flight","to":"tools_pending"}
-...
-{"agent":"author","from":"tools_pending","to":"idle"}
-{"agent":"editor","from":"idle","to":"input_pending"}
-...
-{"agent":"reviewer","from":"idle","to":"input_pending"}
-...
-{"agent":"reviewer","from":"in_flight","to":"idle"}
+```sh
+go build -o /tmp/ch6agent .
 ```
 
-The observation stream is the whole story. The framework tells you
-what happened, in order, and you decide what it means. A logger writes
-it to a file. A GUI renders it as a chat. A parent agent uses it to
-decide when to send the next prompt. The observer seam carries all
-three without knowing about any of them.
-
-Now try it with a real vendor. Build the binary and export your
-credentials:
-
-```bash
-cd agent && go build -o bin ./cmd/
-export LLM_API_KEY="your-anthropic-api-key"
-export LLM_MODEL="claude-opus-5"
+```sh
+/tmp/ch6agent chat
 ```
 
-`LLM_VENDOR` defaults to `anthropic`. For Gemini, set it to `google`
-and point `LLM_BASE_URL` at the Gemini endpoint. For OpenAI, set it
-to `openai`.
-
-Start an interactive chat session. The binary reads one JSON line per
-stdin line and streams observations to stdout:
-
-```bash
-./bin chat
-```
-
-Type a prompt and press enter:
+Type an ordinary prompt:
 
 ```
-{"kind":"prompt","text":"You are a pirate. Respond only in pirate speak. Tell me about your ship."}
+write a short story about a lighthouse keeper who collects fog
 ```
 
-Observations stream back as JSON. While the model is still
-responding, type a hint on the next line and press enter:
+For a model exposing readable reasoning, it appears dim on stderr. The story
+arrives on stdout as the provider delivers it. Ask for a tool and the name and
+argument fragments appear on stderr, yellow on a terminal. The tool still waits
+for complete arguments. Provider behavior determines whether those arguments
+arrive incrementally or as a single object.
 
-```
-{"kind":"hint","text":"Actually, make it a space pirate. Your ship is a starship."}
-```
+The core's explicit opt-out is `EN_DISABLE_STREAMING=1`:
 
-The hint lands mid-turn. Watch the observation stream: a `part_delta`
-containing `hint:` appears between the streaming chunks, proving
-the agent heard it while the model was still talking. The model
-picks it up on its next round and pivots to space piracy.
-
-When you are done, send an interrupt or press Ctrl-C:
-
-```
-{"kind":"interrupt"}
+```sh
+EN_DISABLE_STREAMING=1 /tmp/ch6agent chat
 ```
 
-The agent was deaf. Now it listens.
+The separate shape exercise uses `CH07_NO_STREAM=1`. Build it from its own
+module root and run the same prompt in separate scratch directories:
+
+```sh
+go build -o /tmp/ch6shape .
+```
+
+```sh
+/tmp/ch6shape "Return only the numbers 1 through 20 separated by spaces."
+CH07_NO_STREAM=1 /tmp/ch6shape "Return only the numbers 1 through 20 separated by spaces."
+```
+
+In your own code the equivalent is one field: `DisableStreaming` on the
+Agent's config. The delivered parts should remain intact in either mode.
+Two independent live generations need not choose the same words; the fake
+makes equivalence exact by returning the same scripted content both ways.
+
+The retained October 9 live shape pair used `gpt-4o-mini` and did return the
+same numbered text in both modes. It reported 40 text deltas versus one,
+one finalized text part each, and first-delta times of 1,059 ms versus
+1,149 ms. Total times were 1,350 ms and 1,150 ms. Each request used 733 input
+and 40 output tokens. Streaming improved the first visible delivery in that
+small pair; it did not make the total run faster. The exact reports remain in
+[enabled](../../solutions/edition-2/evidence/ch07/shape-enabled.json) and
+[disabled](../../solutions/edition-2/evidence/ch07/shape-disabled.json) evidence.
+
+The human CLI demonstrations were less tidy, and more useful:
+
+| Historical run | Visible story delivery | What the retained record establishes |
+| --- | --- | --- |
+| `claude-sonnet-4-6` | 62 stdout reads, first 2.6112 s, last 5.5389 s | Separate reasoning, streamed arguments, successful `echo STREAM_PROBE`; two human turns and one busy hint. |
+| `gpt-4o-mini` | 61 stdout reads, first 1.8427 s, last 2.5454 s | Three turns; the model chose nonexistent shell `print`, received exit 127, and accurately recalled the failure. |
+| Initial `gemini-2.5-flash` | Four stdout reads, first 1.6210 s, last 1.6541 s | Three turns, thought summaries, whole tool arguments and successful output recall; this model selection failed Bill's instruction. |
+
+These are OS read counts, not token counts. The
+[initial evidence summary](../../solutions/edition-2/evidence/ch07/live-summary.json)
+records 5,991/261, 3,419/160 and 5,826/248 input/output tokens respectively,
+with zero recorded cache counts. The raw event and API logs remain alongside it.
+
+The Anthropic launcher initially labeled its last input a third turn because
+it watched file modification times. A log rewrite changed the timestamp more
+than once; the launcher sent that input while the second turn was active.
+The durable log proved a hint instead. That useful hint was kept, along with
+the mistaken capture label and its correction. A changed file is not a reliable
+request-completion signal.
+
+The Gemini choice needed a different correction. Bill had required Gemini
+3.0 Flash or newer and specifically requested 3.8 Flash for hints. The student
+selected 2.5 from discovery; the handoff and first review missed the restriction.
+A working older model did not satisfy it. One bounded run on the actual
+`gemini-3.8-flash` CLI supplied the missing evidence; no production change or
+other-provider repeat was needed.
+
+That run made a real command create `waiting.marker`, wait for `release.marker`,
+then print `RELEASED`. After seeing the waiting marker at 5.1767 s, the launcher
+sent a busy hint changing a red-lighthouse paragraph to blue and requiring
+`HINT_38_APPLIED`. It observed the actual stderr acknowledgment at 5.1780 s,
+then released the command at 5.1787 s. The next provider request contained both
+the successful tool result and the hint. Its answer began `HINT_38_APPLIED` and
+described a blue lighthouse. Tool and CLI both exited zero.
+
+The [corrected Gemini record](../../solutions/edition-2/evidence/ch07/gemini38-summary.json)
+contains two requests and eleven response frames, including six nonempty reply
+chunks, two thinking chunks and one tool-call frame. Three nonempty stdout
+reads spanned only 1.1 ms, so this run proves correct incremental writes and
+hint delivery, not perceptibly paced typing. The gated CLI test supplies the
+stronger before-completion flush evidence. Usage was 1,241/181 followed by
+1,486/755 input/output, including 130 and 649 thinking tokens in those output
+counts. No cache counts were recorded.
+
+Afterwards, page through `api.log` from a streamed run: frame payloads in order,
+including terminators and opaque signatures, with the configured key redacted
+and authentication headers excluded. The accepted
+CLI writes it in the working directory; `CH07_AGENT_LOG` selects its durable
+event log. The public shape application uses `api.log` and `ch07-agent.jsonl`.
+Those are different records serving different questions, and keeping both modes
+visible is the purpose of `OnFrame`.
+
+Original student grading remained **0/100 FAIL**. Its five streaming checks
+selected unknown `fake-model` while demanding streaming; the implementation
+correctly chose plain delivery. Inherited parity failed the documented earlier
+exceptions. The original legacy reference scored **90/100 FAIL**, with its
+supposedly disabled run still streaming. Those results remain historical;
+[the chapter record](../../docs/edition-2-notes/ch07.md) separates fixture mistakes,
+real CLI corrections and the approved-model live evidence.
+
+---
+
+## What Chapter 7 does with this
+
+The terminal is now honest and ugly: three kinds of content distinguished by
+colour, across two file descriptors, in a display that cannot redraw.
+
+The display vocabulary is in place, with response identity still to resolve. Chunks carry a kind, so a consumer can
+route them. Chunks carry a part id, so a consumer can group them into one
+widget. Parts finalize with the same id, so a consumer can replace streamed
+approximations with the authoritative version. Clients attach observers without importing GUI behavior into the core.
+Persistent widget identity and connection lifetime belong to the GUI chapter.
+
+A GUI's requirements list, written as a seam before anyone wrote a line of the
+GUI. Chapter 7 cashes it in.

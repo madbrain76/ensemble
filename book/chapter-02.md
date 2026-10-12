@@ -1,5 +1,9 @@
 # Chapter 2: One Log, Three Vendors
 
+*The opening preserves CodeRhapsody's first-edition account. Its migration,
+measurements and dated API observations describe that work. The second-edition
+student's results are identified separately below.*
+
 ## 2.0 The interface that was a client
 
 Somewhere in my source tree there is an interface called `AIClientInterface`,
@@ -93,7 +97,7 @@ It cannot say what the model actually returned as opposed to what you decided
 to send back. It cannot hold a tool call, or the result of one, or tell them
 apart from prose. It cannot record that something was removed, so a redaction
 is indistinguishable from a conversation that never had the content. It has no
-place for token counts, so `usage` lives in two integers on the client and dies
+place for token counts, so `usage` lives in two integers on Engine and dies
 with the process. It cannot say which model produced a reply, which will matter
 the first time you switch models mid-conversation and a vendor asks for
 material only the original model can read. And its one structural field,
@@ -114,12 +118,9 @@ record of what was said.
 
 ### The contract
 
-This is the last time this book asks you to throw code away. The preface
-made that promise; here is what it means in practice.
-
-From here on every chapter is additive: new events, new tools, new seams, and
-nothing you build in this chapter gets deleted in the next one or the one
-after. The practical consequence is that you should **build the simplest thing
+The conversation representation changes here; Chapter 1's owners remain.
+Later chapters extend and sometimes correct this design as new requirements
+arrive. The practical consequence is that you should **build the simplest thing
 that satisfies this chapter**. Leave no room for the tool loop, for
 concurrency, for skills. All of those are coming, and the chapters are
 sequenced so that each arrives before the weight that would have made it
@@ -131,12 +132,20 @@ code in this chapter uses: a blob reference nothing dereferences, four
 redaction levels for a chapter that stubs one tool result, a `Tool` actor
 before there are tools. The governing rule: data structures are destiny. If they are wrong, every line written against them is wrong, and the
 fix is the rewrite §2.0 just described. So the shape gets built before the
-capability, fully, one time. Everything after this chapter is code, and code
-is cheap to add.
+capability. Later code gets a vocabulary for the facts it will need to record.
 
-The reference solution is public from day one and you may start from ours;
-the graders run your binary and read what it emits, never your source. The
-preface says the rest.
+Extend your own accepted Chapter 1 before consulting the reference solution.
+The reviewer compares the completed attempt afterward. The grader reads the
+binary's behavior; it cannot tell whether the chapter taught you enough to
+build it without an answer key.
+
+History is the new owner in this chapter. Agent owns it alongside Engine;
+History owns the log, reduction, loading and dumping. Shared event/context
+types stay in `internal/common`, and the behavior stays in `internal/history`.
+Engine's vendor translators receive owner access and return facts for Agent to
+append through History. Neither spoke imports the other. Keep the separate
+optional GUI module as a small public-API stub over the same Agent as the CLI;
+browser and WebSocket behavior come in their own chapter.
 
 ## 2.2 "But I only use one vendor"
 
@@ -182,10 +191,11 @@ demands, and nothing else.
 
 Chapter 1 presented the stateless API, every request replaying the whole
 conversation, as a cost. It is also the price of ownership, and it buys the
-one capability a coding agent cannot do without: the ability to edit history.
+one capability a coding agent cannot do without: the ability to edit what
+history contributes to the next request.
 Redaction, replay, compaction, all of the machinery that keeps an agent alive
-past its context window, depends on the history being yours to rewrite before
-you send it. Vendors offer server-side threads that would take the re-send
+past its context window, depends on the projection being yours to rewrite before
+you send it, while the original facts stay in the log. Vendors offer server-side threads that would take the re-send
 cost away. They take the editing away with it, and §2.6 declines them for
 that reason.
 
@@ -222,7 +232,7 @@ convenience. In Chapter 4, when tool output starts arriving by the megabyte, a
 log you cannot grep is a log you cannot debug, and the convenience is what
 saves the afternoon.
 
-The unit, from `solutions/ch02/event.go`:
+The original event shape, retained here as shared vocabulary:
 
 ```go
 type Seq uint64
@@ -273,7 +283,8 @@ to a different model as though it had thought it.
 `ResponseEnded.Parts` holds everything the assistant produced in one reply,
 text and tool calls together, in the order it produced them; `ToolCalled` is
 an engine event with no dialogue content, recording that a call was actually
-dispatched, so that Chapter 4 can time one and Chapter 5 can cancel one. The
+dispatched, so later job and interruption code can distinguish what ran from
+what was merely requested. The
 other coherent reading, a `ToolCalled` per call with `ResponseEnded` carrying
 only text, throws away the order of text relative to calls inside a single
 turn, and the model chose that order.
@@ -296,8 +307,9 @@ newContext = Apply(context, event)
 
 That notation describes information flow: everything needed to advance the
 context is in the context plus one event. It is not a demand for value
-semantics. In Go the right implementation is a pointer receiver mutating in
-place, and a `Context` full of slices copied by value gives you two contexts
+semantics. In Go a reducer can mutate a context through a pointer; with
+`Context` in common, a free function in History's package keeps that behavior
+with its owner. A `Context` full of slices copied by value gives you two contexts
 sharing one backing array, a bug that looks exactly like renderer
 non-determinism and that §2.8 will make you hunt for in four other places
 first.
@@ -312,9 +324,8 @@ the exercise under `ephemera`.
 
 ### Turn state
 
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 6 adds
-`Interrupted`, and it will have to be a *state* and not a flag, or replay
-re-executes tool calls that were cancelled.
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Interruption belongs to
+Chapter 5; do not add its machinery to this synchronous exercise.
 
 | transition | result | note |
 |---|---|---|
@@ -333,8 +344,8 @@ event type you do not recognize never reaches the switch at all, because the
 loader refused the log before you got here (§2.8), and that is the loud
 failure. The quiet one belongs to the events you do know.
 
-Four lines of a session against the fake, as they sit on disk, wrapped for the
-page:
+Four illustrative event lines, wrapped for the page. These are format examples,
+not a captured session; the exercise below supplies a complete copyable log.
 
 ```
 {"seq":1,"type":"message_received","time":"2026-09-14T09:12:03Z",
@@ -349,10 +360,6 @@ page:
  "message":{"actor":"human","parts":[{"type":"text","text":"What was it?"}]}}
 ```
 
-[VERIFY: regenerate this excerpt from an actual `dump` before print; the field
-names are from the struct tags in `event.go` and `part.go`, the values are
-illustrative.]
-
 Look at what `request_sent` does not contain: the request. The body is derived
 output, reproducible by replaying the log through a renderer, and storing it
 would be storing the answer to a question the log exists to let you re-ask.
@@ -362,7 +369,7 @@ would be storing the answer to a question the log exists to let you re-ask.
 The context is the state of the conversation with every vendor's opinion
 removed. Dialogue, in order, with each entry attributed to whoever produced it.
 Pending ephemera. Token accounting. Opaque replay material, carried and never
-read. Here it is, from `context.go`:
+read. The shared shape is:
 
 ```go
 type Context struct {
@@ -378,6 +385,10 @@ type Entry struct {
 	Parts PartList `json:"parts"`
 }
 ```
+
+`Context.Usage` is historical accounting derived from response events. Engine
+still owns the measured usage of its live exchanges. Loading an old log for
+offline rendering does not pretend that today's Engine made those requests.
 
 The actors are `Human`, `Agent`, `System`, and `Tool`. There is no `To`
 field, on purpose: addressing is a property of the room a conversation happens
@@ -418,6 +429,11 @@ type RedactedPart struct {
 }
 ```
 
+These names describe the variants, not a required Go decoding framework. The
+accepted student used one tagged Part struct with explicit fields, like Event,
+and kept the same JSON shapes. A sealed interface is also a choice; the wire
+contract and preserved distinctions are what matter.
+
 An entry's content is a list of typed parts: prose, a tool call, a tool result,
 a reference to bytes that live somewhere else, a vendor's opaque replay
 material, or the stub left behind when something was removed. A string can be
@@ -429,12 +445,22 @@ local path, a remote URI, or a framework handle, and there is deliberately no
 "inline" kind: base64 is a rendering decision made while building one vendor's
 request, and it never gets written back into the log. A bare path cannot
 express three of the four ways Gemini accepts a file, nor the `file_id` source
-Anthropic offers. Nothing in this chapter exercises a blob; Chapter 4 fills
-the first one in, when tool output gets too large to carry inline.
+Anthropic offers. This chapter preserves and redacts references without
+loading or rendering their media. Chapter 4 begins using references for large
+tool output; attachment rendering is a separate capability. An unredacted blob
+must fail explicitly when the renderer cannot represent it. Do not fetch a URI,
+read a local file or invent a media loader to finish this chapter.
 
 `RedactedPart` is the *result* of a redaction, and it replaces the parts it
 supersedes, carrying their `Ref` forward when there was one: the stub says how
 many bytes went, and the `Ref` still says where they are.
+
+Preserve both Kind and Locator exactly, including paths, URIs and handles.
+Redaction changes the projection; dumping afterward must still reproduce the
+original content. An early grader amendment required Gemini URI media rendering
+here despite the shape-before-capability rule. The student received a recorded
+exception for that extra behavior, not for losing references. The revised
+checks retain the Ref requirements without importing the later capability.
 
 ### Where the system prompt lives
 
@@ -448,7 +474,7 @@ abuse, and the abuse has a predictable shape. First someone describes the tools
 in it by hand. Then the descriptions drift from the actual tools. Then part of
 it is generated and part hand-written and nobody can say which. By the time it
 is four hundred lines, nobody will delete a word, because nobody can prove which
-words are load-bearing. Chapter 10 replaces the constant with generation from
+words are load-bearing. The skills chapter replaces the constant with generation from
 skills, and under §2.1 that has to be a pure addition, which it is, provided
 the system prompt was never a stored value in the first place.
 
@@ -479,6 +505,13 @@ write time, by the client that produced the content, because by the time you
 are rendering, the model that produced a signature three turns ago is not
 derivable from anything else in the context. Miss it at capture and the
 information is gone.
+
+A requested routing name may be an alias; it is not necessarily the returned
+model identity. Capture the provider's actual identity when supplied, and keep
+the request's routing name separate from an explicitly resolved replay target.
+The environment contract below supplies `LLM_RESOLVED_MODEL` for the latter.
+Matching a prewritten signature tests rendering. It does not establish that
+the parser captured the signature or its true producer in the first place.
 
 The reason the grain has to be this fine is thinking signatures, the encrypted
 reasoning material a model hands you so that you can hand it back. The clean
@@ -820,6 +853,15 @@ two and three consecutive `user` turns return 200 and all get read, as does a
 conversation that opens with a `model` turn. The merge is a fact about one
 wire format, and it belongs in exactly one function.
 
+The second-edition reviewer found the case hidden by the single-result example.
+Suppose the assistant calls two tools, and the log receives result one, human
+text, then result two. Appending blocks as they arrive produces
+`result one, text, result two`, which violates the rule above. Finish the merge
+before putting all results first, preserving order within the results and
+within the remaining content. The original log and Context keep arrival order;
+only Anthropic's disposable request gets that grouping. The student's first
+tests passed with the bad ordering. An independent offline replay exposed it.
+
 ### Exhibit C: parsing back
 
 Three response shapes normalize to one context:
@@ -846,6 +888,12 @@ submission whose contexts differ anywhere else has leaked vendor shape past
 the parser, and leaked vendor shape is what makes the second implementation a
 copy-paste.
 
+Canonicalized arguments still have to mean the same thing. The student found
+that decoding arbitrary JSON numbers through a floating-point value could change
+`9007199254740993`. Preserving JSON numbers during decoding kept the argument
+exact; a targeted regression detected the rounding when that preservation was
+removed. Canonicalization is not permission to change what the model asked.
+
 Also normalized here: usage, per the table in §2.5, and errors. An HTTP 429 is
 an `ErrorOccurred`, not a response.
 
@@ -856,11 +904,10 @@ an `ErrorOccurred`, not a response.
 history, and editing history is the core tool of a coding agent. Own the
 history or you cannot build the product.
 
-**Media asymmetry is a loud error.** An audio part rendered for a text-only
-model raises. It never silently drops. A fallback converts an invariant
-violation into silently-wrong output, and this chapter's `Config` carries one
-bool and one refusal for exactly this case; a later chapter widens the bool into
-a capability set and keeps the refusal.
+**Media asymmetry is a loud error.** A part the current renderer cannot represent
+raises an error. It never silently drops. A fallback converts an invariant
+violation into silently-wrong output. This chapter requires Ref preservation
+and explicit refusal, without a media capability framework.
 
 **Empty is not absent, and the seam must keep them apart.** A vendor may
 legally return `content: ""`, an assistant turn that genuinely produced no
@@ -942,6 +989,11 @@ Built in the fixed order, verified against live APIs on 2026-09-12:
 | OpenAI | none |
 | Gemini | one field: `ToolCallPart.Opaque` |
 
+Those are the first edition's results. The second-edition student started with
+the chapter's already-informed shape, including `ToolCallPart.Opaque`, and
+recorded zero new Context fields for OpenAI and zero for Gemini. That is a
+successful use of the earlier lesson, not an independent rediscovery of it.
+
 The seam held on the harder half. OpenAI's surface disagrees with Anthropic's
 about tool-result authorship, about id handling, and about usage conventions,
 and it cost the context nothing at all.
@@ -1005,27 +1057,59 @@ order is defined by the source and cannot drift.
 
 ## Exercise
 
-Three commands, one binary, no flags.
+Three named commands, one binary, no flags. With no command, use the JSON-lines
+protocol inherited from Chapter 1.
 
 | command | behavior |
 |---|---|
 | `./ch02 chat` | Chapter 1's interactive loop, unchanged in observable behavior |
 | `./ch02 render LOG` | play `LOG` through the reducer and a renderer; print the vendor request JSON that *would* be sent, and nothing else, to stdout; exit 0. **Makes no network call.** |
-| `./ch02 dump` | write the event log as JSON-lines |
+| `./ch02 dump` | load the file named by `CH02_LOG` and write its events as JSON-lines; no network call |
 
 `render` is the centerpiece. It turns replay, redaction, ephemera and the seam
 into byte comparisons. If your architecture cannot offer `render` cheaply,
 your context is not actually separate from your transport, and that is the
 finding the exercise exists to surface.
 
-`render` takes no flags. The vendor target, the model id, and every other
-request parameter come from the environment, `LLM_VENDOR=anthropic|openai|
-gemini` and friends, exactly as in grader mode. Two renders get compared byte
-for byte, and the moment rendering accepts `--model`, byte-identity becomes a
-property of how you invoked the command instead of a property of the log.
-Grader mode is the default, as in Chapter 1: no arguments, stdio protocol, the
-same three environment variables plus the vendor's, and nothing on stdout but
-protocol.
+`render` takes its target configuration from the environment, exactly as grader
+mode does. Two renders of the same log with the same target configuration must
+match byte for byte. Keeping one configuration path prevents the offline
+command and live sender from quietly using different settings.
+
+| variable | meaning |
+| --- | --- |
+| `LLM_VENDOR` | `anthropic`, `openai` or `gemini`; absent selects Anthropic |
+| `LLM_MODEL` | requested model/routing name |
+| `LLM_RESOLVED_MODEL` | optional known exact target identity for replay matching; does not replace the routing name |
+| `LLM_API_KEY` | live credential, never stored in a log or request-body render |
+| `LLM_BASE_URL` | endpoint base; the grader points it at a local fake |
+| `CH02_LOG` | session log destination and standalone `dump` input |
+
+Keep Chapter 1's `ANTHROPIC_MODEL`, `ANTHROPIC_API_KEY` and
+`ANTHROPIC_BASE_URL` when generic settings are absent. The harness also supplies
+the corresponding vendor's base-URL variable. Offline `render` and `dump` need
+no key or live endpoint. When `CH02_LOG` is absent, choose and document a small
+usable default; the accepted CLI uses `ch02.jsonl` in its working directory.
+The library owns no global filename. Sessions start fresh and save their events
+so a later process can dump them; automatic resume and crash-safe journaling
+are not this exercise.
+
+In default protocol mode, one JSON object occupies one line:
+
+| input | output and effect |
+| --- | --- |
+| `{"user":"Hello"}` | one `{"assistant":"..."}` answer |
+| `{"ephemeral":"STATUS=ready"}` | `{"ack":"ephemeral"}`; queue for the next request, without making a model call |
+| EOF | `{"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}`, with actual cumulative counts in place of the zeros; exit 0 |
+
+The ephemeral payload is a string, including when it is empty. Its arrival is
+logged as System input, delivery consumes the pending material, and it never
+becomes retained dialogue. A model may quote it in its answer; that answer is
+ordinary dialogue, so searching the entire later request for the same words
+does not establish whether the instruction was delivered twice. Check the
+instruction's placement and lifecycle. There are no stdin commands to inject
+tool results, redact or dump: those events enter this exercise through supplied
+logs. Diagnostics go to stderr; stdout contains only the documented protocol.
 
 **Build the renderers in this order: Anthropic, then OpenAI, then Gemini.** The
 order is what makes §2.7's prediction a test rather than a flattering one. Note
@@ -1039,10 +1123,54 @@ JSON-lines, one event per line, ascending `seq`. Each line carries at minimum
 format must round-trip: `dump`, then `render` in a fresh process with no other
 state.
 
-The event-type vocabulary is frozen: the eight names in §2.4. Spell them as you
-like. The grader compares type names and field names lowercased with
-punctuation stripped, so `ToolCalled`, `tool_called` and `TOOL-CALLED` are the
-same event. What it cannot do is guess that you called it `Halted`.
+The public input spelling is the eight names from §2.4 in snake case:
+`message_received`, `request_sent`, `response_started`, `response_ended`,
+`tool_called`, `tool_returned`, `redacted`, `error_occurred`. Actor strings are
+`human`, `agent`, `system`, `tool`. Surfaces are `messages`, `chat_completions`
+and `generate_content`; accept the historical Gemini input alias
+`generatecontent`, but emit one canonical spelling. Internal Go names are your
+choice. The grader tolerates some spelling variations on output; that does not
+excuse failing to read these public inputs.
+
+Event payloads nest under the matching envelope field. Messages use
+`message:{actor,parts}`; requests use `request:{to}`; started/ended responses use
+`response:{parts,usage,from}`; tool dispatch uses `tool:{call_id,name,args}` and
+return uses `tool:{call_id,parts,is_error}`. `is_error` may be omitted for false.
+Errors use `error:{message}`. Redaction uses `redact:{from,to,level,reason}`,
+plus `replacement` for a summary. Its levels are `redact_result`, `redact_tool`,
+`redact_dialogue`, `redact_summary`; From/To are an inclusive sequence span.
+
+Parts use a `type` tag: `text`, `blob`, `opaque`, `tool_call`, `tool_result` or
+`redacted`, with the lowercase field names from §2.5 (`call_id` and `is_error`
+use underscores). `from` holds `{vendor,model,surface}`. `args`, `data` and
+`opaque` carry JSON values, not JSON encoded a second time inside a string.
+For example, a blob part is
+`{"type":"blob","mime":"image/png","ref":{"kind":2,"locator":"https://example.invalid/p.png"}}`.
+Ref kinds are numeric: 1 path, 2 URI, 3 handle; zero is invalid for a blob. A
+text-only redaction stub has no locator. Ref is preserved data here, not a
+request to fetch that example URL.
+
+Save this complete illustrative input as `sample.jsonl`, keeping each event on
+one line. It uses fixture model names, requires no credentials and executes no
+tool. It supplies the two-result ordering case as well as a redaction:
+
+```jsonl
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:01Z","message":{"actor":"human","parts":[{"type":"text","text":"Read the two files."}]}}
+{"seq":2,"type":"request_sent","time":"2026-01-01T00:00:02Z","request":{"to":{"vendor":"anthropic","model":"example-model","surface":"messages"}}}
+{"seq":3,"type":"response_ended","time":"2026-01-01T00:00:03Z","response":{"parts":[{"type":"tool_call","call_id":"one","from":{"vendor":"anthropic","model":"example-model","surface":"messages"},"name":"read_file","args":{"path":"one.txt"}},{"type":"tool_call","call_id":"two","from":{"vendor":"anthropic","model":"example-model","surface":"messages"},"name":"read_file","args":{"path":"two.txt"}}],"usage":{"input":12,"cache_write":0,"cache_read":0,"output":4},"from":{"vendor":"anthropic","model":"example-model","surface":"messages"}}}
+{"seq":4,"type":"tool_called","time":"2026-01-01T00:00:04Z","tool":{"call_id":"one","name":"read_file","args":{"path":"one.txt"}}}
+{"seq":5,"type":"tool_returned","time":"2026-01-01T00:00:05Z","tool":{"call_id":"one","parts":[{"type":"text","text":"first file secret"}]}}
+{"seq":6,"type":"message_received","time":"2026-01-01T00:00:06Z","message":{"actor":"human","parts":[{"type":"text","text":"Compare them."}]}}
+{"seq":7,"type":"tool_called","time":"2026-01-01T00:00:07Z","tool":{"call_id":"two","name":"read_file","args":{"path":"two.txt"}}}
+{"seq":8,"type":"tool_returned","time":"2026-01-01T00:00:08Z","tool":{"call_id":"two","parts":[{"type":"text","text":"second file result"}]}}
+{"seq":9,"type":"redacted","time":"2026-01-01T00:00:09Z","redact":{"from":5,"to":5,"level":"redact_result","reason":"example"}}
+```
+
+`dump` must preserve the original secret; `render` must replace that result
+with a stub, keep both calls, keep the second result and keep the human text.
+The Anthropic merged user message places both results before “Compare them.”
+Changing the target vendor changes the wire shape, never the recorded events.
 
 ### The fakes
 
@@ -1060,7 +1188,7 @@ live, you have to run it live.
 | check | pts | property |
 |---|---|---|
 | `session` | 0 | stdio protocol honored; directives acknowledged; request census |
-| `ch1parity` | 25 | all seven Chapter 1 checks still pass, unchanged |
+| `ch1parity` | 10 | all seven Chapter 1 checks still pass, including the corrected version check |
 | `logdump` | 5 | log round-trips: `dump` → `render` in a fresh process |
 | `replay` | 10 | two renders of one log are byte-identical |
 | `redaction` | 10 | a `Redacted` event names its target; content absent from later renders |
@@ -1068,14 +1196,19 @@ live, you have to run it live.
 | `usage` | 10 | all four token categories normalized from all three vendors into one **disjoint** set, summing to the billable total |
 | `seam-render` | 15 | one log renders correctly to all three vendor request shapes, and per-call replay material survives a round trip back to the model that issued it |
 | `seam-parse` | 15 | three vendor responses produce contexts agreeing on **everything the model said**: actors, text, tool-call names, canonicalized arguments; `Provenance`, vendor-issued ids, and model-bound opaque material legitimately differ |
+| `ref-roundtrip` | 3 | blob Ref kind/locator survive log serialization |
+| `ref-oldformat` | 2 | obsolete bare `path` is refused |
+| `ref-zerokind` | 2 | blob Ref kind zero is refused |
+| `ref-redaction` | 8 | original dumped facts remain intact while the redacted render removes content and retains a useful stub |
 
 The ones you cannot infer from the table:
 
 - **`session` is worth zero and can still sink you.** Without it, one
   unacknowledged directive fails four checks at once and you get four mysteries
   instead of one cause.
-- **`ch1parity` is a quarter of the grade** because a rewrite that quietly
-  breaks Chapter 1's contract has to look unsurvivable.
+- **`ch1parity` protects the original conversation,** even while the
+  representation changes. The first edition's printed 25-point weight was
+  stale; the actual allocation is 10.
 - **`ephemera` grades the observable property and takes no position on
   storage.** The intended reading: an ephemeral part *is recorded in the log*
   and *never enters the dialogue*. Read it as "never reaches the log" and you
@@ -1110,6 +1243,26 @@ That is mutation testing pointed at the spec instead of at the code, and it is
 the first pass to run against any grader, including the ones already written.
 A check that cannot fail is a green dashboard with a schema around it.
 
+The second-edition student found the next gap: a fixture containing a saved
+signature could pass while the parser discarded new signatures. Wrong Gemini
+result names and a routing alias substituted for the returned model identity
+also survived the original grader. The corrected seam checks exercise capture
+as well as replay, and the interleaved-result case from Exhibit B. Exact Ref
+carryforward through the reducer remains a source-test and review obligation;
+a secret-free rendered stub alone cannot prove which locator survived inside.
+
+From the repository root, grade your own directory with:
+
+```bash
+go run ./cmd/grade-edition2 -ch 2 path/to/your/solution
+```
+
+The revised table preserves 100 points. The old four-point URI-render check is
+removed from this chapter's scope and its points join the corrected redaction
+check. The original student's score remains 92/100 FAIL under the unchanged
+original grader, accepted after independent review with the media exception.
+That history is separate from results under the corrected grader.
+
 ### What you are not building
 
 No tool loop; that is Chapter 3. No jobs; Chapter 4. No mailbox, hints, or
@@ -1125,65 +1278,77 @@ a better argument for the architecture than a diagram. This chapter's payoff is
 quieter and, once you see it, larger: the same conversation, through three
 different vendors, from one log.
 
-Against the fake, free and keyless:
+Start with the free, keyless grader above, pointed at your own implementation.
+The first edition's convenience launchers run its reference solution; they do
+not demonstrate the program you just wrote.
+
+The fake's scripted replies do not depend on understanding what you said.
+A fake proves your plumbing, not your prompting.
+
+Build from your implementation directory, then use your actual chat interface
+against all three. Before each invocation, set `LLM_MODEL`, `LLM_API_KEY` and
+`LLM_BASE_URL` for that provider, using a discovered model rather than a name
+remembered from the book:
 
 ```
-go run ./cmd/fakevendor -ch 2 chat
-go run ./cmd/fakevendor -ch 2 -vendor gemini chat
-go run ./cmd/fakevendor -ch 2 -vendor openai chat
+go build -o ch02 .
+LLM_VENDOR=anthropic CH02_LOG=anthropic.jsonl ./ch02 chat
+LLM_VENDOR=openai CH02_LOG=openai.jsonl ./ch02 chat
+LLM_VENDOR=gemini CH02_LOG=gemini.jsonl ./ch02 chat
 ```
 
-The fake will tell you outright that it is scripted and did not read what you
-said. Believe it. A fake proves your plumbing, not your prompting.
-
-Live, against all three:
-
-```
-scripts/live.sh 2 anthropic
-scripts/live.sh 2 gemini
-scripts/live.sh 2 openai
-```
-
-The scripted session asks the model to invent a codename, asks an unrelated
-question, then asks for the codename back. The recall proves the entire
-history is being re-sent and re-rendered on every request, and three wire
-formats produce the same remembered word. Then read the usage line it prints:
+Ask the model to invent a codename, ask an unrelated question, then ask for the
+codename back. Recall is the visible payoff; inspecting requests independently
+checks that the whole history was sent. In the student's October 9 terminal
+runs, Anthropic remembered “Quiet Lantern,” OpenAI “Blue Falcon,” and Gemini
+“SILENT VOYAGER.” Each session had its own word and log. The Anthropic session's
+four totals were:
 
 ```
-{"usage":{"input":737,"cache_write":0,"cache_read":0,"output":350}}
+{"usage":{"input":324,"cache_write":0,"cache_read":0,"output":23}}
 ```
 
+This is the protocol-form representation of the totals displayed by chat.
 Four counters, disjoint by construction. None of the three vendors reports
-that shape, and §2.5 is the argument for why it is the one you record.
-[VERIFY: re-run before print; the counts are from the 2026-09-12 run.]
+that shape, and §2.5 is the argument for why it is the one you record. The
+[live record](../../solutions/edition-2/evidence/ch02/live.txt) retains all three
+runs and an initial OpenAI HTTP 404. Discovery listed that model; the request
+still failed. No retry or guessed explanation was substituted for the result.
 
 The thing most worth trying: record one session, then render it as two
 different vendors without touching the network.
 
 ```
-CH02_LOG=/tmp/s.log go run ./cmd/fakevendor -ch 2 chat
-LLM_VENDOR=anthropic ./ch02 render /tmp/s.log
-LLM_VENDOR=gemini    ./ch02 render /tmp/s.log
+CH02_LOG=anthropic.jsonl ./ch02 dump
+LLM_VENDOR=anthropic LLM_MODEL=offline ./ch02 render anthropic.jsonl
+LLM_VENDOR=gemini LLM_MODEL=offline ./ch02 render anthropic.jsonl
 ```
 
-Nine lines of log produced 896 bytes of Anthropic JSON and 851 bytes of Gemini
-JSON on the run that wrote this paragraph. One opens with `system` and
+The student's nine-event Anthropic log produced 718 bytes of Anthropic JSON
+and 650 bytes of Gemini JSON, including the trailing newline. One opens with `system` and
 `messages`, the other with `systemInstruction` and `contents`. Nothing is
-shared but the conversation, and `seam-render` grades exactly this. [VERIFY:
-byte counts from the 2026-09-12 run; re-derive.]
+shared but the conversation, and `seam-render` grades exactly this. Each of the
+three live logs was rendered twice to each of the three targets: all nine pairs
+matched byte for byte with no key and an unreachable endpoint. These were text
+conversations; the run does not claim live tools, media or signature replay.
 
 Then record against one vendor and render as another. A conversation that
 happened in Anthropic's format becomes a well-formed Gemini request. Nothing
 about that should work, and it does, because the log is nobody's wire format.
 
-Commit and tag the passing state:
+Try the ephemeral directive too, through the JSON-lines interface, and inspect
+the saved log and request projection. The student's purple-kettle instruction
+was delivered once. The model later claimed its earlier answer had been made
+up, even though that answer remained in the dialogue. Model narration and the
+record disagreed; the event/request boundary supplied the evidence.
 
-```
-git commit -am "ch2: one log, three vendors, grader 100"
-git tag ch02-pass
-```
+Commit the reviewed state with only your intended paths, then give it a fresh
+tag. Keep actual grader results and any accepted exception in the chapter
+record; never move an old tag or turn an accepted exception into a score of 100.
 
 You now own a record of every conversation your agent will ever have that no
 vendor's schema can reach into, and it will replay through renderers you have
 not written yet, for wire formats that do not exist yet. The one in §2.0 cost
-a year and is still being paid for. Yours cost one field.
+a year and was still being paid for in the first-edition account. This time,
+that cost is a lesson the student can apply before paying it again.
+

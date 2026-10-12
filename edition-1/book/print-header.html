@@ -1,0 +1,26 @@
+<style>
+@page         { size: 6in 9in; margin: 0.75in 0.25in  0.75in 0.625in; }
+@page :left   { size: 6in 9in; margin: 0.75in 0.625in 0.75in 0.25in;  }
+@page :right  { size: 6in 9in; margin: 0.75in 0.25in  0.75in 0.625in; }
+@page         { @bottom-center { content: counter(page); font-size: 9pt; font-family: Georgia, serif; } }
+body          { font-family: Georgia, serif; font-size: 11pt; line-height: 1.4; }
+h1            { font-size: 16pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
+h2            { font-size: 14pt; margin-top: 2em; }
+h3            { font-size: 12pt; margin-top: 1.5em; }
+p             { margin: 0; text-indent: 1.5em; }
+p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
+table         { border-collapse: collapse; margin: 1em auto; font-size: 10pt; }
+th, td        { border: 1px solid #666; padding: 4px 8px; }
+th            { background: #eee; }
+code          { font-size: 9pt; background: #f4f4f4; padding: 1px 3px; }
+pre           { font-size: 9pt; background: #f4f4f4; padding: 8px; overflow-x: auto; white-space: pre-wrap; }
+blockquote    { margin: 1em 2em; font-style: italic; }
+.front-matter          { page-break-after: always; padding-top: 4em; }
+.front-matter p        { text-indent: 0; margin-bottom: 1em; }
+.fm-title              { font-size: 22pt; font-weight: bold; text-align: center; margin-bottom: 0.3em !important; }
+.fm-subtitle           { font-size: 14pt; text-align: center; font-style: italic; margin-bottom: 2em !important; }
+.fm-section-head       { font-weight: bold; margin-top: 2em !important; }
+.dedication            { page-break-after: always; padding-top: 10em; text-align: center; font-style: italic; }
+.dedication p          { text-indent: 0; }
+.tocpg                 { float: right; }
+</style>

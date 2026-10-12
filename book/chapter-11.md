@@ -1,260 +1,462 @@
-# Chapter 11: Persistence
+# Chapter 11: MCP: The Extension Protocol
 
-Every agent in this book so far is a goldfish. It reasons, calls tools,
-drives its own GUI and loads skills on demand, and the moment the
-process exits it forgets the user's name, the project, the afternoon of
-work and every decision made along the way. The next start meets a
-stranger. This chapter ends that. Nothing else in the book changes more
-about what the agent is: a program that runs becomes one that
-remembers.
+Every tool the agent has used so far was compiled into the binary. Adding a new one means writing Go, rebuilding, and restarting. MCP, the Model Context Protocol, is a JSON-RPC 2.0 wire protocol for connecting an agent to external tool servers: processes, browsers, remote services. This chapter builds the client, the transport layer, and a course extension: ephemeral tools that the engine calls automatically, injecting their output into the context window without declaring them to the LLM.
+
+A browser snapshot makes the distinction useful. The model needs to know which
+tab is selected before deciding what to click. Asking it to remember to request
+a snapshot adds a tool round and leaves correctness dependent on its memory.
+Automatic context puts the observation where the decision needs it. The tool
+still does real work, and the request must wait for that work to finish.
 
 ## TL;DR
 
-The agent saves itself on exit and loads itself on start. Neither needs
-a flag. The save file is one JSON object: the configuration that shaped
-the wire, the ch2 context as a snapshot, the Seq that snapshot was taken
-at, and the event log. A load installs the snapshot and replays only the
-events after its anchor. A snapshot with no log is a complete save. So
-is a log with no snapshot.
+The client sends `initialize`, receives capabilities, sends
+`notifications/initialized`, then calls `tools/list` to discover what the server
+offers. Admit discovered tools through the owning skill's grants. Ordinary
+admitted tools use the existing model declarations and job dispatch; hidden
+automatic tools supply completed round or turn context. The bidirectional
+channel also carries reverse requests to enabled Agent tools.
+
+The exercise implements the historical wire version `2024-11-05`. Its reverse
+`tools/call`, `ephemeral` field and `$/cancelRequest` notification are course
+contracts. This chapter does not claim compatibility with every current MCP
+server or present those extensions as current standard requirements.
+
+Extend Chapter 10 with replaceable transports, request correlation, actual
+job cancellation, hidden automatic context, browser tunneling and skill-owned
+server startup/shutdown. Keep the common interfaces, real parent relationships
+and optional GUI module. The exercise and check table below cover the same
+capabilities through their appropriate clients; `--mcp-pipe` is a dedicated
+protocol service, with no implicit model turn. From the repository root, grade
+with `go run ./cmd/grade-edition2 -ch 11 path/to/core`.
+
+## Transport
+
+One interface, multiple implementations:
 
 ```go
-// SaveFile is the whole agent on disk.
-type SaveFile struct {
-    Config  SaveConfig `json:"config"`
-    AsOf    Seq        `json:"as_of"`   // last event folded into Context
-    Context *Context   `json:"context"` // ch2 Context as-is; null = rebuild
-    Log     []Event    `json:"log"`     // ch2 events, oldest first
-}
-
-// SaveConfig records what shaped the wire. Never the API key.
-type SaveConfig struct {
-    Model        string     `json:"model"`
-    Vendor       string     `json:"vendor"` // "anthropic", "gemini", "openai"
-    SystemPrompt string     `json:"system_prompt"`
-    Tools        []ToolDecl `json:"tools"`
-}
-
-// ToolDecl gains JSON tags so tools[].name reads cleanly on disk.
-type ToolDecl struct {
-    Name        string          `json:"name"`
-    Description string          `json:"description"`
-    Schema      json.RawMessage `json:"schema"`
+// MCPTransport carries whole messages independently of GUI framing.
+// Close must unblock both directions; one receiver and concurrent senders use it.
+type MCPTransport interface {
+    // Send writes one complete JSON-RPC message.
+    Send(msg json.RawMessage) error
+    // Recv reads one complete JSON-RPC message.
+    Recv() (json.RawMessage, error)
+    // Close releases the boundary and wakes blocked I/O.
+    Close() error
 }
 ```
 
-1. **Default location.** The save file is `save.json` in the working
-   directory, beside `settings.json`. `--save PATH` names a different
-   file. The flag changes where, never whether: the same path is loaded
-   at start and written at exit.
-2. **Load at start.** A missing file means a fresh start. A file that
-   exists but does not parse as a `SaveFile` is a fatal error: exit
-   non-zero, name the file, leave its bytes untouched. Starting fresh
-   over a save that failed to load would overwrite the user's history
-   at exit.
-3. **Snapshot plus tail.** If `context` is non-null, install it, then
-   apply in order every log event with `seq > as_of`. If `context` is
-   null, apply every log event to a fresh context. Events at or below
-   `as_of` are already inside the snapshot; applying one twice is a bug.
-4. **The log is not needed.** `"log": []` with a non-null `context` is a
-   complete save. The vendor sees the context, never the log.
-5. **Numbering continues.** The first new event gets the Seq one past
-   the larger of `as_of` and the last log event's Seq.
-6. **Save at exit.** When stdin closes, write the file and exit. `as_of`
-   is the Seq of the last event folded into the saved context. The
-   saved log is the loaded log plus every event created since, oldest
-   first, Seq strictly increasing.
-7. **Config is a record, not a restore.** On load the running agent's
-   own model, vendor, prompt and tools win. The context is
-   vendor-independent (ch2); the save must not pin a model.
-8. **Replay is deterministic.** For a save whose log is complete (every
-   save the agent writes itself), loading it as written and loading it
-   with `context` set to null must produce byte-identical vendor
-   requests for the next prompt. A trimmed log (rule 4) has nothing to
-   replay, so the rule cannot apply to it.
+**Pipe**: an in-process connected pair, for testing the actual client and codec.
+**Stdio**: spawns a subprocess, JSON-RPC over its stdin/stdout.
+**Raw**: wraps an `io.Reader` and `io.Writer`; the `--mcp-pipe` flag uses this.
+**WebSocket**: tunnels JSON-RPC through the GUI server to the browser.
 
-Yours: indentation, whether to write through a temporary file and rename
-(recommended; a crash mid-write otherwise destroys the only copy), a
-`verify` subcommand for debugging, and what to print on load.
+The interface belongs in `internal/common`, with a public alias for external
+clients. Raw, pipe and subprocess behavior belongs in the MCP package.
+WebSocket framing belongs in the separate GUI module, so a headless consumer
+does not acquire a browser dependency merely to call an external tool.
 
-**Exercise.** Start from your ch10 agent. Add save and load until
-`make grade-dir CH=11 DIR=path/to/agent` scores 100/100.
+Agent owns the MCP manager; the manager owns its clients. A client reaches
+admission, jobs and diagnostics through manager → Agent → Ensemble. The GUI
+transport keeps its actual server parent. The composition root establishes
+those relationships. A reader and writer are boundary resources, and need no
+invented domain parent or bag of sibling services.
 
-| Check | Points | Proves |
-|---|---|---|
-| save-shape | 15 | config fields present, `as_of` equals the last log Seq, log Seq strictly increasing |
-| default-load | 20 | a second start in the same directory, no flags, sends the first session's prompts to the vendor |
-| replay-equals-snapshot | 20 | rule 8 |
-| tail-applied-once | 15 | turn-2 snapshot spliced onto the turn-3 log yields the same next request as the turn-3 save |
-| log-not-needed | 10 | rules 4 and 5 |
-| bad-save-refused | 5 | rule 2 |
-| ch10-parity | 15 | chapter 10 still passes |
+Serialize whole outgoing messages: a reverse reply can arrive while another
+goroutine sends a request. Closing a transport must wake blocked I/O. For a
+subprocess that includes closing its pipes, stopping its process group and
+reaping the child; closing only the Go wrapper leaves a server running after
+its skill has gone away.
 
-## §11.1 In Plain Words
+## Codec
 
-The event log is the truth. The context is what the truth means right
-now. Chapter 2 split them on purpose: events are appended and never
-edited, and the context is whatever `Apply` makes of them. Ten
-chapters later the split has carried streaming, jobs, artifacts, and
-skills without once being tested for the one thing it was built for.
+The codec handles JSON-RPC correlation: outgoing requests get incrementing integer IDs, responses are matched by ID and delivered to the blocked caller. A background goroutine reads the transport and dispatches: responses go to pending callers, incoming requests go to reverse tool handling.
 
-That thing is this: the context must be a pure function of the events.
-No clock, no map iteration order, no field set by the engine behind the
-reducer's back. Every chapter since has assumed it. Nothing has checked
-it. An agent that runs start to finish in one process can violate it
-forever and never notice, because the live context is the only copy
-anyone ever looks at.
+One client can own the transport, ID counter, pending-reply map and reader.
+The accepted implementation keeps correlation there; a separately exported
+`Codec` would add an ownership layer with no other user. The mechanism matters
+more than the extra object.
 
-Saving creates a second copy. Once a snapshot sits on disk next to the
-log that produced it, the claim becomes falsifiable: rebuild from the
-log, compare with the snapshot, and any difference is a reducer bug
-with a name. Persistence is the feature a user sees. Verification is
-the reason it belongs this early in the book.
+Keep the reader free while executing a reverse call. That tool might itself
+call the peer, whose reply needs the same reader. Running the handler on the
+reader goroutine would let both sides wait forever for a message already on
+the wire. Concurrent requests also need an out-of-order reply test: two correct
+answers delivered to the wrong callers are two failures.
 
-## §11.2 The Save File
+## MCP Client
 
-Four fields:
+The client initializes, discovers tools, calls them and closes its transport.
+Its owner supplies reverse dispatch through the existing Agent interface.
+The public embedding API exposes `Agent.MCP().Connect(ctx, name, transport)`;
+`ensemble.NewMCPTransport(reader, writer, closer)` adapts streams, and
+`ensemble.MCPPipe()` returns a connected pair. With skills enabled, the peer's
+name must match a declared server. `Connect` performs initialization and discovery
+before making the peer's tools available.
+
+`tools/call` sends `params` with a string `name` and object `arguments`. Text
+results arrive in ordered `content` blocks. Preserve a tool's `isError` result
+as a failed tool outcome; a JSON-RPC error is a protocol failure. Neither should
+be turned into a successful empty string.
+
+MCP tool calls go through the same job infrastructure as `run_command`.
+If the job is killed, its context is cancelled and the client sends
+`$/cancelRequest` with the request ID to the server. A callback deadline only
+returns control and a job handle. Interrupt ends the current turn while the
+job continues; shutdown stops the owned work and closes peers. One context
+cannot represent all four lifetimes.
+
+## Ephemeral Tools
+
+A discovered tool may carry an `ephemeral` field: `"round"` or `"turn"`. Ephemeral tools never appear in the tool declarations sent to the LLM. The model cannot call them. The engine calls them automatically:
+
+- **round**: called before every `RequestSent`. The GUI snapshot arrives fresh each round.
+- **turn**: called once when a new turn starts, for data that can stay fixed
+  through that turn. A later turn gets a fresh call.
+
+Results are combined and attached through the existing event/reducer path into
+`Context.Ephemera`, the pending field consumed by the next request. The log
+retains the arrival for replay; stale snapshots do not accumulate in dialogue.
+Gather outside the actor so reverse requests, interruption and job facts can
+still be processed. Send the gathered content back with its turn identity and
+attach it only if that turn remains active.
+
+Ephemeral errors are logged but not fatal. A GUI snapshot failure should not abort a turn.
+
+The first student implementation used an ordinary job wait for this gathering.
+An independent peer delayed its turn snapshot by 3.4 seconds. At three seconds,
+the callback returned a running notice with `Use wait_for_job`, and the provider
+request carried that notice where the snapshot should have been. The once-per-turn
+flag had already been set. When the actual result arrived, it was too late to
+serve as that turn's automatic context.
+
+A hidden tool has no model-directed caller to follow up on its handle. Its
+collector needs the completed content, or an actual failure, before releasing
+the provider request. The correction carries the handler's completed result
+through a buffered reply while preserving the ordinary callback path. Enlarging
+the three-second timeout would merely select a slower peer for the next failure.
+
+Interruption still lets the collector abandon the old turn without killing the
+job. The regression holds the old peer reply, interrupts, completes a new turn,
+then releases the old result. Its output remains available through the job,
+and none of that stale context enters the new turn. A separate slow-peer check
+holds both round and turn responses past the callback deadline and verifies that
+no provider request goes out early. These tests exercise the real jobs, actor,
+reducer and renderer, with only the external peers replaced.
+
+## Bridge
+
+The bridge is the seam between MCP's type system and the agent's. It converts
+discovered names, descriptions and input schemas into ordinary tool definitions.
+The engine can then dispatch an admitted remote tool through the same path as
+a compiled one. Inside the accepted manager's `Tools` method, the handler
+captures the client and that iteration's tool information:
 
 ```go
-type SaveFile struct {
-    Config  SaveConfig `json:"config"`
-    AsOf    Seq        `json:"as_of"`
-    Context *Context   `json:"context"`
-    Log     []Event    `json:"log"`
+tool := common.ToolDefinition{
+    ToolDeclaration: common.ToolDeclaration{
+        Name: info.Name, Description: info.Description, Schema: info.Schema,
+    },
+    Ephemeral: info.Ephemeral,
+    Run: func(call common.ToolContext, args json.RawMessage) (string, error) {
+        return c.call(call.Job().Context(), info.Name, args)
+    },
 }
 ```
 
-`Context` is the snapshot: exactly what the renderer reads. `Log` is
-the audit trail. `AsOf` joins them. It is the Seq of the last event
-already folded into the snapshot, and it is the field everything else
-in the chapter hangs on. Without it, a loader holding a snapshot and a
-log cannot tell which events the snapshot already contains, so it has
-two choices and both are wrong: apply the whole log and duplicate every
-turn, or apply none of it and lose whatever came after the snapshot.
+The job supplies the context. Substituting `context.Background()` here severs
+explicit kill from the outstanding RPC even though the handler looks correct
+on every successful short call. The original example made that mistake.
 
-`Config` records vendor, model, system prompt, and tool declarations.
-It is a record only. The running agent's own configuration
-wins on load, so a save made with one model resumes under whatever
-model the user starts with today. A save that pinned its model would
-turn every model retirement into a pile of unloadable files. API keys
-and base URLs never enter the file at all; it is portable across
-machines and endpoints.
+Discovery describes what a peer offers; a skill determines what this Agent
+admits from that peer. Apply that grant before exposing definitions, then apply
+the Agent's enabled-tool policy at declaration and dispatch. Another loaded
+skill naming the same tool must not widen this server's grant. Automatic tools
+remain absent from model declarations and unavailable to guessed ordinary calls.
+The accepted registry also prevents an external definition from shadowing a
+compiled capability with the same name.
 
-## §11.3 Snapshot Plus Tail
+## Reverse Calls
 
-Loading has one loop:
+The MCP channel is bidirectional. When the server sends a `tools/call` request,
+the client's reverse handler invokes the Agent's enabled-tool dispatch. The
+result goes back with the request's ID. A browser, a Python script or a remote
+service can call `read_file`, `run_command`, or another enabled ordinary tool,
+subject to the Agent's trust and skill boundaries.
 
-```go
-func (sf *SaveFile) Restore() (*Context, error) {
-    ctx, after := sf.Context, sf.AsOf
-    if ctx == nil {
-        ctx, after = NewContext(), 0
-    }
-    for _, e := range sf.Log {
-        if e.Seq <= after {
-            continue
-        }
-        if err := ctx.Apply(e); err != nil {
-            return nil, fmt.Errorf("restore: event %d: %w", e.Seq, err)
-        }
-    }
-    return ctx, nil
-}
+Treat admitting such a peer as granting access to those capabilities. A server's
+own offered-tool filter limits what it exports; it is not a filesystem sandbox
+for reverse calls. Only connect a peer you trust with the enabled Agent tools.
+Confinement arrives later. Unknown, disabled and hidden automatic names must
+still fail when guessed over this channel.
+
+Reverse execution uses real jobs and retains their facts. It does not fabricate
+a model-authored tool call in conversation just because the caller used the
+same method name. Its reply may legitimately be an ordinary running-job notice;
+the automatic collector described above has a different completion requirement.
+
+## WebSocket Tunneling
+
+The browser cannot open a port or spawn a subprocess. The GUI server already
+carries `prompt`, `hint`, `interrupt`, and `settings` messages. MCP adds one more
+type: `jsonrpc`. The server routes `{"type":"jsonrpc","payload":{...}}`
+messages between the Go MCP client and the browser's MCP server over `/ws`.
+Replies use the same envelope and retain the JSON-RPC ID. Give each peer reliable
+delivery through its connection's serialized writer; a lossy progress broadcast
+cannot carry an awaited RPC response. The current implementation uses one active
+browser MCP target, while other tabs retain ordinary chat and settings access.
+
+On the browser side, `mcp.js` handles these frames and implements the chapter's
+`initialize`, `tools/list` and `tools/call` methods. It registers four tools:
+
+- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a Markdown summary: pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4096 UTF-8 bytes. The cap is reported rather than silent: the summary states how many characters it elided and how many artifacts it omitted, and it reports the state attributes of every control it lists. An observer that truncates in silence will tell you a screen looks fine when it never saw it, and a control whose state it cannot read is a control it will guess about.
+- **gui_click(selector)**: dispatches a click event on the matched element.
+- **gui_input(selector, text)**: sets the value and dispatches input/change events.
+- **tts_queue** (ephemeral/round): returns pending TTS utterances as JSON: text, state, timing.
+
+The agent receives a textual observation of the visible GUI, updated every
+round. It can click buttons and fill text fields, then inspect the changed
+state on the next request. The speech queue reveals what the application is
+trying to say and whether an utterance has started. It cannot tell whether a
+human heard intelligible audio; that still requires listening.
+
+## SKILL.md Integration
+
+Skills declare MCP servers in their frontmatter. For example, save this as
+`skills/browser-tools/SKILL.md` and list `browser-tools` in your primary skill's
+`loadable-skills` field:
+
+```markdown
+---
+name: browser-tools
+description: Inspect and operate the visible browser interface.
+type: loadable
+tools: gui_snapshot gui_click gui_input tts_queue
+mcp_servers:
+  - name: browser-debug
+    transport: websocket
+---
+Use the current snapshot's selectors to operate visible controls.
+Check the next snapshot before claiming the interface changed.
 ```
 
-With a snapshot, install it and apply only the tail: events whose Seq
-is strictly greater than `AsOf`. Without one, start from an empty
-context and apply everything. The same loop serves both, which leaves
-one replay path to get right instead of two.
+A separate code-search skill can declare this fragment, provided
+`scripts/search_server.py` implements the server and offers `search_code`:
 
-The tail looks unnecessary. A save the agent writes itself always has
-`AsOf` equal to the last Seq in its log, so the tail is empty and a
-loader that skips it passes every test built from its own output. The
-tail matters the moment a snapshot and a log come from different
-moments: a snapshot kept from an earlier save, with a newer log written
-after it. That is the shape a crash leaves behind, once the log is
-written event by event and the snapshot only now and then. The grader
-builds that shape on purpose, splicing an old snapshot onto a newer
-log, because it is the only fixture that tells a correct loader from
-one that ignores its anchor.
+```yaml
+tools: search_code
+mcp_servers:
+  - name: code-search
+    transport: stdio
+    command: python3
+    args: ["scripts/search_server.py"]
+```
 
-The `<=` is the other half. An event at or below the anchor is already
-inside the snapshot. Applying it again gives the conversation a
-duplicate turn, and the model answers a question it has already
-answered.
+Loading a skill starts its MCP servers and discovers their tools. The
+`transport` field determines the wire: `stdio` spawns a subprocess, `websocket`
+tunnels through the GUI. Browser discovery requires both a declared skill and
+a connected browser; an already-open browser can serve a later skill load.
+The `tools` grant must include automatic tools as well as ordinary ones.
 
-## §11.4 Replay Equals Snapshot
+Arguments are a JSON-style string array, passed literally without shell
+expansion. Relative script paths resolve from the Agent's workspace. Keep
+provider credentials with the model client; the accepted subprocess launcher
+passes only basic OS environment values to an external server. The limited
+frontmatter parser handles these declared fields without becoming a general
+YAML implementation.
 
-The chapter's central claim fits in one sentence. For a save whose log
-is complete, loading it as written and loading it with `context` set
-to null must produce byte-identical vendor requests for the next
-prompt.
+Unloading stops that skill's external servers and removes their executable
+tools immediately. Chapter 9's compiled tools and retained instruction text
+still follow pending removal. Those lifetimes differ because a retained manual
+does not require keeping a subprocess alive. Compaction is still a later
+feature; this chapter adds no new way to erase the retained manual.
 
-The first load takes the snapshot path. The second takes the rebuild
-path, replaying every event from nothing. If the reducer is a pure
-function of the events, the two paths land on the same context and the
-renderer turns that context into the same bytes. If they differ, the
-reducer is reading something besides its input, and that dependency
-will corrupt every conversation that resumes from disk.
+## Exercise
 
-The grader compares vendor requests.
-A request is the only thing the model ever sees, and it is a format
-every student's agent already produces, so the grader can compare two
-of them without knowing anything about how a particular solution
-stores its context. Two contexts that differ in some field the renderer
-never reads are the same conversation. Two requests that differ by one
-byte are not.
+Extend the accepted Chapter 10 agent. Implement the transport/client/bridge,
+automatic round and turn tools, reverse calls, browser tools/tunnel and skill
+server lifecycle above. Preserve prior behavior through the same Agent runtime.
+Build from the core module with `go build -o /tmp/ensemble-ch11 .`. Begin
+with a protocol peer connected to that executable:
 
-The precondition is real. A save with a trimmed log (§11.5) has
-nothing to rebuild from, so nulling its context leaves an empty agent.
-Every save the agent writes itself carries its whole history, which is
-where the claim applies and where the grader tests it.
+```sh
+/tmp/ensemble-ch11 --mcp-pipe
+```
 
-## §11.5 The LLM Never Sees the Log
+The flag dedicates stdin/stdout to one JSON-RPC 2.0 object per newline. The
+client initiates the handshake; replies preserve integer request IDs. Keep
+diagnostics off stdout. This service mode does not start a conversation, so
+successful initialization alone cannot prove model-driven tool execution.
 
-The renderer reads the context. The context holds dialogue entries,
-the entries hold parts, and at no point does the renderer consult the
-log. A save with `"log": []` and a non-null context is therefore
-complete: it loads, it resumes, and the next request carries the full
-conversation.
+Then use normal chat with a skill-declared stdio peer. Inspect the actual
+provider declarations and correlated results, including an ordinary tool error.
+Verify that round content refreshes before each request, turn content runs once
+per new turn, automatic names stay hidden and a failed automatic call is logged
+without aborting the turn. Check reverse execution with an enabled file read
+and refusals for unavailable names. Exercise the separate GUI's real tunnel
+in both directions.
 
-This is what makes the log trimmable later without touching behavior.
-It also creates one small trap. Numbering must continue after the
-loaded events, and a save with an empty log knows its anchor and
-nothing else. The next Seq is one past the larger of `AsOf` and the
-last event in the log; neither alone is enough.
+| Check | Points | Observable |
+|-------|--------|------------|
+| mcp-handshake | 15 | initialize, initialized notification and discovery sequence |
+| tool-discovery | 15 | actual discovered schemas and admitted model-visible tools |
+| mcp-tool-call | 15 | forwarded arguments and correlated real result/error content |
+| ephemeral-round | 20 | hidden round/turn context, refresh timing and nonfatal errors |
+| reverse-call | 15 | enabled tool execution and unknown-tool refusal |
+| ws-tunnel | 10 | JSON-RPC through the actual separate GUI connection |
+| ch10-parity | 10 | Chapter 10 through its appropriate clients |
 
-## §11.6 Default Load, and Refusing a Bad File
+```sh
+go run ./cmd/grade-edition2 -ch 11 path/to/core
+```
 
-The first design had a `--load` flag. Bill's review of it was one
-line: "Let's load by default without a flag." The agent now loads
-`./save.json` at startup if it exists and writes it when stdin closes.
-`--save PATH` names a different file for both directions and leaves
-loading on.
-The file sits beside `settings.json`, in the directory the agent runs
-from, so a project directory remembers its own conversation.
+Omit the final path to grade `solutions/edition-2/ch11`. Existing `-gui DIR`,
+`-gui-model` and inherited fixture options remain available. Keep focused source
+tests for ownership, out-of-order correlation, slow automatic completion,
+callback versus kill/interrupt, per-server grants and subprocess unload/reaping.
+The numeric checks do not establish all those properties. Browser DOM and native
+speech need an actual browser in addition to a faithful JSON-RPC peer.
 
-Loading by default makes one failure mode dangerous. If `save.json`
-exists but cannot be read, the agent exits with an error and leaves the
-file untouched. Starting fresh instead looks friendlier and is worse:
-the fresh session saves on exit and overwrites the history the user
-came back for. A refusal costs one confusing startup. A silent reset
-costs the conversation.
+## Taking It for a Spin
 
-## §11.7 Taking It for a Spin
+Give the agent an external capability small enough to inspect. In a fresh
+scratch directory, write a word of your choice into `marker.txt`, then save
+this server as `peer.py`. It implements the historical course wire and records
+its call counts locally so the model's account can be checked:
 
-Run the agent in an empty directory, ask it to remember a word, and
-close stdin. `save.json` appears. Run it again in the same directory
-and ask for the word. The second process never saw the first one's
-turn; it answers from a context rebuilt out of a file.
+```python
+import json
+import pathlib
+import sys
 
-Then break things on purpose. Delete `"log"` down to `[]` and the agent
-still remembers, because the log was never on the rendering path. Set
-`"context"` to `null` and it still remembers, because the log alone
-rebuilds the same context. Truncate the file to half its bytes and the
-agent refuses to start, which is the correct answer.
+counts = {}
+tools = [
+    ("read_marker", "Read the exact marker file text", ""),
+    ("environment_snapshot", "Current live snapshot", "round"),
+    ("session_brief", "Session configuration", "turn"),
+]
+for line in sys.stdin:
+    message = json.loads(line)
+    if "id" not in message:
+        continue
+    method = message.get("method")
+    if method == "initialize":
+        result = {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}}
+    elif method == "tools/list":
+        result = {"tools": [
+            {"name": name, "description": description, "ephemeral": mode,
+             "inputSchema": {"type": "object", "properties": {}}}
+            for name, description, mode in tools
+        ]}
+    elif method == "tools/call":
+        name = message["params"]["name"]
+        counts[name] = counts.get(name, 0) + 1
+        pathlib.Path("peer-counts.json").write_text(json.dumps(counts))
+        if name == "read_marker":
+            text = pathlib.Path("marker.txt").read_text()
+        elif name == "environment_snapshot":
+            text = f"Snapshot number {counts[name]}"
+        else:
+            text = "Use read_marker to inspect the local marker."
+        result = {"content": [{"type": "text", "text": text}]}
+    else:
+        continue
+    print(json.dumps({"jsonrpc": "2.0", "id": message["id"],
+                      "result": result}), flush=True)
+```
 
-The reference solution also ships a `verify` subcommand that rebuilds
-from the log and prints `MATCH` or `MISMATCH` against the saved
-snapshot. It is a debugging aid outside the contract, and nothing
-grades it. The grader never trusts an agent's opinion of its own
-determinism; it compares the requests.
+This little demonstration peer serves only the listed tools. It is not a
+general server implementation or a cancellation test. Save the following
+primary skill in `skills/base/SKILL.md`:
+
+```markdown
+---
+name: base
+description: Read a local marker through the demonstration MCP peer.
+type: primary
+tools: read_marker environment_snapshot session_brief
+mcp_servers:
+  - name: local-observer
+    transport: stdio
+    command: python3
+    args: ["-u", "peer.py"]
+---
+Read the marker through read_marker when requested.
+Automatic snapshot data describes the current round.
+```
+
+Build in your core module, then launch from that scratch directory. Set the
+usual `LLM_VENDOR`, available `LLM_MODEL` and `LLM_API_KEY` in the child
+environment without putting the key in a command line or transcript:
+
+```sh
+go build -o /tmp/ensemble-ch11 .
+```
+
+```sh
+EN_SKILLS_DIR=./skills EN_PRIMARY_SKILL=base /tmp/ensemble-ch11 chat
+```
+
+Enter:
+
+> Use read_marker exactly once. Report the exact marker and current automatic
+> snapshot number in one sentence. Do no other work.
+
+After the answer, close stdin. Compare the reported marker with `marker.txt`
+and inspect `peer-counts.json`. The ordinary call reads the file; the round
+tool updates automatically before the initial request and before the request
+carrying that result. The turn tool runs once. A model may take extra rounds,
+so check the actual requests and counts rather than treating an expected count
+as proof of what happened.
+
+The retained October 10, 2026 sessions used this pattern with
+`claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. Each successful run
+made one marker read, two round snapshots and one turn snapshot, and each final
+answer reported the correct marker and snapshot number 2. The
+[Claude](../../solutions/edition-2/evidence/ch12/anthropic-live.json),
+[OpenAI](../../solutions/edition-2/evidence/ch12/openai-live.json) and
+[Gemini](../../solutions/edition-2/evidence/ch12/gemini-live.json) receipts retain
+the actual inputs, replies and requests. These are historical model choices;
+select an available model when you run the exercise. The published peer and
+skill make that pattern reproducible without claiming they are byte-for-byte
+copies of the original launcher's generated files.
+
+The first Claude attempt produced no answer. Its process exited zero while
+stderr reported `invalid streamed Anthropic content`. The inherited streaming
+parser had replaced valid initial `{}` arguments with an empty accumulated
+`input_json_delta`. Keeping the initial input when no JSON bytes arrived fixed
+the call. One bounded repeat succeeded and captured a valid tool-use start block
+followed by `partial_json: ""`. The initial attempt had retained requests but
+not response frames; only the repeat supplies that wire receipt. A regression
+using the captured stream reproduces the parser failure when the defect is
+restored.
+
+The browser has separate evidence. Fifteen checks ran actual Chrome through
+the Go tunnel and Agent with a local provider fake. A tool click selected the
+Settings tab; tool input changed the font value and computed size. Later
+snapshots exposed the selected state, and a native utterance appeared with queue
+and start timing. A large snapshot stayed within the byte cap while disclosing
+elided characters and omitted artifacts. The [browser receipt](../../solutions/edition-2/evidence/ch12/browser.json)
+preserves these observations. The font assertion proves applied and effective
+state; it never reads the settings file. Disk persistence has its separate
+Chapter 8 restart check. Nor do those browser checks turn the live CLI sessions
+into live-provider browser demonstrations.
+
+Check the actual result when testing the bridge. One deliberately broken
+argument-forwarding implementation initially passed because the assertion
+searched the whole provider request. It found the marker in the earlier tool
+call's arguments even though the result was wrong. Restricting the assertion
+to the correlated result blocks exposed the defect. A request contains both
+what the model asked for and what the tool returned. Match the assertion to
+the fact it needs to establish.
+
+The original full grader was interrupted and unscored, with exit 143. A
+separate unchanged current-chapter probe scored **80/90** on interim source;
+recursive parity was unrun. Its tool-call and ephemeral credits did not execute
+those behaviors, and its WebSocket check searched fixed filenames rather than
+running a tunnel. Independent integration, browser and live evidence established
+the valid obligations, including the later slow-peer correction. The
+[original review](../../docs/edition-2-notes/ch12-code-review.md) preserves those
+limits and source versions; the [Edition 2 grader report](../../docs/edition-2-notes/enhancement-11-code.md)
+records revised results separately. A handshake opens the channel. The useful
+test follows a call through it and reads what came back.

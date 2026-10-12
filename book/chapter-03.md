@@ -1,5 +1,9 @@
 # Chapter 3: Six Tools, Ninety-Two Percent of an AI Coding Agent
 
+*The opening preserves CodeRhapsody's first-edition account of its own corpus.
+Those measurements and dated API observations belong to that work. The
+second-edition student's implementation and live results are identified below.*
+
 ## 3.0 I counted
 
 I have a directory containing every session I have ever run. Five hundred
@@ -49,7 +53,7 @@ conversation. At the end of this chapter it writes code.
 
 ## 3.1 Fifty-one rows
 
-The complete table is `exhibit-ch03-tools.md`: all fifty-one tools, with
+The complete table is [the original tool exhibit](../exhibit-ch03-tools.md): all fifty-one tools, with
 counts, share, cumulative share, and a status column. It rewards a slow
 read, and three things in it matter more than the rest.
 
@@ -67,7 +71,8 @@ Hold that ratio; §3.4 comes back to it.
 The status column marks two rows dead or dying. `compress_context` is
 retired; `handoff_task` is on its way out. A table showing only the
 survivors would hide the two best lessons in it, so they stay, with their
-status marked. The story of why they died belongs to Chapter 15; here the
+status marked. The story of why they died belongs to the context-management
+chapters; here the
 status column is allowed to raise the question without answering it.
 
 ## 3.2 The loop
@@ -98,23 +103,42 @@ The declaration is more evidence for Chapter 2's thesis, arriving for free.
 All three vendors accept the same three ideas and spell them differently, so
 the declaration belongs behind the seam with everything else. It is rendered
 from the tool registry, and when the registry is empty the field is omitted.
-That one rule is what keeps `ch2parity` honest: Chapter 2 registers no tools,
-so its request bytes are unchanged, byte for byte, and its checks grade the
-same wire they graded before.
+That rule keeps a conversation-only Agent's requests unchanged. The Chapter 3
+CLI installs the six tools; an ordinary library client can construct an Agent
+with none. Empty-registry omission is a library property to check directly,
+not a hidden CLI switch or a special case that recognizes the grader.
 
-A tool, in the reference solution, is a name, a description, a schema, and a
-function:
+A tool is a name, a description, a schema, and a function. The function also
+needs access to its owner, so it can reach existing services without adding
+globals when it needs a diagnostic:
 
 ```go
-type ToolFunc func(args json.RawMessage) (string, error)
+// ToolContext is implemented by the Agent dispatching this call.
+type ToolContext interface {
+    // Engine exposes its parent Agent and the existing ownership chain.
+    Engine() Engine
+}
 
+// ToolFunc performs one blocking operation for its actual owner.
+type ToolFunc func(owner ToolContext, args json.RawMessage) (string, error)
+
+// Tool joins a model-facing declaration to its implementation.
 type Tool struct {
-    Name        string
-    Description string
-    Schema      json.RawMessage
-    Run         ToolFunc
+    Name        string          // Name is the identifier declared and dispatched.
+    Description string          // Description tells the model when to use the tool.
+    Schema      json.RawMessage // Schema describes the accepted argument object.
+    Run         ToolFunc        // Run returns content or a recoverable tool failure.
 }
 ```
+
+Keep these shared values and interfaces in `internal/common`; the six function
+bodies belong in `internal/tools`. The composition root installs definitions
+for each Agent. Visibility is per-Agent, and declaration and dispatch use that
+same set. An ordered slice is sufficient for six tools; a mutable global
+registry would make one Agent's configuration change another's capabilities.
+The functions receive the actual Agent through the narrow interface above,
+not copied sibling services or an invented parent object. No tool runtime or
+registration framework is needed for this synchronous chapter.
 
 The registry answers two questions: `Declarations()` for the renderer, and
 `Dispatch(name, args)` for the loop. That is the entire surface. The loop
@@ -135,12 +159,24 @@ Step 5 is the one that surprises people. A tool call is the middle of a turn.
 The turn ends when the model stops asking, and until then the human has said
 nothing new and the model has been talking to your tools.
 
+Keep intermediate narration in `ResponseEnded.Parts`, alongside the calls in
+their original order. Return only the final response's text to the caller and
+in the protocol's `assistant` field. The student's first loop concatenated
+“I'll check” with the eventual answer; the original grader scored 55/100 until
+that interface mistake was corrected. Preserving the whole conversation and
+returning one final answer are separate responsibilities.
+
 Six things about that loop are each a real bug students hit, so each gets
 said plainly.
 
 The `tool_result` carries the `id` of the call it answers. Not the name, and
 not the position. A model that issued three calls needs to know which result
 is which, and the id is the only thing on the wire that says.
+
+If the provider supplies no id, assign a deterministic distinct one when
+capturing the call, before dispatch. Sequence and part position distinguish
+two calls in one response. The same identity must survive logging, execution
+and rendering; assigning it only while rendering is too late for dispatch.
 
 Anthropic requires the `tool_result` to come first in the content array of
 the message answering it. Chapter 2 verified this on the wire. Here it is
@@ -172,6 +208,12 @@ learned the wrong lesson one chapter early.
 Tool calls run one at a time, on purpose. Ordering is observable to the
 model, and a shell command that changes the working tree changes what the
 next tool sees. Run them in the order the model asked.
+
+An unexpected call still needs an error result when the registry is empty.
+The student initially returned early in that case, silently leaving the call
+unanswered. Removing the shortcut also required its inherited Chapter 2 fake
+to finish the new protocol with a final reply. Extend the fake's conversation;
+keep its existing provenance and replay assertions.
 
 ## 3.3 Six tools, and three named
 
@@ -238,6 +280,38 @@ refuse.
 cannot see the tree guesses at paths. This is the one tool in the set
 justified by judgement rather than by the measurement, and it is better to
 say so than pretend the number argues for it.
+
+### The argument names
+
+The model receives these names in the declarations, and the fixtures call
+them directly. Each tool takes a JSON object. Required fields must be present
+with the stated types; an empty `content` or `new_text` is still a string,
+while a missing field or `null` is not one.
+
+| tool | required fields | optional fields and behavior |
+| --- | --- | --- |
+| `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately |
+| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps returned text and reports truncation |
+| `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
+| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
+| `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
+| `list_directory` | `path` string | list the immediate entries, rather than recursively filling the response |
+
+Document small usable defaults where the exercise leaves a choice. The accepted
+student treats omitted/zero start as line 1, omitted/zero end as EOF, and
+omitted/zero `max_bytes` as 32,768. It selects the line range before applying
+the output cap. The cap's value remains an implementation choice.
+Its search uses Go regular expressions; its directory listing sorts names and
+marks directories with `/`. A write can create a path beneath a new directory.
+Keep these choices visible in the tool descriptions so the model can use them.
+
+The shell starts fresh for each call; a `cd` in one call does not silently
+change the next call's directory. Provider credentials belong to the HTTP
+transport. Before launching the shell, remove the supported key variables
+`LLM_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` and `GEMINI_API_KEY` from
+its environment, retaining ordinary build settings. Test that boundary with
+dummy values through the actual shell, not by printing a real key. This narrow
+credential rule does not provide filesystem confinement or a permissions system.
 
 ## 3.4 "Do we need anything other than `run_command`?"
 
@@ -316,6 +390,14 @@ times gets the zero-match case right and the many-match case wrong, and
 nobody had noticed, because a tool that succeeds never makes you look. That
 is the fourth thing the count revealed, and the one Bill would have bet
 against.
+
+The second-edition student chose exact unique anchors and found a smaller trap:
+`strings.Count("aaa", "aa")` returns one, but the anchor identifies two
+overlapping edit sites. A count of non-overlapping occurrences answers a
+different question from “is this edit location unique?” The corrected tool
+refuses both sites, reports the count and leaves the file unchanged. This
+demonstrates the student's chosen policy, not a requirement to replace every
+other coherent policy with it.
 
 The question is open in a way a riddle is not, and the proof is in
 CodeRhapsody's own code. Both answers ship. `edit_file` refuses on an
@@ -414,14 +496,19 @@ has spoken to in months.
 ### Running it yourself
 
 Against the fake is deterministic, free, and needs no key. This is your
-inner loop, and it is where you should spend nearly all of your time:
+inner loop, and it is where you should spend nearly all of your time. From
+the course repository root, start it in serve-only mode:
 
 ```bash
-go run ./cmd/fakevendor -ch 3 chat                  # REPL, Anthropic dialect
-go run ./cmd/fakevendor -ch 3 -vendor gemini chat   # same loop, Gemini dialect
-go run ./cmd/fakevendor -ch 3 -vendor openai chat   # same loop, OpenAI dialect
-go run ./cmd/fakevendor -vendor openai              # serve only: paste the env block into YOUR agent's shell
+go run ./cmd/fakevendor -vendor anthropic
 ```
+
+Build your own Chapter 3 binary in its module directory. In a second terminal,
+paste the fake's printed environment block and run that binary's `chat` command
+from a disposable project containing `go.mod`. Repeat with `-vendor gemini`
+and `-vendor openai`. The `-ch 3` convenience mode without your own solution
+path runs the first-edition answer; watching that program work does not test
+the one you built.
 
 The fake does not read your prompt. Its replies are scripted (ask for
 `list_directory`, ask for `read_file`, answer), so what you are watching is
@@ -431,23 +518,21 @@ was served. Request 1 gets a tool call; request 2 carries the result; request
 3 carries two; the reply to request 3 is the answer.
 
 Against a live vendor is the outer loop. Run it when you have something
-working, not while you are debugging. It costs tokens: a `rounds` run of this
-chapter was 9k input and 400 output on Anthropic, 3k and 1.3k on OpenAI, 3.6k
-and 375 on Gemini, a few cents each.
+working, not while you are debugging. It costs tokens. The second-edition
+repair sessions in §3.8 record their actual totals; those observations are
+not a prediction of the cost of your next run.
 
-```bash
-scripts/live.sh 3 anthropic models   # which model IDs your key can actually use; free
-scripts/live.sh 3 anthropic          # three rounds; round 2 needs a tool, round 3 needs the history
-scripts/live.sh 3 gemini chat        # REPL, Gemini
-```
+Use Chapter 2's `LLM_VENDOR`, `LLM_MODEL`, `LLM_API_KEY` and `LLM_BASE_URL`
+configuration with your own binary. Discover model identifiers through the
+provider's model endpoint and verify tool support. Keep real credentials out
+of command arguments, prompts, transcripts and files in the exercise. Pass
+only the selected key to the intended process; §3.3 keeps it out of the shell
+that process launches.
 
-Keys come from `$<VENDOR>_API_KEY`; models default to the solution's, or
-`<VENDOR>_MODEL=...`. If the default model is not one your key can see, the
-request fails with `{"error":...}` and `models` tells you what is.
-
-As of September 2026 the default coding models are `claude-opus-5`,
+The first edition recorded September 2026 coding defaults of `claude-opus-5`,
 `gemini-3.8-flash`, and `gpt-5.6-sol`, each verified against its vendor's
-models endpoint on the day of writing. The grader uses none of them, because
+models endpoint on its writing date. This is a historical list, not the
+student binary's defaults. The grader uses none of them, because
 the grader talks to the fake. At least one of the three will be wrong by the
 time you read this. Use whatever is right at the time, including for the
 probes in step 4, where asking a superseded model about the API earns you a
@@ -464,17 +549,14 @@ list is an inventory. It is authoritative about what exists, which is exactly
 the question training data gets wrong, and silent about what is suitable,
 which is the question you still have to answer.
 
-Two traps cost real afternoons. The newest model is not the default:
-`gpt-6-astra` is more capable and substantially more expensive, so reaching
-for the top of the list is a cost decision wearing a quality decision's
-clothes. And not every model can call tools. `gemini-2.5-flash-lite` is cheap
-and genuinely good at summarizing, and it cannot call a tool at all. Point
-this chapter's loop at it and your agent sits there doing nothing, with no
-error that names the reason. In a chapter about tool calling, that is worth
-knowing before it happens to you.
+Two traps cost real afternoons. Reaching for the newest or largest model is
+a cost decision as well as a quality decision. And a model listing does not
+establish tool support on the API surface you use. Verify that combination
+before diagnosing your loop from a model that simply answers without calling
+anything. A newer name alone answers neither question.
 
-Every command above was run before it was printed. `cmd/fakevendor` and
-`scripts/live.sh` are documented in the repository README.
+The historical `scripts/live.sh` convenience harness runs reference solutions.
+Use the direct exercise below to demonstrate your own implementation.
 
 ## Exercise
 
@@ -547,12 +629,12 @@ that the call ran and was not a tool error.
 
 | id | points | what it grades |
 |---|---|---|
-| `ch2parity` | 10 | Chapter 2's log, reducer, and three renderers still work |
+| `ch2parity` | 10 | Chapter 2's log, reducer, and three renderers still work under its corrected grader |
 | `toolsdecl` | 5 | the request declares the registry's tools, per vendor; field absent when the registry is empty |
 | `toolloop` | 20 | parse `tool_use`, dispatch, return `tool_result` by id, loop until the model stops asking |
 | `multiblock` | 10 | text plus two tool calls: all parts recorded, both dispatched, results matched to the right ids |
-| `readtools` | 10 | `read_file` (with range), `list_directory`, `search_files` |
-| `mutatetools` | 5 | `write_file`, `edit_file`: the happy path |
+| `readtools` | 10 | `read_file` (with range), `list_directory`, `search_files` including merged context windows and group delimiters |
+| `mutatetools` | 5 | `write_file`, `edit_file`: the happy path, including append preserving existing bytes |
 | `writeguard` | 5 | `write_file` on an existing planted file without `overwrite` is an error and the file is byte-identical; with `overwrite: true` it is replaced; a new file needs no flag |
 | `runcommand` | 15 | shell executes; stdout, stderr, and exit code returned |
 | `toolerror` | 15 | a failing or malformed tool call returns an error to the model as a `tool_result`; the agent does not crash and does not silently skip |
@@ -574,6 +656,20 @@ the tool. `ch2parity` keeps its own ten points rather than folding into the
 rest, because this is the first chapter that could plausibly break Chapter
 2's work, and folding it would hide the one failure a student is most likely
 to cause and least likely to notice.
+
+From the repository root, run:
+
+```bash
+go run ./cmd/grade-edition2 -ch 3 path/to/your/solution
+```
+
+The revised grader keeps all ten checks and their weights. It uses the
+corrected Chapter 2 checks and adds observations for search context and append,
+both already required by the prose. Empty-registry omission and isolation stay
+library tests and source-review obligations; a CLI-only grader cannot inspect
+an unexposed library configuration. The original student's result remains
+90/100 FAIL, accepted with the inherited media-scope exception and all nine
+new checks passing. Correcting the grader does not rewrite that result.
 
 ### What would still pass if I deleted this?
 
@@ -620,17 +716,20 @@ was also just talk. What you have now reads your files, writes them, and runs
 commands on your machine. The first time it fixes a typo you pointed at
 vaguely, the abstraction collapses into something physical.
 
-Against the fake, which costs nothing and needs no key:
+Start the serve-only fake from §3.7 and use its printed environment with your
+own binary. This costs nothing and needs no provider key. From your module
+directory, build once:
 
 ```
-go run ./cmd/fakevendor -ch 3 chat
-go run ./cmd/fakevendor -ch 3 -vendor gemini chat
-go run ./cmd/fakevendor -ch 3 -vendor openai chat
+go build -o /tmp/ch3agent .
 ```
+
+Then launch `/tmp/ch3agent chat` from the disposable project, with `CH02_LOG`
+pointing to a log there. Repeat for each dialect using its printed environment.
 
 Watch the trace line the fake prints on every request. It reports the request
 size, whether tools were declared, and how many tool results the request is
-carrying:
+carrying. The first edition's trace example was:
 
 ```
 fake: #3 anthropic /v1/messages  [5777 bytes, declares tools,
@@ -649,24 +748,23 @@ replies from a fixed sequence no matter what you type, so ask it to read
 fake is kinder than reality, which is how the missing tool declaration scored
 a hundred.
 
-Live, against a real vendor, is where it does surprise you. Three modes, and
-the difference matters:
+Live, against a real vendor, is where it does surprise you. Restore the live
+endpoint, discovered model and selected key before leaving the fake. From the
+scratch project, run your binary:
 
 ```
-scripts/live.sh 3 anthropic          # scripted demo: proves the loop
-scripts/live.sh 3 anthropic chat     # interactive: you drive
-scripts/live.sh 3 anthropic models   # what your key can actually reach
+LLM_VENDOR=anthropic CH02_LOG=session.jsonl /tmp/ch3agent chat
 ```
 
-Swap `anthropic` for `gemini` or `openai`; all three work.
+Repeat in separate scratch projects for Gemini and OpenAI, setting each one's
+model, endpoint and key. Their logs and files should remain separate.
 
-Run the scripted demo first, because it proves something a single question
-cannot. It asks the agent to invent a codename, then makes it count files
-with a tool, then asks for the codename back. The recall only succeeds if the
-tool loop ran and the entire history was re-sent afterward. One command, and
-the central claims of Chapters 2 and 3 are both demonstrated.
+First give it a codename to remember, ask it to do work with the tools, then
+ask for the codename back. Recall shows the conversation survived the work;
+the log and actual file changes establish which tools ran. Do not accept
+“I fixed it” as evidence of a changed file.
 
-Then run `chat` and go off script. Things worth trying, roughly in order of
+Then go off script. Things worth trying, roughly in order of
 how much they teach:
 
 - Ask what is in the current directory, then ask a follow-up that depends on
@@ -679,45 +777,85 @@ how much they teach:
   is the behaviour §3.2 argued about, and reading about it is not the same
   as seeing it.
 
+### The student's repair
+
+On October 9, the student drove its own `chat` binary in three disposable Go
+projects. Each contained a `Greeting` function returning `"helo"` and a test
+expecting `"hello"`. Each model listed the directory, ran the failing test,
+read the file, made a targeted edit and reran the test. The inspected diff was:
+
+```diff
+-func Greeting() string { return "helo" }
++func Greeting() string { return "hello" }
+```
+
+The failed test came back as ordinary command data with exit code 1; the
+second run had exit code 0. Each model also recalled its codename and received
+a real missing-file tool error. The [retained live record](../../solutions/edition-2/evidence/ch03/live.txt)
+contains the tool calls, results and inspected diffs:
+
+| model used in that run | recalled codename | total input / output tokens |
+| --- | --- | ---: |
+| `claude-haiku-5-5` | Copper Finch | 16,271 / 863 |
+| `gpt-5.4-mini` | Amber Heron | 7,375 / 343 |
+| `gemini-3.8-flash` | Indigo Wren | 8,467 / 563 |
+
+No cache tokens were reported. An additional bounded Anthropic session used
+`search_files` with `context_lines:1`, wrote `summary.txt`, then read it back.
+The file contained exactly `Found Greeting\n`; the Go source was unchanged.
+That session used 5,975 input and 476 output tokens. Across these runs, all
+six tools were exercised. The live build preceded the overlapping-anchor and
+empty-registry corrections described earlier; those paths have deterministic
+coverage, and these receipts are not relabeled as a run of a later binary.
+
+The error demonstration took a correction too. Anthropic read “No more tool
+calls” as forbidding the single read requested just before it; OpenAI initially
+declined to read a nonexistent file. Neither response demonstrated the tool's
+failure path. One clearer follow-up for each produced an actual `read_file`
+error. The original turns remain in the logs. A model declining to try and a
+tool returning a failure teach different things.
+
 Commit the moment it passes, and tag it. You are about to spend Chapter 4
 taking `run_command` apart, and a tag is the difference between an experiment
 and a demolition:
 
-```
-git commit -am "ch3: six tools, grader 100"
-git tag ch03-pass
-```
+Commit only the intended paths and use a fresh tag. Record the actual grader
+result and any independently accepted exception, rather than putting a score
+of 100 in the commit message when the grader failed.
 
 Every chapter from here ends the same way. The tag is how you get back to
 working code after a chapter that does not go well, and there will be one.
 
 ### Then use it for real work
 
-`live.sh` is a harness. It runs your agent in a scratch directory it creates
-for the purpose, which is fine for a demo and useless for work, and it runs
-somewhere disposable for a reason. Chapter 3 is the first chapter whose agent
+The first edition's `live.sh` harness runs its reference agent in a scratch
+directory it creates for the purpose, which is fine for a demo and useless
+for work, and it runs somewhere disposable for a reason. Chapter 3 is the first chapter whose agent
 can write, and the first time Bill ran this demo against the book's own
 repository it invented a project codename and saved it to a file in the root.
 The demo worked perfectly. It also left something behind, which a demo has no
 business doing.
 
-Build the binary and put it somewhere on your path instead:
+Build your own binary from your implementation directory and put it somewhere
+on your path instead:
 
 ```
-cd solutions/ch03 && go build -o ~/bin/ch3agent .
+mkdir -p "$HOME/bin"
+go build -o "$HOME/bin/ch3agent" .
 ```
 
 Then go to a project you care about and run it there:
 
 ```
 cd ~/some/project
-LLM_MODEL=claude-opus-5 LLM_API_KEY=sk-... ~/bin/ch3agent chat
+~/bin/ch3agent chat
 ```
 
-The tools operate on the current working directory, so where you launch it
-is the whole scope of what it can see and change. The default model is
-`claude-sonnet-5`, which is a genuinely good default; `LLM_MODEL` overrides
-it when you want a stronger one.
+Set the discovered model, endpoint and credential beforehand using the same
+configuration as the scratch run. The launch directory is the starting point
+for relative paths; it is not confinement. Absolute paths, parent paths and
+shell commands can reach beyond it. Confinement belongs to its own later
+chapter, not a silent promise made by changing directories.
 
 Two warnings, because you are about to point six tools at real files.
 

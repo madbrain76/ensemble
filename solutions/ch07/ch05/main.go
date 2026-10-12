@@ -1,125 +1,92 @@
-// ch05 is the exercise binary: a custom agent that imports the student's
-// framework and adds a tool the builtin agent doesn't have.
-//
-// The grader sends a prompt that triggers the custom tool, then checks that
-// the tool was called and its output appeared in the response.
-//
-// Usage:
-//
-//	echo '{"user":"What is 6 * 7?"}' | ./ch05
+// This separate module is a consumer, not part of Ensemble's internal tree.
 package main
 
 import (
-	"bufio"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
-	agent "github.com/waywardgeek/ensemble/agent"
+	"ensemble/ensemble"
 )
 
+// An application can extend one Agent without teaching the framework its tool.
+// The call's owner chain also gives the tool access to the application's logger.
+func registerShout(a ensemble.Agent) error {
+	return a.RegisterTool(ensemble.ToolDeclaration{
+		Name: "shout", Description: "Return text converted to uppercase",
+		Schema: json.RawMessage(`{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}`),
+	}, func(call ensemble.ToolContext, args json.RawMessage) (string, error) {
+		// Schema guides the model; the handler still checks required input.
+		// A pointer distinguishes missing text from a valid empty string.
+		var input struct {
+			// Text holds visible provider or user content, including an explicitly empty string.
+			Text *string `json:"text"`
+		}
+		if err := json.Unmarshal(args, &input); err != nil {
+			return "", err
+		}
+		if input.Text == nil {
+			return "", errors.New("text is required")
+		}
+		call.Engine().Agent().Ensemble().Logf("shout called")
+		return strings.ToUpper(*input.Text), nil
+	})
+}
+
 func main() {
-	cfg, err := agent.ConfigFromEnv()
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run() (runErr error) {
+	// Applications share provider parsing with the CLI, while choosing their
+	// own tool visibility. The zero BuiltinTools setting leaves only shout.
+	cfg, err := ensemble.ConfigFromEnv()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "config:", err)
-		os.Exit(2)
+		return err
 	}
-	cfg.SystemPrompt = "You are a calculator assistant. Use the calculate tool for any arithmetic."
-
-	a := agent.NewAgent(cfg, "ch05.log")
-	defer a.Shutdown()
-
-	// Register a custom tool after creating the agent. This is the whole
-	// point of the refactoring: external code can extend the agent's
-	// capabilities without modifying the framework.
-	a.RegisterTool(
-		"calculate",
-		"Evaluate a simple arithmetic expression and return the result.",
-		json.RawMessage(`{
-			"type": "object",
-			"properties": {
-				"expression": {
-					"type": "string",
-					"description": "The arithmetic expression to evaluate, e.g. '6 * 7'"
-				}
-			},
-			"required": ["expression"]
-		}`),
-		func(args json.RawMessage) (string, error) {
-			var p struct {
-				Expression string `json:"expression"`
-			}
-			if err := json.Unmarshal(args, &p); err != nil {
-				return "", err
-			}
-			result := evalSimple(p.Expression)
-			return fmt.Sprintf("Result: %s = %s", p.Expression, result), nil
-		},
-	)
-
-	in := bufio.NewScanner(os.Stdin)
-	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
-	out := bufio.NewWriter(os.Stdout)
-	defer out.Flush()
-
-	for in.Scan() {
-		line := strings.TrimSpace(in.Text())
-		if line == "" {
-			continue
-		}
-		var msg struct {
-			User *string `json:"user"`
-		}
-		if err := json.Unmarshal([]byte(line), &msg); err != nil {
-			emit(out, map[string]string{"error": "bad input: " + err.Error()})
-			continue
-		}
-		if msg.User == nil {
-			emit(out, map[string]string{"error": "no user field"})
-			continue
-		}
-
-		reply, err := a.Ask(*msg.User)
-		if err != nil {
-			emit(out, map[string]string{"error": err.Error()})
-			continue
-		}
-		emit(out, map[string]string{"assistant": reply})
+	if cfg.APIKey == "" {
+		return errors.New("provider API key is not set")
 	}
-
-	emit(out, map[string]any{"usage": a.Usage()})
-}
-
-func emit(out *bufio.Writer, v any) {
-	b, _ := json.Marshal(v)
-	out.Write(b)
-	out.WriteByte('\n')
-	out.Flush()
-}
-
-// evalSimple does trivial arithmetic. It's intentionally limited — the point
-// is that the tool EXISTS and gets CALLED, not that it's a full calculator.
-func evalSimple(expr string) string {
-	// Strip spaces, try basic a op b patterns.
-	expr = strings.TrimSpace(expr)
-	var a, b float64
-	var op string
-	n, _ := fmt.Sscanf(expr, "%f %s %f", &a, &op, &b)
-	if n == 3 {
-		switch op {
-		case "+":
-			return fmt.Sprintf("%g", a+b)
-		case "-":
-			return fmt.Sprintf("%g", a-b)
-		case "*", "×":
-			return fmt.Sprintf("%g", a*b)
-		case "/", "÷":
-			if b == 0 {
-				return "error: division by zero"
-			}
-			return fmt.Sprintf("%g", a/b)
-		}
+	app := ensemble.New(os.Stderr)
+	a, err := app.NewAgent(cfg)
+	if err != nil {
+		return err
 	}
-	return "unsupported expression: " + expr
+	// Save the actual calls/results for inspection; the model's final words alone
+	// do not prove that our handler ran. Shutdown records any outstanding job kill.
+	defer func() {
+		runErr = errors.Join(runErr, a.Shutdown())
+		file, err := os.Create("events.jsonl")
+		if err == nil {
+			err = errors.Join(a.History().Dump(file), file.Close())
+		}
+		runErr = errors.Join(runErr, err)
+	}()
+	// Install the declaration before the first request so visibility and
+	// dispatch use the same per-Agent registry throughout the conversation.
+	if err := registerShout(a); err != nil {
+		return err
+	}
+	prompt := strings.Join(os.Args[1:], " ")
+	if prompt == "" {
+		prompt = "Call shout with text hello framework, then report its result."
+	}
+	// Bound this one-shot demonstration; library callers choose their own context.
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	fmt.Printf("you> %s\n", prompt)
+	answer, err := a.Ask(ctx, prompt)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("assistant> %s\n", answer)
+	fmt.Fprintf(os.Stderr, "usage: %+v\n", a.Engine().Usage())
+	return nil
 }

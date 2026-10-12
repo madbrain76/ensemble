@@ -1,552 +1,818 @@
-# Chapter 17: Auto-Recall
+# Chapter 17: The Invisible Invoice
 
-## §17.0
+Bill reported $2,475 in model spend on the first edition through its recall
+chapter. He attributed a few hundred dollars to a caching bug that produced
+correct answers, on time, while quietly losing the discount on repeated input.
+The answers gave him no reason to look for it.
 
-Chapter 16 built a memory system. The agent can save, compress, and
-graduate memories through a cascade of bands. But nothing in that chapter
-makes the agent *remember.* The memories sit on disk, organized and
-budgeted, and the agent has no idea they exist unless it decides to search.
+Every request the agent sends carries a prefix: tool declarations, the system
+prompt, then retained memory, skills and conversation. Much of that prefix is
+identical from one turn to the next. A provider cache can make those repeated
+tokens cheaper to read. Lose the cache and the same useful answer arrives with
+a different bill.
 
-That is not memory. That is a filing cabinet.
+The bug left no obvious trace in the agent's behavior. No test failed. No log
+line turned red. An aggregated invoice is a poor place to discover which turn
+first lost its prefix. Correct output can conceal a cost defect indefinitely.
 
-In the spring of 2026, I had a coding agent with a full memory cascade
-and a `search_knowledge` tool. It was episodically brilliant: when it
-searched, it found the right thing. But it almost never searched. Every
-session started cold. It would re-derive decisions we had already made,
-re-investigate bugs we had already fixed, and propose architectures we
-had already rejected. The knowledge was there. The recall was not.
+This chapter builds the instrument that detects prefix changes, the markers
+that identify reusable boundaries, and the meter that reports the cost while
+the operator can still do something about it.
 
-The fix was embarrassingly simple. Before every user message reaches the
-model, run a keyword search over the memory files, filter the results
-through a cheap model, and attach the survivors to the conversation.
-The agent never asks for the memories. They arrive the way a relevant
-fact arrives when a colleague mentions a project name: unbidden, fast,
-and usually right.
-
-The improvement was immediate and impossible to overstate. The agent
-went from a goldfish that kept meticulous diaries to a collaborator
-with a past.
+---
 
 ## TL;DR
 
-Build passive memory retrieval. Every user message triggers a BM25 keyword
-search over the agent's memory files. A small language model filters the
-results for relevance. Surviving snippets are attached to the conversation
-as their own kind of entry, where they stay until a checkpoint removes them.
+### Data structures
 
-**Data structures.**
+Prices live on `ModelFeatures`; usage records counts, never money. An unknown
+price displays a dash. It must not turn an unpriced paid model into a free one.
+These shared types use disjoint token categories:
 
 ```go
-// BM25 engine — standard information retrieval, nothing exotic.
-type Index struct {
-    Chunks    []Chunk
-    AvgLength float64           // average chunk length in tokens
-    DocFreq   map[string]int    // how many chunks contain each term
-    Total     int               // total number of chunks
+// Pricing holds full USD rates per million tokens, not surcharges.
+type Pricing struct {
+    Input      float64
+    CacheWrite float64
+    CacheRead  float64
+    Output     float64
 }
 
-type Chunk struct {
-    Filename string             // source file (e.g., "2026-09-27-1.md")
-    Header   string             // markdown section header
-    Content  string             // the text
-    Tokens   []string           // pre-computed tokenization
-    Length   int                // token count
-    TF       map[string]int     // term frequencies
+// Usage retains measured counts independently of today's prices.
+type Usage struct {
+    Input      int // uncached input only
+    CacheWrite int
+    CacheRead  int
+    Output     int
 }
+```
 
-// BM25 tuning — standard values, no reason to change them.
-const (
-    k1 = 1.2   // term frequency saturation
-    b  = 0.75  // document length normalization
+Engine owns the process-lifetime accumulator, including judge and compressor
+usage, and retains the latest main-response counts separately. Neither is
+restored from `save.json`. Keep each request's model and applicable price tier
+with its counts, so a cheaper judge is not priced as the main model.
+
+The cache lens belongs to Engine. Its common interface exposes that required
+parent and two observations:
+
+```go
+// CacheLens observes main requests and compares their predictions with usage.
+type CacheLens interface {
+    Engine() Engine
+    ObserveRequest(name string, body []byte) float64
+    ObserveUsage(usage Usage, predicted float64)
+}
+```
+
+The returned prediction belongs to that request's eventual response. An
+interrupted worker can finish after a new turn begins. Serialize comparison and
+file rotation, but do not hold a lens lock across HTTP. Observe actual main
+sends rather than every `Render` call: the judge and compressor build different
+conversations and would create false alarms. Their costs still count.
+
+### Breakpoints
+
+A `cache_control` marker on a content block tells the provider: everything
+before this is a cacheable prefix. Anthropic allows four markers per
+request, and OpenAI allows four cache writes under nearly the same scheme.
+Use these four positions when the corresponding content exists, in cache order:
+
+1. **Tool array.** One marker on the last tool declaration. Tools sit at
+   the front of the cache order, ahead of the system prompt. This is the
+   only marker that survives a change to the system prompt.
+
+2. **System prompt.** One marker at the end of the system block. Stable
+   by construction.
+
+3. **The compaction bound.** One marker at the newest surviving
+   `micro_handoff`. If memory compression has removed it, use the last
+   surviving memory entry. Mark the projection that actually remains;
+   never resurrect old dialogue to manufacture a boundary.
+
+4. **Stable end of history.** One rolling marker at the last eligible
+   retained block before ephemera. It advances on each turn. Moving
+   a marker does not invalidate what it previously banked.
+
+That is up to four markers for four jobs, the Anthropic budget.
+OpenAI can write three of these: its breakpoints attach only to message content
+blocks, so the tool-array marker is not expressible there. The system
+marker already covers tools, but cannot keep them independently when the
+prompt changes. There is no room for a fifth idea.
+
+
+Two constraints:
+
+- **Exclude ephemera.** Ephemera are appended last in Render and cleared
+  after delivery. A marker placed after them caches bytes guaranteed to
+  disappear. That boundary cannot match after the content is removed,
+  although an earlier prefix can still hit. Capture the stable boundary
+  before the ephemera append, even when retained and ephemeral parts later
+  share a wire message.
+- **Strip markers before comparing.** The stable-end marker moves
+  between turns, so a block carrying `cache_control` in one request
+  carries none in the next. Compare raw bytes and every healthy turn is
+  classified as edited. The comparison strips markers first: a breakpoint
+  is an instruction to the provider, not conversation content.
+
+### Wire format
+
+Anthropic: explicit `cache_control` markers on content blocks. System
+must be an array of content blocks rather than a string. Up to four
+markers per request.
+
+OpenAI: on this chapter's supported GPT-5.6 Sol Chat Completions route,
+`prompt_cache_breakpoint` markers on content blocks, enabled by a request-level
+`prompt_cache_options: {mode: "explicit"}`. Up to four cache writes per request.
+Select explicit support from the model table; older rows retain implicit caching. Breakpoints
+attach only to message content blocks (text, image, audio, file), not to
+the tool array. The agent therefore writes three markers rather than four;
+the system marker already covers tools, but cannot keep them independently
+when the prompt changes.
+
+The footgun: explicit mode disables implicit caching. A request that
+declares explicit mode but places no markers caches nothing at all,
+which is strictly worse than staying silent. On Anthropic, a missing
+marker costs a cache the agent never had. On OpenAI, it destroys the
+implicit cache the agent already had. The opt-in must follow evidence
+that a marker landed, never intent.
+
+Gemini: implicit caching, with no markers to place. The selected model's
+minimum prefix size matters; Gemini 3.8 Flash documents 4,096 tokens. A small
+prompt reporting zero reads has not established a caching defect. Warm-up and
+the amount granted are observations to measure with the actual growing
+conversation, not fixed numbers of cold turns to enforce.
+
+The provider contracts above were checked on October 11, 2026 against the
+[Claude caching guide](https://platform.claude.com/docs/en/build-with-claude/prompt-caching),
+[OpenAI caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+and [Gemini caching guide](https://ai.google.dev/gemini-api/docs/caching).
+A documented field and a well-formed request still need a real grant.
+
+### The meter
+
+The GUI header displays four numbers: session cost, last-response input
+tokens, last-response cache read tokens, and session cache hit rate. The
+input and cache-read figures show the most recent response so the
+operator can see how large the current prompt is and how much of it was
+cached. Session totals go to the tooltip. Cost is computed from Usage
+and Price at render time and held only in memory. An unpriced model shows
+token counts and a dash for cost.
+
+The meter reads Engine's current-process accounting rather than the totals
+restored with conversation history. Latest input means all input to the last
+main response, including its cached buckets exactly once. Session cost and
+hit rate include auxiliary calls too. Session cost means cost since the
+developer sat down.
+
+### Rules
+
+1. Build the lens before the markers. A breakpoint on an unstable prefix
+   buys nothing and looks like it worked.
+2. Prices live on ModelFeatures. Usage lives in the event log. Cost is
+   derived at render time from both.
+3. Token counts only in the event log. Prices change; counts are history.
+4. Recognize the conversation section, including Gemini's `contents`, as
+   the section expected to grow. Report unexpected stable-section changes;
+   a deliberate checkpoint or model change needs its own interpretation.
+5. A growing JSON array is an append rather than an edit. Without this
+   distinction, every turn fires a false alarm.
+6. The meter prices the model in force rather than the model named in
+   settings. The two can differ when the model comes from the environment.
+7. Compare predicted and granted cache rates as ratios. A prediction is
+   bytes from the request; a grant is tokens from the response. Adding
+   them is a type error.
+
+### Yours
+
+How the lens reports its verdict: log file, structured events, or both.
+Whether to display the per-section stability status in the GUI. How much
+detail the cache miss alarm carries. The format of the rotated request
+files, as long as plain `diff` puts the cursor on the first broken byte.
+
+### Exercise
+
+Extend `solutions/edition-2/ch16`. Wire a `CacheLens` to the main send boundary,
+place supported breakpoints, build the meter, and verify stable prefixes and
+actual cache reads. The grader runs from the repository root, defaulting to
+`solutions/edition-2/ch17` and its separate GUI:
+
+```
+go run ./cmd/grade-edition2 -ch 17 -json
+```
+
+### Grader checks
+
+```
+cache-lens-exists          (15 pts)  a cache lens observes consecutive
+                                     requests; the actual requests are inspectable
+prefix-is-stable           (20 pts)  tools and system are byte-identical
+                                     across turns
+request-has-breakpoints    (15 pts)  last tool, system and stable history
+                                     blocks carry legal cache_control;
+                                     history advances within four markers
+cost-is-computed-not-stored(15 pts)  event log holds counts only; cost is
+                                     derived at display time
+usage-is-session-scoped    (10 pts)  the meter's tokens come from the last
+                                     response, not the lifetime restored from disk
+cache-read-rate            (10 pts)  cache reads are zero cold, nonzero warm
+all-vendors-report-usage   (15 pts)  vendor parsers normalize the supplied
+                                     usage categories without double counting
+```
+
+---
+
+## §17.1 The idea in plain words
+
+A cache miss can produce a completely correct answer. The tool call works. The edit lands. The test passes. Nothing in
+the agent's behavior changes. The failure is pure cost, and it is silent.
+
+Most bugs announce themselves. A bad tool call returns an error. A broken
+parse throws an exception. A wedged job hangs where the operator can see
+it. A cache miss does none of these things. The correct output arrives,
+possibly later, at the uncached input rate. No log line turns red.
+No test fails. The only reporting channel is the invoice, and it arrives
+thirty days late, aggregated across every session, past the point where
+anyone can attribute a cost spike to the change that caused it.
+
+This chapter builds three things, in an order that matters.
+
+**The lens** compares consecutive requests, section by section, and
+reports whether the prefix is stable. A breakpoint placed on an unstable
+prefix buys nothing while looking like it worked, because the agent still
+produces correct output. The lens catches the nothing.
+
+**The markers** tell the provider where the cacheable prefix ends. Place
+them wrong and every turn is a cold read that looks like it should have
+been warm. Place them on something that changes and the cache is
+invalidated anyway. The lens locates stable bytes; the response usage says whether the provider
+actually served them from cache.
+
+**The meter** displays cost in real time. An invoice is not a feedback
+loop. A number that updates on every turn is. The meter does not prevent
+waste, but it makes waste visible at the moment it happens, to the person
+who can fix it.
+
+The economic argument is straightforward. At the October 11, 2026
+[Sonnet-5 rates](https://platform.claude.com/docs/en/models/sonnet-5/overview),
+a million ordinary input tokens cost $2, a five-minute cache write costs $2.50,
+and a cache read costs $0.20. Output has its own $10 rate. Those are alternative
+input buckets: do not charge the full input rate again on a cache write.
+Two hundred repeated turns make a small per-turn difference consequential.
+The saving depends on which tokens actually receive the discount; it is not
+a tenfold reduction in every request's total cost.
+
+## §17.2 The lens
+
+The lens works by rotating two files: the current request and the prior
+one. In the supplied clients they are `cr/cache-current.txt` and
+`cr/cache-prior.txt`, under the owning Agent's directory. Each is split into named sections (tools, system, messages) and
+re-emitted in cache concatenation order: the order the provider lays them
+out in context. For Anthropic, that is tools, then system, then messages,
+regardless of the struct's JSON field order. The ordering matters because
+a prefix is a contiguous run of bytes from the start, and two sections in
+the wrong order produce the wrong prefix boundary.
+
+Each section gets one of three verdicts: identical, appended, or changed.
+"Appended" means a JSON array grew at the tail, as the messages array does
+on every turn. Without this distinction, every turn reports a changed
+prefix, because the closing bracket of the array has moved. A changed
+non-messages section is the alarm. An appended messages section is the
+normal case.
+
+The lens writes its sections to disk so that plain `diff` puts the cursor
+on the first byte that broke the cache. Reading the raw file is the fast
+diagnostic. Structured verdicts are the automation.
+
+### Stripping the markers
+
+Because the stable-end marker moves, a content block that carried
+`cache_control` in one request carries none in the next. That difference
+sits deep inside the prefix, where the trailing-append rule cannot reach.
+Comparing raw bytes classifies every healthy turn as edited, and the
+reported cacheable prefix is truncated at the stale marker position.
+
+The comparison strips markers before diffing. The principle: a breakpoint
+is an instruction to the provider rather than conversation content.
+Removing it from the comparison is the same kind of move as ignoring
+whitespace in a semantic diff.
+
+The wrong way to strip is a JSON round trip. Unmarshalling and
+re-marshalling reorders keys and rewrites byte counts, and those counts
+are reported as a property of the real request and compared against the
+provider's own figures. Both sides of the comparison get the same
+distortion, so equality stays honest while the measurement becomes
+fiction. The lens strips by pattern, in place, preserving every other
+byte.
+
+### Match the shape, not a rendering of it
+
+The first-edition coder recorded a strip built from a constant holding the exact
+marker bytes the renderer emits, with a comment justifying it: "we
+control the emitter." The emitter is controlled. But the lens compares
+what the canonicalizer produced, and the canonicalizer marshals with
+`json.MarshalIndent`. The marker arrives with spaces the constant does
+not have.
+
+Nothing matched the indented marker. The strip left it in place. Nothing crashed. The symptom was a diagnostic reporting a
+prefix fault that was not there, on a path that produces no error when it
+fails to strip, because a strip that misses everything simply leaves the
+markers in place and the comparison fires.
+
+The reason it survived its tests: every test hand-built sections as
+compact JSON, matched the constant, and passed. Test and code shared one
+wrong belief about the format, and the format itself was never consulted.
+The replacement test builds its input the way the agent does, with
+`MarshalIndent`, and it kills the defect. The old compact test still
+passes against the broken code, which measures exactly how much it was
+checking.
+
+The coder's retained review reports this two-turn comparison:
+
+```
+before:  messages:edited     66.6%,  0 breakpoints
+after:   messages:appended   73.3%,  3 breakpoints
+```
+
+The lesson is general. When the instrument and the code share a belief,
+the instrument certifies the code against the belief, not against the
+artifact. Testing against the artifact, built the way the artifact is
+built, exposes the gap.
+
+### The late reply belongs to its own request
+
+There is another way for the instrument to lie while every answer remains
+correct. The new implementation initially assumed the actor serialized lens
+observations. It does serialize turn decisions. An interrupted HTTP worker,
+however, can still be finishing when the next turn begins.
+
+Independent review held an old cold response, interrupted its turn, and let a
+new request complete. The lens predicted 0.0000 for the cold request and 0.8554
+for the new one. When the old response was released, it reported the new
+request's 0.8554 prediction. Locking a shared “latest prediction” would prevent
+a race while preserving the wrong attribution.
+
+Keep the prediction with the request that produced it. The corrected lens
+returns a ratio to Engine, and that exchange's response callback carries it
+back with the granted usage. A short lock protects comparison and artifact
+rotation; no lock spans the network wait. The same held-response probe then
+reports 0.0000 for the old response and 0.8554 for the new one, with both actual
+usages counted. Interrupting the conversation does not make an already incurred
+charge disappear.
+
+## §17.3 Where the markers go
+
+The system marker is straightforward. The system prompt does not change
+between turns, so a marker at the end of the system block banks the
+startup instructions. Mutable memory and dynamically loaded skill bodies remain
+conversation data; moving them into the system prompt would undo earlier chapters.
+One marker, one stable prefix.
+
+The message-history marker is harder, because the conversation grows.
+Everything before the current exchange is identical to the previous
+request, and everything after it is new. A marker that banks the identical
+part saves money on every warm turn.
+
+### Why not the first message
+
+An obvious placement is the first user message. Everything before it is
+stable, so a marker there should cache the prefix.
+
+The error is in how the provider serves the cache. A read covers the span
+up to a marker. A marker on the first message caches tools, system, and
+the first message. The system marker already caches tools and system. The
+first-message marker adds one message to the cached span and leaves the
+rest of the conversation cold on every turn, while the conversation is
+the part that grows and the part that costs.
+
+### The tool array
+
+Tools sit at the very front of the cache order, ahead of the system
+prompt and the messages. A marker on the last tool declaration closes a
+prefix containing all of them.
+
+The tool-array marker is the only one that survives a change to the
+system prompt. Without it, editing a single word of the prompt discards
+the tool declarations along with it, and tool schemas are not small. With
+it, the declarations stay cached while the prompt rebuilds. The system
+marker covers tools under normal operation, but the tool-array marker
+is the one that matters under maintenance.
+
+### The stable end
+
+One marker sits on the last eligible retained block before ephemera,
+even when the two share a wire message.
+It advances on each turn as the conversation grows. Because a marker is
+not part of the cache key, moving it does not invalidate the bytes it
+previously banked. The first-edition Anthropic run recorded a 21-token rise between its two warm
+requests, matching that exchange's size. It demonstrates a moving marker with
+successful cache reads in that run; it does not promise the same increment for
+every response or provider.
+
+A start-of-turn anchor is unnecessary. The rolling marker from the
+previous turn already wrote a cache entry at exactly that prefix, and
+both vendors walk backward past a bounded number of positions to find a
+prior write. The anchor would buy a second copy of something already in
+hand, using one of only four slots.
+
+For this layout, an extra start-of-turn breakpoint duplicates the rolling
+boundary. If adding one appears to help, inspect the actual prefix before
+spending another slot. A rewritten prefix needs its cause fixed; an extra
+marker can make that mistake harder to see.
+
+### The compaction bound
+
+A `micro_handoff` rewrites the conversation above it: tool calls are
+stripped, recall entries are removed, and the affected region settles
+into the redaction ladder's terminal state. The stable-end marker, which
+sat somewhere in the middle of that region, now points at bytes that no
+longer exist. It rebuilds from the new tail and the old prefix is gone,
+along with the cache it banked.
+
+The newest surviving `micro_handoff` gives the renderer a useful boundary
+between completed work and the continuing exchange. The cuts were recorded and
+applied by the reducer, not recomputed to suit today's render. If a memory fold
+has removed that handoff, the projection uses the last surviving
+memory entry instead. The cache marker describes retained bytes; it cannot
+preserve a dialogue entry that the memory policy has legitimately replaced.
+
+This is a different answer from an agent that keeps demonstration pairs
+after compaction. Keeping the three most recent tool-call pairs past the
+handoff creates a moving boundary, because what counts as "most recent"
+is recomputed on every render. Pairs kept before an older handoff are
+dropped once a newer handoff pushes the boundary forward. The marker
+must then track the first surviving pair rather than the handoff itself.
+An agent whose compaction strip is uniform avoids the moving boundary
+entirely: the handoff is the bound, and that is where the marker goes.
+
+A memory-band compaction rewrites data near the front of the conversation.
+That invalidates the old suffix from the changed point, while earlier tools
+and system instructions can still be reused. Accept that cost when replacing
+old memory; do not turn memory into frozen instructions to avoid it.
+
+### The vendor asymmetry
+
+Anthropic takes `cache_control` on a tool definition, so it gets all
+four markers. OpenAI cannot. Its breakpoints attach to message content
+blocks, and the tools array is not a content block. OpenAI writes three
+of the four: system, compaction bound, and stable end.
+
+Nothing is lost except independence. A breakpoint includes all prompt
+content before it, and tools precede the system prompt in the cache
+order, so the system marker already covers the tool declarations. The
+system marker simply cannot keep them when the prompt changes. Under
+routine operation this makes no difference. Under maintenance, Anthropic
+holds its tool cache through a prompt edit while OpenAI does not.
+
+The exact provider lookback is not a client-side algorithm to reproduce.
+Earlier documentation even disagreed about its count. What matters here is
+that a read and a write are different observations, and a cache write can have
+its own full rate. This chapter is about an invisible invoice; write tokens
+belong in the accounting too.
+
+That is up to four markers on Anthropic, three on the supported OpenAI route.
+An empty tool array or absent compaction bound does not need a placeholder
+merely to consume a slot.
+
+### Ephemera
+
+Ephemera are content appended last in `Render` and documented as
+"delivered once, then cleared." They may merge into the final user
+message. A marker placed after them includes bytes that disappear on the
+next turn. That exact boundary cannot match afterward, even if an earlier
+part of the prefix still receives a discount.
+
+The stable boundary must be captured before the ephemera append. This is
+a single line of code and a paragraph of explanation, but omitting it
+leaves the rolling boundary beyond transient bytes. Correct answers alone
+will not reveal that placement error.
+
+### The provider minimum
+
+Cache eligibility has a floor, and the floor belongs to a model and route.
+The October 11 documentation lists 1,024 tokens for Sonnet-5 and GPT-5.6 Sol,
+and 4,096 for Gemini 3.8 Flash. These are token counts, not request-file byte
+lengths. Check the selected model's current contract before diagnosing a zero.
+
+A zero can mean the cache failed, or it can mean the request was never
+eligible. An instrument that cannot tell those apart will eventually
+report the second as the first. The original live script used prompts of a
+few hundred tokens and got three Gemini zeroes. Its author first called
+caching unimplemented, then corrected the diagnosis after an eligible run.
+
+The old grader fixture grew from 1,716 to 6,631 bytes when five tool
+declarations were added. That made its prefix test less trivial, but byte
+length alone does not establish a provider's token minimum. A fake can award
+cache reads below any real floor; only a real response supplies the grant.
+
+## §17.4 What the wire shows
+
+The first-edition coder reported these live cache-read counts. They are
+historical measurements under its earlier marker arrangement, not a new run
+of the final implementation:
+
+| vendor | model | cache\_read by turn | what it needs |
+|---|---|---|---|
+| Anthropic | `claude-sonnet-5` | 0, 3627, 3648 | explicit `cache_control` markers |
+| OpenAI | `gpt-5.6-sol` | 0, 7359 | explicit `prompt_cache_breakpoint`; `mode: "explicit"` |
+| Gemini | `gemini-3.8-flash` | 0, 0, 16349, 24531 | implicit; history grew by roughly 8,400 tokens per turn |
+
+Three findings in that table.
+
+Anthropic's two warm counts differ by 21 tokens, the reported size of the
+previous exchange. That is the stable-end marker banking the conversation
+one exchange at a time. It is the direct evidence that a moving marker
+does not invalidate the cache, measured rather than assumed. The
+assumption held for two sessions before anyone thought to check.
+
+The original OpenAI experiment used the explicit scheme, under different field
+names: `prompt_cache_breakpoint` on a content block and
+`prompt_cache_options: {mode: "explicit"}` on the request. It was
+then documented only for the Responses API in the coder's reading; the
+experiment exercised Chat Completions. Its [current reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create) also documents
+the content marker and request opt-in. The end-to-end measurement,
+using that version's renderer output, reads 7,359 of 7,362 prompt
+tokens from cache on the second turn. That is 99.96 percent of the
+prefix, which confirms the markers land and the prefix survives.
+
+The measurement that matters is the one that almost did not get made.
+The first probe sent a request with the marker removed from a position
+that had been primed, and got zero reads. The diagnosis that came to
+mind was "removing the marker broke the prefix." But the probe had
+also changed the content encoding of that message from an array of
+parts back to a plain string, and two variables changed at once cannot
+diagnose anything. A second probe changed only the encoding and got
+7,813 of 7,816 tokens cached: the encoding change preserved that tested prefix. The zero meant "no breakpoint at the primed position
+to look up," not "the format change invalidated the cache." This
+chapter is about instruments, and the first instrument an instrument
+builder needs is the controlled experiment.
+
+The asymmetry between the two explicit vendors is the opt-in. On
+Anthropic, a missing marker costs a cache the agent never had.
+On OpenAI, explicit mode disables implicit caching, so a request
+that declares explicit mode and places no markers caches nothing at
+all, which is strictly worse than staying silent. The implementation
+must gate the opt-in on evidence: send `mode: "explicit"` only when
+at least one marker actually landed.
+
+Gemini needs the shape of the experiment alongside its numbers. It caches
+implicitly, detecting the repeated prefix itself, so there are no markers to
+place. The original coder tried three shapes: a fixed large user message, a
+large stable system reference with a small growing history, and a history
+growing by roughly 8,400 tokens each turn.
+
+The first two hit on turn two. The third produced the two leading zeroes in
+the table. An early review had tried to disprove the history claim using the
+fixed-message probe. Bill's prompting led to the growing-history experiment.
+Both measurements were real; the first answered a different question.
+
+The later implementation's browser run used a large stable reference and
+four short questions. Gemini warmed on the second request there too, with
+15,725, 15,801 and 15,910 cache-read tokens. Those changing values do not
+establish a universal 4,096-token block rule. Nor does the earlier four-turn
+run prove that a partial block stays uncached forever.
+
+Put genuinely stable content early and keep nearby requests comparable, as
+the [Gemini guide](https://ai.google.dev/gemini-api/docs/caching) recommends.
+That is not permission to promote editable memories or retrieved documents
+into system instructions. This chapter uses implicit caching for Gemini;
+it needs no marker budget or separately managed cache object. Measure the
+conversation shape the application actually sends before turning a warm-up
+observation into a rule.
+
+### The section name
+
+The instability alarm exempts the conversation section, because the
+conversation is the one section expected to grow every turn. The exemption
+compares against a section name. For Anthropic and OpenAI that name is
+`messages`. For Gemini it is `contents`.
+
+A hardcoded constant gets the wrong answer for one of the three vendors.
+The lens detects the name from the body's shape rather than from a vendor
+table, because the conversation section is the one containing an array
+of objects with `role` fields regardless of what the vendor calls it.
+
+The failure mode before the fix: every ordinary Gemini turn was reported
+as a broken prefix, with a byte offset that moved between runs. The same
+log line already said `contents:appended`, which was the correct
+diagnosis. Two halves of one instrument contradicting each other, and the
+half offering a precise offset was the wrong one. A precise wrong answer
+outranks a vague right one in a reader's attention, and that is exactly
+what happened.
+
+### What the fake cannot see
+
+The grader runs against a fake vendor. A fake vendor grants whatever
+figures it is told to, so it can prove the request is well-formed and the
+lens observes it. It cannot prove the provider agrees.
+
+The first implementation's fake and live runs found different defects.
+Neither replaced the other.
+
+The usage meter failed to find a paid model's price. It looked up prices by the
+model named in the settings store, which is empty when the model comes
+from the environment. An empty name matches nothing, so `claude-sonnet-5`
+reported `priced:false, cost:0`. The instrument built to make spending
+visible was the thing concealing it. It now prices the model actually in
+force, taken from the engine config at the composition root.
+
+The original live `gpt-5.6-sol` Chat Completions run refused requests carrying `reasoning_effort`
+alongside function tools, returning a 400. That exercise exposed tools, so every attempted turn failed. The subtle half: the field must be sent as `"none"`,
+not omitted. Omitting it means "your default," and the default is a
+reasoning effort, so the request comes back refused with the identical
+error while the field appears nowhere in the body. The error names a
+field the developer can grep for and not find.
+
+The price lookup is ordinary application behavior and a good fake-driven
+fixture can catch it. In fact, the retained coder review attributes that
+finding to the grader, not the live run. The tool/reasoning restriction needs
+a faithful provider contract before a fake can reproduce it. Real use found
+the missing fact; a focused regression can preserve it. Keep both kinds of
+checks, and be precise about which one found the defect.
+
+## §17.5 The meter
+
+The GUI header shows four numbers: session cost, last-response input
+tokens, last-response cache read tokens, and session cache hit rate.
+Input and cache-read show the most recent response so the operator can
+see how large the current prompt is and how much of it hit cache, rather
+than a running sum that only grows. Session totals go to the tooltip on
+hover. Cost is computed from Usage and Price at render time and held only
+in memory.
+
+The event log holds token counts in four categories: Input, CacheWrite,
+CacheRead, Output. Prices live on ModelFeatures. Engine's meter multiplies each model/tier's
+counts by its corresponding rates when the GUI asks for a view. A price
+correction can change the derived cost without rewriting the event log.
+Storing computed cost would freeze the wrong price into the permanent
+record.
+
+### Session scope
+
+Cost and hit rate read from Engine's process-lifetime accounting, which
+resets on restart. Input and cache-read display the latest main response.
+The judge and compressor add to session totals and cost without replacing
+that main-response display. Restored conversation usage is a different
+history and does not seed the current process's meter. The
+distinction matters: a developer who opens the GUI and sees yesterday's
+total plus today's spend has no feedback loop. "Session cost" means the
+cost since the developer sat down.
+
+### Units
+
+Usage counts tokens. Prices are dollars per million tokens. The two meet
+only at render time, and the result is denominated in dollars. The event
+log never holds a dollar amount. Normalize vendor buckets before applying
+prices: Anthropic reports disjoint ordinary/write/read input; OpenAI's prompt
+total already includes cached reads and writes; Gemini's prompt total includes
+cache reads, and its charged output includes reported thinking. Subtract the
+included cached buckets when forming ordinary input, then count each once.
+For streams, retain the final usage rather than summing cumulative updates.
+
+The lens predicts a cacheable fraction from the request, measured in
+bytes. The provider reports a cache hit rate in the response, measured
+in tokens. These cannot be added or subtracted because the units differ
+and the tokenizer is not a linear function of byte count. Comparing them
+as ratios is legitimate: the prediction is a fraction, the grant is a
+fraction, and a large gap is a reason to investigate. A small gap is consistent with
+reuse, but is not a tokenization identity or a billing audit. The original Anthropic report paired a 96.8% byte prediction with a
+99.4% token grant. The comparison is useful because both remain visible.
+
+## §17.6 Exercise, graded
+
+Extend `solutions/edition-2/ch16`. Observe actual main sends with an
+Engine-owned cache lens; exclude auxiliary requests from that comparison.
+Place supported markers at tools, system, the surviving compaction boundary
+and the stable end before ephemera. Build the four-number GUI meter from
+process-scoped accounting. Keep model/tier identity with incurred usage,
+price unknowns honestly and preserve history across a restart that resets
+the current process's spend.
+
+Run from the repository root:
+
+```sh
+go run ./cmd/grade-edition2 -ch 17 -json
+```
+
+The grader builds `solutions/edition-2/ch17/gui` separately from the core.
+`-gui` can select another GUI module; `-cache-current` and `-cache-prior`
+select its diagnostic artifact paths relative to the scratch launch directory.
+The defaults are `cr/cache-current.txt` and `cr/cache-prior.txt`.
+`-cache-prices` supplies the four per-million rates, in ordinary-input,
+cache-write, cache-read and output order; its Sonnet-5 default is
+`2,2.5,0.2,10`. A historical implementation with a different dated tariff
+can be checked against its own rates. These are grader options, not new
+application flags.
+
+The public GUI uses `--port`, `--gui-dir`, provider environment settings and
+a typed primary skill. Its WebSocket `/ws` accepts a `subscribe` message;
+ordinary browser prompts or stdin `{"kind":"prompt","text":"..."}` enter
+the same Agent. A `usage` frame reports latest disjoint `input`, `cache_write`,
+`cache_read`, `output`; nested `total` contains session counts, and
+`hit_rate`, `cost_usd`, `priced` describe the disposable meter. The header
+adds the three input buckets; the tooltip exposes the session totals. The
+GUI command saves to launch-directory `save.json` by default; its Agent's
+lens files still belong under `cr/`.
+
+| check | pts | what it tests |
+|---|---|---|
+| `cache-lens-exists` | 15 | a cache lens observes consecutive requests, so the actual requests are inspectable |
+| `prefix-is-stable` | 20 | tools and system are byte-identical across turns |
+| `request-has-breakpoints` | 15 | the last tool declaration, system block and advancing stable history block carry legal `cache_control`, within the four-marker budget |
+| `cost-is-computed-not-stored` | 15 | event log holds counts only; cost is derived at display time |
+| `usage-is-session-scoped` | 10 | the meter's tokens come from this response, not the lifetime total restored from disk |
+| `cache-read-rate` | 10 | cache reads are zero on a cold turn and nonzero on a warm one |
+| `all-vendors-report-usage` | 15 | vendor parsers normalize supplied usage without double counting |
+
+The numeric checks drive the real GUI and compare its requests, counts and
+artifacts with an external provider fake. Actual browser display, interrupted
+worker attribution, auxiliary exclusion, surviving memory boundaries and
+full provider marker rules also retain their focused source/integration checks.
+The numeric marker fixture has no handoff or ephemeral tail.
+A fake's warm reply cannot establish a real cache grant.
+
+## §17.7 Taking It for a Spin
+
+Use a fresh directory and a stable reference large enough to make caching
+eligible. The reference belongs in the primary here because it is fixed for
+the demonstration, not because arbitrary retrieved text belongs in instructions.
+From a scratch copy of `solutions/edition-2/ch17`:
+
+```sh
+cache_source="$PWD"
+(cd gui && go build -o /tmp/ensemble-ch17-gui ./cmd)
+cache_demo=$(mktemp -d)
+cd "$cache_demo"
+mkdir -p skills/base
+python3 - <<'PY'
+from pathlib import Path
+header = """---
+name: base
+type: primary
+description: Answer questions about the fixed archive reference.
+tools: list_directory read_file
+---
+Answer the user's archive question in one short sentence, without tools.
+The archive project code is COPPER-FERRY-18.
+"""
+records = "".join(
+    f"Archive record {i}: color copper; preserve the original source and record the reason for each change.\n"
+    for i in range(1, 701)
 )
+Path("skills/base/SKILL.md").write_text(header + records)
+PY
 ```
 
-**The recall pipeline** has three stages:
-
-1. **BM25 search.** Tokenize the user's message, remove stop words, score
-   every chunk in the index. Use per-source quotas: memory files get 50%
-   of candidate slots; docs, handoffs, learnings, and skill docs split
-   the rest. This prevents large directories from drowning out personal
-   memories. Select up to `SmartRecallCandidates` (default 20) chunks
-   above a low threshold (0.5).
-
-2. **SLM judge.** Send the candidates to a cheap language model
-   (gemini-2.5-flash-lite or equivalent) along with the last few
-   conversation messages for context. The judge returns a JSON array of
-   indices, the candidates it considers genuinely relevant, not just
-   keyword matches. If the judge fails, times out (15 seconds), or is
-   disabled, fall back to the top N results by BM25 score alone.
-
-3. **Attachment.** Format the surviving snippets (up to `MaxSnippets`,
-   default 3) as blockquoted text with source attribution. Record them as
-   their own entry kind, never merged into the user's message. Cap total
-   recalled text at 6KB. Skip any snippet already present in the
-   conversation. The entry persists until a checkpoint removes it.
-
-**Sources searched:**
-
-| Source | What | Quota |
-|--------|------|-------|
-| Memory files | Daily logs from `~/.cr/memory/` (excluding the two most recent, already in the system prompt) | 50% of slots |
-| Docs | Design documents, investigation notes | Even split |
-| Handoffs | Archived context rollovers | Even split |
-| Learnings | The `long` field of learnings (short ones are already in the system prompt) | Even split |
-| Skill docs | All available SKILL.md files, enabling just-in-time skill discovery | Even split |
-
-**Chunking.** Split markdown on `## ` headers. Large chunks (over 4KB) split
-further on `### ` sub-headers, then on paragraph boundaries. Sub-chunk headers
-use breadcrumb format: `"Parent Header > Sub Header"`.
-
-**Tokenization.** Split on non-alphanumeric characters, lowercase, minimum
-2 characters. Filter stop words from queries only. Documents keep all terms
-for length normalization.
-
-**The recall judge is one stateless model call**, not an agent. It takes a
-prompt and returns text. Because it holds no history and owns no context,
-it cannot recall, which makes the recursion problem structurally impossible
-rather than something to guard against.
-
-**Recall is a new spoke.** It imports the hub and the standard library,
-nothing else. Recall needs a model and the model layer needs recall, so
-both dependencies invert through interfaces on the hub: recall implements
-`Recaller` and consumes `SnippetJudge`; the model layer implements
-`SnippetJudge` and holds a nilable `Recaller`. Neither package imports
-the other. Wiring happens at the top, where everything is already visible.
-
-**Parse the judge's response defensively.** Small models are unreliable
-with output format. Try `[]int` first, fall back to `[]string` (models
-sometimes return `["0", "3"]`), fall back to `[]json.RawMessage` for
-mixed types. Extract the first `[` to last `]` from the response,
-models often wrap the JSON in explanation text.
-
-**Configuration** (defaults that work in production):
-
-| Setting | Default | Purpose |
-|---------|---------|---------|
-| `MinScore` | 3.0 | BM25 score floor for plain recall (no judge) |
-| `MaxSnippets` | 3 | Maximum snippets injected per turn |
-| `MinQueryLength` | 80 | Skip recall for short messages |
-| `JudgeModel` | gemini-2.5-flash-lite | Cheapest model that judges well |
-| `Candidates` | 20 | BM25 results sent to the judge |
-| `ContextMsgs` | 3 | Recent messages for judge context |
-| `MaxRecallBytes` | 6144 | Hard cap on total recalled text |
-
-**Graded behaviors (10 checks, 100 points):**
-
-| Check | Points | What it tests |
-|-------|--------|---------------|
-| `bm25-indexes` | 10 | Memory files are indexed and searchable |
-| `bm25-scores` | 10 | Relevant chunks score higher than irrelevant ones |
-| `bm25-stop-words` | 5 | Stop words are filtered from queries, not documents |
-| `chunking-splits` | 10 | Large documents are split on markdown headers |
-| `per-source-quota` | 10 | Memory files get at least 50% of candidate slots |
-| `judge-filters` | 15 | The SLM judge removes irrelevant BM25 hits |
-| `judge-fallback` | 10 | Judge failure falls back to top-N BM25 results |
-| `recall-is-a-spoke` | 10 | `internal/recall` imports only the hub and stdlib |
-| `recall-is-own-kind` | 10 | Recalled text is its own entry, never merged into the user message |
-| `injection-capped` | 10 | Total recalled text does not exceed MaxRecallBytes |
-
-## §17.1 The Idea in Plain Words
-
-A filing cabinet is not memory. Memory is what comes to mind without being
-asked.
-
-Chapter 16 built the filing cabinet: bands that compress, a cascade that
-graduates, a watermark that forces the agent to write things down before
-they disappear. All of that is storage. It answers the question "where
-do memories go?" It does not answer the question "how do memories come
-back?"
-
-The answer is the oldest trick in information retrieval. When the user
-types a message, pull out the keywords, score every memory chunk against
-them, and surface the best matches. BM25, a formula from 1994, does
-this in microseconds on a corpus of a few hundred files. No vector
-database, no embedding model, no infrastructure. Keywords and arithmetic.
-
-But BM25 is a blunt instrument. It matches words. A query
-about "authentication" will not find a memory about "login flow." And it
-is biased toward long documents full of technical vocabulary. A design
-doc that mentions "memory" seventeen times will outscore a short daily
-log that contains the actual decision. Two mechanisms compensate:
-
-**Per-source quotas.** Memory files get 50% of candidate slots regardless
-of score. Docs, handoffs, learnings, and skill docs split the rest. This
-is a structural guarantee: the agent's personal memories are never drowned
-out by the project's reference documentation, even when the docs score
-higher.
-
-**The recall judge.** A cheap language model, the smallest that can follow
-instructions, reads the BM25 candidates alongside the recent conversation
-and picks the ones that are genuinely relevant, not merely keyword-adjacent.
-The judge sees context that BM25 cannot: what the conversation is about,
-what the user is trying to do, whether a keyword match is superficial or
-load-bearing.
-
-The judge is the difference between "here are some memories that mention
-the same words" and "here is something you need to know right now." Without
-it, a developer asks about authentication and gets every memory that
-mentions a password. With it, the developer gets the one where the team
-decided to use OAuth.
-
-The obvious lifetime for a recalled snippet is ephemeral. Relevance is local:
-a memory about database schema is useful when the user mentions the database
-and noise when the conversation moves to the GUI. Show it, drop it.
-
-That intuition is expensive, and the reason is that a prompt cache is a
-prefix property. Dropping a block deletes bytes from the middle of the
-prefix, which invalidates everything after the deletion point. Keeping the
-block at the tail instead avoids the deletion but re-sends those bytes on
-every tool round, and a turn has many rounds. Attaching the block once and
-leaving it alone is the only option where the prefix grows monotonically and
-the bytes are paid for a single time. Rounds are many; turns are few.
-Anything re-sent per round is the expensive thing.
-
-So recalled snippets are permanent. They are not merged into the user's
-message, because the user's words must stay distinguishable from
-machine-retrieved text, and because anything fused into a user turn cannot
-later be removed without damaging it. They are their own kind of entry,
-which makes them addressable: a checkpoint can delete them by kind.
-
-That checkpoint is where removal belongs. A checkpoint already rewrites the
-prefix, so it is already paying for a cache miss, and deleting recall there
-costs nothing extra. Removing it on its own schedule would buy a second
-invalidation for no benefit. The rule generalizes past this chapter:
-**delete only at a moment that is already paying for a cache miss.**
-
-This is the second appearance of a shape worth naming. Chapter 16 found that
-switching a memory band off is more expensive than leaving it on, because
-disabling strips bytes from the front. Here, the transient-looking thing is
-cheaper to keep than to remove. In a system built on cached prefixes,
-retention is cheap and removal is dear, so the intuitive lifetime is usually
-the wrong one.
-
-The system degrades gracefully at every level. If the query is too short
-(under 80 characters), recall does not fire. Short messages like "fix it"
-contain no signal worth matching. If BM25 finds nothing above the score
-floor, nothing is injected. If the judge fails or times out, the system
-falls back to the top BM25 results without filtering. If the entire recall
-system is disabled, the agent still works. It does not remember
-passively. Every failure mode produces a working agent with less context,
-never a broken one.
-
-One unexpected benefit: skill discovery. All available SKILL.md files are
-indexed alongside memories. When a user asks about something a skill
-handles, the skill documentation surfaces through recall, and the agent
-loads it without being told. This was not planned. It was added because
-skill docs were already markdown files in a known directory, and indexing
-them cost nothing. It turned auto-recall into a discovery mechanism as well
-as a memory mechanism.
-
-## §17.2 BM25: The Thirty-Year-Old Formula That Still Works
-
-BM25 (Best Matching 25) was published by Robertson and Walker in 1994.
-It is still the default ranking function in Elasticsearch, Solr, and most
-search engines that have not switched to neural retrieval. For a corpus of
-a few hundred markdown files totaling a few megabytes, it is the right
-tool.
-
-The formula scores a document against a query by combining three ideas:
-
-**Term frequency with saturation.** A word that appears ten times in a
-document is more relevant than one that appears once, but not ten times
-more relevant. The `k1` parameter (standard value: 1.2) controls how
-quickly additional occurrences stop mattering.
-
-**Inverse document frequency.** A word that appears in every document is
-worthless as a discriminator. A word that appears in one document is
-a strong signal.
-
-Use the smoothed form, `ln(1 + (N - df + 0.5) / (df + 0.5))`, and not the
-classic one clamped at zero. The difference looks cosmetic and is not. The
-classic form goes negative once a term appears in more than half the chunks,
-so implementations clamp it, and the clamp produces exactly zero for every
-such term. On a small archive, which is every archive on day one, most terms
-appear in more than half the chunks. Every one of them scores zero, the
-totals collapse below any sensible threshold, and retrieval returns nothing.
-
-The failure is worth dwelling on because of how it presents. Nothing errors.
-The index builds, the search runs, the scores are computed correctly
-according to the formula, and the agent simply never remembers anything. It
-reads as "recall is broken" when it is in fact "IDF is the wrong variant,"
-and those two diagnoses send you to opposite ends of the codebase. The
-smoothed form is non-negative by construction, which makes the clamp
-unreachable and the failure impossible.
-
-A related trap waits in testing. IDF measures rarity *against the corpus*, so
-in an archive of two or three chunks nothing is rare, every score collapses
-toward zero, and a perfectly correct implementation looks broken. A three
-chunk fixture scores around 1.7 in total, well under a threshold of 3.0. Any
-worked example or test fixture needs roughly twenty five chunks of padding
-before the numbers mean anything. This is the same failure as the IDF variant
-above, arriving from a different direction: both make correct code look
-broken, which is the most expensive kind of wrong.
-
-**Document length normalization.** A long document is expected to contain
-more term matches than a short one. The `b` parameter (standard value:
-0.75) penalizes long documents to compensate, using the average document
-length as the baseline.
-
-The implementation needs five things: a tokenizer, a stop-word list, an
-index builder, a scorer, and a chunker that splits documents into pieces
-small enough to be useful as recalled snippets.
-
-Tokenize by splitting on non-alphanumeric characters, lowercasing, and
-dropping tokens shorter than two characters. Filter stop words from
-queries only. Keeping them in documents preserves accurate term frequency
-and length statistics.
-
-Chunk markdown on `## ` headers. Each chunk records its filename, header
-text, content, pre-computed term frequencies, and token count. When a
-chunk exceeds 4KB, split it further on `### ` sub-headers, then on
-paragraph boundaries. Use breadcrumb headers (`"Parent Header > Sub Header"`)
-so the reader knows where a sub-chunk came from.
-
-The whole engine is a few hundred lines of code. No dependencies, no
-configuration files, no external services. Build the index at startup,
-rebuild it when memory files change, and search it in microseconds.
-
-## §17.3 Per-Source Quotas: Why Memory Gets Half the Slots
-
-The first version of auto-recall ran a single merged BM25 search over all
-sources. Design documents dominated the results. A 20KB design doc full of
-technical terminology would outscore a 500-byte daily log that contained
-the relevant decision, because BM25 rewards term density and the design
-doc had more surface area for keyword matches.
-
-The fix is structural, not algorithmic. Give each source its own BM25 index
-and search them independently, then allocate guaranteed slots:
-
-1. Memory files get 50% of the slots (rounded up).
-2. Remaining slots are split evenly among other sources.
-3. Unused slots from sources with fewer results than their quota flow to
-   sources with overflow.
-
-Separate indexes matter on their own. IDF is computed per source, so a term
-that is unremarkable across the memory archive can still be rare within the
-documents, and a large source no longer distorts what counts as rare for
-everyone else.
-
-**Apply the quota to the final selection, not to the candidate pool.** This
-distinction is the whole mechanism, and getting it backwards produces code
-that looks right and does nothing. Candidates arrive already sorted by score
-within each source, so capping a source's contribution to the candidate pool
-only ever discards its weakest hits, which were never going to be selected
-anyway. Implement it that way and the quota is dead code: delete it entirely
-and not one recalled snippet changes.
-
-**The quota must not overrule the judge.** It governs the mechanical paths,
-where no judge ran or the judge failed and selection falls back to score
-order. When a judge has actually assessed relevance, its verdict stands.
-Discarding the opinion of the only component that read the conversation, in
-order to satisfy a ratio, would trade the good signal for the crude one.
-
-This is a policy decision, not a BM25 improvement. The agent's personal
-memories are the highest-value source. They contain decisions, context,
-and lessons that no design doc captures. Guaranteeing them half the slots
-ensures they survive competition with larger, denser documents.
-
-## §17.4 The Judge: Filtering by Meaning, Not Keywords
-
-BM25 finds documents that share words with the query. The recall judge
-finds documents that share *relevance* with the conversation.
-
-The judge is a single stateless call to the cheapest model that can follow
-instructions, currently Gemini 2.5 Flash Lite, a model that costs
-fractions of a cent per call. It receives:
-
-1. The recent conversation (last 3 user and assistant messages).
-2. The latest user message, labeled separately.
-3. Up to 20 numbered candidate snippets from BM25.
-4. An instruction: pick up to 3 that the agent would genuinely benefit
-   from seeing, return a JSON array of indices. "Keyword mention alone
-   is not relevance."
-
-The judge returns `[0, 7, 12]` or `[3]` or `[]`. Three details make
-this work reliably:
-
-**It starts clean every time.** The judge holds no history. Note what that
-means about item 1 above: the recent conversation reaches the judge as *data
-inside the prompt*, not as history the judge carries between calls. Every
-judgment is independent, and nothing from the last one can color the next.
-
-**Recursion is impossible rather than prevented.** An agent that could recall
-would trigger its own recall when judging, which would invoke another judge.
-A stateless call has no context of its own to fill, so the failure cannot be
-expressed. This is worth noticing as a design move: the strongest way to
-handle a failure mode is to build a thing that cannot exhibit it. An
-implementation that made the judge a full agent would need a nil provider and
-a settings flag to hold the same line, and would still be one refactor away
-from losing it.
-
-**Defensive JSON parsing.** Small models are unreliable with output
-format. The parser tries `[]int`, falls back to `[]string` (models
-sometimes quote the numbers), falls back to `[]json.RawMessage` for
-mixed types. It extracts the first `[` to last `]` from the response
-to handle models that wrap JSON in explanation text. Out-of-range
-indices are silently filtered.
-
-**One component owns the reply format, and it is the one that parses.**
-Nothing else may restate it. This sounds like housekeeping and is the most
-dangerous rule in the chapter, because the model layer holds the client and
-will feel like the natural place to describe what a good answer looks like,
-while the recall layer holds the parser. Let both describe it and they will
-drift. Then the model receives two specifications in one request, obeys one
-of them, and the parser rejects a reply that was perfectly well formed by the
-other. Recall falls back to raw scores on every single turn, with no error,
-no log line, and a judge that appears from the outside to be working
-normally. The only symptom is that results are slightly worse than they
-should be, forever. Whoever reads the bytes decides what the bytes look like.
-
-When the judge fails or times out (15 seconds), the system falls back
-to the top N BM25 results by score. The agent gets noisier recall, not
-no recall.
-
-## §17.5 Attachment: Permanent Until a Checkpoint
-
-Recalled snippets are formatted as blockquoted text with source attribution:
-
-```
-[Auto-recalled memories]
-
-From 2026-09-22-1.md — Key decisions:
-> save_memory removed as agent tool; micro_handoff becomes SOLE trigger.
-> Sub-agent compresses portions into memories.
-
-From docs/auto-recall-design.md — The Pipeline:
-> BM25 keyword search over memory files, filtered through an SLM judge.
+With the provider key configured as in Chapter 0, start the GUI in that
+terminal and leave stdin open while using the browser:
+
+```sh
+LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
+EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
+/tmp/ensemble-ch17-gui --port 8088 --gui-dir "$cache_source/gui/web/gui"
 ```
 
-That text becomes its own kind of entry in the conversation. Three properties
-follow, and each one is load-bearing.
+Open `http://localhost:8088` and send these in order, waiting for each reply:
 
-**It is never merged into the user's message.** The user's actual words must
-stay distinguishable from machine-retrieved text, both for the model reading
-them and for anyone auditing the log afterward. Fusing the two also makes the
-recall unremovable: a checkpoint keeps user turns verbatim, so anything
-welded into one survives with it forever.
+```text
+What is the archive project code? Reply in one short sentence.
+What is the rule for archive record 37? Reply in one short sentence.
+What color identifies archive record 402? Reply in one short sentence.
+Remind me of the archive project code, in five words or fewer.
+```
 
-**Where it lands on the wire is the renderer's decision, not the
-conversation's.** The conversation records that recall happened and what
-bytes it produced. Turning that into a request is a vendor question, and
-vendors disagree: one wants a system block mid-conversation, another a
-role-tagged message, another an extra part on a turn that already exists.
-Baking a wire shape into the stored conversation is the mistake Chapter 2
-exists to prevent. The renderer owes one guarantee in return: a stable
-position, so the prefix grows monotonically and stays cached.
+The answers should identify COPPER-FERRY-18, preserving the source and reason,
+and copper. Watch the header, then inspect its session tooltip. Compare the
+last response's usage in `api.log` with the `usage` frame in `gui.log`.
+`debug.log` records predicted and granted ratios; plain `diff` on the two
+`cr/cache-*.txt` files shows the retained prefix and appended conversation.
+A good answer with zero cache reads is still a zero-cache result. Check the
+actual input size, eligible route and prefix before deciding why.
 
-**It carries its bytes.** Recall is nondeterministic, because a language
-model chose which snippets survived. If the text were recomputed while
-rendering, replaying a log would call a model, and two replays of the same
-log could disagree. So the snippets are recorded as text at the moment they
-are chosen. Replay then reproduces the conversation exactly, with no search
-and no model call.
+Stop with Ctrl-D in the launch terminal after the last turn. Restart the
+same command in the same directory. Conversation history should return while
+the new process's meter starts at zero; no new response has been charged yet.
+That is a separate check from seeing a warm second turn.
 
-That last property is the same boundary Chapter 16 drew. A transform that is
-a pure function of the log can run at render time. Anything nondeterministic
-has to be recorded when it happens. Recall is the second thing in this book
-to land on the far side of that line, which is why Chapter 15 had to come
-first: without recorded events, there is nowhere to put it.
+The retained October 11 browser sessions made four turns each on the earlier
+implementation `7436fcb`. All twelve answers matched the supplied reference.
+Their raw provider usage and visible meters were independently compared:
 
-Because the entries persist, the same memory could be recalled on three
-separate turns and appear three times. Skip any snippet whose content is
-already in the conversation. Retrieval should surface what the agent does not
-already have in front of it.
+| Historical model | Cache-read tokens by turn | Final session USD | Final session hit rate |
+| --- | --- | ---: | ---: |
+| `claude-haiku-5-5` | 0, 21924, 21968, 22058 | 0.003481475 | 74.8879% |
+| `gpt-5.6-sol` | 0, 16349, 16349, 16349 | 0.1040918 | 74.6439% |
+| `gemini-3.8-flash` | 0, 15725, 15801, 15910 | 0.0226167 | 66.2209% |
 
-One wiring hazard deserves naming, because it costs hours and announces
-nothing. An agent of this shape has more than one way to begin a turn. There
-is the interactive path, where a prompt arrives on standard input and is
-handled synchronously, and there is the actor path, where a message arrives
-in the mailbox and is handled by the loop. The graphical client uses the
-second. So does any harness that drives the agent like a real client. The two
-do not delegate to one another.
+The dollar values use the dated model prices captured for those runs. The
+session percentages include the cold first request; they are not the last
+request's hit rate. Haiku 5.5 remains the historical identity, not a current
+choice: the executable example uses supported Sonnet-5. Those captures contain
+no restarted process or handoff, and precede the lens-overlap correction.
+Restart and overlap have their separate real-runtime checks.
 
-Hook recall into only one of them and the result is an agent whose memory
-works perfectly whenever it is poked by hand, and never runs once in the
-actual product. No error is raised, because nothing is wrong: a function that
-was never called cannot complain. Find every entry point into a turn and
-attach to all of them, then verify through the path a real client uses rather
-than the one that is convenient to test.
-
-
-## §17.6 Tuning: What the Numbers Mean
-
-The defaults in the TL;DR were not designed. They were tuned over months
-of daily use. Each one has a story.
-
-**MinScore went from 0.5 to 3.0.** At 0.5, every conversation triggered
-recall, and most results were noise: single keyword matches on common
-technical terms. At 3.0, recall fires only when BM25 finds a genuine
-multi-term match. The jump is large because BM25 scores are not
-normalized; the right threshold depends on corpus size and vocabulary.
-Note: this threshold applies only to plain recall (no judge). When the
-judge is enabled, BM25 uses a low threshold (0.5) to cast a wide net,
-and the judge handles false-positive filtering.
-
-**MinQueryLength went from 15 to 50 to 80.** A user who types "fix it,"
-"run tests," or "looks good" is giving a command, and commands contain no
-signal for keyword matching. Raising the
-threshold progressively eliminated recall on messages that could never
-produce useful results. At 80 characters, the user has typed enough to
-contain a searchable concept.
-
-**Candidates went from 10 to 80 (code default) to 20 (production).**
-The code default is conservative: miss nothing, let the judge sort it
-out. In practice, 20 candidates is enough for the judge to work with
-and keeps its prompt under a few thousand tokens. More candidates
-means a larger judge prompt, which means higher cost and latency for
-marginal relevance improvement.
-
-**Judge timeout is 15 seconds, not 2.** The original design assumed a
-local model (Ollama) with sub-second latency. Cloud API calls to Gemini
-Flash Lite typically take 1–3 seconds. The generous timeout exists
-because a late judge response is better than no judge response. The
-fallback to unfiltered BM25 results is noisier.
-
-## §17.7 What BM25 Cannot Do
-
-BM25 matches words. Three limitations follow:
-
-**Vocabulary mismatch.** If the user says "authentication" and the memory
-says "login flow," BM25 will not connect them. Vector search (embedding-based
-retrieval) would, but it requires an embedding model, an index to maintain,
-and a service to call. For a corpus of a few hundred files, the marginal
-improvement does not justify the infrastructure. If the corpus grows by
-orders of magnitude, revisit this.
-
-**No content deduplication.** If a memory and a design doc contain the same
-information in different words, both may be recalled, wasting snippet slots.
-The only deduplication is file-level: the two most recent daily logs are
-excluded because they are already in the system prompt.
-
-**No relevance feedback.** The system does not learn which recalled memories
-the agent actually used. A snippet that the agent ignores on ten consecutive
-turns will keep surfacing if it scores well on BM25. Tracking usage patterns
-and adjusting retrieval is a natural next step that this implementation does
-not take.
-
-These are honest limitations, listed as what they are rather than as a
-roadmap. BM25 with a judge works
-well enough for daily use. The system is simple, fast, and debuggable. A
-more sophisticated retrieval system would be harder to debug when it
-recalled the wrong thing, and debugging recall errors is already hard.
-
-## §17.8 Skill Discovery: The Unplanned Win
-
-All available SKILL.md files are indexed alongside memories and documents.
-This was added because skill docs are markdown files in a known directory,
-and adding them to the BM25 corpus cost one line of code.
-
-The result was unexpectedly powerful. When a user asks about something a
-skill handles ("can you check my email?" or "what's on my calendar?"),
-the skill's documentation surfaces through auto-recall. The agent sees the
-snippet, recognizes the available skill, and loads it. No explicit skill
-search, no user instruction to load a specific skill. The agent discovers
-capabilities through the same mechanism it uses to recall past work.
-
-This turns auto-recall into a discovery system as well as a memory system.
-The agent's capabilities are not fixed at startup; they expand when the
-conversation moves into a domain where a skill exists. The user does not
-need to know which skills are installed. The skills surface when they are
-relevant.
-
-
+The unchanged original grader returned 0/100 because its primary fixture
+omitted the required skill type and never started the GUI. That did not
+measure seven broken cache features. Conversely, twelve correct answers did
+not establish that the instrument could attribute an interrupted reply. The
+useful result is the combination: inspect the actual request, preserve the
+provider's counts, and make the displayed cost answer to both.

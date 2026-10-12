@@ -3,439 +3,353 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
+	"net/url"
 	"sync"
+	"sync/atomic"
 	"time"
 
-	"github.com/flynn/noise"
 	"github.com/gorilla/websocket"
 )
 
-// ClientConfig configures a connection to a gateway.
+// Handler is the owning application's sequential receive boundary. Return from
+// OnDeliver accepts delivery and triggers its receipt. Handlers must hand long
+// work to their own goroutines and must not synchronously call client RPC methods.
+type Handler interface {
+	// OnDeliver accepts a message before the client acknowledges it.
+	OnDeliver(Envelope)
+	// OnConnected reports the authenticated welcome before any deliveries.
+	OnConnected(WelcomePayload)
+	// OnDisconnected reports the terminal connection outcome once.
+	OnDisconnected(string)
+	// OnError reports malformed traffic or an asynchronous protocol refusal.
+	OnError(error)
+}
+
+// NopHandler supplies optional callbacks for embedding in small applications.
+type NopHandler struct{}
+
+// OnDeliver accepts an otherwise ignored message.
+func (NopHandler) OnDeliver(Envelope) {}
+
+// OnConnected ignores the authenticated welcome.
+func (NopHandler) OnConnected(WelcomePayload) {}
+
+// OnDisconnected ignores connection shutdown.
+func (NopHandler) OnDisconnected(string) {}
+
+// OnError ignores an asynchronous diagnostic.
+func (NopHandler) OnError(error) {}
+
+// ClientConfig selects one peer identity and an explicit reconnect receipt.
 type ClientConfig struct {
-	// GatewayURL is the WebSocket endpoint, such as
-	// wss://gateway.example.com/v1/ws.
+	// GatewayURL is the WebSocket endpoint ending in /v1/ws.
 	GatewayURL string
-	// AgentID is this agent's identity, which must be known to the gateway.
+	// AgentID selects a configured key; it is not itself authentication.
 	AgentID string
-	// StaticKey is this agent's long-term Noise keypair.
-	StaticKey noise.DHKey
-	// GatewayPubKey is the gateway's known static public key. KK requires
-	// it up front: an agent that would accept any server key has no way to
-	// tell the real gateway from one that merely answers on that address.
+	// StaticKey is the client's private identity, kept only in this process.
+	StaticKey Keypair
+	// GatewayPubKey pins the expected gateway independent of any TLS proxy.
 	GatewayPubKey []byte
-	// LastAckedSeq resumes delivery after this sequence number. An agent
-	// with durable state of its own sets this on reconnect; one without
-	// leaves it zero and accepts redelivery of everything outstanding.
+	// LastAckedSeq resumes messages after the last delivery accepted by this handler.
 	LastAckedSeq uint64
-	// HandshakeTimeout bounds the dial and handshake. Zero means ten
-	// seconds.
+	// HandshakeTimeout bounds startup; zero uses ten seconds.
 	HandshakeTimeout time.Duration
 }
 
-// Client is a connection to a gateway.
-//
-// It owns the Noise session and a single receive goroutine. All outbound
-// frames are serialized, because a Noise cipher state is a counter and two
-// concurrent encryptions would produce frames the peer rejects.
+// Client owns one socket, its directional ciphers, and request bookkeeping.
+// Reconnect is explicit: retain LastAckedSeq and call Connect with the same identity.
+// This object does not own the application's accepted work or private-key file.
+// A new connection gets fresh ciphers and RPC IDs; recipient delivery sequences
+// remain gateway-owned and survive that transport lifetime.
 type Client struct {
-	cfg     ClientConfig
-	handler Handler
-
-	ws    *websocket.Conn
-	noise *NoiseKK
-
-	sendMu sync.Mutex
-
-	doneOnce sync.Once
-	done     chan struct{}
-
-	// pending correlates MCP tool calls with their responses.
+	owner     Handler
+	conn      *websocket.Conn
+	noise     *NoiseKK
+	writeMu   sync.Mutex
 	pendingMu sync.Mutex
-	pending   map[string]chan MCPResponsePayload
-
-	// seen is the dedup window. Delivery is at-least-once, so the same
-	// message can legitimately arrive twice after a reconnect; the handler
-	// should see it once.
-	seenMu sync.Mutex
-	seen   map[string]bool
-
-	// lastAcked is the highest sequence this client has acknowledged.
-	lastAcked uint64
+	pending   map[uint64]chan RPC
+	next      atomic.Uint64
+	ack       atomic.Uint64
+	done      chan struct{}
+	closeOnce sync.Once
 }
 
-// Connect dials the gateway, completes the Noise-KK handshake, sends hello,
-// and starts the receive goroutine.
-func Connect(ctx context.Context, cfg ClientConfig, handler Handler) (*Client, error) {
-	if handler == nil {
-		return nil, fmt.Errorf("gateway: a Handler is required")
+// Handler exposes the application owner without copying its state into the client.
+func (c *Client) Handler() Handler { return c.owner }
+
+// Connect authenticates and reads welcome before returning. The supplied context
+// owns connection lifetime as well as startup; cancelling it closes the socket.
+func Connect(ctx context.Context, cfg ClientConfig, owner Handler) (*Client, error) {
+	if owner == nil {
+		return nil, errors.New("gateway handler is required")
 	}
-	if cfg.AgentID == "" {
-		return nil, fmt.Errorf("gateway: AgentID is required")
+	u, err := url.Parse(cfg.GatewayURL)
+	if err != nil {
+		return nil, err
 	}
-	if len(cfg.GatewayPubKey) != PublicKeySize {
-		return nil, fmt.Errorf("gateway: GatewayPubKey must be %d bytes, got %d",
-			PublicKeySize, len(cfg.GatewayPubKey))
-	}
+	query := u.Query()
+	query.Set("agent_id", cfg.AgentID)
+	u.RawQuery = query.Encode()
 	timeout := cfg.HandshakeTimeout
 	if timeout == 0 {
 		timeout = 10 * time.Second
 	}
-
-	dialer := websocket.Dialer{HandshakeTimeout: timeout}
-	ws, resp, err := dialer.DialContext(ctx, cfg.GatewayURL, http.Header{})
+	startup, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	conn, _, err := websocket.DefaultDialer.DialContext(startup, u.String(), nil)
 	if err != nil {
-		if resp != nil {
-			return nil, fmt.Errorf("dial gateway %s: %w (http %s)", cfg.GatewayURL, err, resp.Status)
-		}
-		return nil, fmt.Errorf("dial gateway %s: %w", cfg.GatewayURL, err)
-	}
-
-	session, err := newClientSession(ws, cfg, timeout)
-	if err != nil {
-		_ = ws.Close()
 		return nil, err
 	}
-
-	c := &Client{
-		cfg:       cfg,
-		handler:   handler,
-		ws:        ws,
-		noise:     session,
-		done:      make(chan struct{}),
-		pending:   map[string]chan MCPResponsePayload{},
-		seen:      map[string]bool{},
-		lastAcked: cfg.LastAckedSeq,
+	ok := false
+	defer func() {
+		if !ok {
+			conn.Close()
+		}
+	}()
+	// Deadlines bound both handshake frames and the encrypted hello/welcome pair.
+	deadline, _ := startup.Deadline()
+	conn.SetReadDeadline(deadline)
+	conn.SetWriteDeadline(deadline)
+	n, err := NewNoiseKK("initiator", cfg.StaticKey, cfg.GatewayPubKey, []byte("ensemble-gateway-v1:"+cfg.AgentID))
+	if err != nil {
+		return nil, err
 	}
-
-	if err := c.sendFrame(FrameHello, HelloPayload{
-		AgentID:      cfg.AgentID,
-		Version:      ProtocolVersion,
-		LastAckedSeq: cfg.LastAckedSeq,
-	}); err != nil {
-		_ = ws.Close()
-		return nil, fmt.Errorf("send hello: %w", err)
+	first, err := n.WriteHandshakeMessage(nil)
+	if err != nil {
+		return nil, err
 	}
-
-	go c.receiveLoop()
+	if err = conn.WriteMessage(websocket.BinaryMessage, first); err != nil {
+		return nil, err
+	}
+	kind, data, err := conn.ReadMessage()
+	if err != nil {
+		return nil, err
+	}
+	if kind != websocket.BinaryMessage {
+		return nil, errors.New("expected binary handshake")
+	}
+	if _, err = n.ReadHandshakeMessage(data); err != nil {
+		return nil, err
+	}
+	c := &Client{owner: owner, conn: conn, noise: n, done: make(chan struct{}), pending: make(map[uint64]chan RPC)}
+	c.ack.Store(cfg.LastAckedSeq)
+	if err = c.write(startup, Frame{Type: "hello", AgentID: cfg.AgentID, Version: 1, Seq: cfg.LastAckedSeq}); err != nil {
+		return nil, err
+	}
+	frame, err := c.read()
+	if err != nil {
+		return nil, err
+	}
+	if frame.Type != "welcome" || frame.Welcome == nil || frame.Welcome.AgentID != cfg.AgentID {
+		return nil, errors.New("gateway refused welcome: " + frame.Error)
+	}
+	conn.SetReadDeadline(time.Time{})
+	ok = true
+	// Only this goroutine invokes callbacks, preserving traffic order. The
+	// application may begin receiving immediately, even before Connect returns;
+	// handlers must not assume the caller has assigned its Client pointer yet.
+	go c.receive(*frame.Welcome)
+	go func() {
+		select {
+		case <-ctx.Done():
+			c.Close()
+		case <-c.done:
+		}
+	}()
 	return c, nil
 }
 
-// newClientSession performs the initiator half of the Noise-KK handshake.
-//
-// The first message carries the agent id in the clear, length-prefixed,
-// because the gateway cannot build a KK session without knowing which
-// static key to expect. The id is a claim, not a credential: the handshake
-// completes only if this client holds the matching private key.
-func newClientSession(ws *websocket.Conn, cfg ClientConfig, timeout time.Duration) (*NoiseKK, error) {
-	session, err := NewNoiseKK("initiator", cfg.StaticKey, cfg.GatewayPubKey, []byte(ProtocolVersion))
-	if err != nil {
-		return nil, fmt.Errorf("create noise session: %w", err)
+// Every writer, including handler receipts and concurrent RPC callers, shares
+// one lock. Serializing only the WebSocket write would still race the Noise
+// nonce and produce a connection that fails after apparently successful sends.
+func (c *Client) write(ctx context.Context, frame Frame) error {
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+	if err := ctx.Err(); err != nil {
+		return err
 	}
-
-	msg1, err := session.WriteHandshakeMessage(nil)
-	if err != nil {
-		return nil, fmt.Errorf("noise write msg1: %w", err)
+	deadline := time.Now().Add(10 * time.Second)
+	if d, ok := ctx.Deadline(); ok && d.Before(deadline) {
+		deadline = d
 	}
-	if len(cfg.AgentID) > 255 {
-		return nil, fmt.Errorf("agent id %q is too long for the handshake frame", cfg.AgentID)
-	}
-	framed := make([]byte, 0, 1+len(cfg.AgentID)+len(msg1))
-	framed = append(framed, byte(len(cfg.AgentID)))
-	framed = append(framed, cfg.AgentID...)
-	framed = append(framed, msg1...)
-
-	if err := ws.WriteMessage(websocket.BinaryMessage, framed); err != nil {
-		return nil, fmt.Errorf("send handshake msg1: %w", err)
-	}
-
-	if err := ws.SetReadDeadline(time.Now().Add(timeout)); err != nil {
-		return nil, err
-	}
-	_, msg2, err := ws.ReadMessage()
-	if err != nil {
-		return nil, fmt.Errorf("read handshake msg2: %w", err)
-	}
-	if err := ws.SetReadDeadline(time.Time{}); err != nil {
-		return nil, err
-	}
-	if _, err := session.ReadHandshakeMessage(msg2); err != nil {
-		return nil, fmt.Errorf("noise read msg2: %w", err)
-	}
-	if !session.IsHandshakeComplete() {
-		return nil, fmt.Errorf("handshake incomplete after two messages")
-	}
-	return session, nil
-}
-
-// Done is closed when the connection ends.
-func (c *Client) Done() <-chan struct{} { return c.done }
-
-// Close disconnects.
-func (c *Client) Close() error {
-	c.doneOnce.Do(func() {
-		close(c.done)
-		_ = c.ws.Close()
-	})
-	return nil
-}
-
-func (c *Client) sendFrame(frameType FrameType, payload any) error {
-	payloadJSON, err := json.Marshal(payload)
+	c.conn.SetWriteDeadline(deadline)
+	data, err := json.Marshal(frame)
 	if err != nil {
 		return err
 	}
-	frameJSON, err := json.Marshal(Frame{Type: frameType, Payload: payloadJSON})
+	data, err = c.noise.Encrypt(data, nil)
+	if err == nil {
+		err = c.conn.WriteMessage(websocket.BinaryMessage, data)
+	}
+	// An encryption nonce cannot be rolled back after a failed write.
 	if err != nil {
-		return err
-	}
-
-	c.sendMu.Lock()
-	defer c.sendMu.Unlock()
-
-	select {
-	case <-c.done:
-		return fmt.Errorf("gateway: connection closed")
-	default:
-	}
-
-	ciphertext, err := c.noise.Encrypt(frameJSON, nil)
-	if err != nil {
-		return fmt.Errorf("encrypt %s: %w", frameType, err)
-	}
-	return c.ws.WriteMessage(websocket.BinaryMessage, ciphertext)
-}
-
-func (c *Client) receiveLoop() {
-	reason := "connection closed"
-	defer func() {
 		c.Close()
-		c.handler.OnDisconnected(reason)
-	}()
+	}
+	return err
+}
+func (c *Client) read() (Frame, error) {
+	kind, data, err := c.conn.ReadMessage()
+	if err != nil {
+		return Frame{}, err
+	}
+	if kind != websocket.BinaryMessage {
+		return Frame{}, errors.New("expected encrypted binary frame")
+	}
+	data, err = c.noise.Decrypt(data, nil)
+	if err != nil {
+		return Frame{}, err
+	}
+	var frame Frame
+	err = json.Unmarshal(data, &frame)
+	return frame, err
+}
 
+// Callbacks and receipt bookkeeping have one reader. RPC callers use independent
+// buffered replies, so a slow caller cannot make a different request consume its
+// answer. The callback contract deliberately leaves accepted-work persistence
+// to the application: a network receipt cannot establish what a model executed.
+func (c *Client) receive(welcome WelcomePayload) {
+	reason := "connection closed"
+	defer func() { c.Close(); c.owner.OnDisconnected(reason); close(c.done) }()
+	c.owner.OnConnected(welcome)
 	for {
-		_, ciphertext, err := c.ws.ReadMessage()
+		frame, err := c.read()
 		if err != nil {
 			reason = err.Error()
 			return
 		}
-		plaintext, err := c.noise.Decrypt(ciphertext, nil)
-		if err != nil {
-			reason = fmt.Sprintf("decrypt: %v", err)
+		switch frame.Type {
+		case "deliver":
+			if frame.Envelope == nil {
+				c.owner.OnError(errors.New("delivery missing envelope"))
+				return
+			}
+			c.owner.OnDeliver(*frame.Envelope)
+			// Handler acceptance precedes the receipt. If the write fails, reconnecting
+			// without the newly returned receipt safely delivers the message again.
+			if err = c.write(context.Background(), Frame{Type: "ack", Seq: frame.Envelope.Seq}); err != nil {
+				reason = err.Error()
+				return
+			}
+			c.ack.Store(frame.Envelope.Seq)
+		case "mcp_response":
+			// Late replies belong to their original caller. Never hand an expired
+			// request's result to whichever operation happens to be waiting now.
+			if frame.RPC == nil {
+				c.owner.OnError(errors.New("missing MCP response"))
+				return
+			}
+			c.pendingMu.Lock()
+			reply := c.pending[frame.RPC.ID]
+			c.pendingMu.Unlock()
+			if reply != nil {
+				select {
+				case reply <- *frame.RPC:
+				default:
+				}
+			}
+		case "error":
+			c.owner.OnError(errors.New(frame.Error))
+		case "pong":
+		default:
+			c.owner.OnError(fmt.Errorf("unexpected gateway frame %q", frame.Type))
 			return
 		}
-		var frame Frame
-		if err := json.Unmarshal(plaintext, &frame); err != nil {
-			c.handler.OnError(fmt.Errorf("unmarshal frame: %w", err))
-			continue
-		}
-		c.handleFrame(frame)
 	}
 }
 
-func (c *Client) handleFrame(frame Frame) {
-	switch frame.Type {
-	case FrameWelcome:
-		var p WelcomePayload
-		if err := json.Unmarshal(frame.Payload, &p); err != nil {
-			c.handler.OnError(err)
-			return
-		}
-		c.handler.OnConnected(p)
-
-	case FrameDeliver:
-		var p DeliverPayload
-		if err := json.Unmarshal(frame.Payload, &p); err != nil {
-			c.handler.OnError(err)
-			return
-		}
-		c.deliver(p)
-
-	case FrameError:
-		var p ErrorPayload
-		if err := json.Unmarshal(frame.Payload, &p); err != nil {
-			c.handler.OnError(err)
-			return
-		}
-		c.handler.OnError(fmt.Errorf("gateway error %s: %s", p.Code, p.Message))
-
-	case FrameMCPResponse:
-		var p MCPResponsePayload
-		if err := json.Unmarshal(frame.Payload, &p); err != nil {
-			c.handler.OnError(err)
-			return
-		}
-		c.pendingMu.Lock()
-		ch, ok := c.pending[p.ID]
-		delete(c.pending, p.ID)
-		c.pendingMu.Unlock()
-		if ok {
-			ch <- p
-		}
-
-	case FramePong:
-		// Keepalive answered; nothing to do.
-
-	default:
-		c.handler.OnError(fmt.Errorf("unknown frame type %q", frame.Type))
-	}
-}
-
-// deliver hands one envelope to the handler, then acknowledges it.
-//
-// The ack follows the handler rather than preceding it, so the gateway only
-// forgets a message once the application has accepted it. A duplicate that
-// arrives after a reconnect is suppressed here rather than troubling the
-// handler, which is the whole purpose of an at-least-once channel.
-func (c *Client) deliver(p DeliverPayload) {
-	c.seenMu.Lock()
-	duplicate := c.seen[p.Envelope.MessageID]
-	if !duplicate {
-		c.seen[p.Envelope.MessageID] = true
-	}
-	c.seenMu.Unlock()
-
-	if !duplicate {
-		c.handler.OnDeliver(p.Envelope)
-	}
-
-	if err := c.sendFrame(FrameAck, AckPayload{Seq: p.Seq}); err != nil {
-		c.handler.OnError(fmt.Errorf("ack seq %d: %w", p.Seq, err))
-		return
-	}
-	c.seenMu.Lock()
-	if p.Seq > c.lastAcked {
-		c.lastAcked = p.Seq
-	}
-	c.seenMu.Unlock()
-}
-
-// LastAckedSeq reports the highest sequence this client has acknowledged,
-// which is what to pass as ClientConfig.LastAckedSeq when reconnecting.
-func (c *Client) LastAckedSeq() uint64 {
-	c.seenMu.Lock()
-	defer c.seenMu.Unlock()
-	return c.lastAcked
-}
-
-// --- administration tool calls ---
-
-// OutboundMessage is a message to another agent.
-type OutboundMessage struct {
-	ToAgent        string
-	Content        string
-	ConversationID string
-	ResponseMode   ResponseMode
-}
-
-// Call invokes a gateway administration tool and waits for its result.
-func (c *Client) Call(ctx context.Context, tool string, args any) (json.RawMessage, error) {
-	var raw json.RawMessage
-	if args != nil {
-		encoded, err := json.Marshal(args)
-		if err != nil {
-			return nil, err
-		}
-		raw = encoded
-	}
-
-	id := NewMessageID()
-	replyCh := make(chan MCPResponsePayload, 1)
-	c.pendingMu.Lock()
-	c.pending[id] = replyCh
-	c.pendingMu.Unlock()
-
-	cleanup := func() {
-		c.pendingMu.Lock()
-		delete(c.pending, id)
-		c.pendingMu.Unlock()
-	}
-
-	if err := c.sendFrame(FrameMCPRequest, MCPRequestPayload{ID: id, Tool: tool, Arguments: raw}); err != nil {
-		cleanup()
+// Request performs one correlated MCP method over the same authenticated socket.
+func (c *Client) Request(ctx context.Context, method string, params any) (json.RawMessage, error) {
+	raw, err := json.Marshal(params)
+	if err != nil {
 		return nil, err
 	}
-
+	// Install correlation before writing: a fast local gateway may reply before
+	// this goroutine starts waiting. A buffered result also tolerates a caller
+	// whose deadline expired while the receive goroutine was finding its entry.
+	id := c.next.Add(1)
+	reply := make(chan RPC, 1)
+	c.pendingMu.Lock()
+	c.pending[id] = reply
+	c.pendingMu.Unlock()
+	defer func() { c.pendingMu.Lock(); delete(c.pending, id); c.pendingMu.Unlock() }()
+	if err = c.write(ctx, Frame{Type: "mcp_request", RPC: &RPC{JSONRPC: "2.0", ID: id, Method: method, Params: raw}}); err != nil {
+		return nil, err
+	}
 	select {
-	case reply := <-replyCh:
-		if reply.IsError {
-			return nil, fmt.Errorf("%s: %s", tool, reply.Error)
+	case response := <-reply:
+		if response.Error != nil {
+			return nil, errors.New(response.Error.Message)
 		}
-		return reply.Result, nil
+		return response.Result, nil
 	case <-ctx.Done():
-		cleanup()
 		return nil, ctx.Err()
 	case <-c.done:
-		cleanup()
-		return nil, fmt.Errorf("gateway: connection closed while calling %s", tool)
+		return nil, errors.New("gateway disconnected")
 	}
 }
 
-// Send delivers a message to another agent through the gateway.
-func (c *Client) Send(ctx context.Context, msg OutboundMessage) error {
-	_, err := c.Call(ctx, ToolSendMessage, sendMessageArgs{
-		ToAgent:        msg.ToAgent,
-		Content:        msg.Content,
-		ConversationID: msg.ConversationID,
-		ResponseMode:   string(msg.ResponseMode),
-	})
+// CallTool invokes an administration tool and returns its MCP result object.
+func (c *Client) CallTool(ctx context.Context, name string, arguments any) (json.RawMessage, error) {
+	data, err := c.Request(ctx, "tools/call", map[string]any{"name": name, "arguments": arguments})
+	if err != nil {
+		return nil, err
+	}
+	var result struct {
+		// IsError distinguishes an executed tool refusal from a protocol failure.
+		IsError bool `json:"isError"`
+		// Content carries the gateway's safe tool diagnostic or JSON result text.
+		Content []struct {
+			// Text is one MCP text content item.
+			Text string `json:"text"`
+		} `json:"content"`
+	}
+	if err = json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+	if result.IsError {
+		message := "gateway tool failed"
+		if len(result.Content) > 0 {
+			message = result.Content[0].Text
+		}
+		return nil, errors.New(message)
+	}
+	return data, nil
+}
+
+// Send returns once gateway authorization and queue admission have succeeded.
+func (c *Client) Send(ctx context.Context, message OutboundMessage) error {
+	_, err := c.CallTool(ctx, "send-message", message)
 	return err
 }
 
-// Respond replies to a previously delivered envelope. The gateway routes
-// the reply back to whoever sent the original message.
-func (c *Client) Respond(ctx context.Context, messageID, content string) error {
-	return c.sendFrame(FrameResponse, ResponsePayload{MessageID: messageID, Content: content})
+// Respond preserves the conversation identity and routes back to the authenticated sender.
+func (c *Client) Respond(ctx context.Context, request Envelope, content string) error {
+	return c.Send(ctx, OutboundMessage{ToAgent: request.Source.UserID, Content: content, ConversationID: request.ConversationID})
 }
 
-// ChildRegistration describes a child agent to register with the gateway.
-type ChildRegistration struct {
-	AgentID   string
-	PublicKey []byte
-	// Groups must be a subset of the registering agent's own memberships.
-	// The gateway refuses the whole registration otherwise rather than
-	// silently granting the part that was allowed.
-	Groups []string
-}
-
-// RegisterChild registers a child agent's public key and grants it a subset
-// of this agent's groups.
-func (c *Client) RegisterChild(ctx context.Context, reg ChildRegistration) error {
-	_, err := c.Call(ctx, ToolRegisterChild, registerChildArgs{
-		AgentID:   reg.AgentID,
-		PublicKey: EncodePublicKey(reg.PublicKey),
-		Groups:    reg.Groups,
-	})
-	return err
-}
-
-// DeclareContactable tells the gateway which groups may send messages to
-// this agent. Inbound contact is opt-in, so an agent that never calls this
-// receives nothing.
+// DeclareContactable replaces this agent's accepted sender groups, including an empty set.
 func (c *Client) DeclareContactable(ctx context.Context, groups []string) error {
-	_, err := c.Call(ctx, ToolDeclareContactable, declareContactableArgs{Groups: groups})
+	_, err := c.CallTool(ctx, "declare-contactable", map[string]any{"groups": groups})
 	return err
 }
 
-// Ping sends a keepalive.
-func (c *Client) Ping() error { return c.sendFrame(FramePing, struct{}{}) }
-
-// argument shapes shared with the server side of the protocol.
-
-type sendMessageArgs struct {
-	ToAgent        string `json:"to_agent"`
-	Content        string `json:"content"`
-	ConversationID string `json:"conversation_id,omitempty"`
-	ResponseMode   string `json:"response_mode,omitempty"`
+// RegisterChild creates a distinct identity with a subset of the caller's groups.
+func (c *Client) RegisterChild(ctx context.Context, child ChildRegistration) error {
+	_, err := c.CallTool(ctx, "register-child", child)
+	return err
 }
 
-type registerChildArgs struct {
-	AgentID   string   `json:"agent_id"`
-	PublicKey string   `json:"public_key"`
-	Groups    []string `json:"groups"`
-}
+// LastAckedSeq returns the last receipt successfully written after handler acceptance.
+func (c *Client) LastAckedSeq() uint64 { return c.ack.Load() }
 
-type declareContactableArgs struct {
-	Groups []string `json:"groups"`
-}
+// Done closes after the receive goroutine and its final callback have returned.
+func (c *Client) Done() <-chan struct{} { return c.done }
+
+// Close interrupts network I/O; it does not wait on a possibly active handler.
+// A callback may itself close the client, so joining the reader here would
+// deadlock that callback. Applications join through Done after releasing any
+// work their handlers are waiting on.
+func (c *Client) Close() { c.closeOnce.Do(func() { c.conn.Close() }) }

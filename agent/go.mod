@@ -1,13 +1,15 @@
-module github.com/waywardgeek/ensemble/agent
+module ensemble
 
-go 1.25
-
-require github.com/creack/pty v1.1.24
+go 1.25.0
 
 require (
+	github.com/creack/pty v1.1.24
 	github.com/flynn/noise v1.1.0
 	github.com/gorilla/websocket v1.5.3
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/term v0.41.0
 )
 
-require golang.org/x/sys v0.0.0-20201119102817-f84b799fce68 // indirect
+require (
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
+	golang.org/x/sys v0.42.0 // indirect
+)

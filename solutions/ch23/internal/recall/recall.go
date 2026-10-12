@@ -1,534 +1,360 @@
 package recall
 
-// The pipeline: search, judge, attach.
-//
-// Three stages, and each one degrades into the next rather than failing. If
-// the query is too short, nothing happens. If BM25 finds nothing, nothing
-// happens. If the judge breaks, times out, or was never wired, the BM25
-// results go through unfiltered. If recall is switched off entirely, the
-// agent works and simply does not remember passively. Every failure mode
-// produces a working agent with less context, never a broken one — which is
-// the only defensible shape for a feature nobody asked for by name.
-
 import (
+	"context"
+	"crypto/sha256"
 	"fmt"
-	"math"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
-	"time"
+	"sync"
+	"unicode/utf8"
 
-	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"ensemble/internal/common"
 )
 
-// recallHeader labels the block so the model can tell retrieved text from
-// anything a human typed. It is the first thing a reader of the log sees too.
-const recallHeader = "[Auto-recalled memories]"
-
-// Config is the tuning. These are not guesses; each one moved over months of
-// daily use, and §17.6 tells the story of every number.
-type Config struct {
-	// MinScore is the BM25 floor when there is no judge. High, because with
-	// nothing downstream to filter false positives the floor IS the filter.
-	MinScore float64
-	// JudgeMinScore is the floor when a judge is present. Low, deliberately:
-	// cast a wide net and let the judge do the discriminating, since it can
-	// see context that a score cannot.
-	JudgeMinScore float64
-	// MaxSnippets caps how many snippets are attached.
-	MaxSnippets int
-	// MinQueryLength skips recall for short messages. "fix it" and "run
-	// tests" contain no searchable concept, and matching on them produces
-	// confident noise.
-	MinQueryLength int
-	// Candidates is how many BM25 hits are offered to the judge.
-	Candidates int
-	// ContextMsgs is how many recent messages the judge is shown.
-	ContextMsgs int
-	// MaxRecallBytes is the hard ceiling on attached text.
-	MaxRecallBytes int
-	// MemoryQuota is memory's guaranteed share of candidate slots.
-	MemoryQuota float64
-	// JudgeTimeout bounds the judge call.
-	//
-	// Enforced HERE rather than inside whatever implements SnippetJudge, so
-	// that a slow judge cannot wedge a turn no matter who supplies it. A
-	// deadline belongs to the caller that has something else to be doing.
-	JudgeTimeout time.Duration
+// Queries can overlap briefly after interruption. The lock protects index state
+// only; a slow judge never holds it or blocks a newer turn's corpus scan.
+type recaller struct {
+	parent  common.Agent
+	mu      sync.Mutex
+	digest  [32]byte
+	indexes map[string]index
 }
 
-// DefaultConfig returns the production values.
-//
-// A function, not a package-level struct: a var would be a mutable global
-// that any caller could retune for every agent in the process.
-func DefaultConfig() Config {
-	return Config{
-		MinScore:       3.0,
-		JudgeMinScore:  0.5,
-		MaxSnippets:    3,
-		MinQueryLength: 80,
-		Candidates:     20,
-		ContextMsgs:    3,
-		MaxRecallBytes: 6144,
-		MemoryQuota:    0.5,
-		JudgeTimeout:   15 * time.Second,
+// New creates one Agent-owned corpus. Failure to read a source degrades recall,
+// not construction of the working Agent; each later query retries the scan.
+func New(parent common.Agent) common.Recaller {
+	if parent == nil {
+		panic("Recall requires Agent")
 	}
-}
-
-// Recaller implements common.Recaller.
-type Recaller struct {
-	sources []*source
-	judge   common.SnippetJudge
-	cfg     Config
-}
-
-// New builds a Recaller over the given sources.
-//
-// judge may be nil, which means no judge: recall still works, filtered by
-// BM25 score alone. Nothing here dials anything or starts a goroutine —
-// indexing is the only work, and it is a few hundred files of markdown.
-func New(specs []SourceSpec, judge common.SnippetJudge, cfg Config) *Recaller {
-	r := &Recaller{judge: judge, cfg: cfg}
-	for _, spec := range specs {
-		s := loadSource(spec)
-		if s.chunkCount() == 0 {
-			continue
-		}
-		r.sources = append(r.sources, s)
+	r := &recaller{parent: parent}
+	if _, err := r.search(nil, 0); err != nil {
+		parent.Ensemble().Logf("recall index: %v", err)
 	}
 	return r
 }
 
-// Indexed reports the total number of chunks across all sources. Zero means
-// there is nothing to recall and the caller may skip recall entirely.
-func (r *Recaller) Indexed() int {
-	n := 0
-	for _, s := range r.sources {
-		n += s.chunkCount()
+// Agent exposes the required owner of configuration, files and model services.
+func (r *recaller) Agent() common.Agent { return r.parent }
+
+// Validate rejects negative limits; zero retains the documented default.
+func Validate(s common.RecallSettings) error {
+	if s.MinScore < 0 || s.MaxSnippets < 0 || s.MinQueryLength < 0 || s.Candidates < 0 || s.ContextMsgs < 0 || s.MaxRecallBytes < 0 {
+		return fmt.Errorf("recall limits must be nonnegative")
 	}
-	return n
+	return nil
 }
 
-// Recall returns the snippets that belong with a user message.
-//
-// convo is the conversation so far as plain text, oldest first. The tail of
-// it goes to the judge as context; all of it is used to avoid attaching
-// something the agent is already looking at.
-func (r *Recaller) Recall(query string, convo []string) common.PartList {
-	if len(strings.TrimSpace(query)) < r.cfg.MinQueryLength {
-		return nil
+// Defaults are applied to a local value, leaving explicit Agent configuration
+// available to clients without copying mutable policy into the child.
+func settings(s common.RecallSettings) common.RecallSettings {
+	if s.MinScore == 0 {
+		s.MinScore = 3
 	}
-	cands := r.candidates(query)
-	if len(cands) == 0 {
-		return nil
+	if s.MaxSnippets == 0 {
+		s.MaxSnippets = 3
 	}
-	picked := r.pick(query, convo, cands)
-	text := r.format(picked, convo)
-	if text == "" {
-		return nil
+	if s.MinQueryLength == 0 {
+		s.MinQueryLength = 80
 	}
-	return common.PartList{common.TextPart{Text: text}}
+	if s.Candidates == 0 {
+		s.Candidates = 20
+	}
+	if s.ContextMsgs == 0 {
+		s.ContextMsgs = 3
+	}
+	if s.MaxRecallBytes == 0 {
+		s.MaxRecallBytes = 6144
+	}
+	return s
 }
 
-// ----------------------------------------------------------------
-// Stage 1: BM25 with per-source quotas
-// ----------------------------------------------------------------
-
-// candidates runs one BM25 search per source and allocates slots by quota.
-func (r *Recaller) candidates(query string) []Hit {
-	min := r.cfg.MinScore
-	if r.judge != nil {
-		min = r.cfg.JudgeMinScore
+// Corpus files belong to the Agent, not to cwd or another application's home.
+// Hash the bytes already read so human edits (even equal-size edits) invalidate
+// indexes. Only changed corpora incur tokenization; there is no watcher lifetime.
+func (r *recaller) search(query []string, floor float64) ([]hit, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	root := r.parent.Config().DataDir
+	// Retired files remain searchable after graduation removed their original
+	// bytes from active memory. Bands and archives share the memory quota.
+	sources := []struct{ name, path string }{
+		{"memory", filepath.Join(root, "memory")},
+		{"memory", filepath.Join(root, "bucket-0")},
+		{"memory", filepath.Join(root, "bucket-1")},
+		{"memory", filepath.Join(root, "MEMORY.md")},
+		{"memory", filepath.Join(root, "SOUL.md")},
+		{"docs", filepath.Join(root, "docs")},
+		{"handoffs", filepath.Join(root, "handoffs")},
+		{"learnings", filepath.Join(root, "learnings")},
 	}
-
-	perSource := make(map[string][]Hit, len(r.sources))
-	avail := make(map[string]int, len(r.sources))
-	names := make([]string, 0, len(r.sources))
-	for _, s := range r.sources {
-		hits := s.index.Search(query, min)
-		for i := range hits {
-			hits[i].Source = s.name
-		}
-		perSource[s.name] = hits
-		avail[s.name] = len(hits)
-		names = append(names, s.name)
+	// Reach skill identity through its owner, rather than saving another copy
+	// of the application's directory setting in recall. Discovery grants no tools.
+	if skills := r.parent.Skills(); skills != nil {
+		sources = append(sources, struct{ name, path string }{"skills", skills.Directory()})
 	}
-
-	quota := r.allocate(r.cfg.Candidates, names, avail)
-
-	var out []Hit
-	for _, n := range names {
-		hits := perSource[n]
-		if q := quota[n]; q < len(hits) {
-			hits = hits[:q]
-		}
-		out = append(out, hits...)
-	}
-	// Present best-first across sources. The quota decided WHICH hits get a
-	// seat; score decides the order they are read in, which matters because
-	// the no-judge and fallback paths both take the front of this list.
-	sortHits(out)
-	if len(out) > r.cfg.Candidates {
-		out = out[:r.cfg.Candidates]
-	}
-	return out
-}
-
-// allocate hands out candidate slots.
-//
-// Memory takes half, rounded up, and the rest is split evenly. Then unused
-// quota flows to sources that have more results than their share — otherwise
-// an agent with no handoffs and no docs would send the judge six candidates
-// when twenty were available.
-//
-// This is a policy decision, not a retrieval improvement. Merged BM25 already
-// ranks correctly by its own lights; the problem is that its lights are term
-// density, and a design document has more of that than a daily log which
-// happens to contain the actual decision. No amount of tuning fixes a
-// mismatch between what the formula rewards and what the reader values, so
-// the fix is structural: guarantee the seats.
-func (r *Recaller) allocate(total int, names []string, avail map[string]int) map[string]int {
-	quota := make(map[string]int, len(names))
-	if len(names) == 0 || total <= 0 {
-		return quota
-	}
-
-	var others []string
-	hasMemory := false
-	for _, n := range names {
-		if n == SourceMemory {
-			hasMemory = true
-			continue
-		}
-		others = append(others, n)
-	}
-
-	rest := total
-	if hasMemory {
-		quota[SourceMemory] = int(math.Ceil(float64(total) * r.cfg.MemoryQuota))
-		rest = total - quota[SourceMemory]
-	}
-	if len(others) > 0 && rest > 0 {
-		base, rem := rest/len(others), rest%len(others)
-		for i, n := range others {
-			quota[n] = base
-			if i < rem {
-				quota[n]++
-			}
-		}
-	}
-
-	// Reflow. Cap each source at what it actually has, pool the surplus, and
-	// hand it round-robin to sources that still have results left over.
-	for pass := 0; pass <= len(names); pass++ {
-		spare := 0
-		var hungry []string
-		for _, n := range names {
-			switch {
-			case quota[n] > avail[n]:
-				spare += quota[n] - avail[n]
-				quota[n] = avail[n]
-			case avail[n] > quota[n]:
-				hungry = append(hungry, n)
-			}
-		}
-		if spare == 0 || len(hungry) == 0 {
-			break
-		}
-		moved := false
-		for spare > 0 {
-			progressed := false
-			for _, n := range hungry {
-				if spare == 0 {
-					break
+	corpus := map[string][]chunk{}
+	hash := sha256.New()
+	// Keep the file texts until we know whether rebuilding is necessary.
+	type document struct{ source, file, text string }
+	var documents []document
+	for _, source := range sources {
+		walk := r.parent.Sandbox().WalkDir
+		read := r.parent.Sandbox().ReadFile
+		// Application-installed skills may intentionally live outside the workspace.
+		// That trusted corpus is distinct from model-writable memory and handoffs.
+		if source.name == "skills" {
+			if r.parent.Spec().SandboxRoot == "" {
+				walk, read = filepath.WalkDir, os.ReadFile
+			} else if _, err := r.parent.Sandbox().Resolve(source.path); err != nil {
+				// An explicitly selected external skill directory is trusted input, but
+				// even there a skill file may not redirect recall outside its own corpus.
+				root, err := os.OpenRoot(source.path)
+				if err != nil {
+					return nil, err
 				}
-				if avail[n] > quota[n] {
-					quota[n]++
-					spare--
-					progressed = true
-					moved = true
+				defer root.Close()
+				read = func(path string) ([]byte, error) {
+					rel, err := filepath.Rel(source.path, path)
+					if err != nil {
+						return nil, err
+					}
+					return root.ReadFile(rel)
+				}
+				walk = func(path string, visit fs.WalkDirFunc) error {
+					return fs.WalkDir(root.FS(), ".", func(name string, d fs.DirEntry, err error) error { return visit(filepath.Join(path, name), d, err) })
 				}
 			}
-			if !progressed {
-				break
-			}
 		}
-		if !moved {
-			break
+		err := walk(source.path, func(path string, entry fs.DirEntry, err error) error {
+			// Optional corpus directories need not exist on a fresh Agent.
+			// Other I/O failures remain diagnostic errors, not empty successes.
+			if os.IsNotExist(err) {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+			if entry.IsDir() {
+				return nil
+			}
+			if filepath.Ext(path) != ".md" && !(source.name == "memory" && strings.HasSuffix(path, ".md.retired")) || source.name == "skills" && entry.Name() != "SKILL.md" {
+				return nil
+			}
+			if !entry.Type().IsRegular() {
+				return nil
+			}
+			if source.name == "skills" && !r.parent.Spec().EnableWebSearch && filepath.Base(filepath.Dir(path)) == "web-search" {
+				return nil
+			}
+			body, err := read(path)
+			if err != nil {
+				return err
+			}
+			// Skill identity can be absolute while the Agent's data root is relative.
+			// Compute attribution against the source's actual owner before Rel.
+			base := root
+			if source.name == "skills" {
+				base = source.path
+			}
+			file, err := filepath.Rel(base, path)
+			if err != nil {
+				return err
+			}
+			if source.name == "skills" {
+				file = filepath.Join("skills", file)
+			}
+			// Length-delimited content and paths distinguish renames/deletions
+			// as well as edits; mtimes alone can miss equal-size human changes.
+			fmt.Fprintf(hash, "%s\x00%d\x00%s\x00", file, len(body), body)
+			documents = append(documents, document{source.name, file, string(body)})
+			return nil
+		})
+		if err != nil {
+			return nil, err
 		}
 	}
-	return quota
+	var digest [32]byte
+	copy(digest[:], hash.Sum(nil))
+	// Publish a complete replacement under the lock. No search observes half
+	// an index, and removed files cannot linger in the next request's results.
+	if r.indexes == nil || digest != r.digest {
+		for _, doc := range documents {
+			corpus[doc.source] = append(corpus[doc.source], chunks(doc.file, doc.text)...)
+		}
+		r.indexes = map[string]index{}
+		for source, docs := range corpus {
+			r.indexes[source] = build(docs)
+		}
+		r.digest = digest
+	}
+	var hits []hit
+	// Fixed order makes equal scores deterministic without filesystem/map lottery.
+	for _, source := range []string{"memory", "docs", "handoffs", "learnings", "skills"} {
+		hits = append(hits, r.indexes[source].search(source, query, floor)...)
+	}
+	rank(hits)
+	return hits, nil
 }
 
-// sortHits orders by score, best first, with a stable tie-break on
-// attribution so a run is reproducible.
-func sortHits(h []Hit) {
-	for i := 1; i < len(h); i++ {
-		for j := i; j > 0; j-- {
-			a, bb := h[j-1], h[j]
-			if a.Score > bb.Score {
-				break
-			}
-			if a.Score == bb.Score && attribution(a) <= attribution(bb) {
-				break
-			}
-			h[j-1], h[j] = h[j], h[j-1]
-		}
+// Recall returns immutable attachment bytes. The caller passes a snapshot so
+// the stateless judge can run off the actor without borrowing live conversation.
+func (r *recaller) Recall(ctx context.Context, query string, conversation *common.Context) (common.RecallData, error) {
+	s := settings(r.parent.Config().Recall)
+	if s.Disabled || utf8.RuneCountInString(query) < s.MinQueryLength {
+		return common.RecallData{}, nil
 	}
-}
-
-// ----------------------------------------------------------------
-// Stage 2: the judge
-// ----------------------------------------------------------------
-
-// pick narrows candidates to the snippets worth attaching.
-//
-// Three ways this ends up as plain top-N BM25, and all three are normal
-// operation rather than error handling: no judge was wired, the judge call
-// failed or timed out, or the judge answered with something unparseable. A
-// noisier recall beats no recall, and either beats a turn that does not run.
-func (r *Recaller) pick(query string, convo []string, cands []Hit) []Hit {
-	if r.judge == nil {
-		return r.topNWithQuota(cands, r.cfg.MaxSnippets)
+	// The judge gets a broad candidate net; plain selection needs a stricter
+	// keyword floor because there is no semantic filter to remove false hits.
+	floor := s.MinScore
+	if !s.DisableJudge {
+		floor = 0.5
 	}
-	reply, err := r.askJudge(r.judgePrompt(query, convo, cands))
+	hits, err := r.search(queryTokens(query), floor)
 	if err != nil {
-		return r.topNWithQuota(cands, r.cfg.MaxSnippets)
+		return common.RecallData{}, err
 	}
-	idx, ok := parseIndices(reply, len(cands))
-	if !ok {
-		return r.topNWithQuota(cands, r.cfg.MaxSnippets)
-	}
-	// An empty array is a judgment, not a failure: the judge looked and
-	// found nothing worth surfacing. Obeying it is the point of having one.
-	out := make([]Hit, 0, len(idx))
-	for _, i := range idx {
-		if len(out) >= r.cfg.MaxSnippets {
-			break
+	// Include text nested in tool results and blockquoted prior attachments.
+	// Normalizing quote prefixes permits comparison with the original snippet.
+	var contextText strings.Builder
+	contextText.WriteString(r.parent.Engine().SystemPrompt())
+	var collect func([]common.Part)
+	collect = func(parts []common.Part) {
+		for _, p := range parts {
+			contextText.WriteByte('\n')
+			contextText.WriteString(p.Text)
+			collect(p.Parts)
 		}
-		out = append(out, cands[i])
 	}
-	return out
-}
-
-// askJudge calls the judge under a deadline.
-//
-// The channel is buffered so that a judge which answers after the deadline
-// writes into the buffer and exits, rather than blocking forever on a
-// receiver that has already given up. A timeout that leaks a goroutine per
-// occurrence is a slow crash.
-func (r *Recaller) askJudge(prompt string) (string, error) {
-	type result struct {
-		text string
-		err  error
+	for _, e := range conversation.Dialogue {
+		collect(e.Parts)
 	}
-	ch := make(chan result, 1)
-	go func() {
-		text, err := r.judge.Pick(prompt)
-		ch <- result{text, err}
-	}()
-
-	timeout := r.cfg.JudgeTimeout
-	if timeout <= 0 {
-		timeout = DefaultConfig().JudgeTimeout
+	collect(conversation.Ephemera)
+	present := unquote(contextText.String())
+	// A byte-capped attachment may contain only the prefix of a source snippet.
+	// Retain its identity with that entry instead of requiring the unseen suffix
+	// to occur in context. Hashing the complete content still permits human edits.
+	seen := map[string]bool{}
+	for _, entry := range conversation.Dialogue {
+		if entry.Kind == common.KindRecall {
+			for _, hash := range entry.RecallHashes {
+				seen[hash] = true
+			}
+		}
 	}
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-	select {
-	case res := <-ch:
-		return res.text, res.err
-	case <-timer.C:
-		return "", fmt.Errorf("recall judge timed out after %s", timeout)
-	}
-}
-
-// topN takes the first n hits, which are already the best-scoring ones.
-// topNWithQuota selects up to n hits, best first, but refuses to let a single
-// source take every slot.
-//
-// This runs on the MECHANICAL paths only — no judge configured, or a judge
-// that errored, timed out, or answered nonsense. On those paths the ranking is
-// pure lexical overlap, and pure lexical overlap has a pathology: whichever
-// source happens to hold the most text about a topic sweeps the board. An
-// agent with nine months of daily logs and one design document will surface
-// daily logs forever, and the document it should have quoted never gets a
-// seat, because it was outnumbered rather than outranked.
-//
-// It deliberately does NOT run after a judge has spoken. If a judge actually
-// read the candidates and concluded that the three relevant ones all came from
-// memory, then they did, and forcing in a document to satisfy a ratio would be
-// overruling the only component that assessed relevance rather than counted
-// words. Diversity is a tie-breaker for a mechanism that cannot tell, not a
-// correction to one that can.
-//
-// Note the second pass. A quota may leave seats empty when a source has fewer
-// hits than its share — and an empty seat helps nobody, so anything unfilled
-// is handed back to the best remaining hit regardless of source. The quota
-// caps the greedy case; it never shrinks the result.
-func (r *Recaller) topNWithQuota(hits []Hit, n int) []Hit {
-	if n <= 0 || len(hits) == 0 {
-		return nil
-	}
-	avail := map[string]int{}
-	var order []string
+	available := hits[:0]
 	for _, h := range hits {
-		if _, seen := avail[h.Source]; !seen {
-			order = append(order, h.Source)
+		if !seen[snippetHash(h)] && !strings.Contains(present, unquote(h.content)) {
+			available = append(available, h)
 		}
-		avail[h.Source]++
 	}
-	if len(order) < 2 {
-		// A single source is not crowding anybody out.
-		return topN(hits, n)
+	hits = available
+	if len(hits) == 0 {
+		return common.RecallData{}, nil
 	}
-	quota := r.allocate(n, order, avail)
+	// Keep the full hit list for mechanical fallback. Capping candidates must
+	// not discard low-scoring memories before the final quota can protect them.
+	var chosen []hit
+	judged := false
+	if !s.DisableJudge {
+		candidates := hits[:min(len(hits), s.Candidates)]
+		chosen, err = r.judge(ctx, query, conversation, candidates, s)
+		// Empty is a valid verdict. Only failure re-enters mechanical selection;
+		// otherwise an intentional [] would inject the very hits the judge rejected.
+		judged = err == nil
+		if err != nil {
+			r.parent.Ensemble().Logf("recall judge failed; using source quotas: %v", err)
+		}
+	}
+	if !judged {
+		chosen = quotas(hits, s.MaxSnippets)
+	}
+	text, hashes := format(chosen, s.MaxRecallBytes)
+	if text == "" {
+		return common.RecallData{}, nil
+	}
+	return common.RecallData{Parts: []common.Part{{Type: "text", Text: text}}, Hashes: hashes}, nil
+}
+func unquote(s string) string {
+	lines := strings.Split(s, "\n")
+	for i, line := range lines {
+		lines[i] = strings.TrimPrefix(line, "> ")
+	}
+	return strings.TrimSpace(strings.Join(lines, "\n"))
+}
 
-	out := make([]Hit, 0, n)
-	used := map[string]int{}
-	taken := make([]bool, len(hits))
+// Quotas apply to the FINAL mechanical selection. A successful judge never
+// comes through here, including a valid empty selection. Spare slots flow to
+// the best remaining scores, so a sparse source does not waste the budget.
+func quotas(hits []hit, limit int) []hit {
+	quota := map[string]int{"memory": (limit + 1) / 2}
+	var sources []string
+	for _, name := range []string{"docs", "handoffs", "learnings", "skills"} {
+		for _, h := range hits {
+			if h.source == name {
+				sources = append(sources, name)
+				break
+			}
+		}
+	}
+	// Divide only among secondary sources with actual hits. Fixed source order
+	// gives the remainder a deterministic home when slots do not divide evenly.
+	remaining := limit - quota["memory"]
+	for i, name := range sources {
+		quota[name] = remaining / len(sources)
+		if i < remaining%len(sources) {
+			quota[name]++
+		}
+	}
+	// Two passes reserve source shares first, then spend every spare slot on
+	// remaining score-ranked hits. Track positions so no hit is selected twice.
+	selected := make([]bool, len(hits))
+	var out []hit
 	for i, h := range hits {
-		if len(out) >= n {
-			break
+		if quota[h.source] > 0 {
+			out = append(out, h)
+			selected[i] = true
+			quota[h.source]--
 		}
-		if used[h.Source] >= quota[h.Source] {
-			continue
-		}
-		used[h.Source]++
-		taken[i] = true
-		out = append(out, h)
 	}
 	for i, h := range hits {
-		if len(out) >= n {
-			break
-		}
-		if !taken[i] {
+		if len(out) < limit && !selected[i] {
 			out = append(out, h)
 		}
 	}
 	return out
 }
 
-func topN(h []Hit, n int) []Hit {
-	if n < 0 {
-		n = 0
-	}
-	if len(h) > n {
-		return h[:n]
-	}
-	return h
-}
-
-// ----------------------------------------------------------------
-// Stage 3: formatting and the byte cap
-// ----------------------------------------------------------------
-
-// attribution is the source line above a quoted snippet.
-func attribution(h Hit) string {
-	if strings.TrimSpace(h.Chunk.Header) == "" {
-		return fmt.Sprintf("From %s:", h.Chunk.Filename)
-	}
-	return fmt.Sprintf("From %s — %s:", h.Chunk.Filename, h.Chunk.Header)
-}
-
-// format renders the chosen snippets as blockquoted text under a header.
-//
-// Two things happen here that are easy to mistake for polish and are not.
-//
-// Dedupe: because these blocks persist, the same memory recalled on turns 3,
-// 7 and 12 would appear three times. Retrieval should surface what the agent
-// does not already have in front of it, so a snippet already present in the
-// conversation is skipped. This is what makes keeping a block strictly better
-// than clearing it — the cost of retention is bounded by the corpus, not by
-// the number of turns.
-//
-// The cap: MaxRecallBytes is a hard ceiling on the whole block, enforced
-// after assembly as well as during it. A ceiling that only holds when the
-// arithmetic upstream was right is not a ceiling.
-func (r *Recaller) format(hits []Hit, convo []string) string {
-	if len(hits) == 0 {
-		return ""
-	}
-	seen := strings.Join(convo, "\n")
-
-	var b strings.Builder
-	b.WriteString(recallHeader)
-	b.WriteString("\n")
-	wrote := 0
+// Count the complete wire-visible text, including heading, attribution and
+// quote prefixes. Cutting source content first would undercount that overhead.
+func format(hits []hit, limit int) (string, []string) {
+	var hashes []string
+	const title = "[Auto-recalled memories]\n"
+	out := title
 	for _, h := range hits {
-		if alreadyPresent(seen, h) {
-			continue
-		}
-		piece := "\n" + attribution(h) + "\n" + blockquote(h.Chunk.Content) + "\n"
-		if b.Len()+len(piece) > r.cfg.MaxRecallBytes {
-			room := r.cfg.MaxRecallBytes - b.Len()
-			if room <= len(recallHeader) {
-				break
-			}
-			b.WriteString(truncateAt(piece, room))
-			wrote++
+		prefix := fmt.Sprintf("\nFrom %s — %s:\n> ", h.file, h.header)
+		room := limit - len(out) - len(prefix)
+		if room <= 0 {
 			break
 		}
-		b.WriteString(piece)
-		wrote++
+		body := strings.ReplaceAll(h.content, "\n", "\n> ")
+		if len(body) > room {
+			body = body[:room]
+			// The cap is bytes, but its boundary must not split a UTF-8 character.
+			for !utf8.ValidString(body) {
+				body = body[:len(body)-1]
+			}
+		}
+		out += prefix + body
+		// A selected snippet that did not fit has no identity in live context.
+		hashes = append(hashes, snippetHash(h))
 	}
-	if wrote == 0 {
-		return ""
+	if out == title {
+		return "", nil
 	}
-	return capBytes(b.String(), r.cfg.MaxRecallBytes)
+	return out, hashes
 }
 
-// alreadyPresent reports whether this snippet is already in the conversation,
-// either because it was recalled before (same attribution line) or because
-// its text is literally there.
-func alreadyPresent(convo string, h Hit) bool {
-	if convo == "" {
-		return false
-	}
-	if strings.Contains(convo, attribution(h)) {
-		return true
-	}
-	body := strings.TrimSpace(h.Chunk.Content)
-	if body == "" {
-		return true
-	}
-	probe := body
-	if len(probe) > 120 {
-		probe = truncateAt(probe, 120)
-	}
-	return strings.Contains(convo, probe)
-}
-
-// blockquote prefixes every line with "> ".
-func blockquote(s string) string {
-	lines := strings.Split(strings.TrimSpace(s), "\n")
-	for i, ln := range lines {
-		lines[i] = "> " + ln
-	}
-	return strings.Join(lines, "\n")
-}
-
-// truncateAt cuts to at most n bytes without splitting a rune.
-func truncateAt(s string, n int) string {
-	if n <= 0 {
-		return ""
-	}
-	if len(s) <= n {
-		return s
-	}
-	cut := n
-	for cut > 0 && !utf8Start(s[cut]) {
-		cut--
-	}
-	return s[:cut]
-}
-
-// capBytes is the last line of defence on the ceiling: cut at a line
-// boundary if one is near, otherwise cut hard.
-func capBytes(s string, max int) string {
-	if max <= 0 || len(s) <= max {
-		return s
-	}
-	s = truncateAt(s, max)
-	if i := strings.LastIndex(s, "\n"); i > max/2 {
-		return s[:i]
-	}
-	return s
-}
+func snippetHash(h hit) string { return fmt.Sprintf("%x", sha256.Sum256([]byte(h.content))) }

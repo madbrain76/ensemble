@@ -1,591 +1,1095 @@
-# Chapter 5: The Big Refactor
+# Chapter 5: Two Seams and a Loop
 
-Every major AI coding agent, from Claude Code to Cursor, was built as
-a coding agent first and asked to do other things later. When SpaceX
-valued Cursor at $60 billion, the price was not for a code editor. It
-was for the harness: the tool loop, the vendor seam, the job
-supervision, the machinery that makes an LLM do real work in the
-world. A coding agent is the most valuable thing that harness can do
-today. It is not the only thing.
+The historical CodeRhapsody incidents below retain the first edition's
+measurements. The exercise and ownership rules incorporate the accepted
+Ensemble implementation.
 
-Your agent is 5,047 lines of Go in one directory. It reads files,
-writes code, drives a debugger. It is also a monolith that nobody
-else can use. This chapter turns it into a general-purpose agent
-framework by reorganizing the code into packages with clean import
-direction, at a cost of 123 lines and zero new features. At the end,
-a twenty-line program imports your framework, registers a custom tool
-the framework has never seen, and runs an agent that calls it. Your
-agent becomes a platform.
+The agent framework from Chapter 4 is good enough to write an
+author-editor orchestrator. Imagine what it could do with a GUI
+built exactly the way you want it. Your layout, your keybindings,
+your idea of what coding with AI should feel like. That is where this
+book is headed. But the tools that shipped GUI-first paid for it:
+the GUI imported the framework, the framework imported the GUI, and
+by the time anyone noticed the cycle it was load-bearing.
+CodeRhapsody made the same mistake, and refactoring it out took weeks
+of focused work. This chapter exists so you do not repeat it. By the
+end, your framework will have an API clean enough to host any GUI,
+any gateway, any agentic application. Streaming comes next, followed by the GUI.
+This one builds the surface it plugs into.
 
-**What you build.** The same agent, reorganized into packages with
-clean import direction. Two rules govern the split:
+That surface is two seams and a loop. Right now, ask a question while
+a tool runs and the agent does not notice until the tool finishes.
+Send a hint and it arrives one round too late. Run two agents through one blocking application loop
+and the second waits until the first is done. The package
+structure is right and the engine is deaf.
 
-1. Constructors take interfaces to their parents.
-2. Those interfaces live in a shared vocabulary package that every
-   other package imports.
+This chapter fixes the deafness. Three additions and one retirement:
+an outbound seam so the framework tells the world what
+happened instead of the world reaching in to ask; an inbound queue so
+prompts, hints, tool completions, and interrupts enter through one
+door; and a loop between them that drains the queue and notifies
+observers on every event. Retire the old synchronous orchestration loop;
+keep its public API as an adapter to the actor. Two loops over one engine
+are two owners of mutable state, not backward compatibility.
+A framework is two seams and a loop. By the end, the same core runs
+a three-agent workflow where each agent
+has its own tools, its own prompt, and its own observers, and a hint
+mid-tool-call arrives before the tool finishes.
 
-The result is a star topology: a hub of shared types at the center, and
-implementation packages that each import the hub and nothing else.
-No implementation package imports another. The root of the module is
-the public API, and a separate program can import it, register a custom
-tool, and run an agent without touching any internal code.
+## TL;DR
 
-```
-agent/
-  go.mod                       module root, own go.mod
-  agent.go                     package agent: the public API
+**What you build.** Three things added to Chapter 4's star topology:
 
-  internal/
-    common/                    shared types + interfaces (the hub)
-      event.go                   Event, EventType, TextPart, ToolCallPart, ...
-      part.go                    Part, BlobPart, Ref, ...
-      context.go                 Context, Entry, Usage, ...
-      provenance.go              Provenance, Actor, ...
-      config.go                  Config, ToolDecl, Vendor, Surface, ...
-      interfaces.go              JobHandle, JobManager, ToolRegistry, ...
-      event_log.go               Log (event log reader)
+1. An **observer** interface in the hub (outbound seam).
+2. A **mailbox** queue in the Agent implementation or its own spoke (inbound seam).
+3. An **actor loop** owned by the Agent that drains the mailbox and notifies
+   observers. Engine remains its single-request transport child.
 
-    llm/                       engine + vendor implementations
-      engine.go                  Engine, NewEngine, Execute, Shutdown
-      seam.go                    SeamFor, vendor routing, render/parse helpers
-      claude.go                  Anthropic renderer and parser
-      gemini.go                  Gemini renderer and parser
-      openai.go                  OpenAI renderer and parser
+Plus identity-tagged observations at the existing Ensemble root, media
+capabilities alongside the existing `Ref` vocabulary in the hub, and a
+three-agent exercise that proves the framework can run completely different agents without changing a line inside it.
 
-    jobs/                      job lifecycle
-      jobs.go                    Job, Jobs (implements JobHandle, JobManager)
-
-    tools/                     tool implementations + registry
-      tools.go                   Registry, builtin tools, Declarations, Lookup
-      jobtools.go                wait_for_job, send_input, kill_job, tool_limits
-
-  cmd/
-    main.go                    package main: the CLI (chat, render, dump)
-```
-
-The directory structure above is the reference solution's. Yours will
-differ. What the grader checks is the topology, not the names: no
-implementation package imports a sibling, and every implementation
-package reaches shared types through a common hub.
-
-The interfaces that break the dependency loops:
+**The observer seam.** One interface, three event types. The following
+shapes show the shared vocabulary; public aliases expose it to external
+clients without importing common:
 
 ```go
-// JobHandle is what a tool sees of its own job.
-type JobHandle interface {
-    io.Writer
-    Attach(proc *os.Process, stdin interface{ Write([]byte) (int, error) })
-    SetExit(code int)
-    SetCwd(dir string)
-    Status() JobStatus
-    Data() *JobData
-    HasProcess() bool
-    Wait(l Limits) WakeReason
-    Report(reason WakeReason, l Limits) string
-    Kill(reason string) bool
-    SendInput(text string) error
-    Bytes() int
-    Err() error
-    Finish(result string, err error)
+// Observer receives notifications. Observe must not block.
+type Observer interface {
+    Observe(Observation)
 }
 
-// JobManager manages the set of running jobs.
-type JobManager interface {
-    Start(tool, callID string) (JobHandle, error)
-    Get(h int) (JobHandle, bool)
-    Handles() []int
-    Running() []JobHandle
-    SetNext(l Limits)
-    Take(args json.RawMessage) (Limits, bool, error)
+type Observation interface{ observation() }
+
+type PartDelta struct {          // streaming chunk
+    PartID uint64 `json:"part_id"`
+    Chunk  string `json:"chunk"`
 }
 
-// ToolRegistry is what the engine uses to dispatch tool calls.
-type ToolRegistry interface {
-    Lookup(name string) (Tool, error)
-    Declarations() []ToolDecl
+type PartFinal struct {          // completed part
+    Seq    uint64   `json:"seq"`
+    PartID uint64   `json:"part_id"`
+    Part   Part     `json:"part"`
 }
+
+type StateChanged struct {       // turn-state transition
+    From   string `json:"from"`
+    To     string `json:"to"`
+}
+
+type AgentID string
 ```
 
-These are the reference solution's interfaces. Yours will be shaped by
-where your code draws its package boundaries. What they share is the
-principle: each interface declares exactly the methods one package needs
-from another, and they live in the hub where every package can see them.
+`Observe` must not block: a slow observer that holds up the loop
+recreates the deafness this chapter exists to fix. Agent identity remains
+outside each Agent's event log; the framework tags observations externally
+when coordinating multiple agents.
 
-The public API that external programs see:
+**The mailbox.** One inbound queue carries everything:
 
 ```go
-package agent
+type Inbound interface{ inbound() }
 
-type Config    = common.Config
-type ToolDecl  = common.ToolDecl
-type Vendor    = common.Vendor
-type Usage     = common.Usage
-
-func RegisterTool(name, desc string, schema json.RawMessage,
-    handler func(json.RawMessage) (string, error))
-func NewAgent(cfg Config, logPath string) *Agent
-func ConfigFromEnv() (Config, error)
-func (a *Agent) Ask(prompt string) (string, error)
-func (a *Agent) Shutdown() error
-func (a *Agent) Usage() Usage
+type UserMessage struct{ Text string }
+type Hint        struct{ Text string }
+type Interrupt   struct{}
 ```
 
-Type aliases re-export the internal types so external callers never
-import `internal/` directly. `ConfigFromEnv` reads the standard
-environment variables (`LLM_VENDOR`, `LLM_MODEL`, `LLM_API_KEY`,
-`LLM_BASE_URL`). `RegisterTool` adds a custom tool to the global
-registry before `NewAgent` wires everything together.
+A prompt, a hint, a tool finishing, and an interrupt are the same
+kind of event to the loop. Public `Post` must not wait for execution or
+drop an admitted message. The queue is a mutex-guarded slice with a signal channel;
+nothing in it is clever. The worker outcome is an internal message with
+its originating turn and full result metadata, not a text-only public shortcut.
 
-**Rules.** Five checks. The grader builds both binaries, inspects
-the dependency graph, runs the exercise against the fake vendor, and
-reruns the Chapter 4 grader against the refactored agent.
+**The actor loop.** The Agent owns one conversation goroutine. When the
+mailbox has a message, the loop drains it:
 
-1. **The agent builds from `cmd/`.** `go build -o bin ./cmd/` in the
-   `agent/` directory produces the CLI binary. (`agent-builds`, 10)
-2. **The exercise builds separately.** A program outside `agent/` that
-   imports the framework compiles without error. (`exercise-builds`, 10)
-3. **Star topology.** Every implementation package under `internal/`
-   imports only the shared hub and the standard library. No
-   implementation package imports a sibling. (`star-topology`, 25)
-4. **A custom tool is called.** The exercise registers a tool, sends a
-   prompt that triggers it, and the tool's output appears in the
-   response sent back to the vendor. (`custom-tool-called`, 25)
-5. **Chapter 4 still passes.** Every Chapter 4 check runs against the
-   refactored agent binary and scores 100/100. The refactoring changed
-   nothing observable. (`ch4-parity`, 30)
+- Live `UserMessage` or `Hint`: start a turn when idle; while active, attach
+  text to the current turn's pending context.
+- Worker report: record the result, check for outstanding calls, continue
+  the turn or go idle.
+- `Interrupt`: end the active turn, keep the actor receiving input and retain
+  real results from jobs that continue.
 
-Five checks, sum 100: `agent-builds` 10, `exercise-builds` 10,
-`star-topology` 25, `custom-tool-called` 25, `ch4-parity` 30.
+The synchronous Ask API still exists. It posts a
+request with its own buffered reply channel and waits for that request's
+text or error. Concurrent blocking requests queue as separate turns;
+they are not hints for the active turn. Callers that do not need blocking
+use `Post` directly and watch through an observer. One agent owns one
+actor, whether a caller uses the blocking or non-blocking API.
 
-**Yours.** The package names, the file layout, the exact set of
-interfaces. The grader does not check names. It checks that the
-dependency graph is a star, that a separate program can import and
-extend the framework, and that the agent still does everything it did
-in Chapter 4.
-
-**Exercise.** Build a separate program in `ch05/` that imports your
-framework, registers one custom tool, and uses it to answer a prompt.
-The tool can do anything: arithmetic, string manipulation, a lookup.
-The grader checks that the tool was called and its output reached the
-vendor.
-
-```sh
-make grade-dir CH=5 DIR=path/to/yours
-make grade5
-```
-
-## 5.1 The idea in plain words
-
-A flat package is a room with no walls. Every function can call every
-other function, every type can reference every other type, and the
-compiler cannot tell you when something reaches across a boundary it
-should not cross, because there are no boundaries to cross.
-
-That is fine when the room is small. Chapter 4's agent is not small.
-It is 5,047 lines of Go in fourteen files, and the engine, the vendor
-parsers, the job manager, and the tool implementations all live in the
-same package namespace. A change to the job manager's internal
-bookkeeping can accidentally call a tool function, and the compiler
-will not object.
-
-Two rules fix this without adding machinery.
-
-**Rule 1: Constructors take interfaces to their parents.** When
-you create an engine, hand it an interface to the job manager and an
-interface to the tool registry, not the concrete types. The engine
-sees only the methods it needs. The job manager sees only the methods
-it needs. Neither can reach into the other's internals, because the
-interface is the boundary, and the interface declares only what the
-caller is entitled to use.
-
-**Rule 2: Those interfaces live in a shared package.** If the engine's
-interface to the job manager lives in the engine package, the job
-manager has to import the engine to implement it, and the engine has to
-import the job manager to use it, and that is a cycle. Move the
-interface to a package both can import and the cycle breaks. That
-package is the hub. In the reference solution it is called
-`internal/common`. Everything in it is vocabulary: types, constants,
-interfaces. It has no behavior of its own.
-
-The result is a star. Common is the hub. Every spoke (llm, jobs, tools)
-imports only the hub. The root package wires the spokes together. A
-spoke that needs something from another spoke gets it through an
-interface in the hub, passed to its constructor. If you draw the
-dependency arrows, every arrow points inward, toward common. None
-points sideways.
-
-Go enforces the star with a rule that also undermines it. A method
-cannot be defined on a type declared in another package. The moment
-`Context` or `Event` lives in the hub, every operation on that type
-must also live in the hub, as a method, unless it is rewritten as
-something else. The compiler pins behavior to the type's home package.
-A hub that starts as vocabulary accumulates function bodies one method
-at a time, and no import rule is ever violated, because the methods
-are on the hub's own types. The hub drifts from vocabulary to God
-object while the star topology stays formally clean.
-
-The escape is to give up the method receiver. `Apply(c, e)` instead
-of `c.Apply(e)` costs nothing but syntax, and the free function lives
-in the spoke that calls it. Three cases cover every operation on a hub
-type:
-
-1. Used by one spoke: move it to that spoke as a free function. The
-   hub type appears as a parameter, not a receiver.
-2. Satisfying a stdlib interface: `MarshalJSON`, `UnmarshalJSON`,
-   `String`, and `Error` are reached by `encoding/json` and `fmt`
-   through interface dispatch. They must stay as methods on the type,
-   in the hub. This is a real floor.
-3. Used by several spokes: the behavior has nowhere to go in a strict
-   star. Turn the type into an interface in the hub, implement it in a
-   new spoke, and wire the spoke at the composition root.
-
-The invariant to watch is not a line count but a ratio. The hub should
-be mostly declarations. When function bodies approach half its lines,
-behavior is accumulating and should be moved to a spoke using one of
-the three cases above.
-
-The star topology is a dependency management principle that
-Go happens to enforce at compile time, and every language with a module
-system can express it. The star topology makes every chapter after this one
-possible. Each adds a spoke, and the hub grows by the types and
-interfaces the new spoke needs to share with the others. No existing
-spoke changes.
-
-## 5.2 What moves where
-
-Once the packages are named, the moves are mechanical.
-Each section below is a package, and the content is what the reference
-solution put there. Yours may split differently. The property that
-matters is the star: every package imports only common, and common
-imports nothing inside the module.
-
-**internal/common** is the hub. Every type that appears in more than
-one package lives here: events, parts, context, provenance, config,
-the event log reader, and the three interfaces that break the
-dependency loops. It should be large in vocabulary and small in
-behavior. When function bodies start outnumbering declarations, the
-hub is doing work that belongs in a spoke.
-
-**internal/llm** is the engine and the three vendor implementations:
-1,516 lines, five files. `Engine` takes a `JobManager` and a
-`ToolRegistry` through its constructor, so it never names the jobs or
-tools package. The vendor parsers and renderers share helpers in the
-same package (classify, SeamFor, the render-and-parse cycle). This
-package has the most complex logic and the most files, because the
-vendor seam from Chapter 2 lives here alongside the dispatch loop
-from Chapters 3 and 4.
-
-**internal/jobs** is the job lifecycle: 424 lines, one file. `Job`
-and `Jobs` implement the `JobHandle` and `JobManager` interfaces
-from common. The PTY setup, the output buffer, the wait loop, the
-kill signal: all here, and nothing else.
-
-**internal/tools** is the tool implementations and the registry: 882
-lines, two files. The six tools from Chapter 3 and the four from
-Chapter 4 live in `tools.go`. The supervision verbs (wait, send, kill,
-tool_limits) live in `jobtools.go`. The split is natural: tools that
-become jobs and tools that act on jobs. The registry maps names to
-tools and provides `Lookup` and `Declarations` for the engine.
-
-**agent.go** at the module root is the public API: 134 lines, the
-thinnest file in the module. Type aliases re-export the internal types,
-`NewAgent` wires the concrete implementations together, and
-`RegisterTool` adds entries to the global registry. This is the only
-file an external program needs to know about.
-
-**cmd/main.go** is the CLI: 277 lines. It imports every internal
-package to wire them together, which is the one place that breaks the
-star. The CLI is the composer, not a spoke. It creates the jobs, the
-registry, and the engine, and hands each the interfaces the others
-declared.
-
-The sum is 4,688 non-test lines. Chapter 4 was 4,565. The difference
-is 123 lines: the interface definitions in common and the public API
-wrapper in agent.go. A refactoring that grew the codebase by less
-than three percent is a refactoring that added structure, not weight.
-
-## 5.3 The star, enforced
-
-The topology is a property you can check mechanically. `go list -deps`
-on any package prints every package it transitively imports, and the
-rule is that no implementation package appears in another
-implementation package's list. A script that does this for every
-directory under `internal/` takes four lines and catches a sideways
-import the moment it happens, which is before the module compiles
-because Go enforces the rule that a cycle is a build error.
-
-Go's `internal/` convention adds a second enforcement. A package under
-`internal/` can be imported only by code rooted at the parent of
-`internal/`. An external program that tries to import
-`agent/internal/llm` gets a compile error naming the restriction. This
-is the wall, and it has two consequences.
-
-The first is protection: the engine, the vendor parsers, the job
-lifecycle, and the tool implementations are not part of the public API.
-An external program sees only what `agent.go` re-exports. The type
-aliases (`type Config = common.Config`) are the windows in the wall,
-deliberately placed and deliberately few.
-
-The second is discovery. When you draw the wall for the first time
-around code that was never behind one, encapsulation violations that
-compiled without complaint become errors. A tool function that reached
-into the engine's internal state, a test file that constructed a Job
-directly instead of going through the manager, a helper that imported
-a package it had no business knowing about: all of these compiled in
-the flat package and break the moment the wall goes up. The compiler
-is doing the code review.
-
-This is the argument for doing the refactoring as a separate chapter
-rather than folding it into whatever comes next. The wall finds
-problems that exist in the code you already have. Adding a feature at
-the same time as drawing the wall means you cannot tell whether a
-compile error is a boundary violation you should fix or a consequence
-of the feature you are adding, and the temptation is to fix both by
-removing the wall.
-
-## 5.4 The public API
-
-An agent framework that can only be used through its own CLI is a
-toy. The point of the refactoring is that a separate program can
-import `agent`, register a tool the framework has never seen, and
-run a session. The public API is small enough to list completely:
+**The Wait primitive.**
 
 ```go
-agent.RegisterTool(name, desc, schema, handler)   // before NewAgent
-agent.NewAgent(cfg, logPath)                       // wires everything
-agent.ConfigFromEnv()                              // reads LLM_* vars
-agent.Ask(prompt)                                  // one turn of the loop
-agent.Shutdown()                                   // kills jobs, saves log
-agent.Usage()                                      // token counts
+func (a *agent) Wait(ctx context.Context,
+    pred func(Observation) bool) (Observation, error)
 ```
 
-`ConfigFromEnv` exists because an external program should not have to
-know the vendor environment variable names. The framework reads
-`LLM_VENDOR`, `LLM_MODEL`, `LLM_API_KEY`, and `LLM_BASE_URL`, picks
-defaults per vendor, and hands back a `Config`. A program that needs
-different defaults builds its own `Config` and skips `ConfigFromEnv`
-entirely.
+Blocks until an observation satisfies `pred` or the context cancels.
+Use it for observing progress, not acknowledging a blocking request.
+The observation stream is bounded and may drop events; waiters can also
+consume one another's events. Neither an idle notification nor shared
+last-text state identifies which request completed. Request replies are
+reliable control messages, separate from this non-blocking observation seam.
 
-`RegisterTool` adds a tool to the global registry before `NewAgent`
-assembles the pieces. The handler signature is simpler than the
-internal `ToolFunc` because external tools do not need the `Call`
-context. They receive JSON arguments and return text:
+**Ref and ModelFeatures.** The existing blob part already carries a `Ref`.
+This chapter gives local-path media a real renderer:
 
 ```go
-agent.RegisterTool("calculate", "Evaluate an arithmetic expression",
-    json.RawMessage(`{
-        "type": "object",
-        "properties": {
-            "expression": {"type": "string", "description": "e.g. 6 * 7"}
-        },
-        "required": ["expression"]
-    }`),
-    func(args json.RawMessage) (string, error) {
-        var p struct{ Expression string `json:"expression"` }
-        if err := json.Unmarshal(args, &p); err != nil {
-            return "", err
-        }
-        return fmt.Sprintf("Result: %s = 42", p.Expression), nil
-    },
+type RefKind uint8
+const (
+    RefPath   RefKind = iota + 1
+    RefURI
+    RefHandle
 )
+
+type Ref struct {
+    Kind    RefKind `json:"kind"`
+    Locator string  `json:"locator"`
+}
+
+func (r Ref) Zero() bool { return r.Kind == 0 }
 ```
 
-That tool is the exercise's proof of concept. The framework calls it, the vendor sees
-the result, and nothing inside `internal/` needed to change.
+`ModelFeatures` declares what media a model accepts:
 
-## 5.5 A rename's blast radius
+```go
+type Media uint8
+const (
+    MediaImage    Media = 1 << iota
+    MediaAudio
+    MediaVideo
+    MediaDocument
+)
 
-A lesson from the reference solution, confessed because the cost was
-a failing test and a twenty-minute debugging session.
+type ModelFeatures struct {
+    Media Media
+}
 
-The flat package had a type called `Call`. When it moved to
-`internal/common`, every reference became `common.Call`. A
-search-and-replace across the package was the obvious move, and
-the obvious move corrupted a string that had nothing to do with
-the type:
-
+func LookupModel(model string) (ModelFeatures, bool)
 ```
-Before:  "Call the tool you meant to call"
-After:   "common.Call the tool you meant to call"
-```
 
-`Call` is both a Go identifier and an English word. The compiler
-sees no difference between a type reference in code and a word in
-a string literal. Neither does `sed`, which is what ran the
-replacement. The test that caught it was a string comparison in
-a grader fixture, and it failed with a message about a tool description
-containing `common.Call`, which is not a phrase any model should
-see.
+No default media row. An unknown model returns `false`; attaching media
+then fails with an error naming the model and the unsupported media type.
+Ordinary text does not require a row in a media capability table. Lookup
+policy belongs with rendering; common holds the shared types.
+Dropping a part silently is the Chapter 1 mistake: a format the model
+cannot read is a lie, not a degradation.
 
-The rule from the experience: after every rename, grep for the
-identifier in all quoted strings and all comments. The compiler
-verifies code references. It does not verify prose. A rename's
-blast radius is where the word appears, not where the identifier
-is used, and the two sets overlap in a language that names things
-with English words.
+**Rules.** Seven checks.
 
-This is not a hypothetical. The reference solution's test caught
-it because the grader compares exact strings. A student whose
-tests do not compare strings will ship the corrupted description
-to the model, the model will try to parse `common.Call` as a
-function name, and the failure will look like a model hallucination
-rather than a botched rename.
+1. **Chapter 4 still passes.** The actor upgrade changes no observable
+   behavior from Chapter 4's star topology. (`ch4-parity`, 10)
+2. **The agent hears hints mid-tool.** A slow tool runs for three
+   seconds. During that work, a hint arrives. The observer stream shows
+   the hint *before* the correlated tool report. A callback may report a
+   still-running job; the check does not confuse that report with execution ending. (`not-deaf`, 25)
+3. **Replay matches live.** Replay the event-log prefix just before the last
+   `request_sent`; rendering that prefix matches the captured live
+   vendor request byte for byte. (`replay-is-live`, 15)
+4. **Observers fire.** The observation stream contains both state
+   transitions (`StateChanged`) and completed content (`PartFinal`).
+   (`observer-fires`, 15)
+5. **Multiple Agents remain distinguishable.** The application runs author,
+   editor and reviewer in sequence. Observations identify their Agent; the
+   application advances only after that request actually completes.
+   (`multi-agent-observations`, 15)
+6. **Unsupported media refused.** Present media the model does not
+   support. The renderer returns an error naming the model and the
+   media type, not a silent drop. (`loud-refusal`, 10)
+7. **Hub stays clean.** `go list -deps` on `internal/common/` shows
+   no implementation-spoke dependencies. Shared vocabulary does not import
+   its implementations.
+   (`hub-clean`, 10)
 
-## 5.6 The exercise, graded
+Seven checks, sum 100: `ch4-parity` 10, `not-deaf` 25,
+`replay-is-live` 15, `observer-fires` 15, `multi-agent-observations` 15,
+`loud-refusal` 10, `hub-clean` 10.
 
-The exercise is a separate program that imports the framework, and
-the grader checks that it works end to end.
+**Yours.** The shape of the mailbox, the structure of the actor loop,
+how many goroutines the framework uses. The grader checks the
+properties, not the implementation.
 
-Build a program in `ch05/` that:
-
-1. Calls `agent.RegisterTool` with one custom tool. The tool can
-   do anything. The reference solution's tool evaluates arithmetic
-   expressions and returns a string like `"Result: 6 * 7 = 42"`.
-2. Calls `agent.ConfigFromEnv` to read the vendor configuration.
-3. Calls `agent.NewAgent` with the config.
-4. Calls `agent.Ask` with a prompt designed to trigger the tool.
-5. Calls `agent.Shutdown`.
-
-The grader runs this program against the fake vendor. The fake serves
-a tool call that names the custom tool, waits for the tool result in
-the next request, and serves a final text reply. The check passes when
-the tool's output string appears in the body of the second request.
+**Exercise.** Build a three-agent workflow in `ch06/`. An author
+writes a draft, an editor improves it, a reviewer approves it. Each
+agent has its own prompt and tools. The framework coordinates them.
+A single binary reads JSON events on stdin, writes observations on
+stdout, and logs to `CH06_LOG`.
 
 ```sh
-make grade-dir CH=5 DIR=path/to/yours
-make grade5
+go run ./cmd/grade-edition2 -ch 5 path/to/yours
 ```
 
-| check | points | passes when |
-|---|---|---|
-| `agent-builds` | 10 | `go build -o bin ./cmd/` succeeds in `agent/` |
-| `exercise-builds` | 10 | `go build -o bin .` succeeds in `ch05/` |
-| `star-topology` | 25 | no internal/* package imports a sibling |
-| `custom-tool-called` | 25 | custom tool result appears in the second request |
-| `ch4-parity` | 30 | all Chapter 4 checks score 100/100 |
+The grader finds the `ch06` workflow module inside the submitted core or
+beside it; `-workflow path/to/workflow` selects another location. It builds
+and runs that actual application, without falling back to the core CLI.
+Chapter 4's `-consumer` and `-consumer-case` flags remain available for the
+inherited external-consumer check.
 
-Weights sum to 100. `ch4-parity` is 30 because the refactoring must
-not break anything, and "anything" means every check from every
-previous chapter, weighted by how much the reorganization could
-plausibly disturb it. `star-topology` is 25 because that is the
-chapter's thesis: the dependency graph is a star, enforced by the
-compiler. `custom-tool-called` is 25 because a framework that cannot
-be extended by external code is not a framework.
+Media probes render a local image through each adapter, refuse unsupported
+audio and refuse an image on an unknown model. The Anthropic fixture uses the
+older Sonnet 4.6 row declared by this chapter’s accepted solution. To test another
+implemented capability table, save this grader-only mapping
+as `media-models.json` and pass `-media-models media-models.json`:
 
-## 5.7 What this chapter does not do
+```json
+{"anthropic":"claude-sonnet-4-6","openai":"gpt-5.4-mini","gemini":"gemini-3.8-flash"}
+```
 
-The agent is still deaf while running a tool. The engine
-blocks on every tool call, and nothing in the architecture provides
-a mailbox or an inbound queue. A prompt that arrives while the loop
-is busy has nowhere to go. The agent cannot supervise multiple tasks,
-and it cannot be interrupted.
+The replay check captures real HTTP requests and compares them with rendering
+the corresponding pre-request log prefixes. The workflow fake calls `think`
+and returns three role texts. Its observations and ordered completion markers
+do not, by themselves, establish that every manuscript tool works, stored edits
+reach the reviewer, or a saturated progress stream cannot lose request replies.
+Keep those required behaviors covered by real public-API integration tests and
+source review. Passing a marker check does not waive them.
 
-All of that is buildable now because the star topology means adding
-an actor loop is adding a spoke. The engine
-gains an inbound queue. The framework gains an observer. The hub grows
-by two interfaces. No existing spoke changes, because no existing
-spoke knows about actors, and the interfaces it uses did not move.
 
-The refactoring bought the ability to add machinery
-without disturbing machinery that already works. A flat package
-cannot make that promise. Every addition to a flat package can touch
-everything, and "can" becomes "does" the moment a deadline arrives.
+## §5.1 The idea in plain words
 
-## 5.8 Drive it yourself
+Chapter 2 built a renderer that turned the event log into
+`history.md`. It watched the stream and produced a view: an
+observer. The reader has already built one and can now name it.
 
-Build the exercise and run it:
+A deaf loop processes one request at a time. The model sends back a
+tool call, the engine runs the tool, and nothing else can happen
+until the tool finishes. A user typing a hint while a three-second
+build runs gets no acknowledgment. A second agent waiting for its
+turn gets nothing at all. The engine is a for-loop, and a for-loop
+has no ears.
+
+The fix is three pieces that work together.
+
+**An observer is a one-way window.** The Agent notifies observers
+when something happens: a state transition, a completed response, a
+streaming chunk. Observers cannot call back into the engine. They
+watch and react. A logger is an observer. A GUI is an observer. A
+parent managing a child agent is an observer. What matters is that
+the framework defines the interface, observers implement it, and
+nothing inside the framework knows what the observers do. A GUI, a gateway, and a sub-agent
+supervisor all plug in here without any of them changing a line of
+framework code.
+
+**A mailbox is a one-way door.** The Agent accepts messages through
+a queue: prompts, hints, tool completions, interrupts. `Post` does not wait
+for execution or a receiver. The queue is a slice guarded by a mutex with a channel to
+signal "something arrived." Prompts, hints, and tool completions
+enter through the same door because the loop that processes them
+needs to see them in order. A hint that arrives while a tool is
+running goes into the queue after the prompt that started the turn
+and before the tool completion that ends it. The ordering is the
+whole point. A separate queue per message type destroys it.
+
+**An actor loop drains the mailbox.** The Agent runs its actor on its own
+goroutine. It blocks on the mailbox's signal channel until something
+arrives, drains the queue, and processes each message in order. After
+processing, it notifies observers. The loop is the smallest possible
+concurrency primitive: one goroutine, one queue, one notify step. It
+replaces the synchronous for-loop from Chapter 4 with something that
+can hear. The mailbox synchronizes delivery; the job subsystem synchronizes
+worker state. Neither gives workers permission to mutate the conversation.
+
+These three pieces are independent additions to the star topology
+from Chapter 4. The observer interface and public mailbox input types
+go into `internal/common/`; private worker messages stay with their owner. The
+mailbox implementation goes into a new spoke or an existing one. The
+Agent-owned actor replaces the engine's synchronous ask while preserving the public
+blocking API. Internal orchestration helpers are retired, not retained as a
+second execution path.
+
+## §5.2 The framework that imported its own GUI
+
+CodeRhapsody built the GUI before it had a framework seam. The React
+frontend connected to a Go server, the Go server imported the
+framework, and the framework reached back into the server for test
+scaffolding. `test_support.go` built a real GUI server for the
+twenty-three tests that needed a UI attached. The import graph formed
+a cycle, and the cycle hid inside convenience: nobody noticed because
+every test passed.
+
+The dependency surfaced as a question: can the framework run without
+the GUI? No. It compiled without it, but tests could not run.
+Untangling it took five commits across two days. The load-bearing
+commit was titled *"Test scaffolding takes a UIObserver, not a GUI
+server."*
+
+The fix was not deletion. The GUI was demoted to an observer. Instead
+of the framework importing the GUI, the framework broadcasts events,
+and the GUI subscribes to them. The import arrow reversed direction.
+After the fix, the framework does not know the GUI exists, the GUI
+is one of several observers, and tests run without building a server.
+
+> The guard that enforces this boundary exempts test files and ratchets
+> them downward, on the principle that a guard that fails today guards
+> nothing. Twenty-three tests needed a GUI server. Now thirteen do,
+> and the ratchet prevents the number from climbing back. The boundary
+> found problems, it did not create them: two encapsulation reaches
+> appeared as compile errors the moment the `internal/` wall went up,
+> one where a tool file grew a method on a job type and another where
+> the engine called an unexported function on a job.
+
+The fix's shape is this chapter's thesis. The GUI went from a
+component the framework knows about to an observer the framework
+broadcasts at. The first-edition facade measured who actually used its
+framework: two-thirds of the API surface serves tool authoring, five
+percent serves agent lifecycle. Design the observer seam for the
+ninety-five percent of the world that is not the engine.
+
+## §5.3 The outbound seam
+
+An observer receives events. It does not ask for them, it does not
+call back into the engine, and it does not block. Those three
+constraints are the interface:
+
+```go
+type Observer interface {
+    Observe(Observation)
+}
+```
+
+`Observe` takes one argument. The argument is a sealed interface:
+the framework defines every type that implements it, and external
+code cannot add new ones. Three types carry the information:
+
+```go
+type PartDelta struct {          // streaming chunk
+    PartID uint64 `json:"part_id"`
+    Chunk  string `json:"chunk"`
+}
+```
+
+A `PartDelta` arrives for every streaming chunk the vendor sends.
+`PartID` identifies which part is being streamed so that an observer
+can assemble the complete response without confusing concurrent parts. `Chunk` is a
+string because it is text. A `[]byte` JSON field would base64-encode it,
+adding about a third to the byte count before JSON overhead.
+
+The streaming rule: do not model streaming as a mode. Model
+non-streaming as a stream of length one. A non-streaming vendor emits
+one delta plus the finalizer. Observers that care about liveness
+render deltas; observers that do not ignore them and act on
+finalizers. Adding streaming later therefore adds no new event kinds.
+
+Tool results are the proof the rule is right: they are observable but
+never stream, which needs no special case. They are always length one.
+
+Deltas are transient. They are never appended to the durable log;
+finalized content and other conversation facts are recorded. The log is the state. The stream
+is the experience. Replaying the log must produce the same context
+as the live run, minus the animation. The `replay-is-live` check
+tests exactly this: replay the prefix just before the last `request_sent`
+and compare the rendered request byte for byte with the captured request.
+The marker records delivery and consumes pending ephemera, so including it
+would reconstruct the state after that request was sent.
+
+```go
+type PartFinal struct {          // completed part
+    Seq    uint64   `json:"seq"`
+    PartID uint64   `json:"part_id"`
+    Part   Part     `json:"part"`
+}
+```
+
+A `PartFinal` arrives when a part is complete: the full neutral part,
+including text, a tool call or a tool result, with its sequence number
+and display identity. A text-only field loses the call arguments and
+correlation that an observer needs. Durable replay uses the event log,
+which also contains prompts, hints and request boundaries; the lossy
+observation stream cannot replace it.
+
+```go
+type StateChanged struct {       // turn-state transition
+    From   string `json:"from"`
+    To     string `json:"to"`
+}
+```
+
+A `StateChanged` fires on every transition: `Idle` to
+`InputPending`, `InputPending` to `InFlight`, `InFlight` to
+`ToolsPending`, any terminal state back to `Idle`. The GUI uses this
+to show a spinner. An application uses this to display progress; request completion tells it
+when a particular submitted turn finished.
+The grader uses this to verify the observer seam works.
+
+The observation types carry no agent identity. For a single agent,
+that is all you need. For a multi-agent framework, the coordinator
+tags agent identity externally when it routes observations. The type
+is cheap because external tagging is just a wrapper.
+
+The observer is told, never asked. The Agent calls `Observe` after
+every action: after recording a response, after transitioning state,
+after a tool completes. Observers receive future events from the same code path that updates
+the context. Attaching late does not replay earlier observations; history
+remains the separate source for past facts.
+
+### Why Observe must not block
+
+A blocking observer recreates the deafness. The Agent calls
+`Observe` on the actor goroutine. If `Observe` takes a lock, writes
+to a slow network, or waits for a response, the actor goroutine
+stalls. The mailbox fills up. Hints arrive and wait. The queue that
+was supposed to fix the problem becomes the problem.
+
+If an observer needs to do slow work, it copies the observation and
+posts it to its own queue. The observer's goroutine drains its own
+queue. The actor never waits for that slow work.
+
+## §5.4 The inbound seam
+
+The agent is deaf, but the obvious explanation is wrong. It is not
+that the tool runs inline. The tool already runs on its own goroutine
+since Chapter 4. It is that the conversation loop parks in a `select` awaiting
+the job report, and that is the same loop that would drain
+inbound events. The drainer is parked. Hints arrive and sit in a
+channel that nobody reads until the tool finishes.
+
+The fix: deliver tool completions INTO the queue instead of awaiting
+them in a `select`. The mailbox carries everything the Agent can
+hear:
+
+```go
+type Inbound interface{ inbound() }
+
+type UserMessage   struct{ Text string }
+type Hint          struct{ Text string }
+type Interrupt struct{}
+```
+
+One queue carries public input and private worker messages. The small
+mailbox sketch below uses `any` for those internal messages; public `Post`
+accepts only the public input vocabulary. The implementation
+is a mutex-guarded slice with a buffered channel of capacity one as
+the signal:
+
+```go
+type Box struct {
+    mu    sync.Mutex
+    queue []any
+    Wake  chan struct{}
+}
+
+func (b *Box) Post(msg any) {
+    b.mu.Lock()
+    b.queue = append(b.queue, msg)
+    b.mu.Unlock()
+    select {
+    case b.Wake <- struct{}{}:
+    default:
+    }
+}
+
+func (b *Box) Drain() []any {
+    b.mu.Lock()
+    q := b.queue
+    b.queue = nil
+    b.mu.Unlock()
+    return q
+}
+```
+
+`Post` does not wait for a receiver. Its brief mutex protects enqueueing;
+it is not a lock-free guarantee. If the channel is full, the signal is already
+pending and the loop will drain the queue. `Drain` returns everything
+and clears the queue. The mutex protects the slice; the channel is
+just a wake signal. The queue preserves arrival order and nothing else.
+
+### Why one queue
+
+A prompt, a hint, a tool completion, and an interrupt arrive through
+the same door because the order they arrived in is the order they
+matter in. A hint that arrived during a tool call matters now. A
+tool completion that arrived after an interrupt still contains real output.
+Its former turn is over; its job may still be alive.
+
+Separate queues destroy this ordering. If prompts and hints go to
+different channels, a `select` chooses between them, and Go's
+`select` is pseudo-random when both are ready. The hint might be
+processed before the prompt that it was meant to modify, or after
+the tool that it was meant to interrupt. A single FIFO preserves
+arrival order, and arrival order is causal order.
+
+### Tool completions enter the mailbox
+
+This is the change that breaks the deafness. In Chapter 4, the Agent
+dispatcher waits for the job report. The wait has a limit, but the same
+conversation loop cannot process human input while it is parked.
+
+In Chapter 5, workers execute the tool and wait for its report.
+They post their outcomes to the mailbox. The Agent is back at its
+mailbox drain loop, free to
+process hints and interrupts while the tool runs. The tool result
+arrives as a message, not a return value, and the actor processes it
+in queue order alongside everything else.
+
+## §5.5 The actor loop
+
+The actor is the Agent's conversation goroutine with a mailbox. It blocks on the signal
+channel, drains the queue, and processes each message. After
+processing, it notifies observers.
+
+```go
+func (r *runtime) run() {
+    for {
+        <-r.owner.box.Wake
+        for _, message := range r.owner.box.Drain() {
+            switch m := message.(type) {
+            case common.UserMessage:
+                r.input(m.Text)
+            case common.Hint:
+                r.input(m.Text)
+            case response:
+                r.receive(m)
+            case report:
+                // Record the real result, including reports from older turns.
+                r.recordReport(m)
+            case common.Interrupt:
+                r.interrupt(common.ErrInterrupted)
+                // Keep draining: interruption does not end the actor.
+            }
+        }
+    }
+}
+```
+
+This is schematic: `runtime` belongs to the Agent, and `recordReport`
+stands for its report-handling branch. The excerpt omits request replies,
+shutdown, error handling and round limits. Notifications follow successful
+reduction, so observers see stored facts. The shape remains drain, switch,
+notify; method names are not the exercise contract.
+
+**Starting a turn** records the prompt as a `MessageReceived` event,
+renders the context and records the request boundary before handing
+HTTP to a worker. That worker returns response facts through the mailbox.
+A synchronous HTTP call on the actor would merely move the deafness from
+tools to the network. Tool calls enter `ToolsPending`; dispatch remains
+serial within their batch, with each wait performed outside the actor.
+When no further calls or pending hints remain, the turn can finish.
+
+**Applying a hint** records the hint as a `HintReceived` event and
+attaches it to the pending context. The next vendor request will
+include it. A hint arriving during HTTP cannot rewrite bytes already sent;
+record the request boundary before releasing the transport worker. The hint does not start a new turn and does not change
+the turn state.
+
+**Recording a result** records the tool result as a `ToolReturned` event,
+checks whether all outstanding calls have results, and if so, sends
+the accumulated results back to the vendor for the next round.
+
+**`interrupt`** ends the active turn and cancels its in-flight model
+request. The Agent remains usable, and other jobs continue. Pair outstanding
+calls honestly: a wait was interrupted, not necessarily its job. Refuse calls
+that were never dispatched. A later real report must not become a duplicate
+vendor result or finish a newer turn. The accepted implementation retains it
+as `job_report`, with the bytes still in the job output file.
+
+### Ask, rebuilt
+
+The synchronous Ask API from Chapter 4 still
+works; the accepted public method also takes a caller context. It delegates to the agent's owned actor:
+
+```go
+func (a *agent) Ask(ctx context.Context, text string) (string, error) {
+    reply := a.Submit(ctx, text)
+    select {
+    case result := <-reply:
+        return result.Text, result.Err
+    case <-ctx.Done():
+        return "", ctx.Err()
+    }
+}
+```
+
+`Submit` creates a one-element buffered reply channel, posts the request,
+and returns that channel. `Ask` waits for its reply, caller cancellation,
+or actor shutdown. The actor continues processing its mailbox. The buffer
+lets the actor finish even if the caller has cancelled.
+The actor returns that request's text and error, not shared last-text state.
+When persistence is configured, save before replying; a failed save is a
+failed completion, not durable success. The accepted library's empty `LogPath`
+leaves persistence with its embedding caller. Notify observers of the same outcome without making observation
+delivery a prerequisite for returning to the caller.
+
+The excerpt shows the request-specific reply; production also handles
+shutdown without losing an already completed reply. Starting the actor is lazy
+and idempotent. Repeated callers use the same Agent-owned mailbox consumer;
+an additional public Actor wrapper is unnecessary.
+Shutdown stops new work, cancels in-flight model requests, stops managed
+processes, joins workers, records their outcomes and saves. An arbitrary Go
+tool may not be cancellable: shutdown must wait for it, not discard its real
+result and pretend it stopped. Repeated shutdown is safe; later requests
+return a distinguishable stopped error.
+
+Delete `Engine.Ask` and any sibling orchestration loop after migrating their
+callers, including legacy CLI prompt formats and embedding programs. Keep
+one-request rendering and transport in Engine and reduction/persistence
+in History. The Agent actor orders multi-round orchestration, turn setup,
+runtime context mutation and save-before-reply. Workers send facts through
+the mailbox; they do not append directly to live History. The synchronous API survives; the duplicate implementation does not.
+
+The same ownership rule applies to the tool-round limit. A positive N permits
+N dispatched tool batches in one human turn. Zero selects the named default
+of 200, not infinity. Read the effective setting once at turn start; chapter
+8's persisted setting must feed this same policy. After the Nth batch, allow
+the model to consume its results and finish. If it asks for another batch,
+execute none of it, record explicit not-executed results for every call and
+return a distinguishable limit error. Do not leave dangling calls or edit
+signed assistant content. A later instruction can start a new turn.
+
+### Where is the concurrency?
+
+One actor goroutine owns the engine. A tool execution worker runs the
+handler; a separate job-report worker waits for completion, the callback
+deadline or an output pattern. These must be separate: a blocked handler
+must not prevent the model from receiving a running-job report. A callback
+is not cancellation. Both workers belong to the shutdown join.
+
+Workers return results and context effects through the mailbox rather than
+mutating the engine. The job subsystem synchronizes process state, output
+and completion; the actor owns the conversation. Count ownership boundaries,
+not a fixed number of goroutines.
+
+The minimalism is deliberate. Every lock is a place where two
+goroutines disagree about what is happening. Two goroutines can
+disagree in testable ways. Ten goroutines with a shared map disagree
+in ways that show up in production at 3 AM on a Saturday.
+
+> CodeRhapsody's Chapter 4 grader exposed five real concurrency bugs
+> in 120 parallel test runs. The root cause of every one was a parent
+> holding stale facts about a child: reading a field on one goroutine
+> while the actor goroutine wrote it. The fix each time was the same:
+> move the read to the actor goroutine, or make the mailbox the only
+> path between them. Two goroutines with one lock is not a style
+> preference. It is what survived the race detector.
+
+That historical two-goroutine fix established the ownership boundary.
+The job-report worker preserves it while allowing callbacks before a tool
+returns. The goal is still minimal concurrency, with one execution owner
+and explicit messages across every boundary.
+
+## §5.6 The Wait primitive
+
+This chapter does not introduce agent state. It exposes it. The
+reader has had a state machine since Chapter 2: `TurnState` with
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. This chapter adds
+`Interrupted`, deliberately as a state rather than a flag, because
+the interrupted turn must not resume dispatch when a late result arrives.
+Replay reduces recorded facts; it does not execute tools. The state machine is a fact. The observer seam
+makes it visible. `Wait` makes it waitable.
+
+```go
+func (a *agent) Wait(ctx context.Context,
+    pred func(Observation) bool) (Observation, error)
+```
+
+`Wait` blocks until an observation satisfies `pred` or the context
+cancels. The current actor consumes a bounded observation channel; it is
+not a subscription replaying every event to every waiter.
+
+**Blocking send** uses the request-scoped completion described above, not
+`Wait` for a shared idle transition.
+
+**Wait for agent**, **join**, and **wake-any** can use observations to watch
+agent state. But an orchestration decision that requires completion cannot
+rest on a lossy progress stream. Track the relevant request completions
+reliably, then publish the resulting progress. A shared idle event cannot
+acknowledge a particular prompt, and a slow observer must not stall the
+actor just to prevent a dropped progress notification.
+
+The original check named `wake-once` verified observations and turn-ended
+records from distinct Agents. It did not measure wakeup count or simultaneous
+completion. The Edition 2 label is `multi-agent-observations`. This application
+coordinates stages sequentially; reliable request completion tells it when
+to pass a result to the next Agent. No grouped-results API is required.
+
+## §5.7 Hints and interrupts
+
+A hint is the same event as a prompt, distinguished by turn state.
+A message that arrives while the turn is idle starts a new turn. A
+message that arrives while the turn is in flight or tools-pending
+is a hint. Classification belongs to the Agent
+conversation owner using the current reduced state, not the stdin reader
+whose view can already be stale. Blocking `Ask`/`Submit` calls deliberately
+queue separate requests instead of becoming hints.
+
+The `HintReceived` event type exists for exactly this reason:
+without it, the reducer cannot distinguish
+"a new prompt arrived" from "a hint arrived during an active turn."
+Both carry text. The difference is when they arrived relative to
+the turn, and the turn state is the reducer's business.
+
+> Bill's ruling on callbacks is absolute: a callback added to break
+> a Go dependency cycle is a red flag. The mailbox breaks no cycles.
+> It is the mechanism by which concurrent events enter a sequential
+> loop, not a workaround for a dependency the compiler rejected.
+> The Agent owns the conversation goroutine, queue and notification step.
+> If you find yourself adding function-pointer fields to break a
+> compile error, the dependency is real, and the fix is to move the
+> interface to the hub.
+
+An `Interrupt` ends the active turn, not the actor's lifetime. The actor
+continues draining its mailbox and recording results. A Go handler may
+still complete after the interrupt; its real output is not garbage. An
+explicit job kill has different semantics: it suppresses late output for
+that killed job. Shutdown must stop managed processes, join workers and
+save their outcomes rather than silently applying kill semantics to every
+non-cancellable Go function.
+
+### The stdin protocol
+
+The CLI reads stdin on its own goroutine and posts to the
+agent's mailbox. The protocol is JSON lines:
+
+```json
+{"kind":"prompt","text":"Write a haiku about refactoring"}
+{"kind":"hint","text":"Use a metaphor about gardens"}
+{"kind":"interrupt"}
+```
+
+Backward compatibility with the Chapter 1 format:
+
+```json
+{"user":"Write a haiku about refactoring"}
+```
+
+A message with a `"user"` key and no `"kind"` key is treated as a
+separate request through the blocking adapter. This preserves the older
+protocol's request/reply behavior. Explicit live `prompt` or `hint` messages
+use current turn state; they can become hints while the Agent is busy.
+
+## §5.8 Managing multiple agents
+
+A single-agent framework is a special case. The same engine, the same
+mailbox, the same observer seam scales to N agents with one addition:
+a coordinator that tracks which agents exist and routes observations.
+
+```go
+// Ensemble already owns the peer Agents; it is not a second coordinator root.
+type AgentObservation struct {
+    Agent       Agent
+    Observation Observation
+}
+
+func (e *Ensemble) WaitAny(ctx context.Context,
+    pred func(AgentObservation) bool) (AgentObservation, error)
+```
+
+Each Agent has its own mailbox and execution loop. It reports observations
+through its Ensemble parent, which supplies the source identity in an envelope.
+`WaitAny` consumes one matching observation from that merged progress stream.
+It does not gather a group of request results. The application retains each
+request's own completion for decisions that must not be lost.
+
+A Go program constructing three agents and passing messages between
+them is not an agent spawning children through its own tool surface.
+Multi-agent requires nothing beyond a framework, a prompt, and
+tools. This exercise is just Go. The
+distinction matters because a sub-agent chapter adds a tool surface
+for spawning; this chapter proves it is not necessary.
+
+> A framework that manages agents is a parent. The
+> observation stream is how the parent watches its children. A
+> future agent supervisor can use progress from this seam alongside reliable
+> completion. Its spawning and waiting contract is not defined by this exercise.
+> The alternative is reading the child's history file. One
+> supervision call built that way returned 307,984 bytes, roughly
+> 13% of a context window, because it had no volume contract. The
+> observer seam, delivering events as they happen, returned 3,447
+> bytes for the same purpose.
+
+The third agent is the proof. If adding it requires a single
+change inside the framework package, the seam is incomplete.
+
+## §5.9 Media capabilities
+
+Accepting images does not imply accepting audio. Accepting audio does
+not imply accepting video. A renderer that silently drops
+an unsupported part is the Chapter 1 mistake: the model does not see
+what the programmer sent, and neither one knows.
+
+`ModelFeatures` declares what a model accepts:
+
+```go
+type Media uint8
+const (
+    MediaImage    Media = 1 << iota
+    MediaAudio
+    MediaVideo
+    MediaDocument
+)
+
+type ModelFeatures struct {
+    Media Media
+}
+```
+
+`LookupModel(model) (ModelFeatures, bool)` has no default row.
+An unknown model returns `false`. If a blob needs rendering, the renderer
+refuses rather than guessing its support; text alone is still allowed. For
+an unsupported audio attachment, the diagnostic names both facts:
+
+```
+error: model "claude-3-haiku-20240307" does not support audio;
+       cannot render BlobPart with Ref{Kind:RefPath, Locator:"recording.mp3"}
+```
+
+The error names the model and the media type. The programmer reads
+the error and knows what to change. A silent drop would do nothing,
+and the programmer would debug the prompt for an hour before
+discovering the audio was never sent.
+
+The blob part uses the `Ref` already carried by the event log:
+
+```go
+type RefKind uint8
+const (
+    RefPath   RefKind = iota + 1
+    RefURI
+    RefHandle
+)
+
+type Ref struct {
+    Kind    RefKind `json:"kind"`
+    Locator string  `json:"locator"`
+}
+```
+
+Three locator kinds cover the three ways content arrives: a local
+file path, a remote URI, and a handle to a job's output. The Ref
+carries through redaction: when a `BlobPart` is superseded, its `Ref`
+survives in the `RedactedPart`, so the address survives. This does not guarantee that an external file
+or job output remains available forever. Local-path rendering reads the actual
+file bytes into the vendor attachment; preserving a locator alone is not media
+support. URI and handle attachment rendering remain deferred.
+
+## §5.10 Exercise: Author, Editor, Reviewer
+
+Build `ch06/main.go` in a separate Go module importing the public core,
+as the Chapter 4 consumer did. Three agents, three roles:
+
+**The author** receives a topic and writes a first draft. Its tools
+are `write_draft` (stores text) and `word_count` (returns the count).
+
+**The editor** receives the author's draft and improves it. Its tools
+are `read_draft` (retrieves text) and `edit_draft` (replaces text).
+
+**The reviewer** receives the editor's draft and approves or rejects
+it. Its tool is `review` (returns accept or reject with notes).
+
+The accepted example uses string `text` arguments for `write_draft` and
+`edit_draft`, empty objects for `word_count` and `read_draft`, and string
+`decision` (`accept` or `reject`) plus `notes` for `review`. Its word count
+counts whitespace-separated words in the stored manuscript. These are small
+application-level choices to document in the tool schemas, not new framework
+builtins. The stored draft is shared application data; synchronize access
+because a tool worker can outlive the turn that launched it.
+
+The slow-tool fixture also calls `think` with this argument object:
+
+```json
+{"seconds":3,"thought":"composing draft"}
+```
+
+It waits the numeric number of seconds and returns the thought. Register it
+only on the author in this application; it is not an Ensemble builtin or a
+substitute for the actual manuscript tools.
+
+The workflow is sequential: author writes, editor edits, reviewer
+reviews. The application advances through reliable `Ask` or `Submit` completions.
+`Post` delivers live hints; `Wait` watches progress.
+Each agent uses the same vendor (the fake from Chapter 2) with a
+different system prompt. The workflow is hardcoded Go. Every new
+collaboration pattern is a new Go program. That is the limit this
+chapter reaches; agent-created collaboration remains later work. The
+framework works; the rigidity is in the glue code, not in the
+framework itself.
+
+Three agents prove the cost was paid once. The first agent might work
+because the framework was tested with it. The second might work
+because the code was debugged for two. The third works because the
+framework is general. If adding the reviewer required a single line
+inside the framework package, the seam is wrong.
+
+The binary reads JSON events on stdin, writes observations as JSON
+lines on stdout, and logs to the path in `CH06_LOG`. The grader
+drives the fake vendor to script specific responses for each agent.
+
+The reference workflow is in
+[`solutions/edition-2/ch05/ch06/`](../../solutions/edition-2/ch05/ch06/).
+Keep the historical `ch06` application directory and `CH06_LOG` name for
+compatibility. Build that module separately. The local provider fake supplies
+the ordinary Anthropic adapter environment (`LLM_VENDOR=anthropic`, a model,
+a dummy `LLM_API_KEY`, and its loopback `LLM_BASE_URL`), not a new vendor enum.
+The grader starts the application without arguments in a disposable directory.
+It sends a prompt, a hint addressed to the author during `think`, then EOF:
+
+```json
+{"kind":"prompt","text":"Write about the ocean"}
+{"kind":"hint","text":"make it vivid","agent":"author"}
+```
+
+Emit observations with the `observation` discriminator and external `agent`
+tag. The kinds are `state_changed`, `part_delta` and `part_final`; their
+payload fields are shown above. A hint acknowledgment is a delta whose
+`chunk` begins `hint:`. After each actual request completes, the application
+emits its completion record and stage marker:
+
+```json
+{"observation":"turn_ended","agent":"author"}
+{"pipeline":"author_done"}
+```
+
+Use the corresponding editor/reviewer names for their stages. These extra
+records belong to the application protocol, not new sealed core observation
+types. Log them and the observations to `CH06_LOG`; keep each Agent's durable
+conversation history separately so one Agent's sequence numbers do not become
+another's. EOF waits for the submitted workflow before shutdown.
+
+## §5.11 What this chapter does not build
+
+Streaming observations arrive as `PartDelta`, but the vendor seam
+from Chapter 2 does not stream yet. It returns a complete response in
+one block. The `PartDelta` type exists so that when streaming lands,
+observers get incremental updates without an interface change.
+
+The `Ref` type supports `RefURI` and `RefHandle` alongside `RefPath`,
+but the renderers only handle `RefPath` so far. A vendor that accepts
+a URL instead of inlined bytes needs the URI form; a tool whose
+output is too large for inline needs the handle form. Both are future
+extensions to the renderer, not to the Ref type.
+
+Sub-agent spawning and its supervision contract remain future work.
+Today the Go application constructs peer Agents and passes results between
+them. These seams provide useful foundations without claiming that a lossy
+`Wait` supplies every future join contract. You now have a hint
+channel and a terminal to type into. Streaming and the GUI still lie ahead.
+
+## Taking it for a spin
+
+Run the exercise against the fake vendor and watch the observations
+stream on stdout. Three agents have their own state transitions. The
+following abridged shape is illustrative, not a captured provider transcript:
+
+```json
+{"observation":"state_changed","agent":"author","from":"idle","to":"input_pending"}
+{"observation":"state_changed","agent":"author","from":"input_pending","to":"in_flight"}
+{"observation":"part_delta","agent":"author","part_id":1,"chunk":"A draft about the ocean."}
+{"observation":"part_final","agent":"author","seq":3,"part_id":1,"part":{"type":"text","text":"A draft about the ocean."}}
+{"observation":"turn_ended","agent":"author"}
+{"pipeline":"author_done"}
+```
+
+The editor and reviewer produce their own tagged progress and completion
+records after their requests finish. The non-streaming response produces a
+whole-part delta and finalizer; there are no live token chunks yet.
+
+The observation stream is the display story; request replies carry completion.
+The framework tells you
+what happened, in order, and you decide what it means. A logger writes
+it to a file. A GUI renders it as a chat. The application displays progress
+and uses the separate request reply
+to decide when to send the next prompt. The observer seam carries all
+three without knowing about any of them.
+
+Now try it with a real vendor. Build your own core from its module root:
 
 ```sh
-cd ch05
-go build -o ch05agent .
-LLM_VENDOR=anthropic LLM_API_KEY=sk-... ./ch05agent
+go build -o /tmp/ch5agent .
 ```
 
-The custom tool registers, the agent runs, and the model calls the
-tool you declared. The output on the terminal is the same conversational
-loop from Chapters 3 and 4, and the code that produced it is a
-twenty-line program that imported a framework.
+Use the credential procedure from Chapter 0: configure the intended child's
+`LLM_VENDOR`, discovered `LLM_MODEL`, and `LLM_API_KEY` without printing keys
+or putting them in command arguments. Use a scratch working directory for
+jobs. `CH02_LOG` selects the core event log; the separate workflow uses
+`CH06_LOG`. Start the actual human interface:
 
-Then try what the exercise actually proves. Go to a project you care
-about, write a small Go program that imports your agent framework,
-and give it a tool that knows something about your project. A tool
-that queries your database. A tool that checks your CI status. A tool
-that reads your monitoring dashboard. The framework does not know about
-any of these, and it does not need to.
+```sh
+CH02_LOG=/tmp/ch5-chat.jsonl /tmp/ch5agent chat
+```
 
-The code does the same
-thing. The codebase does not.
+Type ordinary text. Ask for a bounded job such as a shell sleep followed by
+printing a marker. While it runs, type a hint. The hint acknowledgment should
+arrive before the tool finishes. Type `/interrupt`, then a new question.
+The new turn should answer while the older job continues. Inspect its retained
+output afterward. Ctrl-C also interrupts the current turn; Ctrl-D ends the
+session and runs shutdown. An interrupt is not a way to quit the Agent.
 
+The accepted implementation did this on October 9 with
+`claude-haiku-5-5`. A 12-second shell job was still running when the CLI
+acknowledged `Hint: remember the marker COMET.` at 22:45:22.121672 UTC.
+Interrupt followed at 22:45:22.172780. The new turn answered `COMET` at
+22:45:23.081200; the job's real report arrived at 22:45:34.088930 with
+`REAL_LATE_RESULT`. The interface was usable roughly eleven seconds before
+the old work finished. That is the point of keeping the actor alive.
 
-## 5.9 The ambush
+The [retained CLI transcript](../../solutions/edition-2/evidence/ch06/live-cli-transcript.json)
+and event log preserve one correction: the initial implementation emitted
+`job_finished` with status `running` when the shell handler returned after
+launch. The final guard emits that event only for a terminal job snapshot.
+The real late output in the demonstration was correct; the record was kept
+and no paid run was repeated for the metadata repair.
 
-How do you debug your agent?
+Build the three-role application from its own module root:
 
-The engine calls tools, the tools call the shell, the shell runs
-builds that fail and tests that flap. When something goes wrong, the
-only evidence is the model's next response, which is the model's
-interpretation of the evidence, not the evidence itself. There is no
-logger. There has never been a logger. 5,047 lines of Go, and not one
-of them writes a debug message anywhere.
+```sh
+go build -o /tmp/ch5workflow .
+```
 
-The omission is deliberate.
+Run it from a scratch directory with the same provider setup, then supply
+one topic as JSON. All three roles use the same vendor and different prompts:
 
-A logger is a facility that every piece of code in the system needs
-access to. In a flat package, the solution is a global variable. In a
-system that will eventually run multiple agents in one process, a
-global variable is a collision waiting to happen. One agent's debug
-output interleaved with another's is worse than no debug output at all.
+```sh
+CH06_LOG=/tmp/ch5-workflow.jsonl /tmp/ch5workflow
+```
 
-The logger belongs on the top-level object: the Agent. Each agent
-gets its own logger. Internal code reaches it through the parent chain
-you just built. If the refactoring in §5.2 produced a star where every
-constructor takes an interface to its parent, adding the logger is
-four changes:
+```json
+{"kind":"prompt","text":"Write about the ocean at dawn"}
+```
 
-1. Define a `Host` interface in `internal/common` with one method:
-   `Logf(format string, args ...any)`.
-2. Embed `Host` in the `Call` struct. Every tool function already
-   receives a `*Call`, so every tool can now log.
-3. Create a `Logger` type in the root package: a mutex-guarded
-   writer with timestamps. Put it on the Agent. Make `Agent.Logf`
-   delegate to the logger.
-4. Thread the `Host` into every constructor that needs it: the engine,
-   the job manager, the tool registry. Each one stores the host and
-   implements `Logf` by calling `host.Logf`.
+EOF waits for this workflow. An interruption of a role returns that request's
+error rather than advancing with an incomplete draft. The historical example
+module remains named `ch06`; the book's new chapter number does not rename
+its source or evidence paths.
 
-That is 72 lines. The parent chain carries the logger from the top of
-the tree to every leaf, and no leaf needs to know how the logger
-works. It only needs to know that `Logf` exists on its parent interface.
+The October 9 Gemini run used `gemini-3.8-flash` for all three roles. The
+author called `write_draft`, `word_count`, and `think`. Asked for 60 words,
+it first stored 59, saw the actual count, added the word `night`, rewrote the
+draft and counted 60. The editor called `read_draft` and `edit_draft`; the
+reviewer called `review` and accepted the
+edited draft. The reviewer received the stored edited text, not merely a
+claim that an editor had run. The full tagged observations and three separate
+Agent logs remain in [the workflow evidence](../../solutions/edition-2/evidence/ch06/live-workflow-transcript.txt).
 
-## 5.10 Kill the globals
+Media received its own, different demonstration. A separate public-API client
+sent a local 96×96 red PNG to `gpt-5.4-mini`, which answered `red`. The same
+renderer refused an audio part with `model "gpt-5.4-mini" does not support audio
+media`. These [media receipts](../../solutions/edition-2/evidence/ch06/live-media-transcript.txt)
+show actual image consumption and a local refusal; audio, video and PDF
+positive cases were checked deterministically at the rendering boundary,
+not presented as additional live model runs.
 
-While you are threading the Host, audit your package-level `var`
-declarations. The only globals that should survive are immutable
-lookup tables: the maps that convert an enum to a string. Everything
-else moves to a struct.
+| Retained run | Input tokens | Output tokens |
+| --- | ---: | ---: |
+| Anthropic human CLI | 4,431 | 177 |
+| Gemini author | 5,695 | 1,157 |
+| Gemini editor | 1,310 | 591 |
+| Gemini reviewer | 663 | 324 |
+| OpenAI image client | 63 | 4 |
 
-The tool registry is the most important target. In the ch04 solution,
-the registry was a package-level map. In the refactored code, it
-becomes a `Reg` struct created by `NewRegistry()`, held by the Agent,
-and passed to the engine as a `ToolRegistry` interface. This is not
-cosmetic. When sub-agents arrive, each one will load skills that
-declare tools. A per-agent registry means one agent's skill tools do
-not leak into another agent's capability surface. A global map cannot
-make that guarantee.
+All recorded cache-read and cache-write counts were zero. This was one
+feature-specific demonstration per vendor, not every feature on every vendor.
+Original grading remained **80/100 FAIL**: inherited logger-shape parity and
+a text-only unknown-model refusal probe failed. Independent review accepted
+those documented exceptions; neither was evidence that unsupported media had
+been silently dropped.
 
-The grader now checks for both:
+One review mistake also belongs in the lesson. The initial reviewer demanded
+grouped completion from the misleading one-wakeup paragraph, and the student
+agreed before stopping at the undefined contract. Bill withdrew that requirement.
+A real correction remained: changing Gemini's `mimeType` key survived a test
+that only looked for bytes somewhere in the request. The repaired test decoded
+the actual attachment fields and caught both wrong MIME and wrong data keys.
+A mutation can reveal a weak test; an agreeable reviewer cannot settle missing
+scope. The [chapter record](../../docs/edition-2-notes/ch06.md) preserves both
+corrections and the original results.
 
-| Check | Points | What it verifies |
-|-------|-------:|------------------|
-| `logger-accessible` | 10 | `Logf` declared in common, embedded in `Call` |
-| `no-mutable-globals` | 10 | zero mutable `var` declarations outside tests |
-
-If the star topology holds and every constructor takes a parent
-interface, both checks pass on the first try. If the refactoring
-skipped the interfaces, if constructors still reach up into package-
-level variables for their dependencies, the logger has nowhere to
-live and the globals have nowhere to go.
-
-That is the ambush. The refactoring was never about moving files into
-directories. It was about building the parent chain that makes
-everything after this chapter possible.
+The agent was deaf. Now it listens.

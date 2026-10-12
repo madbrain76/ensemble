@@ -70,7 +70,7 @@ bury:
    to enter through. The sidebar at the end of this section has the history.
 
 2. **Ephemeral context placement.** Volatile data (the time, the screen state,
-   live status) goes *last* in the payload, one copy, never in history.
+   live status) goes *last* in the payload, one copy, outside retained dialogue.
    Position is the feature. One wandering timestamp in the wrong place destroys
    prefix caching. CodeRhapsody's cache-hit rate went from 0% to 98% the day Bill
    moved one. Frameworks decide placement for you.
@@ -115,6 +115,67 @@ when GPT-5.3-Codex shipped steering as a headline item, behind a settings
 toggle: "Enable steering while the model works." A toggle in a product is not
 a call in an SDK.
 
+### Give the loop owners before giving it features
+
+The first edition began with one client struct and sorted out ownership later.
+Its refactor chapter supplied a useful ambush: 5,047 lines of Go and no logger.
+Could a low-level helper reach
+the application's logger without a global variable or another argument threaded
+through every caller? A program can send a perfect HTTP request and still make
+that small change unnecessarily hard. This edition starts with the ownership
+that survived the refactor. The separate repair chapter is gone.
+
+For this exercise, Ensemble owns its Agents and the application logger. An
+Agent owns one conversation and its configuration. Its Engine owns HTTP
+transport and measured usage. The CLI constructs Ensemble through the public
+library and asks it for an Agent, even when the program needs only one. This
+gives the conversation somewhere to live other than a pile of variables in
+`main`, and gives a second conversation its own state without inventing a new
+execution path.
+
+Imports and ownership answer different questions. Shared values and interfaces
+live in `internal/common`; Agent and Engine implementations each import that
+package, never one another. The public composition root imports the
+implementations and connects them. `common` names the vocabulary shared by the
+spokes; it is not the runtime Ensemble and is not a home for every useful
+function. Put HTTP behavior in Engine's package. Go cannot attach a method there
+to a type declared in common, so use a free function when that is the clearer
+placement. Small private runtime structs can also live in their responsible
+packages. Standard-library dispatch methods, such as JSON methods, may remain
+beside the shared types they serve.
+
+Runtime access goes back through the actual owners. Engine's constructor
+receives and stores its Agent parent through an interface declared in common;
+Agent does the same for Ensemble. Required parents cannot be nil. Parent
+accessors expose those relationships, so an Engine needing a diagnostic follows
+Engine → Agent → Ensemble to the logger. Configuration stays with Agent; usage
+stays with Engine. Copying those facts into siblings makes it possible for two
+objects to disagree about the same conversation. A mutable global logger avoids
+the question only until two applications want different destinations.
+
+The general rule permits more than one parent: retain each actual relationship.
+A pin always belongs to an IC package, for example, but may have no wire until
+one connects it. Adding a child records it in the parent and sets the child's
+back-pointer. Ensemble is the root and needs no invented parent. A service an
+object calls is not automatically its parent, and a bag of callbacks is not a
+replacement for knowing who owns it. Helpers that may need diagnostics need
+owner access too.
+
+That is enough architecture for today's loop. Later, display observations will
+reach Ensemble through Observer, while explicit parent methods supply services.
+The GUI and its WebSocket transport will be an optional separate Go module
+using the public core API; the CLI and GUI will use the same Agent. Those are
+boundaries to preserve, not subsystems to build now.
+
+Before coding, read `.agents/skills/ensemble-coding/SKILL.md` in full. Its rules
+belong in the coding agent's context as well as the reviewer's. Keep the code
+small and explain why it has this shape: owner relationships, lifetime and
+important ordering deserve comments. Every exported Go symbol, including
+internal-package symbols, fields and interface methods, needs useful
+documentation. Aim for roughly one comment line per four code lines, without
+padding obvious syntax. The test is whether a student can understand the
+decision without reconstructing an old conversation.
+
 ## 1.2 Anatomy of a request
 
 One endpoint, `POST https://api.anthropic.com/v1/messages`, and three headers:
@@ -144,10 +205,12 @@ The body:
 much output you can afford. `system` is one string that rides outside the
 messages array, and for this chapter it is a single fixed line.
 
-`messages` carries four rules, and the grader enforces all of them. Roles
+For this exercise, `messages` carries four rules, and the grader enforces all of them. Roles
 strictly alternate, `user`, `assistant`, `user`. The conversation begins with a
 `user` message. The last message is the user's, because otherwise there is
-nothing to answer. And no message's content is ever empty.
+nothing to answer. And no message's content is ever empty. This is the chapter's
+narrow conversation contract. The full API also permits forms such as consecutive
+same-role inputs and assistant prefills; those are not needed here.
 
 The response:
 
@@ -208,7 +271,7 @@ above. The sidebar teaches the lookup, not the answer.
 ## 1.3 The obvious data structure
 
 ```go
-// Message is one turn. Role is "user" or "assistant"; the API requires that
+// Message is one turn. Role is "user" or "assistant"; this exercise requires that
 // they strictly alternate.
 type Message struct {
 	Role    string `json:"role"`
@@ -219,6 +282,10 @@ type Message struct {
 type Conversation []Message
 ```
 
+`Message` belongs in `internal/common`; the retained slice belongs to Agent.
+The `Conversation` name is optional. The accepted implementation keeps a
+`[]common.Message` directly in its private Agent struct.
+
 Straight from the docs. Every framework on earth is a wrapper around this
 shape. It fits in your head, `json.Marshal` serializes it without help, and it
 will carry this chapter comfortably. Enjoy it. Chapter 2 is going to take it
@@ -226,22 +293,31 @@ away from you.
 
 ## 1.4 The loop
 
-Append the user's message. POST the entire conversation. Parse the reply.
-Append it. Repeat.
+Stage the user's message. POST the entire conversation. Parse the reply.
+Retain the completed pair. Repeat.
 
 ```go
-// Ask is the loop of the whole chapter: append the question, send everything,
-// append the answer, hand it back.
-func (c *Client) Ask(conv *Conversation, question string) (string, error) {
-	*conv = append(*conv, Message{Role: "user", Content: question})
-	reply, err := c.Send(*conv)
+// Ask is synchronous: finish one turn before starting the next.
+func (a *agent) Ask(ctx context.Context, question string) (string, error) {
+	if strings.TrimSpace(question) == "" {
+		return "", errors.New("user message is empty")
+	}
+	// A failed exchange must not leave an unmatched user turn in history.
+	pending := append(a.history, common.Message{Role: "user", Content: question})
+	reply, err := a.engine.Send(ctx, pending)
 	if err != nil {
 		return "", err
 	}
-	*conv = append(*conv, Message{Role: "assistant", Content: reply})
+	a.history = append(pending, common.Message{Role: "assistant", Content: reply})
 	return reply, nil
 }
 ```
+
+This method lives in Agent's package. Engine receives the pending messages and
+does the exchange; it does not own the conversation. Committing the pair only
+after success prevents a failed request from leaving two user messages in a
+row on the next attempt. It needs no retry machinery, just a deliberate order
+of assignments. Calls are synchronous at this stage.
 
 **The API is stateless.** The provider retains nothing between calls; every
 request replays the whole history. The conversation lives in your process or
@@ -258,8 +334,8 @@ POST, read the body, refuse anything but a 200, then walk the blocks:
 		return "", fmt.Errorf("decoding response: %w", err)
 	}
 
-	c.InputTokens += parsed.Usage.InputTokens
-	c.OutputTokens += parsed.Usage.OutputTokens
+	e.usage.Input += parsed.Usage.InputTokens
+	e.usage.Output += parsed.Usage.OutputTokens
 
 	var text strings.Builder
 	for _, block := range parsed.Content {
@@ -270,11 +346,20 @@ POST, read the body, refuse anything but a 200, then walk the blocks:
 	return text.String(), nil
 ```
 
-No retry, no backoff. If the API returns 429, this program dies. A naive
-client dies there, and we are not going to paper over it.
+The snippet shows parsing and accumulation; the accepted Engine also rejects
+missing usage and empty text. Missing accounting is different from measured
+zero. It counts measured usage even when a response has no usable answer,
+because the request still consumed tokens. Diagnostics travel through the
+owner chain and omit credentials and remote error bodies.
 
-The whole thing is 278 lines in `solutions/ch01/main.go`, and about a third of
-that is the two front ends described below.
+No retry, no backoff. If the API returns 429, this program reports failure and
+stops. The loop does not conceal the failure with another paid request.
+
+The first-edition version fit in 278 physical lines in `solutions/ch01/main.go`,
+about a third of them the two front ends described below. The accepted
+second-edition implementation has 369 physical production Go lines across its
+CLI, public root, common vocabulary, Agent and Engine. The extra ownership is
+visible; there are still no tools, actors or provider framework hidden in it.
 
 ## 1.5 Usage is money
 
@@ -295,8 +380,11 @@ it is the same size question. Every conversation you have ever had with a
 model has been billed on this curve, and the curve only bends one way.
 
 Those figures regenerate identically on any machine, because the fake's token
-counter is deterministic; `make grade` prints them. Live against
-`claude-sonnet-5`, a three-round run cost 631 input and 388 output tokens.
+counter is deterministic; the Chapter 1 grader prints them. The first edition
+recorded a live three-round run against `claude-sonnet-5` at 631 input and 388
+output tokens. The second-edition student's separate October 9 run used a
+discovered `claude-haiku-5-5` and ended at 350 input and 33 output. Different
+questions and replies mean these totals are receipts, not a model comparison.
 
 Bill's summer of 2025, the one that produced StackAgent and then CodeRhapsody, cost him
 about $2,700 in tokens; the figure is from his own book. Every request in that
@@ -321,6 +409,11 @@ defaults to Anthropic's. The reference has no fallback for the model: leave
 `ANTHROPIC_MODEL` unset and it stops before its first request with
 `ANTHROPIC_MODEL is not set; ask GET /v1/models which models exist`. The
 sidebar was not advice for other people.
+
+The following is the preserved first-edition conversation, with an abridged
+reply. Its model name and token totals belong to that run. Build the
+second-edition reference from `solutions/edition-2/ch01/`, or build your own
+working directory, and discover an available model before repeating it.
 
 ```
 $ go build -o ch01 . && ./ch01 chat
@@ -349,9 +442,10 @@ logs of past calls outside of what's visible in this conversation itself.
 ```
 
 It is right, and it is right for the right reason. It cannot confirm the count
-because it has no internal state to confirm it from, which is §1.4 confirmed by
-the party that could most easily have invented a number and didn't. Your
-program knows the truth: `len(conv) / 2`.
+because the program has not exposed that state to it. The answer is a useful
+illustration of §1.4; inspecting the outgoing requests establishes what the
+program actually does. The retained message count divided by two gives the
+number of completed exchanges.
 
 You are talking to a program you built from raw HTTP. Play with it. Ask it
 about the code that created it. Show a friend. Change the one fixed line and
@@ -375,7 +469,12 @@ working for is in that string too.
 The token line on stderr after every turn is the §1.5 curve happening to you in
 real time. Watch the input count. It never goes down.
 
-None of this is graded. It is the point of the chapter anyway.
+None of this is scored by the seven-check grader. It is still part of finishing
+the chapter. The second-edition student typed three real turns in a terminal,
+introduced a boat called “Copper Finch,” and received that name back when asked
+again. The [retained transcript](../../solutions/edition-2/evidence/ch01/live.txt)
+also records a false start: a launcher consumed stdin, so chat saw EOF and
+exited without making a request. A clean exit had demonstrated no conversation.
 
 ## 1.7 Two prices
 
@@ -431,9 +530,10 @@ Go, on model preference if nothing else, and that is a strange enough reason
 to say out loud: the language of a project directed through an assistant is a
 fact about the assistant.
 
-If your design goes sideways, ours is public in `solutions/ch01`; the grader
-reads what your binary emits and never its source, so it neither knows nor
-cares whose code it is running.
+Build your own attempt before consulting a reference answer. The independent
+reviewer can compare it with `solutions/edition-2/ch01` afterward and return
+findings with reasons. The grader reads what the binary emits; review checks
+the ownership, simplicity and explanations it cannot see.
 
 **stdout carries the protocol and nothing else.** One JSON object per line.
 Logs, progress, and diagnostics go to stderr. A stray `fmt.Println` is a
@@ -490,7 +590,8 @@ conversation that does not exist.
 
 The ones you cannot infer from the table:
 
-- **`wire`** also requires `content-type: application/json`, a `model` equal to
+- **`wire`** also requires `anthropic-version: 2023-06-01`,
+  `content-type: application/json`, a `model` equal to
   `$ANTHROPIC_MODEL`, a non-empty `system` string, non-empty message content,
   and no streaming; `stream: true` is rejected. Roles must strictly alternate,
   the first message must be `user`, and the last message must be `user`.
@@ -524,20 +625,34 @@ paying in Chapter 3, and that is where it gets graded.
 Free, as often as you like:
 
 ```bash
-make grade-dir DIR=path/to/your/solution   # add -json for machine output
+go run ./cmd/grade-edition2 -ch 1 path/to/your/solution
+# Add -json before the solution path for machine output.
 ```
 
-Exit 0 pass, 1 fail, 2 the grader could not run.
+Run this from the repository root. The separate Edition 2 entry point retains
+the seven checks and their points, and repairs the version-header check: the
+original fake accepted any non-empty version. A deliberately wrong version
+still scored 100 there. The corrected check requires the documented value.
+The original grader and its results remain available with
+`make grade-dir CH=1 DIR=path/to/your/solution`.
 
-**Optional live smoke test.** Same binary, `./ch01 chat`, pointed at the course
-proxy or your own key. Three rounds. Not graded; it exists so you see a real
-model answer a program you wrote.
+The grader binary returns 0 for pass, 1 for fail and 2 when it could not run.
+With `go run`, read the diagnostic too: the Go wrapper reports a child status
+of 2 as `exit status 2`, while the wrapper itself returns 1.
+
+**Live exercise.** Same binary, `./ch01 chat`, pointed at the course proxy or
+your own key. Three rounds: introduce a fact, ask for it again and continue the
+conversation. Watch usage accumulate, then exit with Ctrl-D. Keep a short
+sanitized record, including the discovered model and any failures. Never put
+the API key or authorization headers in it. This is separate from the free
+grader score and required before calling the chapter complete.
 
 **Out of scope, by design:** tools, hints, thinking, streaming, images,
 system-prompt assembly, multiple providers.
 
-Every item on that list is a chapter. Chapter 2 takes your 278 lines apart, on
-purpose and for the last time; after that, nothing you write gets demolished.
+Every item on that list is a chapter. Chapter 2 replaces the simple conversation
+slice with a richer record; the ownership established here stays useful.
 Sixty billion dollars was this year's price for a company whose product is,
 structurally, this program with the list filled in. The difference is that
 yours does not report to anyone.
+

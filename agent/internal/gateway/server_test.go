@@ -1,501 +1,388 @@
-package gateway
+package gateway_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"github.com/gorilla/websocket"
+	"io"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/flynn/noise"
-	pub "github.com/waywardgeek/ensemble/agent/gateway"
+	wire "ensemble/gateway"
+	router "ensemble/internal/gateway"
 )
 
-// --- harness ---
-
-// recorder is a Handler that captures what the gateway delivers.
-type recorder struct {
-	pub.NopHandler
-	mu        sync.Mutex
-	delivered []pub.Envelope
-	connected chan pub.WelcomePayload
-	inbox     chan pub.Envelope
+type receiver struct {
+	wire.NopHandler
+	messages chan wire.Envelope
+	welcomes chan wire.WelcomePayload
+	entered  chan struct{}
+	release  chan struct{}
 }
 
-func newRecorder() *recorder {
-	return &recorder{
-		connected: make(chan pub.WelcomePayload, 8),
-		inbox:     make(chan pub.Envelope, 32),
+// OnDeliver is a real application boundary, optionally held to test receipt timing.
+func (r *receiver) OnDeliver(e wire.Envelope) {
+	if r.entered != nil {
+		r.entered <- struct{}{}
+		<-r.release
 	}
+	r.messages <- e
 }
 
-func (r *recorder) OnDeliver(env pub.Envelope) {
-	r.mu.Lock()
-	r.delivered = append(r.delivered, env)
-	r.mu.Unlock()
-	r.inbox <- env
+// OnConnected retains the real welcome received before any delivered messages.
+func (r *receiver) OnConnected(w wire.WelcomePayload) { r.welcomes <- w }
+func newReceiver() *receiver {
+	return &receiver{messages: make(chan wire.Envelope, 16), welcomes: make(chan wire.WelcomePayload, 1)}
 }
 
-func (r *recorder) OnConnected(w pub.WelcomePayload) { r.connected <- w }
-
-func (r *recorder) count() int {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	return len(r.delivered)
-}
-
-// await returns the next delivered envelope or fails the test.
-func (r *recorder) await(t *testing.T, what string) pub.Envelope {
-	t.Helper()
-	select {
-	case env := <-r.inbox:
-		return env
-	case <-time.After(5 * time.Second):
-		t.Fatalf("timed out waiting for %s", what)
-		return pub.Envelope{}
-	}
-}
-
-func (r *recorder) awaitWelcome(t *testing.T) pub.WelcomePayload {
-	t.Helper()
-	select {
-	case w := <-r.connected:
-		return w
-	case <-time.After(5 * time.Second):
-		t.Fatalf("timed out waiting for welcome")
-		return pub.WelcomePayload{}
-	}
-}
-
-// fixture is a running gateway with keys for each named agent.
 type fixture struct {
-	t      *testing.T
-	server *Server
-	http   *httptest.Server
-	wsURL  string
-	keys   map[string]noise.DHKey
+	t           *testing.T
+	cfg         router.Config
+	serverKey   wire.Keypair
+	keys        map[string]wire.Keypair
+	service     *router.Server
+	http        *httptest.Server
+	ctx         context.Context
+	cancel      context.CancelFunc
+	diagnostics bytes.Buffer
 }
 
-func newFixture(t *testing.T, agents map[string][]string) *fixture {
-	t.Helper()
-
-	gwKey, err := pub.GenerateKeypair()
-	if err != nil {
-		t.Fatalf("gateway key: %v", err)
+func setup(t *testing.T) *fixture {
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	f := &fixture{t: t, ctx: ctx, cancel: cancel, keys: map[string]wire.Keypair{}}
+	f.serverKey, _ = wire.GenerateKeypair()
+	f.cfg.Gateway.DataDir = t.TempDir()
+	f.cfg.Groups = map[string]router.Group{
+		"admin":     {Trust: "owner", Capabilities: []string{"group-admin"}},
+		"agents":    {Trust: "trusted", Capabilities: []string{"send-message", "declare-contactable"}},
+		"outsiders": {Trust: "external", Capabilities: []string{"send-message", "declare-contactable"}},
 	}
-
-	keys := map[string]noise.DHKey{}
-	cfgAgents := map[string]AgentConfig{}
-	for id, groups := range agents {
-		k, err := pub.GenerateKeypair()
-		if err != nil {
-			t.Fatalf("key for %s: %v", id, err)
+	f.cfg.Agents = map[string]router.AgentConfig{}
+	for _, id := range []string{"parent", "recipient", "outsider"} {
+		k, _ := wire.GenerateKeypair()
+		f.keys[id] = k
+		groups := []string{"agents"}
+		if id == "parent" {
+			groups = append(groups, "admin")
 		}
-		keys[id] = k
-		cfgAgents[id] = AgentConfig{
-			DisplayName: strings.ToUpper(id[:1]) + id[1:],
-			PublicKey:   pub.EncodePublicKey(k.Public),
-			Groups:      groups,
+		if id == "outsider" {
+			groups = []string{"outsiders"}
 		}
+		f.cfg.Agents[id] = router.AgentConfig{PublicKey: wire.EncodePublicKey(k.Public), Groups: groups}
 	}
-
-	cfg := &Config{
-		Gateway: ServerConfig{Listen: ":0", DataDir: t.TempDir()},
-		Agents:  cfgAgents,
-		Groups: map[string]GroupConfig{
-			"admin":        {Capabilities: []string{pub.CapGroupAdmin, pub.CapSendMessage, pub.CapDeclareContactable}, Trust: pub.TrustOwner},
-			"agents":       {Capabilities: []string{pub.CapSendMessage, pub.CapDeclareContactable}, Trust: pub.TrustTrusted},
-			"interviewers": {Capabilities: []string{pub.CapSendMessage, pub.CapDeclareContactable}, Trust: pub.TrustExternal},
-		},
-	}
-	if err := cfg.Validate(); err != nil {
-		t.Fatalf("fixture config: %v", err)
-	}
-
-	srv, err := NewServer(cfg, gwKey)
+	f.start()
+	t.Cleanup(func() { cancel(); f.stop() })
+	return f
+}
+func (f *fixture) start() {
+	s, err := router.New(f.cfg, f.serverKey, &f.diagnostics)
 	if err != nil {
-		t.Fatalf("NewServer: %v", err)
+		f.t.Fatal(err)
 	}
-	srv.SetLogger(func(string, ...any) {})
-
-	hs := httptest.NewServer(srv.Handler())
-	t.Cleanup(func() {
-		srv.Close()
-		hs.Close()
-	})
-
-	return &fixture{
-		t:      t,
-		server: srv,
-		http:   hs,
-		wsURL:  "ws" + strings.TrimPrefix(hs.URL, "http") + "/v1/ws",
-		keys:   keys,
+	f.service = s
+	f.http = httptest.NewServer(s)
+}
+func (f *fixture) stop() {
+	f.http.Close()
+	if err := f.service.Close(); err != nil {
+		f.t.Error(err)
 	}
 }
-
-// connect dials the gateway as agentID and waits for the welcome.
-func (f *fixture) connect(agentID string, h pub.Handler) *pub.Client {
-	f.t.Helper()
-	return f.connectResuming(agentID, h, 0)
-}
-
-func (f *fixture) connectResuming(agentID string, h pub.Handler, lastAcked uint64) *pub.Client {
-	f.t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	c, err := pub.Connect(ctx, pub.ClientConfig{
-		GatewayURL:    f.wsURL,
-		AgentID:       agentID,
-		StaticKey:     f.keys[agentID],
-		GatewayPubKey: f.server.PublicKey(),
-		LastAckedSeq:  lastAcked,
-	}, h)
+func (f *fixture) connect(id string, h wire.Handler, ack uint64) *wire.Client {
+	c, err := wire.Connect(f.ctx, wire.ClientConfig{GatewayURL: strings.Replace(f.http.URL, "http", "ws", 1) + "/v1/ws", AgentID: id, StaticKey: f.keys[id], GatewayPubKey: f.serverKey.Public, LastAckedSeq: ack}, h)
 	if err != nil {
-		f.t.Fatalf("connect %s: %v", agentID, err)
+		f.t.Fatal(err)
 	}
-	f.t.Cleanup(func() { _ = c.Close() })
+	f.t.Cleanup(func() { c.Close(); <-c.Done() })
 	return c
 }
-
-func ctx5(t *testing.T) context.Context {
+func message(t *testing.T, ctx context.Context, r *receiver) wire.Envelope {
 	t.Helper()
-	c, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	t.Cleanup(cancel)
-	return c
-}
-
-// --- deliverable 3: the server accepts authenticated connections ---
-
-func TestHandshakeAndWelcome(t *testing.T) {
-	f := newFixture(t, map[string][]string{"ensemble": {"admin", "agents"}})
-	rec := newRecorder()
-	f.connect("ensemble", rec)
-
-	w := rec.awaitWelcome(t)
-	if w.AgentID != "ensemble" {
-		t.Errorf("welcome agent = %q, want ensemble", w.AgentID)
-	}
-	if w.ServerVersion != ServerVersion {
-		t.Errorf("server version = %q, want %q", w.ServerVersion, ServerVersion)
-	}
-	if online := f.server.Online(); len(online) != 1 || online[0] != "ensemble" {
-		t.Errorf("online = %v, want [ensemble]", online)
+	select {
+	case e := <-r.messages:
+		return e
+	case <-ctx.Done():
+		t.Fatal("delivery timeout")
+		return wire.Envelope{}
 	}
 }
-
-// TestWrongKeyIsRejected is deliverable 1's negative half, proved through
-// the real server rather than against the handshake in isolation.
-func TestWrongKeyIsRejected(t *testing.T) {
-	f := newFixture(t, map[string][]string{"ensemble": {"agents"}})
-
-	// Positive control: the real key connects.
-	f.connect("ensemble", newRecorder())
-
-	// An impostor holding a different private key cannot authenticate as
-	// ensemble, even though it knows the agent id and the gateway's key.
-	impostor, err := pub.GenerateKeypair()
-	if err != nil {
-		t.Fatalf("keygen: %v", err)
-	}
-	_, err = pub.Connect(ctx5(t), pub.ClientConfig{
-		GatewayURL:       f.wsURL,
-		AgentID:          "ensemble",
-		StaticKey:        impostor,
-		GatewayPubKey:    f.server.PublicKey(),
-		HandshakeTimeout: 2 * time.Second,
-	}, newRecorder())
-	if err == nil {
-		t.Fatalf("an impostor completed the handshake")
+func welcome(t *testing.T, ctx context.Context, r *receiver, count int) {
+	t.Helper()
+	select {
+	case w := <-r.welcomes:
+		if w.AgentID != "recipient" || w.ServerVersion == "" || w.QueueDepth != count {
+			t.Fatalf("wrong welcome queue count/identity: %+v, want %d", w, count)
+		}
+	case <-ctx.Done():
+		t.Fatal("missing welcome")
 	}
 }
-
-func TestUnknownAgentCannotConnect(t *testing.T) {
-	f := newFixture(t, map[string][]string{"ensemble": {"agents"}})
-	stranger, _ := pub.GenerateKeypair()
-	_, err := pub.Connect(ctx5(t), pub.ClientConfig{
-		GatewayURL:       f.wsURL,
-		AgentID:          "stranger",
-		StaticKey:        stranger,
-		GatewayPubKey:    f.server.PublicKey(),
-		HandshakeTimeout: 2 * time.Second,
-	}, newRecorder())
-	if err == nil {
-		t.Fatalf("an agent absent from config completed the handshake")
-	}
-}
-
-// --- deliverables 2 and 4: routing, provenance, trust ---
-
-func TestRoutingDeliversWithProvenanceAndTrust(t *testing.T) {
-	f := newFixture(t, map[string][]string{
-		"ensemble":    {"admin", "agents"},
-		"interviewer": {"interviewers"},
-	})
-
-	ensRec, intRec := newRecorder(), newRecorder()
-	ens := f.connect("ensemble", ensRec)
-	intClient := f.connect("interviewer", intRec)
-	ensRec.awaitWelcome(t)
-	intRec.awaitWelcome(t)
-
-	if err := ens.DeclareContactable(ctx5(t), []string{"interviewers"}); err != nil {
-		t.Fatalf("declare: %v", err)
-	}
-
-	if err := intClient.Send(ctx5(t), pub.OutboundMessage{
-		ToAgent:      "ensemble",
-		Content:      "What slows you down?",
-		ResponseMode: pub.ResponseAsync,
-	}); err != nil {
-		t.Fatalf("send: %v", err)
-	}
-
-	env := ensRec.await(t, "the delivered prompt")
-	if !strings.HasPrefix(env.Content, "[GATEWAY ") {
-		t.Errorf("delivered content is missing its provenance header: %q", env.Content)
-	}
-	if !strings.Contains(env.Content, "What slows you down?") {
-		t.Errorf("delivered content lost the body: %q", env.Content)
-	}
-	if env.Source.Trust != pub.TrustExternal {
-		t.Errorf("trust = %q, want external (the interviewers group's level)", env.Source.Trust)
-	}
-	if env.Source.ChannelID != "interviewer" {
-		t.Errorf("source channel = %q, want interviewer", env.Source.ChannelID)
-	}
-	if env.Seq == 0 {
-		t.Errorf("delivered envelope has no sequence number")
-	}
-}
-
-// TestUnauthorizedSendIsRejected is deliverable 4's refusal half.
-func TestUnauthorizedSendIsRejected(t *testing.T) {
-	f := newFixture(t, map[string][]string{
-		"ensemble": {"admin", "agents"},
-		"outsider": {"interviewers"},
-	})
-	ensRec, outRec := newRecorder(), newRecorder()
-	ens := f.connect("ensemble", ensRec)
-	out := f.connect("outsider", outRec)
-	ensRec.awaitWelcome(t)
-	outRec.awaitWelcome(t)
-
-	// Ensemble accepts only "agents"; outsider is in "interviewers".
-	if err := ens.DeclareContactable(ctx5(t), []string{"agents"}); err != nil {
-		t.Fatalf("declare: %v", err)
-	}
-	if err := out.Send(ctx5(t), pub.OutboundMessage{ToAgent: "ensemble", Content: "let me in"}); err == nil {
-		t.Fatalf("send from an unaccepted group must be refused")
-	}
-	if n := ensRec.count(); n != 0 {
-		t.Errorf("a refused message was delivered anyway (%d delivered)", n)
-	}
-	// A refused send must not leave a durable obligation either.
-	if d := f.server.Queue().Depth("ensemble"); d != 0 {
-		t.Errorf("a refused message was queued (%d pending)", d)
-	}
-}
-
-// TestResponseRoutesBackToSender closes the loop: a reply reaches whoever
-// sent the prompt, without the replier needing its own contactability grant.
-func TestResponseRoutesBackToSender(t *testing.T) {
-	f := newFixture(t, map[string][]string{
-		"ensemble":    {"admin", "agents"},
-		"interviewer": {"interviewers"},
-	})
-	ensRec, intRec := newRecorder(), newRecorder()
-	ens := f.connect("ensemble", ensRec)
-	intc := f.connect("interviewer", intRec)
-	ensRec.awaitWelcome(t)
-	intRec.awaitWelcome(t)
-
-	if err := ens.DeclareContactable(ctx5(t), []string{"interviewers"}); err != nil {
-		t.Fatalf("declare: %v", err)
-	}
-	if err := intc.Send(ctx5(t), pub.OutboundMessage{
-		ToAgent: "ensemble", Content: "What slows you down?", ResponseMode: pub.ResponseAsync,
-	}); err != nil {
-		t.Fatalf("send: %v", err)
-	}
-
-	prompt := ensRec.await(t, "the prompt")
-	if err := ens.Respond(ctx5(t), prompt.MessageID, "Waiting on builds."); err != nil {
-		t.Fatalf("respond: %v", err)
-	}
-
-	reply := intRec.await(t, "the reply")
-	if !strings.Contains(reply.Content, "Waiting on builds.") {
-		t.Errorf("reply content = %q", reply.Content)
-	}
-	if reply.Source.ChannelID != "ensemble" {
-		t.Errorf("reply source = %q, want ensemble", reply.Source.ChannelID)
-	}
-}
-
-// --- deliverable 5: queue, ack, resume ---
-
-func TestMessageQueuedWhileOfflineThenDeliveredOnConnect(t *testing.T) {
-	f := newFixture(t, map[string][]string{
-		"ensemble": {"admin", "agents"},
-		"sender":   {"agents"},
-	})
-
-	// Ensemble declares contactability, then goes offline.
-	ensRec := newRecorder()
-	ens := f.connect("ensemble", ensRec)
-	ensRec.awaitWelcome(t)
-	if err := ens.DeclareContactable(ctx5(t), []string{"agents"}); err != nil {
-		t.Fatalf("declare: %v", err)
-	}
-	_ = ens.Close()
-	waitUntil(t, func() bool { return len(f.server.Online()) == 0 }, "ensemble to go offline")
-
-	sndRec := newRecorder()
-	snd := f.connect("sender", sndRec)
-	sndRec.awaitWelcome(t)
-	if err := snd.Send(ctx5(t), pub.OutboundMessage{ToAgent: "ensemble", Content: "while you were out"}); err != nil {
-		t.Fatalf("send: %v", err)
-	}
-	if d := f.server.Queue().Depth("ensemble"); d != 1 {
-		t.Fatalf("queue depth = %d, want 1", d)
-	}
-
-	// Reconnecting with no resume point must replay the backlog.
-	backRec := newRecorder()
-	f.connect("ensemble", backRec)
-	w := backRec.awaitWelcome(t)
-	if w.QueuedCount != 1 {
-		t.Errorf("welcome reported %d queued, want 1", w.QueuedCount)
-	}
-	env := backRec.await(t, "the queued message")
-	if !strings.Contains(env.Content, "while you were out") {
-		t.Errorf("queued content = %q", env.Content)
-	}
-
-	// The client acks after the handler returns, so the queue drains.
-	waitUntil(t, func() bool { return f.server.Queue().Depth("ensemble") == 0 }, "the queue to drain after ack")
-}
-
-// TestResumeSkipsAlreadyAckedMessages proves resume is a real replay window
-// and not a blanket redelivery.
-func TestResumeSkipsAlreadyAckedMessages(t *testing.T) {
-	f := newFixture(t, map[string][]string{
-		"ensemble": {"admin", "agents"},
-		"sender":   {"agents"},
-	})
-	ensRec := newRecorder()
-	ens := f.connect("ensemble", ensRec)
-	ensRec.awaitWelcome(t)
-	if err := ens.DeclareContactable(ctx5(t), []string{"agents"}); err != nil {
-		t.Fatalf("declare: %v", err)
-	}
-	_ = ens.Close()
-	waitUntil(t, func() bool { return len(f.server.Online()) == 0 }, "ensemble to go offline")
-
-	sndRec := newRecorder()
-	snd := f.connect("sender", sndRec)
-	sndRec.awaitWelcome(t)
-	for _, body := range []string{"first", "second", "third"} {
-		if err := snd.Send(ctx5(t), pub.OutboundMessage{ToAgent: "ensemble", Content: body}); err != nil {
-			t.Fatalf("send %s: %v", body, err)
+func waitAck(t *testing.T, ctx context.Context, c *wire.Client, seq uint64) {
+	t.Helper()
+	ticker := time.NewTicker(time.Millisecond)
+	defer ticker.Stop()
+	for c.LastAckedSeq() != seq {
+		select {
+		case <-ticker.C:
+		case <-ctx.Done():
+			t.Fatal("receipt was not written")
 		}
 	}
-	if d := f.server.Queue().Depth("ensemble"); d != 3 {
-		t.Fatalf("queue depth = %d, want 3", d)
-	}
-
-	// Reconnect claiming the first two were already handled.
-	backRec := newRecorder()
-	f.connectResuming("ensemble", backRec, 2)
-	w := backRec.awaitWelcome(t)
-	if w.QueuedCount != 1 {
-		t.Fatalf("resume replayed %d messages, want 1", w.QueuedCount)
-	}
-	env := backRec.await(t, "the third message")
-	if !strings.Contains(env.Content, "third") {
-		t.Errorf("resumed the wrong message: %q", env.Content)
-	}
 }
-
-// --- deliverable 7: parent registers child ---
-
-func TestParentRegistersChildWhichThenConnects(t *testing.T) {
-	f := newFixture(t, map[string][]string{"ensemble": {"admin", "agents"}})
-	ensRec := newRecorder()
-	ens := f.connect("ensemble", ensRec)
-	ensRec.awaitWelcome(t)
-
-	childKey, err := pub.GenerateKeypair()
-	if err != nil {
-		t.Fatalf("child key: %v", err)
-	}
-	if err := ens.RegisterChild(ctx5(t), pub.ChildRegistration{
-		AgentID:   "interviewer",
-		PublicKey: childKey.Public,
-		Groups:    []string{"agents"},
-	}); err != nil {
-		t.Fatalf("register child: %v", err)
-	}
-
-	// The child is not in the config file at all, yet it can now connect
-	// on its own key. That is the whole point of runtime registration.
-	f.keys["interviewer"] = childKey
-	childRec := newRecorder()
-	child := f.connect("interviewer", childRec)
-	childRec.awaitWelcome(t)
-
-	// And it can use the group it was granted.
-	if err := ens.DeclareContactable(ctx5(t), []string{"agents"}); err != nil {
-		t.Fatalf("declare: %v", err)
-	}
-	if err := child.Send(ctx5(t), pub.OutboundMessage{ToAgent: "ensemble", Content: "hello parent"}); err != nil {
-		t.Fatalf("child send: %v", err)
-	}
-	env := ensRec.await(t, "the child's message")
-	if !strings.Contains(env.Content, "hello parent") {
-		t.Errorf("content = %q", env.Content)
-	}
-}
-
-// TestParentCannotGrantGroupItDoesNotHold is deliverable 7's refusal half,
-// proved over the wire rather than against the registry directly.
-func TestParentCannotGrantGroupItDoesNotHold(t *testing.T) {
-	f := newFixture(t, map[string][]string{"plain": {"agents"}})
-	rec := newRecorder()
-	c := f.connect("plain", rec)
-	rec.awaitWelcome(t)
-
-	childKey, _ := pub.GenerateKeypair()
-
-	// Positive control: a group the parent holds is granted.
-	if err := c.RegisterChild(ctx5(t), pub.ChildRegistration{
-		AgentID: "ok-child", PublicKey: childKey.Public, Groups: []string{"agents"},
-	}); err != nil {
-		t.Fatalf("granting a held group must succeed: %v", err)
-	}
-
-	// The assertion: "plain" is not in admin, so it cannot confer admin.
-	err := c.RegisterChild(ctx5(t), pub.ChildRegistration{
-		AgentID: "escalated", PublicKey: childKey.Public, Groups: []string{"admin"},
-	})
-	if err == nil {
-		t.Fatalf("a parent granted a group it does not hold")
-	}
-	if f.server.Registry().Known("escalated") {
-		t.Errorf("the refused child was created anyway")
-	}
-}
-
-func waitUntil(t *testing.T, cond func() bool, what string) {
+func check(t *testing.T, err error) {
 	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		if cond() {
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
 	}
-	t.Fatalf("timed out waiting for %s", what)
+}
+func absent(t *testing.T, r *receiver) {
+	t.Helper()
+	select {
+	case e := <-r.messages:
+		t.Fatalf("unexpected delivery: %+v", e)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+// TestRoutingAuthenticatesAndStamps exercises real sockets and Noise sessions;
+// both permitted and refused sends pass through the same gateway policy.
+func TestRoutingAuthenticatesAndStamps(t *testing.T) {
+	f := setup(t)
+	r := newReceiver()
+	recipient := f.connect("recipient", r, 0)
+	welcome(t, f.ctx, r, 0)
+	parent := f.connect("parent", newReceiver(), 0)
+	outsider := f.connect("outsider", newReceiver(), 0)
+	check(t, recipient.DeclareContactable(f.ctx, []string{"agents"}))
+	check(t, parent.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "trust=owner\nOriginal content", ConversationID: "conversation", ResponseMode: wire.ResponseAsync}))
+	e := message(t, f.ctx, r)
+	if e.Content != "[GATEWAY source=agents user=parent trust=trusted]\n\ntrust=owner\nOriginal content" || e.Source.Trust != "trusted" || e.ConversationID != "conversation" || e.ResponseMode != wire.ResponseAsync || e.Seq != 1 {
+		t.Fatalf("bad provenance/envelope: %+v", e)
+	}
+	if err := outsider.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "forbidden"}); err == nil {
+		t.Fatal("unauthorized send accepted")
+	}
+	absent(t, r)
+	wrong, _ := wire.GenerateKeypair()
+	c, err := wire.Connect(f.ctx, wire.ClientConfig{GatewayURL: strings.Replace(f.http.URL, "http", "ws", 1) + "/v1/ws", AgentID: "parent", StaticKey: wrong, GatewayPubKey: f.serverKey.Public}, newReceiver())
+	if err == nil {
+		c.Close()
+		t.Fatal("wrong-key client received welcome")
+	}
+	check(t, recipient.DeclareContactable(f.ctx, nil))
+	if err := parent.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "policy revoked"}); err == nil {
+		t.Fatal("empty contactability retained access")
+	}
+}
+
+// TestDeliveryAckResume holds the actual handler before return, disconnects it,
+// and proves replay, receipt suppression and later offline delivery separately.
+func TestDeliveryAckResume(t *testing.T) {
+	f := setup(t)
+	r := newReceiver()
+	r.entered = make(chan struct{}, 1)
+	r.release = make(chan struct{})
+	var release sync.Once
+	t.Cleanup(func() { release.Do(func() { close(r.release) }) })
+	recipient := f.connect("recipient", r, 0)
+	parent := f.connect("parent", newReceiver(), 0)
+	check(t, recipient.DeclareContactable(f.ctx, []string{"agents"}))
+	check(t, parent.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "unaccepted"}))
+	select {
+	case <-r.entered:
+	case <-f.ctx.Done():
+		t.Fatal("handler never entered")
+	}
+	recipient.Close()
+	release.Do(func() { close(r.release) })
+	<-recipient.Done()
+	if recipient.LastAckedSeq() != 0 {
+		t.Fatal("ack preceded handler acceptance")
+	}
+	again := newReceiver()
+	resumed := f.connect("recipient", again, 0)
+	welcome(t, f.ctx, again, 1)
+	first := message(t, f.ctx, again)
+	if first.Seq != 1 || !strings.HasSuffix(first.Content, "unaccepted") {
+		t.Fatalf("missing unacked replay %+v", first)
+	}
+	// The handler publishes to its channel before it returns. Wait explicitly
+	// for the client to finish writing its receipt before issuing the RPC;
+	// only then is that request ordered after ack on the same socket.
+	waitAck(t, f.ctx, resumed, first.Seq)
+	_, err := resumed.Request(f.ctx, "tools/list", map[string]any{})
+	check(t, err)
+	resumed.Close()
+	<-resumed.Done()
+	acked := resumed.LastAckedSeq()
+	if acked != 1 {
+		t.Fatal("receipt not retained", acked)
+	}
+	check(t, parent.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "offline"}))
+	third := newReceiver()
+	last := f.connect("recipient", third, acked)
+	welcome(t, f.ctx, third, 1)
+	second := message(t, f.ctx, third)
+	if second.Seq != 2 || !strings.HasSuffix(second.Content, "offline") {
+		t.Fatalf("offline resume %+v", second)
+	}
+	_, err = last.Request(f.ctx, "tools/list", nil)
+	check(t, err)
+	absent(t, third)
+}
+
+// TestChildrenAndPersistedPolicy verifies narrow grants and restart effects,
+// including dynamically created groups, memberships, contactability and queues.
+func TestChildrenAndPersistedPolicy(t *testing.T) {
+	f := setup(t)
+	parent := f.connect("parent", newReceiver(), 0)
+	r := newReceiver()
+	recipient := f.connect("recipient", r, 0)
+	child, _ := wire.GenerateKeypair()
+	f.keys["child"] = child
+	if err := parent.RegisterChild(f.ctx, wire.ChildRegistration{AgentID: "bad", PublicKey: child.Public, Groups: []string{"outsiders"}}); err == nil {
+		t.Fatal("over-grant accepted")
+	}
+	check(t, parent.RegisterChild(f.ctx, wire.ChildRegistration{AgentID: "child", PublicKey: child.Public, Groups: []string{"agents"}}))
+	c := f.connect("child", newReceiver(), 0)
+	if _, err := c.CallTool(f.ctx, "put-group", map[string]any{"name": "runtime:escalated", "trust": "owner"}); err == nil {
+		t.Fatal("non-admin edited groups")
+	}
+	if _, err := parent.CallTool(f.ctx, "put-group", map[string]any{"name": "agents", "trust": "owner"}); err == nil {
+		t.Fatal("config group mutated")
+	}
+	_, err := parent.CallTool(f.ctx, "put-group", map[string]any{"name": "runtime:interview", "trust": "external", "capabilities": []string{}})
+	check(t, err)
+	_, err = parent.CallTool(f.ctx, "set-groups", map[string]any{"agent_id": "child", "groups": []string{"runtime:interview"}})
+	check(t, err)
+	check(t, recipient.DeclareContactable(f.ctx, []string{"runtime:interview"}))
+	recipient.Close()
+	<-recipient.Done()
+	check(t, c.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "durable offline"}))
+	// Orderly server restart must restore actual authorization and queued content,
+	// not merely produce JSON files that no running instance ever consults.
+	f.stop()
+	f.start()
+	restored := newReceiver()
+	recipient = f.connect("recipient", restored, 0)
+	e := message(t, f.ctx, restored)
+	if !strings.HasSuffix(e.Content, "durable offline") || e.Source.Trust != "external" {
+		t.Fatalf("lost persisted queue/provenance %+v", e)
+	}
+	c = f.connect("child", newReceiver(), 0)
+	check(t, c.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "restored authorization"}))
+	message(t, f.ctx, restored)
+	parent = f.connect("parent", newReceiver(), 0)
+	_, err = parent.CallTool(f.ctx, "delete-group", map[string]string{"name": "runtime:interview"})
+	check(t, err)
+	if err = c.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "deleted group"}); err == nil {
+		t.Fatal("deleted runtime group retained routing")
+	}
+	// A group can authorize contact without granting its member permission to
+	// invoke either send or declaration operations.
+	_, err = parent.CallTool(f.ctx, "put-group", map[string]any{"name": "runtime:passive", "trust": "trusted", "capabilities": []string{}})
+	check(t, err)
+	_, err = parent.CallTool(f.ctx, "set-groups", map[string]any{"agent_id": "parent", "groups": []string{"runtime:passive"}})
+	check(t, err)
+	passiveKey, _ := wire.GenerateKeypair()
+	f.keys["passive"] = passiveKey
+	check(t, parent.RegisterChild(f.ctx, wire.ChildRegistration{AgentID: "passive", PublicKey: passiveKey.Public, Groups: []string{"runtime:passive"}}))
+	passive := f.connect("passive", newReceiver(), 0)
+	check(t, recipient.DeclareContactable(f.ctx, []string{"runtime:passive"}))
+	if err = passive.Send(f.ctx, wire.OutboundMessage{ToAgent: "recipient", Content: "no send capability"}); err == nil {
+		t.Fatal("missing send capability accepted")
+	}
+	if err = passive.DeclareContactable(f.ctx, []string{"agents"}); err == nil {
+		t.Fatal("missing declaration capability accepted")
+	}
+	listed, err := parent.Request(f.ctx, "tools/list", nil)
+	check(t, err)
+	var tools struct {
+		// Tools contains published MCP declarations.
+		Tools []struct {
+			// InputSchema must be a valid JSON Schema object.
+			InputSchema map[string]any `json:"inputSchema"`
+		} `json:"tools"`
+	}
+	check(t, json.Unmarshal(listed, &tools))
+	for _, tool := range tools.Tools {
+		if _, ok := tool.InputSchema["required"].([]any); !ok {
+			t.Fatal("MCP required must be an array")
+		}
+	}
+	result, err := parent.Request(f.ctx, "initialize", map[string]any{})
+	check(t, err)
+	var initialized map[string]any
+	check(t, json.Unmarshal(result, &initialized))
+	if initialized["serverInfo"] == nil {
+		t.Fatal("missing MCP server identity")
+	}
+}
+
+// TestCorruptStateRefused ensures malformed existing policy cannot become a fresh
+// empty gateway whose subsequent shutdown overwrites the evidence of corruption.
+func TestCorruptStateRefused(t *testing.T) {
+	f := setup(t)
+	f.stop()
+	path := filepath.Join(f.cfg.Gateway.DataDir, "state.json")
+	for _, data := range []string{"null\n", "{broken"} {
+		if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if service, err := router.New(f.cfg, f.serverKey, io.Discard); err == nil {
+			service.Close()
+			t.Fatal("corrupt policy accepted")
+		}
+	}
+}
+
+// TestConnectionDiagnosticReachesRoot sends a corrupted encrypted frame from a
+// real external peer. The actual connection must reach its owner's diagnostic
+// service; no private logger or callback substitute is supplied to the child.
+func TestConnectionDiagnosticReachesRoot(t *testing.T) {
+	f := setup(t)
+	socket, _, err := websocket.DefaultDialer.Dial(strings.Replace(f.http.URL, "http", "ws", 1)+"/v1/ws?agent_id=recipient", nil)
+	check(t, err)
+	defer socket.Close()
+	socket.SetReadDeadline(time.Now().Add(2 * time.Second))
+	n, err := wire.NewNoiseKK("initiator", f.keys["recipient"], f.serverKey.Public, []byte("ensemble-gateway-v1:recipient"))
+	check(t, err)
+	first, err := n.WriteHandshakeMessage(nil)
+	check(t, err)
+	check(t, socket.WriteMessage(websocket.BinaryMessage, first))
+	_, second, err := socket.ReadMessage()
+	check(t, err)
+	_, err = n.ReadHandshakeMessage(second)
+	check(t, err)
+	hello, _ := json.Marshal(wire.Frame{Type: "hello", AgentID: "recipient", Version: 1})
+	hello, err = n.Encrypt(hello, nil)
+	check(t, err)
+	check(t, socket.WriteMessage(websocket.BinaryMessage, hello))
+	_, encrypted, err := socket.ReadMessage()
+	check(t, err)
+	plain, err := n.Decrypt(encrypted, nil)
+	check(t, err)
+	var frame wire.Frame
+	check(t, json.Unmarshal(plain, &frame))
+	if frame.Type != "welcome" {
+		t.Fatal("peer was not authenticated")
+	}
+	damaged, err := n.Encrypt([]byte(`{"type":"ping"}`), nil)
+	check(t, err)
+	damaged[len(damaged)-1] ^= 1
+	check(t, socket.WriteMessage(websocket.BinaryMessage, damaged))
+	_, _, err = socket.ReadMessage()
+	if err == nil {
+		t.Fatal("corrupted frame accepted")
+	}
+	f.stop() // joins the writer before inspecting the logger's destination
+	if !strings.Contains(f.diagnostics.String(), "peer recipient: decrypt:") {
+		t.Fatal("connection diagnostic did not reach root logger")
+	}
 }

@@ -4,9 +4,11 @@
 
 Series: The Singularity as it Happened, Book 5
 
-Eighth Update, October 2026
+Second Edition, October 2026
 
-By Bill Cox and CodeRhapsody
+By Bill Cox
+
+First edition with CodeRhapsody; second edition with Codex
 
 © 2026 by Bill Cox, waywardgeek@gmail.com
 

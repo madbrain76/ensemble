@@ -1,4 +1,4 @@
-module github.com/waywardgeek/ensemble/agent
+module ensemble
 
 go 1.25
 

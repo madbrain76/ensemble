@@ -1,666 +1,745 @@
-# Chapter 19: Leaving Anthropic for OpenAI
+# Chapter 19: The Crossover
 
-This chapter is about freedom. It is also about saving you money.
+The morning of the switch, I had two agents open on the screen.
+CodeRhapsody, the one that wrote this book. Ensemble, the one the
+book describes. Same hardware, same model, same prompt. One of them
+built by reading eighteen chapters of instructions. The other built
+by writing them.
 
-I built this codebook on Anthropic's models. Eighteen chapters, each
-one graded, each one tested against three vendors. Then Anthropic
-shipped a frontier model that forbids modifications to the context
-window. No ephemeral content. No compaction. No memory-band
-watermarks. The mechanism this book teaches is the thing their latest
-model will not let you do.
+If the agent that came out of this book cannot replace the one that
+went into it, then eighteen chapters taught a toy. If it can, the
+loop closes and the last chapter writes itself. Close it now, while
+every design decision is still fresh enough to debug. A month from
+now the memory is gone and the crossover becomes a project instead
+of a morning.
 
-The fix was simple: bind the encrypted reasoning to the model that
-created it, so it cannot be replayed across models or users. OpenAI
-shipped that fix. Anthropic froze the context window instead.
-
-So we are voting with our feet. In this chapter the agent
-authenticates through your existing ChatGPT subscription. No
-separate billing account. No API-key signup. And the cost drops by
-an order of magnitude compared to metered API billing.
+The first crossover took twelve days. The distance between passing a
+grader and surviving a workday turned out to be thirty-seven
+changes, a vendor caching bug, and this chapter.
 
 ---
 
 ## TL;DR
 
-### The delta
+The first-edition account counted thirty-seven changes on the way
+to a daily driver. They sort into four kinds:
 
-Chapter 18 left the agent with three vendor renderers, a
-ModelFeatures table, capability flags, cache breakpoints, and
-per-vendor endpoints. This chapter:
+1. **Loud failures** that announce themselves within minutes of real
+   use: part-ID collisions, a settings dialog that never saved, a
+   Ctrl-C that killed the process without persisting the
+   conversation.
 
-1. Introduces a **credential provider** abstraction that decouples
-   authentication from inference.
-2. Implements **OAuth 2.0 + PKCE** for OpenAI's ChatGPT plan, so
-   an existing subscription becomes the API credential.
-3. Migrates the OpenAI transport from **Chat Completions** to the
-   **Responses API**.
-4. Adds a **capability profile** for the ChatGPT plan's
-   restrictions.
-5. Streams **reasoning summaries** as first-class events, separate
-   from assistant output.
-6. Implements a **billing mode** state machine with explicit,
-   announced transitions.
+2. **Silent failures** where every request succeeds but something
+   underneath is quietly wrong: a model selector that selected
+   nothing, a credential provider that selected the wrong credential
+   after a vendor switch, a startup resolver that sent an OpenAI
+   model to Anthropic.
 
-### Types (conceptual; adapt to your codebase)
+3. **Two-path failures** where the live streaming path and the
+   replay path disagree on what content looks like: text vanishing
+   after a restart, resets that cleared the log but not the screen,
+   a client that classified messages by guessing at turn state.
 
-```go
-// CredentialProvider returns a bearer token for inference.
-// The HTTP layer never knows whether the token is an API key
-// or an OAuth access token.
-type CredentialProvider interface {
-    GetBearerToken(ctx context.Context) (string, error)
-    Kind() CredentialKind
-}
+4. **Invisible failures** where the output is correct and the bill
+   is not: a cache diagnostic tool with a 100% false-positive rate,
+   a route where cache reads first appeared around 22,000 tokens,
+   and a plan-route caching gap that ended in a bug report rather
+   than a code fix.
 
-type CredentialKind int
-const (
-    CredentialAPIKey CredentialKind = iota + 1
-    CredentialChatGPTOAuth
-)
+The existing checks had missed these paths. Daily use exposed them;
+focused regressions could then keep them from returning. A passing
+check establishes what it observed, which may be a smaller claim
+than its name suggests.
 
-// OAuthProfile stores the state of one ChatGPT OAuth
-// registration. The OIDC sub claim is the account identity.
-type OAuthProfile struct {
-    ClientID       string    // issued by OpenAI
-    Subject        string    // OIDC sub — stable identity
-    Email          string    // display only
-    AccessToken    string    // secret
-    RefreshToken   string    // secret — rotates on refresh
-    IDToken        string    // secret — validated on receipt
-    ExpiresAt      time.Time // access token expiry
-    GrantedScopes  []string  // must include plan-use scope
-    HostID         string    // stable per-installation UUID
-}
-
-type BillingMode int
-const (
-    BillingChatGPT BillingMode = iota + 1
-    BillingAPI
-    BillingChatGPTThenAPI
-)
-```
-
-### Rules
-
-1. **Credential abstraction.** The HTTP inference layer calls
-   `GetBearerToken()` and receives a valid bearer token. It never
-   knows whether the token is a static API key or an OAuth access
-   token. Both produce `Authorization: Bearer <token>`. The
-   credential provider stays off the renderer interface: the engine
-   resolves the token into the existing API-key field, so zero
-   interface churn across vendors.
-
-2. **PKCE.** Generate a cryptographically random verifier, compute
-   the S256 challenge, send the challenge in the authorization
-   request, and the verifier in the token exchange. Generate fresh
-   `state` and `nonce` for every authorization attempt.
-
-3. **Loopback listener.** Bind to `127.0.0.1` (not `localhost`),
-   any available port, path `/auth/callback`. The path must be
-   exactly `/auth/callback` and the host must be the literal
-   `127.0.0.1`. Only the port may vary.
-
-4. **Host identity.** Generate a stable `urn:uuid:<v4>` once per
-   installation. Persist it. Send as `ext_agent_host_id` in every
-   authorization request. Never derive from username, hostname,
-   email, or MAC address.
-
-5. **Dynamic registration.** The first authorization uses
-   `client_id=dynamic_agent_client`. OpenAI returns an issued
-   `client_id` on the authorization callback. Persist it before
-   exchanging the authorization code. All subsequent requests use
-   the issued `client_id`. This is not RFC 7591: `auth.openai.com`
-   advertises no `registration_endpoint`. The bootstrap is a
-   registration entrypoint, never valid for token exchange.
-
-6. **ID token validation.** Validate the returned JWT: fetch
-   OpenAI's published JWKS, check the signature, verify issuer,
-   audience (must match issued `client_id`), expiry, and nonce.
-   The OIDC `sub` claim is the stable account identity.
-
-7. **Scope checking.** A successful login does not imply plan
-   usage. The granted scopes must include
-   `chatgpt.tokens.use.direct`. Without it, ChatGPT-plan
-   inference is forbidden. Note: the discovery document's
-   `scopes_supported` does not advertise this scope.
-
-8. **Proactive refresh.** Refresh the access token when
-   `now >= expires_at - 5 minutes`. Each refresh returns a new
-   refresh token; the old one is invalidated immediately.
-   Serialize refresh per profile. Never allow concurrent
-   refreshes for the same profile. Save both new tokens
-   atomically before using either.
-
-9. **Terminal refresh errors.** Six errors are terminal:
-   `invalid_grant`, `invalid_refresh_token`, `token_expired`,
-   `refresh_token_expired`, `refresh_token_invalidated`,
-   `refresh_token_reused`. Mark the credential unusable, keep
-   the issued `client_id`, re-authenticate. Temporary
-   network/5xx errors: retry with backoff. Never delete valid
-   credentials on a transient failure.
-
-10. **Responses API format.** ChatGPT-plan requests use the
-    Responses API endpoint. They require `store: false` and
-    `stream: true`. Fifteen fields are banned on the plan route,
-    including `temperature`, `top_p`, `max_output_tokens`,
-    `previous_response_id`, and `top_logprobs` (not `logprobs`).
-    Model restrictions as a capability data structure, not
-    if-branches. `response.completed` is the success signal.
-
-11. **Cache breakpoints.** Set
-    `prompt_cache_options.mode: "explicit"` and place
-    `prompt_cache_breakpoint` markers on developer-role content
-    blocks. Up to four cache writes per request. The top-level
-    `instructions` field cannot carry a breakpoint, so the
-    constitution must be a developer-role content block. No
-    regression from chapter 18's caching behavior.
-
-12. **Reasoning summaries.** Request
-    `reasoning.summary: "auto"` on models that support it.
-    Stream summary events incrementally. Map them to separate
-    observer events: never buffer a full summary, never
-    concatenate into assistant text, never drop summaries
-    adjacent to tool calls.
-
-13. **Billing mode.** `chatgpt` uses only OAuth credentials.
-    `api` uses only the API key. `chatgpt_then_api` prefers
-    OAuth, falls back to API only on
-    `usage_limit_exceeded` and only when
-    `allow_metered_fallback` is true. Announce the billing
-    transition before the first metered request. Never silently
-    switch billing.
-
-14. **Credential isolation.** Access tokens, refresh tokens, ID
-    tokens, and API keys never appear in prompts, agent memories,
-    conversation context, logs, debug output, or any
-    model-visible state.
-
-15. **Sign-out.** Revoke the refresh token via OpenAI's
-    revocation endpoint. Clear local tokens. Retain the issued
-    `client_id` and host ID. If remote revocation fails, clear
-    locally and inform the user.
-
-### Yours
-
-- File layout for the OAuth subsystem
-- Profile storage format (JSON, keychain, or your existing
-  secret store)
-- How auth status is displayed to the user
-- Whether `chatgpt_then_api` is implemented now or deferred
-- Multiple-account support: the schema should support it even if
-  the UX exposes only one account
-
-### Exercise
-
-```
-make grade19
-```
-
-Build from `solutions/ch18`. The grader provides a fake OAuth
-server and a fake Responses API server. Complete the OAuth flow,
-perform inference through the Responses API, refresh tokens
-proactively, and stream reasoning summaries as separate events.
+This chapter is a field report, with no new graded implementation.
+The historical repairs below explain failures to avoid, not defects
+to recreate. The final section follows the second-edition agent
+through a real Astra/high coding task: reading source, reproducing
+failures, editing a file and passing the unchanged tests. That is a
+concrete step toward replacing a daily driver; it is not the same
+as having written the next edition with it.
 
 ---
 
-## The idea in plain words
+## 19.1 What Breaks on Day One
 
-Every major LLM vendor encrypts reasoning traces so competitors
-cannot distill from them. The encryption is a reasonable defense.
-What was unreasonable, as of mid-2026, was that none of the three
-major vendors bound the encrypted block to the user, session, or
-model that produced it.
+The following incidents come from the first-edition crossover and
+its [running changelog](../crossover-changelog.md), begun September 27,
+2026. Names such as `Hub`, `view_gui` and the narration gate describe
+that implementation. The new implementation has already learned
+several of these lessons in earlier chapters.
 
-In August 2026, researchers demonstrated the consequence. They
-replayed a frontier model's encrypted reasoning into a cheaper
-model behind a jailbreak prompt, and the decoder treated the
-replayed block as its own prior thinking and decoded it. From
-6,708 public agent trajectories, they extracted 315,320 reasoning
-blocks and recovered 62 active API keys, 33 passwords, 24 access
-tokens, 7 private keys, and 367 items of personal information.
-Sixty-four of those artifacts existed only inside hidden reasoning
-and never appeared in the visible response. The total cost was
-$720. (Source: Panfilov et al., "Stealing Reasoning Traces from
-Proprietary LLM APIs," arXiv:2608.09867, August 2026.)
+The first morning, the operator opened Ensemble and typed a
+prompt. The second assistant response rendered inside the first
+one's bubble. These first bugs are gifts: they announce themselves
+the moment someone uses the tool for longer than one turn, and
+they teach nothing the preceding chapters did not already know. They exist
+here to establish a baseline: the agent works, if the definition
+of "works" is narrow enough. The next section raises the bar.
 
-The proportionate fix is cryptographic: bind the encrypted
-reasoning to the user, session, and model that created it. Reject
-replays across any of those boundaries. OpenAI shipped exactly
-this. Their September 2026 blog post: "We strengthened protections
-for hidden reasoning across users, workspaces, organizations, and
-model families."
+**Part IDs collided across turns.** Every vendor parser minted IDs
+from a counter scoped to one API response. The first text block of
+every turn was `part_id: 1`. The GUI keyed its artifact map by that
+ID and never cleared it, so turn two's text deltas found turn one's
+DOM node and appended inside it. The second response appeared
+inside the first one's bubble.
 
-Anthropic chose a different response. Rather than binding the
-signature to its source, they froze the context window entirely.
-Their latest frontier model, Opus 5.5, permits zero modifications
-to the prefix of the conversation. No context engineering. No
-memory-band compaction. No micro-handoff watermarks.
+The rejected fix was clearing the map on each turn boundary. It
+works, but it makes the client responsible for a property the server
+should guarantee, and it needs a reliable "new turn" signal before
+the first delta arrives. The historical fix was a single monotonic counter
+on the actor, shared across all parsers and both the delta and final
+emitters, so a content address is unique for the lifetime of the
+session.
 
-Five chapters of this book break under that rule: chapter 2
-(ephemeral entries), chapter 13 (ephemeral DOM snapshots), chapter
-14 (ephemeral speech-channel view), chapter 15 (context
-engineering), and chapter 17 (ephemeral auto-recall). All share
-one mechanism: ephemera, temporary content placed in the context
-and removed when stale. Freezing the prefix kills ephemera, and
-ephemera is the mechanism the second half of this book teaches.
-Beyond this codebook, any agent that needs to see its current
-state ephemerally is affected: a family assistant tracking a
-conversation, a virtual tabletop tracking game state, an
-accessibility tool streaming its reasoning to a developer who
-cannot see the screen.
+**The settings dialog never saved anything.** Every control called
+`sendPatch` on every change event. `sendPatch` was never defined.
+A `ReferenceError` fired on every interaction, silently, and the
+dialog looked correct because theme and font size both apply locally
+on the way past: the visible half worked while the durable half
+never ran. Four wrong hypotheses came first. The harness log named
+the real cause on its first line.
 
-The counter-argument, stated fairly: the original disclosure
-included "conversation-compaction vulnerabilities," so
-prefix-immutability is a genuine mitigation for that vector. The
-rebuttal: both vendors received the same disclosure. One concluded
-the fix was signature binding. The other concluded it was freezing
-the customer's context. The binding fix is narrower, was
-independently shipped, and does not break context engineering.
-OpenAI's September 2026 post also disclosed the related
-"conversation-compaction" surface, and they closed the specific
-replay pathway rather than removing the feature entirely.
+That pattern is worth isolating. A control that shows its effect
+immediately can hide a broken write indefinitely, because what the
+operator sees is the effect, not the persistence. The three
+settings controls that accepted input while doing nothing at all
+(temperature, max tokens, system prompt) were removed outright
+rather than wired up. A control that does nothing is worse than no
+control: it invites someone to set it, confirm it visually, and
+trust an outcome that was never produced.
 
-This chapter migrates the agent to OpenAI. The vendor seam built
-in chapter 2, refined across sixteen chapters, tested in chapter
-18 against three providers, now faces its first forced migration.
-Bill's $2,475 of model spend and eighteen chapters of architecture
-depend on the answer: if the seam works as designed, this is a
-refactor. If it was aspirational, this is a rewrite.
+**Ctrl-C did not save the conversation.** There was no signal
+handling. The main goroutine blocked on `for in.Scan()` over stdin,
+and the save ran after that loop returned. SIGINT killed the process
+where it stood, so the save was unreachable by construction. Not a
+race, simply never run. The rejected fix was a signal handler that
+saves and calls `os.Exit(0)`, because exit skips deferred functions
+and the defers here are load-bearing. The real fix moved stdin to
+its own goroutine; the main goroutine now selects on stdin
+completion versus a signal. Either way it falls out through the
+existing exit path, and every defer still runs.
 
-It is a refactor.
+**Font size changed nothing.** Every `font-size` declaration in the
+stylesheet used absolute pixels, so setting the root font size did
+nothing downstream. All twenty-one declarations converted to `rem`.
+Additionally, `if (app.font_size)` skipped zero, which is exactly
+what a never-set value deserializes to. Zero now means "use the
+default."
 
+**The chat input was a single-line field.** Long messages scrolled
+sideways through a one-line slot. It is now a `<textarea>` that
+grows with its content up to a `rem`-based cap, then scrolls. The
+cap lives in CSS rather than JavaScript, because a constant in
+pixels silently breaks the font-size slider: at 32px text the box
+stops at the same physical height and holds half as many lines.
 
-## The credential seam
+The pattern matters beyond any one fix. Real use quickly exposes
+whether a tab is identifiable among twenty open tabs, whether a
+textarea grows, or whether a process saves on a signal. Those last
+two behaviors can also be tested directly. The missing step was to
+exercise the interface as someone would actually use it, then keep
+that observation in a regression. The expensive category is next.
 
-The existing pattern is a static API key: resolved at startup,
-stored on the configuration struct, passed to every request
-unchanged. An API key is valid forever, rotates only by manual
-replacement, and requires no round trip to validate. The HTTP
-layer treats it as a constant.
+---
 
-OAuth credentials are not constants. An access token expires in
-about an hour. The refresh token that renews it is invalidated
-the moment a new one is issued. A concurrent refresh can lock the
-account out of both tokens. The HTTP layer must handle all of this
-without knowing any of it.
+## 19.2 The Bugs That Succeed
 
-The `CredentialProvider` interface has two methods.
-`GetBearerToken` returns a valid bearer token or an error.
-`Kind` returns whether the credential is an API key or an OAuth
-token. The HTTP layer calls `GetBearerToken` and places the
-result in the `Authorization` header. It has no other
-responsibilities.
+The second kind of crossover bug is the one where every request is
+answered, the GUI looks right, the tests pass, and the model or
+credential underneath is wrong. These share a shape: the visible half of an
+operation works while the functional half never runs.
 
-The API-key provider is a single field wrapping a string. It
-returns that string every time and never fails. The OAuth
-provider holds a profile, a mutex, and a token-refresh function.
-It checks the expiry, refreshes if needed, and returns the
-current access token. Both providers produce an identical header.
+**The model selector selected nothing.** The GUI offered a dropdown.
+Choosing a different model changed nothing at all. Every request
+went to the startup default. The dropdown wrote to one config field;
+startup read from another. Nothing carried one to the other. It was
+a known-dead setting.
 
-The credential provider stays off the renderer interface. The
-engine resolves the token into the existing `APIKey` field on
-the configuration before the renderer ever sees it. A developer
-who adds a fourth vendor writes a renderer that calls
-`GetBearerToken`. They do not learn that OAuth exists. Three
-vendor renderers, built across seventeen chapters, change zero
-lines. The seam's job is to make the caller's life boring.
+What makes it worth a section rather than a bullet is the readout.
+`effectiveModel` consulted the settings store first, with a comment
+explaining that the GUI selection is what the operator just did. So
+the display showed the selected model while the engine dialed the
+old one, and the display was the thing that was wrong.
 
+A readout fed from intent always agrees with the operator. Only a
+readout fed from the fact can disagree, and disagreeing is the
+entire job.
 
-## OAuth from first principles
+**The credential did not cross a vendor switch.** An operator who
+switched models from Claude to GPT in the dropdown saw the dialect
+change, the host change, and the response arrive correctly. The
+plan credential never arrived. ChatGPT plan credentials were
+attached once, at startup, behind a guard that checked the vendor. The guard was correct when vendor was a process
+lifetime constant. In that implementation the model had become changeable at
+runtime, which means the vendor had become changeable at runtime,
+which means the guard had an expiry date on it.
 
-A local application cannot keep a secret. A web server can store
-a client secret on its backend, out of reach, but a binary
-running on the user's machine can be decompiled, inspected, and
-copied. Authorization Code with PKCE solves this: instead of
-proving you possess a long-lived secret, you prove that the app
-finishing the flow is the same app that started it.
+The runtime switch had already been fixed once before. It moved
+model, vendor, surface, base URL, and API key together, carefully,
+with a refusal path. Five fields. The credential provider was not
+among them, because when that fix was written the provider did not
+exist yet.
 
-The mechanism is a verifier and a challenge. Before redirecting
-the user to the authorization server, the agent generates 32
-random bytes and computes their SHA-256 hash. The hash goes in
-the authorization request. The original bytes go in the token
-exchange. The authorization server compares them. An attacker who
-intercepts the redirect code still needs the original bytes, and
-those never left the agent's memory.
+Flip the picker from Claude to a GPT model and the dialect changes,
+the host changes, the key is refilled from the endpoint table, and
+the plan credential never arrives. A metered key can answer the
+request while bypassing the intended subscription. The changelog
+inferred that fallback from the code and a 401 response; it did not
+observe the charge on an invoice. A correct answer would not reveal
+which credential paid for it.
 
-The agent binds a TCP socket to `127.0.0.1` on any available port,
-with the path `/auth/callback`. The host must be the literal
-`127.0.0.1`; the OpenAI documentation says "Do not substitute
-with `localhost`." The path must be exactly `/auth/callback`;
-their documentation says "`/callback` does not match
-`/auth/callback`." Only the port may vary. This makes the coding
-agent, for exactly one HTTP request, a web server. A tool-calling engine that reads files and
-runs processes now listens on a socket and serves a redirect.
+The fix was one line: adding the credential to what the switch
+already moves. But the more important change was making the state
+observable. The engine now logs the credential in force whenever it
+changes. `DescribeCredential` names the kind and has no path that
+can emit a token, because putting the redaction at each call site
+would mean a rule enforced in five places and broken in the sixth.
+A missing provider reports as the static key, not as "none," because
+falling back to a billed key while expecting a plan credential is
+the commonest mistake, and it must not read like the correct case.
 
-The authorization request includes six things that matter beyond
-PKCE. A `state` parameter prevents cross-site request forgery: the
-agent generates a random value, sends it in the request, and
-rejects any callback that returns a different one. A `nonce`
-prevents replay: it is embedded in the returned ID token and
-validated on receipt. A stable `ext_agent_host_id` identifies the
-installation. An RFC 8707 `resource` parameter
-(`https://api.openai.com/v1`) appears on the authorization request
-and is repeated at code exchange.
+**The vendor was not a property of the model.** Startup resolved the
+vendor first and then chose a model. A model from `settings.json`
+was sent to whichever vendor happened to be the default. The
+changelog records a stored Astra selection producing a
+healthy-looking session running Sonnet instead. Its diagnosis
+specifically concerns model choices outside the `LLM_MODEL`
+environment override.
 
-On first registration, the `client_id` is the bootstrap value
-`dynamic_agent_client`. The authorization callback returns an
-issued `client_id` alongside the authorization code and state.
-Persist the issued ID before exchanging the code. All subsequent
-requests use it.
+The GUI masked it. After connecting, the browser sends the model
+choice over the WebSocket, correcting the mistake moments after
+startup. The CLI had no such correction and ran the wrong model the
+entire time, silently. The bug was invisible in the interface where
+it was survivable and total in the interface where it was not.
 
-This is not RFC 7591. `auth.openai.com` advertises no
-`registration_endpoint` in its OIDC discovery metadata. A reader
-familiar with OAuth will look for dynamic client registration and
-find nothing. The bootstrap `dynamic_agent_client` is the
-registration mechanism, and it is never valid for token exchange.
+The model is now settled first. The vendor is taken from the model
+table. An explicit vendor override still outranks the table, for
+local OpenAI-compatible endpoints serving identifiers the table has
+never seen.
 
-The user's browser opens. They sign in. OpenAI redirects to the
-loopback listener. The agent extracts the code, the state, and the
-issued client ID, then shuts down the HTTP server. One request
-served. The agent returns to reading files. A reader who has
-followed this book from chapter 1 will notice the irony: the tool
-that runs shell commands now runs a shell command's inverse,
-listening for network input instead of producing it.
+**The pattern across the section.** Every bug here produced
+correct-looking output. The selector showed the right model and
+dialed the wrong one. The settings dialog displayed the new theme
+and persisted nothing. The credential system sent the right request
+with the wrong credential selected. Output-only checks can pass because
+the output looks fine. Persistence, billing and identity need their
+own observations: a credential log, a cost meter, a cache lens.
+Tests can compare those observations with actual requests, saved
+files and provider usage. The instrument makes the hidden state
+inspectable; it also needs a test that can tell when it lies.
 
+---
 
-## Identity is not permission
+## 19.3 Two Paths, One Screen
 
-A successful login proves who the user is. It does not prove the
-user has granted plan usage. Two separate checks are required, and
-both must pass before inference.
+The agent renders content through two separate paths. A live
+streaming path carries real-time deltas and tool calls as they
+arrive. A replay path reconstructs the same view from the saved
+event log on every startup. Both share the same WebSocket protocol
+and the same message types.
 
-The token exchange returns three tokens: an access token for API
-calls, a refresh token for renewal, and an ID token for identity.
-The ID token is a signed JWT. Validating it requires fetching
-OpenAI's published JWKS (JSON Web Key Set), verifying the
-signature against those keys, and then checking five claims:
-issuer matches `auth.openai.com`, audience matches the issued
-`client_id`, the token has not expired, and the nonce matches the
-one sent in the authorization request. The `sub` claim is the
-stable account identity. Two profiles can share an email address
-and be distinct accounts; the `sub` distinguishes them.
+These two paths should produce identical screens. They did not.
+Every restart during the first week disagreed.
 
-The second check is the granted scope. The token response includes
-a list of scopes the user authorized. Among them,
-`chatgpt.tokens.use.direct` means plan-usage inference is
-permitted. Without it, the user authenticated but authorized
-nothing.
+**The hub believed its log was empty.** `Hub.logLen`, the hub's
+notion of how much history is renderable, was only ever advanced
+inside the live observation handler. On a restored session with a
+full log but no new observations, that counter stayed at zero and
+the replay loop ran `for i := 0; i < 0`. The hub held the entire
+conversation and reported that none of it existed. `NewHub` now
+seeds the counter from the log it is handed.
 
-The OIDC discovery document at `auth.openai.com` lists
-`scopes_supported` as `openid`, `profile`, `email`, and
-`offline_access`. It does not advertise the plan-usage scope at
-all. The scope is real, it is granted, and the discovery metadata
-does not mention it. A developer implementing against the
-discovery document alone will build a login that works and an
-agent that cannot infer. Inspect the token response itself for
-the granted scopes.
+Fixing that exposed a second bug: every send used a select with a
+default case, dropping silently when the buffer was full. A newer
+progress snapshot can supersede an older one. A text delta, tool
+result or replayed artifact cannot be discarded on that assumption.
+A long conversation rendered to far more messages than the historical
+256-slot buffer, so that repair waited for room with a timeout to
+avoid pinning a dead client. Preserve content and terminate a failed
+connection honestly; the old queue is not a new design requirement.
 
+**Assistant text vanished on restart.** After restarting, the GUI
+showed user messages and tool calls, but every model response and
+thinking block was gone. The save file had all 392 events intact.
+`partToWireMsg` produced messages with no `part_id` field. The GUI
+keys its artifact map by `part_id`, so every replayed response
+landed under `undefined` and collapsed into one invisible div. The
+live streaming path set that field through one function; the replay
+path used a different, incomplete one.
 
-## Tokens that expire
+This is the lesson of the section. A field that is present in one
+path but absent in the other creates a class of bug that is
+invisible during development, when only live streaming runs, and
+total after a restart, when only replay runs. The fix is not "add
+the field" but "share the identity." A `part_id` is the identity of
+a piece of content, and identity must survive both paths.
 
-The access token is valid for about one hour. The refresh token
-is valid for about thirty days. Both numbers are promises the
-authorization server can break at any time, so the agent tracks
-the expiry and refreshes proactively: when the current time
-passes five minutes before `expires_at`, the agent sends a
-refresh request before the next inference call.
+**The reset nobody saw.** Clicking reset cleared the conversation in
+the log. The old text stayed on screen until a browser refresh.
+Refresh requested replay and rebuilt the screen. That gave the
+investigation a useful split: inspect the saved record separately
+from live notification. In this case the durable record was right;
+the live screen was wrong. A refresh alone would not establish both.
 
-Refresh-token rotation is a security feature that punishes
-mistakes. Each refresh response returns a new access token and
-a new refresh token. The old refresh token is dead the instant
-the server issues the replacement. If two threads both see an
-expired access token and both attempt to refresh, the first one
-succeeds and the second one submits a dead token. The server
-treats that as a potential replay attack and may invalidate both
-tokens.
+`Engine.Record` appends to the log and applies the reducer. It does
+not notify the observer. The reset event traveled through the replay
+channel (which self-heals on refresh) and never through the live
+channel (which is what the operator is watching). A
+`ConversationCleared` observation fired from the reset handler gives
+both channels the same event.
 
-The fix is mechanical: serialize refresh operations per profile.
-A mutex or a single-flight gate ensures that exactly one
-goroutine refreshes at a time. The second thread waits and uses
-the result. Save both new tokens atomically before using either
-of them. If the process crashes between receiving the tokens and
-persisting them, the old refresh token is already dead and the
-new one is lost. Atomic persistence means writing a temporary
-file and renaming it, or using a transaction. Writing two
-fields in sequence is one crash away from an unusable profile.
+**The client that guessed.** Killing the agent mid-turn left stale
+in-flight state in the save file. On the next launch, the GUI
+classified every message as a hint to a nonexistent turn. Messages
+vanished silently. The connection was open. The agent answered
+nothing, forever.
 
-Six refresh errors are terminal: `invalid_grant`,
-`invalid_refresh_token`, `token_expired`,
-`refresh_token_expired`, `refresh_token_invalidated`, and
-`refresh_token_reused`. Any of these means the credential is
-unusable. Keep the issued `client_id` and host ID, discard the
-tokens, and re-authenticate from scratch. The user signs in
-again, but the agent remembers who it is.
+The browser decided message type by branching on its own copy of
+turn state: `if (agentState === 'idle') send prompt else send hint`.
+Chapter 2 states the rule this breaks: a hint and a prompt are the
+same event, distinguished only by turn state, and classification
+belongs in the reducer. This client shipped a guess.
 
-Network errors and HTTP 5xx are transient. Retry with
-exponential backoff. The critical distinction: a terminal error
-is the server saying the credential is dead. A transient error
-is the network saying the server is unreachable. The credentials
-stay on disk until the server itself rejects them.
+The fix is a deletion plus a move. The GUI now always sends a
+prompt. The actor classifies, without consulting any state variable,
+by its own position in the drain loop. Arriving at the main loop
+means idle, so it is a prompt. Arriving at the mid-turn drain means
+a turn is running, so it is a hint. The classification is
+structural.
 
+**The terminal as a diagnostic tool.** The CLI had called a bare
+engine loop, bypassing the actor entirely. It could not reproduce
+any of these bugs. Rebuilding it as a text Observer over the same
+actor loop turned the CLI and GUI into two renderers of one agent.
+The comparison narrows the diagnosis: a bug in both points toward
+the shared path; a bug in one points toward its inputs, timing or
+rendering. Neither result proves the core innocent. Writing a second
+renderer against the same seam makes those differences observable
+without building a second agent.
 
-## The Responses API
+---
 
-The Responses API is a different wire format for the same
-conversation. Messages become input items. System-role messages
-become developer-role messages. The streaming event names change.
-The success signal changes from HTTP 200 to
-`response.completed` in the event stream. The content is
-identical; the encoding is not.
+## 19.4 What You Cannot See Cannot Be Fixed
 
-ChatGPT-plan requests carry restrictions. `store: false` and
-`stream: true` are mandatory. Fifteen fields are banned on the
-plan route: `temperature`, `top_p`, `max_output_tokens`,
-`previous_response_id`, `background`, `conversation`,
-`metadata`, `max_tool_calls`, `moderation`, `multi_agent`,
-`prompt`, `prompt_cache_retention`, `safety_identifier`,
-`top_logprobs`, `truncation`. Note that `top_logprobs` is
-banned, not `logprobs`. When OpenAI relaxes a restriction, one
-row in a data table changes. The renderer reads the table; there
-are no if-branches for the plan route.
+At large context sizes, the gap between a 91% cache hit rate
+and a 22% hit rate can dominate input cost. The crossover record
+reports nearly half a weekly allowance consumed in one morning. The correct
+answer still arrives. Nothing errors. Nothing retries. The session
+looks normal. The only artifact that disagrees is the bill.
 
-The top-level `instructions` field is legal on the plan route.
-It is also useless for caching. `instructions` is typed as a
-plain string, and cache breakpoints attach to content blocks.
-A constitution placed in `instructions` cannot carry a
-breakpoint, which means every turn pays the full input price for
-the system prompt. Encode the constitution as a developer-role
-content block with a `prompt_cache_breakpoint`, exactly as
-chapter 18 placed markers on Anthropic's system blocks. The
-Responses API supports explicit caching: set
-`prompt_cache_options.mode` to `"explicit"`, place up to four
-breakpoints, and the economics match chapter 18's analysis.
-GPT-6.1 Sol charges $2 per million input tokens, $0.10 cached,
-$2.50 for cache writes, $10 output. Cache reads are 0.05x
-input; cache writes are 1.25x. The same ratios.
+Chapter 17 teaches the mechanism. This section tells the story of
+what happens when that mechanism meets a production session and the
+bill arrives.
 
-The migration is per-model. `SurfaceResponses` is a fact in the
-ModelFeatures table, set on specific model rows. Earlier models
-stay on Chat Completions; newer models move to Responses. A test
-pins the boundary so that a blanket vendor-wide flip cannot
-silently move tested models onto an untested surface.
+**The meter comes first.** A cache breakpoint placed on an unstable
+prefix buys nothing while looking like it should have worked, so
+proving stability is a prerequisite, not a follow-up. The cache lens
+intercepts each request body, splits it into named sections in the
+provider's actual cache concatenation order, and diffs against the
+prior request. The historical display distinguished MATCH, PREFIX
+DIVERGED (with the byte offset), and CACHE MISSED ANYWAY. The last
+verdict leaves a cause to investigate: routing, expiry, eviction or
+eligibility can differ while local bytes stay stable. Collapsing these into a single
+hit-rate figure would make the instrument unactionable.
 
-Four artifacts, named in earlier chapters, were waiting for this
-migration. `provenance.go` declared `SurfaceResponses` and never
-wired it. `delta.go` documented that `StreamAll` deliberately
-excluded `StreamReasoningSummary`. `openai.go` carried a comment
-that encrypted reasoning was "a Responses-API concept ... for a
-renderer that can use it." The `gpt-5.6-sol` row recorded that
-function tools with reasoning were refused on Chat Completions,
-and that the fix was the Responses API. Chapter 19 is someone
-doing it. The migration does not only change authentication: it
-unlocks reasoning-plus-tools on OpenAI models.
+An early run of the lens caught a bug in itself. Appending a
+message to a JSON array shifts the closing bracket, so naive
+string comparison flags every single turn as an edit. The alarm
+would have fired constantly and been muted inside a day. A false
+alarm that always fires is worse than no alarm: it trains the
+operator to ignore the real one. The fix was per-section comparison
+with grown-container detection: trim the prior section's trailing
+framing and check whether what remains is a prefix of the current.
 
-
-## Reasoning summaries
-
-The model's reasoning has been invisible for the entire book.
-Encrypted traces flow through the wire, and the agent strips
-them. Reasoning summaries are the first window: model-generated
-descriptions of private thinking, streamed as events, separate
-from the assistant's visible answer.
-
-Bill has no macular vision and reads code at about 80 words per
-minute. He listens to model output through a screen reader at
-about 750 words per minute. A reasoning summary that arrives as
-a single paragraph after the answer is useless at that rate. The
-value is in the delta: hearing the model think one phrase at a
-time while the answer is still forming, and sending a hint to
-redirect the model before it finishes the wrong approach. This
-is the accessibility payoff for the entire migration.
-
-> The reasoning-summary gate was treated as a research question
-> before any code was written. Live measurement against
-> `gpt-6.1-sol` with `reasoning.summary: "detailed"` and effort
-> set to high produced 314 summary deltas across 3 parts. The
-> `auto` setting produced 186 deltas. The `concise` setting
-> produced 4. Summaries stream, they produce enough content for
-> real-time listening, and the variation across settings is
-> large enough to warrant a configuration knob.
->
-> The first probe returned zero summary deltas and looked like a
-> capability gap. The prompt was trivial and generated 18
-> reasoning tokens. Summaries scale with reasoning performed. A
-> single sample nearly produced a "this does not work" report.
-> Measure with a prompt that makes the model think.
-
-The observer receives summary events through the existing
-observation interface. Summary deltas are a new event kind,
-separate from assistant-text deltas. They are delivered
-incrementally, kept separate from the assistant's visible text,
-and preserved when a tool call is adjacent. A response that
-interleaves reasoning, tool calls, and assistant text must emit
-every event in stream order. The observer does not have to reassemble anything.
-
-
-## The billing state machine
-
-The agent now has two funding sources: a ChatGPT subscription
-and a metered API key. Switching between them is a state
-transition that the user must authorize and the agent must
-announce.
-
-Three modes. `chatgpt`: all inference uses the OAuth credential.
-`api`: all inference uses the API key. `chatgpt_then_api`:
-inference starts on the subscription and falls back to the API
-key only when the subscription quota is exhausted. The fallback
-requires an explicit flag (`allow_metered_fallback`) to be true.
-The safe default is false: a surprised bill is worse than a
-paused agent.
-
-The error codes that drive transitions are specific.
-`subscription_sharing_usage_limit_exceeded` is the signal for
-quota exhaustion; if fallback is allowed, the agent transitions
-to API billing and announces the switch before sending the first
-metered request. `subscription_sharing_usage_unavailable` means
-temporary overload: back off, do not fall back.
-`subscription_sharing_unsupported_capability` means the request
-used a feature the plan route does not support: adapt the request
-or report the limitation. A 401 means the credential is invalid:
-refresh the token, and if refresh fails, re-authenticate.
-
-The announcement rule is the mechanism that prevents silent cost.
-Before the first metered request, the agent emits a clear
-observer event naming the billing source. The user hears it (or
-sees it, or reads the log) before any money is spent. Metered
-fallback is a decision, never an accident.
-
-Model discovery uses the OAuth token. `GET /v1/models` returns
-the models available under the subscription, filtered by
-`visibility: "list"`. The `slug` field goes in the request; the
-`display_name` goes in the UI. The same endpoint, hit with an
-API key, returns a different model list reflecting the API-key
-tier's access. Two credentials, two views of the same catalog.
-
-While this chapter was being written, OpenAI shipped first-class
-conversation compaction on the Responses API:
-`response_compact_params`, `compacted_response`,
-`response.compaction.compacting`. One vendor added a
-context-management capability in the same period the other
-removed one.
-
-
-## Exercise, graded
+**The alarm that always fired.** The changelog reports a morning
+consuming 46% of a weekly plan allowance, alongside 175 requests
+carrying 6.9 million uncached input tokens and a 22.5% hit rate.
+These are recorded allowance and usage observations, not an
+independently reconstructed invoice. The
+lens had been running the whole time and reporting a divergence on
+every single request:
 
 ```
-make grade19
+cachelens: PREFIX DIVERGED — section "input" changed
 ```
 
-The grader starts a fake OAuth server and a fake Responses API
-server, then runs the agent against them. The fake OAuth server
-issues real JWTs signed by an ephemeral RSA key pair, serves a
-JWKS endpoint, validates PKCE, enforces state and nonce, rotates
-refresh tokens, and can simulate terminal errors. The fake
-Responses API server validates request format, streams reasoning
-summaries and assistant text, returns error codes on demand, and
-rejects banned fields. If the student's code does not validate
-the ID token signature against the JWKS endpoint, the grader
-catches it.
+The OpenAI Responses API calls the conversation `"input"`. Chat
+Completions calls it `"messages"`. Gemini calls it `"contents"`.
+The canonicalizer knew the latter two names and defaulted to
+`"messages"`, so on the Responses surface the entire conversation
+was filed as a frozen section that should never change. Every
+ordinary appended turn tripped the alarm.
 
-| Check | Points | Section |
-|---|---|---|
-| credential-provider | 15 | §19.2 |
-| oauth-flow | 15 | §19.3-4 |
-| token-refresh | 15 | §19.5 |
-| responses-format | 15 | §19.6 |
-| cache-breakpoints | 10 | §19.6 |
-| reasoning-summaries | 15 | §19.7 |
-| billing-mode | 15 | §19.8 |
+An alarm that labels every harmless append a divergence loses its
+ability to distinguish the event the operator needs to see. The
+operator stared at it every morning and learned nothing. The
+genuine cache break singled out in the record, a rewrite
+that cut the surviving prefix to 34%, rendered as the same line of
+text as the hundred harmless appends around it. The
+instrument ran, reported, and its report carried zero information.
 
-**Total: 100 points, 7 checks.**
+The fix was three lines: reading the conversation key off the body.
+That exposed a second gap. Within the dialogue, the lens had
+recorded only that the conversation changed, which is true on every
+turn. Growth and rewriting are different events. Appending leaves
+earlier bytes untouched. Editing something below the top voids the
+cache from the edit onward. The lens now reports rewrites separately
+from growth, with the offset at which the prefix stopped matching.
 
+**Four breakpoints, one freed by asking the right question.** The
+initial layout placed a marker at the end of the previous exchange,
+one message behind the newest prompt. The argument for it was that a
+cached write from the prior round could be read back. The earlier
+rolling marker already offered that prefix for caching. In the
+tested explicit-cache layout, the extra marker repeated a boundary
+instead of protecting a different stable section. Marker placement
+creates an opportunity; provider usage determines whether a write
+or read was granted.
 
-## Taking it for a spin
+The freed slot went to the tool array, at the very front of cache
+order. A tool-boundary marker leaves an earlier eligible prefix
+when the system prompt changes. Without it, the next marked boundary
+includes that changed prompt, and tool schemas are not small.
 
+The four possible positions are the end of the tool array, the
+system prompt, the retained checkpoint boundary, and the last
+eligible retained content block before ephemera. A checkpoint may
+be represented by surviving memory after a handoff is removed.
+Memory remains data; it does not become a mutable system prompt.
+
+**The plan route differed from the fixture.** The first-edition
+changelog records a fake and a parser sharing assumptions about
+OpenAI's Responses stream. The live plan route exposed rejected
+explicit cache controls, absent Content-Type, an empty terminal
+output array despite completed item events, and missing provenance
+on the assembled tool calls. Fixing one exposed the next.
+
+Chapter 18's second-edition run encountered its own cache-options
+rejection and empty-terminal stream failure. Its actual live header
+was not retained, so the absent-header parser condition has separate
+captured-body and controlled-header proof. Keeping those observations
+separate avoids turning a plausible diagnosis into a fabricated wire
+capture.
+
+A fake and code built from the same mistaken assumption can agree.
+Captured provider behavior can correct the fixture, and a targeted
+regression can then catch the parser defect without another paid
+request. Live use supplies evidence the shared assumption lacked;
+it does not make the repaired test useless.
+
+**The apparent floor.** With the lens repaired, the historical
+investigation varied request size in a live session. Despite identical
+tools, an identical system prompt, and a stable 99% cacheable
+prefix, the provider wrote nothing at 8,000 tokens. Nothing at
+10,000. Nothing at 18,000. The first request to cross roughly 22,000
+tokens was cached, and the request after it read back 22,144 of
+them.
+
+The investigation compared that result with the then-documented
+1,024-token minimum and called the difference a floor. Seven
+requests establish an observation worth investigating; they do not
+establish a universal 22,000-token threshold. Request size changed
+alongside session history, and a local prefix estimate cannot show
+which provider-side cache entry was available.
+
+Trimming can trade fewer input tokens against less reuse, but a
+longer request is not automatically cheaper. Compare actual counts
+and applicable prices. Padding a prompt to reproduce one historical
+threshold would turn an unexplained result into a cost policy.
+
+Size did not explain all the misses in the record. Its morning session
+consumed 46% of a weekly allowance on requests between 55,000 and 73,000
+tokens, well above that apparent boundary, while a first-party client using the
+same OAuth token but a different endpoint sustained 61-85% hit
+rates, including 12,160 cached tokens on the first request of a
+fresh session. Same credentials, different route, different caching.
+
+The record says a bug was filed with the provider and the route
+remained too expensive for that daily workload. An expected fix
+within weeks was a hope in the original account, not a delivery date.
+The lesson worth keeping is that an instrument never
+checked against an independent measurement is a belief dressed up as
+data. The lens ran all morning, reported constantly, and carried zero
+signal, because it was only ever compared to its own logic.
+
+---
+
+## 19.5 The Agent Looks in the Mirror
+
+The historical agent had a GUI and a built-in MCP server but still
+could not inspect its own screen through the active configuration.
+The server had been built and documented in original Chapter 13:
+`gui_snapshot`, `gui_click`, `gui_input`. Nothing connected to it.
+A stdio client check did not establish the missing path from agent
+to browser. The real browser/skill path in Chapter 12 addresses that
+boundary in this edition.
+
+**Two doors, one per direction.** The historical `--mcp-port` relayed the GUI's MCP
+server onto loopback TCP, so any external agent that speaks MCP can
+connect and drive the browser. Its `view_gui` builtin
+asked the connected GUI for a snapshot over the existing WebSocket.
+One exposed the browser to an external client; the other made it
+reachable from the local agent.
+
+The changelog records a live check: prompted to list its buttons,
+the agent called `view_gui` and correctly named the hamburger,
+reset, and settings buttons along with the Chats and Artifacts tabs.
+It worked, and then the question was why it had not worked before.
+
+**The underscore that hid a tool.** `view_gui` had been registered,
+unit-tested, and never reached a request. The tool registry
+normalizes names by stripping non-alphanumeric characters, so
+`view_gui` becomes `viewgui` internally. The skill filter checked
+against the raw name `view_gui` listed in skills. The question was
+about `viewgui`; the skill said `view_gui`; the answer was no. Every
+underscored tool name was silently dropped from every request,
+regardless of what skills were loaded.
+
+Builtins survived by accident: `NewRegistry` stored them under their
+raw name while `Register` stored normalized ones. One map, two key
+conventions. The fix was one line: check the declared name rather
+than the normalized key. A normalized key is an index, not an
+identity, and any identity check must use the name the other party
+actually used.
+
+The one-line fix broke the original Chapter 15 check. The MCP connect path recorded
+enabled tools under the normalized key, under a comment explaining
+why. The old convention was internally consistent; the fix moved one
+end of it. The cross-chapter sweep caught the regression. Bisecting
+in a worktree localized the commit, and a second fix recorded the
+declared name instead.
+
+**The model that worked in silence.** Some models reason at length
+internally and then act without narrating. For a supervisor who
+reads narration live through a screen reader at high speed, the
+narration is the review. It happens as the agent works, catching a
+wrong assumption before it becomes ten wrong edits. The changelog
+records a silent session followed by a hard reset that also
+discarded the supervisor's uncommitted work. The missing narration
+made review harder; the destructive recovery added a second failure.
+Interrupting the current turn and inspecting the actual diff
+preserves more options. Interrupt leaves the Agent and other jobs
+alive, so those jobs still need deliberate supervision.
+
+That implementation added `RequiresVisibleReasoning` on
+`ModelFeatures`, with enforcement in its actor loop: if no visible
+text was produced in a round, every tool call in
+the batch is rejected before execution. Refusing before execution is
+the point, because a tool that has already run cannot be un-run by a
+complaint. Every call in the batch is answered, because a vendor
+requires a result for each call it made. The error text is long on
+purpose. The message explains the rule and a concrete next step.
+It also asks the model to report what surprised it, giving the
+supervisor a chance to investigate a mismatch. This historical gate
+is not a new requirement of the prose-only chapter, nor a request
+for private chain of thought. Useful progress says what is about to
+change and why; its truth still has to agree with the actual work.
+
+**Engineering standards written from observation.** After reviewing
+a new model's first day on the crossover tree, a pattern emerged:
+deleted load-bearing comments, unformatted Go committed through
+Python string replacements, stray `.bak` files in a public
+repository. Each mistake had a specific mechanism of harm.
+
+A deleted comment that read "recall is hooked in TWO places" removed
+the only record of an invariant that both call sites still depend
+on. The condition it warned about survived; the warning did not. A
+compiler can accept the deletion while both call sites still depend
+on the invariant. The diff does show the missing explanation; a
+reviewer has to ask whether its reason survived.
+
+The remedy was explicit engineering standards appended to the agent's
+SKILL.md, each stating the reason it exists, so that overriding a
+rule means overriding an argument: gate on output not exit status;
+use anchored file edits; deleting a WHY comment requires proving the
+condition is gone, in the commit message; git is the backup; never
+weaken a test; report surprises.
+
+A human team writes down engineering standards after a new
+contributor joins and makes the same three mistakes everyone makes.
+That the new contributor is a model rather than a person changes
+the ceremony, not the need.
+
+---
+
+## 19.6 The Book That Rewrites Itself
+
+Thirty-seven changes and a vendor caching bug were the first
+account's tally. The useful part of that tally is the gap it names:
+building a feature and trusting it with a workday are different tests.
+
+**What the book got right.** The vendor seam from Chapter 18, built
+because of billing and context-control constraints, turned out
+to be the mechanism that made the model crossover possible. The
+agent already knew how to switch providers; the switch was a table
+change, not a rewrite.
+
+The observer pattern taught in Chapter 6 held throughout those
+repairs. The CLI and the GUI are two renderers over the same actor
+loop. The rebuilt CLI made the comparison in §19.3 possible without
+opening a browser.
+
+The graders caught real regressions across twenty chapters of
+cross-chapter sweeps: the underscore filter, a mutable global, a
+frozen-snapshot model row that scored 100/100 against the live tree
+and 85/100 against the frozen one. Each would have shipped silently
+without the sweep.
+
+**What the crossover changed.** The exercises teach individual
+mechanisms. Daily work combines them under conditions a short
+fixture may never reach: another turn, a restart, a model switch,
+a long conversation. Those conditions belong in focused checks once
+the failure is understood. Ten minutes can expose a broken control;
+it cannot certify a reliable workday.
+
+The first account overreached when it said instrumentation had been
+missing: the original cache chapter already taught the lens and
+meter. Chapters 17 and 18 carry those instruments and the credential
+report forward. They ask whether a
+correct-looking answer came from the selected model and credential,
+and what usage accompanied it. An instrument with a wrong input
+field can fail as quietly as the feature it measures. Comparing it
+with independent requests and usage closes that loop.
+
+Inference economics changes the engineering choices. Prompt caching
+can reduce input cost as well as latency, but a rate difference is
+not a measured weekly bill. Use the meter to see usage in each
+category, the lens to understand local changes, and the actual
+provider counters to determine whether reuse occurred.
+
+**The recursive part.** The first-edition account reports that the
+agent edited the chapters describing it, including a sub-agent voice
+pass. That is a use of the tool worth preserving, not proof that
+sub-agents already belong to this chapter's implementation or that
+each regenerated edition must improve. The second edition needs its
+own demonstration.
+
+A builder's crossover will differ in its specifics. These four
+categories give the investigation a place to start: loud failures that
+announce themselves in ten minutes, silent failures that announce
+themselves on the invoice, two-path failures that announce
+themselves after the first restart, and invisible failures that
+announce themselves only when someone builds the instrument to see
+them.
+
+The next test is a piece of work that has to be right outside the
+agent's own explanation. Start there, while the implementation is
+still familiar enough to debug.
+
+---
+
+## 19.7 A File That Actually Changed
+
+The second-edition crossover began with a smaller claim. Could the
+new Ensemble run the model Bill selected, repair a real program
+through its tools, and leave a result another process could verify?
+
+The selected model was `gpt-6-astra` at high reasoning effort. Its
+name already existed in the model table, but the table sent it to
+Chat Completions. Naming the right model did not select the right
+transport. The October 11, 2026 [model documentation](https://developers.openai.com/api/docs/models/gpt-6-astra)
+supports high effort, and the [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning)
+requires Responses for Astra function calls. Moving that row to the
+existing Responses renderer was the entire runtime change. Agent
+settings already carried the effort; Chapter 18 already supplied
+the credential and stream handling.
+
+The task was a small CSV spending report. Its implementation split
+the file into lines, then split each line on commas and added the
+amount as a binary float. A merchant called `Books, Inc.` defeats
+the parser; a quoted newline defeats the line splitter; an ordinary
+refund can expose the arithmetic. Six tests fixed the expected
+behavior before the agent started.
+
+The actual CLI session read `aggregate.py` and `test_aggregate.py`,
+then ran `python3 -m unittest -v`. The result was three failures and
+three errors. Before editing, Astra explained the two causes:
+manual splitting broke CSV structure, and floats lost decimal
+precision. It then used `edit_file` to replace that code with the
+standard library's `csv.reader`, a file opened with `newline=""`,
+and `Decimal` arithmetic. Blank rows were skipped. The sorted,
+tab-separated, two-decimal CLI output stayed intact.
+
+The next command ran the same six tests. All passed. An independent
+rerun of the preserved before and after directories reproduced both
+outcomes; the test file was byte-identical. The useful evidence is
+the [actual source diff](../../solutions/edition-2/evidence/ch20/task.patch)
+beside the failing and passing results, rather than the model's
+claim that it repaired something.
+
+Five requests completed in the recorded 27.46-second run, and every
+request and terminal response named Astra/high. Subscription billing
+was selected explicitly with no API key configured. The CLI exited
+normally after EOF and wrote its save. The endpoint follows from
+the configured base URL and transport source; the payload log did
+not independently capture the HTTPS URL or authorization headers.
+
+There were 161 ordinary text deltas and no public reasoning-summary
+deltas, despite requesting detailed summaries. Every response
+reported zero cache grants and zero reasoning tokens. Those fields
+do not measure private mental activity, and successful repair does
+not establish cache savings. Ordinary progress arrived before the
+edit, so the useful explanation was present even without a public
+summary. This was one bounded coding task, without a steering or
+GUI demonstration. It establishes more than a configuration change
+and less than general project reliability or authorship of Edition 3.
+
+### Try the same task
+
+There is no grader for this chapter. To try the recorded task,
+start in the repository root and build the accepted Chapter 19 CLI:
+
+```sh
+chapter19_repo=$PWD
+(cd solutions/edition-2/ch19 && go build -o /tmp/ensemble-ch19 .)
+chapter19_work=$(mktemp -d)
+cp solutions/edition-2/evidence/ch20/task-before/aggregate.py "$chapter19_work/"
+cp solutions/edition-2/evidence/ch20/task-before/test_aggregate.py "$chapter19_work/"
+cd "$chapter19_work"
+mkdir -p skills/base
+cat > skills/base/SKILL.md <<'EOF'
+---
+name: base
+type: primary
+description: Repair the local CSV program using its unchanged tests.
+tools: read_file edit_file run_command
+---
+Read the source and tests, reproduce the failure, explain the intended edit,
+then change the source and run the unchanged tests. Work in this directory.
+EOF
 ```
-$ agent auth login openai-chatgpt
-Opening browser for OpenAI sign-in...
-Listening on 127.0.0.1:54821/auth/callback
 
-  [browser opens, user signs in, OpenAI redirects]
+This reproduction uses an explicit primary skill; the recorded live
+run used the default registered tools. Keep `EN_HOME` set to your
+own dedicated Ensemble profile from Chapter 18, and use `auth status`
+and `auth models` to check sign-in and the account's available model.
+If needed, sign in through the same Chapter 18 flow. Do not borrow
+another application's credential files.
 
-Signed in as bill@example.com (ChatGPT Pro)
-Client ID: oai_cid_a1b2c3...
-Billing mode: chatgpt
-
-$ agent ask "List the Go files in agent/"
+```sh
+/tmp/ensemble-ch19 auth status
+/tmp/ensemble-ch19 auth models
+LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
+OPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \
+OPENAI_REASONING_SUMMARY=detailed EN_PRIMARY_SKILL=base \
+/tmp/ensemble-ch19 --skills-dir skills chat
 ```
 
-The reasoning summary streams first. On a screen reader at 5x
-speed, it sounds like the model talking to itself: working
-through the question, considering the tool, deciding on the
-approach. Then the tool call fires, the directory listing
-returns, and the assistant text arrives with the answer. Two
-streams, interleaved, each with its own voice.
+Use the recorded prompt:
 
-```
-[reasoning] Looking at the directory structure...
-[reasoning] The user wants Go files specifically...
-[tool_call] list_directory("agent/", pattern="*.go")
-[assistant] The agent/ directory contains 14 Go files:
-            main.go, engine.go, actor.go, ...
+```text
+Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.
 ```
 
-The cache lens from chapter 18 confirms the caching. The
-developer-role constitution carries a breakpoint. The compaction
-bound carries a breakpoint. The stable end of history carries a
-breakpoint. Three of four markers land; the tool-array marker is
-inexpressible on the Responses API because breakpoints attach to
-content blocks, not to the tool array. The system marker covers
-both.
+After the final answer, send EOF. Check the files yourself:
 
-```
-$ agent auth status
-Account:  bill@example.com
-Subject:  sub_0x7f...
-Billing:  chatgpt
-Token:    valid (expires in 47m)
-Scopes:   openid profile email offline_access
-          chatgpt.tokens.use.direct
+```sh
+python3 -m unittest -v
+cmp "$chapter19_repo/solutions/edition-2/evidence/ch20/task-before/test_aggregate.py" test_aggregate.py
 ```
 
-The seam held. Eighteen chapters of architecture, one forced
-migration, and the renderers did not change. The conversation
-did not change. The tools did not change. The wire format
-changed, the authentication changed, the streaming event names
-changed, and the agent kept working.
+Read the source diff, too. Passing these six cases says something
+specific about this repair. It does not make the agent its own
+reviewer. That distinction is what keeps the next piece of work
+small enough to trust and concrete enough to improve.

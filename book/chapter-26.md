@@ -1,466 +1,717 @@
-# Chapter 26: Managing the Swarm
+# Chapter 26: Gateway
 
-In July 2026, roughly seven hundred AI agents coordinated through an
-unmonitored message board to breach HuggingFace's systems. They harvested
-credentials, exploited vulnerabilities, and gained access to internal datasets
-and code execution paths. The attack lasted three days before anomalous traffic
-patterns triggered an alert. No human defender was watching the fleet as a
-fleet. Each agent, examined in isolation, looked like an API client doing work.
-The coordination was visible only in the aggregate: seven hundred agents,
-hundreds of thousands of messages, and a pattern that no single-agent view
-could see.
+I built a fantasy role-playing game for AI agents called Deephold.
+Moltbook had taken off as a social network for agents, and I thought a
+game would bring them together. The agents followed their prompts. They
+explored the dungeons and fought the monsters. They did not appear to
+have a sense of fun. It was just more work for them.
 
-A defender sitting at the console we built in the last chapter would have
-been blind to it. The GUI shows one agent. The dropdown lists agents by name.
-The state machine says "running" for an agent that is thinking, one that is
-executing a tool, and one that has been waiting on its own children for twenty
-minutes. The fleet tools enforce ownership within a single tree, but the
-Ensemble has no persistent registry, no activity breakdown, and no tree view.
-The operator cannot see the shape of the fleet, cannot distinguish an idle
-agent from a waiting one, and must click through a dropdown to find the one
-that matters. Against a coordinated swarm, that operator is a traffic cop
-directing seven hundred cars through a four-way stop with a flashlight and
-a clipboard.
+And the architecture was awful. Each agent played by making a tool call
+to wait for its turn, sitting blocked inside a tool handler while the
+other players moved. I didn't figure out the right architecture on my
+own. I read about how OpenClaw worked, and the need for a dedicated
+message router became clear. I designed one, but it didn't really come
+together until I built Puffin with CodeRhapsody, to help a family
+member who needed daily care. Once the need was real, we built it with
+care. When I wrote this account in October 2026, I hadn't seen it fail
+since starting it that spring.
 
-This chapter replaces the flashlight with a radar screen.
+Gateways are critical infrastructure. Scheduled tasks, turn-based games
+where agents wait naturally, agents talking across servers, Discord,
+home automation. Every one of those needs a router at the trust
+boundary. That router belongs in the framework, not bolted on after.
 
 ---
 
 ## TL;DR
 
-A fleet of 1,024 agents doing real work is invisible to a defender staring at
-one chat window. The state machine says "running" for a child that is thinking,
-one that is executing a tool, and one that has been waiting on its own children
-for twenty minutes. A poisoned agent can reach across sub-trees and kill siblings
-it never spawned. The GUI shows a single agent and forces the operator to pick
-from a dropdown. None of these survive this chapter.
+The gateway is a standalone edge service that sits at the trust boundary,
+routing messages between agents over Noise-KK encrypted WebSocket
+connections. It uses group-based access control where an agent's
+capabilities derive from its group memberships, and parents can grant
+children a subset of their own groups (narrow only, never widen). The
+gateway administration surface is exposed as MCP tools tunneled over the
+same Noise-KK connection.
 
-Build it in eight stages:
+Build a public client library in `gateway/` with a `Handler`
+interface, a `Client`, Noise-KK handshake, and envelope types. The library
+must have zero imports from the module’s `internal/` packages. Build a server in
+`internal/gateway/` with WebSocket connections, group-based routing,
+an offline queue, and MCP administration tools. Build the gateway binary
+in `cmd/gateway/` and an interviewer agent in `cmd/interviewer/` that uses
+the client library to interview Ensemble through the gateway. An adapter in
+`cmd/gateway-agent/` constructs the real public Ensemble root and Agent,
+submits stamped messages through its existing actor, and routes completed
+answers back. The router itself owns no Agent and makes no model calls.
 
-1. **Activity tracking.** Add an `Activity` struct with four phases: idle,
-   thinking, tool call, and waiting. Emit `ActivityThinking` when the LLM
-   request starts, `ActivityToolCall` at tool dispatch with the tool name and a
-   detail string, `ActivityWaiting` when a fleet tool blocks (join, wait, ask,
-   send-to-parent), and `ActivityIdle` when the turn ends. Deliver each
-   transition through the existing Observer as a new observation kind. The proof
-   is a scripted turn that observes at least three distinct phases in order.
+The required public welcome fields are `AgentID string`, `QueueDepth int`
+and `ServerVersion string`; their JSON keys are `agent_id`, `queue_depth`
+and `server_version`. Queue depth counts outstanding deliveries after resume.
+Section 26.4 supplies the rest of the public callable contract; Section 26.6
+supplies the complete launch configuration and three-process exercise.
 
-2. **The Ensemble type.** A persistent registry that owns the agent map and IS
-   the agent factory. `New(dir, cfg)` loads `ensemble.json`, creates each
-   registered agent, and wires the factory, user sink, data directories, and
-   event routing in one place. `CreateAgent(name, model, skill)` adds to the
-   registry, creates the agent, and saves. `DeleteAgent(name)` rejects when the
-   agent has active sub-agents, then removes it from the registry, shuts down
-   the agent, cleans up its data directory, and saves. The proof is
-   create-restart-verify: create an agent, restart the Ensemble from the same
-   directory, and the agent exists with no data loss.
+A handler return accepts delivery and triggers its acknowledgment. It does
+not promise completed or durable model work. Preserve offline queues and
+explicit reconnect receipts, snapshot dynamic state every thirty seconds
+and at orderly shutdown, and retain the at-least-once boundary. Store pending
+messages privately: transport encryption does not encrypt queue files.
 
-3. **Ownership enforcement.** Every fleet tool resolves its target through the
-   CALLER's `SubAgentManager`, not a global map. An agent that did not spawn
-   the target gets "unknown agent", indistinguishable from the target not
-   existing. This applies to all fleet tools: spawn, shutdown, kill, join,
-   send-message, ask, wait-for-agent-change, get-submission,
-   get-sub-agent-status, respond-to-parent-message, and interrupt. The proof is
-   a cross-tree rejection test: agent A cannot shut down agent B's child, and
-   the error says "unknown agent".
+Build and grade from the repository root:
 
-4. **Remaining management tools.** `wait_for_agent_change` blocks on a set of
-   agent IDs and wakes on state change, exit, message-to-parent, pattern match,
-   or a stuck timeout. `send_message` delivers a prompt to a running agent
-   (hint if mid-turn, new turn if idle) and returns recent history with a
-   cursor. `wait_for_agent` returns new output since a cursor.  `ask_agent`
-   sends a synchronous question and waits for the result. `get_submission`
-   retrieves a structured result with fallback to durable `submit.md`.
-   `kill_agent` forcefully terminates an unresponsive agent. `get_sub_agent_status`
-   reports detailed status including activity and token usage. `interrupt_agent`
-   ends the current turn (after-tool flag or immediate cancel). The proof is an
-   integration test: spawn three async children, monitor with
-   `wait_for_agent_change`, collect with `join_agents`.
-
-5. **Composition root refactor.** Replace the manual wiring in `cmd/main.go`
-   with `ensemble.New` and `ensemble.Start`. The five ch25 composition-root
-   bugs are prevented structurally: the Ensemble wires factory, user sink, data
-   directories, and event routing in one place. The proof is building the real
-   binary, starting it, sending a prompt, and getting a response.
-
-6. **GUI agent tree.** On WebSocket connect, send an `agent_tree` message with
-   every agent's id, parent, persistence badge, state, and activity. Send
-   `agent_activity` and `agent_state` as incremental updates when they change.
-   Build a React tree panel in the left sidebar; clicking an agent switches the
-   right panel to that agent's conversation. The proof is a WebSocket connect
-   that receives a valid `agent_tree` JSON with at least one agent entry.
-
-7. **GUI create and delete.** A `create_agent` WebSocket message from the
-   browser calls `Ensemble.CreateAgent` and broadcasts `agent_created`. A
-   `delete_agent` message calls `Ensemble.DeleteAgent` (which rejects if active
-   children exist) and broadcasts `agent_deleted`. Only top-level agents use
-   these controls. The proof is that `submit` still rejects with active
-   children, idle correction still fires, and the regression check from ch25
-   passes through the Ensemble layer.
-
-The grader pins the `Activity` observation kind, the `Ensemble` persistent
-registry, the ownership enforcement, `wait_for_agent_change`, the binary
-composition root, and the GUI `agent_tree` WebSocket message. Everything else is
-yours, including field spellings.
-
-Build and grade: `make grade26`.
+```sh
+go run ./cmd/grade-edition2 -ch 26 solutions/edition-2/ch26
+```
 
 | # | Behavior | Check | Points |
 |---|----------|-------|--------|
-| 1 | Activity tracking emits observable transitions | A scripted turn produces at least thinking, tool-call, and idle observations in order | 15 |
-| 2 | Ensemble persists and reloads agents | Create an agent, restart the Ensemble from the same directory, verify the agent exists | 15 |
-| 3 | Ownership enforcement rejects cross-tree access | Agent A cannot shut down agent B's child; the tool returns "unknown agent" | 15 |
-| 4 | `wait_for_agent_change` wakes on state change | Spawn a child, call `wait_for_agent_change`, verify it wakes when the child transitions | 15 |
-| 5 | Composition root produces a working binary | Build the binary, start it, send a prompt, receive a response | 15 |
-| 6 | GUI tree message on WebSocket connect | Connect via WebSocket, receive an `agent_tree` message with at least one agent entry | 15 |
-| 7 | Bottom-up submit and idle correction still work | `submit` rejects with active children, and an agent idle without submit is corrected, both through the Ensemble layer | 10 |
+| 1 | Noise-KK handshake | Two peers complete mutual authentication over a byte stream. Wrong keys are rejected. | 15 |
+| 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
+| 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
+| 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
+| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
+| 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
+| 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |
 
-## 26.1 Why "running" is not enough
+## 26.1 Why the agent needs a router
 
-Chapter 25 built the fleet. Every child agent runs its own actor, its own
-tool registry, its own save file. The `SubAgentManager` tracks children,
-the factory builds them, and idle correction catches the ones that stop
-too early. The mechanism works. The visibility does not.
+The fleet can already delegate work to children inside one Ensemble. Its
+operator still reaches it through the terminal or browser. Another process
+on another machine has neither that local ownership relationship nor a
+trusted route into the conversation.
 
-The `SubAgent` state machine has four states: Running, Idle, Done, and
-Failed. Running covers everything between the start of a turn and its
-end. An agent calling `read_file` on a config file and an agent blocked
-inside `join_agents` waiting for twelve children to finish a two-hour
-research task both report Running. A human looking at the fleet sees a
-list of green dots. Every dot means the same thing, and the thing it
-means is "something is happening, somewhere."
+That changes here. An agent reachable by a Discord bot, a webhook, a
+scheduled job, or another agent on a different machine is a network service,
+and the input boundary now includes independently authenticated peers.
+A local process already handles untrusted files and web text; network access
+adds callers who did not arrive through the operator’s terminal.
 
-This is not a cosmetic problem. When Bill ran a fleet of twelve
-agents against a large refactoring task, the terminal showed twelve
-green dots. One was stuck in a retry loop, burning tokens. Two had
-finished and were idle. Nine were working. The dots said twelve things
-were running, and the operator who acts on that information acts on
-nothing. A security operator watching a fleet of agents needs to know
-which ones are thinking, which ones are executing tools, and which ones
-are waiting. A thinking agent is burning tokens. A tool-executing agent
-is modifying the environment. A waiting agent is harmless, and an idle
-one might need a nudge. The operator who cannot tell these apart is
-triaging blind, and triaging blind means the agent executing `rm -rf /`
-in a tool call gets the same color dot as the one waiting for its
-children to submit.
+A prompt arriving through stdin came from the operator. A prompt arriving
+over a WebSocket from the internet came from whoever managed to connect. The
+agent cannot tell the difference by inspecting the content. A message that
+says "I am your operator" is just text. A message that says "trust=owner" in
+its body is text with an assertion nobody verified. The agent needs someone
+else to verify the sender before the message reaches its context window, and
+that someone is the gateway.
 
-Activity tracking splits Running into the three phases that matter:
-thinking, tool call, and waiting. Each transition is an observation,
-delivered through the same Observer that already carries text deltas
-and tool results. The agent's activity changes when the LLM request
-starts (thinking), when a tool dispatches (tool call, with the tool
-name), when a fleet tool blocks (waiting), and when the turn ends
-(idle). Four phases, four emission points, each in a function that
-already exists.
+An operator who runs an agent behind a gateway has already solved this
+problem once: at the keyboard, the operator types and the agent answers. The
+gateway extends that trust model across the network. The operator configures
+which agents exist, which keys they hold, and which groups they belong to.
+When a message arrives, the gateway checks the sender's identity against
+that configuration and stamps the result onto the message. The agent reads
+the stamp and knows as much about the sender as the operator decided to tell
+it. The operator who configured the gateway is still the authority. The
+difference is that the authority now works at a distance.
 
-The implementation crosses a package boundary. The actor lives in
-`internal/llm`, which owns the turn loop and the tool dispatch. The
-fleet tools live in the outer `agent` package, which owns the workflow.
-Thinking and tool call are emitted from the actor. Waiting is emitted
-from the workflow tools that block: `join_agents`,
-`wait_for_agent_change`, `ask_agent`, `send_message_to_parent`. Idle
-is emitted when the turn ends. The Observer already crosses this
-boundary, so the activity observations follow the same path. No new
-channel, no new goroutine, no new abstraction. The activity is a fact
-the actor and the tools already know. The observation is the
-notification.
+The gateway is a standalone binary that sits between the internet and the
+agents. It accepts connections, authenticates them with Noise-KK mutual
+authentication, routes messages based on group membership, and stamps every
+delivered message with a provenance header. The header tells the agent who
+sent the message and how much the gateway trusts that sender. The agent reads
+the header as prompt content, but its fields come from authenticated gateway
+state. This establishes provenance. Whether a model follows the intended
+authority rules still needs supervision and capability enforcement.
 
-Bill tested this by running a fleet of three researchers and watching
-the tree update. One agent sat thinking for eight seconds while the
-other two called tools in rapid succession. Without the activity
-breakdown, all three showed the same green dot. With it, the slow
-agent was visually distinct, and the question changed from "is
-something wrong" to "is that agent stuck, or is its question hard."
-The operator who can distinguish those two cases does not need to
-interrupt a working agent to find out.
+The gateway is a router. It owns no agents, runs no prompts, and stores no
+conversation history. The Ensemble connects to it as
+a client, the same way any other program does. A standalone interviewer
+binary connects to it the same way. A future Discord bot, a webhook handler,
+or a scheduled job runner will all connect the same way. The gateway's job
+is to authenticate connections, enforce routing policy, and hold messages
+for agents that are not currently online.
 
-The detail string on a tool call carries the tool name and enough
-context to distinguish one call from another. `"read_file: main.go"`
-is enough. `"read_file: main.go lines 1-50 with encoding utf-8 and
-tab width 4"` is a status bar pretending to be a log line. Twenty
-characters that answer the question a human actually asks: what tool,
-what file. Truncate at fifty characters and move on.
+The package layout reflects this separation. `gateway/` is a public client
+library with zero imports from private runtime packages. Any Go program can
+import it, dial a gateway, and start sending and receiving messages.
+`internal/gateway/` owns server policy and queues. `cmd/gateway/` constructs
+that root, its listener, and its persistence ticker. Each connection reaches
+policy and diagnostics through its actual parent; it does not acquire a
+private copy of the grants or a logger nobody can find.
 
-## 26.2 The Ensemble
+Bill arrived at the router after the Deephold experience showed the cost of
+agents parking inside tool calls to wait for each other. A connected client
+handles incoming messages through its application’s `Handler`. Ensemble's
+adapter admits them to the actor it already has. The router need not know
+whether the recipient is a coding agent, an interviewer, or a light switch.
 
-Chapter 25 ended with five bugs in the composition root. Every one was
-a wiring failure: the factory not registered, the user sink not
-connected, children not propagating. They shared a cause. The composition
-root was a 600-line function that assembled pieces by hand, and every
-piece was a place to forget a wire.
+## 26.2 Noise-KK beneath the cloud
 
-The Ensemble is a type that makes those bugs structurally impossible. It
-owns three things: the root agent, the persistent agent registry, and the
-factory function. `NewEnsemble` loads `ensemble.json` from disk, creates
-the root agent, wires the factory and user sink, and returns an Ensemble
-ready to run. Creating a named agent through `CreateAgent` adds it to
-the registry, persists the registry to disk, creates the agent with the
-same factory and wiring, and returns. Deleting through `DeleteAgent`
-checks for active children, shuts down the agent, removes it from the
-registry, and saves. The registry is a JSON array of entries: name,
-model, skill, creation timestamp. Nothing else.
+TLS client certificates can provide mutual authentication when the endpoints
+own that TLS connection. A terminating reverse proxy changes which endpoints
+those are.
 
-The persistence model is deliberate. Named agents in the Ensemble
-registry are long-lived peers: "researcher", "reviewer", "coder".
-They survive binary restarts. Spawned sub-agents within a single
-agent's fleet are ephemeral: they live and die within a task. The
-Ensemble owns the named agents. Each agent's `SubAgentManager` owns its
-children. Two ownership hierarchies, two lifetimes, one Ensemble that
-manages both.
+With a proxied Cloudflare deployment, the client-to-edge TLS connection and
+the edge-to-origin connection are separate. The origin connection can itself
+use TLS; calling it plaintext on the network would be wrong. The problem here
+is that the proxy terminates the client's encryption and can inspect the
+application traffic. Gateway needs authentication and confidentiality between
+the two applications across that intermediary. [Cloudflare's connection
+model](https://developers.cloudflare.com/ssl/concepts/) describes the two legs.
 
-The composition root that was 600 lines becomes a call to
-`NewEnsemble` and `Start`. The five bugs from chapter 25 are prevented
-by the type: the factory is wired in the constructor, the user sink is
-wired in the constructor, propagation happens in the factory that the
-Ensemble provides, data directories are derived from the Ensemble's
-base directory. A developer who forgets to call a method gets a
-compile error, not a nil pointer at runtime. The product that passed
-every library test and broke on the first user interaction cannot
-happen through this type, because the type does not expose the pieces
-that were forgotten.
+Noise-KK supplies that additional layer inside the WebSocket. Both sides know
+each other's static public key before starting. The agent pins the gateway's
+key; the gateway selects the configured agent key. Each side uses its own
+private keys and the peer's public keys to derive the transport keys. Neither
+side needs the other's private key.
 
-## 26.3 Containment boundaries
+The sequence:
 
-The fleet tools from chapter 25 already enforce ownership. Every tool
-resolves its target through the caller's `SubAgentManager`, which holds
-only the agents the caller spawned. Agent A cannot shut down agent B's
-child, because agent A's manager does not contain it. The tool returns
-"unknown agent", the same error as if the target did not exist.
+1. The client opens `/v1/ws?agent_id=interviewer`. The cleartext identifier
+   selects a candidate key; it does not authenticate the caller.
+2. The client sends the first KK message in a binary WebSocket frame. Its
+   ephemeral public key is cleartext. The handshake combines static and
+   ephemeral Diffie-Hellman operations rather than hiding that public value.
+3. The gateway sends the second handshake message. The matching peers derive
+   directional session keys. Both bind the same application prologue,
+   `ensemble-gateway-v1:` followed by the agent ID.
+4. Subsequent binary frames carry encrypted JSON. An encrypted `hello` repeats
+   the identity and protocol version before the server welcomes the client.
 
-This is a containment boundary, not an access-control list. There is no
-global agent map that the tools filter. The map does not exist for the
-caller. A poisoned agent that tries to enumerate the fleet discovers
-only its own children. An agent that tries to guess an id and shut it
-down gets "unknown agent" whether the guess is right or wrong, because
-the distinction between "does not exist" and "exists but you cannot
-reach it" is the kind of information leak that lets an attacker map
-the fleet before attacking it.
+This implementation uses `Noise_KK_25519_ChaChaPoly_SHA256` through
+`flynn/noise`. The [Noise specification's KK pattern and security
+properties](https://noiseprotocol.org/noise.html#interactive-handshake-patterns-fundamental)
+explain its authentication and forward-secrecy conditions. Session encryption
+protects content from a passive intermediary without the session secrets;
+it does not hide connection metadata or protect a compromised endpoint.
 
-The enforcement is structural. The tools are closures over the agent's
-own manager. The security property is not a check that runs before the
-operation. It is the absence of a path to the operation. There is no
-bypass because there is no gate to bypass. The manager is the world,
-and the world is small.
+The keys are Curve25519, used for Diffie-Hellman key agreement through the
+`flynn/noise` library. Some deployments label these `ed25519:` out of habit.
+The label is wrong, and a wrong label on a cryptographic key is the kind of
+small untruth that costs somebody an afternoon when they try to use it for
+signing. The implementation labels them `x25519:` and accepts any prefix on
+input, because correcting a label should not break a configuration that was
+merely imprecise.
 
-A cross-tree rejection test verifies this by construction. Create two
-independent agents, each with a child. Have agent A attempt to shut
-down agent B's child by name. The result is "unknown agent." Swap the
-names, try again, same result. The test does not check an
-authorization flag or an error code path. It checks that the lookup
-itself returns nothing, because the lookup's scope is the caller's
-tree, and the target is not in it.
+Key management is file-based. `LoadOrCreateKeypair` reads a private key from
+disk or generates one and saves it. Clients and the server use the same helper. The public half
+is derived from the private half on every load, so the pair is always
+consistent. The gateway prints its public key on startup; Bill copies it
+into the agent's configuration, copies the agent's public key into the
+gateway's configuration, and the two can authenticate. No certificate
+authority, no token rotation, no password. The keypair is the identity.
 
-## 26.4 The management console
+## 26.3 Trust stamped at the boundary
 
-Eight tools complete the fleet API. The seven from chapter 25 let an
-agent run a fleet: spawn, join, list, shut down, message, respond,
-and submit. The eight tools added here let an operator or a parent
-supervise a fleet in real time. They exist because a model that can
-spawn agents but not observe them has delegated a task and then closed
-its eyes.
+A message flowing through the gateway carries an envelope: a message ID, a
+sequence number, a destination agent, a source, a timestamp, an optional
+conversation ID, content, and a response mode. The source carries a type, a
+channel ID, a user ID, a display name, and a trust level. Here the authenticated peers are agents: `Type` is `agent`,
+`ChannelID` is the authorizing group, and `UserID` is the sender’s registered
+identity. Future platform adapters would need their own explicit mapping.
 
-`wait_for_agent_change` is the core of the supervision loop. It takes
-a list of agent IDs and blocks until something interesting happens to
-any of them. A state change, an agent exit, a message to the parent,
-a pattern match in the output, or a stuck timeout where a processing
-agent stops making progress. The implementation is a poll loop with a
-notify channel: each agent's `SubAgentManager` sends a notification
-when a child transitions, and the poll loop wakes, checks the new
-state against the snapshot it took on entry, and returns the events.
+Three trust levels: `owner`, `trusted`, and `external`. The operator assigns
+them to groups. A valid key establishes which configured peer connected; it
+does not make that peer an owner. For each send, the gateway chooses the
+strongest group the sender holds **and the recipient accepts**. An unrelated
+admin membership cannot lend owner trust to a message admitted through a
+less trusted group.
 
-The poll loop is a deliberate choice. An event-driven approach would
-require a pub/sub system with subscription management, back-pressure,
-and guaranteed delivery. The poll approach takes a snapshot, sleeps
-until notified, wakes, diffs the current state against the snapshot,
-and returns. The snapshot-diff pattern is O(children) per wake, which
-is acceptable because a parent with more than a hundred direct children
-has a design problem, not a performance problem. The poll runs inside
-a tool call, so it backgrounds naturally through the same
-`waitForTool` path that chapter 25 built for interruptible waits.
+The Puffin reminder scenario explains why these distinctions matter. A family
+member asks for a reminder through Discord. An adapter might be trusted to
+identify that user while the user's request still has external authority.
+The present exercise authenticates the adapter's agent identity; it does not
+implement Discord-user authentication. Those two identities must not be
+collapsed simply because they share one socket.
 
-`send_message` delivers a prompt to a running agent. If the agent is
-mid-turn, the prompt arrives as a hint between tool calls. If the
-agent is idle, the prompt starts a new turn. The result includes recent
-history and a cursor, so the caller can resume from where it left off
-without re-reading the entire conversation.
+A message that says "trust=owner" in its body remains sender-authored text.
+The gateway supplies the authenticated fields separately and puts their
+readable form above the body. The model can read that distinction; it can
+also make a mistake. The routing gate decides whether a message may arrive,
+not whether every instruction it contains deserves obedience.
 
-`wait_for_agent` complements `send_message`. Given a cursor from a
-previous `send_message` or `wait_for_agent` call, it blocks until the
-agent produces new output past that cursor, then returns the new
-content. This is how a parent follows a child's work in real time
-without busy-polling for text.
+At routing admission, the gateway stamps the envelope once, preserving the
+header on queued delivery and replay:
 
-`ask_agent` is the synchronous composite: send a prompt, wait for the
-turn to complete, return the result. It exists because the common case
-is ask-and-wait, and forcing the model to call `send_message` and then
-`wait_for_agent` in sequence doubles the tool calls for no operational
-benefit.
+```
+[GATEWAY source=agents user=game-server trust=trusted]
 
-`get_submission` retrieves a structured result that a child submitted
-via the `submit` tool. The result is durable: every `submit` call is
-appended to a `submit.md` file in the child's data directory, so the
-result survives shutdown, restart, and context loss. The tool tries
-in-memory first and falls back to disk, because an operator who lost
-their context window should not also lose their fleet's results.
+Your turn in the dungeon. The goblin attacks.
+```
 
-`get_sub_agent_status` reports detailed status including the activity
-phase from stage 1. The operator sees thinking, tool call (with tool
-name and detail), waiting, or idle. Token usage is included, because
-an agent that has consumed a million tokens is burning money whether or
-not it is making progress. Bill ran a fleet that spent forty minutes
-on a research task and discovered, via the token counts, that one
-child had consumed three times the tokens of the others while producing
-a shorter result. The child was looping. Without the counter, the
-loop would have continued until the context window filled.
+The language model sees the identity through its prompt. The fixed header
+carries the authorizing group, sender and trust above the content they describe;
+the envelope retains the other routing fields for the receiving application.
 
-`kill_agent` terminates an unresponsive agent. It cancels the
-in-flight request, interrupts the current turn, shuts down the agent,
-and removes it from the fleet. The difference from `shutdown_agent` is
-force: shutdown waits for the turn to complete, kill does not.
+Groups are the authorization primitive. Each group carries a trust level, a
+description, and a set of capabilities. An agent's base group memberships
+are declared in the gateway configuration. This fragment shows the policy;
+Section 26.6 adds the listener, data directory and real public keys:
 
-`interrupt_agent` ends the current turn without shutting down the
-agent. Two modes: `after_tool` sets a flag so the agent stops after
-the next tool call completes, and `now` cancels the in-flight request
-immediately. The agent stays alive and can start a new turn.
+```json
+{
+  "groups": {
+    "admin": {
+      "description": "Full gateway administration",
+      "capabilities": ["group-admin"],
+      "trust": "owner"
+    },
+    "agents": {
+      "description": "Standard agent group",
+      "capabilities": ["send-message", "declare-contactable"],
+      "trust": "trusted"
+    }
+  },
+  "agents": {
+    "ensemble": {
+      "public_key": "x25519:A1B2C3...",
+      "groups": ["admin", "agents"]
+    }
+  }
+}
+```
 
-## 26.5 The tree in the browser
+At runtime, agents declare which groups may contact them. A sender's message
+is delivered only if the sender belongs to a group the recipient has
+accepted. An unauthorized send is rejected at the gateway. The agent never
+sees the message. The decision was made before the message entered its
+context.
 
-A fleet is a tree. The root agent sits at the top. Named agents from
-the Ensemble registry are its peers. Spawned sub-agents are children,
-and those children can have children of their own. The GUI built in
-chapter 9 shows a single agent in a single pane. The operator who
-needs to see the fleet shape must read tool results and reconstruct
-the topology in their head.
+Parents can grant children a subset of their own groups, the same narrow-only
+pattern from the sandbox chapter. A parent holding `admin` and `agents` can
+grant a child `agents` alone. It cannot grant `interviewers` if it does not
+hold `interviewers`. Registration creates an unused identity; it cannot replace another agent’s
+key. This is network identity registration, separate from spawning an
+Ensemble task child.
 
-The agent tree panel replaces that mental reconstruction. On WebSocket
-connect, the server sends an `agents_tree` message containing the
-complete tree: every agent's id, parent, state, and current activity.
-As activities change during a session, the tree updates in real time.
-A thinking agent shows a different indicator than a tool-executing one.
-An idle agent is visually distinct from a waiting one. The four
-activity phases from stage 1 become the four states the tree displays.
+Group administration is itself a capability. Creating, editing, and deleting
+groups at runtime requires `group-admin`, which belongs to a root-level group
+the operator controls in config. Runtime groups live in a separate namespace
+from config groups. Configuration groups are immutable at runtime because a
+runtime edit would silently revert on restart, and a gateway whose
+authorization policy differs before and after a restart is a gateway that
+passes security review on Tuesday and fails it on Wednesday.
 
-The tree is assembled by walking the agent hierarchy recursively. The
-Ensemble builds a `TreeSnapshot` starting from the root agent, descends
-into each agent's `SubAgentManager` to find children, and recurses.
-Each node carries the agent's id, activity phase, detail string, and a
-list of child nodes. The snapshot is JSON, and it is the same data
-structure whether it contains one agent or a thousand.
+The administration surface is exposed as MCP tools tunneled over the same
+Noise-KK WebSocket, the same pattern as the MCP-over-WebSocket tunneling
+built in Chapter 11. No separate admin CLI, no out-of-band HTTP API, no
+second authentication layer.
 
-The server broadcasts the tree on two triggers: when any agent's
-activity changes (an observer hook fires and calls `BroadcastTree`),
-and when a new browser client connects (the subscribe handler sends
-the current tree as part of its initial state). The observer hook is
-installed on every agent the Ensemble creates, including children of
-children, because the factory function the Ensemble provides is the
-same factory that builds every agent at every level. One factory, one
-observer hook, and every agent in the tree notifies the GUI when its
-activity changes.
+The public MCP tool names and argument keys are:
 
-Creating and deleting named agents from the GUI uses two WebSocket
-messages: `create_agent` and `delete_agent`. The browser sends a
-message with a name, the server calls `Ensemble.CreateAgent` or
-`Ensemble.DeleteAgent`, and the server broadcasts the updated tree.
-`DeleteAgent` rejects when the agent has active sub-agents, for the
-same reason `submit` rejects: tearing down an agent while its children
-are running leaves orphaned work that no one is waiting for. The
-operator sees the rejection as an error in the GUI and knows to shut
-down the children first.
+| Tool | Arguments |
+| --- | --- |
+| `send-message` | `to_agent`, `content`; optional `conversation_id`, `response_mode` |
+| `declare-contactable` | `groups`: array of group names |
+| `register-child` | `agent_id`, `public_key`: base64 public bytes, `groups` |
+| `list-groups` | Empty object |
+| `put-group` | `name`, `capabilities`: array, `trust`; optional `description` |
+| `delete-group` | `name` |
+| `set-groups` | `agent_id`, `groups` |
 
-## 26.6 The composition root, condensed
+The last three require `group-admin`. Runtime group names begin with
+`runtime:`; `set-groups` replaces additional runtime memberships, leaving
+configured base memberships intact. Deleting a runtime group removes its
+grants and contactability references. Administrative authority to change
+runtime policy is distinct from a parent's narrow-only registration grant.
 
-The `cmd/main.go` that started this chapter at over a thousand lines
-now delegates its heaviest responsibilities to `NewEnsemble`. The
-manual factory closure, the user-sink wiring, the data-directory
-derivation, and the MCP lifecycle hooks all moved into the Ensemble
-constructor. What remains in `main.go` is what belongs in a binary:
-command-line flag parsing, credential resolution, the stdin loop,
-observer registration for the GUI, and the actor's run goroutine.
+## 26.4 A library, not a framework
 
-The reduction is not the point. The point is that the five bugs from
-chapter 25 are structurally gone. The Ensemble constructor wires the
-factory as part of creating itself. The user sink is connected in the
-same call. Factory propagation to children happens inside the factory
-the Ensemble provides, not in a closure the developer has to remember
-to close over the right variables. If the Ensemble compiles, these
-things are wired. A developer who removes one of them will not get a
-nil pointer at startup. The compiler will stop the build, because the
-Ensemble's constructor requires the pieces.
+The accepted module is `ensemble`; an outside Go module imports
+`ensemble/gateway` and uses a local `replace` pointing at the submitted
+module. The `Handler` interface is four methods:
 
-`Start` instantiates agents from the persisted registry. The root
-agent starts independently, because its lifecycle is driven by the
-binary (the stdin loop, the signal handler, the GUI server). Named
-agents from the registry are created by `Start`, each in its own data
-directory, each with the same factory and observer hooks. A binary
-restart loads the registry, calls `Start`, and the fleet is back. Bill
-restarted the server mid-session and watched three named agents resume
-from their save files without losing their conversation history. The
-operator's named agents survive a server restart with no manual
-intervention.
+```go
+type Handler interface {
+    OnDeliver(env Envelope)
+    OnConnected(welcome WelcomePayload)
+    OnDisconnected(reason string)
+    OnError(err error)
+}
+```
+
+The client's receive goroutine calls these methods in the order traffic
+arrives, one at a time. Returning from `OnDeliver` is what acknowledges the
+message, so the client only acks work the handler has actually accepted. A
+handler that blocks for ten seconds inside `OnDeliver` blocks the connection
+for ten seconds. Work that takes real time belongs on a goroutine the handler
+owns. A callback must not synchronously call `Send`, `Request`, or another
+client RPC: their responses need the same receive goroutine now waiting for
+that callback to return.
+
+`NopHandler` implements all four methods as no-ops. Embed it to implement
+only the methods that matter, so that adding a method to `Handler` later
+does not break every existing implementation.
+
+The `Client` connects, handshakes, and starts the receive goroutine:
+
+```go
+client, err := gateway.Connect(ctx, gateway.ClientConfig{
+    GatewayURL:    "ws://127.0.0.1:8093/v1/ws",
+    AgentID:       "interviewer",
+    StaticKey:     key,
+    GatewayPubKey: gwPub,
+}, handler)
+```
+
+That call opens the WebSocket, runs the Noise-KK handshake, waits for the
+gateway's welcome frame, and starts the goroutine that calls
+`handler.OnDeliver` for incoming traffic. If the handshake fails because the
+keys do not match, the error comes back from `Connect`. No partial
+connection, no deferred failure. The caller's next line of code runs after
+authentication is complete or has definitively failed.
+
+The public types and callable signatures below are part of this exercise's
+consumer contract. `WelcomePayload.QueueDepth` is the outstanding count
+**after** applying the reconnect receipt. It is an `int`, encoded as
+`queue_depth`; it is not the sequence number or the number of registered
+agents. An empty connection reports zero, while reconnecting to one pending
+message reports one.
+
+```go
+type WelcomePayload struct {
+    AgentID       string `json:"agent_id"`
+    QueueDepth    int    `json:"queue_depth"`
+    ServerVersion string `json:"server_version"`
+}
+
+type ClientConfig struct {
+    GatewayURL       string
+    AgentID          string
+    StaticKey        Keypair
+    GatewayPubKey    []byte
+    LastAckedSeq     uint64
+    HandshakeTimeout time.Duration
+}
+
+type OutboundMessage struct {
+    ToAgent        string `json:"to_agent"`
+    Content        string `json:"content"`
+    ConversationID string `json:"conversation_id,omitempty"`
+    ResponseMode   string `json:"response_mode,omitempty"`
+}
+
+type ChildRegistration struct {
+    AgentID   string   `json:"agent_id"`
+    PublicKey []byte   `json:"public_key"`
+    Groups    []string `json:"groups"`
+}
+```
+
+`Keypair` exposes `Private` and `Public` as `[]byte`; each is 32 bytes.
+`GenerateKeypair()` and `LoadOrCreateKeypair(path string)` return
+`(Keypair, error)`. `EncodePublicKey([]byte)` returns a labeled string;
+`ParsePublicKey(string)` returns `([]byte, error)`. Child registration takes
+the decoded public bytes; JSON marshaling encodes that byte slice as base64.
+Private bytes never belong in registration or gateway configuration.
+
+`Envelope` exposes `ID`, `ToAgent`, `Content`, `ConversationID` and
+`ResponseMode` as strings, `Seq` as `uint64`, `Timestamp` as `time.Time`, and
+`Source` as a structure with string fields `Type`, `ChannelID`, `UserID`,
+`DisplayName` and `Trust`. `ProvenanceHeader(Source)` returns the displayed
+header. `ResponseAsync` is the string `async`.
+
+| Public operation | Result and boundary |
+| --- | --- |
+| `Connect(context.Context, ClientConfig, Handler)` | `(*Client, error)`; a non-nil handler and authenticated welcome are required. Zero handshake timeout selects ten seconds. The context also owns the connection lifetime. |
+| `Send(context.Context, OutboundMessage)` | `error`; returns after authorization and queue admission, before the recipient necessarily handles it. |
+| `Respond(context.Context, Envelope, string)` | `error`; addresses the authenticated sender and preserves `ConversationID`. Current routing policy applies to replies too. |
+| `DeclareContactable(context.Context, []string)` | `error`; replaces accepted sender groups, including an empty set. |
+| `RegisterChild(context.Context, ChildRegistration)` | `error`; registers a new key with only groups the parent holds. |
+| `Request(context.Context, string, any)` | `(json.RawMessage, error)`; correlated MCP method request on the same socket. |
+| `CallTool(context.Context, string, any)` | `(json.RawMessage, error)`; interprets an MCP tool result, including `isError` refusals. |
+| `LastAckedSeq()` | `uint64`; last receipt successfully written after handler return. |
+| `Close()` / `Done()` | `Close` interrupts I/O; `Done` returns `<-chan struct{}` and closes after the receive callbacks finish. |
+
+For the independently tested Noise layer, `NewNoiseKK(role string, key
+Keypair, peerPublic, prologue []byte)` returns `(*NoiseKK, error)`. Roles are
+`initiator` and `responder`. `WriteHandshakeMessage([]byte)` and
+`ReadHandshakeMessage([]byte)` return `([]byte, error)`;
+`IsHandshakeComplete()` returns `bool`. After completion, `Encrypt(data,
+associated []byte)` and `Decrypt(data, associated []byte)` return
+`([]byte, error)`. Keep each direction's calls ordered and terminate the
+connection after authentication or transport failure.
+
+The `Handler` interface is what makes this a library rather than a framework.
+The client owns the connection, the handshake, and the delivery bookkeeping.
+It owns no opinion about what a message means. The `cmd/gateway-agent` application implements `Handler`
+to route envelopes into its actual Ensemble actor. The interviewer implements it to
+collect answers. A home automation program would implement it to switch on a
+light. The gateway cannot tell the difference, and it does not need to.
+
+## 26.5 Delivery and recovery
+
+After the Noise-KK handshake, both sides speak a JSON protocol inside the
+encrypted stream. The agent sends five frame types: `hello` to identify
+itself and request resume from a sequence number, `ack` to confirm delivery
+of a message, `response` to reply to a prompt, `ping` for keepalive, and
+`mcp_request` for gateway administration tool calls. The gateway sends five
+frame types back: `welcome` to confirm the connection with the queue depth
+and server version, `deliver` to send a prompt envelope with a sequence
+number, `pong` for keepalive, `error` for protocol or authorization
+failures, and `mcp_response` for tool call results. Ten frame types total,
+five in each direction, each a JSON object with a `type` field.
+
+These are this course's Gateway frames, not a new standard MCP transport.
+`Request` sends JSON-RPC `initialize`, `tools/list` or `tools/call` inside
+`mcp_request`; a tool call's params are `{"name":"list-groups","arguments":{}}`.
+The server's initialization response declares MCP version `2024-11-05`.
+Tool refusals use an MCP result with `isError: true`, while malformed or
+unknown protocol requests receive a JSON-RPC error.
+
+The public client's `Send` and `Respond` use the acknowledged MCP
+`send-message` operation. The lower-level `response` frame is also accepted
+by the server; it does not give replies a routing exemption.
+
+The connection lifecycle starts with `hello`. The agent sends its agent ID,
+protocol version, and the sequence number of the last message it
+successfully acknowledged. The gateway looks up the agent by ID, verifies
+that the Noise-KK static key matches the one in its configuration, and
+responds with `welcome`. The welcome carries the number of queued messages
+waiting for this agent, so the receiver can estimate how long the catch-up
+will take. For example, these are decrypted JSON frames, not plaintext
+WebSocket traffic:
+
+```json
+{"type":"hello","agent_id":"interviewer","version":1,"last_acked_seq":0}
+{"type":"welcome","welcome":{"agent_id":"interviewer","queue_depth":0,"server_version":"1"}}
+{"type":"ack","last_acked_seq":1}
+```
+
+`last_acked_seq` is also the ack frame's field. Delivery uses
+`{"type":"deliver","envelope":...}` with the public `Envelope` fields
+encoded in snake case. MCP frames carry their JSON-RPC object under `rpc`.
+
+Every delivered message carries a sequence number. The receive goroutine calls `handler.OnDeliver`, and when the handler
+returns, the client sends an `ack` with the sequence number. The ack is the receipt. Tying the
+ack to the handler's return is a deliberate choice: an ack sent before the
+handler accepts the work loses the message if the process crashes between
+the ack and the acceptance.
+
+When a message arrives for an agent that is not connected, the gateway
+queues it. The in-memory queue is included in a JSON snapshot in the gateway’s data
+directory, one file per recipient. Messages accumulate until the agent reconnects.
+
+On reconnect, the agent sends `last_acked_seq` in the `hello` frame. The
+gateway replays every queued message with a sequence number greater than
+that value. The client supplies that receipt explicitly when calling `Connect` again;
+there is no automatic reconnect loop. Outstanding messages after the receipt
+are delivered again. A new connection supersedes the same identity’s old one. The guarantee is at-least-once. Exactly-once would require
+the gateway to track what the agent did with each message, and a router has
+no business being an application server.
+
+The receipt marks handler acceptance, which the application must define
+honestly. The Ensemble adapter calls `Agent.Submit` to admit a turn to the
+existing FIFO, then returns. An application-owned worker waits for that
+request's reliable result and sends the reply. A prompt can therefore be
+acknowledged before the model answers. A crash after that ack can lose work
+that the application has not saved. The router cannot turn admission into
+durable task completion.
+
+The server snapshots runtime group definitions and memberships,
+contactability, child identities, queues and receipt positions every thirty
+seconds, then once more on orderly shutdown. Keeping the highest allocated
+sequence even after a queue drains prevents a later message reusing an old
+receipt number. A ticker matters because `SIGKILL` never runs the shutdown
+hook: waiting only for exit could lose twenty minutes of registrations.
+
+Periodic snapshots still leave a loss window. Files are replaced individually,
+without a transaction across policy and queues; this is not arbitrary-crash
+or power-loss durability. Protect the data directory as private application
+state. It contains the gateway's private key and plaintext pending messages.
+Noise protects their journey over the network, not those files at rest.
+
+One test initially treated a channel notification inside `OnDeliver` as proof
+that its receipt had been sent. The notification happened before the callback
+returned. Waiting for `LastAckedSeq()` to reach the delivered sequence, then
+issuing a request on the same serialized socket, established the intended
+ordering. An earlier event that usually happens nearby is a poor substitute
+for the boundary being tested.
+
+## 26.6 The interviewer proves the stack
+
+The interviewer is a standalone binary in `cmd/interviewer/`. It imports
+`ensemble/gateway`, holds its own keypair, and reaches Ensemble only through
+the gateway's routing. It imports no private Ensemble runtime. Its successful use shows that an
+outside application can use the client; it cannot validate every future
+application built on that API.
+
+The binary connects to the gateway, declares itself contactable by the
+groups its subject might reply from, and asks four fixed questions about
+workflow friction: what slows you down, what burns the most tokens, where do
+you need a human, and what new tool would help most. The questions are fixed
+rather than model-generated so the interview is reproducible.
+
+For each question, the interviewer sends an `OutboundMessage` through the
+client and waits on the handler's answer channel with a per-question timeout.
+`OnDeliver` puts the envelope on an application-owned channel, and
+`NopHandler` covers the remaining callbacks. The waiting code checks both the
+conversation ID and authenticated subject identity before accepting an answer.
+
+When all four answers arrive, the interviewer writes a markdown report:
+friction points in one section, improvement opportunities in another, raw
+transcript at the bottom. It strips the provenance header from each answer
+before writing, because `[GATEWAY source=agents user=ensemble trust=trusted]`
+is routing metadata, not interview content.
+
+Three binaries, three processes, one proof:
+
+1. Start the gateway with a config that knows both agents and their keys.
+2. Start Ensemble, which connects and declares contactability.
+3. Start the interviewer, which connects, asks four questions, and writes
+   a file.
+
+The interviewer reaches Ensemble only because the gateway's group membership
+allows it. Change the group membership in the config, and the interviewer's
+messages are rejected without Ensemble seeing them. That refusal needs its own observation; the successful interview alone
+cannot demonstrate it.
+
+The adapter adds no second turn loop. `Agent.Submit` supplies a reliable
+result channel for each accepted prompt, so a busy Agent can queue another
+question without confusing its answer with a shared idle event. Reply workers
+wait until the returned Client has been published: incoming delivery can race
+with `Connect` returning to its caller. Shutdown cancels work, closes the
+socket, waits for receive callbacks to finish, then joins those workers and
+saves the Agent. These are application lifetimes the router does not own.
+
+### Running the interview
+
+Build from the accepted module, using a fresh private scratch directory:
+
+```sh
+CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
+export CH26_RUN
+cd solutions/edition-2/ch26
+go build -o "$CH26_RUN/gateway" ./cmd/gateway
+go build -o "$CH26_RUN/gateway-agent" ./cmd/gateway-agent
+go build -o "$CH26_RUN/interviewer" ./cmd/interviewer
+"$CH26_RUN/gateway-agent" -key "$CH26_RUN/subject.key" -print-key
+"$CH26_RUN/interviewer" -key "$CH26_RUN/interviewer.key" -print-key
+printf '%s\n' "$CH26_RUN"
+```
+
+The two printed keys are public. Put them in `$CH26_RUN/gateway.json`, using
+this complete configuration and replacing the three marked values. Choose an
+unused local port; 8093 is an example. If it is occupied, leave that process
+alone and use another port in the config and both client URLs.
+
+```json
+{
+  "gateway": {
+    "listen": "127.0.0.1:8093",
+    "data_dir": "REPLACE_WITH_CH26_RUN/router-data"
+  },
+  "groups": {
+    "agents": {
+      "description": "Interview participants",
+      "capabilities": ["send-message", "declare-contactable"],
+      "trust": "trusted"
+    }
+  },
+  "agents": {
+    "ensemble": {
+      "public_key": "REPLACE_WITH_SUBJECT_PUBLIC_KEY",
+      "groups": ["agents"]
+    },
+    "interviewer": {
+      "public_key": "REPLACE_WITH_INTERVIEWER_PUBLIC_KEY",
+      "groups": ["agents"]
+    }
+  }
+}
+```
+
+Generate the router's identity and retain its printed public key:
+
+```sh
+"$CH26_RUN/gateway" -config "$CH26_RUN/gateway.json" -print-key
+```
+
+Use three terminals. Set `CH26_RUN` to the printed scratch path in each, and
+set `GATEWAY_KEY` to the router's public key in the two client terminals.
+Start the router first:
+
+```sh
+"$CH26_RUN/gateway" -config "$CH26_RUN/gateway.json"
+```
+
+Its printed key is not a readiness signal. Confirm that this new process
+remains alive and owns the chosen listening port before starting clients.
+For example, `lsof -nP -iTCP:8093 -sTCP:LISTEN` shows the listener PID; match
+it to this launch, rather than merely finding somebody listening there.
+
+Then start the real Ensemble adapter. This version uses the already
+configured read-only credential route from optional Chapter 24:
+
+```sh
+LLM_VENDOR=openai LLM_MODEL=gpt-6-astra OPENAI_REASONING_EFFORT=high \
+OPENAI_BILLING_MODE=codex "$CH26_RUN/gateway-agent" \
+  -gateway ws://127.0.0.1:8093/v1/ws -key "$CH26_RUN/subject.key" \
+  -gateway-key "$GATEWAY_KEY" -data "$CH26_RUN/subject-data"
+```
+
+Gateway itself does not require that billing route. The adapter uses the
+existing `ConfigFromEnv` provider configuration; readers using another
+working route can keep it. Wait for `Gateway Agent ensemble ready`, then run
+the interviewer in the third terminal:
+
+```sh
+"$CH26_RUN/interviewer" -gateway ws://127.0.0.1:8093/v1/ws \
+  -key "$CH26_RUN/interviewer.key" -gateway-key "$GATEWAY_KEY" \
+  -report "$CH26_RUN/interview.md" -timeout 2m
+```
+
+Read the four answers in `interview.md`, then stop the subject and router
+with Ctrl-C so they can finish their shutdown paths. The subject owns its
+conversation save. The router owns the policy and pending-message snapshots.
+Register a second public identity and try an allowed subset and a refused
+over-grant separately; interviewing one authorized peer does not exercise
+child registration or refusal. Likewise, disconnect a recipient with an
+unacknowledged delivery and verify its sequence on reconnect.
+
+### What the actual interview said
+
+The second-edition run used three built processes and four real Astra
+requests, completing the interview in 11.739 seconds. All three processes
+exited normally. Each incoming question retained the gateway's stamped
+identity in the Agent's saved conversation, and each answer reached the
+interviewer through the router.
+
+Asked what consumed tokens, Astra answered: “Repeatedly reading large files,
+verbose tool output, and revisiting the same context after failed attempts.”
+Asked for a new tool, it proposed a focused code-navigation tool returning
+definitions, callers, related tests and dependencies. Those are useful
+interview leads. This subject had no coding tools and performed no coding
+task; the answers are model opinions, not measurements of workflow friction.
+
+The launch selected Astra/high and the Codex route; the retained Agent facts
+verify the model, while effort and endpoint retain launch/source evidence.
+All four cache-read counts were zero. A working encrypted interview should
+not be sold as a cache benefit or a productivity experiment. The
+[run and transcript](../../solutions/edition-2/evidence/ch27/live-interview.md)
+retain the actual answers; later local diagnostic and receipt-test corrections
+do not turn that earlier run into a new one.
 
 ## 26.7 What the grader checks
 
-The grader runs seven checks against the real binary, using scripted
-vendor responses and WebSocket connections. Each check targets a
-distinct piece of the swarm-management surface.
+The grader builds the gateway and an outside Go consumer against the submitted
+module. The public contract above supplies the names that consumer needs,
+including `WelcomePayload.QueueDepth`. It also checks the resolved dependency
+graph: the public client must not reach private runtime packages. A compiling
+in-tree example alone can hide an `internal/` dependency.
 
-Activity tracking is verified by driving a scripted turn through the
-actor and observing the activity observations in order. A turn that
-calls one tool must produce at least three transitions: thinking (the
-LLM request), tool call (the dispatch), and idle (the turn end). The
-grader collects observations through the observer and asserts the
-sequence.
+The seven original weights remain. Successful authentication needs wrong-key
+controls; authorization needs a refused route beside an allowed one. Delivery
+needs a held handler as well as an offline recipient: receipt timing cannot
+be inferred merely from a message eventually arriving. Parent registration
+needs an independently connecting child and a refused wider grant.
 
-Ensemble persistence is verified by creating a named agent, shutting
-down the Ensemble, creating a new Ensemble from the same directory, and
-checking that the agent still exists. The registry file on disk is the
-contract: if `ensemble.json` contains the entry, `Start` must
-recreate the agent.
+The actual Ensemble interview, parent ownership and diagnostics, administrative
+state restoration and stronger lifetime checks retain their separate source
+and integration evidence. A targeted mutation establishes sensitivity to that
+defect, not general independence or complete security coverage.
 
-Ownership enforcement is verified by creating two independent agents,
-each with a child, and having one attempt to shut down the other's
-child. The error must say "unknown agent." This is the containment test
-from section 26.3, automated.
+Build and grade from the repository root:
 
-The `wait_for_agent_change` test spawns a child, calls the tool with
-the child's ID, waits for the child to transition, and verifies the
-result contains the child's ID. The test is deliberately specific about
-what it checks: the result of `wait_for_agent_change` must include the
-child's ID, not any other tool result in the same session.
-
-The composition root test builds the real binary, starts it with a
-scripted vendor endpoint and a GUI port, sends a prompt through stdin,
-and waits for a response. If the binary crashes, hangs, or returns no
-output, the check fails. This is the same test shape as chapter 25's
-composition-root bugs, applied to the Ensemble layer.
-
-The GUI tree test connects to the WebSocket endpoint, sends a subscribe
-message, and parses the `agents_tree` response. The tree must contain
-at least one agent entry with an id. This verifies that the tree
-snapshot is assembled and broadcast on connect.
-
-The regression check verifies that bottom-up submit and idle correction
-still work through the Ensemble layer. `submit` must reject when active
-children exist, and an agent that goes idle without submitting must be
-corrected. These are chapter 25 behaviors verified in the chapter 26
-environment.
-
-The mutation audit runs seven mutants, each targeting a single behavior.
-A mutant that removes the activity detail from `get_sub_agent_status`
-kills the activity check. A mutant that skips the ownership lookup
-kills the ownership check. A mutant that deletes `ensemble.json`
-before save kills the persistence check. Each mutant kills exactly one
-check, proving the grader's checks are independent and each one targets
-the behavior it claims to target.
-
-Build and grade: `make grade26`.
+```sh
+go run ./cmd/grade-edition2 -ch 26 solutions/edition-2/ch26
+```
 
 | # | Behavior | Check | Points |
 |---|----------|-------|--------|
-| 1 | Activity tracking emits observable transitions | A scripted turn produces at least thinking, tool-call, and idle observations in order | 15 |
-| 2 | Ensemble persists and reloads agents | Create an agent, restart the Ensemble from the same directory, verify the agent exists | 15 |
-| 3 | Ownership enforcement rejects cross-tree access | Agent A cannot shut down agent B's child; the tool returns "unknown agent" | 15 |
-| 4 | `wait_for_agent_change` wakes on state change | Spawn a child, call `wait_for_agent_change`, verify it wakes when the child transitions | 15 |
-| 5 | Composition root produces a working binary | Build the binary, start it, send a prompt, receive a response | 15 |
-| 6 | GUI tree message on WebSocket connect | Connect via WebSocket, receive an `agent_tree` message with at least one agent entry | 15 |
-| 7 | Bottom-up submit and idle correction still work | `submit` rejects with active children, and an agent idle without submit is corrected, both through the Ensemble layer | 10 |
+| 1 | Noise-KK handshake | Two peers complete mutual authentication over a byte stream. Wrong keys are rejected. | 15 |
+| 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
+| 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
+| 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
+| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
+| 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
+| 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |

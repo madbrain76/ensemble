@@ -1,0 +1,153 @@
+.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt lint-prose book ebook
+
+# Count the prose moves budgeted in book/voice.md §5. Hard ceilings fail;
+# soft ones warn. Add -v via LINTFLAGS=-v to list every counted instance.
+lint-prose:
+	go run ./cmd/lintprose $(LINTFLAGS) book/preface.md book/chapter-[0-9][0-9].md
+
+test: vet
+	go test ./...
+
+vet:
+	go vet ./...
+
+fmt:
+	gofmt -l -w .
+
+# Grade the reference solutions — all chapters grade from the student's
+# directory (solutions/chNN for frozen snapshots, ./agent for the live code).
+# The grade-dir target lets you point at any directory:
+#   make grade-dir CH=8 DIR=./agent
+grade:
+	go run ./cmd/grade -ch 1 ./solutions/ch01
+
+grade2:
+	go run ./cmd/grade -ch 2 ./solutions/ch02
+
+grade3:
+	go run ./cmd/grade -ch 3 ./solutions/ch03
+
+grade5:
+	go run ./cmd/grade -ch 5 ./agent
+
+# Note: ch6 full grading requires the frozen solution (old repo-root shape).
+# From ch7 onward, ch6 features are tested via parity checks.
+# Use: make grade-dir CH=6 DIR=./solutions/ch06/agent
+# (scores 45/100 — exercise-specific multi-agent checks need the old shape)
+
+grade7:
+	go run ./cmd/grade -ch 7 ./agent
+
+grade8:
+	go run ./cmd/grade -ch 8 ./agent
+
+grade9:
+	go run ./cmd/grade -ch 9 ./agent
+
+grade10:
+	go run ./cmd/grade -ch 10 ./agent
+
+grade11:
+	go run ./cmd/grade -ch 11 ./agent
+
+grade12:
+	go run ./cmd/grade -ch 12 ./agent
+
+grade13:
+	go run ./cmd/grade -ch 13 ./agent
+
+grade14:
+	go run ./cmd/grade -ch 14 ./agent
+
+grade15:
+	go run ./cmd/grade -ch 15 ./agent
+
+grade16:
+	go run ./cmd/grade -ch 16 ./agent
+
+grade18:
+	go run ./cmd/grade -ch 18 ./agent
+
+# Mutation audit for the chapter 18 checks. BATCH: eight agent runs, minutes
+# not seconds, and it mutates tracked files, so it refuses a dirty tree.
+grade18-audit:
+	./scripts/ch18-mutants.sh
+
+grade19:
+	go run ./cmd/grade -ch 19 ./agent
+
+grade21:
+	go run ./cmd/grade -ch 21 ./agent
+
+grade22:
+	go run ./cmd/grade -ch 22 ./agent
+
+grade23:
+	go run ./cmd/grade -ch 23 ./agent
+
+grade24:
+	go run ./cmd/grade -ch 24 ./agent
+
+grade25:
+	go run ./cmd/grade -ch 25 ./agent
+
+grade26:
+	go run ./cmd/grade -ch 26 ./agent
+
+grade27:
+	go run ./cmd/grade -ch 27 ./agent
+
+grade27-audit:
+	./scripts/ch27-mutants.sh
+
+grade19-audit:
+	./scripts/ch19-mutants.sh
+
+grade21-audit:
+	./scripts/ch21-mutants.sh
+
+# Mutation audit for the chapter 22 checks. BATCH: six mutants, each one a
+# full grader run that drives the real binary, so minutes not seconds. It
+# mutates tracked files under agent/ and reverts with git checkout, so it
+# refuses a dirty tree there.
+grade22-audit:
+	./scripts/ch22-mutants.sh
+
+grade23-audit:
+	./scripts/ch23-mutants.sh
+
+grade24-audit:
+	./scripts/ch24-mutants.sh
+
+grade25-audit:
+	./scripts/ch25-mutants.sh
+
+grade-dir:
+	go run ./cmd/grade -ch $(CH) $(DIR)
+
+grade-ch07: grade7
+
+# Run a reference solution against the fake vendor and watch the loop turn.
+#   make fake                           chapter 3 REPL, Anthropic dialect
+#   make fake VENDOR=gemini             same loop, Gemini dialect
+#   make fake FAKE_CH=2 VENDOR=openai   chapter 2, OpenAI dialect
+# Or serve the fake alone and paste the env block into your own agent's shell:
+#   make fake-serve VENDOR=openai
+VENDOR ?= anthropic
+FAKE_CH ?= 3
+fake:
+	go run ./cmd/fakevendor -ch $(FAKE_CH) -vendor $(VENDOR) chat
+
+fake-serve:
+	go run ./cmd/fakevendor -vendor $(VENDOR)
+
+# Assemble the full book into a single readable markdown file.
+book:
+	scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
+	@wc -w < book/the-art-of-building-ai-coding-agents.md | xargs -I{} echo "book/the-art-of-building-ai-coding-agents.md: {} words"
+
+# Build the KDP ebook. Deliberately NOT the same recipe as the print
+# interior: the ebook drops the manuscript's own contents section and lets
+# Kindle build navigation from the EPUB nav document. See the script header.
+ebook: book
+	scripts/build-ebook.sh

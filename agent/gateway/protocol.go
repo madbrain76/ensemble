@@ -1,155 +1,128 @@
 package gateway
 
-import "encoding/json"
-
-// ProtocolVersion is the prologue mixed into every Noise-KK handshake.
-//
-// Both sides must use the same prologue or the handshake fails, which makes
-// this a cheap version gate: an old client and a new gateway cannot complete
-// a handshake, let alone exchange a malformed frame.
-const ProtocolVersion = "ensemble-gateway-v1"
-
-// FrameType names the kind of message inside an encrypted frame.
-type FrameType string
-
-const (
-	// --- agent to gateway ---
-
-	// FrameHello identifies the agent and requests resume from a sequence.
-	FrameHello FrameType = "hello"
-	// FrameAck confirms delivery of a sequence number.
-	FrameAck FrameType = "ack"
-	// FrameResponse replies to a previously delivered prompt.
-	FrameResponse FrameType = "response"
-	// FramePing is a keepalive.
-	FramePing FrameType = "ping"
-	// FrameMCPRequest carries a gateway-administration tool call.
-	FrameMCPRequest FrameType = "mcp_request"
-
-	// --- gateway to agent ---
-
-	// FrameWelcome confirms the connection and reports queue depth.
-	FrameWelcome FrameType = "welcome"
-	// FrameDeliver delivers a prompt envelope.
-	FrameDeliver FrameType = "deliver"
-	// FramePong answers a keepalive.
-	FramePong FrameType = "pong"
-	// FrameError reports a protocol or authorization failure.
-	FrameError FrameType = "error"
-	// FrameMCPResponse carries the result of a tool call.
-	FrameMCPResponse FrameType = "mcp_response"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
 )
 
-// Frame is the envelope for everything sent inside the encrypted stream.
-//
-// Payload stays as raw JSON so the frame can be read, routed on Type, and
-// only then decoded into the specific payload the type implies. A reader
-// that had to know every payload shape in advance could not tolerate a peer
-// that learned a new one.
-type Frame struct {
-	Type    FrameType       `json:"type"`
-	Payload json.RawMessage `json:"payload,omitempty"`
+// ResponseAsync asks for a routed reply, without holding the sender's Send call.
+const ResponseAsync = "async"
+
+// Source is provenance assigned by the gateway after authentication and policy checks.
+type Source struct {
+	// Type identifies an authenticated agent rather than sender-authored content.
+	Type string `json:"type"`
+	// ChannelID names the accepted group supplying this message's authority.
+	ChannelID string `json:"channel_id"`
+	// UserID is the authenticated sending agent's identifier.
+	UserID string `json:"user_id"`
+	// DisplayName is the operator-configured readable sender name.
+	DisplayName string `json:"display_name,omitempty"`
+	// Trust is owner, trusted, or external, derived from the accepted group.
+	Trust string `json:"trust"`
 }
 
-// HelloPayload is the agent's opening frame.
-type HelloPayload struct {
+// Envelope is a routed message; Seq is scoped to its recipient and never reused.
+type Envelope struct {
+	// ID is the gateway's message identity for diagnostics and correlation.
+	ID string `json:"id"`
+	// Seq identifies receipt progress in the recipient's queue.
+	Seq uint64 `json:"seq"`
+	// ToAgent is the authorized recipient.
+	ToAgent string `json:"to_agent"`
+	// Source contains authenticated provenance, independent of the content.
+	Source Source `json:"source"`
+	// Timestamp records gateway admission time in UTC.
+	Timestamp time.Time `json:"timestamp"`
+	// ConversationID is preserved across a request and its response.
+	ConversationID string `json:"conversation_id,omitempty"`
+	// Content includes the gateway provenance header above the original text.
+	Content string `json:"content"`
+	// ResponseMode indicates whether the sender requested an asynchronous answer.
+	ResponseMode string `json:"response_mode,omitempty"`
+}
+
+// ProvenanceHeader renders routing facts, not an interpretation of message content.
+func ProvenanceHeader(source Source) string {
+	return fmt.Sprintf("[GATEWAY source=%s user=%s trust=%s]", source.ChannelID, source.UserID, source.Trust)
+}
+
+// OutboundMessage deliberately has no Source field: callers cannot choose trust.
+type OutboundMessage struct {
+	// ToAgent names the intended recipient, whose policy is checked by the gateway.
+	ToAgent string `json:"to_agent"`
+	// Content is untrusted application text until stamped at the routing boundary.
+	Content string `json:"content"`
+	// ConversationID correlates application requests and answers.
+	ConversationID string `json:"conversation_id,omitempty"`
+	// ResponseMode preserves the caller's requested reply behavior.
+	ResponseMode string `json:"response_mode,omitempty"`
+}
+
+// ChildRegistration grants a new independently authenticated identity a subset of groups.
+type ChildRegistration struct {
+	// AgentID must be an unused identity, never a replacement of an existing peer.
 	AgentID string `json:"agent_id"`
-	Version string `json:"version"`
-	// LastAckedSeq is the highest sequence number this agent has durably
-	// handled. The gateway replays from LastAckedSeq+1, which is what makes
-	// delivery at-least-once across a reconnect.
-	LastAckedSeq uint64 `json:"last_acked_seq"`
+	// PublicKey is the child's X25519 public half; no secret crosses this boundary.
+	PublicKey []byte `json:"public_key"`
+	// Groups must all be held by the authenticated registering parent.
+	Groups []string `json:"groups"`
 }
 
-// WelcomePayload confirms a connection.
+// WelcomePayload confirms authenticated readiness before Connect returns.
 type WelcomePayload struct {
-	AgentID       string `json:"agent_id"`
-	QueuedCount   int    `json:"queued_count"`
+	// AgentID is the identity verified during the handshake and hello exchange.
+	AgentID string `json:"agent_id"`
+	// QueueDepth counts outstanding messages after applying the resume receipt.
+	QueueDepth int `json:"queue_depth"`
+	// ServerVersion identifies this gateway protocol implementation.
 	ServerVersion string `json:"server_version"`
 }
 
-// DeliverPayload carries one envelope to its recipient.
-type DeliverPayload struct {
-	Seq      uint64   `json:"seq"`
-	Envelope Envelope `json:"envelope"`
+// Frame is the wire vocabulary shared by independent client and server packages.
+// Application operations use MCP requests; connection/delivery messages stay small.
+type Frame struct {
+	// Type discriminates hello, welcome, deliver, ack, response, ping/pong, error or MCP.
+	Type string `json:"type"`
+	// AgentID identifies hello; authentication still comes from Noise, never this string.
+	AgentID string `json:"agent_id,omitempty"`
+	// Version identifies the protocol spoken by hello.
+	Version int `json:"version,omitempty"`
+	// Seq is the cumulative ack or hello's last successfully handled sequence.
+	Seq uint64 `json:"last_acked_seq,omitempty"`
+	// Welcome is present only on an accepted connection.
+	Welcome *WelcomePayload `json:"welcome,omitempty"`
+	// Envelope is present on a routed delivery.
+	Envelope *Envelope `json:"envelope,omitempty"`
+	// Message is an outbound asynchronous response, checked like any other send.
+	Message *OutboundMessage `json:"message,omitempty"`
+	// RPC carries a JSON-RPC 2.0 MCP request or response under authenticated transport.
+	RPC *RPC `json:"rpc,omitempty"`
+	// Error contains a connection-level diagnostic, never keys or message bodies.
+	Error string `json:"error,omitempty"`
 }
 
-// AckPayload confirms receipt through Seq.
-type AckPayload struct {
-	Seq uint64 `json:"seq"`
+// RPC is a JSON-RPC 2.0 envelope used for the tunneled MCP administration surface.
+type RPC struct {
+	// JSONRPC is the protocol version, always 2.0.
+	JSONRPC string `json:"jsonrpc"`
+	// ID correlates a response with its request; zero is reserved for notifications.
+	ID uint64 `json:"id,omitempty"`
+	// Method is initialize, tools/list, tools/call or notifications/initialized.
+	Method string `json:"method,omitempty"`
+	// Params is the method-specific input object.
+	Params json.RawMessage `json:"params,omitempty"`
+	// Result is a successful method-specific response.
+	Result json.RawMessage `json:"result,omitempty"`
+	// Error carries a failed request's JSON-RPC error.
+	Error *RPCError `json:"error,omitempty"`
 }
 
-// ResponsePayload is an agent's reply to a delivered prompt.
-type ResponsePayload struct {
-	MessageID string            `json:"message_id"`
-	Content   string            `json:"content"`
-	Metadata  map[string]string `json:"metadata,omitempty"`
-}
-
-// ErrorPayload reports a failure to the agent.
-type ErrorPayload struct {
-	Code    string `json:"code"`
+// RPCError is a correlated protocol or authorization refusal.
+type RPCError struct {
+	// Code distinguishes invalid input from execution refusal.
+	Code int `json:"code"`
+	// Message is a safe explanation suitable for the caller.
 	Message string `json:"message"`
 }
-
-// Error codes the gateway returns. These are stable strings because callers
-// branch on them; an error that can only be matched by its prose is an error
-// that cannot be handled.
-const (
-	// ErrCodeUnauthorized means the sender holds no group the recipient
-	// accepts contact from.
-	ErrCodeUnauthorized = "unauthorized"
-	// ErrCodeUnknownAgent means the named destination is not configured.
-	ErrCodeUnknownAgent = "unknown_agent"
-	// ErrCodeForbidden means the caller lacks a required capability.
-	ErrCodeForbidden = "forbidden"
-	// ErrCodeBadRequest means the frame was malformed.
-	ErrCodeBadRequest = "bad_request"
-)
-
-// MCPRequestPayload is a gateway-administration tool call.
-//
-// Administration is deliberately not a separate HTTP API or admin CLI. An
-// agent already knows how to call tools, so the gateway exposes its own
-// controls the same way, over the connection it already has.
-type MCPRequestPayload struct {
-	// ID correlates the response with this request.
-	ID string `json:"id"`
-	// Tool is the tool name, such as "gateway_register_child".
-	Tool string `json:"tool"`
-	// Arguments is the tool's JSON argument object.
-	Arguments json.RawMessage `json:"arguments,omitempty"`
-}
-
-// MCPResponsePayload is the result of a tool call.
-type MCPResponsePayload struct {
-	ID      string          `json:"id"`
-	Result  json.RawMessage `json:"result,omitempty"`
-	IsError bool            `json:"is_error,omitempty"`
-	Error   string          `json:"error,omitempty"`
-}
-
-// Gateway administration tool names.
-const (
-	ToolDeclareContactable = "gateway_declare_contactable"
-	ToolRegisterChild      = "gateway_register_child"
-	ToolGrantMembership    = "gateway_grant_membership"
-	ToolRevokeMembership   = "gateway_revoke_membership"
-	ToolSendMessage        = "gateway_send_message"
-	ToolListAgents         = "gateway_list_agents"
-	ToolCreateGroup        = "gateway_create_group"
-	ToolEditGroup          = "gateway_edit_group"
-	ToolDeleteGroup        = "gateway_delete_group"
-)
-
-// Capabilities a group may confer.
-const (
-	// CapGroupAdmin permits creating, editing and deleting groups. It is the
-	// capability that protects every other capability, so it belongs to a
-	// root group that is seeded in config and granted sparingly.
-	CapGroupAdmin = "group-admin"
-	// CapSendMessage permits sending messages to other agents.
-	CapSendMessage = "send-message"
-	// CapDeclareContactable permits declaring inbound contactability.
-	CapDeclareContactable = "declare-contactable"
-)

@@ -1,24 +1,14 @@
 ---
 name: gui-debug
-description: Debug the GUI through browser MCP tools
-depends:
-  - ensemble
+type: loadable
+description: Inspect and operate the connected browser
+depends: ensemble
+tools: gui_snapshot tts_queue gui_click gui_input
+mcp_servers:
+  - name: browser-debug
+    transport: websocket
 ---
-
-## GUI Debug Mode
-
-Loading this skill connects to the browser's MCP server over the
-existing WebSocket connection. Four tools become available:
-
-**Ephemeral (auto-injected every round trip):**
-- `gui_snapshot` — markdown summary of the current DOM: panes,
-  interactive elements with CSS selectors, artifact previews
-- `tts_queue` — pending TTS utterances as JSON
-
-**Callable tools:**
-- `gui_click(selector)` — click an element by CSS selector
-- `gui_input(selector, text)` — set text on an input element
-
-The DOM snapshot appears in your context automatically. Use it to
-spot layout issues, find broken elements, verify that actions
-produced the expected UI change.
+The current browser snapshot and speech queue arrive automatically before each
+round. Use gui_click with a visible CSS selector and gui_input with selector and
+text. Observe the next snapshot to confirm the effect. Hidden or omitted state
+is not evidence of success: report what you can actually observe.

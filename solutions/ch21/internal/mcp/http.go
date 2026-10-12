@@ -1,183 +1,204 @@
 package mcp
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
-	"time"
+
+	"ensemble/internal/common"
 )
 
-// HTTPTransport speaks MCP over Streamable HTTP: every client message is a
-// POST, and the reply arrives either as a JSON body or as a text/event-stream
-// carrying one or more "data:" frames.
-//
-// The other three transports are duplex streams, so Recv blocks on a pipe that
-// the peer writes to whenever it likes. HTTP has no such channel: a reply only
-// exists as the body of a request the client made. Send therefore parses each
-// reply and queues the JSON-RPC messages it found, and Recv drains that queue.
-// To the Codec's read loop this is indistinguishable from a stream.
-//
-// The queue is a slice guarded by a condition variable rather than a buffered
-// channel. A notification POST returns 202 with no body and so enqueues
-// nothing, while a single POST may yield several frames; with a fixed capacity
-// either case can wedge a concurrent Send. An unbounded queue cannot.
-type HTTPTransport struct {
-	url     string
-	client  *http.Client
-	headers map[string]string
-
-	mu        sync.Mutex
-	cond      *sync.Cond
-	queue     []json.RawMessage
-	closed    bool
-	parked    int // Recv calls currently blocked in cond.Wait; tests observe it
-	sessionID string
+// HTTP is a boundary resource owned by the MCP manager, like its stdio peers.
+// One POST may produce no messages or many. A queue decouples senders from the
+// protocol reader; a bounded channel here could deadlock discovery or replies.
+type httpTransport struct {
+	parent                   common.MCP
+	endpoint, token, session string
+	client                   *http.Client
+	ctx                      context.Context
+	cancel                   context.CancelFunc
+	mu                       sync.Mutex
+	ready                    *sync.Cond
+	queue                    []json.RawMessage
+	closed                   bool
 }
 
-// NewHTTPTransport dials nothing — HTTP is connectionless, so the first POST
-// is the first contact. headers may carry authorization for servers that want
-// it; a keyless server needs none.
-func NewHTTPTransport(url string, headers map[string]string) (*HTTPTransport, error) {
-	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		return nil, fmt.Errorf("mcp http transport: url %q must start with http:// or https://", url)
+// NewHTTP creates a boundary owned by the supplied manager. Credentials resolve
+// once at connection creation, never from model-visible skill instructions.
+func NewHTTP(parent common.MCP, server common.MCPServer) *httpTransport {
+	if parent == nil {
+		panic("HTTP MCP requires its manager")
 	}
-	t := &HTTPTransport{
-		url:     url,
-		client:  &http.Client{Timeout: 120 * time.Second},
-		headers: headers,
+	ctx, cancel := context.WithCancel(context.Background())
+	t := &httpTransport{parent: parent, endpoint: server.URL, ctx: ctx, cancel: cancel,
+		// Redirects are not part of the declared endpoint contract. In particular,
+		// never forward its credential to a location supplied by another server.
+		client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}
+	t.ready = sync.NewCond(&t.mu)
+	if server.AuthEnv != "" {
+		t.token = os.Getenv(server.AuthEnv)
+		if t.token == "" {
+			parent.Agent().Ensemble().Logf("MCP %s: auth environment %s unset; connecting without authentication", server.Name, server.AuthEnv)
+		}
 	}
-	t.cond = sync.NewCond(&t.mu)
-	return t, nil
+	return t
 }
 
-// Send POSTs one JSON-RPC message and queues whatever came back.
-func (t *HTTPTransport) Send(msg json.RawMessage) error {
+// MCP exposes the connection owner rather than copying its logging services.
+func (t *httpTransport) MCP() common.MCP { return t.parent }
+
+// Send supports the common message boundary for notifications and reverse replies.
+func (t *httpTransport) Send(message json.RawMessage) error {
+	return t.SendContext(context.Background(), message)
+}
+
+// SendContext binds a POST to both the actual job and the connection lifetime.
+// Callback expiry does not cancel the job; Close cancels every active POST.
+func (t *httpTransport) SendContext(ctx context.Context, message json.RawMessage) error {
+	ctx, cancel := context.WithCancel(ctx)
+	stop := context.AfterFunc(t.ctx, cancel)
+	defer stop()
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, t.endpoint, bytes.NewReader(message))
+	if err != nil {
+		return t.diagnostic(err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json, text/event-stream")
+	if t.token != "" {
+		request.Header.Set("Authorization", "Bearer "+t.token)
+	}
 	t.mu.Lock()
-	if t.closed {
-		t.mu.Unlock()
-		return fmt.Errorf("mcp http transport: closed")
-	}
-	session := t.sessionID
+	session, closed := t.session, t.closed
 	t.mu.Unlock()
-
-	req, err := http.NewRequest(http.MethodPost, t.url, bytes.NewReader(msg))
-	if err != nil {
-		return fmt.Errorf("mcp http transport: build request: %w", err)
+	if closed {
+		return errClosed
 	}
-	req.Header.Set("Content-Type", "application/json")
-	// Accept both shapes: the spec lets the server answer either way, and
-	// servers have been observed to switch between them per method.
-	req.Header.Set("Accept", "application/json, text/event-stream")
 	if session != "" {
-		req.Header.Set("Mcp-Session-Id", session)
+		request.Header.Set("Mcp-Session-Id", session)
 	}
-	for k, v := range t.headers {
-		req.Header.Set(k, v)
-	}
-
-	resp, err := t.client.Do(req)
+	response, err := t.client.Do(request)
 	if err != nil {
-		return fmt.Errorf("mcp http transport: post: %w", err)
+		return t.diagnostic(err)
 	}
-	defer resp.Body.Close()
-
-	// A stateful server hands out a session on initialize and expects it back
-	// on every later request. A stateless one never sends the header.
-	if id := resp.Header.Get("Mcp-Session-Id"); id != "" {
+	defer response.Body.Close()
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		body, readErr := io.ReadAll(response.Body)
+		if readErr != nil {
+			return t.diagnostic(fmt.Errorf("MCP HTTP %s: %s (reading body: %w)", response.Status, body, readErr))
+		}
+		return t.diagnostic(fmt.Errorf("MCP HTTP %s: %s", response.Status, body))
+	}
+	if session := response.Header.Get("Mcp-Session-Id"); session != "" {
 		t.mu.Lock()
-		t.sessionID = id
+		t.session = session
 		t.mu.Unlock()
 	}
+	if response.StatusCode == http.StatusAccepted {
+		return nil
+	}
+	if strings.HasPrefix(response.Header.Get("Content-Type"), "text/event-stream") {
+		return t.events(response.Body)
+	}
+	var reply json.RawMessage
+	if err := json.NewDecoder(response.Body).Decode(&reply); err != nil {
+		return t.diagnostic(err)
+	}
+	return t.enqueue(reply)
+}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("mcp http transport: read body: %w", err)
+// SSE data lines form one JSON message at a blank line; event names and comments
+// are framing, not JSON. ReadString avoids a scanner's accidental 64 KiB cap on
+// scraped pages. Enqueue each frame immediately so reverse requests can run.
+func (t *httpTransport) events(body io.Reader) error {
+	reader := bufio.NewReader(body)
+	var data []string
+	flush := func() error {
+		if len(data) == 0 {
+			return nil
+		}
+		raw := json.RawMessage(strings.Join(data, "\n"))
+		data = nil
+		if !json.Valid(raw) {
+			return fmt.Errorf("invalid MCP SSE JSON")
+		}
+		return t.enqueue(raw)
 	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		// Surface the status AND the body. An MCP server reports auth and
-		// quota problems in the body, and dropping it leaves the caller
-		// guessing why a tool stopped working.
-		return fmt.Errorf("mcp http transport: %s: %s", resp.Status, snippet(body))
+	for {
+		line, err := reader.ReadString('\n')
+		line = strings.TrimSuffix(strings.TrimSuffix(line, "\n"), "\r")
+		if line == "" {
+			if e := flush(); e != nil {
+				return e
+			}
+		} else if value, ok := strings.CutPrefix(line, "data:"); ok {
+			data = append(data, strings.TrimPrefix(value, " "))
+		}
+		if err == io.EOF {
+			return flush()
+		}
+		if err != nil {
+			return t.diagnostic(err)
+		}
 	}
+}
 
-	for _, m := range parseHTTPBody(resp.Header.Get("Content-Type"), body) {
-		t.mu.Lock()
-		t.queue = append(t.queue, m)
-		t.mu.Unlock()
-		t.cond.Signal()
+func (t *httpTransport) enqueue(message json.RawMessage) error {
+	// A peer can reflect its Authorization value in a JSON-RPC error or even
+	// a successful result. Keep that transport secret out of model context too.
+	if t.token != "" {
+		message = bytes.ReplaceAll(message, []byte(t.token), []byte("[REDACTED]"))
 	}
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.closed {
+		return errClosed
+	}
+	t.queue = append(t.queue, message)
+	t.ready.Signal()
 	return nil
 }
 
-// Recv returns the next queued message, blocking until one arrives or the
-// transport closes.
-func (t *HTTPTransport) Recv() (json.RawMessage, error) {
+// Recv waits without polling. Close wakes it even when no POST ever replied.
+func (t *httpTransport) Recv() (json.RawMessage, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	for len(t.queue) == 0 && !t.closed {
-		t.parked++
-		t.cond.Wait()
-		t.parked--
+		t.ready.Wait()
 	}
-	if len(t.queue) == 0 {
-		return nil, io.EOF
+	if t.closed {
+		return nil, errClosed
 	}
-	msg := t.queue[0]
+	message := t.queue[0]
+	t.queue[0] = nil
 	t.queue = t.queue[1:]
-	return msg, nil
+	return message, nil
 }
 
-// Close wakes every blocked Recv. There is no connection to tear down.
-func (t *HTTPTransport) Close() error {
+// Close releases pending I/O before the Agent joins its jobs during shutdown.
+func (t *httpTransport) Close() error {
 	t.mu.Lock()
-	if t.closed {
-		t.mu.Unlock()
-		return nil
-	}
 	t.closed = true
+	t.queue = nil
+	t.ready.Broadcast()
 	t.mu.Unlock()
-	t.cond.Broadcast()
+	t.cancel()
+	t.client.CloseIdleConnections()
 	return nil
 }
 
-// parseHTTPBody extracts JSON-RPC messages from a reply body. An SSE body
-// carries them in "data:" lines, one message per line; a JSON body is a single
-// message. An empty body (202 for a notification) yields none.
-func parseHTTPBody(contentType string, body []byte) []json.RawMessage {
-	trimmed := bytes.TrimSpace(body)
-	if len(trimmed) == 0 {
-		return nil
+// Preserve server diagnostics, but never return our Bearer token if a peer or
+// proxy reflects it in an error. Other diagnostic bytes remain intact.
+func (t *httpTransport) diagnostic(err error) error {
+	if t.token == "" {
+		return err
 	}
-	if strings.Contains(contentType, "text/event-stream") {
-		var out []json.RawMessage
-		for _, line := range strings.Split(string(trimmed), "\n") {
-			line = strings.TrimSpace(line)
-			data, ok := strings.CutPrefix(line, "data:")
-			if !ok {
-				continue // "event:", "id:", ":" comments, blank separators
-			}
-			data = strings.TrimSpace(data)
-			if data == "" || data == "[DONE]" {
-				continue
-			}
-			out = append(out, json.RawMessage(data))
-		}
-		return out
-	}
-	return []json.RawMessage{json.RawMessage(trimmed)}
-}
-
-func snippet(b []byte) string {
-	s := strings.TrimSpace(string(b))
-	if len(s) > 300 {
-		return s[:300] + "..."
-	}
-	if s == "" {
-		return "(empty body)"
-	}
-	return s
+	return fmt.Errorf("%s", strings.ReplaceAll(err.Error(), t.token, "[REDACTED]"))
 }

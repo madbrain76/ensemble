@@ -1,10 +1,4 @@
-// Command interviewer is a standalone agent that interviews another agent
-// through the gateway.
-//
-// It exists to prove the gateway is reusable infrastructure rather than a
-// part of Ensemble. This binary shares no code with Ensemble: it imports the
-// public client library, holds its own keypair, and reaches its subject only
-// by routing. If this works, so does any other program anyone writes.
+// The interviewer is an independent application of the public gateway library.
 package main
 
 import (
@@ -12,226 +6,118 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
-	gateway "github.com/waywardgeek/ensemble/agent/gateway"
+	"ensemble/gateway"
 )
 
-// defaultQuestions returns the self-improvement prompts the interviewer
-// asks.
-//
-// They are fixed rather than model-generated so that an interview is
-// reproducible and can be checked. Generating follow-up questions from the
-// answers is the obvious extension, and it changes nothing about the
-// gateway.
-//
-// A function rather than a package-level slice: a package-level slice is
-// shared mutable state that any caller could reorder or truncate for
-// everyone else.
-func defaultQuestions() []string {
-	return []string{
-		"What friction points slow you down most in your current workflow?",
-		"Which tasks take the most turns or the most tokens?",
-		"Where do you get stuck and need human intervention?",
-		"What new tool or skill would most improve your work?",
-	}
+type interviewer struct {
+	gateway.NopHandler
+	answers chan gateway.Envelope
+	ctx     context.Context
 }
 
+// OnDeliver accepts answers into the application-owned interview queue.
+func (h *interviewer) OnDeliver(e gateway.Envelope) {
+	select {
+	case h.answers <- e:
+	case <-h.ctx.Done():
+	}
+}
 func main() {
-	var (
-		gatewayURL = flag.String("gateway", "ws://127.0.0.1:8093/v1/ws", "gateway websocket URL")
-		agentID    = flag.String("agent-id", "interviewer", "this agent's id")
-		keyPath    = flag.String("key", "./data/interviewer.key", "path to this agent's private key")
-		gatewayKey = flag.String("gateway-key", "", "the gateway's public key (x25519:base64)")
-		target     = flag.String("target", "ensemble", "the agent to interview")
-		outPath    = flag.String("out", "", "markdown file to write (default interviews/<target>-<date>.md)")
-		timeout    = flag.Duration("timeout", 60*time.Second, "how long to wait for each answer")
-		printKey   = flag.Bool("print-key", false, "print this agent's public key and exit")
-	)
-	flag.Parse()
-
-	if err := run(runConfig{
-		gatewayURL: *gatewayURL,
-		agentID:    *agentID,
-		keyPath:    *keyPath,
-		gatewayKey: *gatewayKey,
-		target:     *target,
-		outPath:    *outPath,
-		timeout:    *timeout,
-		printKey:   *printKey,
-	}); err != nil {
-		fmt.Fprintf(os.Stderr, "interviewer: %v\n", err)
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
-
-type runConfig struct {
-	gatewayURL string
-	agentID    string
-	keyPath    string
-	gatewayKey string
-	target     string
-	outPath    string
-	timeout    time.Duration
-	printKey   bool
-}
-
-// answerHandler collects replies routed back from the subject.
-//
-// The handler does nothing but hand the envelope to the interview loop. Work
-// in a Handler blocks the client's receive goroutine, so the rule is to move
-// it somewhere else immediately.
-type answerHandler struct {
-	gateway.NopHandler
-	answers chan gateway.Envelope
-}
-
-func (h *answerHandler) OnDeliver(env gateway.Envelope) { h.answers <- env }
-
-func run(cfg runConfig) error {
-	key, err := gateway.LoadOrCreateKeypair(cfg.keyPath)
+func run() error {
+	address := flag.String("gateway", "ws://127.0.0.1:8093/v1/ws", "gateway WebSocket URL")
+	id := flag.String("agent", "interviewer", "configured interviewer identity")
+	keyPath := flag.String("key", "interviewer.key", "private identity file")
+	public := flag.String("gateway-key", "", "pinned gateway public key")
+	groups := flag.String("groups", "agents", "comma-separated reply groups")
+	subject := flag.String("subject", "ensemble", "agent to interview")
+	report := flag.String("report", "interview.md", "markdown report path")
+	timeout := flag.Duration("timeout", 2*time.Minute, "per-question deadline")
+	printKey := flag.Bool("print-key", false, "print this identity's public key and exit")
+	flag.Parse()
+	key, err := gateway.LoadOrCreateKeypair(*keyPath)
 	if err != nil {
 		return err
 	}
-	if cfg.printKey {
+	if *printKey {
 		fmt.Println(gateway.EncodePublicKey(key.Public))
 		return nil
 	}
-	if cfg.gatewayKey == "" {
-		return fmt.Errorf("-gateway-key is required; get it from the gateway's startup log")
-	}
-	gwPub, err := gateway.ParsePublicKey(cfg.gatewayKey)
+	peer, err := gateway.ParsePublicKey(*public)
 	if err != nil {
 		return err
 	}
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
-	handler := &answerHandler{answers: make(chan gateway.Envelope, 16)}
-	client, err := gateway.Connect(ctx, gateway.ClientConfig{
-		GatewayURL:    cfg.gatewayURL,
-		AgentID:       cfg.agentID,
-		StaticKey:     key,
-		GatewayPubKey: gwPub,
-	}, handler)
+	h := &interviewer{answers: make(chan gateway.Envelope, 8), ctx: ctx}
+	c, err := gateway.Connect(ctx, gateway.ClientConfig{GatewayURL: *address, AgentID: *id, StaticKey: key, GatewayPubKey: peer}, h)
 	if err != nil {
 		return err
 	}
-	defer func() { _ = client.Close() }()
-
-	// Accept replies from anyone the subject might answer as. Without this
-	// the subject's answers would be refused: contact is opt-in in both
-	// directions, including for the agent that started the conversation.
-	if err := client.DeclareContactable(ctx, []string{"agents", "admin"}); err != nil {
-		return fmt.Errorf("declare contactable: %w", err)
-	}
-
-	conversationID := "interview-" + time.Now().UTC().Format("20060102-150405")
-	transcript := make([]exchange, 0, len(defaultQuestions()))
-
-	for _, question := range defaultQuestions() {
-		answer, err := ask(ctx, client, handler, cfg, conversationID, question)
-		if err != nil {
-			return err
-		}
-		transcript = append(transcript, exchange{Question: question, Answer: answer})
-		fmt.Printf("interviewer: asked %q\n", question)
-	}
-
-	out := cfg.outPath
-	if out == "" {
-		out = filepath.Join("interviews",
-			fmt.Sprintf("%s-%s.md", cfg.target, time.Now().UTC().Format("2006-01-02")))
-	}
-	if err := writeReport(out, cfg.target, transcript); err != nil {
+	defer c.Close()
+	setup, stop := context.WithTimeout(ctx, *timeout)
+	err = c.DeclareContactable(setup, strings.Split(*groups, ","))
+	stop()
+	if err != nil {
 		return err
 	}
-	fmt.Printf("interviewer: wrote %s\n", out)
-	return nil
-}
-
-type exchange struct {
-	Question string
-	Answer   string
-}
-
-// ask sends one question and waits for the matching answer.
-func ask(ctx context.Context, client *gateway.Client, handler *answerHandler,
-	cfg runConfig, conversationID, question string) (string, error) {
-
-	if err := client.Send(ctx, gateway.OutboundMessage{
-		ToAgent:        cfg.target,
-		Content:        question,
-		ConversationID: conversationID,
-		ResponseMode:   gateway.ResponseAsync,
-	}); err != nil {
-		return "", fmt.Errorf("send question: %w", err)
-	}
-
-	select {
-	case env := <-handler.answers:
-		return stripProvenance(env.Content), nil
-	case <-time.After(cfg.timeout):
-		return "", fmt.Errorf("timed out after %s waiting for an answer to %q", cfg.timeout, question)
-	case <-client.Done():
-		return "", fmt.Errorf("connection closed while waiting for an answer")
-	}
-}
-
-// stripProvenance removes the gateway's header from a delivered message.
-//
-// The header is for the reader of a prompt, not for a transcript. Leaving it
-// in would put routing metadata in the middle of the findings document.
-func stripProvenance(content string) string {
-	if !strings.HasPrefix(content, "[GATEWAY ") {
-		return content
-	}
-	_, body, found := strings.Cut(content, "\n\n")
-	if !found {
-		return content
-	}
-	return body
-}
-
-// writeReport renders the interview as markdown.
-func writeReport(path, subject string, transcript []exchange) error {
-	if dir := filepath.Dir(path); dir != "" {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
+	// Fixed questions make routing and correlation reproducible without asking
+	// another model to invent the interview. Reported opinions remain answers
+	// from this subject, not independently measured performance claims.
+	questions := []string{"What slows you down most in your coding workflow?", "What burns the most tokens in your work?", "Where do you need a human's help?", "What new tool would help you most?"}
+	answers := make([]string, len(questions))
+	for i, q := range questions {
+		// Bound each question separately. One lost answer cannot leave this
+		// application waiting forever, and a successful early answer does not
+		// consume the time budget for the next question.
+		deadline, stop := context.WithTimeout(ctx, *timeout)
+		conversation := fmt.Sprintf("interview-%d-%d", time.Now().UnixNano(), i)
+		err = c.Send(deadline, gateway.OutboundMessage{ToAgent: *subject, Content: q, ConversationID: conversation, ResponseMode: gateway.ResponseAsync})
+		if err != nil {
+			stop()
 			return err
 		}
-	}
-
-	var b strings.Builder
-	fmt.Fprintf(&b, "# Interview: %s - %s\n\n", subject, time.Now().UTC().Format("2006-01-02"))
-
-	fmt.Fprintf(&b, "## Friction Points\n\n")
-	for _, ex := range transcript[:min(2, len(transcript))] {
-		fmt.Fprintf(&b, "- %s\n", firstLine(ex.Answer))
-	}
-
-	fmt.Fprintf(&b, "\n## Improvement Opportunities\n\n")
-	if len(transcript) > 2 {
-		for _, ex := range transcript[2:] {
-			fmt.Fprintf(&b, "- %s\n", firstLine(ex.Answer))
+		waiting := true
+		for waiting {
+			select {
+			case e := <-h.answers:
+				// Other authorized messages are valid deliveries, but cannot answer this
+				// question merely because they happened to arrive first.
+				if e.ConversationID != conversation || e.Source.UserID != *subject {
+					continue
+				}
+				text := e.Content
+				if _, body, ok := strings.Cut(text, "\n\n"); ok {
+					text = body
+				}
+				answers[i] = text
+				waiting = false
+			case <-deadline.Done():
+				stop()
+				return fmt.Errorf("question %d: %w", i+1, deadline.Err())
+			case <-c.Done():
+				stop()
+				return fmt.Errorf("gateway disconnected during question %d", i+1)
+			}
 		}
+		stop()
+		fmt.Printf("Received answer %d of %d\n", i+1, len(questions))
 	}
-
-	fmt.Fprintf(&b, "\n## Raw Transcript\n\n")
-	for _, ex := range transcript {
-		fmt.Fprintf(&b, "**Q:** %s\n\n", ex.Question)
-		fmt.Fprintf(&b, "**A:** %s\n\n", ex.Answer)
+	var out strings.Builder
+	out.WriteString("# Ensemble workflow interview\n\n## Friction points\n\n")
+	for i := 0; i < 3; i++ {
+		fmt.Fprintf(&out, "%s\n\n%s\n\n", questions[i], answers[i])
 	}
-
-	return os.WriteFile(path, []byte(b.String()), 0o644)
-}
-
-func firstLine(s string) string {
-	line, _, _ := strings.Cut(strings.TrimSpace(s), "\n")
-	if line == "" {
-		return "(no answer)"
+	fmt.Fprintf(&out, "## Improvement opportunities\n\n%s\n\n## Raw transcript\n\n", answers[3])
+	for i, q := range questions {
+		fmt.Fprintf(&out, "### Question %d\n\n%s\n\n%s\n\n", i+1, q, answers[i])
 	}
-	return line
+	return os.WriteFile(*report, []byte(out.String()), 0600)
 }

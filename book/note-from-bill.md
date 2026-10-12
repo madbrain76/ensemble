@@ -1,7 +1,15 @@
 # A Note from Bill
 
-This is the eighth update of *The Art of Building AI Coding Agents*.
+This is the first publication of the second edition of *The Art of Building
+AI Coding Agents*. The new implementation has caught up with the first edition,
+including the gateway. The move from Codex into Ensemble has only begun.
 
-I released it early, before writing all the advanced material still in my head: dynamic workflows, connectors, a message board so agents can collaborate, local model support, a deep dive on artifacts, and a self-wielding capstone. Sub-agents, managing the swarm, and the gateway have come off that list — they are chapters 25, 26, and 27. There are still several chapters I owe you. The free version will always be online and up to date.
+I want to publish that result now, while keeping the unfinished part visible.
+Chapter 25 is reserved for the actual crossover. It will come from using Ensemble
+and fixing what gets in the way. This edition does not claim that Ensemble has
+already produced Edition 3.
 
-I released this book right after a successful crossover, because that is when we should test the main idea of this agentic codebook: that the agent, Ensemble, can be auto-regenerated from an agent reading the book, and that the book can be auto-updated by the agent it built. This is an expensive loop, and I'm paying for it out of my own pocket. This book predates that very first iteration, and I hope it may be a useful part of history as we climb toward the singularity.
+The point of the experiment is still the same: preserve the judgment needed to
+build the agent, test whether another builder can apply it, and improve the book
+from what actually happens. The first edition stays intact as the record of where
+this began.

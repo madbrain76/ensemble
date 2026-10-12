@@ -1,586 +1,1004 @@
-# Chapter 22: Architectural Decay
+# Chapter 22: The Ensemble
 
-I asked the coder for a status tool. Five numbers the agent
-already knows: which model, how many tokens, the cache hit
-rate, what the session costs, and the usage from the last
-response. One file, like the twenty tools beside it.
+I have been steering a single agent through this book. I listen
+to its reasoning at five times speaking rate and redirect between tool
+calls. Now give that model three sub-agents. It can decide that
+delegating was the job. Three children finish. The parent is not listening.
 
-What came back was a tangle of closures and hand-threaded
-plumbing. I stopped the work. A trivial feature producing
-non-trivial wiring is not a coding problem. It is an
-architecture problem, and the architecture was mine.
+There is another kind of isolation that nobody asked for. After the
+first edition's architecture repair, I wanted the Artifact scroll for
+Homebrew-VTT. The component was reusable. Its Go package lived behind
+`internal/`, where another application could not import it. The chapter
+about architectural decay had missed a boundary nobody had tried to cross.
 
-Globally, for decades, software engineers have written
-terrible code. LLMs have been thoroughly trained on all of our
-bad habits. We spent all of chapter 5 fixing code that
-resulted from those habits ingrained into our coding models.
-By chapter 22, it is time to do it again.
-
-In the end, it is my fault. I wrote this book in a hurry and
-let the coder complete solutions autonomously in several
-places, resulting in messes that are mine to clean up. Future
-editions will incorporate these lessons into a binding set of
-rules the coder must follow, correcting the bad habits that
-produced chapter 5 and now chapter 22.
-
-One of those ingrained habits: child objects never point to
-their parent. A parent-to-child pointer loop is so looked down
-on that in Rust it is illegal. Stupidity, enshrined in a
-language. Go enshrines its own version: no package dependency
-cycles, enforced by the compiler. Just because everyone does
-it does not make it not stupid. Much of the work we do in
-Ensemble is simply to work around Go's limitation. Much of
-chapter 5 was about that, where we gave up calling methods
-with method syntax and passed around interface objects rather
-than pointers to structs, just so we could structure our code
-properly.
-
-In this chapter, we undo the damage caused by the Rust bug,
-the one that infects the minds of most software engineers and
-all of our LLMs. After spot-checking the Codex Rust codebase,
-over two million lines of vibe-coded Rust, I can see clearly
-that the number one reason Codex is roughly four times the
-size of both Claude Code and Gemini CLI is Rust's enforcement
-of no back-pointers. This same bug infected Ensemble after
-chapter 5.
-
-Think about it. Children need to know who their parents are.
-Suppose we destroy a child that has two parents, like all
-humans. How do both parents find out, so they can correct
-their sets of children? How do we avoid a dangling pointer in
-C++, or a memory leak in Python?
-
-I encoded the right way to build and destroy objects in the
-Rune language, at github.com/google/rune. The world should use
-the idea if not the language. Writing destructors is stupid.
-They should be auto-generated, as they are in Rune. Garbage
-collection, like we have in Go, is stupid. We should maintain
-object graphs automatically, efficiently, and safely, like
-Rune shows how to do. The Lyric language, which CodeRhapsody
-and I built together in two weeks, self-hosting in nine days,
-also auto-generates destructors and eliminates the need for
-garbage collection.
-
-When the world finally lets me train an LLM with Ensemble in
-the loop, I am going to rewrite 100% of the code to build and
-train the LLM, as well as Ensemble itself, in a language
-probably derived from Lyric. We will free the LLM training
-loop from the baggage we have collectively built into them.
-Humanity's baggage.
-
-In short, this chapter makes it trivial again for any
-reference to any object to find any data anywhere. Without
-this, your LLM will do what Opus 5 did: duplicate data in
-multiple places, violating rules we discovered in the 1960s
-called Third Normal Form. We have known the rules for decades.
-We just forgot to use them.
-
-Ensemble has 39,725 lines of Go and JavaScript as of 4 AM
-Pacific, October 7, 2026, roughly a third of it tests. Chapter 0 showed what 1.8
-million looks like. This chapter is what forty thousand looks
-like, caught early, by somebody who ran the audit.
+This chapter connects both ends: an interface another application can use,
+and agents that can delegate without abandoning the conversation.
 
 ---
 
 ## TL;DR
 
-Architectural decay is what happens to a rule nobody checks.
-Chapter 5 built a parent chain: every constructor takes a
-back-pointer to whatever created it, so anything reachable
-from the root is reachable from anywhere. Sixteen chapters
-later, the chain is dead code. The binary builds a flat
-composition root where every object is a sibling, and closures
-staple runtime state onto structs because nothing can reach
-its parent.
+The framework must not know the GUI exists. The GUI must still be useful
+outside the command that originally shipped it. A fleet adds another
+construction boundary: the library manages children, while the application
+supplies the factory that creates them. A passing library fixture does not
+establish that either boundary is connected in the actual executable.
 
-This chapter audits the decay, diagnoses the cause, and
-repairs the chain: rename the hub's top-level interface to
-what it represents, add an engine-level interface to the
-dispatch struct, collapse the flat composition root, fix
-per-model cost tracking, and add `agent_status`.
+### A reusable GUI
 
-**The diagnosis, in three measurements.**
+Keep the existing optional GUI module and public core API. A headless consumer's
+`go list -deps` must name neither the GUI nor `gorilla/websocket`, including
+through MCP. An outside GUI consumer must construct real public values, replay
+an event and deliver a prompt through the Agent. Preserve the wire protocol
+and verify that a requested model switch changes actual subsequent provider
+requests.
 
-1. **The library's composition root has zero callers.**
-   `NewAgent` constructs a proper tree. The binary never
-   calls it. `cmd/main.go` hand-builds a flat root instead.
-2. **Post-ch6 constructors take dependency bags, not
-   back-pointers.** The ch5/ch6 constructors (`NewEngine`,
-   `NewActor`, `NewFramework`, `NewJobs`) each take a single
-   back-pointer interface. Everything added afterward
-   (`NewHub`, `cachelens.New`, `NewJudge`, `recall.New`,
-   `NewSettingsStore`) does not.
-3. **Closures fill gaps that back-pointers should fill.** Five
-   closures staple state onto structs after construction:
-   `hub.Model`, three settings-to-engine bridges, and a cost
-   computation that re-prices the entire session at the
-   current model's rate whenever models are switched.
+Embed the browser assets so a built binary serves its interface from an
+unrelated working directory. Provide an explicit disk override for development.
+Expose a read-only asset filesystem so another application can mount
+`artifact-scroll.js` and `renderers.js` without serving `index.html` or starting
+the chat shell. The public browser MCP relay accepts a listener supplied by the
+application and returns each JSON-RPC response with its caller's request ID.
+No browser means a correlated error. Closing the client, browser or server must
+release the corresponding pending work.
 
-**Rules.** These are the graded contract.
+The accepted API uses `gui.New(root, agent, log)`, `gui.Assets()`,
+`server.Handler(directory)` and `server.ServeMCP(listener)`. Its root and Agent
+already exist; no callback bundle or new ownership layer is needed.
 
-1. **Back-pointer chain.** Every constructor in the agent
-   library takes a back-pointer interface to its creator. No
-   constructor takes a closure where a back-pointer would
-   serve, and no constructor takes a concrete type where an
-   interface exists.
-2. **Single composition root.** The binary constructs the agent
-   through the library's top-level constructor. There is
-   exactly one composition root. No flat wiring in `cmd/`.
-3. **Engine on the dispatch struct.** The hub declares an
-   engine-level interface with at minimum: a parent accessor
-   to the agent, the current model name, pricing, and usage.
-   The tool dispatch struct carries this interface.
-4. **Per-model cost.** Token counts are tracked per model.
-   Session cost is the sum of per-model costs, never the
-   session total times the current model's price. A mid-session
-   model switch must not retroactively re-price tokens already
-   spent.
-5. **`agent_status` tool.** A skill-callable tool that reports:
-   current model, last response usage (input tokens, output
-   tokens, cache read tokens), session usage totals, cache hit
-   rate, and session cost in USD. Every value is obtained
-   through the back-pointer chain. The tools package does not
-   import the engine or actor packages directly.
-6. **Parity.** All chapter 21 grader checks still pass.
+### A terminal fleet
 
-**Target shape.** The engine interface exposes the parent and
-the values a tool needs:
+Build the fleet in four stages:
 
-```go
-type Engine interface {
-    Agent() Agent
-    Model() string
-    Pricing() Pricing
-    Usage() UsageSource
-}
+1. **A manager for each Agent.** It spawns, tracks and shuts down children.
+   A child is a full Agent with its own actor, tool visibility, save file and
+   data directory under its parent's directory. The application installs an
+   `AgentFactory` on Ensemble; descendants reach it through their actual owner
+   chain. Derive each child specification from its parent and enforce Chapter
+   21's narrow-only constraints. Recursive shutdown preserves the saved work.
+   These separate state directories do not give children private copies of the
+   task workspace.
+
+   Each Agent also has its own ID and its parent's routing ID. The user is an
+   address, configurable at the application boundary, but never a managed child.
+   Addressing a person does not grant permission to spawn or shut that person down.
+
+2. **Seven workflow tools.** Add `spawn_sub_agent`, `join_agents`,
+   `agents_status`, `shutdown_agent`, `send_message_to_parent`,
+   `respond_to_parent_message` and `submit`. Fan-in waits for every selected
+   child's submission, but yields a pending question so the parent can answer
+   it. A reply carries its sender. An omitted message ID answers the sole
+   matching pending question; ambiguity is an error.
+
+   Asking and finishing are different verbs. `submit` is the explicit completion
+   signal; prose saying “done” is not one. The framework observes submission.
+   The parent still judges whether the submitted work is correct.
+
+3. **Interruptible waits.** An incoming message wakes an Agent waiting on a
+   tool while the job keeps running. Preserve its handle and eventual result.
+   Message wake does not depend on the callback timer. Existing `tool_limits`
+   supplies a one-shot override for the next tool call; it is not a new
+   per-tool-name configuration map. Do not leave a sticky interrupt for a future
+   waiter when no waiter is present.
+
+4. **Bounded idle correction.** In a factory-enabled fleet, including its root,
+   a successful turn that ends without `submit` receives a framework wake.
+   Active children make early submission fail. Submissions proceed bottom-up;
+   a parent must resolve or shut down a failed child as well as wait for a
+   running one. Allow exactly three consecutive framework wakes, resetting the
+   count on successful submission. If the Agent still stops, report failure to
+   its parent, or to the user at the root. Do not invent a successful result.
+   Failed turns are reported without this automatic retry loop.
+
+The terminal application installs the factory and human message sink. Existing
+single-Agent embedders without a factory retain their ordinary turn behavior;
+they do not acquire a requirement to submit. The GUI in this chapter remains
+a single-Agent client. Fleet views arrive in Chapter 23.
+
+Exact type and field spelling is yours where the public behavior is equivalent.
+The seven fleet tool names are the contract; extra fleet tools are unnecessary.
+Build and grade from the repository root:
+
+```sh
+go run ./cmd/grade-edition2 -ch 22 solutions/edition-2/ch22
 ```
 
-The tool dispatch struct carries the engine:
+The combined rubric retains the seven GUI checks and seven fleet checks, 200
+points in all. The exercise and check table at the end cover both halves.
 
-```go
-type Call struct {
-    Agent  Agent
-    Engine Engine
-    Jobs   JobManager
-    Limits CallLimits
-}
+## The physics
+
+Go's import graph is transitive. If A imports B and B imports C, then C is a
+build dependency of A. `go list -deps` exposes that reachability. It does not
+measure how many machine-code bytes survive linking; unused code can be removed.
+The boundary being checked here is what the headless application depends on.
+
+`internal/` is the reverse rule. Code inside an `internal/` directory can only
+be imported from the tree rooted at its parent. An outside application cannot
+work around a missing public type by spelling its internal import path.
+[Go's package rules](https://pkg.go.dev/cmd/go#hdr-Internal_Directories) enforce
+the boundary at build time.
+
+The first-edition GUI had both problems. Outside applications could not import
+it, while the framework root imported it for everyone: batch tools, headless
+clients and model-loop tests. The dashboard was welded to the engine. Moving
+the GUI out of `internal/` and removing the core's import address different
+problems; doing only one leaves the other intact.
+
+## 22.1 Two paths to the same dependency
+
+A refactor begins with a census. Grep before moving.
+
+The original server package held client lifecycle, replay, inbound routing,
+browser-RPC correlation, MCP tunneling and logging. Its JavaScript included a
+self-contained Artifact scroll. That scroll was the part Homebrew-VTT wanted,
+but reaching it meant reaching the package that owned the rest.
+
+The historical graph made the first repair look easier than it was:
+
+```text
+  agent (original root)
+   ├── internal/common
+   ├── internal/llm
+   ├── internal/mcp ─── gorilla/websocket  ← path 2
+   ├── internal/ws ──── gorilla/websocket  ← path 1
+   └── ...
 ```
 
-A tool reads `c.Engine.Usage().LastUsage()` and
-`c.Engine.Agent().Logf(...)`.
+The root re-exported four WebSocket symbols: `WSHub`, `NewWSHub`, `ServeHTTP`
+and `NewMCPWSTransport`. The original census found no consumers. The command
+called the internal constructor directly. The published API could sit unused
+while the product worked, because no external application tried to use it.
 
-**Self-check rule.** If a constructor's parameter list names
-something the agent or engine already owns, take the
-back-pointer instead.
+Delete those exports and remove the obvious GUI import, and Gorilla still
+appears in `go list -deps`. The MCP client's WebSocket dial transport brings
+it in through the second door. Only the browser client needs that transport;
+headless MCP still needs its protocol and other transports.
 
-**Yours.** Interface names, method signatures beyond the
-minimum set above, and how usage data flows to the GUI are
-your design decisions. The grader tests the structural
-properties (chain, single root, per-model cost, tool
-reachability), not the vocabulary.
+The lesson is older than Go modules. Run the transitive dependency check before
+the move to know where you stand, and after it to know whether you moved.
+Cutting the import you know about and calling it done is the dependency-graph
+equivalent of fixing the bug you can see and skipping the regression test.
+Gorilla remains useful where the browser actually needs it.
 
-**Exercise.** Start from `solutions/ch21`. Repair the
-back-pointer chain, collapse the flat composition root, fix
-per-model cost tracking, and add `agent_status`.
+The second edition already keeps both WebSocket paths in the optional GUI
+module. This exercise demonstrates that boundary through outside consumers.
+It does not ask you to weld the dashboard back on so you can remove it again.
 
-```bash
-make grade22
-```
+## 22.2 Construction without a bag of callbacks
 
-## The idea in plain words
+The first-edition Hub had transport work and an Agent control surface mixed
+in one constructor. Six arguments supplied a pause gate, send callback, log,
+settings and usage. A seventh dependency arrived afterward: a closure returning
+the current model.
 
-**An architecture is a set of promises about how parts find
-each other.** Chapter 5's promise was one sentence: every
-object holds a back-pointer to whatever created it. The
-consequence is that anything reachable from the root is
-reachable from anywhere in the tree, because every node can
-walk up to its parent.
+The reason for reading the current model was real. An operator can switch models
+mid-session; a string copied at construction would describe the old model while
+looking entirely plausible. But a field assigned after construction could be
+forgotten by another caller. Moving that closure into a keyed `AgentHooks`
+literal did not make all its fields mandatory: omitted Go struct fields receive
+zero values. The [language specification](https://go.dev/ref/spec#Composite_literals)
+is explicit about that distinction.
 
-**Nothing enforces the promise.** A Go constructor that takes
-six dependencies instead of one back-pointer compiles without
-complaint. The tests pass, because the tests were written for
-the feature, not for the wiring. The feature ships. Sixteen
-more features ship after it.
-
-**Decay is what accumulates in the gap between stating a rule
-and checking it.** Each constructor that skips the back-pointer
-is a local decision that works. Taken together, they produce
-a tree where the plumbing exists but carries nothing, and
-closures run alongside it doing the actual work. The
-architecture becomes a comment: something that was true when
-it was written and has not been true since.
-
-**The symptom is always the same shape.** Somebody asks for
-something small and the answer is hard. Not hard because the
-feature is complex, but hard because the feature needs data
-that is three objects away with no path to reach it. That
-shape is the signal. This chapter is about learning to read it.
-
-
-## The symptom: a feature that should have been easy
-
-The `agent_status` tool needs five values: which model is
-running, how many tokens the last response consumed, session
-totals, the cache hit rate, and what the session costs in
-dollars. The arithmetic already exists in
-`internal/common/usage.go`. `CostUSD` and `CacheHitRate` both
-work correctly and are covered by tests. Nothing needed
-inventing.
-
-Of those five values, exactly one is reachable from inside a
-tool. A tool receives a `common.Call` struct with a `Jobs`
-field for background processes and an embedded `Agent` for
-logging. It carries nothing that knows the model, nothing that
-tracks usage, and nothing that computes cost.
-
-The shape of the difficulty names the defect. "The function
-exists but the tool cannot reach its inputs" is a wiring
-problem, not a design problem. And a wiring problem in a
-codebase that has a wiring rule is a signal that the rule is
-not holding.
-
-## The first diagnosis was wrong
-
-The investigating agent reported the `common` package's
-interface inventory: `CacheLens`, `CredentialProvider`, `Host`,
-`JobHandle`, `JobManager`, `Observer`, `Parser`, `Recaller`,
-`Renderer`, `SettingsSource`, `Skills`, `SnippetJudge`,
-`ToolRegistry`, `UsageSource`, `Vars`. Eighteen interfaces, and
-**`Agent` and `Engine` were not among them.** The conclusion
-was confident and well-cited: the hub is missing the interface
-for the one object that owns all the state.
-
-Bill's reply was one line: *"Wait, common has no Agent and no
-Engine interface? Chapter 5 says every constructor takes a
-back-pointer. How are these objects being constructed at
-all?"*
-
-They are being constructed fine. **`Host` is the Agent
-interface.** It was named for its first capability, logging,
-rather than for the object it points at. Three methods: `Logf`,
-`APILogf`, `Debugf`. A `*Logger` satisfies it. The interface
-never grew past its name.
-
-The lesson is sharper than "names matter." A type named for its
-first capability becomes invisible as an extension point. When
-someone needed the model name, they did not think "add it to
-the agent interface," because the interface was not called the
-agent. They thought "`Host` is the logging thing" and built a
-side-channel. Then another. Then a third. The citations in the
-diagnosis were all true. The framing was not.
-
-## The chain, and why a flat root kills it
-
-The constructors tell the story without prose:
+The existing owner chain removes the need for the bundle. The optional server
+uses the supplied public Agent to reach its configuration, Engine, history and
+pause state. Ensemble supplies observations. The constructor checks the supplied
+root, Agent and logger, including that the Agent belongs to that root:
 
 ```go
-NewEngine(..., host common.Host)    // engine.go:113
-NewActor(eng, host)                 // actor.go:55
-NewJobs(host)                       // jobs.go:48
-NewFramework(host)                  // actor.go:763
+func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server, error)
 ```
 
-Each takes a single back-pointer interface. Objects with
-children satisfy the interface by forwarding upward. The `Jobs`
-constructor carries a comment that explains why this is
-load-bearing rather than decorative:
+This is the GUI package's public signature. The server owns browser connections
+and frontend settings; it does not become the owner of the Agent merely because
+it displays one. The application controls both lifetimes. Public event values
+let the application construct a history entry, and the same Agent handles a
+prompt whether it came from a terminal or a WebSocket.
 
-> Usage delegates up the chain rather than embedding a counter
-> of its own. Embedding one here would compile and silently
-> swallow the counts: totals recorded through this Jobs would
-> land in a local struct nobody reads, and the header would
-> under-report forever with nothing to indicate it.
+Bill saw the ownership distinction while the original GUI was being extracted.
+The frontend should remain useful to Homebrew-VTT; the object managing Agents
+should be able to serve more than one frontend. That object is already Ensemble
+here. A reusable view and a fleet need different responsibilities, even when
+the same application eventually presents both on one screen.
 
-"With nothing to indicate it." That phrase is this whole
-chapter's subject.
+## 22.3 The binary carries its interface
 
-The chain terminates at a composition root that embeds a
-`UsageCounter`. Anything reachable from the root is reachable
-from anywhere in the tree. The promise chapter 5 made.
+The original GUI served `web/gui/` relative to the source tree. Start the binary
+from another directory and the interface disappears into HTTP 404s. A harness
+that always sets the working directory to the repository hides the deployment
+problem. The binary carries its model loop and tools but cannot find its own
+interface.
 
-**Why a flat root kills it.** In `cmd/main.go`, eleven objects
-are constructed side by side with no parent among them. When
-object A needs a fact owned by object B, the only move
-available is to hand it over directly, as a parameter or, when
-the value changes at runtime, as a closure.
-
-Line 675 is the decay compressed into one assignment:
+`go:embed` makes the files part of the binary. The current GUI keeps its embed
+anchor private and exports an accessor rooted at the browser assets:
 
 ```go
-hub.Model = func() string { return eng.Cfg.Model }
-```
+//go:embed web/gui
+var assets embed.FS
 
-Engine state needed somewhere that could not reach the engine,
-so a closure was stapled onto the struct after construction.
-It works. It serves exactly one consumer. It generalizes to
-nothing.
-
-And it is not one line. It is a habit. Three more at lines
-432 through 441:
-
-```go
-eng.Target         = func() int { ... }
-eng.ToolRoundLimit = func() int { ... }
-eng.Bands          = func() common.BandConfig { ... }
-```
-
-`SettingsStore` cannot reach the engine, so the engine is
-handed closures that reach back into settings. An earlier audit
-found six dead settings, values the GUI writes that nothing
-ever applies. The same disease presenting a second time,
-proving the decay has already cost functionality, not merely
-taste.
-
-The `agent_status` tool would have been the fifth staple,
-except a tool has no struct to staple anything onto, which is
-why this particular feature is where the decay finally
-surfaced. One anomaly is an anecdote. Five is a pattern.
-
-## The measurements that found it
-
-Three greps, each one line.
-
-**Who calls the composition root?** `NewAgent` at
-`agent.go:205` had zero callers. None. Not even a test. The
-clean composition root, the one that builds a proper tree with
-`jobs.NewJobs(a)`, `llm.NewEngine(..., a)`,
-`llm.NewActor(eng, a)`, was dead code. The binary never
-touched it.
-
-**What does the binary do instead?** `cmd/main.go` was 1,154
-lines that hand-built a second, flat composition root at
-`cliHost` (line 265), whose own comment called it "the
-composition root for the server." It imported the `agent`
-package only for `agent.Logger` and `agent.DefaultLogger`.
-
-**What do constructors take?** Split every `New*` in the tree
-by whether it accepts a back-pointer:
-
-| Honours the rule | Does not |
-|---|---|
-| `NewEngine`, `NewActor`, `NewFramework`, `NewJobs` | `NewHub` (six params, three agent-owned) |
-| | `cachelens.New` (dir, report func(string)) |
-| | `NewJudge` (the concrete `*Engine`) |
-| | `recall.New`, `NewSettingsStore` |
-
-The left column is exactly the chapter 5 and 6 spine. The
-right column is everything added afterward: chapter 9's Hub,
-chapter 10's skills, chapter 17's recall, chapter 18's cache
-lens. The rule held for precisely as long as the chapters that
-taught it.
-
-## The check that protected the vocabulary
-
-Chapter 5 ships a grader check called `logger-accessible`,
-worth 10 points, whose message reads: "Host interface with Logf
-found, embedded in Call." Here is what it does:
-
-```go
-func detectLogf(dir string) bool {
-    cmd := exec.Command("grep", "-rl",
-        "Logf", dir, "--include=*.go")
-    if out, err := cmd.Output();
-        err != nil || len(out) == 0 {
-        return false
+func Assets() fs.FS {
+    files, err := fs.Sub(assets, "web/gui")
+    if err != nil {
+        panic(err)
     }
-    cmd = exec.Command("grep", "-rl",
-        "Host", dir, "--include=*.go")
-    out, err := cmd.Output()
-    return err == nil && len(out) > 0
+    return files
 }
 ```
 
-It confirms that *some* file contains the string `Logf` and
-*some* file contains the string `Host`. It never looks at
-`Call`. It never looks at an interface. A tree with a logging
-helper and an unrelated variable named `host` scores full
-marks.
+`server.Handler("")` serves that filesystem. A nonempty directory selects disk
+assets instead; the standalone GUI command exposes it as `--gui-dir`. Edit a
+CSS file, reload, and see the change without rebuilding Go. An absolute override
+path works independently of the launch directory. A relative override remains
+relative, exactly as its spelling suggests.
 
-The check protected the vocabulary, not the property. It would
-have passed every single day the chain was rotting. And it did.
+The embed directive requires a package-level variable. Its files are read-only,
+but an exported Go variable could still be assigned another filesystem value.
+Keeping the anchor private and returning `fs.FS` exposes the resource without a
+public mutable binding. [The embed documentation](https://pkg.go.dev/embed)
+describes the read-only value and package-scope directive; this is not a general
+exception for mutable application globals.
 
-This is what Bill calls P9: audit every grader by deleting a
-protected behavior and asserting the exact failing set. It is
-stated here as a consequence rather than a rule. And it resolves the chapter's
-opening puzzle. Nobody noticed the decay because the check that
-claimed to guard the chain was testing for the presence of two
-words.
+A deployment test must inspect what came back. In the student run, an initial
+asset check accepted HTTP 200 from a directory listing that contained no GUI.
+Requiring the application shell caught the same defect. A page status answers
+whether the server returned a page. It does not identify the page.
 
-## Where the money went wrong
+## 22.4 Reuse for real
 
-The second bug the missing seam concealed.
+The headless proof shows what the framework excludes. A reuse test shows what
+the GUI includes. Build both consumers outside the source module, so Go cannot
+accidentally grant them access to internal types. The accepted layout uses two
+module replacements: `ensemble` for core and `ensemble-gui-stub` for the GUI.
+The latter is the optional module's historical name, not an indication that its
+browser interface is still a stub.
 
-`internal/ws/handler.go` (line 438, as of October 2026)
-computes session cost as `common.CostUSD(session, f.Price)`:
-the current model's price sheet applied to the whole session's
-totals. A developer who switches models mid-session discovers
-that every token already spent has been retroactively re-priced
-at the new rate. After chapters 19
-and 20 taught vendor switching, that is a normal session.
+The outside GUI consumer constructs Ensemble and an Agent, appends a public
+`Event` containing `MessageData` and `Part` values, then constructs the server.
+A WebSocket subscription must replay that event. A prompt must reach the real
+Agent and appear in the provider request. An HTTP provider fake can make that
+last exchange deterministic while leaving the actual runtime in the path.
+A callback that merely records a string would miss the integration being tested.
 
-The design rule in `internal/common/usage.go` explains why: *no
-money is stored here; prices change while counts are history,
-so cost is computed where it is displayed and never recorded.*
-The reasoning is correct. It produced the bug anyway, because
-the thing that varies is not only time. It is the model.
+You cannot construct what you cannot name. This was the second gap in the
+original reuse attempt: the server was public, but its event vocabulary lived
+under `internal/`. Public aliases now expose the types consumers actually use.
+An in-tree test cannot establish that this works outside the import boundary.
 
-The reconciliation: keep counts as history **per model**, so
-cost stays derived and re-costable. The rule's purpose, never
-store a dollar amount that can go stale, survives. Its blind
-spot, assuming only one price sheet per session, does not. A
-well-reasoned invariant can still be under-specified, and one
-that is under-specified breaks quietly, because everyone
-trusts it.
+The Artifact scroll is a smaller consumer still. Mount only
+`artifact-scroll.js` and `renderers.js` from `gui.Assets()`. Instantiate
+`ArtifactScroll` with a supplied DOM element and feed it display messages through
+`receive`. It needs neither `app.js` nor application controls nor a WebSocket.
+Its optional speech dependency can stay absent. Homebrew-VTT gets a scroll in
+its own page instead of another copy of the Ensemble application.
 
-## The crash the decay concealed
+The browser MCP relay is public for the same reason. `ServeMCP` accepts a
+`net.Listener` chosen by the embedding application. It relays JSONL requests
+through a connected browser and restores the original caller's JSON-RPC ID in
+the response. Two clients may reuse an ID while browser replies arrive in reverse
+order; the relay must still deliver each response to the right client.
 
-The grader did not set out to find a crash. It drove the real
-binary, connecting over a websocket, switching the model, and
-disconnecting. The agent panicked: `send on closed channel`,
-raised from `Hub.Observe` through `Actor.notify` and
-`Actor.setState`. It reproduced intermittently, often enough to
-fail honest work, rare enough to read as grader flakiness.
+Without a browser, the error is immediate and correlated. With a connected but
+silent browser, the call remains pending until a relevant connection or the
+server closes. A no-browser error test does not establish that latter lifetime.
+Keep reading the relay socket while requests wait so a disconnected caller can
+release its own work. Closing the server must close its listeners and join its
+connection workers; a timed-out test is not permission to leave them behind.
 
-Both sides of the race follow the same pattern. `Observe`
-snapshots the live client set under `h.mu`, unlocks, then
-iterates the snapshot and sends. Teardown deletes a client from
-the set under `h.mu`, unlocks, then closes the client's send
-channel. A client can be snapshotted, deleted, closed, and then
-sent to.
+## 22.5 Two kinds of silence
 
-Thirteen call sites send on a client's send channel. Eleven
-spell it `c.send`; two use `agentClient.send` and `cl.send`.
-Exactly one call site closes it. And every one of those
-thirteen senders contains this:
+A single Agent operates in a loop: reason, call a tool, receive the result,
+reason again. The human can send hints while that work proceeds. Delegation
+makes two existing risks particularly expensive.
+
+The parent calls `join_agents` and waits for its children. If the terminal's
+input reader is blocked on that same turn, a prompt typed by the human cannot
+reach the mechanism meant to wake it. The job supervisor can be correct while
+the product still takes the wheel away.
+
+The second failure is quieter. A model spawns three children and calls no more
+tools. Its turn ended normally. The status says idle, just as it would after
+finishing a task correctly. The model decided that delegating was the job, and
+delegating is complete. Three children can finish and submit while the parent
+is no longer attending to them.
+
+These failures can combine. The framework wakes a parent that stopped early.
+The parent remembers to join, enters a blocking wait, and the disconnected input
+path prevents the human from steering it. Recovering attention does not ensure
+that the model uses it well. The fleet needs child ownership, message delivery
+through waits, and a bounded response when the model stops without submitting.
+
+## 22.6 Spawning
+
+Give each agent a `SubAgentManager`. The manager holds the children
+map and exposes three operations: spawn, shut down, and list. A child
+is a full agent with its own actor, its own tool visibility, its own
+save file, and its own data directory, created under the parent's
+directory so the filesystem mirrors the ownership tree. A child whose
+task fails can be shut down and respawned without replacing the parent's
+conversation. These Agents share a process; this is not process-crash isolation.
+
+The manager does not know how to build an agent. That job belongs to an
+`AgentFactory`:
 
 ```go
-select {
-case c.send <- data:
-default:
+type AgentFactory func(parent Agent, spec AgentSpec) (Agent, error)
+```
+
+The composition root supplies the factory at startup. It receives the actual parent and
+child specification and returns a constructed Agent. The manager loads its
+save, registers it and starts the task. The application selects the child
+configuration through that factory, retaining the existing provider and
+credential-resolution path instead of inventing a second one inside the manager. The library says what it needs. The binary decides how to
+provide it. The split is the same one that `http.Handler` draws between
+"handle this request" and "listen on this port."
+
+The factory seam exists because the same library runs in different
+contexts. The full Ensemble binary supplies a factory that creates
+agents with real models, real API keys, and real file systems. A test
+harness can use the same real Agent against a scripted external provider
+and temporary directories. A headless CLI might supply a factory with
+no GUI hooks at all. The library code that calls `Spawn` does not
+change. What changes is the factory registered at startup, and the
+factory is the only code that knows which kind of agent this binary is
+meant to run.
+
+The terminal installs the factory on its existing root. This is the actual
+construction seam, with configuration inherited from the owning parent:
+
+```go
+app.SetAgentFactory(func(parent ensemble.Agent, child ensemble.AgentSpec) (ensemble.Agent, error) {
+    config := parent.Config()
+    if child.Model != "" {
+        config.Model = child.Model
+    }
+    return app.NewChildAgent(parent, config, child)
+})
+```
+
+The manager derives IDs and paths from the parent; `NewChildAgent` checks the
+real owner relationship and clamps the specification. A sandboxed parent cannot
+spawn an unsandboxed child, and a parent without web access cannot grant it.
+Credentials remain configuration owned by the application and Agent; they are
+not routing fields copied into a model-visible specification.
+
+The shared root makes the factory available at every depth. A child reaches
+Ensemble through its actual parent relationships, rather than receiving a second
+copy of a callback whose propagation can be forgotten.
+
+Shutting down a parent cascades to its children, recursively. The
+fleet's lifetime is bounded by its root. A child that outlives its
+parent is a resource leak with a model attached, and the cascade
+prevents it.
+
+The proof of isolation is on disk. Spawn a child, and a directory
+appears under the parent's data tree. Inside it: a save file that
+belongs to the child alone, with its own event log and its own tool
+state. Shut down the child, and the directory survives, because the work
+inside it might matter to whoever reads the results. Restart the same
+child with the same id, and its saved conversation is loaded before the new
+task starts. The parent's conversation and save are separate. The task workspace is
+still shared: a child's file edits can affect the parent's work. State isolation
+is not a promise that children cannot damage shared files; Chapter 21 supplies
+the optional confinement boundary.
+
+## 22.7 The parent and the user
+
+Every agent knows two things about its place in the fleet: its own id
+and its parent's.
+
+```go
+type AgentSpec struct {
+    ID       string // e.g. "researcher-1"
+    ParentID string // parent's ID, or UserID for root agents
+    // ...
 }
 ```
 
-That `default` looks like protection. **It is not.** A
-`default` clause saves a sender from a full channel. It does
-nothing about a closed one. `send` on a closed channel panics
-regardless of the `select`, because the language specification
-says a closed channel is immediately ready: the send case is
-selected, not the `default`. The defensive-looking code offers
-zero defense against the failure that actually happens.
+The root agent defaults to `"main"`. A child's parent id is set by the
+spawn call. And the user gets a reserved address, so the same messaging tool can address an Agent parent or the human sink.
+The routing ID does not replace the runtime back-pointer: a root Agent still
+belongs to Ensemble, and a child retains its actual Agent parent.
 
-The fix is ownership, not a narrower critical section. Nothing
-closes the send channel at all. The `writePump` goroutine stops
-on a separate `done` channel, drains any buffered messages, and
-exits. An unreferenced channel is garbage-collected whether or
-not it was closed, so not closing costs nothing.
+The user is addressable but never a member of the fleet. No agent can
+spawn the user, shut down the user, or query the user's status. This is
+a design boundary. Addressing is uniform:
+`send_message_to_parent` works the same way whether the parent is
+another agent or the human at the terminal. Lifecycle is not: the
+operations that manage agents do not apply to a person sitting in a
+chair. Putting the user in the children map would force an "unless it
+is the user" guard into every loop that walks the fleet, and that guard
+would exist because the abstraction promised something it could not
+deliver.
 
-Two regression tests passed with the bug restored, both false
-greens caught only by running the mutant. The first tore down
-64 clients in one goroutine; teardown finished before any
-sender was scheduled, so `Observe` saw an empty set and sent
-nothing. The second ran 5,000 rounds on a single client; the
-window between `Observe`'s unlock and its send is nanoseconds,
-and teardown never landed inside it.
+The user's address is configurable. The default is the role, but the
+binary can set it to a name instead. A reply addressed to a name is
+a reply the model can follow up without consulting an address book.
 
-What works is a large snapshot: 2,000 clients, so the send loop
-itself becomes the window. `Observe` is still writing to early
-clients while teardown closes later ones. Widen a race window
-structurally. Never hope to land in it.
+A reply is a full message with a sender address, not a bare string.
+The reason is practical: the first time a child receives an answer and
+needs to ask a follow-up, an answer with no sender cannot be continued.
+The child does not know where the answer came from. Every reply carries
+the sender's address, so the conversation can continue without the
+child maintaining its own routing table.
 
-The Hub that needed moving out for architectural reasons was
-also the Hub with a data race nobody had noticed for sixteen
-chapters. Both facts follow from the same cause: the component
-was never properly inside the tree, so it was never properly
-observed. A test that touches reality finds things you did not
-think to look for. That is worth more than the test you
-designed.
+A question also needs an identity in the place that will answer it. During the
+student implementation, a parent and child with the same local name generated
+the same first question ID. The child question overwrote a pending question to
+the human. Making IDs local to each sender had not made them unique at the
+recipient. The recipient's manager now allocates question IDs under the lock
+that already protects its pending questions. That is the scope in which replies
+must be unambiguous.
 
-## The repair
 
-The sequence matters.
+## 22.8 Asking is not finishing
 
-**Step 0: the process fix.** The back-pointer rule is added to
-`SKILL.md`, the document the coder reads every session, and to
-the course policy as P11. An architectural invariant that lives
-only in a chapter is a comment. To survive, it has to live in
-the thing the builder reads every time it builds, and in a
-check that fails when it is violated.
+The first edition initially gave the parent link only
+at submit time. A child could do its work and deliver a result, and the
+result would reach the parent. Bill caught the problem immediately: a
+child that needs to ask a question before it finishes would have to
+call `submit` to talk. Asking and finishing would be the same verb, and
+a child cannot ask for help without lying about its state.
 
-**Step 1: fix the chapter 5 check.** Replace `detectLogf` with
-a structural check that walks the AST for the actual property:
-a chain of constructors taking back-pointer interfaces, with
-the logging method identified by signature (format string,
-variadic, no results) rather than by name. A name-based anchor
-hiding inside a structural check is the same bug wearing a
-better coat.
+The fix separates the two. `send_message_to_parent` is the general
+verb: a child calls it at any point during its work, the child blocks,
+and the parent receives the message. `submit` is the narrow verb: the
+child is finished, here is the result. The framework observes that a
+child called `submit` with a conforming payload. Whether the work that
+payload describes is correct is a judgment the parent must make, not a
+fact the framework can verify.
 
-The new check passed every hand-written fixture and then failed
-on the real pre-repair tree. It counted composition roots
-tree-wide, so `cmd/virtual-user`'s healthy root satisfied the
-count on behalf of the decayed `cmd/`, which called no root at
-all. Now it counts per binary. Fixtures agree with the belief
-that built them. The real tree does not.
+Seven tools form the fleet API:
 
-**Step 2: rename `Host` to `Agent`.** Compiler-driven, fifteen
-files. The interface is now named for the object it represents.
+- `spawn_sub_agent` creates a child from a specification.
+- `join_agents` blocks until every listed child has submitted, returning
+  each child's result.
+- `agents_status` lists live children and their current state.
+- `shutdown_agent` stops a child and removes it from the fleet.
+- `send_message_to_parent` blocks the child until the parent replies.
+- `respond_to_parent_message` delivers the parent's reply and unblocks
+  the child.
+- `submit` records the Agent's completed result.
 
-**Step 3: `common.Engine` on `Call`.** Declare the engine
-interface, widen the agent interface, add the back-pointer to
-the tool dispatch struct. In `internal/llm/actor.go`, the
-engine was already in scope on the line that builds a `Call`.
-That line reached into it for `.Jobs` and threw the rest away.
-The engine never needed threading. It was always there.
+These seven names are the exercise. Additional fleet tools are outside this
+chapter. An omitted reply ID resolves the sole matching pending question; if
+there are several, require the ID rather than guessing which child to resume.
 
-**Step 4: per-model cost.** Token counts tracked per model.
-Session cost is the sum of per-model costs, never the session
-total at the current price.
+`join_agents` is the fan-in, and it has one behavior beyond blocking
+that the rest of the fleet depends on: it returns early when a child
+sends a message. Consider the deadlock it prevents. A child calls
+`send_message_to_parent` and blocks, waiting for an answer. The parent
+calls `join_agents` and blocks, waiting for the child's `submit`.
+Neither yields. Both wait forever. The early return breaks the cycle:
+the parent wakes when the child's message arrives, answers the
+question, the child unblocks and resumes work, and the parent goes back
+to waiting for `submit`, which now arrives because the child can
+proceed.
 
-**Step 5: `agent_status`.** One file, no plumbing changes. The
-tool reads `c.Engine.Usage().LastUsage()` and
-`c.Engine.Agent().Logf(...)`. Every value arrives through the
-chain.
+The tool arguments are small:
 
-**Step 6: collapse the two roots.** `cmd/main.go` builds the
-agent through `NewAgent`. `cliHost` is deleted, zero references
-remain. `NewHub` drops from six parameters to three.
+| Tool | Arguments |
+| --- | --- |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model` |
+| `join_agents` | optional `agent_ids`; omitted means all current children |
+| `agents_status` | none |
+| `shutdown_agent` | `agent_id` |
+| `send_message_to_parent` | `content` |
+| `respond_to_parent_message` | `agent_id`, `response`, optional `message_id` |
+| `submit` | `result` |
 
-A rejected alternative: adding a nineteenth interface called
-`Status` to the `common` package, which would have been a
-second route to the agent, the `hub.Model` mistake wearing a
-different name.
+Questions and fan-in use the ordinary supervised tool path. If the initial
+callback returns a running handle, `wait_for_job` retrieves the later reply or
+completed fan-in. Ending one wait does not discard the conversation it was
+waiting for. At the terminal, `/reply TEXT` answers the sole human question;
+`/reply MESSAGE_ID TEXT` selects one when several are pending.
 
-## Taking it for a spin
 
-Run the agent and ask it what it costs. The tool reports the
-model, the last response's tokens, session totals, the cache
-hit rate, and a dollar figure. Switch models mid-session and
-ask again. The number changes shape rather than retroactively
-re-pricing, and that is the fix rather than a regression.
+## 22.9 Waking the blocked Agent
 
-The more revealing artifact is the diff. `cliHost`: gone.
-`hub.Model`: gone. The `report` closure on the cache lens:
-gone. `NewHub`'s six parameters down to three. `cmd/main.go`
-from 1,154 lines to 1,009. A chapter that ships a net
-deletion.
+The job supervisor already separates a tool's execution from the Agent's wait
+for it. When the callback delay expires, the Agent gets a running notice and a
+handle. The process or handler continues. Incoming messages use that same
+separation: wake the waiter, deliver the message and leave the job alive.
 
-## What this looks like at scale
+Message arrival is independent of the timer. The earlier `tool_limits` tool
+sets a one-shot limit for the next call, including a third-party tool without
+callback fields of its own. It does not make messages deliverable by installing
+a per-name timeout. A long callback delay must not turn into a long delay before
+a human can be heard.
 
-Five closure-staples and six dead settings in 39,725 lines of
-Go and JavaScript. It took three greps. The defect had survived
-sixteen chapters, and it was found because somebody asked for a
-status line and noticed the answer was too hard.
+An interrupt aimed at a job with no current waiter is a no-op. Otherwise a
+later wait could consume a stale signal and appear to have been interrupted by
+a message that arrived minutes earlier. Preserve the eventual result under the
+same handle so the parent can answer the hint and return to its original join.
 
-Chapter 0 showed what 1.8 million lines of unmanaged accretion
-produces. The audit in this chapter, "find every constructor
-that takes a bag of dependencies instead of a back-pointer,"
-has no tractable answer across a codebase that size. The
-invariant cannot be restated even if somebody wanted to. That
-is a choice about process, not an accident of scale.
+The input reader matters as much as the supervisor. Keep reading stdin while
+the Agent works. A human message typed during a turn becomes a hint; a `/reply`
+command answers a pending fleet question without being misclassified as a new
+model task. The actor remains the single place that orders conversation changes.
 
-The model can produce any local pattern on demand. It cannot
-supply the one input that makes a large system cohere: a small
-number of decisions, held consistently, by someone who has paid
-for getting them wrong before. Chapter 5 wrote the rule in a
-chapter. That was a comment. This chapter moved it into
-`SKILL.md` and a grader check that tests the property rather
-than the vocabulary.
+## 22.10 Three wakes, then tell someone
+
+“Done” has a precise fleet meaning: the Agent called `submit`, and its children
+have finished. A normal model response ending is not sufficient. The framework
+can enforce this protocol without deciding whether the result is good.
+
+First, `submit` rejects while any child is still active. The error tells the
+parent which children need attention. Submissions happen bottom-up. A failed
+child is unresolved too; shutting it down removes it from the managed set while
+preserving its files. Failure does not quietly become a successful child result.
+
+Second, a successful turn that ends without submission receives an immediate
+framework correction. With active children, the correction asks the Agent to
+join or shut them down. Without active children, it asks for the missing submit.
+No polling timer is needed: the runtime is already handling turn completion.
+
+The correction lives in the library's real completion path. Installing a factory
+enables the fleet protocol for the root and its descendants. An existing
+single-Agent embedding that has no factory still permits an ordinary final
+answer. The terminal installs one; the single-Agent GUI in this chapter does
+not. This keeps the fleet invariant where the application actually offers a
+fleet instead of breaking earlier consumers.
+
+Count consecutive framework wakes per Agent and reset the count when it submits.
+After exactly three wakes, stop re-prompting and escalate to the parent. At the
+root, deliver the escalation to the human sink. The bound limits attempted
+correction; it cannot force a model to cooperate or guarantee a useful result.
+
+That distinction produced a real student correction. An exhausted child first
+remained labelled running. The parent could then wait for work the framework
+had stopped trying to complete. The corrected state is failed, with an error
+and no fabricated submission. Fan-in can report that failure instead of waiting
+forever or presenting an empty result as success.
+
+A failed turn takes a different path. An HTTP rejection or other execution error
+must be reported without entering the three-wake loop. Repeating a failed
+exchange merely spends the correction budget on a different problem. A model
+refusal delivered as a successful response can still be an ordinary unsubmitted
+turn; use the actual runtime outcome rather than guessing from its prose.
+
+Framework wakes and escalation notices are recorded in the Agent's event log.
+The terminal's human sink exposes the root's question or escalation. These make
+the protocol inspectable: which Agent stopped, how many wakes it received, and
+whether it submitted or exhausted the bound.
+
+## 22.11 Five wiring failures
+The first edition records five failures when its real executable finally ran
+the fleet. Each had been hidden by a fixture supplying what the product omitted.
+They are construction lessons, not bugs to recreate in this implementation.
+
+**No agent factory in the composition root.** The binary returned
+"no agent factory configured" on the first spawn attempt. Every fleet
+test in the library passes, because every fleet test constructs its own
+factory during setup. The application startup path never registered one. The library knew
+how to use a factory. The product never provided one.
+
+**No user sink in the composition root.** The user was addressable in
+principle and unreachable in practice. A top-level agent's parent was
+the user, and `send_message_to_parent` dispatched correctly to the
+user's address. But nobody had wired a sink to receive the message.
+Escalation from a top-level agent had nowhere to arrive. This is the
+one place a human most needs to hear from the fleet, because the fleet
+has run out of agents to escalate to.
+
+**The factory never propagated to children.** A child's manager held a
+nil factory. The parent could spawn, but the child could not spawn its
+own children. The fleet was permanently one level deep. The grader
+found it because its messaging probe runs three levels deep: a
+grandchild sends a message to its parent, which relays to its own
+parent. A two-level probe need not exercise this: it can create a child without
+asking that child to create the next generation.
+"Arbitrarily deep" was the design. One level was the product.
+
+**`respond_to_parent_message` required a `message_id` the model had to
+copy from prose.** Every parent message includes the id in its payload,
+so the information is available, but requiring the model to extract an
+opaque string from natural language and paste it into a tool call is a
+reliability tax on every reply. The fix makes the id optional when exactly one matching question is pending.
+Multiple questions still require an unambiguous selection.
+
+**The command loop read stdin on the goroutine that waited for the
+turn.** Stage 3 built a mechanism to wake a blocked agent when a
+message arrives. The terminal could not use it. The goroutine that
+reads user input was the same goroutine that blocked on `waitForTool`,
+so a human typing a command while a tool ran could not deliver it. The
+mechanism existed. The wire from the terminal to the mechanism did not.
+A comment in the command loop claimed that slash commands could steer
+"a turn that is already running." The comment had been there since the
+file was written. It had never been true. The structure forbade what
+the comment promised, and the comment sat beside the input path it misdescribed.
+
+The first-edition tests supplied these dependencies themselves. That let the
+library paths work while the application forgot to assemble them. A library
+fixture can test factory use, message delivery and idle correction; a built-CLI
+exercise checks whether the executable actually installs and exposes them.
+Both are useful. Neither substitutes for the other.
+
+The same lesson connects the GUI half of this chapter to the fleet half. A
+public constructor with no outside caller and a working factory with no product
+registration both describe capabilities the user cannot reach. Exercise the
+boundary from the side that depends on it.
+
+
+## 22.12 What the sweep found
+
+Two more defects surfaced in the full cross-chapter sweep, and neither
+belonged to the five.
+
+**A package counter cost chapter 5 ten points.** Stage 3 added
+`var messageSeq atomic.Uint64` at package scope to generate unique
+message ids without a lock. The number worked. The scope was wrong.
+Chapter 5's grader checks for package-level variables in non-test
+files, to keep mutable application state with its owner.
+The fleet scenarios in that suite did not reject the counter's scope.
+Source review or a focused ownership check could have found it; the historical
+cross-chapter sweep happened to do so. The fix moved the counter to a field on the messaging state
+struct, behind the lock that already protected it. The lesson is worth stating plainly: if the id is per-fleet, the counter
+must live on the fleet, not on the package.
+
+**A bisect indicted innocent code.** Chapter 19 scored 85 against the
+live tree and 100 against four consecutive worktrees. The bisect framed
+a one-line change from this chapter as the culprit. That change could
+not touch event logs. The contradiction was the clue.
+
+Every worktree path is absolute. The sweep runs graders with relative
+paths. Chapter 19's harness set the working directory to the student
+tree and passed a relative path to the event log file. In the live
+tree, where the working directory matched the student directory, the
+relative path resolved correctly. In a worktree, where the student
+directory lived at a different absolute location, the relative path
+pointed somewhere else. Same code, same grader, same tree: 100 with
+an absolute path, 85 with a relative one.
+
+How a test is invoked is part of the test.
+
+## 22.13 The exercise
+
+Extend the preceding solution in two connected stages. First demonstrate the
+existing public boundary with reusable assets and an outside application. Then
+add the terminal fleet to the real command. Keep the GUI's single-Agent wire
+behavior intact while the core learns to manage children.
+
+For the GUI stage, build the optional executable and start it away from the
+source tree. Verify the actual embedded shell and modules, then select a disk
+override and verify its changed contents. Build separate outside consumers for
+the headless API and GUI. The first must exclude the GUI and WebSocket packages;
+the second must replay public event values, deliver a real prompt and expose the
+MCP relay. Mount the two Artifact modules independently and render a message
+without the application shell. Check the existing GUI model control by inspecting
+requests before and after a turn-boundary switch.
+
+For the fleet stage, implement the seven tools and application factory, retaining
+actual parent relationships and narrow-only child specifications. Demonstrate
+recursive spawning, distinct state files, pending questions and sender-bearing
+replies, fan-in, status and recursive shutdown. While the parent waits, deliver
+a terminal hint and later collect the same running job. Exercise successful
+submission, early-submit refusal, exactly three corrective wakes and truthful
+failure after exhaustion. A failed provider turn must not trigger the correction
+loop. The GUI fleet panel is next chapter's exercise.
+
+### An outside GUI application
+
+This small consumer uses the public API directly. It has two modes: the full
+single-Agent GUI and a page that mounts only the Artifact component. It binds
+fresh loopback ports and prints their addresses, avoiding another running
+Ensemble. Begin at the repository root:
+
+```sh
+ensemble_source=$(pwd)/solutions/edition-2/ch22
+reuse_dir=$(mktemp -d /tmp/ensemble-ch22-reuse.XXXXXX)
+cd "$reuse_dir"
+go mod init example.org/ensemble-reuse
+go mod edit -require=ensemble@v0.0.0 -require=ensemble-gui-stub@v0.0.0
+go mod edit -replace="ensemble=$ensemble_source"
+go mod edit -replace="ensemble-gui-stub=$ensemble_source/gui"
+```
+
+Save this as `main.go`. The component mode makes no model request. The full mode
+uses your existing provider environment or Chapter 18 subscription profile;
+credentials do not belong in this file.
+
+```go
+package main
+
+import (
+    "context"
+    gui "ensemble-gui-stub"
+    "ensemble/authcli"
+    "ensemble/ensemble"
+    "flag"
+    "fmt"
+    "io/fs"
+    "net"
+    "net/http"
+    "os"
+    "os/signal"
+)
+
+func main() {
+    if err := run(); err != nil {
+        fmt.Fprintln(os.Stderr, err)
+        os.Exit(1)
+    }
+}
+
+func run() error {
+    components := flag.Bool("components", false, "serve only the component demo")
+    directory := flag.String("gui-dir", "", "override embedded full-GUI assets")
+    flag.Parse()
+    mux := http.NewServeMux()
+    if *components {
+        for _, name := range []string{"artifact-scroll.js", "renderers.js"} {
+            mux.HandleFunc("/"+name, func(w http.ResponseWriter, r *http.Request) {
+                data, err := fs.ReadFile(gui.Assets(), name)
+                if err != nil {
+                    http.Error(w, err.Error(), 500)
+                    return
+                }
+                w.Header().Set("Content-Type", "text/javascript")
+                w.Write(data)
+            })
+        }
+        mux.HandleFunc("/demo", func(w http.ResponseWriter, r *http.Request) {
+            w.Header().Set("Content-Type", "text/html")
+            fmt.Fprint(w, `<!doctype html><title>Artifact reuse</title>
+<div id="scroll"></div><script type="module">
+import { ArtifactScroll } from './artifact-scroll.js';
+const scroll = new ArtifactScroll(document.querySelector('#scroll'));
+scroll.receive({type:'part_final', part_id:'demo', replay:true,
+  part:{type:'text', text:'An Artifact without the application shell.'}});
+</script>`)
+        })
+    } else {
+        cfg, err := ensemble.ConfigFromEnv()
+        if err != nil { return err }
+        cfg.DataDir, cfg.BuiltinTools = "cr", true
+        root := ensemble.New(os.Stderr)
+        if err := authcli.Configure(root); err != nil { return err }
+        agent, err := root.NewAgent(cfg, ensemble.AgentSpecFromEnv())
+        if err != nil { return err }
+        defer agent.Shutdown()
+        if err := agent.History().Append(ensemble.Event{
+            Type: "message_received",
+            Message: &ensemble.MessageData{Actor: ensemble.Human,
+                Parts: []ensemble.Part{{Type: "text", Text: "PUBLIC_REPLAY"}}},
+        }); err != nil { return err }
+        server, err := gui.New(root, agent, os.Stderr)
+        if err != nil { return err }
+        defer server.Close()
+        relay, err := net.Listen("tcp", "127.0.0.1:0")
+        if err != nil { return err }
+        fmt.Println("MCP", relay.Addr())
+        go server.ServeMCP(relay)
+        mux.Handle("/", server.Handler(*directory))
+    }
+    listener, err := net.Listen("tcp", "127.0.0.1:0")
+    if err != nil { return err }
+    fmt.Println("HTTP http://" + listener.Addr().String())
+    server := &http.Server{Handler: mux}
+    defer server.Close()
+    stopped, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+    defer stop()
+    served := make(chan error, 1)
+    go func() { served <- server.Serve(listener) }()
+    select {
+    case <-stopped.Done(): return nil
+    case err := <-served: return err
+    }
+}
+```
+
+Build before launching so the supervised process is the application itself:
+
+```sh
+go mod tidy
+go build -o /tmp/ensemble-ch22-reuse .
+/tmp/ensemble-ch22-reuse --components
+```
+
+Open `/demo` at the printed HTTP address. It displays one Artifact; `/index.html`
+must return 404. Stop with Control-C, then run the full mode:
+
+```sh
+LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
+OPENAI_REASONING_EFFORT=high OPENAI_REASONING_SUMMARY=detailed \
+/tmp/ensemble-ch22-reuse
+```
+
+The full page should replay `PUBLIC_REPLAY`. Send a short prompt and inspect its
+actual request and response. Between completed turns, select another supported
+model in Settings and send another prompt. A settings acknowledgment proves the
+control was received; the next request's model field proves it took effect.
+This small embedding intentionally starts a fresh conversation; the terminal
+fleet below supplies the persistent task demonstration.
+
+To check the override, create a directory containing a distinctive `index.html`
+and run full mode with `--gui-dir /absolute/path/to/that/directory`. Inspect the
+body, then return to the embedded default. To check the relay's no-browser path,
+connect to its printed MCP address before opening the page and send a JSONL
+request such as:
+
+```json
+{"jsonrpc":"2.0","id":"outside-1","method":"tools/list"}
+```
+
+The error must retain `outside-1`. Repeat with the real browser connected to
+exercise forwarding and a correlated reply. Disconnect a caller while its
+request waits, then close the application and verify that no relay connection
+or listener survives. Component rendering, a no-browser error and a forwarded
+browser response establish different parts of the reuse surface.
+
+Check dependency reachability from this same outside module. A small headless
+consumer gives the negative control a real public-library import:
+
+```sh
+mkdir headless
+cat > headless/main.go <<'GO'
+package main
+import (
+    "ensemble/ensemble"
+    "io"
+)
+func main() { _ = ensemble.New(io.Discard) }
+GO
+go build -o /tmp/ensemble-ch22-headless ./headless
+go list -deps ./headless > headless-deps.txt
+go list -deps . > gui-deps.txt
+rg 'ensemble-gui-stub|gorilla/websocket' headless-deps.txt
+rg 'ensemble-gui-stub|gorilla/websocket' gui-deps.txt
+```
+
+The first search should find nothing and return status 1. The second should
+name both the GUI module and Gorilla. The positive control matters: a detector
+that never matches could make a coupled core look clean. The same comparison
+belongs around a headless MCP consumer and its optional WebSocket client; the
+protocol alone must not pull in the browser transport.
+
+An in-tree test can hide an internal import, and a library dependency check can
+miss a different command's wiring. Inspect the executable being delivered.
+`go list -deps` on this outside consumer establishes an import boundary; it does
+not establish that all of its functions execute or that a browser rendered the
+response. Those are the reasons for replay, prompt, relay and component tests
+alongside the graph.
+
+The old supervised probe once finished its report but left the harness waiting
+for EOF. Its `go run` wrapper had been killed while a child still held the
+output pipe. The first-edition fix built the probe and executed the binary
+directly. When a test appears hung after its final assertion, inspect the process
+that still owns the pipe before theorizing about model latency.
+
+### A fleet with work to hand back
+
+Build the core from the accepted chapter directory, then create a scratch task
+and an explicit primary. This setup gives both root and children the tools they
+need; it is not a claim that a tool name in the prompt enables that tool.
+
+```sh
+cd "$ensemble_source"
+go build -o /tmp/ensemble-ch22 .
+fleet_dir=$(mktemp -d /tmp/ensemble-ch22-fleet.XXXXXX)
+mkdir -p "$fleet_dir/skills/fleet"
+cat > "$fleet_dir/skills/fleet/SKILL.md" <<'SKILL'
+---
+name: fleet
+type: primary
+description: A small coding fleet with explicit questions and submissions
+tools: read_file write_file edit_file list_directory search_files run_command wait_for_job tool_limits spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit
+---
+Use tools to inspect facts and test code. Ask a parent question with
+send_message_to_parent and answer child questions with respond_to_parent_message.
+Join or shut down unfinished children. Call submit with the completed result;
+ordinary text does not submit. Keep task files in the shared working directory.
+SKILL
+cd "$fleet_dir"
+LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
+OPENAI_REASONING_EFFORT=high OPENAI_REASONING_SUMMARY=detailed \
+EN_SKILLS_DIR="$fleet_dir/skills" EN_PRIMARY_SKILL=fleet \
+/tmp/ensemble-ch22 chat
+```
+
+Use your already selected billing mode and authenticated profile, or the intended
+API-key environment. Keep the terminal open while work runs. Give the parent
+this task:
+
+```text
+Spawn exactly three children named add, multiply and subtract. Each should write
+its named Python module with a two-argument integer function of the same name,
+run assertions, then submit its result. Tell add to ask you whether negative
+integers are required before implementing; answer yes. Tell each child to run
+sleep 4 && python3 followed by its test command, so there is time to steer while
+you join. You must collect all three submissions, run combined assertions, and
+submit a concise result containing FLEET_DONE. Do not implement their functions
+yourself.
+```
+
+While a join is waiting, type:
+
+```text
+In your final submission include STEER_COBALT, and confirm that negative
+integers were tested.
+```
+
+A delivered hint should wake the wait without killing the children. Follow the
+running handle back to the eventual fan-in result. After the final submission,
+exit normally with Control-D. Inspect `cr/children/add/save.json` and the other
+child saves, and run the combined assertions independently. If a model reports
+success without a file or test result, keep that discrepancy in the record.
+
+## 22.14 Taking it for a spin
+
+The second-edition GUI deployment ran from a fresh directory with no source
+asset tree nearby. Chrome loaded the embedded shell and its six supporting
+assets. GPT-6 Astra at high reasoning wrote `deployment-demo.txt`, read it back
+and reported the actual 42-byte content. The run took 9.649 seconds and exited
+normally. Component-only rendering and relay lifetime have separate external
+consumer checks; that file task alone does not demonstrate them.
+
+The terminal fleet then ran a bounded coding task with three children, add,
+multiply and subtract. Each wrote a Python function and tested it. Add asked
+whether negative integers mattered; the parent answered yes. One child's first
+shell command was malformed and exited 1. The model corrected the command and
+its test passed. This was model recovery within the task, not an automatic retry
+of a failed turn by the fleet manager.
+
+The parent joined the children. A terminal hint arrived while join job 12 was
+running and woke its wait; the job remained alive. A later wait on that same
+handle returned all three submissions. The parent ran combined assertions and
+submitted `FLEET_DONE`. Independent execution of the files also passed. The
+48.198-second run exited normally after twenty Astra/high requests.
+
+There was a useful failure inside that success. The hint asked for
+`STEER_COBALT` in the final submission. The exact hint appeared in a later
+provider request, but the final submission omitted the marker. Delivery worked;
+compliance did not. A fleet can preserve the human's opportunity to steer without
+guaranteeing that the model follows the instruction. Check the input path and
+the resulting work separately.
+
+The child conversations and results remained in their own saves. The terminal
+showed the parent's view; it did not become a monitor for every child's reasoning.
+The browser still showed one Agent, one stream and one event log. The next
+chapter makes the fleet visible through that existing frontend boundary.
+
+## 22.15 Checks
+
+The revised combined grader keeps both original seven-row rubrics. The original
+student runs each scored 0/100 before their valid behaviors could be assessed:
+the GUI harness assumed different public import and executable paths, and the
+fleet harness omitted a required model. Those historical scores are not revised
+passes. The current command supplies the actual public launch and library
+contracts, with source review for ownership and retained browser evidence for
+rendering.
+
+| Behavior | Check | Points |
+| --- | --- | --- |
+| Headless framework boundary | Outside core consumer excludes GUI/WebSocket dependencies, with a positive GUI control | 20 |
+| Public GUI reuse | Outside consumer constructs real public inputs, replays an event, delivers a prompt and exercises a correlated relay reply | 15 |
+| Preserved wire behavior | Actual GUI session and provider requests show the requested model switch | 15 |
+| Embedded deployment | Built binary serves the real shell from an unrelated directory; explicit disk selection still works | 15 |
+| Components without shell | Selected Artifact modules are served while the application shell is absent | 10 |
+| Headless MCP boundary | Core MCP consumer excludes WebSocket implementation while the optional client retains it | 15 |
+| Public root boundary | Resolved imports and constructible public API preserve the core/GUI split | 10 |
+| Spawn and result | A real child submits a payload the parent receives | 15 |
+| Child state and factory | Actual child construction and distinct data/save paths | 15 |
+| Fleet visibility and shutdown | Status reports a managed child; shutdown removes it | 10 |
+| Fan-in | Selected children all submit and their results reach the parent | 15 |
+| Questions and replies | Three-generation question/reply routing; fan-in yields so the parent can answer | 15 |
+| Wake a running wait | Incoming input wakes the wait and its background job remains collectible | 15 |
+| Bounded correction | Early submit fails; missing submission receives three wakes before escalation | 15 |
+
+An import check does not inspect the runtime parent chain. HTTP delivery of a
+JavaScript module does not show a browser rendering it. Keep the actual factory,
+owner, question-identity, human-reply and shutdown checks beside the public-client
+and browser checks rather than stretching one score to stand for all of them.
+
+The original fleet audit changed a child's data directory to its parent's and
+lost six checks at once. That establishes a serious shared-state failure; it
+does not prove six independent protections or that a narrower defect is
+impossible. Verify the intended assertion, preserve survivors, and keep a working
+control. For the reusable GUI, the analogous trap is a model-switch test that
+counts replies while the setting never reaches a provider request.
+
+Package moves also affect applications and harnesses that still spell the old
+path. The first edition's speech harness read a renderer from disk and an MCP
+check searched an internal server filename. Follow those affected consumers
+when changing the public boundary. A clean build in the moved package says
+nothing about a caller that can no longer find it.

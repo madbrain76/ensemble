@@ -1,183 +1,167 @@
-// Noise-KK transport security for the gateway.
-//
-// KK provides mutual authentication: both parties know each other's static
-// public key before the handshake begins. That is the property the gateway
-// needs. Cloudflare terminates TLS at its edge, so the gateway sees plaintext
-// HTTP; TLS proves Cloudflare's identity to the agent, not the gateway's.
-// Noise-KK re-establishes end-to-end mutual authentication and encryption
-// underneath it, with forward secrecy from per-session ephemeral keys and no
-// certificate authority to operate.
-//
-// This file is deliberately boring. It is copied, nearly verbatim, from a
-// working gateway rather than written fresh, because handshake code is
-// boilerplate that is easy to get subtly and silently wrong.
+// Package gateway provides the optional authenticated message client. It has no
+// dependency on Ensemble's actors, tools, GUI, or internal runtime packages.
 package gateway
 
 import (
+	"crypto/ecdh"
 	"crypto/rand"
+	"encoding/base64"
 	"errors"
-	"fmt"
-	"io"
+	"os"
+	"path/filepath"
+	"strings"
 
-	noiselib "github.com/flynn/noise"
+	"github.com/flynn/noise"
 )
 
-// NoiseKK represents a Noise-KK protocol handler.
-// Unlike NK where only the responder has a static key,
-// in KK both parties have static keys and know each other's public key.
+// Keypair is an X25519 identity. Never log or send its private half.
+// This key agrees on secrets; it is not an Ed25519 signing key despite some
+// historical configurations using that label. Only public halves belong in
+// the gateway's agent registry or another peer's configuration.
+type Keypair struct {
+	// Private is the 32-byte secret retained by its owning application.
+	Private []byte
+	// Public is the corresponding 32-byte peer configuration value.
+	Public []byte
+}
+
+// GenerateKeypair obtains a fresh identity from the operating system RNG.
+func GenerateKeypair() (Keypair, error) {
+	k, err := ecdh.X25519().GenerateKey(rand.Reader)
+	if err != nil {
+		return Keypair{}, err
+	}
+	return Keypair{Private: k.Bytes(), Public: k.PublicKey().Bytes()}, nil
+}
+
+// EncodePublicKey labels an X25519 public key, avoiding the misleading ed25519 label.
+func EncodePublicKey(key []byte) string { return "x25519:" + base64.StdEncoding.EncodeToString(key) }
+
+// ParsePublicKey accepts historical labels but requires exactly 32 decoded bytes.
+func ParsePublicKey(text string) ([]byte, error) {
+	if _, suffix, ok := strings.Cut(strings.TrimSpace(text), ":"); ok {
+		text = suffix
+	}
+	key, err := base64.StdEncoding.DecodeString(text)
+	if err != nil || len(key) != 32 {
+		return nil, errors.New("public key must encode 32 X25519 bytes")
+	}
+	return key, nil
+}
+
+// LoadOrCreateKeypair stores only the private half with owner-only permissions.
+// Loading derives the public half anew; malformed existing files are never replaced.
+func LoadOrCreateKeypair(path string) (Keypair, error) {
+	data, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		key, err := GenerateKeypair()
+		if err != nil {
+			return Keypair{}, err
+		}
+		if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			return Keypair{}, err
+		}
+		// Exclusive creation resolves two first-run processes without replacing
+		// an identity another process just published. Losing that race means
+		// loading the winner, not continuing with our now-unregistered key.
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if errors.Is(err, os.ErrExist) {
+			return LoadOrCreateKeypair(path)
+		}
+		if err != nil {
+			return Keypair{}, err
+		}
+		_, writeErr := f.WriteString(base64.StdEncoding.EncodeToString(key.Private) + "\n")
+		return key, errors.Join(writeErr, f.Close())
+	}
+	if err != nil {
+		return Keypair{}, err
+	}
+	secret, err := base64.StdEncoding.DecodeString(strings.TrimSpace(string(data)))
+	if err != nil {
+		return Keypair{}, errors.New("invalid private key encoding")
+	}
+	k, err := ecdh.X25519().NewPrivateKey(secret)
+	if err != nil {
+		return Keypair{}, err
+	}
+	return Keypair{Private: k.Bytes(), Public: k.PublicKey().Bytes()}, nil
+}
+
+// NoiseKK wraps the public Noise implementation, not a custom cryptographic scheme.
+// Handshake calls are sequential. After completion one reader and one writer may
+// operate concurrently; each direction has its own cipher state and nonce.
 type NoiseKK struct {
-	role              string
-	isInitiator       bool
-	prologue          []byte
-	handshakeComplete bool
-	localStaticKey    noiselib.DHKey
-	remotePublicKey   []byte
-	handshakeState    *noiselib.HandshakeState
-	sendCipher        *noiselib.CipherState
-	recvCipher        *noiselib.CipherState
-	handshakeHash     []byte
+	handshake     *noise.HandshakeState
+	initiator     bool
+	send, receive *noise.CipherState
 }
 
-// cipherSuite is the standard Noise cipher suite used by the gateway.
-//
-// It is a function rather than a package-level variable so that there is no
-// mutable process-wide state here: a variable holding a cipher suite is a
-// variable any other package could reassign, and the suite is part of the
-// protocol rather than a setting.
-func cipherSuite() noiselib.CipherSuite {
-	return noiselib.NewCipherSuite(noiselib.DH25519, noiselib.CipherAESGCM, noiselib.HashSHA256)
-}
-
-// NewNoiseKK creates a new Noise-KK endpoint. Both parties must provide their
-// own static keypair and the other party's public key.
-func NewNoiseKK(role string, localKey noiselib.DHKey, remotePublicKey []byte, prologue []byte) (*NoiseKK, error) {
+// NewNoiseKK binds the known peer key and application prologue to a KK handshake.
+// KK assumes both static public keys were distributed beforehand. The initial
+// ephemeral public value is visible; secrecy comes from the library's derived
+// keys, not from hiding every handshake byte. The prologue binds the intended
+// application identity to that authenticated transcript.
+func NewNoiseKK(role string, key Keypair, peer, prologue []byte) (*NoiseKK, error) {
 	if role != "initiator" && role != "responder" {
-		return nil, errors.New("role must be 'initiator' or 'responder'")
+		return nil, errors.New("role must be initiator or responder")
 	}
-	if remotePublicKey == nil {
-		return nil, errors.New("remote public key is required for KK pattern")
+	if len(key.Private) != 32 || len(key.Public) != 32 || len(peer) != 32 {
+		return nil, errors.New("Noise KK requires 32-byte keys")
 	}
-	if len(localKey.Public) == 0 || len(localKey.Private) == 0 {
-		return nil, errors.New("local static keypair is required for KK pattern")
-	}
-
-	kk := &NoiseKK{
-		role:            role,
-		isInitiator:     role == "initiator",
-		prologue:        prologue,
-		localStaticKey:  localKey,
-		remotePublicKey: remotePublicKey,
-	}
-
-	if err := kk.initializeHandshake(rand.Reader); err != nil {
-		return nil, err
-	}
-
-	return kk, nil
+	h, err := noise.NewHandshakeState(noise.Config{CipherSuite: noise.NewCipherSuite(noise.DH25519, noise.CipherChaChaPoly, noise.HashSHA256), Pattern: noise.HandshakeKK, Initiator: role == "initiator", StaticKeypair: noise.DHKey{Private: key.Private, Public: key.Public}, PeerStatic: peer, Prologue: prologue})
+	return &NoiseKK{handshake: h, initiator: role == "initiator"}, err
 }
 
-// initializeHandshake sets up the Noise handshake state.
-func (kk *NoiseKK) initializeHandshake(random io.Reader) error {
-	config := noiselib.Config{
-		CipherSuite:   cipherSuite(),
-		Random:        random,
-		Pattern:       noiselib.HandshakeKK,
-		Initiator:     kk.isInitiator,
-		Prologue:      kk.prologue,
-		StaticKeypair: kk.localStaticKey,
-		PeerStatic:    kk.remotePublicKey,
+// Split returns initiator-to-responder first, irrespective of which endpoint
+// called the library. Reversing these for the responder is what makes each
+// endpoint's outgoing nonce match only its peer's incoming nonce.
+func (n *NoiseKK) finish(a, b *noise.CipherState) {
+	if a == nil {
+		return
 	}
-
-	hs, err := noiselib.NewHandshakeState(config)
-	if err != nil {
-		return fmt.Errorf("failed to create handshake state: %v", err)
-	}
-
-	kk.handshakeState = hs
-	return nil
-}
-
-// WriteHandshakeMessage writes the next handshake message with an optional payload.
-func (kk *NoiseKK) WriteHandshakeMessage(payload []byte) ([]byte, error) {
-	if kk.handshakeComplete {
-		return nil, errors.New("handshake is already complete")
-	}
-
-	message, cs1, cs2, err := kk.handshakeState.WriteMessage(nil, payload)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write handshake message: %v", err)
-	}
-
-	if cs1 != nil && cs2 != nil {
-		kk.finalize(cs1, cs2)
-	}
-
-	return message, nil
-}
-
-// ReadHandshakeMessage reads and processes a handshake message from the other party.
-func (kk *NoiseKK) ReadHandshakeMessage(message []byte) ([]byte, error) {
-	if kk.handshakeComplete {
-		return nil, errors.New("handshake is already complete")
-	}
-
-	payload, cs1, cs2, err := kk.handshakeState.ReadMessage(nil, message)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read handshake message: %v", err)
-	}
-
-	if cs1 != nil && cs2 != nil {
-		kk.finalize(cs1, cs2)
-	}
-
-	return payload, nil
-}
-
-// finalize completes the handshake and sets up transport ciphers.
-func (kk *NoiseKK) finalize(cs1, cs2 *noiselib.CipherState) {
-	if kk.isInitiator {
-		kk.sendCipher = cs1
-		kk.recvCipher = cs2
+	if n.initiator {
+		n.send, n.receive = a, b
 	} else {
-		kk.sendCipher = cs2
-		kk.recvCipher = cs1
+		n.send, n.receive = b, a
 	}
-	kk.handshakeComplete = true
-	kk.handshakeHash = kk.handshakeState.ChannelBinding()
 }
 
-// Encrypt encrypts a plaintext message with optional associated data.
-func (kk *NoiseKK) Encrypt(plaintext []byte, ad []byte) ([]byte, error) {
-	if !kk.handshakeComplete {
-		return nil, errors.New("handshake must be completed before encrypting")
+// WriteHandshakeMessage advances the handshake and returns a wire message.
+func (n *NoiseKK) WriteHandshakeMessage(payload []byte) ([]byte, error) {
+	data, a, b, err := n.handshake.WriteMessage(nil, payload)
+	if err == nil {
+		n.finish(a, b)
 	}
-	return kk.sendCipher.Encrypt(nil, ad, plaintext)
+	return data, err
 }
 
-// Decrypt decrypts a ciphertext message with optional associated data.
-func (kk *NoiseKK) Decrypt(ciphertext []byte, ad []byte) ([]byte, error) {
-	if !kk.handshakeComplete {
-		return nil, errors.New("handshake must be completed before decrypting")
+// ReadHandshakeMessage authenticates a peer handshake message before returning payload.
+func (n *NoiseKK) ReadHandshakeMessage(message []byte) ([]byte, error) {
+	data, a, b, err := n.handshake.ReadMessage(nil, message)
+	if err == nil {
+		n.finish(a, b)
 	}
-	return kk.recvCipher.Decrypt(nil, ad, ciphertext)
+	return data, err
 }
 
-// HandshakeHash returns the handshake hash for channel binding verification.
-func (kk *NoiseKK) HandshakeHash() []byte {
-	return kk.handshakeHash
+// IsHandshakeComplete reports whether both transport ciphers are established.
+func (n *NoiseKK) IsHandshakeComplete() bool { return n.send != nil && n.receive != nil }
+
+// Encrypt advances the outgoing nonce; callers serialize outgoing frames.
+func (n *NoiseKK) Encrypt(data, associated []byte) ([]byte, error) {
+	if n.send == nil {
+		return nil, errors.New("handshake incomplete")
+	}
+	return n.send.Encrypt(nil, associated, data)
 }
 
-// IsHandshakeComplete returns whether the handshake has finished.
-func (kk *NoiseKK) IsHandshakeComplete() bool {
-	return kk.handshakeComplete
-}
-
-// PublicKey returns this party's static public key.
-func (kk *NoiseKK) PublicKey() []byte {
-	return kk.localStaticKey.Public
-}
-
-// GenerateKeypair generates a new X25519 keypair for Noise-KK.
-func GenerateKeypair() (noiselib.DHKey, error) {
-	return noiselib.DH25519.GenerateKeypair(rand.Reader)
+// Decrypt authenticates the next incoming frame; failures terminate the connection.
+// Continuing after an authentication failure would make frame order ambiguous.
+// The caller closes the socket instead of guessing whether to advance a nonce.
+func (n *NoiseKK) Decrypt(data, associated []byte) ([]byte, error) {
+	if n.receive == nil {
+		return nil, errors.New("handshake incomplete")
+	}
+	return n.receive.Decrypt(nil, associated, data)
 }

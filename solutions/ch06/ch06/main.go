@@ -1,328 +1,295 @@
+// The application supplies the workflow and role tools. Adding the third role
+// changes this program only; Ensemble has no author/editor/reviewer knowledge.
 package main
-
-// ch06 exercise — three-agent author / editor / reviewer workflow.
-//
-// The binary reads JSON events on stdin and emits observations as JSON on stdout.
-// It uses the agent library to create three agents, each with its own prompt.
-//
-// Protocol:
-//   {"kind":"prompt","text":"..."}                — start the author; pipeline flows through editor → reviewer
-//   {"kind":"hint","text":"...", "agent":"<id>"}   — deliver hint to specific agent (default: all)
-//   {"kind":"interrupt"}                          — interrupt all agents
-//   {"user":"..."}                                — backward compat, same as kind:prompt
-//
-// Observations are emitted on stdout, one JSON object per line.
-// The event log path is read from CH06_LOG (default: none).
 
 import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/waywardgeek/ensemble/agent"
+	"ensemble/ensemble"
 )
 
-const (
-	authorName   agent.AgentID = "author"
-	editorName   agent.AgentID = "editor"
-	reviewerName agent.AgentID = "reviewer"
-)
+// A single writer owns stdout and the exercise log. Observe enqueues without
+// waiting for either sink; reliable workflow completion does not consume progress.
+type output struct {
+	mu    sync.Mutex
+	queue []any
+	wake  chan struct{}
+	done  chan struct{}
+	file  *os.File
+	err   error
+}
 
+func (o *output) push(v any) {
+	o.mu.Lock()
+	o.queue = append(o.queue, v)
+	o.mu.Unlock()
+	select {
+	case o.wake <- struct{}{}:
+	default:
+	}
+}
+func (o *output) run() {
+	defer close(o.done)
+	writer := io.MultiWriter(os.Stdout, o.file)
+	encoder := json.NewEncoder(writer)
+	for {
+		<-o.wake
+		o.mu.Lock()
+		q := o.queue
+		o.queue = nil
+		o.mu.Unlock()
+		for _, v := range q {
+			if v == nil {
+				return
+			}
+			if err := encoder.Encode(v); err != nil {
+				o.err = errors.Join(o.err, err)
+			}
+		}
+	}
+}
+
+type observer struct {
+	name   string
+	output *output
+}
+
+// Observe offers progress without waiting for a consumer to receive it.
+func (o observer) Observe(v ensemble.Observation) {
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		return
+	}
+	var envelope map[string]any
+	json.Unmarshal(bytes, &envelope)
+	envelope["agent"] = o.name
+	o.output.push(envelope)
+}
+
+// The shared manuscript is application data, synchronized because tool workers
+// can outlive their turn. It is not copied into configuration or a core service.
+type manuscript struct {
+	mu   sync.Mutex
+	text string
+}
+
+func (m *manuscript) read() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.text
+}
+func (m *manuscript) write(text string) {
+	m.mu.Lock()
+	m.text = text
+	m.mu.Unlock()
+}
+func register(a ensemble.Agent, name, description, schema string, run func(ensemble.ToolContext, json.RawMessage) (string, error)) error {
+	return a.RegisterTool(ensemble.ToolDeclaration{Name: name, Description: description, Schema: json.RawMessage(schema)}, run)
+}
+func roleTools(a ensemble.Agent, role string, draft *manuscript) error {
+	textSchema := `{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}`
+	put := func(_ ensemble.ToolContext, raw json.RawMessage) (string, error) {
+		var in struct {
+			// Text holds visible provider or user content, including an explicitly empty string.
+			Text *string
+		}
+		if err := json.Unmarshal(raw, &in); err != nil {
+			return "", err
+		}
+		if in.Text == nil {
+			return "", errors.New("text is required")
+		}
+		draft.write(*in.Text)
+		return "draft stored", nil
+	}
+	switch role {
+	case "author":
+		if err := register(a, "write_draft", "Store the authored draft", textSchema, put); err != nil {
+			return err
+		}
+		if err := register(a, "word_count", "Count words in the stored draft", `{"type":"object","properties":{}}`, func(_ ensemble.ToolContext, _ json.RawMessage) (string, error) {
+			return fmt.Sprint(len(strings.Fields(draft.read()))), nil
+		}); err != nil {
+			return err
+		}
+		// The published fixture's slow thought is local to this exercise. It proves
+		// that an ordinary Go handler cannot block the actor's hint acknowledgement.
+		return register(a, "think", "Pause to consider a thought", `{"type":"object","properties":{"seconds":{"type":"number"},"thought":{"type":"string"}},"required":["seconds","thought"]}`, func(_ ensemble.ToolContext, raw json.RawMessage) (string, error) {
+			var in struct {
+				// Seconds is the requested thought duration, validated as nonnegative.
+				Seconds float64
+				// Thought is the text retained after the exercise's slow thought completes.
+				Thought string
+			}
+			if err := json.Unmarshal(raw, &in); err != nil {
+				return "", err
+			}
+			if in.Seconds < 0 {
+				return "", errors.New("seconds must be nonnegative")
+			}
+			time.Sleep(time.Duration(in.Seconds * float64(time.Second)))
+			return in.Thought, nil
+		})
+	case "editor":
+		if err := register(a, "read_draft", "Read the author's stored draft", `{"type":"object","properties":{}}`, func(_ ensemble.ToolContext, _ json.RawMessage) (string, error) { return draft.read(), nil }); err != nil {
+			return err
+		}
+		return register(a, "edit_draft", "Replace the stored draft with an improved version", textSchema, put)
+	case "reviewer":
+		return register(a, "review", "Record accept or reject and notes", `{"type":"object","properties":{"decision":{"type":"string","enum":["accept","reject"]},"notes":{"type":"string"}},"required":["decision","notes"]}`, func(_ ensemble.ToolContext, raw json.RawMessage) (string, error) {
+			var in struct {
+				// Decision is the reviewer's explicit accept or reject result. Notes supplies the
+				// reviewer's reason alongside its decision.
+				Decision, Notes string
+			}
+			if err := json.Unmarshal(raw, &in); err != nil {
+				return "", err
+			}
+			if in.Decision != "accept" && in.Decision != "reject" {
+				return "", errors.New("decision must be accept or reject")
+			}
+			return in.Decision + ": " + in.Notes, nil
+		})
+	}
+	return errors.New("unknown role")
+}
 func main() {
-	host := cliHost{}
-	fw := agent.NewFramework(host)
-
-	authorAgent, err := makeAgent("author", authorPrompt)
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+func run() (err error) {
+	cfg, err := ensemble.ConfigFromEnv()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "author:", err)
-		os.Exit(2)
+		return err
 	}
-	editorAgent, err := makeAgent("editor", editorPrompt)
+	path := os.Getenv("CH06_LOG")
+	if path == "" {
+		path = "ch06.jsonl"
+	}
+	file, err := os.Create(path)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "editor:", err)
-		os.Exit(2)
+		return err
 	}
-	reviewerAgent, err := makeAgent("reviewer", reviewerPrompt)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "reviewer:", err)
-		os.Exit(2)
-	}
-	defer authorAgent.Shutdown()
-	defer editorAgent.Shutdown()
-	defer reviewerAgent.Shutdown()
-
-	authorActor := authorAgent.NewActor()
-	editorActor := editorAgent.NewActor()
-	reviewerActor := reviewerAgent.NewActor()
-
-	fw.Add(authorName, authorActor)
-	fw.Add(editorName, editorActor)
-	fw.Add(reviewerName, reviewerActor)
-
-	out := bufio.NewWriter(os.Stdout)
-	defer out.Flush()
-
-	var outMu sync.Mutex
-	emit := func(v any) {
-		outMu.Lock()
-		defer outMu.Unlock()
-		b, _ := json.Marshal(v)
-		out.Write(b)
-		out.WriteByte('\n')
-		out.Flush()
-	}
-
-	// Optional event log.
-	var logFile *os.File
-	if p := os.Getenv("CH06_LOG"); p != "" {
-		f, err := os.Create(p)
-		if err == nil {
-			logFile = f
-			defer f.Close()
-		}
-	}
-	logEvent := func(v any) {
-		if logFile != nil {
-			b, _ := json.Marshal(v)
-			logFile.Write(b)
-			logFile.Write([]byte{'\n'})
-		}
-	}
-
-	// Attach observer that emits to stdout and logs.
-	actors := map[agent.AgentID]*agent.Actor{
-		authorName: authorActor, editorName: editorActor, reviewerName: reviewerActor,
-	}
-	for id, act := range actors {
-		capturedID := id
-		act.Attach(observerFunc(func(obs agent.Observation) {
-			tagged := observationJSON(obs, capturedID)
-			emit(tagged)
-			logEvent(tagged)
-		}))
-	}
-
-	// Start all actor loops.
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	for _, act := range actors {
-		a := act
-		go a.Run(ctx)
-	}
-
-	// Read stdin on a SEPARATE goroutine so hints can arrive during pipeline execution.
-	// Messages are sent through a channel to the main processing loop.
-	type stdinLine struct {
-		msg inputMsg
-		err error
-	}
-	lines := make(chan stdinLine, 16)
-	go func() {
-		defer close(lines)
-		in := bufio.NewScanner(os.Stdin)
-		in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
-		for in.Scan() {
-			line := strings.TrimSpace(in.Text())
-			if line == "" {
-				continue
-			}
-			var msg inputMsg
-			if err := json.Unmarshal([]byte(line), &msg); err != nil {
-				lines <- stdinLine{err: err}
-				continue
-			}
-			lines <- stdinLine{msg: msg}
-		}
+	out := &output{wake: make(chan struct{}, 1), done: make(chan struct{}), file: file}
+	go out.run()
+	defer func() {
+		out.push(nil)
+		<-out.done
+		err = errors.Join(err, out.err, file.Close())
 	}()
-
-	// Process messages. Prompts launch the pipeline in the background,
-	// hints and interrupts are delivered immediately.
-	var pipelineDone sync.WaitGroup
-	for sl := range lines {
-		if sl.err != nil {
-			emit(map[string]string{"error": "bad input: " + sl.err.Error()})
-			continue
+	app := ensemble.New(os.Stderr)
+	agents := map[string]ensemble.Agent{}
+	draft := &manuscript{}
+	instructions := map[string]string{
+		"author":   "You are the author. Write a short draft about the user's topic using write_draft, check word_count, and return the draft. Use at most 100 words.",
+		"editor":   "You are the editor. Call read_draft, improve clarity and imagery, store the improved draft using edit_draft, then return it. Use at most 100 words.",
+		"reviewer": "You are the reviewer. Evaluate the supplied edited draft. Call review with accept or reject and concise notes, then state the decision.",
+	}
+	for _, name := range []string{"author", "editor", "reviewer"} {
+		roleConfig := cfg
+		roleConfig.SystemPrompt = instructions[name]
+		roleConfig.DataDir = filepath.Join("cr", name)
+		roleConfig.LogPath = path + "." + name
+		a, createErr := app.NewAgent(roleConfig)
+		if createErr != nil {
+			return createErr
 		}
-		msg := sl.msg
-
-		// Chapter 6 protocol.
-		if msg.Kind != nil {
-			switch *msg.Kind {
-			case "prompt":
-				if msg.Text == nil {
-					emit(map[string]string{"error": "prompt requires text"})
-					continue
-				}
-				pipelineDone.Add(1)
-				go func(text string) {
-					defer pipelineDone.Done()
-					runPipeline(ctx, fw, text, emit, logEvent)
-				}(*msg.Text)
-			case "hint":
-				if msg.Text == nil {
-					emit(map[string]string{"error": "hint requires text"})
-					continue
-				}
-				// Deliver to specific agent or to all.
-				if msg.Agent != nil && *msg.Agent != "" {
-					target := agent.AgentID(*msg.Agent)
-					if a, ok := fw.Get(target); ok {
-						a.Send(agent.Hint{Text: *msg.Text})
-					}
-				} else {
-					for _, act := range actors {
-						act.Send(agent.Hint{Text: *msg.Text})
-					}
-				}
-			case "interrupt":
-				for _, act := range actors {
-					act.Send(agent.Interrupt{})
-				}
-			default:
-				emit(map[string]string{"error": "unknown kind: " + *msg.Kind})
+		agents[name] = a
+		defer func() { err = errors.Join(err, a.Shutdown()) }()
+		if err := roleTools(a, name, draft); err != nil {
+			return err
+		}
+		a.Observe(observer{name, out})
+	}
+	// One pipeline is the exercise, not a reusable orchestration language. Its
+	// requests have reliable private replies; observations remain display only.
+	var workflow sync.WaitGroup
+	defer workflow.Wait()
+	var workflowErr error
+	started := false
+	input := bufio.NewReader(os.Stdin)
+	for {
+		line, readErr := input.ReadBytes('\n')
+		if readErr != nil && readErr != io.EOF {
+			return readErr
+		}
+		if len(line) == 0 {
+			break
+		}
+		var in struct {
+			// Kind selects the input or observation protocol variant. Text holds visible
+			// provider or user content, including an explicitly empty string. User retains the
+			// legacy prompt spelling for earlier clients. Agent selects the named workflow role
+			// receiving live input.
+			Kind, Text, User, Agent string
+		}
+		if err := json.Unmarshal(line, &in); err != nil {
+			return err
+		}
+		if in.Kind == "prompt" || (in.Kind == "" && in.User != "") {
+			if started {
+				return errors.New("one topic per workflow")
 			}
-			continue
+			started = true
+			topic := in.Text
+			if topic == "" {
+				topic = in.User
+			}
+			workflow.Add(1)
+			go func() {
+				defer workflow.Done()
+				text := topic
+				for _, name := range []string{"author", "editor", "reviewer"} {
+					result := <-agents[name].Submit(context.Background(), text)
+					if result.Err != nil {
+						workflowErr = result.Err
+						return
+					}
+					if name != "reviewer" {
+						if stored := draft.read(); stored != "" {
+							text = stored
+						} else {
+							text = result.Text
+						}
+					}
+					out.push(map[string]string{"observation": "turn_ended", "agent": name})
+					out.push(map[string]string{"pipeline": name + "_done"})
+				}
+			}()
+		} else {
+			target := in.Agent
+			if target == "" {
+				target = "author"
+			}
+			a := agents[target]
+			if a == nil {
+				return fmt.Errorf("unknown agent %q", target)
+			}
+			switch in.Kind {
+			case "hint":
+				a.Post(ensemble.Hint{Text: in.Text})
+			case "interrupt":
+				a.Post(ensemble.Interrupt{})
+			default:
+				return errors.New("unknown input kind")
+			}
 		}
-
-		// Backward compat: {"user":"..."}
-		if msg.User != nil {
-			pipelineDone.Add(1)
-			go func(text string) {
-				defer pipelineDone.Done()
-				runPipeline(ctx, fw, text, emit, logEvent)
-			}(*msg.User)
-			continue
+		if readErr == io.EOF {
+			break
 		}
-
-		emit(map[string]string{"error": "no recognized field"})
 	}
-
-	// Wait for all pipelines to finish.
-	pipelineDone.Wait()
-	_ = fw.Shutdown()
-	out.Flush()
-}
-
-type inputMsg struct {
-	Kind  *string `json:"kind"`
-	Text  *string `json:"text"`
-	Agent *string `json:"agent"`
-	User  *string `json:"user"`
-}
-
-// runPipeline executes the author → editor → reviewer pipeline.
-func runPipeline(ctx context.Context, fw *agent.Framework, text string, emit func(any), logEvent func(any)) {
-	// Step 1: Author writes.
-	a, _ := fw.Get(authorName)
-	authorReply, err := a.Ask(text)
-	if err != nil {
-		emit(map[string]string{"error": "author: " + err.Error()})
-		return
-	}
-	logEvent(map[string]string{"pipeline": "author_done", "text": authorReply})
-
-	// Step 2: Editor improves.
-	e, _ := fw.Get(editorName)
-	editorReply, err := e.Ask("Please improve this draft:\n\n" + authorReply)
-	if err != nil {
-		emit(map[string]string{"error": "editor: " + err.Error()})
-		return
-	}
-	logEvent(map[string]string{"pipeline": "editor_done", "text": editorReply})
-
-	// Step 3: Reviewer approves.
-	r, _ := fw.Get(reviewerName)
-	reviewerReply, err := r.Ask("Please review this revised draft:\n\n" + editorReply)
-	if err != nil {
-		emit(map[string]string{"error": "reviewer: " + err.Error()})
-		return
-	}
-	logEvent(map[string]string{"pipeline": "reviewer_done", "text": reviewerReply})
-
-	emit(map[string]string{"assistant": reviewerReply, "pipeline": "complete"})
-}
-
-// makeAgent creates an agent for a given role.
-func makeAgent(role, systemPrompt string) (*agent.Agent, error) {
-	cfg, err := agent.ConfigFromEnv()
-	if err != nil {
-		return nil, err
-	}
-	cfg.SystemPrompt = systemPrompt
-	cfg.MaxTokens = 1024
-
-	logPath := envOr("CH06_"+strings.ToUpper(role)+"_LOG", role+".log")
-	return agent.NewAgent(cfg, logPath), nil
-}
-
-// observationJSON converts an observation to a JSON-friendly map.
-func observationJSON(obs agent.Observation, defaultAgent agent.AgentID) map[string]any {
-	agentID := string(defaultAgent)
-	switch v := obs.(type) {
-	case agent.PartDelta:
-		if v.Agent != "" {
-			agentID = string(v.Agent)
-		}
-		return map[string]any{"observation": "part_delta", "agent": agentID, "part_id": v.PartID, "chunk": v.Chunk}
-	case agent.PartFinal:
-		if v.Agent != "" {
-			agentID = string(v.Agent)
-		}
-		m := map[string]any{"observation": "part_final", "agent": agentID, "part_id": v.PartID, "seq": v.Seq}
-		if tp, ok := v.Part.(agent.TextPart); ok {
-			m["text"] = tp.Text
-		}
-		return m
-	case agent.StateChanged:
-		if v.Agent != "" {
-			agentID = string(v.Agent)
-		}
-		return map[string]any{"observation": "state_changed", "agent": agentID, "from": v.From.String(), "to": v.To.String()}
-	case agent.TurnEnded:
-		if v.Agent != "" {
-			agentID = string(v.Agent)
-		}
-		m := map[string]any{"observation": "turn_ended", "agent": agentID, "text": v.Text}
-		if v.Err != "" {
-			m["error"] = v.Err
-		}
-		return m
-	}
-	return map[string]any{"observation": "unknown", "agent": agentID}
-}
-
-// observerFunc adapts a plain function to the Observer interface.
-type observerFunc func(agent.Observation)
-
-func (f observerFunc) Observe(o agent.Observation) { f(o) }
-
-const authorPrompt = `You are an author. Write creative, engaging prose based on the given topic.
-Use vivid language and create compelling narratives.`
-
-const editorPrompt = `You are an editor. Improve the given draft by fixing grammar, improving flow,
-and strengthening the writing while preserving the author's voice.`
-
-const reviewerPrompt = `You are a reviewer. Evaluate the revised draft and provide a final assessment.
-Approve the draft if it meets quality standards, or suggest specific improvements.`
-
-type cliHost struct{}
-
-func (cliHost) Logf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-}
-
-func (cliHost) APILogf(format string, args ...any) {}
-func (cliHost) Debugf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-}
-
-func envOr(k, def string) string {
-	if v := os.Getenv(k); v != "" {
-		return v
-	}
-	return def
+	workflow.Wait()
+	return workflowErr
 }

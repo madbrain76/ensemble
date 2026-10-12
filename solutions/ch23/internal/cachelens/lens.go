@@ -1,252 +1,203 @@
+// Package cachelens diagnoses prefix changes without interpreting conversation text.
 package cachelens
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
 	"sync"
 
-	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"ensemble/internal/common"
 )
 
-// Lens implements common.CacheLens.
-//
-// It keeps the previous request so each new one can be compared against it, and
-// leaves both on disk as cache-ordered JSON so that `diff prior_request.json
-// request.json` puts the cursor on the first byte that broke the cache.
+// Lens belongs to one Engine and retains only its preceding main request.
+// Interrupted workers can overlap new turns; auxiliary requests bypass the lens.
 type Lens struct {
-	dir string
-
-	mu        sync.Mutex
-	prior     Sections
-	havePrior bool
-
-	// last is the divergence found for the request most recently observed. It
-	// is held until ObserveUsage arrives, because the verdict needs both the
-	// prefix we computed and the counts the provider reported, and those two
-	// facts arrive on different calls.
-	last     Divergence
-	haveLast bool
-
-	// lastModel is the model that request was sent to, held for the same
-	// reason last is: the verdict needs the model's caching style and minimum
-	// cacheable size, and the model name arrives with the request while the
-	// counts arrive with the usage.
-	lastModel string
-
-	// report receives one line per analyzed request. Injected rather than
-	// hardcoded to a logger so this package depends on nothing but common.
-	report func(string)
+	parent   common.Engine
+	mu       sync.Mutex
+	previous map[string]json.RawMessage
+	name     string
 }
 
-// New returns a Lens writing its captures under dir.
-//
-// A nil report is replaced with a discard, so a caller that only wants the
-// files on disk does not have to supply one.
-func New(dir string, report func(string)) *Lens {
-	if report == nil {
-		report = func(string) {}
+// New establishes the required ownership link; files are created only on live use.
+func New(parent common.Engine) *Lens {
+	if parent == nil {
+		panic("CacheLens requires Engine")
 	}
-	return &Lens{dir: dir, report: report}
+	return &Lens{parent: parent}
 }
 
-// requestPath and priorPath are the two files a human diffs.
-func (l *Lens) requestPath() string { return filepath.Join(l.dir, "request.json") }
-func (l *Lens) priorPath() string   { return filepath.Join(l.dir, "prior_request.json") }
+// Engine returns the transport that owns this diagnostic.
+func (l *Lens) Engine() common.Engine { return l.parent }
 
-// ObserveRequest captures a request, rotates the previous capture, and records
-// where the two diverge.
-//
-// Nothing here may fail loudly enough to affect the turn. The lens is a
-// diagnostic: if it cannot parse or cannot write, the correct behavior is to
-// say so once and let the conversation proceed. An agent that refuses to answer
-// because its instrumentation is unhappy is worse than an uninstrumented one.
-func (l *Lens) ObserveRequest(model string, body []byte) {
-	cur, err := Split(model, body)
-	if err != nil {
-		l.report("cachelens: " + err.Error())
-		return
-	}
-
-	l.mu.Lock()
-	prior, havePrior := l.prior, l.havePrior
-	l.prior, l.havePrior = cur, true
-	l.lastModel = model
-	l.mu.Unlock()
-
-	// Rotate on disk before writing the new capture, so the pair on disk is
-	// always the pair that was compared.
-	if havePrior {
-		_ = os.Rename(l.requestPath(), l.priorPath())
-	}
-	if err := l.write(l.requestPath(), Pretty(cur)); err != nil {
-		l.report("cachelens: " + err.Error())
-	}
-
-	if !havePrior {
-		l.mu.Lock()
-		l.haveLast = false
-		l.mu.Unlock()
-		l.report(fmt.Sprintf("cachelens: first request captured, %d bytes, no prior to compare",
-			len(Canonical(cur))))
-		return
-	}
-
-	d := Compare(prior, cur)
-
-	l.mu.Lock()
-	l.last, l.haveLast = d, true
-	l.mu.Unlock()
-
-	l.report("cachelens: " + Describe(d))
+// Marker metadata is the sole byte edit. Do not marshal decoded content: that
+// would change key order, escaping and the byte counts we claim to measure.
+// These vendor markers contain only scalar fields. Both comma positions matter
+// because a provider serializer may put the marker first or last in an object.
+func strip(body []byte) []byte {
+	marker := `"(?:cache_control|prompt_cache_breakpoint)"\s*:\s*\{[^{}]*\}`
+	body = regexp.MustCompile(`,\s*`+marker).ReplaceAll(body, nil)
+	body = regexp.MustCompile(marker+`\s*,\s*`).ReplaceAll(body, nil)
+	return regexp.MustCompile(marker).ReplaceAll(body, nil)
 }
 
-// ObserveUsage compares what the prefix made possible against what the provider
-// actually charged for.
-//
-// The comparison is a ratio, not a token count. Prefix length is bytes and the
-// provider reports tokens; converting between them needs the vendor's
-// tokenizer, and an estimate dressed up as a token count is a number that gets
-// requoted later as though it had been measured. Ratios are comparable without
-// pretending to a precision we do not have.
-func (l *Lens) ObserveUsage(u common.Usage) {
+// ObserveRequest rotates readable section files and reports real serialized
+// prefix bytes, returning this request's prediction for its eventual response.
+// Section order follows the vendor's cache order, not Go field order.
+func (l *Lens) ObserveRequest(name string, body []byte) float64 {
+	// Interrupt ends the turn before its worker necessarily exits. Serialize the
+	// comparison and artifact rotation together, never the HTTP exchange.
 	l.mu.Lock()
-	d, have := l.last, l.haveLast
-	model := l.lastModel
-	l.haveLast = false
-	l.mu.Unlock()
-
-	if !have {
-		return
+	defer l.mu.Unlock()
+	root := l.parent.Agent().Ensemble()
+	var sections map[string]json.RawMessage
+	if err := json.Unmarshal(strip(body), &sections); err != nil {
+		root.Logf("cache lens: invalid request JSON")
+		return 0
 	}
-
-	// The four categories are disjoint, so their sum is everything that was fed
-	// in for this request.
-	totalIn := u.Input + u.CacheRead + u.CacheWrite
-	if totalIn == 0 {
-		return
+	// A model/route switch starts a fresh comparison rather than accusing its
+	// deliberately different system/tools prefix of an accidental rewrite.
+	if l.name != name {
+		l.previous = nil
+		l.name = name
 	}
-
-	actual := float64(u.CacheRead) / float64(totalIn)
-
-	possible := 0.0
-	if d.CurrentBytes > 0 {
-		possible = float64(d.CacheableBytes) / float64(d.CurrentBytes)
-	}
-
-	l.report(fmt.Sprintf(
-		"cachelens: cacheable prefix %.1f%% of request, provider served %.1f%% from cache "+
-			"(read %d, write %d, fresh %d)",
-		possible*100, actual*100, u.CacheRead, u.CacheWrite, u.Input))
-
-	// Two very different things produce a gap between what the prefix allowed
-	// and what the provider served, and they must not share an alarm.
-	//
-	// The first is ours: something above the dialogue changed between turns, so
-	// the prefix moved and no cache entry could match. That is nondeterminism
-	// in content that was supposed to be fixed, this tool can point at the
-	// byte, and it is worth waking someone for.
-	//
-	// The second is not ours: the prefix held and the provider still missed,
-	// because the entry expired, or the prefix is under the model's minimum
-	// cacheable size, or the model caches implicitly and simply has not seen
-	// this prefix before. Normal, frequent, and nothing to fix in our code.
-	// Which of those it was is decided below from the model table rather than
-	// listed as a set of guesses, because a diagnostic that offers three
-	// possible causes has not diagnosed anything.
-	//
-	// Note what is deliberately NOT an alarm: the dialogue growing. That
-	// happens every single turn, so firing on it would make the instrument
-	// noise within a day, and a warning that always fires also trains you to
-	// ignore the one that matters.
-	if d.Unstable != "" {
-		l.report(fmt.Sprintf(
-			"cachelens: PREFIX DIVERGED — section %q changed at +%d, above the dialogue. "+
-				"Everything after it is uncacheable. Run: diff %s %s",
-			d.Unstable, d.UnstableOffset, l.priorPath(), l.requestPath()))
-		return
-	}
-
-	// A rewrite below the top of the dialogue is ours, and it is the expensive
-	// one: it reads as ordinary growth in every other instrument, because the
-	// request did get bigger. Only the byte comparison shows that the growth
-	// happened under the existing history rather than after it.
-	if d.DialogueRewritten {
-		l.report(fmt.Sprintf(
-			"cachelens: DIALOGUE REWRITTEN — history changed at +%d, not appended. "+
-				"Everything after that byte is uncacheable even though it is unchanged. "+
-				"Expected after a micro_handoff, redaction or a restore; unexplained "+
-				"otherwise. Run: diff %s %s",
-			d.RewriteOffset, l.priorPath(), l.requestPath()))
-		return
-	}
-
-	const gapThreshold = 0.20
-	if possible-actual <= gapThreshold {
-		return
-	}
-
-	// The prefix held and the provider still served less than it could have.
-	// Before guessing at a cause, consult what is actually known about this
-	// model, because two of the three "likely causes" a generic message would
-	// offer are decidable facts rather than guesses:
-	//
-	//   - Below the vendor's floor, the request was never a caching candidate.
-	//     Reporting that as a miss is how a healthy request gets read as broken.
-	//
-	//   - "No breakpoint is set" is a DEFECT on an explicit-caching model and
-	//     CORRECT BEHAVIOUR on an implicit one. Saying it unconditionally sends
-	//     someone hunting for a marker that should not exist.
-	f, known := common.LookupModel(model)
-	if !known {
-		l.report(fmt.Sprintf(
-			"cachelens: CACHE MISSED ANYWAY — the prefix held, so this is not a prefix "+
-				"bug, but %q is not in the model table, so its caching style and minimum "+
-				"cacheable size are unknown and no better diagnosis is available.", model))
-		return
-	}
-
-	if totalIn < f.MinCacheTokens {
-		l.report(fmt.Sprintf(
-			"cachelens: NOT ELIGIBLE — %d prompt tokens is under %s's %d-token minimum, "+
-				"so this request was never a caching candidate and a zero here is the "+
-				"correct answer. It means the prompt is too small, NOT that the model "+
-				"cannot cache.", totalIn, model, f.MinCacheTokens))
-		return
-	}
-
-	switch f.Caching {
-	case common.CacheImplicit:
-		l.report(fmt.Sprintf(
-			"cachelens: MISS ON AN IMPLICIT-CACHING MODEL — the prefix held, and %s finds "+
-				"the repeated prefix itself, so there is no marker we could have "+
-				"forgotten: sending no cache directives is correct here, not an omission. "+
-				"Expect up to TWO cold turns, not one. The fixed head (system prompt and "+
-				"tools) is served from the second turn, but a conversation message must "+
-				"be stable across two successive requests before it is cached, so a "+
-				"growing history lags by an extra turn. Caching also commits in blocks of "+
-				"a few thousand tokens, so a turn that adds only a little text may show no "+
-				"increase at all. Worry only if the count is still flat after that.",
-			model))
-	case common.CacheExplicit:
-		if d.Breakpoints == 0 {
-			l.report(fmt.Sprintf(
-				"cachelens: NO BREAKPOINT — the prefix held, but the request carries zero "+
-					"cache_control markers and %s caches only what we mark. This one is "+
-					"ours: an unmarked prefix is billed in full every turn, in silence.",
-				model))
-			return
+	keys := []string{}
+	for _, key := range []string{"tools", "system", "systemInstruction", "messages", "contents", "input"} {
+		if _, ok := sections[key]; ok {
+			keys = append(keys, key)
 		}
-		l.report(fmt.Sprintf(
-			"cachelens: CACHE MISSED ANYWAY — the prefix held and %d breakpoint(s) are "+
-				"set, so this is not a prefix bug and not a missing marker. The entry "+
-				"most likely expired between turns.", d.Breakpoints))
 	}
+	// Retain every remaining field in the artifact for ordinary diff inspection;
+	// generation controls are not prompt bytes and do not enter the prediction.
+	var other []string
+	for key := range sections {
+		found := false
+		for _, k := range keys {
+			found = found || key == k
+		}
+		if !found {
+			other = append(other, key)
+		}
+	}
+	sort.Strings(other)
+	var artifact strings.Builder
+	var verdicts []string
+	total, prefix := 0, 0
+	open := l.previous != nil
+	for _, key := range keys {
+		now, old := sections[key], l.previous[key]
+		state := "changed"
+		if l.previous == nil {
+			state = "cold"
+		} else if bytes.Equal(old, now) {
+			state = "identical"
+		} else if appended(old, now) {
+			state = "appended"
+		}
+		verdicts = append(verdicts, key+":"+state)
+		// OpenAI embeds stable instructions in messages or Responses input.
+		// Inspect that head separately, but count its bytes only once.
+		if l.previous != nil && (key == "messages" || key == "input") {
+			var a, b []json.RawMessage
+			json.Unmarshal(old, &a)
+			json.Unmarshal(now, &b)
+			if len(a) > 0 && len(b) > 0 {
+				var head struct {
+					// Role identifies the embedded OpenAI system instruction.
+					Role string `json:"role"`
+				}
+				json.Unmarshal(b[0], &head)
+				if (head.Role == "system" || head.Role == "developer") && !bytes.Equal(a[0], b[0]) {
+					root.Logf("cache prefix changed: system (changed)")
+				}
+			}
+		}
+		total += len(now)
+		if open {
+			n := 0
+			for n < len(old) && n < len(now) && old[n] == now[n] {
+				n++
+			}
+			prefix += n
+			if n != len(now) {
+				open = false
+			}
+		}
+		// Conversation arrays include role-bearing messages and Responses tool/replay
+		// items. Only unexpected non-conversation changes raise the alarm.
+		if l.previous != nil && state != "identical" && !conversation(now) {
+			root.Logf("cache prefix changed: %s (%s)", key, state)
+		}
+	}
+	for _, key := range append(keys, other...) {
+		fmt.Fprintf(&artifact, "%s:\n%s\n", key, sections[key])
+	}
+	predicted := 0.0
+	if total > 0 {
+		predicted = float64(prefix) / float64(total)
+	}
+	root.Logf("cache lens %s: %s; prefix_bytes=%d prompt_bytes=%d predicted=%.4f", name, strings.Join(verdicts, " "), prefix, total, predicted)
+	dir := l.parent.Agent().Config().DataDir
+	if err := l.parent.Agent().Sandbox().MkdirAll(dir, 0700); err != nil {
+		root.Logf("cache lens: create directory: %v", err)
+	} else {
+		current := filepath.Join(dir, "cache-current.txt")
+		if err := l.parent.Agent().Sandbox().Rename(current, filepath.Join(dir, "cache-prior.txt")); err != nil && !os.IsNotExist(err) {
+			root.Logf("cache lens: rotate: %v", err)
+		}
+		if err := l.parent.Agent().Sandbox().WriteFile(current, []byte(artifact.String()), 0600); err != nil {
+			root.Logf("cache lens: write: %v", err)
+		}
+	}
+	l.previous = sections
+	return predicted
 }
 
-func (l *Lens) write(path string, data []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
+func appended(old, now []byte) bool {
+	var a, b []json.RawMessage
+	if json.Unmarshal(old, &a) != nil || json.Unmarshal(now, &b) != nil || len(b) <= len(a) {
+		return false
 	}
-	return os.WriteFile(path, data, 0o644)
+	for i := range a {
+		if !bytes.Equal(a[i], b[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func conversation(raw []byte) bool {
+	var entries []map[string]json.RawMessage
+	if json.Unmarshal(raw, &entries) != nil || len(entries) == 0 {
+		return false
+	}
+	for _, entry := range entries {
+		if _, ok := entry["role"]; !ok {
+			var kind string
+			json.Unmarshal(entry["type"], &kind)
+			switch kind {
+			case "function_call", "function_call_output", "reasoning":
+				// Responses mixes messages with role-free replay and tool items.
+			default:
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// ObserveUsage keeps tokens and bytes separate: only their dimensionless ratios
+// are comparable. A zero grant alone says nothing about minimum eligibility.
+func (l *Lens) ObserveUsage(u common.Usage, predicted float64) {
+	total := u.Input + u.CacheWrite + u.CacheRead
+	rate := 0.0
+	if total > 0 {
+		rate = float64(u.CacheRead) / float64(total)
+	}
+	l.parent.Agent().Ensemble().Logf("cache grant: input_tokens=%d read_tokens=%d granted=%.4f predicted=%.4f", total, u.CacheRead, rate, predicted)
 }

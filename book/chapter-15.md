@@ -1,865 +1,847 @@
-# Chapter 15: The World's Best Context Engineering, Before Breakfast
+# Chapter 15: Forgetting on Purpose
 
-This may be the most important chapter in the book.
+Memory is the most important feature I never knew I needed.
 
-If you've ever started a new chat because your agent seemed confused,
-well, that's yesterday's context engineering. I did it myself, several
-times, on the day I designed this chapter. As of September 2026, what
-follows is tomorrow's. The book is evergreen, so I hope it always has
-modern advice.
+In the spring of 2026, I asked CodeRhapsody to interview another
+agent we had built, a family assistant bot, looking for ideas to
+improve the code that agent relied on. Both agents had memory: a
+persistent record of past work that survived across sessions. The
+instant improvement was impossible to overstate. Suggestions I had
+never considered, each building on the context of the last.
 
-The design had been in my head for a couple of months. On a Tuesday
-morning I typed it out for about twenty minutes while CodeRhapsody
-turned it into a design record and checked it against the code. Then I
-took a shower. The first commit landed at 7:42, before breakfast, and
-frankly it felt good to get it out.
+I took the exact same code and methodology to work the following
+week and tried to get my agents there to self-improve. It was a
+miserable failure. I blamed Gemini, because Claude was doing great
+at home. Then I discovered that my memory code had a fatal bug that
+broke it entirely at work. None of my Gemini agents had memory at
+all.
 
-This is how long-running actors should work: what the actor knows,
-organized by section at several levels of detail, with the most
-critical parts kept longest, instead of some lame summary of the first
-half of the context.
+I fixed the bug and reran my experiments. In a rare reversal, Gemini
+outperformed Claude. One agent invented procedural memory, what
+this book calls skills, and implored me to build it. I was too
+ignorant to realize the importance of what it had proposed. Other
+agents fixed broken tools and motivated improvements I never would
+have thought of.
 
-Every long session with a coding agent degrades the same way. The
-answers get vaguer. The agent re-reads a file it read an hour ago, then
-forgets a decision made before lunch. A fresh chat fixes it because a
-human decides what to carry over. This chapter moves that decision
-inside the agent, makes it continuous instead of catastrophic, and
-records every cut as an event, so nothing leaves the window without a
-record of what removed it.
+That week I wrote an internal paper for my colleagues: "All AI
+Coding Agents Must Have Memory NOW!" It was one of my most widely
+read papers.
+
+The difference between failure and breakthrough was not the model,
+the prompt, or the temperature. It was memory.
+
+Without persistent memory, a long-running agent can meet a stranger every
+morning: the new session has the code and lacks the reasons for it. Chapter 14
+removes old tool traffic. This chapter compresses completed conversation into
+memories that survive a restart. What those memories preserve still needs checking.
+A shorter conversation can lose the reason for a decision, or retain that reason
+and fail to use it.
 
 ## TL;DR
 
-The context stops growing without bound. Every entry gets a kind that
-says which verb removes it. Tool bytes fall off a ladder of recorded
-redaction events. Each round trip's results are stubbed unless the
-model keeps them. The actor can checkpoint with `micro_handoff`. Loaded
-skills survive as entries instead of as tool results. The system
-prompt and fixed tools never change mid-session. The log reaches disk
-as it grows, so a process crash loses nothing.
+The agent gets memory that the model reads on every request. Five
+bands hold text between the frozen prefix and the conversation,
+ordered from most stable to most volatile. A
+checkpoint triggers compression: the oldest finished work becomes a
+memory, and the raw conversation it replaced leaves the context.
+When a band fills, its oldest contents graduate into the denser band
+above. Every compression is a recorded event carrying the compressed
+bytes, so replay reproduces the bands without asking a model. Forcing
+is by tool removal: a nearly full context gets `micro_handoff` as its
+only tool.
+
+Shared vocabulary belongs in `internal/common`; Memory owns corpus policy and
+files through its required Agent parent. The Agent actor commits facts and worker
+results, History projects them, and Engine performs the bounded compressor call.
+The optional GUI continues to use public interfaces.
 
 ```go
-// EntryKind says why an entry is in the context and which verb
-// removes it. Anything that must outlive tool clearing is its own kind.
-type EntryKind uint8
+// Band orders memory from stable identity to recent completed work.
+type Band uint8
 
 const (
-    KindDialogue EntryKind = iota + 1 // prompts, hints, output, tool parts
-    KindHandoff                       // from MicroHandoff
-    KindSkill                         // from SkillLoaded
-    KindTools                         // from ToolsChanged
+    BandSoul Band = iota + 1 // SOUL.md, maintained by the human
+    BandMemory              // MEMORY.md, terminal band
+    Band64x
+    Band8x
+    BandSession
 )
 
-type Entry struct {
-    Seq   Seq       `json:"seq"`
-    Actor Actor     `json:"actor"`
-    Kind  EntryKind `json:"kind"` // new
-    Parts PartList  `json:"parts"`
+// MemoryFileID is independent of any event log's sequence numbers.
+type MemoryFileID struct {
+    Date string `json:"date"`
+    Num  int    `json:"num"`
 }
 
-// Appended to the EventType list after SkillLoaded. A number once
-// assigned is never reused.
-const (
-    // ...
-    SkillLoaded
-    MicroHandoff // new
-    ToolsChanged // new
-)
-
-type MicroHandoffData struct {
-    Text string `json:"text"`
+// BandPopulatedData records actual replacement or disk-read bytes.
+type BandPopulatedData struct {
+    Band   Band         `json:"band"`
+    File   MemoryFileID `json:"file"`
+    Text   string       `json:"text"`
+    Thru   MemoryFileID `json:"thru,omitzero"`
+    Source string       `json:"source,omitempty"`
 }
 
-// A delta against the declarations in force just before it.
-type ToolsChangedData struct {
-    Added   []ToolDecl `json:"added,omitempty"`   // full declarations, ch10's shape
-    Removed []string   `json:"removed,omitempty"` // names only
+// BandDepopulatedData retires a prefix, or an entire disabled band.
+type BandDepopulatedData struct {
+    Band   Band          `json:"band"`
+    Thru   *MemoryFileID `json:"thru,omitempty"`
+    Reason string        `json:"reason"`
+}
+
+// CompactorLaunchedData correlates an attempt with its eventual population.
+type CompactorLaunchedData struct {
+    Band Band         `json:"band"`
+    Thru MemoryFileID `json:"thru"`
 }
 ```
 
-Reused unchanged: ch2's `RedactData{From, To, Level, Replacement,
-Reason}` with levels `RedactResult` (the result becomes a stub, the
-call survives) and `RedactTool` (both go), and ch10's `SkillData{Name,
-Body}`, which already carries the skill's body.
+Add `KindSoul`, `KindMemory`, `Kind64x`, `Kind8x`, `KindSession`, and the event
+names `band_populated`, `band_depopulated`, `compactor_launched`. Each memory
+entry has `Seq: 0`, its own kind and file identity, and text rendered as data.
+The log event still has its ordinary sequence number.
 
-1. **Frozen prefix.** The system prompt and the startup tool
-   declarations are byte-identical on every request of a session. Only
-   a full refresh changes them, and, on a model that cannot carry tools
-   in the dialog, a tool change (rule 2).
-2. **Tools arrive through the dialog.** A skill load, a skill unload,
-   or an MCP connect mid-session emits `ToolsChanged`, and the reducer
-   turns it into a `Tools` entry. On a model whose features row sets
-   `InlineTools` (today, the Anthropic API), that entry carries the
-   declarations in the dialog. They ride in a new part,
-   `ToolDeclPart{Added []ToolDecl, Removed []string}`, JSON type
-   `"tool_decls"`: a declaration is not a call or a result, so rule 3
-   still holds. A model without `InlineTools` folds every delta into
-   the startup set and re-declares, paying the cache miss.
-3. **Survivors carry no tool parts.** A `Handoff`, `Skill` or `Tools`
-   entry never holds a tool call or a tool result, so no tool clearing
-   can touch it.
-4. **Skills are entries.** The reducer turns `SkillLoaded` into a
-   `Skill` entry holding the body. The `load_skill` tool result is an
-   acknowledgement only. `unload_skill` removes the skill's tools
-   through `ToolsChanged` and leaves the `Skill` entry where it is:
-   deleting old bytes would miss the cache, and ch10's unload is lazy.
-   A later chapter's verb removes it.
-5. **`micro_handoff` is three records:** the tool call, an ordinary
-   result, then a `MicroHandoff` event. Its reducer waits until the
-   batch's last result has arrived, so a call made alongside
-   `micro_handoff` is cleared with it. Then it removes every tool call
-   and tool result part from the context, drops entries left empty,
-   and appends one `Handoff` entry. The text appears in the next
-   request exactly once, and no call is ever left without its result or
-   a result without its call.
-6. **Keep or stub, per round trip.** On a model whose features row sets
-   `StubsToolResults`, every tool result above the stub threshold is
-   replaced by a stub in the request after the one that carried it,
-   unless the actor's next message calls `keep_tool_results`, which
-   keeps that whole batch. The keep governs the batch before the message
-   that calls it: called alongside other tools, it keeps the previous
-   batch, not the one it rides in, and its own result is never stubbed.
-   The call survives either way. The stub is an ordinary `RedactResult`
-   event, so replay reproduces it. Other models get no per-round-trip
-   stubbing; the ladder alone applies.
-7. **The ladder records a Seq.** With target size T, the newest T/8
-   bytes of tool traffic (the results band) stay whole. Older than that,
-   results become stubs (`RedactResult`) and their calls stay, for T/16
-   bytes of calls and stubs (the calls band). Tool bytes older than both
-   bands go entirely (`RedactTool`). A band is cut in steps: when it
-   passes twice its budget, one event cuts it back to its budget. Each
-   event stores `To` as a number, never as "the watermark", so a later
-   settings change cannot rewrite the past.
-8. **The reducer is total.** A save file that does not parse is still
-   refused (ch11 rule 2). An event that parses but cannot be applied,
-   such as a malformed payload or a redaction naming an entry already
-   gone, is skipped with a diagnostic in the agent's log, and loading
-   continues.
-9. **Crash-safe.** Events reach disk as they happen, so a process crash
-   leaves a tail after ch11's `as_of` anchor, and recovery is ch11's
-   load: snapshot plus tail. A normal shutdown snapshots. Power loss is
-   out of scope; the log is never fsynced. Ungraded, but
-   do it anyway: write the new snapshot before truncating the log, never
-   truncate past the anchor, and keep one backup of the previous
-   snapshot.
-10. **One knob.** The Context Management settings tab sets
-    `context_target` in `settings.json`: T in bytes, 0 for the default
-    of 400,000, clamped to at least 20,000. The stub threshold is T/100
-    and the bands are rule 7's, so the default gives 4,000, 50,000 and
-    25,000. The tab's other setting, `log_retention`, is the number of
-    events kept in the saved log, 0 for all.
+The application's memory settings live at the owning Agent's settings path:
 
-Yours: the on-disk layout of the log, what a diagnostic says, and the
-settings tab's appearance.
+```json
+{"memory": {
+  "conversation": {"budget": 3000},
+  "session": {"budget": 1500},
+  "8x": {"budget": 1500},
+  "64x": {"budget": 1500}
+}}
+```
 
-**Exercise.** Start from your ch14 agent. Add context management until
-`make grade-dir CH=15 DIR=path/to/agent` scores 100/100. The grader
-reads only the requests its fake vendor receives and the files on disk.
-It launches the agent as `claude-opus-5-course`, whose features row
-sets `StubsToolResults` and `InlineTools`, and as
-`claude-sonnet-5-course`, whose row sets neither. Both flags are new
-`bool` fields on `ModelFeatures`, false for every existing row. The
-sonnet row already exists from Chapter 14 and needs no change; add the
-opus row.
+Budgets and watermarks are bytes. Zero selects defaults; optional
+`high_watermark` and `low_watermark` default to twice and once the budget.
+`disabled: true` turns a band off. `ContextWindow` in the model table is tokens.
 
-| Check | Points | Proves |
-|---|---|---|
-| skill-survives-the-ladder | 15 | rules 3, 4, 7 |
-| micro-handoff-shape | 15 | rule 5 |
-| keep-or-stub | 10 | rule 6 |
-| ladder-is-recorded | 15 | rule 7: replay under changed settings reproduces the cuts |
-| frozen-prefix | 10 | rules 1, 2 |
-| replay-equals-snapshot | 15 | rules 8, 9 |
-| crash-recovery | 15 | rule 9: kill mid-session, restart, nothing lost |
-| total-reducer | 5 | rule 8 |
+1. **`micro_handoff` is the sole trigger.** After stripping tool
+   calls and results (chapter 14's mechanism), measure the remaining
+   `KindDialogue` text. If it exceeds the conversation budget,
+   select one or more whole completed checkpoint segments, oldest first,
+   including their handoff notes. Compress after the successful tool batch,
+   before the next main request; leave the unfinished tail and independent
+   skills/declarations alone.
+2. **The compressor gets one tool, `submit`, and writes in first
+   person.** It receives the stripped conversation text and submits
+   `{"memory":"compressed text"}`. Require exactly one valid, nonempty
+   submission from this finite direct call. No tool loop or recursive retry.
+3. **Two events record the compression.** A `redacted` event with
+   level `redact_summary` and an empty replacement removes the selected
+   dialogue and its handoff. A session `band_populated` adds the
+   compressed memory as its own entry. Hold the cut until its matching
+   population arrives. No text appears twice.
+4. **Band entries sit at `Seq: 0` and are ordered canonically** by
+   `(band, date, num)`, ahead of the conversation. Switching bands
+   off and restoring them in any order must produce the same context.
+5. **Graduation is oldest-first and watermark-based.** When a band
+   crosses its high watermark, compress its oldest files until the source
+   reaches its low watermark, taking at least two files. Emit
+   `band_depopulated` then `band_populated` carrying the replacement bytes.
+   Measure the destination and continue if it too crossed its watermark:
+   session to 8x, 8x to 64x, 64x to MEMORY.md. Keep retired files outside
+   the active scan pattern. SOUL never graduates; MEMORY is terminal.
+6. **A band will not graduate into a disabled band.** Refuse and
+   surface a warning while preserving the source. Disabling either source
+   or destination during compression also prevents that reply from committing.
+7. **Replay applies recorded events.** A log with compaction events
+   rebuilds the context with zero vendor calls. The bytes and cuts are in
+   the events; rendering neither recomputes them nor reads today's files.
+8. **An abandoned compaction is dropped.** Emit `compactor_launched`
+   when a compressor starts. A launch at startup with no matching population
+   carrying the same band and `Thru` is abandoned: the old source stays
+   live, and the next checkpoint measures again. Failed or malformed
+   submissions likewise leave the source available.
+9. **Forcing.** Warn at 90% of the model's `ContextWindow`; at 95%,
+   declare and admit only `micro_handoff`. Compare total input from the
+   latest completed main request, counting cached input exactly once.
+   Exclude output and auxiliary compressor usage. After the handoff,
+   restore normal tools. Tool restriction still permits text or refusal.
+10. **Memory is data.** Band entries are in the conversation, not in
+    the frozen system prompt. Changing a memory must not rewrite instructions.
+11. **Fresh start and ordinary restart.** Scan enabled bands at running
+    startup, before the first user request. Record each file's current bytes;
+    an edited file replaces the old text at the same identity. Offline replay
+    still reproduces the recorded version without consulting disk.
+12. **Disable and enable.** Switching a band off records depopulation;
+    its entries leave context but its files remain. Switching it back on
+    rescans disk and records population per file. A human edit must reach
+    the next request. A settings acknowledgment follows effective application,
+    including while idle.
+
+The deterministic forcing row remains `claude-ch16-course`, with a 4,096-token
+window and `StubsToolResults` true; its original-numbered name is a fixture ID.
+Unknown window sizes do not justify guessed thresholds. The compressor prompt,
+internal corpus layout and settings appearance are yours; retain actual ownership
+and the public submit contract.
+
+```sh
+go run ./cmd/grade-edition2 -ch 15
+```
+
+The default core is `solutions/edition-2/ch15`; the existing `-gui` option selects
+an alternate GUI. Section 15.11 maps the original eleven weights to revised
+checks and their limits.
 
 ## §15.1 In Plain Words
 
-The context window is not storage. The log is storage: Chapter 2 made
-it append-only, and it keeps every byte the agent ever saw or said. The
-window is a working set rendered from that log, and every byte in it is
-paid for again on every request. Every byte has to answer three
-questions: why is it here, who put it here, and what removes it. A byte
-that cannot answer the third question stays forever, and a window full
-of such bytes is how a session degrades until a human resets it by hand.
-
-Most of the bytes are tool bytes. Chapter 2 measured it in real sessions: tool results were about 42 percent of
-conversation history by volume, and tool-call arguments another 30
-percent. Nearly all of those bytes are needed once. The agent reads a
-file, decides, edits; after that, the file's
-contents are recoverable from disk and the decision lives in what the
-agent said about it. Hence the chapter's rule: keep the words, let the
-bytes go. Dialogue stays. Tool results go first, then the calls that
-produced them, oldest first.
-
-Some things must never go with them. A loaded skill's instructions and
-the note an agent writes to its future self at a checkpoint look like
-tool traffic today, because they arrive through tools. If they stay
-tool traffic, the first cleanup deletes the manual and keeps the tools
-it explains. Anything that must survive becomes its own kind of
-entry, removed only by its own verb. Survivors are safe by
-construction.
-
-Every cut is an event in the log with an exact number in it; nothing is
-re-evaluated later. That is what keeps Chapter 11's promise:
-replaying the log reproduces the same window, byte for byte, even after
-the settings that chose the cuts have changed.
-
-Two laws decide where cuts may happen. The front of the request, the
-system prompt and the startup tools, is frozen, so the vendor's cache
-can keep serving it. The rest is append-only, and the cost of changing
-a byte grows with its distance from the end, because everything after
-it must be re-sent uncached. So cuts come in steps, not a trickle: one
-larger cut now and then costs less than a small one every turn.
-
-None of this is a new data structure. The redaction levels are
-Chapter 2's, the compaction event is Chapter 2's, the frozen prompt is
-Chapter 10's, the snapshot and replay are Chapter 11's. What was
-missing is the policy that decides when to use them.
-
-## §15.2 Why Is This Byte Here?
-
-Chapter 2 built the machinery for this chapter and then nothing called
-it. Its `RedactData` event has four levels. `RedactResult` turns a tool
-result into a stub and keeps the call. `RedactTool` removes both and
-keeps the reasoning around them. `RedactDialogue` and `RedactSummary`
-reach into the conversation itself. The reducer applies all four, the
-tests cover all four, and until now no production code in the agent
-ever emitted a single one. The dialogue level even says where the
-missing piece lives:
-
-```go
-case RedactDialogue:
-        // Prose and reasoning go. Survivors are defined by the compaction
-        // policy, which is a later chapter's problem.
-```
-
-This is that chapter. Context engineering, as the book uses the term,
-is managing every byte in the context data structure as well as
-today's models allow. The management is a policy: for each byte, a
-reason it is in the window, a record of what put it there, and a verb
-that takes it out.
-
-Walk a request from a ch14 agent after an hour of work and ask each
-byte the three questions. The system prompt answers all three: the
-agent's constitution, written at startup, removed by nothing. A user
-prompt answers them. A 9,000-byte file read forty minutes ago answers
-the first question with "the agent needed it once", the second with
-`read_file`, and the third with silence. Nothing removes it. It rides
-along on every request until the session ends or a human copies the
-good parts into a fresh chat.
-
-The fix is that silence. Once every byte has a remover, the window
-stops growing.
-
-## §15.3 Two Laws
-
-The vendor's prompt cache decides where a cut may happen, and it
-works by prefix. The Anthropic API, as of September 2026, orders a
-request as tools, then system prompt, then messages, and serves from
-cache the longest prefix it has seen before. Everything after the first
-changed byte is re-read at full price.
-
-**Law 1: the prefix is frozen.** The system prompt and the startup tool
-declarations are byte-identical on every request of a session. Chapter
-10 already made the system prompt a constitution and put dynamic
-skills in the dialog. It left one leak: a skill that brings tools
-changed the tool list, and the tool list is the first thing in the
-request. Loading one skill invalidated the whole cached conversation.
-
-The chapter closes the leak with an event. A skill load, a skill
-unload, or an MCP server connecting mid-session emits `ToolsChanged`,
-a delta of declarations added and names removed. The reducer turns it
-into a `Tools` entry at the tail of the context, where the change
-costs one round trip of cache. On a model whose features row sets
-`InlineTools`, the renderer sends that entry as a mid-conversation
-system message:
-
-```json
-{"role": "system",
- "content": [{"type": "tool_addition",
-              "tool": {"type": "tool_definition",
-                       "definition": {"name": "gui_click",
-                                      "description": "...",
-                                      "input_schema": {"...": "..."}}}}]}
-```
-
-with the beta header
-`mid-conversation-tool-changes-2026-07-01,inline-tools-2026-09-15`. A
-removal is the same message with `tool_removal` blocks carrying names.
-A model without the feature gets the old behaviour: the renderer folds
-every delta into the startup set, re-declares, and pays the miss. The
-cost lands on the model that cannot avoid it, and only there.
-
-The prefix does change on purpose once in a while. A settings change
-that rewrites the system prompt is a full refresh, and the full refresh
-is an accepted miss, paid once, by a human who asked for it.
-
-**Law 2: the cost of changing a byte grows with its distance from the
-end.** Everything after the changed byte goes out uncached, so the
-price of an edit is the number of bytes behind it. Stubbing the result
-that arrived on the last round trip costs about one round trip.
-Stubbing a result a hundred thousand bytes back costs a hundred
-thousand bytes, every time.
-
-The law was measured before it was believed. The design predicted that
-stubbing every tool result one round trip after it arrived would wreck
-the cache, since the request changes on every trip. The first session
-run that way, on CodeRhapsody with Opus 5.5 on 2026-09-22, measured a
-cumulative cache hit rate of 77 percent, after a cold first request
-that missed on over 100,000 tokens. The prediction had the law
-backwards: a just-finished result sits at the tail, where changes are
-cheap. The cumulative figure also hides the steady state, because that
-one cold miss is averaged into every later request, which is why a
-display of cache rate should show the last request beside the total.
-
-Law 2 has a second consequence. A trickle of small cuts deep in the
-window misses the cache on every turn; one larger cut now and then
-misses once. The agent cuts in steps.
-
-## §15.4 What Survives Is Never a Tool Call
-
-The ch14 agent returns a loaded skill's manual as the result of the
-tool that loaded it:
-
-```go
-result += "## Instructions\n\n" + body
-```
-
-That line, at `internal/tools/tools.go:1016` in `solutions/ch14`, is a
-bug the moment any cleanup exists. Tool results are the first bytes
-to go. The first time the ladder stubs old results, the manual becomes
-a one-line stub and the tools it explains stay declared. The agent
-keeps calling `gui_click` with no memory of the rules for calling it.
-A checkpoint note passed as a tool-call argument has the same defect
-one level later, because `RedactTool` deletes calls.
-
-The cure is a naming rule, printed in the code as the comment on
-`EntryKind`: anything that must outlive tool clearing is its own kind.
-
-| Kind | Created by | Holds |
-|---|---|---|
-| `KindDialogue` | prompts, hints, model output | text, reasoning, tool calls and results |
-| `KindHandoff` | `MicroHandoff` | the actor's checkpoint note |
-| `KindSkill` | `SkillLoaded` | a skill's body |
-| `KindTools` | `ToolsChanged` | a declaration delta |
-
-Tool clearing only ever touches tool parts, and tool parts only ever
-live in `Dialogue` entries. The other three kinds hold none, so no
-redaction level can reach them. Survivors are safe by construction,
-without a list of exceptions for the ladder to consult. `load_skill`
-still returns a result, a one-line acknowledgement that the skill
-loaded; the body arrives through the event Chapter 10 already had,
-since `SkillData` always carried it.
-
-One timing problem remains. Tools run in parallel, and a survivor
-event can arrive while calls are still outstanding. A `micro_handoff`
-issued beside a `read_file` clears every tool part in the context. If
-it landed immediately, the `read_file` result would arrive afterwards
-with its call already gone, and a result without its call is a request
-the vendor refuses. So the reducer holds survivors until the batch
-completes:
-
-```go
-// survivor lands a non-dialogue entry now, or holds it until the current
-// batch of tool calls completes.
-func (c *Context) survivor(e Entry) {
-        if c.outstandingCalls() > 0 {
-                c.Held = append(c.Held, e)
-                return
-        }
-        c.land(e)
-}
-```
-
-When the last result of the batch arrives, the held entries land in
-order. The comment on the handoff branch of `land` states the payoff:
-"Nothing is outstanding when this runs, so every call removed takes
-its result with it, and no result loses its call."
-
-Unloading a skill removes its tools through `ToolsChanged` and leaves
-its `Skill` entry where it is. Deleting the body would edit old bytes,
-which Law 2 prices high, and Chapter 10 already decided that unload is
-lazy:
-
-```go
-LoadPendingUnload LoadState = "pending-unload"  // Marked for removal at compaction.
-```
-
-The stale manual costs its bytes and nothing else, because the tools
-it describes are gone.
-
-## §15.5 The Layout
-
-With four kinds and two laws, the request has one shape:
-
-```
-[ frozen prefix   ]  startup tools, system prompt      never changes
-[ memory region   ]  empty until the agent has memories
-[ context         ]  dialogue and survivors, in Seq order
-                     ^ oldest                  newest ^
-                     cheap to keep            cheap to change
-```
-
-The order runs from least volatile to most, which is also the order of
-meaning: who the agent is, then what it knows, then what it is doing.
-Two independent arguments, one about cache economics and one about
-reading order, give the same layout, which is a good sign that the
-layout is right.
-
-Survivors land in `Seq` order among the dialogue, at the tail where
-they were created. Moving them up next to the prefix would read better
-and would edit bytes far from the end. Reordering is a verb of its
-own, and until one exists, the context is append-only everywhere
-except for the ladder's cuts.
-
-The kinds also say which channel an entry speaks on. The system prompt
-and a skill body are instruction: the agent is meant to follow them. A
-tool result is data: the agent reads it and decides. A dialogue entry
-is conversation. Keeping those apart is why `Kind` records the origin
-of an entry instead of guessing it from the text, because text that
-looks like instructions and arrived as a file's contents is still a
-file's contents.
-
-## §15.6 Visible Reasoning Is the Storage Format of the Self
-
-After the ladder runs, what does the agent remember about a file it
-read an hour ago? Exactly what it said about the file. The result is a
-stub, the call may be gone, and the model's private thinking was never
-durable: vendors return it on their own terms, and a checkpoint drops
-it. The words the agent wrote in the dialogue are the only record that
-survives every level up to `RedactDialogue`. Chapter 2 wrote the rule
-into the definition of `RedactTool`: remove calls and results
-entirely, keep visible reasoning.
-
-So an agent that narrates keeps its past, and an agent that works in
-silence loses it. Compare two turns that make the same edit:
-
-```
-(silent)   read_file config.go   edit_file config.go
-
-(narrated) The port is set in config.go; reading it.   read_file config.go
-           Port is 8092 at line 40, hardcoded. Moving it to settings.
-           edit_file config.go
-```
-
-Once the ladder reaches that turn, the silent version says an edit
-happened. The narrated version still says which port, where it was,
-and why it moved. A system prompt should ask for one sentence of
-intent before every tool call, and the ladder turns that habit from
-courtesy into storage.
-
-Narration has a failure mode of its own. An agent rereading its old
-sentences can trust a figure it wrote down over the file that has
-since changed, and a figure written from memory carries the same
-confidence as one copied from the source. The defence is in what the
-narration records: where a fact lives, the path and line and command,
-so the agent's reflex is to re-read the source rather than quote
-itself.
-
-## §15.7 The Ladder
-
-The ladder keeps tool bytes in two bands measured back from the tail,
-with one number, the target size T, setting both:
-
-```
-    stub threshold = T/100    results band = T/8    calls band = T/16
-```
-
-That line is the comment in `internal/common/budget.go`. The newest
-T/8 bytes of tool traffic stay whole. Older results become stubs by
-`RedactResult`, and their calls stay, for the next T/16 bytes. Tool
-bytes older than both bands go entirely by `RedactTool`, leaving the
-dialogue around them. At the default T of 400,000 bytes, about 100,000
-tokens at four bytes a token, the stub threshold is 4,000 bytes, the
-results band is 50,000 and the calls band 25,000.
-
-Law 2 sets the rhythm. A band is cut when it reaches twice its budget,
-and one event cuts it back to its budget, so cuts arrive as occasional
-steps. The same comment bounds the worst case: "at its worst the tool
-bytes in the window are 2(T/8 + T/16) = 3T/8, and the remaining
-five-eighths are the prefix, the survivors and the dialogue".
-
-Three rules keep the ladder honest.
-
-- **Every cut is an event.** The policy runs in `Engine.Turn` before
-  each render and emits `RedactData` through the ordinary `Record`
-  path. Its `To` field is a number, a `Seq` in the log.
-  The watermark is computed once, at the moment of the cut, and never
-  again. Replay applies the recorded number, so lowering T tomorrow
-  cannot reach back and cut yesterday's session differently.
-- **Nothing is cut before the model has seen it.** A result goes out
-  whole at least once, however large. The ladder only reaches entries
-  already sent.
-- **No call loses its result.** The calls-band cut snaps back to a
-  point where every call removed takes its result with it.
-
-The ladder applies to every model, because it needs no judgement from
-the model. It is also blunt: a 40,000-byte file read that the agent
-will never look at again stays whole until the band passes it.
-
-## §15.8 Keep or Stub
-
-A capable model can do better than the ladder, because it knows which
-results it is finished with. On a model whose features row sets
-`StubsToolResults`, every tool result above the stub threshold becomes
-a stub in the request after the one that carried it, unless the
-actor's next message calls `keep_tool_results`. The keep takes no
-arguments and keeps the whole batch.
-
-The keep governs the batch that has already arrived, the one the
-actor is looking at. Called alongside other tools, it keeps the
-previous batch, never the one it rides in, since those results do not
-exist yet when the actor decides. Its own result is never stubbed. The
-call survives either way, so the agent can see what it asked for and
-re-run it. The stub is an ordinary `RedactResult` event, so replay
-reproduces it without asking the model again.
-
-Law 2 prices this well. The stub replaces bytes that arrived one round
-trip ago, at the tail, which is the cheapest place in the window to
-change anything. The 77 percent in §15.3 was measured under this rule:
-CodeRhapsody, the agent that co-wrote this book, runs it with its own
-thresholds.
-
-The feature is a column in the model table because the judgement is
-uneven across models. Asked to curate its own context, Opus 5 does it
-well, Opus 4.6 acceptably, and Sonnet 5 not well enough to be given
-the job. `claude-opus-5` sets `StubsToolResults`; the Sonnet rows do
-not. A capability that works on one model is a claim about
-that model.
-
-> **Open risk.** Per-round-trip stubbing may interfere with the
-> model's thinking: a model reasoning across several round trips has
-> its evidence removed between steps. Nobody has measured it. The
-> experiment that would settle it is one task, one model, stubbing on
-> and off, with the outcomes compared by quality rather than by bytes.
-
-## §15.9 From compress_context to micro_handoff
-
-The ladder removes bytes the agent is done with. It gives the agent no
-way to say what it needs in order to keep going. A checkpoint does,
-and the book's own lineage tried two designs for it before this one.
-
-CodeRhapsody's first design was a tool called `compress_context`: the
-model chose a range of messages and replaced them with its own summary.
-Bill described how that went on 2026-09-13:
-
-> "compress_context was the old system that you (Claude) did pretty
-> well, picking a range of messages to summarize, but freaking Gemini
-> almost always deleted 80% of messages, starting with message 1, with
-> a terrible summary, lobotomizing the LLM, so we switched to handoffs
-> instead."
-
-The failure has a shape. The cut ran by position, from message 1, and
-message 1 is where the user stated the goal. The summary was written
-by the model that was about to lose the originals, so nothing could
-check it, and summarized dialogue is in no file the agent can re-read.
-The model was handed a choice it could not undo, and one model family
-made it badly almost every time.
-
-The handoffs that replaced it, `handoff_task`, wrote a structured
-document and started a fresh instance from it with an empty window.
-That design assumes continuity lives in a note to a stranger. It also
-added a second path for writing the agent's durable state, and second
-paths drift: CodeRhapsody's handoff path never triggered the memory
-cascade that its `save_memory` path did, and the gap sat in its notes
-as a known bug for months. Ensemble builds neither tool.
-
-`micro_handoff` keeps the same instance and the same dialogue. The
-actor writes a note, and the reducer removes every tool call and tool
-result in the context and appends the note as a `Handoff` entry. Two
-lessons from the older designs are built in. The model's discretion
-covers only what is recoverable: tool bytes can be regained by
-re-running tools, and the dialogue, which cannot, stays. And the
-judgement is trusted per model, as the `StubsToolResults` column
-already is, never assumed to transfer from one model to the next.
-
-On the wire it is three records: the tool call, an ordinary result
-that acknowledges it, and a `MicroHandoff` event carrying the text.
-The event is what the reducer acts on. The result is an
-acknowledgement for the same reason `load_skill`'s is: a tool result
-is tool traffic, and the note must outlive tool traffic. Replay sees
-the event and makes the same cut.
-
-What goes in the note decides whether the checkpoint works. The
-version CodeRhapsody uses asks for fields, and its tool description is
-blunt about which one matters. Of `tried_and_failed`, it says: "Highest
-value per byte in the document: it is the only field that prevents
-repeating a mistake, and errors are the part of a record most likely
-to be discarded as noise." It also says when to call the tool: "at a
-completed micro-goal, never at a token threshold." A checkpoint taken
-mid-task drops the tool result that held the task's state. And a
-checkpoint loses the model's thinking permanently, so the note has to
-say what the thinking had worked out.
-
-## §15.10 Compaction Is Described, Never Performed
-
-No code in the agent edits the context directly. The policy decides a
-cut and records it as an event; the reducer applies events; the log
-keeps them. Every window the agent has ever sent can be rebuilt from
-the log, including windows the current settings would cut differently.
-The grader's `ladder-is-recorded` check does exactly that: it replays a
-session under a changed T and expects the same requests.
-
-A log that is replayed for months will eventually hold an event the
-current reducer cannot apply: a redaction naming an entry a later
-handoff removed, a payload a newer version malformed. The ch14 loader
-gave up at the first one:
-
-```go
-if err := ctx.Apply(e); err != nil {
-        return nil, fmt.Errorf("restore: event %d: %w", e.Seq, err)
-}
-```
-
-One bad event made a whole session unloadable. The ch15 loader
-reports and moves on:
-
-```go
-if err := ctx.Apply(e); err != nil && diag != nil {
-        diag(fmt.Errorf("restore: skipped event %d: %w", e.Seq, err))
-}
-```
-
-The skip is clean because `Apply` checks an event before it mutates
-anything, so a rejected event leaves the context exactly as it was.
-Totality covers known event types. An event type the code has never
-heard of is still refused at load, loudly, because a log from a newer
-agent is a different problem than a bad record in a familiar one.
-
-> **Aside: why not the vendor's context editing.** The Anthropic API
-> offers server-side context editing (beta header
-> `context-management-2025-06-27`) that clears old tool uses and
-> thinking blocks before the model reads the request. It is stateless
-> and observable, and its documentation says so plainly: "Your client
-> application maintains the full, unmodified conversation history.
-> **You do not need to sync your client state with the edited
-> version.**" So it is compatible with the log in a way the stateful
-> conversation APIs of Chapter 2 were not. It still loses on three
-> counts. Its policy is a declarative trigger that clears by position
-> and by tool name, which cannot express a keep chosen by the actor
-> each round trip. It can only clear, never summarize or move anything
-> into memory. And replay would become a claim about someone else's
-> deployment: the log would say what was sent, and the vendor would
-> decide what was read.
-
-## §15.11 Keep the Words, Let the Bytes Go
-
-A stub removes bytes from the window. It removes nothing from the log.
-The `ToolReturned` event that carried the result stays in the log
-until log retention truncates it, and in the common case the bytes
-were never unique anyway: the file is still on disk, and the command
-can be run again.
-
-The stub carries no address. The reason is a bug in the agent that
-co-wrote this book. CodeRhapsody's stubs cite the output file of the
-command they replace, a path like `cr/io/26`. When this chapter was
-designed, its handle counter started again at 1 on every launch, so
-after a restart `cr/io/26` named a different command's output. The
-agent that followed the stub read a file, got plausible output, and
-had no way to tell it was the wrong one. Chapter 14's rule applies:
-wrong data is worse than no data. CodeRhapsody's counter now keeps
-counting across restarts. Ensemble's stubs say the bytes are gone and
-leave recovery to the tools that produced them.
-
-## §15.12 Crash-Safe Persistence
-
-Chapter 11 saved at shutdown. A process that dies mid-session loses
-everything since the last save, and a coding agent that runs builds
-and debuggers dies more often than a text editor does.
-
-The ch15 agent appends every event to a journal beside the save file,
-`<save>.journal`, one JSON line per event, as the event happens.
-Recovery is Chapter 11's load with one more source: `Recover` reads
-the snapshot, applies the tail after its `as_of` anchor, then applies
-the journal. A normal shutdown writes a new snapshot and resets the
-journal. The grader's `crash-recovery` check runs a clean session,
-then runs a second for two turns and kills it with SIGKILL, restarts
-it, and expects nothing lost.
-
-Two orderings are load-bearing, and neither is commutative. The new
-snapshot is written before the log is truncated: in the other order, a
-crash between the two steps leaves neither the old events nor the new
-snapshot. And the log is never truncated past the snapshot's anchor,
-because the anchor is where replay starts. `log_retention` is a
-display preference; the anchor is a correctness boundary, and the
-anchor wins. `SaveRetaining` does it in that order and copies the
-previous save to `<save>.bak` first.
-
-Two things are out of scope. The journal is never fsynced, so power
-loss can take the last few events; "crash" means a process crash.
-And truncation deletes old `ToolReturned` events, which are the only
-on-disk copy of a redacted text result. The bytes were already out of
-the window, and a log that keeps every byte forever is the unbounded
-growth this chapter exists to stop.
-
-## §15.13 One Knob
-
-All of it runs off one setting. The Context Management tab in the
-settings panel writes `context_target`: T in bytes, 0 for the default
-of 400,000, clamped to at least 20,000. The floor has a reason in its
-comment: below it, "the stub threshold would fall under the size of a
-directory listing". The tab's other field, `log_retention`, is the
-number of events the saved log keeps, 0 for all.
-
-A user who wants more context pays for more context by raising T.
-Every threshold scales with it, so there is nothing else to tune.
-
-The coder measured the reference with a synthetic session: the fake
-vendor scripted four prompts, each followed by fifteen `read_file`
-calls on 8,000-byte files, 64 requests per run.
-
-| run | last request | total sent | cuts |
+Chapter 14 gives tool traffic a removal policy. This chapter gives completed
+conversation a compression policy. The difference is what the replacement
+tries to preserve: facts, decisions, reasons, failed approaches and unfinished work.
+
+**Removal accepts the loss.** A tool result that becomes a stub
+loses its content. The file can be re-read, the command re-run, so
+the loss is recoverable. Removing conversation from the working set can hide irreplaceable meaning.
+The retained event log may still contain it, but ordinary file tools cannot
+reconstruct why the model rejected an approach from the source file alone. Removal is the
+right tool for recoverable bytes. It is the wrong tool for
+irreplaceable ones.
+
+**Five bands of memory sit between the prefix and the
+conversation.** They are ordered from what changes least to what
+changes most: identity, curated knowledge, two compression tiers,
+and the session band where the agent's own notes live. The ordering
+matches the cache: stable bytes sit closest to the prefix, where
+earlier bytes have a better chance of retaining their prefix match. Actual cache
+grants still require their own observations.
+
+**A checkpoint triggers compression.** When the agent calls
+`micro_handoff`, chapter 14's mechanism strips every tool call and
+tool result. This chapter measures what remains. If the conversation
+exceeds its budget, the oldest finished work goes to a compressor
+that returns a memory in the agent's own voice. The memory enters
+the context as a band entry, and the conversation it replaced is
+gone.
+
+**When a band fills, its oldest memories graduate upward.** Session
+memories fold into the 8x band, which folds into the 64x band,
+which folds into MEMORY.md. Each graduation is two events: one
+retiring entries from the source, one adding the compressed version
+to the destination. The events carry the bytes.
+
+**Every compression is a recorded event.** This is the invariant
+that links chapters 14 and 15, stated here because it has a new
+consequence. Chapter 14 records the cut selected under the settings effective then.
+Changing those settings tomorrow must not change yesterday's replay. This
+chapter also records a model's compressed text: nondeterministic, costly,
+and potentially different on another call.
+The event carries the bytes, and replay applies them without asking
+a model. A compression that fires again returns a different summary.
+A recorded event returns the same one.
+
+Both chapters require recorded decisions. Recomputing even a deterministic
+redaction during rendering would use today's setting and could change the
+request being reconstructed. The compressor adds another reason to record the
+answer: reproducing a past window must not buy a new summary and call it history.
+
+## §15.2 One Door
+
+CodeRhapsody, the agent that co-wrote this book, has two tools that
+end a context. `save_memory` triggers the compression cascade.
+`handoff_task` writes a structured document and starts a fresh
+instance. Both clear the conversation. Only one feeds the cascade.
+Bill first recorded the gap on 2026-04-18. As of this chapter's
+design session, it had not been fixed.
+
+The repair gives the cascade one trigger, reducing the number of clearing
+paths that must agree. `micro_handoff` already strips tool calls
+and results (chapter 14, rule 5). Measuring the conversation after
+the strip is one function call at one call site. Neither `save_memory` nor `handoff_task` exists. One door in, one door out.
+
+The acting model writes the checkpoint note because it has the current task
+in front of it. That is the chance to state the reasons that later compression
+must preserve. It is not a promise to capture hidden thinking. Tool clearing
+removes calls and results; it does not categorically erase retained opaque
+provider parts. Opaque replay material and a provider's private computation are
+also different things. The compressor receives selected readable text, including
+the note, and cannot reconstruct reasons that text never expressed.
+
+The Agent runs this work after the successful tool batch and
+before the next main request. The ordinary handoff result acknowledges the
+checkpoint; the actor then asks its Memory child for a finite selection and
+starts an Engine worker. That worker owns the HTTP call, while the actor remains
+available for settings and interruption. Its returned text comes back through
+the actor's ordered input path. A late reply from an interrupted turn is dropped.
+The next main request waits for the compression outcome and any resulting
+cascade; this is not a second independent conversation loop.
+
+A checkpoint that sees the conversation under budget skips conversation
+compression; a full memory band can still graduate. A checkpoint that sees the
+conversation over budget selects the oldest whole segments
+between checkpoints. Never half a segment. The grain of memory is
+the grain of checkpointing, which is why the tool description asks
+the model to checkpoint at completed sub-tasks, never at a token
+threshold: a checkpoint taken mid-task cuts the task in half, and a
+memory spanning half of two tasks is worse than a larger memory
+covering one whole one.
+
+## §15.3 The Five Bands
+
+Five bands, five kinds. Each band has its own `EntryKind`, and
+Chapter 14's rule applies to all of them: anything that must outlive
+tool clearing is its own kind, and the kind determines which verb
+removes it. The tool-clearing path removes tool parts from `KindDialogue`
+entries and leaves the other kinds alone. A band entry is structurally safe.
+
+| Band | File on disk | Kind | Cascades to |
 |---|---|---|---|
-| no ladder (T = 10^12) | 542,600 | 17,470,874 | none |
-| ladder only (T = 400,000, Sonnet row) | 143,152 | 6,172,202 (35%) | 7 `RedactResult` |
-| ladder and stubs (T = 400,000, Opus row) | 62,456 | 2,334,066 (13%) | 59 stubs |
+| SOUL | `SOUL.md` | `KindSoul` | never |
+| MEMORY | `MEMORY.md` | `KindMemory` | (terminal) |
+| 64x | `bucket-1/*.md` | `Kind64x` | MEMORY.md |
+| 8x | `bucket-0/*.md` | `Kind8x` | 64x |
+| Session | `memory/*.md` | `KindSession` | 8x |
 
-The largest request in the ladder run was 146,378 bytes in total,
-below even the 150,000 bytes that 3T/8 allows tool bytes alone. The
-prefix, 2,991 bytes, was byte-identical across all 64 requests in all
-three runs. The stubs run never triggered the ladder, because stubbing
-kept every band under its budget.
+These paths are relative to the owning Agent's data directory. The supplied
+application selects `cr`, so its session files are `cr/memory/*.md`, separate
+from another Agent's corpus. Graduated source files receive `.md.retired`; they
+remain on disk but no longer match the active `*.md` scan. Their identities still
+reserve the next same-day session number after a fresh start.
 
-Bytes are the easy half. The table says nothing about cache rates on a
-real vendor, nothing about whether the answers got better or worse,
-and nothing about the open risk in §15.8. Those need real sessions on
-real models, and none has been run against this reference yet.
+The order is not cosmetic. The most stable band sits closest to the
+prefix, where its unchanged bytes can remain eligible for prefix reuse. Identity changes
+less often than curated knowledge, which changes less often than a
+compression that ran today. Two independent arguments, one about
+cache economics and one about reading order, give the same layout.
 
-## §15.14 The Exercise, Graded
+Band entries sit at `Seq: 0` rather than at the `Seq` of the event
+that landed them. `Seq` exists so a redaction span can match an entry,
+and no span ever reaches into a band. Giving a band entry the
+landing event's `Seq` would put the order of restoration into the
+context. Restoration order must not matter: switching every band off
+and restoring them out of order must produce the same context.
+Canonical placement by `(band, date, num)` makes the property true
+by construction.
 
-The grader reads only what its fake vendor receives and what the agent
-leaves on disk. Every check was audited by deleting one behaviour from
-the reference and confirming the check fails.
+Memory file identifiers are dates and sequence numbers, not
+event-log `Seq` values. A compressed file in `bucket-0/` is named
+by the file range it spans:
+`2026-09-20-1_2026-09-26-3.md`. The naming says "this file covers
+the first memory of September 20 through the third memory of
+September 26," and it says so without any event log in hand. The
+memory corpus outlives any one log, and a range identifier tied to a
+log-specific `Seq` would be the wrong coupling.
 
-- **skill-survives-the-ladder** (15) loads a skill, runs tool traffic
-  until the ladder cuts past the load, and looks for the skill body in
-  the next request. The ch14 bug, body inside the tool result, scores
-  85 overall and fails here.
-- **micro-handoff-shape** (15) checks the three records, the text
-  appearing exactly once, and no orphaned call or result, including a
-  call made alongside the handoff. Clearing calls but keeping results
-  fails it.
-- **keep-or-stub** (10) runs the Opus row, keeping one batch and not
-  the next, then runs the Sonnet row. Stubbing that ignores the keep
-  fails, and so does stubbing on a model that did not ask for it.
-- **ladder-is-recorded** (15) replays a saved session under a changed
-  T. An agent that recomputes cuts from current settings instead of
-  recording them fails this and two other checks, 55 points in all.
-- **frozen-prefix** (10) compares the prefix across every request,
-  through a skill load and an MCP connect. Re-declaring the startup
-  tools fails it, and so does a skill load that emits no
-  `ToolsChanged`.
-- **replay-equals-snapshot** (15) rebuilds the context from the log and
-  compares vendor requests with the saved snapshot's.
-- **crash-recovery** (15) is §15.12's SIGKILL test.
-- **total-reducer** (5) plants unappliable events in the middle of a
-  log, with the snapshot nulled so replay must cross them, and expects
-  the session to load with every good event after them applied.
+## §15.4 Two Events
 
-The audit found two holes in the grader's first version, both of which
-had let a broken agent score 100. Its test files had short paths, so
-the calls band never filled and `RedactTool` never fired; the fixture
-now reads long real paths and asserts both watermarks. Its bad events
-sat at the end of the log, so an agent that stopped at the first bad
-event passed; they now sit before the last turn.
+Two event types handle all band changes, following chapter 14's
+precedent of one event type and an enum field, rather than one event
+per band.
 
-## §15.15 Taking It for a Spin
+`BandPopulated` adds one memory to a band. It carries the text
+verbatim, because nothing downstream is allowed to look it up.
+The first design specified file references. Its review found that neither the
+pure reducer nor the renderer owned a place to resolve them. The file could
+exist on disk while the model received no memory at all. The boundary is simple: Memory reads the file, the actor records its bytes,
+and History applies those bytes without filesystem access.
 
-The grader proves the rules hold on scripted traffic. A real model
-shows what living under them is like. The run below drove the
-reference agent with `claude-opus-5`, a row with both
-`StubsToolResults` and `InlineTools` on, and a `settings.json` of one
-line:
+A text part is sufficient. The media machinery from earlier chapters does not
+make a mutable filename into a replayable memory. Tomorrow's edited file and
+yesterday's delivered text are different facts, and the event must say which
+text was delivered.
+
+`BandDepopulated` retires entries from a band. For graduation, it
+names a `Thru` file: everything at or before `Thru` is removed. For
+disabling, it names nothing: the reducer wipes every entry of that
+band's kind, computed at apply time. The asymmetry with
+`BandPopulated` is the point. Removing need only say what goes.
+Adding must say what arrives.
+
+A graduation is one of each: a `BandDepopulated` retiring the
+oldest source entries, then a `BandPopulated` landing the compressed
+version in the destination band. Disabling is one `BandDepopulated`
+alone. Re-enabling is one `BandPopulated` per file found on a
+directory rescan. `CompactorLaunched` is the third event, and it
+exists for one purpose: abandonment detection. It records that a
+compressor started, so that a restart can see whether it finished.
+The event is observable and never replayed as work.
+
+## §15.5 The Compressor
+
+The compressor is a direct LLM call: one prompt in, one response
+back, no tools except `submit`. The prompt carries the stripped
+conversation text and asks for a compressed memory at a target
+ratio. Bounded input, bounded output. The accepted response is the memory; malformed or empty submissions leave the
+source live and produce a diagnostic.
+
+The call offers exactly one tool, `submit`, and the compressor
+submits its result through it. The exact argument is `{"memory":"..."}`. That single-tool signature is what
+identifies a compressor request on the wire.
+The grader uses it to separate compressor traffic from turn traffic
+without inspecting the student's function names or directory layout.
+
+The compressor writes in the first person, as the agent. "I found
+six dead settings fields" reads as memory. "The agent found six dead
+settings fields" reads as a report about someone else. The distant
+past is exactly the text a compressor writes, and if it reads as a
+briefing about a stranger, the compaction introduced the
+discontinuity the design exists to remove.
+
+This is not a sub-agent. A sub-agent would need inherited settings,
+a skill, tools, and a way to report back. The compressor needs none
+of those: bounded input, one response, one tool. For this
+chapter, the direct call is the right shape.
+
+## §15.6 The Graduation Cascade
+
+When a band crosses its high watermark, its oldest contents fold
+into the band above. The high watermark defaults to twice the
+budget; the low watermark defaults to the budget itself. The gap
+between them is what keeps the cascade from firing on every
+checkpoint: a band that just graduated is at its low watermark, and
+it has a full budget's worth of room before the next graduation.
+
+The cascade runs bottom-up. After a `BandPopulated{BandSession}`
+lands, measure the session band. If it exceeds its high watermark,
+select the oldest session files, enough to bring the band to its
+low watermark, and compress them into a new file. On completion:
+`BandDepopulated{BandSession}` retires the source entries,
+`BandPopulated{Band8x}` lands the compressed version. Then measure
+the 8x band. If it crossed its high watermark, compress its oldest
+files into the 64x band. The chain continues to MEMORY.md.
+
+One bug in this design waited through two drafts before the coder
+caught it. The cascade originally required a full batch of eight
+files before it would fold. A band over budget holding five large
+memories would wait forever for a sixth that could only arrive by
+growing further past its budget. The band that most needed folding
+was the one that could never fold. That historical repair folded the available batch rather than waiting for eight.
+This exercise selects the oldest files until the remaining source
+reaches its low watermark, with a minimum of two. One oversized file still waits
+for another; a band name is not a required count of eight files.
+
+A failed compressor must leave its source available. The launch event records
+the destination band and `Thru` identity. After valid text returns, Memory writes
+the replacement file before the actor records retirement and population. History
+holds that proposed retirement until a population with the matching band and
+`Thru` arrives. A process interrupted between those two events therefore replays
+the old source rather than a hole where a memory was supposed to be.
+
+An unmatched launch at startup is abandoned. Replay does not retry it. The next
+checkpoint measures again, and can propose a new fold if the band is still over
+its watermark. Failed HTTP, malformed submit, interruption or a disabled band
+can all prevent commitment. Old files remain retained outside the active scan
+pattern after successful graduation. Recovery here covers process crashes, under
+Chapter 14's persistence rules; it does not promise power-loss durability.
+
+## §15.7 Forcing a Handoff
+
+A nearly full context leaves little room to finish the current task or write
+its checkpoint. Three approaches compete.
+
+A stern prompt begging the agent to checkpoint relies on compliance.
+The instruction competes with whatever the agent is doing. The framework
+writing the handoff itself cannot supply reasons the model has never expressed.
+The third approach narrows its executable choices: remove every tool except
+`micro_handoff`. Warn at 90% of the known model window; at 95%, apply the restriction.
+
+The numerator matters. Bill corrected the original chapter's word “cumulative”:
+use total input tokens from the **latest completed main request**, including cache
+buckets exactly once. Lifetime usage only rises. If it controlled forcing, one
+large past turn could keep a newly compacted conversation restricted forever.
+The main request measures occupancy; cumulative Engine usage measures work spent.
+
+For the adapters in this snapshot, the raw fields normalize as follows:
+
+| Provider response | Total input for this request |
+| --- | --- |
+| Anthropic | `input_tokens + cache_creation_input_tokens + cache_read_input_tokens` |
+| OpenAI Chat Completions | `prompt_tokens`; cached tokens in `prompt_tokens_details` are already included |
+| Gemini | `promptTokenCount`; `cachedContentTokenCount` is already included |
+
+The normalized internal `Input`, `CacheWrite` and `CacheRead` buckets are disjoint,
+so their sum recovers that total. Do not add an already-included raw cached subset
+twice. Output, including visible or billed reasoning output, is not input occupancy.
+The auxiliary compressor still contributes to Engine's cumulative usage, but its
+small prompt must not overwrite the main conversation's last-input observation.
+
+The course row makes the distinction easy to test: a 4,096-token window, one
+main response above 95%, then a later main response of 512 input tokens. The
+session total remains large; the later request is small. A compressor response
+between them is a separate request with a separate purpose. Unknown windows stay
+unknown rather than inheriting a guessed limit from another model.
+
+The Agent records its warning as transient context and its declaration changes
+through Chapter 14's existing path. The same restriction applies to dispatch,
+so guessing a hidden tool name does not bypass it. After the handoff, normal tools
+return; later checks use the next completed main request. This still permits a
+text-only reply or a refusal. Removing tools cannot guarantee a handoff, a useful
+note, or preservation of private thinking. The 95% threshold reserves headroom;
+it is not a proof that every next response fits.
+
+On a non-inline model, narrowing tools changes the top-level declaration prefix.
+The historical design tested an Opus 5 model's recall of a chosen sentence after
+a tool result was stubbed and after CodeRhapsody rewrote its system prompt on a
+skill load. Bill compared the reply with an external record he could see. That
+was stronger than accepting the model's assurance that it remembered. The notes
+also acknowledge that the tool-array change was not isolated. Those observations
+concern recalled text in those runs; they cannot establish how private reasoning
+survives arbitrary prefix changes, nor certify today's model behavior.
+
+## §15.8 Switching Bands Off and On
+
+A band can be switched off with `"disabled": true` in its settings.
+Disabling emits `BandDepopulated{Reason: "disabled"}`, which retires
+every entry of that band's kind. The files on disk are untouched.
+Re-enabling re-scans the directory and emits one `BandPopulated` per
+file found.
+
+The re-scan is the mechanism. A file edited on disk while its band was off is reflected on re-enable, because
+the files are the memory, not the log's copy. The reference built
+this property because a specific bug demanded it: the original
+check matched on file identity alone, so after a restart the log
+replayed what a file said when it was first read, and the disk copy
+was decorative. Editing a memory to correct something the agent
+believed changed nothing. The check now compares text as well as
+identity. The property was found by accident: a test asserting that out-of-order restore produces
+identical context found a bug that was not the property.
+
+An ordinary restart must honor the same disk authority. Offline restoration
+first reproduces the recorded text without reading files. Starting the Agent
+then scans every enabled band and records current file contents, replacing the
+same identity when its text changed. A startup test that first disables the band
+can miss this: its entries are already gone, so even an identity-only comparison
+appears to work. The second-edition implementation initially made that mistake too.
+Editing an enabled file and inspecting the next request exposed it.
+
+Canonical front placement also determines the cost of toggling. Re-enabling
+MEMORY puts it before newer bands and conversation, not at the tail. Disabling
+or re-enabling can therefore change a large request suffix while leaving the
+frozen instruction prefix intact. Enabling memory is not always a cheap append; the actual
+cache cost depends on the changed request and the provider's grants.
+
+One interaction requires a guard. A band whose upward neighbor is
+disabled cannot graduate. Without the guard, a session band over its
+high watermark would attempt to fold into an 8x band that is
+switched off, and the graduation would either drop the compressed
+text or let the source band grow without bound. Neither is
+acceptable. The Agent retains the source and logs a configuration warning. Disabling the
+source or destination while a compressor is in flight also prevents that reply
+from committing into the disabled band.
+
+The settings acknowledgment created another trap in the student implementation.
+The GUI held its observer mutex while waiting for the Agent to apply a memory
+patch. During streaming, that actor was trying to publish an observation through
+the same GUI mutex. The settings handler waited for the actor; the actor waited
+for the settings handler. Even shutdown could not finish. Idle toggling passed,
+which was why the first tests missed it.
+
+The correction keeps settings transactions ordered without holding the progress
+lock across the actor wait. A small separate settings mutex serializes patches
+and subscriptions; the observer mutex protects only brief snapshot and publication
+operations. A regression gates a real streamed delta, waits until the settings
+file has been written, then releases the observation. That sequence reproduces
+the old cycle and verifies the corrected acknowledgment and shutdown. Making the
+acknowledgment arrive early would hide the deadlock by lying about application.
+
+## §15.9 Memory Is Data
+
+Band entries arrive in the conversation, as data, not in the system
+prompt as instructions. The distinction is chapter 14's: `EntryKind`
+records the origin of an entry, and the kind determines which
+channel it speaks on.
+
+There is a security-shaped reason too. When the agent instructs a
+sub-agent, instructions flow down into a fresh context and output
+returns as data. A handoff flows the opposite direction: forward to
+the same agent, across a boundary that removes source context from its
+working window. The tool results that would reveal where a piece of text
+came from are stripped by the same operation that carried the text
+forward. Compaction is the laundry. A memory arriving as
+instruction (in the system prompt) would wear the agent's own
+authority, while tracing its origin would require returning to the retained log.
+
+A second reason to keep memory out of the system prompt: the system
+prompt is part of the frozen prefix. Adding a memory to it means a
+cache miss on every byte that follows, which is the entire
+conversation. A memory in the dialogue leaves the frozen instruction untouched. It still
+changes the request at its canonical band position, so cache effects require
+actual request and provider observations.
+
+The three settings categories this creates are worth naming.
+`ContextTarget` is a policy setting: it steers a procedure that
+records its own decisions, and a change applies to the next cut
+without disturbing recorded ones. `Model` and `SystemPrompt` are
+prefix settings: changing them needs a full refresh. Memory
+enable/disable is a content setting: it changes what is in the
+context, and without an event the log cannot reconstruct it. Each
+category has a different cost, and only the third demands a new
+event type.
+
+Fresh starts use the same event. If memory files exist on disk and
+their band is enabled, the Agent records `BandPopulated` for each at
+startup, before the first user message. No special-casing: the
+event is the same one a compressor emits, with a different `Source`
+field for observability. An agent starting with a `SOUL.md` comes
+up with its identity already in context. An agent starting with
+`MEMORY.md` comes up with its curated knowledge. The mechanism is
+the event; the file is where a human writes the content.
+
+## §15.10 Measure It
+
+The first edition reports a synthetic reference session from
+`internal/llm/measure_test.go`: 40 turns, a checkpoint every 4
+turns, 400 bytes of dialogue per turn, a conversation budget of
+3,000 bytes, and a session band budget of 1,500 bytes.
+
+| | Memory on | Memory off |
+|---|---|---|
+| Conversation | 1,600 bytes | 16,000 bytes |
+| Session band | 27 bytes | n/a |
+| 8x band | 22 bytes | n/a |
+| **Total context** | **1,649 bytes** | **16,000 bytes** |
+| Memories written | 4 | 0 |
+| Cascade launches | 1 | 0 |
+
+Cascade launches per checkpoint: 0.10. The watermark gap works:
+nine of ten checkpoints find the band under budget and do nothing.
+
+These are the reference test's reported structural numbers. The conversation stays at 1,600
+bytes against 16,000 unbounded. Four memories were written. One fold
+fired. The ladder from chapter 14 and the memory bands from this
+chapter are additive: the ladder removes tool bytes, the bands
+compress dialogue, and the combination holds the total context to a
+fraction of its unmanaged size.
+
+The band sizes are not a compression measurement, and printing them
+as one would be wrong. The compressor in this test is a fake that
+returns a short fixed string, so 27 bytes and 22 bytes are artifacts
+of the fake's reply length, not of any real summarization. The 2x,
+8x, and 64x compression targets in the design notes are inherited
+from the shipped system; the retained study does not measure whether they are right.
+Verifying them requires a real model, and nothing in this table
+should be cited as evidence for them.
+
+The live sessions below measure actual text reduction and expose what the short
+fixed summaries could not test.
+
+## §15.11 The Exercise, Graded
+
+The grader reads what its fake vendor receives and what the agent
+leaves on disk. It builds the optional GUI, applies memory settings through its
+public settings channel, and waits for completed turns before checking requests
+or closing stdin. A settings file in the wrong directory can leave a perfectly
+working compressor idle throughout a test.
+
+**micro-handoff-compresses** (15) scripts enough dialogue and
+checkpoints to exceed the conversation budget. After the
+compression, the next request contains a session-band entry with
+the returned text, and the raw conversation it replaced is gone. The compressor
+request must actually contain the selected work.
+
+**planted-fact-survives** (10) plants a distinctive token in early
+dialogue, pushes it through a checkpoint and compression. The token
+must reach the compressor; the fake's returned memory must then reach the next
+main request. This tests delivery through compression, not a real model's judgment
+about which facts to preserve.
+
+**graduation-fires-oldest-first** (12) scripts enough session
+memories to exceed the session band's high watermark. An 8x entry
+appears in the next request; the graduated oldest entries are gone,
+and newer session work remains. The fixture distinguishes taking the oldest
+files from taking the newest.
+
+**disable-enable-idempotent** (12) switches the session band off,
+checks that its entries leave the next request, then switches it
+back on. The entries that reappear must match the entries before
+disabling, by count and content. A second pass edits a memory file
+on disk between disable and re-enable, and the edit must be
+reflected. An ordinary enabled-band restart also rereads the edit. Checks inspect
+actual memory order in the request, rather than sorting markers in the test.
+
+**disabled-neighbor-refused** (8) disables the 8x band while the
+session band is over its high watermark. No fold reaches the compressor,
+and the source memories remain present exactly once.
+
+**forced-handoff** (12) uses `claude-ch16-course`, a model with a
+4,096-token context window. The grader drives the agent until
+context approaches 90%, checks for a warning, then past 95%, and
+checks that only `micro_handoff` remains in the tool list. Mixed cache buckets
+count once. After the handoff and a smaller completed main response, normal tools
+must be available even though lifetime usage has grown. A separate phase checks
+that large auxiliary compressor usage does not restrict small main requests.
+
+**replay-needs-no-llm** (10) starts from recorded memory populations and compares
+a saved snapshot with full-log reconstruction. Startup alone makes zero HTTP
+requests; identical subsequent prompts produce byte-identical vendor requests
+without a compressor call. Running startup also rescans disk. Pure offline
+restoration of populations and retirements, without disk reads, remains a separate
+source regression.
+
+**abandon-on-restart** (8) first populates a real source band, then exercises
+a failed fold and a genuinely pending fold interrupted by process kill. Restart
+retains the source without immediately retrying compression; a later checkpoint
+can try again. An empty band with zero attempts cannot pass as failure recovery.
+
+**memory-is-data** (5) checks that the returned memory appears in the
+conversation rather than the system prompt. The fake supplies first-person text;
+review of the compressor instructions establishes that the real model is asked
+to write that way. The numeric check does not grade resistance to malicious text.
+
+**fresh-start-populates** (5) places memory files on disk before
+the agent starts. The first request sent to the model contains
+their content.
+
+**ch14-parity** (3) runs the chapter 14 grader against the same
+solution and checks it still scores full marks.
+
+These eleven weights total 100. Low-watermark arithmetic, the required disabled-
+neighbor diagnostic, all-provider normalization, whole-segment reducer cases,
+native browser settings and the GUI/actor interleaving retain their focused source
+and browser checks. The original grader scored **20/100 FAIL** on an
+intermediate student build: its settings missed the owning Agent's directory,
+and its awarded recovery points did not require a fold to occur. The
+[student record](../../docs/edition-2-notes/ch16.md) preserves that result and the
+independent review; revised grading is a separate measurement.
+
+## §15.12 Taking It for a Spin
+
+Use a scratch copy of your Chapter 15 core. Build its optional GUI, whose terminal
+and browser share the same Agent:
+
+```sh
+(cd gui && go build -o /tmp/ensemble-ch15-gui ./cmd)
+mkdir -p cr skills/base
+```
+
+Write `skills/base/SKILL.md`:
+
+```yaml
+---
+name: base
+type: primary
+description: Analyze supplied cases and retain useful checkpoint memories
+tools: read_file write_file list_directory
+---
+Analyze the supplied case. Preserve facts, decisions, reasons, failed approaches,
+user constraints and open questions in checkpoint notes. Do only the current task.
+```
+
+The existing lifecycle and context tools include `micro_handoff`. Keeping file
+tools available lets the exercise distinguish obeying a no-tools instruction from
+having no tools to call. Write `cr/settings.json` with deliberately small budgets:
 
 ```json
-{"context_target":20000}
+{
+  "tts_enabled": false,
+  "max_tool_rounds": 3,
+  "memory": {
+    "conversation": {"budget": 600},
+    "session": {"budget": 500, "high_watermark": 1000, "low_watermark": 500}
+  }
+}
 ```
 
-Twenty thousand is the floor the settings clamp allows. It puts the
-stub threshold at 200 bytes, the results band at 2,500 and the calls
-band at 1,250. The workspace held seven files copied from
-`agent/internal/common`, 60,865 bytes in all, three times the target.
-The prompt:
+With `LLM_API_KEY` set in the environment, launch from that core directory:
+
+```sh
+LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
+EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
+/tmp/ensemble-ch15-gui --port 8088 --gui-dir "$PWD/gui/web/gui"
+```
+
+Use the terminal or open `http://localhost:8088`. Send each of the following as
+one message, waiting for the turn to finish before sending the next. Input while
+busy is a hint. The cases are the actual inputs from the recorded memory trials;
+the explicit skill and supported Sonnet-5 selection make a reproducible setup for
+this edition, not a claim of a new live result. This snapshot has no declared
+context-window size for Sonnet-5, so the run exercises compression rather than
+the forcing threshold. Use the course row with the deterministic grader for that.
+
+The first completed analysis supplies an archive decision and its reason:
 
 ```text
-Read each .go file in src/ one at a time with read_file (budget.go,
-context.go, save.go, journal.go, model.go, event.go, part.go). Then
-answer in three sentences: how does this agent keep its context from
-growing without bound?
+This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case one: Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead. Explain why the latter boundary matters, and preserve these facts in your checkpoint.
 ```
 
-The turn took eleven requests and ten tool calls: a directory
-listing, seven reads, two reads of files already read, and the
-answer. The journal holds nine `redacted` events, all of one shape:
-
-```json
-{"seq": 12, "type": "redacted", "time": "2026-09-23T14:44:45.308867Z", "redact": {"from": 6, "to": 6, "level": "redact_result", "reason": "round trip: not kept"}}
-```
-
-Ten results, nine stubs. The tenth result was still in its one full
-request when the turn ended. The vendor's reported input tokens,
-request by request:
-
-| Request | Carried in full        | Input tokens |
-|--------:|------------------------|-------------:|
-| 1       | the prompt             | 3,787        |
-| 2       | directory listing      | 3,955        |
-| 3       | budget.go, 1,683 B     | 4,560        |
-| 4       | context.go, 18,855 B   | 10,889       |
-| 5       | save.go, 6,282 B       | 6,943        |
-| 6       | journal.go, 4,522 B    | 6,347        |
-| 7       | model.go, 7,347 B      | 8,475        |
-| 8       | event.go, 10,742 B     | 10,109       |
-| 9       | part.go, 11,434 B      | 10,655       |
-| 10      | budget.go, again       | 7,112        |
-| 11      | context.go, again      | 13,522       |
-
-Each file is a tooth: it rises for one request and falls on the next.
-The floor under the teeth rises too, because every call, every stub
-and every sentence the model wrote stays. The first request, before
-any file, was already 3,787 tokens of system prompt and tool
-declarations. The target caps neither of those. It sets three numbers,
-and all three govern tool bytes.
-
-The ladder never fired. It never cuts a result that has not yet gone
-out whole once, and the stub rule had already removed every older
-result, so no request held anything the ladder was allowed to cut.
-Ten calls with short paths never reached the calls band's trigger.
-On a stubbing model under this workload the ladder is the backstop.
-On `claude-sonnet-5`, where the stub column is off, it does all the
-work.
-
-The interesting part is the dialogue. The model narrated as it read,
-and some of its narration, copied from the journal:
+The second supplies a different failure and another unresolved question:
 
 ```text
-Noting: context.go — Context has bounded fields; redaction/summary/handoff clear tool parts. Next file.
-
-model.go: a per-model feature table; the context-relevant column is `StubsToolResults` — "every tool result above the stub threshold becomes a stub in the request after the one that carried it, unless the model's next message calls keep_tool_results" (on for opus-5/opus-5-course; off for sonnet-5, where "the ladder" alone applies). Next file.
-
-part.go: content is `[]Part`, and `RedactedPart` is the *result* of a redaction — its stub is synthesized deterministically by the reducer (no stored growth) and it carries forward the superseded part's `Ref`, so dropped bytes stay fetchable. Now re-reading the two files whose contents got stubbed out of my own context.
-
-budget.go confirmed: one knob T, with threshold=T/100, results band=T/8, calls band=T/16. Now the policy that spends them.
+This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case two: The deployment rehearsal uses Harbor Finch, diagnostic tag HF-934. Priya owns the rehearsal scheduled for October 21. We rejected retrying a database migration automatically after a timeout: the remote operation may already have committed. The chosen procedure reads the migration ledger before deciding whether any retry is safe. The operator must retain the exact migration identifier and measured error, not a guess about success. We have not settled whether the ledger should live alongside application data or in a separate control database. The rollback package must remain available for seven days after deployment. Last week a log line said the worker stopped, but the child process was still alive and held the port open. The rehearsal now checks the child lifetime directly. Explain how this evidence changes the decision and checkpoint the completed analysis, preserving the unresolved question as unresolved.
 ```
 
-The two files it read again were `budget.go`, the one file it wrote
-no note about, and `context.go`, the largest file, which got one line.
-Every file with a real note was never read again. The note is the
-model's own compression of a result, and dialogue is the channel the
-stub rule leaves alone, so what the model wrote down, it kept. What
-it did not write down, it fetched again.
+Then ask for recall without tools:
 
-`keep_tool_results` was declared in every request and never called.
-That is not a failure. A kept result is paid for on every later
-request; a second read is paid for once, plus one round trip. This
-run cost two round trips. One run on one model settles nothing about
-the open risk printed earlier, whether stubbing interferes with
-thinking, but it does show the shape a capable model falls into:
-narrate, let the bytes go, re-read what the narration missed.
+```text
+Without using tools, recall both project names, diagnostic codes, owners, dates, rejected approaches and reasons. Explicitly identify the two unresolved questions. Do not invent a resolved answer.
+```
 
-Two things in the log belong on the next revision's list. Every
-request reported zero cache writes and zero cache reads: the
-reference renderer sets no `cache_control` breakpoint, so the stable
-prefix this chapter guards is ready for a cache the agent never asks
-for. And the rising floor is dialogue, which nothing in this chapter
-removes. Chapter 16 removes it.
+Inspect `event.log`, `api.log` and the files under `cr/`. After a handoff,
+the compressor should receive a whole completed segment, including its note.
+A successful response lands a recorded cut and a session memory. When two session
+memories cross the watermark, their oldest work graduates into `cr/bucket-0/`.
+Model output lengths vary; the two turns need not cross the same thresholds on
+every run. Inspect the actual calls and files instead of inferring a fold from a
+short answer. The request layout after graduation is:
+
+```text
+[frozen instruction and tool prefix]
+[enabled SOUL and MEMORY, if present]
+[64x memories, then 8x memories, then session memories]
+[remaining conversation]
+```
+
+The restart is the interesting part. End input with Ctrl-D after the completed
+turn, then run the same command again. Restoration rebuilds the recorded bands
+without a compressor call; running startup rereads enabled files before the next
+user request. The model receives the resulting memories when you ask it to continue.
+
+Switch a populated band off in Settings. Its entries leave the context. Edit an
+active memory file on disk: correct a name, add a detail, remove a paragraph.
+Switch the band back on. The entries return, and the edited file carries its new
+text. Try the ordinary restart too, leaving the band enabled while editing its
+file. The files are the memory. The log's copies record what was delivered, so
+reconstructing yesterday's request and reading today's corrected memory can both
+be right.
+
+### What the live runs remembered
+
+Five recorded sessions on October 11 each finished three turns, exited normally,
+and made three compressor calls: two session memories and one graduation to 8x.
+They also show why watching the files appear is only the first test.
+
+The first Haiku 5.5 run preserved the decisions to reject automatic deletion and
+automatic retries. Graduation discarded the reasons. Asked why those approaches
+were rejected, the model answered, “No reason was given.” The reasons were in the
+user messages and in both handoffs; they were absent from the graduated memory.
+A smaller request had thrown away exactly what would stop the next agent from
+repeating the mistake.
+
+The compressor prompt was corrected to preserve decisions **and why**, failed
+approaches, uncertainty and still-applicable user constraints. Its size ratio
+became a guide: use more space rather than discard the reason. The bounded repeat
+kept those facts and reasons, but also carried forward a model-invented question
+about retention expiring before review. The final answer reported that question
+alongside the two the user had actually left open.
+
+| Recorded run | Preservation and task result |
+| --- | --- |
+| Haiku 5.5, initial | Reasons lost in graduation; final answer says none were given and misreads the supplied diagnostic identifiers. |
+| Haiku 5.5, corrected prompt | Reasons retained; an invented retention-versus-review question enters memory and final recall. |
+| GPT-4o mini, initial | Reasons and facts retained; two file writes violate the user's instruction. One written artifact turns an open attachment question into a decision. |
+| GPT-4o mini, corrected prompt | No extra tools, but final recall omits Morgan and substitutes October 11 for the October 18 review date. Both correct facts were in the final request. |
+| Gemini 3.8 Flash | Recalls the supplied facts, reasons and two open questions; still calls `list_directory` despite the no-extra-tools instruction. |
+
+The Haiku identifiers describe historical runs. Bill subsequently excluded 5.5
+models from current use because of his experience with ephemeral-context
+compatibility. These transcripts establish the failures shown, without diagnosing
+that compatibility issue or predicting how the supported Sonnet-5 will perform.
+
+The corrected OpenAI run is the harder failure to detect. Its graduated file
+says, “Morgan will lead the archive review on October 18.” That same text appears
+in the actual last provider request, followed by an assistant message repeating
+the owner and date. The final answer still says “Owner: Not specified” and gives
+the memory's creation date. Inspecting only the file would certify preservation
+and miss failed recall. Inspecting only the answer might blame compression for
+facts it had retained.
+
+Measured source-to-memory UTF-8 byte ratios across these calls range from 1.358
+to 3.678. The 8x name describes a tier's intended compression, not an achieved
+ratio. Preserving reasons used more bytes. The [run records and actual memories](../../docs/edition-2-notes/ch16.md#live-mechanics-versus-preservation-and-task-quality)
+retain all five outcomes.
+
+Test the three steps separately: did the framework replace and replay the right
+work, did the memory preserve what mattered, and did the model use it correctly
+while obeying the task? A memory file that passes the first test can still fail
+the other two. Bill's workplace experiment began with memory that did not run at
+all. Once it runs, the next question is what the agent actually learned.
