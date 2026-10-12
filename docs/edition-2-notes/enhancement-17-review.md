@@ -1,5 +1,84 @@
 # Edition 2 Chapter 17: independent review
 
+## Final disposition, October 11
+
+**Accepted at initial combined review, zero formal correction rounds.** This
+accepts grader freeze `b1bdb334` and author reconciliation `c632d85e`, manuscript
+SHA-256 `c00a640ca14d7b4bbde424314230857841abd01249cc3f9c9fe976290642ff48`.
+All four full documents and the complete
+[`.agents/skills/ensemble-coding/SKILL.md`](../../.agents/skills/ensemble-coding/SKILL.md)
+remain active after the complete reload recorded below; no further compaction
+occurred before this decision. The coordinator owns checkpoint and release18.
+
+The complete final coder report, author reconciliation, final source changes,
+all 29 source-defect patches and their actual failures were read. Final full
+runs are **100/100 accepted, exit 0, 0.984 seconds**, and **85/100 legacy, exit 1,
+0.689 seconds**. These are actual complete runs, not composed totals. Focused
+race passes in 1.529 seconds; vet passes. The reviewer independently verified
+the four grader hashes, original chapter/grader hashes, both unchanged frozen
+trees, both final-run bindings, manuscript and all nine exact fence hashes.
+The [final reviewer receipt](../../solutions/edition-2/evidence/ch18/enhancement17/reviewer-final-check.json)
+also verifies the actual sample request bodies and meter arithmetic.
+
+The legacy explanation is accepted narrowly: its declared historical tariff
+and artifact paths are valid independent fixture inputs; its missing last-tool
+marker remains a genuine original-obligation failure. The separate disconnect
+panic and 0/100 capture remain a real failed run. Keeping observers alive through
+normal EOF avoids making that unrelated lifetime defect the cache fixture's
+entry condition. This does not waive shutdown or alter the frozen implementation.
+Original grading remains **0/100 on `7436fcb`**, with the missing-type startup
+failure and its masked obligations preserved.
+
+The new grader preserves all seven weights and strengthens observable behavior:
+real request content and rotation, nonempty stable declarations/instructions,
+legal advancing marker placement, exact disjoint durable and live counts,
+independent tariff arithmetic, unknown pricing, hit-rate denominator and both
+history retention and initially empty accounting after restart. The external
+HTTP fake supplies replies while the actual GUI, Agent, renderer, parsers and
+persistence run. No runtime adapter, mock, frozen edit or new product protocol
+was introduced. Supplemental accepted source/browser evidence still establishes
+the richer compaction, ephemera, auxiliary, stream/tier and overlap obligations;
+the numeric fixture does not claim to exercise them all.
+
+Mutation classification is accepted with the report's explicit limits. Twenty-
+nine applied source defects are detected, not 29 independent proofs. The first
+27 retain their earlier grader hash; the final two and restored full/race runs
+use final bytes. Last/total confusion is caught by the actual cost/read rows,
+not its initially named session row. Empty identical captures and distinct
+wrong content have separate controls. The history-dropping case couples marker
+advancement with dialogue loss. The duplicate accumulated-artifact survivor is
+preserved separately. The independently exercised artifact helper is byte-for-
+byte unchanged in the final grader; its valid raw/pretty controls and intended
+duplicate rejection need no repeat because unrelated functions changed.
+
+Exact published setup and four prompts run through the actual GUI with a local
+provider fake, using the recorded free-port substitution. Both normal exits
+pass; final counts 1300/500/4200/70 produce $0.00539 and 70%, and the restarted
+meter begins at zero. The initial wrong snippet alias and subscriber-only port
+collision are correctly classified as setup failures. Go vocabulary checks
+compile; they are not additional behavioral tests. No new native display,
+semantic model quality, provider grant or billing invoice is claimed.
+
+Source-relative teaching review accepts the preserved invoice stake, original
+TL;DR explanations and lens/marker/meter progression. Added runnable steps and
+the held-response attribution example explain demonstrated problems. Corrected
+provider claims have primary-source support, historical model names remain
+historical, and current examples use supported Sonnet-5. Hard prose lint passes
+at 5,699 words; judgment of clarity and enjoyment came from the complete chapter
+and original-relative comparison, not that count. Internal review bookkeeping
+stays in notes, with meaningful evidence limits placed beside the relevant lesson.
+
+New grader/driver counts are **480 active / 27 comment-only / 526 physical**;
+the focused test is **21 / 2 / 25**. Original three grader files are
+**751 / 172 / 998**. Counts exclude blanks from active code, count standalone
+`//` comments separately, and keep shared helpers/entrypoint changes outside
+these chapter-file totals. No runtime chapter delta changed; the accepted
+own-predecessor comparison remains in `ch18-code-review.md`. The new comments
+are below the approximate 20% target but explain the non-obvious subscription,
+completion, tariff and representation boundaries; exported APIs are documented.
+The straightforward checks need no generic framework or quota-filling comments.
+Smaller counts support no independent claim of completeness or quality.
+
 ## Preparation, October 11
 
 Reviewer: `reviewer_astra`, GPT-6 Astra/high. This is preparation for the
