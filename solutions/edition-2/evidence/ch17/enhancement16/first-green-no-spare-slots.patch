@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -287,7 +287,7 @@
+ 		}
+ 	}
+ 	for i, h := range hits {
+-		if len(out) < limit && !selected[i] {
++		if false && len(out) < limit && !selected[i] {
+ 			out = append(out, h)
+ 		}
+ 	}

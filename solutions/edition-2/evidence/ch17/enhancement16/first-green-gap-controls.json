@@ -1,0 +1,18 @@
+[
+  {
+    "name": "first-green-no-paragraph-split",
+    "group": "chunk",
+    "build_exit": 0,
+    "exit": 0,
+    "seconds": 0.037,
+    "output": "=== RUN   TestChapter16Focus\n--- PASS: TestChapter16Focus (0.03s)\nPASS\n"
+  },
+  {
+    "name": "first-green-no-spare-slots",
+    "group": "quota",
+    "build_exit": 0,
+    "exit": 0,
+    "seconds": 0.074,
+    "output": "=== RUN   TestChapter16Focus\n--- PASS: TestChapter16Focus (0.07s)\nPASS\n"
+  }
+]

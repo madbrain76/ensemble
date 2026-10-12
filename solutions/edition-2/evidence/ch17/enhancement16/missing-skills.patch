@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -92,7 +92,7 @@
+ 	}
+ 	// Reach skill identity through its owner, rather than saving another copy
+ 	// of the application's directory setting in recall. Discovery grants no tools.
+-	if skills := r.parent.Skills(); skills != nil {
++	if skills := r.parent.Skills(); skills != nil && false {
+ 		sources = append(sources, struct{ name, path string }{"skills", skills.Directory()})
+ 	}
+ 	corpus := map[string][]chunk{}

@@ -1,0 +1,13 @@
+=== RUN   TestChapter16Focus
+{"Fatal":"","Errs":{"bm25-indexes":"same-process corpus edit did not reach later recall","bm25-scores":"length ranking selected wrong competing hit: ","bm25-stop-words":"query stop-word trap recalled or real match absent: ","chunking-splits":"section/subsection separation or breadcrumb missing: ","injection-capped":"capped source attached 0 times across two turns","judge-fallback":"HTTP error lost mechanical fallback","judge-filters":"expected one actual stateless judge request, got 0","per-source-quota":"unused memory slots did not flow to matching documents","recall-is-a-spoke":"","recall-is-own-kind":"two turns did not retain exactly one recorded attachment"}}
+    ch16_focus_probe_test.go:5: bm25-indexes: same-process corpus edit did not reach later recall
+    ch16_focus_probe_test.go:5: per-source-quota: unused memory slots did not flow to matching documents
+    ch16_focus_probe_test.go:5: judge-fallback: HTTP error lost mechanical fallback
+    ch16_focus_probe_test.go:5: recall-is-own-kind: two turns did not retain exactly one recorded attachment
+    ch16_focus_probe_test.go:5: bm25-scores: length ranking selected wrong competing hit: 
+    ch16_focus_probe_test.go:5: bm25-stop-words: query stop-word trap recalled or real match absent: 
+    ch16_focus_probe_test.go:5: chunking-splits: section/subsection separation or breadcrumb missing: 
+    ch16_focus_probe_test.go:5: judge-filters: expected one actual stateless judge request, got 0
+    ch16_focus_probe_test.go:5: injection-capped: capped source attached 0 times across two turns
+--- FAIL: TestChapter16Focus (0.62s)
+FAIL

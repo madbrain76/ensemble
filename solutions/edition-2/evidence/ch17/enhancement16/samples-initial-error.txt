@@ -1,0 +1,1 @@
+First sample launcher failed at its HTTP peer text inspection: AttributeError str has no get. Judge uses valid content:string, main can use blocks. Fake response handler failed before intended judgment; this is a launcher representation error, not runtime or manuscript failure. Corrected text extraction accepts both forms.

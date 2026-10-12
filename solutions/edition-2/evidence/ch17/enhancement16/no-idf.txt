@@ -1,0 +1,14 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: bm25-scores: rarity ranking selected wrong competing hit: [Auto-recalled memories]
+        
+        From docs/00.md — Record:
+        > ## Record
+        > commonother commonword commonword commonword commonword commonword commonword commonword commonword commonword commonword
+        From docs/01.md — Record:
+        > ## Record
+        > rarebest rarezed
+        From docs/padding.md — Padding 0:
+        > ## Padding 0
+        > commonword ordinary
+--- FAIL: TestChapter16Focus (0.14s)
+FAIL

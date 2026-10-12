@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -235,7 +235,7 @@
+ 			r.parent.Ensemble().Logf("recall judge failed; using source quotas: %v", err)
+ 		}
+ 	}
+-	if !judged {
++	if !judged || judged {
+ 		chosen = quotas(hits, s.MaxSnippets)
+ 	}
+ 	text, hashes := format(chosen, s.MaxRecallBytes)

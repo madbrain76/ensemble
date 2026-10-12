@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -236,7 +236,7 @@
+ 		}
+ 	}
+ 	if !judged {
+-		chosen = quotas(hits, s.MaxSnippets)
++		chosen = quotas(hits[:min(len(hits),s.Candidates)], s.MaxSnippets)
+ 	}
+ 	text, hashes := format(chosen, s.MaxRecallBytes)
+ 	if text == "" {

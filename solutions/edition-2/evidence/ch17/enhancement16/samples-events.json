@@ -1,0 +1,18 @@
+[
+  {
+    "seq": 2,
+    "type": "recall_attached",
+    "time": "2026-10-12T01:50:35.378447Z",
+    "recall_attached": {
+      "parts": [
+        {
+          "type": "text",
+          "text": "[Auto-recalled memories]\n\nFrom memory/2026-10-01-1.md.retired \u2014 Quartz Zephyr migration decision:\n> ## Quartz Zephyr migration decision\n> Project Quartz Zephyr, release QZ-731: Morgan owns the migration rehearsal on October 23. We rejected automatic retry after timeout because the remote transaction may already have committed. Read the migration ledger before deciding whether retry is safe. Ledger placement remains unresolved: application database versus separate control database. Retain rollback artifacts for nine days."
+        }
+      ],
+      "hashes": [
+        "470afa88114e1813efc4feaca4c16fb420dc032322212474ac437e5b903d7f33"
+      ]
+    }
+  }
+]

@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: recall-is-own-kind: checkpoint retained recalled attachment
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

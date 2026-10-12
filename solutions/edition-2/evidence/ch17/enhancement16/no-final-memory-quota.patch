@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -256,7 +256,7 @@
+ // comes through here, including a valid empty selection. Spare slots flow to
+ // the best remaining scores, so a sparse source does not waste the budget.
+ func quotas(hits []hit, limit int) []hit {
+-	quota := map[string]int{"memory": (limit + 1) / 2}
++	quota := map[string]int{"memory": 0}
+ 	var sources []string
+ 	for _, name := range []string{"docs", "handoffs", "learnings", "skills"} {
+ 		for _, h := range hits {

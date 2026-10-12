@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+{"Fatal":"","Errs":{"bm25-indexes":"","bm25-scores":"","bm25-stop-words":"","chunking-splits":"","injection-capped":"","judge-fallback":"","judge-filters":"","per-source-quota":"","recall-is-a-spoke":"","recall-is-own-kind":""}}
+--- PASS: TestChapter16Focus (0.74s)
+PASS

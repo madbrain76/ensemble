@@ -1,0 +1,11 @@
+--- internal/recall/index.go
++++ internal/recall/index.go
+@@ -48,7 +48,7 @@
+ 	// repeated a phrase. Document repetitions still contribute through BM25 TF.
+ 	seen := map[string]bool{}
+ 	for _, word := range tokens(s) {
+-		if !strings.Contains(stops, " "+word+" ") && !seen[word] {
++		if (len(stops)>0) && !seen[word] {
+ 			out = append(out, word)
+ 			seen[word] = true
+ 		}

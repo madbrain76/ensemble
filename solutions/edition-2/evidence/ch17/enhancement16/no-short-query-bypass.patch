@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -170,7 +170,7 @@
+ // the stateless judge can run off the actor without borrowing live conversation.
+ func (r *recaller) Recall(ctx context.Context, query string, conversation *common.Context) (common.RecallData, error) {
+ 	s := settings(r.parent.Config().Recall)
+-	if s.Disabled || utf8.RuneCountInString(query) < s.MinQueryLength {
++	if s.Disabled || utf8.RuneCountInString(query) < 0 {
+ 		return common.RecallData{}, nil
+ 	}
+ 	// The judge gets a broad candidate net; plain selection needs a stricter

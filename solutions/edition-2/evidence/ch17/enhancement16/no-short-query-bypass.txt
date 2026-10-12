@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: judge-fallback: short matching query did not bypass retrieval
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

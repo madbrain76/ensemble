@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:6: implementation package ensemble/internal/engine imports recall directly
+--- FAIL: TestChapter16Focus (0.07s)
+FAIL

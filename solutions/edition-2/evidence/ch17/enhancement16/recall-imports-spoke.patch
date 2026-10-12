@@ -1,0 +1,10 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -12,6 +12,7 @@
+ 	"unicode/utf8"
+ 
+ 	"ensemble/internal/common"
++_ "ensemble/internal/jobs"
+ )
+ 
+ // Queries can overlap briefly after interruption. The lock protects index state

@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -87,7 +87,7 @@
+ 		{"memory", filepath.Join(root, "MEMORY.md")},
+ 		{"memory", filepath.Join(root, "SOUL.md")},
+ 		{"docs", filepath.Join(root, "docs")},
+-		{"handoffs", filepath.Join(root, "handoffs")},
++		{"handoffs", filepath.Join(root, "absent-handoffs")},
+ 		{"learnings", filepath.Join(root, "learnings")},
+ 	}
+ 	// Reach skill identity through its owner, rather than saving another copy

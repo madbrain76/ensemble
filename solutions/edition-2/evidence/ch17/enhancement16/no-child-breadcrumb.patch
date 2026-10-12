@@ -1,0 +1,11 @@
+--- internal/recall/index.go
++++ internal/recall/index.go
+@@ -126,7 +126,7 @@
+ 			flush()
+ 			header = strings.TrimSpace(strings.TrimPrefix(line, marker))
+ 			if parent != "" {
+-				header = parent + " > " + header
++				header = header
+ 			}
+ 		}
+ 		// Keep heading bytes in the snippet so heading terms are searchable too.

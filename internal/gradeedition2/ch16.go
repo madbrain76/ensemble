@@ -147,9 +147,9 @@ func recallIndexing(s *recallSuite, r *contextResult) {
 			}
 		}
 	}
-	// Nested memory files are outside live session-band loading in the accepted
-	// owner layout, so their appearance must come from retrieval, not startup.
-	files = map[string]string{"memory/memory/2026-01-01-1.md": "## Memory\n" + recallFact + " oldestmark", "memory/memory/2026-01-02-1.md": "## Memory\n" + recallFact + " newestmark", "memory/memory/padding.md": recallPadding()}
+	// Archive names avoid the date-number pattern loaded into live session bands.
+	// Their appearance must come from recall in both applications, not startup.
+	files = map[string]string{"memory/memory/zy-older.md": "## Memory\n" + recallFact + " oldestmark", "memory/memory/zz-newest.md": "## Memory\n" + recallFact + " newestmark", "memory/memory/padding.md": recallPadding()}
 	out = s.run(files, recallOpts{})
 	if recallOK(r, id, out) && (!strings.Contains(recallLast(out), "newestmark") || !strings.Contains(recallLast(out), "oldestmark")) {
 		r.fail(id, "all-memory corpus omitted a newest/older matching file")
@@ -222,13 +222,13 @@ func recallRanking(s *recallSuite, r *contextResult) {
 func recallChunking(s *recallSuite, r *contextResult) {
 	const id = "chunking-splits"
 	garden := strings.Repeat("Tomato soil watering garden. ", 90)
-	files := recallDocs("## First\nwrongsection " + garden + "\n## Parent\n" + garden + "\n### Relevant\n" + recallFact + " rightsection\n\n" + garden + "\n\n" + garden + "\n### Other\nwrongchild " + garden)
+	files := recallDocs("## First\nwrongsection " + garden + "\n## Parent\n" + garden + "\n### Relevant\n" + recallFact + " rightsection\n\n" + garden + "\n\nwrongparagraph " + garden + "\n### Other\nwrongchild " + garden)
 	out := s.run(files, recallOpts{})
 	if !recallOK(r, id, out) {
 		return
 	}
 	text := recallLast(out)
-	if !strings.Contains(text, "rightsection") || strings.Contains(text, "wrongsection") || strings.Contains(text, "wrongchild") || !strings.Contains(text, "Parent > Relevant") {
+	if !strings.Contains(text, "rightsection") || strings.Contains(text, "wrongsection") || strings.Contains(text, "wrongchild") || strings.Contains(text, "wrongparagraph") || !strings.Contains(text, "Parent > Relevant") {
 		r.fail(id, "section/subsection separation or breadcrumb missing: %s", text)
 	}
 }
@@ -242,7 +242,7 @@ func recallQuotas(s *recallSuite, r *contextResult) {
 		files[fmt.Sprintf("docs/match%02d.md", i)] = fmt.Sprintf("## Decision\n%s docquota%d", strings.Repeat("quartz zephyr migration ", 8), i)
 	}
 	for i := 0; i < 4; i++ {
-		files[fmt.Sprintf("memory/memory/2026-01-%02d-1.md", i+1)] = fmt.Sprintf("## Decision\nmemquota%d quartz zephyr migration %s", i, strings.Repeat("garden soil water ", 80))
+		files[fmt.Sprintf("memory/memory/archive%02d.md", i+1)] = fmt.Sprintf("## Decision\nmemquota%d quartz zephyr migration %s", i, strings.Repeat("garden soil water ", 80))
 	}
 	out := s.run(files, recallOpts{})
 	if recallOK(r, id, out) {
@@ -258,6 +258,11 @@ func recallQuotas(s *recallSuite, r *contextResult) {
 			r.fail(id, "successful judge choices were overridden by quota: %s", text)
 		}
 	}
+	out = s.run(recallDocs(recallFact+" sparemark0", recallFact+" sparemark1", recallFact+" sparemark2"), recallOpts{})
+	if recallOK(r, id, out) && strings.Count(recallLast(out), "sparemark") != 3 {
+		r.fail(id, "unused memory slots did not flow to matching documents")
+	}
+
 }
 
 func recallJudging(s *recallSuite, r *contextResult) {

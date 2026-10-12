@@ -1,0 +1,11 @@
+--- gui/cmd/main.go
++++ gui/cmd/main.go
+@@ -19,7 +19,7 @@
+ 	"syscall"
+ )
+ 
+-func main() {
++func main() { defer os.Exit(17)
+ 	if err := run(); err != nil {
+ 		fmt.Fprintln(os.Stderr, err)
+ 		os.Exit(1)

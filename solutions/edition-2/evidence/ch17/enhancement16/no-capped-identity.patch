@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -213,7 +213,7 @@
+ 	}
+ 	available := hits[:0]
+ 	for _, h := range hits {
+-		if !seen[snippetHash(h)] && !strings.Contains(present, unquote(h.content)) {
++		if !strings.Contains(present, unquote(h.content)) {
+ 			available = append(available, h)
+ 		}
+ 	}

@@ -1,0 +1,14 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: per-source-quota: final fallback quota did not reserve two memories and one document: [Auto-recalled memories]
+        
+        From docs/match00.md — Decision:
+        > ## Decision
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota0
+        From docs/match01.md — Decision:
+        > ## Decision
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota1
+        From docs/match02.md — Decision:
+        > ## Decision
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota2
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

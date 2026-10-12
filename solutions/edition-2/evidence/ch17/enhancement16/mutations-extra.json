@@ -1,0 +1,26 @@
+[
+  {
+    "name": "document-stopwords-only",
+    "group": "rank",
+    "build_exit": 0,
+    "exit": 1,
+    "seconds": 0.141,
+    "output": "=== RUN   TestChapter16Focus\n    ch16_focus_probe_test.go:11: bm25-stop-words: document-stop-words ranking selected wrong competing hit: [Auto-recalled memories]\n        \n        From docs/00.md \u2014 Record:\n        > ## Record\n        > stopother alpha the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we the and we\n        From docs/01.md \u2014 Record:\n        > ## Record\n        > shortbest alpha decision\n--- FAIL: TestChapter16Focus (0.14s)\nFAIL\n"
+  },
+  {
+    "name": "no-judge-timeout",
+    "group": "timeout",
+    "build_exit": 0,
+    "exit": 1,
+    "seconds": 25.161,
+    "output": "=== RUN   TestChapter16Focus\n    ch16_focus_probe_test.go:11: judge-fallback: held judge did not yield within its 15-second budget plus launch allowance\n--- FAIL: TestChapter16Focus (25.16s)\nFAIL\n"
+  },
+  {
+    "name": "nonzero-after-valid-save",
+    "group": "judge",
+    "build_exit": 0,
+    "exit": 1,
+    "seconds": 0.112,
+    "output": "=== RUN   TestChapter16Focus\n    ch16_focus_probe_test.go:11: judge-filters: session: nonzero GUI exit after EOF: exit status 17: Open http://localhost:62700; terminal messages while busy are hints. /interrupt ends the turn.\n--- FAIL: TestChapter16Focus (0.11s)\nFAIL\n"
+  }
+]

@@ -1,0 +1,52 @@
+{
+  "manuscript_sha256": "3b80e0917cc19de98904d54a9ee197ee59a7310ae99d275169cfb6d97c52e7c5",
+  "fences": [
+    {
+      "language": "go",
+      "sha256": "a89d40e5ce46b878b97c5ad47d6fc5c752ace93177723f6f09df54e497cdddce"
+    },
+    {
+      "language": "sh",
+      "sha256": "583cf9d5bb155433ec1e206d62e11747267961555d9974e4a73a877d3760aedc"
+    },
+    {
+      "language": "",
+      "sha256": "aa1f875458698ec2f313873a4d60da499de29bf8817be1d1e185536878f25949"
+    },
+    {
+      "language": "sh",
+      "sha256": "ce10d33163e82192f441cd8c3557c6d7ff1d6c846f99414d9f5eda92238e3b80"
+    },
+    {
+      "language": "markdown",
+      "sha256": "d3d34857fea06c0e1b4fa30ee9398a33792abb7451382a48bc9c7594bdd0f136"
+    },
+    {
+      "language": "sh",
+      "sha256": "e258a5507ccf7e6a3bd28e0d4bd551946bfbce821fd80104cf605bad00bfa4d7"
+    },
+    {
+      "language": "sh",
+      "sha256": "de665c5642bc2c8f0b74e1ee44e2d2469076b4fb1ead176858acf719d63089e7"
+    },
+    {
+      "language": "text",
+      "sha256": "291b8f4519bf3974c333dfab58176f5596dfd479b54acb20a74441ef89f2cd02"
+    },
+    {
+      "language": "text",
+      "sha256": "6cbc1b0f643a13a50815b7eee929a8176502d32f06661711d650367783bffdc7"
+    }
+  ],
+  "source": "Exact isolated solutions/edition-2/ch16",
+  "build": "go build -o /tmp/ensemble-ch16 .\nrecall_demo=$(mktemp -d)\ncd \"$recall_demo\"\nmkdir -p cr/memory cr/docs skills/base\n",
+  "corpus": "python3 - <<'PY'\nfrom pathlib import Path\n\nmemory = Path(\"cr/memory\")\ndocs = Path(\"cr/docs\")\nfact = \"\"\"## Quartz Zephyr migration decision\nProject Quartz Zephyr, release QZ-731: Morgan owns the migration rehearsal on October 23. We rejected automatic retry after timeout because the remote transaction may already have committed. Read the migration ledger before deciding whether retry is safe. Ledger placement remains unresolved: application database versus separate control database. Retain rollback artifacts for nine days.\n\"\"\"\n(memory / \"2026-10-01-1.md.retired\").write_text(fact)\n(docs / \"quartz.md\").write_text(\n    \"## Quartz Zephyr migration name\\n\"\n    \"Quartz Zephyr migration is also the name of our cafeteria recipe contest. \"\n    \"Quartz Zephyr migration lunch recipes use apples and cinnamon, \"\n    \"not database transactions.\\n\"\n)\nfor i in range(25):\n    (memory / f\"padding-{i}.md.retired\").write_text(\n        f\"## Garden log {i}\\nPlant carrots by the apple trees and water in spring.\\n\"\n    )\n    (docs / f\"padding-{i}.md\").write_text(\n        f\"## Workshop {i}\\nThe cabinet holds brushes and blue paint.\\n\"\n    )\nPY\n",
+  "launch": "LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \\\nEN_PRIMARY_SKILL=base EN_SKILLS_DIR=\"$PWD/skills\" \\\n/tmp/ensemble-ch16 chat\n",
+  "go": "Exact vocabulary fence compiled",
+  "main_requests": 2,
+  "judge_requests": 1,
+  "exit": 0,
+  "recorded_recall": 1,
+  "model": "claude-sonnet-5",
+  "limit": "External local HTTP fake verifies plumbing and exact commands; scripted answers do not establish semantic judge or model quality."
+}

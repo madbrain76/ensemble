@@ -1,0 +1,11 @@
+--- internal/recall/index.go
++++ internal/recall/index.go
+@@ -63,7 +63,7 @@
+ 	for i := range x.chunks {
+ 		c := &x.chunks[i]
+ 		c.tf = map[string]int{}
+-		for _, word := range tokens(c.content) {
++		for _, word := range tokens(c.content) { if strings.Contains(" the and we ", " "+word+" ") { continue }
+ 			c.tf[word]++
+ 			c.length++
+ 		}

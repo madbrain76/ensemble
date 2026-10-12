@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -221,7 +221,7 @@
+ 		// A checkpoint already pays for a prefix rewrite; retire retrieved bytes now.
+ 		var kept []common.Entry
+ 		for _, old := range c.Dialogue {
+-			if old.Kind != common.KindRecall {
++			if true {
+ 				kept = append(kept, old)
+ 			}
+ 		}

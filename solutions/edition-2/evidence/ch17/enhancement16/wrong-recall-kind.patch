@@ -1,0 +1,11 @@
+--- internal/history/reduce.go
++++ internal/history/reduce.go
+@@ -74,7 +74,7 @@
+ 	case "skill_loaded":
+ 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindSkill, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Skill.Body}}})
+ 	case "recall_attached":
+-		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindRecall, Actor: common.Human, Parts: e.Recall.Parts, RecallHashes: e.Recall.Hashes})
++		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: common.Human, Parts: e.Recall.Parts, RecallHashes: e.Recall.Hashes})
+ 	case "micro_handoff":
+ 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindHandoff, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Handoff.Text}}})
+ 	case "tools_changed":

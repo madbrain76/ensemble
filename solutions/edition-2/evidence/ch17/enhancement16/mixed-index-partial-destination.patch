@@ -1,0 +1,11 @@
+--- internal/recall/judge.go
++++ internal/recall/judge.go
+@@ -81,7 +81,7 @@
+ 	}
+ 	// Parsing each element also accepts quoted integers and mixed arrays while
+ 	// ignoring malformed elements; malformed ARRAY syntax triggers fallback.
+-	ints = nil // Unmarshal may partially populate a destination before rejecting a mixed array.
++	// defect: retain partially unmarshaled integers
+ 	var raw []json.RawMessage
+ 	if err := json.Unmarshal(data, &raw); err != nil {
+ 		return nil, fmt.Errorf("invalid judge array")

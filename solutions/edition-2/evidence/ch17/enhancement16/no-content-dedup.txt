@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: recall-is-own-kind: two turns did not retain exactly one recorded attachment
+--- FAIL: TestChapter16Focus (0.03s)
+FAIL

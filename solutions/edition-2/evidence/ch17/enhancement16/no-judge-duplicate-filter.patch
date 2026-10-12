@@ -1,0 +1,11 @@
+--- internal/recall/judge.go
++++ internal/recall/judge.go
+@@ -58,7 +58,7 @@
+ 	// Keep valid selections in its order; do not replace them with quota winners.
+ 	seen := map[int]bool{}
+ 	for _, i := range indices {
+-		if i >= 0 && i < len(candidates) && !seen[i] && len(out) < s.MaxSnippets {
++		if i >= 0 && i < len(candidates) && len(out) < s.MaxSnippets {
+ 			out = append(out, candidates[i])
+ 			seen[i] = true
+ 		}

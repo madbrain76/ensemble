@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: judge-filters: valid empty judgment attached recall
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

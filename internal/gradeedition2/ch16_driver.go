@@ -97,6 +97,9 @@ func newRecallPeer(o recallOpts) *recallPeer {
 	return p
 }
 func (p *recallPeer) release() { p.once.Do(func() { close(p.unblock) }) }
+
+// Requests returns a stable copy of captured exchanges after brief locking.
+// Callers own the slice; the peer never mutates a recorded request body.
 func (p *recallPeer) Requests() []fakevendor.Recorded {
 	p.mu.Lock()
 	defer p.mu.Unlock()

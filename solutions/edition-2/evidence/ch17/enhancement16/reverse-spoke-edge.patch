@@ -1,0 +1,10 @@
+--- internal/engine/judge.go
++++ internal/engine/judge.go
+@@ -6,6 +6,7 @@
+ 	"strings"
+ 
+ 	"ensemble/internal/common"
++_ "ensemble/internal/recall"
+ )
+ 
+ // Judge is one tool-free, history-free provider exchange. Recall supplies ALL

@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: bm25-indexes: same-process corpus edit did not reach later recall
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

@@ -1,0 +1,11 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: judge-filters: judge selection ["1",1,999] not reflected in actual recall: [Auto-recalled memories]
+        
+        From docs/00.md — Record:
+        > ## Record
+        > rankfirst quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration
+        From docs/01.md — Record:
+        > ## Record
+        > ranksecond quartz zephyr migration garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

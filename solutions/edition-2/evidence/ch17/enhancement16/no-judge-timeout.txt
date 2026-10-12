@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: judge-fallback: held judge did not yield within its 15-second budget plus launch allowance
+--- FAIL: TestChapter16Focus (25.16s)
+FAIL

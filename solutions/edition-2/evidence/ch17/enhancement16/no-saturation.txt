@@ -1,0 +1,11 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: bm25-scores: saturation ranking selected wrong competing hit: [Auto-recalled memories]
+        
+        From docs/00.md — Record:
+        > ## Record
+        > repeatother alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha alpha
+        From docs/01.md — Record:
+        > ## Record
+        > diversebest alpha beta gamma garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden garden
+--- FAIL: TestChapter16Focus (0.13s)
+FAIL

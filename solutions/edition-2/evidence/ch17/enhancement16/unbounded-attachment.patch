@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -238,7 +238,7 @@
+ 	if !judged {
+ 		chosen = quotas(hits, s.MaxSnippets)
+ 	}
+-	text, hashes := format(chosen, s.MaxRecallBytes)
++	text, hashes := format(chosen, 999999)
+ 	if text == "" {
+ 		return common.RecallData{}, nil
+ 	}

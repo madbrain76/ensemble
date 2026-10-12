@@ -1,0 +1,11 @@
+--- internal/recall/index.go
++++ internal/recall/index.go
+@@ -156,7 +156,7 @@
+ 			// Paragraphs are the last semantic boundary. An indivisible paragraph
+ 			// may be larger; the attachment's hard byte cap still applies.
+ 			body := ""
+-			for _, paragraph := range strings.Split(part.content, "\n\n") {
++			for _, paragraph := range []string{part.content} {
+ 				if body != "" && len(body)+len(paragraph)+2 > 4096 {
+ 					out = append(out, chunk{file: file, header: part.header, content: body})
+ 					body = ""

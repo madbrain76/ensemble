@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -116,7 +116,7 @@
+ 			if filepath.Ext(path) != ".md" && !(source.name == "memory" && strings.HasSuffix(path, ".md.retired")) || source.name == "skills" && entry.Name() != "SKILL.md" {
+ 				return nil
+ 			}
+-			body, err := os.ReadFile(path)
++			if strings.HasPrefix(entry.Name(), "zz-") { return nil }; body, err := os.ReadFile(path)
+ 			if err != nil {
+ 				return err
+ 			}

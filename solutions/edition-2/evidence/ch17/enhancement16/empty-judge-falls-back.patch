@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -230,7 +230,7 @@
+ 		chosen, err = r.judge(ctx, query, conversation, candidates, s)
+ 		// Empty is a valid verdict. Only failure re-enters mechanical selection;
+ 		// otherwise an intentional [] would inject the very hits the judge rejected.
+-		judged = err == nil
++		judged = err == nil && len(chosen)>0
+ 		if err != nil {
+ 			r.parent.Ensemble().Logf("recall judge failed; using source quotas: %v", err)
+ 		}

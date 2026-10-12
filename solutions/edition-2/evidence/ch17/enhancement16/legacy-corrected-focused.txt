@@ -1,0 +1,17 @@
+=== RUN   TestChapter16Focus
+{"Fatal":"","Errs":{"bm25-indexes":"same-process corpus edit did not reach later recall","bm25-scores":"","bm25-stop-words":"","chunking-splits":"","injection-capped":"capped source attached 2 times across two turns","judge-fallback":"","judge-filters":"","per-source-quota":"final fallback quota did not reserve two memories and one document: [Auto-recalled memories]\n\nFrom match00.md — Decision:\n\u003e quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota0\n\nFrom match01.md — Decision:\n\u003e quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota1\n\nFrom match02.md — Decision:\n\u003e quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota2","recall-is-a-spoke":"","recall-is-own-kind":"two turns did not retain exactly one recorded attachment"}}
+    ch16_focus_probe_test.go:5: bm25-indexes: same-process corpus edit did not reach later recall
+    ch16_focus_probe_test.go:5: per-source-quota: final fallback quota did not reserve two memories and one document: [Auto-recalled memories]
+        
+        From match00.md — Decision:
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota0
+        
+        From match01.md — Decision:
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota1
+        
+        From match02.md — Decision:
+        > quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration quartz zephyr migration  docquota2
+    ch16_focus_probe_test.go:5: injection-capped: capped source attached 2 times across two turns
+    ch16_focus_probe_test.go:5: recall-is-own-kind: two turns did not retain exactly one recorded attachment
+--- FAIL: TestChapter16Focus (0.64s)
+FAIL

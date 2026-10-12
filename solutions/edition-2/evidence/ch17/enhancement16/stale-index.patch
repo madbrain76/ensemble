@@ -1,0 +1,11 @@
+--- internal/recall/recall.go
++++ internal/recall/recall.go
+@@ -147,7 +147,7 @@
+ 	copy(digest[:], hash.Sum(nil))
+ 	// Publish a complete replacement under the lock. No search observes half
+ 	// an index, and removed files cannot linger in the next request's results.
+-	if r.indexes == nil || digest != r.digest {
++	if r.indexes == nil {
+ 		for _, doc := range documents {
+ 			corpus[doc.source] = append(corpus[doc.source], chunks(doc.file, doc.text)...)
+ 		}

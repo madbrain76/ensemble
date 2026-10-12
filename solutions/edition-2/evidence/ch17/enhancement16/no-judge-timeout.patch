@@ -1,0 +1,11 @@
+--- internal/recall/judge.go
++++ internal/recall/judge.go
+@@ -43,7 +43,7 @@
+ 	}
+ 	// This timeout is independent of the main provider request's longer budget.
+ 	// Cancellation also follows the human turn, allowing interrupt and shutdown.
+-	bounded, cancel := context.WithTimeout(ctx, 15*time.Second)
++	bounded, cancel := context.WithTimeout(ctx, 60*time.Second)
+ 	defer cancel()
+ 	reply, err := r.parent.Engine().Judge(bounded, prompt.String())
+ 	if err != nil {

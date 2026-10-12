@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: judge-filters: session: nonzero GUI exit after EOF: exit status 17: Open http://localhost:62700; terminal messages while busy are hints. /interrupt ends the turn.
+--- FAIL: TestChapter16Focus (0.11s)
+FAIL

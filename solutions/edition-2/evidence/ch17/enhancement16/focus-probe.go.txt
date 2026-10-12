@@ -1,0 +1,12 @@
+package gradeedition2
+import("testing";"os";"path/filepath";"encoding/json";"fmt")
+func TestChapter16Focus(t *testing.T){
+ bin:=os.Getenv("RECALL_BIN");data:=os.Getenv("RECALL_DATA");if data==""{data="cr"};group:=os.Getenv("RECALL_GROUP")
+ if group=="all"{r:=recallChecks(bin,data,false);b,_:=json.Marshal(r);fmt.Println(string(b));if r.Fatal!=""{t.Fatal(r.Fatal)};for id,e:=range r.Errs{if e!=""{t.Errorf("%s: %s",id,e)}};return}
+ if group=="topology"{if e:=recallTopology(os.Getenv("RECALL_CORE"),os.Getenv("RECALL_GUI"));e!=""{t.Fatal(e)};return}
+ dir:=t.TempDir();s:=recallSuite{bin:bin,dir:dir,skills:filepath.Join(dir,"skills"),gui:filepath.Join(dir,"web"),data:data};os.MkdirAll(s.gui,0755)
+ if e:=recallWrite(s.skills,map[string]string{"base/SKILL.md":"---\nname: base\ndescription: Recall fixture\ntype: primary\ntools: read_file micro_handoff\n---\nYou are helpful.\n"});e!=nil{t.Fatal(e)}
+ r:=contextResult{Errs:map[string]string{}}
+ switch group{case "index":recallIndexing(&s,&r);case "rank":recallRanking(&s,&r);case "chunk":recallChunking(&s,&r);case "quota":recallQuotas(&s,&r);case "judge":recallJudging(&s,&r);case "fallback":recallFallback(&s,&r,false);case "timeout":recallFallback(&s,&r,true);case "lifetime":recallLifetime(&s,&r);case "cap":recallCap(&s,&r);default:t.Fatal("unknown group")}
+ for id,e:=range r.Errs{if e!=""{t.Errorf("%s: %s",id,e)}}
+}

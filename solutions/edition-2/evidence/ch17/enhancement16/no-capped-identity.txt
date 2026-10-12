@@ -1,0 +1,4 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: injection-capped: capped source attached 2 times across two turns
+--- FAIL: TestChapter16Focus (0.03s)
+FAIL

@@ -1,0 +1,15 @@
+{
+  "source_sha256": {
+    "cmd/grade-edition2/main.go": "fed65ae060acb3d6d32fa02bbc3505c5844c51ea44703094ea7a901896ac02e3",
+    "internal/gradeedition2/ch16.go": "1f17eecead202921a423cc3b26498860d1057290d5d0343bd618f5d43f689d45",
+    "internal/gradeedition2/ch16_driver.go": "ca4cb6061bdded27ea8cca2141756d3c293f368753d9a59cf22cdacf094069b3",
+    "internal/gradeedition2/ch16_test.go": "d59f379329fd35045f7f326a530f437fcc7607ca0ed4b96b1bd819cf6c7e09f7"
+  },
+  "accepted_tree": "83e2f4cc85eb91ef9f62a54f638baa4d538cacf8",
+  "legacy_tree": "0890e6d7b4fe6ea59d22d9d8727314f044fe0372",
+  "accepted_binary_sha256": "5a21ee0814b9fccb240f97c624ba16046ff6079fabfb4091721471fde5fee969",
+  "legacy_binary_sha256": "50dd54dc3dee6b85b4d56d20125ac2abbcb78c2db1766c3b82d556509fd58be0",
+  "focused_command": "RECALL_BIN=<built actual GUI> RECALL_DATA=<cr or .> RECALL_GROUP=all /tmp/ch16-focus -test.run ^TestChapter16Focus$ -test.v",
+  "scope": "All nine runtime rows excluding unchanged real 15-second timeout; topology retains separately measured source/check evidence.",
+  "unbound_attempt": "unbound-temp-binary-focused.txt used a pre-existing /tmp/ensemble-ch16-gui without a verified source binding. It is not attributed to accepted source. Actual rebuilt frozen GUI passes accepted-corrected-focused.txt."
+}

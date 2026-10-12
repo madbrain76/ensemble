@@ -1,0 +1,11 @@
+--- internal/recall/index.go
++++ internal/recall/index.go
+@@ -94,7 +94,7 @@
+ 			// k1=1.2 saturates repeated terms; b=0.75 normalizes document length.
+ 			// The numerator is TF*(k1+1); the denominator is TF+k1*(1-b+b*L/avg).
+ 			// Thus a long repeated-keyword file cannot gain linearly forever.
+-			score += idf * f * 2.2 / (f + 1.2*(0.25+0.75*float64(c.length)/x.average))
++			_ = idf; score += f
+ 		}
+ 		if score > 0 && score >= floor {
+ 			out = append(out, hit{c, source, score})

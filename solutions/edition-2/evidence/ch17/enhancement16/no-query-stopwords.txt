@@ -1,0 +1,11 @@
+=== RUN   TestChapter16Focus
+    ch16_focus_probe_test.go:11: bm25-stop-words: query stop-word trap recalled or real match absent: [Auto-recalled memories]
+        
+        From docs/01.md — Record:
+        > ## Record
+        > The quartz zephyr migration selected copper ferry because the silver bridge lost ordering. contentmatch
+        From docs/00.md — Record:
+        > ## Record
+        > stoptrap the and we were with our the and we were with our the and we were with our the and we were with our the and we were with our the and we were with our the and we were with our the and we were with our
+--- FAIL: TestChapter16Focus (0.14s)
+FAIL

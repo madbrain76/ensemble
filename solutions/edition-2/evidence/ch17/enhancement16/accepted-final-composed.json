@@ -1,0 +1,9 @@
+{
+  "kind": "composed, not a new full run",
+  "score": 100,
+  "max_score": 100,
+  "runtime_focused_file": "accepted-corrected-focused.txt",
+  "unchanged_timeout_and_topology": "accepted-first-green.json",
+  "final_source": "final-source.json",
+  "note": "Final focused real runtime uses corrected ordinary archive names and added paragraph/spare observations. The 15-second timeout and topology predicates are unchanged and retain actual first full provenance."
+}
