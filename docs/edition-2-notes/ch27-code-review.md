@@ -84,3 +84,15 @@ unchanged evidence and require meaningful targeted defects for new claims; inspe
 whole failure outputs and cleanup. No broad or paid freshness run is requested by
 this preparation. Gateway authorship remains gated on implementation acceptance;
 Chapter25 remains reserved.
+
+
+Student design question, before implementation: whether the server may consume
+public `gateway` wire/Noise types, or must split a second public protocol package.
+Reviewer response: no split is required solely to change the package diagram.
+The chapter explicitly requires the public boundary to avoid private runtime
+imports. Server use of its protocol/crypto API is not by itself sibling-service
+wiring; actual behavior placement and ownership still require source review.
+Keep server policy/queues with their owner rather than putting them in Client.
+This is a bounded architecture interpretation, not acceptance of unwritten code
+or a supplied implementation recipe. Coordinator informed. Mandatory
+`.agents/skills/ensemble-coding/SKILL.md` included in the student handoff.
