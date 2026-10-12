@@ -39,9 +39,9 @@ specific correction. Nobody needs to believe a claim that the book became
 “smarter.” The next student has one less thing to guess.
 
 Other corrections needed Bill's judgment. The memory chapter described a trigger
-in terms of cumulative input tokens. Bill pointed out that it needed the total
-input from the preceding request, including cached input once. A lifetime total
-cannot fall when context is compressed. We checked the provider accounting
+in terms of cumulative input tokens. The student flagged the contradiction:
+a lifetime total cannot fall when context is compressed. Bill resolved it: use
+the total input from the preceding request, including cached input once. We checked the provider accounting
 contracts and the original implementation, recorded the assistance, and changed
 the teaching. The book's author was still necessary when its words were wrong.
 
