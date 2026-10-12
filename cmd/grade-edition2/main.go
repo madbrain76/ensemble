@@ -26,15 +26,17 @@ func run() int {
 	mediaModels := flag.String("media-models", "", "Chapter 5–13 JSON vendor/model map (default: historical accepted fixtures)")
 	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6–13 declared Anthropic streaming fixture (historical default)")
 	streamExercise := flag.String("stream-exercise", "", "Chapter 6–13 external shape module (default: ch07 under or beside submission)")
-	gui := flag.String("gui", "", "Chapter 7–18 GUI module (default: gui under submission)")
+	gui := flag.String("gui", "", "Chapter 7–20 GUI module (default: gui under submission)")
 	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7–13 declared Anthropic GUI fixture (historical default)")
 	recallData := flag.String("recall-data", "cr", "Chapter 16 grader corpus root relative to scratch cwd (legacy: .)")
 	cacheCurrent := flag.String("cache-current", "cr/cache-current.txt", "Chapter 17 current capture relative to scratch cwd")
 	cachePrior := flag.String("cache-prior", "cr/cache-prior.txt", "Chapter 17 prior capture relative to scratch cwd")
 	cachePrices := flag.String("cache-prices", "2,2.5,0.2,10", "Chapter 17 Sonnet-5 dollars/million: fresh,write,read,output (accepted October 11 table)")
+	statusPrices := flag.String("status-prices", "2,2.5,0.2,10", "Chapter 20 Sonnet-5 dollars/million: fresh,write,read,output")
+	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 20 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 18 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]")
+	if *chapter < 1 || *chapter > 20 || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapter 19 is ungraded")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -83,6 +85,18 @@ func run() int {
 	defer cleanup()
 	var report grade.Report
 	switch *chapter {
+	case 20:
+		var rates [4]float64
+		var second *[4]float64
+		rates, err = gradeedition2.ParseCachePrices(*statusPrices)
+		if err == nil && *statusSecondPrices != "unknown" {
+			var value [4]float64
+			value, err = gradeedition2.ParseCachePrices(*statusSecondPrices)
+			second = &value
+		}
+		if err == nil {
+			report, err = gradeedition2.Chapter20(bin, path, rates, second)
+		}
 	case 1:
 		var res *grade.RunResult
 		res, err = grade.Run(bin)

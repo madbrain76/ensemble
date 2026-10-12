@@ -1,0 +1,88 @@
+{
+  "title": "Edition 2, Chapter 20 — Web Access, Status and Accounting",
+  "checks": [
+    {
+      "id": "tools-gated-by-skill",
+      "title": "The web tools are absent until the web-search skill is loaded. Off is a statement about what this feature initiates, and the honest way to show it is that there is no tool to call.",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "url-transport-connects",
+      "title": "A skill declaring transport: url reaches a hosted MCP server and its tools appear in the list sent to the model. This is the seam Chapter 12 left open, filled in.",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "search-dispatches",
+      "title": "A search call reaches the server and its results come back to the model as a tool result, rather than being dispatched and dropped.",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "fetch-returns-planted-token",
+      "title": "Content fetched from a page arrives at the model intact. Verified with a token minted this run, so a stub or a cached fixture cannot produce it.",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "fetched-content-is-a-tool-result",
+      "title": "Fetched bytes stay inside a tool result and never reach the system prompt or a user turn. Web pages contain instructions aimed at the model; keeping them structurally separate from the operator's words is what makes them data.",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "tool-error-is-reported",
+      "title": "A tool-level failure (isError on a 200) is told to the model. A failure the model cannot see is one it will confidently narrate around.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "transport-error-is-reported",
+      "title": "An HTTP-level failure reaches the model with the reason intact. The response body is where quota and auth refusals say what went wrong; a transport that discards it turns a diagnosable refusal into 'request failed'.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "agent-builds",
+      "title": "Actual core and GUI commands build",
+      "points": 5,
+      "earned": 5,
+      "passed": true
+    },
+    {
+      "id": "agent-status-tool",
+      "title": "Shipped agent_status: actual model, four last/session counts and cache hit rate",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "per-model-cost",
+      "title": "Priced work and honest mixed-model accounting across turn-boundary switches",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "reaches-through-the-chain",
+      "title": "Resolved tools/common import boundary; ownership requires source review",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "details": [
+        "Mandatory source review follows actual dispatched status → owning Engine → Agent → Ensemble and each shipped executable's public composition path; this graph alone proves neither."
+      ]
+    }
+  ],
+  "score": 155,
+  "max_score": 155,
+  "passed": true
+}

@@ -1,0 +1,21 @@
+{
+  "base": "d7853a17a085ba7eaba6914e28924d5b418f42ec",
+  "sources": {
+    "cmd/grade-edition2/main.go": "ed331dfb5d0da413874e3342a570194be45d448d51b1b52823849b96670e4ffd",
+    "internal/gradeedition2/ch20_peer.go": "7cbe3053cbeade4f457577460ebb6baacaeeedf832fb9be5fe57cb63a7d652e2",
+    "internal/gradeedition2/ch20_driver.go": "ec8d4b3e373902dd98ee15b7cade3947f092faad78e1dd59daffec8a86173335",
+    "internal/gradeedition2/ch20.go": "c5a4a0d3cfdd923bda761ac34df7c05c6d749cf3d433f8eac527edf9e9f8f06b",
+    "internal/gradeedition2/ch20_test.go": "7b17498b6399fbb2fe687b619b75029f87aff68997a75a141e2c7149b1c726da"
+  },
+  "accepted_tree": "a801628b1dd631e5ea20ad03ea7d255584728d31",
+  "legacy_tree": "0d0c7787b00c2b8d1e811d3137228115cc9302ec",
+  "stage": "first green; final sensitivity/examples/review pending",
+  "initial_fixture_failures": [
+    "missing transport: url",
+    "recall-only extractor used for ordinary history"
+  ],
+  "commands": {
+    "accepted": "go run ./cmd/grade-edition2 -ch 20 -json solutions/edition-2/ch20",
+    "legacy": "go run ./cmd/grade-edition2 -ch 20 -gui solutions/ch22 -status-prices 3,3.75,0.3,15 -status-second-prices 5,6.25,0.5,25 -json solutions/ch22"
+  }
+}
