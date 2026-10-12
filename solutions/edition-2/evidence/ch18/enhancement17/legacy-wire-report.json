@@ -1,0 +1,78 @@
+{
+  "title": "Edition 2, Chapter 17 — The Invisible Invoice",
+  "checks": [
+    {
+      "id": "cache-lens-exists",
+      "title": "a cache lens observes consecutive requests, so a broken prefix can be found",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    },
+    {
+      "id": "prefix-is-stable",
+      "title": "the tool and system sections are byte-identical across turns, so they can be cached at all",
+      "points": 20,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    },
+    {
+      "id": "request-has-breakpoints",
+      "title": "the system prompt and the message history both carry a cache_control marker, and the history one advances",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    },
+    {
+      "id": "cost-is-computed-not-stored",
+      "title": "the event log holds token counts only; cost is derived at display time",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    },
+    {
+      "id": "usage-is-session-scoped",
+      "title": "the meter reports the session, not the lifetime restored from disk",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    },
+    {
+      "id": "cache-read-rate",
+      "title": "cache reads are zero on a cold turn and reported faithfully on a warm one",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    },
+    {
+      "id": "all-vendors-report-usage",
+      "title": "every vendor parser extracts all four usage categories from its own reply shape",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "prompt 2 completion: websocket: close 1006 (abnormal closure): unexpected EOF: [19:14:34.749] cachelens: first request captured, 6459 bytes, no prior to compare\npanic: send on closed channel\n\ngoroutine 9 [running]:\ngithub.com/waywardgeek/ensemble/agent/internal/ws.(*Hub).Observe(0x1400016e400, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/ws/handler.go:203 +0x4f8\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).notify(0x1400016e380, {0x100d15788, 0x14000092420})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:113 +0x1bc\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).setState(0x1400016e380, 0x2)\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:99 +0x130\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handleUserMessage(0x1400016e380, {{0x140000ac100?, 0x140002fded8?}})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:205 +0x38\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).handle(0x14000003bb0?, {0x100d15928?, 0x14000090520?})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:190 +0xe4\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).drain(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:181 +0x58\ngithub.com/waywardgeek/ensemble/agent/internal/llm.(*Actor).Run(0x1400016e380, {0x100d19010, 0x14000020500})\n\t/Users/bill/projects/ensemble/solutions/ch18/internal/llm/actor.go:163 +0x60\ncreated by main.runActorLoop in goroutine 1\n\t/Users/bill/projects/ensemble/solutions/ch18/cmd/main.go:608 +0x183c\n"
+      ]
+    }
+  ],
+  "score": 0,
+  "max_score": 100,
+  "passed": false
+}

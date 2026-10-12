@@ -1,0 +1,1437 @@
+===== REQUEST /v1/messages =====
+{
+  "model": "claude-sonnet-5",
+  "max_tokens": 49152,
+  "system": [
+    {
+      "type": "text",
+      "text": "You are a helpful agent. Keep the invoice fixture instructions stable.",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Remember copper-orbit-713.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "edit_file",
+      "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "old_text": {
+            "type": "string",
+            "description": "The exact text to find. Must occur exactly once."
+          },
+          "new_text": {
+            "type": "string",
+            "description": "The text to put in its place."
+          }
+        },
+        "required": [
+          "path",
+          "old_text",
+          "new_text"
+        ]
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory to list. Defaults to the working directory."
+          }
+        }
+      }
+    },
+    {
+      "name": "load_skill",
+      "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to load"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line to return, 1-based. Defaults to the start of the file."
+          },
+          "end_line": {
+            "type": "integer",
+            "description": "Last line to return, inclusive. Defaults to the end of the file."
+          },
+          "max_bytes": {
+            "type": "integer",
+            "description": "Truncate the result after this many bytes."
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "run_command",
+      "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command line to run, as you would type it in a shell."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+          },
+          "ai_callback_delay": {
+            "type": "number",
+            "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+          },
+          "ai_callback_pattern": {
+            "type": "string",
+            "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+          },
+          "max_output_bytes": {
+            "type": "integer",
+            "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "name": "unload_skill",
+      "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to unload (takes effect at next context compaction)"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "content": {
+            "type": "string",
+            "description": "The complete new content, or the text to append."
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append instead of overwrite. Never refused."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}
+===== REQUEST /v1/messages =====
+{
+  "model": "claude-sonnet-5",
+  "max_tokens": 49152,
+  "system": [
+    {
+      "type": "text",
+      "text": "You are a helpful agent. Keep the invoice fixture instructions stable.",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Remember copper-orbit-713."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Copper retained.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Continue violet-invoice-924.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "edit_file",
+      "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "old_text": {
+            "type": "string",
+            "description": "The exact text to find. Must occur exactly once."
+          },
+          "new_text": {
+            "type": "string",
+            "description": "The text to put in its place."
+          }
+        },
+        "required": [
+          "path",
+          "old_text",
+          "new_text"
+        ]
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory to list. Defaults to the working directory."
+          }
+        }
+      }
+    },
+    {
+      "name": "load_skill",
+      "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to load"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line to return, 1-based. Defaults to the start of the file."
+          },
+          "end_line": {
+            "type": "integer",
+            "description": "Last line to return, inclusive. Defaults to the end of the file."
+          },
+          "max_bytes": {
+            "type": "integer",
+            "description": "Truncate the result after this many bytes."
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "run_command",
+      "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command line to run, as you would type it in a shell."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+          },
+          "ai_callback_delay": {
+            "type": "number",
+            "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+          },
+          "ai_callback_pattern": {
+            "type": "string",
+            "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+          },
+          "max_output_bytes": {
+            "type": "integer",
+            "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "name": "unload_skill",
+      "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to unload (takes effect at next context compaction)"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "content": {
+            "type": "string",
+            "description": "The complete new content, or the text to append."
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append instead of overwrite. Never refused."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}
+===== REQUEST /v1/messages =====
+{
+  "model": "claude-sonnet-5",
+  "max_tokens": 49152,
+  "system": [
+    {
+      "type": "text",
+      "text": "You are a helpful agent. Keep the invoice fixture instructions stable.",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Remember copper-orbit-713."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Copper retained."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Continue violet-invoice-924."
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Violet complete.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Continue amber-restart-381.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "edit_file",
+      "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "old_text": {
+            "type": "string",
+            "description": "The exact text to find. Must occur exactly once."
+          },
+          "new_text": {
+            "type": "string",
+            "description": "The text to put in its place."
+          }
+        },
+        "required": [
+          "path",
+          "old_text",
+          "new_text"
+        ]
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory to list. Defaults to the working directory."
+          }
+        }
+      }
+    },
+    {
+      "name": "load_skill",
+      "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to load"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line to return, 1-based. Defaults to the start of the file."
+          },
+          "end_line": {
+            "type": "integer",
+            "description": "Last line to return, inclusive. Defaults to the end of the file."
+          },
+          "max_bytes": {
+            "type": "integer",
+            "description": "Truncate the result after this many bytes."
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "run_command",
+      "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command line to run, as you would type it in a shell."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+          },
+          "ai_callback_delay": {
+            "type": "number",
+            "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+          },
+          "ai_callback_pattern": {
+            "type": "string",
+            "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+          },
+          "max_output_bytes": {
+            "type": "integer",
+            "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "name": "unload_skill",
+      "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to unload (takes effect at next context compaction)"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "content": {
+            "type": "string",
+            "description": "The complete new content, or the text to append."
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append instead of overwrite. Never refused."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}
+===== REQUEST /v1/messages =====
+{
+  "model": "claude-sonnet-5-course",
+  "max_tokens": 49152,
+  "system": [
+    {
+      "type": "text",
+      "text": "You are a helpful agent. Keep the invoice fixture instructions stable.",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Unknown price control.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "edit_file",
+      "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "old_text": {
+            "type": "string",
+            "description": "The exact text to find. Must occur exactly once."
+          },
+          "new_text": {
+            "type": "string",
+            "description": "The text to put in its place."
+          }
+        },
+        "required": [
+          "path",
+          "old_text",
+          "new_text"
+        ]
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory to list. Defaults to the working directory."
+          }
+        }
+      }
+    },
+    {
+      "name": "load_skill",
+      "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to load"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line to return, 1-based. Defaults to the start of the file."
+          },
+          "end_line": {
+            "type": "integer",
+            "description": "Last line to return, inclusive. Defaults to the end of the file."
+          },
+          "max_bytes": {
+            "type": "integer",
+            "description": "Truncate the result after this many bytes."
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "run_command",
+      "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command line to run, as you would type it in a shell."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+          },
+          "ai_callback_delay": {
+            "type": "number",
+            "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+          },
+          "ai_callback_pattern": {
+            "type": "string",
+            "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+          },
+          "max_output_bytes": {
+            "type": "integer",
+            "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "name": "unload_skill",
+      "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to unload (takes effect at next context compaction)"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "content": {
+            "type": "string",
+            "description": "The complete new content, or the text to append."
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append instead of overwrite. Never refused."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}
+===== REQUEST /v1/messages =====
+{
+  "model": "claude-sonnet-5",
+  "max_tokens": 49152,
+  "system": [
+    {
+      "type": "text",
+      "text": "You are a helpful agent. Keep the invoice fixture instructions stable.",
+      "cache_control": {
+        "type": "ephemeral"
+      }
+    }
+  ],
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Usage parser control.",
+          "cache_control": {
+            "type": "ephemeral"
+          }
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "edit_file",
+      "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "old_text": {
+            "type": "string",
+            "description": "The exact text to find. Must occur exactly once."
+          },
+          "new_text": {
+            "type": "string",
+            "description": "The text to put in its place."
+          }
+        },
+        "required": [
+          "path",
+          "old_text",
+          "new_text"
+        ]
+      }
+    },
+    {
+      "name": "list_directory",
+      "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Directory to list. Defaults to the working directory."
+          }
+        }
+      }
+    },
+    {
+      "name": "load_skill",
+      "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to load"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "start_line": {
+            "type": "integer",
+            "description": "First line to return, 1-based. Defaults to the start of the file."
+          },
+          "end_line": {
+            "type": "integer",
+            "description": "Last line to return, inclusive. Defaults to the end of the file."
+          },
+          "max_bytes": {
+            "type": "integer",
+            "description": "Truncate the result after this many bytes."
+          }
+        },
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "run_command",
+      "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The command line to run, as you would type it in a shell."
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+          },
+          "ai_callback_delay": {
+            "type": "number",
+            "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+          },
+          "ai_callback_pattern": {
+            "type": "string",
+            "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+          },
+          "max_output_bytes": {
+            "type": "integer",
+            "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+          }
+        },
+        "required": [
+          "command"
+        ]
+      }
+    },
+    {
+      "name": "unload_skill",
+      "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the skill to unload (takes effect at next context compaction)"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the file, relative to the working directory."
+          },
+          "content": {
+            "type": "string",
+            "description": "The complete new content, or the text to append."
+          },
+          "append": {
+            "type": "boolean",
+            "description": "Append instead of overwrite. Never refused."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ]
+      }
+    }
+  ],
+  "thinking": {
+    "type": "adaptive",
+    "display": "summarized"
+  },
+  "output_config": {
+    "effort": "high"
+  }
+}
+===== REQUEST /v1/chat/completions =====
+{
+  "model": "gpt-5.6-sol",
+  "max_completion_tokens": 16384,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful agent. Keep the invoice fixture instructions stable."
+    },
+    {
+      "role": "user",
+      "content": "Usage parser control."
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "edit_file",
+        "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Path to the file, relative to the working directory."
+            },
+            "old_text": {
+              "type": "string",
+              "description": "The exact text to find. Must occur exactly once."
+            },
+            "new_text": {
+              "type": "string",
+              "description": "The text to put in its place."
+            }
+          },
+          "required": [
+            "path",
+            "old_text",
+            "new_text"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "list_directory",
+        "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Directory to list. Defaults to the working directory."
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "load_skill",
+        "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the skill to load"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "read_file",
+        "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Path to the file, relative to the working directory."
+            },
+            "start_line": {
+              "type": "integer",
+              "description": "First line to return, 1-based. Defaults to the start of the file."
+            },
+            "end_line": {
+              "type": "integer",
+              "description": "Last line to return, inclusive. Defaults to the end of the file."
+            },
+            "max_bytes": {
+              "type": "integer",
+              "description": "Truncate the result after this many bytes."
+            }
+          },
+          "required": [
+            "path"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "run_command",
+        "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "The command line to run, as you would type it in a shell."
+            },
+            "cwd": {
+              "type": "string",
+              "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+            },
+            "ai_callback_delay": {
+              "type": "number",
+              "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+            },
+            "ai_callback_pattern": {
+              "type": "string",
+              "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+            },
+            "max_output_bytes": {
+              "type": "integer",
+              "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+            }
+          },
+          "required": [
+            "command"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "unload_skill",
+        "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the skill to unload (takes effect at next context compaction)"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "write_file",
+        "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "Path to the file, relative to the working directory."
+            },
+            "content": {
+              "type": "string",
+              "description": "The complete new content, or the text to append."
+            },
+            "append": {
+              "type": "boolean",
+              "description": "Append instead of overwrite. Never refused."
+            },
+            "overwrite": {
+              "type": "boolean",
+              "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+            }
+          },
+          "required": [
+            "path",
+            "content"
+          ]
+        }
+      }
+    }
+  ],
+  "reasoning_effort": "none"
+}
+===== REQUEST /v1beta/models/gemini-3.8-flash:generateContent =====
+{
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are a helpful agent. Keep the invoice fixture instructions stable."
+      }
+    ]
+  },
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "Usage parser control."
+        }
+      ]
+    }
+  ],
+  "generationConfig": {
+    "maxOutputTokens": 49152,
+    "thinkingConfig": {
+      "thinkingBudget": 32768,
+      "includeThoughts": true
+    }
+  },
+  "tools": [
+    {
+      "functionDeclarations": [
+        {
+          "name": "edit_file",
+          "description": "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file, relative to the working directory."
+              },
+              "old_text": {
+                "type": "string",
+                "description": "The exact text to find. Must occur exactly once."
+              },
+              "new_text": {
+                "type": "string",
+                "description": "The text to put in its place."
+              }
+            },
+            "required": [
+              "path",
+              "old_text",
+              "new_text"
+            ]
+          }
+        },
+        {
+          "name": "list_directory",
+          "description": "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Directory to list. Defaults to the working directory."
+              }
+            }
+          }
+        },
+        {
+          "name": "load_skill",
+          "description": "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the skill to load"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        {
+          "name": "read_file",
+          "description": "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file, relative to the working directory."
+              },
+              "start_line": {
+                "type": "integer",
+                "description": "First line to return, 1-based. Defaults to the start of the file."
+              },
+              "end_line": {
+                "type": "integer",
+                "description": "Last line to return, inclusive. Defaults to the end of the file."
+              },
+              "max_bytes": {
+                "type": "integer",
+                "description": "Truncate the result after this many bytes."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          }
+        },
+        {
+          "name": "run_command",
+          "description": "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "The command line to run, as you would type it in a shell."
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."
+              },
+              "ai_callback_delay": {
+                "type": "number",
+                "description": "Seconds to wait before returning with whatever output exists so far. The job keeps running. Default 3."
+              },
+              "ai_callback_pattern": {
+                "type": "string",
+                "description": "Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."
+              },
+              "max_output_bytes": {
+                "type": "integer",
+                "description": "Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."
+              }
+            },
+            "required": [
+              "command"
+            ]
+          }
+        },
+        {
+          "name": "unload_skill",
+          "description": "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the skill to unload (takes effect at next context compaction)"
+              }
+            },
+            "required": [
+              "name"
+            ]
+          }
+        },
+        {
+          "name": "write_file",
+          "description": "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to the file, relative to the working directory."
+              },
+              "content": {
+                "type": "string",
+                "description": "The complete new content, or the text to append."
+              },
+              "append": {
+                "type": "boolean",
+                "description": "Append instead of overwrite. Never refused."
+              },
+              "overwrite": {
+                "type": "boolean",
+                "description": "Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."
+              }
+            },
+            "required": [
+              "path",
+              "content"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "title": "Edition 2, Chapter 17 — The Invisible Invoice",
+  "checks": [
+    {
+      "id": "cache-lens-exists",
+      "title": "a cache lens observes consecutive requests, so a broken prefix can be found",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "prefix-is-stable",
+      "title": "the tool and system sections are byte-identical across turns, so they can be cached at all",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "request-has-breakpoints",
+      "title": "the system prompt and the message history both carry a cache_control marker, and the history one advances",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "cost-is-computed-not-stored",
+      "title": "the event log holds token counts only; cost is derived at display time",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "usage-is-session-scoped",
+      "title": "the meter reports the session, not the lifetime restored from disk",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "cache-read-rate",
+      "title": "cache reads are zero on a cold turn and reported faithfully on a warm one",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "all-vendors-report-usage",
+      "title": "every vendor parser extracts all four usage categories from its own reply shape",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    }
+  ],
+  "score": 100,
+  "max_score": 100,
+  "passed": true
+}

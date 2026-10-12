@@ -1,0 +1,18 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "17",
+    "-json"
+  ],
+  "exit": 0,
+  "seconds": 1.108,
+  "sources": {
+    "cmd/grade-edition2/main.go": "64545a80a9e2e036243ddd07182005b32684da82cd3f68b765dcd7f06da21375",
+    "internal/gradeedition2/ch17.go": "b09a7ec6092b3f33ebe389842a081dd5be45ed331225c8f0b0dbd4cebbd7c9ed",
+    "internal/gradeedition2/ch17_driver.go": "dcf15b5cf263e061845928b18d57fbcd5a77b9313becb498552f6c8c0275bb96",
+    "internal/gradeedition2/ch17_test.go": "10741a6fc61feee4ea7ed59fd4776ca8ee78f1e8bd348e845e4c827c951e8b2f"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "note": "Wire dump is the actual repeated legacy full run. Initial line-based dump decoder failed on valid pretty-printed JSON; parsing request delimiters corrected only this receipt.",
+  "requests": [
+    {
+      "tools": 0,
+      "system": 1,
+      "marked_message_indices": [
+        0
+      ],
+      "total": 2
+    }
+  ]
+}

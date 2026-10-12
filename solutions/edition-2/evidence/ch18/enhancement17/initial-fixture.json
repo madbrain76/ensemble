@@ -1,0 +1,12 @@
+{
+  "stage": "initial local test",
+  "driver_sha256": "c818bc342fe37f347dfb1b03b29970855b0a0b0b5c33e83ce1ac415034f12a75",
+  "command": "go test ./internal/gradeedition2 -run '^TestChapter17Invoice$' -count=1",
+  "exit": 1,
+  "duration_seconds": 0.871,
+  "failure": {
+    "cost-is-computed-not-stored": "completed usage records/meter snapshots: 0/3, want 2/3",
+    "all-vendors-report-usage": "completed usage records/meter snapshots: 0/2, want 1/2"
+  },
+  "cause": "Grader decoded event[response_ended]; actual public event payload key is response. No runtime defect established. Earlier compile attempt used Server.URL field instead of existing URL() method."
+}
