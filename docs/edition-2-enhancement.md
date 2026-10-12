@@ -1,5 +1,18 @@
 # Edition 2: chapter enhancement
 
+## Combined Chapter 20 accepted; Chapter 21 assigned, October 11
+
+Acceptance `40e553ff` binds coder `ef796cde` (report clarification `a81b05fc`),
+author `ddcb0167` and unchanged manuscript/sample SHA `b975d7aa`. Initial review,
+zero formal rounds; checkpoint `edition-2-enhanced-ch20-r1`. Actual final full
+scores are155/155 accepted and135/155 legacy. Required source ownership review
+passes separately; numerical scope and survivors remain explicit in
+[the review](edition-2-notes/enhancement-20-review.md).
+Chapter21 / original23, The Sandbox, is released to the same team. Preserve the
+original macOS confinement scope, positive allowed-work controls and actual
+process boundaries. No expanded security promise or runtime redesign is implied.
+Reload all four full documents after compaction; Chapter25 remains reserved.
+
 ## Chapter 19 accepted; combined Chapter 20 assigned, October 11
 
 Combined acceptance `4deb0611` binds author `97a46b57`, coder `dd361830` and

@@ -1,5 +1,27 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: combined Chapter 20 accepted; sandbox Chapter 21 released
+
+Independent combined review `40e553ff` accepts coder `ef796cde` and author
+`ddcb0167`, with report-only test attribution clarified at `a81b05fc`.
+Initial review, zero formal rounds; checkpoint `edition-2-enhanced-ch20-r1`.
+Actual final full grading is accepted155/155 and legacy135/155. Legacy omits
+cache writes from its status hit-rate denominator; its separately priced cost
+arithmetic passes. Original0/100 and20/100 remain historical results.
+
+The combined TL;DR and exercise preserve web access and status/accounting.
+All17 fences, focused race, vet and hard prose lint pass. Complete correlated
+page content and unknown-tool refusals now catch two previously surviving defects.
+Of18 distinct source changes,16 are detected and two retain explicit numeric
+limits, with unchanged source/integration evidence supplying stronger obligations.
+Actual parent/composition review remains mandatory outside numeric import credit.
+See [the review](edition-2-notes/enhancement-20-review.md) for precise boundaries.
+
+Continue Edition2 Chapter21 / original23, The Sandbox, under the same sequential
+independent gate and full four-document context rule. Current main/crossover
+work and all frozen sources remain preserved. Chapter25 stays reserved;
+Gateway26 follows manuscript enhancement through23.
+
 ## October 11: enhanced Chapter 19 accepted; combined Chapter 20 released
 
 Independent combined review `4deb0611` accepts author `97a46b57` and coder
