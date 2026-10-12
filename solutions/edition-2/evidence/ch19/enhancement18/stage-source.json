@@ -1,0 +1,10 @@
+{
+  "base": "a2980979b421618ca3847c216395dc486b4318aa",
+  "files": {
+    "cmd/grade-edition2/main.go": "8b6bcafc68d56f449f8506b4106ba16a6f7adba37e44680f5c0a85071a96acd2",
+    "internal/grade/edition2_auth_peers.go": "543e65374dacb3775a2a4ef3d7e64e7be777b762f103f7020e32eebdd09ed3e2",
+    "internal/gradeedition2/ch18_test.go": "7f3c91a11aa24f61f1b046f0e4c0110a61e452b0151966118f8bd89140a6c98e",
+    "internal/gradeedition2/ch18.go": "143509d1db9181a132370671534e3487c6ce7449900bda1e9aa3bc2d97d17219",
+    "internal/gradeedition2/ch18_driver.go": "f538db7e81efdf61e3b39c03d404f4e55342bbe9dd58492a6c567cc88a9d106b"
+  }
+}

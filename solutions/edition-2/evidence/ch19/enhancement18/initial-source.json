@@ -1,0 +1,10 @@
+{
+  "base": "ea55d332c0271b0d28955a5654cce882f6ce3166",
+  "files": {
+    "internal/grade/edition2_auth_peers.go": "543e65374dacb3775a2a4ef3d7e64e7be777b762f103f7020e32eebdd09ed3e2",
+    "internal/gradeedition2/ch18.go": "a55d6a4655ded605175a80ee95e0dabdcbed5464c0655a5cd36ade5f17a421f8",
+    "internal/gradeedition2/ch18_driver.go": "9aabd67323e2411311d2d06f2f9788aa3e331963c8cd35132b63113639a03e37",
+    "cmd/grade-edition2/main.go": "8b6bcafc68d56f449f8506b4106ba16a6f7adba37e44680f5c0a85071a96acd2"
+  },
+  "command": "go run ./cmd/grade-edition2 -ch 18 -json"
+}

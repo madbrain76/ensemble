@@ -1,0 +1,20 @@
+{
+  "source": "solutions/edition-2/evidence/ch19/live-plan-round1-api.log",
+  "sha256": "be2c5fbc5c97dc836509696314d08b286ff3d745efb381938fd8addae42c9635",
+  "terminal_responses": [
+    {
+      "line": 14,
+      "model": "gpt-6.1-sol",
+      "status": "completed",
+      "output_count": 0
+    },
+    {
+      "line": 191,
+      "model": "gpt-6.1-sol",
+      "status": "completed",
+      "output_count": 0
+    }
+  ],
+  "extraction_note": "Initial empty extraction treated per-event logger data as nested SSE framing; this corrected extraction reads event and its JSON data. No provider call.",
+  "correction": "Forwarding peer adds only an absent terminal model from the actual request model; original fake and frozen runtime unchanged."
+}

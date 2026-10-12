@@ -1,0 +1,66 @@
+{
+  "title": "Edition 2, Chapter 18 — Leaving Anthropic for OpenAI",
+  "checks": [
+    {
+      "id": "credential-provider",
+      "title": "Minted OAuth and API-key bearers, without secrets in observed output, saved conversation or request bodies",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "oauth-flow",
+      "title": "Successful PKCE/issued-client exchange, forged-signature and nonce rejection, and actual inference-grant refusal",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "missing grant did not refuse inference after an actual token exchange (login=\"\" startup=\"nonzero GUI exit after EOF: exit status 1: {\\\"from\\\":\\\"idle\\\",\\\"observation\\\":\\\"state_changed\\\",\\\"to\\\":\\\"input_pending\\\"}\\n{\\\"from\\\":\\\"input_pending\\\",\\\"observation\\\":\\\"state_changed\\\",\\\"to\\\":\\\"in_flight\\\"}\\n{\\\"from\\\":\\\"in_flight\\\",\\\"observation\\\":\\\"state_changed\\\",\\\"to\\\":\\\"idle\\\"}\\n{\\\"error\\\":\\\"resolve credential: oauth: scope chatgpt.tokens.use.direct was not granted; ChatGPT plan usage is disabled (granted: [openid profile email offline_access])\\\",\\\"observation\\\":\\\"turn_ended\\\",\\\"text\\\":\\\"\\\"}\\n{\\\"error\\\":\\\"resolve credential: oauth: scope chatgpt.tokens.use.direct was not granted; ChatGPT plan usage is disabled (granted: [openid profile email offline_access])\\\"}\\n{\\\"usage\\\":{\\\"input\\\":0,\\\"cache_write\\\":0,\\\"cache_read\\\":0,\\\"output\\\":0}}\\n\" requests=0 errors=[resolve credential: oauth: scope chatgpt.tokens.use.direct was not granted; ChatGPT plan usage is disabled (granted: [openid profile email offline_access])])"
+      ]
+    },
+    {
+      "id": "token-refresh",
+      "title": "Proactive rotating renewal with successful turns and the corresponding new bearers",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "responses-format",
+      "title": "Responses fields, actual completed-item tool result and matching encrypted replay",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "following request lacks call, actual successful file bytes or encrypted item (call=true result=true opaque=false)"
+      ]
+    },
+    {
+      "id": "cache-breakpoints",
+      "title": "Paired plan-route omission and explicit API-key developer-content breakpoints within the four-marker budget",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "reasoning-summaries",
+      "title": "Separate complete summary/text deltas, including tool-adjacent content, with delivery before provider completion",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "billing-mode",
+      "title": "Actual admission and midstream quota refusals reported without switching to the configured metered key",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "fail_midstream: no actual authenticated refusal (login=\"\" startup=\"nonzero GUI exit after EOF: exit status 1: {\\\"from\\\":\\\"idle\\\",\\\"observation\\\":\\\"state_changed\\\",\\\"to\\\":\\\"input_pending\\\"}\\n{\\\"from\\\":\\\"input_pending\\\",\\\"observation\\\":\\\"state_changed\\\",\\\"to\\\":\\\"in_flight\\\"}\\n[19:57:21.610] cachelens: first request captured, 2498 bytes, no prior to compare\\n{\\\"chunk\\\":\\\"Hel\\\",\\\"kind\\\":\\\"text\\\",\\\"observation\\\":\\\"part_delta\\\",\\\"part_id\\\":1}\\n{\\\"chunk\\\":\\\"lo from \\\",\\\"kind\\\":\\\"text\\\",\\\"observation\\\":\\\"part_delta\\\",\\\"part_id\\\":1}\\n{\\\"chunk\\\":\\\"the Responses \\\",\\\"kind\\\":\\\"text\\\",\\\"observation\\\":\\\"part_delta\\\",\\\"part_id\\\":1}\\n{\\\"from\\\":\\\"in_flight\\\",\\\"observation\\\":\\\"state_changed\\\",\\\"to\\\":\\\"idle\\\"}\\n{\\\"error\\\":\\\"openai responses: subscription_sharing_usage_limit_exceeded: ch19 fixture: scripted mid-stream plan failure (subscription_sharing_usage_limit_exceeded)\\\",\\\"observation\\\":\\\"turn_ended\\\",\\\"text\\\":\\\"\\\"}\\n{\\\"error\\\":\\\"openai responses: subscription_sharing_usage_limit_exceeded: ch19 fixture: scripted mid-stream plan failure (subscription_sharing_usage_limit_exceeded)\\\"}\\n{\\\"usage\\\":{\\\"input\\\":0,\\\"cache_write\\\":0,\\\"cache_read\\\":0,\\\"output\\\":0}}\\n\" requests=1 errors=[openai responses: subscription_sharing_usage_limit_exceeded: ch19 fixture: scripted mid-stream plan failure (subscription_sharing_usage_limit_exceeded)])"
+      ]
+    }
+  ],
+  "score": 55,
+  "max_score": 100,
+  "passed": false
+}
