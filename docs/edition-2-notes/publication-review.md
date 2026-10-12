@@ -80,3 +80,48 @@ Current grader/build/export defaults, original archive execution, updated links
 and example paths, the final epilogue, and Markdown/EPUB/print/cover-PDF output
 remain to be reviewed after their owners submit them. Earlier chapter acceptance
 and historical receipts retain their original sources and results.
+
+## October 12: current tooling and chapter paths
+
+Accept coherent tooling `3e6a05b8096902741e0bb8e6d5a114332c41c67a` and
+author path reconciliation `dd96a1b0975b0724c9d22b52b69157de99e178a3`.
+Read the full changed build/export/filter code, affected grader-path changes,
+tooling report, commands, source binding and publication fixture. Recovered the
+three small test diffs omitted by one truncated aggregate tool response.
+
+All 29 hashes in `solutions/evidence/publication-tooling/source.json` match.
+The actual current Chapter1, current Gateway26 and archived original Chapter1
+receipts each contain seven passing rows and 100/100, with successful commands.
+The selected Chapter1 regression is a behavioral test; the broader package
+compile check is not mislabeled as execution of every chapter suite. No broad
+or paid freshness run was performed by the reviewer.
+
+Current grading selects relocated snapshots. The fake-vendor command starts in
+the selected module rather than asking the unrelated root module to build it.
+The snapshot exporter defaults to committed `agent/` and exposes the historical
+prefix explicitly, retaining refusal to overwrite and original provenance.
+Its tests use actual temporary Git repositories. Make targets address maintained
+tooling packages and preserve historical targets in the archive rather than
+running old mutation scripts against the active application.
+
+The publication filter changes links only: local source/evidence links become
+public repository URLs, existing anchors and external URLs remain, and images
+retain their embedding paths. The small actual Pandoc/Chrome fixture verifies
+zero figures, populated chapter-level EPUB navigation outside the spine, removed
+printed Contents, public links and print pagination from an unrelated directory.
+The portable print change also checks renderer/text-extraction exits and rejects
+continued pagination shifts. This is sufficient evidence for the bounded tooling
+change; it is not a full-book image, typography or final-page-number inspection.
+The convergence-failure branch has source inspection, not a fabricated run.
+
+Independently normalized every changed chapter in the author's path commit.
+Its differences are exactly active source/solution prefixes, shallower docs and
+solution links, and two intentional historical links to archived tool-exhibit
+and crossover-changelog files. No narrative rewriting is hidden in that pass.
+The previously noted Chapter0 docs link is corrected. Current runtime README
+edits are documentation and do not change accepted frozen source or user code.
+
+No blocking tooling or chapter-path finding remains at this stage. Final
+epilogue, assembled Markdown, full EPUB, print interior and cover-prefixed PDF
+inspection are still pending; public repository links require the separately
+authorized publication/push before remote readers can reach unpushed material.
