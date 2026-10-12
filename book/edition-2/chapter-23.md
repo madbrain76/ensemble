@@ -563,7 +563,7 @@ go run ./cmd/grade-edition2 -ch 23 solutions/edition-2/ch23
 | Activity | Correlated detailed status and ordered thinking, tool-call and idle observations | 15 |
 | Named persistence | Real create with model/skill, retained conversation after restart, and deletion | 15 |
 | Ownership | An owned target works; foreign and missing management targets are refused | 15 |
-| Change waiting | A selected child's actual completion wakes its change wait | 15 |
+| Change waiting | Selected child progress wakes its change wait; command and submission complete | 15 |
 | Composition | The actual CLI constructs recursive agents, completes work and exits normally on EOF | 15 |
 | GUI | Initial and nested tree changes, selected conversation, truthful completed and pending replay | 15 |
 | Previous fleet behavior | Active children prevent submit; successful idle turns receive bounded correction | 10 |

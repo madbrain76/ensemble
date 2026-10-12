@@ -1,6 +1,6 @@
 # Edition 2 Chapter 23 author record
 
-Status: coherent manuscript submitted; exact examples and independent prose/grader gate pending.
+Status: final author reconciliation submitted; independent combined acceptance pending.
 Author: edition2_author, October 12, 2026. Original Chapter 26 becomes Edition 2
 Chapter 23, following accepted combined Chapter 22. Only this record and
 `book/edition-2/chapter-23.md` are author-owned. No runtime, original manuscript,
@@ -96,7 +96,7 @@ stale input_pending display remains defective. Final local real-runtime checks
 establish corrected completed/restarted state alongside genuinely in-flight
 work; no old-save migration or corrected historical screenshot is claimed.
 
-## Coherent submission
+## Coherent submission (historical stage)
 
 Manuscript SHA-256 `f4c0c382cec3e1f366b9c6b14279e8106d15f9f3b82e63d952c8d56c1d5b27f2`. The final newline was added after
 initial handoff `0015525a`; all six fences are unchanged. Direct chapter lint
@@ -127,7 +127,64 @@ isolation, cursor, interrupt and slow-client obligations distinguished from the
 proposed numeric observations. Revised results are not yet claimed. No runtime
 or historical grader has been changed by the author.
 
-## Pending gate
+## Final author reconciliation
 
-Exact examples, final revised grader evidence and independent combined review
-remain pending. No Chapter24/25/Gateway authorship is assigned here.
+Final manuscript SHA-256:
+`6ce1110e7011d47171694deef26b64f88e8a0297b9cbc9dd6fedd6ee2973b06f`.
+The sole prose change after coherent submission narrows the change-wait rubric:
+selected progress wakes the wait, and the child command and submission then
+complete. It no longer implies that only terminal completion can wake it.
+All six fences are byte-identical to the coherent submission and to the measured
+sample. No further prose change was needed for validation bookkeeping.
+
+Read the full [final coder report](enhancement-23-code.md), submission
+`363e83ce44e58b0189a17769abfee28921701823`, and directly checked its
+`final-source.json`, `final-composed.json`, exact sample/run receipts, focused
+results, sensitivity record and replay-text controls under
+`solutions/edition-2/evidence/ch26/enhancement23/`. Recomputed the manuscript,
+six fence and four grader-source hashes; both tracked frozen tree identities
+match the binding. Large browser captures were inspected through decoded
+selected frames and actual correlated results, not treated as fully read after
+a truncated display.
+
+Earlier actual full scores are accepted **100/100** in 1.407 seconds, exit0,
+and legacy **70/100** in 3.103 seconds, exit1. Final affected GUI checks score
+75/75 and45/75; adding the unchanged measured CLI25 produces explicitly
+**composed final100/100 and70/100**, not new full runs. Legacy's missing
+conversation-selection path blocks later named-agent observations; the report
+does not claim independently observed failures of every masked requirement.
+The initial55/25 setup scores remain external-peer routing/completion mistakes.
+The later attempt to execute a legacy library archive remains a build-fixture
+failure. Original0/100 is unchanged historical evidence.
+
+Twelve targeted runtime defects failed intended observations on the earlier
+grader source. Their coupled rows, combined model/skill predicate and narrower
+ownership/status coverage remain explicit. A separate argument-only replay
+control exposed an overly broad text search; the corrected predicate rejects
+call arguments and accepts the three legitimate output forms. Its final focused
+race checks and valid controls are distinct from the earlier twelve cases.
+Actual ownership, selected/unselected isolation, cursors, durable fallback,
+interrupt/kill/shutdown, active-child deletion and slow-client behavior retain
+the independently accepted source/test evidence described by the coder.
+
+Exact examples pass using the actual built GUI, real Chrome, isolated signed
+issuer/provider peers and the published free-port launch. The 3.428-second
+sample makes twelve main requests and two valid empty judge requests. It
+creates console with the chosen model/skill, selects helper while another tab
+stays on main, performs real file work and child/parent three-test passes,
+retrieves the correlated submission, deletes spare, exits normally and restarts
+to retained idle conversation without inference. Both application exits are0;
+listener PID checks precede prompts. The two grader fences reuse the actual
+recorded invocation with JSON report formatting. Scripted decisions establish
+mechanics, not fresh autonomous coding, live account eligibility or native audio.
+The fifteen-request historical live task and its stale screenshot remain
+separately attributed in §23.8.
+
+All four full governing/craft documents remain active together from the complete
+reload recorded above, with no subsequent compaction through this reconciliation.
+The entire mandatory `.agents/skills/ensemble-coding/SKILL.md` is also active.
+Direct chapter hard lint passes; no length-driven edits or new personal stories
+were added. Only the two author-owned files are committed. Runtime, original
+manuscripts/graders, frozen exports, concurrent crossover work and port8088 are
+preserved. Independent combined review is pending; Gateway authorship is not
+released by this submission.
