@@ -1,5 +1,25 @@
 # Edition 2: chapter enhancement
 
+## Combined Chapter 22 accepted; Chapter 23 assigned, October 12
+
+Acceptance `d847451b` binds author `d68a04d7`, manuscript SHA `d2f51438`,
+coder `a02dc4ce` and scoring attribution fix `693cece4`. Initial review, zero
+formal correction rounds; checkpoint `edition-2-enhanced-ch22-r1`. Earlier
+actual full accepted/legacy200/200 and final composed accepted200/200 remain
+distinct. All16 examples retain their measured provenance; both combined
+assignments and the actual ownership gate are accepted. See
+[the independent review](edition-2-notes/enhancement-22-review.md).
+
+Release Chapter23 / original26, fleet management and GUI, to the same team.
+Enhance the original from accepted ch23 and its student/comparative records:
+conversation selection, truthful activity/replay, owned management targets and
+real GUI/lifetime behavior remain binding. Read the primary-source opener
+corrections in ch26 notes. Preserve stories and TL;DR explanations, with no
+length quota, speculative features or recreated defects. Reload all four full
+governing/craft documents after compaction and the mandatory coding skill.
+Chapter25 remains reserved; fresh Gateway26 implementation follows this gate.
+Preserve concurrent main/crossover edits, first edition and frozen exports.
+
 ## Chapter 21 accepted; combined Chapter 22 assigned, October 12
 
 Independent acceptance `d62ab24c` binds coder `36a34892`, author reconciliation

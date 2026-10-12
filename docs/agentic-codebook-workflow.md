@@ -1,5 +1,33 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 12: combined Chapter 22 accepted; Chapter 23 released
+
+Independent combined review `d847451b` accepts author `d68a04d7`, coder
+`a02dc4ce` and narrow scoring attribution fix `693cece4` at initial review,
+zero formal correction rounds. Checkpoint: `edition-2-enhanced-ch22-r1`.
+Earlier actual full runs score accepted200/200 and legacy200/200; final accepted
+200/200 is composed from corrected focused GUI100 and unchanged fleet100.
+The fix makes an existing headless dependency failure debit the MCP row whose
+title promises that absence. Overall rejection alone did not establish correct
+individual scoring. Preserve earlier results and their source versions.
+
+The combined TL;DR and exercise retain GUI reuse and terminal fleet. All16
+example fences, six grader hashes and both frozen tracked trees are verified;
+actual ownership/factory paths pass the independent source gate. Twelve targeted
+defects retain their repaired survivors, coupled failures and historical limits.
+Scripted examples establish actual mechanics; the retained live steering result
+still distinguishes message delivery from model compliance. See
+[the review](edition-2-notes/enhancement-22-review.md).
+
+Release Edition2 Chapter23 / original26, fleet management and GUI, to the same
+author, grader coder and independent reviewer. Preserve conversation selection,
+truthful activity/replay, ownership and lifetime obligations. Original26's opener
+now has primary-source verification and corrections in its chapter notes; use
+those precise counts and detection distinctions without inventing prevention.
+All four full documents remain mandatory for author/reviewer after compaction.
+Chapter25 stays reserved; Gateway26 follows this final existing enhancement gate.
+Concurrent main/crossover work and original/frozen sources remain untouched.
+
 ## October 12: sandbox Chapter 21 accepted; combined Chapter 22 released
 
 Independent review `d62ab24c` accepts coder `36a34892` and author reconciliation
