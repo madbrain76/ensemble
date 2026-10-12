@@ -26,7 +26,7 @@ I am the guru of this codebase, and this book encodes what I know: the art of bu
 
 ## What they built
 
-Look at what the field has shipped.
+Consider what the field has shipped.
 
 The one I have worked with extensively is Gemini CLI. Mocks everywhere instead of fakes. Nearly five thousand mock call sites as of October 2026. In December 2025 it was 255,000 lines of TypeScript. Today it is 559,193. It more than doubled while I was writing this book. Claude Code, reported at 512,000 lines of TypeScript, is in the same class. The winner, at 1.8 million lines of Rust, is Codex.
 
@@ -36,7 +36,7 @@ Ensemble does most of what these tools do in 27,042.
 |---|---|---|
 | Codex (Rust) | 1,815,512 | 197 |
 | Gemini CLI (TypeScript) | 559,193 | 41 |
-| Claude Code (TypeScript) | 512,000, reported | — |
+| Claude Code (TypeScript) | 512,000, reported | not reported |
 | Ensemble (Go) | 27,042 | 2 |
 
 That right-hand column is the one that matters. A thousand lines is where I start refactoring. At four thousand, the AI is editing blind. Codex has 197 files past the first mark and 20 past the second, and its largest single file is 12,647 lines. Ensemble has two files past the first and none past the second.
@@ -160,7 +160,7 @@ No version of Ensemble is final. Each is a phenotype expressed from the same gen
 
 ## The crossing
 
-Somewhere in this book you will use Ensemble to help build the next chapter's exercise. The agent you have been building becomes the tool you build with. That is the crossing, and it has a name.
+Somewhere in this book you will use Ensemble to help build the next chapter's exercise. The agent you have been building becomes the tool you build with. This crossing has a name.
 
 When a compiler can compile itself, we call it **self-hosting**. When an AI coding agent is capable enough that it becomes the primary tool for its own continued development, we call it **self-wielding**.
 
