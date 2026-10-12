@@ -1,7 +1,7 @@
 # Edition 2 Chapter 18 author record
 
-Status: coherent prose submitted; exact-example/grader validation and independent
-combined acceptance pending.
+Status: author reconciliation complete; exact examples and revised grading pass.
+Independent combined acceptance pending.
 Author: `edition2_author`, October 11, 2026. This enhances original Chapter19,
 Leaving Anthropic for OpenAI; it does not implement new runtime behavior.
 
@@ -132,9 +132,70 @@ HTTP5xx errors from network unreachability. All executable fences remained
 unchanged through these prose-only corrections. Historic summary counts remain attributed
 to the October2 coder report, with the later no-summary result beside them.
 
-## Evidence reconciliation pending
+## Final evidence reconciliation
 
-Exact examples, revised grader, direct prose lint and independent review follow
-the coherent draft. Detailed score/source bindings belong here rather than in
-the teaching narrative. Frozen implementations, originals and concurrent work
-remain untouched.
+Compaction occurred after the coherent submission. Before this reconciliation,
+the author again reloaded all four complete documents in the exact ranges listed
+above: workflow through 2143, carryover through 981, voice through 632 and procedure
+through 599, plus the entire 373-line `.agents/skills/ensemble-coding/SKILL.md`.
+All reads returned without truncation; all four remain active together, with no
+subsequent compaction. The current authority/assignment headers were checked.
+
+The manuscript remains exactly `e057e264` as bound above. Direct hard lint passes
+at 5,553 prose words; the two soft warnings do not warrant padding or a quota cut.
+No prose change was needed for final evidence. The author's direct hash check
+matched the complete manuscript and all nine fences to
+[`samples.json`](../../solutions/edition-2/evidence/ch19/enhancement18/samples.json).
+The conceptual Go vocabulary compiles. Actual published build/setup, typed skill,
+login/status/models, high/detailed `gpt-6.1-sol` chat and logout commands passed
+through the real CLI with local external issuer/provider peers. The author read
+the command/exit receipt and both captured requests: the first carries the exact
+prompt; the second carries the complete successful scheduling-file result with
+the matching call ID. Normal EOF produces a save; logout revokes the fake token
+and reports signed-out state. The two identical grader fences have their separate
+full-command evidence, rather than duplicate sample runs.
+
+The peer supplies the known answer. This proves propagation and lifecycle, not
+scheduling intelligence, a paid run, public-summary delivery or a cache grant.
+Its inherited catalog lists GPT-5.6 variants while the sample selects GPT-6.1 Sol,
+so this sample does not establish catalog eligibility. The earlier real account
+catalog remains separate dated evidence. No production profile or existing GUI
+was used.
+
+Coder submission `7084fe48`, the [final coder report](enhancement-18-code.md) and
+[`final-source.json`](../../solutions/edition-2/evidence/ch19/enhancement18/final-source.json)
+bind the five grader-source hashes, unchanged frozen trees and manuscript. The
+author checked those five hashes directly and read both final full results and
+their command receipts: accepted 100/100 in 2.246s and legacy 100/100 in 1.570s,
+both exit 0. These are actual full runs, with seven unchanged weights and no
+parity, not composed scores. Focused race passes (2.543s package time, 3.840s
+command elapsed) and vet passes. Earlier green timings retain their own source.
+
+Twenty-one runtime defects were detected at `d1de19ee`; two abnormal-exit defects
+were detected after the final exit-classification correction. The author read
+both mutation inventories, the valid split-summary control and both restored
+100/100 controls. These 23 overlapping observations are not 23 independent proofs
+or a claim that every mutation ran against final bytes. Source/concurrency,
+native speech and the original 39 mutations keep their original scope and dates.
+
+Fixture corrections remain in the coder report: missing terminal model metadata
+masked valid provenance-aware replay; legitimate nonzero refusal differed from a
+successful session; the original OAuth peer publication raced. Final checks
+require actual authentication/admission/error observations and reject abnormal
+process termination, instead of awarding refusal credit merely because a child
+stopped. Initial scores and the failed event-log extraction remain recorded.
+
+The callback EOF is also a real usability limitation. Direct source inspection
+of `internal/auth/oauth.go` confirms that the handler queues the code before
+writing its browser text, while the receiving login path can close the server.
+Terminal authentication and token exchange can therefore succeed without a
+delivered browser acknowledgment. The chapter asks the reader to wait for the
+terminal result; it adds no browser-confirmation requirement. No frozen runtime
+repair or user-owned crossover-note edit is included.
+
+Original grading remains 15/100 on 06cbf20. The historical plan task's 14.887s
+success, 150.03s launcher kill, missing graceful save, absent public summaries and
+zero cache grants remain distinct from these local checks. Reviewer found no
+remaining prose blocker at the coherent stage; final combined disposition and
+Chapter 19 release belong to reviewer/coordinator. Originals, frozen exports and
+concurrent main/crossover work remain untouched.
