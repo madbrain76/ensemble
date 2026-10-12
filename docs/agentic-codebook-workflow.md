@@ -1,5 +1,24 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 12: Gateway enhancement accepted; publication preparation released
+
+Independent combined review `63709086` accepts author `35930f10` and coder
+`cf86ea9e`, at initial review with zero formal correction rounds. Checkpoint:
+`edition-2-enhanced-ch26-r1`. Final actual seven-row integration runs score
+100/100 on accepted and legacy source; earlier CLI runs retain their own source
+versions. The reviewer found a child-registration refusal that still granted
+access. Its exact initially surviving defect now loses only C7, scoring80/100.
+All14 executed fences and four final grader hashes are verified; original0/100
+and the actual11.739-second interview retain their original provenance.
+See [the independent review](edition-2-notes/enhancement-26-review.md).
+
+Implementation and manuscript enhancement now cover the first edition through
+its final Gateway exercise. Optional24 is complete; crossover25 remains reserved.
+Proceed with Bill's authorized archive/promotion and publication preparation in
+[the relocation record](edition-2-publication.md). The frontmatter draft is ready;
+its review, the new coordinator epilogue and final artifact checks remain.
+Publication and a completed crossover are not claimed by this checkpoint.
+
 ## October 12: publish after Gateway; promote Edition 2 to the default layout
 
 Bill wants the first Edition2 publication after Gateway enhancement is complete,
