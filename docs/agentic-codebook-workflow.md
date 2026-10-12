@@ -1,5 +1,37 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 12: Chapter 23 accepted; Gateway Chapter 26 released
+
+Independent review `da79ddf6` accepts coder `6a14a449`, author `2a884363`
+and note reconciliation `b180da70` at initial review, zero formal rounds.
+Checkpoint: `edition-2-enhanced-ch23-r1`. Final composed scores are accepted
+100/100 and legacy70/100; earlier actual full100/70 retain their own source.
+The reviewer found an immediate-return change wait that passed the new grader.
+A real held command and bounded200ms no-progress control now detect that exact
+defect independently, without changing runtime behavior. Keep the initial
+survivor, twelve earlier detected defects and observation limits distinct.
+
+All six examples, four final grader hashes and unchanged frozen trees are
+verified. Actual ownership passes separately from numerical scoring. Missing
+legacy conversation selection masks later observations; it is not evidence of
+each downstream defect. Browser examples and historical live coding retain their
+different sources and claims. See [the review](edition-2-notes/enhancement-23-review.md).
+
+Existing manuscript enhancement is complete through23; optional24 is already
+complete and crossover25 remains reserved. Release original27 Gateway as Edition2
+Chapter26 to a fresh GPT-6 Astra/high student, with no old-answer context, then
+independent comparative review. Follow the final original chapter's actual
+Ensemble actor delivery and three-process/model interview, not the older brief's
+stand-in. Read the sourced public-contract erratum in ch27 notes. Preserve the
+original grader and record actual results and independently justified exceptions.
+
+Current main contains Bill's unfinished crossover edits. Use an isolated temporary
+checkout of its committed predecessor for Gateway work and validation, then
+integrate only reviewed owned changes into authoritative main without overwriting
+or accepting those unrelated edits. The eventual accepted export is direct ch26;
+no new history directory, symlink or accepted ch25 is introduced. Author/grader
+enhancement for Gateway waits for its implementation and comparative acceptance.
+
 ## October 12: combined Chapter 22 accepted; Chapter 23 released
 
 Independent combined review `d847451b` accepts author `d68a04d7`, coder

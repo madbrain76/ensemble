@@ -1,5 +1,26 @@
 # Edition 2: chapter enhancement
 
+## Chapter 23 accepted; Gateway implementation assigned, October 12
+
+Acceptance `da79ddf6` binds coder `6a14a449`, author `2a884363`, note
+reconciliation `b180da70` and manuscript SHA `6ce1110e`. Initial review, zero
+formal rounds; checkpoint `edition-2-enhanced-ch23-r1`. Final composed100/70
+and earlier actual full100/70 remain distinct. The independent immediate-return
+wait survivor now fails its intended bounded causal check. All six example fences
+and final source bindings remain verified; see
+[the review](edition-2-notes/enhancement-23-review.md).
+
+Manuscript enhancement through23 is complete. Optional24 is complete; keep25
+reserved. Next is fresh student implementation of original27 Gateway as Edition2
+Chapter26, followed by original grading, actual live use and comparative review.
+Only then release Gateway prose/grader enhancement. Preserve Bill's concurrent
+main changes using temporary isolated development/validation and integrate only
+owned reviewed changes into main; accepted export belongs in direct ch26.
+The final original chapter and sourced ch27 contract notes govern, including
+actual Ensemble actor integration and the three-process interview. No old answer
+or grader internals enter the fresh student's context. All existing skill,
+architecture, independent-review and full-context rules remain.
+
 ## Combined Chapter 22 accepted; Chapter 23 assigned, October 12
 
 Acceptance `d847451b` binds author `d68a04d7`, manuscript SHA `d2f51438`,
