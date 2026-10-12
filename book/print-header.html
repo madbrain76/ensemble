@@ -14,6 +14,11 @@ th, td        { border: 1px solid #666; padding: 4px 8px; }
 th            { background: #eee; }
 code          { font-size: 9pt; background: #f4f4f4; padding: 1px 3px; }
 pre           { font-size: 9pt; background: #f4f4f4; padding: 8px; overflow-x: auto; white-space: pre-wrap; }
+/* Black ink on white paper: preserve syntax emphasis without pale token colors. */
+pre, code, div.sourceCode, pre *, code * {
+  color: #000 !important;
+  background: #fff !important;
+}
 blockquote    { margin: 1em 2em; font-style: italic; }
 .front-matter          { page-break-after: always; padding-top: 4em; }
 .front-matter p        { text-indent: 0; margin-bottom: 1em; }

@@ -55,6 +55,8 @@ front matter, removes duplicate contents, renders with Chrome, then adds measure
 page numbers to the contents and renders again. It checks that those references
 agree with the resulting chapter pages. The print CSS supplies mirrored margins,
 page numbers, chapter breaks and wrapping code blocks on a 6 × 9 inch page.
+Print code uses black text on white, retaining syntax bold and italic emphasis;
+the EPUB keeps its separate color styling.
 Inspect the resulting PDF as well as the script's result, particularly long code
 lines, tables, chapter starts and page footers.
 
