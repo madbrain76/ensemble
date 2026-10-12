@@ -1,0 +1,57 @@
+{
+  "title": "Edition 2, Chapter 23 — Managing the Swarm",
+  "checks": [
+    {
+      "id": "activity-observed",
+      "title": "Correlated child status and ordered observed activity",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "ensemble-persists",
+      "title": "Named creation selects model/skill, restores conversation and deletes durably",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "ownership-enforced",
+      "title": "Owned success and indistinguishable foreign/missing management refusal",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "wait-change-wakes",
+      "title": "Selected child change wait precedes actual held-command completion",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "composition-root",
+      "title": "Actual CLI recursively constructs and completes a three-generation fleet",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "gui-tree-message",
+      "title": "Live nested GUI tree, conversation selection and truthful replay state",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "submit-idle-regression",
+      "title": "Bottom-up submit and idle correction still work through the Ensemble layer",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "score": 100,
+  "max_score": 100,
+  "passed": true
+}

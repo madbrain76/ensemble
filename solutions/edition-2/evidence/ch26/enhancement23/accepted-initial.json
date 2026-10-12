@@ -1,0 +1,81 @@
+{
+  "title": "Edition 2, Chapter 23 — Managing the Swarm",
+  "checks": [
+    {
+      "id": "activity-observed",
+      "title": "Correlated child status and ordered observed activity",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "management turn: WebSocket observation deadline",
+        "no actual result for child-status",
+        "completed child status lacks idle activity: ",
+        "ordered child thinking/tool/idle phases absent: [idle thinking idle thinking tool_call]"
+      ]
+    },
+    {
+      "id": "ensemble-persists",
+      "title": "Named creation selects model/skill, restores conversation and deletes durably",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "ownership-enforced",
+      "title": "Owned success and indistinguishable foreign/missing management refusal",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "management turn: WebSocket observation deadline",
+        "no actual result for get_sub_agent_status-foreign",
+        "no actual result for get_sub_agent_status-missing",
+        "no actual result for shutdown_agent-foreign",
+        "no actual result for shutdown_agent-missing",
+        "no actual result for child-status"
+      ]
+    },
+    {
+      "id": "wait-change-wakes",
+      "title": "Selected child change wait precedes actual held-command completion",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "management turn: WebSocket observation deadline",
+        "no actual result for wait-change",
+        "wait lost selected child transition: ",
+        "no actual result for child-command",
+        "held child command did not complete: ",
+        "no actual result for join-worker",
+        "selected child submission missing: ",
+        "no actual waiting observation before child release"
+      ]
+    },
+    {
+      "id": "composition-root",
+      "title": "Actual CLI recursively constructs and completes a three-generation fleet",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "gui-tree-message",
+      "title": "Live nested GUI tree, conversation selection and truthful replay state",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "submit-idle-regression",
+      "title": "Bottom-up submit and idle correction still work through the Ensemble layer",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "score": 55,
+  "max_score": 100,
+  "passed": false
+}

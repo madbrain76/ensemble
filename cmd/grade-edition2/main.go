@@ -26,7 +26,7 @@ func run() int {
 	mediaModels := flag.String("media-models", "", "Chapter 5–13 JSON vendor/model map (default: historical accepted fixtures)")
 	streamModel := flag.String("stream-model", "claude-sonnet-5", "Chapter 6–13 declared Anthropic streaming fixture (historical default)")
 	streamExercise := flag.String("stream-exercise", "", "Chapter 6–13 external shape module (default: ch07 under or beside submission)")
-	gui := flag.String("gui", "", "Chapter 7–22 GUI module (default: gui under submission)")
+	gui := flag.String("gui", "", "Chapter 7–23 GUI module (default: gui under submission)")
 	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7–13 declared Anthropic GUI fixture (historical default)")
 	recallData := flag.String("recall-data", "cr", "Chapter 16 grader corpus root relative to scratch cwd (legacy: .)")
 	cacheCurrent := flag.String("cache-current", "cr/cache-current.txt", "Chapter 17 current capture relative to scratch cwd")
@@ -37,8 +37,8 @@ func run() int {
 	sandboxLibrary := flag.String("sandbox-library", "ensemble", "Chapter 21 public package relative to submitted module (legacy: .)")
 	reuseLegacy := flag.Bool("reuse-legacy", false, "Chapter 22: use the historical same-module public construction API")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 22 || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20..22 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapter 19 is ungraded")
+	if *chapter < 1 || *chapter > 23 || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20..23 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapter 19 is ungraded")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -76,7 +76,7 @@ func run() int {
 		*gui = filepath.Join(path, "gui")
 	}
 	buildPath := path
-	if *chapter >= 14 && *chapter != 21 && *chapter != 22 {
+	if *chapter >= 14 && *chapter != 21 && *chapter != 22 && *chapter != 23 {
 		buildPath = *gui
 	}
 	bin, cleanup, err := grade.Build(buildPath)
@@ -87,6 +87,8 @@ func run() int {
 	defer cleanup()
 	var report grade.Report
 	switch *chapter {
+	case 23:
+		report, err = gradeedition2.Chapter23(bin, *gui)
 	case 22:
 		report, err = gradeedition2.Chapter22(bin, path, *gui, *reuseLegacy)
 	case 21:

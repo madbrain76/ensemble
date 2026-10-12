@@ -1,0 +1,9 @@
+{
+  "exit": 1,
+  "seconds": 10.765307903289795,
+  "source": {
+    "internal/gradeedition2/ch23.go": "b35003435a6c41754d1492db4db8f90c7a0ff52f59885205547be2bc2fc91340",
+    "internal/gradeedition2/ch23_driver.go": "54827cd47e28c43585a7f9ac0f80860614e3a89b7c23580d6ad0bfcea685d603",
+    "cmd/grade-edition2/main.go": "03881de4270f084ecbbb8acc9fbd57a0de76d6676aaac2b3e82f02176fe29991"
+  }
+}
