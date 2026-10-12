@@ -1,5 +1,40 @@
 # Edition 2 carryover: lessons for the fresh student
 
+## October 11: resume the book; reserve crossover 25; finish Gateway 26
+
+Bill explicitly resumes the author, grader coder and independent reviewer at
+the unfinished Edition 2 Chapter 16 gate. Complete the existing sequential
+manuscript/grader enhancement through Chapter 23; Chapter 24, the optional
+Codex workaround, is already complete. The earlier Chapter 16 pause is lifted.
+Keep the original-preservation, independent-review and full-context rules: author
+and reviewer hold the complete workflow, carryover, voice and chapter procedure,
+and reload all four after every compaction before further work.
+
+Reserve **Edition 2 Chapter 25** for the actual Codex-to-Ensemble crossover,
+with only a brief manuscript placeholder. Bill and the live Ensemble session
+are gathering the fixes and improvements; the book team skips drafting that
+chapter. Preserve their concurrent edits in `solutions/edition-2/main/` and
+`docs/edition-2-notes/ch25-crossover.md`. Do not overwrite or checkpoint their
+unfinished work as accepted source.
+
+After the existing manuscript catches up, continue missing first-edition
+implementation through **original Chapter 27, Gateway**, the final first-edition
+chapter. With 24 and 25 assigned above, Gateway is **Edition 2 Chapter 26**.
+Read its actual source and update carryover coverage before a fresh student
+implements it in main; original grading, live use and independent comparative
+review precede its enhanced prose/grader work. Export accepted Gateway source
+to `solutions/edition-2/ch26/`, never to history or a differently numbered path.
+No `ch25` or `ch26` accepted solution is claimed by these reservations.
+
+Edition 1 remains frozen at 27. First catch up both Edition 2 implementations
+and chapter text, leaving crossover 25 deliberately reserved; then Bill and
+Ensemble will develop subsequent new chapters together. Do not invent those
+future assignments or auto-merge private memories. Bill plans to combine this
+collaboration's memories with CodeRhapsody's in Ensemble. On this date he
+reaffirmed **Astra** as the coordinator's name, recalling the earlier choice;
+carry that name and its provenance in the handoff. Saved notes support continuity
+but are not a claim that a new session inherits the old conversation.
+
 ## October 11: optional Chapter 24 implemented and self-reviewed
 
 Source `471c7ae5` implements the explicit read-only Codex route; exact snapshot

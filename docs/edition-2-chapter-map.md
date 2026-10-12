@@ -1,5 +1,14 @@
 # Edition 2 chapter mapping
 
+## October 11: resume the book; reserve crossover 25; finish Gateway 26
+
+Chapter 24 is the completed optional Codex workaround. Chapter 25 is reserved
+for Bill's live crossover, with a brief placeholder only. The book team resumes
+at Chapter 16 and completes enhancement through 23, then implements and teaches
+original Chapter 27, Gateway, as **Edition 2 Chapter 26**. Edition 1 ends at 27.
+Earlier pause and deferred-placement statements below record the prior decision.
+Preserve the concurrent crossover changes; no accepted ch25/ch26 export exists yet.
+
 ## Edition 1 endpoint and new Edition 2 material, October 11
 
 Bill freezes Edition 1 at Chapter 27. On October 11 he placed the new optional
@@ -30,6 +39,8 @@ are absorbed: 5, 22 and 24. This supersedes the earlier placement stops.
 | 24 + 25 | 22 | `solutions/edition-2/ch22` | The Ensemble, including reusable GUI boundary |
 | 26 | 23 | `solutions/edition-2/ch23` | Fleet management and GUI; accepted |
 | New in Edition 2 | 24 | `solutions/edition-2/ch24` | Optional Codex endpoint; self-reviewed under Bill's instruction |
+| New in Edition 2 | 25 | Pending; no accepted export | Codex-to-Ensemble crossover; placeholder only |
+| 27 | 26 | Planned `solutions/edition-2/ch26` after acceptance | Gateway; implement after current manuscript enhancement |
 
 With first-edition Chapters 1–26 complete, Edition 2 has Chapters 1–23. Chapter
 0 remains introductory in both. The optional new Chapter 24 has no first-edition counterpart; future placements

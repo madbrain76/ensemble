@@ -7,8 +7,10 @@ tree. Original24+25 are accepted together as Edition2 Chapter22, The Ensemble.
 Original26 was complete at that review boundary and is now independently accepted
 as direct Edition2 Chapter23 after one correction round. The 26 original chapters
 therefore have 23 matching Edition2 solution directories. The new Chapter24
-adds the temporary Codex endpoint and has no first-edition counterpart; Gateway
-is still deferred.
+adds the temporary Codex endpoint and has no first-edition counterpart. Chapter25
+is reserved for the live Codex-to-Ensemble crossover, with a manuscript placeholder
+only. Original27 Gateway will become Edition2 Chapter26 after implementation and
+review; no accepted ch25/ch26 export exists yet.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
