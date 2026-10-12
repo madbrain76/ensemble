@@ -1,5 +1,23 @@
 # Edition 2: chapter enhancement
 
+## Chapter 21 accepted; combined Chapter 22 assigned, October 12
+
+Independent acceptance `d62ab24c` binds coder `36a34892`, author reconciliation
+`4b288a93` and final manuscript SHA `687a63e5`. Initial review, zero formal rounds;
+checkpoint `edition-2-enhanced-ch21-r1`. Actual final full grading is100/100
+accepted and75/100 legacy. All12 exact example fences retain measured provenance;
+original results and bounded security evidence remain in
+[the review](edition-2-notes/enhancement-21-review.md).
+
+Release Chapter22 / originals24+25 to the same author, grader coder and independent
+reviewer. Preserve reusable GUI deployment, external/component reuse and public
+MCP relay alongside terminal fleet hierarchy, identity, questions, submissions,
+wait wakeups and bounded idle correction. The combined TL;DR and exercise must
+cover both sources. No callback bags, recreated refactor or fleet GUI ahead of
+Chapter23. Read both original chapters, accepted notes/reviews and implementation;
+retain all four complete governing/craft documents and reload after compaction.
+Preserve concurrent main/crossover work. Chapter25 remains a placeholder.
+
 ## Combined Chapter 20 accepted; Chapter 21 assigned, October 11
 
 Acceptance `40e553ff` binds coder `ef796cde` (report clarification `a81b05fc`),

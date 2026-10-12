@@ -1,5 +1,29 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 12: sandbox Chapter 21 accepted; combined Chapter 22 released
+
+Independent review `d62ab24c` accepts coder `36a34892` and author reconciliation
+`4b288a93` at initial review, zero formal rounds. Final manuscript SHA begins
+`687a63e5`; checkpoint `edition-2-enhanced-ch21-r1`. Actual final full grading
+is accepted100/100 and legacy75/100. The reviewer independently confirmed the
+legacy readable-log credential exposure and existing-symlink child-root escape.
+Original0/100 and intermediate fixture failures retain their separate meanings.
+
+All12 example fences and four grader source hashes match the measured evidence;
+both frozen tracked trees remain unchanged. Thirteen targeted defects fail their
+intended observations, with coupled failures and source-stage limits recorded.
+Local scripted examples verify actual CLI/tool mechanics, not new autonomous
+coding or paid use. Positive controls, caller-path diagnostics and actual readable
+log results matter: an empty result or generic refusal cannot prove confinement.
+See [the independent review](edition-2-notes/enhancement-21-review.md).
+
+Continue combined Edition2 Chapter22 / originals24+25: reusable GUI and terminal
+fleet. Preserve both assignments in the TL;DR, exercise and revised checks; do not
+recreate architecture already repaired or bring Chapter23's fleet GUI forward.
+The full four-document context/reload rule and sequential independent gate remain.
+Bill's live main/crossover work is separate and preserved. Chapter25 stays reserved;
+Gateway26 follows existing manuscript enhancement through23.
+
 ## October 11: combined Chapter 20 accepted; sandbox Chapter 21 released
 
 Independent combined review `40e553ff` accepts coder `ef796cde` and author
