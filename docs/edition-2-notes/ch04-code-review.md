@@ -94,7 +94,7 @@ separate GUI vet and uncached tests pass. Original Chapter 4 grading reproduces
 confirms nested parity fails only the inherited `ref-render`/`ref-redaction`
 controls. The coordinator's original Chapter 4 reference baseline is 100/100.
 
-Read the [mutation evidence](../../solutions/edition-2/evidence/ch04/mutations.txt):
+Read the [mutation evidence](../../solutions/evidence/ch04/mutations.txt):
 26 recorded defects ultimately killed, two initial survivors repaired, one
 compile failure correctly excluded before repair. Independently confirmed the
 repaired exact truncation-marker assertion catches a wrong total. The additional
@@ -177,7 +177,7 @@ race while preserving the real, already-blocked Wait and its explicit wakeup
 assertion. The synchronous late-Finish check and its honest non-join limitation
 remain sound. No production hook, mock or larger test framework was introduced.
 
-Independent verification reproduces the [round 2 evidence](../../solutions/edition-2/evidence/ch04/mutations-r2.txt):
+Independent verification reproduces the [round 2 evidence](../../solutions/evidence/ch04/mutations-r2.txt):
 both focused tests pass 20/20 under `-race`; removing only Kill's notification
 fails its intended wake assertion 20/20; removing only complete's non-running
 guard fails its intended state assertion 20/20. Neither defective run reports a

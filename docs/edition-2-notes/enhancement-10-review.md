@@ -99,7 +99,7 @@ with or without the wrapper, and cleanup removes its owned directory. Baseline
 passes in0.450s. Disabling only isolation fails the intended second-session
 assertion in0.332s, after the direct control passes; restoration passes in0.348s.
 The source, patch and full outputs are bound in the
-[reviewer receipt](../../solutions/edition-2/evidence/ch11/enhancement10/reviewer-validation.json).
+[reviewer receipt](../../solutions/evidence/ch11/enhancement10/reviewer-validation.json).
 Scratch copies were removed; no shared grader or frozen solution was edited.
 
 Final actual accepted grading is **100/100 PASS**. Final legacy persistence is

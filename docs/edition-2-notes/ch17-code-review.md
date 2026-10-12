@@ -112,8 +112,8 @@ this runner adds no recursive Chapter16 parity stage. Formal comparative review
 and final student evidence remain pending; no correction round begins here.
 
 Completion update: read the coordinator's committed `c7a84f9`
-[provenance](../../solutions/edition-2/evidence/ch17/original-grade-provenance.json)
-and [full result](../../solutions/edition-2/evidence/ch17/original-grade.txt).
+[provenance](../../solutions/evidence/ch17/original-grade-provenance.json)
+and [full result](../../solutions/evidence/ch17/original-grade.txt).
 Actual original score is **0/100 FAIL** on the source/tree above, grader exit1 /
 make exit2, completed12:57:45 UTC. All nine runtime checks report startup
 failure (fallback stops on its first case); the structural check reports absent
@@ -141,11 +141,11 @@ recall heading in the second request. The capped case (11,247 source bytes,
 6,144 formatted) produced two recorded entries with byte-identical Parts and two
 recall headings in the actual second request. Exit1 was the intended assertion,
 0.024s total; short control passed. No student source was changed.
-[Exact probe](../../solutions/edition-2/evidence/ch17/reviewer-capped-recall_test.go.txt),
-[output](../../solutions/edition-2/evidence/ch17/reviewer-capped-recall.txt),
-[provenance](../../solutions/edition-2/evidence/ch17/reviewer-capped-recall.json),
-and both [short](../../solutions/edition-2/evidence/ch17/reviewer-recall-short.json)
-and [capped](../../solutions/edition-2/evidence/ch17/reviewer-recall-capped.json)
+[Exact probe](../../solutions/evidence/ch17/reviewer-capped-recall_test.go.txt),
+[output](../../solutions/evidence/ch17/reviewer-capped-recall.txt),
+[provenance](../../solutions/evidence/ch17/reviewer-capped-recall.json),
+and both [short](../../solutions/evidence/ch17/reviewer-recall-short.json)
+and [capped](../../solutions/evidence/ch17/reviewer-recall-capped.json)
 request/entry captures preserve the result. A subsequent metadata print initially
 used `Parts` instead of the JSON key `parts`; correcting that inspection confirmed
 identical attachment bytes and did not alter the test or recorded result.
@@ -205,9 +205,9 @@ with raw term frequency (retaining the local IDF variable only to compile)
 both packages. Baseline exits0 (0.005s/0.077s); mutant exits0 (0.006s/0.076s).
 This is a test gap for valid masked ranking obligations, not a production-formula
 defect or a compiler failure. Correct source was restored.
-[Exact mutation](../../solutions/edition-2/evidence/ch17/reviewer-ranking-mutation.json),
-[baseline](../../solutions/edition-2/evidence/ch17/reviewer-ranking-baseline.txt) and
-[survivor](../../solutions/edition-2/evidence/ch17/reviewer-ranking-mutant.txt)
+[Exact mutation](../../solutions/evidence/ch17/reviewer-ranking-mutation.json),
+[baseline](../../solutions/evidence/ch17/reviewer-ranking-baseline.txt) and
+[survivor](../../solutions/evidence/ch17/reviewer-ranking-mutant.txt)
 are retained. Representative competing-hit or independent score evidence must
 distinguish real BM25 from plausible raw counts; no old answer fixture or code
 was supplied to the student. Coordinator relayed this as further attributed
@@ -247,15 +247,15 @@ in the second actual request. The previous duplicate is resolved. The full focus
 recall/index suite under race detection passes: ensemble16.389s, recall1.023s,
 including the real15-second judge cancellation, hint/interrupt control, all-provider
 replay/checkpoint, relative skill path, request-local judge header and capped
-source edit/replay cases. See [output](../../solutions/edition-2/evidence/ch17/reviewer-final-checks.txt),
-[provenance](../../solutions/edition-2/evidence/ch17/reviewer-final-validation.json),
-and [capped request capture](../../solutions/edition-2/evidence/ch17/reviewer-final-capped.json).
+source edit/replay cases. See [output](../../solutions/evidence/ch17/reviewer-final-checks.txt),
+[provenance](../../solutions/evidence/ch17/reviewer-final-validation.json),
+and [capped request capture](../../solutions/evidence/ch17/reviewer-final-capped.json).
 
 Applied the **same raw-frequency replacement** that survived earlier to the final
 isolated index. All three new competing-document assertions fail for their intended
 reasons: common instead of rare, repeated instead of diverse, long instead of
-focused. Restored source passes. [Mutant](../../solutions/edition-2/evidence/ch17/reviewer-final-ranking-mutant.txt)
-and [restored control](../../solutions/edition-2/evidence/ch17/reviewer-final-ranking-restored.txt)
+focused. Restored source passes. [Mutant](../../solutions/evidence/ch17/reviewer-final-ranking-mutant.txt)
+and [restored control](../../solutions/evidence/ch17/reviewer-final-ranking-restored.txt)
 preserve those results; no shared source changed. Student's individual IDF,
 saturation and length mutations likewise reach the corresponding ranking failures.
 
@@ -284,7 +284,7 @@ broad corpus-quality result is inferred from these CLI sessions.
 Counts compare each implementation with its own predecessor, counting physical
 lines and nonblank lines after excluding comment-only line prefixes. Mixed code/
 comment lines count as active; this is a source-size measure, not Go statements.
-[Per-file counts](../../solutions/edition-2/evidence/ch17/reviewer-comparison-counts.json)
+[Per-file counts](../../solutions/evidence/ch17/reviewer-comparison-counts.json)
 record exact source pairs and method inputs. No production moves occurred.
 
 | Chapter delta | Physical | Active | Comment-only |

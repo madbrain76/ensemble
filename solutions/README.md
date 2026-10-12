@@ -2,7 +2,7 @@
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
 Chapters **1–24 and 26 are accepted** (24 is optional, ungraded and self-reviewed
-under Bill's explicit instruction). [`main/`](main/) is the authoritative working
+under Bill's explicit instruction). [`agent/`](../agent/) is the authoritative working
 tree. Original24+25 are accepted together as Edition2 Chapter22, The Ensemble.
 Original26 was complete at that review boundary and is now independently accepted
 as direct Edition2 Chapter23 after one correction round. The 26 original chapters
@@ -17,10 +17,10 @@ Do not put new solutions in `history` or create symlinks.
 
 Use older supported Anthropic models such as Sonnet-5; 5.5 models are excluded
 from current supported use under Bill's ephemeral-context restriction. Current
-`main/` and revised examples follow this rule. Frozen snapshots and past results
+`agent/` and revised examples follow this rule. Frozen snapshots and past results
 retain their original model tables and identities. Chapter 5's revised media
 example uses its existing Sonnet 4.6 row. See the
-[supported-model correction](../../docs/edition-2-notes/supported-model-correction.md).
+[supported-model correction](../docs/edition-2-notes/supported-model-correction.md).
 
 Original Chapter 5 was absorbed into Chapter 4. From that point, Edition 2
 numbers are one lower through original Chapter 21; the remaining merges below
@@ -55,31 +55,30 @@ bring the final offset to three. The remaining standalone
 | 24: Optional Codex workaround | [ch24](ch24/), [manifest](ch24-manifest.json) | New in Edition 2 | `edition-2-optional-ch24-r1` |
 | 26: Gateway | [ch26](ch26/), [manifest](ch26-manifest.json) | 27 | `edition-2-ch27-r1` |
 
-The manuscript enhancement pass is complete through Edition 2 Chapter 23.
-Revised graders cover Chapters 1–18 and 20–23; Chapter 19 is prose-only.
-Gateway Chapter26 manuscript/grader enhancement is underway. Its accepted
-implementation has one narrow original-grader field-spelling exception; actual
-original grading remains0/100. Public runtime, outside-client and real three-process
-interview evidence are recorded separately in the original-numbered ch27 notes.
-Later accepted code follows original exercises and independently recorded grader
-exceptions; its presence does not claim that later manuscript enhancement is done.
+Manuscript enhancement is complete through Chapter 23 and Gateway Chapter 26;
+optional Chapter 24 is complete and Chapter 25 remains reserved. Revised graders
+cover Chapters 1–18, 20–23 and 26. Gateway's accepted implementation retains its
+narrow original-grader field-spelling exception and actual original 0/100 result;
+final revised integration grading scores 100/100 on accepted and legacy source.
+Public runtime, outside-client and real three-process interview evidence retain
+their separate source versions in the original-numbered ch27 notes.
 Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Its bounded real coding
 demonstration with GPT-6 Astra/high is accepted; no original20 grader is claimed.
 Original21’s web-search exercise is independently accepted with two narrow
 exceptions; its actual original grade remains 0/100 FAIL. Live search/fetch and
 supplemental verification are recorded in the chapter review. The former original22/24 placement stops are lifted; follow the map below.
 
-The revised grader covers enhanced Chapters 1–18 and 20–23, for example:
+The revised grader covers enhanced Chapters 1–18, 20–23 and 26, for example:
 
 ```sh
 go run ./cmd/grade-edition2 -ch 4
 go run ./cmd/grade-edition2 -ch 8
 ```
 
-Later original graders retain original numbers and take the correctly mapped
-submission directory. [Chapter notes](../../docs/edition-2-notes/) and
+Original graders live under `edition-1/`, retain original numbers and take the
+correctly mapped submission directory; run them from that archived module. [Chapter notes](../docs/edition-2-notes/) and
 [`evidence/`](evidence/) also retain original numbering and actual results.
-See the [enhancement record](../../docs/edition-2-enhancement.md) for revised
+See the [enhancement record](../docs/edition-2-enhancement.md) for revised
 grader results. Do not treat accepted exceptions as passing original grades.
 
 [`history/ch05/`](history/ch05/) preserves the retired standalone original
@@ -89,11 +88,11 @@ Old reports describe the original paths and numbering at the time of their runs.
 
 Snapshot contents, nested example names and relative module replacements are
 unchanged. This table supplies their current numbering. Keep accepted snapshots
-immutable and extend `main/` for new work.
+immutable and extend top-level `agent/` for new work.
 
 ## Final chapter mapping
 
-[The authoritative map](../../docs/edition-2-chapter-map.md) absorbs exactly
+[The authoritative map](../docs/edition-2-chapter-map.md) absorbs exactly
 original Chapters 5, 22 and 24. Original 21 + 22 share `ch20`; original 23 uses
 `ch21`; original 24 + 25 share `ch22`; original 26 uses `ch23`. Original26
 was complete at original25 acceptance, and its implementation/review is complete.

@@ -113,7 +113,7 @@ reread in bounded ranges 1–260,261–520,521–end after the governing reload.
 ## Final technical reconciliation
 
 Coder freeze `dd361830`, [technical report](enhancement-19-code.md), and
-[source binding](../../solutions/edition-2/evidence/ch20/enhancement19/source.json)
+[source binding](../../solutions/evidence/ch20/enhancement19/source.json)
 preserve the original source and accepted tree. There is no grader or numeric
 score. The read-only historical audit decodes the retained five main exchanges,
 actual correlated file/command results, exact edit and complete save log. It
@@ -125,7 +125,7 @@ their original provenance; no fresh paid task or mutation sweep is claimed.
 The exact examples were executed at manuscript
 `1058dc2c2e68e73c2ae0c14c7205a5bf88717bd8f1c4fec614cca3182a442b09`.
 All five fence hashes in
-[samples.json](../../solutions/edition-2/evidence/ch20/enhancement19/samples.json)
+[samples.json](../../solutions/evidence/ch20/enhancement19/samples.json)
 were compared against the final manuscript and remain byte-identical. One is a
 historical diagnostic; the four new executable/input blocks cover build/setup,
 auth/catalog/chat, the original prompt and independent test/cmp checks. The later

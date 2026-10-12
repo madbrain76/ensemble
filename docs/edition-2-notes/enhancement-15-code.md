@@ -22,7 +22,7 @@ final handoff.
 ## Results and provenance
 
 All new artifacts are in
-[original-numbered evidence/ch16/enhancement15](../../solutions/edition-2/evidence/ch16/enhancement15).
+[original-numbered evidence/ch16/enhancement15](../../solutions/evidence/ch16/enhancement15).
 `final-source.json` binds the final command, checks, driver and test bytes.
 First green was committed at `bf0d733c` before sensitivity work. Earlier reports
 retain their own source hashes; later corrected predicates do not retroactively

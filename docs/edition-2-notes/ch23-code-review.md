@@ -68,8 +68,8 @@ credential or provider was used. The chapter explicitly warns against shared
 temporary-directory access; this is a boundary defect rather than a new policy.
 
 Reproduction and output are retained as reviewer-owned
-[probe](../../solutions/edition-2/evidence/ch23/reviewer-cache-boundary-test.go.txt)
-and [failure](../../solutions/edition-2/evidence/ch23/reviewer-cache-boundary.txt).
+[probe](../../solutions/evidence/ch23/reviewer-cache-boundary-test.go.txt)
+and [failure](../../solutions/evidence/ch23/reviewer-cache-boundary.txt).
 Coordinator received the finding and relayed the required behavior: narrow the
 allowance to actual toolchain cache paths, reject unrelated nested matching
 files, and retain Python/Git allowed-work controls. No original answer code or
@@ -83,8 +83,8 @@ name pointing outside, refusal correctly prevents execution but exposes the
 canonical sandbox root in both error and tool result. The chapter requires the
 caller's own spelling. Coordinator received this narrow finding plus the need
 for a legitimate-cwd positive control. Preserved
-[probe](../../solutions/edition-2/evidence/ch23/reviewer-cwd-refusal-test.go.txt)
-and [failure](../../solutions/edition-2/evidence/ch23/reviewer-cwd-refusal.txt)
+[probe](../../solutions/evidence/ch23/reviewer-cwd-refusal-test.go.txt)
+and [failure](../../solutions/evidence/ch23/reviewer-cwd-refusal.txt)
 use fake paths only. The coordinator reports that the student independently
 identified the same cwd leak at this point; retain both discoveries rather than
 crediting only reviewer assistance. Still pre-submission, zero formal rounds.
@@ -135,14 +135,14 @@ cwd refusal is exactly `sandbox refused "escape"`. The same focused race run
 passes all eight student sandbox tests, including real allowed Python/Git,
 relative cwd, file operations, descendant and network restrictions, credential
 separation, safe mode, web gating, state-file symlinks and media. See
-[output](../../solutions/edition-2/evidence/ch23/reviewer-final-regressions.txt)
-and [provenance](../../solutions/edition-2/evidence/ch23/reviewer-final-regressions.json).
+[output](../../solutions/evidence/ch23/reviewer-final-regressions.txt)
+and [provenance](../../solutions/evidence/ch23/reviewer-final-regressions.json).
 The complete core/optional-GUI test and vet results, final focused race check and
 empty gofmt result are retained in the student's evidence. The final API-log
 setter uses the same lock as writers; this small synchronization change does not
 create a second ownership route.
 
-Independent [live audit](../../solutions/edition-2/evidence/ch23/reviewer-live-check.json)
+Independent [live audit](../../solutions/evidence/ch23/reviewer-live-check.json)
 verified the preserved binary hash and all 12 confined plus 3 safe-mode actual
 request/completion model-effort pairs as GPT-6 Astra/high. SSE completed item
 records match all 11+3 subsequent tool results. File editing/search/listing,
@@ -174,7 +174,7 @@ Own-predecessor deltas, ordered physical / active / comment-only / blank lines:
 | Student test Go | +408 / +376 / +20 / +12 |
 | Original test Go | +1373 / +1017 / +191 / +165 |
 
-[Counting receipt](../../solutions/edition-2/evidence/ch23/reviewer-counts.json)
+[Counting receipt](../../solutions/evidence/ch23/reviewer-counts.json)
 records paths and method: lexical physical lines, inline-comment code active;
 docs/evidence/generated output excluded, tests separated. There are no source
 moves or non-Go implementation deltas; original generated `cr/io` output is

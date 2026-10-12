@@ -151,7 +151,7 @@ Coder freeze is `3cf9310237f200f66204bb7986062fdb36ffe6ec`; final author
 reconciliation is `71f119bd`. Final manuscript SHA-256
 is `933a67a7fae83951b47c64324e8be76eb8120c9cb1c8d7cd3ad3053534698b72`.
 Independently verified all four final grader hashes in
-[`final-source.json`](../../solutions/edition-2/evidence/ch16/enhancement15/final-source.json),
+[`final-source.json`](../../solutions/evidence/ch16/enhancement15/final-source.json),
 both unchanged frozen tree IDs and all eleven manuscript fences against the
 actually executed `bd2acd5c` version. Read the complete final
 [coder report](enhancement-15-code.md) and [author reconciliation](enhancement-15.md).

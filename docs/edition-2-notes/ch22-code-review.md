@@ -152,7 +152,7 @@ consistent. The visible browser trace shows prompt, Settings selection and secon
 prompt. Browser and GUI exited0 in16.34 seconds. Verified the GUI binary hash.
 The preserved first browser attempt has an empty API log and failed before
 inference because the bundled browser was absent; using installed Chrome fixed
-launch. See [reviewer receipt](../../solutions/edition-2/evidence/ch22/reviewer-live-check.json).
+launch. See [reviewer receipt](../../solutions/evidence/ch22/reviewer-live-check.json).
 
 Live cost is truthfully unknown. Known-price tests independently calculate
 per-model token-price estimates, including cache buckets, and prove that selecting
@@ -191,7 +191,7 @@ active, comment-only and blank lines. Inline-comment code remains active;
 classification is lexical, not a complexity metric. Go, JS and HTML are separate;
 examples, generated data, documentation and evidence/support files are excluded
 from production and tests. No moved source files occur in these deltas. Full
-per-file counts are in [reviewer counts](../../solutions/edition-2/evidence/ch22/reviewer-counts.json).
+per-file counts are in [reviewer counts](../../solutions/evidence/ch22/reviewer-counts.json).
 
 | Delta | Physical | Active | Comment-only | Blank |
 | --- | ---: | ---: | ---: | ---: |

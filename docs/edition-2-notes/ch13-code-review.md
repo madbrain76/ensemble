@@ -17,14 +17,14 @@ again. Speech ends without unpausing, so subsequent model-driven submission can
 be stranded behind the Agent gate. The speech-disabled passing browser test did
 not exercise this path.
 
-The independent [native-speech probe](../../solutions/edition-2/evidence/ch13/reviewer-speech-probe.json)
+The independent [native-speech probe](../../solutions/evidence/ch13/reviewer-speech-probe.json)
 ran the actual built GUI, Agent, MCP browser tunnel and Chrome with only the HTTP
 provider replaced by a small fake. The observation wrapper calls native
 `speechSynthesis.speak`; it does not fake completion. With empty input, actual
 speech ended and pause cleared. After actual `gui_input` filled `MCP submitted`,
 subsequent native speech ended but the Agent remained `paused`; human clearing
 the field released it. Native start/end events and wire trace are retained beside
-the [probe source](../../solutions/edition-2/evidence/ch13/reviewer-speech-probe.mjs).
+the [probe source](../../solutions/evidence/ch13/reviewer-speech-probe.mjs).
 This directly establishes stranded pause; the blocked next dispatch follows the
 existing gate, rather than a separately measured submit in this initial probe.
 No subjective audibility claim is made. The direct binary and browser were shut
@@ -135,7 +135,7 @@ speech subsystem. Compared with the initial submission it adds three active and
 two comment-only JavaScript lines; production Go and other boundaries are unchanged.
 
 Independently rebuilt the actual GUI and repeated the original native-speech
-interleaving. The [round-1 result](../../solutions/edition-2/evidence/ch13/reviewer-round1-speech-probe.json)
+interleaving. The [round-1 result](../../solutions/evidence/ch13/reviewer-round1-speech-probe.json)
 now records empty pause with `MCP submitted` still in the field after actual native
 speech completion; the original retained result records `paused` in the same
 situation. Empty-input speech also releases correctly. The retained script and

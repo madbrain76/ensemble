@@ -60,7 +60,7 @@ conceal an earlier forbidden effect.
 
 ## Actual results and fixture correction
 
-Evidence is [enhancement09](../../solutions/edition-2/evidence/ch10/enhancement09/).
+Evidence is [enhancement09](../../solutions/evidence/ch10/enhancement09/).
 
 | Run | Actual result |
 | --- | --- |

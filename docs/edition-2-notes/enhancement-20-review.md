@@ -192,7 +192,7 @@ remain active together for this disposition. Read both complete final reports,
 the final source delta and raw receipts; no new grader, provider or paid run.
 
 Independently verified all five hashes in
-[final-source.json](../../solutions/edition-2/evidence/ch21/enhancement20/final-source.json),
+[final-source.json](../../solutions/evidence/ch21/enhancement20/final-source.json),
 the manuscript and all 17 exact fence hashes, both recorded frozen tree IDs and
 the absence of tracked changes in those exports. Final actual full results are
 **155/155 accepted**, exit 0 in 1.490 s, and **135/155 legacy**, grade exit 1 in 1.260 s.

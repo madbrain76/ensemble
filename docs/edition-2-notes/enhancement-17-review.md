@@ -17,7 +17,7 @@ runs are **100/100 accepted, exit 0, 0.984 seconds**, and **85/100 legacy, exit 
 race passes in 1.529 seconds; vet passes. The reviewer independently verified
 the four grader hashes, original chapter/grader hashes, both unchanged frozen
 trees, both final-run bindings, manuscript and all nine exact fence hashes.
-The [final reviewer receipt](../../solutions/edition-2/evidence/ch18/enhancement17/reviewer-final-check.json)
+The [final reviewer receipt](../../solutions/evidence/ch18/enhancement17/reviewer-final-check.json)
 also verifies the actual sample request bodies and meter arithmetic.
 
 The legacy explanation is accepted narrowly: its declared historical tariff
@@ -205,7 +205,7 @@ Corrected grader SHA `d93517af31d2d7ca28bcaeda9a74c59104025ab646e057969f7e75e829
 passes all three cases, with the intended duplicate-pair diagnostic. This checks
 the grader's artifact predicate; it is not another live runtime or cache-grant
 demonstration. Source, commands and full output are in
-[`reviewer-rotation.json`](../../solutions/edition-2/evidence/ch18/enhancement17/reviewer-rotation.json)
+[`reviewer-rotation.json`](../../solutions/evidence/ch18/enhancement17/reviewer-rotation.json)
 and adjacent reviewer-prefixed files.
 
 Final samples, sensitivity classification, frozen source binding and author

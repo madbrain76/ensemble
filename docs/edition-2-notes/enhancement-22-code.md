@@ -15,7 +15,7 @@ results. No original grader, frozen runtime or current main/crossover file chang
 Sources are direct `solutions/edition-2/ch22` tree
 `30fb05d154b9808eb88622aaff9c1424cd7e8af1` and legacy `solutions/ch25` tree
 `43b66f047c6ba6885b4a26371df5af2ac6177b31`. Evidence lives in
-[`enhancement22`](../../solutions/edition-2/evidence/ch25/enhancement22/).
+[`enhancement22`](../../solutions/evidence/ch25/enhancement22/).
 `final-source.json` binds all six command/grader/template/test files, both frozen
 trees and the measured manuscript. `accepted-final22.json` and
 `legacy-final22.json`, their stderr and `*-run.json` files retain exact commands,

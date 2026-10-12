@@ -31,7 +31,7 @@ identity or expose the Ref inside the reduced Context. Exact reduced Ref and
 append-only preservation remain covered by accepted source tests
 `TestRefCarryforwardAndMissingCallIDs` and
 `TestReducerStateAndRedactionReplay`, plus their independently reviewed mutations
-in [the original record](../../solutions/edition-2/evidence/ch02/mutations.txt).
+in [the original record](../../solutions/evidence/ch02/mutations.txt).
 No locator rendering or context-dump command was invented to expose internal state.
 
 Source: original Chapter 2 revision
@@ -145,7 +145,7 @@ new offline sample observations, distinct from historical live byte counts.
 No runtime behavior changed, so the already reviewed three-provider human-chat,
 ephemera and nine-way live-log replay evidence remains applicable. Its provenance,
 initial OpenAI 404 and ephemera self-correction limitation remain in
-[the student record](ch02.md) and [live evidence](../../solutions/edition-2/evidence/ch02/live.txt).
+[the student record](ch02.md) and [live evidence](../../solutions/evidence/ch02/live.txt).
 No new live-model or media capability is claimed.
 
 ## Size and simplicity

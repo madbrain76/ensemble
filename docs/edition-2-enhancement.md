@@ -1,5 +1,28 @@
 # Edition 2: chapter enhancement
 
+## October 12: Edition 2 is the current top-level tree
+
+Promotion commit `564e316f` moves the accepted second edition to `agent/`,
+`book/` and `solutions/chNN/`. The first edition, frozen through original
+Chapter 27, is preserved in `edition-1/`, including its original graders.
+Develop current application code in `agent/`; do not edit frozen snapshots.
+Current grading uses `cmd/grade-edition2`; original grading runs from `edition-1/`.
+
+Gateway implementation and prose/grader enhancement are accepted as current
+Chapter 26. Optional Chapter 24 is complete; crossover Chapter 25 remains a
+placeholder. Publication preparation is active, with crossover begun rather
+than complete. Preserve Bill's unfinished crossover edits and historical results.
+See `docs/edition-2-publication.md` (repository-root path) for relocation and checks.
+
+This current path/phase declaration supersedes older dated instructions below.
+Their literal command paths and source identities describe the runs at that time;
+relative evidence links have been redirected to the relocated artifacts. In
+historical student restrictions, old `agent/` means today's `edition-1/agent/`,
+and old `solutions/edition-2/main/` means today's `agent/`. No older instruction
+to start from empty, stop at an earlier chapter or use the retired author-first
+workflow is reactivated by this move. All architecture, full-context reading,
+independent review and preservation rules remain in force.
+
 ## October 12: Gateway enhancement accepted; publication preparation released
 
 Independent combined review `63709086` accepts author `35930f10` and coder
@@ -306,7 +329,7 @@ No publication or push is authorized by this authoring pass.
 accepted Edition 2 solutions directly in `solutions/edition-2/chNN/`, with only
 retired original `history/ch05/` retained and no symlinks. The older archive
 layout described below is preserved in Git checkpoints, not the current tree.
-See the [current mapping](../solutions/edition-2/README.md). New original
+See the [current mapping](../solutions/README.md). New original
 Chapters 10–13 have been moved to Edition 2 `ch09`–`ch12`; future accepted
 solutions continue that numbering directly at the top level.
 
@@ -317,9 +340,9 @@ Authorized by Bill on October 10, 2026, after acceptance of original Chapters
 historical exports separately and aligning the reader solutions with this book:
 old `ch05` becomes `ch04`, and old `ch06`–`ch09` become `ch05`–`ch08`.
 Original `ch04`–`ch09` are preserved byte for byte in
-[`solutions/edition-2/history/`](../solutions/edition-2/history/); Chapters 1–3,
+[`solutions/edition-2/history/`](../solutions/history/); Chapters 1–3,
 `main/`, evidence numbering and all existing tags remain unchanged. The
-[solution mapping](../solutions/edition-2/README.md) identifies current paths
+[solution mapping](../solutions/README.md) identifies current paths
 and historical checkpoints. The dated reports below retain their original path
 meanings. This later authorization supersedes the earlier instruction to retain
 snapshot locations; it does not authorize changing their runtime content.

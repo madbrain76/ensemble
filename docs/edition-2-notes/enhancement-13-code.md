@@ -25,7 +25,7 @@ The complete student/comparative records are [ch14.md](ch14.md) and
 ## Corrections and measurements
 
 All new receipts are in
-[`evidence/ch14/enhancement13`](../../solutions/edition-2/evidence/ch14/enhancement13).
+[`evidence/ch14/enhancement13`](../../solutions/evidence/ch14/enhancement13).
 `probe.go.txt` collects the actual focused check array: its exit0 means collection
 succeeded, not that every check passed. The committed regression test asserts
 all checks instead.

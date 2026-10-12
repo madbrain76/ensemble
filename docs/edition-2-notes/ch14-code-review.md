@@ -22,7 +22,7 @@ Independently reproduced through the actual GUI and peer, without a provider
 request: initialized idle peer exits **125 ms** after EOF; a peer in a **4000 ms**
 sleep exits **3865 ms** after EOF, essentially the remaining timer duration.
 Both exit zero, and the positive control rules out general launch/teardown delay.
-The [result](../../solutions/edition-2/evidence/ch14/reviewer-peer-eof.json)
+The [result](../../solutions/evidence/ch14/reviewer-peer-eof.json)
 includes revision and source hashes; the adjacent `.mjs` preserves the probe.
 The latter observation is not a permanent hang claim; source establishes that
 longer requested sleeps retain the same unbounded final wait.
@@ -144,7 +144,7 @@ justified by the two observed cleanup boundaries, without a testing framework.
 Repeated the original independent real-GUI/peer probe on corrected source:
 idle EOF exits in **126 ms**; EOF during a **4000 ms** sleep exits in **127 ms**,
 both zero, compared with the initial pending-sleep **3865 ms**. The
-[round-1 receipt](../../solutions/edition-2/evidence/ch14/reviewer-round1-peer-eof.json)
+[round-1 receipt](../../solutions/evidence/ch14/reviewer-round1-peer-eof.json)
 preserves exact revision/hashes and observations; its adjacent script retains
 the invocation. Reviewer processes and scratch are cleaned up.
 

@@ -73,8 +73,8 @@ also exercise missing-version evidence and preserve the six unrelated checks.
 Scratch source was removed after verification. The authoritative export never
 changed; `git diff --quiet` verified the export and original grader paths.
 
-Unchanged behavior reuses the [original mutation record](../../solutions/edition-2/evidence/ch01/mutations.txt)
-and [live chat transcript](../../solutions/edition-2/evidence/ch01/live.txt),
+Unchanged behavior reuses the [original mutation record](../../solutions/evidence/ch01/mutations.txt)
+and [live chat transcript](../../solutions/evidence/ch01/live.txt),
 already independently reviewed. No new paid live run was needed for an offline
 grader correction. No mocks were introduced. Architecture, comment assessment,
 and production/test counts remain those of the historical code review; this

@@ -195,7 +195,7 @@ existing-browser option was used; no browser-download execution is invented.
 The reviewer also independently reconstructed the retained live transcript lists
 from actual call-ID-correlated results:2/3/11 entries, matching the historical
 summaries and their target-content limitations. No paid freshness repeat is needed.
-See [the independent artifact receipt](../../solutions/edition-2/evidence/ch14/enhancement13/reviewer-artifact-check.json).
+See [the independent artifact receipt](../../solutions/evidence/ch14/enhancement13/reviewer-artifact-check.json).
 
 Counting nonblank, non-`//`-only Go lines gives the new driver309 active,
 42 comment-only and364 physical lines; its real-command test is16/2/20.

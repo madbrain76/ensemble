@@ -172,7 +172,7 @@ browser/native-speech controls still establish the provenance/whitespace/submit
 and other-tab unpause properties outside the numeric stdio checks. Historical
 paid captures retain their earlier source and task limitations.
 
-Independent [artifact audit](../../solutions/edition-2/evidence/ch13/enhancement12/reviewer-artifact-check.json)
+Independent [artifact audit](../../solutions/evidence/ch13/enhancement12/reviewer-artifact-check.json)
 checks all16 exact manuscript fence hashes, both four-request sample captures,
 51 GUI frames, correlated results, fresh changed peer state, frozen manuals and
 post-unload absence. The11 RPC envelopes contain initialization/discovery and

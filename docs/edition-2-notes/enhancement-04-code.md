@@ -2,7 +2,7 @@
 
 > Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
 > original student numbering. Those exports are now preserved under
-> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/README.md).
 
 Coder: `enhancement_coder_resumed`, October 10, 2026. Mandatory handoff:
 `.agents/skills/ensemble-coding/SKILL.md`. Submitted for independent review;

@@ -124,7 +124,7 @@ protocol or changed runtime requirement. That exact command now passes.
 No further author compaction occurred after the complete reload recorded above;
 all four full documents remain active together. Manuscript SHA-256 is
 `37ece94fb7c0cf0a3706dad8cd877d5238cb0e4c23b76455995787ed25a6e453`,
-matching [samples.json](../../solutions/edition-2/evidence/ch12/enhancement11/samples.json).
+matching [samples.json](../../solutions/evidence/ch12/enhancement11/samples.json).
 The narrow command clarification is committed at `139d6922`; no subsequent
 manuscript edit was needed for technical validation. Hard prose lint passes
 at 2896 words, with the stated soft warnings.
@@ -150,8 +150,8 @@ Actual full revised commands, read from their retained receipts:
 | Original `solutions/ch12` | `go run ./cmd/grade-edition2 -ch 11 -json -gui solutions/ch12 solutions/ch12` | 30/100, exit 1, 15.074 seconds |
 
 Both totals are actual full runs, unlike an explicitly composed score. Raw
-[accepted](../../solutions/edition-2/evidence/ch12/enhancement11/accepted-full.json)
-and [legacy](../../solutions/edition-2/evidence/ch12/enhancement11/legacy-full.json)
+[accepted](../../solutions/evidence/ch12/enhancement11/accepted-full.json)
+and [legacy](../../solutions/evidence/ch12/enhancement11/legacy-full.json)
 reports retain each check; adjacent `*-full-run.json` files record command,
 elapsed time and exit. These results do not revise the original interrupted
 full run or interim 80/90 student probe.
@@ -174,7 +174,7 @@ the final `auto_broken` matched. The original failing `initial-baseline.txt`
 and passing `corrected-baseline.txt` remain separate; the correction changes
 the fixture to the existing syntax, without weakening tool admission.
 
-The [mutation receipt](../../solutions/edition-2/evidence/ch12/enhancement11/mutations.json)
+The [mutation receipt](../../solutions/evidence/ch12/enhancement11/mutations.json)
 records 22 distinct targeted defects failing their intended checks, with restored
 control passing. Some defects cause related downstream failures; the count is
 not 22 independent proofs or complete coverage. Existing source/browser evidence
@@ -183,10 +183,10 @@ speech obligations described in the manuscript. Frozen runtimes, original
 graders and historical paid/browser receipts remain unchanged.
 
 Read the complete final coder report and
-[validation](../../solutions/edition-2/evidence/ch12/enhancement11/validation.json).
+[validation](../../solutions/evidence/ch12/enhancement11/validation.json).
 The affected grader race check, command build, vet and formatting pass; the
 command package has no tests. Verified every file hash and both frozen Git
-tree IDs in [final-source.json](../../solutions/edition-2/evidence/ch12/enhancement11/final-source.json)
+tree IDs in [final-source.json](../../solutions/evidence/ch12/enhancement11/final-source.json)
 against the current files/HEAD. Tested grader behavior is checkpoint `0b9a9abe`;
 subsequent grader changes are explanatory comments only. All manuscript links
 now resolve. The preserved full legacy parity report includes inherited

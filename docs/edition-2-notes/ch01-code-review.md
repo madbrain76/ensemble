@@ -89,7 +89,7 @@ uncached `go test -count=1 ./...` passed; the original
 **476 input / 65 output**. The coordinator also recorded the original reference
 baseline at 100/100.
 
-Read all [mutation evidence](../../solutions/edition-2/evidence/ch01/mutations.txt):
+Read all [mutation evidence](../../solutions/evidence/ch01/mutations.txt):
 30 distinct mutations, 31 student executions, with the initial version-header
 survivor honestly preserved. Independently reproduced that exact mutant in a
 temporary copy: the original grader still scores 100/100, while the added test
@@ -105,7 +105,7 @@ which is a valid behavioral rejection rather than a compile/setup failure.
 Timeout/cancellation sensitivity and future nontext handling remain explicitly
 unproven, as the student states; they are not silently included in the evidence.
 
-The [live transcript](../../solutions/edition-2/evidence/ch01/live.txt) documents
+The [live transcript](../../solutions/evidence/ch01/live.txt) documents
 model discovery followed by three actual PTY `chat` turns, retained “Copper
 Finch,” visible cumulative usage ending at **350/33**, and clean Ctrl-D exit.
 It also preserves the initial launcher-EOF mistake. I accept this student-run

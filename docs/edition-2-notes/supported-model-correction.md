@@ -46,7 +46,7 @@ HTTP parsing, GUI and browser paths with fakes only at external boundaries.
 ## Actual validation
 
 Raw outputs and SHA-256 bindings are in
-[`supported-model-correction`](../../solutions/edition-2/evidence/supported-model-correction).
+[`supported-model-correction`](../../solutions/evidence/supported-model-correction).
 
 | Check | Actual result |
 | --- | --- |

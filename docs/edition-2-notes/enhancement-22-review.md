@@ -183,7 +183,7 @@ fleet 100. No new full or legacy run is claimed.
 ### Bindings, examples and inherited limits
 
 The independent read-only receipt is
-[reviewer-final-check.json](../../solutions/edition-2/evidence/ch25/enhancement22/reviewer-final-check.json).
+[reviewer-final-check.json](../../solutions/evidence/ch25/enhancement22/reviewer-final-check.json).
 It verifies six source hashes, all 16 published fences, both unchanged tracked
 frozen trees and all 12 claimed inherited source-file identities directly against
 historical Git blobs. Actual samples contain 22 main requests and four auxiliary

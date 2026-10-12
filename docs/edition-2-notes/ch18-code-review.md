@@ -57,8 +57,8 @@ Independently read complete unchanged `ch18_harness.go`, `ch18_run.go` and
 `7436fcb35ef54e2996114a2d3fe68fae4cfac82e`, main tree
 `05e0d2e92a9f70f5d2433af76c1a3cbf5208b493`. The actual completed original result
 is **0/100 FAIL**, grader exit1/make exit2, 13:34:32–13:34:54 UTC. See
-[output](../../solutions/edition-2/evidence/ch18/original-grade.txt) and
-[provenance](../../solutions/edition-2/evidence/ch18/original-grade-provenance.json),
+[output](../../solutions/evidence/ch18/original-grade.txt) and
+[provenance](../../solutions/evidence/ch18/original-grade-provenance.json),
 output SHA-256 `82053233f0bfdee03295053fdbb7b400df3f1406bc056db4de4e26e1e3a3dbe1`.
 No reviewer grader or behavioral probe ran. Final student evidence is pending.
 
@@ -199,7 +199,7 @@ request's observations, with meaningful overlap and restored-defect checks.
 No particular API shape, global lock or new feature is prescribed.
 
 Exact probe sources, stdout/stack, source provenance and commands are preserved
-in [reviewer-overlap.json](../../solutions/edition-2/evidence/ch18/reviewer-overlap.json)
+in [reviewer-overlap.json](../../solutions/evidence/ch18/reviewer-overlap.json)
 and its linked sibling `reviewer-*-probe.go.txt`/`reviewer-*.txt` artifacts. Only
 external HTTP/log/observation boundaries are gated; the real Agent, Engine,
 parser, interruption and cache lens execute. Student production is untouched.
@@ -224,7 +224,7 @@ Counts are changed tracked source-file totals, excluding blanks/comment-only lin
 from active counts; embedded prompt strings remain active. Package moves cancel
 in net totals. Logs, generated output, binaries, manifests, module metadata and
 external review/live scripts are excluded. The restored `cmd/virtual-user`
-example is separate. [Measured counts](../../solutions/edition-2/evidence/ch18/reviewer-comparison-counts.json)
+example is separate. [Measured counts](../../solutions/evidence/ch18/reviewer-comparison-counts.json)
 preserve physical totals and method; these are not measures of compiled size.
 
 | Own-predecessor net delta | Active | Comment-only | Physical |
@@ -318,7 +318,7 @@ student-adapted tests used `cacheGateWriter`; retain this setup error, not a
 behavioral failure. For the independent run only the colliding student test file
 was excluded in scratch; then it was restored and reviewer files excluded for
 the separate student run. Product source was unchanged throughout. See
-[round1 independent receipt](../../solutions/edition-2/evidence/ch18/reviewer-round1.json)
+[round1 independent receipt](../../solutions/evidence/ch18/reviewer-round1.json)
 and its output files. Scratch source is removed and no reviewer process remains.
 
 The student's three restored-defect results are meaningful: removing locking

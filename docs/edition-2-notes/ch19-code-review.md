@@ -155,8 +155,8 @@ original22/24 stops. Await frozen submission for formal comparative review.
 October11 independent evidence check. The unchanged original command completed
 on `06cbf20000cf3592ac2966a1041ece12b33dbc04`, main tree
 `c550fa3c13faec59268cc8d7486a6ed8f590d68f`: **15/100 FAIL**, grader exit1,
-make exit2. Read [raw output](../../solutions/edition-2/evidence/ch19/original-grade.txt)
-and [provenance](../../solutions/edition-2/evidence/ch19/original-grade-provenance.json),
+make exit2. Read [raw output](../../solutions/evidence/ch19/original-grade.txt)
+and [provenance](../../solutions/evidence/ch19/original-grade-provenance.json),
 independently matched the recorded source tree and raw SHA-256
 `bd940a590b17495f5789b0a6e39fa9c825e7e7997d5151ca83a3c914f92e1a6a`.
 Coordinator retained these at d44532b. No repeat was run.
@@ -216,7 +216,7 @@ output array. The current parser ignores the completed item and obtains final
 parts only from that empty terminal array. Correcting delivery detection alone
 therefore cannot complete the tool loop.
 
-The [independent probe](../../solutions/edition-2/evidence/ch19/reviewer-plan-wire-probe.go.txt)
+The [independent probe](../../solutions/evidence/ch19/reviewer-plan-wire-probe.go.txt)
 uses an isolated exact `dc74e25` archive, the real public Ensemble/Agent/Engine,
 and an external HTTP server replaying those captured bytes. Under a controlled
 application/json header it reproduces `invalid Responses response`; changing only
@@ -224,7 +224,7 @@ the header to text/event-stream produces `Responses response has no content`.
 A positive control copies the already-completed item into the terminal output and
 succeeds. These controlled headers are not claims about an unrecorded production
 header. Preserve that distinction until the coder recovers exact header evidence.
-The [receipt](../../solutions/edition-2/evidence/ch19/reviewer-initial-probe.json)
+The [receipt](../../solutions/evidence/ch19/reviewer-initial-probe.json)
 records source/body hashes, commands and observations. Its PASS means both defects
 and their control were reproduced, not that the submitted parser passes review.
 
@@ -259,7 +259,7 @@ departure. It does not authorize another billing source or establish a cache gra
 
 ### Comparison, KISS and documentation
 
-[Counts](../../solutions/edition-2/evidence/ch19/reviewer-counts.json) use tracked
+[Counts](../../solutions/evidence/ch19/reviewer-counts.json) use tracked
 source lines, excluding blanks/comment-only lines from active code; inline
 comments remain active. Tests, languages and example commands are separate;
 module files, Markdown/design documents, runtime artifacts and support evidence
@@ -352,8 +352,8 @@ regression. Replacing only obsolete expectations with successful completion and
 adding exact captured call-ID/read_file and usage831/20 assertions passes.
 Together with the real-Agent captured-tool/result regression, misleading-header
 summary gate and incomplete/failed completion checks, the focused race run passes
-**1.125s**. See [the round1 receipt](../../solutions/edition-2/evidence/ch19/reviewer-round1-probe.json)
-and [updated success assertions](../../solutions/edition-2/evidence/ch19/reviewer-round1-plan-wire-probe.go.txt).
+**1.125s**. See [the round1 receipt](../../solutions/evidence/ch19/reviewer-round1-probe.json)
+and [updated success assertions](../../solutions/evidence/ch19/reviewer-round1-plan-wire-probe.go.txt).
 One initial launch used a nonexistent placeholder scratch directory and executed
 no test; the corrected path produced the recorded results. Both reviewer scratch
 archives were removed afterward.
@@ -387,7 +387,7 @@ with the missing-type grader and paired plan-cache exceptions stated above,
 after one correction round.** No current implementation finding remains open.
 Original grading remains **15/100 FAIL on06cbf20**, never a final-source pass.
 
-The [independent final live check](../../solutions/edition-2/evidence/ch19/reviewer-round1-live-check.json)
+The [independent final live check](../../solutions/evidence/ch19/reviewer-round1-live-check.json)
 verifies two actual completed plan responses, the correlated read_file result in
 request2 and the valid optimal makespan13 answer. Both requests select
 GPT-6.1-Sol/high/detailed, store:false, stream:true and omit the paired explicit

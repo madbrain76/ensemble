@@ -88,12 +88,12 @@ The original-relative reading and complete correction diff were inspected;
 `git diff --check` passes. The chapter retains its original section sequence,
 with the previously authorized runnable section after the historical live account.
 
-The coder's [new sample receipt](../../solutions/edition-2/evidence/supported-model-correction/samples.json)
+The coder's [new sample receipt](../../solutions/evidence/supported-model-correction/samples.json)
 binds that exact manuscript. The changed Sonnet-5 launch passes through the real
 GUI with the existing external HTTP fake: seven completed turns, sixteen actual
 requests, six successful correlated reads, six recorded redactions, one handoff,
 load/unload and normal exit zero. The author inspected the runner, receipt and
-[captured requests](../../solutions/edition-2/evidence/supported-model-correction/samples-requests.json):
+[captured requests](../../solutions/evidence/supported-model-correction/samples-requests.json):
 all sixteen select `claude-sonnet-5`; first successful result deliveries occur
 at requests 3/5/7/9/11/13. The final request has the manual and checkpoint once,
 and only the four lifecycle/context tools remain declared. This verifies model
@@ -176,7 +176,7 @@ tree were rechecked during this author pass.
 Original grading remains **45/100 FAIL**, make exit 2/grader exit 1, on initial
 `165ee52424634d4e848c257a6a63745fed4d1cb4`, not the corrected accepted source.
 The author inspected the raw score/failure block and
-[provenance](../../solutions/edition-2/evidence/ch15/original-grade-provenance.json).
+[provenance](../../solutions/evidence/ch15/original-grade-provenance.json).
 Three failures follow a fixture's wrong settings path; the intended small target
 never reaches the Agent. A fourth asks for undefined `think`. Handoff 15, keep 10,
 crash 15 and reducer 5 produce the actual 45. Those awards do not independently
@@ -267,9 +267,9 @@ the planted filler. This supports the manuscript's specific contradiction rather
 than a universal claim about model memory. Repeated rendered stubs are copies
 across requests, not a count of distinct redaction events.
 
-Read [initial independent probes](../../solutions/edition-2/evidence/ch15/reviewer-probes.json),
-[round-one verification](../../solutions/edition-2/evidence/ch15/reviewer-round1.json)
-and [restored-defect result](../../solutions/edition-2/evidence/ch15/round1-mutation.json).
+Read [initial independent probes](../../solutions/evidence/ch15/reviewer-probes.json),
+[round-one verification](../../solutions/evidence/ch15/reviewer-round1.json)
+and [restored-defect result](../../solutions/evidence/ch15/round1-mutation.json).
 Initial prefix/MCP/replay checks passed a permissive fake; adding faithful
 placement rejected roles user/assistant/user/system/user. Corrected source stages
 declarations after ephemera, producing user/assistant/user/system. Restoring the
@@ -315,7 +315,7 @@ These are prose corrections; exact sample bytes remain unchanged.
 
 ## Exact sample reconciliation
 
-The coder's [sample receipt](../../solutions/edition-2/evidence/ch15/enhancement14/samples.json)
+The coder's [sample receipt](../../solutions/evidence/ch15/enhancement14/samples.json)
 binds unchanged manuscript SHA `55e3a4a4900f8cfbd10b65aa58ce000435d7f404129937b1c02394c8095cf816`.
 The exact published optional-GUI build/launch, both complete skills, Python
 records/settings and seven human prompts run through the actual application
@@ -324,14 +324,14 @@ model. The process exits zero after 16 requests, six successful reads, six
 recorded cuts and one handoff. This is executable sample evidence, not a paid
 run, model-quality finding or native-browser replay.
 
-The author independently inspected [captured requests](../../solutions/edition-2/evidence/ch15/enhancement14/samples-requests.json),
+The author independently inspected [captured requests](../../solutions/evidence/ch15/enhancement14/samples-requests.json),
 correlating calls and results: requests 3/5/7/9/11/13 first carry the six successful
 record results with their exact path and code. The last request retains the
 manual once and the checkpoint note, while its declaration array contains only
 micro_handoff, keep_tool_results, load_skill and unload_skill. The sample has
 actually removed the file reader rather than merely saying it did.
 
-The [Go receipt](../../solutions/edition-2/evidence/ch15/enhancement14/samples-go.txt)
+The [Go receipt](../../solutions/evidence/ch15/enhancement14/samples-go.txt)
 shows the vocabulary snippet compiling and the exact survivor/replay excerpts
 running in their actual owning packages with Context tests passing. Historical
 fragments remain labeled as historical; no old API is revived. No manuscript

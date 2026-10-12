@@ -2,7 +2,7 @@
 
 > Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
 > original student numbering. Those exports are now preserved under
-> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/README.md).
 
 Reviewer: `review_restart_ch01`, October 9, 2026. **Accepted with documented
 exceptions at initial review; zero correction rounds used.** Actual original

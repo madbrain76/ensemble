@@ -2,7 +2,7 @@
 
 > Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
 > original student numbering. Those exports are now preserved under
-> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/README.md).
 
 **Final verdict: accepted with documented exceptions after correction round 1
 (one of three rounds used).** Actual original grading remains **80/100 FAIL**.
@@ -165,7 +165,7 @@ do not establish acceptance, particularly with the completion capability missing
 
 Independent formatting, vet and uncached race tests passed in all four modules.
 The independent original grader returned **80/100 FAIL**, matching the retained
-[student result](../../solutions/edition-2/evidence/ch06/grade-final.txt).
+[student result](../../solutions/evidence/ch06/grade-final.txt).
 Original frozen-reference baseline was coordinator-observed **100/100 PASS**.
 
 The student's 29 runnable mutation records show intended assertion/liveness
@@ -281,12 +281,12 @@ I independently ran the focused media race test: PASS. In a temporary copy,
 the original `mimeType` → `wrongMimeType` survivor now fails all four Gemini
 cases at the intended MIME assertion, exit 1, with no race, panic, compilation
 failure or unrelated cleanup problem. Inspected the complete
-[round 1 mutation output](../../solutions/edition-2/evidence/ch06/revision-1-mutations.txt):
+[round 1 mutation output](../../solutions/evidence/ch06/revision-1-mutations.txt):
 the separate `data` → `wrongData` mutation likewise fails the intended decoded-byte
 assertion. The original survivor remains a recorded coverage failure; the repair
 does not rewrite that result. Temporary copies were removed.
 
-The student's [round 1 checks](../../solutions/edition-2/evidence/ch06/revision-1-checks.txt)
+The student's [round 1 checks](../../solutions/evidence/ch06/revision-1-checks.txt)
 show empty formatting output, successful core vet and the full uncached core race
 suite. No executable production behavior changed, so the initial independent
 four-module checks, actual original grader result and retained three-provider

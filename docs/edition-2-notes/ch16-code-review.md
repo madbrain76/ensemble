@@ -89,8 +89,8 @@ Final provider, mutation and live evidence remains pending. No formal review
 round or chapter acceptance begins here; no grader/live call was repeated.
 
 The original grader completed **20/100 FAIL**, grader exit1 / make exit2, on
-that intermediate source. The committed [provenance](../../solutions/edition-2/evidence/ch16/original-grade-provenance.json)
-and [output](../../solutions/edition-2/evidence/ch16/original-grade.txt) are from
+that intermediate source. The committed [provenance](../../solutions/evidence/ch16/original-grade-provenance.json)
+and [output](../../solutions/evidence/ch16/original-grade.txt) are from
 `bd4213bf0d52adafc5d9bc6b5112416201da7aea`; output SHA-256 is
 `6be427fd976941c65c215f09d8332ec0eba2fe83ef03a0a57132d422ce06ca5d`.
 
@@ -182,13 +182,13 @@ apply/broadcast with subscription is valid, as is the new requirement that an
 idle settings acknowledgment follow its effective content change; neither
 justifies blocking the actor's progress behind this cycle.
 
-The independent [bounded real-runtime probe](../../solutions/edition-2/evidence/ch16/reviewer-gui-lock_test.go.txt)
+The independent [bounded real-runtime probe](../../solutions/evidence/ch16/reviewer-gui-lock_test.go.txt)
 ran in an isolated `git archive` of the exact frozen submission. It uses the
 existing public-root/Agent/GUI/WebSocket helpers and a small HTTP SSE provider
 fake; no internal behavior was mocked or production source changed. An idle
 patch was acknowledged. After a real `part_delta`, the ninth active-response
 patch timed out; cleanup then blocked and the whole test ended at its 12-second
-bound. The [complete stack](../../solutions/edition-2/evidence/ch16/reviewer-gui-lock.txt)
+bound. The [complete stack](../../solutions/evidence/ch16/reviewer-gui-lock.txt)
 shows the WebSocket handler waiting in `SetMemorySettings` while holding the
 GUI lock and the actor waiting in `ObserveAgent` for that lock. This is observed
 liveness failure, not an inferred race or a timeout excused as flaky.
@@ -217,7 +217,7 @@ overall ownership design needs replacement.
 Independent counts use tracked files at the recorded commits: physical lines,
 active lines excluding blank/comment-only lines, and comment-only lines. Inline
 comments count as active; the simple lexical method and full categories are in
-[reviewer-counts.json](../../solutions/edition-2/evidence/ch16/reviewer-counts.json).
+[reviewer-counts.json](../../solutions/evidence/ch16/reviewer-counts.json).
 Each delta is against that edition's own predecessor, not mismatched tree totals.
 
 | Chapter delta | Physical | Active | Comment-only |
@@ -257,7 +257,7 @@ Bill's corrected forcing contract. None introduces a later capability.
 
 The independent final-source memory race run passes:
 `go test -race ./ensemble -run '^TestMemory' -count=1 -timeout=45s`,
-`ensemble/ensemble` 1.773s. [Probe provenance](../../solutions/edition-2/evidence/ch16/reviewer-initial-probes.json)
+`ensemble/ensemble` 1.773s. [Probe provenance](../../solutions/evidence/ch16/reviewer-initial-probes.json)
 records commands, source tree and artifact hashes. This run includes the new
 ordinary enabled-band restart regression: offline restoration retains recorded
 bytes, then actual startup rereads the human-edited file without duplicating its
@@ -347,8 +347,8 @@ existing settings wire/disk test together under race detection. All three pass:
 original probe 0.61s, settings wire/disk 0.01s, gated regression 0.03s; package
 1.661s, exit0. Active updates reach both clients with effective Agent values,
 fresh subscription sees the final value, streaming ends and Agent shutdown
-returns. [Raw output](../../solutions/edition-2/evidence/ch16/reviewer-round1.txt)
-and [source/command provenance](../../solutions/edition-2/evidence/ch16/reviewer-round1.json)
+returns. [Raw output](../../solutions/evidence/ch16/reviewer-round1.txt)
+and [source/command provenance](../../solutions/evidence/ch16/reviewer-round1.json)
 preserve these observations. The coder's full GUI tests, vet and GUI race pass
 are separate affected-module evidence. No paid or original-grader repeat was
 needed; no shared product source was modified by the reviewer.

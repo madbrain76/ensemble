@@ -50,13 +50,13 @@ headless source before final GUI changes. The omitted skill type prevents startu
 particular MCP method-name expectations reject a different public implementation.
 Original unload is a structural detector rather than an actual unload operation.
 These justified exceptions cannot stand in for runtime proof or waive the real
-speech/input defect. [Provenance](../../solutions/edition-2/evidence/ch13/original-grade-provenance.json)
-and [raw output](../../solutions/edition-2/evidence/ch13/original-grade.txt) remain.
+speech/input defect. [Provenance](../../solutions/evidence/ch13/original-grade-provenance.json)
+and [raw output](../../solutions/evidence/ch13/original-grade.txt) remain.
 
 The retained live captures are October10 local-time browser sessions with real
 Chrome and `claude-haiku-5-5`, `gpt-4o-mini`, `gemini-3.8-flash`: respectively
 4,3,6,4 captured requests for Claude, initial OpenAI, guided OpenAI and Gemini.
-[Live assessment](../../solutions/edition-2/evidence/ch13/live-summary.json) agrees
+[Live assessment](../../solutions/evidence/ch13/live-summary.json) agrees
 with the captured tool calls, final replies and browser observations. Claude and
 Gemini change the effective font and unload; Claude's subsequent retention claim
 is false. Both OpenAI attempts remain task failures, including guided forbidden
@@ -66,9 +66,9 @@ paid repeat is claimed. Live precedes the final native-speech correction, two
 unused grant-spelling fixes, and (Claude/initial OpenAI) unload-message correction.
 Applied/effective font is not evidence of restart persistence.
 
-Native speech evidence remains separate: [initial independent failure](../../solutions/edition-2/evidence/ch13/reviewer-speech-probe.json),
-[corrected independent probe](../../solutions/edition-2/evidence/ch13/reviewer-round1-speech-probe.json),
-and [restored seven-control run](../../solutions/edition-2/evidence/ch13/round1-speech-restored.json).
+Native speech evidence remains separate: [initial independent failure](../../solutions/evidence/ch13/reviewer-speech-probe.json),
+[corrected independent probe](../../solutions/evidence/ch13/reviewer-round1-speech-probe.json),
+and [restored seven-control run](../../solutions/evidence/ch13/round1-speech-restored.json).
 The same programmatic `MCP submitted` text stays after native speech; pause changes
 from `paused` to empty with the corrected cause tracking. Actual submission and
 concluding speech also pass. The second tab closes after explicit global-unpause
@@ -173,7 +173,7 @@ No sample or prose correction was needed after the initial ready draft. Direct
 hard lint remains the recorded5273-word pass. The independent preliminary prose
 review finds no blocker; the combined acceptance decision belongs to the reviewer.
 
-Read [exact-sample results](../../solutions/edition-2/evidence/ch13/enhancement12/samples.json)
+Read [exact-sample results](../../solutions/evidence/ch13/enhancement12/samples.json)
 and inspected both raw four-request captures. Actual published core and separate
 GUI build/launch commands exit0. The core uses the documented stdio server-entry
 substitution with the exact remaining skill/manual bytes and prompt. The GUI uses
@@ -193,8 +193,8 @@ corrections, with exact source delta retained. The final affected runs return
 **90/90** accepted and **75/90** legacy for current checks; combined with unchanged
 measured full-run parity10/10 and0/10, the final **composed** totals are100/100 and
 75/100. These are not additional full runs or final-source timings. See
-[source binding](../../solutions/edition-2/evidence/ch13/enhancement12/source-binding.json)
-and [final affected checks](../../solutions/edition-2/evidence/ch13/enhancement12/final-affected-checks.json).
+[source binding](../../solutions/evidence/ch13/enhancement12/source-binding.json)
+and [final affected checks](../../solutions/evidence/ch13/enhancement12/final-affected-checks.json).
 The author independently matched all four final grader source hashes in that
 binding to disk. Frozen accepted and legacy trees remain unchanged.
 

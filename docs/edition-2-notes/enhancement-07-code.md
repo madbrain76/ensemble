@@ -2,7 +2,7 @@
 
 > Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
 > original student numbering. Those exports are now preserved under
-> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/README.md).
 
 Coder: `enhancement_coder_resumed`, October 10, 2026. Initial formal submission;
 independent review pending. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
@@ -25,7 +25,7 @@ Actual legacy module is `solutions/ch08` with `cmd/main.go`; a nested
 corrected from the files before grading.
 
 Retain [student notes](ch08.md), [comparative review](ch08-code-review.md) and the
-[original output](../../solutions/edition-2/evidence/ch08/grader-gui.txt).
+[original output](../../solutions/evidence/ch08/grader-gui.txt).
 Original accepted **55/100 FAIL** is the actual earlier GUI binary, before its
 socket-lifetime, terminal-display and replay-status corrections. Its missing
 `state_changed.from` was a real defect fixed in R1, not a grader exception.

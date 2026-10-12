@@ -40,8 +40,8 @@ valid ordering while retaining automatic context, tool-result correlation,
 frozen tools/system bytes and recorded history. Add a faithful boundary check
 and demonstrate a restored-defect failure; no paid retry is needed.
 
-[Probe receipts](../../solutions/edition-2/evidence/ch15/reviewer-probes.json),
-[exact supplemental test](../../solutions/edition-2/evidence/ch15/reviewer-inline-probe.go.txt).
+[Probe receipts](../../solutions/evidence/ch15/reviewer-probes.json),
+[exact supplemental test](../../solutions/evidence/ch15/reviewer-inline-probe.go.txt).
 All reviewer executions ended and the scratch copy was removed. Browser/grader
 ownership returns to the coder for this bounded correction.
 
@@ -79,13 +79,13 @@ the public Agent into captured subsequent HTTP requests: target20,000 redacts
 old results, while zero/default preserves them. It passes alongside the actual
 settings wire/disk test under race. This complements the coder's real-browser
 save/clamp/zero/two-tab controls rather than mistaking an echoed number for policy
-execution. See [GUI probe](../../solutions/edition-2/evidence/ch15/reviewer-gui-policy-probe.go.txt).
+execution. See [GUI probe](../../solutions/evidence/ch15/reviewer-gui-policy-probe.go.txt).
 
 ## Comparison, ownership and teaching
 
 Counts use tracked files, physical lines and nonblank/non-comment-only active
 lines; comment-only lines use leading Go/JS/block/HTML comment markers. Totals
-and method are in [reviewer counts](../../solutions/edition-2/evidence/ch15/reviewer-counts.json).
+and method are in [reviewer counts](../../solutions/evidence/ch15/reviewer-counts.json).
 These are each edition's own chapter deltas, not a comparison of unrelated totals.
 No production move or split changes the counts in this chapter.
 
@@ -190,7 +190,7 @@ module test/vet/race commands exit0. No paid, browser or full original grader
 repeat was needed for this renderer-only fix. The initial permissive probe's
 false confidence remains part of the record.
 
-[Independent round1 receipt](../../solutions/edition-2/evidence/ch15/reviewer-round1.json)
+[Independent round1 receipt](../../solutions/evidence/ch15/reviewer-round1.json)
 records source verification, the small metadata-helper setup mistake and cleanup.
 All reviewer processes ended; scratch was removed. Coordinator owns the accepted
 checkpoint and direct Edition2 `ch14/` export. No subsequent chapter is released

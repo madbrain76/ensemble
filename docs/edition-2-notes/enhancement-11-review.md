@@ -117,7 +117,7 @@ check under race; returning a persistent read error fails the intended reverse
 check after85 attempts while handshake still passes. Restoration passes. Test
 processes exit cleanly, without race, panic or cleanup timeout. The observations,
 exact probe and applied patch are in
-[reviewer-readiness.json](../../solutions/edition-2/evidence/ch12/enhancement11/reviewer-readiness.json).
+[reviewer-readiness.json](../../solutions/evidence/ch12/enhancement11/reviewer-readiness.json).
 They bind final grader SHA a5d98eb5412f2ddbebb2b2d7ee67adf1e9079f37628c757d980ee5fc70387489.
 The final source differs from its behavior checkpoint only in explanatory
 comments. No provider was called.
@@ -182,7 +182,7 @@ checks. Neither line counts nor mutation totals alone establish quality.
 Final affected grader race checks, command build, vet and formatting pass.
 The command package has no tests; its successful build is not a test run.
 Independent bindings and full-result checks are in
-[reviewer-final-check.json](../../solutions/edition-2/evidence/ch12/enhancement11/reviewer-final-check.json).
+[reviewer-final-check.json](../../solutions/evidence/ch12/enhancement11/reviewer-final-check.json).
 No blocking prose, scope, architecture, coverage or simplicity finding remains.
 The chapter and revised grader agree with the accepted implementation, preserve
 actual failures and state their evidence limits. Chapter11 is accepted at its

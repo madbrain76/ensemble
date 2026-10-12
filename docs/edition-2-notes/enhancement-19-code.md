@@ -19,7 +19,7 @@ acceptance is `04e450da2f38f880e9db9f2300e49ad19c831872`, zero correction rounds
 The paid experiment used source `fab031529cda55a76d530478f09de0cd08e7db36`,
 tree `59010a4c2b333c2f74777b6d76079e8f2b3af90d`; only README changed afterward.
 
-[The read-only reconciliation](../../solutions/edition-2/evidence/ch20/enhancement19/historical-audit.json)
+[The read-only reconciliation](../../solutions/evidence/ch20/enhancement19/historical-audit.json)
 was produced by `python3 solutions/edition-2/evidence/ch20/enhancement19/audit.py`.
 It verifies retained hashes and decodes the actual wire, event log and save:
 
@@ -70,7 +70,7 @@ are narrative evidence, not current public API or new Chapter 19 requirements.
 Manuscript SHA-256
 `1058dc2c2e68e73c2ae0c14c7205a5bf88717bd8f1c4fec614cca3182a442b09`:
 all five fences are bound in
-[samples.json](../../solutions/edition-2/evidence/ch20/enhancement19/samples.json).
+[samples.json](../../solutions/evidence/ch20/enhancement19/samples.json).
 One is the retained historical cache diagnostic, not executable code. The other
 four are the build/scratch/typed-primary setup, auth status/catalog and chat
 launch, exact original prompt, and independent unittest/cmp postcheck.

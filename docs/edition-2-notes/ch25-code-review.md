@@ -79,16 +79,16 @@ through the coordinator without old-answer code:
   question ID as the root. Its question overwrites the root's pending human
   question; after answering the child, answering the root fails with `no matching
   pending question`. The same test with distinct child/root names passes.
-  [Probe](../../solutions/edition-2/evidence/ch25/reviewer-question-collision_test.go.txt),
-  [failure and control](../../solutions/edition-2/evidence/ch25/reviewer-question-collision.txt).
+  [Probe](../../solutions/evidence/ch25/reviewer-question-collision_test.go.txt),
+  [failure and control](../../solutions/evidence/ch25/reviewer-question-collision.txt).
 - A worker that exhausts its original request plus three wakes escalates and
   stops, but still appears as `running` in the parent's fleet status. The probe
   waits until the child's escalation also causes the root's bounded four
   requests and human escalation: eight actual HTTP requests, then the stale
   child status. This is current lifecycle truthfulness (§25.2/§25.4), not a
   request for Chapter26 activity states.
-  [Probe](../../solutions/edition-2/evidence/ch25/reviewer-idle-status_test.go.txt),
-  [failure](../../solutions/edition-2/evidence/ch25/reviewer-idle-status.txt).
+  [Probe](../../solutions/evidence/ch25/reviewer-idle-status_test.go.txt),
+  [failure](../../solutions/evidence/ch25/reviewer-idle-status.txt).
 
 Both probes use real Ensemble, Agents, managers, actors and persistence; only
 external HTTP inference is faked. The coder owns corrections and affected
@@ -105,15 +105,15 @@ recipient-owned IDs; the human response releases only the root and retains
 `From: Bill`, while the child's response retains its actual parent sender.
 Exhausted child status is `failed`, with the explicit three-wake reason and
 empty `Result`; it is not silently promoted to submitted completion. The
-corrected join returns that failure. [Check output](../../solutions/edition-2/evidence/ch25/reviewer-corrected-probes.txt),
-[selection probe](../../solutions/edition-2/evidence/ch25/reviewer-reply-selection_test.go.txt).
+corrected join returns that failure. [Check output](../../solutions/evidence/ch25/reviewer-corrected-probes.txt),
+[selection probe](../../solutions/evidence/ch25/reviewer-reply-selection_test.go.txt).
 
 Preliminary own-predecessor counts at this freeze, in order physical / active /
 comment-only / blank: student production Go adds **802 / 645 / 112 / 45** and
 Go tests **711 / 659 / 36 / 16**; original25 adds **1698 / 950 / 593 / 155**
 production Go and **1754 / 1290 / 275 / 189** test lines over original24.
 Other counted implementation languages are unchanged. The lexical method and
-whole-source totals are in [counts](../../solutions/edition-2/evidence/ch25/reviewer-counts.json);
+whole-source totals are in [counts](../../solutions/evidence/ch25/reviewer-counts.json);
 tracked source only, inline code remains active, tests/support separate, net
 changes count moves once. An initial inventory excluded implementation folders
 named memory/data; corrected before recording these totals, whose predecessor
@@ -218,7 +218,7 @@ that instruction. This is not evidence of perfect steering compliance. Preserve
 also the add child's malformed shell command (exit1) and self-correction (exit0),
 which is ordinary tool-error recovery, not automatic failed-turn retry. Shared
 wire records do not justify ordinal request/response pairing. Raw wire bytes are
-preserved in `live-api.txt`; [reviewer receipt](../../solutions/edition-2/evidence/ch25/reviewer-live-check.json)
+preserved in `live-api.txt`; [reviewer receipt](../../solutions/evidence/ch25/reviewer-live-check.json)
 records its verified hash and these limits. No fresh provider call, credential
 access, billing-charge claim or endpoint interception was performed by review.
 

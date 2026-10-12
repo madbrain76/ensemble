@@ -7,7 +7,7 @@ remain as their dated review history.
 
 ## Reading and source boundary
 
-Read original [Chapter 26](../../book/chapter-26.md) in full, all 466 lines,
+Read original [Chapter 26](../../edition-1/book/chapter-26.md) in full, all 466 lines,
 revision `b451d2f14d8170b9075027a0a6606badfb442dad`, SHA-256
 `8db9779e9099d971e8fb8fd5c8f531e110d6a94c0bf234ed836f029aa159c56e`;
 the complete [student/source notes](ch26.md) and
@@ -134,7 +134,7 @@ reapplication of the identical earlier patch now fails **only**
 `wait-change-wakes`, with “change wait completed while selected child had no
 progress.” Baseline passes in 0.746 seconds; the defect fails cleanly in 0.612
 seconds. The coder's restored race control passes separately. See
-[the independent corrected receipt](../../solutions/edition-2/evidence/ch26/enhancement23/reviewer-wait-corrected-check.json)
+[the independent corrected receipt](../../solutions/evidence/ch26/enhancement23/reviewer-wait-corrected-check.json)
 and its raw outputs. The original passing mutant remains preserved.
 
 All seven original rows and their 100 points remain. Earlier actual full runs
@@ -178,7 +178,7 @@ clearly separates lifecycle from activity and historical stale replay from its
 subsequent correction. Hard prose lint passes at 4,521 words; no length quota
 was applied.
 
-[Final independent bindings](../../solutions/edition-2/evidence/ch26/enhancement23/reviewer-final-binding.json)
+[Final independent bindings](../../solutions/evidence/ch26/enhancement23/reviewer-final-binding.json)
 verify all four final grader hashes, all six exact example fences and both
 unchanged tracked solution trees. Fourteen inherited source files and eleven
 receipt hashes were checked earlier. Actual Chrome examples exercise public

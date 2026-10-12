@@ -1,5 +1,28 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 12: Edition 2 is the current top-level tree
+
+Promotion commit `564e316f` moves the accepted second edition to `agent/`,
+`book/` and `solutions/chNN/`. The first edition, frozen through original
+Chapter 27, is preserved in `edition-1/`, including its original graders.
+Develop current application code in `agent/`; do not edit frozen snapshots.
+Current grading uses `cmd/grade-edition2`; original grading runs from `edition-1/`.
+
+Gateway implementation and prose/grader enhancement are accepted as current
+Chapter 26. Optional Chapter 24 is complete; crossover Chapter 25 remains a
+placeholder. Publication preparation is active, with crossover begun rather
+than complete. Preserve Bill's unfinished crossover edits and historical results.
+See `docs/edition-2-publication.md` (repository-root path) for relocation and checks.
+
+This current path/phase declaration supersedes older dated instructions below.
+Their literal command paths and source identities describe the runs at that time;
+relative evidence links have been redirected to the relocated artifacts. In
+historical student restrictions, old `agent/` means today's `edition-1/agent/`,
+and old `solutions/edition-2/main/` means today's `agent/`. No older instruction
+to start from empty, stop at an earlier chapter or use the retired author-first
+workflow is reactivated by this move. All architecture, full-context reading,
+independent review and preservation rules remain in force.
+
 ## October 12: Gateway enhancement accepted; publication preparation released
 
 Independent combined review `63709086` accepts author `35930f10` and coder
@@ -1365,7 +1388,7 @@ the book. Original `ch04`–`ch09` now have exact preserved copies under
 `solutions/edition-2/history/`; current `ch04`–`ch08` come from old `ch05`–`ch09`.
 Chapters 1–3 and the working `main/` are unchanged. Historical path references
 in this learning record use the original numbering. See the
-[solution mapping](../solutions/edition-2/README.md) and its original-source
+[solution mapping](../solutions/README.md) and its original-source
 manifest. Existing tags, historical scores and nested application names remain
 unchanged; new grader defaults and tests use the book's numbering.
 Independent preservation/path review accepted this migration. Affected tests,
@@ -1629,7 +1652,7 @@ record the evidence and use the review/exception process; neither confident
 invention nor blind compliance is the goal. The first attempt's scope expansion
 is direct evidence that our own design judgment needs these constraints.
 
-Bill's [self-improvement essay](../book/the-improvement-loop.md) proposes codebooks
+Bill's [self-improvement essay](../edition-1/book/the-improvement-loop.md) proposes codebooks
 as a way to preserve expert knowledge and feed demonstrated improvements into
 later tools and eventually training. The practical lesson here is to retain why
 a decision was made, what failed and what corrected it. A saved note or larger
@@ -1976,7 +1999,7 @@ Apply the composition-root check per executable. Chapter 22's first repair check
 let a healthy auxiliary program satisfy a tree-wide count while the actual main
 command still bypassed the public root. Review actual constructor calls and
 runtime paths for the command being shipped, not the presence of a good example
-elsewhere. See [Chapter 22's repair](../book/chapter-22.md#the-repair).
+elsewhere. See [Chapter 22's repair](../edition-1/book/chapter-22.md#the-repair).
 
 Chapter 24 extends that discipline to public reuse and relocation. An external
 consumer must construct the needed public values and exercise the feature;
@@ -1988,8 +2011,8 @@ wire behavior from requests and resulting effects, not reply counts alone.
 Build supervised probes to binaries before launching them, and verify child
 cleanup: a killed build-tool wrapper can leave a child holding output pipes
 open. These are focused verification rules, not a new whole-book sweep after
-every edit. Sources: [§24.5](../book/chapter-24.md#245-the-proof),
-[§24.7–24.8](../book/chapter-24.md#247-taking-it-for-a-spin).
+every edit. Sources: [§24.5](../edition-1/book/chapter-24.md#245-the-proof),
+[§24.7–24.8](../edition-1/book/chapter-24.md#247-taking-it-for-a-spin).
 
 When consolidating the repair chapters, use the carryover's
 [capability table](edition-2-carryover.md#coverage-of-the-architecture-repair-chapters)

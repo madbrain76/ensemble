@@ -25,7 +25,7 @@ Reviewed runtime is the implementation saved in progress commit `1395ec2`.
 The reviewer independently hashed all 57 Go files before scratch validation and
 verified they still matched the shared submission afterward. Exact hashes and
 commands/results are in
-[reviewer-checks.json](../../solutions/edition-2/evidence/ch10/reviewer-checks.json).
+[reviewer-checks.json](../../solutions/evidence/ch10/reviewer-checks.json).
 The three generated GUI logs accidentally staged by the coordinator are excluded
 from source counts; their subsequent cleanup changes no implementation.
 
@@ -33,8 +33,8 @@ from source counts; their subsequent cleanup changes no implementation.
 
 The original full command, `make grade-dir CH=10
 DIR=solutions/edition-2/main/gui`, was **interrupted and unscored**, exit 2.
-Its [partial output](../../solutions/edition-2/evidence/ch10/original-grade.txt)
-and [termination record](../../solutions/edition-2/evidence/ch10/grader-interrupted.json)
+Its [partial output](../../solutions/evidence/ch10/original-grade.txt)
+and [termination record](../../solutions/evidence/ch10/grader-interrupted.json)
 are retained. The coordinator explicitly bounded its known inherited
 GUI/headless timeout cascade; the coder stopped only its owned processes and
 verified they were gone before reviewer execution.
@@ -46,10 +46,10 @@ reviewer copied the unchanged grader and dependencies to scratch, added one
 test bridge, and invoked all four original skills phase functions plus the
 original system-prompt predicate and `Ch10Evaluate`. Only recursive parity was
 explicitly skipped. No grader expectation, original file or student source was
-changed. Retained [bridge](../../solutions/edition-2/evidence/ch10/reviewer-original-bridge.go.txt),
-[source manifest](../../solutions/edition-2/evidence/ch10/reviewer-grader-source.json),
-[raw output](../../solutions/edition-2/evidence/ch10/reviewer-original-skills.txt)
-and [results](../../solutions/edition-2/evidence/ch10/reviewer-original-skills.json)
+changed. Retained [bridge](../../solutions/evidence/ch10/reviewer-original-bridge.go.txt),
+[source manifest](../../solutions/evidence/ch10/reviewer-grader-source.json),
+[raw output](../../solutions/evidence/ch10/reviewer-original-skills.txt)
+and [results](../../solutions/evidence/ch10/reviewer-original-skills.json)
 make that distinction inspectable.
 
 The focused original checks earned **65/85**:
@@ -171,7 +171,7 @@ As an additional independent control, changed the engine in scratch to append
 current declarations to the system text: the existing test failed twice at
 `system prompt changed after load`. Restored the file and reran the focused
 baseline successfully (0.012s). The
-[mutation receipt](../../solutions/edition-2/evidence/ch10/reviewer-frozen-prompt-mutation.txt)
+[mutation receipt](../../solutions/evidence/ch10/reviewer-frozen-prompt-mutation.txt)
 is distinct from the coder's twenty mutations. Scratch copied source and bridge
 trees were removed after retaining these small records.
 

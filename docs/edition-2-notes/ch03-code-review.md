@@ -79,7 +79,7 @@ pass. Original `make grade-dir CH=3 DIR=solutions/edition-2/main` reproduces
 is 100/100. The student's initial 55/100 and subsequent corrections remain
 recorded in its review.
 
-Read all [35 mutation records](../../solutions/edition-2/evidence/ch03/mutations.txt).
+Read all [35 mutation records](../../solutions/evidence/ch03/mutations.txt).
 They identify actual defects and intended failures, preserving the baseline
 parity failure. Independently restored three defects in disposable copies:
 credential inheritance, empty-registry call skipping and unmerged adjacent search
@@ -88,7 +88,7 @@ credential check runs the actual shell with four dummy keys and an ordinary
 environment positive control. Scratch copies were removed. Unchanged earlier
 behavior reuses prior mutation evidence; this is not exhaustive proof.
 
-Audited all four live JSON logs against the [live record](../../solutions/edition-2/evidence/ch03/live.txt):
+Audited all four live JSON logs against the [live record](../../solutions/evidence/ch03/live.txt):
 ordered calls/results, actual failing-then-passing tests, targeted edits,
 missing-file failures and subsequent codename recall are present for all three
 providers. Usage sums match 16,271/863, 7,375/343 and 8,467/563 input/output;

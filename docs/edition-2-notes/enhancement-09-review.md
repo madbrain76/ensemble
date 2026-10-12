@@ -121,7 +121,7 @@ Changing only the pending writer to return success after writing empty bytes
 fails **only `load-skill`**, at the actual `pending.txt` content assertion
 (0.362s). Restoring the original file passes (0.316s). This proves that successful
 results and declarations alone cannot satisfy the new pending-write check.
-The retained [receipt](../../solutions/edition-2/evidence/ch10/enhancement09/reviewer-validation.json),
+The retained [receipt](../../solutions/evidence/ch10/enhancement09/reviewer-validation.json),
 patch and complete outputs preserve the source hashes and exact bridge. Scratch
 copies were removed; no frozen source or shared grader was edited.
 

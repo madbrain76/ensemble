@@ -6,7 +6,7 @@ Zero formal correction rounds. Final source `b5c35a39`; see disposition below.**
 
 ## Reading and source boundary
 
-Reread all469 lines of original [Chapter27](../../book/chapter-27.md), SHA-256
+Reread all469 lines of original [Chapter27](../../edition-1/book/chapter-27.md), SHA-256
 `5463f060485fc838858ebe44115c70ac062582ba9f3179281df95ddcce9d974d`, and all
 current [student-safe preparation/contract notes](ch27.md). Earlier complete
 reading of the historical brief, coder review and working notes remains recorded
@@ -123,8 +123,8 @@ The reviewer executed the unchanged original grader on exact archive `15e0386b`,
 tree `f3f75227ad870a1e86402724b96b461425df8c5d`: **0/100 FAIL**, make2/grader1,
 1.544 seconds, no timeout. All seven rows stop while compiling the external
 probe's `WelcomePayload.QueuedCount`; the submitted public field is `QueueDepth`.
-[Raw output](../../solutions/edition-2/evidence/ch27/reviewer-original-grade.txt)
-and [provenance](../../solutions/edition-2/evidence/ch27/reviewer-original-grade.json)
+[Raw output](../../solutions/evidence/ch27/reviewer-original-grade.txt)
+and [provenance](../../solutions/evidence/ch27/reviewer-original-grade.json)
 remain unchanged. No original row established runtime behavior.
 
 Accept the student's narrow explanation: the chapter specifies welcome queue
@@ -196,7 +196,7 @@ active. All measured Gateway files are additions, with no moves.
 | Edition2 tests |592|543|29|20|
 | Original tests |1326|1067|111|148|
 
-[Per-file counts and predecessor identities](../../solutions/edition-2/evidence/ch27/reviewer-counts.json)
+[Per-file counts and predecessor identities](../../solutions/evidence/ch27/reviewer-counts.json)
 retain the complete original delta list. Original ch26→ch27 also imports unrelated
 MCP-WebSocket Go (109 physical/87 active/13 comment lines), speech JS (418 physical),
 a shell harness (186 physical), a 2,124-line OAuth design and skill documents;
@@ -248,9 +248,9 @@ The reviewer ran exact final source plus a small independent authenticated-clien
 silent-handshake shutdown probe under race detection. All public Gateway, server
 and actual actor tests pass (1.996 seconds wall); the independent shutdown joins
 both peers in916.708 microseconds, rather than waiting for the10-second handshake
-deadline. [Command/output/binding](../../solutions/edition-2/evidence/ch27/reviewer-final-check.json),
-[raw output](../../solutions/edition-2/evidence/ch27/reviewer-final-check.txt) and
-[probe source](../../solutions/edition-2/evidence/ch27/reviewer-shutdown-probe.txt)
+deadline. [Command/output/binding](../../solutions/evidence/ch27/reviewer-final-check.json),
+[raw output](../../solutions/evidence/ch27/reviewer-final-check.txt) and
+[probe source](../../solutions/evidence/ch27/reviewer-shutdown-probe.txt)
 are retained. This is one bounded lifetime observation, not an exhaustive timing
 claim. Student affected vet/format and baseline/mutant/restored race receipts also
 pass. Earlier full core/GUI checks keep their `ab6d0516` provenance; there was no
@@ -264,7 +264,7 @@ forced kill, and the Agent save contains four actual message/request/response
 triplets. Every request/completion names GPT-6 Astra; stamped questions and exact
 answers agree with the report, and the retained binary hashes match their receipts.
 The live run took11.739 seconds on `ab6d0516`. Its source is not relabelled as the
-final diagnostic/test correction. [Independent artifact check](../../solutions/edition-2/evidence/ch27/reviewer-live-check.json)
+final diagnostic/test correction. [Independent artifact check](../../solutions/evidence/ch27/reviewer-live-check.json)
 records the exact hashes and limits.
 
 High reasoning and the explicit Codex route follow the recorded launch and source;

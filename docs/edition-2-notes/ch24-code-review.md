@@ -65,7 +65,7 @@ embedded/disk asset selection; actual Chrome component rendering with only two
 modules served and no shell; same-ID concurrent relay clients with reverse-order
 replies alongside the core handshake; shutdown; actual headless/GUI executable
 transitive dependency negative and positive controls. See
-[output](../../solutions/edition-2/evidence/ch24/reviewer-first-green-external.txt).
+[output](../../solutions/evidence/ch24/reviewer-first-green-external.txt).
 The archive only links the already installed node_modules as test dependencies;
 its implementation bytes come from the frozen commit, not the moving main tree.
 
@@ -74,12 +74,12 @@ request reaches the browser, TCP EOF removes the parked request; its late browse
 reply does not block the next request; browser EOF returns an error preserving
 the second caller's original ID. It uses actual Ensemble/Agent/GUI and external
 socket peers, with no model call or credential access. Retained
-[probe](../../solutions/edition-2/evidence/ch24/reviewer-relay-disconnects-test.go.txt)
-and [output](../../solutions/edition-2/evidence/ch24/reviewer-relay-disconnects.txt)
+[probe](../../solutions/evidence/ch24/reviewer-relay-disconnects-test.go.txt)
+and [output](../../solutions/evidence/ch24/reviewer-relay-disconnects.txt)
 check the new advertised lifetimes without editing student source.
 
 Provisional own-predecessor counts are in
-[receipt](../../solutions/edition-2/evidence/ch24/reviewer-counts.json).
+[receipt](../../solutions/evidence/ch24/reviewer-counts.json).
 Student net production adds216 physical Go lines (187 active,20 comment-only,9
 blank) and8 JS (4 active,3 comments,1 blank); tests add351 Go and38 MJS.
 Original net production adds24 Go (13 active,11 comments), with no JS growth;
@@ -146,9 +146,9 @@ layout support.
 
 The final source differs from live `35df549` only in a clearer public method
 comment, multiline constructor formatting and tests. Independent final
-[external run](../../solutions/edition-2/evidence/ch24/reviewer-final-external.txt)
+[external run](../../solutions/evidence/ch24/reviewer-final-external.txt)
 passes, including its own nested race instrumentation and actual Chrome;
-[receipt](../../solutions/edition-2/evidence/ch24/reviewer-final-check.json)
+[receipt](../../solutions/evidence/ch24/reviewer-final-check.json)
 records exact source,164-file manifest match and command. It exercises the repaired
 embedded-shell assertion and browser-disconnect/shutdown cases. The separate
 reviewer client-EOF/late-reply probe above remains valid for unchanged behavior.
@@ -157,7 +157,7 @@ virtual-user/peer lifetime checks and formatting all have retained passing resul
 The initially empty race selection and missing-checksum/copied-memory setup
 failures are correctly excluded from evidence of working behavior.
 
-The independent [live receipt](../../solutions/edition-2/evidence/ch24/reviewer-live-check.json)
+The independent [live receipt](../../solutions/evidence/ch24/reviewer-live-check.json)
 checks binary SHA, all3 actual request/completion pairs as GPT-6 Astra/high,
 matching provider and raw GUI results for write_file/read_file, exact42-byte disk
 artifact, and the actual assistant final in the DOM. The full embedded GUI ran
@@ -202,7 +202,7 @@ Final own-predecessor deltas, physical / active / comment-only / blank:
 | Test Go | +376 / +356 / +14 / +6 | +144 / +108 / +24 / +12 |
 | Test MJS | +38 / +35 / +2 / +1 | 0 / 0 / 0 / 0 |
 
-The updated [count receipt](../../solutions/edition-2/evidence/ch24/reviewer-counts.json)
+The updated [count receipt](../../solutions/evidence/ch24/reviewer-counts.json)
 includes whole before/after totals and separates tests, languages and support.
 Lexical comment-only lines are excluded from active counts; inline code remains
 active. Generated IO, docs and evidence are excluded. Moved code is counted once,

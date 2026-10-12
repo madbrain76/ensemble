@@ -145,7 +145,7 @@ The manuscript remains exactly `e057e264` as bound above. Direct hard lint passe
 at 5,553 prose words; the two soft warnings do not warrant padding or a quota cut.
 No prose change was needed for final evidence. The author's direct hash check
 matched the complete manuscript and all nine fences to
-[`samples.json`](../../solutions/edition-2/evidence/ch19/enhancement18/samples.json).
+[`samples.json`](../../solutions/evidence/ch19/enhancement18/samples.json).
 The conceptual Go vocabulary compiles. Actual published build/setup, typed skill,
 login/status/models, high/detailed `gpt-6.1-sol` chat and logout commands passed
 through the real CLI with local external issuer/provider peers. The author read
@@ -163,7 +163,7 @@ catalog remains separate dated evidence. No production profile or existing GUI
 was used.
 
 Coder submission `7084fe48`, the [final coder report](enhancement-18-code.md) and
-[`final-source.json`](../../solutions/edition-2/evidence/ch19/enhancement18/final-source.json)
+[`final-source.json`](../../solutions/evidence/ch19/enhancement18/final-source.json)
 bind the five grader-source hashes, unchanged frozen trees and manuscript. The
 author checked those five hashes directly and read both final full results and
 their command receipts: accepted 100/100 in 2.246s and legacy 100/100 in 1.570s,

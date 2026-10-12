@@ -29,7 +29,7 @@ features still belong in Engine behavior; Agent owns reasoning configuration.
 The existing Responses renderer consumes that configuration, and the existing
 credential path retains explicit subscription billing and cache compatibility.
 
-[Independent counts](../../solutions/edition-2/evidence/ch20/reviewer-check.json)
+[Independent counts](../../solutions/evidence/ch20/reviewer-check.json)
 compare the final source against its own accepted predecessor `534112a`. Physical
 lines include blanks; active lines exclude blank/comment-only lines, retaining
 inline comments as active. No files moved. Production Go changes by **+2 physical,
@@ -68,7 +68,7 @@ race detection (1.027s). No mock replaces the runtime; the check constructs the
 real root/Agent and renders its request. Existing auth/streaming/runtime evidence
 remains inherited, not a new whole-book test claim.
 
-The [independent receipt](../../solutions/edition-2/evidence/ch20/reviewer-check.json)
+The [independent receipt](../../solutions/evidence/ch20/reviewer-check.json)
 verifies five captured request/completed-response pairs naming `gpt-6-astra`,
 high effort and detailed summaries. Every request streams with `store:false`,
 omits paired explicit plan caching, and every terminal response is completed.

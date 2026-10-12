@@ -78,7 +78,7 @@ One meaningful new-grader gap was independently reproduced: a server could
 admit the forbidden child immediately before returning its ordinary widening
 error and receive100/100. The original C7 assertion observed only the error.
 The exact isolated patch/output/binding remain in
-[`reviewer-register-before-refusal.json`](../../solutions/edition-2/evidence/ch27/enhancement26/reviewer-register-before-refusal.json).
+[`reviewer-register-before-refusal.json`](../../solutions/evidence/ch27/enhancement26/reviewer-register-before-refusal.json).
 The corrected check attempts actual authentication with that rejected key,
 observing welcome or disconnect for asynchronous clients and refusing to credit
 silence. A legitimate child still connects and delivers its complete message.
@@ -86,7 +86,7 @@ silence. A legitimate child still connects and delivers its complete message.
 The reviewer independently reran that same patch against final bound bytes:
 **80/100, only C7 fails**, with the intended admission diagnostic;1.096 seconds
 whole command. See
-[`reviewer-refusal-corrected.json`](../../solutions/edition-2/evidence/ch27/enhancement26/reviewer-refusal-corrected.json).
+[`reviewer-refusal-corrected.json`](../../solutions/evidence/ch27/enhancement26/reviewer-refusal-corrected.json).
 Coder baseline/restored and legacy all exercise every row and pass100/100.
 No runtime or frozen-source change was needed. The C4 comment now accurately
 describes a completed refusal RPC before the allowed send on a different socket.
@@ -172,7 +172,7 @@ The final author reconciliation was read in full; only two C5 table cells change
 after sample execution, accurately adding clean server restart. All14 measured
 fences remain identical. The four current grader hashes, both tracked frozen
 trees and preserved original chapter/grader were independently checked again in
-[`reviewer-final-binding.json`](../../solutions/edition-2/evidence/ch27/enhancement26/reviewer-final-binding.json).
+[`reviewer-final-binding.json`](../../solutions/evidence/ch27/enhancement26/reviewer-final-binding.json).
 
 No unresolved scope, architecture, prose or grader finding remains. This accepts
 the Gateway enhancement at current paths, not a later migration or publication.

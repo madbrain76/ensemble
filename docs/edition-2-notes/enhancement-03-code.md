@@ -45,7 +45,7 @@ Accepted source is frozen `solutions/edition-2/ch03/`, `edition-2-ch03-r3`;
 legacy is `solutions/ch03/`. Latest revision touching reused Chapter 3
 grader/fake files: `c871073c2f5a3117b5969119345a95e02e617746`.
 Historical results remain in [ch03.md](ch03.md), [the comparative review](ch03-code-review.md)
-and [original grader output](../../solutions/edition-2/evidence/ch03/grader.txt).
+and [original grader output](../../solutions/evidence/ch03/grader.txt).
 
 ## Inherited capture-fixture correction
 
@@ -123,7 +123,7 @@ failure is appended, so they do not claim to summarize the strengthened check.
 These are grader-preparation corrections, not student correction rounds.
 
 No valid mutant survived and no compile failure counted as evidence. Unchanged
-behavior reuses the [35 original mutation results](../../solutions/edition-2/evidence/ch03/mutations.txt)
+behavior reuses the [35 original mutation results](../../solutions/evidence/ch03/mutations.txt)
 and Chapter 2 enhancement evidence. This is targeted sensitivity, not exhaustive
 proof. No general mutation framework or duplicate source trees are retained.
 
@@ -140,7 +140,7 @@ the reference convenience launcher. It is deterministic fake use, not a new
 live-provider claim. The owner-interface schematic agrees with accepted
 `common.ToolContext`; the argument/default table agrees with the existing tools.
 
-Reused the independently reviewed [live record](../../solutions/edition-2/evidence/ch03/live.txt):
+Reused the independently reviewed [live record](../../solutions/evidence/ch03/live.txt):
 three-provider failing-test → targeted edit → passing-test work, error recovery,
 codename recall, plus the extra search/write/read session exercising all six
 tools. Its initial refusals, actual totals and live-build timing limits remain

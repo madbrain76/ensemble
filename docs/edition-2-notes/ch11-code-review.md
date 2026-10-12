@@ -25,7 +25,7 @@ documentation. The original check's supplied primary skill hides this case.
 An independent scratch control extended the actual CLI lifecycle test to compare
 the saved instruction with its captured HTTP request. Both default and overridden
 save paths failed with saved `""` versus the full default instruction. The
-[receipt](../../solutions/edition-2/evidence/ch11/reviewer-system-record-control.txt)
+[receipt](../../solutions/evidence/ch11/reviewer-system-record-control.txt)
 also preserves the control's first printf-type/vet setup error, which is not
 counted as a behavioral failure. Correct the effective metadata through existing
 ownership, without duplicated literals, behavior in common, restored historical
@@ -45,10 +45,10 @@ recursive GUI/headless mismatch and the coder released the harness after cleanup
 
 The reviewer copied unchanged grader dependencies to scratch and invoked the
 existing exported `Ch11Run` and `Ch11Checks`. Recursive Chapter 10 parity is
-explicitly unrun. The [bridge](../../solutions/edition-2/evidence/ch11/reviewer-original-bridge.go.txt),
-[exact source manifest](../../solutions/edition-2/evidence/ch11/reviewer-initial-source.json),
-[raw output](../../solutions/edition-2/evidence/ch11/reviewer-initial-original.txt)
-and [result](../../solutions/edition-2/evidence/ch11/reviewer-initial-original.json)
+explicitly unrun. The [bridge](../../solutions/evidence/ch11/reviewer-original-bridge.go.txt),
+[exact source manifest](../../solutions/evidence/ch11/reviewer-initial-source.json),
+[raw output](../../solutions/evidence/ch11/reviewer-initial-original.txt)
+and [result](../../solutions/evidence/ch11/reviewer-initial-original.json)
 are retained. The wrapper completed in 16.49 seconds and exited 0 as an evidence
 collector, not as an all-checks-pass assertion.
 
@@ -145,11 +145,11 @@ distinct from these two correction checks.
 Independent final execution in a byte-matched scratch copy: persistence and
 empty-primary library tests under `-race` PASS (1.057s), actual CLI lifecycle
 with additional save-shape inspection PASS (0.237s), and core vet PASS. Retained
-[check results](../../solutions/edition-2/evidence/ch11/reviewer-round1-checks.json),
-[source hashes](../../solutions/edition-2/evidence/ch11/reviewer-round1-source.json),
+[check results](../../solutions/evidence/ch11/reviewer-round1-checks.json),
+[source hashes](../../solutions/evidence/ch11/reviewer-round1-source.json),
 and actual first-session saves for
-[default](../../solutions/edition-2/evidence/ch11/reviewer-default-save.json) and
-[overridden](../../solutions/edition-2/evidence/ch11/reviewer-override-save.json)
+[default](../../solutions/evidence/ch11/reviewer-default-save.json) and
+[overridden](../../solutions/evidence/ch11/reviewer-override-save.json)
 paths show exactly the four fields, nonempty effective default instruction,
 real tool declarations, three strictly ascending positive event sequences and
 anchor 3 equal to the final event. Snapshot/tail tests separately check retained

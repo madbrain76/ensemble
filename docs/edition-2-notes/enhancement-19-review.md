@@ -33,7 +33,7 @@ and opened official [model documentation](https://developers.openai.com/api/docs
 and [reasoning guidance](https://developers.openai.com/api/docs/guides/reasoning)
 support high effort and Responses for Astra function calls.
 
-The [independent raw check](../../solutions/edition-2/evidence/ch20/enhancement19/reviewer-historical-check.json)
+The [independent raw check](../../solutions/evidence/ch20/enhancement19/reviewer-historical-check.json)
 reverifies all 11 retained artifact hashes, five actual Astra/high request and
 completed-response pairs, and every correlated tool-result body in subsequent
 wire requests. The complete save log matches. Existing before/after task reruns
@@ -128,7 +128,7 @@ made five Astra/high requests and completed responses. Actual calls read the
 program and tests, ran a failing baseline, edited the program and reran all six
 unchanged tests successfully. The original independent review reran both task
 versions: three failures plus three errors before, six passes after. The
-[coordinator receipt](../../solutions/edition-2/evidence/ch20/coordinator-crossover-check.json)
+[coordinator receipt](../../solutions/evidence/ch20/coordinator-crossover-check.json)
 and raw files preserve call correlation, exact edit and test hashes.
 
 There were zero public reasoning summaries and cache grants. The endpoint is

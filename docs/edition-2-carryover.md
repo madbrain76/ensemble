@@ -1,5 +1,28 @@
 # Edition 2 carryover: lessons for the fresh student
 
+## October 12: Edition 2 is the current top-level tree
+
+Promotion commit `564e316f` moves the accepted second edition to `agent/`,
+`book/` and `solutions/chNN/`. The first edition, frozen through original
+Chapter 27, is preserved in `edition-1/`, including its original graders.
+Develop current application code in `agent/`; do not edit frozen snapshots.
+Current grading uses `cmd/grade-edition2`; original grading runs from `edition-1/`.
+
+Gateway implementation and prose/grader enhancement are accepted as current
+Chapter 26. Optional Chapter 24 is complete; crossover Chapter 25 remains a
+placeholder. Publication preparation is active, with crossover begun rather
+than complete. Preserve Bill's unfinished crossover edits and historical results.
+See `docs/edition-2-publication.md` (repository-root path) for relocation and checks.
+
+This current path/phase declaration supersedes older dated instructions below.
+Their literal command paths and source identities describe the runs at that time;
+relative evidence links have been redirected to the relocated artifacts. In
+historical student restrictions, old `agent/` means today's `edition-1/agent/`,
+and old `solutions/edition-2/main/` means today's `agent/`. No older instruction
+to start from empty, stop at an earlier chapter or use the retired author-first
+workflow is reactivated by this move. All architecture, full-context reading,
+independent review and preservation rules remain in force.
+
 ## October 12: Gateway enhancement accepted; publication preparation released
 
 Independent combined review `63709086` accepts author `35930f10` and coder
@@ -323,7 +346,7 @@ familiar design. When evidence challenges an instruction, use the documented
 review and exception process. Preserve corrections with their reasons and apply
 them in later chapters; writing a note is not enough if the same mistake returns.
 This is the operational lesson drawn from Bill's
-[self-improvement essay](../book/the-improvement-loop.md), not a new requirement
+[self-improvement essay](../edition-1/book/the-improvement-loop.md), not a new requirement
 to implement training or expanded memory during this student run.
 
 **Live-test credentials.** Bill has authorized the provider API keys in
@@ -336,14 +359,14 @@ contains the access procedure, including safe schema discovery and logging check
 This path is Bill's local test setup, not a required Ensemble user configuration.
 
 **Keep reasons, not just mechanisms.** Chapter 0's failed reconstruction and the
-[epilogue](../book/epilogue.md) explain why code alone did not transfer Bill's
+[epilogue](../edition-1/book/epilogue.md) explain why code alone did not transfer Bill's
 judgment: a plausible alternative can recreate a failure whose reason was lost.
 Keep useful WHY comments and short records of failed approaches, corrections and
 human assistance. A comment may become obsolete; prove its underlying condition
 is gone before deleting its explanation. KISS means the smallest clear design
 meeting the current exercise, not compressed code or removal of useful comments.
-Sources: [Chapter 0, “What this book is”](../book/chapter-00.md#what-this-book-is),
-[Chapter 20, §20.5](../book/chapter-20.md#205-the-agent-looks-in-the-mirror).
+Sources: [Chapter 0, “What this book is”](../edition-1/book/chapter-00.md#what-this-book-is),
+[Chapter 20, §20.5](../edition-1/book/chapter-20.md#205-the-agent-looks-in-the-mirror).
 
 **Astra: this code is for teaching. Comments matter.** Bill found the discarded
 attempt far too light on comments. Write for a student who needs to understand
@@ -379,7 +402,7 @@ availability; do not choose an older model merely because discovery lists it.
 If it is unavailable, report the limitation rather than silently substituting.
 Chapter 7's initial 2.5 Flash selection missed this instruction; the student,
 coordinator and reviewer must carry this constraint into later handoffs.
-Source: [Chapter 1, §§1.1–1.2](../book/chapter-01.md#11-frameworks-and-why-this-book-uses-none).
+Source: [Chapter 1, §§1.1–1.2](../edition-1/book/chapter-01.md#11-frameworks-and-why-this-book-uses-none).
 
 **Give facts owners and make those owners reachable.** The logger ambush in
 Chapter 5 and the status-tool failure in Chapter 22 share a cause: a small
@@ -389,9 +412,9 @@ import common, not one another. Behavior belongs in its responsible package,
 using free functions over common values where needed. Standard-library dispatch
 methods may remain with their types; private runtime structs behind common
 interfaces are allowed. Do not create speculative packages to anticipate later
-chapters. Sources: [§5.1](../book/chapter-05.md#51-the-idea-in-plain-words),
-[§5.9](../book/chapter-05.md#59-the-ambush),
-[Chapter 22's diagnosis](../book/chapter-22.md#the-symptom-a-feature-that-should-have-been-easy).
+chapters. Sources: [§5.1](../edition-1/book/chapter-05.md#51-the-idea-in-plain-words),
+[§5.9](../edition-1/book/chapter-05.md#59-the-ambush),
+[Chapter 22's diagnosis](../edition-1/book/chapter-22.md#the-symptom-a-feature-that-should-have-been-easy).
 
 **Bill's clarification is stronger than some examples.** Every child constructor
 receives and stores interface back-pointers to all required parents, which cannot
@@ -410,14 +433,14 @@ many Agents and the logger; Agent owns configuration; Engine owns usage. Tool
 visibility is per-Agent, whether registry storage belongs to Agent or Ensemble.
 Introduce these objects only as needed. The executable must actually use the
 public library's composition root: a correct constructor with zero callers
-protects nothing. Source: [Chapter 22, “The measurements that found it”](../book/chapter-22.md#the-measurements-that-found-it);
+protects nothing. Source: [Chapter 22, “The measurements that found it”](../edition-1/book/chapter-22.md#the-measurements-that-found-it);
 binding clarification: [coding skill](../.agents/skills/ensemble-coding/SKILL.md#architecture-from-the-first-line).
 
 Check that composition path for each executable being delivered. Chapter 22's
 first structural check counted roots across the whole tree: a healthy auxiliary
 command concealed the main command's bypass. A valid library constructor or a
 different passing consumer cannot establish the current binary's wiring.
-Source: [Chapter 22, the repair](../book/chapter-22.md#the-repair).
+Source: [Chapter 22, the repair](../edition-1/book/chapter-22.md#the-repair).
 
 Make the chain concrete: Engine's parent is Agent; Agent's parent is Ensemble.
 Agent owns its conversation and configuration; Engine owns its HTTP transport
@@ -464,8 +487,8 @@ observations reach Ensemble through Observer; explicit parent service methods
 are also allowed. MCP transport stays replaceable when introduced, including a
 WebSocket tunnel. Chapter 6's GUI-coupled framework and Chapter 20's CLI that
 bypassed the actor show why a seam must work in the real clients. Sources:
-[§6.2](../book/chapter-06.md#62-the-framework-that-imported-its-own-gui),
-[§20.3](../book/chapter-20.md#203-two-paths-one-screen).
+[§6.2](../edition-1/book/chapter-06.md#62-the-framework-that-imported-its-own-gui),
+[§20.3](../edition-1/book/chapter-20.md#203-two-paths-one-screen).
 
 An external GUI module must be able to use the public library without importing
 its `internal/common` package. Expose the values and interfaces its actual
@@ -475,7 +498,7 @@ the public inputs, and inspect the transitive imports with `go list -deps`:
 a second dependency path can retain a coupling after the obvious one is removed.
 Pair an absence check with a positive control so a broken detector cannot pass.
 These are checks of the existing boundary, not additional early GUI features.
-Source: [§24.5](../book/chapter-24.md#245-the-proof).
+Source: [§24.5](../edition-1/book/chapter-24.md#245-the-proof).
 Keep MCP service/routing concerns separate from the GUI's
 WebSocket framing so a tunnel is one transport, not a headless runtime
 dependency. When agent switching arrives, a newly attached observer needs that
@@ -492,9 +515,9 @@ live agent edited an unwanted codename into the book repository. Preserve
 failures honestly. A fake and an implementation built from the same assumption
 can agree while both are wrong; every fixture also hides the configuration it
 replaces. Chapter 21's supplied skill passed while the deployed primary skill
-could not load web search. Sources: [§3.7](../book/chapter-03.md#37-fakes-first),
-[§3.8](../book/chapter-03.md#38-drive-it-yourself),
-[Chapter 21's live defect](../book/chapter-21.md#the-defect-the-grader-could-not-see).
+could not load web search. Sources: [§3.7](../edition-1/book/chapter-03.md#37-fakes-first),
+[§3.8](../edition-1/book/chapter-03.md#38-drive-it-yourself),
+[Chapter 21's live defect](../edition-1/book/chapter-21.md#the-defect-the-grader-could-not-see).
 This is a testing discipline, not a new audit framework or permission to edit
 graders. Comparative review must examine active code, comments, meaningful tests
 and scope; more code or more tests alone proves no improvement.
@@ -557,9 +580,9 @@ another's thinking. Keep infrastructure failures distinct from ordinary failed
 tool results. Determine current turn state from the relevant end/state, not
 from the existence of old tool results somewhere in resent history. These
 boundaries enable later replay without adding later policy now. Sources:
-[§2.3](../book/chapter-02.md#23-history-context-request),
-[§2.4](../book/chapter-02.md#24-the-log),
-[§2.6](../book/chapter-02.md#26-the-seam).
+[§2.3](../edition-1/book/chapter-02.md#23-history-context-request),
+[§2.4](../edition-1/book/chapter-02.md#24-the-log),
+[§2.6](../edition-1/book/chapter-02.md#26-the-seam).
 
 Ephemeral delivery is different from erasing the record. Chapter 2 records an
 ephemeral arrival in the event log for replay, delivers it in one request and
@@ -568,8 +591,8 @@ context assembly grows, keep volatile material at the request tail, after the
 stable prefix, instead of rewriting old instructions or accumulating stale copies.
 The deleted Chapter 1's shorthand “never in history” must not be mistaken for
 “never recorded in the event log.” Sources: Chapter 2's
-[grading clarification](../book/chapter-02.md#the-checks) and Chapter 15,
-[§15.5](../book/chapter-15.md#155-the-layout).
+[grading clarification](../edition-1/book/chapter-02.md#the-checks) and Chapter 15,
+[§15.5](../edition-1/book/chapter-15.md#155-the-layout).
 
 **Chapters 3–4: make tools recoverable, and waiting distinct from execution.**
 Dedicated file/search/edit tools constrain output and avoid shell quoting
@@ -581,10 +604,10 @@ control and a handle; it does not prove execution stopped. Preserve full output
 outside the bounded model readout. The job owns interactive process/output
 lifetime, completed jobs remain waitable, and cancellation must describe what
 actually stopped. Avoid sticky hidden shell state. Sources:
-[§3.4](../book/chapter-03.md#34-do-we-need-anything-other-than-run_command),
-[§4.3](../book/chapter-04.md#43-stop-throwing-away-the-result),
-[§4.7](../book/chapter-04.md#47-the-terminal),
-[Chapter 13's debugger failure](../book/chapter-13.md#a-debugger-that-would-not-start).
+[§3.4](../edition-1/book/chapter-03.md#34-do-we-need-anything-other-than-run_command),
+[§4.3](../edition-1/book/chapter-04.md#43-stop-throwing-away-the-result),
+[§4.7](../edition-1/book/chapter-04.md#47-the-terminal),
+[Chapter 13's debugger failure](../edition-1/book/chapter-13.md#a-debugger-that-would-not-start).
 Do not add process/job machinery in Chapter 3 to solve Chapter 4 early.
 When implementing waiting, check that every state transition that can satisfy
 a waiter also arranges its notification. CodeRhapsody records this as a
@@ -600,9 +623,9 @@ Avoid duplicate orchestration paths that produce different lifetimes or results.
 Interrupt, explicit job kill and shutdown have different meanings; the source's
 remaining contradictions are listed below. Its external multi-agent exercise
 does not authorize agent-created sub-agents ahead of their forthcoming chapter.
-Sources: [“Ask, rebuilt”](../book/chapter-06.md#ask-rebuilt),
-[§6.6](../book/chapter-06.md#66-the-wait-primitive),
-[§6.7](../book/chapter-06.md#67-hints-and-interrupts).
+Sources: [“Ask, rebuilt”](../edition-1/book/chapter-06.md#ask-rebuilt),
+[§6.6](../edition-1/book/chapter-06.md#66-the-wait-primitive),
+[§6.7](../edition-1/book/chapter-06.md#67-hints-and-interrupts).
 
 **Chapters 7–8: streaming and replay must identify the same content.** A parser
 knows which deltas belong to a part; consumers must not guess that mapping from
@@ -614,10 +637,10 @@ terminal incrementally: buffered correct deltas can still look like no streaming
 On reconnect, rebuild completed content and current partials; do not silently
 drop irreplaceable replay messages as though they were replaceable progress.
 Test a second turn and a restart, not only the first streamed reply. Sources:
-[§7.4](../book/chapter-07.md#74-part-ids-who-is-allowed-to-name-a-part),
-[§7.9](../book/chapter-07.md#79-the-terminal-and-the-flush-that-makes-it-real),
-[§8.7](../book/chapter-08.md#87-two-tiers-of-state),
-[§20.3](../book/chapter-20.md#203-two-paths-one-screen).
+[§7.4](../edition-1/book/chapter-07.md#74-part-ids-who-is-allowed-to-name-a-part),
+[§7.9](../edition-1/book/chapter-07.md#79-the-terminal-and-the-flush-that-makes-it-real),
+[§8.7](../edition-1/book/chapter-08.md#87-two-tiers-of-state),
+[§20.3](../edition-1/book/chapter-20.md#203-two-paths-one-screen).
 
 **Chapters 8–9 and 13: visible controls need observable, effective state.**
 A setting may appear changed without being saved, or be saved without affecting
@@ -628,10 +651,10 @@ users can observe it. Render untrusted tool text as text; disclose truncation an
 leave omitted material reachable. Chapter 13's source-blind GUI driver found
 bugs source inspection missed, but also invented a panel when state was hidden.
 Record what was observable and distinguish operational help from supplied
-answers. Sources: [Chapter 9, “Settings over the wire”](../book/chapter-09.md#settings-over-the-wire),
-[Chapter 13's settings finding](../book/chapter-13.md#the-bug-that-only-appears-after-you-fix-the-bug),
-[“What an interface owes an observer”](../book/chapter-13.md#what-an-interface-owes-an-observer),
-[§20.2](../book/chapter-20.md#202-the-bugs-that-succeed).
+answers. Sources: [Chapter 9, “Settings over the wire”](../edition-1/book/chapter-09.md#settings-over-the-wire),
+[Chapter 13's settings finding](../edition-1/book/chapter-13.md#the-bug-that-only-appears-after-you-fix-the-bug),
+[“What an interface owes an observer”](../edition-1/book/chapter-13.md#what-an-interface-owes-an-observer),
+[§20.2](../edition-1/book/chapter-20.md#202-the-bugs-that-succeed).
 
 **Chapters 8 and 14: preserve the person's chance to intervene.** Serial
 dispatch supplies a boundary where pause can stop the next tool. Pause must
@@ -642,9 +665,9 @@ the grader cannot judge intelligibility. Tool results intentionally remain
 unspoken under the Chapter 14 ruling. Bill separately settles ownership:
 **pause is Agent-wide; explicitly unpausing in any tab unpauses everyone.**
 Local speech/typing causes do not create independent tab vetoes. Sources:
-[§8.3](../book/chapter-08.md#83-one-tool-at-a-time),
-[§14.4](../book/chapter-14.md#144-the-run-that-succeeded-for-the-wrong-reason),
-[§14.6–14.8](../book/chapter-14.md#146-the-bug-nobody-could-hear).
+[§8.3](../edition-1/book/chapter-08.md#83-one-tool-at-a-time),
+[§14.4](../edition-1/book/chapter-14.md#144-the-run-that-succeeded-for-the-wrong-reason),
+[§14.6–14.8](../edition-1/book/chapter-14.md#146-the-bug-nobody-could-hear).
 
 **Chapters 10, 12–13 and 21: capability visibility must agree with dispatch.**
 Skills progressively expose instructions and tools; loading is not a license to
@@ -655,11 +678,11 @@ normalized lookup keys: Chapters 20 and 23 show that mixing them silently hides
 or preserves underscored tools. Keep MCP behind its transport seam and existing
 job/cancellation ownership; preserve useful transport and tool-error diagnostics.
 Test connection, discovery, invocation and unload through the real client path.
-Sources: [Chapter 10, “The Registry”](../book/chapter-10.md#the-registry),
-[Chapter 12](../book/chapter-12.md),
-[Chapter 13, lifecycle](../book/chapter-13.md#skill-based-mcp-lifecycle),
-[Chapter 21, security gate](../book/chapter-21.md#the-tools-header-is-a-security-gate),
-[Chapter 23, §23.9](../book/chapter-23.md#239-what-does-not-work).
+Sources: [Chapter 10, “The Registry”](../edition-1/book/chapter-10.md#the-registry),
+[Chapter 12](../edition-1/book/chapter-12.md),
+[Chapter 13, lifecycle](../edition-1/book/chapter-13.md#skill-based-mcp-lifecycle),
+[Chapter 21, security gate](../edition-1/book/chapter-21.md#the-tools-header-is-a-security-gate),
+[Chapter 23, §23.9](../edition-1/book/chapter-23.md#239-what-does-not-work).
 
 **Chapters 11 and 15: recovery needs an anchor and honest failure semantics.**
 A snapshot plus a log needs an `AsOf` boundary so restoration neither duplicates
@@ -671,9 +694,9 @@ overwriting it. Chapter 15 adds journaling and ordered snapshot/truncation for
 process crashes; it expressly does not promise power-loss durability. Its
 known-event diagnostic-and-skip behavior requires validation before mutation;
 unknown interpreted event types still fail loudly. Sources:
-[§11.3–11.6](../book/chapter-11.md#113-snapshot-plus-tail),
-[§15.10](../book/chapter-15.md#1510-compaction-is-described-never-performed),
-[§15.12](../book/chapter-15.md#1512-crash-safe-persistence).
+[§11.3–11.6](../edition-1/book/chapter-11.md#113-snapshot-plus-tail),
+[§15.10](../edition-1/book/chapter-15.md#1510-compaction-is-described-never-performed),
+[§15.12](../edition-1/book/chapter-15.md#1512-crash-safe-persistence).
 
 Keep Chapter 11's save/load exercise small: its four-field JSON save and restore
 loop are sufficient starting points. Byte-identical replayed **vendor requests**
@@ -691,10 +714,10 @@ preservation through the specified memory mechanism. Record the actual cuts and
 nondeterministic compressed/recalled text when they occur, so replay needs
 neither filesystem guesses nor new model calls. Do not adopt old job-output
 addresses as durable facts when handle reuse can make them name different bytes.
-Sources: [§15.4](../book/chapter-15.md#154-what-survives-is-never-a-tool-call),
-[§15.11](../book/chapter-15.md#1511-keep-the-words-let-the-bytes-go),
-[§16.1](../book/chapter-16.md#161-in-plain-words),
-[§17.5](../book/chapter-17.md#175-attachment-permanent-until-a-checkpoint).
+Sources: [§15.4](../edition-1/book/chapter-15.md#154-what-survives-is-never-a-tool-call),
+[§15.11](../edition-1/book/chapter-15.md#1511-keep-the-words-let-the-bytes-go),
+[§16.1](../edition-1/book/chapter-16.md#161-in-plain-words),
+[§17.5](../edition-1/book/chapter-17.md#175-attachment-permanent-until-a-checkpoint).
 
 **Chapters 16–17: use the smallest mechanism and test useful recall.** The
 compressor and relevance judge are bounded calls, not prematurely built
@@ -705,10 +728,10 @@ scores look broken; test representative scoring and fallback. Let the component
 parsing a judge reply own its requested format, or duplicate instructions can
 force fallback silently. Hook recall into every actual turn entry path. Fixed
 fake summaries prove cascade structure, not real compression quality. Sources:
-[§16.2](../book/chapter-16.md#162-one-door),
-[§16.5–16.10](../book/chapter-16.md#165-the-compressor),
-[§17.2](../book/chapter-17.md#172-bm25-the-thirty-year-old-formula-that-still-works),
-[§17.4–17.5](../book/chapter-17.md#174-the-judge-filtering-by-meaning-not-keywords).
+[§16.2](../edition-1/book/chapter-16.md#162-one-door),
+[§16.5–16.10](../edition-1/book/chapter-16.md#165-the-compressor),
+[§17.2](../edition-1/book/chapter-17.md#172-bm25-the-thirty-year-old-formula-that-still-works),
+[§17.4–17.5](../edition-1/book/chapter-17.md#174-the-judge-filtering-by-meaning-not-keywords).
 
 **Chapters 15 and 18–20: instrument costs independently of correct answers.**
 A cache miss can return a perfect answer. Stable-prefix design therefore needs
@@ -720,11 +743,11 @@ bytes from tokens and last-response figures from session totals. Preserve counts
 rather than computed money, show unknown prices honestly, and attribute counts
 to the model that incurred them once switching exists. Chapter 22 corrects
 repricing all previous work at the current model's rate. Sources:
-[§15.3](../book/chapter-15.md#153-two-laws),
-[§18.2](../book/chapter-18.md#182-the-lens),
-[§18.5](../book/chapter-18.md#185-the-meter),
-[§20.4](../book/chapter-20.md#204-what-you-cannot-see-cannot-be-fixed),
-[Chapter 22, accounting](../book/chapter-22.md#where-the-money-went-wrong).
+[§15.3](../edition-1/book/chapter-15.md#153-two-laws),
+[§18.2](../edition-1/book/chapter-18.md#182-the-lens),
+[§18.5](../edition-1/book/chapter-18.md#185-the-meter),
+[§20.4](../edition-1/book/chapter-20.md#204-what-you-cannot-see-cannot-be-fixed),
+[Chapter 22, accounting](../edition-1/book/chapter-22.md#where-the-money-went-wrong).
 
 **Chapters 19–20: authentication, effective routing and billing move together.**
 A successful login is not evidence of inference permission; an answered request
@@ -737,10 +760,10 @@ explicit authorization and announcement before spending. Stream reasoning
 summaries distinctly and incrementally so a listener can steer while work is
 happening. Historical provider details require verification at implementation
 time; the source itself records route differences. Sources:
-[Chapter 19, identity](../book/chapter-19.md#identity-is-not-permission),
-[refresh](../book/chapter-19.md#tokens-that-expire),
-[billing](../book/chapter-19.md#the-billing-state-machine),
-[§20.2](../book/chapter-20.md#202-the-bugs-that-succeed).
+[Chapter 19, identity](../edition-1/book/chapter-19.md#identity-is-not-permission),
+[refresh](../edition-1/book/chapter-19.md#tokens-that-expire),
+[billing](../edition-1/book/chapter-19.md#the-billing-state-machine),
+[§20.2](../edition-1/book/chapter-20.md#202-the-bugs-that-succeed).
 
 **Chapters 21–23: absence and enforcement need positive controls.** Retrieved
 web text is evidence, not authorization. A skill's tool filter limits capability;
@@ -755,9 +778,9 @@ denies everything passes negative-only tests. Verify that removed tools really
 cannot execute. Respect the chapter's macOS implementation limit rather than
 silently running unconfined elsewhere. These are Chapter 23 mechanisms, not
 permission to invent the missing sub-agent exercise. Sources:
-[Chapter 21, trust boundary](../book/chapter-21.md#a-web-page-cannot-authorize-a-command),
-[§23.3–23.7](../book/chapter-23.md#233-two-boundaries-not-one),
-[§23.9–23.10](../book/chapter-23.md#239-what-does-not-work).
+[Chapter 21, trust boundary](../edition-1/book/chapter-21.md#a-web-page-cannot-authorize-a-command),
+[§23.3–23.7](../edition-1/book/chapter-23.md#233-two-boundaries-not-one),
+[§23.9–23.10](../edition-1/book/chapter-23.md#239-what-does-not-work).
 
 **Chapter 25: verify the product's actual wiring and preserve steering.**
 The newly published chapter reinforces checking the shipped executable: library
@@ -766,8 +789,8 @@ omitted, and missed stdin blocked by the turn it needed to steer. Exercise the
 actual human input path and required hierarchy depth when those capabilities
 arrive. Owner-scoped identity must stay with its fleet, not a package counter.
 Check launch directories and resolved paths before attributing different grader
-results to code. Sources: [§25.5](../book/chapter-25.md#255-five-bugs-the-tests-could-not-see),
-[§25.6](../book/chapter-25.md#256-what-the-sweep-found).
+results to code. Sources: [§25.5](../edition-1/book/chapter-25.md#255-five-bugs-the-tests-could-not-see),
+[§25.6](../edition-1/book/chapter-25.md#256-what-the-sweep-found).
 
 At the later sub-agent exercise, preserve the difference between asking a
 question and submitting completed work: fan-in yields to a child's question,
@@ -794,7 +817,7 @@ that an agent is harmless. A persistent registry of named peers has a different
 lifetime from task children. Verify create/restart/delete and conversation
 preservation through the actual public Ensemble and binary, retaining the rule
 against deleting an agent with active children. Compilation alone does not
-establish correct wiring. Sources: [§26.1–26.2](../book/chapter-26.md#261-why-running-is-not-enough).
+establish correct wiring. Sources: [§26.1–26.2](../edition-1/book/chapter-26.md#261-why-running-is-not-enough).
 
 Every management operation must resolve targets through the caller's owned
 children, with the same unknown-target result for absent and foreign targets.
@@ -805,7 +828,7 @@ frame proves neither continuing updates nor conversation selection and visible
 create/delete controls. Exercise those through the browser when assigned, with
 nested-agent and retained submit/idle-correction checks. These are deferred
 Chapter 26 capabilities, not additions to the current sandbox exercise. Sources:
-[§26.3–26.7](../book/chapter-26.md#263-containment-boundaries).
+[§26.3–26.7](../edition-1/book/chapter-26.md#263-containment-boundaries).
 
 The Chapter 26 manuscript requires conversation selection; its historical coder
 review says it is deferred. The manuscript governs the student exercise unless
@@ -831,19 +854,19 @@ apply; later capabilities enter only at their original exercise stage.
 | Original lesson or capability | Carry forward and eventual placement |
 | --- | --- |
 | Ch5: star imports, shared interfaces, behavior in the right package, owner access and no mutable globals | Apply from the first code; covered in the ownership guidance above and mandatory skill. |
-| Ch5: an independently built application imports the framework, registers a custom tool and receives its result through the real tool loop | Preserve the external-consumer exercise when public tool registration is taught. An import that merely compiles is insufficient. Existing tool/job behavior must still work. See [§5.6](../book/chapter-05.md#56-the-exercise-graded). |
+| Ch5: an independently built application imports the framework, registers a custom tool and receives its result through the real tool loop | Preserve the external-consumer exercise when public tool registration is taught. An import that merely compiles is insufficient. Existing tool/job behavior must still work. See [§5.6](../edition-1/book/chapter-05.md#56-the-exercise-graded). |
 | Ch22: the running binary actually uses the library's composition root; constructor and logging checks test relationships, not names | Apply throughout; the workflow's architecture review and mutation checks guard the real wiring. Do not recreate a flat root merely to refactor it later. |
-| Ch22: a tool dispatch context reaches Engine through a common interface and follows its parent accessors | Establish this when tool dispatch arrives. Expose the owning Engine, not copied usage/model values or a special status callback that creates a second route. See [Ch22 TL;DR](../book/chapter-22.md#tldr). |
+| Ch22: a tool dispatch context reaches Engine through a common interface and follows its parent accessors | Establish this when tool dispatch arrives. Expose the owning Engine, not copied usage/model values or a special status callback that creates a second route. See [Ch22 TL;DR](../edition-1/book/chapter-22.md#tldr). |
 | Ch22: per-model usage and cost, without repricing old work after a model switch | Apply when accounting/model switching arrives; covered in the cost guidance above. |
 | Ch22: `agent_status` reports current model, last response input/output/cache-read usage, session totals, cache hit rate and USD cost through the ownership chain | Preserve this feature and its live model-switch exercise. It belongs in combined Edition 2 Chapter 20; it is not an extra early tools feature. |
 | Ch22: disconnect can race with observer sends; superficially defensive code and timing-heavy tests can both hide the defect | Apply when GUI connection lifetimes arrive, as described below. |
-| Ch24: external reuse requires both a public GUI boundary and constructible event vocabulary; headless core/MCP must not acquire GUI or WebSocket dependencies transitively | Keep the existing separate-module and public-interface rules. Exercise outside consumers and both positive/negative import controls when those features exist; inspect the actual executable's dependency graph. Do not import the original `AgentHooks` design. Sources: [§24.2](../book/chapter-24.md#242-two-paths-to-gorilla), [§24.5](../book/chapter-24.md#245-the-proof). |
-| Ch24: the deployed GUI starts away from the source tree; embedded assets have an explicit development override | Preserve this later deployment capability. Test a built binary from an unrelated working directory and test the selected disk override separately. Read-only embedded contents do not make an exported variable binding immune to reassignment; neither a blanket package-variable ban nor a broad globals exemption establishes safe ownership. Source: [§24.4](../book/chapter-24.md#244-embedding-the-assets). |
-| Ch24: an application can reuse the Artifact scroll without the full application shell, and can use the public browser MCP relay | Preserve both reuse capabilities when their exercises are reached. Exercise public inputs, replay and prompt delivery, component-only asset serving, and request-correlated relay responses through the real GUI/transport with small external-boundary fakes. Do not require the chapter's callback bundle or fake away the core behavior under test. Source: [§24.6](../book/chapter-24.md#246-reuse-for-real). |
-| Ch24: package moves preserve wire behavior and model switching, including the actual setting's effect | Reuse the existing behavioral session across the move; inspect captured provider requests to establish the chosen model changed at the intended turn boundary. Reply counts or settings acknowledgements alone are insufficient. Sources: [§24.7](../book/chapter-24.md#247-taking-it-for-a-spin), [§24.8](../book/chapter-24.md#248-checks). |
-| Ch24: relocating code also affects old harness paths and supervised child processes | Inspect affected earlier graders, asset readers, launchers and external applications. Preserve their historical-version support where applicable. Build supervised probes first and run their binaries directly; account for child lifetime and inherited output pipes rather than assuming killing a `go run` wrapper stopped its child. Sources: [§24.7](../book/chapter-24.md#247-taking-it-for-a-spin), [§24.8](../book/chapter-24.md#248-checks). |
+| Ch24: external reuse requires both a public GUI boundary and constructible event vocabulary; headless core/MCP must not acquire GUI or WebSocket dependencies transitively | Keep the existing separate-module and public-interface rules. Exercise outside consumers and both positive/negative import controls when those features exist; inspect the actual executable's dependency graph. Do not import the original `AgentHooks` design. Sources: [§24.2](../edition-1/book/chapter-24.md#242-two-paths-to-gorilla), [§24.5](../edition-1/book/chapter-24.md#245-the-proof). |
+| Ch24: the deployed GUI starts away from the source tree; embedded assets have an explicit development override | Preserve this later deployment capability. Test a built binary from an unrelated working directory and test the selected disk override separately. Read-only embedded contents do not make an exported variable binding immune to reassignment; neither a blanket package-variable ban nor a broad globals exemption establishes safe ownership. Source: [§24.4](../edition-1/book/chapter-24.md#244-embedding-the-assets). |
+| Ch24: an application can reuse the Artifact scroll without the full application shell, and can use the public browser MCP relay | Preserve both reuse capabilities when their exercises are reached. Exercise public inputs, replay and prompt delivery, component-only asset serving, and request-correlated relay responses through the real GUI/transport with small external-boundary fakes. Do not require the chapter's callback bundle or fake away the core behavior under test. Source: [§24.6](../edition-1/book/chapter-24.md#246-reuse-for-real). |
+| Ch24: package moves preserve wire behavior and model switching, including the actual setting's effect | Reuse the existing behavioral session across the move; inspect captured provider requests to establish the chosen model changed at the intended turn boundary. Reply counts or settings acknowledgements alone are insufficient. Sources: [§24.7](../edition-1/book/chapter-24.md#247-taking-it-for-a-spin), [§24.8](../edition-1/book/chapter-24.md#248-checks). |
+| Ch24: relocating code also affects old harness paths and supervised child processes | Inspect affected earlier graders, asset readers, launchers and external applications. Preserve their historical-version support where applicable. Build supervised probes first and run their binaries directly; account for child lifetime and inherited output pipes rather than assuming killing a `go run` wrapper stopped its child. Sources: [§24.7](../edition-1/book/chapter-24.md#247-taking-it-for-a-spin), [§24.8](../edition-1/book/chapter-24.md#248-checks). |
 
-Chapter 22's [disconnect failure](../book/chapter-22.md#the-crash-the-decay-concealed)
+Chapter 22's [disconnect failure](../edition-1/book/chapter-22.md#the-crash-the-decay-concealed)
 teaches that a `select` with `default` does not make sending to a closed channel
 safe. Coordinate teardown with all senders; the demonstrated solution used a
 separate completion signal instead of closing a data channel still reachable

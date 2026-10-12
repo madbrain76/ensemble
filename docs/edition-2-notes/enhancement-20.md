@@ -141,7 +141,7 @@ five Astra/high requests/completions, actual official download filename in the
 final request. 28 discovered tools, only two granted. A 1,775,735-byte scrape
 became a selected12,000-byte tool readout with1,763,735 bytes omitted; no full-page
 model-context claim. Final secret-redaction changes postdate that run. See
-[evidence wire summary](../../solutions/edition-2/evidence/ch21/wire-summary.json).
+[evidence wire summary](../../solutions/evidence/ch21/wire-summary.json).
 
 Historical browser status source18c2d48/tree dd1282c0672ba256b7c4f5099e9aec80257016d4:
 16.34 seconds, actual Astra,Astra,Sol,Sol requests/high; tool snapshots740/14 and
@@ -149,7 +149,7 @@ Historical browser status source18c2d48/tree dd1282c0672ba256b7c4f5099e9aec80257
 zero cache read, no dollar-charge verification. Missing bundled-browser first
 attempt failed before inference. Final production matches this source; later
 changes were assertions/documentation. Independently decoded corroboration:
-[reviewer live check](../../solutions/edition-2/evidence/ch22/reviewer-live-check.json).
+[reviewer live check](../../solutions/evidence/ch22/reviewer-live-check.json).
 
 New published example validation is assigned to the coder against external local
 peers; no paid repeat is requested. Its new primary and prompts are reproducible

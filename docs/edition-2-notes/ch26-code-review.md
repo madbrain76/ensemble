@@ -82,7 +82,7 @@ The implementation applies a manager-wide message sequence to every selected ID;
 that is not the requested set-scoped monitoring (§26.4). The race-enabled probe
 fails cleanly in0.075s. Controls prove no-progress/no-question waits time out and
 a selected-child question wakes with its own identity (both pass,1.458s).
-[Failure and controls](../../solutions/edition-2/evidence/ch26/reviewer-wait-scope.txt)
+[Failure and controls](../../solutions/evidence/ch26/reviewer-wait-scope.txt)
 and adjacent reviewer probe sources preserve the setup and an initial HTTP-fake
 cleanup timeout. This finding was sent through the coordinator as behavior and
 rationale, without reference-answer code. The coder owns its correction.
@@ -107,7 +107,7 @@ an unselected child's question no longer wakes the watched child, a selected
 child's question does wake it with the correct identity, and the no-question
 control times out. Per-sender revisions replace the manager-wide attribution.
 The prior failure remains preserved; this is a verified correction, not a
-reclassification of the old result. [Exact rerun](../../solutions/edition-2/evidence/ch26/reviewer-stage2-wait.txt).
+reclassification of the old result. [Exact rerun](../../solutions/evidence/ch26/reviewer-stage2-wait.txt).
 The two exported-contract inaccuracies identified in stage1 are corrected too.
 
 The shared `Start` path installs the recursive factory and human sink before
@@ -120,7 +120,7 @@ file/rename. Named deletion checks children, shuts down the owner, then removes
 registry identity and files. Its existing real-runtime tests independently pass
 under race (1.169s), covering restart/provider-history preservation, repeated-name
 path identity, delete/restart absence and an actually parked child's rejection.
-[Focused rerun](../../solutions/edition-2/evidence/ch26/reviewer-stage2-registry.txt).
+[Focused rerun](../../solutions/evidence/ch26/reviewer-stage2-registry.txt).
 This does not claim every concurrency interleaving or final browser integration.
 
 The modified GUI budget fake still exercises the built executable, persisted
@@ -164,7 +164,7 @@ involved. A one-selection positive control passes. The final race run fails
 the intended bounded shutdown assertion in4.141s, with actual goroutine stacks
 at `gui.go:332` (channel send) and `gui.go:465` (Close mutex). The first600ms
 admission attempt passed; allowing3s exposed the full queue. Both are preserved,
-not relabeled. [Probe, control and stacks](../../solutions/edition-2/evidence/ch26/reviewer-selection.txt)
+not relabeled. [Probe, control and stacks](../../solutions/evidence/ch26/reviewer-selection.txt)
 and adjacent exact sources record the finding sent through the coordinator.
 No production code was changed; correction and its mutation belong to the coder.
 
@@ -175,7 +175,7 @@ fleet behavioral failures, but they also provide no proof of the masked valid
 obligations. Full exception assessment awaits the final student explanation and
 supplemental evidence; no additional unobserved envelope failure is claimed.
 
-[Provisional own-predecessor counts](../../solutions/edition-2/evidence/ch26/reviewer-first-green-counts.json)
+[Provisional own-predecessor counts](../../solutions/evidence/ch26/reviewer-first-green-counts.json)
 separate languages, tests and scripts. Student production Go adds1007 physical,
 860 active,99 comment-only and48 blank lines; original adds1067/838/107/122.
 Student Go tests add412/380/18/14 and browser tests68/66/1/1; original Go tests
@@ -201,7 +201,7 @@ No formal correction round consumed; no chapter acceptance or export.
 Exact corrected source `9e2b72aeaddc85cbe1afadec41909b4d66ad3b34`, main tree
 `38aee9dd34ca180dedeed0fe17bf4cfe2173ef84`, was archived independently. Both
 preserved reviewer sources were copied unchanged: slow repeated selection and
-one-selection control now pass under race in4.150s. [Exact rerun](../../solutions/edition-2/evidence/ch26/reviewer-selection-corrected.txt).
+one-selection control now pass under race in4.150s. [Exact rerun](../../solutions/evidence/ch26/reviewer-selection-corrected.txt).
 The failed first-green reproduction remains above; the defect is corrected.
 
 The source admits the complete replay as one existing queue batch, or releases
@@ -243,9 +243,9 @@ The new `agentView.replay` presents it as current state. A small external-provid
 fake exercises real Start/CreateAgent/Ask, successful submit, WebSocket selection,
 Close/Start and selection again. Both completed and restarted Agents have idle
 activity yet replay input_pending: clean intended race failure0.064s.
-[Exact regression](../../solutions/edition-2/evidence/ch26/reviewer-state.txt),
-[probe source](../../solutions/edition-2/evidence/ch26/reviewer-state_test.go.txt),
-and [independent live trace](../../solutions/edition-2/evidence/ch26/reviewer-live-state-check.json).
+[Exact regression](../../solutions/evidence/ch26/reviewer-state.txt),
+[probe source](../../solutions/evidence/ch26/reviewer-state_test.go.txt),
+and [independent live trace](../../solutions/evidence/ch26/reviewer-live-state-check.json).
 Correct the actual completed-turn/current-replay disagreement, preserving true
 busy and interruption behavior. Demonstrate both immediate selection and saved
 restart through the real runtime, with an affected regression and targeted
@@ -294,7 +294,7 @@ credential access occurred. This is bounded real fleet coding evidence, not
 Edition3 authorship or a scale claim. The original live state discrepancy remains
 in history even after correction.
 
-[Initial-submission counts](../../solutions/edition-2/evidence/ch26/reviewer-initial-counts.json)
+[Initial-submission counts](../../solutions/evidence/ch26/reviewer-initial-counts.json)
 refresh the same tracked lexical method: student production Go delta
 1018physical/866active/104comment/48blank versus original1067/838/107/122;
 student tests537/493/26/18 Go plus75/72/1/2 browser versus original864/669/93/102
@@ -332,7 +332,7 @@ An isolated archive reran the **unchanged original independent state probe**
 alongside the coder's real retained-state/WebSocket/pending-request control.
 Both pass under race in1.219s: immediate and restarted completed peers replay
 idle, a parked later request remains in_flight, and its subsequent completion
-returns idle. [Independent round1 rerun](../../solutions/edition-2/evidence/ch26/reviewer-round1-state.txt).
+returns idle. [Independent round1 rerun](../../solutions/evidence/ch26/reviewer-round1-state.txt).
 The coder's affected core race (5.235s), history/malformed-load/save race (1.050s),
 full GUI race (11.067s), both-module vet and clean formatting support the rest
 of this bounded change; unchanged broad checks were not needlessly repeated.
@@ -349,13 +349,13 @@ The paid live provenance stays at9e2b72a, binary
 `a42e9069d3c9b123ede0f44f635b58e8646b5e78b85c615526748b2c915ebfa5`.
 Its real fleet coding,15 Astra/high requests, measured tests, GUI selection and
 restart evidence remain valid within the previously recorded limits. The
-[coordinator's independent wire/artifact audit](../../solutions/edition-2/evidence/ch26/coordinator-live-check.json)
+[coordinator's independent wire/artifact audit](../../solutions/evidence/ch26/coordinator-live-check.json)
 agrees with the separately inspected GUI sequence. Its historical pending-state
 capture remains defective; deterministic real-runtime evidence establishes the
 correction, not a paid rerun or rewritten screenshot. Newly completed and restored
 conversations are verified; no old-save migration is implemented or claimed.
 
-[Final own-predecessor counts](../../solutions/edition-2/evidence/ch26/reviewer-final-counts.json)
+[Final own-predecessor counts](../../solutions/evidence/ch26/reviewer-final-counts.json)
 use the same language-separated tracked-source method and exclusions above.
 Student production Go adds1027physical/870active/109comment-only/48blank versus
 original1067/838/107/122. Student Go tests add636/585/30/21 and browser tests

@@ -48,7 +48,7 @@ correction `d01e846864cf1cb731e10d7579f746457b19c645`, one formal correction rou
 source identities, earlier failed attempts and accepted inherited exception.
 
 Original grading remains **95/100 FAIL**, make2/grader1, new speech95/95 and
-inherited parity0/5. Its [source manifest](../../solutions/edition-2/evidence/ch14/original-grade-provenance.json)
+inherited parity0/5. Its [source manifest](../../solutions/evidence/ch14/original-grade-provenance.json)
 records uncommitted speech/harness state based on565d21ed, with the public blind
 client still in progress. It is not the final accepted binary or a final-source
 pass. The old missing-type/structural parity exceptions do not waive speech or
@@ -117,7 +117,7 @@ Claude's target never chooses a fruit: “fruit-sized” is not a named choice, 
 the listener reports the omission. OpenAI mentions an apple but emits three
 sentences rather than two. Gemini mentions an apple and exposes both thinking
 and response speech. A listener's Markdown-formatted report is not evidence that
-backticks entered target speech. See [live summary](../../solutions/edition-2/evidence/ch14/live-summary.json)
+backticks entered target speech. See [live summary](../../solutions/evidence/ch14/live-summary.json)
 and its three raw vendor artifacts for actual reports and source differences.
 
 Those runs predate final EOF cleanup/formatting. No paid final-source repeat is
@@ -137,7 +137,7 @@ workspace but the accepted file reader resolves its supplied path through
 silent-result credit never established suppression of successful file bytes.
 
 The corrected fixture supplies the planted file's absolute path through the
-existing public argument. [Focused corrected output](../../solutions/edition-2/evidence/ch14/enhancement13/accepted-absolute.txt)
+existing public argument. [Focused corrected output](../../solutions/evidence/ch14/enhancement13/accepted-absolute.txt)
 passes95/95; this is an intermediate focused result, not a final full score.
 No frozen runtime change, new workspace semantics or feature is authorized.
 §13.9 now teaches the concise positive-control lesson alongside original95/100.
@@ -172,7 +172,7 @@ The manuscript remains unchanged at SHA-256
 `23362a10028368a918a64e28a5da8823408c90f5255848b2f600723b3706e64b`.
 Direct chapter hard lint passes at4627 prose words. No sample correction is needed.
 
-Read the [sample receipt](../../solutions/edition-2/evidence/ch14/enhancement13/samples.json),
+Read the [sample receipt](../../solutions/evidence/ch14/enhancement13/samples.json),
 full extracted fences, runtime fields and decoded captured vendor requests.
 Both exact Go build commands and the published GUI/listener launches run with the
 exact primary YAML and task. The run uses the documented existing-Chrome option;
@@ -193,8 +193,8 @@ helper before correction; no product defect or prose change resulted.
 
 Actual full revised grader runs at coder checkpoint1913a0d7 score accepted
 **100/100 PASS** (exit0,29.634s) and legacy **75/100 FAIL** (exit1,41.824s).
-[Accepted full receipt](../../solutions/edition-2/evidence/ch14/enhancement13/accepted-full-run.json)
-and [legacy full receipt](../../solutions/edition-2/evidence/ch14/enhancement13/legacy-full-run.json)
+[Accepted full receipt](../../solutions/evidence/ch14/enhancement13/accepted-full-run.json)
+and [legacy full receipt](../../solutions/evidence/ch14/enhancement13/legacy-full-run.json)
 record actual built-command invocations; these totals are not composed estimates.
 Legacy loses20 markup points because the second adjacent bullet remains spoken
 in both delivery modes, and5 corrected parity points. The broader nested legacy
@@ -231,7 +231,7 @@ remain75/95. With the unchanged earlier parity5/0, the **final totals are compos
 100/100 and75/100**, respectively. No final full rerun is claimed. The actual
 1913a0d7 full reports and their elapsed times above remain separate. Final vet,
 command tests and formatting pass. All source SHA values and both unchanged
-frozen tree IDs in [source-binding.json](../../solutions/edition-2/evidence/ch14/enhancement13/source-binding.json)
+frozen tree IDs in [source-binding.json](../../solutions/evidence/ch14/enhancement13/source-binding.json)
 were directly verified against current files/Git trees; the stable manuscript
 hash still matches.
 

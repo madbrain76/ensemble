@@ -104,9 +104,9 @@ actual CLI prompt through load/write/read/unload against a small external fake,
 five requests and actual `note.txt=SKILLS_OK`. Full-primary YAML declares all
 twelve tools; the first frontmatter example loads with small explicit dependency
 and offered-skill companion files. All processes exit0. Author checked the
-[Go result](../../solutions/edition-2/evidence/ch10/enhancement09/published-go.txt),
-[source binding](../../solutions/edition-2/evidence/ch10/enhancement09/published-samples.json)
-and [CLI results](../../solutions/edition-2/evidence/ch10/enhancement09/published-cli.json).
+[Go result](../../solutions/evidence/ch10/enhancement09/published-go.txt),
+[source binding](../../solutions/evidence/ch10/enhancement09/published-samples.json)
+and [CLI results](../../solutions/evidence/ch10/enhancement09/published-cli.json).
 These are deterministic published-example checks, not new paid or human-chat
 demonstrations. No prose correction was needed. Combined independent grader
 review and chapter acceptance remain pending.

@@ -2,7 +2,7 @@
 
 > Historical paths: the `edition-2/ch04`–`ch09` paths recorded below use
 > original student numbering. Those exports are now preserved under
-> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/edition-2/README.md).
+> `solutions/edition-2/history/`; see the [solution mapping](../../solutions/README.md).
 
 Reviewer: `review_restart_ch01`, October 9, 2026. **Accepted with documented
 exceptions after two correction rounds (maximum three).** Both initial
@@ -140,7 +140,7 @@ an actual observer or stdout chunk before the server can finish, so incremental
 delivery is tested rather than inferred from the final answer. Streamed/plain
 facts, usage, replay bytes, channel identity and tool finalization are compared.
 
-Read the complete [mutation output](../../solutions/edition-2/evidence/ch07/mutations.txt):
+Read the complete [mutation output](../../solutions/evidence/ch07/mutations.txt):
 26 distinct defects, 27 executions including the corrected reasoning-channel
 survivor. The original survivor is honestly retained; its rerun fails the added
 semantic channel assertion. Intended liveness failures have working baselines.
@@ -206,7 +206,7 @@ The compiled-CLI regression sends `hint:early`, withholds the rest of the HTTP
 response until stdout is observed, then requires exactly `hint:earlylate\n`.
 The existing HTTP-hint and interrupt tests also inspect the actual acknowledgement's
 marker while preserving their delivery/lifetime assertions. Read complete
-[round-1 mutation output](../../solutions/edition-2/evidence/ch07/round1-mutations.txt):
+[round-1 mutation output](../../solutions/evidence/ch07/round1-mutations.txt):
 restoring prefix routing fails the intended incremental stdout check; removing
 the actor marker fails the direct `hint acknowledgement missing origin marker`
 assertion. The earlier deadline-based version remains honestly recorded. Final
@@ -224,7 +224,7 @@ categories are unchanged. Combined production is **4,342 / 986 / 5,643**, chapte
 growth **+788 / +109 / +940**; combined tests are **2,347 / 198 / 2,623**. The
 initial comparative assessment and original-solution counts remain applicable.
 
-Read the complete [round-1 original grader result](../../solutions/edition-2/evidence/ch07/grade-round1.txt):
+Read the complete [round-1 original grader result](../../solutions/evidence/ch07/grade-round1.txt):
 **0/100 FAIL**, the same five unknown-`fake-model` streaming failures and two
 inherited Chapter 6 parity failures. The scoped exceptions above remain justified;
 neither the fixes nor their acceptance turns that result into a grader pass.
@@ -255,10 +255,10 @@ carryover model-selection clarification. This round changes evidence and notes
 only. The three recorded CLI/actor source hashes match the current files; prior
 code assessment, tests, mutations and round-1 counts remain applicable.
 
-Independently inspected the [discovery result](../../solutions/edition-2/evidence/ch07/gemini38-discovery.json),
-[raw CLI capture](../../solutions/edition-2/evidence/ch07/gemini38-cli.json),
-[API frames](../../solutions/edition-2/evidence/ch07/gemini38-api.log) and
-[durable events](../../solutions/edition-2/evidence/ch07/gemini38-events.jsonl).
+Independently inspected the [discovery result](../../solutions/evidence/ch07/gemini38-discovery.json),
+[raw CLI capture](../../solutions/evidence/ch07/gemini38-cli.json),
+[API frames](../../solutions/evidence/ch07/gemini38-api.log) and
+[durable events](../../solutions/evidence/ch07/gemini38-events.jsonl).
 Discovery reports the requested model available. Both durable request destinations
 name `gemini-3.8-flash`, and all eleven response frames identify that same model.
 There are two requests, six nonempty reply chunks, two thinking chunks and one

@@ -152,9 +152,9 @@ It is not a fresh paid or semantic-quality result. Original0/100 remains a
 failed launch/module-fixture grade, not a measured retrieval failure.
 
 Independently verified every final grader hash and both frozen tree identities
-in [final-source.json](../../solutions/edition-2/evidence/ch17/enhancement16/final-source.json).
+in [final-source.json](../../solutions/evidence/ch17/enhancement16/final-source.json).
 All nine final fences are byte-identical to the actually executed manuscript
-`3b80e091…` in [samples.json](../../solutions/edition-2/evidence/ch17/enhancement16/samples.json).
+`3b80e091…` in [samples.json](../../solutions/evidence/ch17/enhancement16/samples.json).
 Inspected the actual sample launcher, requests and recorded attachment: one
 judge sees the fact and distractor; two Sonnet-5 main requests each retain the
 exact recorded recall once, without cafeteria content; normal exit0. The Go
@@ -205,8 +205,8 @@ Independently rebuilt the final grader with a narrow Go overlay and used an
 isolated frozen runtime copy. The paragraph check passes baseline0.037s, fails
 the removed-split defect0.035s on its actual excluded marker, and passes restored
 source0.034s. Full output/source bindings and the small reproduction script are
-[reviewer-paragraph-probe.json](../../solutions/edition-2/evidence/ch17/enhancement16/reviewer-paragraph-probe.json)
-and [reviewer-paragraph-probe.py](../../solutions/edition-2/evidence/ch17/enhancement16/reviewer-paragraph-probe.py).
+[reviewer-paragraph-probe.json](../../solutions/evidence/ch17/enhancement16/reviewer-paragraph-probe.json)
+and [reviewer-paragraph-probe.py](../../solutions/evidence/ch17/enhancement16/reviewer-paragraph-probe.py).
 No broad grade, timeout or paid demonstration was repeated.
 
 ### Comparison and simplicity

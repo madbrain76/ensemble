@@ -56,7 +56,7 @@ supported Sonnet5 failed or that the old failure's cause was experimentally prov
 ### Supported models and actual checks
 
 The [coder report](supported-model-correction.md) and
-[source bindings](../../solutions/edition-2/evidence/supported-model-correction/source.json)
+[source bindings](../../solutions/evidence/supported-model-correction/source.json)
 cover16 changed source/test files; I independently verified every hash. Chapter5
 uses its accepted snapshot's existing Sonnet4.6 row. The legacy snapshot declares
 Sonnet5 instead, so its explicit public model-map override is necessary. No
@@ -237,7 +237,7 @@ both exit0. These are actual full reports, not composed totals. The earlier
 35fe32fe runs remain separately recorded. Focused grader race checks pass in1.895s;
 vet/formatting pass. Race instrumentation covers the test process, not the
 separately built applications. I verified every final grader hash and both
-frozen tree IDs; the [independent receipt](../../solutions/edition-2/evidence/ch15/enhancement14/reviewer-final-check.json)
+frozen tree IDs; the [independent receipt](../../solutions/evidence/ch15/enhancement14/reviewer-final-check.json)
 records those checks and the narrow probe. No redundant full grader or paid run
 was performed by this reviewer.
 

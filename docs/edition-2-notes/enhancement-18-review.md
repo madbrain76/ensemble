@@ -166,7 +166,7 @@ recorded above; no subsequent compaction preceded this decision. Mandatory skill
 `.agents/skills/ensemble-coding/SKILL.md`.
 
 Independently verified all five hashes in
-[final-source.json](../../solutions/edition-2/evidence/ch19/enhancement18/final-source.json),
+[final-source.json](../../solutions/evidence/ch19/enhancement18/final-source.json),
 both frozen tree identities and tracked working bytes, and preservation of the
 original chapter/grader paths. Final driver changes only distinguish abnormal
 exits from ordinary refusal; the independently exercised forwarding/gate path

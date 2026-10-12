@@ -1,5 +1,28 @@
 # Edition 2 chapter mapping
 
+## October 12: Edition 2 is the current top-level tree
+
+Promotion commit `564e316f` moves the accepted second edition to `agent/`,
+`book/` and `solutions/chNN/`. The first edition, frozen through original
+Chapter 27, is preserved in `edition-1/`, including its original graders.
+Develop current application code in `agent/`; do not edit frozen snapshots.
+Current grading uses `cmd/grade-edition2`; original grading runs from `edition-1/`.
+
+Gateway implementation and prose/grader enhancement are accepted as current
+Chapter 26. Optional Chapter 24 is complete; crossover Chapter 25 remains a
+placeholder. Publication preparation is active, with crossover begun rather
+than complete. Preserve Bill's unfinished crossover edits and historical results.
+See `docs/edition-2-publication.md` (repository-root path) for relocation and checks.
+
+This current path/phase declaration supersedes older dated instructions below.
+Their literal command paths and source identities describe the runs at that time;
+relative evidence links have been redirected to the relocated artifacts. In
+historical student restrictions, old `agent/` means today's `edition-1/agent/`,
+and old `solutions/edition-2/main/` means today's `agent/`. No older instruction
+to start from empty, stop at an earlier chapter or use the retired author-first
+workflow is reactivated by this move. All architecture, full-context reading,
+independent review and preservation rules remain in force.
+
 ## October 12: Gateway enhancement accepted; publication preparation released
 
 Independent combined review `63709086` accepts author `35930f10` and coder

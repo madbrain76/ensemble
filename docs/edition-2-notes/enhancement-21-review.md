@@ -88,8 +88,8 @@ procedure 1–599 and the entire 373-line skill. Recovered truncated combined
 output explicitly (workflow 2100–2209 and carryover opening), and reread current
 AGENTS, enhancement assignment and map. All four complete documents are active.
 
-The independent external consumer in [reviewer-clamp.go.txt](../../solutions/edition-2/evidence/ch23/enhancement21/reviewer-clamp.go.txt)
-and [its actual receipt](../../solutions/edition-2/evidence/ch23/enhancement21/reviewer-clamp.json)
+The independent external consumer in [reviewer-clamp.go.txt](../../solutions/evidence/ch23/enhancement21/reviewer-clamp.go.txt)
+and [its actual receipt](../../solutions/evidence/ch23/enhancement21/reviewer-clamp.json)
 confirms the remaining legacy child-boundary defect. Both frozen trees permit
 legitimate existing and not-yet-created child subroots. For an existing symlink
 inside the parent pointing outside, accepted Clamp narrows the returned root and
@@ -147,7 +147,7 @@ prose and matching implementation reviews above remain applicable.
 
 Final manuscript SHA-256 is
 `687a63e5b10404863359a4d5151323610680484772044ddb3af4f5de1917ba79`.
-The [independent final binding](../../solutions/edition-2/evidence/ch23/enhancement21/reviewer-final-binding.json)
+The [independent final binding](../../solutions/evidence/ch23/enhancement21/reviewer-final-binding.json)
 verifies all four grader files, both unchanged tracked frozen trees and all 12
 fences against the executed `20c231d9` sample. Four Go excerpts match their
 owning source modulo whitespace; they are excerpts compiled in that source,

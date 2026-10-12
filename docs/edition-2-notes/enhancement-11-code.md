@@ -55,7 +55,7 @@ blocks, rather than searching declarations or earlier call arguments.
 
 ## Fixture discoveries and actual results
 
-Evidence: [enhancement11](../../solutions/edition-2/evidence/ch12/enhancement11/).
+Evidence: [enhancement11](../../solutions/evidence/ch12/enhancement11/).
 `initial-baseline.txt` retains my invalid comma-plus-space tools header. The
 published parser uses whitespace-separated names; commas became part of the
 first five names, leaving only final `auto_broken` matched. The corrected valid

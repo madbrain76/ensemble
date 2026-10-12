@@ -78,7 +78,7 @@ failures. Original graders remain untouched. Focused Chapter2 changes85→100;
 
 ## Actual scores and provenance
 
-Evidence directory: [enhancement10](../../solutions/edition-2/evidence/ch11/enhancement10/).
+Evidence directory: [enhancement10](../../solutions/evidence/ch11/enhancement10/).
 
 | Measurement | Result |
 | --- | --- |

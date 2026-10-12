@@ -96,7 +96,7 @@ prompt correction. Final manuscript has412lines, with163/260original lines
 retained by exact SequenceMatcher alignment, SHA-256
 `32723da4cf2531b5786330502708d58c62db613fd71a7a73acd855c2e83b6b22`.
 
-The coder's [published-example receipt](../../solutions/edition-2/evidence/ch11/enhancement10/published-samples.json)
+The coder's [published-example receipt](../../solutions/evidence/ch11/enhancement10/published-samples.json)
 binds that exact manuscript and both extracted Go fence hashes. Both fences
 compile; the private restore excerpt exercises the real existing validator and
 reducer across full-log, older-snapshot/tail, snapshot-only and invalid-event
@@ -108,8 +108,8 @@ both-client persistence checks. These are deterministic sample checks, not a new
 paid or personal-human live demonstration. No manuscript sample change was needed.
 
 Author inspected the actual revised results: final accepted
-[full100/100](../../solutions/edition-2/evidence/ch11/enhancement10/accepted-final10.json),
-and final legacy [focused80/85](../../solutions/edition-2/evidence/ch11/enhancement10/legacy-declared-model-persistence.txt).
+[full100/100](../../solutions/evidence/ch11/enhancement10/accepted-final10.json),
+and final legacy [focused80/85](../../solutions/evidence/ch11/enhancement10/legacy-declared-model-persistence.txt).
 Legacy accepts a JSON `null` save, sends a request and overwrites it, failing
 refusal; that is behavior, not a setup failure. An earlier legacy file named
 `legacy-final-persistence.txt` still has60/85 because its runtime-configuration
@@ -124,7 +124,7 @@ This is a fixture-lifetime correction, not permission to disable persistence.
 The [coder report](enhancement-10-code.md) preserves the intermediate runs,
 corrected full run and final **80/100 composed** legacy total; do not infer a
 fresh full legacy run from its focused80/85 result. The
-[final validation receipt](../../solutions/edition-2/evidence/ch11/enhancement10/final-validation.json)
+[final validation receipt](../../solutions/evidence/ch11/enhancement10/final-validation.json)
 binds accepted's actual full command, exit0 and report; no duration was recorded,
 so no earlier run's timing is reused. Source race checks for the real save/replay/config/path/empty-primary
 cases pass, as do affected grader tests. Mutation records retain21initial

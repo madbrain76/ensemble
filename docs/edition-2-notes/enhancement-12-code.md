@@ -61,7 +61,7 @@ read after its scanner's `Wait`; previous protocol checks remain intact.
 
 ## Fixture corrections and results
 
-Evidence: [enhancement12](../../solutions/edition-2/evidence/ch13/enhancement12/).
+Evidence: [enhancement12](../../solutions/evidence/ch13/enhancement12/).
 The first accepted focused run passed90/90. `legacy-focused.txt` and
 `legacy-diagnostic.txt` retain the initial0/90 setup failure: an empty primary
 selection relied on the accepted launcher's default, while legacy had no loaded

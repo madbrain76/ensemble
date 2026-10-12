@@ -97,8 +97,8 @@ The production wakeup is present; this is a sensitivity gap, not an observed
 production failure. Return the finding for a focused receive-lifetime check and
 restored-defect proof before final submission. No additional runtime capability
 or paid run is requested. This is attributed pre-submission review assistance,
-zero formal correction rounds. See [probe receipt](../../solutions/edition-2/evidence/ch21/reviewer-initial-probes.json)
-and [primary probe](../../solutions/edition-2/evidence/ch21/reviewer-primary-probe.go.txt).
+zero formal correction rounds. See [probe receipt](../../solutions/evidence/ch21/reviewer-initial-probes.json)
+and [primary probe](../../solutions/evidence/ch21/reviewer-primary-probe.go.txt).
 Both isolated scratch checks were removed afterward.
 
 The original grader's completion wait also disagrees with the existing GUI
@@ -108,7 +108,7 @@ can complete while the harness waits90seconds. The eventual score and exact
 failure remain for the final evidence review; this source observation does not
 turn visible tool output into proof of every masked rubric assertion.
 
-Initial [comparative counts](../../solutions/edition-2/evidence/ch21/reviewer-counts.json)
+Initial [comparative counts](../../solutions/evidence/ch21/reviewer-counts.json)
 are tied to this frozen stage. Original21 has no original20 snapshot predecessor,
 so original19→21 includes the crossover's unrelated model, cache, actor and GUI
 repairs. Do not attribute all that growth to the HTTP feature. Relevant original
@@ -171,7 +171,7 @@ tests exercise real earlier components through external HTTP peers. The original
 enablement test substitutes the connect callback and asserts registry state;
 the student also tries the unauthorized call through actual Agent dispatch.
 
-[Counts](../../solutions/edition-2/evidence/ch21/reviewer-counts.json) use physical
+[Counts](../../solutions/evidence/ch21/reviewer-counts.json) use physical
 source lines and active lines excluding blanks/comment-only lines; inline
 comments remain active. Each edition uses its own predecessor; tests, examples
 and languages are separate, with Markdown, manifests, module metadata, scripts
@@ -214,7 +214,7 @@ suite1.148s. That run includes the primary-departure probe. The exact formerly
 surviving Broadcast removal now fails **close did not wake receiver** after one
 second, with no compile failure or unrelated timeout. The new check observes
 an actual receiver parked in Cond.Wait before closing; client Done is no longer
-misreported as receive completion. See [final receipt](../../solutions/edition-2/evidence/ch21/reviewer-final-check.json).
+misreported as receive completion. See [final receipt](../../solutions/evidence/ch21/reviewer-final-check.json).
 
 Read all25 applied mutation outputs. Twenty-four have the intended behavioral
 failure; repeated grant/unload edits record strengthened assertions, not25 unique
