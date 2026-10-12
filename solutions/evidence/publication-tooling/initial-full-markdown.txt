@@ -1,0 +1,2 @@
+scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
+book/the-art-of-building-ai-coding-agents.md: 157639 words

@@ -14,7 +14,8 @@ function Link(link)
       table.insert(parts, part)
     end
   end
-  link.target = 'https://github.com/waywardgeek/ensemble/blob/main/' ..
+  local kind = path:match('/$') and 'tree' or 'blob'
+  link.target = 'https://github.com/waywardgeek/ensemble/' .. kind .. '/main/' ..
     table.concat(parts, '/'):gsub(' ', '%%20') .. suffix
   return link
 end

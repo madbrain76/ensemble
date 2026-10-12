@@ -1,0 +1,92 @@
+{
+  "sources": {
+    "Makefile": "f4f1e9c9593b1d52bc799d4978361cf1e686a3eb90b3b2073e691aa23e23ea21",
+    "book/build-print.py": "8c21f304f6329b12418b6f434bc536c1e2a8eb3d9eb6643d167c3b387a31213e",
+    "cmd/fakevendor/main.go": "0315530d50670f0f96702c6709410413654fcbe66c278611d567bf7b643500a4",
+    "cmd/grade-edition2/main.go": "a361d154b04b7348bf46c528ea9cd3ab32e2b810d6137d4b7ea348a2ec2b02e2",
+    "internal/gradeedition2/ch01_test.go": "be78a23b5a1466df29c6ec93b9030cd3b9c566e5d6e651b467c2c34d57a55ce3",
+    "internal/gradeedition2/ch02_test.go": "e169baf5cbeaf8f270d548367b1b5947be079f3258e7ee2fc646cddbbae2cb31",
+    "internal/gradeedition2/ch03_test.go": "5849e7daf0960f42e64e862577b7e25e9d926a9483622987071685ecbdf97c6c",
+    "internal/gradeedition2/ch04_test.go": "bfe92d4babc9153d4f37fc981d5d0995e392e3235f05b898f9b5feeddb3e5b06",
+    "internal/gradeedition2/ch05_test.go": "86a4f2204e6996cff0426bd80cd8cf7c15f84dc014101aee56e24fa753b56561",
+    "internal/gradeedition2/ch06_test.go": "0e813f4d38f0ff661f857b35a0cd4f4c51213977308740311d4c7f3e16f82ef4",
+    "internal/gradeedition2/ch07_test.go": "74420b7e25413705f619a0e1d495cc9f5a671366f4015d7eeb56a39386f02d34",
+    "internal/gradeedition2/ch08_test.go": "0dd20c6b72e0346de96f48ea7bb4d88f3e10199ebc61fb2e751cc70dd33026fd",
+    "internal/gradeedition2/ch09_test.go": "c088c0aedd838dfe4ab9111ab4e6a8836e493fda591daaccef079d2cd07e5d3b",
+    "internal/gradeedition2/ch10_test.go": "70ef896849afe79e79bb4a9bd0e8107077905795e90c808e9760af1c12956867",
+    "internal/gradeedition2/ch11_test.go": "18ce144cb406c66152fcd3055e5090719f658847e7942f6b09fd81a56fb5cbb1",
+    "internal/gradeedition2/ch12_test.go": "058a6514eebb2c7e182ac1d1f836e6e56ad95f8aea1f51c28b5d1be75ea80974",
+    "internal/gradeedition2/ch13_test.go": "f1c3cf69603ba22d511b7c07d9928b6d2c57f283b6c2532db8485b74b668a73f",
+    "internal/gradeedition2/ch14_test.go": "a13956a51449549a44d080c0a36b57f3cff1ea7ba9d099b8ded767ea0466c446",
+    "internal/gradeedition2/ch15_test.go": "535ae5aa44521e492e4ddb01498bf0bf6119a26135ae2c37660422a3d0d5cfad",
+    "internal/gradeedition2/ch16_test.go": "007958522202c428f87433dcb4ab49a3ad78f989e03cf1eff459fa23dd8f67cd",
+    "internal/gradeedition2/ch17_test.go": "ca7470d3bb426368dbe04de43f451634cddc80e5fed4e392ee5f63d65c6f2d7a",
+    "internal/gradeedition2/ch18_test.go": "2e79705b04afd05cc4523cdcc64ebd1c35fc92bee674bac6c15abf80ec30f150",
+    "internal/gradeedition2/ch20_test.go": "41f2cc0776d43e2eba732e960832e51118d9d73662e9d4b68c6997ead15b2ff7",
+    "internal/gradeedition2/ch21_test.go": "d3607f66a360788eefd4280d6250d95d9b73683af2a7614e2c87f465aa6b127b",
+    "scripts/build-ebook.sh": "c714fe67f3cd021bf23764714411aeedbffd236f057eb41ed6870ba2a34c3812",
+    "scripts/edition2/README.md": "87d8d7c49dd4526ea20acf9262999d077de84ef935edcb15d95a70ac56b12d6f",
+    "scripts/edition2/export_snapshot.py": "7c60da6d4daf740c2e0239733469cb5abccdb004d797cbcd938466159eaa8abe",
+    "scripts/edition2/test_export_snapshot.py": "d59dae6f8956b5a6f06c6f2f29f0608e0959838f6247e6c9541c04053f39d52b",
+    "scripts/publication-links.lua": "551b6580311a83dc860a0e73594304f241272e8782e2282c36ac55fe70c7e356"
+  },
+  "publication_inputs": {
+    "book/chapter-15.md": "d4dbd085d885a0be77955b803c7450aec08385268251d3161314c087f02dbb29",
+    "book/chapter-21.md": "7e4c2837221723f522762643250d5266c38fa59418facd5b8c7a1a3c5789b144",
+    "book/chapter-05.md": "b50de003bcbf2f486fad04e3db608572350001c2a778114201e458a0dfa13297",
+    "book/chapter-25.md": "2a065c2dec6227148f8f382d42dcbc2fe1c69f6fd3be4b2c168c2eb2fe24a2a0",
+    "book/chapter-11.md": "3b6e138ba7bcb0cad8e53b01b23d206b6a26f503670a05d8cf637bbd40378638",
+    "book/chapter-01.md": "f900577d2826a5adc1d6748297b0a20aa23879088ffd027a0fd01fb3c108828a",
+    "book/chapter-24.md": "2d8cafa7bac9555f79efa927f05f9e8d88a37ca9cff96f21caa3ecc993729351",
+    "book/chapter-10.md": "75f1936ca8f1bdd005d2f48411dc00c2d50885cfdf6d93c63cb7015bbcbb9d10",
+    "book/chapter-00.md": "f3209f252e92595cac4e3978d64b5a68e0d78bd2f87cf3513641ba8971782ee2",
+    "book/chapter-14.md": "3fe21cea3e607486e34c36529b8254967ef6b2072381d18a4c2d7f78e8501dc8",
+    "book/chapter-20.md": "580ee83dfacbe855f4bbd3c58d77e4c00ef974cdd7a540147e1ae61c88e30a0d",
+    "book/chapter-04.md": "b5b89281bdb8aaeee58fc2d5777c2fec8d70f6d048fb83f675487219188a308d",
+    "book/chapter-13.md": "fa4466761e22056e11063b032ff1c4d34e9c6cab6e6a90a940fd9119ab747328",
+    "book/chapter-03.md": "605a504caa0f7828549e137473706286d7ad9c330069d1624afe770e80e72aa6",
+    "book/chapter-17.md": "bdaf4a6426b6005fbb31082cb26fecbb115b50d2fbd51fe97e47880e0cde95f1",
+    "book/chapter-23.md": "b0942bb6a979bba449c4e761bad9159fd5efea634aa2074dba0ebe533995f5bd",
+    "book/chapter-07.md": "a37b55744fecb55ad5a80dbb4e735028a1ef954c2529121e3a6851388ab194b1",
+    "book/chapter-16.md": "5d2795ee0050c00d3437765c961d501df312cc053fc9bbb6f07565e6dc73aff9",
+    "book/chapter-22.md": "fe77041a3cb597cec2ea0bf079495821e9e5703c6541a44494d7c2736907dc75",
+    "book/chapter-06.md": "55e92c2065539b543f09705dc7729cc7fc6b6ec1f7254f5ea17dffce274442c4",
+    "book/chapter-26.md": "732145632e7d8724e7079a69e1365a58c04d09f3c5380f854579ba1cbc2cbd1a",
+    "book/chapter-12.md": "1976cc118bbdab5ca48d0b29ee5b3e4a46631367ad711d6bb4dd75fa2fe3bfff",
+    "book/chapter-02.md": "3bdf466630d594670779af9687f6ab0d6d4bcec6c5a525184f86d175e12bed7b",
+    "book/chapter-19.md": "441cff238ec6aabb48ee8ec14a5afbbb04cdef9325989572dff1845f4e0b84f9",
+    "book/chapter-09.md": "41a78b2d12cbfce87380b49aaa82e74a477f72e8033fdced8213374cb8295e17",
+    "book/chapter-18.md": "0475a7c00d279dc11603adb7c4a4173c4e4e853f0e3ce3f935a4122179aa72b6",
+    "book/chapter-08.md": "ad91434bf006d0353daa184125c9304672d77b6b3dd89e83828cb147e8efe9b0",
+    "book/preface.md": "85b5bb8f49a3970bc6d8140fdc293d7e2e46eeafab632c29cb8f1dbf612a280f",
+    "book/epilogue.md": "5c8c3758b134aa7ffff88547419157c3c7fd4351c256265e14adc01a205fb723",
+    "book/note-from-bill.md": "669ccd62c4df8462aff74152328a2f10dc67d89c303636e96782c31148897948",
+    "book/front-matter.md": "62f8f4f2789959ddd2670b7efa669e337dc8cadee90be04e1b43d3b48ce92506",
+    "book/front-matter-print.md": "6a64689259d03c568befd803cbced41b2062f7a09cab1f7822f5187a6f437df8",
+    "book/print-header.html": "fd4a7f4063eb8abcb88c57aaca70e83cb0e7d9482cf1f8934f88017205dd22ca",
+    "book/epub.css": "d54fdc8903529b82e5c1a25eb92bea92b5923a3914146cde1dfebe1f764bea01",
+    "book/cover.png": "e45bf2d857937888c5aaf553bbb34fcd34be7e27bf012566dc3314086318eb4b"
+  },
+  "artifacts": {
+    "the-art-of-building-ai-coding-agents.md": {
+      "bytes": 1025424,
+      "sha256": "794d32494896121e42a6cd50a4800295d290e0de74c6ee4aa0834ac77c695fbc"
+    },
+    "interior-print.html": {
+      "bytes": 1465028,
+      "sha256": "a0667233e25a9dc0fa8f7960567ad4c7178624fead951b14d445a510bbbaa3bc"
+    },
+    "The Art of Building AI Coding Agents.epub": {
+      "bytes": 17051294,
+      "sha256": "8b4320ed3536dafd0a0e5b6048c47f333b81c32c418af4dfe99b0ea6d5133bb6"
+    },
+    "The Art of Building AI Coding Agents - Print Interior.pdf": {
+      "bytes": 6738666,
+      "sha256": "1e439a4ee8497e445bab2cccfa3d1be526d61f3e6ce47ad275bb321a8607636e"
+    },
+    "The Art of Building AI Coding Agents.pdf": {
+      "bytes": 3833518,
+      "sha256": "f8e67905bfee519c4e8ade47b4c699d47a703f6648df91b96fdfbe5c5ea11640"
+    }
+  }
+}

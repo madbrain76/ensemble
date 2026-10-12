@@ -1,0 +1,1 @@
+Exact source-in-assembly assertion stopped after coordinator changed epilogue attribution during verification. Initial build input hashes retained in initial-full-build.json; rebuild follows c842bbda.

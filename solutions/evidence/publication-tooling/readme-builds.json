@@ -1,0 +1,17 @@
+{
+  "cases": [
+    {
+      "module": "agent",
+      "package": ".",
+      "exit": 0,
+      "seconds": 1.195
+    },
+    {
+      "module": "agent/gui",
+      "package": "./cmd",
+      "exit": 0,
+      "seconds": 0.422
+    }
+  ],
+  "limit": "Actual current dirty working tree builds to temporary output paths; no launch or acceptance of unfinished crossover work."
+}
