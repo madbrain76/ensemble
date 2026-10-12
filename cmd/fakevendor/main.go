@@ -91,8 +91,8 @@ func main() {
 			fmt.Printf("export %s\n", kv)
 		}
 		fmt.Printf("\n# then, for example:\n")
-		fmt.Printf("#   go run ./solutions/ch03 chat\n")
-		fmt.Printf("#   echo '{\"user\":\"what is here?\"}' | go run ./solutions/ch03\n\n")
+		fmt.Printf("#   (cd solutions/ch03 && go run . chat)\n")
+		fmt.Printf("#   (cd solutions/ch03 && echo '{\"user\":\"what is here?\"}' | go run .)\n\n")
 		fmt.Printf("Ctrl-C to stop.\n")
 		stop := make(chan os.Signal, 1)
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
@@ -109,12 +109,14 @@ func main() {
 		fatalf("no solution directory at %s (run from the repository root, or pass -solution)", dir)
 	}
 
-	args := append([]string{"run", dir}, flag.Args()...)
+	// Run inside the selected module: the course root is a different Go module.
+	args := append([]string{"run", "."}, flag.Args()...)
 	cmd := exec.Command("go", args...)
+	cmd.Dir = dir
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 	cmd.Env = append(os.Environ(), env...)
-	fmt.Fprintf(os.Stderr, "fake: %s dialect at %s, script %q; running: go %s\n",
-		*vendor, srv.URL(), *scriptName, strings.Join(args, " "))
+	fmt.Fprintf(os.Stderr, "fake: %s dialect at %s, script %q; cwd %s; running: go %s\n",
+		*vendor, srv.URL(), *scriptName, dir, strings.Join(args, " "))
 
 	// Forward Ctrl-C to the child so a REPL exits the way it would on its own,
 	// and the fake still gets closed by the deferred Close.

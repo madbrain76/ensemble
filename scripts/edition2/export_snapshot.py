@@ -14,14 +14,14 @@ import subprocess
 import tempfile
 
 
-SOURCE_PREFIX = "solutions/edition-2/main"
+SOURCE_PREFIX = "agent"
 
 
 def git(repo, *args):
     return subprocess.check_output(["git", "-C", str(repo), *args])
 
 
-def export(repo, revision, destination, manifest_path):
+def export(repo, revision, destination, manifest_path, source_prefix=SOURCE_PREFIX):
     destination = Path(destination).absolute()
     manifest_path = Path(manifest_path).absolute()
     if destination.exists() or destination.is_symlink():
@@ -31,7 +31,7 @@ def export(repo, revision, destination, manifest_path):
     if manifest_path == destination or destination in manifest_path.parents:
         raise ValueError("manifest must live outside the exact source export")
     commit = git(repo, "rev-parse", "--verify", revision + "^{commit}").decode().strip()
-    tree = git(repo, "rev-parse", commit + ":" + SOURCE_PREFIX).decode().strip()
+    tree = git(repo, "rev-parse", commit + ":" + source_prefix).decode().strip()
     entries = []
     for row in git(repo, "ls-tree", "-r", "-z", tree).split(b"\0"):
         if not row:
@@ -68,7 +68,7 @@ def export(repo, revision, destination, manifest_path):
                 raise ValueError("export differs from committed blob: " + path)
             records.append({"path": path, "mode": mode, "git_blob": oid,
                             "sha256": hashlib.sha256(data).hexdigest()})
-        manifest = {"source_commit": commit, "source_prefix": SOURCE_PREFIX,
+        manifest = {"source_commit": commit, "source_prefix": source_prefix,
                     "source_tree": tree, "files": records,
                     "validation": "Source export only; chapter acceptance is recorded separately."}
         # Exclusive creation prevents silently replacing another revision's manifest.
@@ -87,8 +87,10 @@ def main():
     parser.add_argument("destination", help="new, absent export directory")
     parser.add_argument("--manifest", required=True, help="new manifest path outside the export")
     parser.add_argument("--repo", default=".", help="outer Ensemble repository")
+    parser.add_argument("--source-prefix", default=SOURCE_PREFIX,
+                        help="committed source directory (default: agent; use solutions/edition-2/main for historical revisions)")
     args = parser.parse_args()
-    result = export(args.repo, args.revision, args.destination, args.manifest)
+    result = export(args.repo, args.revision, args.destination, args.manifest, args.source_prefix)
     print(f"Exported {len(result['files'])} files from {result['source_commit']}")
 
 

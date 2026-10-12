@@ -10,7 +10,7 @@ import (
 // provider HTTP. The full command separately measures the real 15-second timeout;
 // focused regressions reuse that evidence instead of paying the delay each time.
 func TestChapter16Recall(t *testing.T) {
-	bin, clean, err := grade.Build("../../solutions/edition-2/ch16/gui")
+	bin, clean, err := grade.Build("../../solutions/ch16/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestChapter16Recall(t *testing.T) {
 			t.Errorf("%s: %s", id, e)
 		}
 	}
-	if err := recallTopology("../../solutions/edition-2/ch16", "../../solutions/edition-2/ch16/gui"); err != "" {
+	if err := recallTopology("../../solutions/ch16", "../../solutions/ch16/gui"); err != "" {
 		t.Error(err)
 	}
 }

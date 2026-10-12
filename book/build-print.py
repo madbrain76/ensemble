@@ -6,11 +6,11 @@ support target-counter(), so a TOC cannot learn its own page references in one
 pass. This renders once, reads where each chapter actually landed, injects those
 numbers, renders again, then re-reads to prove pagination did not shift.
 """
-import re, subprocess, sys, shutil
+import re, subprocess, sys
 from pathlib import Path
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-BOOK = Path.home() / "projects/ensemble/book"
+BOOK = Path(__file__).resolve().parent
 
 
 def render(html: Path, pdf: Path) -> None:
@@ -18,7 +18,7 @@ def render(html: Path, pdf: Path) -> None:
     subprocess.run(
         [CHROME, "--headless=new", "--no-sandbox", f"--print-to-pdf={pdf}",
          "--no-pdf-header-footer", f"file://{html}"],
-        capture_output=True, timeout=600,
+        capture_output=True, timeout=600, check=True,
     )
     if not pdf.exists():
         sys.exit(f"FATAL: Chrome produced no PDF at {pdf}")
@@ -26,7 +26,7 @@ def render(html: Path, pdf: Path) -> None:
 
 def page_texts(pdf: Path) -> list[str]:
     out = subprocess.run(["pdftotext", str(pdf), "-"],
-                         capture_output=True, text=True, timeout=300).stdout
+                         capture_output=True, text=True, timeout=300, check=True).stdout
     return out.split("\f")
 
 
@@ -178,6 +178,7 @@ def run_pandoc(src: Path) -> None:
         "-M", "title=The Art of Building AI Coding Agents",
         "-M", "author=Bill Cox",
         "-H", header.name,
+        "--lua-filter", str(BOOK.parent / "scripts" / "publication-links.lua"),
     ]
     print("pass 0: pandoc regenerate interior-print.html")
     r = subprocess.run(cmd, cwd=BOOK, capture_output=True, text=True)
@@ -220,7 +221,9 @@ def main() -> None:
         render(src, pdf)
         m3 = build_map(pdf, titles)
         still = {t for t in titles if m2.get(t) != m3.get(t)}
-        print("  CONVERGED" if not still else f"  STILL SHIFTING: {len(still)}")
+        if still:
+            sys.exit(f"FATAL: pagination still shifting for {len(still)} headings")
+        print("  CONVERGED")
     else:
         print("  stable: pagination identical across passes")
 

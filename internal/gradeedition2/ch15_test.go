@@ -9,7 +9,7 @@ import (
 // TestChapter15Memory exercises the actual accepted GUI/Agent, owned settings,
 // memory files, history and process lifetime. Only provider responses are fake.
 func TestChapter15Memory(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/edition-2/ch15/gui")
+	bin, cleanup, err := grade.Build("../../solutions/ch15/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

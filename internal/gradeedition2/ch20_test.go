@@ -10,7 +10,7 @@ import (
 // It exercises current allowed models; historical two-priced-model evidence is
 // retained separately rather than selecting the frozen unsupported 5.5 row.
 func TestChapter20Combined(t *testing.T) {
-	core := "../../solutions/edition-2/ch20"
+	core := "../../solutions/ch20"
 	bin, clean, err := grade.Build(core + "/gui")
 	if err != nil {
 		t.Fatal(err)

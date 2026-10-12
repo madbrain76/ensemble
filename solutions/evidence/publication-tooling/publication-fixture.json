@@ -1,0 +1,22 @@
+{
+  "cases": [
+    {
+      "name": "epub-zero-figures",
+      "exit": 0,
+      "seconds": 0.743
+    },
+    {
+      "name": "portable-print",
+      "exit": 0,
+      "seconds": 2.321
+    }
+  ],
+  "assertions": [
+    "zero figures plus repository cover",
+    "no nav in spine",
+    "chapter-level nav and NCX populated",
+    "no printed Contents",
+    "repo links externalized, anchors and external URLs retained",
+    "print from unrelated cwd converges with all headings mapped"
+  ]
+}

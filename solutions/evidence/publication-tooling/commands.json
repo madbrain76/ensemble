@@ -1,0 +1,114 @@
+[
+  {
+    "name": "current-ch01",
+    "command": [
+      "go",
+      "run",
+      "./cmd/grade-edition2",
+      "-ch",
+      "1",
+      "-json"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 1.22
+  },
+  {
+    "name": "current-ch26",
+    "command": [
+      "go",
+      "run",
+      "./cmd/grade-edition2",
+      "-ch",
+      "26",
+      "-json"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 0.975
+  },
+  {
+    "name": "archive-ch01",
+    "command": [
+      "go",
+      "run",
+      "./cmd/grade",
+      "-ch",
+      "1",
+      "-json",
+      "./solutions/ch01"
+    ],
+    "cwd": "edition-1",
+    "exit": 0,
+    "seconds": 1.244
+  },
+  {
+    "name": "tooling-vet",
+    "command": [
+      "go",
+      "vet",
+      "./cmd/grade-edition2",
+      "./cmd/fakevendor",
+      "./internal/gradeedition2"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 0.18
+  },
+  {
+    "name": "current-ch01-regression",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestChapter1VersionAndPreservedChecks$",
+      "-count=1"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 0.881
+  },
+  {
+    "name": "tooling-build",
+    "command": [
+      "go",
+      "build",
+      "./cmd/grade-edition2",
+      "./cmd/fakevendor"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 0.402
+  },
+  {
+    "name": "exporter-tests",
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "scripts/edition2",
+      "-p",
+      "test_export_snapshot.py"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 0.433
+  },
+  {
+    "name": "fakevendor-ch03",
+    "command": [
+      "go",
+      "run",
+      "./cmd/fakevendor",
+      "-ch",
+      "3",
+      "chat"
+    ],
+    "cwd": ".",
+    "exit": 0,
+    "seconds": 0.461
+  }
+]

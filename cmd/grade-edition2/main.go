@@ -44,7 +44,7 @@ func run() int {
 	}
 	path := flag.Arg(0)
 	if path == "" {
-		path = fmt.Sprintf("./solutions/edition-2/ch%02d", *chapter)
+		path = fmt.Sprintf("./solutions/ch%02d", *chapter)
 	}
 	var example gradeedition2.ConsumerCase
 	if *chapter >= 4 && *chapter < 14 {

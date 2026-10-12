@@ -1,0 +1,10 @@
+pass 0: pandoc regenerate interior-print.html
+cleaning HTML: TOC page break, strip duplicate Contents
+TOC entries: 1
+pass 1: render
+  matched 1/1 headings
+pass 2: inject + render
+  stable: pagination identical across passes
+
+Pages:           4
+Page size:       432 x 648 pts

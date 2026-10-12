@@ -1,0 +1,3 @@
+build-ebook: wrote /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-publication-oo2ray3r/book/The Art of Building AI Coding Agents.epub
+build-ebook: 4 chapter entries in the nav document, nav not in spine
+build-ebook: 1 images embedded (0 figures plus cover)

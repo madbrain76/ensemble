@@ -1,0 +1,9 @@
+you> 
+claude> I listed the directory and read the top of go.mod. That is the tool loop: I asked, your agent ran the tool and reported back, and now I am answering.
+
+you> fake: anthropic dialect at http://127.0.0.1:57690, script "tools"; cwd ./solutions/ch03; running: go run . chat
+talking to fake-model — Ctrl-D to quit
+fake: #1 anthropic /v1/messages  [2191 bytes, declares tools]  -> reply 1/3: tool_use list_directory {"path":"."}
+fake: #2 anthropic /v1/messages  [2466 bytes, declares tools, carries 1 tool result(s)]  -> reply 2/3: tool_use read_file {"path":"go.mod","start_line":1,"end_line":3}
+fake: #3 anthropic /v1/messages  [2756 bytes, declares tools, carries 2 tool result(s)]  -> reply 3/3: text "I listed the directory and read the top of go.mod. That is the tool loop: I asked, your agent ran the tool and reported back, and now I am answering."
+[2 turns | 1190 input tokens | 115 output tokens | 0 cache write | 0 cache read]

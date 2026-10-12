@@ -45,7 +45,7 @@ OUT="$BOOK_DIR/The Art of Building AI Coding Agents.epub"
 TITLE="The Art of Building AI Coding Agents"
 AUTHOR="Bill Cox"
 
-COVER="${1:-$HOME/Downloads/The Art of Building AI Coding Agents (1)_upscayl_4x_digital-art-4x.png}"
+COVER="${1:-$BOOK_DIR/cover.png}"
 
 for f in "$MANUSCRIPT" "$FRONT"; do
     if [ ! -f "$f" ]; then
@@ -89,6 +89,7 @@ pandoc "$FRONT" "$DERIVED" \
     -o "$OUT" \
     --from=markdown --to=epub \
     --toc-depth=1 \
+    --lua-filter="$BOOK_DIR/../scripts/publication-links.lua" \
     --resource-path="$BOOK_DIR" \
     --css="$CSS" \
     -M title="$TITLE" \
@@ -105,9 +106,14 @@ if echo "$spine" | grep -q '"nav"'; then
 fi
 
 navlinks=$(unzip -p "$OUT" EPUB/nav.xhtml | grep -o '<a href="[^"]*"' | wc -l | tr -d ' ')
-if [ "$navlinks" -gt 60 ]; then
-    echo "build-ebook: nav document has $navlinks entries, which means it" >&2
-    echo "build-ebook: descended past chapter level. Was --toc-depth lost?" >&2
+ncxlinks=$(unzip -p "$OUT" EPUB/toc.ncx | grep -c '<navPoint' || true)
+if [ "$navlinks" -lt 1 ] || [ "$navlinks" -gt 60 ]; then
+    echo "build-ebook: expected populated chapter-level navigation, got $navlinks entries." >&2
+    exit 1
+fi
+
+if [ "$ncxlinks" -lt 1 ]; then
+    echo "build-ebook: NCX navigation is empty." >&2
     exit 1
 fi
 
@@ -115,7 +121,8 @@ fi
 # invisible in the file size next to a 16MB cover, but pandoc only WARNS
 # about one. Relative image paths resolve against --resource-path, so
 # losing that flag silently ships a book with no figures.
-refs=$(cat "$FRONT" "$DERIVED" | grep -o '!\[[^]]*\]([^)]*)' | wc -l | tr -d ' ')
+# No illustrations is valid; grep's no-match exit must not trip pipefail.
+refs=$({ grep -h -o '!\[[^]]*\]([^)]*)' "$FRONT" "$DERIVED" || true; } | wc -l | tr -d ' ')
 embedded=$(unzip -l "$OUT" | grep -ciE '\.(png|jpg|jpeg|gif)$' || true)
 if [ "$embedded" -ne "$((refs + 1))" ]; then
     echo "build-ebook: $refs images referenced plus 1 cover, but $embedded" >&2

@@ -50,6 +50,19 @@ class ExportTests(unittest.TestCase):
             original = self.git("show", result["source_commit"] + ":" + SOURCE_PREFIX + "/" + item["path"])
             self.assertEqual(hashlib.sha256(original).hexdigest(), item["sha256"])
 
+    def test_explicit_historical_prefix_keeps_its_provenance(self):
+        historical = "solutions/edition-2/main"
+        old = self.repo / historical
+        old.mkdir(parents=True)
+        (old / "go.mod").write_text("module example.com/historical\n")
+        self.git("add", historical)
+        self.git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                 "commit", "-qm", "historical source")
+        result = export(self.repo, "HEAD", self.output, self.manifest, historical)
+        self.assertEqual(result["source_prefix"], historical)
+        self.assertEqual((self.output / "go.mod").read_text(), "module example.com/historical\n")
+        self.assertEqual(result["source_tree"], self.git("rev-parse", "HEAD:" + historical).decode().strip())
+
     def test_existing_export_is_never_overwritten(self):
         self.output.mkdir()
         marker = self.output / "keep"
