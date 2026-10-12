@@ -98,3 +98,24 @@ scope clarification, not a new implementation requirement.
 confirms the `/v2/mcp` endpoint and optional bearer header; available tools depend
 on connection and account policy. No live discovery, quota or pricing measurement
 was made for this review. Findings were relayed to the author.
+
+### Revised-grader proposal concurrence
+
+Concur with the coder/coordinator's bounded **155-point** combined rubric:
+original21's seven web rows100, build5, status20, per-model accounting15 and
+resolved tool/common import boundary15. The redundant old web-parity row becomes
+the direct seven checks. Actual parent ownership and per-executable composition
+remain mandatory independent source-review obligations, unscored rather than
+awarded for names or guessed struct shapes. This is not either historical100-point
+score. The import check needs a positive resolved package graph before absence
+can earn credit.
+
+Verified the frozen accepted model table: Sonnet5 is its only permitted priced
+Anthropic model. The proposed Sonnet5→Opus4.6→Sonnet5 session therefore verifies
+priced arithmetic plus honest uncertainty after unpriced work, with actual
+request-model/result observations and prior counts retained. Returning to Sonnet
+must not erase or reprice that unpriced work. It cannot newly demonstrate summing
+two known prices; retain the unchanged historical two-priced/source evidence
+separately rather than adding a model row or running5.5. Explicit legacy tariff
+inputs may follow its declared historical table. The author and coder received
+these numeric coverage limits before implementation.
