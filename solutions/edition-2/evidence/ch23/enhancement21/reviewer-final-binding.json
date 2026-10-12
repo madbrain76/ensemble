@@ -1,0 +1,39 @@
+{
+  "manuscript_sha256": "687a63e5b10404863359a4d5151323610680484772044ddb3af4f5de1917ba79",
+  "grader_files_verified": 4,
+  "fences_verified": 12,
+  "accepted_tree": "9dc3e9e36a854ede4cc2cbef22dc389850cedc0c",
+  "legacy_tree": "48013a866994a701257796daf854aea318c74d67",
+  "observations": {
+    "accepted": {
+      "request_count": 21,
+      "wire_sha256": "1c077373987db92729bcada119788db330f224781db24a7de4d8febea24bd961",
+      "log_result_success": true,
+      "seed_present": true,
+      "credential_in_log_result": false,
+      "credential_in_environment_result": false,
+      "environment_home_observed": true,
+      "log_result_sha256": "b8324f94f373e8b2f0704e7ae05ae84e21197491f8a3b54ddbb09712e96240da",
+      "environment_result_sha256": "88c21fb5c72b448d64fb27ec88311f396a4bb72b8446f5327563ef6de3bdc8a5"
+    },
+    "legacy": {
+      "request_count": 21,
+      "wire_sha256": "421223208c70d19bcaa53f8d4efcaed23386258fffd9a610a382211d1f32c86b",
+      "log_result_success": true,
+      "seed_present": true,
+      "credential_in_log_result": true,
+      "credential_in_environment_result": false,
+      "environment_home_observed": true,
+      "log_result_sha256": "d5ec1a5aefa609aae16df28f2b585d24296b8a614593f70bee33dd949e08ab3c",
+      "environment_result_sha256": "8da48b32ec06c1714e7191339775a5a36979239d246142a473e284295d0e7c42"
+    }
+  },
+  "samples": {
+    "main_requests": 19,
+    "auxiliary_requests": 3,
+    "correlated_results": 16,
+    "completed_cli_processes_exit_zero": 2,
+    "owning_source_go_excerpts_matched": 4,
+    "provider": "external scripted Responses peer; no fresh model judgment or paid run"
+  }
+}

@@ -127,3 +127,83 @@ check/open race distinction; [Root documentation](https://pkg.go.dev/os#Root)
 keeps traversal protection separate from mount/device/native-code guarantees.
 Final examples, sensitivity and complete author/coder reconciliation still await
 their frozen submissions. Zero formal rounds; Chapter22 remains gated.
+
+
+## Final combined disposition, October 12, 2026
+
+**Accepted at initial review; zero formal correction rounds.** This binds coder
+`36a34892e27e5102bf4a01f0dd7eb0ad152f54c4`, author manuscript checkpoint
+`eb140dd3` and final author reconciliation `4b288a93`. No remaining prose, scope,
+architecture or grader finding blocks the gate. Chapter22 awaits coordinator
+release; this review makes no changes to runtime, original sources or exports.
+
+After the latest compaction, reloaded all four complete documents together:
+workflow 1–380/381–760/761–1140/1141–1520/1521–1900/1901–2209; carryover
+1–340/341–670/671–981; voice 1–632; procedure 1–599. Reread all 373 skill lines,
+current authority/assignment headers and map. All four remain active without
+further compaction. Read the complete final coder and author reports, final
+check/driver/test source and source bindings. The earlier whole original-relative
+prose and matching implementation reviews above remain applicable.
+
+Final manuscript SHA-256 is
+`687a63e5b10404863359a4d5151323610680484772044ddb3af4f5de1917ba79`.
+The [independent final binding](../../solutions/edition-2/evidence/ch23/enhancement21/reviewer-final-binding.json)
+verifies all four grader files, both unchanged tracked frozen trees and all 12
+fences against the executed `20c231d9` sample. Four Go excerpts match their
+owning source modulo whitespace; they are excerpts compiled in that source,
+not four standalone programs. Actual sample records contain 19 main Astra/high
+requests, three auxiliary requests, 16 correlated tool results and two completed
+CLI processes exiting zero. Independently decoded results confirm real Python
+and Git success, distinct descendant/outside-write refusals, environment absence
+and safe-mode file work with guessed-command refusal. Scripted external peers
+supply decisions; this is mechanics validation, not new autonomous or paid use.
+
+Actual final full grading is **100/100 accepted and 75/100 legacy**, with no
+composed parity. Final capture reports take 0.578/0.569 seconds after builds;
+the containing test passes in 1.817 seconds. Prior-stage focused race passes in
+2.599 seconds, final vet passes, and final post-execution edits are explanatory
+comments. The initial 40, truncated-log result and capture-overlay import failure
+retain their fixture limitations. Original 0/100 and earlier live `fcb98a9`
+observations are unchanged; no freshness rerun was needed.
+
+Both remaining legacy losses are valid. Independent decoding of the actual
+provider requests finds successful correlated `log` results containing the
+planted response marker on both implementations. Only legacy's log result
+contains the complete synthetic credential; neither command environment contains
+it. This verifies the real readable-log path, not arbitrary assistant-text
+filtering or an assertion over call arguments. Legacy's direct logger bypasses
+its separate sanitizer. The independent external consumer above confirms its
+symlink child-root escape with legitimate existing/missing subroot controls.
+No credential/profile access or provider call was used for these checks.
+
+Thirteen defects fail their intended observations; this is not thirteen
+independent security guarantees. Reviewed actual patches and failure outputs,
+including the final generic-refusal failure and restored 100. The empty-read
+and exit-17 cases have coupled row failures; the aborted ambiguous replacement
+is setup, and twelve cases retain earlier predicate provenance. Numeric grading
+correctly requires the original four safe-mode tools, useful allowed work,
+caller-path diagnostics and the tested physical boundaries. State/media,
+rooted-open races, web gating and cache-path/cancellation details retain separate
+accepted source/integration evidence and its historical mutation limits.
+
+The grader remains a small real-process driver plus an external public consumer,
+reusing prior protocol helpers without new runtime abstractions. New check/driver
+code has 440 physical, 399 active and 25 comment-only lines; the separate test
+has 32 physical, 26 active and three comment-only lines. Useful comments explain
+positive controls, log visibility, completion and physical containment; the lower
+comment ratio is acceptable for these straightforward fixture lists. The only
+new exported entry, `Chapter21`, is documented. The original runtime comparison
+remains unchanged: own-predecessor production Go grows 515 active student lines
+versus 550 legacy, with 73 versus 601 comment-only lines; test growth is 376
+versus 1,017 active lines. Those counts support the existing scoped comparison,
+not a conclusion based on size alone.
+
+The chapter preserves the original opener, twelve-section progression and
+memorable wall/brick, canonical-path, Git and clamp explanations. Added owner,
+rooted-open and runnable-example teaching earns its space; hard lint passes at
+5,457 prose words. Corrections narrow unsupported immunity and platform claims,
+fix the Willison attribution and distinguish required four-tool removal from
+additional accepted behavior. Detailed review bookkeeping stays in notes.
+The retained live sessions and security limitations remain specific and readable,
+without claiming a general sandbox certification or inventing a new design.
+Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
