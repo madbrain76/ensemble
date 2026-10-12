@@ -1,11 +1,14 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–23 are accepted**. [`main/`](main/) is the authoritative working
+Chapters **1–24 are accepted** (24 is optional, ungraded and self-reviewed
+under Bill's explicit instruction). [`main/`](main/) is the authoritative working
 tree. Original24+25 are accepted together as Edition2 Chapter22, The Ensemble.
 Original26 was complete at that review boundary and is now independently accepted
 as direct Edition2 Chapter23 after one correction round. The 26 original chapters
-therefore have 23 matching Edition2 solution directories.
+therefore have 23 matching Edition2 solution directories. The new Chapter24
+adds the temporary Codex endpoint and has no first-edition counterpart; Gateway
+is still deferred.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
@@ -47,6 +50,7 @@ bring the final offset to three. The remaining standalone
 | 21: The Sandbox | [ch21](ch21/), [manifest](ch21-manifest.json) | 23 | `edition-2-ch23-r1` |
 | 22: The Ensemble, including reusable GUI | [ch22](ch22/), [manifest](ch22-manifest.json) | 24 + 25 | `edition-2-ch25-r1` |
 | 23: Fleet management and GUI | [ch23](ch23/), [manifest](ch23-manifest.json) | 26 | `edition-2-ch26-r1` |
+| 24: Optional Codex workaround | [ch24](ch24/), [manifest](ch24-manifest.json) | New in Edition 2 | `edition-2-optional-ch24-r1` |
 
 The prose/grader enhancement pass is complete through Edition 2 Chapter 15.
 Later accepted code follows original exercises and independently recorded grader

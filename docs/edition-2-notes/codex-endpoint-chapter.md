@@ -114,6 +114,25 @@ integration discovery. The diagnostic Sol prices are named separately from the
 Astra live run. Self-review accepts this optional chapter with the inherited
 ch05 example-test limitation above; editorial approval remains Bill's.
 
+## Source checkpoint and reader snapshot
+
+Application/manuscript source: `471c7ae5f8f745c1ebdda9c388254f165a68177c`.
+Exact reader export: `solutions/edition-2/ch24/`, 184 ordinary files;
+its sibling manifest binds every file to source tree `ada66c1572f1e5d22efb6ac59f23ab2b61dd03ac`.
+All export hashes and package discovery in its five Go modules were verified.
+The exported core tests/vet pass (core31.069s). Its GUI initially failed because
+Playwright had not been installed in the new directory; the documented npm ci
+installation resolved setup, and exported GUI tests/vet pass (6.940s). Generated
+node_modules was removed afterward; all184 source hashes still match.
+Initial snapshot staging flagged inherited blank-at-EOF bytes in two SSE fixtures
+and gui/web/gui/renderers.js. Those three copied source files remain byte-identical;
+only that whitespace warning was excluded for the export commit.
+Checkpoint tag: `edition-2-optional-ch24-r1` (new; the historical original24 tag
+is unchanged). No prior export, first-edition source or paused Chapter16 work
+was changed. The optional chapter is self-reviewed, with the inherited ch05
+example-test failure retained; this does not claim independent review or Bill's
+editorial approval.
+
 ## Earlier brief (historical, superseded assignments above)
 
 

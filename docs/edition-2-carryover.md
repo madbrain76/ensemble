@@ -1,5 +1,22 @@
 # Edition 2 carryover: lessons for the fresh student
 
+## October 11: optional Chapter 24 implemented and self-reviewed
+
+Source `471c7ae5` implements the explicit read-only Codex route; exact snapshot
+is `solutions/edition-2/ch24/`, checkpoint `edition-2-optional-ch24-r1`.
+Bill explicitly assigned all three roles to root and made the short chapter
+optional and ungraded. Core/GUI tests, vet and focused race checks pass; one
+older ch05 example log-suffix assertion fails identically on the predecessor
+and is recorded as an inherited limitation. The normal Chapter16 queue is paused.
+
+The first two actual coding runs succeeded but returned zero cache grants.
+Codex source revealed its session-id affinity header; after adding it, the real
+Astra/high CLI task reused8064/8297 and8192/8351 input tokens, completed the tool
+work and exited normally. Retain those initial misses and distinguish a successful
+answer, a local prefix prediction and an actual provider grant. Matching body
+bytes alone do not establish backend routing. The [chapter record](edition-2-notes/codex-endpoint-chapter.md)
+contains source, receipts, mutation results and the self-review limitations.
+
 ## October 11: optional Chapter 24, coordinator authors and codes
 
 Bill assigns the coordinator all three roles for this specific chapter:

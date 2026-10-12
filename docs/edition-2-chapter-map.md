@@ -29,6 +29,7 @@ are absorbed: 5, 22 and 24. This supersedes the earlier placement stops.
 | 23 | 21 | `solutions/edition-2/ch21` | The Sandbox |
 | 24 + 25 | 22 | `solutions/edition-2/ch22` | The Ensemble, including reusable GUI boundary |
 | 26 | 23 | `solutions/edition-2/ch23` | Fleet management and GUI; accepted |
+| New in Edition 2 | 24 | `solutions/edition-2/ch24` | Optional Codex endpoint; self-reviewed under Bill's instruction |
 
 With first-edition Chapters 1–26 complete, Edition 2 has Chapters 1–23. Chapter
 0 remains introductory in both. The optional new Chapter 24 has no first-edition counterpart; future placements
