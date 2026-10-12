@@ -68,7 +68,7 @@ go run ./cmd/grade-edition2 -ch 26 solutions/edition-2/ch26
 | 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
 | 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
 | 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
-| 5 | Delivery semantics | Handler return precedes ack; offline messages and unacknowledged work survive reconnect with the proper sequence boundary. | 15 |
+| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
 | 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
 | 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |
 
@@ -712,6 +712,6 @@ go run ./cmd/grade-edition2 -ch 26 solutions/edition-2/ch26
 | 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
 | 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
 | 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
-| 5 | Delivery semantics | Handler return precedes ack; offline messages and unacknowledged work survive reconnect with the proper sequence boundary. | 15 |
+| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
 | 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
 | 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |

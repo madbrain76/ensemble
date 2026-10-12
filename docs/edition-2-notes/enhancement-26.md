@@ -142,3 +142,68 @@ Initial coherent manuscript SHA-256:
 Final grader/source/sample evidence and independent disposition remain pending.
 No original/frozen/runtime/crossover files were edited. Publication migration is
 explicitly deferred until this gate; current examples retain current real paths.
+
+
+## Final author reconciliation, October 12
+
+A further compaction occurred before publication framing and this reconciliation.
+Before editing, the author reloaded all four complete documents: workflow
+1–400,401–850,851–1300,1301–1750,1751–2352, with the outer-output omission
+recovered by1950–2150; carryover1–350,351–700,701–1027; voice1–320 and321–632;
+procedure1–310 and311–599. The entire373-line mandatory
+`.agents/skills/ensemble-coding/SKILL.md` was reread. All four remain active
+together, with no subsequent compaction before this handoff.
+
+Read the complete [final coder report](enhancement-26-code.md), final-source,
+samples, sample process receipts, final API compile and refusal-correction
+bindings directly. Coder freeze is `cf86ea9e`. Verified the four current grader
+hashes and both frozen tree identities. Seven original rows retain100 points;
+legacy public-field selection stays a grader option rather than a runtime alias.
+Both printed C5 rows now include the observed clean server restart preserving
+queued delivery. The reviewer confirms the separate seed/stop/new-process
+scenario supports this wording. No abrupt-crash or power-loss claim was added.
+
+Earlier actual CLI runs remain100/100 for each implementation at their measured
+source: first1.062/0.943 seconds; later1.299/0.916 seconds. Final-source actual
+`TestGateway26` covers all seven rows and scores accepted100/100, restored
+accepted100/100 and legacy100/100, with whole-command times2.171/1.028/1.036
+seconds. These are full integration-test observations, neither composed totals
+nor a new run of the earlier CLI command. Affected race and vet pass. Original
+student0/100 remains the undocumented-field compile failure described above.
+
+Seven enhancement defects were detected at the pre-C7-fix source, with coupled
+welcome/delivery/body observations retained. Independent review then registered
+a forbidden child before returning the unchanged error: the old check still
+awarded100/100. The corrected observation tries that refused key's actual
+authentication and requires a welcome or disconnect outcome, while the permitted
+child remains a positive control. That exact defect now fails only C7 at80/100;
+baseline, restored and legacy controls pass. Eight detected source defects span
+their recorded grader versions. They do not replace the separate mandatory
+owner/lifetime/dynamic-policy source review or erase the initial survivor.
+
+All14 fences retain the measured manuscript identity
+`55f7c95a2391c85e45efd6e8e2651d270e96fe1220c3ccd3c24b4731c09e7ab7`.
+The published three-command setup built and ran the real router, Agent adapter
+and interviewer: four scripted Responses completions reached the actual actor,
+save and routed report; all three processes exited0 in2.071 seconds. The sample
+used documented public-key/directory substitutions and free port55800 in place
+of8093, with the new router PID verified as listener. It used synthetic Codex
+credentials, a loopback provider and recall-disabled local setup; no personal
+profile or paid inference. The outside vocabulary/Connect excerpt compiled;
+a final Handler/NopHandler conformance compile is separate from that process run.
+These checks establish the executable mechanics, not fresh model judgment or
+account eligibility. The actual11.739-second interview retains its own earlier
+source and zero-cache results, unchanged.
+
+Only the two prose table cells changed after sample execution; all14 fences
+were compared byte-for-byte against the committed measured manuscript. Final
+prose SHA and hard-lint result are recorded below. Publication framing was
+prepared in separately owned files under explicit authorization; no original,
+frozen source, runtime or user crossover files changed. Gateway acceptance and
+the later directory promotion remain the coordinator's independent gates.
+
+Final manuscript SHA-256:
+`0f1a20129c7db203a2e5b7f23ce5b6245a12b1a7c206ea14451171643baaabf9`.
+Direct chapter lint passes all hard checks at4384 prose words; the unchanged
+soft negation/person-gap warnings remain justified by the actual API explanation.
+No remaining author discrepancy; independent acceptance is pending this handoff.
