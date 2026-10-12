@@ -136,3 +136,57 @@ public settings/launch inputs and the owner/worker cancellation boundary. Its
 original index sketch and explanatory pipeline remain. Those corrections make
 the exercise usable without an extra private contract; no length quota or
 unrelated feature accounts for the added detail.
+
+## Final author reconciliation
+
+Read coder freeze `0df30bee` and its complete
+[report](enhancement-16-code.md), raw final focused outputs, initial full-run
+receipts, final source binding, sample receipt/request shapes/recorded recall,
+and both mutation inventories. The ten weights remain100 with no parity.
+Actual earlier full results are accepted100/100 in16.563s and legacy60/100
+in16.327s. Final focused runtime checks score90/90 and50/90; unchanged topology10
+and the separately retained unchanged timeout observation support explicitly
+composed final100/100 and60/100. These are not newly timed full runs.
+
+The legacy quota fixture initially triggered memory graduation before the
+intended recall observation. Corrected archive names isolate recall and expose
+three documents without the required memory reservation. Same-process refresh
+and ordinary/capped duplicate attachment failures remain separate. The initial
+missing event-log observation, accidental heading match, unbound temporary
+binary and sample handler's string-content rejection remain fixture failures,
+not new frozen-runtime defects. Original0/100 and earlier paid results retain
+their own source and model identities.
+
+The final inventories contain28+3=31 applied mutation attempts, not31
+independent proofs. The first document-stopword change also deduplicated terms;
+the narrow follow-up isolates its length effect. Retrospective runs against
+first-green grader bytes show paragraph-split and spare-slot omissions passing
+that older stage and failing the final assertions. Restored focused/race/vet
+controls pass. Numeric results do not replace source evidence for ownership,
+interruption, all-provider rendering and pure log replay, or real-model evidence
+for useful relevance selection.
+
+Exact examples passed at manuscript SHA-256
+`3b80e0917cc19de98904d54a9ee197ee59a7310ae99d275169cfb6d97c52e7c5`.
+All nine fences are bound in `evidence/ch17/enhancement16/samples.json` under
+`solutions/edition-2/`. The Go vocabulary compiles; the actual published build,
+corpus, primary, supported Sonnet-5 command and exact questions run through the
+real CLI. The captured requests show one tool-free judge and two main requests,
+with one recorded attributed recall and normal exit0. An external HTTP fake
+chooses the planted candidate and scripts replies, establishing delivery and
+retention mechanics without a new paid or semantic-quality result.
+
+The reviewer also clarified the chapter's closing sentence: the revised grader
+uses its own fixtures under the published primary/corpus contract, rather than
+replaying the two demonstration questions. Only that prose changed after the
+sample run; all nine fences remain byte-identical. The measured sample hash
+above stays unchanged in its receipts. Full four-document context remains active
+from the complete resume reload; no subsequent compaction occurred. Combined
+independent acceptance and the coordinator's next release remain pending.
+
+Final prose SHA-256 is
+`317e32d8f5906f7f529d78f00fe30402df64d47af0108719c7a1ef030826ffb4`.
+Direct hard lint passes at5052 prose words; the same soft warnings remain.
+An explicit fence comparison confirms all nine unchanged against the
+sample-time manuscript at `a6920023`. No example rerun is needed for this
+closing-sentence clarification.

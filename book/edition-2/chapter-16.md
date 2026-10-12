@@ -720,5 +720,6 @@ The original grader returned 0/100 before it could test that behavior: its
 primary skill omitted `type`, and its structural check looked for the core
 recall package under the separate GUI module. Passing a launch check and
 remembering a decision are different accomplishments. The revised grader
-uses the published inputs above; the live answers establish the narrower
-and more interesting fact that the archived reason actually came back.
+uses a typed primary and the Agent's corpus paths, with separate fixtures
+from this CLI demonstration. The live answers establish the narrower and
+more interesting fact that the archived reason actually came back.
