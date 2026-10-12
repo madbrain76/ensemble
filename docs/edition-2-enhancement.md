@@ -1,5 +1,16 @@
 # Edition 2: chapter enhancement
 
+## New Edition 2 chapter authorized, October 11
+
+Bill freezes Edition 1 at Chapter 27. All subsequent new chapters will be
+Edition 2 only, beginning with the temporary Codex-endpoint workaround. This
+change belongs in `solutions/edition-2/main/`, never the first-edition solution.
+First repeat the public API cache probe with our OAuth flow; ground the requested
+cold open in actual comparative results, Bill's bug report and model-specific
+cache economics. Do not claim measured overbilling from usage counters alone.
+The existing Chapter 16 author-boundary pause remains; no general book progression
+or unreviewed implementation is implied by the diagnostic work.
+
 ## Current user-directed pause, October 11
 
 All three sub-agents are paused at Bill's request after the author completed

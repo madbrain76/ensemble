@@ -1,5 +1,15 @@
 # Edition 2 carryover: lessons for the fresh student
 
+**October 11, Edition 1 freeze and new chapter:** Bill ends Edition 1 at
+Chapter 27. New chapters after that belong only to Edition 2. The first covers
+the temporary Codex-endpoint workaround for the public OAuth caching failure;
+first recheck the official route with Edition 2's own OAuth credential and the
+same synthetic request. Only `solutions/edition-2/main/` may receive application
+changes for this work. Preserve Edition 1, CodeRhapsody's work and frozen exports.
+The cold open should carry Bill's reported bug, actual paired cache observations
+and verified model-specific price difference. Cache counts are not an invoice.
+The book team remains paused at the Chapter 16 author boundary pending direction.
+
 **October 11 supported-model correction:** Bill requires older supported
 Anthropic models, such as Sonnet-5, and excludes 5.5 models because of their
 incompatibility with ephemeral context in his experience. Current examples,

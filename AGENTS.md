@@ -1,5 +1,21 @@
 # Ensemble student restart
 
+## October 11: Edition 1 ends at Chapter 27; new OAuth work is Edition 2 only
+
+Bill is freezing Edition 1 at Chapter 27. Do not edit its solution, manuscript,
+graders or CodeRhapsody's work for this change. Subsequent new chapters belong
+only to Edition 2. The first new chapter will cover the temporary Codex-endpoint
+workaround for the public OAuth caching problem, grounded in fresh comparative
+measurements. Application changes belong only in `solutions/edition-2/main/`.
+Do not rewrite frozen chapter exports or relabel historical results.
+
+First recheck the public Responses endpoint with Edition 2's own OAuth flow,
+using the same cache probe as the successful Codex test. Bill wants the cold
+open to explain the observed caching failure, reported bug and economic need
+for the temporary route. Distinguish measured cache counts from inferred billing;
+verify the model-specific cached-input rate rather than claiming a universal
+tenfold total-bill reduction. The Chapter 16 book-agent pause below remains.
+
 ## October 11: Bill's explicit pause after Chapter 16 authorship
 
 Bill requests all sub-agents pause as soon as the author finishes Chapter 16,

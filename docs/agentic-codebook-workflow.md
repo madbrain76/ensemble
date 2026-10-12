@@ -1,5 +1,29 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: Edition 1 freeze and Edition 2-only Codex route
+
+Bill freezes Edition 1 at Chapter 27 and directs all subsequent new chapters
+to Edition 2 only. The first new chapter covers the temporary Codex endpoint
+needed to continue the OpenAI transition while the public OAuth cache problem
+persists. Only `solutions/edition-2/main/` is the application target; preserve
+the first-edition solution, manuscript, graders and CodeRhapsody work.
+
+Original 27 (Gateway) maps to Edition 2 Chapter 24 under the three existing
+merges; the new workaround follows as Chapter 25. These are planned chapters,
+not accepted solutions. The historical accepted implementation remains through
+Edition 2 Chapter 23, and the manuscript team remains paused after the Chapter
+16 draft. This diagnostic does not silently resume the earlier book queue.
+
+Bill requests the cold open explain his reported OAuth caching bug, the need
+for a temporary route and the cost of losing discounted cached input. Recheck
+the public endpoint with Edition 2's own refreshed OAuth grant using the same
+model, prompt and settings as the successful Codex probe. Keep authentication
+and endpoint paired correctly; record actual cache counts and failed attempts.
+For the tested GPT-5.6 Sol, published input/cache-read rates are $4/$0.40 per
+million tokens. That is a tenfold rate difference for the affected input tokens,
+not a measured tenfold invoice or a universal rate across OpenAI models.
+See [the probe record](codex-endpoint-probe.md); new results will extend it.
+
 ## October 11: paused at Bill's request after Chapter 16 draft
 
 Bill asked to pause all sub-agents as soon as the author finished Chapter 16,

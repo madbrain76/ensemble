@@ -1,5 +1,19 @@
 # Edition 2 chapter mapping
 
+## Edition 1 endpoint and new Edition 2 material, October 11
+
+Bill freezes Edition 1 at Chapter 27. The three existing chapter merges remain,
+so original Chapter 27 (Gateway) maps to Edition 2 Chapter 24. Its Edition 2
+implementation and enhancement are not yet complete; the accepted export table
+below still ends at Chapter 23. Do not create an accepted export by renumbering
+unfinished work.
+
+The first wholly new Edition 2 chapter follows as Chapter 25: the temporary
+Codex-endpoint workaround for the public OAuth caching problem. Subsequent new
+chapters are Edition 2 only, with no corresponding first-edition Chapter 28.
+Bill's current instruction is to verify the public endpoint again before using
+the result in the cold open. Preserve Edition 1 and its solution unchanged.
+
 Bill authorized the coordinator on October 11, 2026 to choose both remaining
 merges and proceed autonomously. Exactly three first-edition standalone chapters
 are absorbed: 5, 22 and 24. This supersedes the earlier placement stops.
