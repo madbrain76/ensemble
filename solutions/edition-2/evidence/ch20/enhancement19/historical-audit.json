@@ -1,0 +1,69 @@
+{
+  "result": "PASS",
+  "operation": "read-only reconciliation of retained evidence; no model or test rerun",
+  "accepted_tree": "bd2998e68f976dbaf437b642b131d350e086242f",
+  "live_source": "fab031529cda55a76d530478f09de0cd08e7db36",
+  "live_tree": "59010a4c2b333c2f74777b6d76079e8f2b3af90d",
+  "requests": 5,
+  "completed": 5,
+  "calls": [
+    "read_file",
+    "read_file",
+    "run_command",
+    "edit_file",
+    "run_command"
+  ],
+  "command_exits": [
+    1,
+    0
+  ],
+  "test_sha256": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9",
+  "exact_edit_reconstructs_file": true,
+  "full_save_log_matches": true,
+  "cli_exit": 0,
+  "timed_out": false,
+  "recorded_seconds": 27.46,
+  "public_summary_deltas": 0,
+  "text_deltas": 161,
+  "cache_read_and_write_grants": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reused_mutations": [
+    {
+      "name": "baseline",
+      "exit_code": 0
+    },
+    {
+      "name": "astra-chat-route",
+      "exit_code": 1
+    },
+    {
+      "name": "drop-reasoning-effort",
+      "exit_code": 1
+    }
+  ],
+  "original_chapter_sha256": "9a6d41326806d229d1dc7913297d7b5f2ef04ab861e1068f67d393625e9700ac",
+  "raw_sha256": {
+    "live-api.log": "789b7f81686a84ee5ef2d147619e5acf134eb92fb8183e2f752158aaabda480d",
+    "live-events.jsonl": "691a6547496181afbc6b57a5998ab4bde1c487665840d6d4db07c47a12512915",
+    "live-stdout.txt": "0b96826c5b4b2501f3dddaf4a5cadb04771c3cf594530e58d73a9019d9203fe7",
+    "live-stderr.txt": "732f96be549f4c62a68efde6077131e249b71e4b0592f92ef2d94f24ce33030f",
+    "live-result.json": "26053f7d4025ea2b5d4d22b51c26369828aa53401db6a4b69d4077100ea51e88",
+    "live-save.json": "11f2ced0294858b1757c402030d20e8171c19b094e38eaf2692e8b5e08d09278",
+    "task.patch": "1a8814e5b65518b8189da3520b5158d3c378ff27a1281ea8139015c668db2fc6",
+    "task-before/aggregate.py": "5082bb1e0344e636cc545faab5b63e6c52806caf803adf131d50885089cb122a",
+    "task-after/aggregate.py": "ddd2fc03a1d7f4bfb780de840c0f6c6a682e3f5bafe388e0f369fa4c2f29b794",
+    "task-before/test_aggregate.py": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9",
+    "task-after/test_aggregate.py": "d0a5eaab886c93918f853cde4e19819f0ab2fc8b03bf8aae504f5c8152081ea9"
+  },
+  "limits": [
+    "Endpoint derives from source/configuration, not independently captured HTTP URL/headers.",
+    "No new live run; existing reviewer before/after test reruns retain original provenance.",
+    "One bounded CLI task; no general reliability, interactive steering, GUI or Edition 3 authorship claim.",
+    "Zero reported reasoning tokens does not measure private reasoning."
+  ]
+}
