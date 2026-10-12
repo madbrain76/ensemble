@@ -1,5 +1,16 @@
 # Edition 2: chapter enhancement
 
+## Chapter 16 accepted; Chapter 17 assigned, October 11
+
+Independent combined acceptance `a7f0f00c` binds coder `0df30bee`, author
+`21144dbc`, final prose SHA `317e32d8` and unchanged tested examples. Initial
+review, zero formal correction rounds; checkpoint `edition-2-enhanced-ch16-r1`.
+Final composed100/60, earlier actual full100/60 and original0/100 remain distinct.
+See [the review](edition-2-notes/enhancement-16-review.md) for limitations and
+independent paragraph-defect verification. Chapter17 / original18, The Invisible
+Invoice, is now assigned to the same author, grader coder and reviewer. Preserve
+full four-document active context and reload after every compaction.
+
 ## October 11: resume the book; reserve crossover 25; finish Gateway 26
 
 Bill explicitly resumes the author, grader coder and independent reviewer at
@@ -241,6 +252,8 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 12 (old 13) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch12-r1` |
 | 13 (old 14) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch13-r1` |
 | 14 (old 15) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch14-r1` |
+| 15 (old 16) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch15-r1` |
+| 16 (old 17) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch16-r1` |
 
 ### Chapters 0–1 acceptance
 

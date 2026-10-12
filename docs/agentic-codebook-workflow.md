@@ -1,5 +1,30 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 16 accepted; Chapter 17 released
+
+Independent combined review `a7f0f00c` accepts coder `0df30bee` and author
+`21144dbc` at initial review, zero formal correction rounds. Checkpoint:
+`edition-2-enhanced-ch16-r1`. The final manuscript retains the original recall
+story and explanatory TL;DR, with Bill's quota/corpus corrections and an actual
+runnable archive exercise. Exact fences, focused race checks, vet and hard lint
+pass; original sources and frozen exports remain unchanged.
+
+Final totals are explicitly composed100/100 accepted and60/100 legacy; earlier
+actual full100/60 and original0/100 remain separate. Neutral archive filenames
+exposed the legacy quota failure after eliminating an unrelated memory-graduation
+request. Paragraph and spare-slot omissions passed the old grader, then failed
+the strengthened checks. Preserve the retrospective timing and31 mutation
+attempts rather than claiming31 independent proofs. Reviewer independently
+verified paragraph baseline/defect/restored behavior. The complete reports retain
+fixture failures, source identities and semantic/live limitations.
+
+Author and reviewer fully reloaded all four required documents after compaction.
+Continue Edition2 Chapter17 / original18, The Invisible Invoice, under the same
+per-chapter gates. Crossover25 stays a placeholder; Gateway26 follows completion
+of existing prose through23. Gateway source readiness is independently reviewed
+at `d3c91c7b`; the current original27 chapter governs actual Ensemble delivery and
+interview, superseding the older brief's deferral without a new approval gate.
+
 ## October 11: resume the book; reserve crossover 25; finish Gateway 26
 
 Bill explicitly resumes the author, grader coder and independent reviewer at

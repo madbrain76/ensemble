@@ -860,8 +860,10 @@ not prescribe a replacement framework.
 October11 Gateway preparation: coordinator read all469 lines of original27 at
 `6452456e5549be5566bfc920138b82f53a715756`, SHA-256
 `5463f060485fc838858ebe44115c70ac062582ba9f3179281df95ddcce9d974d`,
-and the original assignment/completion records. Independent preparation review
-and Edition2 implementation remain pending; no old answer code was inspected.
+and the original assignment/completion records. Independent reviewer reading
+at `d3c91c7b` confirms readiness: the current chapter governs actual Ensemble
+actor delivery/interview over the older brief's deferral, without an added approval
+gate. Edition2 implementation remains pending; no old answer code was inspected.
 The [Gateway notes](edition-2-notes/ch27.md) retain the final-chapter versus
 older-TL;DR integration conflict, original-source claims and verified Noise
 explanation corrections. When assigned, preserve the separation of authenticated
