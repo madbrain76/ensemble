@@ -54,7 +54,8 @@ bring the final offset to three. The remaining standalone
 | 23: Fleet management and GUI | [ch23](ch23/), [manifest](ch23-manifest.json) | 26 | `edition-2-ch26-r1` |
 | 24: Optional Codex workaround | [ch24](ch24/), [manifest](ch24-manifest.json) | New in Edition 2 | `edition-2-optional-ch24-r1` |
 
-The prose/grader enhancement pass is complete through Edition 2 Chapter 18.
+The manuscript enhancement pass is complete through Edition 2 Chapter 19.
+Revised graders cover Chapters 1–18; Chapter 19 is prose-only.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
 Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Its bounded real coding

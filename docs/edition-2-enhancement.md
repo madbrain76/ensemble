@@ -1,5 +1,17 @@
 # Edition 2: chapter enhancement
 
+## Chapter 19 accepted; combined Chapter 20 assigned, October 11
+
+Combined acceptance `4deb0611` binds author `97a46b57`, coder `dd361830` and
+final manuscript SHA `cc0d8f22`. Initial review, zero formal rounds; checkpoint
+`edition-2-enhanced-ch19-r1`. Exact fences retain their tested source identity.
+Chapter19 is prose-only, with no grader or score; the historical live task and
+new local replay remain distinct in [the review](edition-2-notes/enhancement-19-review.md).
+Chapter20 / originals21+22 is released to the same team. Its TL;DR, exercise and
+revised grading must preserve web access, status and accounting together, with
+actual ownership/composition checks and no recreated refactor defects. All four
+full documents remain required in active context after every compaction.
+
 ## Chapter 18 accepted; Chapter 19 assigned, October 11
 
 Combined acceptance `55876974` binds coder `7084fe48`, author `7208e2c7` and

@@ -1,5 +1,26 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 19 accepted; combined Chapter 20 released
+
+Independent combined review `4deb0611` accepts author `97a46b57` and coder
+`dd361830` at initial review, zero formal correction rounds. Checkpoint:
+`edition-2-enhanced-ch19-r1`. This historical crossover chapter has no grader
+or numeric score. Final prose and all five example fences are bound in
+[the review](edition-2-notes/enhancement-19-review.md); frozen source is unchanged.
+
+The retained 27.46-second actual Astra/high coding task remains separate from
+the new 1.003-second local replay. Both show actual tool effects and unchanged
+tests, but replayed decisions do not establish fresh autonomous coding. Review
+caught missing usage in an auxiliary judge fixture despite a successful main
+task; the corrected peer and earlier failures remain recorded. A successful
+answer also does not establish caching, public summaries or an observed invoice.
+
+Continue combined Edition 2 Chapter 20 / originals 21 + 22: web access, status
+and per-model accounting. Preserve both capabilities in the TL;DR and exercise,
+without recreating repaired architecture. The sequential independent gate and
+full four-document reload rule continue. Chapter25 stays reserved; Gateway26
+follows the existing manuscript through23.
+
 ## October 11: enhanced Chapter 18 accepted; Chapter 19 released
 
 Independent combined review `55876974` accepts coder `7084fe48` and author
