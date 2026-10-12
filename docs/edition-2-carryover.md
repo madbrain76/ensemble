@@ -857,6 +857,19 @@ not prescribe a replacement framework.
 
 ## Reading coverage and later use
 
+October11 Gateway preparation: coordinator read all469 lines of original27 at
+`6452456e5549be5566bfc920138b82f53a715756`, SHA-256
+`5463f060485fc838858ebe44115c70ac062582ba9f3179281df95ddcce9d974d`,
+and the original assignment/completion records. Independent preparation review
+and Edition2 implementation remain pending; no old answer code was inspected.
+The [Gateway notes](edition-2-notes/ch27.md) retain the final-chapter versus
+older-TL;DR integration conflict, original-source claims and verified Noise
+explanation corrections. When assigned, preserve the separation of authenticated
+identity from group authorization, truthful provenance, narrow-only grants,
+public-client reuse and actual ack/reconnect/persistence evidence. These lessons
+apply to Gateway26 after existing prose catches up; they add nothing to the
+currently released Chapter16 exercise.
+
 October 10 addition: independent reviewer `enhancement_reviewer_resumed` and
 coordinator each read all 558 lines of newly published original Chapter 25 at
 `c933a093ece3c3efc78a2b9ddcd7a2a68e80c38b`, SHA-256
