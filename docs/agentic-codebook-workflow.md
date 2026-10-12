@@ -1,5 +1,27 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 17 accepted; Chapter 18 released
+
+Independent combined review `cf3bcf10` accepts coder `b1bdb334` and author
+`c632d85e` at initial review, zero formal correction rounds. Checkpoint:
+`edition-2-enhanced-ch17-r1`. Actual final full grading is accepted 100/100 and
+legacy 85/100; the legacy missing tool marker is a valid failure. Original
+0/100, the separate subscriber-disconnect panic and fixture errors remain
+historical results. Exact examples, focused race, vet and prose lint pass.
+
+Legal marker positions, complete counts and distinct rotating request artifacts
+need actual assertions: presence alone missed defects. Twenty-nine detected
+source defects retain their overlapping claims and source versions; the separate
+duplicate-artifact survivor and independent corrected control remain recorded.
+A listening port also does not prove the test child started. The initial sample
+subscribed to an existing Ensemble, sent no prompt and stopped; its corrected
+free-port launch verifies child identity. The user's running process was preserved.
+See [the final review](edition-2-notes/enhancement-17-review.md) for bindings and limits.
+
+Continue Edition 2 Chapter 18 / original 19, subscription authentication and
+reasoning, under the same sequential gates and full four-document context rule.
+Chapter 25 stays a crossover placeholder; Gateway 26 follows the existing prose.
+
 ## October 11: enhanced Chapter 16 accepted; Chapter 17 released
 
 Independent combined review `a7f0f00c` accepts coder `0df30bee` and author

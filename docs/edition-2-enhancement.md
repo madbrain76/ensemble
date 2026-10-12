@@ -1,5 +1,16 @@
 # Edition 2: chapter enhancement
 
+## Chapter 17 accepted; Chapter 18 assigned, October 11
+
+Independent combined acceptance `cf3bcf10` binds coder `b1bdb334`, author
+`c632d85e` and unchanged manuscript/sample SHA `c00a640c`. Initial review,
+zero formal correction rounds; checkpoint `edition-2-enhanced-ch17-r1`.
+Actual final full grading is 100/100 accepted and 85/100 legacy; original results
+and source/evidence limitations remain in [the review](edition-2-notes/enhancement-17-review.md).
+Chapter 18 / original 19, subscription authentication and reasoning, is now
+assigned to the same author, grader coder and independent reviewer. Preserve
+all four full documents in active context and reload after every compaction.
+
 ## Chapter 16 accepted; Chapter 17 assigned, October 11
 
 Independent combined acceptance `a7f0f00c` binds coder `0df30bee`, author
@@ -254,6 +265,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 14 (old 15) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch14-r1` |
 | 15 (old 16) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch15-r1` |
 | 16 (old 17) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch16-r1` |
+| 17 (old 18) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch17-r1` |
 
 ### Chapters 0–1 acceptance
 
