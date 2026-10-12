@@ -1,0 +1,23 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "16",
+    "-json",
+    "-gui",
+    "solutions/ch17",
+    "-recall-data",
+    ".",
+    "solutions/ch17"
+  ],
+  "exit": 1,
+  "seconds": 16.327,
+  "source_sha256": {
+    "cmd/grade-edition2/main.go": "fed65ae060acb3d6d32fa02bbc3505c5844c51ea44703094ea7a901896ac02e3",
+    "internal/gradeedition2/ch16_driver.go": "7bd26a8e6dc87ab67b4c1d4602602e6fcd1a36f7434ecb4f420c6b77a21ba388",
+    "internal/gradeedition2/ch16.go": "ee039006f82c8d2f0dbf84961992339216678fb9ee06e4325503decd85bb0922",
+    "internal/gradeedition2/ch16_test.go": "d59f379329fd35045f7f326a530f437fcc7607ca0ed4b96b1bd819cf6c7e09f7"
+  }
+}

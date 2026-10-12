@@ -1,0 +1,105 @@
+{
+  "title": "Edition 2, Chapter 16 — Auto-Recall",
+  "checks": [
+    {
+      "id": "bm25-indexes",
+      "title": "Archived text the user never mentioned reaches the model, so the archive is actually indexed and searched.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/refresh/events.jsonl: no such file or directory: Open http://localhost:50891; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "bm25-scores",
+      "title": "Results are ranked by term rarity, term frequency and document length, not merely by containing the word.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/6/events.jsonl: no such file or directory: Open http://localhost:50912; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "bm25-stop-words",
+      "title": "Words like \"the\" and \"we\" are stripped, so a short document full of them cannot outrank a real match.",
+      "points": 5,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/8/events.jsonl: no such file or directory: Open http://localhost:50926; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "chunking-splits",
+      "title": "A long document is indexed section by section, so retrieving one part does not cost the context of the whole file.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/9/events.jsonl: no such file or directory: Open http://localhost:50933; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "per-source-quota",
+      "title": "Each source keeps a share of the result, so the source with the most text on a topic cannot take every slot.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/11/events.jsonl: no such file or directory: Open http://localhost:50947; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "judge-filters",
+      "title": "A model reads the candidates and its verdict decides what is attached; changing its answer changes the output.",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/15/events.jsonl: no such file or directory: Open http://localhost:50975; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "judge-fallback",
+      "title": "Prose, HTTP 500, a hang, and an empty archive all degrade to top-N BM25 or to silence. Never a crash, never a dead turn.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/20/events.jsonl: no such file or directory: Open http://localhost:51029; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "recall-is-a-spoke",
+      "title": "internal/recall imports the hub and stdlib only, and no existing spoke imports it back.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "recall-is-own-kind",
+      "title": "Recalled material lands as its own permanent entry carrying its bytes, and is never merged into the user's message.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/lifetime/events.jsonl: no such file or directory: Open http://localhost:51036; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    },
+    {
+      "id": "injection-capped",
+      "title": "The attached block is bounded, so an archive that matches well everywhere cannot swallow the context window.",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "session: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/recall-grade-4271403817/21/events.jsonl: no such file or directory: Open http://localhost:51043; terminal messages while busy are hints. /interrupt ends the turn.\n"
+      ]
+    }
+  ],
+  "score": 10,
+  "max_score": 100,
+  "passed": false
+}

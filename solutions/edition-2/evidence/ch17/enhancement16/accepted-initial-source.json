@@ -1,0 +1,5 @@
+{
+  "cmd/grade-edition2/main.go": "fed65ae060acb3d6d32fa02bbc3505c5844c51ea44703094ea7a901896ac02e3",
+  "internal/gradeedition2/ch16.go": "5823595e159df140cf22fa8900d6483dc86e8627c941e74ce02d6360fa7bf193",
+  "internal/gradeedition2/ch16_driver.go": "57d00d10e65bbdc672b55c6bf2dfaf32596aa72369ad70de304984c71cecbde9"
+}

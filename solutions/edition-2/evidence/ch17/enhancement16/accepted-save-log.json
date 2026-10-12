@@ -1,0 +1,81 @@
+{
+  "title": "Edition 2, Chapter 16 — Auto-Recall",
+  "checks": [
+    {
+      "id": "bm25-indexes",
+      "title": "Archived text the user never mentioned reaches the model, so the archive is actually indexed and searched.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "bm25-scores",
+      "title": "Results are ranked by term rarity, term frequency and document length, not merely by containing the word.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "bm25-stop-words",
+      "title": "Words like \"the\" and \"we\" are stripped, so a short document full of them cannot outrank a real match.",
+      "points": 5,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "query stop-word trap recalled or real match absent"
+      ]
+    },
+    {
+      "id": "chunking-splits",
+      "title": "A long document is indexed section by section, so retrieving one part does not cost the context of the whole file.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "per-source-quota",
+      "title": "Each source keeps a share of the result, so the source with the most text on a topic cannot take every slot.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "judge-filters",
+      "title": "A model reads the candidates and its verdict decides what is attached; changing its answer changes the output.",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "judge-fallback",
+      "title": "Prose, HTTP 500, a hang, and an empty archive all degrade to top-N BM25 or to silence. Never a crash, never a dead turn.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "recall-is-a-spoke",
+      "title": "internal/recall imports the hub and stdlib only, and no existing spoke imports it back.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "recall-is-own-kind",
+      "title": "Recalled material lands as its own permanent entry carrying its bytes, and is never merged into the user's message.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "injection-capped",
+      "title": "The attached block is bounded, so an archive that matches well everywhere cannot swallow the context window.",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "score": 95,
+  "max_score": 100,
+  "passed": false
+}
