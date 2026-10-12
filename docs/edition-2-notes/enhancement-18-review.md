@@ -1,5 +1,8 @@
 # Edition 2 Chapter 18 / original 19 — independent review
 
+**Accepted at initial combined review, zero formal correction rounds.** Final
+bindings and limits follow below; the preparation entries retain their chronology.
+
 ## Preparation, October 11
 
 Reviewer `/root/reviewer_astra`, GPT-6 Astra/high. Initial review is pending;
@@ -150,3 +153,73 @@ upstream response. Model insertion exceeded its copied Content-Length; those
 failed receipts remain `reviewer-gate-initial-*`. The corrected probe uses the
 actual peer's flushing SSE boundary. No general HTTP-rewriting proxy, submitted
 runtime, browser, provider or human-listening claim follows from this probe.
+
+## Final combined disposition
+
+Accept coder `7084fe48` and author reconciliation
+`7208e2c76e18d83adab89b3f3101173b8cca07f7`. The complete final coder and author
+reports were read. Manuscript remains
+`e057e264f91a20d4c8da1d2852f64e244283afcc3e455e8e4f67113e50d6a730`;
+author note is `60d9243f93a89ce52d6ff7f6ee213d0507fae2db4d35c40d8ed2f6f2cfe94b91`.
+All four complete governing/craft documents remain active after the full reload
+recorded above; no subsequent compaction preceded this decision. Mandatory skill:
+`.agents/skills/ensemble-coding/SKILL.md`.
+
+Independently verified all five hashes in
+[final-source.json](../../solutions/edition-2/evidence/ch19/enhancement18/final-source.json),
+both frozen tree identities and tracked working bytes, and preservation of the
+original chapter/grader paths. Final driver changes only distinguish abnormal
+exits from ordinary refusal; the independently exercised forwarding/gate path
+is unchanged. Both new panic patches fail the intended refusal rows, with actual
+exchange/error observations retained. No source, scope or prose finding remains.
+
+Actual final full grading is **100/100 accepted and 100/100 legacy**, exit zero,
+in 2.246 and 1.570 seconds. These are full runs, not composed totals. The final
+real-command race test passes in 2.543 seconds; vet passes. All nine published
+fence hashes match the executed sample. The conceptual Go fence compiles; actual
+CLI commands perform local-peer login, file/tool exchange, normal save and logout.
+The fake catalog does not establish eligibility of the selected live model, and
+the supplied optimal answer establishes propagation rather than intelligence.
+No new live sign-in, paid inference, cache grant or native-speech result is claimed.
+
+Read all 21 stage mutation patches and their actual reports, plus both final
+abnormal-exit defects. Intended failures and clean completion agree with their
+inventories; the valid split-summary control and restored runs pass. The
+23 cases have overlapping effects and two source versions, not 23 independent
+proofs or a final-source rerun of every defect. Encrypted-inclusion and opaque
+replay defects converge on the same final diagnostic. Wider identity, storage,
+concurrent renewal, recovery and speech requirements retain the unchanged
+accepted source/tests and 39 historical mutations, with their original limits.
+
+### Scope, code and teaching comparison
+
+Counted nonblank non-comment-only Go lines; `//` lines are comment-only, and
+the new files contain no block comments. Against the preceding enhanced chapter,
+the new check/driver/adapter add **603 active lines, 49 comment-only, 673 physical**.
+The focused real-command test is separate: **21 active, 2 comments, 25 physical**.
+The shared command changes 5 lines added/3 removed for dispatch/help. Original
+Chapter19's new check/runner/harness files contain **755 active, 210 comments,
+1,063 physical**, excluding its 2,429 physical peer lines and separate peer tests.
+Those original peers are reused unchanged through the 37-line adapter; there is
+no duplicated OAuth service or product abstraction. Frozen implementation
+comparison remains the accepted [original19 review](ch19-code-review.md).
+
+The new comment ratio is about 7.5%, below Bill's approximate teaching target.
+Its important explanations are useful: actual exchange prerequisites, owned
+profile exclusion, per-request rotated credentials, model provenance, callback
+completion, causal streaming and abnormal exits. Straightforward assertions
+reuse the original peers' extensive protocol explanations. All newly exported
+symbols are documented; padding or an additional framework would not improve
+this bounded grader. The real submitted clients, parsers, tools and jobs remain
+in the path, with faithful external HTTP peers rather than mocks.
+
+The original authentication/billing motivation and accessibility payoff remain
+readable and concrete. Sourced corrections remove false precision without
+replacing the chapter with review bookkeeping. Current examples follow supported
+model policy; historical identities stay historical. The original 15/100, initial
+fixture-limited 55/100, callback 30/100, race warning and live launcher failure
+remain recorded. The browser acknowledgment limitation is accepted explicitly
+for this authentication exercise, not erased or called repaired.
+
+Coordinator may checkpoint Chapter18 and release Chapter19 under the existing
+sequence. No later chapter is reviewed or authored by this disposition.
