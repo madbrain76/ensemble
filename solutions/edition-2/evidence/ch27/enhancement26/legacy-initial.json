@@ -1,0 +1,57 @@
+{
+  "title": "Edition 2, Chapter 26 — The Gateway",
+  "checks": [
+    {
+      "id": "C1",
+      "title": "Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "C2",
+      "title": "Prompt envelope carries provenance, trust, conversation and response mode",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "C3",
+      "title": "Actual Gateway binary: authenticated identities and welcome queue counts",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "C4",
+      "title": "Group-based routing delivers only from accepted groups and rejects the rest",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "C5",
+      "title": "Handler-return receipt, ordered offline/resume and clean server restart",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "C6",
+      "title": "Actual outside Client/Handler and resolved public dependency boundary",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "C7",
+      "title": "Parent registers a child and cannot grant groups it does not hold",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    }
+  ],
+  "score": 100,
+  "max_score": 100,
+  "passed": true
+}

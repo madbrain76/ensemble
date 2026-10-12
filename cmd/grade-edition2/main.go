@@ -36,9 +36,10 @@ func run() int {
 	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 20 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
 	sandboxLibrary := flag.String("sandbox-library", "ensemble", "Chapter 21 public package relative to submitted module (legacy: .)")
 	reuseLegacy := flag.Bool("reuse-legacy", false, "Chapter 22: use the historical same-module public construction API")
+	gatewayWelcome := flag.String("gateway-welcome", "QueueDepth", "Chapter 26 public welcome queue field (legacy: QueuedCount)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 23 || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20..23 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapter 19 is ungraded")
+	if *chapter < 1 || (*chapter > 23 && *chapter != 26) || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20..23|26 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapters 19, 24 and 25 are ungraded")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -76,8 +77,11 @@ func run() int {
 		*gui = filepath.Join(path, "gui")
 	}
 	buildPath := path
-	if *chapter >= 14 && *chapter != 21 && *chapter != 22 && *chapter != 23 {
+	if *chapter >= 14 && *chapter != 21 && *chapter != 22 && *chapter != 23 && *chapter != 26 {
 		buildPath = *gui
+	}
+	if *chapter == 26 {
+		buildPath = filepath.Join(path, "cmd", "gateway")
 	}
 	bin, cleanup, err := grade.Build(buildPath)
 	if err != nil {
@@ -87,6 +91,8 @@ func run() int {
 	defer cleanup()
 	var report grade.Report
 	switch *chapter {
+	case 26:
+		report, err = gradeedition2.Chapter26(bin, path, *gatewayWelcome)
 	case 23:
 		report, err = gradeedition2.Chapter23(bin, *gui)
 	case 22:
