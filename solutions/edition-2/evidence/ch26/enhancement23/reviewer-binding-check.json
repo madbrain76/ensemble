@@ -1,0 +1,9 @@
+{
+  "grader_hashes": 4,
+  "accepted_tree": "27d7fcf9b8b31275068fa705d6969cfe3eafedc1",
+  "legacy_tree": "e2a6983b1c20b54238f3d7f57f7fb8c6ab1f755d",
+  "manuscript_sha256": "6ce1110e7011d47171694deef26b64f88e8a0297b9cbc9dd6fedd6ee2973b06f",
+  "sample_fences": 6,
+  "inherited_source_files": 14,
+  "inherited_receipts": 11
+}

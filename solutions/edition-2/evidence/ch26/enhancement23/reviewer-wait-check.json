@@ -1,0 +1,21 @@
+{
+  "grader_commit": "363e83ce44e58b0189a17769abfee28921701823",
+  "accepted_tree": "27d7fcf9b8b31275068fa705d6969cfe3eafedc1",
+  "source": {
+    "internal/gradeedition2/ch23_driver.go": "681323e59f3e2427afafe5a68a7ed826c5918f4ebd1e6ce883988cedf555f889",
+    "internal/gradeedition2/ch23.go": "f3836550a23f4eeacf0b9f4a5d4f90c200c285e014c9761bbe5078882da08bde",
+    "internal/gradeedition2/ch23_test.go": "58562659fd69268a7852963e4f1b6492712328daef16dc5ffeae2acaa9d3653f"
+  },
+  "runs": [
+    {
+      "case": "baseline",
+      "exit_code": 0,
+      "wall_seconds": 0.853
+    },
+    {
+      "case": "immediate-return",
+      "exit_code": 0,
+      "wall_seconds": 0.372
+    }
+  ]
+}
