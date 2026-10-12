@@ -81,9 +81,9 @@ A wish for what might work fails at the first surprise. A receipt for what alrea
 
 ## The loop
 
-Each chapter adds one graded capability to Ensemble. "Graded" means a program starts fake vendor servers, runs your binary against them, inspects what your code actually did, and scores it: 100 out of 100 or not. Mutation tests verify the grader itself: delete exactly one behavior from the reference solution, re-grade, and assert that exactly the right checks fail. A grader that lets a deletion through is a grader that tolerates a regression, and the mutation tests exist to catch that tolerance before a student hits it.
+Most implementation chapters add graded capabilities to Ensemble. "Graded" means a program starts fake vendor servers, runs your binary against them, inspects what your code actually did, and scores the published checks. Totals differ where chapters combine exercises; some chapters are explanatory or explicitly ungraded. Mutation tests check the grader itself: remove a behavior from the reference solution, re-grade, and inspect whether the intended check fails for the intended reason. A grader that lets that deletion through has exposed a gap worth fixing before a student hits it.
 
-Every chapter includes a parity check: earlier capabilities must still work after your changes. You cannot add capability that breaks existing capability. Chapter by chapter, the result is a stack of tested receipts, each feedback-corrected, each building on everything before it.
+Earlier capabilities must still work after your changes. Some graders include an explicit parity check; elsewhere affected regressions and separate source review preserve that obligation. You cannot add capability that breaks existing capability. Chapter by chapter, the result is a stack of tested receipts, each feedback-corrected, each building on everything before it.
 
 The second-edition student exposed a distinction this description originally
 missed. Some valid implementations failed old checks because a grader assumed
@@ -154,9 +154,9 @@ Hand this book to the next generation of language model. Point it at Chapter 1. 
 
 A more capable model has the opportunity to produce a better Ensemble. The graders set a floor: cleaner code, sharper tool descriptions, tighter error handling and a more natural conversation style still need comparison. The specifications say what the agent must do. They do not limit how well it does it.
 
-When a new capability appears in the field, write a chapter. The chapter comes with a grader, mutation tests, and a parity check against everything before it. Ensemble gains the capability. The book grows by one chapter. The next model that reads the book builds an Ensemble that has it.
+When a new capability earns a place in the book, write its exercise and checks, including the earlier behavior the change could affect. Ensemble gains the capability. The book grows. The next model that reads it has that capability to build too.
 
-No version of Ensemble is final. Each is a phenotype expressed from the same genome in the environment of whatever model reads it. The graders are the immune system: they reject any build that loses a capability a previous chapter established. The prose is the teaching. Together they define a living standard for what an AI coding agent is, and that standard evolves because adding a chapter is how you evolve it.
+No version of Ensemble is final. Each is a phenotype expressed from the same genome in the environment of whatever model reads it. The graders are the immune system, with the blind spots the reviews keep finding. The prose is the teaching. Together they define a living standard for what an AI coding agent is, and that standard evolves as the book learns from another implementation.
 
 ## The crossing
 
@@ -170,17 +170,22 @@ After the crossing, every chapter you add is written with the tool the chapter e
 
 A self-improvement loop with graded checkpoints and mutation-tested guardrails, running on a model whose improvements must be demonstrated on each pass.
 
-For this experiment, Bill's intended crossing is specific: the new Ensemble
-runs GPT-5 Astra at high reasoning, and that Ensemble helps build Edition 3.
-The supported model identifier and working access path must be verified when
-the implementation reaches them. This is the destination, not a feature to
-smuggle into Chapter 1 or a claim that the crossing has already happened.
+For this experiment, Bill explicitly selected GPT-6 Astra (`gpt-6-astra`) at
+high reasoning. The new Ensemble has demonstrated actual coding with that
+configuration: reading a program, reproducing failures, editing it and passing
+the unchanged tests. Chapter 19 records that bounded task.
+
+At this edition's first publication, the implementation catches up through the
+first edition's final exercise, Gateway, now Chapter 26. The actual move from
+Codex into Ensemble has begun, and Chapter 25 is reserved for that experience.
+The crossover is not complete. Using Ensemble to produce Edition 3 remains the
+next goal; this second edition was built with Codex under Bill's direction.
 
 ## Your Ensemble
 
 Your needs are different from mine. Maybe you work for a well-funded company that can spend thousands of dollars a day on compute. Maybe you are a hobbyist. Maybe you want an agent that runs autonomously while you sleep, or one that you steer in real time the way I do. The right agent for you is the one that fits the way you work, and no two engineers work the same way.
 
-Clone this book. Go through it chapter by chapter. Customize it. Change the tool set, the memory system, the observer, the voice. Make it yours. The graders will tell you when you have broken something, and the parity checks will keep the foundation under your changes.
+Clone this book. Go through it chapter by chapter. Customize it. Change the tool set, the memory system, the observer, the voice. Make it yours. Use the graders, review and actual work to find what your changes broke and keep the foundation under them.
 
 This book was designed to be forked.
 
