@@ -1,0 +1,4 @@
+--- FAIL: TestInvoiceProbe (0.18s)
+    ch17_test.go:6: cost-is-computed-not-stored: durable usage stores monetary field spend
+    ch17_test.go:6: all-vendors-report-usage: durable usage stores monetary field spend
+FAIL

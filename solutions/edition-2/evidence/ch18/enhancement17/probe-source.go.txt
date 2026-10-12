@@ -1,0 +1,18 @@
+package gradeedition2
+import("testing";"os";"encoding/json";"path/filepath";"strings";"github.com/waywardgeek/ensemble/internal/fakevendor")
+func TestInvoiceProbe(t *testing.T){
+ r:=invoiceChecks(os.Getenv("GRADE17_BIN"),"cr/cache-current.txt","cr/cache-prior.txt",[4]float64{2,2.5,.2,10})
+ b,_:=json.MarshalIndent(r,"","  ");os.WriteFile(os.Getenv("GRADE17_RESULT"),b,0644)
+ if r.Fatal!="" {t.Fatal(r.Fatal)};for id,e:=range r.Errs {if e!="" {t.Errorf("%s: %s",id,e)}}
+}
+func TestInvoiceDuplicatePair(t *testing.T){
+ raw,err:=os.ReadFile(os.Getenv("GRADE17_WIRE"));if err!=nil{t.Fatal(err)}
+ chunks:=strings.Split(string(raw),"===== REQUEST ")[1:]
+ var reqs []fakevendor.Recorded
+ for _,s:=range chunks[:2]{body:=s[strings.Index(s,"\n")+1:];reqs=append(reqs,fakevendor.Recorded{Body:[]byte(body)})}
+ dir:=t.TempDir();both:=append(append([]byte(nil),reqs[0].Body...),reqs[1].Body...)
+ os.WriteFile(filepath.Join(dir,"current"),both,0644);os.WriteFile(filepath.Join(dir,"prior"),both,0644)
+ r:=contextResult{Errs:map[string]string{}}
+ invoiceLens(&r,invoiceOut{reqs:reqs},dir,"current","prior")
+ if r.Errs["cache-lens-exists"]=="" {t.Fatal("identical accumulated files passed the lens rotation check")}
+}

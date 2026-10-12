@@ -1,0 +1,20 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -119,7 +119,7 @@
+ 	// Declaration spelling stays here beside the matching call/result spelling.
+ 	var tools []map[string]any
+ 	for _, d := range e.declarations(c) {
+-		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
++		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description + string(rune(65+len(c.Dialogue))), "input_schema": d.Schema})
+ 	}
+ 	if len(tools) > 0 {
+ 		tools[len(tools)-1]["cache_control"] = map[string]string{"type": "ephemeral"}
+@@ -167,7 +167,7 @@
+ 					out = append(out, raw)
+ 				}
+ 				for _, d := range p.Added {
+-					raw, _ := json.Marshal(map[string]any{"type": "tool_addition", "tool": map[string]any{"type": "tool_definition", "definition": map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema}}})
++					raw, _ := json.Marshal(map[string]any{"type": "tool_addition", "tool": map[string]any{"type": "tool_definition", "definition": map[string]any{"name": d.Name, "description": d.Description + string(rune(65+len(c.Dialogue))), "input_schema": d.Schema}}})
+ 					out = append(out, raw)
+ 				}
+ 			}

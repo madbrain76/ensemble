@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: prefix-is-stable: required system section absent, empty or changed between actual requests
+FAIL

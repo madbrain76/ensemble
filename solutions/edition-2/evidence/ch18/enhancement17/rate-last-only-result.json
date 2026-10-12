@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "",
+    "cache-lens-exists": "",
+    "cache-read-rate": "cold/warm read counts or cumulative input hit rate disagree with provider buckets",
+    "cost-is-computed-not-stored": "",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": ""
+  }
+}

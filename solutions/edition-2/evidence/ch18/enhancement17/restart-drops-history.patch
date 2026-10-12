@@ -1,0 +1,11 @@
+--- a/internal/agent/save.go
++++ b/internal/agent/save.go
+@@ -12,7 +12,7 @@
+ }
+ 
+ // Load restores snapshot plus journal before admitting new work.
+-func (a *agent) Load() error { return a.history.Recover(a.savePath()) }
++func (a *agent) Load() error { return nil }
+ 
+ // Save checkpoints after Shutdown so final managed-job facts are included.
+ func (a *agent) Save() error { return a.history.Checkpoint(a.savePath()) }

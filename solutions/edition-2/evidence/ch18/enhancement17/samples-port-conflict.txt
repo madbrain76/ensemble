@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/tmp/ch17_samples.py", line 34, in <module>
+    ws.send(json.dumps(dict(type='subscribe')));receive(ws,'current_settings');m=receive(ws,'usage');meters.append(m);assert m['total']==dict(input=0,cache_write=0,cache_read=0,output=0) and m['cost_usd']==0
+                                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

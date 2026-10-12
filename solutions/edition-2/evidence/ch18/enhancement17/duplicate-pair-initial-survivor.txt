@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceDuplicatePair (0.00s)
+    ch17_test.go:17: identical accumulated files passed the lens rotation check
+FAIL

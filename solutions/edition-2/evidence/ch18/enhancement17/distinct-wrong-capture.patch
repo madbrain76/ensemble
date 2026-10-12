@@ -1,0 +1,11 @@
+--- a/internal/cachelens/lens.go
++++ b/internal/cachelens/lens.go
+@@ -150,7 +150,7 @@
+ 		if err := os.Rename(current, filepath.Join(dir, "cache-prior.txt")); err != nil && !os.IsNotExist(err) {
+ 			root.Logf("cache lens: rotate: %v", err)
+ 		}
+-		if err := os.WriteFile(current, []byte(artifact.String()), 0600); err != nil {
++		if err := os.WriteFile(current, []byte(fmt.Sprint(total)), 0600); err != nil {
+ 			root.Logf("cache lens: write: %v", err)
+ 		}
+ 	}

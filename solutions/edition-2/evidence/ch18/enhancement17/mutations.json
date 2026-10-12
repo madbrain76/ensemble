@@ -1,0 +1,540 @@
+[
+  {
+    "name": "baseline",
+    "observed": {
+      "exit": 0,
+      "seconds": 0.222,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "empty-current",
+    "claim": "cache-lens-exists",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.172,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "current and prior captures are identical, not a rotated request pair",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "no-rotation",
+    "claim": "cache-lens-exists",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.173,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "capture cr/cache-prior.txt: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/invoice-grade-1554127987/session/cr/cache-prior.txt: no such file or directory",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "tools-disappear",
+    "claim": "prefix-is-stable",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.172,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "capture cr/cache-current.txt lacks actual request 2 tools content",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "declared fixture tool list_directory absent from actual request",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "system-disappears",
+    "claim": "prefix-is-stable",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "capture cr/cache-current.txt lacks actual request 2 system content",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "primary instructions absent from stable system section",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "tool-prefix-changes",
+    "claim": "prefix-is-stable",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "required tools section absent, empty or changed between actual requests",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "system-prefix-changes",
+    "claim": "prefix-is-stable",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.174,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "required system section absent, empty or changed between actual requests",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "tool-marker-first",
+    "claim": "request-has-breakpoints",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.178,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "tool-marker-in-schema",
+    "claim": "request-has-breakpoints",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.177,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "system-marker-nested",
+    "claim": "request-has-breakpoints",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.177,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "history-marker-stays",
+    "claim": "request-has-breakpoints",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.174,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "history-marker-nested",
+    "claim": "request-has-breakpoints",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "excess-tool-markers",
+    "claim": "request-has-breakpoints",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "meter-cost-wrong",
+    "claim": "cost-is-computed-not-stored",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.177,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "response 2 cost 0.0403 priced=true, want 0.004030000000 at supplied rates [2 2.5 0.2 10]",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": "new session counts/cost include old work"
+        }
+      }
+    }
+  },
+  {
+    "name": "cache-write-unpriced",
+    "claim": "cost-is-computed-not-stored",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "response 2 cost 0.00278 priced=true, want 0.004030000000 at supplied rates [2 2.5 0.2 10]",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "last-shows-total",
+    "claim": "usage-is-session-scoped",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "cold/warm read counts or cumulative input hit rate disagree with provider buckets",
+          "cost-is-computed-not-stored": "response 2 last/session meter buckets differ: map[cache_read:1400 cache_write:500 cost_usd:0.00403 hit_rate:0.4666666666666667 input:1100 output:30 priced:true replay:true total:map[cache_read:1400 cache_write:500 input:1100 output:30] type:usage]",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "total-shows-last",
+    "claim": "usage-is-session-scoped",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.176,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "cold/warm read counts or cumulative input hit rate disagree with provider buckets",
+          "cost-is-computed-not-stored": "response 2 last/session meter buckets differ: map[cache_read:1400 cache_write:0 cost_usd:0.00403 hit_rate:0.9333333333333333 input:100 output:20 priced:true replay:true total:map[cache_read:1400 cache_write:0 input:100 output:20] type:usage]",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": "two-turn totals are not the sum of disjoint response counts"
+        }
+      }
+    }
+  },
+  {
+    "name": "rate-includes-output",
+    "claim": "cache-read-rate",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "cold/warm read counts or cumulative input hit rate disagree with provider buckets",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "rate-last-only",
+    "claim": "cache-read-rate",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.176,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "cold/warm read counts or cumulative input hit rate disagree with provider buckets",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "unknown-priced-free",
+    "claim": "cost-is-computed-not-stored",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.175,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "unknown tariff was priced or discarded its token counts",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "restart-drops-history",
+    "claim": "usage-is-session-scoped",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.174,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": "restart did not retain the actual prior dialogue"
+        }
+      }
+    }
+  },
+  {
+    "name": "durable-spend",
+    "claim": "cost-is-computed-not-stored",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.185,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "durable usage stores monetary field spend",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "durable usage stores monetary field spend",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "openai-cache-double-count",
+    "claim": "all-vendors-report-usage",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.176,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "response 1 last/session meter buckets differ: map[cache_read:33 cache_write:22 cost_usd:0.0012672 hit_rate:0.2727272727272727 input:66 output:44 priced:true replay:true total:map[cache_read:33 cache_write:22 input:66 output:44] type:usage]",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gemini-cache-double-count",
+    "claim": "all-vendors-report-usage",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.174,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "response 1 last/session meter buckets differ: map[cache_read:33 cache_write:0 cost_usd:0.000200475 hit_rate:0.42857142857142855 input:44 output:44 priced:true replay:true total:map[cache_read:33 cache_write:0 input:44 output:44] type:usage]",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "gemini-thoughts-omitted",
+    "claim": "all-vendors-report-usage",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.176,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "response 1 last/session meter buckets differ: map[cache_read:33 cache_write:0 cost_usd:0.00012697499999999998 hit_rate:0.75 input:11 output:31 priced:true replay:true total:map[cache_read:33 cache_write:0 input:11 output:31] type:usage]",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  },
+  {
+    "name": "anthropic-write-omitted",
+    "claim": "all-vendors-report-usage",
+    "observed": {
+      "exit": 1,
+      "seconds": 0.177,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "response 1 last/session meter buckets differ: map[cache_read:33 cache_write:0 cost_usd:0.0004686 hit_rate:0.75 input:11 output:44 priced:true replay:true total:map[cache_read:33 cache_write:0 input:11 output:44] type:usage]",
+          "cache-lens-exists": "",
+          "cache-read-rate": "cold/warm read counts or cumulative input hit rate disagree with provider buckets",
+          "cost-is-computed-not-stored": "unknown tariff was priced or discarded its token counts",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": "two-turn totals are not the sum of disjoint response counts"
+        }
+      }
+    }
+  },
+  {
+    "name": "restored",
+    "observed": {
+      "exit": 0,
+      "seconds": 0.176,
+      "result": {
+        "Fatal": "",
+        "Errs": {
+          "all-vendors-report-usage": "",
+          "cache-lens-exists": "",
+          "cache-read-rate": "",
+          "cost-is-computed-not-stored": "",
+          "prefix-is-stable": "",
+          "request-has-breakpoints": "",
+          "usage-is-session-scoped": ""
+        }
+      }
+    }
+  }
+]

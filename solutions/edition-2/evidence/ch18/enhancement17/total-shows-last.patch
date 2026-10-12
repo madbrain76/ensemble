@@ -1,0 +1,11 @@
+--- a/internal/engine/usage.go
++++ b/internal/engine/usage.go
+@@ -37,7 +37,7 @@
+ func (e *engine) Meter() common.UsageMeter {
+ 	e.mu.Lock()
+ 	defer e.mu.Unlock()
+-	out := common.UsageMeter{Usage: e.last, Total: e.usage, Priced: true}
++	out := common.UsageMeter{Usage: e.last, Total: e.last, Priced: true}
+ 	for key, u := range e.byModel {
+ 		features, _ := LookupModel(key.model)
+ 		price := features.Price

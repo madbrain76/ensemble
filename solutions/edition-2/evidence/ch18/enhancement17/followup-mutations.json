@@ -1,0 +1,36 @@
+[
+  {
+    "name": "nonzero-after-save",
+    "claim": "successful EOF required after actual save",
+    "exit": 1,
+    "observed": {
+      "Fatal": "nonzero GUI exit after EOF: exit status 17: Open http://localhost:50955; terminal messages while busy are hints. /interrupt ends the turn.\n",
+      "Errs": {
+        "all-vendors-report-usage": "",
+        "cache-lens-exists": "",
+        "cache-read-rate": "",
+        "cost-is-computed-not-stored": "",
+        "prefix-is-stable": "",
+        "request-has-breakpoints": "",
+        "usage-is-session-scoped": ""
+      }
+    }
+  },
+  {
+    "name": "restore-seeds-meter",
+    "claim": "usage-is-session-scoped",
+    "exit": 1,
+    "observed": {
+      "Fatal": "",
+      "Errs": {
+        "all-vendors-report-usage": "",
+        "cache-lens-exists": "",
+        "cache-read-rate": "",
+        "cost-is-computed-not-stored": "",
+        "prefix-is-stable": "",
+        "request-has-breakpoints": "",
+        "usage-is-session-scoped": "restored history contaminated the initial live meter"
+      }
+    }
+  }
+]

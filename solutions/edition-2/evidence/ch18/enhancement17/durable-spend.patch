@@ -1,0 +1,10 @@
+--- a/internal/common/types.go
++++ b/internal/common/types.go
+@@ -49,6 +49,7 @@
+ // input to add to an already-inclusive vendor total. Keeping token counts,
+ // rather than prices, allows later clients to apply current pricing.
+ type Usage struct {
++ Spend int `json:"spend"`
+ 	// Input counts ordinary input tokens after removing cache categories.
+ 	Input int `json:"input"`
+ 	// CacheWrite counts input tokens charged to cache creation.

@@ -1,0 +1,55 @@
+{
+  "manuscript_sha256": "c00a640ca14d7b4bbde424314230857841abd01249cc3f9c9fe976290642ff48",
+  "fences": [
+    {
+      "language": "go",
+      "sha256": "b18906428650ee151161925f565889733520103a2a98bd0508ae999c15ff6f55"
+    },
+    {
+      "language": "go",
+      "sha256": "df910e2f0432c5dbedc984325bd4d48dd1c6bb25b4eb4f767f7ecb70bf295b95"
+    },
+    {
+      "language": "",
+      "sha256": "6e29a239a8fdd4bdfa51b0ed43f247db85c72cfd03c8d89282c3c8d20e870448"
+    },
+    {
+      "language": "",
+      "sha256": "e823df36a3aadebcca0f9be513af60d0a81e285e13bcd85e18d7fea6a91edda2"
+    },
+    {
+      "language": "",
+      "sha256": "1f55157622967eed0111c35644e5ed99c86536618bfc84a2ff0f5fd96cdd7fcc"
+    },
+    {
+      "language": "sh",
+      "sha256": "6e29a239a8fdd4bdfa51b0ed43f247db85c72cfd03c8d89282c3c8d20e870448"
+    },
+    {
+      "language": "sh",
+      "sha256": "4ca105e610f10a50a97fb492b2927d1b7f6bc2e998d6eee7de1db225ae8d78ab"
+    },
+    {
+      "language": "sh",
+      "sha256": "99f94b22a7a7ee82d616d08066cb67dd6fbdc104895da6f1c77c69b2a0b25f41"
+    },
+    {
+      "language": "text",
+      "sha256": "852f6eb9b5aefb790b58f279058eadbbdc25d702c1815135297d82c3a1802f0b"
+    }
+  ],
+  "source": "Exact isolated solutions/edition-2/ch17",
+  "build": "cache_source=\"$PWD\"\n(cd gui && go build -o /tmp/ensemble-ch17-gui ./cmd)\ncache_demo=$(mktemp -d)\ncd \"$cache_demo\"\nmkdir -p skills/base\npython3 - <<'PY'\nfrom pathlib import Path\nheader = \"\"\"---\nname: base\ntype: primary\ndescription: Answer questions about the fixed archive reference.\ntools: list_directory read_file\n---\nAnswer the user's archive question in one short sentence, without tools.\nThe archive project code is COPPER-FERRY-18.\n\"\"\"\nrecords = \"\".join(\n    f\"Archive record {i}: color copper; preserve the original source and record the reason for each change.\\n\"\n    for i in range(1, 701)\n)\nPath(\"skills/base/SKILL.md\").write_text(header + records)\nPY\n",
+  "published_launch": "LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \\\nEN_PRIMARY_SKILL=base EN_SKILLS_DIR=\"$PWD/skills\" \\\n/tmp/ensemble-ch17-gui --port 8088 --gui-dir \"$cache_source/gui/web/gui\"\n",
+  "executed_launch": "LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \\\nEN_PRIMARY_SKILL=base EN_SKILLS_DIR=\"$PWD/skills\" \\\n/tmp/ensemble-ch17-gui --port 51108 --gui-dir \"$cache_source/gui/web/gui\"\n",
+  "port_substitution": "8088 occupied by unrelated Ensemble PID 4689; selected free port and verified child listener PID before any prompt",
+  "prompts": "What is the archive project code? Reply in one short sentence.\nWhat is the rule for archive record 37? Reply in one short sentence.\nWhat color identifies archive record 402? Reply in one short sentence.\nRemind me of the archive project code, in five words or fewer.\n",
+  "go": "Exact vocabulary fences compile with existing common.Engine vocabulary in the isolated core module",
+  "requests": 4,
+  "exits": [
+    0,
+    0
+  ],
+  "model": "claude-sonnet-5",
+  "limit": "Local external HTTP fake and actual WebSocket GUI command verify sample plumbing, artifacts and meter values. Plain delivery selected via existing EN_DISABLE_STREAMING. No fresh cache grant, native DOM rendering or model-answer quality is established."
+}

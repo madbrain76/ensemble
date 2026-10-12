@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/tmp/ch17_samples.py", line 20, in <module>
+    snippet=source/'snippet';snippet.mkdir();(snippet/'types.go').write_text('package snippet\nimport "ensemble/ensemble"\ntype Engine = ensemble.Engine\n'+blocks[0][1]+'\n'+blocks[1][1]);r=subprocess.run(['go','test','./snippet'],cwd=source,capture_output=True,text=True);(out/'samples-go.txt').write_text(r.stdout+r.stderr);assert r.returncode==0,r.stderr
+                                                                                                                                                                                                                                                                                                                                             ^^^^^^^^^^^^^^^
+AssertionError: # ensemble/snippet
+snippet/types.go:3:24: undefined: ensemble.Engine
+

@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "durable usage stores monetary field spend",
+    "cache-lens-exists": "",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "durable usage stores monetary field spend",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": ""
+  }
+}

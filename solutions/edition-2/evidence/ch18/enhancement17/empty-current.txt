@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cache-lens-exists: current and prior captures are identical, not a rotated request pair
+FAIL

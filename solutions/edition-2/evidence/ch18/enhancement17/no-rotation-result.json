@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "",
+    "cache-lens-exists": "capture cr/cache-prior.txt: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/invoice-grade-1554127987/session/cr/cache-prior.txt: no such file or directory",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": ""
+  }
+}

@@ -1,0 +1,5 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cache-lens-exists: capture cr/cache-current.txt lacks actual request 2 tools content
+    ch17_test.go:6: prefix-is-stable: declared fixture tool list_directory absent from actual request
+    ch17_test.go:6: request-has-breakpoints: request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers
+FAIL

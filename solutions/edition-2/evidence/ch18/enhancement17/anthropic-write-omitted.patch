@@ -1,0 +1,11 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -262,7 +262,7 @@
+ 	// Anthropic already excludes both cache categories from input_tokens.
+ 	// Passing these four counts through is correct; subtracting cache again
+ 	// would undercount a warm request.
+-	result := common.ResponseData{From: from, Usage: common.Usage{Input: *wire.Usage.Input, Output: *wire.Usage.Output, CacheWrite: wire.Usage.Write, CacheRead: wire.Usage.Read}}
++	result := common.ResponseData{From: from, Usage: common.Usage{Input: *wire.Usage.Input, Output: *wire.Usage.Output, CacheWrite: 0, CacheRead: wire.Usage.Read}}
+ 	// Walk the blocks in provider order. Extracting text and calls in separate
+ 	// passes would preserve their values but lose how the reply interleaved them.
+ 	for _, raw := range wire.Content {

@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "",
+    "cache-lens-exists": "",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "",
+    "prefix-is-stable": "required system section absent, empty or changed between actual requests",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": ""
+  }
+}

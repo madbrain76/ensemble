@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "",
+    "cache-lens-exists": "current and prior captures are identical, not a rotated request pair",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": ""
+  }
+}

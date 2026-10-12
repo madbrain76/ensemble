@@ -1,0 +1,5 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cost-is-computed-not-stored: response 2 last/session meter buckets differ: map[cache_read:1400 cache_write:0 cost_usd:0.00403 hit_rate:0.9333333333333333 input:100 output:20 priced:true replay:true total:map[cache_read:1400 cache_write:0 input:100 output:20] type:usage]
+    ch17_test.go:6: usage-is-session-scoped: two-turn totals are not the sum of disjoint response counts
+    ch17_test.go:6: cache-read-rate: cold/warm read counts or cumulative input hit rate disagree with provider buckets
+FAIL

@@ -1,0 +1,4 @@
+FAIL	ensemble/snippet [build failed]
+FAIL
+# ensemble/snippet
+snippet/types.go:3:24: undefined: ensemble.Engine

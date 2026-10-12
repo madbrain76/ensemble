@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cache-lens-exists: capture cr/cache-current.txt lacks actual request 2 messages content
+FAIL

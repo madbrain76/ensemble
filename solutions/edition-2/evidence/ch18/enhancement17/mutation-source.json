@@ -1,0 +1,13 @@
+{
+  "batch_ch17_sha256": "d93517af31d2d7ca28bcaeda9a74c59104025ab646e057969f7e75e82994826f",
+  "derivation": "First green b1b7c9f6 plus duplicate-file guard; exact current driver/command. This is before final explicit message-index advancement and Usage comment.",
+  "cases": [
+    "mutations.json",
+    "followup-mutations.json"
+  ],
+  "final_cases": [
+    "final-followup-mutations.json"
+  ],
+  "final_binding": "final-source.json",
+  "retained_target_mismatch": "last-shows-total fails cost-is-computed-not-stored/cache-read-rate, not its named session row."
+}

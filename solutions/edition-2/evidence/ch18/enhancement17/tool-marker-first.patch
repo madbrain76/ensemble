@@ -1,0 +1,11 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -122,7 +122,7 @@
+ 		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
+ 	}
+ 	if len(tools) > 0 {
+-		tools[len(tools)-1]["cache_control"] = map[string]string{"type": "ephemeral"}
++		tools[0]["cache_control"] = map[string]string{"type": "ephemeral"}
+ 	}
+ 	system := []map[string]any{}
+ 	if prompt := e.SystemPrompt(); prompt != "" {

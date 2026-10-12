@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "response 1 last/session meter buckets differ: map[cache_read:33 cache_write:22 cost_usd:0.0012672 hit_rate:0.2727272727272727 input:66 output:44 priced:true replay:true total:map[cache_read:33 cache_write:22 input:66 output:44] type:usage]",
+    "cache-lens-exists": "",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": ""
+  }
+}

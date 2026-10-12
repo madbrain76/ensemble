@@ -1,0 +1,11 @@
+--- a/internal/engine/cache.go
++++ b/internal/engine/cache.go
+@@ -44,7 +44,7 @@
+ 			}
+ 			// Add metadata without reordering the preexisting content keys.
+ 			raw := bytes.TrimSpace(blocks[i])
+-			blocks[i] = append(append([]byte(nil), raw[:len(raw)-1]...), []byte(`,"cache_control":{"type":"ephemeral"}}`)...)
++			blocks[i] = append(append([]byte(nil), raw[:len(raw)-1]...), []byte(`,"nested":{"cache_control":{"type":"ephemeral"}}}`)...)
+ 			return true
+ 		}
+ 	}

@@ -1,0 +1,10 @@
+--- a/gui/cmd/main.go
++++ b/gui/cmd/main.go
+@@ -24,6 +24,7 @@
+ 		fmt.Fprintln(os.Stderr, err)
+ 		os.Exit(1)
+ 	}
++ os.Exit(17)
+ }
+ func run() (runErr error) {
+ 	// Flags are the public configuration surface. Existing provider environment

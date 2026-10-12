@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: request-has-breakpoints: request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers
+FAIL

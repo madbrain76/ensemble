@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "",
+    "cache-lens-exists": "",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "response 2 cost 0.0403 priced=true, want 0.004030000000 at supplied rates [2 2.5 0.2 10]",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "",
+    "usage-is-session-scoped": "new session counts/cost include old work"
+  }
+}

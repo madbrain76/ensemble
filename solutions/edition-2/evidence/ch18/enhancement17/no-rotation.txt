@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cache-lens-exists: capture cr/cache-prior.txt: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/invoice-grade-1554127987/session/cr/cache-prior.txt: no such file or directory
+FAIL

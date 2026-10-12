@@ -162,7 +162,10 @@ func invoiceUsage(r *contextResult, id string, out invoiceOut, want []fakevendor
 		if kind != "response_ended" {
 			continue
 		}
-		var payload struct{ Usage map[string]any }
+		var payload struct {
+			// Usage retains the recorded normalized token buckets, without derived money.
+			Usage map[string]any
+		}
 		if json.Unmarshal(event["response"], &payload) == nil && payload.Usage != nil {
 			counts = append(counts, payload.Usage)
 		}
@@ -242,6 +245,7 @@ func invoicePrefix(r *contextResult, reqs []fakevendor.Recorded) {
 		r.fail(stable, "primary instructions absent from stable system section")
 	}
 	const markers = "request-has-breakpoints"
+	previous := -1
 	for i, req := range reqs {
 		body := invoiceSections(req.Body)
 		var messages []map[string]json.RawMessage
@@ -253,9 +257,10 @@ func invoicePrefix(r *contextResult, reqs []fakevendor.Recorded) {
 		// This fixture has no ephemeral tail, handoff or memory. Its final
 		// message is therefore the stable end; recursively finding metadata
 		// inside a schema or a message object would accept an unusable marker.
-		if !invoiceEndMarker(body["tools"]) || !invoiceEndMarker(body["system"]) || !historyEnd || invoiceMarkers(req.Body) > 4 {
-			r.fail(markers, "request %d lacks a legal last-tool/system/stable-history marker or exceeds four markers", i+1)
+		if !invoiceEndMarker(body["tools"]) || !invoiceEndMarker(body["system"]) || !historyEnd || len(messages)-1 <= previous || invoiceMarkers(req.Body) > 4 {
+			r.fail(markers, "request %d lacks a legal last-tool/system/advancing stable-history marker or exceeds four markers", i+1)
 		}
+		previous = len(messages) - 1
 	}
 }
 func invoiceEndMarker(raw []byte) bool {
@@ -318,6 +323,12 @@ func invoiceArtifactContains(artifact, want []byte) bool {
 }
 func invoiceLens(r *contextResult, out invoiceOut, dir, current, prior string) {
 	const id = "cache-lens-exists"
+	a, firstErr := invoiceRead(dir, current)
+	b, priorErr := invoiceRead(dir, prior)
+	if firstErr == nil && priorErr == nil && bytes.Equal(a, b) {
+		r.fail(id, "current and prior captures are identical, not a rotated request pair")
+		return
+	}
 	for i, path := range []string{prior, current} {
 		raw, err := invoiceRead(dir, path)
 		if err != nil {

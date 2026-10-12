@@ -1,0 +1,11 @@
+--- a/internal/engine/usage.go
++++ b/internal/engine/usage.go
+@@ -48,7 +48,7 @@
+ 			out.Priced = false
+ 			continue
+ 		}
+-		out.CostUSD += (float64(u.Input)*price.Input + float64(u.CacheWrite)*price.CacheWrite + float64(u.CacheRead)*price.CacheRead + float64(u.Output)*price.Output) / 1e6
++		out.CostUSD += (float64(u.Input)*price.Input + float64(u.CacheWrite)*price.CacheWrite + float64(u.CacheRead)*price.CacheRead + float64(u.Output)*price.Output) / 1e5
+ 	}
+ 	// Before any request, an unknown selected model must still display a dash.
+ 	if len(e.byModel) == 0 {

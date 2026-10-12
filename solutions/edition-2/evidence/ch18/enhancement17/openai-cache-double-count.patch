@@ -1,0 +1,11 @@
+--- a/internal/engine/openai.go
++++ b/internal/engine/openai.go
+@@ -241,7 +241,7 @@
+ 	// Subtract both to obtain ordinary input; completion_tokens already
+ 	// includes reasoning, so no second output addition belongs here.
+ 	u := wire.Usage
+-	result := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input - u.Details.Read - u.Details.Write, CacheRead: u.Details.Read, CacheWrite: u.Details.Write, Output: *u.Output}}
++	result := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input, CacheRead: u.Details.Read, CacheWrite: u.Details.Write, Output: *u.Output}}
+ 	// Pointer presence preserves "" separately from null/absent tool-only content.
+ 	message := wire.Choices[0].Message
+ 	if message.Content != nil {

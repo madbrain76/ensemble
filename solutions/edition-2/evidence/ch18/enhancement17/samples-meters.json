@@ -1,0 +1,53 @@
+[
+  {
+    "cache_read": 0,
+    "cache_write": 0,
+    "cost_usd": 0,
+    "hit_rate": 0,
+    "input": 0,
+    "output": 0,
+    "priced": true,
+    "replay": true,
+    "total": {
+      "input": 0,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 0
+    },
+    "type": "usage"
+  },
+  {
+    "cache_read": 1400,
+    "cache_write": 0,
+    "cost_usd": 0.00539,
+    "hit_rate": 0.7,
+    "input": 100,
+    "output": 20,
+    "priced": true,
+    "replay": true,
+    "total": {
+      "input": 1300,
+      "cache_write": 500,
+      "cache_read": 4200,
+      "output": 70
+    },
+    "type": "usage"
+  },
+  {
+    "cache_read": 0,
+    "cache_write": 0,
+    "cost_usd": 0,
+    "hit_rate": 0,
+    "input": 0,
+    "output": 0,
+    "priced": true,
+    "replay": true,
+    "total": {
+      "input": 0,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 0
+    },
+    "type": "usage"
+  }
+]

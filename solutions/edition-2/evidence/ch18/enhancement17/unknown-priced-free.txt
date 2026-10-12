@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cost-is-computed-not-stored: unknown tariff was priced or discarded its token counts
+FAIL

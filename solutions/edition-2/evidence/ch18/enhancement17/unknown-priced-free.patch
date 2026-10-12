@@ -1,0 +1,11 @@
+--- a/internal/engine/usage.go
++++ b/internal/engine/usage.go
+@@ -45,7 +45,7 @@
+ 			price = features.LargePrice
+ 		}
+ 		if price == nil {
+-			out.Priced = false
++			out.Priced = true
+ 			continue
+ 		}
+ 		out.CostUSD += (float64(u.Input)*price.Input + float64(u.CacheWrite)*price.CacheWrite + float64(u.CacheRead)*price.CacheRead + float64(u.Output)*price.Output) / 1e6

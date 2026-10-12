@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cache-read-rate: cold/warm read counts or cumulative input hit rate disagree with provider buckets
+FAIL

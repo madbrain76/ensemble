@@ -1,0 +1,11 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -118,7 +118,7 @@
+ 	}
+ 	// Declaration spelling stays here beside the matching call/result spelling.
+ 	var tools []map[string]any
+-	for _, d := range e.declarations(c) {
++	for _, d := range []common.ToolDeclaration{} {
+ 		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
+ 	}
+ 	if len(tools) > 0 {

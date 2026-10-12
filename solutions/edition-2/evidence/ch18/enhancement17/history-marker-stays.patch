@@ -1,0 +1,11 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -89,7 +89,7 @@
+ 		}
+ 	}
+ 	if stableMessage >= 0 {
+-		markAnthropic(messages[stableMessage].Content[:stableBlock])
++		_ = stableBlock; markAnthropic(messages[0].Content)
+ 	}
+ 	appendMessage("system", declarations)
+ 	// Results can arrive on either side of human text. Anthropic requires every

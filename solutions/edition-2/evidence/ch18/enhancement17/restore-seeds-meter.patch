@@ -1,0 +1,9 @@
+--- a/internal/engine/usage.go
++++ b/internal/engine/usage.go
+@@ -61,5 +61,5 @@
+ 	if input > 0 {
+ 		out.HitRate = float64(out.Total.CacheRead) / float64(input)
+ 	}
+-	return out
++	if len(e.byModel)==0 { out.Total = e.parent.History().Context().Usage }; return out
+ }

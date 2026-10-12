@@ -1,0 +1,4 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: request-has-breakpoints: request 2 lacks a legal last-tool/system/advancing stable-history marker or exceeds four markers
+    ch17_test.go:6: usage-is-session-scoped: restart did not retain the actual prior dialogue
+FAIL

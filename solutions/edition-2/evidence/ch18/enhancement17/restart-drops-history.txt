@@ -1,0 +1,3 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: usage-is-session-scoped: restart did not retain the actual prior dialogue
+FAIL

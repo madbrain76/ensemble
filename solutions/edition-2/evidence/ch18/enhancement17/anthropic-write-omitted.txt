@@ -1,0 +1,6 @@
+--- FAIL: TestInvoiceProbe (0.17s)
+    ch17_test.go:6: cost-is-computed-not-stored: unknown tariff was priced or discarded its token counts
+    ch17_test.go:6: usage-is-session-scoped: two-turn totals are not the sum of disjoint response counts
+    ch17_test.go:6: cache-read-rate: cold/warm read counts or cumulative input hit rate disagree with provider buckets
+    ch17_test.go:6: all-vendors-report-usage: response 1 last/session meter buckets differ: map[cache_read:33 cache_write:0 cost_usd:0.0004686 hit_rate:0.75 input:11 output:44 priced:true replay:true total:map[cache_read:33 cache_write:0 input:11 output:44] type:usage]
+FAIL

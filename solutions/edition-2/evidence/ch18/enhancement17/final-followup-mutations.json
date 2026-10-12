@@ -1,0 +1,36 @@
+[
+  {
+    "name": "distinct-wrong-capture",
+    "claim": "cache-lens-exists",
+    "exit": 1,
+    "observed": {
+      "Fatal": "",
+      "Errs": {
+        "all-vendors-report-usage": "",
+        "cache-lens-exists": "capture cr/cache-current.txt lacks actual request 2 messages content",
+        "cache-read-rate": "",
+        "cost-is-computed-not-stored": "",
+        "prefix-is-stable": "",
+        "request-has-breakpoints": "",
+        "usage-is-session-scoped": ""
+      }
+    }
+  },
+  {
+    "name": "history-does-not-advance",
+    "claim": "request-has-breakpoints",
+    "exit": 1,
+    "observed": {
+      "Fatal": "",
+      "Errs": {
+        "all-vendors-report-usage": "",
+        "cache-lens-exists": "",
+        "cache-read-rate": "",
+        "cost-is-computed-not-stored": "",
+        "prefix-is-stable": "",
+        "request-has-breakpoints": "request 2 lacks a legal last-tool/system/advancing stable-history marker or exceeds four markers",
+        "usage-is-session-scoped": "restart did not retain the actual prior dialogue"
+      }
+    }
+  }
+]

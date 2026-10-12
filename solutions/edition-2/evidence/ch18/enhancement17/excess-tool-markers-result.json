@@ -1,0 +1,12 @@
+{
+  "Fatal": "",
+  "Errs": {
+    "all-vendors-report-usage": "",
+    "cache-lens-exists": "",
+    "cache-read-rate": "",
+    "cost-is-computed-not-stored": "",
+    "prefix-is-stable": "",
+    "request-has-breakpoints": "request 2 lacks a legal last-tool/system/stable-history marker or exceeds four markers",
+    "usage-is-session-scoped": ""
+  }
+}

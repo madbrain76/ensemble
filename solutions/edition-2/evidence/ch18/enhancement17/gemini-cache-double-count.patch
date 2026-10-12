@@ -1,0 +1,11 @@
+--- a/internal/engine/gemini.go
++++ b/internal/engine/gemini.go
+@@ -194,7 +194,7 @@
+ 	// subset of prompt tokens, but thinking output is additional to candidate
+ 	// output. Subtract on input and add on output to get disjoint categories.
+ 	u := wire.Usage
+-	result := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input - u.Read, CacheRead: u.Read, Output: u.Output + u.Thoughts}}
++	result := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input, CacheRead: u.Read, Output: u.Output + u.Thoughts}}
+ 	for _, raw := range wire.Candidates[0].Content.Parts {
+ 		var part geminiPart
+ 		if err := json.Unmarshal(raw, &part); err != nil {

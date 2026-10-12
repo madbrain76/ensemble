@@ -1,0 +1,11 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -125,7 +125,7 @@
+ 		tools[len(tools)-1]["cache_control"] = map[string]string{"type": "ephemeral"}
+ 	}
+ 	system := []map[string]any{}
+-	if prompt := e.SystemPrompt(); prompt != "" {
++	if prompt := e.SystemPrompt(); false {
+ 		system = append(system, map[string]any{"type": "text", "text": prompt, "cache_control": map[string]string{"type": "ephemeral"}})
+ 	}
+ 	features, _ := LookupModel(e.parent.Config().Model)

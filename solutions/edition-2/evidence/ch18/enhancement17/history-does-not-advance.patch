@@ -1,0 +1,10 @@
+--- a/internal/engine/anthropic.go
++++ b/internal/engine/anthropic.go
+@@ -92,6 +92,7 @@
+ 		markAnthropic(messages[stableMessage].Content[:stableBlock])
+ 	}
+ 	appendMessage("system", declarations)
++ messages = messages[len(messages)-1:]
+ 	// Results can arrive on either side of human text. Anthropic requires every
+ 	// tool_result before all other content in the merged user message. Partition
+ 	// only this wire view, preserving order within each group and all raw bytes.
