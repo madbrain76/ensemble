@@ -514,8 +514,8 @@ local state belonging to the attachment, not a permanent “already read” list
 
 One wiring hazard deserves naming, because it costs hours and announces
 nothing. The first edition had a synchronous turn path and an actor-mailbox
-path. Hooking recall into only one made the hand-driven case work while the
-other client never retrieved anything. A function that was never called
+path. Hook recall into only one and the hand-driven case can work while the
+other client never retrieves anything. A function that was never called
 cannot complain.
 
 The present Agent has one actor begin path for both `Ask` and `Post`. Keep

@@ -37,7 +37,7 @@ models; historical Haiku5.5 identity remains evidence, never a recommendation.
 Stake: the agent has already learned the reason for a decision, but the next
 session can repeat the rejected approach unless that reason returns when needed.
 Preserve the filing cabinet, goldfish with meticulous diaries, source-quota
-discovery, conflicting judge-format instructions, two forgotten turn-entry paths,
+discovery, conflicting judge-format instructions, the two-turn-entry wiring hazard,
 tuning history and unexpected skill-discovery benefit. Keep the eight original
 explanatory sections and useful TL;DR detail. No word-count target.
 
@@ -73,7 +73,7 @@ TL;DR supplies the missing owner paths, approved selection rule and public input
 | Prior chapter already loads enabled bands | Opening narrows the missing recall to archived/unloaded material; filing-cabinet and goldfish-diaries story remains. |
 | Bill's final quota and all-memory rulings | TL;DR/§16.3 use final mechanical selection, spare redistribution and successful judge verdicts including[]; all owner memory files remain searchable. |
 | Old CodeRhapsody paths/private learnings envelope | Publish actual Agent paths and markdown learnings; do not add a private JSON importer or read private memories. |
-| Callback/sibling wiring and duplicate turn entry | Explain actual Agent child/common interfaces/finite Engine judge and existing unified actor begin path; retain earlier missed-entrypoint lesson as history. |
+| Callback/sibling wiring and duplicate turn entry | Explain actual Agent child/common interfaces/finite Engine judge and existing unified actor begin path; retain the source's conditional missed-entrypoint warning without inventing an observed incident. |
 | Smoothed IDF and tiny corpus | Preserve zero-clamp diagnosis; positive scores can still miss the floor.25 background chunks is a fixture choice, not a universal minimum. |
 | Raw-frequency mutation survived initial tests | Teach competing rarity/saturation/length examples from actual independent reviewer findings, without implying the original formula was wrong. |
 | Capped recall attached twice | §16.5 retains11247→6144 observation, short control, complete-source identity and its replay/checkpoint lifetime. No new ledger. |
@@ -107,3 +107,32 @@ incident for that paragraph. No historical failure was invented. Minor wrapping
 and that correction produce sample freeze SHA-256
 `35c4abde8642599b6d6af84659580223c64972fccf479466e6e793911765d916`,
 with hard lint5040. The coder received that stable hash for exact execution.
+
+## Resumed Chapter 16 gate
+
+Bill paused the team after coherent draft `a6ca6757`, then explicitly resumed
+it under coordinator authority `c883a972`. Exact examples, revised grading and
+combined independent acceptance remained unfinished during the pause. No
+Chapter17 work or live-user crossover files were changed by this author.
+
+A compaction occurred during the initial resume reload, before any editing.
+The author restarted all four complete reads afterward: workflow1–300,
+301–620,621–940,941–1260,1261–1590,1591–1870,1871–2096; carryover1–300,
+301–620,621–966; voice1–320,321–632; procedure1–300,301–599. These include
+the new35-line resume authority, and all four are active together. The entire
+373-line `.agents/skills/ensemble-coding/SKILL.md` was read; an outer tool-output
+truncation in its opening was recovered explicitly with1–110. Current AGENTS
+authority, enhancement assignment and complete chapter map were also read.
+
+Independent initial prose review found one unsupported historical conversion
+in §16.5: original§17.5 warns conditionally about hooking only one turn-entry
+path; it does not document a measured missed-hook incident. The author checked
+the original and restored the conditional warning. This follows the same
+discipline as the judge-format warning above. Runnable fences are unchanged.
+
+The TL;DR's growth supplies actual owner-relative corpus paths, Bill's final
+mechanical selection and successful-judge rules, capped-source identity,
+public settings/launch inputs and the owner/worker cancellation boundary. Its
+original index sketch and explanatory pipeline remain. Those corrections make
+the exercise usable without an extra private contract; no length quota or
+unrelated feature accounts for the added detail.
