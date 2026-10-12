@@ -1,0 +1,24 @@
+{
+  "head": "a02dc4ced71165318b9e8f3d9062d2396e142569",
+  "sha256": {
+    "cmd/grade-edition2/main.go": "573851e31423ed6f6b8c4e651025f9a2b5f78f0d525ad6021f28f9e1b3c92e14",
+    "internal/gradeedition2/ch22_consumer.go.txt": "2b76a8de9f41d8eb426d30c7abce7bd2f268f01eac3b2688f4e8c49e812a62fa",
+    "internal/gradeedition2/ch22_reuse.go": "a65f16abb6eee6e85cf0a9736d63930907b1161ffab958f55197da6f0ced22a0",
+    "internal/gradeedition2/ch22.go": "f5c23712e1aa97f892b784035a0d2cd9a2d8126eaef6baa7b416fd7abccd9165",
+    "internal/gradeedition2/ch22_fleet.go": "be56feb7b19b5ce997cea2f413a851556503a7f788bf19fdf2da8ff360b823e1",
+    "internal/gradeedition2/ch22_test.go": "64c91c30830c082db90f93c6754de0f49ac637ddd0f4d18634f69d3f2357ebf0"
+  },
+  "frozen_trees": {
+    "solutions/edition-2/ch22": "30fb05d154b9808eb88622aaff9c1424cd7e8af1",
+    "solutions/ch25": "43b66f047c6ba6885b4a26371df5af2ac6177b31"
+  },
+  "manuscript_sha256": "d2f514380905245e14720fbf3d9d9a1a6555e813077487da3385ab5505bfdf3e",
+  "prior_binding": "final-source.json",
+  "change": "Only existing ./headless dependency/positive-control failures now debit the promised MCP row; successful observations unchanged.",
+  "validation": {
+    "accepted_reuse_baseline": "sensitivity-Reuse-row-baseline.txt",
+    "same_defect": "mutation-headless-websocket-edge-row-corrected.txt",
+    "accepted_reuse_restored": "sensitivity-Reuse-row-restored.txt",
+    "full_runs": "Earlier a02dc4ce actual full 200/200 both preserved; no new full or legacy run."
+  }
+}

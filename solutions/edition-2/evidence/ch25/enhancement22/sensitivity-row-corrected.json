@@ -1,0 +1,26 @@
+[
+  {
+    "name": "headless-websocket-edge",
+    "file": "internal/mcp/mcp.go",
+    "command": [
+      "go",
+      "test",
+      "./internal/gradeedition2",
+      "-run",
+      "^TestReuse22$",
+      "-count=1",
+      "-timeout",
+      "60s",
+      "-v"
+    ],
+    "exit": 1,
+    "seconds": 1.053,
+    "intended": "mcp-without-gorilla: [headless MCP consumer imports GUI/WebSocket implementation]",
+    "detected": true,
+    "failures": [
+      "    ch22_test.go:46: headless-linkage: [resolved target ./headless: GUI=false WebSocket=true wanted=false resolved target ensemble/ensemble: GUI=false WebSocket=true wanted=false resolved target .: GUI=false WebSocket=true wanted=false]",
+      "    ch22_test.go:46: mcp-without-gorilla: [headless MCP consumer imports GUI/WebSocket implementation]",
+      "    ch22_test.go:46: root-clean: [public root imports optional client Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review.]"
+    ]
+  }
+]

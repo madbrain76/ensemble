@@ -123,11 +123,19 @@ func reuseDeps(work, core, gui, library, guiPackage string, legacy bool, checks 
 		}
 		if !set[library] {
 			reuseFail(checks, fmt.Errorf("dependency positive control %s lacks actual public root", t.pkg), 0, 6)
+			if i == 0 {
+				reuseFail(checks, fmt.Errorf("headless MCP consumer lacks actual public root"), 5)
+			}
 		}
 		ws := set["github.com/gorilla/websocket"]
 		g := set[guiPackage]
 		if g != t.wantGUI || ws != t.wantGUI {
 			reuseFail(checks, fmt.Errorf("resolved target %s: GUI=%v WebSocket=%v wanted=%v", t.pkg, g, ws, t.wantGUI), 0)
+			// The MCP row promises this same negative boundary, not merely a
+			// successful handshake; do not leave its points after a coupled import.
+			if i == 0 {
+				reuseFail(checks, fmt.Errorf("headless MCP consumer imports GUI/WebSocket implementation"), 5)
+			}
 			if i == 1 {
 				reuseFail(checks, fmt.Errorf("public root imports optional client"), 6)
 			}

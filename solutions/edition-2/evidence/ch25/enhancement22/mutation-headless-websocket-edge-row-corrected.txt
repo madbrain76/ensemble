@@ -1,0 +1,8 @@
+=== RUN   TestReuse22
+    ch22_test.go:46: headless-linkage: [resolved target ./headless: GUI=false WebSocket=true wanted=false resolved target ensemble/ensemble: GUI=false WebSocket=true wanted=false resolved target .: GUI=false WebSocket=true wanted=false]
+    ch22_test.go:46: mcp-without-gorilla: [headless MCP consumer imports GUI/WebSocket implementation]
+    ch22_test.go:46: root-clean: [public root imports optional client Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review.]
+--- FAIL: TestReuse22 (0.84s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.846s
+FAIL

@@ -1,8 +1,12 @@
 # Edition 2 Chapter 22: reusable GUI and terminal fleet
 
-The final revised grader scores **200/200 on both accepted and legacy source**.
-These are actual complete runs, not composed totals: accepted 2.286 seconds,
-legacy 1.615 seconds, both exit 0. Independent combined review remains pending.
+The recorded full revised runs at `a02dc4ce` score **200/200 on both accepted
+and legacy source**: accepted 2.286 seconds, legacy 1.615 seconds, both exit 0.
+A later row-attribution correction has a focused accepted GUI baseline and
+restored control (100/100); with unchanged fleet 100/100 its final accepted total
+is composed 200/200. The earlier actual full runs and legacy result retain their
+source identity; no later full or legacy run is claimed. Independent combined
+review remains pending.
 The grader preserves the fourteen original rows: original 24 GUI reuse 100 plus
 original 25 terminal fleet 100. Both original student grades remain **0/100**;
 their import/launch and omitted-model failures were not confinement or fleet
@@ -140,6 +144,17 @@ failure-nonretry proof remain mandatory. The old directory-listing survivor and
 relay cleanup timeout remain historical failures; no new paid run or broad
 unchanged product sweep was spent to restate them.
 
+Initial review found one further attribution gap: the headless WebSocket defect
+already failed the framework/root rows but still earned the 15-point headless MCP
+row. That row now receives the existing `./headless` dependency and actual-root
+positive-control failures too; no successful predicate or runtime behavior changes.
+The same isolated defect now explicitly fails `mcp-without-gorilla`; its prior
+receipt remains intact. Focused accepted GUI baseline/restored controls pass in
+1.029/0.665 seconds, with the defect failing in 0.846 seconds. See
+`sensitivity-row-corrected.json` and `post-review-source.json`; the earlier
+`final-source.json` remains the binding for the actual full runs. This is an
+attribution correction to the same twelve-defect evidence, not a thirteenth defect.
+
 ## Exact published examples
 
 `samples.json` binds manuscript SHA-256
@@ -179,7 +194,9 @@ runtime or manuscript repair.
 
 `source-counts.json` separates whole-line comments, blank and active physical
 lines, counting inline comments with code. New grader drivers/dispatch have
-789 active lines and 31 comment-only lines; the outside-consumer template adds
+789 active lines and 31 comment-only lines at `a02dc4ce`; the row-attribution
+follow-up adds six active and two explanatory comment lines (`post-review-count.json`).
+The outside-consumer template adds
 35/3 and the opt-in tests 42/4. Original two harnesses/check tables total 1,198
 active and 261 comment-only lines (1,585 physical). This is a bounded external
 consumer plus four fleet scenarios reusing existing peers, GUI model-switch and
