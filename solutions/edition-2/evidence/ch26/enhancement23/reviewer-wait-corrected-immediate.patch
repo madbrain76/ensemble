@@ -1,0 +1,13 @@
+--- accepted/internal/fleet/management.go
++++ mutant/internal/fleet/management.go
+@@ -120,6 +120,10 @@
+ // WaitChange snapshots only the requested owned children. Notifications prompt
+ // a fresh read; the timer supplies stuck detection even if no event arrives.
+ func (m *manager) WaitChange(ctx context.Context, ids []string, pattern string, stuck time.Duration) (string, error) {
++	if len(ids) > 0 {
++		a, err := m.Find(ids[0]); if err != nil { return "", err }; return encoded([]map[string]any{{"agent_id": ids[0], "reason": "change", "status": a.Fleet().Status()}}), nil
++	}
++
+ 	if len(ids) == 0 {
+ 		for _, s := range m.List() {
+ 			ids = append(ids, s.ID)

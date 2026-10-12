@@ -1,7 +1,9 @@
 # Edition 2 Chapter 23 / original 26: independent review
 
 Reviewer: `reviewer_astra`, GPT-6 Astra/high. October 12, 2026.
-**Preparation only; no acceptance, zero formal correction rounds.**
+**Accepted at initial combined review; zero formal correction rounds.**
+Final disposition and exact submission bindings appear below; earlier findings
+remain as their dated review history.
 
 ## Reading and source boundary
 
@@ -111,3 +113,86 @@ tests remain valid, but they do not make the new numeric predicate sensitive.
 No runtime correction, paid run or broad suite is requested. Acceptance awaits
 this disposition; the other twelve targeted failures and replay-argument
 correction retain their stated source versions and limits.
+
+
+## Final independent disposition
+
+**Accepted.** This closes the initial combined prose/grader review, with zero
+formal correction rounds and the narrow causal correction recorded above.
+Acceptance binds coder `6a14a4494fc7236d49cd5de68de98a517e959492`, author
+`2a88436385c47b9ff307c250f9746e0777126bdb` and note-only reconciliation
+`b180da708f072af1e54ac283a376b9619a678f3b`. Final manuscript SHA-256 is
+`6ce1110e7011d47171694deef26b64f88e8a0297b9cbc9dd6fedd6ee2973b06f`.
+No blocking prose, scope, architecture or grader finding remains.
+
+The corrected external fixture waits for the actual child shell's ready file
+before delivering the parent's wait-producing response. Waiting activity then
+starts a **200 ms bounded no-progress observation**, followed by actual child
+release and correlated wait/command/submission results. This is neither an
+exact handler-entry acknowledgment nor an unbounded timing guarantee. Independent
+reapplication of the identical earlier patch now fails **only**
+`wait-change-wakes`, with “change wait completed while selected child had no
+progress.” Baseline passes in 0.746 seconds; the defect fails cleanly in 0.612
+seconds. The coder's restored race control passes separately. See
+[the independent corrected receipt](../../solutions/edition-2/evidence/ch26/enhancement23/reviewer-wait-corrected-check.json)
+and its raw outputs. The original passing mutant remains preserved.
+
+All seven original rows and their 100 points remain. Earlier actual full runs
+are accepted100/100 and legacy70/100; final **composed100/70** combines corrected
+focused GUI75/45 with unchanged measured CLI25. Legacy's missing selection
+handler masks later named-peer observations; those are not independently proven
+failures. Original0/100 and the revised setup failures retain their original
+meaning. Thirteen distinct runtime defects are eventually detected: twelve on
+the earlier source plus the corrected immediate-return case. The argument-only
+replay false positive and its valid text/result controls remain separate. These
+counts do not imply thirteen independent proofs of the entire exercise.
+
+The mandatory source gate passes independently of numerical composition credit:
+both real commands construct and start the public root; recursive child creation
+retains the actual spawning parent; management resolves through the caller's
+owned fleet; GUI selection uses per-connection views of those same Agents.
+Registry restoration, active-child deletion guards, selected/unselected waits,
+cursors, interrupt versus kill/shutdown, and slow-client teardown retain the
+source-bound checks from the accepted implementation. No callback bag, parallel
+runtime or persistent-spawn feature was introduced for this enhancement.
+
+The final new production grader is 491 physical lines: 453 active, 26 comment-only
+and 12 blank; tests are separate at 50 physical/43 active/3 comment-only/4 blank.
+The original harness/check files total 662 physical lines. These are contextual
+file counts, not proof of a smaller application: both application trees are
+unchanged and their own-predecessor comparison remains in the original review.
+Reusing existing real-client helpers keeps the new work bounded. Comments explain
+causal ordering, external boundaries, replay and proof limits; their roughly 5.4%
+nonblank share is below the teaching target, but padding would add no explanation.
+The sole new exported entry, `Chapter23`, has useful documentation. The added
+checks protect actual behavior rather than requiring private identifiers.
+
+The complete original-relative prose review passes: activity, registry,
+containment, management, GUI and composition retain their explanatory progression
+and operator stake. The flashlight/radar comparison, misleading green dots and
+small owned world remain memorable teaching. Primary sources correct the
+incident's counts, timeline and escalation without claiming this GUI would have
+prevented it. Unsupported personal measurements become explanatory scenarios;
+the documented console/helper task supplies the measured story. The chapter
+clearly separates lifecycle from activity and historical stale replay from its
+subsequent correction. Hard prose lint passes at 4,521 words; no length quota
+was applied.
+
+[Final independent bindings](../../solutions/edition-2/evidence/ch26/enhancement23/reviewer-final-binding.json)
+verify all four final grader hashes, all six exact example fences and both
+unchanged tracked solution trees. Fourteen inherited source files and eleven
+receipt hashes were checked earlier. Actual Chrome examples exercise public
+create/select/delete controls, separate tab views, real file/test work and
+zero-inference restart. Their twelve main and two judge requests are scripted
+local mechanics; the historical fifteen-request live task retains its earlier
+source and stale-state limitation. Neither is a new native-audio or general
+reliability claim. The final author note accurately reconciles these distinctions.
+
+After the last compaction, the reviewer again fully reloaded workflow1–2261,
+carryover1–981, voice1–632 and procedure1–599 together, recovering truncated
+workflow1940–2020 and carryover202–225/735–775. All373 skill lines and all352
+AGENTS lines were reread, plus current enhancement/map authority. The mandatory
+path is `.agents/skills/ensemble-coding/SKILL.md`. No further compaction occurred
+before this disposition. No paid or broad freshness run, frozen/runtime edit,
+credential access or change to concurrent main/crossover work was needed.
+The coordinator may checkpoint Chapter23; Gateway release remains its next gate.

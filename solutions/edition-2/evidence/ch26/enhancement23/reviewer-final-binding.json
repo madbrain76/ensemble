@@ -1,0 +1,15 @@
+{
+  "final_grader_source": {
+    "internal/gradeedition2/ch23.go": "ae223dec9a1092d1368a395cdc6a7fb416a71db5c321b1bede990e19fc38621a",
+    "internal/gradeedition2/ch23_driver.go": "3788690bda3a18fb49a81f2f79722c6c3ce57366a4dd8976bc38994542cc70d7",
+    "internal/gradeedition2/ch23_test.go": "58562659fd69268a7852963e4f1b6492712328daef16dc5ffeae2acaa9d3653f",
+    "cmd/grade-edition2/main.go": "03881de4270f084ecbbb8acc9fbd57a0de76d6676aaac2b3e82f02176fe29991"
+  },
+  "manuscript_sha256": "6ce1110e7011d47171694deef26b64f88e8a0297b9cbc9dd6fedd6ee2973b06f",
+  "sample_fences_verified": 6,
+  "accepted_tree": "27d7fcf9b8b31275068fa705d6969cfe3eafedc1",
+  "legacy_tree": "e2a6983b1c20b54238f3d7f57f7fb8c6ab1f755d",
+  "exact_original_wait_patch_unchanged": true,
+  "result": "PASS",
+  "scope": "Source and sample bindings; actual baseline/defect outcomes are in reviewer-wait-corrected-check.json. No new full grade or model run."
+}
