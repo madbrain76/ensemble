@@ -119,3 +119,56 @@ two known prices; retain the unchanged historical two-priced/source evidence
 separately rather than adding a model row or running5.5. Explicit legacy tariff
 inputs may follow its declared historical table. The author and coder received
 these numeric coverage limits before implementation.
+
+
+### First coherent source and prose review
+
+After the next compaction, again read all workflow1–2187, carryover1–981,
+voice1–632, procedure1–599 and skill1–373 without truncated output. All four
+remain active together. Reread AGENTS and current assignment/map. Read the whole
+author manuscript and note at `8b0db334` (manuscript `b975d7aa`), all three new
+grader production files, its test and reused launch/result/snapshot helpers.
+This is pre-submission review, not acceptance; zero formal correction rounds.
+
+The merged prose preserves both original progressions and their useful stories:
+the measured community-tool failures and deployed-primary mismatch, then the
+small status feature exposing a wrong diagnosis, unused composition root,
+repricing and disconnect race. Both capabilities appear in the TL;DR and exercise.
+The new slow-job collection and time-specific status examples explain concrete
+reader problems. Historical source excerpts are distinguished from the current
+owner path. No new feature, arbitrary shortening or audit-ledger rewrite was
+found. The corrected Rust claim and removal of the unsupported interface total
+are justified. Exact executable validation and final reconciliation are pending.
+
+Independently fetched current [Responses search](https://developers.openai.com/api/docs/guides/tools-web-search)
+and [pricing](https://developers.openai.com/api/docs/pricing), following the OpenAI
+Docs skill, plus [Claude search](https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool),
+[Gemini search](https://ai.google.dev/gemini-api/docs/google-search),
+[URL context](https://ai.google.dev/gemini-api/docs/url-context) and
+[Firecrawl pricing](https://www.firecrawl.dev/pricing). They support the narrow
+API-surface and monthly-credit descriptions; no account availability, real service
+reliability or actual invoice measurement was inferred from documentation.
+
+The initial new grader's correlated results were meaningful but incomplete:
+three substrings could survive deletion of the rest of a planted page block,
+and any nonempty error could pass guessed-tool refusal while explicitly exposing
+a disabled inventory. Returned these findings before final submission. Both
+source defects actually survive `7c592004`, then fail the corrected complete-block
+and unknown-category checks. The coder also added an initialize count and a
+causal no-HTTP-before-load observation. Final raw classification remains pending.
+Removing only manager filtering or StopSkill can still be masked by Agent-level
+skill refusal; keep those survivors separate and retain the existing independent
+manager/lifetime tests rather than claiming numeric dispatch proves teardown.
+
+Mandatory source review follows real paths, not the numeric import label:
+`main.go:108/120` and `gui/cmd/main.go:100/110` call the public root and its
+NewAgent method. `ensemble/ensemble.go:157–218` constructs children with actual
+parents, verifies attachment and retains the Agent. `internal/agent/dispatch.go:45`
+creates the real callContext; its Engine accessor reaches the owning Agent's
+Engine, whose Agent accessor reaches Ensemble through that same owner. Status
+formats Engine.Meter without a copied counter. CredentialProvider is a service;
+AuthStore separately exposes its real Ensemble parent. Engine keeps model/tier
+with measured counts, and model selection changes only the idle Agent's selection.
+The GUI's data queue remains open; a separate completion signal and writer join
+coordinate connection teardown. These source observations satisfy the separate
+ownership/composition obligations without claiming exhaustive concurrency proof.
