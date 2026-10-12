@@ -69,3 +69,48 @@ cannot deduplicate a truncated attachment. Source, recorded replay and actual
 three-provider CLI proof remain separate from future numeric grader observations.
 The original0/100 and earlier live-source identity remain unchanged. No new paid
 run, frozen edit, future feature or Chapter17 enhancement is authorized here.
+
+After subsequent compaction, fully reloaded workflow1986, carryover886, voice632
+and procedure599 lines, plus all373 skill lines, before further review. All four
+are active together. Independently confirmed the coder's timeout-fixture finding:
+`internal/fakevendor/fake.go:238–266` holds the request-capture mutex while calling
+`Route`. The original sleeping judge therefore blocks later main response/capture
+and cannot establish a causal fifteen-second fallback. A small external peer
+that records under the mutex and waits outside it is appropriate. Verify main
+completion while the judge remains held, and release that peer during cleanup;
+no shared-fake or frozen-runtime change is needed. This is source preflight, not
+a new measured timeout result.
+
+## Resumed first-green review, not acceptance
+
+Bill's explicit resumption is recorded at `c883a972`. After compaction, reloaded
+the complete workflow2096, carryover966, voice632 and procedure599 lines together,
+plus all373 lines of `.agents/skills/ensemble-coding/SKILL.md`, complete current
+AGENTS, enhancement and chapter map. All reads were untruncated. Chapter16 alone
+remains the current gate; concurrent main/crossover work is untouched.
+
+Read the complete first-green `e9cf3f18` grader, driver, test and report, and
+separately inspected the subsequent archive-name/paragraph/spare-slot diff.
+Actual first full results are accepted100/100 and legacy60/100. Legacy quota
+initially triggers an unrelated earlier memory graduation: date-number files
+enter its live band. Its `internal/llm/store.go` filename parser and recall's
+separate markdown scan support using ordinary archive names to isolate recall.
+That fixture correction does not establish a passing legacy quota; the later
+focused report actually selects three documents instead of reserving memories.
+The shared result map retains the last failure in each row, so its refresh
+diagnostic alone does not enumerate all source-discovery failures.
+
+Full original/enhanced prose comparison preserves the filing-cabinet and rejected
+decision stakes, explanatory TL;DR and section progression. The new runnable
+archive demonstration and capped/ranking lessons are sourced additions. Returned
+one unsupported historical conversion in §16.5: the original describes a
+conditional missed-entrypoint hazard, not an observed failed run. Author
+`a6920023` restores the conditional; the nine executable/illustrative fences
+remain unchanged. Final sample/grader wording reconciliation is pending.
+
+Source review identified a specific numeric sensitivity concern: section and
+breadcrumb assertions could pass while paragraph splitting was removed, because
+the extra paragraphs had no separately excluded observation. The coder is
+checking that narrow defect and adding a paragraph marker, without requiring
+hard cuts through indivisible paragraphs. Final mutations, exact source binding
+and combined disposition are still pending; zero formal correction rounds.
