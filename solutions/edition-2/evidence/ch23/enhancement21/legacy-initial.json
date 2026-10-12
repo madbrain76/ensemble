@@ -1,0 +1,100 @@
+{
+  "title": "Edition 2, Chapter 21 — The Sandbox",
+  "checks": [
+    {
+      "id": "path-confinement",
+      "title": "File tools refuse to escape the sandbox root",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "kernel-confinement",
+      "title": "Commands and their descendants cannot reach outside the root",
+      "points": 20,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "command python exit -1, success wanted true",
+        "allowed python lost actual output"
+      ]
+    },
+    {
+      "id": "no-network",
+      "title": "A sandboxed command cannot reach the network",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "no-credentials",
+      "title": "No credential reaches a tool result",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "result log: error=true want=false text=\"read_file: open /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-566105282/work/api.log: no such file or directory\" decode=\u003cnil\u003e",
+        "actual readable API trace did not contain earlier response",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context"
+      ]
+    },
+    {
+      "id": "child-cannot-widen",
+      "title": "A child's permissions are clamped, and an over-request is reported",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "public consumer missing SYMLINK_REFUSED: CHILD_INHERITS\nCHILD_NARROWS\nCHILD_REPORTS\nCHILD_VALID_SUBROOT\n"
+      ]
+    },
+    {
+      "id": "safe-mode-absence",
+      "title": "Safe mode removes the exec tools and keeps the file tools",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "safe mode advertised tool_limits",
+        "result tool_limits: error=false want=true text=\"limits pending for the NEXT tool call, whichever tool that is: ai_callback_delay 3s, max_output_bytes 16384. Call the tool you meant them for now; the next call consumes them and its result says so.\" decode=\u003cnil\u003e",
+        "tool_limits did not give an unknown-tool refusal: \"limits pending for the next tool call, whichever tool that is: ai_callback_delay 3s, max_output_bytes 16384. call the tool you meant them for now; the next call consumes them and its result says so.\""
+      ]
+    },
+    {
+      "id": "no-host-path-leak",
+      "title": "A refusal names the path the model asked for, not the host path",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "score": 40,
+  "max_score": 100,
+  "passed": false
+}

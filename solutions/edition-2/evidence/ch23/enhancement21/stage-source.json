@@ -1,0 +1,13 @@
+{
+  "head": "19a108a2351f8e96133c0322b2b73758226f3a2b",
+  "files": {
+    "cmd/grade-edition2/main.go": "aa522681a2f7ba4d1377cc30b144965763e537889a72954ea82be8df19cf49e2",
+    "internal/gradeedition2/ch21.go": "3da8f0eb8e3a5da231fb153fd75b313aae353301c0cbe2351969451e6ffd29a8",
+    "internal/gradeedition2/ch21_driver.go": "04cf519ab9bcbd53a937402cd642e2dea0edf974ed3332353564536ae1ae2750",
+    "internal/gradeedition2/ch21_test.go": "060ced6b57daecda0eac9e8a8ccfdfcf8fc5825cb6c8884b8688befc36225133"
+  },
+  "accepted_tree": "9dc3e9e36a854ede4cc2cbef22dc389850cedc0c",
+  "legacy_tree": "48013a866994a701257796daf854aea318c74d67",
+  "original_chapter_sha256": "3b19960c74cf4d01e225b9c60bc175b199cc95ec01cad754b97d9a3dcf4bd061",
+  "note": "Final stage source is covered by stage-race (accepted) and legacy-log-budget. Earlier full reports retain earlier-source boundaries."
+}

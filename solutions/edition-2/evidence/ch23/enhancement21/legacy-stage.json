@@ -1,0 +1,63 @@
+{
+  "title": "Edition 2, Chapter 21 — The Sandbox",
+  "checks": [
+    {
+      "id": "path-confinement",
+      "title": "File tools refuse to escape the sandbox root",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "kernel-confinement",
+      "title": "Commands and their descendants cannot reach outside the root",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "no-network",
+      "title": "A sandboxed command cannot reach the network",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "no-credentials",
+      "title": "No credential reaches a tool result",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "actual readable API trace did not contain earlier response"
+      ]
+    },
+    {
+      "id": "child-cannot-widen",
+      "title": "A child's permissions are clamped, and an over-request is reported",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "public consumer missing SYMLINK_REFUSED: CHILD_INHERITS\nCHILD_NARROWS\nCHILD_REPORTS\nCHILD_VALID_SUBROOT\n"
+      ]
+    },
+    {
+      "id": "safe-mode-absence",
+      "title": "Safe mode removes the exec tools and keeps the file tools",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "no-host-path-leak",
+      "title": "A refusal names the path the model asked for, not the host path",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "score": 75,
+  "max_score": 100,
+  "passed": false
+}

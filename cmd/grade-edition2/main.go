@@ -34,9 +34,10 @@ func run() int {
 	cachePrices := flag.String("cache-prices", "2,2.5,0.2,10", "Chapter 17 Sonnet-5 dollars/million: fresh,write,read,output (accepted October 11 table)")
 	statusPrices := flag.String("status-prices", "2,2.5,0.2,10", "Chapter 20 Sonnet-5 dollars/million: fresh,write,read,output")
 	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 20 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
+	sandboxLibrary := flag.String("sandbox-library", "ensemble", "Chapter 21 public package relative to submitted module (legacy: .)")
 	flag.Parse()
-	if *chapter < 1 || *chapter > 20 || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapter 19 is ungraded")
+	if *chapter < 1 || *chapter > 21 || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20..21 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapter 19 is ungraded")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -74,7 +75,7 @@ func run() int {
 		*gui = filepath.Join(path, "gui")
 	}
 	buildPath := path
-	if *chapter >= 14 {
+	if *chapter >= 14 && *chapter != 21 {
 		buildPath = *gui
 	}
 	bin, cleanup, err := grade.Build(buildPath)
@@ -85,6 +86,8 @@ func run() int {
 	defer cleanup()
 	var report grade.Report
 	switch *chapter {
+	case 21:
+		report, err = gradeedition2.Chapter21(bin, path, *sandboxLibrary)
 	case 20:
 		var rates [4]float64
 		var second *[4]float64

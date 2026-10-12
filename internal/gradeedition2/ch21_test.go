@@ -1,0 +1,32 @@
+package gradeedition2
+
+import (
+	"runtime"
+	"testing"
+
+	"github.com/waywardgeek/ensemble/internal/grade"
+)
+
+// TestChapter21Sandbox exercises both real CLI policies and an outside public
+// consumer. Seatbelt is the actual boundary, so other platforms skip this test
+// rather than replacing confinement with a test implementation.
+func TestChapter21Sandbox(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("macOS Seatbelt exercise")
+	}
+	core := "../../solutions/edition-2/ch21"
+	bin, clean, err := grade.Build(core)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer clean()
+	report, err := Chapter21(bin, core, "ensemble")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range report.Checks {
+		if !c.Passed {
+			t.Errorf("%s: %v", c.ID, c.Details)
+		}
+	}
+}

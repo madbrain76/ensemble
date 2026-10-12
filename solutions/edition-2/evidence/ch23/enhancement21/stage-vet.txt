@@ -1,0 +1,2 @@
+go vet ./internal/gradeedition2 ./cmd/grade-edition2
+exit 0; no diagnostics

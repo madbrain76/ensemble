@@ -1,0 +1,16 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "21",
+    "-sandbox-library",
+    ".",
+    "-json",
+    "solutions/ch23"
+  ],
+  "exit": 1,
+  "seconds": 1.09,
+  "stderr": "exit status 1\n"
+}

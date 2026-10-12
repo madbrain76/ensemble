@@ -1,0 +1,13 @@
+{
+  "head": "19a108a2351f8e96133c0322b2b73758226f3a2b",
+  "files": {
+    "cmd/grade-edition2/main.go": "aa522681a2f7ba4d1377cc30b144965763e537889a72954ea82be8df19cf49e2",
+    "internal/gradeedition2/ch21.go": "317fe555b2f7e818ed223abf4d4c8cc9941dd90ee3f489949b8a6204ab7bcbc4",
+    "internal/gradeedition2/ch21_driver.go": "b53880f2de4c4488098c399cf2c93c9b2458c85b7736cddadbe8dc38ce8dfd03"
+  },
+  "accepted_command": "go run ./cmd/grade-edition2 -ch 21 -json solutions/edition-2/ch21",
+  "accepted_exit": 0,
+  "legacy_command": "go run ./cmd/grade-edition2 -ch 21 -sandbox-library . -json solutions/ch23",
+  "legacy_exit": 1,
+  "note": "First uncommitted source; accepted 100/100, legacy 40/100. Raw initial stdout retained; elapsed time not measured."
+}
