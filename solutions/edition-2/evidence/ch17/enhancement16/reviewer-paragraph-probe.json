@@ -1,0 +1,71 @@
+{
+  "coder_commit": "0df30bee",
+  "reviewed_source_sha256": {
+    "cmd/grade-edition2/main.go": "fed65ae060acb3d6d32fa02bbc3505c5844c51ea44703094ea7a901896ac02e3",
+    "internal/gradeedition2/ch16.go": "1f17eecead202921a423cc3b26498860d1057290d5d0343bd618f5d43f689d45",
+    "internal/gradeedition2/ch16_driver.go": "ca4cb6061bdded27ea8cca2141756d3c293f368753d9a59cf22cdacf094069b3",
+    "internal/gradeedition2/ch16_test.go": "d59f379329fd35045f7f326a530f437fcc7607ca0ed4b96b1bd819cf6c7e09f7"
+  },
+  "source_tree": "83e2f4cc85eb91ef9f62a54f638baa4d538cacf8",
+  "method": "Fresh Go overlay test build against final grader; isolated frozen runtime copy, only paragraph iteration removed; real GUI/Agent/HTTP fake path; baseline and restored controls. No full grade/timeout/provider run.",
+  "results": [
+    {
+      "stage": "fresh final grader build",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-ch16-4qfqkcdr/overlay.json",
+        "-c",
+        "-o",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-ch16-4qfqkcdr/review-test",
+        "./internal/gradeedition2"
+      ],
+      "exit": 0,
+      "seconds": 1.275,
+      "output": ""
+    },
+    {
+      "stage": "baseline",
+      "source_sha256": "a951428a842df3b8de41d7cbf8e2a1e1238a832e7ac8e3c22c12579516214b57",
+      "binary_sha256": "a1c3cde951c034218a5c095a48cf67425799dbfa5b7dd33154bd2fb6187b9fd8",
+      "command": [
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-ch16-4qfqkcdr/review-test",
+        "-test.run",
+        "^TestChapter16Focus$",
+        "-test.v"
+      ],
+      "exit": 0,
+      "seconds": 0.037,
+      "output": "=== RUN   TestChapter16Focus\n--- PASS: TestChapter16Focus (0.03s)\nPASS\n"
+    },
+    {
+      "stage": "paragraph split removed",
+      "source_sha256": "474d3b80221fd9fde032a07e32d537c3ce366ca6d8709fc4d847e0b8b7404fbc",
+      "binary_sha256": "c598ed13c76ff8c9a1a3cac50f6e1b4d8b1c02738e7c5f74ffc56b634d187af6",
+      "command": [
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-ch16-4qfqkcdr/review-test",
+        "-test.run",
+        "^TestChapter16Focus$",
+        "-test.v"
+      ],
+      "exit": 1,
+      "seconds": 0.035,
+      "output": "=== RUN   TestChapter16Focus\n    ch16_test.go:11: chunking-splits: section/subsection separation or breadcrumb missing: [Auto-recalled memories]\n        \n        From docs/00.md \u2014 Parent > Relevant:\n        > ### Relevant\n        > The quartz zephyr migration selected copper ferry because the silver bridge lost ordering. rightsection\n        > \n        > Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. \n        > \n        > wrongparagraph Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden. Tomato soil watering garden.\n--- FAIL: TestChapter16Focus (0.03s)\nFAIL\n"
+    },
+    {
+      "stage": "restored",
+      "source_sha256": "a951428a842df3b8de41d7cbf8e2a1e1238a832e7ac8e3c22c12579516214b57",
+      "binary_sha256": "a1c3cde951c034218a5c095a48cf67425799dbfa5b7dd33154bd2fb6187b9fd8",
+      "command": [
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-ch16-4qfqkcdr/review-test",
+        "-test.run",
+        "^TestChapter16Focus$",
+        "-test.v"
+      ],
+      "exit": 0,
+      "seconds": 0.034,
+      "output": "=== RUN   TestChapter16Focus\n--- PASS: TestChapter16Focus (0.03s)\nPASS\n"
+    }
+  ]
+}

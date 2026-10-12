@@ -1,7 +1,8 @@
 # Edition 2 Chapter 16 / original 17 independent review
 
-Reviewer `reviewer_astra`, October 11, 2026. **Preparation only; no acceptance
-or formal correction round.** Only Chapter16 is released.
+Reviewer `reviewer_astra`, October 11, 2026. **Accepted at initial combined
+prose/grader review; zero formal correction rounds.** Final disposition follows
+the preserved preparation record below. Chapter17 awaits coordinator release.
 
 The complete workflow, carryover, voice and chapter procedure remain active
 from the prior full, untruncated reload; no subsequent compaction preceded this
@@ -114,3 +115,115 @@ the extra paragraphs had no separately excluded observation. The coder is
 checking that narrow defect and adding a paragraph marker, without requiring
 hard cuts through indivisible paragraphs. Final mutations, exact source binding
 and combined disposition are still pending; zero formal correction rounds.
+
+## Final combined disposition
+
+**Accept** coder `0df30bee` and author `21144dbc`. Final manuscript SHA-256 is
+`317e32d8f5906f7f529d78f00fe30402df64d47af0108719c7a1ef030826ffb4`.
+There is no remaining behavior, scope, architecture or teaching finding. The
+draft-stage corrections below consumed no formal revision round.
+
+After the latest compaction, fully reloaded workflow2096, carryover979, voice632
+and procedure599 lines, plus the entire373-line
+`.agents/skills/ensemble-coding/SKILL.md`. Recovered a combined-output truncation
+by rereading workflow1801–2096 and carryover1–490 separately. All four complete
+documents are active together; current authority headers and the complete map
+were also read. Read both complete final author/coder reports, complete final
+grader/driver/test, final manuscript and source-relative corrections.
+
+### Prose, original preservation and exact examples
+
+The filing cabinet, meticulous diaries, repeated rejected decisions, quota
+experience and unexpected skill discovery carry the original reader's problem
+through the mechanism. The original explanatory TL;DR and eight-section
+progression remain. Necessary additions explain Bill's final-selection/all-memory
+rulings, actual owner paths, capped-source identity and a runnable archived-fact
+demonstration. They do not introduce a retrieval service, private corpus schema,
+future feature or new runtime design. Internal checkpoint accounting stays in
+the notes. The BM25 and stable-prefix explanations now avoid the original
+absolute scoring/payment claims while preserving useful engineering judgment.
+
+The author corrected the unsupported historical missed-entrypoint incident back
+to the original conditional hazard, and clarified that grader fixtures differ
+from the published CLI demonstration. Both final changes are verified. The
+historical three-provider answers retain their earlier source/model identity;
+the current Sonnet-5 command is separately validated with an external fake.
+It is not a fresh paid or semantic-quality result. Original0/100 remains a
+failed launch/module-fixture grade, not a measured retrieval failure.
+
+Independently verified every final grader hash and both frozen tree identities
+in [final-source.json](../../solutions/edition-2/evidence/ch17/enhancement16/final-source.json).
+All nine final fences are byte-identical to the actually executed manuscript
+`3b80e091…` in [samples.json](../../solutions/edition-2/evidence/ch17/enhancement16/samples.json).
+Inspected the actual sample launcher, requests and recorded attachment: one
+judge sees the fact and distractor; two Sonnet-5 main requests each retain the
+exact recorded recall once, without cafeteria content; normal exit0. The Go
+vocabulary command is a compile check with no test files. My initial whole-request
+QZ-731 count wrongly included the prior assistant answer on turn two; comparing
+the exact recorded attachment and its header fixes that reviewer assertion.
+No product or sample change was needed. Direct final prose lint passes5052 words;
+the soft negation/person-gap warnings do not warrant invented anecdotes or a
+length target. The chapter remains readable, motivated and sufficiently explained.
+
+### Grader behavior and evidence limits
+
+The ten original weights remain100, without added parity. Actual GUI/Agent,
+filesystem, provider rendering and persistence run behind a small external HTTP
+fake. The corpus-root option selects the fixture's public owner path; it adds
+no product protocol. The topology check resolves the submitted core through the
+built GUI rather than accepting an unused package. Parent relationships still
+require the separate source review. The new peer permits real main completion
+while the judge is held, correcting the old capture-lock interference.
+
+Accept the event-log, accidental heading-match and archive-name explanations:
+source and raw outputs establish each fixture cause. Ordinary archive filenames
+prevent legacy memory graduation from masking recall. Its corrected quota check
+actually observes three documents, alongside refresh and duplicate-attachment
+failures. Last-per-row diagnostics do not enumerate every underlying defect.
+The unbound temporary binary and first sample handler's valid-string rejection
+remain setup errors. They are not failures attributed to the frozen runtime.
+
+Earlier actual full runs score accepted100/100 in16.563s and legacy60/100
+in16.327s. Final focused runtime results90/90 and50/90, with the unchanged measured
+timeout/topology evidence, support **composed100/100 and60/100**, not newly run
+full grades. Final affected race2.229s and vet pass. Pure full-log replay,
+all-provider rendering, ownership and interruption retain accepted source-test
+proof; the numeric snapshot restart is not relabeled as all of those checks.
+
+Read all31 mutation patches, their actual failure assertions and cleanup tails.
+They compile and fail relevant final checks, but include overlapping defects.
+The initial document-stopword change also deduplicates tokens; only its narrow
+follow-up isolates that claim. Wrong stored kind fails checkpoint retention,
+not an independent initial-kind assertion. Timeout removal blocks completion
+until the25.16-second observation deadline; exit17 after a valid run is rejected.
+Retrospective exact-first-green controls show the paragraph and spare-slot
+defects surviving that older grader, then failing final assertions. Their measured
+chronology is correctly labeled. No compile failure or cleanup race is credited
+as sensitivity.
+
+Independently rebuilt the final grader with a narrow Go overlay and used an
+isolated frozen runtime copy. The paragraph check passes baseline0.037s, fails
+the removed-split defect0.035s on its actual excluded marker, and passes restored
+source0.034s. Full output/source bindings and the small reproduction script are
+[reviewer-paragraph-probe.json](../../solutions/edition-2/evidence/ch17/enhancement16/reviewer-paragraph-probe.json)
+and [reviewer-paragraph-probe.py](../../solutions/edition-2/evidence/ch17/enhancement16/reviewer-paragraph-probe.py).
+No broad grade, timeout or paid demonstration was repeated.
+
+### Comparison and simplicity
+
+Counted physical lines, nonblank/non-comment active lines and comment-only lines
+(mixed code/comment lines count active). New grader+driver:743/677/39; focused
+test:30/24/3. Original three grader files:1281/927/259, with the unchanged original
+check definitions reused by the new entrypoint. This compares grading support,
+not runtime implementation size. The unchanged application's own-predecessor
+production/comment/test comparison remains in [ch17-code-review.md](ch17-code-review.md).
+No frozen source or active crossover work was changed for this enhancement.
+
+The grader is smaller without collapsing the actual behavior into mocks. Its
+comments explain capture/child lifetime, source placement, completed-turn barriers,
+recorded/wire identity and dependency boundaries. The5.4% comment-only share is
+below Bill's teaching target; the causal explanations and documented exported
+entrypoint/capture method are adequate for this narrow harness without padding.
+The additional fixtures address observed coverage gaps rather than inventing
+new acceptance policy. The independent review finds no unresolved bloat or
+source-preservation issue. Coordinator may checkpoint Chapter16 and release17.
