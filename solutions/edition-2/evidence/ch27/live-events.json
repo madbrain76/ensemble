@@ -1,0 +1,215 @@
+{
+  "config": {
+    "model": "gpt-6-astra",
+    "vendor": "openai",
+    "system_prompt": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+    "tools": []
+  },
+  "log": [
+    {
+      "seq": 1,
+      "type": "message_received",
+      "time": "2026-10-12T21:49:14.830797Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat slows you down most in your coding workflow?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 2,
+      "type": "request_sent",
+      "time": "2026-10-12T21:49:14.831091Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        },
+        "startup_tools": []
+      }
+    },
+    {
+      "seq": 3,
+      "type": "response_ended",
+      "time": "2026-10-12T21:49:18.0444Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 1,
+            "type": "text",
+            "text": "The biggest slowdown is missing context: unclear requirements, unfamiliar code paths, and no reliable way to run tests. A focused task, relevant files, and fast test feedback make the biggest difference."
+          }
+        ],
+        "usage": {
+          "input": 90,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 42
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "type": "message_received",
+      "time": "2026-10-12T21:49:18.046877Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat burns the most tokens in your work?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "type": "request_sent",
+      "time": "2026-10-12T21:49:18.047753Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 6,
+      "type": "response_ended",
+      "time": "2026-10-12T21:49:20.479541Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 2,
+            "type": "text",
+            "text": "Repeatedly reading large files, verbose tool output, and revisiting the same context after failed attempts. Targeted searches, small diffs, and concise test results help keep token use down."
+          }
+        ],
+        "usage": {
+          "input": 161,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 42
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 7,
+      "type": "message_received",
+      "time": "2026-10-12T21:49:20.481607Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhere do you need a human's help?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 8,
+      "type": "request_sent",
+      "time": "2026-10-12T21:49:20.482714Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 9,
+      "type": "response_ended",
+      "time": "2026-10-12T21:49:23.475519Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 3,
+            "type": "text",
+            "text": "Most useful: clarifying ambiguous requirements, choosing between product trade-offs, and approving risky changes. I also need someone with access to provide missing credentials or environment details and verify behavior I can\u2019t test directly."
+          }
+        ],
+        "usage": {
+          "input": 232,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 45
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 10,
+      "type": "message_received",
+      "time": "2026-10-12T21:49:23.478505Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat new tool would help you most?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "type": "request_sent",
+      "time": "2026-10-12T21:49:23.479332Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "type": "response_ended",
+      "time": "2026-10-12T21:49:26.226706Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 4,
+            "type": "text",
+            "text": "A code-navigation tool that returns the smallest relevant context: definitions, callers, related tests, and dependencies. That would cut down on file reading and help me make better-targeted changes."
+          }
+        ],
+        "usage": {
+          "input": 305,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 41
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    }
+  ]
+}

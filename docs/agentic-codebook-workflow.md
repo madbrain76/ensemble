@@ -1,5 +1,37 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 12: Gateway implementation accepted; Chapter 26 enhancement released
+
+Independent comparative review `0afc45e8` accepts fresh student `b5c35a39`,
+main tree `6d3e3d2e54a4def135f9d5c23ce3242d7d4c0313`, with one narrow
+original-grader exception and zero formal correction rounds. The reviewed changes
+are integrated into main; direct `ch26` is the exact197-file accepted export,
+checkpoint `edition-2-ch27-r1` (original numbering). Bill's unfinished main and
+crossover changes remain uncommitted and unchanged, outside that export.
+
+Actual original grading stays0/100 FAIL on `15e0386b`: the external probe requires
+undocumented welcome field `QueuedCount`, while the public client uses `QueueDepth`.
+The initially suspected module alias did compile. Actual welcome counts and their
+targeted defect establish the required behavior; no runtime obligation is waived.
+The coordinator's public-contract erratum also omitted that spelling. See
+[the independent review](edition-2-notes/ch27-code-review.md).
+
+The real three-process Astra interview completed four questions in11.739 seconds
+on `ab6d0516`, all processes exit0. Saved facts verify actual model and replies;
+effort/route retain launch/source provenance, and all cache grants remain zero.
+Final root-diagnostic and acknowledgment-test ordering corrections have affected
+race/mutation evidence and an independent exact-archive shutdown check, without a
+paid repeat. Twenty-five ultimately detected defects retain their initial invalid,
+coupled and mislabeled attempts; they are not a general security certification.
+
+Release separate Gateway prose/grader enhancement as Edition2 Chapter26, using
+original27, all student/reviewer notes and the accepted ch26 source. Preserve the
+original stories and TL;DR, correct Noise explanations, teach actual actor routing,
+and publish needed public contracts. Keep numeric coverage honest and original
+scores intact. Author and reviewer reload all four COMPLETE governing/craft docs
+after compaction; all coding/review uses the mandatory skill. Optional24 is done;
+crossover25 stays reserved. First-edition implementation catch-up is complete.
+
 ## October 12: Chapter 23 accepted; Gateway Chapter 26 released
 
 Independent review `da79ddf6` accepts coder `6a14a449`, author `2a884363`

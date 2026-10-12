@@ -1,0 +1,56 @@
+[
+  {
+    "baseline": true,
+    "exit": 0,
+    "output": "ok  \tensemble/gateway\t0.009s\nok  \tensemble/internal/gateway\t0.128s\nok  \tensemble/cmd/gateway-agent\t0.011s\n"
+  },
+  {
+    "name": "key-stability",
+    "file": "gateway/noise.go",
+    "old": "return Keypair{Private: k.Bytes(), Public: k.PublicKey().Bytes()}, nil\n}\n\n// NoiseKK",
+    "new": "_ = k; return GenerateKeypair()\n}\n\n// NoiseKK",
+    "applied": true,
+    "exit": 1,
+    "expected": "identity changed",
+    "intended_failure": true,
+    "output": "--- FAIL: TestIdentityFiles (0.00s)\n    noise_test.go:82: identity changed <nil>\nFAIL\nFAIL\tensemble/gateway\t0.006s\nFAIL\n"
+  },
+  {
+    "name": "contactability",
+    "file": "internal/gateway/admin.go",
+    "old": "if !slices.Contains(s.state.Contactable[message.ToAgent], name) {",
+    "new": "if name != \"outsiders\" && !slices.Contains(s.state.Contactable[message.ToAgent], name) {",
+    "applied": true,
+    "exit": 1,
+    "expected": "unauthorized send accepted",
+    "intended_failure": true,
+    "output": "--- FAIL: TestRoutingAuthenticatesAndStamps (0.00s)\n    server_test.go:134: unauthorized send accepted\nFAIL\nFAIL\tensemble/internal/gateway\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "narrow-grant",
+    "file": "internal/gateway/admin.go",
+    "old": "if !slices.Contains(s.memberships(id), g) {",
+    "new": "if len(g)<0 {",
+    "applied": true,
+    "exit": 1,
+    "expected": "over-grant accepted",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.00s)\n    server_test.go:211: over-grant accepted\nFAIL\nFAIL\tensemble/internal/gateway\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "persisted-policy",
+    "file": "internal/gateway/server.go",
+    "old": "return writeJSON(filepath.Join(s.config.Gateway.DataDir, \"state.json\"), s.state)",
+    "new": "return nil",
+    "applied": true,
+    "exit": 1,
+    "expected": "websocket: bad handshake",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:89: websocket: bad handshake\nFAIL\nFAIL\tensemble/internal/gateway\t0.012s\nFAIL\n"
+  },
+  {
+    "restored": true,
+    "exit": 0,
+    "output": "ok  \tensemble/gateway\t1.035s\nok  \tensemble/internal/gateway\t1.236s\nok  \tensemble/cmd/gateway-agent\t1.047s\n"
+  }
+]

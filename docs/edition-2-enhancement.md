@@ -1,5 +1,26 @@
 # Edition 2: chapter enhancement
 
+## Gateway implementation accepted; Chapter 26 enhancement assigned, October 12
+
+Independent review `0afc45e8` accepts student `b5c35a39`, tree `6d3e3d2e`,
+with one documented original-grader field-spelling exception, zero formal rounds.
+Exact197-file accepted source is direct `solutions/edition-2/ch26`, checkpoint
+`edition-2-ch27-r1`; authoritative main receives only reviewed Gateway changes.
+Concurrent user main/crossover edits remain outside the export and untouched.
+
+Release author, grader coder and independent reviewer for Edition2 Chapter26 /
+original27. Read full original27, ch27 notes/comparative review and accepted source.
+Enhance original teaching from actual implementation and evidence; do not redesign
+the exercise or copy the historical stand-in as actual Ensemble integration.
+Preserve seven original weights, correct public contract/field and import checks,
+and test actual behavior rather than this implementation's private shape. Keep
+original0/100 and actual11.739-second live interview at their measured revisions.
+Reuse valid evidence, no broad or paid freshness repeats. Correct the sourced Noise
+explanations and scope provenance/ack/persistence guarantees honestly. Full four-doc
+active context and post-compaction reload remain mandatory for author/reviewer;
+mandatory `.agents/skills/ensemble-coding/SKILL.md` applies to code and review.
+Chapter24 is complete; Chapter25 remains a crossover placeholder only.
+
 ## Chapter 23 accepted; Gateway implementation assigned, October 12
 
 Acceptance `da79ddf6` binds coder `6a14a449`, author `2a884363`, note

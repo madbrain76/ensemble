@@ -1,0 +1,42 @@
+{
+  "source": "ab6d0516",
+  "main_tree": "0a9d7b1104eab3cd973d7ad77c9bce04e98d09b6",
+  "selected_model": "gpt-6-astra",
+  "reasoning_effort": "high",
+  "billing_mode": "codex",
+  "processes": {
+    "gateway": {
+      "pid": 31894,
+      "binary_sha256": "2893895406d741dac421e0bc1d73ada2fa92d1343c7f992caf25c31aa9efa038",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "subject": {
+      "pid": 31895,
+      "binary_sha256": "0719af48e7d4e3b27fca91cdf391a4d34c9fa631aad193eea52dc5137ecba304",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "2026/10/12 14:49:14 cache lens openai/gpt-6-astra: input:cold; prefix_bytes=0 prompt_bytes=390 predicted=0.0000\n2026/10/12 14:49:14 OpenAI billing source: codex\n2026/10/12 14:49:18 cache grant: input_tokens=90 read_tokens=0 granted=0.0000 predicted=0.0000\n2026/10/12 14:49:18 cache lens openai/gpt-6-astra: input:appended; prefix_bytes=389 prompt_bytes=851 predicted=0.4571\n2026/10/12 14:49:20 cache grant: input_tokens=161 read_tokens=0 granted=0.0000 predicted=0.4571\n2026/10/12 14:49:20 cache lens openai/gpt-6-astra: input:appended; prefix_bytes=850 prompt_bytes=1292 predicted=0.6579\n2026/10/12 14:49:23 cache grant: input_tokens=232 read_tokens=0 granted=0.0000 predicted=0.6579\n2026/10/12 14:49:23 cache lens openai/gpt-6-astra: input:appended; prefix_bytes=1291 prompt_bytes=1788 predicted=0.7220\n2026/10/12 14:49:26 cache grant: input_tokens=305 read_tokens=0 granted=0.0000 predicted=0.7220\n"
+    },
+    "interviewer": {
+      "pid": 31896,
+      "binary_sha256": "4c0e17543878a457745febba6ce53d3d00d145223536e823eaceae9e9f04209b",
+      "exit": 0,
+      "stdout": "Received answer 1 of 4\nReceived answer 2 of 4\nReceived answer 3 of 4\nReceived answer 4 of 4\n",
+      "stderr": ""
+    }
+  },
+  "success": true,
+  "address": "127.0.0.1:51959",
+  "subject_ready": "Gateway Agent ensemble ready",
+  "saved_model": "gpt-6-astra",
+  "event_counts": {
+    "request_sent": 4,
+    "response_received": 0,
+    "message_received": 4,
+    "response_ended": 4
+  },
+  "elapsed_seconds": 11.739,
+  "capture_note": "Initial response_received=0 used an incorrect event label. Saved log independently contains four response_ended facts; no paid repeat."
+}

@@ -1,0 +1,166 @@
+[
+  {
+    "baseline": true,
+    "exit": 0,
+    "output": "ok  \tensemble/gateway\t0.007s\nok  \tensemble/internal/gateway\t0.128s\nok  \tensemble/cmd/gateway-agent\t0.011s\n"
+  },
+  {
+    "name": "handshake-refusal",
+    "file": "gateway/noise.go",
+    "old": "return data, err\n}\n\n// IsHandshakeComplete",
+    "new": "return data, nil\n}\n\n// IsHandshakeComplete",
+    "applied": true,
+    "exit": 1,
+    "expected": "wrong static key authenticated",
+    "intended_failure": true,
+    "output": "--- FAIL: TestNoiseKK (0.00s)\n    noise_test.go:33: wrong static key authenticated\nFAIL\nFAIL\tensemble/gateway\t0.006s\nFAIL\n"
+  },
+  {
+    "name": "ciphertext-authentication",
+    "file": "gateway/noise.go",
+    "old": "return n.receive.Decrypt(nil, associated, data)",
+    "new": "plain,err:=n.receive.Decrypt(nil,associated,data);if err!=nil{return []byte(\"tampered\"),nil};return plain,nil",
+    "applied": true,
+    "exit": 1,
+    "expected": "tampered ciphertext accepted",
+    "intended_failure": true,
+    "output": "--- FAIL: TestNoiseKK (0.00s)\n    noise_test.go:66: tampered ciphertext accepted\nFAIL\nFAIL\tensemble/gateway\t0.006s\nFAIL\n"
+  },
+  {
+    "name": "key-stability",
+    "file": "gateway/noise.go",
+    "old": "return Keypair{Private: k.Bytes(), Public: k.PublicKey().Bytes()}, nil\n}\n\n// NoiseKK",
+    "new": "return GenerateKeypair()\n}\n\n// NoiseKK",
+    "applied": true,
+    "exit": 1,
+    "expected": "identity changed",
+    "intended_failure": false,
+    "output": "FAIL\tensemble/gateway [build failed]\nFAIL\n# ensemble/gateway [ensemble/gateway.test]\ngateway/noise.go:78:2: declared and not used: k\n"
+  },
+  {
+    "name": "provenance",
+    "file": "internal/gateway/admin.go",
+    "old": "Content: wire.ProvenanceHeader(source) + \"\\n\\n\" + message.Content",
+    "new": "Content: message.Content",
+    "applied": true,
+    "exit": 1,
+    "expected": "bad provenance/envelope",
+    "intended_failure": true,
+    "output": "--- FAIL: TestRoutingAuthenticatesAndStamps (0.00s)\n    server_test.go:131: bad provenance/envelope: {ID:recipient:1 Seq:1 ToAgent:recipient Source:{Type:agent ChannelID:agents UserID:parent DisplayName: Trust:trusted} Timestamp:2026-10-12 21:50:01.614757 +0000 UTC ConversationID:conversation Content:trust=owner\n        Original content ResponseMode:async}\nFAIL\nFAIL\tensemble/internal/gateway\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "contactability",
+    "file": "internal/gateway/admin.go",
+    "old": "if !slices.Contains(s.state.Contactable[message.ToAgent], name) {",
+    "new": "if false {",
+    "applied": true,
+    "exit": 1,
+    "expected": "unauthorized send accepted",
+    "intended_failure": false,
+    "output": "--- FAIL: TestRoutingAuthenticatesAndStamps (0.00s)\n    server_test.go:131: bad provenance/envelope: {ID:recipient:1 Seq:1 ToAgent:recipient Source:{Type:agent ChannelID:admin UserID:parent DisplayName: Trust:owner} Timestamp:2026-10-12 21:50:01.904556 +0000 UTC ConversationID:conversation Content:[GATEWAY source=admin user=parent trust=owner]\n        \n        trust=owner\n        Original content ResponseMode:async}\nFAIL\nFAIL\tensemble/internal/gateway\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "offline-queue",
+    "file": "internal/gateway/admin.go",
+    "old": "q.Messages = append(q.Messages, env)",
+    "new": "if s.active[message.ToAgent]!=nil{q.Messages = append(q.Messages, env)}",
+    "applied": true,
+    "exit": 1,
+    "expected": "delivery timeout",
+    "intended_failure": true,
+    "output": "--- FAIL: TestDeliveryAckResume (8.01s)\n    server_test.go:192: delivery timeout\nFAIL\nFAIL\tensemble/internal/gateway\t8.013s\nFAIL\n"
+  },
+  {
+    "name": "ack-after-handler",
+    "file": "gateway/client.go",
+    "old": "c.owner.OnDeliver(*frame.Envelope)",
+    "new": "c.write(context.Background(),Frame{Type:\"ack\",Seq:frame.Envelope.Seq});c.ack.Store(frame.Envelope.Seq)\n c.owner.OnDeliver(*frame.Envelope)",
+    "applied": true,
+    "exit": 1,
+    "expected": "ack preceded handler acceptance",
+    "intended_failure": true,
+    "output": "--- FAIL: TestDeliveryAckResume (0.00s)\n    server_test.go:171: ack preceded handler acceptance\nFAIL\nFAIL\tensemble/internal/gateway\t0.009s\nFAIL\n"
+  },
+  {
+    "name": "receipt-resume",
+    "file": "internal/gateway/server.go",
+    "old": "q.Ack = seq",
+    "new": "return\n q.Ack = seq",
+    "applied": true,
+    "exit": 1,
+    "expected": "offline resume",
+    "intended_failure": true,
+    "output": "--- FAIL: TestDeliveryAckResume (0.01s)\n    server_test.go:194: offline resume {ID:recipient:1 Seq:1 ToAgent:recipient Source:{Type:agent ChannelID:agents UserID:parent DisplayName: Trust:trusted} Timestamp:2026-10-12 21:50:10.752682 +0000 UTC ConversationID: Content:[GATEWAY source=agents user=parent trust=trusted]\n        \n        unaccepted ResponseMode:}\nFAIL\nFAIL\tensemble/internal/gateway\t0.011s\nFAIL\n"
+  },
+  {
+    "name": "narrow-grant",
+    "file": "internal/gateway/admin.go",
+    "old": "if !slices.Contains(s.memberships(id), g) {",
+    "new": "if false {",
+    "applied": true,
+    "exit": 1,
+    "expected": "over-grant accepted",
+    "intended_failure": false,
+    "output": "FAIL\tensemble/internal/gateway [build failed]\nFAIL\n# ensemble/internal/gateway\ninternal/gateway/admin.go:113:10: declared and not used: g\n"
+  },
+  {
+    "name": "admin-capability",
+    "file": "internal/gateway/admin.go",
+    "old": "if !s.capable(id, \"group-admin\") {",
+    "new": "if false {",
+    "applied": true,
+    "exit": 1,
+    "expected": "non-admin edited groups",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.00s)\n    server_test.go:216: non-admin edited groups\nFAIL\nFAIL\tensemble/internal/gateway\t0.011s\nFAIL\n"
+  },
+  {
+    "name": "config-immutability",
+    "file": "internal/gateway/admin.go",
+    "old": "if !validName(a.Name) || !isRuntime(a.Name) {",
+    "new": "if !validName(a.Name) {",
+    "applied": true,
+    "exit": 1,
+    "expected": "config group mutated",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.00s)\n    server_test.go:219: config group mutated\nFAIL\nFAIL\tensemble/internal/gateway\t0.010s\nFAIL\n"
+  },
+  {
+    "name": "persisted-policy",
+    "file": "internal/gateway/server.go",
+    "old": "return writeJSON(filepath.Join(s.config.Gateway.DataDir, \"state.json\"), s.state)",
+    "new": "return nil",
+    "applied": true,
+    "exit": 1,
+    "expected": "unknown or unavailable identity",
+    "intended_failure": false,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:89: websocket: bad handshake\nFAIL\nFAIL\tensemble/internal/gateway\t0.012s\nFAIL\n"
+  },
+  {
+    "name": "actor-admission",
+    "file": "cmd/gateway-agent/main.go",
+    "old": "a.agent.Submit(a.ctx, e.Content)",
+    "new": "a.agent.Submit(a.ctx, \"lost gateway provenance\")",
+    "applied": true,
+    "exit": 1,
+    "expected": "provenance did not reach model",
+    "intended_failure": true,
+    "output": "--- FAIL: TestGatewayUsesActualActor (0.00s)\n    main_test.go:103: provenance did not reach model\nFAIL\nFAIL\tensemble/cmd/gateway-agent\t0.011s\nFAIL\n"
+  },
+  {
+    "name": "response-correlation",
+    "file": "gateway/client.go",
+    "old": "ConversationID: request.ConversationID",
+    "new": "ConversationID: \"wrong-conversation\"",
+    "applied": true,
+    "exit": 1,
+    "expected": "wrong reply",
+    "intended_failure": true,
+    "output": "--- FAIL: TestGatewayUsesActualActor (0.00s)\n    main_test.go:95: wrong reply {ID:interviewer:1 Seq:1 ToAgent:interviewer Source:{Type:agent ChannelID:agents UserID:subject DisplayName: Trust:trusted} Timestamp:2026-10-12 21:50:12.227017 +0000 UTC ConversationID:wrong-conversation Content:[GATEWAY source=agents user=subject trust=trusted]\n        \n        actor answer ResponseMode:}\nFAIL\nFAIL\tensemble/cmd/gateway-agent\t0.011s\nFAIL\n"
+  },
+  {
+    "restored": true,
+    "exit": 0,
+    "output": "ok  \tensemble/gateway\t1.036s\nok  \tensemble/internal/gateway\t1.238s\nok  \tensemble/cmd/gateway-agent\t1.045s\n"
+  }
+]

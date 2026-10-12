@@ -1,0 +1,84 @@
+[
+  {
+    "baseline": true,
+    "exit": 0,
+    "output": "ok  \tensemble/internal/gateway\t0.016s\n"
+  },
+  {
+    "name": "send-capability",
+    "old": "if !s.capable(from, \"send-message\") {",
+    "new": "if false {",
+    "exit": 1,
+    "expected": "missing send capability accepted",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:260: missing send capability accepted\nFAIL\nFAIL\tensemble/internal/gateway\t0.015s\nFAIL\n"
+  },
+  {
+    "name": "declaration-capability",
+    "old": "if !s.capable(id, \"declare-contactable\") {",
+    "new": "if false {",
+    "exit": 1,
+    "expected": "missing declaration capability accepted",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:263: missing declaration capability accepted\nFAIL\nFAIL\tensemble/internal/gateway\t0.014s\nFAIL\n"
+  },
+  {
+    "name": "schema-required-array",
+    "old": "required = []string{}",
+    "new": "required = nil",
+    "exit": 1,
+    "expected": "MCP required must be an array",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:275: MCP required must be an array\nFAIL\nFAIL\tensemble/internal/gateway\t0.016s\nFAIL\n"
+  },
+  {
+    "name": "queue-persistence",
+    "old": "if err := writeJSON(s.queuePath(id), q); err != nil {",
+    "new": "if err := writeJSON(s.queuePath(id), &queue{Next:q.Next,Ack:q.Next}); err != nil {",
+    "exit": 1,
+    "expected": "delivery timeout",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (8.01s)\n    server_test.go:235: delivery timeout\nFAIL\nFAIL\tensemble/internal/gateway\t8.016s\nFAIL\n"
+  },
+  {
+    "name": "contactability-persistence",
+    "old": "for name, g := range s.state.Groups {",
+    "new": "s.state.Contactable=map[string][]string{}\n for name, g := range s.state.Groups {",
+    "exit": 1,
+    "expected": "sender groups are not accepted by recipient",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:240: sender groups are not accepted by recipient\nFAIL\nFAIL\tensemble/internal/gateway\t0.013s\nFAIL\n"
+  },
+  {
+    "name": "membership-persistence",
+    "old": "for name, g := range s.state.Groups {",
+    "new": "s.state.Memberships=map[string][]string{}\n for name, g := range s.state.Groups {",
+    "exit": 1,
+    "expected": "sender groups are not accepted by recipient",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:240: sender groups are not accepted by recipient\nFAIL\nFAIL\tensemble/internal/gateway\t0.012s\nFAIL\n"
+  },
+  {
+    "name": "runtime-group-persistence",
+    "old": "for name, g := range s.state.Groups {",
+    "new": "s.state.Groups=map[string]Group{}\n for name, g := range s.state.Groups {",
+    "exit": 1,
+    "expected": "sender groups are not accepted by recipient",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:240: sender groups are not accepted by recipient\nFAIL\nFAIL\tensemble/internal/gateway\t0.013s\nFAIL\n"
+  },
+  {
+    "name": "group-delete",
+    "old": "delete(s.state.Groups, a.Name)",
+    "new": "return \"group deleted\",nil\n delete(s.state.Groups, a.Name)",
+    "exit": 1,
+    "expected": "deleted runtime group retained routing",
+    "intended_failure": true,
+    "output": "--- FAIL: TestChildrenAndPersistedPolicy (0.01s)\n    server_test.go:246: deleted runtime group retained routing\nFAIL\nFAIL\tensemble/internal/gateway\t0.014s\nFAIL\n"
+  },
+  {
+    "restored": true,
+    "exit": 0,
+    "output": "ok  \tensemble/internal/gateway\t0.015s\n"
+  }
+]

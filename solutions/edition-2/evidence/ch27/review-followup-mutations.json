@@ -1,0 +1,44 @@
+[
+  {
+    "name": "welcome-count",
+    "phase": "baseline",
+    "exit": 0,
+    "expected": "wrong welcome queue count",
+    "output": "ok  \tensemble/internal/gateway\t1.105s\n"
+  },
+  {
+    "name": "welcome-count",
+    "phase": "mutant",
+    "exit": 1,
+    "expected": "wrong welcome queue count",
+    "output": "--- FAIL: TestDeliveryAckResume (0.02s)\n    server_test.go:210: wrong welcome queue count/identity: {AgentID:recipient QueueDepth:0 ServerVersion:1}, want 1\nFAIL\nFAIL\tensemble/internal/gateway\t0.032s\nFAIL\n"
+  },
+  {
+    "name": "welcome-count",
+    "phase": "restored",
+    "exit": 0,
+    "expected": "wrong welcome queue count",
+    "output": "ok  \tensemble/internal/gateway\t1.107s\n"
+  },
+  {
+    "name": "parent-diagnostics",
+    "phase": "baseline",
+    "exit": 0,
+    "expected": "connection diagnostic did not reach root logger",
+    "output": "ok  \tensemble/internal/gateway\t1.032s\n"
+  },
+  {
+    "name": "parent-diagnostics",
+    "phase": "mutant",
+    "exit": 1,
+    "expected": "connection diagnostic did not reach root logger",
+    "output": "--- FAIL: TestConnectionDiagnosticReachesRoot (0.01s)\n    server_test.go:386: connection diagnostic did not reach root logger\nFAIL\nFAIL\tensemble/internal/gateway\t0.019s\nFAIL\n"
+  },
+  {
+    "name": "parent-diagnostics",
+    "phase": "restored",
+    "exit": 0,
+    "expected": "connection diagnostic did not reach root logger",
+    "output": "ok  \tensemble/internal/gateway\t1.033s\n"
+  }
+]

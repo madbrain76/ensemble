@@ -1,0 +1,17 @@
+[
+  {
+    "stage": "baseline",
+    "exit": 0,
+    "output": "ok  \tensemble/internal/gateway\t0.011s\n"
+  },
+  {
+    "stage": "mutant",
+    "exit": 1,
+    "output": "--- FAIL: TestCorruptStateRefused (0.00s)\n    server_test.go:303: corrupt policy accepted\nFAIL\nFAIL\tensemble/internal/gateway\t0.008s\nFAIL\n"
+  },
+  {
+    "stage": "restored",
+    "exit": 0,
+    "output": "ok  \tensemble/internal/gateway\t0.008s\n"
+  }
+]

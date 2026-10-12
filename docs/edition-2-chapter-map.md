@@ -1,5 +1,15 @@
 # Edition 2 chapter mapping
 
+## October 12: Gateway accepted as Chapter 26
+
+Original27 implementation is independently accepted at `0afc45e8`, source
+`b5c35a39`, with the narrow documented grader exception. Direct accepted
+`solutions/edition-2/ch26` and its manifest contain the exact197-file source;
+checkpoint `edition-2-ch27-r1`. Chapter26 prose/grader enhancement now follows.
+Implementation catch-up through original27 is complete. Optional24 is done and
+crossover25 remains a placeholder, without an accepted solution export.
+Earlier pending statements below retain their historical dates.
+
 ## October 11: resume the book; reserve crossover 25; finish Gateway 26
 
 Chapter 24 is the completed optional Codex workaround. Chapter 25 is reserved
@@ -40,7 +50,7 @@ are absorbed: 5, 22 and 24. This supersedes the earlier placement stops.
 | 26 | 23 | `solutions/edition-2/ch23` | Fleet management and GUI; accepted |
 | New in Edition 2 | 24 | `solutions/edition-2/ch24` | Optional Codex endpoint; self-reviewed under Bill's instruction |
 | New in Edition 2 | 25 | Pending; no accepted export | Codex-to-Ensemble crossover; placeholder only |
-| 27 | 26 | Planned `solutions/edition-2/ch26` after acceptance | Gateway; implement after current manuscript enhancement |
+| 27 | 26 | `solutions/edition-2/ch26` | Gateway implementation accepted; manuscript enhancement underway |
 
 With first-edition Chapters 1–26 complete, Edition 2 has Chapters 1–23. Chapter
 0 remains introductory in both. The optional new Chapter 24 has no first-edition counterpart; future placements

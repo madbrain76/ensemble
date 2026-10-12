@@ -1,5 +1,24 @@
 # Edition 2 carryover: lessons for the fresh student
 
+## October 12: Gateway accepted; original implementation catch-up complete
+
+Original27 is accepted as Edition2 Chapter26 at independent review `0afc45e8`,
+student `b5c35a39`, tree `6d3e3d2e54a4def135f9d5c23ce3242d7d4c0313`.
+The direct197-file ch26 export excludes Bill's unfinished crossover edits;
+checkpoint `edition-2-ch27-r1`. Original grading remains0/100 because the probe
+requires undocumented `QueuedCount` instead of the client's `QueueDepth`; only
+that spelling is excepted. Actual public/runtime/live obligations pass separately.
+The suspected module alias was not a failure. Chapter26 prose/grader enhancement
+now follows; optional24 is complete and25 remains reserved.
+
+The real Gateway/Ensemble/interviewer processes completed four Astra questions;
+later local diagnostic/acknowledgment-test corrections retain separate provenance.
+Follow actual handler return and receipt ordering rather than an earlier channel
+notification. A required parent interface must provide diagnostics as well as
+data services. Preserve at-least-once admission and periodic-snapshot limitations;
+authenticated provenance does not guarantee model compliance. The detailed
+student and comparative review retain actual results, failed attempts and scope.
+
 ## October 11: resume the book; reserve crossover 25; finish Gateway 26
 
 Bill explicitly resumes the author, grader coder and independent reviewer at

@@ -1,0 +1,44 @@
+[
+  {
+    "command": [
+      "go",
+      "mod",
+      "tidy"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "build",
+      "-o",
+      "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/outside-gateway26-hnp12rrc/consumer",
+      "."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/outside-gateway26-hnp12rrc/consumer",
+      "/tmp/ensemble-gateway26-binaries/gateway",
+      "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/outside-gateway26-hnp12rrc/data",
+      "127.0.0.1:51907"
+    ],
+    "exit": 0,
+    "stdout": "PASS: outside module authenticated, registered a child, and delivered stamped content through the real gateway binary\n",
+    "stderr": "x25519:hWNLHm9iorMyRbpDlVhFr2wS2mTCB1sBh17ZKOa4Nzw=\n"
+  },
+  {
+    "client_no_internal": true,
+    "client_positive_websocket": true,
+    "core_no_websocket": true,
+    "deps_exit": [
+      0,
+      0
+    ]
+  }
+]

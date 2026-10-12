@@ -1,7 +1,7 @@
 # Edition 2 solutions
 
 Accepted cumulative solutions live directly in `ch01/`, `ch02/`, and so on.
-Chapters **1–24 are accepted** (24 is optional, ungraded and self-reviewed
+Chapters **1–24 and 26 are accepted** (24 is optional, ungraded and self-reviewed
 under Bill's explicit instruction). [`main/`](main/) is the authoritative working
 tree. Original24+25 are accepted together as Edition2 Chapter22, The Ensemble.
 Original26 was complete at that review boundary and is now independently accepted
@@ -9,8 +9,8 @@ as direct Edition2 Chapter23 after one correction round. The 26 original chapter
 therefore have 23 matching Edition2 solution directories. The new Chapter24
 adds the temporary Codex endpoint and has no first-edition counterpart. Chapter25
 is reserved for the live Codex-to-Ensemble crossover, with a manuscript placeholder
-only. Original27 Gateway will become Edition2 Chapter26 after implementation and
-review; no accepted ch25/ch26 export exists yet.
+only. Original27 Gateway is accepted as Edition2 Chapter26, completing the
+first-edition implementation catch-up; no accepted ch25 export exists.
 Subsequent authorized coding uses GPT-6 Astra/high. Auto-Recall follows
 Bill’s October 11 quota/corpus decisions, recorded in the chapter notes.
 Do not put new solutions in `history` or create symlinks.
@@ -53,9 +53,14 @@ bring the final offset to three. The remaining standalone
 | 22: The Ensemble, including reusable GUI | [ch22](ch22/), [manifest](ch22-manifest.json) | 24 + 25 | `edition-2-ch25-r1` |
 | 23: Fleet management and GUI | [ch23](ch23/), [manifest](ch23-manifest.json) | 26 | `edition-2-ch26-r1` |
 | 24: Optional Codex workaround | [ch24](ch24/), [manifest](ch24-manifest.json) | New in Edition 2 | `edition-2-optional-ch24-r1` |
+| 26: Gateway | [ch26](ch26/), [manifest](ch26-manifest.json) | 27 | `edition-2-ch27-r1` |
 
 The manuscript enhancement pass is complete through Edition 2 Chapter 23.
 Revised graders cover Chapters 1–18 and 20–23; Chapter 19 is prose-only.
+Gateway Chapter26 manuscript/grader enhancement is underway. Its accepted
+implementation has one narrow original-grader field-spelling exception; actual
+original grading remains0/100. Public runtime, outside-client and real three-process
+interview evidence are recorded separately in the original-numbered ch27 notes.
 Later accepted code follows original exercises and independently recorded grader
 exceptions; its presence does not claim that later manuscript enhancement is done.
 Original Chapter 20 / Edition 2 Chapter 19 is prose-only. Its bounded real coding

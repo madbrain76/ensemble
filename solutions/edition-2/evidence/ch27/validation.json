@@ -1,0 +1,59 @@
+{
+  "source": "15e0386b",
+  "main_tree": "f3f75227ad870a1e86402724b96b461425df8c5d",
+  "full_core": {
+    "source": "ab6d0516",
+    "command": "go test ./...",
+    "exit": 0,
+    "ensemble_seconds": 30.98
+  },
+  "full_core_vet": {
+    "source": "ab6d0516",
+    "command": "go vet ./...",
+    "exit": 0
+  },
+  "gui": {
+    "source": "ab6d0516",
+    "command": "go test ./...",
+    "exit": 0,
+    "seconds": 7.631,
+    "initial_failure": "Playwright was absent from isolated checkout; installed declared dependency and reran."
+  },
+  "gui_vet": {
+    "command": "go vet ./...",
+    "exit": 0
+  },
+  "final_focused": {
+    "command": "go test -race ./gateway ./internal/gateway ./cmd/gateway-agent",
+    "exit": 0,
+    "output": "ok ensemble/gateway 1.036s\nok ensemble/internal/gateway 1.254s\nok ensemble/cmd/gateway-agent 1.045s"
+  },
+  "final_vet": {
+    "command": "go vet ./gateway ./internal/gateway ./cmd/...",
+    "exit": 0
+  },
+  "format": {
+    "command": "gofmt -l gateway internal/gateway internal/common/gateway.go cmd",
+    "exit": 0,
+    "output": ""
+  },
+  "whitespace_note": "An evidence-only trailing blank line in generated report was reported by staged diff check at15e0386b; normalized in follow-up without changing report content or runtime source.",
+  "original_grader": {
+    "source": "15e0386b",
+    "score": "0/100 FAIL",
+    "make_exit": 2,
+    "grader_exit": 1,
+    "seconds": 1.544,
+    "timeout": false,
+    "failure": "external probe requires undocumented WelcomePayload.QueuedCount instead of public QueueDepth",
+    "artifact": "reviewer-original-grade.{txt,json} in shared evidence/ch27"
+  },
+  "formal_review": "pending, zero formal correction rounds",
+  "review_followup": {
+    "changes": "parent diagnostic access/reporting; actual ack-written barrier; zero/nonzero welcome count checks",
+    "affected_race_exit": 0,
+    "affected_vet_exit": 0,
+    "mutation_artifact": "review-followup-mutations.json",
+    "initial_command_failure": "outer-worktree go test had no go.mod; did not execute tests"
+  }
+}
