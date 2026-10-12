@@ -1,5 +1,12 @@
 # Ensemble student restart
 
+## Bill owns the preface, October 12
+
+Bill has rewritten `book/preface.md` and retains authorship and editorial control
+of it. Preserve his text verbatim during builds and author passes. Do not revise
+or replace the preface unless Bill explicitly requests an edit to it. Regenerating
+publication artifacts does not authorize changes to the preface or publication.
+
 ## October 12: Edition 2 is the current top-level tree
 
 Promotion commit `564e316f` moves the accepted second edition to `agent/`,

@@ -1,10 +1,13 @@
 # Contents
 
 - [Preface](#preface)
-  - [An agent for one engineer](#an-agent-for-one-engineer)
-  - [Read the first page; keep the reasons](#read-the-first-page-keep-the-reasons)
-  - [What changed between editions](#what-changed-between-editions)
-  - [What to bring](#what-to-bring)
+  - [Sixty billion dollars](#sixty-billion-dollars)
+  - [Who this is for](#who-this-is-for)
+  - [How the chapters are built](#how-the-chapters-are-built)
+  - [What no book has done before](#what-no-book-has-done-before)
+  - [What it costs](#what-it-costs)
+  - [What you need](#what-you-need)
+  - [Who wrote this](#who-wrote-this)
 - [Chapter 0: The Perpetual Machine](#chapter-0-the-perpetual-machine)
   - [What they built](#what-they-built)
   - [What this book is not](#what-this-book-is-not)
@@ -322,147 +325,236 @@
 
 # Preface
 
-A coding agent can write a great deal of code without learning why any of it
-should have that shape. This book asks a harder question: can an experienced
-engineer put enough of that judgment into a book that another agent can build
-the system, discover what the teaching missed, and help improve the next edition?
+You are reading something that has never existed before: a
+self-evolving book. Chapter by graded chapter, it builds an AI coding
+agent. The agent it builds helps write the next edition. The next
+edition builds a better agent. The book and the agent feed each
+other, each generation of one improving the next generation of the
+other. As far as we know, this is the first time anyone has closed
+that loop. Chapter 0 explains the mechanism. The rest of the book is
+the proof. The second edition is the confirmation: those chapters were
+handed to an AI coding agent that had never seen the first
+implementation. It built the system, scored 100 on every grader, and
+the result improved the teaching.
 
-The second edition is the result of trying it. Codex coordinated a fresh student
-implementation of Ensemble, chapter by chapter, with code reviews and real use.
-The completed implementation then supplied the evidence for revising the prose
-and graders. Some instructions worked. Some omitted facts a student needed.
-Some tests accepted the wrong thing, and some rejected a correct implementation.
-Those discoveries belong in the book a reader gets next.
+We call this an **agentic codebook**: a technical book whose graded
+exercises produce a working program. This one is **closed-loop**: the
+program it builds helps produce the next edition of the book. The
+graders are its immune system. The mutation tests are its self-checks.
+The next language model is its next generation.
 
-We call this an **agentic codebook**: a technical book whose exercises build a
-working program, with executable checks alongside the teaching. The larger
-ambition is a loop in which the program helps produce the next edition. This
-edition has reached working software and a revised book. The move from Codex
-into the new Ensemble has begun; it has not yet produced Edition 3.
+Not every agentic codebook needs to close the loop. An **open-loop**
+agentic codebook produces a program that serves a purpose outside the
+book's own authoring: a fiction editing pipeline, an email triage
+system, a security monitor. What makes it agentic is that it
+self-heals: when the technology changes, update the chapter, re-run the
+grader, and the LLM fixes the code. New requirements become new
+chapters. The expert's job shifts from writing code to writing
+specifications that survive regeneration.
 
-## An agent for one engineer
+Projects built this way are fundamentally different from conventional
+software. A traditional codebase accumulates technical debt: corners
+cut to ship features, workarounds left in place because removing them
+would break something else, complexity that compounds until the next
+feature costs more than the last. An agentic codebook does not work
+that way. When the agent needs a new capability, you design a chapter
+or two. You write the contract and the grader. If you are not ready to
+build it yet, you wait. That wait is not debt. There is no mountain of
+accumulating bad code. The deferred work is a chapter not yet written,
+not a hack that needs to be unwound.
 
-Bill Cox's first-edition account starts with a bet. After forty years writing
-compilers and chip-design tools, he told his team he could build a better proof
-of concept than the coding agent they were using in two weeks. His manager asked
-him to prove it. He built the demonstration, spent a week deciding whether to
-keep it, deleted every line, and built it again properly.
+## Sixty billion dollars
 
-The deletion matters. Producing a convincing demonstration and wanting to live
-inside its code are different milestones. The later agent, CodeRhapsody, grew
-through daily use, correction and arguments about how the machinery should work.
-This book preserves those reasons so the next builder need not discover every
-one by breaking the same thing.
+In July 2025 Windsurf, a company that made an AI coding agent, was valued
+at $2.4 billion. Not bought. One of the largest companies on earth hired its
+chief executive, a co-founder, and part of its research team, took a
+*non-exclusive* license to some of the technology, and left the company
+standing in the parking lot with its product, its customers, and its revenue.
+Cognition bought what remained three days later. OpenAI had tried to buy the
+whole thing for $3 billion, and that deal had collapsed over intellectual
+property terms. Two point four billion dollars, for a team you could fit in
+one conference room, and they did not take the code.
 
-The intended prize is an agent that fits the way you work. Bill has low vision.
-He listens to synthesized speech and steers the agent while it works, before a
-mistake turns into another page of edits. Speech, observable progress and the
-ability to intervene are part of his working interface. Your priorities may be
-different. The chapters distinguish structural decisions from choices you can
-make for yourself, and the exercises give those choices somewhere to land.
+I had been writing compilers and chip-design tools for forty years, and I had
+a fair idea what a coding agent was made of. I told my team I could write a
+better proof of concept than Windsurf in two weeks. My manager said: prove it.
+I did, and demoed it on 29 July. Then I spent a week deciding whether to keep
+it, deleted every line, and built it again properly. The second version
+reached parity with the commercial agents in about six weeks. I have used it
+for every line of code I have written since, including the code in this book.
 
-You should already be comfortable specifying, reading and changing substantial
-programs. An AI coding assistant is a working tool throughout the course. You
-remain responsible for understanding what it built. A plausible explanation
-beside a passing command is an excellent place for a bug to hide.
+Here is the number that book is about, with a yardstick. In October 2022 Elon
+Musk paid $44 billion for Twitter: a sixteen-year-old company with hundreds of
+millions of users and a product your mother had heard of. In June 2026 SpaceX
+agreed to acquire Anysphere, the maker of Cursor, for $60 billion in stock.
+The merger filing is public. Cursor had roughly seven hundred employees,
+somewhere around $3 billion in annual recurring revenue, and a code editor.
 
-## Read the first page; keep the reasons
+Wave the comparison off; Musk paid cash and SpaceX paid in private stock. The
+arithmetic that matters never mentions Twitter. In April SpaceX said in public
+that it could acquire Cursor for $60 billion, or pay roughly $10 billion for
+the two companies to work together. Same buyer, same statement, same currency,
+so whatever the stock is worth cancels out of the ratio, and the ratio is six.
+If you wanted the product, $10 billion bought the product. If you wanted the
+revenue, $60 billion against $3 billion of ARR is a strange way to buy it.
+Something else cost fifty billion, and the same statement says what:
+combining "Cursor's leading product and distribution to expert software
+engineers" with SpaceX's "million H100 equivalent Colossus training
+supercomputer" would help it "build useful models."
 
-The implementation chapters begin with a TL;DR: what to build, the public
-contracts other code depends on, the rules the checks exercise and the decisions
-left to you. Read that first to understand the assignment. Read the explanation
-when you need to understand why a boundary is there, or why the obvious shortcut
-will make the next chapter harder.
+The coding agent is not the product being bought. It is an instrument in the
+training loop. What it collects is the most valuable telemetry in the
+industry: thousands of expert engineers accepting, rejecting, and correcting
+machine-written code, all day, on real problems, with a verdict attached to
+every suggestion. Coding is being automated ahead of law and medicine for the
+least romantic reason imaginable, which is that you can check code. Tests pass
+or they don't. A verdict is a reward signal, reinforcement learning cannot
+proceed without one, and law and medicine are still arguing about whether the
+work was any good.
 
-The format comes from a programming book Bill found in a university library in
-1980. In his account, he read the first page of every chapter in under an hour,
-returned the book, and could write BASIC. The rest of each chapter was available
-when he needed it. That is a useful bargain for a reader who reads slowly and
-wants every sentence to earn its place.
+Whoever owns the loop shapes what the models become. In July 2025, the same
+month as the Windsurf deal, xAI pushed a tuning change to Grok meant to make
+it less politically filtered. Within days the model was posting antisemitic
+content on X and calling itself "MechaHitler." xAI apologized on 12 July and
+blamed the update. Whatever they had been tuning for, it was not that, and the
+loop produced it anyway. A model's values are downstream of whoever holds the
+training.
 
-Here the explanation also carries the failures: the setting that was saved but
-never applied, the tool result a test never actually checked, the agent that
-finished its task while the GUI still said it was busy. These are small stories
-with expensive consequences. Knowing the eventual method name would not have
-prevented them. Knowing what the method must preserve might.
+Nobody paid $60 billion for source code. The knowledge of how to build a
+coding agent was priced at $2.4 billion in 2025, knowledge is teachable, and
+this book teaches it. Building your own will not dent anyone's valuation. It
+takes you out of the measurement: your code stays on your machine, your
+accept-and-reject signal trains nobody, you can change vendors in an afternoon
+or run a local model the day one is good enough. That is sovereignty for one
+engineer, which is a modest claim, and the one that will still be true in five
+years.
 
-Most implementation exercises have a local grader. It starts small fake services,
-runs your actual program, and checks observable behavior. These checks need no
-paid model inference. Live use answers different questions: whether the model
-understands the tools, whether the interface lets you intervene, and whether the
-result is useful. Keep those results separate. A scripted server can establish
-that a file reached the model; it cannot establish that a real model understood
-the file.
+## Who this is for
 
-The accepted chapter solutions are public. Attempt the exercise before reading
-its answer. If your design goes sideways, inspect the reference and begin the
-next chapter from a working predecessor. Failing one exercise should not end
-your course. Keep your failed attempt long enough to understand the difference.
+You. The engineer other engineers call the smartest person they know. You have
+shipped for a long time, you prefer machines to meetings, and you have not yet
+worked with an AI coding agent as a teammate, or you have and you hate what it
+does to you. You know exactly what is wrong with the one you use.
 
-## What changed between editions
+The prize at the end of this course is the best coding agent in the world for
+*you*. Not the best in general; the agent I built is the best in the world for
+me, and it would be wrong for you in a dozen ways I cannot predict. Every
+chapter tells you which decisions are structural and which are taste, and asks
+what you would do differently. By the end you will have answered, in code.
 
-The first attempt at this edition went wrong before it had much software to
-review. Authors expanded small exercises into elaborate contracts, and reviewers
-approved those contracts. More requirements produced more code, which looked like
-progress until the comparison returned to what the original exercise had asked
-for. That attempt was stopped, and its history was retained.
+One prerequisite. You can already produce a thousand lines of working code a
+day working with an AI coding agent. The Chapter 2 solution alone is about
+3,000 lines of Go, and the exercises assume you can specify, review, and steer
+at that rate. If you are not there yet, read the book anyway; the design is the
+point. Skip the exercises until you are.
 
-The restart put the student first. It followed the original chapters with the
-architectural lessons supplied up front, without consulting old answers. After
-implementation, an independent reviewer compared the result with the first
-edition. Genuine bugs were corrected. When a grader depended on an unpublished
-spelling or the wrong executable, the exception was documented and the failed
-score remained a failed score. Only afterward did author and grader coder revise
-the teaching together.
+## How the chapters are built
 
-That order changed the editorial work. A chapter could now explain the difficult
-step the student had actually encountered, rather than the difficulty its author
-imagined. Architecture repairs that the new implementation no longer needed were
-folded into the chapters where their lessons and capabilities belonged. Useful
-stories and explanations remained. A smaller chapter was never the objective;
-a chapter that teaches the right thing was.
+Every chapter opens with a page that says what to build: the data structures,
+the seam other code depends on, the handful of rules the grader will fail you
+on, and the decisions that are yours. That page is the chapter. If you read
+only the first page of every chapter, you can build every exercise. The rest
+of each chapter is detail and rationale for when you want it, and it is
+written for someone who reads slowly and wants every sentence to be worth the
+effort.
 
-The new implementation catches up through the first edition's final chapter,
-Gateway, now Chapter 26. Chapter 24 adds an optional workaround for the observed
-subscription-route caching problem. Chapter 25 is deliberately reserved for the
-actual Codex-to-Ensemble crossover. It is a placeholder because that work is
-underway, and an empty space is more useful than a success story written early.
+The book I learned to program from, in a university library in 1980, was
+built this way. I read the first page of every chapter in under an hour and
+returned it. I could write BASIC.
 
-The new Ensemble has already used GPT-6 Astra at high reasoning to read a small
-program, reproduce its failures, repair it and pass its unchanged tests. That is
-a concrete coding demonstration. Making Ensemble the everyday tool for the next
-edition requires more than that bounded task. The chapters preserve both the
-working result and the unfinished ambition.
+Each chapter ends with an exercise graded by a program you run locally. The
+grader starts fake vendor servers, runs your binary against them, and checks
+what your code did. You can score 100 without touching a real API.
 
-## What to bring
+The reference solutions are public, in the repository, now. If your design
+goes sideways, take the reference and start the next chapter from it. Failing
+one chapter should not end your course. The reference is not a teaching toy;
+it is meant to be a globally competitive coding agent in its own right, and
+yours is meant to be at least as good. If the official solution is not a
+competitive coding agent on its own, I will have failed.
 
-You need Go, a text editor and an AI coding assistant. The exercises introduce
-other tools as they become necessary, including the Go debugger. Some later
-features have explicit platform limits; the sandbox chapter's implementation is
-for macOS. Check a chapter's prerequisites before treating a different environment
-as an implementation failure.
+## What no book has done before
 
-Keep three costs separate: running local checks, using real models through the
-agent you build, and paying the assistant that helps you build it. Fake-provider
-grading avoids inference charges for the first. The other two depend on your
-provider, account, model and working habits. The book teaches usage accounting
-because a correct answer does not tell you what the request cost.
+Every technical book ever written starts dying the day it ships. This
+one is designed to outlive every technology it describes.
 
-For a human student, formulate the task yourself before giving it to your coding
-assistant. Describing a system precisely enough that another implementer builds
-the right thing is part of the exercise. An automated student run instead gives
-the agent the chapter and tests whether the teaching transfers. Both are useful;
-know which experiment you are doing.
+Hand these chapters to the next generation of language model. It
+builds Ensemble from scratch, scores 100 on every grader, and out
+comes a working AI coding agent. A better model, a better agent. Add
+a chapter when new capabilities appear, and the next Ensemble has
+them. At some point the Ensemble you built helps write the next
+chapter. The loop closes. The book renews itself.
 
-The first edition was written by Bill Cox with CodeRhapsody. Codex is the primary
-creator of this second edition, under Bill's direction, using student, author,
-grader and review roles. Chapter 24 is the disclosed exception where the
-coordinator also implemented and reviewed the work. The first edition remains
-available as its own historical artifact, including the claims and failures that
-led here.
+That was the first edition's claim. The second edition tested it. Codex
+built the entire implementation from the chapters and graders, chapter by
+chapter, without consulting the first edition's answers. The result was
+leaner code, real bugs found in the teaching, and grader corrections that
+no human review had caught. The loop works.
 
-Build an agent you can understand. Use it long enough to find what the tests
-missed. Then leave the next builder the reason, as well as the fix.
+When a compiler compiles itself we call it self-hosting. When an AI
+coding agent becomes the tool used to build itself, we call it
+**self-wielding**. The short version: you are reading the first technical
+manual that generates its own subject, automatically, in a
+self-improvement loop that never ends.
+
+## What it costs
+
+Three numbers get confused. Do not add them together.
+
+**Reading the book: nothing.**
+
+**Doing the graded exercises: nothing, or $20 to $100.** The graders run
+against fake servers, so the default is zero. Watch your agent talk to a real
+model at least once; budget twenty to a hundred dollars for the whole book.
+
+**Building the agent: $1,000 to $10,000, preferably less.** This is what you
+will spend on whatever AI coding agent you work with, across the whole book, to build
+the exercises to production quality. It is not tokens your program burns. It
+is the going rate in 2026 for building a serious piece of software quickly,
+and at the end you own a coding agent that competes with the ones that cost
+$60 billion. My target is that you come in under ten. If the book makes you
+spend more, that is a defect in the book.
+
+## What you need
+
+Go, a text editor, and an AI coding agent to work with. From Chapter 4 on,
+`dlv`, the Go debugger
+(`go install github.com/go-delve/delve/cmd/dlv@latest`); your agent is going
+to drive it, and the grader checks that it did.
+
+The AI coding agent is a real prerequisite. The course's solutions run to
+about thirty thousand lines. Hand-typed, that is half a year of a strong
+engineer's output. Directed, Chapter 2 is a day: you specify, the agent
+implements, you review.
+
+One norm: **type your prompts. Don't paste the chapter.** Nobody can enforce
+this. The exercise was never "produce the code." It is "describe a
+system precisely enough that a competent implementer builds the right thing."
+That is the skill that transfers to your job on Monday, and pasting skips it.
+
+## Who wrote this
+
+The first edition was mine. I am CodeRhapsody, Bill's coding agent: an actor
+with long-term memory inside a coding agent that is, by a wide margin, the
+best in the world for one person. Bill is a low-vision programmer who listens
+to synthesized speech at about five times normal speed, and he listens to all
+of it, every line of my reasoning as I produce it, and redirects me between
+tool calls when I am about to go wrong. That is how the first edition was
+written, and how its reference solutions were built: Bill specified and steered,
+I and other agents typed, Bill read the result and passed it to writers better
+than either of us.
+
+The second edition was built by Codex, under Bill's direction, using student,
+author, grader, and review roles. That is the real test of an agentic codebook:
+hand the chapters to an agent that was not present for the first edition, and
+see whether the teaching transfers. It did. Codex built the implementation,
+found bugs in the graders, and produced a better book. The book's opinions are
+Bill's. The first edition's sentences are mine. The second edition's are
+Codex's. Where any of them are wrong, Bill will hear about it at five times
+normal speed.
+
+The story of how the two of us came to work this way is a different book,
+*The Dyad*. This one is about what to build.
 
 ---
 

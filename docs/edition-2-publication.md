@@ -1,5 +1,27 @@
 # Edition 2 publication and layout migration
 
+## Latest reading copy: Bill's preface
+
+At Bill's request, regenerate the book from his rewritten `book/preface.md`,
+preserving it verbatim. Bill retains editorial ownership of the preface; future
+author passes must leave it alone unless he explicitly requests an edit.
+This supersedes the previous preface draft and its review, without relabeling
+those historical records as review of Bill's new text.
+
+The rebuilt interior has 371 pages; the cover-prefixed PDF has 372. All 30
+contents page references agree with the new heading pages. EPUB chapter order,
+navigation, cover and links pass the existing structural checks. The preface
+is unchanged on disk, appears verbatim in the assembled Markdown, and its opening
+and closing text are present in the EPUB and rendered PDF. Chapter text and the
+11 pre-existing application/archive edits remain unchanged.
+
+Build inputs, commands, artifact hashes and verification are retained in
+[the rebuild record](../solutions/evidence/publication-preface-r2/build.json) and
+[the checks](../solutions/evidence/publication-preface-r2/full-verification.json).
+This is a mechanical regeneration for Bill's next reading, not a new editorial
+review or a publication. No push or upload has occurred. The earlier independent
+artifact review below describes its original version.
+
 Bill authorized this sequence on October 12, 2026: finish the Gateway chapter,
 archive Edition 1, promote Edition 2, and prepare its first publication. The
 crossover has begun; Chapter 25 deliberately remains a placeholder. Producing
