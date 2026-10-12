@@ -1,5 +1,17 @@
 # Edition 2 publication and layout migration
 
+## Print contrast update
+
+At Bill's request, print code now uses black text on white backgrounds, including
+comments and strings. Bold and italic syntax cues, spacing and wrapping remain.
+The rebuilt PDFs retain 371 interior pages / 372 with the cover and the same 30
+contents destinations. Bill's preface, all manuscript text and the EPUB are unchanged.
+
+Implementation `4e21dfad` and independent review `8217c6d3` establish the bounded
+print correction. See the [build and browser evidence](../solutions/evidence/publication-print-light/README.md)
+and [independent rendered-page review](edition-2-notes/publication-review.md).
+This is a local reading copy; no publication or physical proof is claimed.
+
 ## Latest reading copy: Bill's preface
 
 At Bill's request, regenerate the book from his rewritten `book/preface.md`,
