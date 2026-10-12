@@ -128,7 +128,9 @@ records the client-close timeout. Current manager source and retained real
 integration tests provide the stronger review evidence; those historical runs
 are not rebranded as new final-source executions. The actual current
 `TestMCPHTTPSkillAndResults` explicitly observes `MCP().Done` on unload;
-`TestMCPHTTPJobCancellationAndClose` observes a blocked POST and parked receiver.
+`TestMCPHTTPJobCancellationAndClose` observes blocked POST cancellation.
+`internal/mcp/http_test.go` separately checks the parked receiver in
+`TestHTTPCloseWakesReceiver`.
 Their earlier mutation, redirect, redaction and ordinary-timeout proofs remain
 separate. No broader cancellation or observer stress sweep was repeated.
 
