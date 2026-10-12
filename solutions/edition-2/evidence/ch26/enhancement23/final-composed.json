@@ -1,0 +1,31 @@
+{
+  "accepted": {
+    "focused_score": 75,
+    "focused_max": 75,
+    "focused_receipt": "accepted-final-focused.txt",
+    "unchanged_cli_score": 25,
+    "unchanged_cli_receipt": "accepted-completion-corrected.json",
+    "composed_score": 100,
+    "total": 100,
+    "kind": "composed, not a new full run",
+    "failed": {}
+  },
+  "legacy": {
+    "focused_score": 45,
+    "focused_max": 75,
+    "focused_receipt": "legacy-final-focused.txt",
+    "unchanged_cli_score": 25,
+    "unchanged_cli_receipt": "legacy-completion-corrected.json",
+    "composed_score": 70,
+    "total": 100,
+    "kind": "composed, not a new full run",
+    "failed": {
+      "ensemble-persists": [
+        "named create/select: WebSocket observation deadline"
+      ],
+      "gui-tree-message": [
+        "named create/select: WebSocket observation deadline"
+      ]
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "result": "PASS",
+  "manuscript_sha256": "6ce1110e7011d47171694deef26b64f88e8a0297b9cbc9dd6fedd6ee2973b06f",
+  "fences": [
+    {
+      "index": 0,
+      "language": "sh",
+      "sha256": "217f8010bfd1e35b13b0f4ccf42e3b1ac72dc77a50850c50407017aa54aa5033"
+    },
+    {
+      "index": 1,
+      "language": "sh",
+      "sha256": "e9fd9d409444df18af252e42db65d834096d4a738825cfeda9f88643fb254d2f"
+    },
+    {
+      "index": 2,
+      "language": "sh",
+      "sha256": "f42d439c51a0ac9e1c578c23f7bada8285319ef642d77806333fdeb17515a8c5"
+    },
+    {
+      "index": 3,
+      "language": "text",
+      "sha256": "bbf0784ce823d8c00846328bbc6feb0bc1cee3554c1e191479141cbf3275503b"
+    },
+    {
+      "index": 4,
+      "language": "json",
+      "sha256": "2ed9c2fc76ff2b4e220cec32756465841226af4135a532edd12351bc3092fd83"
+    },
+    {
+      "index": 5,
+      "language": "sh",
+      "sha256": "217f8010bfd1e35b13b0f4ccf42e3b1ac72dc77a50850c50407017aa54aa5033"
+    }
+  ],
+  "main_requests": 12,
+  "judge_requests": 2,
+  "grader_fences": [
+    0,
+    5
+  ],
+  "grader_receipt": "accepted-completion-corrected.json",
+  "limits": "Scripted external decisions establish actual GUI/fleet/tool mechanics, not new autonomous coding or account catalog eligibility. Existing actual Astra/high task evidence remains historical. Grader command fences reuse the recorded same grading invocation with -json output formatting, not a fresh full run."
+}

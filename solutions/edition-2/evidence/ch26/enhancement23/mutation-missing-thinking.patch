@@ -1,0 +1,11 @@
+--- internal/agent/activity.go
++++ internal/agent/activity.go
+@@ -22,7 +22,7 @@
+ 	if len(runes) > 50 {
+ 		detail = string(runes[:50])
+ 	}
+-	activity := common.Activity{Phase: phase, Tool: tool, Detail: detail}
++	if phase == common.ActivityThinking { phase = common.ActivityIdle }; activity := common.Activity{Phase: phase, Tool: tool, Detail: detail}
+ 	a.activityMu.Lock()
+ 	a.activity = activity
+ 	a.activityMu.Unlock()

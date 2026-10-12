@@ -1,0 +1,5 @@
+=== RUN   TestChapter23Samples
+    ch23_samples_test.go:23: 
+--- PASS: TestChapter23Samples (3.42s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	3.428s

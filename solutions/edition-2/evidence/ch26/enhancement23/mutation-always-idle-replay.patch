@@ -1,0 +1,11 @@
+--- gui/gui.go
++++ gui/gui.go
+@@ -460,7 +460,7 @@
+ 	// after it subscribes. These status snapshots are silent replay messages.
+ 	// Replay reports the current state, not a historical transition. Equal
+ 	// endpoints retain the public envelope without inventing a previous state.
+-	state := s.agent.History().Context().Turn
++	state := "idle"
+ 	add(map[string]any{"type": "state_changed", "from": state, "to": state})
+ 	add(map[string]any{"type": "pause_changed", "paused": s.agent.Paused()})
+ 	add(map[string]any{"type": "current_settings", "settings": s.snapshotSettings()})

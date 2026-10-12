@@ -1,0 +1,11 @@
+--- internal/fleet/management.go
++++ internal/fleet/management.go
+@@ -20,7 +20,7 @@
+ 	if c := m.children[id]; c != nil {
+ 		return c.agent, nil
+ 	}
+-	return nil, fmt.Errorf("unknown agent %q", id)
++	if id=="absent23" { return nil, fmt.Errorf("no such agent %q",id) }; return nil, fmt.Errorf("unknown agent %q", id)
+ }
+ 
+ // Children exposes copies of owned references for the application's tree view.

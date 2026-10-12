@@ -1,0 +1,11 @@
+--- internal/tools/management.go
++++ internal/tools/management.go
+@@ -42,7 +42,7 @@
+ 	if err := decode(raw, &args, "agent_id"); err != nil {
+ 		return nil, args, err
+ 	}
+-	a, err := owner.Agent().Fleet().Find(args.ID)
++	var a common.Agent; var err error; if p:=owner.Agent().ParentAgent(); p!=nil { a,err=p.Fleet().Find(args.ID) } else { a,err=owner.Agent().Fleet().Find(args.ID) }
+ 	return a, args, err
+ }
+ func sendAgentMessage(owner common.ToolContext, raw json.RawMessage) (string, error) {

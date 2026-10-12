@@ -1,0 +1,11 @@
+--- ensemble/registry.go
++++ ensemble/registry.go
+@@ -177,7 +177,7 @@
+ 			entries = append(entries, entry)
+ 		}
+ 	}
+-	if err := e.saveRegistry(entries); err != nil {
++	if err := e.saveRegistry(e.registry); err != nil {
+ 		return err
+ 	}
+ 	e.registry = entries

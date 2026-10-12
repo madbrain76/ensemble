@@ -1,0 +1,6 @@
+=== RUN   TestManagementReplayText23
+    ch23_test.go:45: tool-call argument falsely proves restored result
+--- FAIL: TestManagementReplayText23 (0.00s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.007s
+FAIL

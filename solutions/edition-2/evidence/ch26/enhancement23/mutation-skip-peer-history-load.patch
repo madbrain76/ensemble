@@ -1,0 +1,11 @@
+--- ensemble/registry.go
++++ ensemble/registry.go
+@@ -114,7 +114,7 @@
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	if err = a.Load(); err == nil {
++	if err = nil; err == nil {
+ 		err = a.Save()
+ 	}
+ 	if err != nil {

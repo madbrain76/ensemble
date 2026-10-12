@@ -112,11 +112,20 @@ func managementState(frames []map[string]any) string {
 func managementContains(frames []map[string]any, text string) bool {
 	// Only rendered result/text events qualify, never submitted call arguments.
 	for _, m := range frames {
-		if m["type"] == "part_final" || m["type"] == "tool_finished" || m["type"] == "turn_ended" {
-			b, _ := json.Marshal(m)
-			if strings.Contains(string(b), text) {
-				return true
+		content := ""
+		switch m["type"] {
+		case "part_final":
+			part := object(m["part"])
+			if part["type"] == "text" {
+				content, _ = part["text"].(string)
 			}
+		case "tool_finished":
+			content, _ = m["result"].(string)
+		case "turn_ended":
+			content, _ = m["text"].(string)
+		}
+		if strings.Contains(content, text) {
+			return true
 		}
 	}
 	return false
@@ -206,6 +215,8 @@ func managementGUI(bin string, checks []grade.Check) {
 			_ = os.WriteFile(filepath.Join(work, "release"), nil, 0600)
 		}
 		managementResults(provider.Requests(), checks)
+		// Extra real transitions are allowed; require the promised phases in order,
+		// not one implementation-specific number of observations.
 		at := 0
 		for _, phase := range phases {
 			want := []string{"thinking", "tool_call", "idle"}
@@ -247,6 +258,8 @@ func managementGUI(bin string, checks []grade.Check) {
 		if err != nil || managementState(replay) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") {
 			reuseFail(checks, fmt.Errorf("completed selected replay: state=%s history=%t err=%v", managementState(replay), managementContains(replay, "NAMED_CONVERSATION_23"), err), 1, 5)
 		}
+		// An acknowledgment alone cannot prove constructor inputs took effect.
+		// Inspect the actual named Agent request, including its primary instruction.
 		selected := false
 		for _, r := range provider.Requests() {
 			if strings.Contains(string(r.Body), "PEER_TASK_23") && r.JSON()["model"] == "claude-opus-4-6" && strings.Contains(string(r.Body), "PEER_SKILL_BODY_23") {
@@ -260,6 +273,8 @@ func managementGUI(bin string, checks []grade.Check) {
 			reuseFail(checks, err, 1, 5)
 			return
 		}
+		// Keep the provider alive across restart: retained words must come from
+		// the saved conversation, with no request to reconstruct them.
 		count := len(provider.Requests())
 		second, view, err := managementStart(bin, work, boundary.URL)
 		if err != nil {

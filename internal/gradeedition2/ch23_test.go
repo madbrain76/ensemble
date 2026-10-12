@@ -31,3 +31,20 @@ func TestManagement23(t *testing.T) {
 		}
 	}
 }
+
+// A recalled submit argument is not evidence that the submission/result was restored.
+func TestManagementReplayText23(t *testing.T) {
+	for _, event := range []map[string]any{
+		{"type": "part_final", "part": map[string]any{"type": "text", "text": "RESTORED"}},
+		{"type": "tool_finished", "result": "RESTORED"},
+		{"type": "turn_ended", "text": "RESTORED"},
+	} {
+		if !managementContains([]map[string]any{event}, "RESTORED") {
+			t.Fatalf("valid rendered event rejected: %v", event)
+		}
+	}
+	argument := map[string]any{"type": "part_final", "part": map[string]any{"type": "tool_call", "args": map[string]any{"result": "RESTORED"}}}
+	if managementContains([]map[string]any{argument}, "RESTORED") {
+		t.Fatal("tool-call argument falsely proves restored result")
+	}
+}

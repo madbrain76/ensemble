@@ -1,0 +1,11 @@
+--- internal/tools/management.go
++++ internal/tools/management.go
+@@ -103,7 +103,7 @@
+ 	if err != nil {
+ 		return "", err
+ 	}
+-	return fleetJSON(a.Fleet().Status())
++	return fleetJSON(map[string]string{"agent_id": a.Spec().ID, "state":"submitted"})
+ }
+ func interruptAgent(owner common.ToolContext, raw json.RawMessage) (string, error) {
+ 	a, args, err := target(owner, raw)

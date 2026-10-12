@@ -1,0 +1,11 @@
+--- ensemble/registry.go
++++ ensemble/registry.go
+@@ -255,7 +255,7 @@
+ 		n.Parent = AgentKey(p)
+ 	}
+ 	for _, child := range a.Fleet().Children() {
+-		n.Children = append(n.Children, treeNode(child, false, false))
++		_ = child
+ 	}
+ 	return n
+ }

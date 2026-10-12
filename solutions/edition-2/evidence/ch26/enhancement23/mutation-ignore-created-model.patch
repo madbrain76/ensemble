@@ -1,0 +1,14 @@
+--- ensemble/registry.go
++++ ensemble/registry.go
+@@ -104,9 +104,9 @@
+ 		return nil, fmt.Errorf("agent %q already exists", entry.Name)
+ 	}
+ 	cfg, spec := e.defaults, e.defaultSpec
+-	cfg.Model = entry.Model
++	cfg.Model = e.defaults.Model
+ 	spec.ID, spec.PrimarySkill = entry.Name, entry.Skill
+-	spec.Model = entry.Model
++	spec.Model = e.defaults.Model
+ 	spec.DataDir = filepath.Join(e.directory, "agents", entry.Name)
+ 	spec.LogPath = filepath.Join(spec.DataDir, "events.jsonl")
+ 	spec.SavePath = filepath.Join(spec.DataDir, "save.json")

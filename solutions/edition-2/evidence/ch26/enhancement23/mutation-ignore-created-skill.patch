@@ -1,0 +1,11 @@
+--- ensemble/registry.go
++++ ensemble/registry.go
+@@ -105,7 +105,7 @@
+ 	}
+ 	cfg, spec := e.defaults, e.defaultSpec
+ 	cfg.Model = entry.Model
+-	spec.ID, spec.PrimarySkill = entry.Name, entry.Skill
++	spec.ID, spec.PrimarySkill = entry.Name, e.defaultSpec.PrimarySkill
+ 	spec.Model = entry.Model
+ 	spec.DataDir = filepath.Join(e.directory, "agents", entry.Name)
+ 	spec.LogPath = filepath.Join(spec.DataDir, "events.jsonl")

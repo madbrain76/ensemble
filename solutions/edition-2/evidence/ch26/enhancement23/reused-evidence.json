@@ -1,0 +1,104 @@
+{
+  "accepted_source": "450f7a9599295dafb260c1650b9b5553010e2a54",
+  "historical_live_source": "9e2b72aeaddc85cbe1afadec41909b4d66ad3b34",
+  "source_comparison": [
+    {
+      "path": "main.go",
+      "sha256": "affa19b3e1646ed7d564ac524500a8918a1af8d6d37b6831157d6a66e1995f29",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "gui/cmd/main.go",
+      "sha256": "6f2fcaba5950e94d146d57263990e1bac01bf52ee39f5ebbb6a70608face4212",
+      "matches_final_accepted": true,
+      "identical_to_live_source": false
+    },
+    {
+      "path": "ensemble/ensemble.go",
+      "sha256": "81270486eabee95f5e66b01d1bbf9179c803b1392752d544438c118b8d5852f8",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "ensemble/fleet.go",
+      "sha256": "5e2756f97699c4d946338a3ab2e016625d36025464be49690a5e09e899676100",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "ensemble/registry.go",
+      "sha256": "29f405ad489d322e6e26430905293fcb53fa1ce5112363276477c0b5a17f59c6",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "internal/fleet/fleet.go",
+      "sha256": "7b963c26dcefe8bb36e0067f15d014065b6d4e8b52477fe6be14046e52f8da60",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "internal/fleet/management.go",
+      "sha256": "6a444904fc8fc8150c88d89a3f496697415a27898ccc16d1b427af63fb3ca8e1",
+      "matches_final_accepted": true,
+      "identical_to_live_source": false
+    },
+    {
+      "path": "internal/tools/management.go",
+      "sha256": "84dcfca54cddf1716196cb98eeeb4faea43034916c86d9b40229a544d41bf683",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "internal/agent/dispatch.go",
+      "sha256": "126a65f220648160ff95143f36be9527af241b38bd462b8158af030154027da8",
+      "matches_final_accepted": true,
+      "identical_to_live_source": false
+    },
+    {
+      "path": "gui/gui.go",
+      "sha256": "6c163d7616ecf5d71477ddd70f285b94a0535c03eda2a5d2844854d9afd2acca",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "gui/tree.go",
+      "sha256": "69b9b3a80a25b5f687f3d75bf4ede1f51e0b719fe8c2e14572674d6e4168f030",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "ensemble/management_test.go",
+      "sha256": "6b3db4418b61ac8c0294b8abdf9b85b7530968faa4a74d58f31fc8d207f4595a",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "ensemble/registry_test.go",
+      "sha256": "652cf89172b7c565a7bba9b189474b630693012d235d360f44737deb8a41b4d1",
+      "matches_final_accepted": true,
+      "identical_to_live_source": true
+    },
+    {
+      "path": "gui/selection_test.go",
+      "sha256": "0dc9274a85b37c5e75e6ae50cc39410ae2b38e5223462087e16bb6397acc0a99",
+      "matches_final_accepted": true,
+      "identical_to_live_source": false
+    }
+  ],
+  "receipts": {
+    "mutations.json": "588ca4d4faa9e72ea564710c53b8f7e0303221b092c1ce629fd0060810e22357",
+    "mutations-additional.json": "df75fd8ae0d0bbb80dbb54f802446ee4f454fd19866e2cddbcb6bd87f0930025",
+    "round1-mutations.json": "3e9b0b8446eb67bca9f78e3e0d1520a159bc1ec9ac72cd4d0f16a1f9e4bb3da1",
+    "reviewer-stage2-wait.txt": "0a9f847ea1edce27da31e9273e1abf705549678b09f05fa033698b89ee46d05a",
+    "reviewer-selection-corrected.txt": "7ac1e7de480970f726763c8078fa70470bafb1f7420cca1d0c2d83e6f0177f40",
+    "reviewer-round1-state.txt": "c484f91faf9997e02509f953158bb2c14808dea02ab88b4b907382e8db3d3281",
+    "round1-core-race.txt": "36cee7bea690b4dd013d3257517e93766768b29acd3e492b9fd3044d456f17c0",
+    "round1-history-race.txt": "e85e1b71a4e3031f2b2d231b1ff39b48df3a4b37b6a4a57662b945f1da182714",
+    "round1-checks.txt": "f2d4f84c7feefb5eb9f556965b7f57536ae2fd40536aab618e30465eed66ee5a",
+    "coordinator-live-check.json": "979f64086b6138b386a0d93b0d5d5a2bc0ffedf9c3c424dd23b6327dcd4492e8",
+    "live-provenance.json": "4617ceb2a6db6540fc95bc89830bf486ea4d701e76803e8535e853fdf29cb6f8"
+  },
+  "limits": "Earlier raw results retain their own source identity. Accepted final-source matching and unchanged method review support reuse; non-identical dispatch/GUI/test files include the separately evidenced completed-turn correction. No new live/source test execution claimed."
+}

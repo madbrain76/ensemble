@@ -1,0 +1,4 @@
+=== RUN   TestManagementReplayText23
+--- PASS: TestManagementReplayText23 (0.00s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.023s

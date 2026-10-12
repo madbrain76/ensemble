@@ -21,7 +21,7 @@ func Chapter23(bin, gui string) (grade.Report, error) {
 	checks[0].Title = "Correlated child status and ordered observed activity"
 	checks[1].Title = "Named creation selects model/skill, restores conversation and deletes durably"
 	checks[2].Title = "Owned success and indistinguishable foreign/missing management refusal"
-	checks[3].Title = "Selected child change wait precedes actual held-command completion"
+	checks[3].Title = "Selected child progress wakes its change wait; command and submission complete"
 	checks[4].Title = "Actual CLI recursively constructs and completes a three-generation fleet"
 	checks[5].Title = "Live nested GUI tree, conversation selection and truthful replay state"
 	fleetMessaging(bin, &checks[4])

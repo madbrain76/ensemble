@@ -1,0 +1,11 @@
+--- internal/agent/dispatch.go
++++ internal/agent/dispatch.go
+@@ -15,7 +15,7 @@
+ 			// A normal tool result prepares another request. Submission instead
+ 			// ends this turn after the whole batch drains; retain that fact so
+ 			// selection and restart do not resurrect input_pending work.
+-			err := r.append(common.Event{Type: "turn_ended"})
++			var err error
+ 			r.finish(status.Result, err)
+ 			return
+ 		}
