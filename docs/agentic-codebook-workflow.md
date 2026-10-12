@@ -1,5 +1,28 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 11: enhanced Chapter 18 accepted; Chapter 19 released
+
+Independent combined review `55876974` accepts coder `7084fe48` and author
+`7208e2c7` at initial review, zero formal correction rounds. Checkpoint:
+`edition-2-enhanced-ch18-r1`. Actual final full grading is 100/100 on accepted
+and legacy source; exact examples, focused race, vet and prose lint pass.
+Original 15/100 and all fixture-stage/live failures remain separately recorded.
+
+A valid identity without an inference grant must not earn paid fallback, and a
+crashed login must not earn refusal credit. The revised grader checks real
+exchanges and process outcomes. It reuses the original HTTP peers through a
+small adapter; source-grounded missing-model metadata and publication fixes keep
+fixture defects separate from application behavior. Callback EOF is also a real
+browser acknowledgment limitation despite successful terminal login; it is
+recorded, not repaired in frozen source. The independent held-summary probe and
+23 detected defects retain their source versions, coupled claims and limits.
+See [the review](edition-2-notes/enhancement-18-review.md).
+
+Continue Edition 2 Chapter 19 / original 20, The Crossover. This is a prose-only
+chapter with accepted bounded Astra/high coding evidence: do not invent a grader
+or recreate its historical repair checklist. Crossover 25 remains reserved for
+Bill's current move into Ensemble, and Gateway 26 follows existing prose through23.
+
 ## October 11: enhanced Chapter 17 accepted; Chapter 18 released
 
 Independent combined review `cf3bcf10` accepts coder `b1bdb334` and author

@@ -1,5 +1,17 @@
 # Edition 2: chapter enhancement
 
+## Chapter 18 accepted; Chapter 19 assigned, October 11
+
+Combined acceptance `55876974` binds coder `7084fe48`, author `7208e2c7` and
+unchanged manuscript/sample SHA `e057e264`. Initial review, zero formal rounds;
+checkpoint `edition-2-enhanced-ch18-r1`. Actual final full grading is 100/100 on
+both accepted and legacy source. Original failures and the browser acknowledgment
+limit remain in [the review](edition-2-notes/enhancement-18-review.md).
+Chapter 19 / original 20, The Crossover, is released to the same team. It is
+prose-only: validate examples and actual existing coding evidence without adding
+a grader or treating historical bugs as a new repair assignment. Keep all four
+full documents active and reload after every compaction. Chapter25 stays reserved.
+
 ## Chapter 17 accepted; Chapter 18 assigned, October 11
 
 Independent combined acceptance `cf3bcf10` binds coder `b1bdb334`, author
@@ -266,6 +278,7 @@ Coordinator checks the dispositions, mapping and source diff before acceptance.
 | 15 (old 16) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch15-r1` |
 | 16 (old 17) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch16-r1` |
 | 17 (old 18) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch17-r1` |
+| 18 (old 19) | Complete | Accepted at initial formal review | `edition-2-enhanced-ch18-r1` |
 
 ### Chapters 0–1 acceptance
 
