@@ -313,9 +313,9 @@ Give each agent a `SubAgentManager`. The manager holds the children
 map and exposes three operations: spawn, shut down, and list. A child
 is a full agent with its own actor, its own tool visibility, its own
 save file, and its own data directory, created under the parent's
-directory so the filesystem mirrors the ownership tree. A child that
-crashes or needs a fresh start can be torn down and respawned without
-touching the parent's state.
+directory so the filesystem mirrors the ownership tree. A child whose
+task fails can be shut down and respawned without replacing the parent's
+conversation. These Agents share a process; this is not process-crash isolation.
 
 The manager does not know how to build an agent. That job belongs to an
 `AgentFactory`:
@@ -375,7 +375,8 @@ appears under the parent's data tree. Inside it: a save file that
 belongs to the child alone, with its own event log and its own tool
 state. Shut down the child, and the directory survives, because the work
 inside it might matter to whoever reads the results. Restart the same
-child with the same id, and it picks up where it left off. The parent's conversation and save are separate. The task workspace is
+child with the same id, and its saved conversation is loaded before the new
+task starts. The parent's conversation and save are separate. The task workspace is
 still shared: a child's file edits can affect the parent's work. State isolation
 is not a promise that children cannot damage shared files; Chapter 21 supplies
 the optional confinement boundary.
@@ -568,8 +569,7 @@ They are construction lessons, not bugs to recreate in this implementation.
 **No agent factory in the composition root.** The binary returned
 "no agent factory configured" on the first spawn attempt. Every fleet
 test in the library passes, because every fleet test constructs its own
-factory during setup. The composition root, the only code that runs
-when a user starts the binary, never registered one. The library knew
+factory during setup. The application startup path never registered one. The library knew
 how to use a factory. The product never provided one.
 
 **No user sink in the composition root.** The user was addressable in
@@ -605,7 +605,7 @@ mechanism existed. The wire from the terminal to the mechanism did not.
 A comment in the command loop claimed that slash commands could steer
 "a turn that is already running." The comment had been there since the
 file was written. It had never been true. The structure forbade what
-the comment promised, and the comment sat in a file everyone had read.
+the comment promised, and the comment sat beside the input path it misdescribed.
 
 The first-edition tests supplied these dependencies themselves. That let the
 library paths work while the application forgot to assemble them. A library
@@ -981,14 +981,14 @@ rendering.
 | Child state and factory | Actual child construction and distinct data/save paths | 15 |
 | Fleet visibility and shutdown | Status reports a managed child; shutdown removes it | 10 |
 | Fan-in | Selected children all submit and their results reach the parent | 15 |
-| Questions and replies | A question yields fan-in; an addressed reply resumes the child | 15 |
+| Questions and replies | Three-generation question/reply routing; fan-in yields so the parent can answer | 15 |
 | Wake a running wait | Incoming input wakes the wait and its background job remains collectible | 15 |
 | Bounded correction | Early submit fails; missing submission receives three wakes before escalation | 15 |
 
 An import check does not inspect the runtime parent chain. HTTP delivery of a
 JavaScript module does not show a browser rendering it. Keep the actual factory,
-owner, question-identity and shutdown checks beside the public-client and browser
-checks rather than stretching one score to stand for all of them.
+owner, question-identity, human-reply and shutdown checks beside the public-client
+and browser checks rather than stretching one score to stand for all of them.
 
 The original fleet audit changed a child's data directory to its parent's and
 lost six checks at once. That establishes a serious shared-state failure; it
