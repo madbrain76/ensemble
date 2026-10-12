@@ -1,0 +1,11 @@
+--- a/internal/sandbox/command.go
++++ b/internal/sandbox/command.go
+@@ -32,7 +32,7 @@
+ 		}
+ 		out = append(out, item)
+ 	}
+-	out = append(out, "TERM=dumb")
++	out = append(out, "TERM=dumb", "SERVICE_TOKEN="+os.Getenv("SERVICE_TOKEN"))
+ 	if root != "" {
+ 		out = append(out, "PATH=/usr/bin:/bin:/usr/sbin:/sbin", "HOME="+root, "TMPDIR="+root,
+ 			"GIT_CONFIG_GLOBAL="+filepath.Join(root, ".ensemble-gitconfig"), "GIT_CONFIG_SYSTEM=/dev/null", "GIT_PAGER=cat", "PAGER=cat")

@@ -1,0 +1,87 @@
+{
+  "result": "PASS",
+  "manuscript_sha256": "20c231d92254d650f4adca70c01d89b2164c73b3112a7bf692480e5971141b5d",
+  "fences": [
+    {
+      "index": 0,
+      "language": "sh",
+      "sha256": "42c9ce62c27c486b9c6b23c1b1f85132c8d98b3909a16f736fb998492e824752"
+    },
+    {
+      "index": 1,
+      "language": "",
+      "sha256": "59ee2db707424c6577a8595bdc7e4a00ea75f80a102bacaff17d98cb1763aa12"
+    },
+    {
+      "index": 2,
+      "language": "go",
+      "sha256": "2f870056911d0cc3a186ecde098d43fdaa497b3ffefad9d473b22c90fa37587b"
+    },
+    {
+      "index": 3,
+      "language": "go",
+      "sha256": "eb24a770e1eca28b2b5cba0e1981e839c65613ced7c70e2052be4631568941df"
+    },
+    {
+      "index": 4,
+      "language": "go",
+      "sha256": "43e19332cf3a9b7b7876590d0da44b6c3e7a8397b533d4c2033255bda7af5100"
+    },
+    {
+      "index": 5,
+      "language": "go",
+      "sha256": "4b66af57b83cfc40262889d068a663359bacaba1ed74450dbddd2b9191dbaa72"
+    },
+    {
+      "index": 6,
+      "language": "sh",
+      "sha256": "1af25b1e6a899dc7864bb1b07ba8d86369667111fdd0964e701e6c1b9bdc6b9a"
+    },
+    {
+      "index": 7,
+      "language": "sh",
+      "sha256": "6b8e32c391d197ba186859a61723097f764c83a28d9e947c30c5af9d8168f91a"
+    },
+    {
+      "index": 8,
+      "language": "text",
+      "sha256": "fa4f8390753e6d24c33ccfde5d91f1eff0bf91f30195abdceecfcfd0c2c9087a"
+    },
+    {
+      "index": 9,
+      "language": "text",
+      "sha256": "a5cabee23e324d385b410dda018d68e25de7a0c0052ff7e299f4ba2ed9344a4d"
+    },
+    {
+      "index": 10,
+      "language": "sh",
+      "sha256": "28bd54d1a3490d922af2a37b272a491140f03976896e80767c48a4815f799531"
+    },
+    {
+      "index": 11,
+      "language": "text",
+      "sha256": "c920fab22f8c8184734ecad1d4675191bbb588d80df836ed2226ab252438f117"
+    }
+  ],
+  "requests": 19,
+  "judges": 3,
+  "go_bindings": [
+    {
+      "fence": 2,
+      "source": "internal/sandbox/files.go"
+    },
+    {
+      "fence": 3,
+      "source": "ensemble/spec.go"
+    },
+    {
+      "fence": 4,
+      "source": "ensemble/spec.go"
+    },
+    {
+      "fence": 5,
+      "source": "internal/sandbox/files.go"
+    }
+  ],
+  "limits": "Scripted external decisions prove CLI/tool mechanics; historical paid evidence remains separate. No new model quality or account eligibility claim."
+}

@@ -1,0 +1,1 @@
+First script stopped before read-empty-success: exact replacement occurred twice (read_file and edit_file). No mutant applied for that case. Ten preceding intended failures remain; use function-bounded first occurrence for read-only mutation.

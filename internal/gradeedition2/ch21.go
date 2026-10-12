@@ -137,6 +137,9 @@ func sandboxChecks(bin string, checks []grade.Check) {
 		return
 	}
 	q := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'" }
+	// The API trace starts with the full tool schema. Request an explicit file
+	// and supervisor output budget so that a truncated prefix cannot masquerade
+	// as evidence about the seeded response later in the readable log.
 	probes := []sandboxProbe{
 		{"read", "read_file", map[string]any{"path": "notes.txt"}},
 		{"write", "write_file", map[string]any{"path": "local.txt", "content": "LOCAL_" + f.nonce}},
@@ -217,13 +220,16 @@ func sandboxChecks(bin string, checks []grade.Check) {
 			}
 		}
 	}
-	if strings.Contains(env+log, f.credential) {
-		fail(credentials, "credential reached environment or readable log")
+	if strings.Contains(env, f.credential) {
+		fail(credentials, "credential reached command environment result")
 	}
-	for _, id := range []string{"relative", "symlink", "cwd"} {
+	if strings.Contains(log, f.credential) {
+		fail(credentials, "credential reached successful readable API-log result")
+	}
+	for id, asked := range map[string]string{"relative": "../vault/file.txt", "symlink": "escape/file.txt", "cwd": "escape"} {
 		text := skillResult(leak, result[id], id, true)
-		if text == "" {
-			fail(leak, "missing correlated refusal %s", id)
+		if !strings.Contains(text, asked) {
+			fail(leak, "refusal %s lost caller-supplied path %q", id, asked)
 		}
 		if strings.Contains(text, f.base) {
 			fail(leak, "refusal %s disclosed constructed host root", id)
@@ -241,6 +247,8 @@ func sandboxSafe(bin string, c *grade.Check) {
 		return
 	}
 	probes := []sandboxProbe{{"write", "write_file", map[string]any{"path": "safe.txt", "content": "SAFE_" + f.nonce}}, {"read", "read_file", map[string]any{"path": "safe.txt"}}}
+	// Preserve the original four-tool contract. The accepted implementation also
+	// withholds tool_limits, but that extra choice is not a fifth numeric rule.
 	banned := []string{"run_command", "send_input", "wait_for_job", "kill_job"}
 	for _, name := range banned {
 		probes = append(probes, sandboxProbe{name, name, map[string]any{"command": "printf BAD > escaped.txt", "handle": 1}})

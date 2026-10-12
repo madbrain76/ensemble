@@ -1,0 +1,6 @@
+=== RUN   TestChapter21FinalEvidence
+    ch21_final_test.go:11: accepted actual report score=90/100 elapsed=483.019333ms
+    ch21_final_test.go:11: legacy actual report score=75/100 elapsed=460.617416ms
+--- PASS: TestChapter21FinalEvidence (1.76s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.766s

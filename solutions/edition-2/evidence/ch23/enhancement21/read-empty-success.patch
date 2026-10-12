@@ -1,0 +1,10 @@
+--- a/internal/tools/tools.go
++++ b/internal/tools/tools.go
+@@ -115,6 +115,7 @@
+ 		return "", errors.New("invalid line range or max_bytes")
+ 	}
+ 	data, err := owner.Agent().Sandbox().ReadFile(args.Path)
++ if err == nil { data = nil }
+ 	if err != nil {
+ 		return "", err
+ 	}

@@ -1,0 +1,58 @@
+=== RUN   TestChapter21Samples
+    ch21_samples_test.go:23: ----------------------------------------
+        Exception occurred during processing of request from ('127.0.0.1', 63980)
+        Traceback (most recent call last):
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 697, in process_request_thread
+            self.finish_request(request, client_address)
+            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 362, in finish_request
+            self.RequestHandlerClass(request, client_address, self)
+            ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 766, in __init__
+            self.handle()
+            ~~~~~~~~~~~^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/server.py", line 447, in handle
+            self.handle_one_request()
+            ~~~~~~~~~~~~~~~~~~~~~~~^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/server.py", line 435, in handle_one_request
+            method()
+            ~~~~~~^^
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch23/enhancement21/samples.py", line 25, in do_POST
+            assert q['model']=='gpt-6-astra' and q['reasoning']=={'effort':'high','summary':'detailed'}
+                                                 ~^^^^^^^^^^^^^
+        KeyError: 'reasoning'
+        ----------------------------------------
+        ----------------------------------------
+        Exception occurred during processing of request from ('127.0.0.1', 63995)
+        Traceback (most recent call last):
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 697, in process_request_thread
+            self.finish_request(request, client_address)
+            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 362, in finish_request
+            self.RequestHandlerClass(request, client_address, self)
+            ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 766, in __init__
+            self.handle()
+            ~~~~~~~~~~~^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/server.py", line 447, in handle
+            self.handle_one_request()
+            ~~~~~~~~~~~~~~~~~~~~~~~^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/server.py", line 435, in handle_one_request
+            method()
+            ~~~~~~^^
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch23/enhancement21/samples.py", line 25, in do_POST
+            assert q['model']=='gpt-6-astra' and q['reasoning']=={'effort':'high','summary':'detailed'}
+                                                 ~^^^^^^^^^^^^^
+        KeyError: 'reasoning'
+        ----------------------------------------
+        Traceback (most recent call last):
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch23/enhancement21/samples.py", line 73, in <module>
+            for i in [8,9,16]:assert 'outside sandbox' in actual[script[i]['call_id']],actual[script[i]['call_id']]
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        AssertionError: sandbox refused "../outside.txt"
+        
+    ch21_samples_test.go:24: exit status 1
+--- FAIL: TestChapter21Samples (1.43s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	1.442s
+FAIL

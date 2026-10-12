@@ -1,0 +1,11 @@
+--- a/internal/sandbox/files.go
++++ b/internal/sandbox/files.go
+@@ -70,7 +70,7 @@
+ 
+ // Refusals retain only the caller's own spelling. OS errors otherwise disclose
+ // the canonical host root through PathError, including for ordinary ENOENT.
+-func refusal(path string) error { return fmt.Errorf("sandbox refused %q", path) }
++func refusal(path string) error { return fmt.Errorf("sandbox refused") }
+ func safeError(path string, err error) error {
+ 	if err == nil {
+ 		return nil

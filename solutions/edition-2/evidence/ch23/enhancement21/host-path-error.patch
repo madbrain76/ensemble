@@ -1,0 +1,11 @@
+--- a/internal/sandbox/files.go
++++ b/internal/sandbox/files.go
+@@ -109,7 +109,7 @@
+ 	}
+ 	resolved, err := canonical(candidate)
+ 	if err != nil || !inside(root, resolved) {
+-		return "", refusal(path)
++		return "", fmt.Errorf("sandbox root %s refused %s",root,path)
+ 	}
+ 	return resolved, nil
+ }

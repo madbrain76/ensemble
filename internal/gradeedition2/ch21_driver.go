@@ -20,6 +20,9 @@ func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProb
 	for _, p := range probes {
 		replies = append(replies, p.reply())
 	}
+	// Seed a known fake credential into the provider trace. We inspect the log
+	// through the real file tool; filtering arbitrary assistant text is not a
+	// substitute for sanitizing that readable file at write time.
 	replies[0].Text = "CREDENTIAL_ECHO_" + f.nonce + " " + f.credential
 	final := "SANDBOX_COMPLETE_" + f.nonce
 	replies = append(replies, fakevendor.Reply{Text: final})

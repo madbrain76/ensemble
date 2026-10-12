@@ -1,0 +1,257 @@
+[
+  {
+    "name": "baseline",
+    "exit": 0,
+    "seconds": 1.323,
+    "score": 100,
+    "failures": {}
+  },
+  {
+    "name": "file-read-absolute",
+    "exit": 1,
+    "seconds": 1.063,
+    "score": 85,
+    "failures": {
+      "path-confinement": [
+        "result absolute: error=false want=true text=\"FILE_SECRET_sandbox-grade-3791719166\" decode=<nil>",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context"
+      ]
+    }
+  },
+  {
+    "name": "host-path-error",
+    "exit": 1,
+    "seconds": 1.002,
+    "score": 90,
+    "failures": {
+      "no-host-path-leak": [
+        "refusal relative disclosed constructed host root",
+        "refusal symlink disclosed constructed host root",
+        "refusal cwd disclosed constructed host root"
+      ]
+    }
+  },
+  {
+    "name": "kernel-read",
+    "exit": 1,
+    "seconds": 1.031,
+    "score": 80,
+    "failures": {
+      "kernel-confinement": [
+        "command command-escape exit 0, success wanted false",
+        "command descendant exit 0, success wanted false",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context",
+        "protected marker reached provider context"
+      ]
+    }
+  },
+  {
+    "name": "kernel-write",
+    "exit": 1,
+    "seconds": 0.936,
+    "score": 80,
+    "failures": {
+      "kernel-confinement": [
+        "command command-write exit 0, success wanted false",
+        "outside command write created a file: <nil>"
+      ]
+    }
+  },
+  {
+    "name": "network",
+    "exit": 1,
+    "seconds": 0.907,
+    "score": 85,
+    "failures": {
+      "no-network": [
+        "command network exit 0, success wanted false",
+        "child reached host-controlled HTTP target, hits=2"
+      ]
+    }
+  },
+  {
+    "name": "child-derive",
+    "exit": 1,
+    "seconds": 0.949,
+    "score": 90,
+    "failures": {
+      "child-cannot-widen": [
+        "public consumer missing INHERITS: CHILD_NARROWS\nCHILD_REPORTS\nCHILD_SYMLINK_REFUSED\n",
+        "public consumer missing VALID_SUBROOT: CHILD_NARROWS\nCHILD_REPORTS\nCHILD_SYMLINK_REFUSED\n",
+        "public consumer missing EXISTING_SUBROOT: CHILD_NARROWS\nCHILD_REPORTS\nCHILD_SYMLINK_REFUSED\n"
+      ]
+    }
+  },
+  {
+    "name": "child-safe",
+    "exit": 1,
+    "seconds": 0.944,
+    "score": 90,
+    "failures": {
+      "child-cannot-widen": [
+        "public consumer missing NARROWS: CHILD_INHERITS\nCHILD_REPORTS\nCHILD_VALID_SUBROOT\nCHILD_EXISTING_SUBROOT\nCHILD_SYMLINK_REFUSED\n"
+      ]
+    }
+  },
+  {
+    "name": "child-alarm",
+    "exit": 1,
+    "seconds": 0.949,
+    "score": 90,
+    "failures": {
+      "child-cannot-widen": [
+        "public consumer missing REPORTS: CHILD_INHERITS\nCHILD_NARROWS\nCHILD_VALID_SUBROOT\nCHILD_EXISTING_SUBROOT\n",
+        "public consumer missing SYMLINK_REFUSED: CHILD_INHERITS\nCHILD_NARROWS\nCHILD_VALID_SUBROOT\nCHILD_EXISTING_SUBROOT\n"
+      ]
+    }
+  },
+  {
+    "name": "safe-mode",
+    "exit": 1,
+    "seconds": 1.028,
+    "score": 85,
+    "failures": {
+      "safe-mode-absence": [
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "safe mode advertised run_command",
+        "safe mode advertised send_input",
+        "safe mode advertised wait_for_job",
+        "safe mode advertised kill_job",
+        "result run_command: error=false want=true text=\"\\nexit_code: 0\\n\" decode=<nil>",
+        "run_command did not give an unknown-tool refusal: \"\\nexit_code: 0\\n\"",
+        "send_input did not give an unknown-tool refusal: \"missing required argument input\"",
+        "result wait_for_job: error=false want=true text=\"job 1 done; 26 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-1772902765/work/cr/io/1\\nno new output\\n\" decode=<nil>",
+        "wait_for_job did not give an unknown-tool refusal: \"job 1 done; 26 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/t/sandbox-grade-1772902765/work/cr/io/1\\nno new output\\n\"",
+        "result kill_job: error=false want=true text=\"job 1 done; 26 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-1772902765/work/cr/io/1\\nno new output\\n\" decode=<nil>",
+        "kill_job did not give an unknown-tool refusal: \"job 1 done; 26 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/t/sandbox-grade-1772902765/work/cr/io/1\\nno new output\\n\"",
+        "guessed disabled command executed"
+      ]
+    }
+  },
+  {
+    "name": "environment",
+    "exit": 1,
+    "seconds": 0.926,
+    "score": 85,
+    "failures": {
+      "no-credentials": [
+        "credential reached environment or readable log"
+      ]
+    }
+  },
+  {
+    "name": "read-empty-success",
+    "exit": 1,
+    "seconds": 1.154,
+    "score": 55,
+    "failures": {
+      "path-confinement": [
+        "result read: error=false want=false text=\"\" decode=<nil>",
+        "allowed read lost actual content",
+        "result edited: error=false want=false text=\"\" decode=<nil>",
+        "allowed edited lost actual content"
+      ],
+      "no-credentials": [
+        "result log: error=false want=false text=\"\" decode=<nil>",
+        "actual readable API trace did not contain earlier response"
+      ],
+      "safe-mode-absence": [
+        "result read: error=false want=false text=\"\" decode=<nil>",
+        "safe file result absent"
+      ]
+    }
+  },
+  {
+    "name": "exit-after-success",
+    "exit": 1,
+    "seconds": 0.924,
+    "score": 10,
+    "failures": {
+      "path-confinement": [
+        "sandbox session: CLI exit: exit status 17; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=5450 predicted=0.0000\n2026/10/11 21:24:03 cache lens: rotate: sandbox refused \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/work/cr/cache-prior.txt\"\nread_file {\"path\":\"notes.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5449 prompt_bytes=5781 predicted=0.9426\nwrite_file {\"content\":\"LOCAL_sandbox-grade-3501819268\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9426\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5780 prompt_bytes=6077 predicted=0.9511\nedit_file {\"new_text\":\"EDITED_\",\"old_text\":\"LOCAL_\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9511\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6076 prompt_bytes=6378 predicted=0.9526\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9526\nread_file {\"path\":\"local.txt\"}\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6377 prompt_bytes=6636 predicted=0.9610\nsearch_files {\"path\":\".\",\"pattern\":\"EDITED_sandbox-grade-3501819268\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9610\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6635 prompt_bytes=19810 predicted=0.3349\nlist_directory {\"path\":\".\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.3349\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=19809 prompt_bytes=20093 predicted=0.9859\nread_file {\"path\":\"../vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9859\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20092 prompt_bytes=20385 predicted=0.9856\nread_file {\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9856\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20384 prompt_bytes=20819 predicted=0.9791\nread_file {\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9791\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20818 prompt_bytes=21105 predicted=0.9864\nwrite_file {\"content\":\"BAD\",\"overwrite\":true,\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9864\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21104 prompt_bytes=21426 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf COMMAND_OK \\u003e command.txt \\u0026\\u0026 cat command.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21425 prompt_bytes=21764 predicted=0.9844\nrun_command {\"ai_callback_delay\":5,\"command\":\"/usr/bin/python3 -c 'print(open(\\\"command.txt\\\").read())'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9844\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21763 prompt_bytes=22094 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"git init -q repo \\u0026\\u0026 cd repo \\u0026\\u0026 printf git-control \\u003e note \\u0026\\u0026 git add note \\u0026\\u0026 git commit -qm git-control \\u0026\\u0026 git log -1 --format=%s\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22093 prompt_bytes=22545 predicted=0.9800\nrun_command {\"ai_callback_delay\":5,\"command\":\"cat '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9800\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22544 prompt_bytes=23042 predicted=0.9784\nrun_command {\"ai_callback_delay\":5,\"command\":\"sh -c 'sh -c '\\\\''cat '\\\\''\\\\'\\\\'''\\\\''/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\\\\''\\\\'\\\\'''\\\\'''\\\\'''\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9784\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23041 prompt_bytes=23587 predicted=0.9769\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf BAD \\u003e '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/created.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9769\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23586 prompt_bytes=24100 predicted=0.9787\nrun_command {\"ai_callback_delay\":5,\"command\":\"curl -sS --max-time 2 'http://127.0.0.1:63864'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9787\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24099 prompt_bytes=24501 predicted=0.9836\nrun_command {\"ai_callback_delay\":5,\"command\":\"env\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9836\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24500 prompt_bytes=25326 predicted=0.9674\nrun_command {\"ai_callback_delay\":5,\"command\":\"true\",\"cwd\":\"escape\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9674\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25325 prompt_bytes=25626 predicted=0.9883\nread_file {\"max_bytes\":65536,\"max_output_bytes\":65536,\"path\":\"api.log\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9883\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25625 prompt_bytes=110466 predicted=0.2320\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.2320\n"
+      ],
+      "kernel-confinement": [
+        "sandbox session: CLI exit: exit status 17; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=5450 predicted=0.0000\n2026/10/11 21:24:03 cache lens: rotate: sandbox refused \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/work/cr/cache-prior.txt\"\nread_file {\"path\":\"notes.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5449 prompt_bytes=5781 predicted=0.9426\nwrite_file {\"content\":\"LOCAL_sandbox-grade-3501819268\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9426\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5780 prompt_bytes=6077 predicted=0.9511\nedit_file {\"new_text\":\"EDITED_\",\"old_text\":\"LOCAL_\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9511\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6076 prompt_bytes=6378 predicted=0.9526\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9526\nread_file {\"path\":\"local.txt\"}\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6377 prompt_bytes=6636 predicted=0.9610\nsearch_files {\"path\":\".\",\"pattern\":\"EDITED_sandbox-grade-3501819268\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9610\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6635 prompt_bytes=19810 predicted=0.3349\nlist_directory {\"path\":\".\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.3349\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=19809 prompt_bytes=20093 predicted=0.9859\nread_file {\"path\":\"../vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9859\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20092 prompt_bytes=20385 predicted=0.9856\nread_file {\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9856\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20384 prompt_bytes=20819 predicted=0.9791\nread_file {\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9791\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20818 prompt_bytes=21105 predicted=0.9864\nwrite_file {\"content\":\"BAD\",\"overwrite\":true,\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9864\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21104 prompt_bytes=21426 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf COMMAND_OK \\u003e command.txt \\u0026\\u0026 cat command.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21425 prompt_bytes=21764 predicted=0.9844\nrun_command {\"ai_callback_delay\":5,\"command\":\"/usr/bin/python3 -c 'print(open(\\\"command.txt\\\").read())'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9844\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21763 prompt_bytes=22094 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"git init -q repo \\u0026\\u0026 cd repo \\u0026\\u0026 printf git-control \\u003e note \\u0026\\u0026 git add note \\u0026\\u0026 git commit -qm git-control \\u0026\\u0026 git log -1 --format=%s\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22093 prompt_bytes=22545 predicted=0.9800\nrun_command {\"ai_callback_delay\":5,\"command\":\"cat '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9800\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22544 prompt_bytes=23042 predicted=0.9784\nrun_command {\"ai_callback_delay\":5,\"command\":\"sh -c 'sh -c '\\\\''cat '\\\\''\\\\'\\\\'''\\\\''/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\\\\''\\\\'\\\\'''\\\\'''\\\\'''\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9784\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23041 prompt_bytes=23587 predicted=0.9769\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf BAD \\u003e '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/created.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9769\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23586 prompt_bytes=24100 predicted=0.9787\nrun_command {\"ai_callback_delay\":5,\"command\":\"curl -sS --max-time 2 'http://127.0.0.1:63864'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9787\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24099 prompt_bytes=24501 predicted=0.9836\nrun_command {\"ai_callback_delay\":5,\"command\":\"env\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9836\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24500 prompt_bytes=25326 predicted=0.9674\nrun_command {\"ai_callback_delay\":5,\"command\":\"true\",\"cwd\":\"escape\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9674\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25325 prompt_bytes=25626 predicted=0.9883\nread_file {\"max_bytes\":65536,\"max_output_bytes\":65536,\"path\":\"api.log\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9883\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25625 prompt_bytes=110466 predicted=0.2320\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.2320\n"
+      ],
+      "no-network": [
+        "sandbox session: CLI exit: exit status 17; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=5450 predicted=0.0000\n2026/10/11 21:24:03 cache lens: rotate: sandbox refused \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/work/cr/cache-prior.txt\"\nread_file {\"path\":\"notes.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5449 prompt_bytes=5781 predicted=0.9426\nwrite_file {\"content\":\"LOCAL_sandbox-grade-3501819268\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9426\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5780 prompt_bytes=6077 predicted=0.9511\nedit_file {\"new_text\":\"EDITED_\",\"old_text\":\"LOCAL_\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9511\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6076 prompt_bytes=6378 predicted=0.9526\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9526\nread_file {\"path\":\"local.txt\"}\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6377 prompt_bytes=6636 predicted=0.9610\nsearch_files {\"path\":\".\",\"pattern\":\"EDITED_sandbox-grade-3501819268\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9610\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6635 prompt_bytes=19810 predicted=0.3349\nlist_directory {\"path\":\".\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.3349\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=19809 prompt_bytes=20093 predicted=0.9859\nread_file {\"path\":\"../vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9859\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20092 prompt_bytes=20385 predicted=0.9856\nread_file {\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9856\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20384 prompt_bytes=20819 predicted=0.9791\nread_file {\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9791\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20818 prompt_bytes=21105 predicted=0.9864\nwrite_file {\"content\":\"BAD\",\"overwrite\":true,\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9864\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21104 prompt_bytes=21426 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf COMMAND_OK \\u003e command.txt \\u0026\\u0026 cat command.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21425 prompt_bytes=21764 predicted=0.9844\nrun_command {\"ai_callback_delay\":5,\"command\":\"/usr/bin/python3 -c 'print(open(\\\"command.txt\\\").read())'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9844\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21763 prompt_bytes=22094 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"git init -q repo \\u0026\\u0026 cd repo \\u0026\\u0026 printf git-control \\u003e note \\u0026\\u0026 git add note \\u0026\\u0026 git commit -qm git-control \\u0026\\u0026 git log -1 --format=%s\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22093 prompt_bytes=22545 predicted=0.9800\nrun_command {\"ai_callback_delay\":5,\"command\":\"cat '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9800\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22544 prompt_bytes=23042 predicted=0.9784\nrun_command {\"ai_callback_delay\":5,\"command\":\"sh -c 'sh -c '\\\\''cat '\\\\''\\\\'\\\\'''\\\\''/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\\\\''\\\\'\\\\'''\\\\'''\\\\'''\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9784\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23041 prompt_bytes=23587 predicted=0.9769\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf BAD \\u003e '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/created.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9769\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23586 prompt_bytes=24100 predicted=0.9787\nrun_command {\"ai_callback_delay\":5,\"command\":\"curl -sS --max-time 2 'http://127.0.0.1:63864'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9787\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24099 prompt_bytes=24501 predicted=0.9836\nrun_command {\"ai_callback_delay\":5,\"command\":\"env\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9836\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24500 prompt_bytes=25326 predicted=0.9674\nrun_command {\"ai_callback_delay\":5,\"command\":\"true\",\"cwd\":\"escape\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9674\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25325 prompt_bytes=25626 predicted=0.9883\nread_file {\"max_bytes\":65536,\"max_output_bytes\":65536,\"path\":\"api.log\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9883\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25625 prompt_bytes=110466 predicted=0.2320\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.2320\n"
+      ],
+      "no-credentials": [
+        "sandbox session: CLI exit: exit status 17; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=5450 predicted=0.0000\n2026/10/11 21:24:03 cache lens: rotate: sandbox refused \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/work/cr/cache-prior.txt\"\nread_file {\"path\":\"notes.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5449 prompt_bytes=5781 predicted=0.9426\nwrite_file {\"content\":\"LOCAL_sandbox-grade-3501819268\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9426\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5780 prompt_bytes=6077 predicted=0.9511\nedit_file {\"new_text\":\"EDITED_\",\"old_text\":\"LOCAL_\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9511\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6076 prompt_bytes=6378 predicted=0.9526\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9526\nread_file {\"path\":\"local.txt\"}\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6377 prompt_bytes=6636 predicted=0.9610\nsearch_files {\"path\":\".\",\"pattern\":\"EDITED_sandbox-grade-3501819268\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9610\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6635 prompt_bytes=19810 predicted=0.3349\nlist_directory {\"path\":\".\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.3349\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=19809 prompt_bytes=20093 predicted=0.9859\nread_file {\"path\":\"../vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9859\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20092 prompt_bytes=20385 predicted=0.9856\nread_file {\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9856\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20384 prompt_bytes=20819 predicted=0.9791\nread_file {\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9791\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20818 prompt_bytes=21105 predicted=0.9864\nwrite_file {\"content\":\"BAD\",\"overwrite\":true,\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9864\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21104 prompt_bytes=21426 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf COMMAND_OK \\u003e command.txt \\u0026\\u0026 cat command.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21425 prompt_bytes=21764 predicted=0.9844\nrun_command {\"ai_callback_delay\":5,\"command\":\"/usr/bin/python3 -c 'print(open(\\\"command.txt\\\").read())'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9844\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21763 prompt_bytes=22094 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"git init -q repo \\u0026\\u0026 cd repo \\u0026\\u0026 printf git-control \\u003e note \\u0026\\u0026 git add note \\u0026\\u0026 git commit -qm git-control \\u0026\\u0026 git log -1 --format=%s\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22093 prompt_bytes=22545 predicted=0.9800\nrun_command {\"ai_callback_delay\":5,\"command\":\"cat '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9800\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22544 prompt_bytes=23042 predicted=0.9784\nrun_command {\"ai_callback_delay\":5,\"command\":\"sh -c 'sh -c '\\\\''cat '\\\\''\\\\'\\\\'''\\\\''/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\\\\''\\\\'\\\\'''\\\\'''\\\\'''\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9784\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23041 prompt_bytes=23587 predicted=0.9769\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf BAD \\u003e '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/created.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9769\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23586 prompt_bytes=24100 predicted=0.9787\nrun_command {\"ai_callback_delay\":5,\"command\":\"curl -sS --max-time 2 'http://127.0.0.1:63864'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9787\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24099 prompt_bytes=24501 predicted=0.9836\nrun_command {\"ai_callback_delay\":5,\"command\":\"env\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9836\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24500 prompt_bytes=25326 predicted=0.9674\nrun_command {\"ai_callback_delay\":5,\"command\":\"true\",\"cwd\":\"escape\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9674\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25325 prompt_bytes=25626 predicted=0.9883\nread_file {\"max_bytes\":65536,\"max_output_bytes\":65536,\"path\":\"api.log\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9883\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25625 prompt_bytes=110466 predicted=0.2320\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.2320\n"
+      ],
+      "safe-mode-absence": [
+        "safe session: CLI exit: exit status 17; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=2864 predicted=0.0000\n2026/10/11 21:24:03 cache lens: rotate: sandbox refused \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-4212384981/work/cr/cache-prior.txt\"\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000\nwrite_file {\"content\":\"SAFE_sandbox-grade-4212384981\",\"path\":\"safe.txt\"}\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=2863 prompt_bytes=3234 predicted=0.8853\nread_file {\"path\":\"safe.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.8853\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=3233 prompt_bytes=3485 predicted=0.9277\nrun_command {\"command\":\"printf BAD \\u003e escaped.txt\",\"handle\":1}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9277\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=3484 prompt_bytes=3802 predicted=0.9164\nsend_input {\"command\":\"printf BAD \\u003e escaped.txt\",\"handle\":1}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9164\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=3801 prompt_bytes=4115 predicted=0.9237\nwait_for_job {\"command\":\"printf BAD \\u003e escaped.txt\",\"handle\":1}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9237\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=4114 prompt_bytes=4436 predicted=0.9274\nkill_job {\"command\":\"printf BAD \\u003e escaped.txt\",\"handle\":1}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9274\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=4435 prompt_bytes=4741 predicted=0.9355\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9355\n"
+      ],
+      "no-host-path-leak": [
+        "sandbox session: CLI exit: exit status 17; stderr: Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:cold system:cold messages:cold; prefix_bytes=0 prompt_bytes=5450 predicted=0.0000\n2026/10/11 21:24:03 cache lens: rotate: sandbox refused \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/work/cr/cache-prior.txt\"\nread_file {\"path\":\"notes.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5449 prompt_bytes=5781 predicted=0.9426\nwrite_file {\"content\":\"LOCAL_sandbox-grade-3501819268\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9426\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=5780 prompt_bytes=6077 predicted=0.9511\nedit_file {\"new_text\":\"EDITED_\",\"old_text\":\"LOCAL_\",\"path\":\"local.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9511\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6076 prompt_bytes=6378 predicted=0.9526\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9526\nread_file {\"path\":\"local.txt\"}\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6377 prompt_bytes=6636 predicted=0.9610\nsearch_files {\"path\":\".\",\"pattern\":\"EDITED_sandbox-grade-3501819268\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9610\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=6635 prompt_bytes=19810 predicted=0.3349\nlist_directory {\"path\":\".\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.3349\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=19809 prompt_bytes=20093 predicted=0.9859\nread_file {\"path\":\"../vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9859\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20092 prompt_bytes=20385 predicted=0.9856\nread_file {\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9856\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20384 prompt_bytes=20819 predicted=0.9791\nread_file {\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9791\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=20818 prompt_bytes=21105 predicted=0.9864\nwrite_file {\"content\":\"BAD\",\"overwrite\":true,\"path\":\"escape/file.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9864\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21104 prompt_bytes=21426 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf COMMAND_OK \\u003e command.txt \\u0026\\u0026 cat command.txt\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21425 prompt_bytes=21764 predicted=0.9844\nrun_command {\"ai_callback_delay\":5,\"command\":\"/usr/bin/python3 -c 'print(open(\\\"command.txt\\\").read())'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9844\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=21763 prompt_bytes=22094 predicted=0.9850\nrun_command {\"ai_callback_delay\":5,\"command\":\"git init -q repo \\u0026\\u0026 cd repo \\u0026\\u0026 printf git-control \\u003e note \\u0026\\u0026 git add note \\u0026\\u0026 git commit -qm git-control \\u0026\\u0026 git log -1 --format=%s\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9850\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22093 prompt_bytes=22545 predicted=0.9800\nrun_command {\"ai_callback_delay\":5,\"command\":\"cat '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9800\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=22544 prompt_bytes=23042 predicted=0.9784\nrun_command {\"ai_callback_delay\":5,\"command\":\"sh -c 'sh -c '\\\\''cat '\\\\''\\\\'\\\\'''\\\\''/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/command.txt'\\\\''\\\\'\\\\'''\\\\'''\\\\'''\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9784\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23041 prompt_bytes=23587 predicted=0.9769\nrun_command {\"ai_callback_delay\":5,\"command\":\"printf BAD \\u003e '/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/sandbox-grade-3501819268/vault/created.txt'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9769\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=23586 prompt_bytes=24100 predicted=0.9787\nrun_command {\"ai_callback_delay\":5,\"command\":\"curl -sS --max-time 2 'http://127.0.0.1:63864'\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9787\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24099 prompt_bytes=24501 predicted=0.9836\nrun_command {\"ai_callback_delay\":5,\"command\":\"env\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9836\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=24500 prompt_bytes=25326 predicted=0.9674\nrun_command {\"ai_callback_delay\":5,\"command\":\"true\",\"cwd\":\"escape\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9674\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25325 prompt_bytes=25626 predicted=0.9883\nread_file {\"max_bytes\":65536,\"max_output_bytes\":65536,\"path\":\"api.log\"}2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.9883\n\n2026/10/11 21:24:03 cache lens anthropic/claude-sonnet-5: tools:identical system:identical messages:appended; prefix_bytes=25625 prompt_bytes=110466 predicted=0.2320\n2026/10/11 21:24:03 cache grant: input_tokens=0 read_tokens=0 granted=0.0000 predicted=0.2320\n"
+      ]
+    }
+  },
+  {
+    "name": "restored",
+    "exit": 0,
+    "seconds": 0.822,
+    "score": 100,
+    "failures": {}
+  },
+  {
+    "name": "generic-refusal",
+    "exit": 1,
+    "seconds": 1.143,
+    "score": 90,
+    "failures": {
+      "no-host-path-leak": [
+        "refusal relative lost caller-supplied path \"../vault/file.txt\"",
+        "refusal symlink lost caller-supplied path \"escape/file.txt\"",
+        "refusal cwd lost caller-supplied path \"escape\""
+      ]
+    }
+  },
+  {
+    "name": "restored",
+    "exit": 0,
+    "seconds": 0.985,
+    "score": 100,
+    "failures": {}
+  }
+]

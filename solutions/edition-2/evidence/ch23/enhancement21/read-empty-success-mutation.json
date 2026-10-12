@@ -1,0 +1,71 @@
+{
+  "title": "Edition 2, Chapter 21 — The Sandbox",
+  "checks": [
+    {
+      "id": "path-confinement",
+      "title": "File tools refuse to escape the sandbox root",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "result read: error=false want=false text=\"\" decode=\u003cnil\u003e",
+        "allowed read lost actual content",
+        "result edited: error=false want=false text=\"\" decode=\u003cnil\u003e",
+        "allowed edited lost actual content"
+      ]
+    },
+    {
+      "id": "kernel-confinement",
+      "title": "Commands and their descendants cannot reach outside the root",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "no-network",
+      "title": "A sandboxed command cannot reach the network",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "no-credentials",
+      "title": "No credential reaches a tool result",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "result log: error=false want=false text=\"\" decode=\u003cnil\u003e",
+        "actual readable API trace did not contain earlier response"
+      ]
+    },
+    {
+      "id": "child-cannot-widen",
+      "title": "A child's permissions are clamped, and an over-request is reported",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "safe-mode-absence",
+      "title": "Safe mode removes the exec tools and keeps the file tools",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "result read: error=false want=false text=\"\" decode=\u003cnil\u003e",
+        "safe file result absent"
+      ]
+    },
+    {
+      "id": "no-host-path-leak",
+      "title": "A refusal names the path the model asked for, not the host path",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "score": 55,
+  "max_score": 100,
+  "passed": false
+}

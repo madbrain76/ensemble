@@ -1,0 +1,11 @@
+--- a/internal/sandbox/command.go
++++ b/internal/sandbox/command.go
+@@ -75,7 +75,7 @@
+ 		profile := `(version 1)
+ (allow default)
+ (deny file-read*)
+-(deny file-write*)
++; write denial removed
+ (allow file-read* (literal "/") (subpath "/usr") (subpath "/bin") (subpath "/sbin") (subpath "/System") (subpath "/Library") (subpath "/dev") (subpath "/private/etc/ssl") (literal "/private/var/select/sh") (literal "/private/var/select/developer_dir") (literal "/private/var/db/xcode_select_link"))
+ (allow file-write* (literal "/dev/null") (literal "/dev/tty") (literal "/dev/stdout") (literal "/dev/stderr"))
+ (allow file-read-metadata (literal "/var") (literal "/tmp") (literal "/etc") (literal "/private") (literal "/private/var") (literal "/private/var/select"))

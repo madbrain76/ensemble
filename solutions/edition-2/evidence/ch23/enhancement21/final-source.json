@@ -1,0 +1,32 @@
+{
+  "head": "9548d152f3cff958a37406150d7d9faae2c5540b",
+  "files": {
+    "cmd/grade-edition2/main.go": "aa522681a2f7ba4d1377cc30b144965763e537889a72954ea82be8df19cf49e2",
+    "internal/gradeedition2/ch21.go": "1263c11ff3ce6220b3e3995c5c088a3d1d9b75cdfd78d3557fd10e37ad701769",
+    "internal/gradeedition2/ch21_driver.go": "6d31d118177e5d8254fc10d173d6145cf77c14cebe0843343767de7b0b71d1c5",
+    "internal/gradeedition2/ch21_test.go": "060ced6b57daecda0eac9e8a8ccfdfcf8fc5825cb6c8884b8688befc36225133"
+  },
+  "accepted_tree": "9dc3e9e36a854ede4cc2cbef22dc389850cedc0c",
+  "legacy_tree": "48013a866994a701257796daf854aea318c74d67",
+  "sample_execution_manuscript_sha256": "20c231d92254d650f4adca70c01d89b2164c73b3112a7bf692480e5971141b5d",
+  "final_manuscript_sha256": "687a63e5b10404863359a4d5151323610680484772044ddb3af4f5de1917ba79",
+  "all_12_fences_unchanged": true,
+  "counts": {
+    "internal/gradeedition2/ch21.go": {
+      "physical": 288,
+      "nonblank": 277,
+      "comment_only": 14
+    },
+    "internal/gradeedition2/ch21_driver.go": {
+      "physical": 152,
+      "nonblank": 147,
+      "comment_only": 11
+    },
+    "internal/gradeedition2/ch21_test.go": {
+      "physical": 32,
+      "nonblank": 29,
+      "comment_only": 3
+    }
+  },
+  "source_note": "Final narrow generic-refusal check and split credential diagnostics exercised by final-output and restored mutation. Last additions are comments only. Earlier 12 mutation cases retain stage-source provenance; generic-refusal uses corrected source."
+}

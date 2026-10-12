@@ -1,0 +1,11 @@
+--- a/ensemble/spec.go
++++ b/ensemble/spec.go
+@@ -19,7 +19,7 @@
+ 	var widened []string
+ 	// SafeMode is a restriction (OR); web search is a capability (AND).
+ 	if parent.SafeMode && !s.SafeMode {
+-		s.SafeMode = true
++		s.SafeMode = false
+ 		widened = append(widened, "safe mode")
+ 	}
+ 	if !parent.EnableWebSearch && s.EnableWebSearch {

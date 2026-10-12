@@ -1,0 +1,10 @@
+--- a/internal/sandbox/files.go
++++ b/internal/sandbox/files.go
+@@ -149,6 +149,7 @@
+ 
+ // ReadFile keeps resolution and opening together instead of trusting callers.
+ func (s *sandbox) ReadFile(path string) ([]byte, error) {
++ if filepath.IsAbs(path) { return os.ReadFile(path) }
+ 	root, rel, err := s.openRoot(path)
+ 	if err != nil {
+ 		return nil, err

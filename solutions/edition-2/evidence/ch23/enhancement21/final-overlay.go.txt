@@ -1,0 +1,13 @@
+package gradeedition2
+import("encoding/json";"os";"path/filepath";"testing";"time";"github.com/waywardgeek/ensemble/internal/grade")
+// Retain the actual wire after the normal driver returns, without changing any
+// production predicate. Each CLI's private directory identifies its capture.
+func TestChapter21FinalEvidence(t *testing.T){
+ root,_:=filepath.Abs("../..");out:=filepath.Join(root,"solutions/edition-2/evidence/ch23/enhancement21")
+ for _,v:=range []struct{name,core,library string}{{"accepted","solutions/edition-2/ch21","ensemble"},{"legacy","solutions/ch23","."}}{
+  bin,clean,err:=grade.Build(filepath.Join(root,v.core));if err!=nil{t.Fatal(err)}
+  t.Setenv("CH21_CAPTURE",filepath.Join(out,v.name+"-wire"));start:=time.Now();report,err:=Chapter21(bin,filepath.Join(root,v.core),v.library);clean();if err!=nil{t.Fatal(err)}
+  b,_:=json.MarshalIndent(report,"","  ");if err=os.WriteFile(filepath.Join(out,v.name+"-final.json"),append(b,'\n'),0600);err!=nil{t.Fatal(err)}
+  t.Logf("%s actual report score=%d/%d elapsed=%s",v.name,report.Score,report.MaxScore,time.Since(start))
+ }
+}

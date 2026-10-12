@@ -1,0 +1,12 @@
+=== RUN   TestChapter21Samples
+    ch21_samples_test.go:23: Traceback (most recent call last):
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch23/enhancement21/samples.py", line 4, in <module>
+            assert sha=='8fcfd5c47e1b8dd10684991bda667cc03694cacf4cae972f739dcf8c769bae64'
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        AssertionError
+        
+    ch21_samples_test.go:24: exit status 1
+--- FAIL: TestChapter21Samples (0.16s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.162s
+FAIL
