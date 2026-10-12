@@ -1,5 +1,32 @@
 # Edition 2 carryover: lessons for the fresh student
 
+## October 12: publish after Gateway; promote Edition 2 to the default layout
+
+Bill wants the first Edition2 publication after Gateway enhancement is complete,
+with the crossover honestly described as begun, not completed. Explain that in
+its preface and/or Chapter0, and retain Chapter25 as the deliberate crossover
+placeholder. Completion of the first-edition exercises does not establish that
+Ensemble has produced the next edition. Finish the new epilogue from actual
+results and verify the assembled publication before calling it ready.
+
+Before publication, Bill requests archiving Edition1 code and book under root
+`edition-1/`, then promoting Edition2 to the normal top-level application,
+manuscript and chapter-solution paths: `agent/`, `book/`, `solutions/chNN/`.
+Finish the current Gateway prose/grader/review gate at existing paths FIRST.
+Then coordinate the move with build/grader defaults, runnable examples, links,
+README, agent instructions and the external launcher/handoff. Existing revised
+graders reuse original grading support; distinguish required shared support from
+archived original entry points instead of breaking their dependencies.
+
+Preserve original content, immutable tags, actual historical scores/receipts and
+source identities. Record a relocation map rather than rewriting old evidence as
+new runs. Preserve and move Bill's ongoing crossover edits with the active tree,
+without folding unfinished changes into frozen accepted exports. Preserve local
+untracked material without staging it merely because its parent directory moves.
+No symlinks or silent chapter renumbering. Chapter25 stays reserved; Gateway26
+is the final current chapter. Publication destination/packaging is not implied
+by the filesystem move; prepare concrete reviewable output under the workflow.
+
 ## October 12: Gateway accepted; original implementation catch-up complete
 
 Original27 is accepted as Edition2 Chapter26 at independent review `0afc45e8`,
