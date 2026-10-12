@@ -1,0 +1,287 @@
+{
+  "method": "Nonblank physical Go lines excluding comment-only lines; braces count active; // and block comment-only detection. Mixed code/comment counts active. Gateway production and tests separated. All measured relevant Gateway files are new against each own predecessor.",
+  "new": {
+    "base_tree": "ada66c1572f1e5d22efb6ac59f23ab2b61dd03ac",
+    "tree": "6d3e3d2e54a4def135f9d5c23ce3242d7d4c0313",
+    "files": {
+      "cmd/gateway-agent/main.go": {
+        "physical": 136,
+        "active": 118,
+        "comment_only": 13,
+        "blank": 5
+      },
+      "cmd/gateway-agent/main_test.go": {
+        "physical": 108,
+        "active": 100,
+        "comment_only": 3,
+        "blank": 5
+      },
+      "cmd/gateway/main.go": {
+        "physical": 82,
+        "active": 70,
+        "comment_only": 9,
+        "blank": 3
+      },
+      "cmd/interviewer/main.go": {
+        "physical": 123,
+        "active": 109,
+        "comment_only": 10,
+        "blank": 4
+      },
+      "gateway/client.go": {
+        "physical": 355,
+        "active": 271,
+        "comment_only": 61,
+        "blank": 23
+      },
+      "gateway/noise.go": {
+        "physical": 167,
+        "active": 118,
+        "comment_only": 34,
+        "blank": 15
+      },
+      "gateway/noise_test.go": {
+        "physical": 96,
+        "active": 89,
+        "comment_only": 4,
+        "blank": 3
+      },
+      "gateway/protocol.go": {
+        "physical": 128,
+        "active": 66,
+        "comment_only": 51,
+        "blank": 11
+      },
+      "internal/common/gateway.go": {
+        "physical": 11,
+        "active": 5,
+        "comment_only": 5,
+        "blank": 1
+      },
+      "internal/gateway/admin.go": {
+        "physical": 267,
+        "active": 225,
+        "comment_only": 36,
+        "blank": 6
+      },
+      "internal/gateway/server.go": {
+        "physical": 602,
+        "active": 493,
+        "comment_only": 87,
+        "blank": 22
+      },
+      "internal/gateway/server_test.go": {
+        "physical": 388,
+        "active": 354,
+        "comment_only": 22,
+        "blank": 12
+      }
+    },
+    "production": {
+      "physical": 1871,
+      "active": 1475,
+      "comment_only": 306,
+      "blank": 90
+    },
+    "tests": {
+      "physical": 592,
+      "active": 543,
+      "comment_only": 29,
+      "blank": 20
+    },
+    "non_go": [
+      "gateway/README.md",
+      "go.mod",
+      "go.sum"
+    ]
+  },
+  "legacy": {
+    "base_tree": "e2a6983b1c20b54238f3d7f57f7fb8c6ab1f755d",
+    "tree": "7d4da6e653ff3f4f3e65207421bb980b8fe00c9e",
+    "files": {
+      "cmd/gateway/main.go": {
+        "physical": 115,
+        "active": 88,
+        "comment_only": 14,
+        "blank": 13
+      },
+      "cmd/interviewer/main.go": {
+        "physical": 237,
+        "active": 178,
+        "comment_only": 32,
+        "blank": 27
+      },
+      "gateway/client.go": {
+        "physical": 441,
+        "active": 327,
+        "comment_only": 59,
+        "blank": 55
+      },
+      "gateway/envelope.go": {
+        "physical": 106,
+        "active": 48,
+        "comment_only": 48,
+        "blank": 10
+      },
+      "gateway/envelope_test.go": {
+        "physical": 150,
+        "active": 128,
+        "comment_only": 13,
+        "blank": 9
+      },
+      "gateway/handler.go": {
+        "physical": 43,
+        "active": 12,
+        "comment_only": 25,
+        "blank": 6
+      },
+      "gateway/ids.go": {
+        "physical": 46,
+        "active": 32,
+        "comment_only": 9,
+        "blank": 5
+      },
+      "gateway/keys.go": {
+        "physical": 93,
+        "active": 61,
+        "comment_only": 24,
+        "blank": 8
+      },
+      "gateway/keys_test.go": {
+        "physical": 106,
+        "active": 87,
+        "comment_only": 10,
+        "blank": 9
+      },
+      "gateway/noise.go": {
+        "physical": 183,
+        "active": 123,
+        "comment_only": 34,
+        "blank": 26
+      },
+      "gateway/noise_test.go": {
+        "physical": 295,
+        "active": 223,
+        "comment_only": 28,
+        "blank": 44
+      },
+      "gateway/protocol.go": {
+        "physical": 155,
+        "active": 79,
+        "comment_only": 57,
+        "blank": 19
+      },
+      "internal/gateway/config.go": {
+        "physical": 120,
+        "active": 79,
+        "comment_only": 32,
+        "blank": 9
+      },
+      "internal/gateway/connections.go": {
+        "physical": 166,
+        "active": 123,
+        "comment_only": 21,
+        "blank": 22
+      },
+      "internal/gateway/groupadmin.go": {
+        "physical": 139,
+        "active": 99,
+        "comment_only": 26,
+        "blank": 14
+      },
+      "internal/gateway/groups.go": {
+        "physical": 382,
+        "active": 287,
+        "comment_only": 59,
+        "blank": 36
+      },
+      "internal/gateway/groups_test.go": {
+        "physical": 274,
+        "active": 220,
+        "comment_only": 28,
+        "blank": 26
+      },
+      "internal/gateway/mcp.go": {
+        "physical": 193,
+        "active": 159,
+        "comment_only": 13,
+        "blank": 21
+      },
+      "internal/gateway/persistence.go": {
+        "physical": 71,
+        "active": 55,
+        "comment_only": 10,
+        "blank": 6
+      },
+      "internal/gateway/queue.go": {
+        "physical": 154,
+        "active": 105,
+        "comment_only": 33,
+        "blank": 16
+      },
+      "internal/gateway/server.go": {
+        "physical": 414,
+        "active": 300,
+        "comment_only": 65,
+        "blank": 49
+      },
+      "internal/gateway/server_test.go": {
+        "physical": 501,
+        "active": 409,
+        "comment_only": 32,
+        "blank": 60
+      }
+    },
+    "production": {
+      "physical": 3058,
+      "active": 2155,
+      "comment_only": 561,
+      "blank": 342
+    },
+    "tests": {
+      "physical": 1326,
+      "active": 1067,
+      "comment_only": 111,
+      "blank": 148
+    },
+    "whole_delta_name_status": [
+      "A\tcmd/gateway/main.go",
+      "A\tcmd/interviewer/main.go",
+      "A\tgateway/client.go",
+      "A\tgateway/envelope.go",
+      "A\tgateway/envelope_test.go",
+      "A\tgateway/handler.go",
+      "A\tgateway/ids.go",
+      "A\tgateway/keys.go",
+      "A\tgateway/keys_test.go",
+      "A\tgateway/noise.go",
+      "A\tgateway/noise_test.go",
+      "A\tgateway/protocol.go",
+      "M\tgo.mod",
+      "M\tgo.sum",
+      "A\tinternal/gateway/config.go",
+      "A\tinternal/gateway/connections.go",
+      "A\tinternal/gateway/groupadmin.go",
+      "A\tinternal/gateway/groups.go",
+      "A\tinternal/gateway/groups_test.go",
+      "A\tinternal/gateway/mcp.go",
+      "A\tinternal/gateway/persistence.go",
+      "A\tinternal/gateway/queue.go",
+      "A\tinternal/gateway/server.go",
+      "A\tinternal/gateway/server_test.go",
+      "A\tmcpws/mcpws.go",
+      "A\topenai_auth_design.md",
+      "A\tscripts/tts-browser.js",
+      "A\tscripts/tts-harness.sh",
+      "A\tskills/base/SKILL.md",
+      "A\tskills/blocked/SKILL.md",
+      "A\tskills/code-tools/SKILL.md",
+      "A\tskills/ensemble/SKILL.md",
+      "A\tskills/gui-debug/SKILL.md",
+      "A\tskills/search-helpers/SKILL.md",
+      "A\tskills/search-tools/SKILL.md",
+      "A\tskills/virtual-user/SKILL.md",
+      "A\tskills/web-search/SKILL.md"
+    ]
+  }
+}

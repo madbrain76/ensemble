@@ -1,0 +1,64 @@
+{
+  "source": "15e0386bc8cb5704794ddeacbcfef0183ecca0dd",
+  "main_tree": "f3f75227ad870a1e86402724b96b461425df8c5d",
+  "historical_live_source": "ab6d0516",
+  "checks": {
+    "four_triplets": true,
+    "models": true,
+    "header_and_report": true,
+    "three_pids_exit0": true
+  },
+  "binaries": {
+    "gateway": {
+      "present": true,
+      "matches_recorded_sha": true
+    },
+    "subject": {
+      "present": true,
+      "matches_recorded_sha": true
+    },
+    "interviewer": {
+      "present": true,
+      "matches_recorded_sha": true
+    }
+  },
+  "usage": [
+    {
+      "input": 90,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 42
+    },
+    {
+      "input": 161,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 42
+    },
+    {
+      "input": 232,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 45
+    },
+    {
+      "input": 305,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 41
+    }
+  ],
+  "limits": [
+    "Reasoning high and Codex route follow recorded launch and source; no independent complete provider wire capture.",
+    "Live remains earlier ab6d0516 source; no final-source paid run claimed.",
+    "Model workflow impressions are not measured friction or tool capability."
+  ],
+  "evidence_hashes": {
+    "live-result.json": "50f1e9e6bb76987ece89abdcdfd8c79b67cc0ddb2cd423ffb855fd23960c54ad",
+    "live-events.json": "88ea40c473510aa2fcb0f97f2d19109d312e756676e67f7e342cf992757af282",
+    "live-interview.md": "c25d20eb7e29599dfddd752755267a4e6abe53b34d42c8eb0d4182ba1a6a2a1e",
+    "live_interview.py": "8f7c7f0325047b4731b2c909517894a50ddabbd7e88002bbb5a103c285d5b8d9",
+    "outside-result.json": "7d2f04b61378208b568976dab07d7d399687e796ac7c12029cae75b221b71179",
+    "outside-consumer.go": "9257a219e2597859a5caa55ca23a97e488e6cb7372f525c007482999f4154903"
+  }
+}

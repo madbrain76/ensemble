@@ -1,0 +1,34 @@
+package gateway_test
+import (
+ "strings"
+ "testing"
+ "time"
+ "github.com/gorilla/websocket"
+)
+// TestReviewerClosePendingHandshake pairs a real authenticated client with a
+// silent upgraded peer; root shutdown must join both without the 10s deadline.
+func TestReviewerClosePendingHandshake(t *testing.T) {
+ f := setup(t)
+ r := newReceiver()
+ active := f.connect("recipient", r, 0)
+ welcome(t, f.ctx, r, 0)
+ peer, _, err := websocket.DefaultDialer.Dial(strings.Replace(f.http.URL,"http","ws",1)+"/v1/ws?agent_id=parent",nil)
+ check(t,err)
+ defer peer.Close()
+ done := make(chan error,1)
+ start := time.Now()
+ go func(){done<-f.service.Close()}()
+ select {
+ case err := <-done: check(t,err)
+ case <-time.After(time.Second):
+   peer.Close()
+   t.Fatal("shutdown waited for incomplete handshake")
+ }
+ select {
+ case <-active.Done():
+ case <-time.After(time.Second): t.Fatal("authenticated client survived shutdown")
+ }
+ peer.SetReadDeadline(time.Now().Add(time.Second))
+ if _,_,err=peer.ReadMessage(); err==nil {t.Fatal("pending socket survived shutdown")}
+ t.Logf("authenticated and pending peers closed in %s",time.Since(start))
+}

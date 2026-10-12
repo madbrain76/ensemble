@@ -1,0 +1,123 @@
+go run ./cmd/grade -ch 27 /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-gateway-original-mzr_wek0/solutions/edition-2/main
+Chapter 27 — Gateway
+============================================================
+
+[FAIL]      Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected  (0/15)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+[FAIL]      Prompt envelope carries provenance, trust, conversation and response mode  (0/10)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+[FAIL]      Gateway server accepts Noise-KK connections from multiple agents  (0/15)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+[FAIL]      Group-based routing delivers only from accepted groups and rejects the rest  (0/15)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+[FAIL]      Delivery semantics: ack, queue while offline, resume from last acked  (0/15)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+[FAIL]      Client library exposes Client and Handler and is usable outside the module  (0/10)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+[FAIL]      Parent registers a child and cannot grant groups it does not hold  (0/20)
+       the probe does not compile against agent/gateway, so a pinned name is
+       missing or has a different shape: exit status 1 # ch27probe
+       ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:386:66: w.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount) ./main.go:418:28: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:419:61: w3.QueuedCount undefined (type
+       gateway.WelcomePayload has no field or method QueuedCount)
+       ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload
+       has no field or method QueuedCount) ./main.go:449:93: w4.QueuedCount
+       undefined (type gateway.WelcomePayload has no field or method
+       QueuedCount)
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+
+program stderr:
+  | the probe does not compile against agent/gateway, so a pinned name is missing or has a different shape: exit status 1
+  | # ch27probe
+  | ./main.go:385:7: w.QueuedCount undefined (type gateway.WelcomePayload has no field or method QueuedCount)
+  | ./main.go:386:66: w.QueuedCount undefined (type gateway.WelcomePayload has no field or method QueuedCount)
+  | ./main.go:418:28: w3.QueuedCount undefined (type gateway.WelcomePayload has no field or method QueuedCount)
+  | ./main.go:419:61: w3.QueuedCount undefined (type gateway.WelcomePayload has no field or method QueuedCount)
+  | ./main.go:448:8: w4.QueuedCount undefined (type gateway.WelcomePayload has no field or method QueuedCount)
+  | ./main.go:449:93: w4.QueuedCount undefined (type gateway.WelcomePayload has no field or method QueuedCount)
+exit status 1
+make: *** [grade-dir] Error 1

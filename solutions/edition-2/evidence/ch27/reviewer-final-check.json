@@ -1,0 +1,19 @@
+{
+  "source": "b5c35a39fce89fdb83bf65682f3b715077a650dd",
+  "main_tree": "6d3e3d2e54a4def135f9d5c23ce3242d7d4c0313",
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "-count=1",
+    "-v",
+    "./gateway",
+    "./internal/gateway",
+    "./cmd/gateway-agent"
+  ],
+  "seconds": 1.996,
+  "exit": 0,
+  "probe_sha256": "de2f99874f4b2e9ff2b415336ec4ca380dc2c5c86c70c545f2d34324ad8d3921",
+  "output_sha256": "76a6e796e39c449a131d3f4c4259bd9be4e12ed582e5faa7245f374e63a01d0a",
+  "scope": "Exact archive plus independent shutdown probe; no provider calls or shared source edits."
+}

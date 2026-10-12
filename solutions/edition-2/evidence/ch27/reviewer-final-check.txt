@@ -1,0 +1,25 @@
+=== RUN   TestNoiseKK
+--- PASS: TestNoiseKK (0.01s)
+=== RUN   TestIdentityFiles
+--- PASS: TestIdentityFiles (0.00s)
+PASS
+ok  	ensemble/gateway	1.035s
+=== RUN   TestReviewerClosePendingHandshake
+    reviewer_test.go:33: authenticated and pending peers closed in 916.708µs
+--- PASS: TestReviewerClosePendingHandshake (0.01s)
+=== RUN   TestRoutingAuthenticatesAndStamps
+--- PASS: TestRoutingAuthenticatesAndStamps (0.08s)
+=== RUN   TestDeliveryAckResume
+--- PASS: TestDeliveryAckResume (0.08s)
+=== RUN   TestChildrenAndPersistedPolicy
+--- PASS: TestChildrenAndPersistedPolicy (0.06s)
+=== RUN   TestCorruptStateRefused
+--- PASS: TestCorruptStateRefused (0.00s)
+=== RUN   TestConnectionDiagnosticReachesRoot
+--- PASS: TestConnectionDiagnosticReachesRoot (0.01s)
+PASS
+ok  	ensemble/internal/gateway	1.274s
+=== RUN   TestGatewayUsesActualActor
+--- PASS: TestGatewayUsesActualActor (0.02s)
+PASS
+ok  	ensemble/cmd/gateway-agent	1.048s
