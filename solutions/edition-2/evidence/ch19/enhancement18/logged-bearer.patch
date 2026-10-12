@@ -1,0 +1,18 @@
+--- a/internal/engine/engine.go
++++ b/internal/engine/engine.go
+@@ -146,6 +146,7 @@
+ 		}
+ 	}
+ 	secrets = append(secrets, cfg.APIKey)
++ e.parent.Ensemble().Logf("credential: %s", cfg.APIKey)
+ 	redact := func(data []byte) []byte {
+ 		for _, secret := range secrets {
+ 			if secret != "" {
+@@ -222,6 +223,7 @@
+ 			return nil, err
+ 		}
+ 		secrets = append(secrets, cfg.APIKey)
++ e.parent.Ensemble().Logf("credential: %s", cfg.APIKey)
+ 		req.Body, err = req.GetBody()
+ 		if err != nil {
+ 			return nil, err

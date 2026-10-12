@@ -1,0 +1,11 @@
+--- a/internal/engine/responses.go
++++ b/internal/engine/responses.go
+@@ -119,7 +119,7 @@
+ 			if value, ok := last["text"].(string); ok && value == "" {
+ 				continue
+ 			}
+-			last["prompt_cache_breakpoint"] = map[string]string{"mode": "explicit"}
++			input[i]["prompt_cache_breakpoint"] = map[string]string{"mode": "explicit"}
+ 			landed = true
+ 		}
+ 		if landed {

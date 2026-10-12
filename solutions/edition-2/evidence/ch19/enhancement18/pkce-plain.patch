@@ -1,0 +1,11 @@
+--- a/internal/auth/oauth.go
++++ b/internal/auth/oauth.go
+@@ -120,7 +120,7 @@
+ 	if clientID == "" {
+ 		clientID = "dynamic_agent_client"
+ 	}
+-	params := url.Values{"client_id": {clientID}, "ext_agent_host_id": {host}, "response_type": {"code"}, "redirect_uri": {redirect}, "scope": {"openid profile email offline_access resource.invoke chatgpt.tokens.use.direct"}, "resource": {"https://api.openai.com/v1"}, "state": {state}, "nonce": {nonce}, "code_challenge_method": {"S256"}, "code_challenge": {encode(challenge[:])}}
++	params := url.Values{"client_id": {clientID}, "ext_agent_host_id": {host}, "response_type": {"code"}, "redirect_uri": {redirect}, "scope": {"openid profile email offline_access resource.invoke chatgpt.tokens.use.direct"}, "resource": {"https://api.openai.com/v1"}, "state": {state}, "nonce": {nonce}, "code_challenge_method": {"plain"}, "code_challenge": {encode(challenge[:])}}
+ 	if clientID == "dynamic_agent_client" {
+ 		params.Set("agent_name_hint", "Ensemble")
+ 	}

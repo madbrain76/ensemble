@@ -1,0 +1,11 @@
+--- a/internal/auth/oauth.go
++++ b/internal/auth/oauth.go
+@@ -287,7 +287,7 @@
+ 		if !status(value).PlanEnabled {
+ 			return errors.New("ChatGPT plan permission was not granted")
+ 		}
+-		if !time.Now().Before(p.ExpiresAt.Add(-5 * time.Minute)) {
++		if !time.Now().Before(p.ExpiresAt) {
+ 			if err := s.renew(ctx, value, &p); err != nil {
+ 				return err
+ 			}

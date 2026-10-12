@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -214,6 +215,9 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 		out.loginOutput, err = subscriptionLogin(bin, dir, env)
 		if err != nil {
 			out.loginErr = err.Error()
+			if subscriptionAbnormalExit(err, out.loginOutput) {
+				out.fatal = "login did not complete with an ordinary refusal: " + err.Error()
+			}
 			return
 		}
 	}
@@ -330,7 +334,7 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 			// A reported authentication/billing refusal may end a client with a
 			// normal nonzero status. Positive sessions still require zero; signals
 			// and unexplained startup/lifetime failures never establish refusal.
-			if exit, ok := err.(*exec.ExitError); ok && exit.ExitCode() >= 0 {
+			if !subscriptionAbnormalExit(err, output.String()) {
 				out.exitErr = err.Error()
 			} else {
 				out.fatal = "GUI exit after EOF: " + err.Error()
@@ -340,6 +344,22 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 		out.fatal = "GUI did not exit after EOF"
 	}
 	return
+}
+
+// Exit status alone cannot certify an expected refusal. Signals, deadlines and
+// Go runtime failures remain failures even if an earlier error was displayed.
+// Ordinary refusal still needs the scenario's actual issuer/request/error proof.
+func subscriptionAbnormalExit(err error, output string) bool {
+	var exit *exec.ExitError
+	if !errors.As(err, &exit) || exit.ExitCode() < 0 {
+		return true
+	}
+	for _, line := range strings.Split(output, "\n") {
+		if strings.HasPrefix(line, "panic:") || strings.HasPrefix(line, "fatal error:") {
+			return true
+		}
+	}
+	return false
 }
 
 // Login prints while its child is still running; readers need a stable copy.

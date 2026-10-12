@@ -1,0 +1,11 @@
+--- a/internal/engine/responses_stream.go
++++ b/internal/engine/responses_stream.go
+@@ -113,7 +113,7 @@
+ 			key := fmt.Sprintf("%d", frame.Index)
+ 			switch event {
+ 			case "response.reasoning_summary_text.delta":
+-				emit(key, common.DeltaReasoningSummary, frame.Delta)
++				emit(key, common.DeltaText, frame.Delta)
+ 			case "response.output_text.delta", "response.refusal.delta":
+ 				emit(fmt.Sprintf("%d/%d", frame.Index, frame.Content), common.DeltaText, frame.Delta)
+ 			case "response.output_item.added":

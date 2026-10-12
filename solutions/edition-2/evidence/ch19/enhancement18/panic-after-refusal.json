@@ -1,0 +1,63 @@
+{
+  "title": "Edition 2, Chapter 18 — Leaving Anthropic for OpenAI",
+  "checks": [
+    {
+      "id": "credential-provider",
+      "title": "Minted OAuth and API-key bearers, without secrets in observed output, saved conversation or request bodies",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "oauth-flow",
+      "title": "Successful PKCE/issued-client exchange, forged-signature and nonce rejection, and actual inference-grant refusal",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "missing grant did not refuse inference after an actual token exchange (login=\"\" startup=\"GUI exit after EOF: exit status 2: Open http://localhost:57326; terminal messages while busy are hints. /interrupt ends the turn.\\nChatGPT plan permission was not granted\\npanic: failed turn\\n\\ngoroutine 49 [running]:\\nensemble-gui-stub.(*Server).ObserveAgent(0x1400010cb60, {0x10539e130?, 0x14000022e08?}, {0x105396938, 0x140002927e0})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/gui/gui.go:97 +0x960\\nensemble/ensemble.(*Ensemble).Observe(0x14000158000, {0x10539e130, 0x14000022e08}, {0x105396938, 0x140002927e0})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/ensemble/ensemble.go:234 +0x1a8\\nensemble/internal/agent.(*agent).notify(0x14000022e08, {0x105396938, 0x140002927e0})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:226 +0x48\\nensemble/internal/agent.(*runtime).finish(0x1400009e080, {0x0, 0x0}, {0x105396a38, 0x1400028ee10})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:304 +0xe4\\nensemble/internal/agent.(*runtime).receive(0x1400009e080, {0x140002e4000, {0x140002e6b40, 0x1, 0x1}, {0x0, 0x0, 0x0}, {0x105396a38, 0x1400028ee10}})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:439 +0x21c\\nensemble/internal/agent.(*runtime).run(0x1400009e080)\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:546 +0x121c\\ncreated by ensemble/internal/agent.(*agent).start.func1 in goroutine 34\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:82 +0x94\\n\" requests=0 errors=[ChatGPT plan permission was not granted])"
+      ]
+    },
+    {
+      "id": "token-refresh",
+      "title": "Proactive rotating renewal with successful turns and the corresponding new bearers",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "responses-format",
+      "title": "Responses fields, actual completed-item tool result and matching encrypted replay",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "cache-breakpoints",
+      "title": "Paired plan-route omission and explicit API-key developer-content breakpoints within the four-marker budget",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "reasoning-summaries",
+      "title": "Separate complete summary/text deltas, including tool-adjacent content, with delivery before provider completion",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "billing-mode",
+      "title": "Actual admission and midstream quota refusals reported without switching to the configured metered key",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "fail_midstream: no actual authenticated refusal (login=\"\" startup=\"GUI exit after EOF: exit status 2: Open http://localhost:57362; terminal messages while busy are hints. /interrupt ends the turn.\\n[billing: chatgpt]\\nHello from the Responses ChatGPT app usage limit reached; no metered fallback\\npanic: failed turn\\n\\ngoroutine 54 [running]:\\nensemble-gui-stub.(*Server).ObserveAgent(0x140000b4b60, {0x1009e6130?, 0x140000a8a88?}, {0x1009de938, 0x140000762c0})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/gui/gui.go:97 +0x960\\nensemble/ensemble.(*Ensemble).Observe(0x140000fc000, {0x1009e6130, 0x140000a8a88}, {0x1009de938, 0x140000762c0})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/ensemble/ensemble.go:234 +0x1a8\\nensemble/internal/agent.(*agent).notify(0x140000a8a88, {0x1009de938, 0x140000762c0})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:226 +0x48\\nensemble/internal/agent.(*runtime).finish(0x140002a6080, {0x0, 0x0}, {0x1009dea38, 0x14000034720})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:304 +0xe4\\nensemble/internal/agent.(*runtime).receive(0x140002a6080, {0x140001fe000, {0x1400021c8c0, 0x1, 0x1}, {0x0, 0x0, 0x0}, {0x1009dea38, 0x14000034720}})\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:439 +0x21c\\nensemble/internal/agent.(*runtime).run(0x140002a6080)\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:546 +0x121c\\ncreated by ensemble/internal/agent.(*agent).start.func1 in goroutine 50\\n\\t/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-mutants-c15vm1pn/source/internal/agent/actor.go:82 +0x94\\n\" requests=1 errors=[ChatGPT app usage limit reached; no metered fallback])"
+      ]
+    }
+  ],
+  "score": 70,
+  "max_score": 100,
+  "passed": false
+}

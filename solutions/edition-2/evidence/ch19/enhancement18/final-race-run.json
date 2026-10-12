@@ -1,0 +1,13 @@
+{
+  "command": [
+    "go",
+    "test",
+    "-race",
+    "./internal/gradeedition2",
+    "-run",
+    "^TestChapter18",
+    "-count=1"
+  ],
+  "exit": 0,
+  "seconds": 3.84
+}

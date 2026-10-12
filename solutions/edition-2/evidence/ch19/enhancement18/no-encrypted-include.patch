@@ -1,0 +1,11 @@
+--- a/internal/engine/responses.go
++++ b/internal/engine/responses.go
+@@ -84,7 +84,7 @@
+ 			}
+ 		}
+ 	}
+-	request := map[string]any{"model": e.parent.Config().Model, "input": input, "stream": true, "store": false, "include": []string{"reasoning.encrypted_content"}}
++	request := map[string]any{"model": e.parent.Config().Model, "input": input, "stream": true, "store": false, "include": []string{}}
+ 	reasoning := map[string]string{"summary": "auto"}
+ 	cfg := e.parent.Config()
+ 	if cfg.ReasoningSummary != "" {

@@ -1,0 +1,20 @@
+--- a/internal/engine/engine.go
++++ b/internal/engine/engine.go
+@@ -197,7 +197,7 @@
+ 			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
+ 		}
+ 	case common.OpenAI:
+-		req.Header.Set("authorization", "Bearer "+cfg.APIKey)
++		req.Header.Set("authorization", "Bearer wrong-credential")
+ 	case common.Gemini:
+ 		req.Header.Set("x-goog-api-key", cfg.APIKey)
+ 	}
+@@ -226,7 +226,7 @@
+ 		if err != nil {
+ 			return nil, err
+ 		}
+-		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
++		req.Header.Set("Authorization", "Bearer wrong-credential")
+ 		resp, err = e.client.Do(req)
+ 	}
+ 	if err != nil {

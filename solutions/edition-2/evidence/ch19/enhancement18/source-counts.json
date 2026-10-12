@@ -1,0 +1,30 @@
+{
+  "method": "Nonblank lines starting // count as comment-only; all other nonblank lines active. No block comments in added files. Entry point is shared whole-file count, not chapter delta.",
+  "files": {
+    "cmd/grade-edition2/main.go": {
+      "physical": 158,
+      "active": 148,
+      "comment_only": 5
+    },
+    "internal/grade/edition2_auth_peers.go": {
+      "physical": 37,
+      "active": 15,
+      "comment_only": 15
+    },
+    "internal/gradeedition2/ch18_test.go": {
+      "physical": 25,
+      "active": 21,
+      "comment_only": 2
+    },
+    "internal/gradeedition2/ch18.go": {
+      "physical": 256,
+      "active": 242,
+      "comment_only": 10
+    },
+    "internal/gradeedition2/ch18_driver.go": {
+      "physical": 380,
+      "active": 346,
+      "comment_only": 24
+    }
+  }
+}

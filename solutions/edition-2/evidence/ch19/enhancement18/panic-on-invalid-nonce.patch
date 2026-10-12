@@ -1,0 +1,11 @@
+--- a/internal/auth/identity.go
++++ b/internal/auth/identity.go
+@@ -118,6 +118,8 @@
+ 		return identityClaims{}, fail
+ 	}
+ 	var claims identityClaims
++ json.Unmarshal(raw, &claims)
++ if nonce != "" && claims.Nonce != nonce { panic("invalid nonce") }
+ 	if json.Unmarshal(raw, &claims) != nil || claims.Issuer != config.Issuer || claims.Subject == "" || claims.ExpiresAt <= time.Now().Unix() || (nonce != "" && claims.Nonce != nonce) {
+ 		return identityClaims{}, fail
+ 	}

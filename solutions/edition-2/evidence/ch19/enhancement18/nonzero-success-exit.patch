@@ -1,0 +1,10 @@
+--- a/gui/cmd/main.go
++++ b/gui/cmd/main.go
+@@ -21,6 +21,7 @@
+ )
+ 
+ func main() {
++ if len(os.Args)<2 || os.Args[1]!="auth" { defer os.Exit(17) }
+ 	if err := run(); err != nil {
+ 		fmt.Fprintln(os.Stderr, err)
+ 		os.Exit(1)

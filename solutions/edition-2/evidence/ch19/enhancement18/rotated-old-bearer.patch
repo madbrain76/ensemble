@@ -1,0 +1,13 @@
+--- a/internal/auth/oauth.go
++++ b/internal/auth/oauth.go
+@@ -326,7 +326,9 @@
+ 			return errors.New("OAuth refresh identity mismatch")
+ 		}
+ 	}
+-	replace(p, token)
++	oldAccess := p.AccessToken
++ replace(p, token)
++ p.AccessToken = oldAccess
+ 	value.Profiles[value.Active] = *p
+ 	return s.save(value)
+ }

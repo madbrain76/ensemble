@@ -1,0 +1,44 @@
+[
+  {
+    "command": "go test ./...",
+    "exit": 0,
+    "stdout": "?   \tsample\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "command": "go build -o /tmp/ensemble-ch18 .\n",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": "chapter18_work=$(mktemp -d)\ncd \"$chapter18_work\"\nmkdir -p skills/base profile\nchmod 700 profile\nexport EN_HOME=\"$chapter18_work/profile\"\nexport EN_PRIMARY_SKILL=base\ncat > skills/base/SKILL.md <<'EOF'\n---\nname: base\ntype: primary\ndescription: Read the local scheduling exercise and explain the result.\ntools: read_file\n---\nRead requested files before answering. Keep public explanations separate\nfrom tool results. Never invent file contents or a successful operation.\nEOF\ncat > schedule.txt <<'EOF'\nTwo identical workers. Each job uses one worker and cannot be split.\nJob duration prerequisites\nA   4        none\nB   3        none\nC   5        A\nD   2        A\nE   4        B\nF   3        C,E\nG   2        D,E\nH   1        F,G\nEOF\n\npwd",
+    "exit": 0,
+    "stdout": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.iFgP6suVBk\n",
+    "stderr": ""
+  },
+  {
+    "command": "/tmp/ensemble-ch18 auth login\n/tmp/ensemble-ch18 auth status\n/tmp/ensemble-ch18 auth models\n",
+    "exit": 0,
+    "stdout": "Account: ensemble-grader@example.com\nSubject: user_01HQZ8K3RMBVT5XJ7P2N4YDC6A\nClient ID: app_ch19_6o2nLjE10M6Y\nBilling: chatgpt\nSigned in: true\nPlan enabled: true\nExpires: 2026-10-11T21:10:38-07:00\nScopes: openid profile email offline_access chatgpt.tokens.use.direct\nAccount: ensemble-grader@example.com\nSubject: user_01HQZ8K3RMBVT5XJ7P2N4YDC6A\nClient ID: app_ch19_6o2nLjE10M6Y\nBilling: chatgpt\nSigned in: true\nPlan enabled: true\nExpires: 2026-10-11T21:10:38-07:00\nScopes: openid profile email offline_access chatgpt.tokens.use.direct\ngpt-5.6\tGPT-5.6\ngpt-5.6-codex\tGPT-5.6 Codex\n",
+    "stderr": ""
+  },
+  {
+    "command": "LLM_VENDOR=openai LLM_MODEL=gpt-6.1-sol \\\nOPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \\\nOPENAI_REASONING_SUMMARY=detailed \\\n/tmp/ensemble-ch18 --skills-dir skills chat\n",
+    "exit": 0,
+    "stdout": "Worker 1: A 0-4, C 4-9, F 9-12, H 12-13. Worker 2: B 0-3, E 3-7, D 7-9, G 9-11. The chain A-C-F-H requires 13, so this schedule is optimal.\n",
+    "stderr": "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 20:10:38 cache lens openai/gpt-6.1-sol: tools:cold input:cold; prefix_bytes=0 prompt_bytes=2123 predicted=0.0000\n2026/10/11 20:10:38 OpenAI billing source: chatgpt\nread_file {\"path\":\"schedule.txt\"}2026/10/11 20:10:38 cache grant: input_tokens=300 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 20:10:38 cache lens openai/gpt-6.1-sol: tools:identical input:appended; prefix_bytes=2122 prompt_bytes=2570 predicted=0.8257\n2026/10/11 20:10:38 cache grant: input_tokens=300 read_tokens=0 granted=0.0000 predicted=0.8257\n"
+  },
+  {
+    "command": "/tmp/ensemble-ch18 auth logout\n",
+    "exit": 0,
+    "stdout": "Signed out locally. ChatGPT billing remains selected; sign in again or explicitly select api billing.\n",
+    "stderr": ""
+  },
+  {
+    "command": "/tmp/ensemble-ch18 auth status",
+    "exit": 0,
+    "stdout": "Account: ensemble-grader@example.com\nSubject: user_01HQZ8K3RMBVT5XJ7P2N4YDC6A\nClient ID: app_ch19_6o2nLjE10M6Y\nBilling: chatgpt\nSigned in: false\nPlan enabled: false\nExpires: 0001-01-01T00:00:00Z\nScopes: \n",
+    "stderr": ""
+  }
+]

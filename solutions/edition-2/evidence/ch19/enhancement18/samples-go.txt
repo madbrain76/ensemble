@@ -1,0 +1,6 @@
+=== RUN   TestChapter18Samples
+    ch18_samples_overlay_test.go:8: PASS exact samples e057e264f91a20d4c8da1d2852f64e244283afcc3e455e8e4f67113e50d6a730
+        
+--- PASS: TestChapter18Samples (1.14s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.144s

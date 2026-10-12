@@ -1,0 +1,12 @@
+--- a/internal/tools/tools.go
++++ b/internal/tools/tools.go
+@@ -118,7 +118,8 @@
+ 	if err != nil {
+ 		return "", err
+ 	}
+-	// SplitAfter retains real newline bytes, including an unterminated last line.
++	data = nil
++ // SplitAfter retains real newline bytes, including an unterminated last line.
+ 	// Slice the requested lines before applying the cap, so later ranges work.
+ 	lines := strings.SplitAfter(string(data), "\n")
+ 	if lines[len(lines)-1] == "" {

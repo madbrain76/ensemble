@@ -1,0 +1,20 @@
+--- a/internal/auth/oauth.go
++++ b/internal/auth/oauth.go
+@@ -284,7 +284,7 @@
+ 		if p.AccessToken == "" {
+ 			return errors.New("ChatGPT sign-in required")
+ 		}
+-		if !status(value).PlanEnabled {
++		if false {
+ 			return errors.New("ChatGPT plan permission was not granted")
+ 		}
+ 		if !time.Now().Before(p.ExpiresAt.Add(-5 * time.Minute)) {
+@@ -292,7 +292,7 @@
+ 				return err
+ 			}
+ 		}
+-		if !status(value).PlanEnabled {
++		if false {
+ 			return errors.New("ChatGPT plan permission was not granted")
+ 		}
+ 		bearer = p.AccessToken

@@ -1,0 +1,11 @@
+--- a/internal/engine/responses_stream.go
++++ b/internal/engine/responses_stream.go
+@@ -76,7 +76,7 @@
+ 		seen[key] = true
+ 		id := identify(key)
+ 		if cb.OnDelta != nil {
+-			cb.OnDelta(id, kind, value)
++			if kind == common.DeltaReasoningSummary { for _, r := range value { cb.OnDelta(id, kind, string(r)) } } else { cb.OnDelta(id, kind, value) }
+ 		}
+ 	}
+ 	var result responsesResult

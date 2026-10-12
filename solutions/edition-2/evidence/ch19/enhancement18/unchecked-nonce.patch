@@ -1,0 +1,11 @@
+--- a/internal/auth/identity.go
++++ b/internal/auth/identity.go
+@@ -118,7 +118,7 @@
+ 		return identityClaims{}, fail
+ 	}
+ 	var claims identityClaims
+-	if json.Unmarshal(raw, &claims) != nil || claims.Issuer != config.Issuer || claims.Subject == "" || claims.ExpiresAt <= time.Now().Unix() || (nonce != "" && claims.Nonce != nonce) {
++	if json.Unmarshal(raw, &claims) != nil || claims.Issuer != config.Issuer || claims.Subject == "" || claims.ExpiresAt <= time.Now().Unix() || false {
+ 		return identityClaims{}, fail
+ 	}
+ 	var audiences []string

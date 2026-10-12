@@ -1,0 +1,11 @@
+--- a/internal/engine/responses.go
++++ b/internal/engine/responses.go
+@@ -62,7 +62,7 @@
+ 						return nil, errors.New("Responses tool results do not support media on this renderer")
+ 					}
+ 				}
+-				input = append(input, map[string]any{"type": "function_call_output", "call_id": p.CallID, "output": text(p.Parts)})
++				input = append(input, map[string]any{"type": "function_call_output", "call_id": "wrong-result", "output": text(p.Parts)})
+ 			case "opaque":
+ 				// Encrypted reasoning is valid only for its original model and surface.
+ 				if p.From == e.Target() {

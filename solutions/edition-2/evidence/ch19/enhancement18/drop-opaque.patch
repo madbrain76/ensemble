@@ -1,0 +1,11 @@
+--- a/internal/engine/responses.go
++++ b/internal/engine/responses.go
+@@ -65,7 +65,7 @@
+ 				input = append(input, map[string]any{"type": "function_call_output", "call_id": p.CallID, "output": text(p.Parts)})
+ 			case "opaque":
+ 				// Encrypted reasoning is valid only for its original model and surface.
+-				if p.From == e.Target() {
++				if false && p.From == e.Target() {
+ 					var item map[string]any
+ 					if json.Unmarshal(p.Data, &item) != nil {
+ 						return nil, errors.New("invalid Responses replay item")

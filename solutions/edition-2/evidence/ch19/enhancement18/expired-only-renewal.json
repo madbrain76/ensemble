@@ -1,0 +1,60 @@
+{
+  "title": "Edition 2, Chapter 18 — Leaving Anthropic for OpenAI",
+  "checks": [
+    {
+      "id": "credential-provider",
+      "title": "Minted OAuth and API-key bearers, without secrets in observed output, saved conversation or request bodies",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "oauth-flow",
+      "title": "Successful PKCE/issued-client exchange, forged-signature and nonce rejection, and actual inference-grant refusal",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "token-refresh",
+      "title": "Proactive rotating renewal with successful turns and the corresponding new bearers",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "two proactive rotations and successful requests missing: refresh=0 minted=1 requests=2 reuse=false violations=[]"
+      ]
+    },
+    {
+      "id": "responses-format",
+      "title": "Responses fields, actual completed-item tool result and matching encrypted replay",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "cache-breakpoints",
+      "title": "Paired plan-route omission and explicit API-key developer-content breakpoints within the four-marker budget",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "reasoning-summaries",
+      "title": "Separate complete summary/text deltas, including tool-adjacent content, with delivery before provider completion",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "billing-mode",
+      "title": "Actual admission and midstream quota refusals reported without switching to the configured metered key",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    }
+  ],
+  "score": 85,
+  "max_score": 100,
+  "passed": false
+}

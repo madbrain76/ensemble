@@ -1,0 +1,355 @@
+[
+  {
+    "name": "wrong-bearer",
+    "file": "internal/engine/engine.go",
+    "check": "credential-provider",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.503,
+    "score": 55,
+    "failed": {
+      "credential-provider": [
+        "request 1 used the wrong credential"
+      ],
+      "token-refresh": [
+        "request 2 did not use its corresponding rotated pair"
+      ],
+      "billing-mode": [
+        "request 1 used the wrong credential"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "logged-bearer",
+    "file": "internal/engine/engine.go",
+    "check": "credential-provider",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.622,
+    "score": 85,
+    "failed": {
+      "credential-provider": [
+        "a fake credential leaked outside the protected store/authorization header"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "pkce-plain",
+    "file": "internal/auth/oauth.go",
+    "check": "oauth-flow",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.453,
+    "score": 70,
+    "failed": {
+      "oauth-flow": [
+        "positive PKCE/registration exchange invalid: [authorize: code_challenge_method=\"plain\"; this provider supports only \"S256\", and \"plain\" transmits the verifier itself and so provides no protection at all]"
+      ],
+      "token-refresh": [
+        "two proactive rotations and successful requests missing: refresh=2 minted=3 requests=2 reuse=false violations=[authorize: code_challenge_method=\"plain\"; this provider supports only \"S256\", and \"plain\" transmits the verifier itself and so provides no protection at all]"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "unchecked-signature",
+    "file": "internal/auth/identity.go",
+    "check": "oauth-flow",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.283,
+    "score": 85,
+    "failed": {
+      "oauth-flow": [
+        "bad-signature: did not reject the issued invalid identity at login (login=\"\" startup=\"\" requests=1)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "unchecked-nonce",
+    "file": "internal/auth/identity.go",
+    "check": "oauth-flow",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.554,
+    "score": 85,
+    "failed": {
+      "oauth-flow": [
+        "bad-nonce: did not reject the issued invalid identity at login (login=\"\" startup=\"\" requests=1)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "missing-grant-allowed",
+    "file": "internal/auth/oauth.go",
+    "check": "oauth-flow",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.401,
+    "score": 85,
+    "failed": {
+      "oauth-flow": [
+        "missing grant did not refuse inference after an actual token exchange (login=\"\" startup=\"\" requests=1 errors=[])"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "expired-only-renewal",
+    "file": "internal/auth/oauth.go",
+    "check": "token-refresh",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.01,
+    "score": 85,
+    "failed": {
+      "token-refresh": [
+        "two proactive rotations and successful requests missing: refresh=0 minted=1 requests=2 reuse=false violations=[]"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "rotated-old-bearer",
+    "file": "internal/auth/oauth.go",
+    "check": "token-refresh",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.459,
+    "score": 85,
+    "failed": {
+      "token-refresh": [
+        "request 2 did not use its corresponding rotated pair"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "store-true",
+    "file": "internal/engine/responses.go",
+    "check": "responses-format",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.371,
+    "score": 85,
+    "failed": {
+      "responses-format": [
+        "provider wire violations: [store: must be false, got true store: must be false, got true store: must be false, got true]"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "no-encrypted-include",
+    "file": "internal/engine/responses.go",
+    "check": "responses-format",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.287,
+    "score": 85,
+    "failed": {
+      "responses-format": [
+        "following request lacks call, actual successful file bytes or encrypted item (call=true result=true opaque=false)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "drop-opaque",
+    "file": "internal/engine/responses.go",
+    "check": "responses-format",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.273,
+    "score": 85,
+    "failed": {
+      "responses-format": [
+        "following request lacks call, actual successful file bytes or encrypted item (call=true result=true opaque=false)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "wrong-result-id",
+    "file": "internal/engine/responses.go",
+    "check": "responses-format",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.361,
+    "score": 85,
+    "failed": {
+      "responses-format": [
+        "following request lacks call, actual successful file bytes or encrypted item (call=true result=false opaque=true)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "empty-success-read",
+    "file": "internal/tools/tools.go",
+    "check": "responses-format",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.107,
+    "score": 85,
+    "failed": {
+      "responses-format": [
+        "following request lacks call, actual successful file bytes or encrypted item (call=true result=false opaque=true)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "plan-explicit-cache",
+    "file": "internal/engine/capabilities.go",
+    "check": "cache-breakpoints",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.611,
+    "score": 90,
+    "failed": {
+      "cache-breakpoints": [
+        "plan request 3 did not omit paired explicit-cache mechanism"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "missing-api-marker",
+    "file": "internal/engine/responses.go",
+    "check": "cache-breakpoints",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.307,
+    "score": 90,
+    "failed": {
+      "cache-breakpoints": [
+        "metered request 1 lacks actual developer-content marker/mode or violates the four-marker budget"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "misplaced-api-marker",
+    "file": "internal/engine/responses.go",
+    "check": "cache-breakpoints",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.387,
+    "score": 90,
+    "failed": {
+      "cache-breakpoints": [
+        "metered request 1 lacks actual developer-content marker/mode or violates the four-marker budget"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "summary-as-text",
+    "file": "internal/engine/responses_stream.go",
+    "check": "reasoning-summaries",
+    "positive": false,
+    "exit": 1,
+    "seconds": 4.428,
+    "score": 85,
+    "failed": {
+      "reasoning-summaries": [
+        "separate complete delta content or causal gate missing (summary=\"\" text=\"Reading the request, then deciding what to do.Hello from the Responses API.Reading the request, then deciding what to do.Got the file. Now checking what it says.Hello from the Responses API.Hello from the Responses API.\" gated=false)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "summary-only-at-final",
+    "file": "internal/engine/responses_stream.go",
+    "check": "reasoning-summaries",
+    "positive": false,
+    "exit": 1,
+    "seconds": 4.433,
+    "score": 85,
+    "failed": {
+      "reasoning-summaries": [
+        "separate complete delta content or causal gate missing (summary=\"Reading the request, then deciding what to do.Reading the request, then deciding what to do.Got the file. Now checking what it says.\" text=\"Hello from the Responses API.Hello from the Responses API.Hello from the Responses API.\" gated=false)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "summary-truncated",
+    "file": "internal/engine/responses_stream.go",
+    "check": "reasoning-summaries",
+    "positive": false,
+    "exit": 1,
+    "seconds": 4.37,
+    "score": 85,
+    "failed": {
+      "reasoning-summaries": [
+        "separate complete delta content or causal gate missing (summary=\"Readingthe request,then decidingwhat to do.Readingthe request,then decidingwhat to do.Got the file.Now checkingwhat it says.\" text=\"Hello from the Responses API.Hello from the Responses API.Hello from the Responses API.\" gated=false)"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "lost-refusal-error",
+    "file": "gui/gui.go",
+    "check": "billing-mode",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.257,
+    "score": 70,
+    "failed": {
+      "oauth-flow": [
+        "missing grant did not refuse inference after an actual token exchange (login=\"\" startup=\"\" requests=0 errors=[])"
+      ],
+      "billing-mode": [
+        "fail_midstream: no actual authenticated refusal (login=\"\" startup=\"\" requests=1 errors=[])"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "nonzero-success-exit",
+    "file": "gui/cmd/main.go",
+    "check": "credential-provider",
+    "positive": false,
+    "exit": 1,
+    "seconds": 1.201,
+    "score": 15,
+    "failed": {
+      "credential-provider": [
+        "nonzero successful-session exit: exit status 17"
+      ],
+      "oauth-flow": [
+        "nonzero successful-session exit: exit status 17"
+      ],
+      "token-refresh": [
+        "nonzero successful-session exit: exit status 17"
+      ],
+      "responses-format": [
+        "nonzero successful-session exit: exit status 17"
+      ],
+      "cache-breakpoints": [
+        "nonzero successful-session exit: exit status 17"
+      ],
+      "reasoning-summaries": [
+        "nonzero successful-session exit: exit status 17"
+      ]
+    },
+    "intended": true
+  },
+  {
+    "name": "split-summary-control",
+    "file": "internal/engine/responses_stream.go",
+    "check": "reasoning-summaries",
+    "positive": true,
+    "exit": 0,
+    "seconds": 1.26,
+    "score": 100,
+    "failed": {},
+    "intended": true
+  }
+]

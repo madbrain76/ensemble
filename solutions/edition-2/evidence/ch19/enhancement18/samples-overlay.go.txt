@@ -1,0 +1,11 @@
+package gradeedition2
+import("testing";"os";"os/exec";"path/filepath";"github.com/waywardgeek/ensemble/internal/grade")
+func TestChapter18Samples(t *testing.T){
+ auth:=grade.NewEdition2OAuthPeer(grade.Edition2OAuthOptions{});defer auth.Close()
+ peer:=grade.NewEdition2ResponsesPeer(grade.Edition2ResponsesOptions{});defer peer.Close()
+ root,err:=filepath.Abs("../..");if err!=nil{t.Fatal(err)}
+ cmd:=exec.Command("python3","/tmp/ch18_samples.py");cmd.Env=append(os.Environ(),"CH18_ROOT="+root,"CH18_ISSUER="+auth.URL(),"CH18_MODELS="+peer.URL())
+ b,err:=cmd.CombinedOutput();t.Log(string(b));if err!=nil{t.Fatal(err)}
+ o:=auth.Observations();if len(o.TokenHits)!=1||len(o.RevokeHits)!=1||len(o.Violations)!=0{t.Fatalf("issuer exchanges token=%d revoke=%d violations=%v",len(o.TokenHits),len(o.RevokeHits),o.Violations)}
+ if peer.Observations().ModelsHits!=1{t.Fatal("catalog not requested")}
+}

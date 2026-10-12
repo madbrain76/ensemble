@@ -1,0 +1,274 @@
+[
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read requested files before answering. Keep public explanations separate\nfrom tool results. Never invent file contents or a successful operation.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Read schedule.txt. Find a minimum-duration schedule for the two workers. Give each worker's job intervals and prove that a shorter schedule is impossible.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "model": "gpt-6.1-sol",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read requested files before answering. Keep public explanations separate\nfrom tool results. Never invent file contents or a successful operation.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Read schedule.txt. Find a minimum-duration schedule for the two workers. Give each worker's job intervals and prove that a shorter schedule is impossible.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"path\":\"schedule.txt\"}",
+        "call_id": "sample_schedule",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "sample_schedule",
+        "output": "Two identical workers. Each job uses one worker and cannot be split.\nJob duration prerequisites\nA   4        none\nB   3        none\nC   5        A\nD   2        A\nE   4        B\nF   3        C,E\nG   2        D,E\nH   1        F,G\n",
+        "type": "function_call_output"
+      }
+    ],
+    "model": "gpt-6.1-sol",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  }
+]

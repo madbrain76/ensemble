@@ -1,0 +1,58 @@
+{
+  "manuscript_sha256": "e057e264f91a20d4c8da1d2852f64e244283afcc3e455e8e4f67113e50d6a730",
+  "fences": [
+    {
+      "index": 0,
+      "language": "go",
+      "sha256": "90d6f235183569524af96e987e96ed6b878033f197bc8393e323b812c0d0f5d2"
+    },
+    {
+      "index": 1,
+      "language": "sh",
+      "sha256": "468f68f658acf871f9817f74121989631dc4f586ed793133e8e8a488be51cb19"
+    },
+    {
+      "index": 2,
+      "language": "sh",
+      "sha256": "468f68f658acf871f9817f74121989631dc4f586ed793133e8e8a488be51cb19"
+    },
+    {
+      "index": 3,
+      "language": "sh",
+      "sha256": "cf30887320e6f6ddfae8f398c2b8d488a042d664887d505947b6542591e8c533"
+    },
+    {
+      "index": 4,
+      "language": "sh",
+      "sha256": "fd354a90df1a8903e040892c9d27c5b93ff2bb6136bede7a7bb7395d9986e7e9"
+    },
+    {
+      "index": 5,
+      "language": "sh",
+      "sha256": "30753f7463e8be0673083475ffb9b12fc356ea2d44dde3151ef93bd6e6d1f94e"
+    },
+    {
+      "index": 6,
+      "language": "sh",
+      "sha256": "b2251cab761fcedb2f692af85e204e40767f5c7f6322d1b2a4a9f4ed3b97595d"
+    },
+    {
+      "index": 7,
+      "language": "text",
+      "sha256": "c4f804e6d8c76f49daa792b3af693220c858ab68617ce2c306bb42fd3c9a11d1"
+    },
+    {
+      "index": 8,
+      "language": "sh",
+      "sha256": "6c87ddf832f48aa13104565bf4b5ab0c608c6ff0fb4f67e57435cbcdca064348"
+    }
+  ],
+  "result": "PASS",
+  "requests": 2,
+  "model": "gpt-6.1-sol",
+  "actual_schedule_result": true,
+  "save": true,
+  "logout": true,
+  "limits": "Local external issuer/provider peers only; no real sign-in, paid request, summary or cache grant. Peer supplies known answer; mechanics, not scheduling intelligence. Grader command fences exercised separately by accepted-green run. Conceptual vocabulary compiles as standalone types.",
+  "catalog_limit": "Original reused fake catalog lists gpt-5.6 and gpt-5.6-codex; the sample selects declared gpt-6.1-sol. This exercise does not establish catalog-to-selection eligibility. The retained historical real account catalog establishes availability at that earlier run."
+}

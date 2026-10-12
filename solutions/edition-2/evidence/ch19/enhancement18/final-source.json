@@ -1,0 +1,14 @@
+{
+  "base": "292f54910acf6f363243d520af46f593834c5c3b",
+  "files": {
+    "cmd/grade-edition2/main.go": "8b6bcafc68d56f449f8506b4106ba16a6f7adba37e44680f5c0a85071a96acd2",
+    "internal/grade/edition2_auth_peers.go": "cca7e813d1da3096584cf2278f50e1733e5b89d928762d8cb8d68d6945b47f92",
+    "internal/gradeedition2/ch18_test.go": "7f3c91a11aa24f61f1b046f0e4c0110a61e452b0151966118f8bd89140a6c98e",
+    "internal/gradeedition2/ch18.go": "143509d1db9181a132370671534e3487c6ce7449900bda1e9aa3bc2d97d17219",
+    "internal/gradeedition2/ch18_driver.go": "f92e18700b11437d5f3eb449c58dd6576a226cfed15444fffe2f10f11a5f0555"
+  },
+  "manuscript": "e057e264f91a20d4c8da1d2852f64e244283afcc3e455e8e4f67113e50d6a730",
+  "accepted_tree": "c72d29294763f23f51071d7484b0d4283ee70c33",
+  "legacy_tree": "5c1293bd4dc134c30c781edf23eba3b1e2d25eb7",
+  "mutation_provenance": "21 runtime defects and split-summary control ran at d1de19ee; 2 abnormal-exit defects and their restored control ran after final exit classification. Final full accepted/legacy and focused race/vet bind these bytes. No claim that every historical mutant reran on final bytes."
+}
