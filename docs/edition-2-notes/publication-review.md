@@ -190,3 +190,40 @@ visual inspection plus the stated complete mechanical checks, not an exhaustive
 visual reading of every page, Kindle/KDP preview, physical proof or security
 certification. Bill's unfinished runtime/crossover edits, frozen sources and the
 existing port8088 process remain outside this acceptance and untouched.
+
+## October 12: black-on-white print code accepted
+
+Accept bounded print correction `4e21dfad5e9114007f5674c64b5d67850a3723c2`
+against the user-preface rebuild `11f5562a`. This acceptance changes only the
+print-style gate; earlier r1 artifact hashes remain historical. Reread the full
+mandatory `.agents/skills/ensemble-coding/SKILL.md` and current preface-ownership
+instruction. The four complete governing/craft documents remain active with no
+intervening compaction. Bill owns `book/preface.md`; it was neither edited nor
+editorially reviewed here.
+
+The five-line print-header rule overrides code/container/token foreground and
+background, leaving font emphasis, spacing and wrapping intact. It does not
+change EPUB styling. Read the actual dedicated-Chrome print-media probe and its
+[receipt](../../solutions/evidence/publication-print-light/check.json):13,993
+selected elements are black on white, while removing only that rule in the DOM
+restores7,902 colored elements without changing measured emphasis or dimensions.
+This is a meaningful before/after control, not a second product test suite.
+
+Independently matched every protected/output hash, and compared protected files
+to actual `11f5562a` Git bytes. Bill's preface, all manuscript files, assembled
+Markdown and EPUB remain unchanged. Rendered current interior pages196,361 and
+365 directly from the PDF: italic comments, bold keywords, long shell/JSON lines,
+inline code and table code are black on white and readable; no visible clipping
+or new layout problem appears. All134 Menlo text spans on those pages are black.
+An initial reviewer check wrongly included unchanged dark-gray body prose, then
+used generic font names instead of the actual Menlo family; the corrected scoped
+inspection establishes the code-color claim without demanding a prose-style change.
+
+Independently verified all30 actual TOC title/number pairs and their destinations.
+Page counts remain371 interior /372 with cover, matching the user-preface baseline.
+Final interior SHA-256 is
+`ab946e5e6faa8d30a96847c071aa4d7a106c52f3946f1eb1db7dd892efe290d9`;
+cover-prefixed PDF is
+`12ce5a556bd12121305dcdc62948f84a33d2f028ec70651d58e9df516ab70e93`.
+No blocking print-contrast finding remains. This is local rendered-output review,
+not a physical proof, Kindle/KDP preview, publication or approval of Bill's prose.
