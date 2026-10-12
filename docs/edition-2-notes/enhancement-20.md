@@ -162,3 +162,66 @@ the printed interface list has15 names but original22 calls it18 interfaces.
 Removed the unsupported total without claiming the list is a complete15-type
 inventory. The wrong-diagnosis explanation remains. No example fence changed.
 Coherent commit manuscript SHA: `b975d7aaa77d767ca7e6c7f3976367048cab89b15a6491d307b9182ee89cb1f9`.
+
+## Final author reconciliation
+
+Coder freeze `ef796cde9ffdc5e9578c087d69b0db790d6a6bd4` and complete
+[technical report](enhancement-20-code.md) were read directly, alongside final
+source binding, actual full command/result receipts, exact-example receipts and
+mutation reports. The mutation-output excerpt that was truncated was recovered
+with a bounded read of its omitted middle. No compaction has occurred since the
+full four-document reload recorded above; all four remain fully active together,
+as does mandatory `.agents/skills/ensemble-coding/SKILL.md`.
+
+Verified all five final grader/command/test hashes, both frozen tree identities,
+unchanged manuscript `b975d7aaa77d767ca7e6c7f3976367048cab89b15a6491d307b9182ee89cb1f9`,
+and every one of its17 exact fences against `final-source.json`/`samples.json`.
+No manuscript correction is needed; final hard lint remains6,873 prose words.
+This reconciliation changes only this owned note.
+
+Actual final full grading is **155/155 accepted**, exit0 in1.490s, and
+**135/155 legacy**, grade exit1 in1.260s. These are full runs, not composed
+scores. Legacy's only failed row is agent-status-tool: its cache-hit denominator
+omits cache-write input, yielding16.7/29.4/29.7 percent instead of
+13.333/23.810/24.176. Its actual web calls and separately priced accounting pass.
+Historical tariffs are explicit grader inputs, not a claim about today's prices.
+Final focused race and vet pass. Original0/100 and20/100 remain untouched.
+
+The first revised35/155 was fixture failure: missing `transport: url` prevented
+MCP setup, and a history assertion used a recall-only extractor. First green
+`7c592004`155/135 remains distinct from final results. Complete-body and
+unknown-refusal assertions then caught two defects that passed that first green:
+a partial page retaining markers, and a refusal leaking disabled inventory.
+Those failed approaches and corrected observations remain in the technical record.
+
+There are18 distinct targeted source changes:16 detected and two numeric
+survivors, with the two earlier corrected-survivor attempts not counted again.
+Removing the manager grant filter leaves Agent grants protecting this fixture;
+removing only StopSkill selection leaves separate skill revocation protecting
+visible/dispatch results. Thus the score does not prove per-server isolation or
+connection teardown. Accepted source and retained earlier integration/lifetime
+receipts support those mandatory behaviors separately, without relabeling old
+runs as final-source tests. Whole-unload omission, result-kind corruption and
+abnormal exit produce coupled failures, not independent proof of every lost row.
+The manuscript already distinguishes numeric observations from actual owner,
+composition, cancellation and lifetime review, so no added audit prose is needed.
+
+Exact examples pass against the unchanged manuscript. All17 fences are bound;
+two current Go excerpts compile in their actual common/tools contexts (no
+behavioral test is claimed by that compilation), while five historical Go
+excerpts remain diagnostic quotations. The real CLI executes the published build,
+skills, launch, three prompts and /model command with local issuer/provider/MCP
+peers. Nine main requests and three valid empty-pick judge requests complete in
+1.152s: actual complete local web content, two correlated status results,
+Astra→Sol selection, unload, save and normal exit0. The web endpoint, auth profile,
+provider base and credential are explicit external-fixture substitutions. This
+is execution of scripted decisions, not fresh autonomous research, account
+eligibility, service availability, paid cache grants or an invoice.
+
+The local scrape completes immediately; the conditional wait branch retains its
+separate historical live proof. The initial sample validator watched stdout for
+a model acknowledgment emitted on stderr; the corrected observation required no
+runtime or manuscript change. Initial Go overlays also had import/redeclaration
+setup mistakes. Both failed validators are preserved. No paid repeat or broad
+rerun was performed for this note. Independent final combined acceptance remains
+the reviewer's decision; no Chapter21 authorship is released here.
