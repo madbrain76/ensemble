@@ -2,6 +2,13 @@
 
 ## October 12: Edition 2 is the current top-level tree
 
+**Local reading copy ready, October 12.** Gateway implementation and enhancement,
+relocation, publication prose and rendered artifacts are independently reviewed.
+Artifact checkpoint `ca3f4764` contains the EPUB, assembled Markdown and PDFs
+(370-page interior; 371 with cover). Bill will read before publication. No push
+or upload has occurred. Chapter25 stays reserved; the separate uncommitted
+crossover edits are preserved. See the publication record and its linked review.
+
 Promotion commit `564e316f` moves the accepted second edition to `agent/`,
 `book/` and `solutions/chNN/`. The first edition, frozen through original
 Chapter 27, is preserved in `edition-1/`, including its original graders.

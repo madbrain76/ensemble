@@ -103,3 +103,42 @@ These edits remain uncommitted, unchanged and outside the accepted snapshots;
 publication preparation neither accepts nor discards them. The two added roadmap
 items in `edition-1/book/chapters.md` also predate the move, but their writer has
 not been established. No private conversation log was copied into the repository.
+
+## Local reading copy, October 12
+
+Bill will read the book before publication. No push, upload or copy to an external
+publishing destination is authorized by this preparation. Crossover Chapter 25
+remains reserved.
+
+Artifact checkpoint `ca3f4764` contains assembled Markdown, EPUB, print HTML, the
+370-page print interior and the 371-page cover-prefixed PDF. Every PDF page is
+6 × 9 inches. All 30 printed contents references match the actual heading pages.
+The EPUB includes all chapters in order, its cover and populated chapter-level
+navigation, with no navigation page in the reading spine or duplicate printed
+Contents. Repository links distinguish files from directories. The final artifact
+hashes and measured checks are in [the verification record](../solutions/evidence/publication-tooling/full-verification.json).
+The coordinator independently matched all five artifact hashes.
+
+Current default grades for Chapters 1 and 26 and archived original Chapter 1 each
+score 100/100 in new relocation runs. The real nested-module fakevendor loop,
+maintained tooling build/vet, selected regressions and exporter tests pass. Current
+CLI and GUI build to temporary binaries; this establishes buildability, not
+acceptance of the separate uncommitted crossover changes. Full preface/chapter
+prose lint exits zero with soft warnings retained. Reader-entry local links pass.
+See [the tooling report](../solutions/evidence/publication-tooling/README.md) for
+exact scope and the distinction between compilation and executed tests.
+
+The epilogue is Astra's own first-person account from Codex. Independent review
+resolved one attribution correction: the student raised the memory-trigger
+contradiction, and Bill settled the intended behavior. The final text preserves
+failed attempts, actual results and the unfinished crossover. Front matter and
+all mechanically relocated chapter paths are independently accepted.
+
+Independent rendered-page review accepts the local reading copy: cover, contents,
+front matter, representative chapter openings, multi-page tables, long command/JSON
+blocks, placeholder25, epilogue and author note are readable. All 370 interior
+footers and all 30 contents references were checked. An extracted EPUB Gateway
+page also renders readably in Chrome. The [independent review](edition-2-notes/publication-review.md)
+records the precise scope. Kindle Previewer, KDP print preview, physical proof
+and Bill's editorial read-through have not been performed.
+These local artifacts are reading copies, not a published edition.
