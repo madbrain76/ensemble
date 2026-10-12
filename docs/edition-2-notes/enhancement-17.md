@@ -2,8 +2,9 @@
 
 Author: `edition2_author`, October 11, 2026. Original Chapter18 becomes
 Edition2 Chapter17, **The Invisible Invoice**. This is the first coherent
-enhancement submission; exact-example validation, final revised grading and
-independent combined acceptance remain pending. No Chapter18 is drafted.
+enhancement submission, now reconciled with final coder freeze `b1bdb334`.
+Exact-example validation and final revised grading are complete; independent
+combined acceptance remains pending. No Chapter18 is drafted.
 
 ## Reading and source boundary
 
@@ -155,12 +156,94 @@ block before ephemera even when both share a wire message. Both rubric copies
 now include the grader's actual direct last-tool/system/history marker checks
 and four-marker budget. This simple numeric fixture has no handoff or ephemeral
 tail; its stronger boundary obligations retain separate source proof. The coder
-reports an initial100/85 stage, pending direct final author reconciliation.
+reports an initial 100/85 stage, pending direct final author reconciliation.
 
-The coherent draft is approximately6450 raw whitespace words versus5240 in the
-original, with a1318-word TL;DR versus1141 (both include code/check lists).
+The coherent draft is approximately 6450 raw whitespace words versus 5240 in the
+original, with a 1318-word TL;DR versus 1141 (both include code/check lists).
 The added runnable demonstration, interrupted-response explanation and missing
 public launch/accounting contracts account for the substantive growth. These
-are source-relative review aids, not targets. Hard lint passes at5710 prose
+are source-relative review aids, not targets. Hard lint passes at 5710 prose
 words before the final removal of the stale key aside; its two soft warnings
 do not justify filler people or loss of useful mechanism.
+
+## Exact-example reconciliation
+
+The author directly read `enhancement17/samples.json`, `samples-run.txt`,
+`samples-meters.json` and the retained initial setup outputs. The executed
+manuscript is SHA-256
+`c00a640ca14d7b4bbde424314230857841abd01249cc3f9c9fe976290642ff48`;
+no prose or executable fence changed after that binding.
+
+Both Go vocabulary fences compile with the existing `common.Engine` type.
+The initial snippet harness incorrectly assumed a public `ensemble.Engine`
+alias; its compile failure remains `samples-go-initial.txt`, not a manuscript
+defect or a runtime correction.
+
+The exact build, Python reference generator and typed primary ran. All four
+published prompt lines traversed the actual GUI WebSocket and Agent against a
+local external HTTP fake using Sonnet-5. The sole launch-text substitution was
+port 51108 for 8088. The first attempt found the user's existing Ensemble on 8088:
+it subscribed and read the meter, sent no prompt, failed its expected-fresh-zero
+assertion and left that process alone. The corrected harness selected a free
+port and verified that its own child held the listener before sending prompts.
+Both the actual normal EOF exit and restarted process exited 0. Plain delivery
+was selected with the existing `EN_DISABLE_STREAMING` environment setting.
+
+The final session totals were 1300 ordinary input, 500 write, 4200 read and 70
+output; the last main reply separately reported 100/0/1400/20. The wire meter's
+$0.00539 equals `(1300*2 + 500*2.5 + 4200*.2 + 70*10)/1e6`; its 70% hit rate is
+`4200/(1300+500+4200)`. Actual restart retained four responses and began with
+zero process usage/cost. These are real application observations under supplied
+fake usage, not a new provider cache grant, native-DOM run, price audit or model
+answer-quality result. The original paid/browser evidence retains its own scope.
+
+## Final coder reconciliation
+
+The author read the complete [final coder report](enhancement-17-code.md), actual
+full output and command receipts, final source binding, race/vet output and all
+three source-mutation result lists. The final actual full scores are accepted
+**100/100**, exit 0 in **0.984 seconds**, and legacy **85/100**, exit 1 in
+**0.689 seconds**. These are full runs, not composed scores. Legacy's sole
+failing row is legal breakpoint placement: its actual requests omit the last-
+tool marker required by the original exercise. Its own historical tariff and
+artifact paths are supplied explicitly, so different dated prices or layout
+do not manufacture the failure. Earlier full/stage results remain separate.
+
+Final race checks pass in 1.529 seconds and vet exits 0. The author directly
+verified all four grader file hashes, the unchanged manuscript hash, original
+chapter/grader hashes and both frozen tree identities against `final-source.json`.
+No runtime, original or frozen export changed. The manuscript needs no further
+correction, and all nine fences retain their executed binding.
+
+The 29 source defects are 25 in `mutations.json`, two in
+`followup-mutations.json` and two in `final-followup-mutations.json`. All are
+detected, with overlapping observations. The first 27 ran before the final
+explicit history-index advancement guard; only the final two and final full/
+race checks bind the final source. They are not 29 independent proofs or 29
+runs silently relabeled onto final bytes. In particular, `last-shows-total`
+fails the cost and cache-read rows, while its initially named session row stays
+passing. Empty captures fail equality; a separate distinct-wrong-content defect
+establishes content sensitivity. The history-dropping case also fails retained
+dialogue, so its two failures are coupled.
+
+The separate duplicate-file control initially survived: two identical files
+could each contain both requests and satisfy independent content matching.
+Restoring the distinct-pair guard rejects that actual artifact defect; valid
+raw and pretty representations still pass independent reviewer controls.
+This is a restored coverage gap, not a new product formatting requirement.
+Initial payload-key/pretty-JSON parser mistakes and the scratch-script parse
+failure remain setup failures. The legacy subscriber-disconnect panic retains
+its separate 0/100 receipt; holding subscribers open for the full cache scenario
+does not relabel that failure or pretend to repair legacy GUI lifetime.
+
+Detailed byte diagnostics, main-only observation, price tiers, stream usage,
+surviving-memory/ephemera boundaries, interrupted-request attribution and browser
+display retain the accepted source/integration/live proofs already identified
+in the manuscript. Neither final numeric score claims all those mechanisms.
+Original grading remains 0/100 on `7436fcb`; earlier paid measurements and their
+model identities remain unchanged. No new paid run occurred.
+
+The full four governing/craft documents remain active together from the explicit
+reload recorded above; no subsequent compaction occurred through this final
+note. Mandatory `.agents/skills/ensemble-coding/SKILL.md` remains active. Author
+work stops at the Chapter17 independent gate; the coordinator owns release18.
