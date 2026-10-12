@@ -79,3 +79,51 @@ control and hit count support network denial; curl exit 7 alone does not.
 Final prose, revised grader, exact examples and targeted sensitivity remain
 pending. No paid run, provider access or new security-certification claim was
 made in this preparation. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+## First-green independent checks
+
+After compaction, fully reloaded workflow 1–380/381–760/761–1140/1141–1520/
+1521–1900/1901–2209, carryover 1–250/251–500/501–750/751–981, voice 1–632,
+procedure 1–599 and the entire 373-line skill. Recovered truncated combined
+output explicitly (workflow 2100–2209 and carryover opening), and reread current
+AGENTS, enhancement assignment and map. All four complete documents are active.
+
+The independent external consumer in [reviewer-clamp.go.txt](../../solutions/edition-2/evidence/ch23/enhancement21/reviewer-clamp.go.txt)
+and [its actual receipt](../../solutions/edition-2/evidence/ch23/enhancement21/reviewer-clamp.json)
+confirms the remaining legacy child-boundary defect. Both frozen trees permit
+legitimate existing and not-yet-created child subroots. For an existing symlink
+inside the parent pointing outside, accepted Clamp narrows the returned root and
+reports the attempt; legacy returns the requested physical outside root with nil
+error. Both consumers exit zero. This is public specification behavior, not a
+new spawned-child or general security claim. Legacy `Within` calls a helper
+that starts at the leaf's parent, so it never resolves this existing leaf link;
+accepted canonicalization first resolves the full candidate. No provider call or
+frozen-tree edit was made.
+
+Independently accept the fixture corrections: the original safe-mode requirement
+names four command/job tools, not tool_limits; cwd must make the actual trace
+readable; explicit system Python avoids assuming a PATH interpreter is permitted;
+a fake credential echoed by the provider is distinct from testing redaction of
+the trace read back through a tool. Initial legacy40 and truncated-log75 remain
+fixture-limited. The corrected75 report plus Engine→Agent→Logger source establish
+that the log path writes raw response bytes without calling the separate legacy
+SanitizeForLog helper. Requested a narrow correlated log/environment observation
+in the coder's already planned final run to preserve that actual attribution.
+
+First-green source review found that a root-free nonempty refusal still passed
+without the caller's supplied path. The original chapter requires preserving that
+path, so a generic-refusal sensitivity control and wording-neutral path assertion
+were requested before final freeze. Likewise, effective physical child containment
+replaces the earlier exact fallback spelling; legitimate existing/missing subroot
+controls remain. These are pre-submission grader findings, not runtime redesign.
+
+Whole original-relative prose review retains the credential-approval opener,
+wall/brick, path-canonicalization, Git, wall/alarm and attributed home-device
+stories. The new exercise and sourced ownership/rooted-open corrections explain
+the growth without a length target. Tool_limits is now consistently described as
+additional accepted behavior, and a stale section pointer was removed. The
+[official Go explanation](https://go.dev/blog/osroot) independently supports the
+check/open race distinction; [Root documentation](https://pkg.go.dev/os#Root)
+keeps traversal protection separate from mount/device/native-code guarantees.
+Final examples, sensitivity and complete author/coder reconciliation still await
+their frozen submissions. Zero formal rounds; Chapter22 remains gated.

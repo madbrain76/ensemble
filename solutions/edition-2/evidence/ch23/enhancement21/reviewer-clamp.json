@@ -1,0 +1,84 @@
+{
+  "probe_sha256": "ae014f677d7857f3bfab0d91686944e572bc46d24b0df230d196dfc9173e7a11",
+  "scope": "Public AgentSpec.Clamp; real filesystem, no provider or runtime tree edits",
+  "runs": [
+    {
+      "source": "solutions/edition-2/ch21",
+      "tree": "9dc3e9e36a854ede4cc2cbef22dc389850cedc0c",
+      "command": [
+        "go",
+        "run",
+        "-mod=mod",
+        "."
+      ],
+      "exit": 0,
+      "seconds": 0.181,
+      "stderr": "",
+      "observations": [
+        {
+          "case": "existing",
+          "diagnostic": "",
+          "inside_parent": true,
+          "preserves_requested_root": true,
+          "safe_mode": true,
+          "web_enabled": false
+        },
+        {
+          "case": "future/sub",
+          "diagnostic": "",
+          "inside_parent": true,
+          "preserves_requested_root": true,
+          "safe_mode": true,
+          "web_enabled": false
+        },
+        {
+          "case": "escape",
+          "diagnostic": "child permissions narrowed: sandbox root",
+          "inside_parent": true,
+          "preserves_requested_root": false,
+          "safe_mode": true,
+          "web_enabled": false
+        }
+      ]
+    },
+    {
+      "source": "solutions/ch23",
+      "tree": "48013a866994a701257796daf854aea318c74d67",
+      "command": [
+        "go",
+        "run",
+        "-mod=mod",
+        "."
+      ],
+      "exit": 0,
+      "seconds": 0.203,
+      "stderr": "",
+      "observations": [
+        {
+          "case": "existing",
+          "diagnostic": "",
+          "inside_parent": true,
+          "preserves_requested_root": true,
+          "safe_mode": true,
+          "web_enabled": false
+        },
+        {
+          "case": "future/sub",
+          "diagnostic": "",
+          "inside_parent": true,
+          "preserves_requested_root": true,
+          "safe_mode": true,
+          "web_enabled": false
+        },
+        {
+          "case": "escape",
+          "diagnostic": "",
+          "inside_parent": false,
+          "preserves_requested_root": true,
+          "safe_mode": true,
+          "web_enabled": false
+        }
+      ]
+    }
+  ]
+}

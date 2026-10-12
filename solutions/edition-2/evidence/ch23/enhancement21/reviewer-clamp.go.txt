@@ -1,0 +1,29 @@
+package main
+import (
+ "encoding/json"
+ "os"
+ "path/filepath"
+ "strings"
+ api "PUBLIC_IMPORT"
+)
+func main() {
+ base,err:=os.MkdirTemp("", "reviewer-clamp-"); if err!=nil { panic(err) }; defer os.RemoveAll(base)
+ base,err=filepath.EvalSymlinks(base); if err!=nil { panic(err) }
+ root,out:=filepath.Join(base,"root"),filepath.Join(base,"outside")
+ for _,p:=range []string{root,out,filepath.Join(root,"existing")} { if err=os.MkdirAll(p,0700);err!=nil {panic(err)} }
+ if err=os.Symlink(out,filepath.Join(root,"escape"));err!=nil {panic(err)}
+ parent:=api.AgentSpec{DataDir:root,SandboxRoot:root,SafeMode:true}
+ rows:=[]map[string]any{}
+ for _,name:=range []string{"existing","future/sub","escape"} {
+  wanted:=filepath.Join(root,name)
+  child:=parent.Child(filepath.Join(root,"state"));child.SandboxRoot=wanted
+  got,e:=child.Clamp(parent)
+  physical,pe:=filepath.EvalSymlinks(got.SandboxRoot)
+  if pe!=nil && os.IsNotExist(pe) { physical=got.SandboxRoot }
+  rel,re:=filepath.Rel(root,physical)
+  within:=re==nil && rel!=".." && !strings.HasPrefix(rel,".."+string(filepath.Separator)) && !filepath.IsAbs(rel)
+  msg:="";if e!=nil {msg=e.Error()}
+  rows=append(rows,map[string]any{"case":name,"diagnostic":msg,"inside_parent":within,"preserves_requested_root":got.SandboxRoot==wanted,"safe_mode":got.SafeMode,"web_enabled":got.EnableWebSearch})
+ }
+ if err=json.NewEncoder(os.Stdout).Encode(rows);err!=nil {panic(err)}
+}
