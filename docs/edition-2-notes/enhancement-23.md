@@ -188,3 +188,30 @@ were added. Only the two author-owned files are committed. Runtime, original
 manuscripts/graders, frozen exports, concurrent crossover work and port8088 are
 preserved. Independent combined review is pending; Gateway authorship is not
 released by this submission.
+
+## Independent causal-wait finding and correction
+
+Reviewer `9b00463f` demonstrated an immediate-status replacement for
+`WaitChange` still passing the numeric wait row on coder363e83ce. The original
+twelve defects did not protect that distinct causal claim. Coder follow-up
+`6a14a4494fc7236d49cd5de68de98a517e959492` corrects the external fixture:
+actual child-shell readiness precedes the parent's wait-producing response;
+a bounded200ms no-progress interval rejects an early correlated result;
+only then does real command release lead to the selected progress result and
+completed command/submission. This does not observe exact handler entry or
+establish an unbounded timing guarantee.
+
+Read the revised report, `wait-causal-check.json`, final source/composed
+bindings and independent `reviewer-wait-corrected-check.json`. The exact earlier
+survivor now fails only the wait row; baseline and restored controls pass.
+There are thirteen eventually detected runtime defects: twelve on the earlier
+source plus this initially surviving case. The argument-only replay control
+remains separate. Final accepted/legacy totals remain **composed100/70** from
+corrected focused GUI75/45 and unchanged CLI25; earlier actual full100/70 and
+all earlier bindings remain historical. No new paid or broad run is claimed.
+
+Manuscript and all six measured fences remain unchanged at6ce1110e; the existing
+progress-based row now has the stronger causal evidence it describes. Rechecked
+all final grader hashes. This note-only reconciliation follows the same active
+four-document reload with no intervening compaction. Independent combined gate
+remains pending; mandatory `.agents/skills/ensemble-coding/SKILL.md` applies.
