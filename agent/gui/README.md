@@ -29,8 +29,9 @@ cannot strand the gate.
 
 Reconnect rebuilds the last hour or last 100 renderable events, whichever is
 larger, plus current streaming partials. History is synchronized, finals remove
-partials, and display identities survive response-local parser ID reuse. This is
-in-memory replay for the current Agent, not restoration after process restart.
+partials, and display identities survive response-local parser ID reuse. Browser
+reconnect replays the selected Agent; process restart first restores saved Agent
+history, from which the GUI rebuilds its view.
 Every incoming and outgoing WebSocket message is timestamped in `gui.log`.
 The other logs are `event.log`, `api.log`, and `debug.log`.
 
@@ -40,7 +41,8 @@ and font size (12–24 pixels). Changes apply across tabs and persist in
 Speech rate applies to the next utterance; disabling speech cancels its queue.
 The same settings envelope accepts `max_tool_rounds` over the WebSocket: zero
 selects 200; positive N permits N tool batches. It affects the next turn, including
-terminal turns, and is restored on restart. This is not conversation restoration.
+terminal turns, and is restored on restart. Saved conversation history is
+restored separately.
 
 `update_settings` carries a sparse `settings` object. The server validates the
 patch, saves it, and broadcasts a complete `settings_changed` snapshot; subscribers
@@ -50,8 +52,10 @@ Malformed saved JSON fails startup instead of silently discarding preferences.
 GUI preference behavior stays in this module; the core owns the effective tool
 budget and has no browser preference fields.
 
-The module uses only the core's public `ensemble` package. One application creates
-one Agent, and terminal/browser inputs share its actor. The root observation seam
+The module uses only the core's public `ensemble` package. The application creates
+one Ensemble root with Agents. Terminal input addresses the main Agent; each
+browser tab can select an Agent and share that Agent's actor. The root
+observation seam
 supplies progress; request completion remains separate. Socket writes run in one
 writer per connection. Slow live receivers may drop progress; reconnect restores
 authoritative content. Replay itself is one queued batch and is not truncated by
@@ -59,8 +63,8 @@ the progress buffer. Close joins socket writers before the application closes lo
 
 Run `go test -race ./...` and `go vet ./...` here, separately from the core module.
 Browser/native speech checks and targeted mutation evidence are documented in
-`docs/edition-2-notes/ch08.md` in the outer repository. No Node dependency is
-required to serve or use this page.
+[the original Chapter 8 record](../../docs/edition-2-notes/ch08.md) in the outer
+repository. No Node dependency is required to serve or use this page.
 
 The GUI command accepts the same `EN_SKILLS_DIR`, `EN_PRIMARY_SKILL` and
 `EN_CUSTOM_VAR` environment setup as the core CLI. The application passes an
@@ -89,7 +93,7 @@ Programmatic prompt input does not take the typing pause, allowing the Agent to
 click Send on its next tool call. Human input keeps the existing pause behavior.
 
 
-Chapter 14 adds a transcript to the speech channel. Fragments reassemble before
+Chapter 13 introduces a transcript to the speech channel. Fragments reassemble before
 phrase splitting; a single newline becomes a space, blank lines and sentence
 endings separate phrases, and finals, tools and errors flush unfinished text.
 Markup is filtered, fenced code is named, and identifiers are expanded. Tool
@@ -139,10 +143,11 @@ The header meter shows process-session USD cost, the latest conversation input
 (including cache once), latest cache reads, and session cache hit rate. Hover for
 session token totals. A dash means at least one contributing model is unpriced.
 Engine derives dollars from counts using the effective request model and its
-prompt-size tier; restoring history never restores session charges. Current
-verified prices cover Haiku 5.5, Sonnet 5, GPT-5.6 Sol and Gemini 3.8 Flash; the latter's
-introductory rates need updating January 1, 2027. Other models retain counts and
-show unknown cost until their prices are verified.
+prompt-size tier; restoring history never restores session charges. The bundled
+price table was verified October 11, 2026 for Sonnet 5, GPT-5.6 Sol and Gemini
+3.8 Flash; the latter's introductory rates need updating January 1, 2027. These
+are dated application rates, not a fresh price quote. Other models retain counts
+and show unknown cost. Anthropic 5.5 models are excluded from current use.
 
 The cache lens writes `cr/cache-current.txt` and `cr/cache-prior.txt`, in prompt
 section order, and reports append/change verdicts and byte/token ratios in

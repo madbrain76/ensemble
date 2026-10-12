@@ -64,7 +64,7 @@ as having written the next edition with it.
 ## 19.1 What Breaks on Day One
 
 The following incidents come from the first-edition crossover and
-its [running changelog](../crossover-changelog.md), begun September 27,
+its [running changelog](../edition-1/book/crossover-changelog.md), begun September 27,
 2026. Names such as `Hub`, `view_gui` and the narration gate describe
 that implementation. The new implementation has already learned
 several of these lessons in earlier chapters.
@@ -664,7 +664,7 @@ tab-separated, two-decimal CLI output stayed intact.
 The next command ran the same six tests. All passed. An independent
 rerun of the preserved before and after directories reproduced both
 outcomes; the test file was byte-identical. The useful evidence is
-the [actual source diff](../../solutions/edition-2/evidence/ch20/task.patch)
+the [actual source diff](../solutions/evidence/ch20/task.patch)
 beside the failing and passing results, rather than the model's
 claim that it repaired something.
 
@@ -692,10 +692,10 @@ start in the repository root and build the accepted Chapter 19 CLI:
 
 ```sh
 chapter19_repo=$PWD
-(cd solutions/edition-2/ch19 && go build -o /tmp/ensemble-ch19 .)
+(cd solutions/ch19 && go build -o /tmp/ensemble-ch19 .)
 chapter19_work=$(mktemp -d)
-cp solutions/edition-2/evidence/ch20/task-before/aggregate.py "$chapter19_work/"
-cp solutions/edition-2/evidence/ch20/task-before/test_aggregate.py "$chapter19_work/"
+cp solutions/evidence/ch20/task-before/aggregate.py "$chapter19_work/"
+cp solutions/evidence/ch20/task-before/test_aggregate.py "$chapter19_work/"
 cd "$chapter19_work"
 mkdir -p skills/base
 cat > skills/base/SKILL.md <<'EOF'
@@ -736,7 +736,7 @@ After the final answer, send EOF. Check the files yourself:
 
 ```sh
 python3 -m unittest -v
-cmp "$chapter19_repo/solutions/edition-2/evidence/ch20/task-before/test_aggregate.py" test_aggregate.py
+cmp "$chapter19_repo/solutions/evidence/ch20/task-before/test_aggregate.py" test_aggregate.py
 ```
 
 Read the source diff, too. Passing these six cases says something

@@ -99,7 +99,7 @@ migration or persistent task spawning is part of this exercise.
 Build and grade from the repository root:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 23 solutions/edition-2/ch23
+go run ./cmd/grade-edition2 -ch 23 solutions/ch23
 ```
 
 The default builds the core and its separate `gui/` command; `-gui DIR`
@@ -420,7 +420,7 @@ words as well as registry identity.
 For a small browser task, build the supplied command from the repository root:
 
 ```sh
-CH23_CORE="$PWD/solutions/edition-2/ch23"
+CH23_CORE="$PWD/solutions/ch23"
 (cd "$CH23_CORE/gui" && go build -o /tmp/ensemble-ch23-gui ./cmd)
 CH23_WORK=$(mktemp -d /tmp/ensemble-ch23.XXXXXX)
 mkdir -p "$CH23_WORK/skills/ensemble"
@@ -555,7 +555,7 @@ The revised driver uses external provider peers and the real applications. Its
 command is:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 23 solutions/edition-2/ch23
+go run ./cmd/grade-edition2 -ch 23 solutions/ch23
 ```
 
 | Behavior | Revised observation | Points |

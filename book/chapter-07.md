@@ -647,7 +647,7 @@ The retained October 9 exercise used installed Chrome and the real native
 speech service. It checked two tabs, a connection during an active partial,
 completed-history reload, safe markup, reachable long content, typing with
 Read aloud off, another tab's unpause, speaker clicks, Escape and visibility
-changes. [The browser receipt](../../solutions/edition-2/evidence/ch08/browser.json)
+changes. [The browser receipt](../solutions/evidence/ch08/browser.json)
 records 180 available voices and a short sentence's queued/start/end events.
 That is an API observation, not a subjective listening result.
 
@@ -657,7 +657,7 @@ that did not complete: reloading the second tab had restored its checked
 Read aloud default, accidentally enabling overlapping speech during the long
 response. Explicitly disabling that tab's voice after reload produced the
 clean automatic-speech result. A separate
-[interruption receipt](../../solutions/edition-2/evidence/ch08/speech.json)
+[interruption receipt](../solutions/evidence/ch08/speech.json)
 checks that a real error advances the queue. Neither result justifies
 inventing an audio-quality claim.
 
@@ -674,8 +674,8 @@ The Anthropic run also carried a terminal busy hint into the browser on the
 same Agent, and its speaker button produced native start/end events. The
 Gemini run used Bill's required model and also exposed the empty-text metadata
 card described above. Successful tool execution did not make the page correct.
-The [live summary](../../solutions/edition-2/evidence/ch08/live-summary.json)
-and [projection correction](../../solutions/edition-2/evidence/ch08/projection.json)
+The [live summary](../solutions/evidence/ch08/live-summary.json)
+and [projection correction](../solutions/evidence/ch08/projection.json)
 retain both the success and the subsequent repair. These are observed model
 destinations, not a current availability list or a new paid run of this edition.
 
@@ -687,7 +687,7 @@ scored 100/100. Preserve those results rather than assigning a hypothetical
 score to the corrected source. Final-source race tests, browser checks and
 independent review established the bounded fixes. The revised grader now
 uses the actual separate GUI and headless entry points; its detailed evidence
-belongs in the [chapter review](../../docs/edition-2-notes/enhancement-07-code.md).
+belongs in the [chapter review](../docs/edition-2-notes/enhancement-07-code.md).
 
 ---
 

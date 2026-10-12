@@ -53,7 +53,7 @@ conversation. At the end of this chapter it writes code.
 
 ## 3.1 Fifty-one rows
 
-The complete table is [the original tool exhibit](../exhibit-ch03-tools.md): all fifty-one tools, with
+The complete table is [the original tool exhibit](../edition-1/book/exhibit-ch03-tools.md): all fifty-one tools, with
 counts, share, cumulative share, and a status column. It rewards a slow
 read, and three things in it matter more than the rest.
 
@@ -791,7 +791,7 @@ read the file, made a targeted edit and reran the test. The inspected diff was:
 
 The failed test came back as ordinary command data with exit code 1; the
 second run had exit code 0. Each model also recalled its codename and received
-a real missing-file tool error. The [retained live record](../../solutions/edition-2/evidence/ch03/live.txt)
+a real missing-file tool error. The [retained live record](../solutions/evidence/ch03/live.txt)
 contains the tool calls, results and inspected diffs:
 
 | model used in that run | recalled codename | total input / output tokens |

@@ -914,7 +914,7 @@ lines on stdout, and logs to the path in `CH06_LOG`. The grader
 drives the fake vendor to script specific responses for each agent.
 
 The reference workflow is in
-[`solutions/edition-2/ch05/ch06/`](../../solutions/edition-2/ch05/ch06/).
+[`solutions/ch05/ch06/`](../solutions/ch05/ch06/).
 Keep the historical `ch06` application directory and `CH06_LOG` name for
 compatibility. Build that module separately. The local provider fake supplies
 the ordinary Anthropic adapter environment (`LLM_VENDOR=anthropic`, a model,
@@ -1021,7 +1021,7 @@ Interrupt followed at 22:45:22.172780. The new turn answered `COMET` at
 `REAL_LATE_RESULT`. The interface was usable roughly eleven seconds before
 the old work finished. That is the point of keeping the actor alive.
 
-The [retained CLI transcript](../../solutions/edition-2/evidence/ch06/live-cli-transcript.json)
+The [retained CLI transcript](../solutions/evidence/ch06/live-cli-transcript.json)
 and event log preserve one correction: the initial implementation emitted
 `job_finished` with status `running` when the shell handler returned after
 launch. The final guard emits that event only for a terminal job snapshot.
@@ -1057,12 +1057,12 @@ draft and counted 60. The editor called `read_draft` and `edit_draft`; the
 reviewer called `review` and accepted the
 edited draft. The reviewer received the stored edited text, not merely a
 claim that an editor had run. The full tagged observations and three separate
-Agent logs remain in [the workflow evidence](../../solutions/edition-2/evidence/ch06/live-workflow-transcript.txt).
+Agent logs remain in [the workflow evidence](../solutions/evidence/ch06/live-workflow-transcript.txt).
 
 Media received its own, different demonstration. A separate public-API client
 sent a local 96×96 red PNG to `gpt-5.4-mini`, which answered `red`. The same
 renderer refused an audio part with `model "gpt-5.4-mini" does not support audio
-media`. These [media receipts](../../solutions/edition-2/evidence/ch06/live-media-transcript.txt)
+media`. These [media receipts](../solutions/evidence/ch06/live-media-transcript.txt)
 show actual image consumption and a local refusal; audio, video and PDF
 positive cases were checked deterministically at the rendering boundary,
 not presented as additional live model runs.
@@ -1089,7 +1089,7 @@ A real correction remained: changing Gemini's `mimeType` key survived a test
 that only looked for bytes somewhere in the request. The repaired test decoded
 the actual attachment fields and caught both wrong MIME and wrong data keys.
 A mutation can reveal a weak test; an agreeable reviewer cannot settle missing
-scope. The [chapter record](../../docs/edition-2-notes/ch06.md) preserves both
+scope. The [chapter record](../docs/edition-2-notes/ch06.md) preserves both
 corrections and the original results.
 
 The agent was deaf. Now it listens.

@@ -191,10 +191,10 @@ files, as long as plain `diff` puts the cursor on the first broken byte.
 
 ### Exercise
 
-Extend `solutions/edition-2/ch16`. Wire a `CacheLens` to the main send boundary,
+Extend `solutions/ch16`. Wire a `CacheLens` to the main send boundary,
 place supported breakpoints, build the meter, and verify stable prefixes and
 actual cache reads. The grader runs from the repository root, defaulting to
-`solutions/edition-2/ch17` and its separate GUI:
+`solutions/ch17` and its separate GUI:
 
 ```
 go run ./cmd/grade-edition2 -ch 17 -json
@@ -679,7 +679,7 @@ reuse, but is not a tokenization identity or a billing audit. The original Anthr
 
 ## §17.6 Exercise, graded
 
-Extend `solutions/edition-2/ch16`. Observe actual main sends with an
+Extend `solutions/ch16`. Observe actual main sends with an
 Engine-owned cache lens; exclude auxiliary requests from that comparison.
 Place supported markers at tools, system, the surviving compaction boundary
 and the stable end before ephemera. Build the four-number GUI meter from
@@ -693,7 +693,7 @@ Run from the repository root:
 go run ./cmd/grade-edition2 -ch 17 -json
 ```
 
-The grader builds `solutions/edition-2/ch17/gui` separately from the core.
+The grader builds `solutions/ch17/gui` separately from the core.
 `-gui` can select another GUI module; `-cache-current` and `-cache-prior`
 select its diagnostic artifact paths relative to the scratch launch directory.
 The defaults are `cr/cache-current.txt` and `cr/cache-prior.txt`.
@@ -735,7 +735,7 @@ A fake's warm reply cannot establish a real cache grant.
 Use a fresh directory and a stable reference large enough to make caching
 eligible. The reference belongs in the primary here because it is fixed for
 the demonstration, not because arbitrary retrieved text belongs in instructions.
-From a scratch copy of `solutions/edition-2/ch17`:
+From a scratch copy of `solutions/ch17`:
 
 ```sh
 cache_source="$PWD"

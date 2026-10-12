@@ -426,9 +426,9 @@ with the file content. Each process exited normally. Their captured requests
 retain identical system text within each session: five requests for the Claude
 run, four for the OpenAI run and five for Gemini. These are historical run
 identities; discover the models available to your account when repeating the
-exercise. The [Claude](../../solutions/edition-2/evidence/ch10/anthropic-live.json),
-[OpenAI](../../solutions/edition-2/evidence/ch10/openai-live.json) and
-[Gemini](../../solutions/edition-2/evidence/ch10/gemini-live.json) receipts contain
+exercise. The [Claude](../solutions/evidence/ch10/anthropic-live.json),
+[OpenAI](../solutions/evidence/ch10/openai-live.json) and
+[Gemini](../solutions/evidence/ch10/gemini-live.json) receipts contain
 the actual calls, results, file content and request bodies.
 
 One successful run invited the wrong conclusion. The OpenAI session called
@@ -448,10 +448,10 @@ The historical full grader was interrupted during its inherited GUI/headless
 parity cascade and produced no aggregate score. Separate unchanged Skills phases
 scored **65/85**, losing only the two declaration checks that required undefined
 `think`; this was not a completed 65/100 run. The
-[independent review](../../docs/edition-2-notes/ch10-code-review.md) preserves
+[independent review](../docs/edition-2-notes/ch10-code-review.md) preserves
 those results and their accepted exceptions. Edition 2's grader uses the
 implemented tool set and the proper clients, with its new results recorded
-separately in the [grader report](../../docs/edition-2-notes/enhancement-09-code.md).
+separately in the [grader report](../docs/edition-2-notes/enhancement-09-code.md).
 
 The agent can now acquire a manual and its tools without rewriting its
 constitution. The next chapter gives the conversation a life beyond the

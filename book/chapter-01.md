@@ -412,7 +412,7 @@ sidebar was not advice for other people.
 
 The following is the preserved first-edition conversation, with an abridged
 reply. Its model name and token totals belong to that run. Build the
-second-edition reference from `solutions/edition-2/ch01/`, or build your own
+second-edition reference from `solutions/ch01/`, or build your own
 working directory, and discover an available model before repeating it.
 
 ```
@@ -472,7 +472,7 @@ real time. Watch the input count. It never goes down.
 None of this is scored by the seven-check grader. It is still part of finishing
 the chapter. The second-edition student typed three real turns in a terminal,
 introduced a boat called “Copper Finch,” and received that name back when asked
-again. The [retained transcript](../../solutions/edition-2/evidence/ch01/live.txt)
+again. The [retained transcript](../solutions/evidence/ch01/live.txt)
 also records a false start: a launcher consumed stdin, so chat saw EOF and
 exited without making a request. A clean exit had demonstrated no conversation.
 
@@ -531,7 +531,7 @@ to say out loud: the language of a project directed through an assistant is a
 fact about the assistant.
 
 Build your own attempt before consulting a reference answer. The independent
-reviewer can compare it with `solutions/edition-2/ch01` afterward and return
+reviewer can compare it with `solutions/ch01` afterward and return
 findings with reasons. The grader reads what the binary emits; review checks
 the ownership, simplicity and explanations it cannot see.
 

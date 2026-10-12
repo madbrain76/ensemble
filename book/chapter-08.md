@@ -488,8 +488,8 @@ could not merely move the defect.
 
 Both correct and defective utterances produced native start/end events.
 Completion did not establish that the requested speed was used. The
-[baseline](../../solutions/edition-2/evidence/ch09/speed-r1.json) and
-[restored defect](../../solutions/edition-2/evidence/ch09/speed-r1-mutation.json)
+[baseline](../solutions/evidence/ch09/speed-r1.json) and
+[restored defect](../solutions/evidence/ch09/speed-r1-mutation.json)
 capture the values before asserting, so a failing check does not erase the
 wrong rate it was meant to observe.
 
@@ -524,7 +524,7 @@ client behaviors, including both pointer dividers and visible restoration of
 all four preferences. Its final generic speed-control check uses the native
 End key and rate 2; the separate fractional-rate test supplies the coverage
 that the earlier tenths-aligned input missed. The
-[browser receipt](../../solutions/edition-2/evidence/ch09/browser-r1.json)
+[browser receipt](../solutions/evidence/ch09/browser-r1.json)
 records the checks and actual native callbacks.
 
 A bounded live `gpt-4o-mini` turn followed model discovery. The browser saved
@@ -533,7 +533,7 @@ ran a shell command whose actual output was `CH09_LIVE_OK`, with exit code 0;
 Actions showed that result and Chat showed the answer. A terminal hint to keep
 the reply to one sentence appeared on the same Agent. Clicking the answer's
 speaker produced native start/end events. The
-[live receipt](../../solutions/edition-2/evidence/ch09/live.json) preserves that
+[live receipt](../solutions/evidence/ch09/live.json) preserves that
 interaction. Unchanged Anthropic and required Gemini 3.8 coverage reuses the
 preceding chapter's runs; settings did not justify another paid provider matrix.
 
@@ -544,7 +544,7 @@ against the continuing GUI server. The original legacy solution scored
 100/100. Neither score tested the speech-rate defect. Preserve the actual
 earlier-build result and the later browser correction separately; the revised
 grader uses the appropriate GUI and core entry points. The
-[grader review](../../docs/edition-2-notes/enhancement-08-code.md) records its
+[grader review](../docs/edition-2-notes/enhancement-08-code.md) records its
 new results and their limits.
 
 ## What is not graded and why

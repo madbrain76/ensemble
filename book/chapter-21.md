@@ -91,7 +91,7 @@ credential-store assignment.
 From the repository root:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 21 solutions/edition-2/ch21
+go run ./cmd/grade-edition2 -ch 21 solutions/ch21
 ```
 
 Substitute your core module directory for the final argument. The
@@ -740,7 +740,7 @@ of escape tests certifies arbitrary hostile native programs.
 ## 21.11 Taking it for a spin
 
 Run this exercise on macOS. Build the core from your implementation
-module, or from `solutions/edition-2/ch21` to try the accepted version:
+module, or from `solutions/ch21` to try the accepted version:
 
 ```sh
 go build -o /tmp/ensemble-ch21 .

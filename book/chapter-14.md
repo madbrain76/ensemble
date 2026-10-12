@@ -156,7 +156,7 @@ the following command, run from the repository root, scores 100/100:
 go run ./cmd/grade-edition2 -ch 14
 ```
 
-The default core is `solutions/edition-2/ch14`; a positional core directory and
+The default core is `solutions/ch14`; a positional core directory and
 existing `-gui` option select another implementation. Section 14.14 gives the
 actual launch, settings and eight-check contract.
 
@@ -752,7 +752,7 @@ The student's original score was **45/100 FAIL**, with failures caused by
 fixture mistakes. Review separately found the inline-placement bug in §14.3.
 The revised grader
 sets the effective Agent-owned settings and uses the existing
-`list_directory` tool instead of undefined `think`. The [chapter notes](../../docs/edition-2-notes/ch15.md)
+`list_directory` tool instead of undefined `think`. The [chapter notes](../docs/edition-2-notes/ch15.md)
 retain the original result and the corrected checks.
 
 The first-edition audit found two other useful holes. Short file paths did not
@@ -957,7 +957,7 @@ of 5.5 models from supported use. Here is what happened:
 | GPT-4o mini with ordinary paths and separate turns | All six full results arrived, six result cuts and one tool cut; handoff/unload ran, but repeated checkpoints reached the final turn's four-batch bound |
 
 All five processes exited zero. Only Gemini completed the requested task;
-the [full results](../../docs/edition-2-notes/ch15.md#live-use-and-its-limits)
+the [full results](../docs/edition-2-notes/ch15.md#live-use-and-its-limits)
 include the failed attempts.
 
 Haiku 5.5's corrected-path run shows a failure worth inspecting. It first received the codes

@@ -310,7 +310,7 @@ in both directions.
 go run ./cmd/grade-edition2 -ch 11 path/to/core
 ```
 
-Omit the final path to grade `solutions/edition-2/ch11`. Existing `-gui DIR`,
+Omit the final path to grade `solutions/ch11`. Existing `-gui DIR`,
 `-gui-model` and inherited fixture options remain available. Keep focused source
 tests for ownership, out-of-order correlation, slow automatic completion,
 callback versus kill/interrupt, per-server grants and subprocess unload/reaping.
@@ -413,9 +413,9 @@ The retained October 10, 2026 sessions used this pattern with
 `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. Each successful run
 made one marker read, two round snapshots and one turn snapshot, and each final
 answer reported the correct marker and snapshot number 2. The
-[Claude](../../solutions/edition-2/evidence/ch12/anthropic-live.json),
-[OpenAI](../../solutions/edition-2/evidence/ch12/openai-live.json) and
-[Gemini](../../solutions/edition-2/evidence/ch12/gemini-live.json) receipts retain
+[Claude](../solutions/evidence/ch12/anthropic-live.json),
+[OpenAI](../solutions/evidence/ch12/openai-live.json) and
+[Gemini](../solutions/evidence/ch12/gemini-live.json) receipts retain
 the actual inputs, replies and requests. These are historical model choices;
 select an available model when you run the exercise. The published peer and
 skill make that pattern reproducible without claiming they are byte-for-byte
@@ -436,7 +436,7 @@ the Go tunnel and Agent with a local provider fake. A tool click selected the
 Settings tab; tool input changed the font value and computed size. Later
 snapshots exposed the selected state, and a native utterance appeared with queue
 and start timing. A large snapshot stayed within the byte cap while disclosing
-elided characters and omitted artifacts. The [browser receipt](../../solutions/edition-2/evidence/ch12/browser.json)
+elided characters and omitted artifacts. The [browser receipt](../solutions/evidence/ch12/browser.json)
 preserves these observations. The font assertion proves applied and effective
 state; it never reads the settings file. Disk persistence has its separate
 Chapter 8 restart check. Nor do those browser checks turn the live CLI sessions
@@ -456,7 +456,7 @@ recursive parity was unrun. Its tool-call and ephemeral credits did not execute
 those behaviors, and its WebSocket check searched fixed filenames rather than
 running a tunnel. Independent integration, browser and live evidence established
 the valid obligations, including the later slow-peer correction. The
-[original review](../../docs/edition-2-notes/ch12-code-review.md) preserves those
-limits and source versions; the [Edition 2 grader report](../../docs/edition-2-notes/enhancement-11-code.md)
+[original review](../docs/edition-2-notes/ch12-code-review.md) preserves those
+limits and source versions; the [Edition 2 grader report](../docs/edition-2-notes/enhancement-11-code.md)
 records revised results separately. A handshake opens the channel. The useful
 test follows a call through it and reads what came back.

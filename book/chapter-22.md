@@ -100,7 +100,7 @@ The seven fleet tool names are the contract; extra fleet tools are unnecessary.
 Build and grade from the repository root:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 22 solutions/edition-2/ch22
+go run ./cmd/grade-edition2 -ch 22 solutions/ch22
 ```
 
 The combined rubric retains the seven GUI checks and seven fleet checks, 200
@@ -684,7 +684,7 @@ fresh loopback ports and prints their addresses, avoiding another running
 Ensemble. Begin at the repository root:
 
 ```sh
-ensemble_source=$(pwd)/solutions/edition-2/ch22
+ensemble_source=$(pwd)/solutions/ch22
 reuse_dir=$(mktemp -d /tmp/ensemble-ch22-reuse.XXXXXX)
 cd "$reuse_dir"
 go mod init example.org/ensemble-reuse

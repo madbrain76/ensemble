@@ -1311,7 +1311,7 @@ four totals were:
 This is the protocol-form representation of the totals displayed by chat.
 Four counters, disjoint by construction. None of the three vendors reports
 that shape, and §2.5 is the argument for why it is the one you record. The
-[live record](../../solutions/edition-2/evidence/ch02/live.txt) retains all three
+[live record](../solutions/evidence/ch02/live.txt) retains all three
 runs and an initial OpenAI HTTP 404. Discovery listed that model; the request
 still failed. No retry or guessed explanation was substituted for the result.
 

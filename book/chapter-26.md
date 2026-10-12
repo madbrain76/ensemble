@@ -59,7 +59,7 @@ messages privately: transport encryption does not encrypt queue files.
 Build and grade from the repository root:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 26 solutions/edition-2/ch26
+go run ./cmd/grade-edition2 -ch 26 solutions/ch26
 ```
 
 | # | Behavior | Check | Points |
@@ -570,7 +570,7 @@ Build from the accepted module, using a fresh private scratch directory:
 ```sh
 CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)
 export CH26_RUN
-cd solutions/edition-2/ch26
+cd solutions/ch26
 go build -o "$CH26_RUN/gateway" ./cmd/gateway
 go build -o "$CH26_RUN/gateway-agent" ./cmd/gateway-agent
 go build -o "$CH26_RUN/interviewer" ./cmd/interviewer
@@ -677,7 +677,7 @@ The launch selected Astra/high and the Codex route; the retained Agent facts
 verify the model, while effort and endpoint retain launch/source evidence.
 All four cache-read counts were zero. A working encrypted interview should
 not be sold as a cache benefit or a productivity experiment. The
-[run and transcript](../../solutions/edition-2/evidence/ch27/live-interview.md)
+[run and transcript](../solutions/evidence/ch27/live-interview.md)
 retain the actual answers; later local diagnostic and receipt-test corrections
 do not turn that earlier run into a new one.
 
@@ -703,7 +703,7 @@ defect, not general independence or complete security coverage.
 Build and grade from the repository root:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 26 solutions/edition-2/ch26
+go run ./cmd/grade-edition2 -ch 26 solutions/ch26
 ```
 
 | # | Behavior | Check | Points |

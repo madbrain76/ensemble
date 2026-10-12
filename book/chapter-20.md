@@ -127,7 +127,7 @@ combined grader from the repository root; its external peers are
 local:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 20 solutions/edition-2/ch20
+go run ./cmd/grade-edition2 -ch 20 solutions/ch20
 ```
 
 Substitute your core module directory for the final argument.
@@ -1159,5 +1159,5 @@ The browser task completed in 16.34 seconds with normal shutdown.
 Its requests received zero cache-read tokens; correct status did
 not manufacture a cache grant. The web task and this browser task
 were separate runs, preserved with their actual source versions in
-[the web record](../../docs/edition-2-notes/ch21.md) and
-[the status record](../../docs/edition-2-notes/ch22.md).
+[the web record](../docs/edition-2-notes/ch21.md) and
+[the status record](../docs/edition-2-notes/ch22.md).

@@ -172,7 +172,7 @@ Run the separately versioned grader from the repository root:
 go run ./cmd/grade-edition2 -ch 16 -json
 ```
 
-It defaults to `solutions/edition-2/ch16` and its separate GUI. Public settings
+It defaults to `solutions/ch16` and its separate GUI. Public settings
 and corpus fixtures exercise the actual Agent. Source review still establishes
 parent ownership, cancellation and the fuller replay/provider obligations; an
 import check alone cannot prove those relationships.
@@ -619,7 +619,7 @@ A recall demonstration needs an answer that is absent from the question and
 present in an archive. Otherwise a fluent reply could be ordinary model
 knowledge, or a repetition of facts supplied by the user.
 
-From a scratch copy of `solutions/edition-2/ch16`, build the CLI, then create
+From a scratch copy of `solutions/ch16`, build the CLI, then create
 a fresh working directory so an old save cannot supply the answer:
 
 ```sh

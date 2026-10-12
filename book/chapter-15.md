@@ -180,7 +180,7 @@ and the public submit contract.
 go run ./cmd/grade-edition2 -ch 15
 ```
 
-The default core is `solutions/edition-2/ch15`; the existing `-gui` option selects
+The default core is `solutions/ch15`; the existing `-gui` option selects
 an alternate GUI. Section 15.11 maps the original eleven weights to revised
 checks and their limits.
 
@@ -691,7 +691,7 @@ native browser settings and the GUI/actor interleaving retain their focused sour
 and browser checks. The original grader scored **20/100 FAIL** on an
 intermediate student build: its settings missed the owning Agent's directory,
 and its awarded recovery points did not require a fold to occur. The
-[student record](../../docs/edition-2-notes/ch16.md) preserves that result and the
+[student record](../docs/edition-2-notes/ch16.md) preserves that result and the
 independent review; revised grading is a separate measurement.
 
 ## §15.12 Taking It for a Spin
@@ -837,7 +837,7 @@ facts it had retained.
 
 Measured source-to-memory UTF-8 byte ratios across these calls range from 1.358
 to 3.678. The 8x name describes a tier's intended compression, not an achieved
-ratio. Preserving reasons used more bytes. The [run records and actual memories](../../docs/edition-2-notes/ch16.md#live-mechanics-versus-preservation-and-task-quality)
+ratio. Preserving reasons used more bytes. The [run records and actual memories](../docs/edition-2-notes/ch16.md#live-mechanics-versus-preservation-and-task-quality)
 retain all five outcomes.
 
 Test the three steps separately: did the framework replace and replay the right

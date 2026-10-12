@@ -202,7 +202,7 @@ const (
 go run ./cmd/grade-edition2 -ch 18
 ```
 
-Extend Chapter 17; the accepted result is `solutions/edition-2/ch18`.
+Extend Chapter 17; the accepted result is `solutions/ch18`.
 Run the command from the repository root. It builds the core and
 its separate GUI; an explicit core path and `-gui DIR` select other
 submissions. The grader provides a fake OAuth
@@ -729,7 +729,7 @@ Neither a fake summary nor a passing score guarantees that a live
 model will provide one.
 
 For a human run, build the core from your implementation directory.
-The matching reader snapshot is `solutions/edition-2/ch18`:
+The matching reader snapshot is `solutions/ch18`:
 
 ```sh
 go build -o /tmp/ensemble-ch18 .

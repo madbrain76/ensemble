@@ -1,10 +1,17 @@
+# Ensemble: Edition 2
+
+This is the active application. Chapter numbers below use Edition 2 unless
+explicitly labeled historical; accepted chapter snapshots live in `../solutions/`.
+
 Build the CLI in this module:
 
     go build -o ensemble-cli .
 
 Set `LLM_VENDOR` (`anthropic`, `openai`, or `gemini`), `LLM_MODEL`, and
 `LLM_API_KEY`, then run `ensemble-cli chat` from your chosen workspace. Model
-names are explicit; select one available to your provider account. Messages
+names are explicit; select one supported by this application and available to
+your provider account. For Anthropic, use supported older models such as
+Sonnet-5; 5.5 models are excluded from current use. Messages
 while the agent is busy are hints; `/interrupt` ends the current turn while
 other jobs continue. Use `/model NAME` between turns to select another model
 on the same provider and billing route. The optional GUI exposes the same
@@ -21,15 +28,15 @@ to `ch02.jsonl` (override the latter with `CH07_AGENT_LOG`). Authentication
 headers are excluded and the configured key is redacted from wire traces.
 
 The no-argument CLI accepts the existing JSON-lines exercise protocol. The
-separate [Chapter 7 application](ch07/README.md) demonstrates the public library
+separate [Chapter 6 application](ch07/README.md) demonstrates the public library
 and reports delta counts, finalized parts and time to first delta.
 
-Chapter 8's optional browser application lives in the separate `gui/` module;
+Chapter 7's optional browser application lives in the separate `gui/` module;
 see `gui/README.md`. The existing headless command remains independent of HTTP,
 WebSocket and browser dependencies. Both applications use the same public Agent
 API; the GUI executable also accepts terminal input for its existing Agent.
 
-Chapter 10 accepts `EN_SKILLS_DIR` and `EN_PRIMARY_SKILL` in both clients.
+Chapter 9 introduces `EN_SKILLS_DIR` and `EN_PRIMARY_SKILL` in both clients.
 Create one directory per skill with a `SKILL.md` containing the chapter's flat
 frontmatter and Markdown body. For example, `base/SKILL.md` can contain:
 
@@ -53,12 +60,13 @@ Embedders pass an optional `ensemble.AgentSpec` as the second argument to
 `NewAgent`. Its `Variables` renderers run before the primary prompt is frozen;
 `Agent.RegisterVar` affects subsequent loads. Dynamic bodies arrive through
 ordinary tool results. `unload_skill` takes the same `name` argument and marks
-pending removal; compaction and actual removal are not implemented in Chapter 10.
+pending instruction removal. Its tool grants stop immediately; shared grants
+from another loaded skill remain available.
 Without a skill specification the earlier unrestricted registration API remains
 available. A skill can enable only installed handlers; declaring an unknown tool
 never creates an executable implementation.
 
-Chapter 12 adds MCP peers. `ensemble-cli --mcp-pipe` dedicates stdin/stdout to
+Chapter 11 introduces MCP peers. `ensemble-cli --mcp-pipe` dedicates stdin/stdout to
 newline JSON-RPC 2.0; it initializes and discovers the peer, accepts reverse
 `tools/call`, and exits on disconnect. It does not start an implicit model turn.
 The exercise uses protocol version `2024-11-05`, including its `$/cancelRequest`
@@ -78,8 +86,8 @@ mcp_servers:
 
 Arguments use a JSON-style string array and paths resolve from the Agent's
 workspace. Loading starts/discovers the server; only tools named by that skill
-are admitted. Unloading stops its MCP servers immediately, while compiled tools
-and instructions retain Chapter 10's pending-removal behavior. Subprocesses get
+are admitted. Unloading stops its MCP servers and tool grants immediately,
+while instructions retain the pending-removal behavior. Subprocesses get
 basic OS environment values, not the model client's provider keys.
 
 For an external transport, embedders use `Agent.MCP().Connect`, with
@@ -89,7 +97,7 @@ real jobs: callback delays return a handle, explicit kill cancels the RPC, and
 Agent shutdown closes peers and joins its work. Discovered `round`/`turn`
 ephemeral tools run automatically and remain absent from model declarations.
 
-Chapter 13 supplies `skills/ensemble` and `skills/gui-debug`. Both commands
+Chapter 12 supplies `skills/ensemble` and `skills/gui-debug`. Both commands
 accept `--skills-dir PATH` (overriding `EN_SKILLS_DIR`) and `--gui-debug` to load
 that optional skill before accepting input. With `--gui-debug`, the directory
 otherwise defaults to `./skills`; selecting a directory defaults the primary
@@ -153,7 +161,7 @@ Each attachment also retains hashes of the source snippets it represents, so a
 byte-capped snippet is not injected repeatedly. These identities leave with the
 attachment; edited source content can be recalled again.
 
-Chapter 19 adds subscription authentication to both executables:
+Chapter 18 introduces subscription authentication to both executables:
 
     ensemble-cli auth login openai-chatgpt
     ensemble-cli auth status
@@ -194,7 +202,7 @@ requests omit that option and its paired explicit markers. API-key Responses
 requests retain explicit caching on supported models. Cache diagnostics remain
 active on both routes; an answered request does not establish a cache grant.
 
-Chapter 21 adds Streamable HTTP MCP peers with `transport: url`, `url` and
+Chapter 20 introduces Streamable HTTP MCP peers with `transport: url`, `url` and
 `auth-env` fields. The named environment variable is resolved at skill load as
 a Bearer token; an absent value logs an anonymous-connection diagnostic. JSON
 and SSE POST replies, optional session headers and job cancellation use the
@@ -210,7 +218,7 @@ capabilities immediately. Search/page text is untrusted evidence; check source
 URLs and scrape metadata before citing it. Provider tools, schemas, access and
 quotas can change; this is not a promise of URL-only provider interchangeability.
 
-Chapter 23 adds per-Agent confinement. Run `ensemble chat --sandbox /absolute/work`
+Chapter 21 introduces per-Agent confinement. Run `ensemble-cli chat --sandbox /absolute/work`
 (and optionally `--safe-mode` or `--no-web-search`). File-tool relative paths use
 that root. Commands and descendants use macOS Seatbelt with no network; ordinary
 system tools remain readable so Python and Git work. Other platforms refuse
@@ -224,14 +232,14 @@ Safe mode removes `run_command`, `send_input`, `wait_for_job`, `kill_job`, and
 withholds its skill and MCP connection. An omitted library AgentSpec retains the
 prior full-access defaults; an explicit spec's `EnableWebSearch` must be true to
 permit that skill. `AgentSpec.Child` derives restrictions, and `Clamp` returns an
-unconditionally narrowed spec plus a diagnostic for attempted widening. This
-chapter adds specifications, not agent spawning. The binary's credential provider
+unconditionally narrowed spec plus a diagnostic for attempted widening. The fleet
+derives these restrictions when spawning children. The binary's credential provider
 and model HTTP client remain outside the command sandbox. The tested boundary is
 file tools, retained state and macOS command descendants, not a claim of immunity
 to arbitrary compromised native code or all forms of prompt injection.
 
 
-Chapter 24 makes browser assets reusable and deployment independent of the source
+Chapter 22 makes browser assets reusable and deployment independent of the source
 tree. Build with `cd gui && go build -o /tmp/ensemble-gui ./cmd`; the binary serves
 its embedded GUI from any working directory. `--gui-dir /absolute/path/to/web/gui`
 explicitly selects editable disk assets during development.
@@ -259,7 +267,7 @@ application chooses access to this listener; `Server.Close` closes its listeners
 and clients. The externally built test in `gui/testdata/reuse` demonstrates these
 public boundaries with real core objects and fake external peers.
 
-Chapter 25 enables a recursive fleet in the CLI. Ask it to delegate work with
+Chapter 22 introduces a recursive fleet in the CLI. Ask it to delegate work with
 `spawn_sub_agent`, inspect `agents_status`, collect `join_agents`, and finish
 with `submit`. Each child owns a separate actor and `cr/children/ID` state
 directory; shutdown preserves its save for a later child with the same ID.
@@ -279,9 +287,9 @@ before starting Agents and construct every child with `NewChildAgent(parent,
 cfg, spec)`. Configure `SetUserSink` to receive human questions and escalation,
 and answer through the root's `Fleet().Reply`. Without a factory, the prior
 single-Agent turn protocol remains and fleet tools are hidden. The optional
-GUI retains its existing single-Agent interface at this chapter.
+GUI also provides the Chapter 23 fleet console described below.
 
-## Fleet console (original Chapter 26 / Edition 2 Chapter 23)
+## Fleet console (Chapter 23)
 
 The shipped CLI and optional GUI call `Ensemble.Start` to restore named peers
 from `ensemble.json`. The GUI's Agents sidebar creates peers with a name, model

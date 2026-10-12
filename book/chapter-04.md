@@ -912,7 +912,7 @@ and read a variable back, it is worth the fifteen minutes on its own.
 The second-edition student drove those paths with all three providers on
 October 9. Each started a delayed job, waited for its end, answered a `NAME>`
 PTY prompt with `Ada`, observed `hello Ada`, and killed a running sleep job.
-The retained [student record](../../docs/edition-2-notes/ch04.md) links the
+The retained [student record](../docs/edition-2-notes/ch04.md) links the
 actual event logs and distinguishes model summaries from inspected output:
 
 | live model | plain input | cache read | output |
@@ -944,7 +944,7 @@ kill, output and debugger scenarios.
 
 Build your consumer from its own module directory, using the public library.
 The accepted consumer is in
-[`solutions/edition-2/ch04/ch05/`](../../solutions/edition-2/ch04/ch05/).
+[`solutions/ch04/ch05/`](../solutions/ch04/ch05/).
 The nested `ch05` name records when the application was built; its enclosing
 solution now matches this chapter. For a corresponding local
 consumer, the build and invocation are:
@@ -965,7 +965,7 @@ The actual external-consumer runs each made one successful `shout` call:
 Anthropic used 932 input/73 output tokens, OpenAI 363/25 and Gemini 222/65,
 with no cache tokens. Each stored exactly `HELLO FRAMEWORK` in its job output,
 returned it under the matching call id and emitted a timestamped diagnostic.
-The [consumer live record](../../solutions/edition-2/evidence/ch05/live.txt)
+The [consumer live record](../solutions/evidence/ch05/live.txt)
 preserves those results. The first successful Anthropic call lost its event
 capture because the launcher treated the log header as an event and deleted
 scratch too early. It was repeated once after fixing capture. Save raw events

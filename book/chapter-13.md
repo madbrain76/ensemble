@@ -154,7 +154,7 @@ A small client can still leak a lifetime. The student's first peer closed its br
 
 The independent probe made the difference visible: idle EOF exited in 125 ms; EOF during a 4000 ms sleep took 3865 ms. The peer did eventually exit, so calling this a permanent hang would misdescribe the measurement. A longer requested sleep would make the same ownership error more expensive.
 
-The correction shared the existing close-browser-and-exit handler between EOF and SIGTERM. On the corrected peer, the same pending-sleep probe exited in 127 ms; its idle control took 126 ms. Normal sleep still works while the session remains open. A separate real-client check covers a pending sleep whose job has returned an ordinary running callback before the model finishes. Ending the owned process ends its timers; no arbitrary sleep ceiling or new cancellation framework is needed. The [paired receipts](../../docs/edition-2-notes/ch14-code-review.md#correction-round-1-accepted-with-inherited-grader-exception) preserve both versions.
+The correction shared the existing close-browser-and-exit handler between EOF and SIGTERM. On the corrected peer, the same pending-sleep probe exited in 127 ms; its idle control took 126 ms. Normal sleep still works while the session remains open. A separate real-client check covers a pending sleep whose job has returned an ordinary running callback before the model finishes. Ending the owned process ends its timers; no arbitrary sleep ceiling or new cancellation framework is needed. The [paired receipts](../docs/edition-2-notes/ch14-code-review.md#correction-round-1-accepted-with-inherited-grader-exception) preserve both versions.
 
 ## 13.4 The run that succeeded for the wrong reason
 
@@ -285,7 +285,7 @@ From the repository root:
 go run ./cmd/grade-edition2 -ch 13
 ```
 
-The default is `solutions/edition-2/ch13`; a positional argument selects your core directory and the existing `-gui` option selects its optional GUI module if necessary. The revised rubric preserves the actual original grader's weights, which differed from its printed chapter table:
+The default is `solutions/ch13`; a positional argument selects your core directory and the existing `-gui` option selects its optional GUI module if necessary. The revised rubric preserves the actual original grader's weights, which differed from its printed chapter table:
 
 | Check | Points | Observation |
 | --- | ---: | --- |
@@ -346,7 +346,7 @@ In another terminal, configure the listener's own provider environment and run f
 
 The peer opens a quiet transcript-mode tab itself. Close other talking tabs when isolating this channel. The supported persona here is `blind`; there is no required sighted mode to invoke for comparison. The listener writes its actual history to `virtual-user.jsonl` and reports what `hear` or `wait` returned. Keep that result beside the target's speech entries, because the model can add Markdown when quoting a transcript even though no Markdown entered target speech.
 
-The retained October 10, 2026 sessions used `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. They are recorded model identities, not current catalog recommendations. All three listener processes exited zero and used the restricted interface to type, submit and receive the target's real transcript. The [live receipts](../../docs/edition-2-notes/ch14.md#student-implementation-and-initial-review-submission) retain their earlier-source provenance.
+The retained October 10, 2026 sessions used `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. They are recorded model identities, not current catalog recommendations. All three listener processes exited zero and used the restricted interface to type, submit and receive the target's real transcript. The [live receipts](../docs/edition-2-notes/ch14.md#student-implementation-and-initial-review-submission) retain their earlier-source provenance.
 
 The filtered entries contain `queue Chunk`, `max tool rounds` and `HTTP Server`, with no inline backticks. Claude's listener received two response entries, but its target never chose the requested fruit; it said “fruit-sized” instead. The listener reported that omission. GPT-4o mini's listener heard the chosen apple in three response sentences rather than the requested two. Gemini's eleven entries include both thinking and response sources, followed by a report of the apple. These are useful channel results with different target-content limits, not three claims that every instruction was followed.
 

@@ -386,9 +386,9 @@ answered `cobalt-juniper`. The Claude session also resumed independently from
 the snapshot-only and log-only variants, with the same answer. Those eight
 model-response processes exited normally without a timeout. The ninth process,
 given the truncated save, exited 1 before any HTTP request and left the damaged
-bytes unchanged. The [Claude](../../solutions/edition-2/evidence/ch11/anthropic-live.json),
-[OpenAI](../../solutions/edition-2/evidence/ch11/openai-live.json) and
-[Gemini](../../solutions/edition-2/evidence/ch11/gemini-live.json) receipts retain
+bytes unchanged. The [Claude](../solutions/evidence/ch11/anthropic-live.json),
+[OpenAI](../solutions/evidence/ch11/openai-live.json) and
+[Gemini](../solutions/evidence/ch11/gemini-live.json) receipts retain
 the actual inputs, replies and captured conversation payloads. These are
 historical model choices, not an account inventory for your next run.
 
@@ -406,7 +406,7 @@ submission. The shape check stopped at the undefined `think` declaration, before
 checking later sequence and anchor predicates; those predicates cannot be called
 original-grader passes. Independent final-source inspection and focused tests
 verified the valid shape obligations after the effective-prompt correction.
-The [original review](../../docs/edition-2-notes/ch11-code-review.md) preserves
+The [original review](../docs/edition-2-notes/ch11-code-review.md) preserves
 that distinction and the live receipts' earlier source provenance. The
-[Edition 2 grader report](../../docs/edition-2-notes/enhancement-10-code.md)
+[Edition 2 grader report](../docs/edition-2-notes/enhancement-10-code.md)
 records revised results separately.

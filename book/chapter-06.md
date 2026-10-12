@@ -620,7 +620,7 @@ at a blank terminal before the first word appears.
 
 
 The reference application is in
-[`solutions/edition-2/ch06/ch07/`](../../solutions/edition-2/ch06/ch07/).
+[`solutions/ch06/ch07/`](../solutions/ch06/ch07/).
 Keep the historical `ch07` directory and environment names. The core's
 no-argument JSON protocol receives this prompt, followed by EOF:
 
@@ -775,8 +775,8 @@ one finalized text part each, and first-delta times of 1,059 ms versus
 1,149 ms. Total times were 1,350 ms and 1,150 ms. Each request used 733 input
 and 40 output tokens. Streaming improved the first visible delivery in that
 small pair; it did not make the total run faster. The exact reports remain in
-[enabled](../../solutions/edition-2/evidence/ch07/shape-enabled.json) and
-[disabled](../../solutions/edition-2/evidence/ch07/shape-disabled.json) evidence.
+[enabled](../solutions/evidence/ch07/shape-enabled.json) and
+[disabled](../solutions/evidence/ch07/shape-disabled.json) evidence.
 
 The human CLI demonstrations were less tidy, and more useful:
 
@@ -787,7 +787,7 @@ The human CLI demonstrations were less tidy, and more useful:
 | Initial `gemini-2.5-flash` | Four stdout reads, first 1.6210 s, last 1.6541 s | Three turns, thought summaries, whole tool arguments and successful output recall; this model selection failed Bill's instruction. |
 
 These are OS read counts, not token counts. The
-[initial evidence summary](../../solutions/edition-2/evidence/ch07/live-summary.json)
+[initial evidence summary](../solutions/evidence/ch07/live-summary.json)
 records 5,991/261, 3,419/160 and 5,826/248 input/output tokens respectively,
 with zero recorded cache counts. The raw event and API logs remain alongside it.
 
@@ -813,7 +813,7 @@ then released the command at 5.1787 s. The next provider request contained both
 the successful tool result and the hint. Its answer began `HINT_38_APPLIED` and
 described a blue lighthouse. Tool and CLI both exited zero.
 
-The [corrected Gemini record](../../solutions/edition-2/evidence/ch07/gemini38-summary.json)
+The [corrected Gemini record](../solutions/evidence/ch07/gemini38-summary.json)
 contains two requests and eleven response frames, including six nonempty reply
 chunks, two thinking chunks and one tool-call frame. Three nonempty stdout
 reads spanned only 1.1 ms, so this run proves correct incremental writes and
@@ -835,7 +835,7 @@ selected unknown `fake-model` while demanding streaming; the implementation
 correctly chose plain delivery. Inherited parity failed the documented earlier
 exceptions. The original legacy reference scored **90/100 FAIL**, with its
 supposedly disabled run still streaming. Those results remain historical;
-[the chapter record](../../docs/edition-2-notes/ch07.md) separates fixture mistakes,
+[the chapter record](../docs/edition-2-notes/ch07.md) separates fixture mistakes,
 real CLI corrections and the approved-model live evidence.
 
 ---
