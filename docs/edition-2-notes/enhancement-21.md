@@ -1,8 +1,9 @@
 # Edition 2 Chapter 21 author record
 
 Author `edition2_author`, October 11, 2026. Sandbox enhancement of original23,
-following Chapter20 acceptance40e553ff/checkpoint4c9aa10d. Preparation complete;
-manuscript and exact-example/grader reconciliation underway. No later chapter.
+following Chapter20 acceptance40e553ff/checkpoint4c9aa10d. Final author
+reconciliation complete against coder36a34892; independent acceptance pending.
+Earlier preparation/stage statuses below retain their chronology. No later chapter.
 
 ## Reading and scope
 
@@ -130,3 +131,59 @@ or account-eligibility evidence. Initial validator failures and final Go-excerpt
 coverage await the coder's frozen report; no final grader submission is claimed
 at this stage. All four documents remain fully active after the reload recorded
 above, with no further compaction. Mandatory `.agents/skills/ensemble-coding/SKILL.md`.
+
+
+## Final reconciliation against coder 36a34892
+
+Read the complete [final technical report](enhancement-21-code.md), final source
+binding, actual accepted-final/legacy-final reports and credential-observation
+receipt. Independently verified all four bound grader source hashes, both tracked
+frozen tree identities, current manuscript SHA687a63e5 and all12 fence hashes
+against the measured20c231d9 sample. No manuscript change is needed and no prior
+execution has been relabeled. Hard lint remains the actual5,457-word passing
+run above; neither unchanged prose nor samples were rerun for this note.
+
+Final actual full scores are100/100 accepted and75/100 legacy, without composed
+parity. The final post-build reports take0.578s/0.569s inside the1.817s capture
+test; earlier1.850s/1.658s and1.090s runs retain their stages. Legacy's actual
+readable API-log result contains the planted credential, while the accepted
+result contains the seed and redaction; both environment results omit the
+credential. Legacy also accepts a symlink child root outside its parent. The
+initial40/100 fixture failures and truncated log read do not establish those
+final defects. The explicit log budget, actual cwd, declared model, correct
+public import, system Python and original four-tool scope establish the intended
+observations without changing frozen implementations. Capture-overlay import
+mistakes remain setup failures, not new security results. Original0/100 on
+fcb98a9 and its independently accepted exceptions remain unchanged.
+
+The exact new sample uses a local signed issuer and scripted external Responses
+peer,19 main requests and3 valid empty judge requests. Both real CLI sessions
+complete and exit0; actual file/Python/Git effects and refused paths agree with
+the teaching. Four Go fences match their owning source modulo whitespace and
+the actual published build compiles that source; this is not a claim of four
+standalone excerpt programs. The initial stale-hash guard, peer's mistaken
+main-request expectation for a judge, and refusal-wording assumption remain
+retained validator failures. This new run demonstrates mechanics, not another
+paid Astra result, account eligibility or model judgment. Historical12+3 actual
+Astra requests and the final cache/cwd deterministic regressions retain their
+separate source bindings.
+
+Inspected all13 defect result records and their intended failing rows, recovering
+a truncated raw mutation display with a structured view of every case's actual
+score, exit and failure predicates. Twelve defects bind stage predicates; the
+thirteenth generic-refusal case binds the corrected supplied-path check. Empty
+successful reads cause three coupled failures; exit17 after successful work
+causes six coupled CLI-row failures. They are not independent proofs per lost
+row. Both restored controls return100. The aborted broad replacement before
+empty-read mutation was applied is not counted. Stronger state/media, web-skill,
+cache-path and rooted-open obligations retain the accepted historical source
+checks and27 attempts (25 intended failures with corrected repeats), not a
+claim of new exhaustive security validation. The report records prior-stage
+race validation and final vet, rather than calling every earlier check final.
+
+All four complete governing/craft documents remain active together after the
+full ranges recorded above. No further compaction occurred during this final
+reconciliation. Mandatory `.agents/skills/ensemble-coding/SKILL.md` remains
+active. Final submission is ready for independent review; Chapter22 is not
+released and no work on it has begun. Original sources, frozen exports and
+concurrent main/crossover work remain untouched.
