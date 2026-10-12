@@ -1,0 +1,5 @@
+{
+  "result": "FAIL",
+  "source_sha256": "77a83d57f293fa220f3d81f0f2394bd0fafafac0167146bf9e34b82c21d1d852",
+  "cause": "Peer treated tool-free recall judge as a main request, rejected missing reasoning field, then replayed from wrong batch. This does not establish a runtime or manuscript defect."
+}

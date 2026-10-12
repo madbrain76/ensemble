@@ -1,7 +1,6 @@
 # Edition 2 Chapter 19 technical validation
 
-Status: historical evidence reconciled; exact author examples and independent
-combined review pending. Coder: `edition2_grader_coder`, October 11, 2026.
+Status: technical validation complete; independent combined review pending. Coder: `edition2_grader_coder`, October 11, 2026.
 
 This is original Chapter 20, **The Crossover**, a prose-only chapter. There is
 no original or revised grader and no numeric score. No runtime repair list,
@@ -68,9 +67,74 @@ are narrative evidence, not current public API or new Chapter 19 requirements.
 
 ## Exact examples
 
-Pending the author's stable sample freeze. The planned reproduction uses the
-actual accepted core command, a fresh scratch copy of the retained task inputs
-and a typed primary exposing the existing file/command tools. This is explicitly
-a new demonstration setup, different from the historical default-tools launch.
-Any new execution will use local external issuer/provider peers and will be
-reported separately from the actual paid model's coding result.
+Manuscript SHA-256
+`1058dc2c2e68e73c2ae0c14c7205a5bf88717bd8f1c4fec614cca3182a442b09`:
+all five fences are bound in
+[samples.json](../../solutions/edition-2/evidence/ch20/enhancement19/samples.json).
+One is the retained historical cache diagnostic, not executable code. The other
+four are the build/scratch/typed-primary setup, auth status/catalog and chat
+launch, exact original prompt, and independent unittest/cmp postcheck.
+
+The exact setup builds `solutions/edition-2/ch19` to `/tmp/ensemble-ch19`, copies
+the original broken program and unchanged tests to a new temporary directory,
+and loads the published primary. Unlike the historical live run's default tools,
+this demonstration explicitly grants `read_file`, `edit_file` and `run_command`;
+existing lifecycle/context tools remain part of the runtime. The shell variables
+span the published blocks, as they would in the reader's terminal.
+
+A temporary Go overlay starts the existing signed external OAuth peer, then
+`enhancement19/samples.py` runs the exact shell blocks. A fresh local profile and
+loopback provider replace real credentials and network endpoints. The provider
+replays the five retained actual Responses SSE exchanges; it does not implement
+or replace any Agent, parser, file tool or command. A small catalog fixture uses
+the existing provider shape and the actual Astra identifier/display pair retained
+in `evidence/ch19/live-plan-models.json`. It establishes local catalog display,
+not current account eligibility. No private profile or GUI port is accessed.
+
+The final overlay command was:
+
+```sh
+go test -overlay /tmp/ch19-sample-overlay.json ./internal/gradeedition2   -run '^TestChapter19Samples$' -count=1 -v
+```
+
+Its temporary overlay maps `internal/gradeedition2/ch19_samples_test.go` to the
+retained `samples-overlay.go.txt`; no permanent test or grader was added.
+Actual final result: **PASS, 1.003 seconds**. Five main requests select Astra/high and
+carry the expected actual correlated tool outputs. One separate recall judge
+gets a valid empty selection. The real CLI reads both complete files, reproduces
+three failures/three errors, edits the source to the exact historical result,
+and runs six passing tests. The explicit postcheck prints six named passing tests and `OK`; the shell block
+then exits 0 from `cmp`, confirming unchanged tests. Shell status alone is not
+used to infer the unittest result. Stdin stays open until the final completed text event, then EOF
+yields exit 0 and a save. The known external replies supply the edit: this is
+sample/transport/tool validation, not a new autonomous coding result or proof
+that any fresh model would make the same repair.
+
+The initial sample failed in **1.579 seconds** because the replay peer treated
+its preliminary tool-free recall-judge request as a main coding request. It
+rejected the missing reasoning field and then consumed replay batches out of
+position. The preserved initial output and source hash, plus
+`sample-peer-correction.patch`, record that setup error. The corrected peer
+answers the judge separately with `[]`; no manuscript or runtime changed. A
+scripted final success message from the first attempt was not accepted as proof
+of actual file reads. Final assertions inspect the real correlated results.
+
+Independent review found that the intermediate 0.934-second passing sample
+still sent an incomplete judge response: its missing usage fields triggered
+`Responses response missing usage` and fallback. That run establishes the main
+tool task, not the intended valid-empty-judge control. Its full receipts and
+binding remain under `before-judge-usage-*`. The narrow peer correction adds
+ordinary completed-response usage fields. The final 1.003-second sample has one
+judge request, a valid `[]` response and no judge failure/fallback diagnostic.
+This is an external fixture correction, not a product or manuscript change.
+
+## Preservation and review boundary
+
+No product, original grader, command dispatch, original manuscript, historical
+receipt or frozen source changed. The accepted source tree remains exact. New
+artifacts consist only of this note, a read-only historical reconciliation and
+one chapter-specific example launcher/receipt. There is no new production code
+or exported application API to count or document. Existing source tests,
+original comparative review and two targeted defects retain their original
+provenance; no broad test sweep, new mutation count or paid freshness run is
+claimed. The independent reviewer determines the combined chapter disposition.

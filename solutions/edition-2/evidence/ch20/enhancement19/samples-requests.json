@@ -1,0 +1,1125 @@
+[
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read the source and tests, reproduce the failure, explain the intended edit,\nthen change the source and run the unchanged tests. Work in this directory.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "model": "gpt-6-astra",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+            "name": "edit_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "old_text": {
+                  "type": "string"
+                },
+                "new_text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "old_text",
+                "new_text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+            "name": "run_command",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "cwd": {
+                  "type": "string"
+                },
+                "ai_callback_delay": {
+                  "type": "number",
+                  "description": "Seconds before looking again, default 3; never a job deadline"
+                },
+                "ai_callback_pattern": {
+                  "type": "string",
+                  "description": "Regex on unseen output"
+                },
+                "max_output_bytes": {
+                  "type": "integer",
+                  "description": "Inline output byte cap, default 16384"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read the source and tests, reproduce the failure, explain the intended edit,\nthen change the source and run the unchanged tests. Work in this directory.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"path\":\"aggregate.py\"}",
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "arguments": "{\"path\":\"test_aggregate.py\"}",
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "output": "\"\"\"Sum a CSV of merchant,amount purchases for a small spending report.\"\"\"\nimport sys\nfrom pathlib import Path\n\n\ndef totals(path):\n    \"\"\"Return each merchant's exact total in currency units.\"\"\"\n    result = {}\n    # The first line is the merchant,amount header.\n    for line in Path(path).read_text().splitlines()[1:]:\n        merchant, amount = line.split(\",\")\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\n    return result\n\n\nif __name__ == \"__main__\":\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n        print(f\"{merchant}\\t{total:.2f}\")\n",
+        "type": "function_call_output"
+      },
+      {
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "output": "\"\"\"Behavioral checks for exact totals and ordinary CSV quoting; no test doubles.\"\"\"\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom decimal import Decimal\nfrom pathlib import Path\n\nfrom aggregate import totals\n\n\nclass TotalsTests(unittest.TestCase):\n    \"\"\"Keep input data real so parsing, arithmetic and CLI checks compose.\"\"\"\n\n    def check_csv(self, text, expected):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text(text)\n            actual = totals(path)\n            self.assertEqual(actual, expected)\n            self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n\n    def test_groups_merchants(self):\n        self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n                       {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n\n    def test_decimal_exactness_and_refund(self):\n        self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n                       {\"Cafe\": Decimal(\"0.25\")})\n\n    def test_quoted_comma_and_quote(self):\n        self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n                       {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n\n    def test_multiline_quoted_merchant(self):\n        self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n                       {\"Market\\nAnnex\": Decimal(\"2.50\")})\n\n    def test_blank_rows_and_empty_report(self):\n        self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n        self.check_csv(\"merchant,amount\\n\", {})\n\n    def test_cli_sorted_fixed_precision(self):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text('merchant,amount\\n\"Zed, Shop\",2.5\\nAlpha,0.10\\nAlpha,0.20\\n')\n            run = subprocess.run([sys.executable, \"aggregate.py\", str(path)],\n                                 text=True, capture_output=True)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(run.stdout, \"Alpha\\t0.30\\nZed, Shop\\t2.50\\n\")\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "type": "function_call_output"
+      }
+    ],
+    "model": "gpt-6-astra",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+            "name": "edit_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "old_text": {
+                  "type": "string"
+                },
+                "new_text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "old_text",
+                "new_text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+            "name": "run_command",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "cwd": {
+                  "type": "string"
+                },
+                "ai_callback_delay": {
+                  "type": "number",
+                  "description": "Seconds before looking again, default 3; never a job deadline"
+                },
+                "ai_callback_pattern": {
+                  "type": "string",
+                  "description": "Regex on unseen output"
+                },
+                "max_output_bytes": {
+                  "type": "integer",
+                  "description": "Inline output byte cap, default 16384"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read the source and tests, reproduce the failure, explain the intended edit,\nthen change the source and run the unchanged tests. Work in this directory.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"path\":\"aggregate.py\"}",
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "arguments": "{\"path\":\"test_aggregate.py\"}",
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "output": "\"\"\"Sum a CSV of merchant,amount purchases for a small spending report.\"\"\"\nimport sys\nfrom pathlib import Path\n\n\ndef totals(path):\n    \"\"\"Return each merchant's exact total in currency units.\"\"\"\n    result = {}\n    # The first line is the merchant,amount header.\n    for line in Path(path).read_text().splitlines()[1:]:\n        merchant, amount = line.split(\",\")\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\n    return result\n\n\nif __name__ == \"__main__\":\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n        print(f\"{merchant}\\t{total:.2f}\")\n",
+        "type": "function_call_output"
+      },
+      {
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "output": "\"\"\"Behavioral checks for exact totals and ordinary CSV quoting; no test doubles.\"\"\"\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom decimal import Decimal\nfrom pathlib import Path\n\nfrom aggregate import totals\n\n\nclass TotalsTests(unittest.TestCase):\n    \"\"\"Keep input data real so parsing, arithmetic and CLI checks compose.\"\"\"\n\n    def check_csv(self, text, expected):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text(text)\n            actual = totals(path)\n            self.assertEqual(actual, expected)\n            self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n\n    def test_groups_merchants(self):\n        self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n                       {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n\n    def test_decimal_exactness_and_refund(self):\n        self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n                       {\"Cafe\": Decimal(\"0.25\")})\n\n    def test_quoted_comma_and_quote(self):\n        self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n                       {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n\n    def test_multiline_quoted_merchant(self):\n        self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n                       {\"Market\\nAnnex\": Decimal(\"2.50\")})\n\n    def test_blank_rows_and_empty_report(self):\n        self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n        self.check_csv(\"merchant,amount\\n\", {})\n\n    def test_cli_sorted_fixed_precision(self):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text('merchant,amount\\n\"Zed, Shop\",2.5\\nAlpha,0.10\\nAlpha,0.20\\n')\n            run = subprocess.run([sys.executable, \"aggregate.py\", str(path)],\n                                 text=True, capture_output=True)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(run.stdout, \"Alpha\\t0.30\\nZed, Shop\\t2.50\\n\")\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "type": "function_call_output"
+      },
+      {
+        "arguments": "{\"command\":\"python3 -m unittest -v\"}",
+        "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+        "name": "run_command",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+        "output": "test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report) ... ERROR\ntest_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision) ... FAIL\ntest_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund) ... FAIL\ntest_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants) ... FAIL\ntest_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant) ... ERROR\ntest_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote) ... ERROR\n\n======================================================================\nERROR: test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 40, in test_blank_rows_and_empty_report\n    self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 2, got 1)\n\n======================================================================\nERROR: test_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 36, in test_multiline_quoted_merchant\n    self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Market\\nAnnex\": Decimal(\"2.50\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 2, got 1)\n\n======================================================================\nERROR: test_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 32, in test_quoted_comma_and_quote\n    self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n\n======================================================================\nFAIL: test_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 49, in test_cli_sorted_fixed_precision\n    self.assertEqual(run.returncode, 0, run.stderr)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0 : Traceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 17, in <module>\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n                                  ~~~~~~^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n\n\n======================================================================\nFAIL: test_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 28, in test_decimal_exactness_and_refund\n    self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Cafe\": Decimal(\"0.25\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 20, in check_csv\n    self.assertEqual(actual, expected)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionError: {'Cafe': 0.25000000000000006} != {'Cafe': Decimal('0.25')}\n- {'Cafe': 0.25000000000000006}\n+ {'Cafe': Decimal('0.25')}\n\n======================================================================\nFAIL: test_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 24, in test_groups_merchants\n    self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 21, in check_csv\n    self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 6 tests in 0.024s\n\nFAILED (failures=3, errors=3)\n\nexit_code: 1\n",
+        "type": "function_call_output"
+      }
+    ],
+    "model": "gpt-6-astra",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+            "name": "edit_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "old_text": {
+                  "type": "string"
+                },
+                "new_text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "old_text",
+                "new_text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+            "name": "run_command",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "cwd": {
+                  "type": "string"
+                },
+                "ai_callback_delay": {
+                  "type": "number",
+                  "description": "Seconds before looking again, default 3; never a job deadline"
+                },
+                "ai_callback_pattern": {
+                  "type": "string",
+                  "description": "Regex on unseen output"
+                },
+                "max_output_bytes": {
+                  "type": "integer",
+                  "description": "Inline output byte cap, default 16384"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read the source and tests, reproduce the failure, explain the intended edit,\nthen change the source and run the unchanged tests. Work in this directory.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"path\":\"aggregate.py\"}",
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "arguments": "{\"path\":\"test_aggregate.py\"}",
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "output": "\"\"\"Sum a CSV of merchant,amount purchases for a small spending report.\"\"\"\nimport sys\nfrom pathlib import Path\n\n\ndef totals(path):\n    \"\"\"Return each merchant's exact total in currency units.\"\"\"\n    result = {}\n    # The first line is the merchant,amount header.\n    for line in Path(path).read_text().splitlines()[1:]:\n        merchant, amount = line.split(\",\")\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\n    return result\n\n\nif __name__ == \"__main__\":\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n        print(f\"{merchant}\\t{total:.2f}\")\n",
+        "type": "function_call_output"
+      },
+      {
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "output": "\"\"\"Behavioral checks for exact totals and ordinary CSV quoting; no test doubles.\"\"\"\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom decimal import Decimal\nfrom pathlib import Path\n\nfrom aggregate import totals\n\n\nclass TotalsTests(unittest.TestCase):\n    \"\"\"Keep input data real so parsing, arithmetic and CLI checks compose.\"\"\"\n\n    def check_csv(self, text, expected):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text(text)\n            actual = totals(path)\n            self.assertEqual(actual, expected)\n            self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n\n    def test_groups_merchants(self):\n        self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n                       {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n\n    def test_decimal_exactness_and_refund(self):\n        self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n                       {\"Cafe\": Decimal(\"0.25\")})\n\n    def test_quoted_comma_and_quote(self):\n        self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n                       {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n\n    def test_multiline_quoted_merchant(self):\n        self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n                       {\"Market\\nAnnex\": Decimal(\"2.50\")})\n\n    def test_blank_rows_and_empty_report(self):\n        self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n        self.check_csv(\"merchant,amount\\n\", {})\n\n    def test_cli_sorted_fixed_precision(self):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text('merchant,amount\\n\"Zed, Shop\",2.5\\nAlpha,0.10\\nAlpha,0.20\\n')\n            run = subprocess.run([sys.executable, \"aggregate.py\", str(path)],\n                                 text=True, capture_output=True)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(run.stdout, \"Alpha\\t0.30\\nZed, Shop\\t2.50\\n\")\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "type": "function_call_output"
+      },
+      {
+        "arguments": "{\"command\":\"python3 -m unittest -v\"}",
+        "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+        "name": "run_command",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+        "output": "test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report) ... ERROR\ntest_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision) ... FAIL\ntest_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund) ... FAIL\ntest_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants) ... FAIL\ntest_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant) ... ERROR\ntest_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote) ... ERROR\n\n======================================================================\nERROR: test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 40, in test_blank_rows_and_empty_report\n    self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 2, got 1)\n\n======================================================================\nERROR: test_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 36, in test_multiline_quoted_merchant\n    self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Market\\nAnnex\": Decimal(\"2.50\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 2, got 1)\n\n======================================================================\nERROR: test_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 32, in test_quoted_comma_and_quote\n    self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n\n======================================================================\nFAIL: test_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 49, in test_cli_sorted_fixed_precision\n    self.assertEqual(run.returncode, 0, run.stderr)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0 : Traceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 17, in <module>\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n                                  ~~~~~~^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n\n\n======================================================================\nFAIL: test_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 28, in test_decimal_exactness_and_refund\n    self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Cafe\": Decimal(\"0.25\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 20, in check_csv\n    self.assertEqual(actual, expected)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionError: {'Cafe': 0.25000000000000006} != {'Cafe': Decimal('0.25')}\n- {'Cafe': 0.25000000000000006}\n+ {'Cafe': Decimal('0.25')}\n\n======================================================================\nFAIL: test_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 24, in test_groups_merchants\n    self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 21, in check_csv\n    self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 6 tests in 0.024s\n\nFAILED (failures=3, errors=3)\n\nexit_code: 1\n",
+        "type": "function_call_output"
+      },
+      {
+        "content": [
+          {
+            "text": "The baseline has 3 failures and 3 errors: manual splitting breaks CSV quoting and blank rows, while floats lose decimal precision. I\u2019ll use `csv.reader` and `Decimal`, leaving the CLI formatting unchanged.\n",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"new_text\":\"import csv\\nimport sys\\nfrom decimal import Decimal\\nfrom pathlib import Path\\n\\n\\ndef totals(path):\\n    \\\"\\\"\\\"Return each merchant's exact total in currency units.\\\"\\\"\\\"\\n    result = {}\\n    with Path(path).open(newline=\\\"\\\") as source:\\n        rows = csv.reader(source)\\n        next(rows, None)  # Skip the merchant,amount header.\\n        for row in rows:\\n            if not row:\\n                continue\\n            merchant, amount = row\\n            result[merchant] = result.get(merchant, Decimal(0)) + Decimal(amount)\\n    return result\",\"old_text\":\"import sys\\nfrom pathlib import Path\\n\\n\\ndef totals(path):\\n    \\\"\\\"\\\"Return each merchant's exact total in currency units.\\\"\\\"\\\"\\n    result = {}\\n    # The first line is the merchant,amount header.\\n    for line in Path(path).read_text().splitlines()[1:]:\\n        merchant, amount = line.split(\\\",\\\")\\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\\n    return result\",\"path\":\"aggregate.py\"}",
+        "call_id": "call_xaAwpSFjHxIs4K0oxoTtoNXi",
+        "name": "edit_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_xaAwpSFjHxIs4K0oxoTtoNXi",
+        "output": "replaced one exact match in aggregate.py",
+        "type": "function_call_output"
+      }
+    ],
+    "model": "gpt-6-astra",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+            "name": "edit_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "old_text": {
+                  "type": "string"
+                },
+                "new_text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "old_text",
+                "new_text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+            "name": "run_command",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "cwd": {
+                  "type": "string"
+                },
+                "ai_callback_delay": {
+                  "type": "number",
+                  "description": "Seconds before looking again, default 3; never a job deadline"
+                },
+                "ai_callback_pattern": {
+                  "type": "string",
+                  "description": "Regex on unseen output"
+                },
+                "max_output_bytes": {
+                  "type": "integer",
+                  "description": "Inline output byte cap, default 16384"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "Read the source and tests, reproduce the failure, explain the intended edit,\nthen change the source and run the unchanged tests. Work in this directory.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "Repair aggregate.py in this scratch directory. Read aggregate.py and test_aggregate.py using read_file, then run python3 -m unittest -v with run_command before editing to observe the failures. Make the smallest clear fix: totals(path) must return exact decimal currency totals grouped by merchant, support normal CSV quoting including embedded commas, escaped quotes and newlines, skip blank rows, and retain the CLI's sorted tab-separated two-decimal output. Use only the Python standard library. Do not change test_aggregate.py or read files outside this workspace. Edit the actual source using a file tool, run the unchanged tests again, and give a concise report of the bug, fix and real results. Do not add unrelated features or just describe a patch. Briefly report progress before editing.",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"path\":\"aggregate.py\"}",
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "arguments": "{\"path\":\"test_aggregate.py\"}",
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "name": "read_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+        "output": "\"\"\"Sum a CSV of merchant,amount purchases for a small spending report.\"\"\"\nimport sys\nfrom pathlib import Path\n\n\ndef totals(path):\n    \"\"\"Return each merchant's exact total in currency units.\"\"\"\n    result = {}\n    # The first line is the merchant,amount header.\n    for line in Path(path).read_text().splitlines()[1:]:\n        merchant, amount = line.split(\",\")\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\n    return result\n\n\nif __name__ == \"__main__\":\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n        print(f\"{merchant}\\t{total:.2f}\")\n",
+        "type": "function_call_output"
+      },
+      {
+        "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+        "output": "\"\"\"Behavioral checks for exact totals and ordinary CSV quoting; no test doubles.\"\"\"\nimport subprocess\nimport sys\nimport tempfile\nimport unittest\nfrom decimal import Decimal\nfrom pathlib import Path\n\nfrom aggregate import totals\n\n\nclass TotalsTests(unittest.TestCase):\n    \"\"\"Keep input data real so parsing, arithmetic and CLI checks compose.\"\"\"\n\n    def check_csv(self, text, expected):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text(text)\n            actual = totals(path)\n            self.assertEqual(actual, expected)\n            self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n\n    def test_groups_merchants(self):\n        self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n                       {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n\n    def test_decimal_exactness_and_refund(self):\n        self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n                       {\"Cafe\": Decimal(\"0.25\")})\n\n    def test_quoted_comma_and_quote(self):\n        self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n                       {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n\n    def test_multiline_quoted_merchant(self):\n        self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n                       {\"Market\\nAnnex\": Decimal(\"2.50\")})\n\n    def test_blank_rows_and_empty_report(self):\n        self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n        self.check_csv(\"merchant,amount\\n\", {})\n\n    def test_cli_sorted_fixed_precision(self):\n        with tempfile.TemporaryDirectory() as directory:\n            path = Path(directory) / \"purchases.csv\"\n            path.write_text('merchant,amount\\n\"Zed, Shop\",2.5\\nAlpha,0.10\\nAlpha,0.20\\n')\n            run = subprocess.run([sys.executable, \"aggregate.py\", str(path)],\n                                 text=True, capture_output=True)\n            self.assertEqual(run.returncode, 0, run.stderr)\n            self.assertEqual(run.stdout, \"Alpha\\t0.30\\nZed, Shop\\t2.50\\n\")\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n",
+        "type": "function_call_output"
+      },
+      {
+        "arguments": "{\"command\":\"python3 -m unittest -v\"}",
+        "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+        "name": "run_command",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+        "output": "test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report) ... ERROR\ntest_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision) ... FAIL\ntest_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund) ... FAIL\ntest_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants) ... FAIL\ntest_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant) ... ERROR\ntest_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote) ... ERROR\n\n======================================================================\nERROR: test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 40, in test_blank_rows_and_empty_report\n    self.check_csv(\"merchant,amount\\n\\nCafe,1.00\\n\\n\", {\"Cafe\": Decimal(\"1.00\")})\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 2, got 1)\n\n======================================================================\nERROR: test_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 36, in test_multiline_quoted_merchant\n    self.check_csv('merchant,amount\\n\"Market\\nAnnex\",2.50\\n',\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Market\\nAnnex\": Decimal(\"2.50\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: not enough values to unpack (expected 2, got 1)\n\n======================================================================\nERROR: test_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 32, in test_quoted_comma_and_quote\n    self.check_csv('merchant,amount\\n\"Books, Inc.\",3.20\\n\"Pat\"\"s Cafe\",1.10\\n',\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Books, Inc.\": Decimal(\"3.20\"), 'Pat\"s Cafe': Decimal(\"1.10\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 19, in check_csv\n    actual = totals(path)\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n\n======================================================================\nFAIL: test_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 49, in test_cli_sorted_fixed_precision\n    self.assertEqual(run.returncode, 0, run.stderr)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 1 != 0 : Traceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 17, in <module>\n    for merchant, total in sorted(totals(sys.argv[1]).items()):\n                                  ~~~~~~^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/aggregate.py\", line 11, in totals\n    merchant, amount = line.split(\",\")\n    ^^^^^^^^^^^^^^^^\nValueError: too many values to unpack (expected 2)\n\n\n======================================================================\nFAIL: test_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 28, in test_decimal_exactness_and_refund\n    self.check_csv(\"merchant,amount\\nCafe,0.10\\nCafe,0.20\\nCafe,-0.05\\n\",\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Cafe\": Decimal(\"0.25\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 20, in check_csv\n    self.assertEqual(actual, expected)\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionError: {'Cafe': 0.25000000000000006} != {'Cafe': Decimal('0.25')}\n- {'Cafe': 0.25000000000000006}\n+ {'Cafe': Decimal('0.25')}\n\n======================================================================\nFAIL: test_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 24, in test_groups_merchants\n    self.check_csv(\"merchant,amount\\nCafe,2.25\\nBooks,4.50\\nCafe,1.75\\n\",\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                   {\"Cafe\": Decimal(\"4.00\"), \"Books\": Decimal(\"4.50\")})\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.uK8fpEym8d/test_aggregate.py\", line 21, in check_csv\n    self.assertTrue(all(isinstance(value, Decimal) for value in actual.values()))\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 6 tests in 0.024s\n\nFAILED (failures=3, errors=3)\n\nexit_code: 1\n",
+        "type": "function_call_output"
+      },
+      {
+        "content": [
+          {
+            "text": "The baseline has 3 failures and 3 errors: manual splitting breaks CSV quoting and blank rows, while floats lose decimal precision. I\u2019ll use `csv.reader` and `Decimal`, leaving the CLI formatting unchanged.\n",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "arguments": "{\"new_text\":\"import csv\\nimport sys\\nfrom decimal import Decimal\\nfrom pathlib import Path\\n\\n\\ndef totals(path):\\n    \\\"\\\"\\\"Return each merchant's exact total in currency units.\\\"\\\"\\\"\\n    result = {}\\n    with Path(path).open(newline=\\\"\\\") as source:\\n        rows = csv.reader(source)\\n        next(rows, None)  # Skip the merchant,amount header.\\n        for row in rows:\\n            if not row:\\n                continue\\n            merchant, amount = row\\n            result[merchant] = result.get(merchant, Decimal(0)) + Decimal(amount)\\n    return result\",\"old_text\":\"import sys\\nfrom pathlib import Path\\n\\n\\ndef totals(path):\\n    \\\"\\\"\\\"Return each merchant's exact total in currency units.\\\"\\\"\\\"\\n    result = {}\\n    # The first line is the merchant,amount header.\\n    for line in Path(path).read_text().splitlines()[1:]:\\n        merchant, amount = line.split(\\\",\\\")\\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\\n    return result\",\"path\":\"aggregate.py\"}",
+        "call_id": "call_xaAwpSFjHxIs4K0oxoTtoNXi",
+        "name": "edit_file",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_xaAwpSFjHxIs4K0oxoTtoNXi",
+        "output": "replaced one exact match in aggregate.py",
+        "type": "function_call_output"
+      },
+      {
+        "arguments": "{\"command\":\"python3 -m unittest -v\"}",
+        "call_id": "call_bwpnZjDOWT1XajPqQQZiakmK",
+        "name": "run_command",
+        "namespace": "ensemble",
+        "type": "function_call"
+      },
+      {
+        "call_id": "call_bwpnZjDOWT1XajPqQQZiakmK",
+        "output": "test_blank_rows_and_empty_report (test_aggregate.TotalsTests.test_blank_rows_and_empty_report) ... ok\ntest_cli_sorted_fixed_precision (test_aggregate.TotalsTests.test_cli_sorted_fixed_precision) ... ok\ntest_decimal_exactness_and_refund (test_aggregate.TotalsTests.test_decimal_exactness_and_refund) ... ok\ntest_groups_merchants (test_aggregate.TotalsTests.test_groups_merchants) ... ok\ntest_multiline_quoted_merchant (test_aggregate.TotalsTests.test_multiline_quoted_merchant) ... ok\ntest_quoted_comma_and_quote (test_aggregate.TotalsTests.test_quoted_comma_and_quote) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.022s\n\nOK\n\nexit_code: 0\n",
+        "type": "function_call_output"
+      }
+    ],
+    "model": "gpt-6-astra",
+    "reasoning": {
+      "effort": "high",
+      "summary": "detailed"
+    },
+    "store": false,
+    "stream": true,
+    "tools": [
+      {
+        "description": "Ensemble local tools",
+        "name": "ensemble",
+        "tools": [
+          {
+            "description": "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
+            "name": "read_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "start_line": {
+                  "type": "integer"
+                },
+                "end_line": {
+                  "type": "integer"
+                },
+                "max_bytes": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "path"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Replace one exact, unique old_text anchor with new_text. Zero or multiple matches refuse without changing the file; read and provide a more specific anchor.",
+            "name": "edit_file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "old_text": {
+                  "type": "string"
+                },
+                "new_text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "old_text",
+                "new_text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Start a fresh /bin/sh in a PTY. cwd applies only to this call, relative to the workspace. Merged output and exit_code stay on disk; a running report is a handle, not cancellation. ai_callback_delay is seconds (default 3); pattern matches unseen output; max_output_bytes defaults to 16384.",
+            "name": "run_command",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "command": {
+                  "type": "string"
+                },
+                "cwd": {
+                  "type": "string"
+                },
+                "ai_callback_delay": {
+                  "type": "number",
+                  "description": "Seconds before looking again, default 3; never a job deadline"
+                },
+                "ai_callback_pattern": {
+                  "type": "string",
+                  "description": "Regex on unseen output"
+                },
+                "max_output_bytes": {
+                  "type": "integer",
+                  "description": "Inline output byte cap, default 16384"
+                }
+              },
+              "required": [
+                "command"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.",
+            "name": "micro_handoff",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.",
+            "name": "keep_tool_results",
+            "parameters": {
+              "type": "object",
+              "properties": {}
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Load an available skill and its dependencies. Appends its instructions to context and enables its tools.",
+            "name": "load_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          },
+          {
+            "description": "Mark a loaded skill for removal at the next compaction. Its tools stop now; instructions remain until then.",
+            "name": "unload_skill",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            },
+            "strict": false,
+            "type": "function"
+          }
+        ],
+        "type": "namespace"
+      }
+    ]
+  }
+]

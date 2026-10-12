@@ -1,0 +1,6 @@
+=== RUN   TestChapter19Samples
+    ch19_samples_test.go:23: PASS exact sample 1058dc2c2e68e73c2ae0c14c7205a5bf88717bd8f1c4fec614cca3182a442b09 five real CLI requests; tests unchanged; exit 0
+        
+--- PASS: TestChapter19Samples (1.00s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.003s

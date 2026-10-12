@@ -1,0 +1,35 @@
+=== RUN   TestChapter19Samples
+    ch19_samples_test.go:23: ----------------------------------------
+        Exception occurred during processing of request from ('127.0.0.1', 58952)
+        Traceback (most recent call last):
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 697, in process_request_thread
+            self.finish_request(request, client_address)
+            ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 362, in finish_request
+            self.RequestHandlerClass(request, client_address, self)
+            ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/socketserver.py", line 766, in __init__
+            self.handle()
+            ~~~~~~~~~~~^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/server.py", line 447, in handle
+            self.handle_one_request()
+            ~~~~~~~~~~~~~~~~~~~~~~~^^
+          File "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/http/server.py", line 435, in handle_one_request
+            method()
+            ~~~~~~^^
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch20/enhancement19/samples.py", line 56, in do_POST
+            assert q['reasoning'] == {'effort': 'high', 'summary': 'detailed'}
+                   ~^^^^^^^^^^^^^
+        KeyError: 'reasoning'
+        ----------------------------------------
+        Traceback (most recent call last):
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch20/enhancement19/samples.py", line 117, in <module>
+            assert completed and exit_code == 0 and not errors, receipts[-1]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        AssertionError: {'command': '/tmp/ensemble-ch19 auth status\n/tmp/ensemble-ch19 auth models\nLLM_VENDOR=openai LLM_MODEL=gpt-6-astra \\\nOPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \\\nOPENAI_REASONING_SUMMARY=detailed EN_PRIMARY_SKILL=base \\\n/tmp/ensemble-ch19 --skills-dir skills chat\n', 'exit': 0, 'stdout': 'Account: ensemble-grader@example.com\nSubject: user_01HQZ8K3RMBVT5XJ7P2N4YDC6A\nClient ID: app_ch19_k2QgHn_SXn_d\nBilling: chatgpt\nSigned in: true\nPlan enabled: true\nExpires: 2026-10-11T21:28:36-07:00\nScopes: openid profile email offline_access chatgpt.tokens.use.direct\ngpt-6-astra\tGPT-6-Astra\nThe baseline has 3 failures and 3 errors: manual splitting breaks CSV quoting and blank rows, while floats lose decimal precision. I’ll use `csv.reader` and `Decimal`, leaving the CLI formatting unchanged.\n\nRepaired `aggregate.py` using only the standard library.\n\n- Replaced manual line/comma splitting with `csv.reader` and `newline=""` to handle embedded commas, escaped quotes, and quoted newlines.\n- Skipped blank rows and replaced float arithmetic with `Decimal` totals.\n- Preserved the CLI’s sorted, tab-separated, two-decimal output.\n\nRan `python3 -m unittest -v` before editing: **3 failures, 3 errors**. Ran it again afterward: **all 6 tests passed**. `test_aggregate.py` was unchanged.\n', 'stderr': 'Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 20:28:36 OpenAI billing source: chatgpt\n2026/10/11 20:28:36 openai request failed: provider transport failed\n2026/10/11 20:28:36 recall judge failed; using source quotas: provider transport failed\n2026/10/11 20:28:36 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=4433 predicted=0.0000\nrun_command {"command":"python3 -m unittest -v"}2026/10/11 20:28:36 cache grant: input_tokens=1715 read_tokens=0 granted=0.0000 predicted=0.0000\n\n2026/10/11 20:28:36 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4432 prompt_bytes=11798 predicted=0.3757\nedit_file {"path":"aggregate.py","old_text":"import sys\\nfrom pathlib import Path\\n\\n\\ndef totals(path):\\n    \\"\\"\\"Return each merchant\'s exact total in currency units.\\"\\"\\"\\n    result = {}\\n    # The first line is the merchant,amount header.\\n    for line in Path(path).read_text().splitlines()[1:]:\\n        merchant, amount = line.split(\\",\\")\\n        result[merchant] = result.get(merchant, 0.0) + float(amount)\\n    return result","new_text":"import csv\\nimport sys\\nfrom decimal import Decimal\\nfrom pathlib import Path\\n\\n\\ndef totals(path):\\n    \\"\\"\\"Return each merchant\'s exact total in currency units.\\"\\"\\"\\n    result = {}\\n    with Path(path).open(newline=\\"\\") as source:\\n        rows = csv.reader(source)\\n        next(rows, None)  # Skip the merchant,amount header.\\n        for row in rows:\\n            if not row:\\n                continue\\n            merchant, amount = row\\n            result[merchant] = result.get(merchant, Decimal(0)) + Decimal(amount)\\n    return result"}2026/10/11 20:28:36 cache grant: input_tokens=3669 read_tokens=0 granted=0.0000 predicted=0.3757\n\n2026/10/11 20:28:36 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=11797 prompt_bytes=13407 predicted=0.8799\nrun_command {"command":"python3 -m unittest -v"}2026/10/11 20:28:36 cache grant: input_tokens=4000 read_tokens=0 granted=0.0000 predicted=0.8799\n\n2026/10/11 20:28:36 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=13406 prompt_bytes=14360 predicted=0.9336\n2026/10/11 20:28:36 cache grant: input_tokens=4200 read_tokens=0 granted=0.0000 predicted=0.9336\n'}
+        
+    ch19_samples_test.go:24: exit status 1
+--- FAIL: TestChapter19Samples (1.57s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	1.579s
+FAIL

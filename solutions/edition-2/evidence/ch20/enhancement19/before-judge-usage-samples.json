@@ -1,0 +1,44 @@
+{
+  "result": "PASS",
+  "manuscript_sha256": "1058dc2c2e68e73c2ae0c14c7205a5bf88717bd8f1c4fec614cca3182a442b09",
+  "fences": [
+    {
+      "index": 0,
+      "language": "",
+      "sha256": "df75324daf63b7e1a6fb0f53a10e30a9b13a453b9a8a95584ff48d60147d46fe"
+    },
+    {
+      "index": 1,
+      "language": "sh",
+      "sha256": "c8cf096e844510c467f03b440908442fc3e952fd8fd31b276c3c0271828efea1"
+    },
+    {
+      "index": 2,
+      "language": "sh",
+      "sha256": "b9b6d30baaa3dc86fbb0e151a60d8b7cdaa19dce0fb3795d03ab67a50d8a220b"
+    },
+    {
+      "index": 3,
+      "language": "text",
+      "sha256": "14547338fcbe3a4f0a2b2ba99a0ab86b2fa6b601d2b5fd98b2c587157360e8b3"
+    },
+    {
+      "index": 4,
+      "language": "sh",
+      "sha256": "feb4332bce41fca599d0b19d5103f6f3310ae68e92cce1505b46ce75aa9b4567"
+    }
+  ],
+  "requests": 5,
+  "auxiliary_judge_requests": 1,
+  "completed_before_eof": true,
+  "cli_exit": 0,
+  "save": true,
+  "source_matches_historical_repair": true,
+  "unchanged_six_tests": true,
+  "launch_substitutions": [
+    "Local issuer and provider base URL",
+    "Isolated fake-auth EN_HOME and browser visitor",
+    "CH02_LOG capture path"
+  ],
+  "limits": "Replayed real external SSE supplies known tool decisions; real frozen CLI performs all reads/edit/commands. This proves sample mechanics, not fresh autonomous coding or current account eligibility. No paid inference, real sign-in, private profile or GUI."
+}

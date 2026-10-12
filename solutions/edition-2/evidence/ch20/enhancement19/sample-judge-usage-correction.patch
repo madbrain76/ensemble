@@ -1,0 +1,11 @@
+--- missing-usage/samples.py
++++ valid-empty-judge/samples.py
+@@ -56,7 +56,7 @@
+                 self.send_response(200)
+                 self.send_header('Content-Type', 'text/event-stream')
+                 self.end_headers()
+-                response = dict(status='completed', model=q['model'], output=[dict(type='message', role='assistant', content=[dict(type='output_text', text='[]')])])
++                response = dict(status='completed', model=q['model'], usage=dict(input_tokens=100, output_tokens=1, input_tokens_details=dict(cached_tokens=0)), output=[dict(type='message', role='assistant', content=[dict(type='output_text', text='[]')])])
+                 self.wfile.write(('event: response.completed\ndata: '+json.dumps(dict(type='response.completed', response=response))+'\n\n').encode())
+                 self.wfile.flush()
+                 return

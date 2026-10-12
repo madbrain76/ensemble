@@ -1,0 +1,30 @@
+{
+  "head_before_commit": "ca1b6b61c13adb854c4a8cb8e232119bd5a4e4fe",
+  "accepted_tree": "bd2998e68f976dbaf437b642b131d350e086242f",
+  "accepted_tracked_files": 144,
+  "binary_sha256": "080fddda9cfeb0d562b98334ec7bc55cea2f0776827372bfea978df4a5e3c661",
+  "sha256": {
+    "docs/edition-2-notes/enhancement-19-code.md": "5973e2a3add4ccd784a90254aa62f33fc56f6fe79b496efeb0c20225a3fa84c1",
+    "book/edition-2/chapter-19.md": "1058dc2c2e68e73c2ae0c14c7205a5bf88717bd8f1c4fec614cca3182a442b09",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-requests.json": "251836bda1f8147405658c330d4995e9fdd5485fe40f285f58b297cbf952e60e",
+    "solutions/edition-2/evidence/ch20/enhancement19/before-judge-usage-source.json": "3d159815dc78b57f9ebba6af2023a5fd91d0ed3ac430a5a6cf8e1cd3cfc2af6f",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-run.json": "0470e88b396cb8163fd3bd0e87403804c8593ba5c4d3c415ac93eb20eeb4b4df",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-output.txt": "1baf8b366489fea4ab8b3cf10a6c7309561f5562f55b4e931626af266931b74d",
+    "solutions/edition-2/evidence/ch20/enhancement19/before-judge-usage-samples-output.txt": "0cfaee35069441a59dfac1aa7c4dc99a8a9bdece0d3d5ffe033c14e9a10c6840",
+    "solutions/edition-2/evidence/ch20/enhancement19/audit.py": "d67f008c6054d43670199b1751ff27620bc5cc69b2be38372267929dc705f894",
+    "solutions/edition-2/evidence/ch20/enhancement19/sample-judge-usage-correction.patch": "0e1c5c444fcfd44d179c87121f688e533b9213e101b2625d05445e55889e7aa8",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples.json": "2bbfcb748e9d60a94eed2f04a3d657b1ebe02d35c4f0ad4c1993075633c49441",
+    "solutions/edition-2/evidence/ch20/enhancement19/before-judge-usage-samples.json": "2bbfcb748e9d60a94eed2f04a3d657b1ebe02d35c4f0ad4c1993075633c49441",
+    "solutions/edition-2/evidence/ch20/enhancement19/before-judge-usage-samples-judge-requests.json": "6ad5b52669f2a602b3f0492c796a90ae3888eed3b3ad073399f3ef4db82d8366",
+    "solutions/edition-2/evidence/ch20/enhancement19/before-judge-usage-samples-requests.json": "64f31d44c7bcc06db36c7202f48e36f4d1c9ded3ea6c34bf2fe8ae576b3355ea",
+    "solutions/edition-2/evidence/ch20/enhancement19/historical-audit.json": "f40e9f761466ef4a0b9894b1beefee76f97240de34aaac1ddb69c72dcaf34870",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-initial-output.txt": "460cacaadb4c5de97677cd16b371ab93890371c423d49b87b5281976c39fad7c",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-judge-requests.json": "6ad5b52669f2a602b3f0492c796a90ae3888eed3b3ad073399f3ef4db82d8366",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-initial.json": "4ee2d2a39a778fc931a5aec52d82c5e19ebdc2f2edb1896438f180449c8767d6",
+    "solutions/edition-2/evidence/ch20/enhancement19/sample-peer-correction.patch": "7dd8edaac9353ef65721905cbca15c13b379a74646fc9402e1eee5404cfc8972",
+    "solutions/edition-2/evidence/ch20/enhancement19/before-judge-usage-samples-run.json": "9657c3486fc396fa3c37671e59db271098bd56a98dbdd8e854febb6bb8199a82",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples.py": "12cff7352c708f4dcc75644c3f3cca07bef39bd11250b443d2c93be9837b36ae",
+    "solutions/edition-2/evidence/ch20/enhancement19/samples-overlay.go.txt": "b4a20769b0df46ed6c637c9922fe8d3e3e3989efa21a8f8b8ccc82add383df4d"
+  },
+  "sample_execution": "local external peers only; historical coding was not repeated"
+}
