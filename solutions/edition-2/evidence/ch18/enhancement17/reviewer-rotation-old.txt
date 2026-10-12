@@ -1,0 +1,14 @@
+=== RUN   TestReviewerInvoiceRotation
+=== RUN   TestReviewerInvoiceRotation/distinct_raw
+    reviewer_rotation_test.go:15: failure=""
+=== RUN   TestReviewerInvoiceRotation/distinct_pretty
+    reviewer_rotation_test.go:16: failure=""
+=== RUN   TestReviewerInvoiceRotation/identical_accumulated
+    reviewer_rotation_test.go:17: rotation failure="", wanted failure=true
+--- FAIL: TestReviewerInvoiceRotation (0.00s)
+    --- PASS: TestReviewerInvoiceRotation/distinct_raw (0.00s)
+    --- PASS: TestReviewerInvoiceRotation/distinct_pretty (0.00s)
+    --- FAIL: TestReviewerInvoiceRotation/identical_accumulated (0.00s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.009s
+FAIL

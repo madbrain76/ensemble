@@ -1,0 +1,40 @@
+{
+  "scope": "Independent direct grader artifact control; no provider or GUI process. Old-stage failure intentionally demonstrates the missing duplicate-pair rejection.",
+  "grader_sha256": "d93517af31d2d7ca28bcaeda9a74c59104025ab646e057969f7e75e82994826f",
+  "old_stage": "b1b7c9f6",
+  "probe_sha256": "b3a6c00c4b97db337c13a805e7d58d20a9808f44085a10339560ec581c252e74",
+  "runs": [
+    {
+      "label": "old",
+      "exit": 1,
+      "seconds": 0.59,
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-invoice-i1drrdl6/old.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerInvoiceRotation$",
+        "-count=1",
+        "-v"
+      ]
+    },
+    {
+      "label": "corrected",
+      "exit": 0,
+      "seconds": 0.486,
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reviewer-invoice-i1drrdl6/corrected.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerInvoiceRotation$",
+        "-count=1",
+        "-v"
+      ]
+    }
+  ]
+}

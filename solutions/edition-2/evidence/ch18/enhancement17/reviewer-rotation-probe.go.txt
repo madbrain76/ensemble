@@ -1,0 +1,18 @@
+package gradeedition2
+import("encoding/json";"os";"path/filepath";"testing";"github.com/waywardgeek/ensemble/internal/fakevendor")
+// This reviewer probe exercises real artifact reads with distinct valid captures
+// and the accumulated-copy defect that can satisfy both substring searches.
+func TestReviewerInvoiceRotation(t *testing.T) {
+ a:=[]byte(`{"tools":[{"name":"read_file"}],"system":[{"type":"text","text":"fixed"}],"messages":[{"role":"user","content":"first"}]}`)
+ b:=[]byte(`{"tools":[{"name":"read_file"}],"system":[{"type":"text","text":"fixed"}],"messages":[{"role":"user","content":"first"},{"role":"assistant","content":"reply"},{"role":"user","content":"second"}]}`)
+ run:=func(t *testing.T, prior,current []byte,wantFailure bool){
+  t.Helper(); d:=t.TempDir(); for p,body:=range map[string][]byte{"prior":prior,"current":current}{if err:=os.WriteFile(filepath.Join(d,p),body,0600);err!=nil{t.Fatal(err)}}
+  r:=contextResult{Errs:map[string]string{}}; invoiceLens(&r,invoiceOut{reqs:[]fakevendor.Recorded{{Body:a},{Body:b}}},d,"current","prior")
+  got:=r.Errs["cache-lens-exists"]
+  if (got!="")!=wantFailure {t.Fatalf("rotation failure=%q, wanted failure=%v",got,wantFailure)}
+  t.Logf("failure=%q",got)
+ }
+ t.Run("distinct_raw",func(t *testing.T){run(t,a,b,false)})
+ t.Run("distinct_pretty",func(t *testing.T){var x,y any;json.Unmarshal(a,&x);json.Unmarshal(b,&y);pa,_:=json.MarshalIndent(x,"","  ");pb,_:=json.MarshalIndent(y,"","  ");run(t,pa,pb,false)})
+ t.Run("identical_accumulated",func(t *testing.T){both:=append(append([]byte{},a...),append([]byte("\n"),b...)...);run(t,both,both,true)})
+}

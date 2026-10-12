@@ -89,3 +89,45 @@ restored defects support this separately from the proposed serial numeric
 grader. Auxiliary exclusion, ownership, byte diagnostics and native meter DOM
 also retain their specific source/browser evidence. No new paid run, original
 grader rerun, runtime edit or acceptance is claimed by this preparation.
+
+## Coherent-stage review
+
+After the next compaction the reviewer again reloaded all four complete
+documents (2,121 / 981 / 632 / 599 lines) and all 373 skill lines before reviewing.
+Coder stage `b1b7c9f6` and author stage `6d7b119a` are coherent submissions for
+overlapping review, not a completed joint gate. The full new grader/driver/test,
+author record and manuscript were read, alongside the original-relative diff.
+
+The original invoice stake, instrument-before-markers sequence, marker-strip
+failure, controlled experiment and meter explanations survive. The runnable
+example and interrupted-response explanation have specific source support;
+they do not prescribe new runtime features. Growth mainly supplies those missing
+reader steps and the actual ownership/accounting correction. No length quota
+was applied. The author corrected two draft findings: stable-end placement is
+on an eligible retained block even when ephemera shares its message, and the
+inherited GPT-5.6 cache-key recommendation disagreed with the current primary
+guide. Both rubric copies now name the legal tool/system/history marker checks
+and explicitly separate broader ephemera/handoff evidence.
+
+Grader review restored original spend/charge rejection and replaced recursive
+marker presence with legal final-block placement. The successful legacy run's
+missing tool marker is a valid original-obligation failure. Its separate
+subscriber-disconnect panic remains a distinct actual failure; holding meter
+subscribers through EOF isolates cache observations without waiving successful
+shutdown. Independent rate fixtures appropriately preserve the two historical
+tariffs rather than reading expected arithmetic from the code being graded.
+
+The artifact-content search had dropped the original distinct-pair guard:
+identical files containing both requests satisfied both searches. The coder
+preserved that survivor and restored rejection. An independent, isolated Go
+overlay probe exercised actual artifact reads. At `b1b7c9f6` its raw and pretty
+positive controls pass, while the accumulated-copy rejection assertion fails.
+Corrected grader SHA `d93517af31d2d7ca28bcaeda9a74c59104025ab646e057969f7e75e82994826f`
+passes all three cases, with the intended duplicate-pair diagnostic. This checks
+the grader's artifact predicate; it is not another live runtime or cache-grant
+demonstration. Source, commands and full output are in
+[`reviewer-rotation.json`](../../solutions/edition-2/evidence/ch18/enhancement17/reviewer-rotation.json)
+and adjacent reviewer-prefixed files.
+
+Final samples, sensitivity classification, frozen source binding and author
+reconciliation remain pending. Zero formal correction rounds have been used.
