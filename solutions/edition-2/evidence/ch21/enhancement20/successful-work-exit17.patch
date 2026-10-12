@@ -1,0 +1,11 @@
+--- main.go
++++ main.go
+@@ -13,7 +13,7 @@
+ 	"ensemble/ensemble"
+ )
+ 
+-func main() {
++func main() { defer os.Exit(17);
+ 	if err := run(); err != nil {
+ 		fmt.Fprintln(os.Stderr, err)
+ 		os.Exit(1)

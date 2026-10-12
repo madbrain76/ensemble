@@ -1,0 +1,20 @@
+[
+  {
+    "command": "go build -o /tmp/ensemble-ch20 .\nensemble_ch20_run=$(mktemp -d)\ncd \"$ensemble_ch20_run\"\nmkdir -p skills/ensemble skills/web-search\n\npwd",
+    "exit": 0,
+    "stdout": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/tmp.68v3iwQDIG\n",
+    "stderr": ""
+  },
+  {
+    "command": "/tmp/ensemble-ch20 auth login",
+    "exit": 0,
+    "stdout": "Account: ensemble-grader@example.com\nSubject: user_01HQZ8K3RMBVT5XJ7P2N4YDC6A\nClient ID: app_ch19_KvmVicax_EqB\nBilling: chatgpt\nSigned in: true\nPlan enabled: true\nExpires: 2026-10-11T21:58:03-07:00\nScopes: openid profile email offline_access chatgpt.tokens.use.direct\n",
+    "stderr": ""
+  },
+  {
+    "command": "LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \\\nOPENAI_REASONING_EFFORT=high OPENAI_REASONING_SUMMARY=detailed \\\nOPENAI_BILLING_MODE=chatgpt EN_PRIMARY_SKILL=ensemble \\\n/tmp/ensemble-ch20 --skills-dir \"$PWD/skills\" chat\n",
+    "exit": 0,
+    "stdout": "SAMPLE_WEB_DONE\nSAMPLE_STATUS_ONE_DONE\nSAMPLE_STATUS_TWO_DONE\n",
+    "stderr": "Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 20:58:03 OpenAI billing source: chatgpt\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=2899 predicted=0.0000\nload_skill {\"name\":\"web-search\"}2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.0000\n\n2026/10/11 20:58:03 cache prefix changed: tools (changed)\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:changed input:appended; prefix_bytes=2055 prompt_bytes=4188 predicted=0.4907\nfirecrawl_search {\"query\":\"latest stable Go release site:go.dev\"}2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.4907\n\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4187 prompt_bytes=4430 predicted=0.9451\nfirecrawl_scrape {\"url\":\"https://go.dev/dl/\"}2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9451\n\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4429 prompt_bytes=4701 predicted=0.9421\n2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9421\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4700 prompt_bytes=5018 predicted=0.9366\n2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9366\nagent_status {}\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=5017 prompt_bytes=5394 predicted=0.9301\n2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9301\nunload_skill {\"name\":\"web-search\"}\n2026/10/11 20:58:03 cache prefix changed: tools (changed)\n2026/10/11 20:58:03 cache lens openai/gpt-6-astra: tools:changed input:appended; prefix_bytes=2055 prompt_bytes=5316 predicted=0.3866\n2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.3866\nModel: gpt-6.1-sol\n2026/10/11 20:58:03 cache lens openai/gpt-6.1-sol: tools:cold input:cold; prefix_bytes=0 prompt_bytes=5632 predicted=0.0000\nagent_status {}2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.0000\n\n2026/10/11 20:58:03 cache lens openai/gpt-6.1-sol: tools:identical input:appended; prefix_bytes=5631 prompt_bytes=6010 predicted=0.9369\n2026/10/11 20:58:03 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9369\n"
+  }
+]

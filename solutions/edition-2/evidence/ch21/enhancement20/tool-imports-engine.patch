@@ -1,0 +1,10 @@
+--- internal/tools/status.go
++++ internal/tools/status.go
+@@ -5,6 +5,7 @@
+ 	"fmt"
+ 
+ 	"ensemble/internal/common"
++ _ "ensemble/internal/engine"
+ )
+ 
+ // Status is a view, not another owner of usage. The Engine already derives

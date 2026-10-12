@@ -1,0 +1,15 @@
+{
+  "sources": {
+    "cmd/grade-edition2/main.go": "ed331dfb5d0da413874e3342a570194be45d448d51b1b52823849b96670e4ffd",
+    "internal/gradeedition2/ch20_peer.go": "7cbe3053cbeade4f457577460ebb6baacaeeedf832fb9be5fe57cb63a7d652e2",
+    "internal/gradeedition2/ch20_driver.go": "43f69da6e6d9dd8cb942f9106d510de1a0517c5c196851ee9a89ca4e42fca6a4",
+    "internal/gradeedition2/ch20.go": "495070121dda84eda9ab1bba43cf6d27761e6ec42790271db065394ffce4cb8a",
+    "internal/gradeedition2/ch20_test.go": "c81fb42528fc4a30938f20ac4c823646f6ae3a8df04cfec102914986e56db8b5"
+  },
+  "accepted_tree": "a801628b1dd631e5ea20ad03ea7d255584728d31",
+  "legacy_tree": "0d0c7787b00c2b8d1e811d3137228115cc9302ec",
+  "manuscript_sha256": "b975d7aaa77d767ca7e6c7f3976367048cab89b15a6491d307b9182ee89cb1f9",
+  "first_green_commit": "7c59200472613a9136628b90c6c551b985b874d7",
+  "scope": "Final production/test bytes. Final full accepted/legacy/race/vet receipts bind these hashes. All mutations after the two initial survivors use behavior-identical final code; later changes are comments/import grouping only.",
+  "preservation_status": ""
+}

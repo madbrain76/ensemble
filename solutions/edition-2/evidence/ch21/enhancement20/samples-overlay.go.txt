@@ -1,0 +1,29 @@
+package gradeedition2
+
+import (
+    "os"
+    "os/exec"
+    "path/filepath"
+    "testing"
+
+    "github.com/waywardgeek/ensemble/internal/grade"
+)
+
+// This temporary overlay starts only the existing signed external issuer.
+// The real frozen CLI and scripted external HTTP peers run in Python.
+func TestChapter20Samples(t *testing.T) {
+    issuer := grade.NewEdition2OAuthPeer(grade.Edition2OAuthOptions{})
+    defer issuer.Close()
+    root, err := filepath.Abs("../..")
+    if err != nil { t.Fatal(err) }
+    script := filepath.Join(root, "solutions/edition-2/evidence/ch21/enhancement20/samples.py")
+    cmd := exec.Command("python3", script)
+    cmd.Env = append(os.Environ(), "CH20_ROOT="+root, "CH20_ISSUER="+issuer.URL())
+    output, err := cmd.CombinedOutput()
+    t.Log(string(output))
+    if err != nil { t.Fatal(err) }
+    observations := issuer.Observations()
+    if len(observations.TokenHits) != 1 || len(observations.Violations) != 0 {
+        t.Fatalf("token exchanges=%d violations=%v", len(observations.TokenHits), observations.Violations)
+    }
+}

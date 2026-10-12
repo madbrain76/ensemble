@@ -1,0 +1,102 @@
+{
+  "result": "PASS",
+  "manuscript_sha256": "b975d7aaa77d767ca7e6c7f3976367048cab89b15a6491d307b9182ee89cb1f9",
+  "fences": [
+    {
+      "index": 0,
+      "language": "go",
+      "sha256": "a7f099e7756e40c8ce1c7da71425e634c6c4f09122b7fcd6ddfd1136abf94af2"
+    },
+    {
+      "index": 1,
+      "language": "text",
+      "sha256": "925f0e22bb08beff4bcb1259cfa5c97fc6c2767f6216f4f87093ff92c69acd39"
+    },
+    {
+      "index": 2,
+      "language": "sh",
+      "sha256": "a2d1e35b30796ecd25d994b1556866d1986ba941c2eba21106e7433e0b822e7c"
+    },
+    {
+      "index": 3,
+      "language": "yaml",
+      "sha256": "4fa6ec7f1563a1375b1ca72233da4bda25c27898370cf47d4b4dfc0bb7dbaa54"
+    },
+    {
+      "index": 4,
+      "language": "go",
+      "sha256": "a8e022a1a4ee003f43d5a5f8d0883f95a0c11187f172b3e17e5865f5711c4774"
+    },
+    {
+      "index": 5,
+      "language": "go",
+      "sha256": "89ff480b34b45f2179ba37de9b695148b0cacc709695a0286a70dd691663aa2b"
+    },
+    {
+      "index": 6,
+      "language": "go",
+      "sha256": "8bfc517ff71ab1298e66aa7a06e56e324ec489f015bfe60ca4ab17aa2c6d40e8"
+    },
+    {
+      "index": 7,
+      "language": "go",
+      "sha256": "99de05fbaee406805d8a59e6d4ef9f15ae6610d08d300e043f00c0cce477f727"
+    },
+    {
+      "index": 8,
+      "language": "go",
+      "sha256": "478d795402dcc3db7c89f446df55bd28bce5e4fac8359cdf70ab50936699e5ad"
+    },
+    {
+      "index": 9,
+      "language": "go",
+      "sha256": "b1b62341641a12b96844b65bc208301e6d0985b31945806e58b284668a010e46"
+    },
+    {
+      "index": 10,
+      "language": "sh",
+      "sha256": "0d4ceaff695e307b7ad1fd0d8aa120eb064718dcd83a6cf13891361a4268dd03"
+    },
+    {
+      "index": 11,
+      "language": "yaml",
+      "sha256": "bdc1234aca8ea4c748f891cb6d904a7b3acaeabec19d85d5d79cfb313d3a57b4"
+    },
+    {
+      "index": 12,
+      "language": "sh",
+      "sha256": "92ff41fff16d4a14c70422c101eb8e18deff5b5be6d00cb9e80892f1c6f4ed6e"
+    },
+    {
+      "index": 13,
+      "language": "text",
+      "sha256": "d059c26affc01c8e3555eb2d7c71e450b8664938cbcac10224e45c7d15ee8c5d"
+    },
+    {
+      "index": 14,
+      "language": "text",
+      "sha256": "2741c7819a73608a15ef00116167da356e1b0cd758e82b4d0b53832b5b48baef"
+    },
+    {
+      "index": 15,
+      "language": "text",
+      "sha256": "91eeba940c3d33ce9f9736f6036555b6d81569488fffab8a66478bfa82af4e99"
+    },
+    {
+      "index": 16,
+      "language": "text",
+      "sha256": "be23270df93756e3fa1c18ea520da22bca0293f2854f02eb7cec9cd28a294b2c"
+    }
+  ],
+  "main_requests": 9,
+  "judge_requests": 3,
+  "cli_exit": 0,
+  "save": true,
+  "substitutions": [
+    "Only web skill endpoint replaced with local HTTP peer",
+    "Existing external fake signed issuer and isolated auth profile",
+    "Local Responses base URL and synthetic Firecrawl key",
+    "CH02_LOG captures actual events"
+  ],
+  "limits": "Scripted provider decisions validate CLI/tool/model-switch mechanics, not fresh autonomous research, real service catalog, paid billing/cache grants or real account eligibility. Immediate scrape exercises the prompt conditional without a running-job branch; historical real wait proof retained separately."
+}

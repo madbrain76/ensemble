@@ -1,0 +1,11 @@
+--- internal/mcp/mcp.go
++++ internal/mcp/mcp.go
+@@ -173,7 +173,7 @@
+ 	var stopped []*client
+ 	var retained []*connection
+ 	for _, entry := range m.connections {
+-		if entry.skill == skill {
++		if entry.skill == skill && false {
+ 			if entry.client != nil {
+ 				stopped = append(stopped, entry.client)
+ 			}

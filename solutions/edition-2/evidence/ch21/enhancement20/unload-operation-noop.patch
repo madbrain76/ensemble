@@ -1,0 +1,11 @@
+--- internal/skills/skills.go
++++ internal/skills/skills.go
+@@ -252,7 +252,7 @@
+ }
+ 
+ // MarkUnload stops external servers while deferring compiled instruction removal.
+-func (r *registry) MarkUnload(name string) error {
++func (r *registry) MarkUnload(name string) error { return nil;
+ 	r.mu.Lock()
+ 	defer r.mu.Unlock()
+ 	if !r.loaded[name] {

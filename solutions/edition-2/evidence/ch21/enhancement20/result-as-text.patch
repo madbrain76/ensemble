@@ -1,0 +1,11 @@
+--- internal/engine/anthropic.go
++++ internal/engine/anthropic.go
+@@ -195,7 +195,7 @@
+ 			if err != nil {
+ 				return nil, err
+ 			}
+-			b.Type, b.ToolUseID, b.IsError = "tool_result", callID(callEntry, j, call), p.IsError
++			b.Type, b.ToolUseID, b.IsError = "text", callID(callEntry, j, call), p.IsError
+ 			b.Content, err = e.anthropicParts(c, common.Entry{Parts: p.Parts})
+ 			if err != nil {
+ 				return nil, err

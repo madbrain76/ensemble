@@ -1,0 +1,184 @@
+[
+  {
+    "case": "no-auth-header",
+    "group": "web",
+    "exit": 1,
+    "seconds": 0.646,
+    "intended": "url-transport-connects",
+    "intended_failed": true,
+    "failures": {
+      "url-transport-connects": [
+        "auth-env bearer not forwarded",
+        "auth-env bearer not forwarded",
+        "auth-env bearer not forwarded",
+        "auth-env bearer not forwarded",
+        "auth-env bearer not forwarded",
+        "auth-env bearer not forwarded",
+        "auth-env bearer not forwarded"
+      ]
+    }
+  },
+  {
+    "case": "no-session-header",
+    "group": "web",
+    "exit": 1,
+    "seconds": 0.379,
+    "intended": "url-transport-connects",
+    "intended_failed": true,
+    "failures": {
+      "url-transport-connects": [
+        "Mcp-Session-Id not echoed on notifications/initialized",
+        "Mcp-Session-Id not echoed on tools/list",
+        "Mcp-Session-Id not echoed on tools/call",
+        "Mcp-Session-Id not echoed on tools/call",
+        "Mcp-Session-Id not echoed on tools/call",
+        "Mcp-Session-Id not echoed on tools/call"
+      ]
+    }
+  },
+  {
+    "case": "no-missing-auth-diagnostic",
+    "group": "web",
+    "exit": 1,
+    "seconds": 0.458,
+    "intended": "url-transport-connects",
+    "intended_failed": true,
+    "failures": {
+      "url-transport-connects": [
+        "missing-auth discovery or named degradation diagnostic absent"
+      ]
+    }
+  },
+  {
+    "case": "first-result-block-only",
+    "group": "web",
+    "exit": 1,
+    "seconds": 0.438,
+    "intended": "fetch-returns-planted-token",
+    "intended_failed": true,
+    "failures": {
+      "search-dispatches": [
+        "correlated search result lost URL or second content block"
+      ],
+      "fetch-returns-planted-token": [
+        "correlated successful fetch lost \"SECOND_WEB_BLOCK_c73fe4dfdd3e0a8eeb5c9614\""
+      ]
+    }
+  },
+  {
+    "case": "drop-tool-error",
+    "group": "web",
+    "exit": 1,
+    "seconds": 0.394,
+    "intended": "tool-error-is-reported",
+    "intended_failed": true,
+    "failures": {
+      "tool-error-is-reported": [
+        "result missing: error=false want=true text=\"404: planted page absent\\nSECOND_WEB_BLOCK_9373a38e16ea9bd85d953088\" decode=<nil>"
+      ]
+    }
+  },
+  {
+    "case": "drop-http-body",
+    "group": "web",
+    "exit": 1,
+    "seconds": 0.384,
+    "intended": "transport-error-is-reported",
+    "intended_failed": true,
+    "failures": {
+      "transport-error-is-reported": [
+        "HTTP error body missing from failed result"
+      ]
+    }
+  },
+  {
+    "case": "unload-keeps-connection",
+    "group": "web",
+    "exit": 0,
+    "seconds": 0.368,
+    "intended": "tools-gated-by-skill",
+    "intended_failed": false,
+    "failures": {}
+  },
+  {
+    "case": "advertise-all-tools",
+    "group": "web",
+    "exit": 0,
+    "seconds": 0.369,
+    "intended": "tools-gated-by-skill",
+    "intended_failed": false,
+    "failures": {}
+  },
+  {
+    "case": "status-omits-write-denominator",
+    "group": "status",
+    "exit": 1,
+    "seconds": 0.482,
+    "intended": "agent-status-tool",
+    "intended_failed": true,
+    "failures": {
+      "agent-status-tool": [
+        "cache hit rate 16.670% want 13.333% including cache writes",
+        "cache hit rate 29.410% want 23.810% including cache writes",
+        "cache hit rate 29.730% want 24.176% including cache writes"
+      ]
+    }
+  },
+  {
+    "case": "status-doubles-cost",
+    "group": "status",
+    "exit": 1,
+    "seconds": 0.358,
+    "intended": "per-model-cost",
+    "intended_failed": true,
+    "failures": {
+      "per-model-cost": [
+        "session cost 0.075800 want independently priced 0.037900"
+      ]
+    }
+  },
+  {
+    "case": "status-forgets-unpriced-work",
+    "group": "status",
+    "exit": 1,
+    "seconds": 0.42,
+    "intended": "per-model-cost",
+    "intended_failed": true,
+    "failures": {
+      "per-model-cost": [
+        "unpriced contributing model presented as complete known cost",
+        "unpriced contributing model presented as complete known cost"
+      ]
+    }
+  },
+  {
+    "case": "model-selection-noop",
+    "group": "status",
+    "exit": 1,
+    "seconds": 0.374,
+    "intended": "agent-status-tool",
+    "intended_failed": true,
+    "failures": {
+      "agent-status-tool": [
+        "status session: model selection claude-opus-4-6: map[context_target:0 font_size:16 log_retention:0 max_tool_rounds:0 memory:map[64x:map[budget:0 disabled:false high_watermark:0 low_watermark:0] 8x:map[budget:0 disabled:false high_watermark:0 low_watermark:0] conversation:map[budget:0 disabled:false high_watermark:0 low_watermark:0] memory:map[budget:0 disabled:false high_watermark:0 low_watermark:0] session:map[budget:0 disabled:false high_watermark:0 low_watermark:0] soul:map[budget:0 disabled:false high_watermark:0 low_watermark:0]] model:claude-sonnet-5 theme:dark tts_enabled:true tts_speed:1] <nil>: Open http://localhost:60950; terminal messages while busy are hints. /interrupt ends the turn.\n[agent_status]\nmodel: claude-sonnet-5\nlast response: 10000 in, 1000 out, 2000 cache read, 3000 cache write\nsession total: 10000 in, 1000 out, 2000 cache read, 3000 cache write\ncache hit rate: 13.33%\ncost: $0.037900\n"
+      ],
+      "per-model-cost": [
+        "status session: model selection claude-opus-4-6: map[context_target:0 font_size:16 log_retention:0 max_tool_rounds:0 memory:map[64x:map[budget:0 disabled:false high_watermark:0 low_watermark:0] 8x:map[budget:0 disabled:false high_watermark:0 low_watermark:0] conversation:map[budget:0 disabled:false high_watermark:0 low_watermark:0] memory:map[budget:0 disabled:false high_watermark:0 low_watermark:0] session:map[budget:0 disabled:false high_watermark:0 low_watermark:0] soul:map[budget:0 disabled:false high_watermark:0 low_watermark:0]] model:claude-sonnet-5 theme:dark tts_enabled:true tts_speed:1] <nil>: Open http://localhost:60950; terminal messages while busy are hints. /interrupt ends the turn.\n[agent_status]\nmodel: claude-sonnet-5\nlast response: 10000 in, 1000 out, 2000 cache read, 3000 cache write\nsession total: 10000 in, 1000 out, 2000 cache read, 3000 cache write\ncache hit rate: 13.33%\ncost: $0.037900\n"
+      ]
+    }
+  },
+  {
+    "case": "tool-imports-engine",
+    "group": "imports",
+    "exit": 1,
+    "seconds": 0.079,
+    "intended": "reaches-through-the-chain",
+    "intended_failed": true,
+    "failures": {
+      "reaches-through-the-chain": [
+        "ensemble/internal/tools directly imports ensemble/internal/engine",
+        "Mandatory source review follows actual dispatched status \u2192 owning Engine \u2192 Agent \u2192 Ensemble and each shipped executable's public composition path; this graph alone proves neither."
+      ]
+    }
+  }
+]

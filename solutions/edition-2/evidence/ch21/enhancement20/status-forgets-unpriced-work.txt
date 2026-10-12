@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: per-model-cost: [unpriced contributing model presented as complete known cost unpriced contributing model presented as complete known cost]
+--- FAIL: TestChapter20FocusedEvidence (0.42s)
+FAIL

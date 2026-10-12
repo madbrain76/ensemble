@@ -1,0 +1,7 @@
+FAIL	ensemble/internal/common [build failed]
+ok  	ensemble/internal/tools	0.005s [no tests to run]
+FAIL
+# ensemble/internal/common [ensemble/internal/common.test]
+../evidence/ch21/enhancement20/sample-transport.go.txt:11:6: MCPContextTransport redeclared in this block
+	internal/common/mcp.go:21:6: other declaration of MCPContextTransport
+../evidence/ch21/enhancement20/sample-transport.go.txt:12:17: undefined: context

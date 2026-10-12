@@ -1,0 +1,14 @@
+=== RUN   TestChapter20Samples
+    ch20_samples_evidence_test.go:23: Traceback (most recent call last):
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch21/enhancement20/samples.py", line 78, in <module>
+            send(blocks[15][1],'gpt-6.1-sol')
+            ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          File "/Users/bill/projects/ensemble/solutions/edition-2/evidence/ch21/enhancement20/samples.py", line 75, in send
+            raise AssertionError(('completion absent',marker,(work/'stderr.txt').read_text()))
+        AssertionError: ('completion absent', 'gpt-6.1-sol', 'Type a message, /model NAME between turns, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints.\n2026/10/11 20:54:17 OpenAI billing source: chatgpt\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:cold input:cold; prefix_bytes=0 prompt_bytes=2899 predicted=0.0000\n2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.0000\nload_skill {"name":"web-search"}\n2026/10/11 20:54:17 cache prefix changed: tools (changed)\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:changed input:appended; prefix_bytes=2055 prompt_bytes=4188 predicted=0.4907\nfirecrawl_search {"query":"latest stable Go release site:go.dev"}2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.4907\n\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4187 prompt_bytes=4430 predicted=0.9451\nfirecrawl_scrape {"url":"https://go.dev/dl/"}2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9451\n\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4429 prompt_bytes=4701 predicted=0.9421\n2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9421\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=4700 prompt_bytes=5018 predicted=0.9366\nagent_status {}2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9366\n\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:identical input:appended; prefix_bytes=5017 prompt_bytes=5394 predicted=0.9301\n2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.9301\nunload_skill {"name":"web-search"}\n2026/10/11 20:54:17 cache prefix changed: tools (changed)\n2026/10/11 20:54:17 cache lens openai/gpt-6-astra: tools:changed input:appended; prefix_bytes=2055 prompt_bytes=5316 predicted=0.3866\n2026/10/11 20:54:17 cache grant: input_tokens=100 read_tokens=20 granted=0.2000 predicted=0.3866\nModel: gpt-6.1-sol\n')
+        
+    ch20_samples_evidence_test.go:24: exit status 1
+--- FAIL: TestChapter20Samples (20.65s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	20.652s
+FAIL

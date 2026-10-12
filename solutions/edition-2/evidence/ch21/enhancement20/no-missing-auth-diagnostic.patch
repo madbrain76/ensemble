@@ -1,0 +1,11 @@
+--- internal/mcp/http.go
++++ internal/mcp/http.go
+@@ -45,7 +45,7 @@
+ 	if server.AuthEnv != "" {
+ 		t.token = os.Getenv(server.AuthEnv)
+ 		if t.token == "" {
+-			parent.Agent().Ensemble().Logf("MCP %s: auth environment %s unset; connecting without authentication", server.Name, server.AuthEnv)
++			_ = parent
+ 		}
+ 	}
+ 	return t

@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: tool-error-is-reported: [result missing: error=false want=true text="404: planted page absent\nSECOND_WEB_BLOCK_9373a38e16ea9bd85d953088" decode=<nil>]
+--- FAIL: TestChapter20FocusedEvidence (0.39s)
+FAIL

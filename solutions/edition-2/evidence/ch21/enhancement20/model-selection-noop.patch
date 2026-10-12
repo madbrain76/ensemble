@@ -1,0 +1,11 @@
+--- internal/agent/model.go
++++ internal/agent/model.go
+@@ -38,7 +38,7 @@
+ 		return
+ 	}
+ 	r.owner.configMu.Lock()
+-	r.owner.config.Model = selection.model
++	_ = selection.model
+ 	// A resolved identity belongs to the previous selection, not the new alias.
+ 	r.owner.config.ResolvedModel = ""
+ 	r.owner.configMu.Unlock()

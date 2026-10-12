@@ -1,0 +1,19 @@
+package common
+import ("encoding/json"; "context")
+// MCPTransport carries complete JSON-RPC messages independently of GUI framing.
+type sampleMCPTransport interface {
+    Send(json.RawMessage) error
+    Recv() (json.RawMessage, error)
+    Close() error
+}
+
+// MCPContextTransport lets a blocked HTTP POST use the real job's lifetime.
+type sampleMCPContextTransport interface {
+    SendContext(context.Context, json.RawMessage) error
+}
+
+var _ MCPTransport = (sampleMCPTransport)(nil)
+var _ sampleMCPTransport = (MCPTransport)(nil)
+
+var _ MCPContextTransport = (sampleMCPContextTransport)(nil)
+var _ sampleMCPContextTransport = (MCPContextTransport)(nil)

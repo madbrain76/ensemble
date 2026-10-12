@@ -1,0 +1,11 @@
+--- internal/mcp/http.go
++++ internal/mcp/http.go
+@@ -94,7 +94,7 @@
+ 		if readErr != nil {
+ 			return t.diagnostic(fmt.Errorf("MCP HTTP %s: %s (reading body: %w)", response.Status, body, readErr))
+ 		}
+-		return t.diagnostic(fmt.Errorf("MCP HTTP %s: %s", response.Status, body))
++		return t.diagnostic(fmt.Errorf("MCP HTTP %s: %s", response.Status, ""))
+ 	}
+ 	if session := response.Header.Get("Mcp-Session-Id"); session != "" {
+ 		t.mu.Lock()

@@ -1,0 +1,11 @@
+--- internal/agent/dispatch.go
++++ internal/agent/dispatch.go
+@@ -67,7 +67,7 @@
+ 			return "", limitErr
+ 		}
+ 		if definition == nil {
+-			return "", fmt.Errorf("unknown tool %q", call.Name)
++			return "", fmt.Errorf("disabled tool %q exists but is unavailable", call.Name)
+ 		}
+ 		return definition.Run(owner, call.Args)
+ 	}

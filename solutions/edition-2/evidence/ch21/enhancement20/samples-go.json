@@ -1,0 +1,9 @@
+{
+  "exit": 0,
+  "manuscript_sha256": "b975d7aaa77d767ca7e6c7f3976367048cab89b15a6491d307b9182ee89cb1f9",
+  "fences": [
+    0,
+    9
+  ],
+  "qualification": "Both interface names renamed only to avoid redeclaration; actual context/encoding-json imports supplied, bidirectional interface assignments verify vocabulary. Exact status function compiled in tools. Historical diagnostic excerpts are not current executable samples."
+}

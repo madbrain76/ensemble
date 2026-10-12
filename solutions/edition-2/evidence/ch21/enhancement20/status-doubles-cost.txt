@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: per-model-cost: [session cost 0.075800 want independently priced 0.037900]
+--- FAIL: TestChapter20FocusedEvidence (0.35s)
+FAIL

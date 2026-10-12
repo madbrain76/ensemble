@@ -1,0 +1,5 @@
+package tools
+import "ensemble/internal/common"
+func statusSnapshot(call common.ToolContext) common.UsageMeter {
+    return call.Engine().Meter()
+}

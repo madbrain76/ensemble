@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -180,7 +180,7 @@
+ 		}
+ 	}
+ 	joined := strings.Join(text, "\n")
+-	if result.IsError {
++	if result.IsError && false {
+ 		return "", fmt.Errorf("MCP tool %s: %s", name, joined)
+ 	}
+ 	return joined, nil

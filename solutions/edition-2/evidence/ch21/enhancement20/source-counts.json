@@ -1,0 +1,26 @@
+{
+  "internal/gradeedition2/ch20_peer.go": {
+    "physical": 110,
+    "comment_only": 5,
+    "blank": 3,
+    "active": 102
+  },
+  "internal/gradeedition2/ch20_driver.go": {
+    "physical": 232,
+    "comment_only": 8,
+    "blank": 7,
+    "active": 217
+  },
+  "internal/gradeedition2/ch20.go": {
+    "physical": 395,
+    "comment_only": 21,
+    "blank": 10,
+    "active": 364
+  },
+  "internal/gradeedition2/ch20_test.go": {
+    "physical": 28,
+    "comment_only": 3,
+    "blank": 3,
+    "active": 22
+  }
+}

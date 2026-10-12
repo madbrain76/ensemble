@@ -1,0 +1,6 @@
+=== RUN   TestChapter20Samples
+    ch20_samples_evidence_test.go:23: PASS exact sample b975d7aaa77d767ca7e6c7f3976367048cab89b15a6491d307b9182ee89cb1f9 9 main requests, two status results, save and exit0
+        
+--- PASS: TestChapter20Samples (1.14s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.152s

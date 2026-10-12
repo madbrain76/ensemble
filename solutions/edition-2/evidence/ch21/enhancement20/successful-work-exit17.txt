@@ -1,0 +1,10 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: tools-gated-by-skill: [web session: CLI exit: exit status 17]
+    ch20_focused_evidence_test.go:23: url-transport-connects: [web session: CLI exit: exit status 17]
+    ch20_focused_evidence_test.go:23: search-dispatches: [web session: CLI exit: exit status 17]
+    ch20_focused_evidence_test.go:23: fetch-returns-planted-token: [web session: CLI exit: exit status 17]
+    ch20_focused_evidence_test.go:23: fetched-content-is-a-tool-result: [web session: CLI exit: exit status 17]
+    ch20_focused_evidence_test.go:23: tool-error-is-reported: [web session: CLI exit: exit status 17]
+    ch20_focused_evidence_test.go:23: transport-error-is-reported: [web session: CLI exit: exit status 17]
+--- FAIL: TestChapter20FocusedEvidence (0.35s)
+FAIL

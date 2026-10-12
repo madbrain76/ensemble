@@ -1,0 +1,20 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "20",
+    "-gui",
+    "solutions/ch22",
+    "-status-prices",
+    "3,3.75,0.3,15",
+    "-status-second-prices",
+    "5,6.25,0.5,25",
+    "-json",
+    "solutions/ch22"
+  ],
+  "exit": 1,
+  "seconds": 1.26,
+  "stderr": "exit status 1\n"
+}

@@ -1,0 +1,11 @@
+--- internal/engine/usage.go
++++ internal/engine/usage.go
+@@ -57,7 +57,7 @@
+ 	if !out.Priced {
+ 		out.CostUSD = 0
+ 	}
+-	input := out.Total.Input + out.Total.CacheWrite + out.Total.CacheRead
++	input := out.Total.Input + out.Total.CacheRead
+ 	if input > 0 {
+ 		out.HitRate = float64(out.Total.CacheRead) / float64(input)
+ 	}

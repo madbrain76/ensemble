@@ -1,0 +1,24 @@
+package gradeedition2
+import (
+ "encoding/json"
+ "os"
+ "testing"
+ "github.com/waywardgeek/ensemble/internal/grade"
+)
+// This evidence-only overlay drives submitted binaries. The environment selects
+// isolated source and the affected group; it does not replace an internal layer.
+func TestChapter20FocusedEvidence(t *testing.T) {
+ core:=os.Getenv("CH20_CORE")
+ group:=os.Getenv("CH20_GROUP")
+ var checks []grade.Check
+ if group=="web" {
+  bin,clean,err:=grade.Build(core);if err!=nil{t.Fatal(err)};defer clean()
+  checks=webChecks(bin)
+ } else if group=="status" {
+  bin,clean,err:=grade.Build(core+"/gui");if err!=nil{t.Fatal(err)};defer clean()
+  checks=statusChecks(bin,core,[4]float64{2,2.5,.2,10},nil)
+ } else {checks=[]grade.Check{statusImports(core)}}
+ f,err:=os.Create(os.Getenv("CH20_OUT"));if err!=nil{t.Fatal(err)}
+ json.NewEncoder(f).Encode(checks);f.Close()
+ for _,c:=range checks{if !c.Passed{t.Errorf("%s: %v",c.ID,c.Details)}}
+}

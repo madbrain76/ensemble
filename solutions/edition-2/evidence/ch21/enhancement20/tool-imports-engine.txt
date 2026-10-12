@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: reaches-through-the-chain: [ensemble/internal/tools directly imports ensemble/internal/engine Mandatory source review follows actual dispatched status → owning Engine → Agent → Ensemble and each shipped executable's public composition path; this graph alone proves neither.]
+--- FAIL: TestChapter20FocusedEvidence (0.07s)
+FAIL

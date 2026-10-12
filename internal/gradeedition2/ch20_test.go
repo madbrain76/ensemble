@@ -1,8 +1,9 @@
 package gradeedition2
 
 import (
-	"github.com/waywardgeek/ensemble/internal/grade"
 	"testing"
+
+	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
 // TestChapter20Combined drives both shipped clients against actual HTTP peers.

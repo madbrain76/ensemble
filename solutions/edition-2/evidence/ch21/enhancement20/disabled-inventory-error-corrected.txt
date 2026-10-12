@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: tools-gated-by-skill: [before did not give an unknown-tool refusal: "disabled tool \"firecrawl_search\" exists but is unavailable" hidden did not give an unknown-tool refusal: "disabled tool \"remote_forbidden\" exists but is unavailable" after did not give an unknown-tool refusal: "disabled tool \"firecrawl_scrape\" exists but is unavailable"]
+--- FAIL: TestChapter20FocusedEvidence (0.40s)
+FAIL

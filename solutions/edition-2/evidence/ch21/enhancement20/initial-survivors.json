@@ -1,0 +1,16 @@
+[
+  {
+    "case": "partial-web-body",
+    "exit": 0,
+    "elapsed_seconds": 0.573,
+    "source_stage": "7c592004",
+    "expected": "pre-correction survivor"
+  },
+  {
+    "case": "disabled-inventory-error",
+    "exit": 0,
+    "elapsed_seconds": 0.395,
+    "source_stage": "7c592004",
+    "expected": "pre-correction survivor"
+  }
+]

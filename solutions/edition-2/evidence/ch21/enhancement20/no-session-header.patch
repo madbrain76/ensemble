@@ -1,0 +1,11 @@
+--- internal/mcp/http.go
++++ internal/mcp/http.go
+@@ -82,7 +82,7 @@
+ 		return errClosed
+ 	}
+ 	if session != "" {
+-		request.Header.Set("Mcp-Session-Id", session)
++		request.Header.Del("Mcp-Session-Id")
+ 	}
+ 	response, err := t.client.Do(request)
+ 	if err != nil {

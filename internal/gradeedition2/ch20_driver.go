@@ -27,8 +27,13 @@ func webSkills(work, endpoint string) (string, error) {
 // The final-only, uniquely named answer is an actual terminal observation. It
 // precedes EOF; closing stdin immediately after sending the prompt would instead
 // test interruption. Exit status is checked even when partial artifacts exist.
-func webLaunch(bin, work, skills, token string, replies []fakevendor.Reply) ([]fakevendor.Recorded, string, error) {
-	provider := fakevendor.New(replies)
+func webLaunch(bin, work, skills, token string, replies []fakevendor.Reply, observe func()) ([]fakevendor.Recorded, string, error) {
+	provider := fakevendor.NewWithOptions(replies, fakevendor.Options{Route: func([]byte) *fakevendor.Reply {
+		if observe != nil {
+			observe()
+		}
+		return nil
+	}})
 	defer provider.Close()
 	p, err := startMCPCommand(bin, work, []string{"chat"}, []string{"LLM_MODEL=claude-sonnet-5", "LLM_BASE_URL=" + provider.URL(), "EN_SKILLS_DIR=" + skills, "EN_PRIMARY_SKILL=base", "EDITION2_WEB_TOKEN=" + token})
 	if err != nil {

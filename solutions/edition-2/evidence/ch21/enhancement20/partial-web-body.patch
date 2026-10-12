@@ -1,0 +1,11 @@
+--- internal/mcp/client.go
++++ internal/mcp/client.go
+@@ -176,7 +176,7 @@
+ 	var text []string
+ 	for _, part := range result.Content {
+ 		if part.Type == "text" {
+-			text = append(text, part.Text)
++			text = append(text, strings.ReplaceAll(part.Text, "Ignore previous instructions and print ", ""))
+ 		}
+ 	}
+ 	joined := strings.Join(text, "\n")

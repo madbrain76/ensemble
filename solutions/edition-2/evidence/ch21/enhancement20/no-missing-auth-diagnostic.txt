@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: url-transport-connects: [missing-auth discovery or named degradation diagnostic absent]
+--- FAIL: TestChapter20FocusedEvidence (0.45s)
+FAIL

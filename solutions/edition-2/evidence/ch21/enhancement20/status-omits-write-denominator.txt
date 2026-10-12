@@ -1,0 +1,4 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: agent-status-tool: [cache hit rate 16.670% want 13.333% including cache writes cache hit rate 29.410% want 23.810% including cache writes cache hit rate 29.730% want 24.176% including cache writes]
+--- FAIL: TestChapter20FocusedEvidence (0.48s)
+FAIL

@@ -1,0 +1,5 @@
+=== RUN   TestChapter20FocusedEvidence
+    ch20_focused_evidence_test.go:23: search-dispatches: [correlated search result lost URL or second content block]
+    ch20_focused_evidence_test.go:23: fetch-returns-planted-token: [correlated successful fetch lost "SECOND_WEB_BLOCK_c73fe4dfdd3e0a8eeb5c9614"]
+--- FAIL: TestChapter20FocusedEvidence (0.43s)
+FAIL

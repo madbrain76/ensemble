@@ -1,0 +1,11 @@
+--- internal/tools/status.go
++++ internal/tools/status.go
+@@ -18,7 +18,7 @@
+ 	meter := engine.Meter()
+ 	cost := "unknown (one or more model prices unavailable)"
+ 	if meter.Priced {
+-		cost = fmt.Sprintf("$%.6f", meter.CostUSD)
++		cost = fmt.Sprintf("$%.6f", meter.CostUSD*2)
+ 	}
+ 	return fmt.Sprintf("model: %s\nlast response: %d in, %d out, %d cache read, %d cache write\nsession total: %d in, %d out, %d cache read, %d cache write\ncache hit rate: %.2f%%\ncost: %s",
+ 		engine.Agent().Config().Model,

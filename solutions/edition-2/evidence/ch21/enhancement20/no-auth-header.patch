@@ -1,0 +1,11 @@
+--- internal/mcp/http.go
++++ internal/mcp/http.go
+@@ -73,7 +73,7 @@
+ 	request.Header.Set("Content-Type", "application/json")
+ 	request.Header.Set("Accept", "application/json, text/event-stream")
+ 	if t.token != "" {
+-		request.Header.Set("Authorization", "Bearer "+t.token)
++		request.Header.Del("Authorization")
+ 	}
+ 	t.mu.Lock()
+ 	session, closed := t.session, t.closed

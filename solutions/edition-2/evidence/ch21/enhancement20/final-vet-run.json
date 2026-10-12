@@ -1,0 +1,11 @@
+{
+  "command": [
+    "go",
+    "vet",
+    "./internal/gradeedition2",
+    "./cmd/grade-edition2"
+  ],
+  "exit": 0,
+  "seconds": 0.159,
+  "stderr": ""
+}
