@@ -1,0 +1,54 @@
+{
+  "reviewer": "reviewer_astra",
+  "operation": "Read-only independent raw hash, model/effort and exact result-to-wire checks; no new task or provider run",
+  "raw_hashes_checked": 11,
+  "requests_and_completed": 5,
+  "correlated_results": [
+    {
+      "call_id": "call_vAK2nZYotdzuBg7CdcPsayJs",
+      "exact_output_requests": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "call_id": "call_MsuMvRwaubvyDjaAltELKBtO",
+      "exact_output_requests": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "call_id": "call_N0Zeaj6z96ViygyhxBiYNloj",
+      "exact_output_requests": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "call_id": "call_xaAwpSFjHxIs4K0oxoTtoNXi",
+      "exact_output_requests": [
+        4,
+        5
+      ]
+    },
+    {
+      "call_id": "call_bwpnZjDOWT1XajPqQQZiakmK",
+      "exact_output_requests": [
+        5
+      ]
+    }
+  ],
+  "full_save_log_matches": true,
+  "accepted_tree": "bd2998e68f976dbaf437b642b131d350e086242f",
+  "limits": [
+    "Historical normal exit and task results retain original launcher/reviewer provenance.",
+    "URL and authorization headers were not captured.",
+    "New external-peer example checks are distinct from historical autonomous coding."
+  ]
+}

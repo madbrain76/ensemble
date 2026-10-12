@@ -1,5 +1,71 @@
 # Edition 2 Chapter 19 / original 20 — independent enhancement review
 
+## Final combined disposition: accepted, October 11
+
+Accept author `97a46b57f3e045878ca90a9a875ac8b6835e0b6d` and coder
+`dd361830` at initial review, **zero formal correction rounds**. Final manuscript
+SHA-256 is `cc0d8f226275b6240a490d399b7f40b4cdb0c98c069712e24852ff6dbd9443b2`;
+author-note SHA is `8d85d4045fbcf0a725aa9ae5fbb2732b35a1c3a62992a6dd78914506d385e3df`.
+Read the complete final author and technical reports, whole original and enhanced
+chapters, and final corrections. All four complete documents remain active after
+the reload recorded below; no subsequent compaction. Mandatory skill:
+`.agents/skills/ensemble-coding/SKILL.md`.
+
+The short two-agent opener, four-category TL;DR, six original sections and
+specific debugging stories survive. Changes correct unsupported absolutes and
+add a concrete second-edition coding result rather than a new design. The added
+CSV section gives the reader a task, failure, actual edit and independently
+checkable outcome. Whitespace counts are original 4,869 and final 5,969 words;
+the new final section accounts for 822. Growth has a teaching purpose, not a
+quota. Hard prose lint passes at 5,673 prose words. Its soft person-gap warning
+does not describe the reading experience: the operator's lost text, misleading
+controls, budget and supervision remain the stakes throughout. Local links work.
+
+Pre-submission findings are resolved. Credential selection and inferred metered
+fallback no longer masquerade as an observed invoice. The conclusion acknowledges
+that the original cache chapter already taught instrumentation. Cache-size
+observations remain dated and nonuniversal; refresh and client comparisons are
+diagnostic leads, and interrupt retains its established lifetime. Historical
+`view_gui`, narration enforcement and repair names are clearly historical.
+No Codex-route or future fleet feature becomes a Chapter 19 requirement. The
+current Astra example respects Bill's model selection. Independently searched
+and opened official [model documentation](https://developers.openai.com/api/docs/models/gpt-6-astra)
+and [reasoning guidance](https://developers.openai.com/api/docs/guides/reasoning)
+support high effort and Responses for Astra function calls.
+
+The [independent raw check](../../solutions/edition-2/evidence/ch20/enhancement19/reviewer-historical-check.json)
+reverifies all 11 retained artifact hashes, five actual Astra/high request and
+completed-response pairs, and every correlated tool-result body in subsequent
+wire requests. The complete save log matches. Existing before/after task reruns
+and two transport/effort mutation failures retain their original provenance.
+The 27.46-second live coding result is separate from the new scripted-peer example.
+
+Read the entire example launcher and temporary Go overlay, corrected peer diff
+and actual outputs. They exercise the frozen CLI, parser, tools and subprocesses;
+the external peer supplies recorded decisions. The final 1.003-second local
+sample has five main requests plus one valid empty recall-judge response, actual
+file reads/edit/test results, final completion before EOF, normal exit and a save.
+Its independent postcheck prints six named passes and `OK`; `cmp` establishes
+unchanged test bytes. Neither scripted final narration nor the shell's last
+exit status alone establishes the test outcome.
+
+The initial judge/main routing failure and intermediate missing-usage fallback
+are preserved. Review caught the latter despite a passing main task. The minimal
+external-response correction resolves it without changing runtime or prose.
+All five final manuscript fences match the actual executed `1058dc2c` version;
+later prose corrections do not relabel that run. Independently verified final
+coder hashes and exact unchanged 144-file source tree `bd2998e68f976dbaf437b642b131d350e086242f`.
+
+There is **no Chapter 19 grader or numeric score**. No production, exported API,
+original source or frozen implementation changed; support is a chapter-specific
+read-only reconciliation and example launcher, not a new framework. The original
+comparative counts and WHY-comment assessment below remain applicable. No new
+mutation count, paid call or broad freshness suite is claimed. Zero cache grants,
+absent public summaries, derived endpoint provenance and limited task scope stay
+explicit. This establishes bounded coding readiness, not general reliability or
+Edition 3 authorship. Chapter 25 remains reserved. No finding remains open;
+coordinator may checkpoint Chapter 19 and release combined Chapter 20.
+
 ## Preparation, October 11
 
 Reviewer: `reviewer_astra`, GPT-6 Astra/high. Prose-only scope; initial combined
