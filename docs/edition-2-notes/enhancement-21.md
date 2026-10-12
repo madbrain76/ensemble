@@ -104,3 +104,29 @@ repeat is requested. Latest direct hard prose lint passes (5,459 prose words
 before the one-word historical correction); soft negation/person-gap warnings
 were read and do not justify padding or arbitrary cuts. Independent whole-chapter
 review has been requested; no acceptance or later chapter is claimed.
+
+## Pre-submission prose review and exact-example stage
+
+Root/reviewer identified that merely separating numeric coverage did not prevent
+TL;DR/exercise from imposing a fifth safe-mode tool requirement. Corrected both:
+original four are required; accepted tool_limits removal remains an additional
+implementation behavior. Reviewer also found a stale §21.8 pointer after the
+speed-bump paragraph; removed it. No exercise feature or runnable fence changed.
+
+Current prose SHA is
+`687a63e5b10404863359a4d5151323610680484772044ddb3af4f5de1917ba79`.
+Hard lint passes5,457 prose words; raw count6,544. Soft warnings remain examined.
+Exact samples receipt binds earlier prose
+`20c231d92254d650f4adca70c01d89b2164c73b3112a7bf692480e5971141b5d`;
+author directly compared every one of12 fence hashes with current prose and all
+are identical. Keep this distinction, rather than relabeling the run's manuscript.
+
+Author read samples.json/run and decoded actual request-result blocks: useful
+Python returns PYTHON_OK/exit0 and Git returns sandbox-example/exit0; descendant
+read and outside write each return Operation not permitted/exit1. The environment
+probe returns TOKEN_ABSENT. Both chat processes completed before EOF and exit0.
+These use external scripted provider/issuer peers, not fresh autonomous Astra
+or account-eligibility evidence. Initial validator failures and final Go-excerpt
+coverage await the coder's frozen report; no final grader submission is claimed
+at this stage. All four documents remain fully active after the reload recorded
+above, with no further compaction. Mandatory `.agents/skills/ensemble-coding/SKILL.md`.

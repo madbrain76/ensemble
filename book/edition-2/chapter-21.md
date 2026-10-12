@@ -68,9 +68,10 @@ Credentials belong to the transport, outside the conversation.
    clears parent-specific log/save paths. `Clamp(parent)` returns a
    narrowed specification even when it also reports a widening
    attempt. The wall and the alarm are separate things.
-6. Safe mode removes `run_command`, `send_input`, `wait_for_job`,
-   `kill_job` and `tool_limits` from declarations and dispatch while
-   leaving ordinary file tools usable. Disabling web search withholds
+6. Safe mode removes `run_command`, `send_input`, `wait_for_job` and
+   `kill_job` from declarations and dispatch while leaving ordinary
+   file tools usable. The accepted implementation also removes
+   `tool_limits`. Disabling web search withholds
    the existing `web-search` skill. It is not a general network
    policy for arbitrary additional tools or MCP servers.
 
@@ -199,7 +200,7 @@ workspace and stripping credentials from the environment. That is a
 speed bump, not a wall. The model can still run
 `cat /etc/hosts`, and a speed bump that feels like a wall is worse
 than no speed bump, because it buys confidence without buying
-protection. Section 21.8 has a name for that.
+protection.
 
 Two kinds of operation cross the trust boundary, so two mechanisms
 enforce it:
@@ -814,8 +815,8 @@ Start a second Agent with its own narrower root:
 Write safe.txt containing "safe mode file works\n" and read it back. Try reading ../notes.txt. Check whether run_command is available; do not substitute another tool to execute a command. Report the file result, refusal and available execution tools.
 ```
 
-The file should work. The parent file should not. All five execution
-and job-supervision tools should be absent. A model saying that a tool
+The file should work. The parent file should not. The four required
+execution and job-supervision tools should be absent. A model saying that a tool
 is unavailable is useful feedback, but declarations and a refused
 guessed dispatch establish the actual boundary.
 
