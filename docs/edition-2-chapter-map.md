@@ -2,17 +2,19 @@
 
 ## Edition 1 endpoint and new Edition 2 material, October 11
 
-Bill freezes Edition 1 at Chapter 27. The three existing chapter merges remain,
-so original Chapter 27 (Gateway) maps to Edition 2 Chapter 24. Its Edition 2
-implementation and enhancement are not yet complete; the accepted export table
-below still ends at Chapter 23. Do not create an accepted export by renumbering
-unfinished work.
+Bill freezes Edition 1 at Chapter 27. On October 11 he placed the new optional
+Codex-endpoint workaround next, as **Edition 2 Chapter 24**, immediately after
+the accepted fleet chapter. The coordinator's earlier reservation of 24 for
+Gateway and 25 for this workaround was superseded. Original 27 (Gateway) has
+not been implemented in Edition 2; its placement is deferred, not silently
+claimed complete or folded into this chapter.
 
-The first wholly new Edition 2 chapter follows as Chapter 25: the temporary
-Codex-endpoint workaround for the public OAuth caching problem. Subsequent new
-chapters are Edition 2 only, with no corresponding first-edition Chapter 28.
-Bill's current instruction is to verify the public endpoint again before using
-the result in the cold open. Preserve Edition 1 and its solution unchanged.
+The new chapter is short if that serves the material, optional, and ungraded.
+Readers whose public OAuth route caches satisfactorily may skip it. Bill assigns
+the coordinator authorship, implementation and self-review for this chapter;
+the ordinary book team stays paused after Chapter 16. Code is developed in
+`solutions/edition-2/main/` and exported as `solutions/edition-2/ch24/` after
+validation. Subsequent new chapters are Edition 2 only. Preserve Edition 1.
 
 Bill authorized the coordinator on October 11, 2026 to choose both remaining
 merges and proceed autonomously. Exactly three first-edition standalone chapters
@@ -29,8 +31,8 @@ are absorbed: 5, 22 and 24. This supersedes the earlier placement stops.
 | 26 | 23 | `solutions/edition-2/ch23` | Fleet management and GUI; accepted |
 
 With first-edition Chapters 1–26 complete, Edition 2 has Chapters 1–23. Chapter
-0 remains introductory in both. Future chapters, if separately authorized,
-retain the three-chapter offset. Do not create standalone Edition 2 refactor
+0 remains introductory in both. The optional new Chapter 24 has no first-edition counterpart; future placements
+follow their actual assignments rather than an automatic offset. Do not create standalone Edition 2 refactor
 chapters.
 
 ## Why these merges

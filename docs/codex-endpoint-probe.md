@@ -49,8 +49,10 @@ uncached tokens: about 8.06 times the input cost. Output, earlier warmup request
 plan accounting and actual billing are separate. This is illustrative arithmetic,
 not a measured subscription invoice or tenfold total-bill claim.
 
-Bill reports filing a bug with OpenAI; no issue identifier or provider diagnosis
-was supplied. The cold open may describe his report, our failure to observe cache
+Bill subsequently supplied his LinkedIn post and support case **16440622**.
+He reports a separate API-key15/15 versus public-OAuth5/15 cache-hit comparison.
+Those reported observations are distinct from the paired route probe above;
+no provider root-cause diagnosis was supplied. The cold open may describe his report, our failure to observe cache
 reuse on the official OAuth route, the successful Codex control, and why paying
 the ordinary rate for reusable context would make sustained work much more
 expensive. Preserve the date, model and route so a later fix can retire the

@@ -13,6 +13,8 @@ const (
 	CredentialAPIKey CredentialKind = "api"
 	// CredentialChatGPT selects the registered subscription session.
 	CredentialChatGPT CredentialKind = "chatgpt"
+	// CredentialCodex explicitly selects an existing Codex sign-in and endpoint.
+	CredentialCodex CredentialKind = "codex"
 )
 
 // CredentialProvider keeps credential renewal out of rendering and conversation.
@@ -21,6 +23,16 @@ type CredentialProvider interface {
 	GetBearerToken(context.Context) (string, error)
 	// Kind identifies the billing source without returning secret material.
 	Kind() CredentialKind
+}
+
+// CodexCredentials reads an access token and account from the same file version.
+// The external Codex application owns renewal; consumers never write its store.
+type CodexCredentials interface {
+	CredentialProvider
+	// Ensemble is the actual owner of this credential reader.
+	Ensemble() Ensemble
+	// Read returns a request-local bearer/account pair, or a secret-free error.
+	Read(context.Context) (bearer, account string, err error)
 }
 
 // AuthOptions identifies this application's private store and trusted issuer.

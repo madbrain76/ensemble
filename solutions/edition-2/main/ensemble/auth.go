@@ -25,6 +25,8 @@ const (
 	CredentialAPIKey = common.CredentialAPIKey
 	// CredentialChatGPT explicitly selects the saved subscription session.
 	CredentialChatGPT = common.CredentialChatGPT
+	// CredentialCodex selects the Codex endpoint with its existing sign-in.
+	CredentialCodex = common.CredentialCodex
 )
 
 // ConfigureAuth installs the Ensemble-owned service before any Agent is created.

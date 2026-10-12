@@ -4,6 +4,7 @@ import (
 	"ensemble/internal/common"
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -36,6 +37,21 @@ func ConfigFromEnv() (Config, error) {
 	}
 	cfg.BaseURL, cfg.APIKey, cfg.Model = env("BASE_URL"), env("API_KEY"), env("MODEL")
 	cfg.BillingMode = common.CredentialKind(os.Getenv("OPENAI_BILLING_MODE"))
+	// External credentials are consulted only after explicit route selection.
+	if cfg.BillingMode == common.CredentialCodex {
+		cfg.CodexAuthFile = os.Getenv("EN_CODEX_AUTH_FILE")
+		if cfg.CodexAuthFile == "" {
+			directory := os.Getenv("CODEX_HOME")
+			if directory == "" {
+				home, err := os.UserHomeDir()
+				if err != nil {
+					return cfg, err
+				}
+				directory = filepath.Join(home, ".codex")
+			}
+			cfg.CodexAuthFile = filepath.Join(directory, "auth.json")
+		}
+	}
 	cfg.ReasoningEffort = os.Getenv("OPENAI_REASONING_EFFORT")
 	cfg.ReasoningSummary = os.Getenv("OPENAI_REASONING_SUMMARY")
 	cfg.ResolvedModel = os.Getenv("LLM_RESOLVED_MODEL")

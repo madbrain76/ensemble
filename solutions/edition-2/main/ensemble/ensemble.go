@@ -182,6 +182,9 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 			cfg.BaseURL = "https://api.anthropic.com"
 		case OpenAI:
 			cfg.BaseURL = "https://api.openai.com"
+			if cfg.BillingMode == common.CredentialCodex {
+				cfg.BaseURL = "https://chatgpt.com/backend-api/codex"
+			}
 		case Gemini:
 			cfg.BaseURL = "https://generativelanguage.googleapis.com"
 		default:
@@ -226,8 +229,14 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 				return nil, errors.New("selected model has no supported ChatGPT Responses route")
 			}
 			cfg.Credentials = e.auth
+		case common.CredentialCodex:
+			features, _ := engine.LookupModel(cfg.Model)
+			if cfg.Vendor != common.OpenAI || !features.Responses || cfg.CodexAuthFile == "" {
+				return nil, errors.New("Codex requires OpenAI, a supported Responses model and a Codex auth file")
+			}
+			cfg.Credentials = auth.NewCodex(e, cfg.CodexAuthFile)
 		default:
-			return nil, errors.New("billing mode must be api or chatgpt; automatic metered fallback is not implemented")
+			return nil, errors.New("billing mode must be api, chatgpt or codex; automatic metered fallback is not implemented")
 		}
 	}
 	e.apiMu.Lock()

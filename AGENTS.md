@@ -1,5 +1,23 @@
 # Ensemble student restart
 
+## October 11: optional Chapter 24, coordinator authors and codes
+
+Bill assigns the coordinator all three roles for this specific chapter:
+author, coder and reviewer. Write the TL;DR and plain-language explanation first,
+then implement and self-review. This explicitly replaces separate-role review
+for this chapter only; do not describe it as independent or a cold student run.
+Read the four full governing/craft documents and mandatory coding skill; reload
+after compaction. The ordinary Chapter 16 book queue remains paused.
+
+The Codex workaround is Edition 2 **Chapter 24**, developed in
+`solutions/edition-2/main/` and exported to `solutions/edition-2/ch24/` after
+validation. The earlier tentative Gateway24/workaround25 mapping is superseded;
+Gateway is still unimplemented in Edition 2 and its placement is deferred.
+Bill permits a short chapter, with no length target, and an optional ungraded
+exercise: readers should skip the workaround if their public OAuth caching works.
+Preserve Edition 1 and all existing frozen exports. See the chapter map and
+`docs/edition-2-notes/codex-endpoint-chapter.md` (repository-root path).
+
 ## October 11: Edition 1 ends at Chapter 27; new OAuth work is Edition 2 only
 
 Bill is freezing Edition 1 at Chapter 27. Do not edit its solution, manuscript,

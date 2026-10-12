@@ -179,8 +179,9 @@ always streams internally because terminal completion establishes success.
 Public summaries are distinct from assistant text and private reasoning bytes.
 
 Credentials live in the platform's user configuration directory under `ensemble`,
-or the explicit `EN_HOME` directory. The application never borrows Codex or
-CodeRhapsody profiles. Atomic owner-only files and a cross-process lock protect
+or the explicit `EN_HOME` directory. The public OAuth flow never borrows Codex or
+CodeRhapsody profiles. The optional Chapter 24 route below explicitly selects
+a read-only Codex credential file instead. Atomic owner-only files and a cross-process lock protect
 rotating refresh tokens. `auth login --print-url` exposes a browser handoff for
 headless use; optional identity-token hints are omitted so it cannot print a
 retained token. `EN_BROWSER_CMD` selects a browser executable and arguments;
@@ -300,3 +301,38 @@ streamed partials are a GUI display concern.
 Build the optional browser app in `gui` with `go build -o /tmp/ensemble-gui ./cmd`.
 Run the browser regression with `GUI_BINARY=/tmp/ensemble-gui node fleet.test.mjs`
 from that module. It uses a local provider fake and real Chrome, not paid inference.
+
+## Optional Chapter 24: Codex endpoint
+
+Use this temporary route only if the public OAuth caching problem affects your
+work. It has no separate chapter grader. Sign in with Codex, then launch either
+the CLI or GUI with:
+
+```sh
+export LLM_VENDOR=openai
+export LLM_MODEL=gpt-6-astra
+export OPENAI_REASONING_EFFORT=high
+export OPENAI_BILLING_MODE=codex
+unset LLM_BASE_URL OPENAI_BASE_URL
+./ensemble-cli chat
+```
+
+The selected file is `EN_CODEX_AUTH_FILE`, else `CODEX_HOME/auth.json`, else
+`~/.codex/auth.json`. File-backed ChatGPT sign-in must provide
+`tokens.access_token` and `tokens.account_id`; keychain-only or API-key Codex
+sign-ins are not read by this adapter. Embedders set `Config.BillingMode` to
+`CredentialCodex` and explicitly supply `Config.CodexAuthFile`.
+
+The reader obtains both fields together on each request. Codex owns login and
+renewal; Ensemble does not change that credential file. On rejection, renew the
+sign-in in Codex and retry. No API-key fallback or authentication retry occurs.
+The route is `https://chatgpt.com/backend-api/codex/responses`; redirects and
+stale public endpoint overrides are rejected. Loopback endpoints support tests.
+The existing Responses tool/summary/replay pipeline and measured usage remain
+in use, with automatic caching and a stable Agent/model cache key, also sent as
+the Codex `session-id` cache-affinity header.
+
+To return to Ensemble's public OAuth registration, set
+`OPENAI_BILLING_MODE=chatgpt` and leave the base URL unset. `auth login`, `status`,
+`models` and `logout` continue to manage Ensemble's own public OAuth profile;
+they do not manage Codex's sign-in. Select `api` only for intentional metered use.

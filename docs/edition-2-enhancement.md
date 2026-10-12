@@ -1,5 +1,16 @@
 # Edition 2: chapter enhancement
 
+## Optional Chapter 24 outside the paused queue
+
+Bill assigns root authorship, implementation and self-review of the new Codex
+workaround as Edition2 Chapter24. This is optional and ungraded, with no length
+target. TL;DR and plain-language sections precede the code. The ordinary team
+remains paused at Chapter16; this assignment does not resume that queue.
+Application source is main; the reader snapshot is ch24 after validation.
+Gateway's previously tentative ch24 placement is deferred. See
+[the chapter record](edition-2-notes/codex-endpoint-chapter.md) for actual checks,
+initial cache misses, corrected live cache hits and the self-review limitation.
+
 ## New Edition 2 chapter authorized, October 11
 
 Bill freezes Edition 1 at Chapter 27. All subsequent new chapters will be

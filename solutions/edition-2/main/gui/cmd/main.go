@@ -111,7 +111,7 @@ func run() (runErr error) {
 	if err != nil {
 		return err
 	}
-	if a.Config().BillingMode != ensemble.CredentialChatGPT && cfg.APIKey == "" {
+	if a.Config().Credentials.Kind() == ensemble.CredentialAPIKey && cfg.APIKey == "" {
 		return fmt.Errorf("provider API key is not set")
 	}
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,

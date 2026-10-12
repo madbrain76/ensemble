@@ -22,8 +22,10 @@ type Config struct {
 	ReasoningEffort, ReasoningSummary string
 	// Credentials supplies transport-only authentication; it is never serialized.
 	Credentials CredentialProvider `json:"-"`
-	// BillingMode selects api or chatgpt; blank follows explicit saved login choice.
+	// BillingMode selects api, chatgpt or codex; blank follows saved login choice.
 	BillingMode CredentialKind
+	// CodexAuthFile explicitly selects the external, read-only Codex credential file.
+	CodexAuthFile string `json:"-"`
 	// Audio retains the earlier client input flag; explicit ModelFeatures now govern
 	// media rendering.
 	Audio bool

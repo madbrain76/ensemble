@@ -99,6 +99,12 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 		tools = append(tools, map[string]any{"type": "function", "name": d.Name, "description": d.Description, "parameters": d.Schema, "strict": false})
 	}
 	caps := capabilitiesFor(cfg)
+	if cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialCodex {
+		// Codex requires the instruction field. Keep the same instruction-bearing
+		// input as public Responses so ordinary conversation replay is unchanged.
+		request["instructions"] = e.SystemPrompt()
+		request["prompt_cache_key"] = codexCacheKey(cfg)
+	}
 	if len(tools) > 0 {
 		request["tools"] = tools
 		if caps.namespace != "" {

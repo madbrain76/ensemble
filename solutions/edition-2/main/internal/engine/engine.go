@@ -137,9 +137,31 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		}
 	}()
 	secrets := []string{cfg.APIKey}
+	features, _ := LookupModel(cfg.Model)
+	isCodex := cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialCodex
+	account := ""
+	if isCodex {
+		// Check the route before obtaining credentials, including auxiliary calls
+		// and models selected after construction. Redirects are disabled below.
+		if cfg.Vendor != common.OpenAI || !features.Responses {
+			return nil, errors.New("Codex requires a supported OpenAI Responses model")
+		}
+		if !validCodexEndpoint(cfg.BaseURL) {
+			return nil, errors.New("Codex endpoint must be https://chatgpt.com/backend-api/codex (or a loopback test server)")
+		}
+		provider, ok := cfg.Credentials.(common.CodexCredentials)
+		if !ok {
+			return nil, errors.New("Codex credentials require a paired account reader")
+		}
+		cfg.APIKey, account, err = provider.Read(ctx)
+		if err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, account)
+	}
 	// Resolve a request-local bearer. Rendered bytes and saved configuration never
 	// receive rotating OAuth tokens, including auxiliary judge/compressor calls.
-	if cfg.Credentials != nil {
+	if cfg.Credentials != nil && !isCodex {
 		cfg.APIKey, err = cfg.Credentials.GetBearerToken(ctx)
 		if err != nil {
 			return nil, err
@@ -154,7 +176,6 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		}
 		return data
 	}
-	features, _ := LookupModel(cfg.Model)
 	if cfg.Vendor == common.OpenAI && features.Responses {
 		e.billingOnce.Do(func() {
 			kind := common.CredentialAPIKey
@@ -175,6 +196,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		features, _ := LookupModel(cfg.Model)
 		if features.Responses {
 			path = "/v1/responses"
+			if isCodex {
+				path = "/responses"
+			}
 		}
 	case common.Gemini:
 		path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":generateContent"
@@ -198,6 +222,12 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		}
 	case common.OpenAI:
 		req.Header.Set("authorization", "Bearer "+cfg.APIKey)
+		if isCodex {
+			req.Header.Set("ChatGPT-Account-ID", account)
+			req.Header.Set("session-id", codexCacheKey(cfg))
+			req.Header.Set("Accept", "text/event-stream")
+			req.Header.Set("User-Agent", "ensemble/edition-2")
+		}
 	case common.Gemini:
 		req.Header.Set("x-goog-api-key", cfg.APIKey)
 	}
@@ -205,7 +235,15 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	// This worker returns response facts without borrowing the live projection.
 	safeBody := redact(body)
 	e.parent.Ensemble().APILog("request", safeBody)
-	resp, err := e.client.Do(req)
+	client := e.client
+	if isCodex {
+		// A redirected account header could identify the user even if net/http
+		// stripped Authorization. Treat every redirect as a failed exchange.
+		copy := *client
+		copy.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+		client = &copy
+	}
+	resp, err := client.Do(req)
 	// Retry authentication once using the same billing source. A 401 alone does
 	// not delete credentials; only the token endpoint can reject their renewal.
 	if err == nil && resp.StatusCode == http.StatusUnauthorized && cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialChatGPT {
@@ -241,6 +279,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	// Close even rejected responses. HTTP status is enough for a safe diagnostic;
 	// provider error text is not trusted to avoid echoing supplied secrets.
 	defer resp.Body.Close()
+	if isCodex && resp.StatusCode == http.StatusUnauthorized {
+		return events, errors.New("Codex sign-in was rejected; renew it in Codex and retry (no API-key fallback)")
+	}
 	if resp.StatusCode != http.StatusOK {
 		data, _ := io.ReadAll(io.LimitReader(resp.Body, 65536))
 		return events, providerError(resp.StatusCode, data)

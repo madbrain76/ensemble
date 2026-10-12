@@ -183,7 +183,7 @@ func run() (runErr error) {
 		_, err = fmt.Fprintln(os.Stdout, string(body))
 		return err
 	}
-	if a.Config().BillingMode != ensemble.CredentialChatGPT && cfg.APIKey == "" && mode != "--mcp-pipe" {
+	if a.Config().Credentials.Kind() == ensemble.CredentialAPIKey && cfg.APIKey == "" && mode != "--mcp-pipe" {
 		return errors.New("provider API key is not set")
 	}
 	// Register saving only after a successful load. Joining first preserves final
