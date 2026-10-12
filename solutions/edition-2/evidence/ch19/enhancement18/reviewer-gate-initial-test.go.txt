@@ -1,0 +1,53 @@
+package gradeedition2
+import (
+ "bufio"
+ "io"
+ "net/http"
+ "net/http/httptest"
+ "strings"
+ "testing"
+ "time"
+)
+// TestReviewerSummaryGate checks the forwarding boundary itself: the provider's
+// remaining frames cannot arrive until actual summary observations release it.
+func TestReviewerSummaryGate(t *testing.T) {
+ target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "text/event-stream")
+  io.WriteString(w, "event: response.reasoning_summary_text.delta\ndata: {\"type\":\"response.reasoning_summary_text.delta\",\"delta\":\"Reading \"}\n\nevent: response.completed\ndata: {\"type\":\"response.completed\",\"response\":{}}\n\n")
+ }))
+ defer target.Close()
+ gate := &subscriptionGate{release: make(chan struct{})}
+ proxy := gate.proxy(target.URL, true)
+ defer proxy.Close()
+ resp, err := http.Post(proxy.URL, "application/json", strings.NewReader(`{"model":"course-control"}`))
+ if err != nil { t.Fatal(err) }
+ defer resp.Body.Close()
+ first, complete := make(chan struct{}), make(chan string,1)
+ go func() {
+  scan := bufio.NewScanner(resp.Body)
+  initial := true
+  var rest strings.Builder
+  for scan.Scan() {
+   line := scan.Text()
+   if initial {
+    if line == "" { initial=false; close(first) }
+   } else { rest.WriteString(line+"\n") }
+  }
+  complete <- rest.String()
+ }()
+ select { case <-first: case <-time.After(time.Second): t.Fatal("first frame absent") }
+ gate.observe(map[string]any{"type":"part_delta", "kind":"text", "chunk":"Reading "})
+ select { case <-complete: t.Fatal("provider completed before summary delivery") ; case <-time.After(80*time.Millisecond): }
+ gate.mu.Lock(); opened := gate.opened; gate.mu.Unlock()
+ if opened { t.Fatal("ordinary answer text released summary gate") }
+ gate.observe(map[string]any{"type":"part_delta", "kind":"reasoning_summary", "chunk":"Read"})
+ select { case <-complete: t.Fatal("partial prefix released gate") ; case <-time.After(40*time.Millisecond): }
+ gate.observe(map[string]any{"type":"part_delta", "kind":"reasoning_summary", "chunk":"ing "})
+ select {
+ case rest := <-complete:
+  if !strings.Contains(rest, `"model":"course-control"`) { t.Fatalf("missing terminal model repair: %s", rest) }
+ case <-time.After(time.Second): t.Fatal("valid split summary did not release held completion")
+ }
+ gate.mu.Lock(); opened = gate.opened; gate.mu.Unlock()
+ if !opened { t.Fatal("release was not recorded") }
+}

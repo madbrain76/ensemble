@@ -1,0 +1,6 @@
+=== RUN   TestReviewerSummaryGate
+    reviewer_ch18_gate_test.go:41: provider completed before summary delivery
+--- FAIL: TestReviewerSummaryGate (0.00s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.011s
+FAIL

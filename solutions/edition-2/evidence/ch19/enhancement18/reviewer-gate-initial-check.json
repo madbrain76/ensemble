@@ -1,0 +1,65 @@
+{
+  "source_commit": "d1de19eef0b38a3d6ae8e7cb0534fa6c770bea16",
+  "driver_sha256": "f538db7e81efdf61e3b39c03d404f4e55342bbe9dd58492a6c567cc88a9d106b",
+  "test_sha256": "0ec45eae9d90459534bf7708293a78a71973750322a4e1801d24eac2d05d3b44",
+  "mutation": "Disable provider hold while preserving the forwarding stream.",
+  "cases": [
+    {
+      "case": "baseline",
+      "exit": 1,
+      "seconds": 1.252,
+      "output": "=== RUN   TestReviewerSummaryGate\n    reviewer_ch18_gate_test.go:48: missing terminal model repair: \n--- FAIL: TestReviewerSummaryGate (0.12s)\nFAIL\nFAIL\tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t0.135s\nFAIL\n",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=15s",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-reviewer-gate-u_cw9iv9/baseline.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerSummaryGate$",
+        "-v"
+      ]
+    },
+    {
+      "case": "missing-hold",
+      "exit": 1,
+      "seconds": 0.839,
+      "output": "=== RUN   TestReviewerSummaryGate\n    reviewer_ch18_gate_test.go:40: provider completed before summary delivery\n--- FAIL: TestReviewerSummaryGate (0.00s)\nFAIL\nFAIL\tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t0.012s\nFAIL\n",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=15s",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-reviewer-gate-u_cw9iv9/missing-hold.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerSummaryGate$",
+        "-v"
+      ]
+    },
+    {
+      "case": "restored",
+      "exit": 1,
+      "seconds": 0.393,
+      "output": "=== RUN   TestReviewerSummaryGate\n    reviewer_ch18_gate_test.go:48: missing terminal model repair: \n--- FAIL: TestReviewerSummaryGate (0.12s)\nFAIL\nFAIL\tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t0.135s\nFAIL\n",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=15s",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-reviewer-gate-u_cw9iv9/restored.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerSummaryGate$",
+        "-v"
+      ]
+    }
+  ]
+}

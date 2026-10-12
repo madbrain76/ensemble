@@ -1,0 +1,6 @@
+=== RUN   TestReviewerSummaryGate
+    reviewer_ch18_gate_test.go:48: missing terminal model repair: 
+--- FAIL: TestReviewerSummaryGate (0.12s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.135s
+FAIL

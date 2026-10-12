@@ -109,3 +109,44 @@ following response is plain text. Its numeric evidence is tool-call-adjacent
 summary delivery, not reasoning conditioned on the completed file result. This
 limitation was sent to the coder and author. No formal correction round is used
 by these pre-submission checks.
+
+## First-green source and prose review
+
+After compaction, repeated the complete four-document and 373-line skill reads
+before this review. Read all of coder stage `d1de19ee`, including its report,
+checks, launcher, adapter and test, and the complete historical Chapter 19 coder
+review. Read the whole enhanced chapter and original-relative diff. Author
+`a2980979`, manuscript SHA `e057e264f91a20d4c8da1d2852f64e244283afcc3e455e8e4f67113e50d6a730`,
+resolves two independent precision findings: validate the exact trusted issuer
+URL, and describe the actual transient HTTP failure without inventing an
+unreachable-server observation. No current prose blocker remains.
+
+The original six-delta overview, fifteen rules, migration stakes, renewable
+credentials, waiting seams and listening payoff remain. Added runnable setup
+and the actual parser/task/lifetime lessons earn their space; they do not
+introduce Chapter 24 machinery or a different runtime design. Necessary source
+corrections replace unsupported generalizations while preserving the argument.
+The current 5,553-word hard-lint pass is supporting evidence, not the editorial
+reason for acceptance. Final samples and combined disposition remain pending.
+
+The callback EOF is a genuine browser acknowledgment limitation: accepted
+`internal/auth/oauth.go:112` sends the code before writing the browser response;
+line 140 closes the server while that response may still be in flight. Actual
+command completion and token exchange can establish authentication despite that
+EOF. Original Chapter 19 requires the loopback exchange and terminal sign-in
+result, not a confirmation page, so the revised authentication predicate is
+justified without a frozen-runtime repair. Preserve the usability limitation
+separately rather than calling the entire observation a harness error.
+
+The new adapter's lock/unlock publishes the original peer's completed server
+assignment before exposing its URL; existing handlers acquire that mutex before
+reading the server. It is a bounded synchronization repair, not a second fake.
+Independent `reviewer-gate-check.json` binds the exact driver and an isolated
+proxy-boundary probe: split summary delivery releases held provider completion;
+answer text and an incomplete prefix cannot. Baseline/restored race checks pass
+in 1.143/1.144 seconds; deleting the hold fails the intended early-completion
+assertion. The initial probe incorrectly supplied a nonstreaming, fixed-length
+upstream response. Model insertion exceeded its copied Content-Length; those
+failed receipts remain `reviewer-gate-initial-*`. The corrected probe uses the
+actual peer's flushing SSE boundary. No general HTTP-rewriting proxy, submitted
+runtime, browser, provider or human-listening claim follows from this probe.

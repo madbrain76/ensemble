@@ -1,0 +1,65 @@
+{
+  "source_commit": "d1de19eef0b38a3d6ae8e7cb0534fa6c770bea16",
+  "driver_sha256": "f538db7e81efdf61e3b39c03d404f4e55342bbe9dd58492a6c567cc88a9d106b",
+  "test_sha256": "bcf1f954b9a2f531d474e788264ed36a2d698465cd30361901d872589f675928",
+  "mutation": "Disable provider hold while preserving the forwarding stream.",
+  "cases": [
+    {
+      "case": "baseline",
+      "exit": 0,
+      "seconds": 1.975,
+      "output": "=== RUN   TestReviewerSummaryGate\n--- PASS: TestReviewerSummaryGate (0.12s)\nPASS\nok  \tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t1.143s\n",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=15s",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-reviewer-gate-slaumc2s/baseline.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerSummaryGate$",
+        "-v"
+      ]
+    },
+    {
+      "case": "missing-hold",
+      "exit": 1,
+      "seconds": 0.821,
+      "output": "=== RUN   TestReviewerSummaryGate\n    reviewer_ch18_gate_test.go:41: provider completed before summary delivery\n--- FAIL: TestReviewerSummaryGate (0.00s)\nFAIL\nFAIL\tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t0.011s\nFAIL\n",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=15s",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-reviewer-gate-slaumc2s/missing-hold.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerSummaryGate$",
+        "-v"
+      ]
+    },
+    {
+      "case": "restored",
+      "exit": 0,
+      "seconds": 1.431,
+      "output": "=== RUN   TestReviewerSummaryGate\n--- PASS: TestReviewerSummaryGate (0.12s)\nPASS\nok  \tgithub.com/waywardgeek/ensemble/internal/gradeedition2\t1.144s\n",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=15s",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch18-reviewer-gate-slaumc2s/restored.json",
+        "./internal/gradeedition2",
+        "-run",
+        "^TestReviewerSummaryGate$",
+        "-v"
+      ]
+    }
+  ]
+}
