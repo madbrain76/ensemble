@@ -1,0 +1,6 @@
+{
+  "exit": 0,
+  "stdout": "",
+  "stderr": "",
+  "purpose": "Additional direct compile assertion binds published Handler methods to actual public NopHandler; three-process sample is unchanged and not rerun."
+}

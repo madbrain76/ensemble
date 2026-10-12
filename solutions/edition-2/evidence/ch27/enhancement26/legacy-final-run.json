@@ -1,0 +1,15 @@
+{
+  "command": [
+    "go",
+    "run",
+    "./cmd/grade-edition2",
+    "-ch",
+    "26",
+    "-json",
+    "-gateway-welcome",
+    "QueuedCount",
+    "solutions/ch27"
+  ],
+  "exit": 0,
+  "seconds": 0.916
+}

@@ -1,0 +1,18 @@
+--- gateway/client.go
++++ gateway/client.go
+@@ -226,7 +226,6 @@
+ 				c.owner.OnError(errors.New("delivery missing envelope"))
+ 				return
+ 			}
+-			c.owner.OnDeliver(*frame.Envelope)
+ 			// Handler acceptance precedes the receipt. If the write fails, reconnecting
+ 			// without the newly returned receipt safely delivers the message again.
+ 			if err = c.write(context.Background(), Frame{Type: "ack", Seq: frame.Envelope.Seq}); err != nil {
+@@ -234,6 +233,7 @@
+ 				return
+ 			}
+ 			c.ack.Store(frame.Envelope.Seq)
++			c.owner.OnDeliver(*frame.Envelope)
+ 		case "mcp_response":
+ 			// Late replies belong to their original caller. Never hand an expired
+ 			// request's result to whichever operation happens to be waiting now.

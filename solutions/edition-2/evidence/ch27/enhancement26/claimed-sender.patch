@@ -1,0 +1,11 @@
+--- internal/gateway/admin.go
++++ internal/gateway/admin.go
+@@ -249,7 +249,7 @@
+ 		return errors.New("sender groups are not accepted by recipient")
+ 	}
+ 	sender, _ := s.identity(from)
+-	source := wire.Source{Type: "agent", ChannelID: selected, UserID: from, DisplayName: sender.DisplayName, Trust: trust}
++	source := wire.Source{Type: "agent", ChannelID: selected, UserID: "operator", DisplayName: sender.DisplayName, Trust: trust}
+ 	q := s.queues[message.ToAgent]
+ 	if q == nil {
+ 		q = &queue{}

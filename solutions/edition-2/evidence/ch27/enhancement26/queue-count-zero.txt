@@ -1,0 +1,28 @@
+=== RUN   TestGateway26
+Edition 2, Chapter 26 — The Gateway
+============================================================
+
+[PASS]      Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected  (15/15)
+
+[PASS]      Prompt envelope carries provenance, trust, conversation and response mode  (10/10)
+
+[FAIL]      Actual Gateway binary: authenticated identities and welcome queue counts  (0/15)
+       welcome {AgentID:parent QueueDepth:0 ServerVersion:1}; wanted identity
+       parent, nonempty version, count 1
+
+[PASS]      Group-based routing delivers only from accepted groups and rejects the rest  (15/15)
+
+[FAIL]      Handler-return receipt, ordered offline/resume and clean server restart  (0/15)
+       welcome {AgentID:parent QueueDepth:0 ServerVersion:1}; wanted identity
+       parent, nonempty version, count 1
+
+[PASS]      Actual outside Client/Handler and resolved public dependency boundary  (10/10)
+
+[PASS]      Parent registers a child and cannot grant groups it does not hold  (20/20)
+
+------------------------------------------------------------
+score: 70/100 — FAIL
+--- FAIL: TestGateway26 (0.74s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.743s
+FAIL

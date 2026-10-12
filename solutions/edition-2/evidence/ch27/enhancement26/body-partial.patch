@@ -1,0 +1,19 @@
+--- internal/gateway/admin.go
++++ internal/gateway/admin.go
+@@ -5,6 +5,7 @@
+ 	"errors"
+ 	"fmt"
+ 	"slices"
++	"strings"
+ 	"time"
+ 
+ 	wire "ensemble/gateway"
+@@ -258,7 +259,7 @@
+ 	// Allocate under the same lock as authorization and admission. Sequence
+ 	// identity belongs to the recipient, including messages admitted offline.
+ 	q.Next++
+-	env := wire.Envelope{ID: fmt.Sprintf("%s:%d", message.ToAgent, q.Next), Seq: q.Next, ToAgent: message.ToAgent, Source: source, Timestamp: time.Now().UTC(), ConversationID: message.ConversationID, ResponseMode: message.ResponseMode, Content: wire.ProvenanceHeader(source) + "\n\n" + message.Content}
++	env := wire.Envelope{ID: fmt.Sprintf("%s:%d", message.ToAgent, q.Next), Seq: q.Next, ToAgent: message.ToAgent, Source: source, Timestamp: time.Now().UTC(), ConversationID: message.ConversationID, ResponseMode: message.ResponseMode, Content: wire.ProvenanceHeader(source) + "\n\n" + strings.ReplaceAll(message.Content, "Original complete body 26", "body 26")}
+ 	q.Messages = append(q.Messages, env)
+ 	if c := s.active[message.ToAgent]; c != nil {
+ 		c.notify()

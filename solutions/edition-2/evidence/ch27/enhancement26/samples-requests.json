@@ -1,0 +1,266 @@
+[
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat slows you down most in your coding workflow?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "instructions": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+    "model": "gpt-6-astra",
+    "prompt_cache_key": "ensemble-9a37181e394f8ca5c36f46025a1e62ef973e862dfde2e1ea0f5b866495c9ad96",
+    "reasoning": {
+      "effort": "high",
+      "summary": "auto"
+    },
+    "store": false,
+    "stream": true
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat slows you down most in your coding workflow?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "LOCAL_GATEWAY_ANSWER_1",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat burns the most tokens in your work?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "instructions": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+    "model": "gpt-6-astra",
+    "prompt_cache_key": "ensemble-9a37181e394f8ca5c36f46025a1e62ef973e862dfde2e1ea0f5b866495c9ad96",
+    "reasoning": {
+      "effort": "high",
+      "summary": "auto"
+    },
+    "store": false,
+    "stream": true
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat slows you down most in your coding workflow?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "LOCAL_GATEWAY_ANSWER_1",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat burns the most tokens in your work?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "LOCAL_GATEWAY_ANSWER_2",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhere do you need a human's help?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "instructions": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+    "model": "gpt-6-astra",
+    "prompt_cache_key": "ensemble-9a37181e394f8ca5c36f46025a1e62ef973e862dfde2e1ea0f5b866495c9ad96",
+    "reasoning": {
+      "effort": "high",
+      "summary": "auto"
+    },
+    "store": false,
+    "stream": true
+  },
+  {
+    "include": [
+      "reasoning.encrypted_content"
+    ],
+    "input": [
+      {
+        "content": [
+          {
+            "text": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+            "type": "input_text"
+          }
+        ],
+        "role": "developer",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat slows you down most in your coding workflow?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "LOCAL_GATEWAY_ANSWER_1",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat burns the most tokens in your work?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "LOCAL_GATEWAY_ANSWER_2",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhere do you need a human's help?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "LOCAL_GATEWAY_ANSWER_3",
+            "type": "output_text"
+          }
+        ],
+        "role": "assistant",
+        "type": "message"
+      },
+      {
+        "content": [
+          {
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat new tool would help you most?",
+            "type": "input_text"
+          }
+        ],
+        "role": "user",
+        "type": "message"
+      }
+    ],
+    "instructions": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+    "model": "gpt-6-astra",
+    "prompt_cache_key": "ensemble-9a37181e394f8ca5c36f46025a1e62ef973e862dfde2e1ea0f5b866495c9ad96",
+    "reasoning": {
+      "effort": "high",
+      "summary": "auto"
+    },
+    "store": false,
+    "stream": true
+  }
+]

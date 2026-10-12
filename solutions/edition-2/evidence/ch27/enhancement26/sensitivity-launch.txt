@@ -1,0 +1,9 @@
+{'name': 'baseline-final', 'exit': 0, 'seconds': 1.473, 'expected': None, 'intended_failure': None}
+{'name': 'queue-count-zero', 'exit': 1, 'seconds': 0.968, 'expected': 'welcome', 'intended_failure': True}
+{'name': 'body-partial', 'exit': 1, 'seconds': 0.95, 'expected': 'authenticated envelope', 'intended_failure': True}
+{'name': 'claimed-sender', 'exit': 1, 'seconds': 0.95, 'expected': 'authenticated envelope', 'intended_failure': True}
+{'name': 'receipt-before-handler', 'exit': 1, 'seconds': 0.995, 'expected': 'welcome', 'intended_failure': True}
+{'name': 'queue-not-saved', 'exit': 1, 'seconds': 0.927, 'expected': 'welcome', 'intended_failure': True}
+{'name': 'private-runtime-import', 'exit': 1, 'seconds': 0.959, 'expected': 'public Gateway imports private runtime', 'intended_failure': True}
+{'name': 'successful-shutdown-exits17', 'exit': 1, 'seconds': 0.895, 'expected': 'Gateway shutdown', 'intended_failure': True}
+{'name': 'restored-final', 'exit': 0, 'seconds': 0.956, 'expected': None, 'intended_failure': None}

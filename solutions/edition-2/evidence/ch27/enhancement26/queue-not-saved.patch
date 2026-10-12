@@ -1,0 +1,11 @@
+--- internal/gateway/server.go
++++ internal/gateway/server.go
+@@ -274,7 +274,7 @@
+ 	s.mu.Lock()
+ 	defer s.mu.Unlock()
+ 	for id, q := range s.queues {
+-		if err := writeJSON(s.queuePath(id), q); err != nil {
++		if err := func() error { _ = id; _ = q; return nil }(); err != nil {
+ 			return err
+ 		}
+ 	}

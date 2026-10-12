@@ -1,0 +1,45 @@
+[
+  {
+    "command": "CH26_RUN=$(mktemp -d /tmp/ensemble-ch26.XXXXXX)\nexport CH26_RUN\ncd solutions/edition-2/ch26\ngo build -o \"$CH26_RUN/gateway\" ./cmd/gateway\ngo build -o \"$CH26_RUN/gateway-agent\" ./cmd/gateway-agent\ngo build -o \"$CH26_RUN/interviewer\" ./cmd/interviewer\n\"$CH26_RUN/gateway-agent\" -key \"$CH26_RUN/subject.key\" -print-key\n\"$CH26_RUN/interviewer\" -key \"$CH26_RUN/interviewer.key\" -print-key\nprintf '%s\\n' \"$CH26_RUN\"\n",
+    "exit": 0,
+    "stdout": "x25519:6VndF4kHpPNEsmE6Oqs/JMlujd4XQJrWFItCcMv03T8=\nx25519:K3zGMLSum87cxovaD/QTwLzjQbQr1H4xpiA+9yfdbHI=\n/tmp/ensemble-ch26.KjZKya\n",
+    "stderr": ""
+  },
+  {
+    "command": "\"$CH26_RUN/gateway\" -config \"$CH26_RUN/gateway.json\" -print-key\n",
+    "exit": 0,
+    "stdout": "x25519:LM9d2FK5ViC84HXB5pcyxqLbJlRpKuHUsyqNGTb1k1g=\n",
+    "stderr": ""
+  },
+  {
+    "readiness_pid": 35178,
+    "lsof": "COMMAND   PID USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\ngateway 35178 bill    6u  IPv4 0xb91e9c33757f8897      0t0  TCP 127.0.0.1:55800 (LISTEN)\n"
+  },
+  {
+    "command": "go run .",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "child": "interviewer",
+    "pid": 35182,
+    "exit": 0,
+    "stdout": "Received answer 1 of 4\nReceived answer 2 of 4\nReceived answer 3 of 4\nReceived answer 4 of 4\n",
+    "stderr": ""
+  },
+  {
+    "child": "subject",
+    "pid": 35181,
+    "exit": 0,
+    "stdout": "Gateway Agent ensemble ready\n",
+    "stderr": "2026/10/12 15:49:37 cache lens openai/gpt-6-astra: input:cold; prefix_bytes=0 prompt_bytes=390 predicted=0.0000\n2026/10/12 15:49:37 OpenAI billing source: codex\n2026/10/12 15:49:37 cache grant: input_tokens=101 read_tokens=0 granted=0.0000 predicted=0.0000\n2026/10/12 15:49:37 cache lens openai/gpt-6-astra: input:appended; prefix_bytes=389 prompt_bytes=670 predicted=0.5806\n2026/10/12 15:49:37 cache grant: input_tokens=102 read_tokens=0 granted=0.0000 predicted=0.5806\n2026/10/12 15:49:37 cache lens openai/gpt-6-astra: input:appended; prefix_bytes=669 prompt_bytes=943 predicted=0.7094\n2026/10/12 15:49:37 cache grant: input_tokens=103 read_tokens=0 granted=0.0000 predicted=0.7094\n2026/10/12 15:49:37 cache lens openai/gpt-6-astra: input:appended; prefix_bytes=942 prompt_bytes=1217 predicted=0.7740\n2026/10/12 15:49:37 cache grant: input_tokens=104 read_tokens=0 granted=0.0000 predicted=0.7740\n"
+  },
+  {
+    "child": "router",
+    "pid": 35178,
+    "exit": 0,
+    "stdout": "x25519:LM9d2FK5ViC84HXB5pcyxqLbJlRpKuHUsyqNGTb1k1g=\n",
+    "stderr": "gateway: 2026/10/12 15:49:37 peer interviewer: read: websocket: close 1006 (abnormal closure): unexpected EOF\ngateway: 2026/10/12 15:49:37 peer ensemble: read: websocket: close 1006 (abnormal closure): unexpected EOF\n"
+  }
+]

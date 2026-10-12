@@ -1,0 +1,143 @@
+=== RUN   TestGateway26
+Edition 2, Chapter 26 — The Gateway
+============================================================
+
+[FAIL]      Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected  (0/15)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+[FAIL]      Prompt envelope carries provenance, trust, conversation and response mode  (0/10)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+[FAIL]      Actual Gateway binary: authenticated identities and welcome queue counts  (0/15)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+[FAIL]      Group-based routing delivers only from accepted groups and rejects the rest  (0/15)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+[FAIL]      Handler-return receipt, ordered offline/resume and clean server restart  (0/15)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+[FAIL]      Actual outside Client/Handler and resolved public dependency boundary  (0/10)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+[FAIL]      Parent registers a child and cannot grant groups it does not hold  (0/20)
+       Gateway shutdown: exit status 17
+       x25519:uzVLyN+C6K67Sc9LWZe9oHaKrMZ7yAsMAdrm2ZXUKg8= gateway:
+       2026/10/12 15:50:26 peer parent: handshake authentication failed
+       gateway: 2026/10/12 15:50:26 peer child: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       parent: read: websocket: close 1006 (abnormal closure): unexpected EOF
+       gateway: 2026/10/12 15:50:26 peer parent: read: websocket: close 1006
+       (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26 peer
+       outsider: read: websocket: close 1006 (abnormal closure): unexpected
+       EOF gateway: 2026/10/12 15:50:26 peer peer: read: websocket: close
+       1006 (abnormal closure): unexpected EOF gateway: 2026/10/12 15:50:26
+       peer parent: read: websocket: close 1006 (abnormal closure):
+       unexpected EOF gateway: 2026/10/12 15:50:26 peer peer: read:
+       websocket: close 1006 (abnormal closure): unexpected EOF
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+--- FAIL: TestGateway26 (0.67s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.677s
+FAIL

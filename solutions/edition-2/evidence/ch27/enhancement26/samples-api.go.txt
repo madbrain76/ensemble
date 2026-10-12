@@ -1,0 +1,53 @@
+package main
+import("context";"time";"reflect";gateway "ensemble/gateway")
+type Envelope = gateway.Envelope
+type Keypair = gateway.Keypair
+type Handler interface {
+    OnDeliver(env gateway.Envelope)
+    OnConnected(welcome gateway.WelcomePayload)
+    OnDisconnected(reason string)
+    OnError(err error)
+}
+var _ Handler = gateway.NopHandler{}
+
+type WelcomePayload struct {
+    AgentID       string `json:"agent_id"`
+    QueueDepth    int    `json:"queue_depth"`
+    ServerVersion string `json:"server_version"`
+}
+
+type ClientConfig struct {
+    GatewayURL       string
+    AgentID          string
+    StaticKey        Keypair
+    GatewayPubKey    []byte
+    LastAckedSeq     uint64
+    HandshakeTimeout time.Duration
+}
+
+type OutboundMessage struct {
+    ToAgent        string `json:"to_agent"`
+    Content        string `json:"content"`
+    ConversationID string `json:"conversation_id,omitempty"`
+    ResponseMode   string `json:"response_mode,omitempty"`
+}
+
+type ChildRegistration struct {
+    AgentID   string   `json:"agent_id"`
+    PublicKey []byte   `json:"public_key"`
+    Groups    []string `json:"groups"`
+}
+
+func construction(ctx context.Context,key Keypair,gwPub []byte,handler gateway.Handler){client, err := gateway.Connect(ctx, gateway.ClientConfig{
+    GatewayURL:    "ws://127.0.0.1:8093/v1/ws",
+    AgentID:       "interviewer",
+    StaticKey:     key,
+    GatewayPubKey: gwPub,
+}, handler)
+;_ = client;_ = err}
+func main(){
+aWelcomePayload:=reflect.TypeOf(WelcomePayload{});bWelcomePayload:=reflect.TypeOf(gateway.WelcomePayload{});for i:=0;i<aWelcomePayload.NumField();i++{f:=aWelcomePayload.Field(i);g,ok:=bWelcomePayload.FieldByName(f.Name);if !ok||f.Type!=g.Type||f.Tag!=g.Tag{panic("public field mismatch WelcomePayload "+f.Name)}}
+aClientConfig:=reflect.TypeOf(ClientConfig{});bClientConfig:=reflect.TypeOf(gateway.ClientConfig{});for i:=0;i<aClientConfig.NumField();i++{f:=aClientConfig.Field(i);g,ok:=bClientConfig.FieldByName(f.Name);if !ok||f.Type!=g.Type||f.Tag!=g.Tag{panic("public field mismatch ClientConfig "+f.Name)}}
+aOutboundMessage:=reflect.TypeOf(OutboundMessage{});bOutboundMessage:=reflect.TypeOf(gateway.OutboundMessage{});for i:=0;i<aOutboundMessage.NumField();i++{f:=aOutboundMessage.Field(i);g,ok:=bOutboundMessage.FieldByName(f.Name);if !ok||f.Type!=g.Type||f.Tag!=g.Tag{panic("public field mismatch OutboundMessage "+f.Name)}}
+aChildRegistration:=reflect.TypeOf(ChildRegistration{});bChildRegistration:=reflect.TypeOf(gateway.ChildRegistration{});for i:=0;i<aChildRegistration.NumField();i++{f:=aChildRegistration.Field(i);g,ok:=bChildRegistration.FieldByName(f.Name);if !ok||f.Type!=g.Type||f.Tag!=g.Tag{panic("public field mismatch ChildRegistration "+f.Name)}}
+}

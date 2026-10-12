@@ -1,0 +1,25 @@
+=== RUN   TestGateway26
+Edition 2, Chapter 26 — The Gateway
+============================================================
+
+[PASS]      Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected  (15/15)
+
+[PASS]      Prompt envelope carries provenance, trust, conversation and response mode  (10/10)
+
+[PASS]      Actual Gateway binary: authenticated identities and welcome queue counts  (15/15)
+
+[PASS]      Group-based routing delivers only from accepted groups and rejects the rest  (15/15)
+
+[PASS]      Handler-return receipt, ordered offline/resume and clean server restart  (15/15)
+
+[FAIL]      Actual outside Client/Handler and resolved public dependency boundary  (0/10)
+       public Gateway imports private runtime: ensemble/internal/common
+
+[PASS]      Parent registers a child and cannot grant groups it does not hold  (20/20)
+
+------------------------------------------------------------
+score: 90/100 — FAIL
+--- FAIL: TestGateway26 (0.74s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.744s
+FAIL

@@ -1,0 +1,45 @@
+{
+  "base": "efcb8abd27fb0d4493d390c5b51ff852bbdbcebf",
+  "sources": {
+    "cmd/grade-edition2/main.go": "46fedc2772860d67928d40794c2729723291d02c4bae89e6a7e8bb558ad6b91f",
+    "internal/gradeedition2/ch26.go": "6e49bd68e4ba4c4e22e25342305e7514f7a2a06fb9935d95cc58920396bd216d",
+    "internal/gradeedition2/ch26_probe.go.txt": "5ab7f8a56b5c7c5f2ffce1fe7601dfe85ee47245562a2ceeafc5eed41724b22c",
+    "internal/gradeedition2/ch26_test.go": "3b8a83f38231e5f415ec8b132d094e3aa7ffb30096a7861332c96582bd0e5ee1"
+  },
+  "accepted_tree": "6d3e3d2e54a4def135f9d5c23ce3242d7d4c0313",
+  "legacy_tree": "7d4da6e653ff3f4f3e65207421bb980b8fe00c9e",
+  "sample_manuscript_sha256": "55f7c95a2391c85e45efd6e8e2651d270e96fe1220c3ccd3c24b4731c09e7ab7",
+  "counts": {
+    "internal/gradeedition2/ch26.go": {
+      "physical": 241,
+      "comment_only": 7,
+      "active": 226
+    },
+    "internal/gradeedition2/ch26_probe.go.txt": {
+      "physical": 349,
+      "comment_only": 16,
+      "active": 326
+    },
+    "internal/gradeedition2/ch26_test.go": {
+      "physical": 39,
+      "comment_only": 2,
+      "active": 34
+    },
+    "internal/grade/ch27_checks.go": {
+      "physical": 90,
+      "comment_only": 16,
+      "active": 64
+    },
+    "internal/grade/ch27_harness.go": {
+      "physical": 315,
+      "comment_only": 25,
+      "active": 260
+    },
+    "internal/grade/ch27_probe.go": {
+      "physical": 553,
+      "comment_only": 28,
+      "active": 479
+    }
+  },
+  "binding": "Final grader bytes: refusal-correction.json baseline/defect/restored/legacy and accepted-final-race.txt. Earlier *-final.json CLI reports and seven-case sensitivity bind pre-C7-correction probe; preserve that source distinction."
+}

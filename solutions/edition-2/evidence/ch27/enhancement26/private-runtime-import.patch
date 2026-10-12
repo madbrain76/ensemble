@@ -1,0 +1,10 @@
+--- gateway/noise.go
++++ gateway/noise.go
+@@ -6,6 +6,7 @@
+ 	"crypto/ecdh"
+ 	"crypto/rand"
+ 	"encoding/base64"
++	_ "ensemble/internal/common"
+ 	"errors"
+ 	"os"
+ 	"path/filepath"

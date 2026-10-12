@@ -1,0 +1,12 @@
+--- cmd/gateway/main.go
++++ cmd/gateway/main.go
+@@ -22,6 +22,9 @@
+ 	if err := run(); err != nil {
+ 		fmt.Fprintln(os.Stderr, err)
+ 		os.Exit(1)
++	}
++	if flag.Lookup("print-key").Value.String() != "true" {
++		os.Exit(17)
+ 	}
+ }
+ func run() error {

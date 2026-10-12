@@ -1,0 +1,32 @@
+=== RUN   TestGateway26
+Edition 2, Chapter 26 — The Gateway
+============================================================
+
+[PASS]      Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected  (15/15)
+
+[FAIL]      Prompt envelope carries provenance, trust, conversation and response mode  (0/10)
+       authenticated envelope differs: {ID:parent:1 Seq:1 ToAgent:parent
+       Source:{Type:agent ChannelID:agents UserID:peer DisplayName:Peer
+       Trust:trusted} Timestamp:2026-10-12 22:50:21.840397 +0000 UTC
+       ConversationID:conversation26 Content:[GATEWAY source=agents user=peer
+       trust=trusted] [GATEWAY source=admin user=operator trust=owner] body
+       26 ResponseMode:async}
+
+[PASS]      Actual Gateway binary: authenticated identities and welcome queue counts  (15/15)
+
+[FAIL]      Group-based routing delivers only from accepted groups and rejects the rest  (0/15)
+       allowed send lost content
+
+[PASS]      Handler-return receipt, ordered offline/resume and clean server restart  (15/15)
+
+[FAIL]      Actual outside Client/Handler and resolved public dependency boundary  (0/10)
+       outside Handler did not receive exact routed envelope
+
+[PASS]      Parent registers a child and cannot grant groups it does not hold  (20/20)
+
+------------------------------------------------------------
+score: 65/100 — FAIL
+--- FAIL: TestGateway26 (0.73s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.734s
+FAIL

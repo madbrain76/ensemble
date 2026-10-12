@@ -1,0 +1,215 @@
+{
+  "config": {
+    "model": "gpt-6-astra",
+    "vendor": "openai",
+    "system_prompt": "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.",
+    "tools": []
+  },
+  "log": [
+    {
+      "seq": 1,
+      "type": "message_received",
+      "time": "2026-10-12T22:49:37.880204Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat slows you down most in your coding workflow?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 2,
+      "type": "request_sent",
+      "time": "2026-10-12T22:49:37.880458Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        },
+        "startup_tools": []
+      }
+    },
+    {
+      "seq": 3,
+      "type": "response_ended",
+      "time": "2026-10-12T22:49:37.881728Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 1,
+            "type": "text",
+            "text": "LOCAL_GATEWAY_ANSWER_1"
+          }
+        ],
+        "usage": {
+          "input": 101,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 5
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "type": "message_received",
+      "time": "2026-10-12T22:49:37.882032Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat burns the most tokens in your work?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "type": "request_sent",
+      "time": "2026-10-12T22:49:37.882134Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 6,
+      "type": "response_ended",
+      "time": "2026-10-12T22:49:37.882864Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 2,
+            "type": "text",
+            "text": "LOCAL_GATEWAY_ANSWER_2"
+          }
+        ],
+        "usage": {
+          "input": 102,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 5
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 7,
+      "type": "message_received",
+      "time": "2026-10-12T22:49:37.883165Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhere do you need a human's help?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 8,
+      "type": "request_sent",
+      "time": "2026-10-12T22:49:37.883318Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 9,
+      "type": "response_ended",
+      "time": "2026-10-12T22:49:37.883968Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 3,
+            "type": "text",
+            "text": "LOCAL_GATEWAY_ANSWER_3"
+          }
+        ],
+        "usage": {
+          "input": 103,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 5
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 10,
+      "type": "message_received",
+      "time": "2026-10-12T22:49:37.884281Z",
+      "message": {
+        "actor": "human",
+        "parts": [
+          {
+            "type": "text",
+            "text": "[GATEWAY source=agents user=interviewer trust=trusted]\n\nWhat new tool would help you most?"
+          }
+        ]
+      }
+    },
+    {
+      "seq": 11,
+      "type": "request_sent",
+      "time": "2026-10-12T22:49:37.884474Z",
+      "request": {
+        "to": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "type": "response_ended",
+      "time": "2026-10-12T22:49:37.885054Z",
+      "response": {
+        "parts": [
+          {
+            "artifact_id": 4,
+            "type": "text",
+            "text": "LOCAL_GATEWAY_ANSWER_4"
+          }
+        ],
+        "usage": {
+          "input": 104,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 5
+        },
+        "from": {
+          "vendor": "openai",
+          "model": "gpt-6-astra",
+          "surface": "responses"
+        }
+      }
+    }
+  ]
+}

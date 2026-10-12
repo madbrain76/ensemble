@@ -64,10 +64,12 @@ func message(r *receiver) gw.Envelope {
 		panic("delivery deadline")
 	}
 }
-func welcome(r *receiver, id string, count int, row string) {
+func welcome(r *receiver, id string, count int, row string) bool {
 	select {
 	case w := <-r.welcomes:
-		check(row, w.AgentID == id && w.ServerVersion != "" && w.WELCOME_FIELD == count, "welcome %+v; wanted identity %s, nonempty version, count %d", w, id, count)
+		ok := w.AgentID == id && w.ServerVersion != "" && w.WELCOME_FIELD == count
+		check("C3", ok, "welcome %+v; wanted identity %s, nonempty version, count %d", w, id, count)
+		return check(row, ok, "welcome %+v; wanted identity %s, nonempty version, count %d", w, id, count)
 	case <-ctx.Done():
 		panic("welcome deadline")
 	}
@@ -196,7 +198,8 @@ func scenario() {
 	outsider := client("outsider", recv(), 0)
 	defer outsider.Close()
 	check("C4", outsider.Send(ctx, gw.OutboundMessage{ToAgent: "parent", Content: "FORBIDDEN26"}) != nil, "unaccepted group send succeeded")
-	// Same-socket permitted send is a causal delivery barrier after the refusal.
+	// The refusal RPC completes before this permitted send on another socket.
+	// Recipient order then exposes refused traffic admitted ahead of the barrier.
 	send(peer, "parent", "barrier26")
 	e = message(pr)
 	check("C4", exact(e, "peer", "barrier26"), "refused traffic arrived before permitted barrier: %+v", e)
@@ -227,6 +230,27 @@ func registration(parent, peer *gw.Client, pr *receiver) {
 	key3, err := gw.LoadOrCreateKeypair(filepath.Join(*directory, "widen.key"))
 	must(err)
 	check("C7", peer.RegisterChild(ctx, gw.ChildRegistration{AgentID: "widen", PublicKey: key3.Public, Groups: []string{"admin"}}) != nil, "parent granted group it does not hold")
+	// An error alone cannot prove refusal: the rejected key must not become
+	// an authenticated identity through a partial registration side effect.
+	rejected := recv()
+	blocked, err := connect("widen", rejected, 0)
+	if err == nil {
+		// Some public clients return before welcome. Observe admission or an
+		// actual disconnect; silence alone is not a successful refusal.
+		select {
+		case <-rejected.welcomes:
+			check("C7", false, "refused wider registration nevertheless admitted its identity")
+		case <-blocked.Done():
+			select {
+			case <-rejected.welcomes:
+				check("C7", false, "refused identity welcomed before disconnect")
+			default:
+			}
+		case <-ctx.Done():
+			check("C7", false, "refused identity neither welcomed nor disconnected")
+		}
+		closeClient(blocked)
+	}
 }
 func delivery(parent, peer *gw.Client) {
 	closeClient(parent)
@@ -243,7 +267,13 @@ func delivery(parent, peer *gw.Client) {
 	second := recv()
 	second.hold = make(chan struct{})
 	p2 := client("parent", second, 0)
-	welcome(second, "parent", 1, "C5")
+	if !welcome(second, "parent", 1, "C5") {
+		close(held.hold)
+		close(second.hold)
+		closeClient(p)
+		closeClient(p2)
+		return
+	}
 	redelivered := message(second)
 	check("C5", redelivered.Seq == e.Seq && redelivered.Content == e.Content, "unaccepted delivery not replayed intact")
 	close(held.hold)
@@ -282,7 +312,10 @@ func persistent() {
 	}
 	r := recv()
 	p := client("parent", r, 0)
-	welcome(r, "parent", 1, "C5")
+	if !welcome(r, "parent", 1, "C5") {
+		closeClient(p)
+		return
+	}
 	e := message(r)
 	check("C5", exact(e, "peer", "persisted26"), "clean server restart lost exact queued message: %+v", e)
 	ack(p, e.Seq)
@@ -295,7 +328,7 @@ func main() {
 	defer cancel()
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintf(os.Stderr, "%v; observations before failure: %v\n", err, results)
 			os.Exit(2)
 		}
 	}()

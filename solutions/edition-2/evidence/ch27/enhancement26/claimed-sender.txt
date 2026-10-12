@@ -1,0 +1,46 @@
+=== RUN   TestGateway26
+Edition 2, Chapter 26 — The Gateway
+============================================================
+
+[PASS]      Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected  (15/15)
+
+[FAIL]      Prompt envelope carries provenance, trust, conversation and response mode  (0/10)
+       authenticated envelope differs: {ID:parent:1 Seq:1 ToAgent:parent
+       Source:{Type:agent ChannelID:agents UserID:operator DisplayName:Peer
+       Trust:trusted} Timestamp:2026-10-12 22:50:22.801135 +0000 UTC
+       ConversationID:conversation26 Content:[GATEWAY source=agents
+       user=operator trust=trusted] [GATEWAY source=admin user=operator
+       trust=owner] Original complete body 26 ResponseMode:async}
+
+[PASS]      Actual Gateway binary: authenticated identities and welcome queue counts  (15/15)
+
+[FAIL]      Group-based routing delivers only from accepted groups and rejects the rest  (0/15)
+       refused traffic arrived before permitted barrier: {ID:parent:2 Seq:2
+       ToAgent:parent Source:{Type:agent ChannelID:agents UserID:operator
+       DisplayName:Peer Trust:trusted} Timestamp:2026-10-12 22:50:22.802207
+       +0000 UTC ConversationID:conversation26 Content:[GATEWAY source=agents
+       user=operator trust=trusted] barrier26 ResponseMode:async}
+
+[FAIL]      Handler-return receipt, ordered offline/resume and clean server restart  (0/15)
+       resumed ordered delivery differs: {ID:parent:6 Seq:6 ToAgent:parent
+       Source:{Type:agent ChannelID:agents UserID:operator DisplayName:Peer
+       Trust:trusted} Timestamp:2026-10-12 22:50:22.960496 +0000 UTC
+       ConversationID:conversation26 Content:[GATEWAY source=agents
+       user=operator trust=trusted] offline26-1 ResponseMode:async}
+
+[FAIL]      Actual outside Client/Handler and resolved public dependency boundary  (0/10)
+       outside Handler did not receive exact routed envelope
+
+[FAIL]      Parent registers a child and cannot grant groups it does not hold  (0/20)
+       registered child routing differs: {ID:parent:3 Seq:3 ToAgent:parent
+       Source:{Type:agent ChannelID:agents UserID:operator DisplayName:
+       Trust:trusted} Timestamp:2026-10-12 22:50:22.803306 +0000 UTC
+       ConversationID:conversation26 Content:[GATEWAY source=agents
+       user=operator trust=trusted] child-message26 ResponseMode:async}
+
+------------------------------------------------------------
+score: 30/100 — FAIL
+--- FAIL: TestGateway26 (0.72s)
+FAIL
+FAIL	github.com/waywardgeek/ensemble/internal/gradeedition2	0.728s
+FAIL

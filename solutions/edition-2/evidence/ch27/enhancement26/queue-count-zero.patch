@@ -1,0 +1,11 @@
+--- internal/gateway/server.go
++++ internal/gateway/server.go
+@@ -399,7 +399,7 @@
+ 	// The queue retains its next sequence even when empty. Reusing sequence one
+ 	// after a drained queue would cause a reconnecting client to skip new work.
+ 	c.sent.Store(q.Ack)
+-	welcome := wire.WelcomePayload{AgentID: id, QueueDepth: len(q.Messages), ServerVersion: "1"}
++	welcome := wire.WelcomePayload{AgentID: id, QueueDepth: 0, ServerVersion: "1"}
+ 	s.mu.Unlock()
+ 	if err = c.write(wire.Frame{Type: "welcome", Welcome: &welcome}); err != nil {
+ 		return
