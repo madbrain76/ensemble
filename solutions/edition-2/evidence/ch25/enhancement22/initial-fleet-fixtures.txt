@@ -1,0 +1,6 @@
+First direct TestFleet22 run (before any GUI grader implementation), accepted frozen CLI, exit 1, 0.158s.
+Tool-output transcript recorded immediately; not a full combined grade:
+- child-isolated: map for FLEET_ROOT_22, TASK_A_22 and TASK_B_22 all ended at scratch root. Raw whole-save task search also matched parent's spawn arguments and overwrote child paths.
+- wait-interrupt: woke=true, no running job handle. Actual accepted notice says "job N", while the first fixture recognized only "handle N".
+- idle-corrected: idle-join is_error=true with "child drifter failed: Agent drifter stopped without submit after three framework wakes". A returned tool error is a valid failure escalation, not required successful tool result.
+These are fixture interpretation errors, not three runtime defects. Correct stored exact text identity, recognize the published job notice, and accept an actual correlated failure escalation in either result/error form.

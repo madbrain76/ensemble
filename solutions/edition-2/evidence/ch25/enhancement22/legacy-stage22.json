@@ -1,0 +1,142 @@
+{
+  "title": "Edition 2, Chapter 22 — The Ensemble",
+  "checks": [
+    {
+      "id": "headless-linkage",
+      "title": "A root-only consumer links no GUI package and no websocket library",
+      "points": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "id": "public-reuse",
+      "title": "An outside application uses real Agent history, prompt delivery and correlated browser relay",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "consumer readiness:  command stdout closed: panic: open journal for data/save.json: journal: open data/save.json.journal: no such file or directory\n\ngoroutine 1 [running]:\nmain.main()\n\t/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reuse-grade-1214619419/guiapp/main.go:17 +0x990: EOF"
+      ]
+    },
+    {
+      "id": "wire-compat",
+      "title": "The browser wire protocol is unchanged: a ch22-style scripted session still works",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "details": [
+        "Actual stdin turns and WebSocket settings select Sonnet-5, Opus 4.6 and Sonnet-5 on subsequent provider requests."
+      ]
+    },
+    {
+      "id": "assets-embedded",
+      "title": "The binary serves the GUI from an unrelated working directory",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "components-without-shell",
+      "title": "A consumer mounts the Artifact scroll from the exported FS without adopting index.html",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "consumer readiness:  command stdout closed: panic: open journal for data/save.json: journal: open data/save.json.journal: no such file or directory\n\ngoroutine 1 [running]:\nmain.main()\n\t/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reuse-grade-1214619419/guiapp/main.go:17 +0x990: EOF"
+      ]
+    },
+    {
+      "id": "mcp-without-gorilla",
+      "title": "The public headless consumer completes MCP without GUI/WebSocket dependencies",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "actual external core MCP handshake: exit status 2 panic: open journal for headless-data/save.json: journal: open headless-data/save.json.journal: no such file or directory\n\ngoroutine 1 [running]:\nmain.main()\n\t/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/reuse-grade-1214619419/headless/main.go:3 +0x350\n methods=[]"
+      ]
+    },
+    {
+      "id": "root-clean",
+      "title": "Public root has a resolved GUI-free dependency graph and constructible API",
+      "points": 10,
+      "earned": 10,
+      "passed": true,
+      "details": [
+        "Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review."
+      ]
+    },
+    {
+      "id": "spawn-reports-back",
+      "title": "A spawned child runs and reports back: the parent calls spawn_sub_agent and the child's submitted payload reaches the parent",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "fleet session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-a\",\"task\":\"TASK_A_22\"}\n  \u003c- ok Spawned worker-a. It is running; use join_agents to collect its result.\n[05:16:26.979] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.979] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11561 bytes (94.5%), 3 breakpoints\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-b\",\"task\":\"TASK_B_22\"}\n  \u003c- ok Spawned worker-b. It is running; use join_agents to collect its result.\n[05:16:26.984] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.984] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11452 of 12089 bytes (94.7%), 3 breakpoints\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e join_agents {\"agent_ids\":[\"worker-a\",\"worker-b\"],\"ai_callback_delay\":5}\n  \u003c- ok worker-a: submitted   result: CHILD_A_22 worker-b: submitted   result: CHILD_B_22\n[05:16:26.993] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11980 of 12692 bytes (94.4%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-a: state=done turns=1 submitted=yes worker-b: state=done turns=1 submitted=yes\n[05:16:26.997] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12583 of 13168 bytes (95.6%), 3 breakpoints\n  -\u003e shutdown_agent {\"agent_id\":\"worker-a\"}\n  \u003c- ok Shut down worker-a.\n[05:16:27.002] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13059 of 13612 bytes (95.9%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-b: state=done turns=1 submitted=yes\n[05:16:27.007] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13503 of 14042 bytes (96.2%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:27.013] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13933 of 14480 bytes (96.2%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    },
+    {
+      "id": "child-isolated",
+      "title": "Parent and two children retain distinct valid saved conversations",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "fleet session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-a\",\"task\":\"TASK_A_22\"}\n  \u003c- ok Spawned worker-a. It is running; use join_agents to collect its result.\n[05:16:26.979] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.979] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11561 bytes (94.5%), 3 breakpoints\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-b\",\"task\":\"TASK_B_22\"}\n  \u003c- ok Spawned worker-b. It is running; use join_agents to collect its result.\n[05:16:26.984] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.984] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11452 of 12089 bytes (94.7%), 3 breakpoints\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e join_agents {\"agent_ids\":[\"worker-a\",\"worker-b\"],\"ai_callback_delay\":5}\n  \u003c- ok worker-a: submitted   result: CHILD_A_22 worker-b: submitted   result: CHILD_B_22\n[05:16:26.993] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11980 of 12692 bytes (94.4%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-a: state=done turns=1 submitted=yes worker-b: state=done turns=1 submitted=yes\n[05:16:26.997] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12583 of 13168 bytes (95.6%), 3 breakpoints\n  -\u003e shutdown_agent {\"agent_id\":\"worker-a\"}\n  \u003c- ok Shut down worker-a.\n[05:16:27.002] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13059 of 13612 bytes (95.9%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-b: state=done turns=1 submitted=yes\n[05:16:27.007] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13503 of 14042 bytes (96.2%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:27.013] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13933 of 14480 bytes (96.2%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    },
+    {
+      "id": "fleet-visibility",
+      "title": "Fleet visibility and teardown: agents_status lists a live child, and shutdown_agent removes it",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "fleet session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-a\",\"task\":\"TASK_A_22\"}\n  \u003c- ok Spawned worker-a. It is running; use join_agents to collect its result.\n[05:16:26.979] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.979] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11561 bytes (94.5%), 3 breakpoints\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-b\",\"task\":\"TASK_B_22\"}\n  \u003c- ok Spawned worker-b. It is running; use join_agents to collect its result.\n[05:16:26.984] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.984] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11452 of 12089 bytes (94.7%), 3 breakpoints\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e join_agents {\"agent_ids\":[\"worker-a\",\"worker-b\"],\"ai_callback_delay\":5}\n  \u003c- ok worker-a: submitted   result: CHILD_A_22 worker-b: submitted   result: CHILD_B_22\n[05:16:26.993] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11980 of 12692 bytes (94.4%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-a: state=done turns=1 submitted=yes worker-b: state=done turns=1 submitted=yes\n[05:16:26.997] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12583 of 13168 bytes (95.6%), 3 breakpoints\n  -\u003e shutdown_agent {\"agent_id\":\"worker-a\"}\n  \u003c- ok Shut down worker-a.\n[05:16:27.002] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13059 of 13612 bytes (95.9%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-b: state=done turns=1 submitted=yes\n[05:16:27.007] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13503 of 14042 bytes (96.2%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:27.013] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13933 of 14480 bytes (96.2%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    },
+    {
+      "id": "join-fans-in",
+      "title": "join_agents blocks until every listed child finishes, then returns each child's result",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "fleet session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.977] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-a\",\"task\":\"TASK_A_22\"}\n  \u003c- ok Spawned worker-a. It is running; use join_agents to collect its result.\n[05:16:26.979] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.979] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11561 bytes (94.5%), 3 breakpoints\n[05:16:26.983] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e spawn_sub_agent {\"agent_id\":\"worker-b\",\"task\":\"TASK_B_22\"}\n  \u003c- ok Spawned worker-b. It is running; use join_agents to collect its result.\n[05:16:26.984] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:26.984] cachelens: first request captured, 10410 bytes, no prior to compare\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11452 of 12089 bytes (94.7%), 3 breakpoints\n[05:16:26.988] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10034 of 10585 bytes (94.8%), 3 breakpoints\n  -\u003e join_agents {\"agent_ids\":[\"worker-a\",\"worker-b\"],\"ai_callback_delay\":5}\n  \u003c- ok worker-a: submitted   result: CHILD_A_22 worker-b: submitted   result: CHILD_B_22\n[05:16:26.993] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11980 of 12692 bytes (94.4%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-a: state=done turns=1 submitted=yes worker-b: state=done turns=1 submitted=yes\n[05:16:26.997] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12583 of 13168 bytes (95.6%), 3 breakpoints\n  -\u003e shutdown_agent {\"agent_id\":\"worker-a\"}\n  \u003c- ok Shut down worker-a.\n[05:16:27.002] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13059 of 13612 bytes (95.9%), 3 breakpoints\n  -\u003e agents_status {}\n  \u003c- ok worker-b: state=done turns=1 submitted=yes\n[05:16:27.007] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13503 of 14042 bytes (96.2%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:27.013] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13933 of 14480 bytes (96.2%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    },
+    {
+      "id": "addressed-messaging",
+      "title": "Three generations yield a child question and return an addressed parent reply",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "three-generation session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:31.997] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:31.998] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e spawn_sub_agent {\"agent_id\":\"middle\",\"task\":\"MIDDLE_TASK_22\"}\n  \u003c- ok Spawned middle. It is running; use join_agents to collect its result.\n[05:16:32.002] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:32.003] cachelens: first request captured, 10415 bytes, no prior to compare\n[05:16:32.005] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:32.006] cachelens: first request captured, 10413 bytes, no prior to compare\n[05:16:32.012] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11566 bytes (94.4%), 3 breakpoints\n  -\u003e join_agents {\"agent_ids\":[\"middle\"],\"ai_callback_delay\":5}\n[05:16:32.014] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10039 of 10677 bytes (94.0%), 3 breakpoints\n[05:16:32.021] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10568 of 11326 bytes (93.3%), 3 breakpoints\n[05:16:32.029] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10037 of 10635 bytes (94.4%), 3 breakpoints\n[05:16:32.029] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11217 of 11821 bytes (94.9%), 3 breakpoints\n[05:16:32.035] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10526 of 11077 bytes (95.0%), 3 breakpoints\n[05:16:32.042] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11712 of 12349 bytes (94.8%), 3 breakpoints\n[05:16:32.048] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12240 of 12791 bytes (95.7%), 3 breakpoints\n  \u003c- ok middle: submitted   result: MIDDLE_DONE_22\n[05:16:32.054] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11457 of 12098 bytes (94.7%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:32.059] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11989 of 12536 bytes (95.6%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    },
+    {
+      "id": "wait-interrupt",
+      "title": "A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "message-wake session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:37.018] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:37.019] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e tool_limits {\"ai_callback_delay\":60}\n  \u003c- ok limits pending for the NEXT tool call, whichever tool that is: ai_callback_delay 1m0s, max_output_bytes 16384. Call the tool you meant them for now; the next ca... (200 bytes)\n[05:16:37.029] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11652 bytes (93.8%), 3 breakpoints\n  -\u003e run_command {\"command\":\"printf started \\u003e \\\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-3446046277/started\\\"; while [ ! -f \\\"/var/folders/p_/11vk6y114x... (277 bytes)\nDeltaKind(0):\nhint:STEER_WAKE_22\n  \u003c- ok [tool_limits consumed by this run_command call: ai_callback_delay 1m0s, max_output_bytes 16384] job 1 still running; a message arrived and the wait ended early.... (292 bytes)\n[05:16:37.058] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11543 of 12697 bytes (90.9%), 3 breakpoints\n  -\u003e wait_for_job {\"ai_callback_delay\":5,\"handle\":1}\n  \u003c- ok WAKE_RESULT_722exit_code: 0\n[05:16:37.075] cachelens: tools:identical system:identical messages:edited max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12493 of 13095 bytes (95.4%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:37.083] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12986 of 13533 bytes (96.0%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    },
+    {
+      "id": "idle-corrected",
+      "title": "A child that goes idle without submitting is woken rather than treated as finished, and after three wakes it escalates to its parent",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "idle session: command output deadline; stderr: credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:42.079] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:42.080] cachelens: first request captured, 11300 bytes, no prior to compare\n  -\u003e spawn_sub_agent {\"agent_id\":\"drifter\",\"task\":\"IDLE_TASK_22\"}\n  \u003c- ok Spawned drifter. It is running; use join_agents to collect its result.\n[05:16:42.083] credential: vendor=anthropic using api_key (static, from configuration)\n[05:16:42.083] cachelens: first request captured, 10413 bytes, no prior to compare\n[05:16:42.093] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10924 of 11568 bytes (94.4%), 3 breakpoints\n  -\u003e submit {\"result\":\"PREMATURE_22\"}\n  \u003c- ERROR cannot submit: 1 sub-agent(s) still active (drifter). Wait for them (join_agents) or shut them down (shutdown_agent) before submitting.\n[05:16:42.101] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11459 of 12152 bytes (94.3%), 3 breakpoints\n  -\u003e write_file {\"content\":\"release\",\"path\":\"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-889826682/idle-release\"}\n  \u003c- ok wrote 7 bytes to /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/fleet-grade-889826682/idle-release\n[05:16:42.109] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12043 of 12786 bytes (94.2%), 3 breakpoints\n  -\u003e join_agents {\"agent_ids\":[\"drifter\"],\"ai_callback_delay\":5}\n[05:16:42.121] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10037 of 10737 bytes (93.5%), 3 breakpoints\n[05:16:42.127] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 10628 of 11219 bytes (94.7%), 3 breakpoints\n[05:16:42.133] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11110 of 11701 bytes (94.9%), 3 breakpoints\n[05:16:42.138] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 11592 of 12183 bytes (95.1%), 3 breakpoints\n  \u003c- ok Returned early: a sub-agent is waiting for your answer.  drifter: idle_without_submit  message escalation-drifter-1791807402139449000 from drifter: Sub-agent \"d... (378 bytes)\n[05:16:42.144] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 12677 of 13663 bytes (92.8%), 3 breakpoints\n  -\u003e shutdown_agent {\"agent_id\":\"drifter\"}\n  \u003c- ok Shut down drifter.\n[05:16:42.150] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13554 of 14107 bytes (96.1%), 3 breakpoints\n  -\u003e submit {\"result\":\"FLEET_COMPLETED_22\"}\n  \u003c- ok Result submitted.\n[05:16:42.155] cachelens: tools:identical system:identical messages:appended max_tokens:identical model:identical output_config:identical thinking:identical — cacheable prefix 13998 of 14545 bytes (96.2%), 3 breakpoints\n{\"usage\":{\"input\":0,\"cache_write\":0,\"cache_read\":0,\"output\":0}}\n"
+      ]
+    }
+  ],
+  "score": 60,
+  "max_score": 200,
+  "passed": false
+}

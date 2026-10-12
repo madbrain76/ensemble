@@ -1,0 +1,4 @@
+=== RUN   TestFleet22
+--- PASS: TestFleet22 (0.18s)
+PASS
+ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	0.190s

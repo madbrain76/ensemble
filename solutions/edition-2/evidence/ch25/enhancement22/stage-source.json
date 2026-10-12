@@ -1,0 +1,12 @@
+{
+  "stage": "first corrected accepted full 200/200; legacy 60/200 fixture investigation pending",
+  "head": "5a485a03edcdda65d10f86ca88e3c591559a4074",
+  "sha256": {
+    "cmd/grade-edition2/main.go": "573851e31423ed6f6b8c4e651025f9a2b5f78f0d525ad6021f28f9e1b3c92e14",
+    "internal/gradeedition2/ch22_consumer.go.txt": "b1c4b2670cb1373284c295f38c82544a6da4de31f8a9675cfb6bc3b368602ba0",
+    "internal/gradeedition2/ch22_reuse.go": "b36d63cf9f6989f9df58f2c57c7476331c82df00399ee240241f59beffbe772b",
+    "internal/gradeedition2/ch22.go": "f5c23712e1aa97f892b784035a0d2cd9a2d8126eaef6baa7b416fd7abccd9165",
+    "internal/gradeedition2/ch22_fleet.go": "d68ae7958584a2d8f59e2d6af09cbe4d4a6fcd0c937f3842b02ea08e99ff45c4",
+    "internal/gradeedition2/ch22_test.go": "e29f728e7fb9993be7c20f78ac642cfc7494313cc0a58bc6d6dfe6bb30ffda83"
+  }
+}

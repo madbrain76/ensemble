@@ -1,0 +1,124 @@
+{
+  "title": "Edition 2, Chapter 22 — The Ensemble",
+  "checks": [
+    {
+      "id": "headless-linkage",
+      "title": "A root-only consumer links no GUI package and no websocket library",
+      "points": 20,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "go [build -o bin/ ./...]: exit status 1\n# outside.example/edition2reuse/guiapp\nguiapp/main.go:20:126: hub.ServeWS undefined (type *gui.Server has no field or method ServeWS)\n"
+      ]
+    },
+    {
+      "id": "public-reuse",
+      "title": "An application outside the module serves the GUI with fake hooks, and a planted event replays to a browser",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "go [build -o bin/ ./...]: exit status 1\n# outside.example/edition2reuse/guiapp\nguiapp/main.go:20:126: hub.ServeWS undefined (type *gui.Server has no field or method ServeWS)\n"
+      ]
+    },
+    {
+      "id": "wire-compat",
+      "title": "The browser wire protocol is unchanged: a ch22-style scripted session still works",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "details": [
+        "Actual stdin turns and WebSocket settings select Sonnet-5, Opus 4.6 and Sonnet-5 on subsequent provider requests."
+      ]
+    },
+    {
+      "id": "assets-embedded",
+      "title": "The binary serves the GUI from an unrelated working directory",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "components-without-shell",
+      "title": "A consumer mounts the Artifact scroll from the exported FS without adopting index.html",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "go [build -o bin/ ./...]: exit status 1\n# outside.example/edition2reuse/guiapp\nguiapp/main.go:20:126: hub.ServeWS undefined (type *gui.Server has no field or method ServeWS)\n"
+      ]
+    },
+    {
+      "id": "mcp-without-gorilla",
+      "title": "MCP is in the headless closure without gorilla; virtual-user still dials through mcpws",
+      "points": 15,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "go [build -o bin/ ./...]: exit status 1\n# outside.example/edition2reuse/guiapp\nguiapp/main.go:20:126: hub.ServeWS undefined (type *gui.Server has no field or method ServeWS)\n"
+      ]
+    },
+    {
+      "id": "root-clean",
+      "title": "Public root has a resolved GUI-free dependency graph and constructible API",
+      "points": 10,
+      "earned": 0,
+      "passed": false,
+      "details": [
+        "go [build -o bin/ ./...]: exit status 1\n# outside.example/edition2reuse/guiapp\nguiapp/main.go:20:126: hub.ServeWS undefined (type *gui.Server has no field or method ServeWS)\n"
+      ]
+    },
+    {
+      "id": "spawn-reports-back",
+      "title": "A spawned child runs and reports back: the parent calls spawn_sub_agent and the child's submitted payload reaches the parent",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "child-isolated",
+      "title": "Children are isolated and factory built: each child owns its data directory and save file, and an AgentFactory constructs it",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "fleet-visibility",
+      "title": "Fleet visibility and teardown: agents_status lists a live child, and shutdown_agent removes it",
+      "points": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "id": "join-fans-in",
+      "title": "join_agents blocks until every listed child finishes, then returns each child's result",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "addressed-messaging",
+      "title": "Agents address their parent and the user: send_message_to_parent blocks the child, respond_to_parent_message resumes it with a reply that carries its sender's address",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "wait-interrupt",
+      "title": "A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    },
+    {
+      "id": "idle-corrected",
+      "title": "A child that goes idle without submitting is woken rather than treated as finished, and after three wakes it escalates to its parent",
+      "points": 15,
+      "earned": 15,
+      "passed": true
+    }
+  ],
+  "score": 130,
+  "max_score": 200,
+  "passed": false
+}
