@@ -202,3 +202,23 @@ The preface, chapter sources, assembled Markdown, cover image and EPUB retain
 their pre-fix hashes. These are local replacement PDFs; no upload or change to
 the published listing was made. A physical print proof remains unperformed,
 and a paperback cover's spine must match the new page count before reprinting.
+
+## October 13: larger trim and type
+
+Bill selected the recommended 7 × 10 inch format with 12pt body text and 10pt
+code. The print stylesheet now uses those sizes, 11pt tables and larger section
+headings. Mirrored inner margins are 0.875 inches, outer margins 0.5 inches,
+and top/bottom margins 0.75 inches. Removing pandoc's browser body padding lets
+the page margins determine the text width. The overflow fix remains in place;
+the build's measured-type check now requires 12pt/10pt.
+
+The rebuilt interior has 562 pages; the reading PDF has 563, including its
+cover. Every page measures 504 × 720 points. The existing cover artwork is
+centered proportionally on the larger reading-PDF page rather than stretched;
+the source image is unchanged. All 30 printed contents references match actual
+chapter pages. Actual type measures 12pt body and minimum 10pt code, the HTML
+has no horizontal overflow at the printable width, and no extracted word falls
+outside a PDF page. Representative table, code and chapter-opening pages were
+visually inspected. Manuscript, preface, chapter sources and EPUB are unchanged.
+No external publication action was taken; the physical paperback cover still
+needs a separate trim/spine layout and a print proof.

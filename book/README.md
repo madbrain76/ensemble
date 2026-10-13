@@ -7,8 +7,8 @@ first-edition files and build instructions remain in `edition-1/book/`.
 ## Prerequisites
 
 Use Python 3 and pandoc. Print production also needs Google Chrome and the
-Poppler tools `pdftotext`, `pdfinfo` and `pdfunite`. The cover-page conversion
-below uses Pillow. The print build uses PyMuPDF to check actual PDF font sizes
+Poppler tools `pdftotext`, `pdfinfo` and `pdfunite`. The print build and cover-page
+conversion use PyMuPDF, including checks of actual PDF font sizes
 (`python3 -m pip install pymupdf`).
 
 Run from the repository root:
@@ -55,12 +55,15 @@ navigation, and has no duplicate printed contents or navigation page in its spin
 front matter, removes duplicate contents, renders with Chrome, then adds measured
 page numbers to the contents and renders again. It checks that those references
 agree with the resulting chapter pages. The print CSS supplies mirrored margins,
-page numbers, chapter breaks and wrapping code blocks on a 6 × 9 inch page.
+page numbers, chapter breaks and wrapping code blocks on a 7 × 10 inch page.
+Body text is 12pt, code 10pt and tables 11pt. Inner margins are 0.875 inches;
+outer margins are 0.5 inches, with 0.75 inches at top and bottom. Browser body
+padding is removed so these page margins control the available text width.
 Print code uses black text on white, retaining syntax bold and italic emphasis;
 the EPUB keeps its separate color styling.
 Long code tokens and table cells wrap rather than making Chrome shrink the
 entire document. The build measures the PDF itself and rejects reduced body
-or code type: body text must remain 11pt and code at least 9pt, allowing small
+or code type: body text must remain 12pt and code at least 10pt, allowing small
 PDF-coordinate rounding differences. Checking CSS declarations alone misses
 Chrome's automatic scaling.
 Inspect the resulting PDF as well as the script's result, particularly long code
@@ -70,11 +73,12 @@ To create the cover-prefixed PDF after a successful interior build:
 
 ```sh
 python3 - <<'PY'
-from pathlib import Path
-from PIL import Image
-cover = Image.open('book/cover.png').convert('RGB')
-cover.resize((1800, 2700), Image.Resampling.LANCZOS).save(
-    '/tmp/ensemble-cover-page.pdf', 'PDF', resolution=300.0)
+import pymupdf
+with pymupdf.open() as cover:
+    page = cover.new_page(width=504, height=720)
+    # Preserve the existing artwork's proportions on the new page size.
+    page.insert_image(page.rect, filename='book/cover.png', keep_proportion=True)
+    cover.save('/tmp/ensemble-cover-page.pdf', deflate=True)
 PY
 pdfunite /tmp/ensemble-cover-page.pdf \
   'book/The Art of Building AI Coding Agents - Print Interior.pdf' \
@@ -82,7 +86,9 @@ pdfunite /tmp/ensemble-cover-page.pdf \
 ```
 
 The cover-prefixed PDF should contain exactly one more page than the interior.
-Verify both page counts and the 432 × 648 point page size with `pdfinfo`.
+Verify both page counts and the 504 × 720 point page size with `pdfinfo`.
+This front-cover page is for the reading PDF; a paperback wraparound cover
+must be laid out separately for the chosen trim and final spine thickness.
 
 ## Release check
 

@@ -1,19 +1,20 @@
 <style>
-@page         { size: 6in 9in; margin: 0.75in 0.25in  0.75in 0.625in; }
-@page :left   { size: 6in 9in; margin: 0.75in 0.625in 0.75in 0.25in;  }
-@page :right  { size: 6in 9in; margin: 0.75in 0.25in  0.75in 0.625in; }
-@page         { @bottom-center { content: counter(page); font-size: 9pt; font-family: Georgia, serif; } }
-body          { font-family: Georgia, serif; font-size: 11pt; line-height: 1.4; }
-h1            { font-size: 16pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
-h2            { font-size: 14pt; margin-top: 2em; }
-h3            { font-size: 12pt; margin-top: 1.5em; }
+@page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+@page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
+@page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+@page         { @bottom-center { content: counter(page); font-size: 10pt; font-family: Georgia, serif; } }
+/* Page margins own the print measure; pandoc's screen padding must not narrow it. */
+body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 12pt; line-height: 1.4; }
+h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
+h2            { font-size: 16pt; margin-top: 2em; }
+h3            { font-size: 14pt; margin-top: 1.5em; }
 p             { margin: 0; text-indent: 1.5em; }
 p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
-table         { border-collapse: collapse; margin: 1em auto; font-size: 10pt; }
+table         { border-collapse: collapse; margin: 1em auto; font-size: 11pt; }
 th, td        { border: 1px solid #666; padding: 4px 8px; }
 th            { background: #eee; }
-code          { font-size: 9pt; background: #f4f4f4; padding: 1px 3px; overflow-wrap: anywhere; }
-pre           { font-size: 9pt; background: #f4f4f4; padding: 8px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
+code          { font-size: 10pt; background: #f4f4f4; padding: 1px 3px; overflow-wrap: anywhere; }
+pre           { font-size: 10pt; background: #f4f4f4; padding: 8px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
 /* One overflowing example makes Chrome shrink the ENTIRE printed book.
    Override pandoc's unbreakable code spans, including its print hanging indent.
    Wrap long tokens only when necessary; never fit the page by shrinking type. */

@@ -237,21 +237,22 @@
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
   <style>
-  @page         { size: 6in 9in; margin: 0.75in 0.25in  0.75in 0.625in; }
-  @page :left   { size: 6in 9in; margin: 0.75in 0.625in 0.75in 0.25in;  }
-  @page :right  { size: 6in 9in; margin: 0.75in 0.25in  0.75in 0.625in; }
-  @page         { @bottom-center { content: counter(page); font-size: 9pt; font-family: Georgia, serif; } }
-  body          { font-family: Georgia, serif; font-size: 11pt; line-height: 1.4; }
-  h1            { font-size: 16pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
-  h2            { font-size: 14pt; margin-top: 2em; }
-  h3            { font-size: 12pt; margin-top: 1.5em; }
+  @page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+  @page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
+  @page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+  @page         { @bottom-center { content: counter(page); font-size: 10pt; font-family: Georgia, serif; } }
+  /* Page margins own the print measure; pandoc's screen padding must not narrow it. */
+  body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 12pt; line-height: 1.4; }
+  h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
+  h2            { font-size: 16pt; margin-top: 2em; }
+  h3            { font-size: 14pt; margin-top: 1.5em; }
   p             { margin: 0; text-indent: 1.5em; }
   p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
-  table         { border-collapse: collapse; margin: 1em auto; font-size: 10pt; }
+  table         { border-collapse: collapse; margin: 1em auto; font-size: 11pt; }
   th, td        { border: 1px solid #666; padding: 4px 8px; }
   th            { background: #eee; }
-  code          { font-size: 9pt; background: #f4f4f4; padding: 1px 3px; overflow-wrap: anywhere; }
-  pre           { font-size: 9pt; background: #f4f4f4; padding: 8px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
+  code          { font-size: 10pt; background: #f4f4f4; padding: 1px 3px; overflow-wrap: anywhere; }
+  pre           { font-size: 10pt; background: #f4f4f4; padding: 8px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
   /* One overflowing example makes Chrome shrink the ENTIRE printed book.
      Override pandoc's unbreakable code spans, including its print hanging indent.
      Wrap long tokens only when necessary; never fit the page by shrinking type. */
@@ -284,86 +285,86 @@
 <li><a href="#preface" id="toc-preface">Preface</a><span class="tocpg">5</span></li>
 <li><a href="#chapter-0-the-perpetual-machine"
 id="toc-chapter-0-the-perpetual-machine">Chapter 0: The Perpetual
-Machine</a><span class="tocpg">13</span></li>
+Machine</a><span class="tocpg">12</span></li>
 <li><a href="#chapter-1-one-loop-sixty-billion-dollars"
 id="toc-chapter-1-one-loop-sixty-billion-dollars">Chapter 1: One Loop,
-Sixty Billion Dollars</a><span class="tocpg">24</span></li>
+Sixty Billion Dollars</a><span class="tocpg">21</span></li>
 <li><a href="#chapter-2-one-log-three-vendors"
 id="toc-chapter-2-one-log-three-vendors">Chapter 2: One Log, Three
-Vendors</a><span class="tocpg">46</span></li>
+Vendors</a><span class="tocpg">39</span></li>
 <li><a
 href="#chapter-3-six-tools-ninety-two-percent-of-an-ai-coding-agent"
 id="toc-chapter-3-six-tools-ninety-two-percent-of-an-ai-coding-agent">Chapter
-3: Six Tools, Ninety-Two Percent of an AI Coding Agent</a><span class="tocpg">94</span></li>
+3: Six Tools, Ninety-Two Percent of an AI Coding Agent</a><span class="tocpg">78</span></li>
 <li><a
 href="#chapter-4-jobs-or-why-a-tool-call-is-a-process-you-supervise"
 id="toc-chapter-4-jobs-or-why-a-tool-call-is-a-process-you-supervise">Chapter
-4: Jobs, or Why a Tool Call Is a Process You Supervise</a><span class="tocpg">126</span></li>
+4: Jobs, or Why a Tool Call Is a Process You Supervise</a><span class="tocpg">103</span></li>
 <li><a href="#chapter-5-two-seams-and-a-loop"
 id="toc-chapter-5-two-seams-and-a-loop">Chapter 5: Two Seams and a
-Loop</a><span class="tocpg">162</span></li>
+Loop</a><span class="tocpg">132</span></li>
 <li><a href="#chapter-6-streaming-or-the-same-answer-in-pieces"
 id="toc-chapter-6-streaming-or-the-same-answer-in-pieces">Chapter 6:
-Streaming, or the Same Answer in Pieces</a><span class="tocpg">196</span></li>
+Streaming, or the Same Answer in Pieces</a><span class="tocpg">160</span></li>
 <li><a href="#chapter-7-everything-is-an-artifact"
 id="toc-chapter-7-everything-is-an-artifact">Chapter 7: Everything Is an
-Artifact</a><span class="tocpg">226</span></li>
+Artifact</a><span class="tocpg">184</span></li>
 <li><a href="#chapter-8-build-your-dream-gui"
 id="toc-chapter-8-build-your-dream-gui">Chapter 8: Build Your Dream
-GUI</a><span class="tocpg">250</span></li>
+GUI</a><span class="tocpg">203</span></li>
 <li><a href="#chapter-9-skills" id="toc-chapter-9-skills">Chapter 9:
-Skills</a><span class="tocpg">269</span></li>
+Skills</a><span class="tocpg">219</span></li>
 <li><a href="#chapter-10-persistence"
-id="toc-chapter-10-persistence">Chapter 10: Persistence</a><span class="tocpg">284</span></li>
+id="toc-chapter-10-persistence">Chapter 10: Persistence</a><span class="tocpg">232</span></li>
 <li><a href="#chapter-11-mcp-the-extension-protocol"
 id="toc-chapter-11-mcp-the-extension-protocol">Chapter 11: MCP: The
-Extension Protocol</a><span class="tocpg">299</span></li>
+Extension Protocol</a><span class="tocpg">244</span></li>
 <li><a href="#chapter-12-the-agent-sees-itself"
 id="toc-chapter-12-the-agent-sees-itself">Chapter 12: The Agent Sees
-Itself</a><span class="tocpg">316</span></li>
+Itself</a><span class="tocpg">258</span></li>
 <li><a href="#chapter-13-the-channel-nobody-tested"
 id="toc-chapter-13-the-channel-nobody-tested">Chapter 13: The Channel
-Nobody Tested</a><span class="tocpg">341</span></li>
+Nobody Tested</a><span class="tocpg">278</span></li>
 <li><a
 href="#chapter-14-the-worlds-best-context-engineering-before-breakfast"
 id="toc-chapter-14-the-worlds-best-context-engineering-before-breakfast">Chapter
-14: The World’s Best Context Engineering, Before Breakfast</a><span class="tocpg">365</span></li>
+14: The World’s Best Context Engineering, Before Breakfast</a><span class="tocpg">297</span></li>
 <li><a href="#chapter-15-forgetting-on-purpose"
 id="toc-chapter-15-forgetting-on-purpose">Chapter 15: Forgetting on
-Purpose</a><span class="tocpg">399</span></li>
+Purpose</a><span class="tocpg">324</span></li>
 <li><a href="#chapter-16-auto-recall"
-id="toc-chapter-16-auto-recall">Chapter 16: Auto-Recall</a><span class="tocpg">429</span></li>
+id="toc-chapter-16-auto-recall">Chapter 16: Auto-Recall</a><span class="tocpg">348</span></li>
 <li><a href="#chapter-17-the-invisible-invoice"
 id="toc-chapter-17-the-invisible-invoice">Chapter 17: The Invisible
-Invoice</a><span class="tocpg">454</span></li>
+Invoice</a><span class="tocpg">368</span></li>
 <li><a href="#chapter-18-leaving-anthropic-for-openai"
 id="toc-chapter-18-leaving-anthropic-for-openai">Chapter 18: Leaving
-Anthropic for OpenAI</a><span class="tocpg">483</span></li>
+Anthropic for OpenAI</a><span class="tocpg">391</span></li>
 <li><a href="#chapter-19-the-crossover"
-id="toc-chapter-19-the-crossover">Chapter 19: The Crossover</a><span class="tocpg">511</span></li>
+id="toc-chapter-19-the-crossover">Chapter 19: The Crossover</a><span class="tocpg">413</span></li>
 <li><a href="#chapter-20-giving-the-agent-the-web-and-a-status-line"
 id="toc-chapter-20-giving-the-agent-the-web-and-a-status-line">Chapter
-20: Giving the Agent the Web, and a Status Line</a><span class="tocpg">534</span></li>
+20: Giving the Agent the Web, and a Status Line</a><span class="tocpg">431</span></li>
 <li><a href="#chapter-21-the-sandbox"
-id="toc-chapter-21-the-sandbox">Chapter 21: The Sandbox</a><span class="tocpg">570</span></li>
+id="toc-chapter-21-the-sandbox">Chapter 21: The Sandbox</a><span class="tocpg">460</span></li>
 <li><a href="#chapter-22-the-ensemble"
-id="toc-chapter-22-the-ensemble">Chapter 22: The Ensemble</a><span class="tocpg">600</span></li>
+id="toc-chapter-22-the-ensemble">Chapter 22: The Ensemble</a><span class="tocpg">485</span></li>
 <li><a href="#chapter-23-managing-the-swarm"
 id="toc-chapter-23-managing-the-swarm">Chapter 23: Managing the
-Swarm</a><span class="tocpg">635</span></li>
+Swarm</a><span class="tocpg">513</span></li>
 <li><a href="#chapter-24-while-the-cache-is-broken"
 id="toc-chapter-24-while-the-cache-is-broken">Chapter 24: While the
-Cache Is Broken</a><span class="tocpg">656</span></li>
+Cache Is Broken</a><span class="tocpg">530</span></li>
 <li><a href="#chapter-25-crossing-over-to-ensemble"
 id="toc-chapter-25-crossing-over-to-ensemble">Chapter 25: Crossing Over
-to Ensemble</a><span class="tocpg">663</span></li>
+to Ensemble</a><span class="tocpg">535</span></li>
 <li><a href="#chapter-26-gateway" id="toc-chapter-26-gateway">Chapter
-26: Gateway</a><span class="tocpg">664</span></li>
+26: Gateway</a><span class="tocpg">536</span></li>
 <li><a href="#epilogue-what-the-student-changed"
 id="toc-epilogue-what-the-student-changed">Epilogue: What the student
-changed</a><span class="tocpg">693</span></li>
+changed</a><span class="tocpg">559</span></li>
 <li><a href="#a-note-from-bill" id="toc-a-note-from-bill">A Note from
-Bill</a><span class="tocpg">697</span></li>
+Bill</a><span class="tocpg">562</span></li>
 </ul>
 </nav>
 <div style="page-break-after: always;"></div>
