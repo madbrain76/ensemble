@@ -507,13 +507,18 @@ Three numbers get confused. Do not add them together.
 against fake servers, so the default is zero. Watch your agent talk to a real
 model at least once; budget twenty to a hundred dollars for the whole book.
 
-**Building the agent: $1,000 to $10,000, preferably less.** This is what you
-will spend on whatever AI coding agent you work with, across the whole book, to build
-the exercises to production quality. It is not tokens your program burns. It
-is the going rate in 2026 for building a serious piece of software quickly,
-and at the end you own a coding agent that competes with the ones that cost
-$60 billion. My target is that you come in under ten. If the book makes you
-spend more, that is a defect in the book.
+**Building the agent: roughly $500 with GPT-6 Astra at high reasoning.**
+That is my experience-based expectation if you use the $500/month GPT Pro
+plan and finish within four weeks. Building Edition 1 with CodeRhapsody cost
+me $3,000 in Claude Opus 5 API usage. For Edition 2 with Astra in Codex, I
+paid $500 for the subscription and $125 twice to replenish the weekly token
+allowance: $750 total, one quarter of the earlier outlay. Almost four weeks
+of the subscription remain, along with more than 80% of the second
+replenishment. Based on what I actually used, I estimate Astra was about
+five times cheaper. I expect similar costs using Ensemble, but that has not
+been measured. The plan has usage allowances, and additional replenishments
+add to the price. This is the cost of the assistant helping you build the
+exercises, separate from tokens your finished agent consumes.
 
 ## What you need
 

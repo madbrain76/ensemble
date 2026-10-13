@@ -55,6 +55,9 @@ purpose: no chapter count is fixed until a chapter is built.
 - Message board for agents to collaborate.
 - Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
 - Goals: messages that don't compact away until explicity marked as done.
+- Android and/or iPhone apps to interact with agents.  In particular, I want to remotely code via my phone, listing at high speed, talking to control the agent, so I can code while I mountain bike through the hills on fire roads.
+- Switch OpenAI to reuse the Codex OAuth key, and hit the codex endpoing, until OpenAI fixes their official OAuth flow.
+- Multimedia: paste/attach/read_file images, maybe voice, and what else?
 
 ## AI Native chapters already covered here
 
