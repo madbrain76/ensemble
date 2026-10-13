@@ -176,3 +176,29 @@ page also renders readably in Chrome. The [independent review](edition-2-notes/p
 records the precise scope. Kindle Previewer, KDP print preview, physical proof
 and Bill's editorial read-through have not been performed.
 These local artifacts are reading copies, not a published edition.
+
+## October 13: correct print scaling after publication
+
+Bill reports the book is published and requests a second-edition readability
+fix. Comparing the assembled manuscripts showed 158,623 whitespace-separated
+words in Edition 2 versus 129,538 in Edition 1. The 372-page second-edition
+interior nevertheless printed its declared 11pt body at 7.33pt and its 9pt
+code at 6pt. Long code tokens and table cells overflowed; Chrome scaled the
+whole document down. The archived first edition also shrinks, but less.
+Earlier checks of page dimensions and representative screenshots missed this.
+
+The coordinator corrected print CSS to wrap long tokens and override pandoc's
+inline-block code spans and hanging indent. At the printable width, the full
+HTML now has no horizontal overflow. The PDF measures 10.99pt body (rounding
+from 11pt) and minimum 9pt code. The print build now checks those actual sizes
+with PyMuPDF; running that check against the previous PDF correctly rejects
+its 7.33pt/6pt type. No manuscript or first-edition content was changed.
+
+The rebuilt interior has 697 pages; the cover-prefixed PDF has 698. All pages
+remain 6 x 9 inches, all 30 contents references match actual chapter pages,
+and no extracted word extends outside its page. Visual inspection covered the
+previously overflowing JSON example, code, tables and a chapter opening.
+The preface, chapter sources, assembled Markdown, cover image and EPUB retain
+their pre-fix hashes. These are local replacement PDFs; no upload or change to
+the published listing was made. A physical print proof remains unperformed,
+and a paperback cover's spine must match the new page count before reprinting.

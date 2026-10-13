@@ -7,7 +7,10 @@ pass. This renders once, reads where each chapter actually landed, injects those
 numbers, renders again, then re-reads to prove pagination did not shift.
 """
 import re, subprocess, sys
+from collections import Counter
 from pathlib import Path
+
+import pymupdf
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BOOK = Path(__file__).resolve().parent
@@ -28,6 +31,37 @@ def page_texts(pdf: Path) -> list[str]:
     out = subprocess.run(["pdftotext", str(pdf), "-"],
                          capture_output=True, text=True, timeout=300, check=True).stdout
     return out.split("\f")
+
+
+def check_type_size(pdf: Path) -> None:
+    """Check printed type, since CSS can say 11pt while Chrome prints 7pt.
+
+    Count characters rather than spans so short headings and page numbers
+    cannot outweigh body prose. Code must retain its intended size everywhere.
+    Small rounding differences in Chrome's PDF coordinates are harmless.
+    """
+    body = Counter()
+    code_sizes = []
+    with pymupdf.open(pdf) as document:
+        for page in document:
+            for block in page.get_text("dict")["blocks"]:
+                for line in block.get("lines", []):
+                    for span in line["spans"]:
+                        if not span["text"].strip():
+                            continue
+                        size = round(span["size"], 2)
+                        if span["font"] == "Georgia":
+                            body[size] += len(span["text"])
+                        if span["font"].startswith("Menlo"):
+                            code_sizes.append(size)
+    if not body or not code_sizes:
+        sys.exit("FATAL: could not measure the expected body and code fonts")
+    body_size = body.most_common(1)[0][0]
+    code_size = min(code_sizes)
+    if abs(body_size - 11) > 0.1 or code_size < 8.9:
+        sys.exit(f"FATAL: printed type is {body_size}pt body / {code_size}pt code; "
+                 "expected 11pt / 9pt. Check overflowing code and tables.")
+    print(f"  printed type: {body_size}pt body, minimum {code_size}pt code")
 
 
 def first_line(page: str) -> str:
@@ -203,6 +237,7 @@ def main() -> None:
 
     print("pass 1: render")
     render(src, pdf)
+    check_type_size(pdf)
     m1 = build_map(pdf, titles)
     print(f"  matched {len(m1)}/{len(titles)} headings")
     missing = [t for t in titles if t not in m1]
@@ -227,6 +262,7 @@ def main() -> None:
     else:
         print("  stable: pagination identical across passes")
 
+    check_type_size(pdf)
     n = subprocess.run(["pdfinfo", str(pdf)], capture_output=True, text=True).stdout
     print("\n" + "\n".join(l for l in n.splitlines() if l.startswith(("Pages", "Page size"))))
 

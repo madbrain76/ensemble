@@ -8,7 +8,8 @@ first-edition files and build instructions remain in `edition-1/book/`.
 
 Use Python 3 and pandoc. Print production also needs Google Chrome and the
 Poppler tools `pdftotext`, `pdfinfo` and `pdfunite`. The cover-page conversion
-below uses Pillow. The scripts report missing prerequisites.
+below uses Pillow. The print build uses PyMuPDF to check actual PDF font sizes
+(`python3 -m pip install pymupdf`).
 
 Run from the repository root:
 
@@ -57,6 +58,11 @@ agree with the resulting chapter pages. The print CSS supplies mirrored margins,
 page numbers, chapter breaks and wrapping code blocks on a 6 × 9 inch page.
 Print code uses black text on white, retaining syntax bold and italic emphasis;
 the EPUB keeps its separate color styling.
+Long code tokens and table cells wrap rather than making Chrome shrink the
+entire document. The build measures the PDF itself and rejects reduced body
+or code type: body text must remain 11pt and code at least 9pt, allowing small
+PDF-coordinate rounding differences. Checking CSS declarations alone misses
+Chrome's automatic scaling.
 Inspect the resulting PDF as well as the script's result, particularly long code
 lines, tables, chapter starts and page footers.
 

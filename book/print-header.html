@@ -12,8 +12,14 @@ p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
 table         { border-collapse: collapse; margin: 1em auto; font-size: 10pt; }
 th, td        { border: 1px solid #666; padding: 4px 8px; }
 th            { background: #eee; }
-code          { font-size: 9pt; background: #f4f4f4; padding: 1px 3px; }
-pre           { font-size: 9pt; background: #f4f4f4; padding: 8px; overflow-x: auto; white-space: pre-wrap; }
+code          { font-size: 9pt; background: #f4f4f4; padding: 1px 3px; overflow-wrap: anywhere; }
+pre           { font-size: 9pt; background: #f4f4f4; padding: 8px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* One overflowing example makes Chrome shrink the ENTIRE printed book.
+   Override pandoc's unbreakable code spans, including its print hanging indent.
+   Wrap long tokens only when necessary; never fit the page by shrinking type. */
+pre code, pre > code.sourceCode { white-space: pre-wrap; overflow-wrap: anywhere; }
+pre > code.sourceCode > span { display: inline; text-indent: 0; padding-left: 0; }
+th, td        { overflow-wrap: anywhere; }
 /* Black ink on white paper: preserve syntax emphasis without pale token colors. */
 pre, code, div.sourceCode, pre *, code * {
   color: #000 !important;
