@@ -367,6 +367,10 @@ func (m *manager) Begin() {
 // Idle applies reactive correction only to a successful turn; the actor never
 // calls it for transport, persistence or interruption failures.
 func (m *manager) Idle() (string, string) {
+	// Human-facing Agents finish in chat. Only delegated Agents owe a submit.
+	if m.parent.ParentAgent() == nil {
+		return "", ""
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.submitted || m.stopped {

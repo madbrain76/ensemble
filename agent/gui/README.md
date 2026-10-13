@@ -61,6 +61,11 @@ writer per connection. Slow live receivers may drop progress; reconnect restores
 authoritative content. Replay itself is one queued batch and is not truncated by
 the progress buffer. Close joins socket writers before the application closes logs.
 
+With the `gui-debug` skill loaded, the Agent can call `gui_snapshot` and
+`tts_queue` to inspect the connected browser and pending speech on demand.
+Neither observation is collected or attached automatically before model requests.
+After a GUI action, request a fresh snapshot to verify its effect.
+
 Run `go test -race ./...` and `go vet ./...` here, separately from the core module.
 Browser/native speech checks and targeted mutation evidence are documented in
 [the original Chapter 8 record](../../docs/edition-2-notes/ch08.md) in the outer

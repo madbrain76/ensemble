@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"ensemble/ensemble"
 )
@@ -266,5 +267,56 @@ func TestCodexAuxiliaryRequests(t *testing.T) {
 	}
 	if value, err := a.Engine().Compress(context.Background(), "Remember the reason", 2); err != nil || value != "I retained the reason." {
 		t.Fatalf("compress: %q %v", value, err)
+	}
+}
+
+// The launcher configures summaries through the environment. Verify that the
+// real Codex request carries that choice, independently of provider verbosity.
+func TestCodexDetailedSummaryFromEnvironment(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "auth.json")
+	writeCodex(t, file, "fixture-token", "fixture-account")
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+			http.Error(w, "bad JSON", http.StatusBadRequest)
+			return
+		}
+		reasoning, _ := body["reasoning"].(map[string]any)
+		if reasoning["summary"] != "detailed" || reasoning["effort"] != "high" {
+			t.Errorf("reasoning options did not reach provider: %v", reasoning)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","model":"gpt-6-astra","output":[{"type":"message","content":[{"type":"output_text","text":"Done."}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
+	}))
+	defer server.Close()
+	for key, value := range map[string]string{
+		"LLM_VENDOR": "openai", "LLM_MODEL": "gpt-6-astra", "LLM_BASE_URL": server.URL,
+		"OPENAI_BILLING_MODE": "codex", "EN_CODEX_AUTH_FILE": file,
+		"OPENAI_REASONING_EFFORT": "high", "OPENAI_REASONING_SUMMARY": "detailed",
+	} {
+		t.Setenv(key, value)
+	}
+	cfg, err := ensemble.ConfigFromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.DataDir, cfg.Workspace = t.TempDir(), t.TempDir()
+	cfg.SystemPrompt = "Be concise."
+	cfg.Recall.Disabled = true
+	a, err := ensemble.New(io.Discard).NewAgent(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err := a.Ask(ctx, "Check request settings."); err != nil {
+		t.Fatal(err)
+	}
+	if calls.Load() != 1 {
+		t.Fatalf("provider calls: %d", calls.Load())
 	}
 }

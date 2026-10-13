@@ -2,10 +2,10 @@
 // renderer independent of tools, and every reply uses its original request ID.
 export function browserMCP(send, speech) {
   const tools = [
-    { name: "gui_snapshot", description: "Visible panes, controls and artifact previews", ephemeral: "round", inputSchema: { type: "object", properties: {} } },
+    { name: "gui_snapshot", description: "Visible panes, controls and artifact previews", inputSchema: { type: "object", properties: {} } },
     { name: "gui_click", description: "Click a visible control by CSS selector", inputSchema: { type: "object", properties: { selector: { type: "string" } }, required: ["selector"] } },
     { name: "gui_input", description: "Set an input value and dispatch input/change", inputSchema: { type: "object", properties: { selector: { type: "string" }, text: { type: "string" } }, required: ["selector", "text"] } },
-    { name: "tts_queue", description: "Pending utterances with state and timing", ephemeral: "round", inputSchema: { type: "object", properties: {} } },
+    { name: "tts_queue", description: "Pending utterances with state and timing", inputSchema: { type: "object", properties: {} } },
   ];
   return (request) => {
     if (request.id === undefined) return; // Initialized/cancel are notifications.

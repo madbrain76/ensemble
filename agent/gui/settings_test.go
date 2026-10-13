@@ -53,10 +53,10 @@ func TestSettingsWireAndDisk(t *testing.T) {
 		events := until(t, peer, kind(expected))
 		return events[len(events)-1]
 	}
-	patch(map[string]any{"theme": "light", "tts_speed": 1.7, "font_size": 20, "max_tool_rounds": 3, "context_target": 100, "log_retention": 7, "memory": map[string]any{"session": map[string]any{"budget": 80, "disabled": true}}})
+	patch(map[string]any{"theme": "light", "tts_speed": 4.2, "font_size": 20, "max_tool_rounds": 3, "context_target": 100, "log_retention": 7, "memory": map[string]any{"session": map[string]any{"budget": 80, "disabled": true}}})
 	for _, peer := range []*websocket.Conn{first, second} {
 		s := read(peer, "settings_changed")["settings"].(map[string]any)
-		if s["theme"] != "light" || s["tts_speed"] != 1.7 || s["font_size"] != float64(20) || s["max_tool_rounds"] != float64(3) || s["context_target"] != float64(20000) || s["log_retention"] != float64(7) {
+		if s["theme"] != "light" || s["tts_speed"] != 4.2 || s["font_size"] != float64(20) || s["max_tool_rounds"] != float64(3) || s["context_target"] != float64(20000) || s["log_retention"] != float64(7) {
 			t.Fatal("roundtrip/broadcast", s)
 		}
 		memory := s["memory"].(map[string]any)["session"].(map[string]any)
@@ -71,14 +71,14 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	patch(map[string]any{"tts_enabled": false, "max_tool_rounds": 0, "memory": map[string]any{"session": map[string]any{"disabled": false}}})
 	for _, peer := range []*websocket.Conn{first, second} {
 		s := read(peer, "settings_changed")["settings"].(map[string]any)
-		if s["tts_enabled"] != false || s["max_tool_rounds"] != float64(0) || s["theme"] != "light" || s["tts_speed"] != 1.7 {
+		if s["tts_enabled"] != false || s["max_tool_rounds"] != float64(0) || s["theme"] != "light" || s["tts_speed"] != 4.2 {
 			t.Fatal("patch lost false/zero or absent fields", s)
 		}
 	}
 	_, restored := start()
 	peer := dial(t, restored.URL)
 	s := read(peer, "current_settings")["settings"].(map[string]any)
-	if s["theme"] != "light" || s["tts_enabled"] != false || s["tts_speed"] != 1.7 || s["context_target"] != float64(20000) || s["log_retention"] != float64(7) {
+	if s["theme"] != "light" || s["tts_enabled"] != false || s["tts_speed"] != 4.2 || s["context_target"] != float64(20000) || s["log_retention"] != float64(7) {
 		t.Fatal("restart lost preferences", s)
 	}
 	memory := s["memory"].(map[string]any)["session"].(map[string]any)
@@ -122,7 +122,7 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	}
 	_, loaded := start()
 	s = read(dial(t, loaded.URL), "current_settings")["settings"].(map[string]any)
-	if s["theme"] != "dark" || s["tts_enabled"] != false || s["tts_speed"] != float64(2) || s["font_size"] != float64(12) || s["max_tool_rounds"] != float64(0) {
+	if s["theme"] != "dark" || s["tts_enabled"] != false || s["tts_speed"] != float64(5) || s["font_size"] != float64(12) || s["max_tool_rounds"] != float64(0) {
 		t.Fatal("disk not clamped", s)
 	}
 	if err := os.WriteFile(path, json.RawMessage(`{"theme":`), 0600); err != nil {

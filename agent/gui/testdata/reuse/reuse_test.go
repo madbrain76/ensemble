@@ -87,7 +87,7 @@ func TestPublicEvents(t *testing.T) {
 	}
 }
 
-// Both asset sources are exercised positively, then only two embedded modules
+// Both asset sources are exercised positively, then independent embedded modules
 // are mounted. An independent browser imports the component without app.js.
 func TestReusableAssets(t *testing.T) {
 	root := ensemble.New(io.Discard)
@@ -122,7 +122,7 @@ func TestReusableAssets(t *testing.T) {
 		}
 	}
 	components := http.NewServeMux()
-	for _, name := range []string{"artifact-scroll.js", "renderers.js"} {
+	for _, name := range []string{"artifact-scroll.js", "renderers.js", "mcp.js"} {
 		components.HandleFunc("/"+name, func(w http.ResponseWriter, r *http.Request) {
 			data, err := fs.ReadFile(gui.Assets(), name)
 			if err != nil {

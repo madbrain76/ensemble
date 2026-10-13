@@ -20,7 +20,8 @@ type Settings struct {
 	Theme string `json:"theme"`
 	// TTSEnabled controls automatic speech in connected browsers.
 	TTSEnabled bool `json:"tts_enabled"`
-	// TTSSpeed is the native speech rate, bounded to 0.5 through 2.
+	// TTSSpeed is the approximate speed multiplier, bounded to 0.5 through 5.
+	// The browser calibrates its native rate for Eloquence above 2x.
 	TTSSpeed float64 `json:"tts_speed"`
 	// FontSize is the interface text size in pixels, bounded to 12 through 24.
 	FontSize int `json:"font_size"`
@@ -47,7 +48,7 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 	default:
 		current.Theme = "dark"
 	}
-	current.TTSSpeed = max(0.5, min(2, current.TTSSpeed))
+	current.TTSSpeed = max(0.5, min(5, current.TTSSpeed))
 	current.FontSize = max(12, min(24, current.FontSize))
 	current.MaxToolRounds = max(0, current.MaxToolRounds)
 	current.ContextTarget = max(0, current.ContextTarget)

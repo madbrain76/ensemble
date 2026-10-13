@@ -5,6 +5,12 @@ import (
 	"errors"
 )
 
+// These instructions belong to delegated Agents, never the human-facing root.
+const subAgentInstructions = `You are a delegated sub-agent. Ask your parent questions with send_message_to_parent
+and answer child questions with respond_to_parent_message. Join or shut down
+unfinished children, then call submit with your completed result. Ordinary text
+does not submit your work.`
+
 // AgentFactory supplies application-specific child configuration and construction.
 type AgentFactory func(parent Agent, spec AgentSpec) (Agent, error)
 

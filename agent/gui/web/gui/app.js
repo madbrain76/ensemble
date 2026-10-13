@@ -64,7 +64,13 @@ class Speech {
     utterance.queued_at = pending.queued_at;
     utterance.started_at = null;
     utterance.onstart = () => { utterance.started_at = Date.now(); };
-    utterance.rate = Number(document.querySelector("#tts-speed").value);
+    // Eloquence accelerates nonlinearly above rate 2. Bill's observed
+    // anchors are 2x at 2.0, about 3.5x at 2.6 and 5x at 2.9. Interpolate
+    // those rather than passing 5 to the engine; other voices may differ.
+    const speed = Number(document.querySelector("#tts-speed").value);
+    utterance.rate = speed <= 2 ? speed
+      : speed <= 3.5 ? 2 + (speed - 2) * 0.4
+      : 2.6 + (speed - 3.5) * 0.2;
     this.active = utterance;
     const done = (event) => {
       if (this.active !== utterance) return; // A cancelled utterance cannot finish a newer one.

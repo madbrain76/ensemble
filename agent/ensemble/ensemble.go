@@ -307,6 +307,12 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		}
 		a.SetSystemPrompt(prompt)
 	}
+	if parent != nil {
+		// A primary skill may replace the inherited prompt. Append the role only
+		// after loading it, without duplicating instructions for grandchildren.
+		prompt := strings.TrimSuffix(a.Engine().SystemPrompt(), "\n\n"+subAgentInstructions)
+		a.SetSystemPrompt(prompt + "\n\n" + subAgentInstructions)
+	}
 	if err := recall.Validate(cfg.Recall); err != nil {
 		return nil, err
 	}

@@ -202,9 +202,9 @@ func TestFleetRecursiveQuestionsIsolation(t *testing.T) {
 	}
 }
 
-// The bound is literal: three reactive wakes produce four total requests, then
-// human escalation. HTTP failure has one request and no automatic retry.
-func TestFleetIdleBoundAndFailedTurn(t *testing.T) {
+// A human-facing root finishes without submit or reactive correction. Provider
+// failures likewise remain one failed request rather than becoming retries.
+func TestFleetRootFinishesWithoutSubmit(t *testing.T) {
 	for _, fail := range []bool{false, true} {
 		t.Run(fmt.Sprint(fail), func(t *testing.T) {
 			var calls atomic.Int32
@@ -218,40 +218,21 @@ func TestFleetIdleBoundAndFailedTurn(t *testing.T) {
 			}))
 			t.Cleanup(server.Close)
 			a, inbox, _ := fleetAgent(t, server)
-			_, err := a.Ask(context.Background(), "idle test")
-			if fail {
-				if err == nil || calls.Load() != 1 {
-					t.Fatalf("failed turn retried: calls=%d err=%v", calls.Load(), err)
-				}
-				return
-			}
-			if err != nil || calls.Load() != 4 {
-				t.Fatalf("three-wake bound: calls=%d err=%v", calls.Load(), err)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			result, err := a.Ask(ctx, "idle test")
+			if (err != nil) != fail || calls.Load() != 1 || (!fail && result != "plain idle answer") {
+				t.Fatalf("root completion: calls=%d result=%q err=%v", calls.Load(), result, err)
 			}
 			select {
 			case m := <-inbox:
-				if m.From != "main" || m.To != "Bill" || !strings.Contains(m.Content, "three framework wakes") {
-					t.Fatal(m)
-				}
+				t.Fatalf("root escalated ordinary completion: %+v", m)
 			default:
-				t.Fatal("root escalation never reached human")
 			}
-			wakes := 0
-			notices := 0
 			for _, e := range a.History().EventsAfter(0) {
-				if e.Message != nil {
-					for _, p := range e.Message.Parts {
-						if strings.HasPrefix(p.Text, "Framework wake ") {
-							wakes++
-						}
-					}
+				if e.Type == "fleet_notice" || (e.Message != nil && strings.Contains(fmt.Sprint(e.Message.Parts), "Framework wake ")) {
+					t.Fatal("root received a submission correction", e)
 				}
-				if e.Type == "fleet_notice" {
-					notices++
-				}
-			}
-			if wakes != 3 || notices != 1 {
-				t.Fatalf("wake/escalation log missing: %d/%d", wakes, notices)
 			}
 		})
 	}
@@ -387,19 +368,20 @@ func TestFleetLifecycleAndRestore(t *testing.T) {
 	if err := a.Fleet().Submit("parent complete"); err != nil {
 		t.Fatal(err)
 	}
+	worker := (*children)[len(*children)-1]
 	// A successful submission resets the literal correction counter for new work.
 	for i := 0; i < 2; i++ {
-		a.Fleet().Begin()
+		worker.Fleet().Begin()
 		for wake := 1; wake <= 3; wake++ {
-			correction, escalation := a.Fleet().Idle()
+			correction, escalation := worker.Fleet().Idle()
 			if correction == "" || escalation != "" {
 				t.Fatalf("wake %d after submit: %q/%q", wake, correction, escalation)
 			}
 		}
-		if correction, escalation := a.Fleet().Idle(); correction != "" || escalation == "" {
+		if correction, escalation := worker.Fleet().Idle(); correction != "" || escalation == "" {
 			t.Fatal("unbounded correction")
 		}
-		if err := a.Fleet().Submit("reset"); err != nil {
+		if err := worker.Fleet().Submit("reset"); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -545,30 +527,85 @@ func TestFleetSameNameQuestionCorrelation(t *testing.T) {
 }
 
 // A child that exhausted correction is stopped without a submission, not still
-// running. Preserve that failure for status/join after escalation reaches a human.
+// running. Preserve that failure for status/join after escalation reaches its parent.
 func TestFleetEscalatedChildStatus(t *testing.T) {
 	var requests atomic.Int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { requests.Add(1); replyText(w, "unsubmitted prose") }))
+	parentNotified := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if requests.Add(1) == 5 {
+			close(parentNotified)
+		}
+		replyText(w, "unsubmitted prose")
+	}))
 	t.Cleanup(server.Close)
-	a, inbox, _ := fleetAgent(t, server)
+	a, _, _ := fleetAgent(t, server)
 	if _, err := a.Fleet().Spawn("worker", "TASK", ""); err != nil {
 		t.Fatal(err)
 	}
 	select {
-	case <-inbox:
+	case <-parentNotified:
 	case <-time.After(2 * time.Second):
-		t.Fatal("escalation never reached human")
+		t.Fatal("escalation never reached parent")
 	}
 	statuses := a.Fleet().List()
 	if len(statuses) != 1 || statuses[0].State != "failed" || statuses[0].Result != "" || !strings.Contains(statuses[0].Error, "three framework wakes") {
 		t.Fatal("exhausted child still claims running", statuses)
 	}
-	if requests.Load() != 8 {
-		t.Fatal("child/root correction was not bounded", requests.Load())
+	// A follow-up ask waits behind the parent's escalation turn, so the count
+	// checks completed turns rather than racing its response handling.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := a.Ask(ctx, "follow-up"); err != nil {
+		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	if requests.Load() != 6 {
+		t.Fatal("expected four child requests and two ordinary parent turns", requests.Load())
+	}
+	ctx, cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 	if _, err := a.Fleet().Join(ctx, []string{"worker"}); err == nil || !strings.Contains(err.Error(), "three framework wakes") {
 		t.Fatal("join concealed child failure", err)
+	}
+}
+
+// Role instructions follow the actual parent relationship, even when a primary
+// skill replaces the prompt or a grandchild inherits its parent's configuration.
+func TestFleetSubmissionInstructionsOnlyForChildren(t *testing.T) {
+	for _, primary := range []bool{false, true} {
+		t.Run(fmt.Sprint(primary), func(t *testing.T) {
+			app := ensemble.New(io.Discard)
+			spec := ensemble.AgentSpec{ID: "main", DataDir: t.TempDir()}
+			if primary {
+				var err error
+				spec.SkillsDir, err = filepath.Abs("../skills")
+				if err != nil {
+					t.Fatal(err)
+				}
+				spec.PrimarySkill = "ensemble"
+			}
+			root, err := app.NewAgent(ensemble.Config{Model: "fake", BuiltinTools: true, SystemPrompt: "Original instructions."}, spec)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { root.Shutdown() })
+			marker := "You are a delegated sub-agent."
+			if strings.Contains(root.Engine().SystemPrompt(), marker) || strings.Contains(root.Engine().SystemPrompt(), "Ordinary text does not submit") {
+				t.Fatal("root acquired child completion instructions")
+			}
+			parent := root
+			for _, id := range []string{"child", "grandchild"} {
+				spec.ID, spec.DataDir = id, t.TempDir()
+				child, err := app.NewChildAgent(parent, parent.Config(), spec)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() { child.Shutdown() })
+				prompt := child.Engine().SystemPrompt()
+				if strings.Count(prompt, marker) != 1 || !strings.Contains(prompt, "then call submit with your completed result") {
+					t.Fatalf("%s missing or duplicated submission instructions: %q", id, prompt)
+				}
+				parent = child
+			}
+		})
 	}
 }

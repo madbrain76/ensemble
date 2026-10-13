@@ -15,7 +15,7 @@ const chrome =
 test(
   "speech pipeline, real delivery and blind capabilities",
   { timeout: 60000 },
-  async () => {
+  async (t) => {
     const scratch = fs.mkdtempSync(
       path.join(os.tmpdir(), "ensemble-speech-test-"),
     );
@@ -235,6 +235,32 @@ test(
         0,
         "transcript bypass has no native audio",
       );
+      await t.test("5x slider, Eloquence calibration and reload", async () => {
+        // Exercise the real slider, settings broadcast and speech queue. Only
+        // the platform audio boundary is recorded; no timing claim is inferred.
+        await page.locator("#settings-tab").click();
+        assert.equal(await page.locator("#tts-speed").getAttribute("max"), "5");
+        for (const [speed, rate] of [[0.5, 0.5], [1.7, 1.7], [2, 2], [3, 2.4], [3.5, 2.6], [4.2, 2.74], [5, 2.9]]) {
+          await page.locator("#tts-speed").fill(String(speed));
+          await page.waitForFunction(s => Number(document.querySelector("#speed-value").value) === s, speed);
+          const actual = await page.evaluate(() => {
+            window.ensembleSpeech.cancel();
+            window.ensembleSpeech.audio = true;
+            window.ensembleSpeech.enqueue("Calibrated speed.", "text");
+            const rate = window.nativeUtterances.at(-1).rate;
+            window.ensembleSpeech.cancel();
+            window.ensembleSpeech.audio = false;
+            return rate;
+          });
+          assert.ok(Math.abs(actual - rate) < 1e-6, `${speed}x uses native rate ${rate}, got ${actual}`);
+        }
+        await page.reload();
+        await page.waitForFunction(() => Number(document.querySelector("#speed-value").value) === 5);
+        await page.locator("#settings-tab").click();
+        assert.equal(await page.locator("#tts-speed").inputValue(), "5", "high speed survives reload");
+        await page.locator("#tts-speed").fill("1");
+        await page.waitForFunction(() => Number(document.querySelector("#speed-value").value) === 1);
+      });
       // Drop transient deltas at the external network boundary, retaining actual
       // finals. Plain provider replies normally get synthetic deltas from Engine.
       await page.routeWebSocket("**/ws", (ws) => {
