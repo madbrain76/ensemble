@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 
 	"ensemble/internal/common"
 )
@@ -35,12 +34,14 @@ type engine struct {
 	billingOnce sync.Once
 }
 
-// New creates an Agent-owned HTTP engine with bounded transport requests.
+// New creates an Agent-owned HTTP engine. DefaultTransport bounds connection
+// setup and TLS negotiation, but model generation has no wall-clock deadline.
+// The caller's context still cancels an interrupted or explicitly bounded turn.
 func New(parent common.Agent) common.Engine {
 	if parent == nil {
 		panic("Engine requires Agent")
 	}
-	return &engine{parent: parent, client: &http.Client{Timeout: 60 * time.Second}}
+	return &engine{parent: parent, client: &http.Client{}}
 }
 
 // Agent returns the required owning Agent rather than a copied service bundle.

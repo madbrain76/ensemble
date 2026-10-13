@@ -138,3 +138,54 @@ Restart with the usual launcher, then inspect a new request in api.log for
 `summary: "detailed"` and separately check returned readable summary lengths/content.
 This change requests provider-designated detailed summaries; it neither guarantees
 provider verbosity nor exposes encrypted/private reasoning.
+
+## Live runtime fix: model response lifetime is not a tool callback deadline
+
+During the configuration migration discussion, a delegated agent and later main
+failed with `context deadline exceeded (Client.Timeout or context cancellation
+while reading body)`. The model engine created every HTTP client with a hard
+60-second total timeout. Main's debug log recorded a request at 20:49:50 and its
+failure at 20:50:50. This is distinct from tool callback intervals: callback
+checks must not cancel tool jobs, whereas the HTTP client was aborting the model
+response and ending the current turn. Agent objects remained available for later
+turns. The settings migration was paused before any implementation files existed;
+its failed child left no partial code and was shut down.
+
+Change: `agent/internal/engine/engine.go` now uses an HTTP client without a total
+request timeout. Go's DefaultTransport still bounds connection setup and TLS
+handshake. There is deliberately no blanket deadline on time to first response
+headers or on response-body/model-generation time. Existing request contexts,
+interrupts and shutdown remain cancellation mechanisms. No automatic retries or
+new inactivity policy were introduced. Tool polling semantics are unchanged.
+
+Regression evidence in `agent/ensemble/response_lifetime_test.go`:
+- Real public Agent + local fake provider; both an open streaming body and a
+  buffered response withheld before headers complete after 61 seconds. Both
+  passed under the race detector (61.01s each, running in parallel). These real
+  minute-long checks are skipped under `go test -short`, not silently shortened.
+- Interrupt and shutdown each cancel the provider request, before headers and
+  during an open stream. After interrupt, the same Agent handles a new request.
+  All four cancellation cases passed under the race detector.
+- Existing callback and managed-job interruption tests passed: returning a
+  callback or interrupting a turn still does not kill its background jobs.
+- A Go build overlay restored the committed 60-second client for a control run,
+  without modifying the working tree. The new streaming regression failed at
+  60.01s with the exact original Client.Timeout error. The control was successful
+  precisely because the old implementation failed the new acceptance test.
+- `go test -short -race -count=1 ./...` in `agent/`: the ensemble package and
+  internal packages passed; the whole command is NOT GREEN. Root CLI tests
+  `TestChatFlushesChunksAndSeparatesChannels` (`open : no such file or directory`)
+  and `TestFleetCLIHumanReplyAndEscalation/true` (human sink unreachable) failed.
+  Both failures reproduced in the committed-engine control under the same test
+  environment. They remain separate unresolved issues, not fixed by this patch.
+- `go vet ./...` in `agent/`: PASS. GUI `TestExternalReuse` under the race detector:
+  PASS. GUI executable build: PASS. Tests cleared inherited provider selection,
+  billing mode and reasoning environment variables; no live provider was used.
+
+Deployment: install at the existing external launcher target
+`/Users/bill/ensemble-edition2-codex/bin/ensemble-gui`, with the previous executable
+saved as `bin/ensemble-gui.before-response-timeout` in that runtime directory.
+The running process is not restarted by the coding agent; it retains the old
+60-second client until Bill restarts Ensemble. No launcher flags or environment
+compatibility interfaces changed. File-based settings remain the next pending
+work item, with existing test/grader entry points to be respected.
