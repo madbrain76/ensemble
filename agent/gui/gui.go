@@ -19,13 +19,15 @@ import (
 // Server owns browser connections; its supplied Agent remains the conversation
 // owner. Construct the server before starting the Agent, and close it afterward.
 type Server struct {
-	agent       ensemble.Agent
-	root        *ensemble.Ensemble
-	views       map[ensemble.Agent]*agentView
-	selected    map[*websocket.Conn]*agentView
-	treeWake    chan struct{}
-	treeDone    chan struct{}
-	treeStopped chan struct{}
+	application    *ApplicationConfigStore
+	activeProvider ProviderSettings
+	agent          ensemble.Agent
+	root           *ensemble.Ensemble
+	views          map[ensemble.Agent]*agentView
+	selected       map[*websocket.Conn]*agentView
+	treeWake       chan struct{}
+	treeDone       chan struct{}
+	treeStopped    chan struct{}
 	// settingsMu orders patches and subscriptions without blocking actor observations.
 	settingsMu       sync.Mutex
 	mu               sync.Mutex
@@ -44,10 +46,27 @@ type Server struct {
 // not parents of this optional transport; the server owns its connections and
 // browser preferences. Invalid saved settings fail construction before attachment.
 func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server, error) {
+	return newServer(root, agent, log, nil)
+}
+
+// NewConfigured saves main-agent preferences and restart-only provider settings
+// in the application's explicitly selected file. Child preferences remain local.
+func NewConfigured(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer, application *ApplicationConfigStore) (*Server, error) {
+	if application == nil {
+		return nil, fmt.Errorf("application config is required")
+	}
+	return newServer(root, agent, log, application)
+}
+
+func newServer(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer, application *ApplicationConfigStore) (*Server, error) {
 	if root == nil || agent == nil || agent.Ensemble() != root || log == nil {
 		panic("GUI requires its Ensemble, Agent and log")
 	}
 	s := &Server{agent: agent, clients: make(map[*websocket.Conn]chan [][]byte), log: log}
+	s.application = application
+	if application != nil {
+		s.activeProvider = application.Snapshot().Provider
+	}
 	s.connections = make(map[*websocket.Conn]bool)
 	s.tunnels = make(map[*websocket.Conn]*WSTransport)
 	s.relays = make(map[net.Listener]bool)
@@ -276,6 +295,8 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 		var input struct {
 			// Type selects the client command; Text carries its human input.
 			Type, Text string
+			// RequestID correlates explicit saves with acknowledgments across tabs.
+			RequestID string `json:"request_id"`
 			// Key selects an owned conversation; Name/Model/Skill configure named peers.
 			Key, Name, Model, Skill string
 			// Settings carries a sparse preference patch; absent fields stay unchanged.
@@ -386,14 +407,14 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 			settings, err := v.updateSettings(input.Settings)
 			s.mu.Lock()
 			if err != nil {
-				data, _ := json.Marshal(map[string]any{"type": "settings_error", "error": err.Error()})
+				data, _ := json.Marshal(map[string]any{"type": "settings_error", "error": err.Error(), "request_id": input.RequestID})
 				select {
 				case queue <- [][]byte{data}:
 				default:
 					conn.Close()
 				}
 			} else {
-				v.broadcast(map[string]any{"type": "settings_changed", "settings": settings})
+				v.broadcast(map[string]any{"type": "settings_changed", "settings": settings, "request_id": input.RequestID})
 			}
 			s.mu.Unlock()
 			s.settingsMu.Unlock()

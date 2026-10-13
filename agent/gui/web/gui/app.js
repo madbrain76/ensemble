@@ -171,6 +171,65 @@ document.querySelector("#create-agent").onsubmit = (event) => {
 };
 const theme = document.querySelector("#theme");
 const model = document.querySelector("#model");
+// Application fields are a separate explicit-save draft. Preference broadcasts
+// may update active/restart facts, but must not replace unsaved provider edits.
+const applicationPanel = document.querySelector("#application-settings");
+const applicationStatus = document.querySelector("#application-status");
+const saveApplication = document.querySelector("#save-application-settings");
+const providerControls = Object.fromEntries([
+  "vendor", "model", "billing_mode", "base_url", "credential_file", "reasoning_effort", "reasoning_summary",
+].map(field => [field, document.getElementById(`provider-${field.replaceAll("_", "-")}`)]));
+let applicationDirty = false, applicationRequest = null;
+const providerDraft = () => Object.fromEntries(
+  Object.entries(providerControls).map(([field, control]) => [field, control.value]));
+const sameProvider = (a, b) => Object.keys(providerControls).every(field => (a?.[field] ?? "") === (b?.[field] ?? ""));
+function resetApplicationDraft() {
+  applicationDirty = false;
+  applicationRequest = null;
+  saveApplication.disabled = true;
+  applicationStatus.textContent = "";
+}
+for (const control of Object.values(providerControls)) control.addEventListener("input", () => {
+  applicationDirty = true;
+  saveApplication.disabled = false;
+  applicationStatus.textContent = "Unsaved application changes — save, then restart to apply.";
+});
+saveApplication.onclick = () => {
+  if (applicationPanel.hidden || !applicationDirty) return;
+  if (socket?.readyState !== WebSocket.OPEN) {
+    applicationStatus.textContent = "Not connected. Application changes have not been saved.";
+    return;
+  }
+  applicationRequest = { id: crypto.randomUUID(), provider: providerDraft() };
+  send({ type: "update_settings", request_id: applicationRequest.id,
+    settings: { provider: applicationRequest.provider } });
+  applicationStatus.textContent = "Saving application settings; changes apply after restart.";
+};
+function applyApplicationSettings(application, requestID) {
+  // The server includes this capability only for the file-configured main Agent.
+  applicationPanel.hidden = !application;
+  document.querySelector("#legacy-model-setting").hidden = !!application;
+  model.disabled = !!application;
+  if (!application) return;
+  document.querySelector("#application-path").textContent = application.path;
+  const active = application.active_provider;
+  document.querySelector("#application-active").textContent =
+    `Active now: ${active.vendor} · ${active.model} · ${active.billing_mode}`;
+  document.querySelector("#application-restart").hidden = !application.restart_required;
+  // A successful save may normalize values (such as relative credential paths).
+  // Match the request identity, not saved values; retain edits made after Save.
+  if (applicationRequest && requestID === applicationRequest.id) {
+    if (sameProvider(providerDraft(), applicationRequest.provider)) {
+      applicationDirty = false;
+      applicationStatus.textContent = "Application settings saved. Changes apply after restart.";
+    }
+    applicationRequest = null;
+  }
+  if (!applicationDirty) {
+    for (const [field, control] of Object.entries(providerControls)) control.value = application.provider[field] ?? "";
+  }
+  saveApplication.disabled = !applicationDirty;
+}
 const speed = document.querySelector("#tts-speed");
 const font = document.querySelector("#font-size");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
@@ -211,7 +270,8 @@ for (const band of ["soul", "memory", "64x", "8x", "session", "conversation"]) {
   memoryControls.set(band, controls);
   document.querySelector("#memory-settings").append(row);
 }
-function applySettings(settings) {
+function applySettings(settings, requestID) {
+  applyApplicationSettings(settings.application, requestID);
   if (!editingContext.has(model)) model.value = settings.model;
   for (const [band, controls] of memoryControls) for (const [field, input] of Object.entries(controls)) {
     if (field === "disabled") input.checked = !settings.memory?.[band]?.disabled;
@@ -241,6 +301,7 @@ for (const [control, field, value] of [
   [speed, "tts_speed", () => Number(speed.value)],
   [font, "font_size", () => Number(font.value)],
 ]) control.addEventListener("change", () => {
+  if (control.disabled) return;
   editingContext.delete(control);
   send({ type: "update_settings", settings: { [field]: value() } });
 });
@@ -298,6 +359,11 @@ function connect() {
       // Reset only at the server's ordered replay boundary. Older queued frames
       // have arrived already; new live frames follow the selected Agent's replay.
       speech.cancel(); chatScroll.reset(); actionsScroll.reset();
+      if (selectedAgent !== message.key) {
+        resetApplicationDraft();
+        applicationPanel.hidden = true;
+        editingContext.clear();
+      }
       selectedAgent = message.key;
       document.querySelector("#conversation-title").textContent = message.key;
     }
@@ -312,8 +378,12 @@ function connect() {
       if (selectedAgent === message.key || selectedAgent.startsWith(message.key + "/")) send({ type: "select_agent" });
     }
     route(message);
-    if (["current_settings", "settings_changed"].includes(message.type)) applySettings(message.settings);
+    if (["current_settings", "settings_changed", "settings_update"].includes(message.type)) applySettings(message.settings, message.request_id);
     if (message.type === "settings_error") {
+      if (applicationRequest && message.request_id === applicationRequest.id) {
+        applicationRequest = null;
+        applicationStatus.textContent = `Application settings were not saved: ${message.error}`;
+      }
       document.querySelector("#settings-status").textContent = message.error;
       speech.flush();
       speech.enqueue(message.error, "error");

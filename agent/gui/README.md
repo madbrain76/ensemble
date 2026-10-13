@@ -1,5 +1,49 @@
 # Optional artifact GUI
 
+## File-based application settings (recommended)
+
+Copy `settings.example.json` into your session directory and edit its paths and
+provider fields, then launch with:
+
+```sh
+go run ./cmd --config /absolute/path/to/session/settings.json
+```
+
+In this mode the file is authoritative: provider, model, endpoint, reasoning,
+workspace, skill selection, memory/recall policy, execution limits and preference
+settings are not taken from inherited environment variables. Unknown JSON fields,
+missing/invalid versions and invalid settings fail clearly; there is no silent
+fallback. Relative paths resolve against the file's directory, not the shell's
+working directory. Saved paths are normalized to absolute paths.
+
+The main Agent's GUI preferences and provider settings share this file. Settings
+shows the file path, the active provider, and editable saved provider/model/billing
+and reasoning controls. Provider edits require **Save application settings** and a
+process restart. A restart indicator distinguishes saved settings from the active
+connection. Ordinary theme/speech/font and memory/budget controls still apply
+immediately. Changes are validated and saved through private atomic replacement;
+application-only status and session model fields never appear in the file.
+Children inherit the running parent's provider configuration, but retain their own
+per-Agent GUI preferences; they do not rewrite the main application file.
+
+Credentials are external: `provider.credential_file` names a plain text API key
+file for `api` billing, or the existing Codex `auth.json` for `codex` billing.
+`chatgpt` uses the separate `auth_directory` credential store and requires an empty
+`credential_file`. Never put API keys or OAuth tokens into settings JSON. Advanced
+path/endpoint fields are available in the GUI; workspace, skills, recall and auth
+store setup remain file-only. Protect credential files with owner-only permissions.
+Application file edits made outside the GUI require a restart before further GUI
+saves; the running process intentionally holds a validated configuration snapshot.
+
+Only `--port`, `--gui-dir` and `--gui-debug` may override a file-configured launch;
+they are reported explicitly. Provider/agent flags alongside `--config` are
+rejected instead of silently creating a competing configuration. Without `--config`,
+the original environment/flag startup remains available for existing callers and
+graders. The public three-argument `gui.New` integration remains unchanged;
+file-configured applications use `gui.LoadApplicationConfig` and `gui.NewConfigured`.
+
+## Legacy environment/flag launch
+
 From this directory, run:
 
 ```sh
@@ -35,9 +79,10 @@ history, from which the GUI rebuilds its view.
 Every incoming and outgoing WebSocket message is timestamped in `gui.log`.
 The other logs are `event.log`, `api.log`, and `debug.log`.
 
-Settings contains theme (dark/light/system), Read aloud, speech speed (0.5–2),
-and font size (12–24 pixels). Changes apply across tabs and persist in
-`cr/settings.json`. System theme follows changes in the browser's OS preference.
+Settings contains theme (dark/light/system), Read aloud, approximate speech speed
+(0.5–5, calibrated for Eloquence), and font size (12–24 pixels). Changes apply across
+tabs and persist in the application's `gui` section in file mode, or in
+`cr/settings.json` for legacy launches. System theme follows changes in the browser's OS preference.
 Speech rate applies to the next utterance; disabling speech cancels its queue.
 The same settings envelope accepts `max_tool_rounds` over the WebSocket: zero
 selects 200; positive N permits N tool batches. It affects the next turn, including

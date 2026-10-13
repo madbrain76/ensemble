@@ -11,7 +11,17 @@ import (
 
 // Settings is a full snapshot of the GUI preferences and the Agent's saved turn budget. No field
 // uses omitempty: false and zero are real values that every client must receive.
+// ApplicationSettingsView distinguishes saved next-launch configuration from
+// the provider selected when this process started. No credential contents appear.
+type ApplicationSettingsView struct {
+	Path            string           `json:"path"`
+	Provider        ProviderSettings `json:"provider"`
+	ActiveProvider  ProviderSettings `json:"active_provider"`
+	RestartRequired bool             `json:"restart_required"`
+}
+
 type Settings struct {
+	Application *ApplicationSettingsView `json:"application,omitempty"`
 	// Model is the effective session selection; launch configuration wins on restart.
 	Model string `json:"model"`
 	// Memory controls the Agent corpus; full snapshots preserve nested false and zero values.
@@ -68,11 +78,23 @@ func (s *agentView) snapshotSettings() Settings {
 	snapshot.ContextTarget = s.agent.Config().ContextTarget
 	snapshot.LogRetention = s.agent.Config().LogRetention
 	snapshot.Memory = s.agent.Config().Memory
+	snapshot.Application = nil
+	if store := s.applicationStore(); store != nil {
+		saved, active := store.Snapshot().Provider, s.parent.activeProvider
+		active.Model = snapshot.Model
+		snapshot.Application = &ApplicationSettingsView{Path: store.Path(), Provider: saved, ActiveProvider: active, RestartRequired: saved != active}
+	}
 	return snapshot
 }
 func (s *agentView) loadSettings() error {
 	s.settings = Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
-	data, err := os.ReadFile(s.settingsPath())
+	var data []byte
+	var err error
+	if store := s.applicationStore(); store != nil {
+		data, err = json.Marshal(store.Snapshot().GUI)
+	} else {
+		data, err = os.ReadFile(s.settingsPath())
+	}
 	if os.IsNotExist(err) {
 		return nil
 	}
@@ -92,6 +114,13 @@ func (s *agentView) loadSettings() error {
 	}
 	return s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
 }
+func (s *agentView) applicationStore() *ApplicationConfigStore {
+	if s.agent == s.parent.agent {
+		return s.parent.application
+	}
+	return nil
+}
+
 func (s *agentView) settingsPath() string {
 	return filepath.Join(s.agent.Config().DataDir, "settings.json")
 }
@@ -107,7 +136,35 @@ func (s *agentView) updateSettings(raw json.RawMessage) (Settings, error) {
 	if err := json.Unmarshal(raw, &fields); err != nil {
 		return Settings{}, err
 	}
+	if value, present := fields["provider"]; present {
+		store := s.applicationStore()
+		if store == nil {
+			return Settings{}, fmt.Errorf("provider settings require a file-configured main agent")
+		}
+		if len(fields) != 1 {
+			return Settings{}, fmt.Errorf("send provider settings separately from immediate preferences")
+		}
+		next := store.Snapshot()
+		decoder := json.NewDecoder(bytes.NewReader(value))
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&next.Provider); err != nil {
+			return Settings{}, fmt.Errorf("invalid provider settings: %w", err)
+		}
+		if err := store.Save(next); err != nil {
+			return Settings{}, err
+		}
+		s.parent.mu.Lock()
+		snapshot := s.snapshotSettings()
+		s.parent.mu.Unlock()
+		return snapshot, nil
+	}
+	if _, present := fields["application"]; present {
+		return Settings{}, fmt.Errorf("application metadata is read-only; send provider settings instead")
+	}
 	if value, present := fields["model"]; present {
+		if s.applicationStore() != nil {
+			return Settings{}, fmt.Errorf("edit provider.model; file-configured model changes apply after restart")
+		}
 		if len(fields) != 1 {
 			return Settings{}, fmt.Errorf("send model selection separately from saved preferences")
 		}
@@ -145,17 +202,27 @@ func (s *agentView) updateSettings(raw json.RawMessage) (Settings, error) {
 	if err != nil {
 		return Settings{}, err
 	}
-	path := s.settingsPath()
-	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return Settings{}, err
-	}
-	// A short replacement write leaves the old file intact if writing fails.
-	if err = os.WriteFile(path+".tmp", data, 0600); err == nil {
-		err = os.Rename(path+".tmp", path)
-	}
-	if err != nil {
-		os.Remove(path + ".tmp")
-		return Settings{}, err
+	if store := s.applicationStore(); store != nil {
+		config := store.Snapshot()
+		config.GUI = next
+		config.GUI.Application = nil
+		config.GUI.Model = ""
+		if err := store.Save(config); err != nil {
+			return Settings{}, err
+		}
+	} else {
+		path := s.settingsPath()
+		if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+			return Settings{}, err
+		}
+		// A short replacement write leaves the old file intact if writing fails.
+		if err = os.WriteFile(path+".tmp", data, 0600); err == nil {
+			err = os.Rename(path+".tmp", path)
+		}
+		if err != nil {
+			os.Remove(path + ".tmp")
+			return Settings{}, err
+		}
 	}
 	s.agent.SetMaxToolRounds(next.MaxToolRounds) // Already clamped by settingsPatch.
 	s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
@@ -164,6 +231,7 @@ func (s *agentView) updateSettings(raw json.RawMessage) (Settings, error) {
 	}
 	s.parent.mu.Lock()
 	s.settings = next
+	next = s.snapshotSettings()
 	s.parent.mu.Unlock()
 	return next, nil
 }

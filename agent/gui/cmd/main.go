@@ -36,24 +36,74 @@ func run() (runErr error) {
 	}
 	// Flags are the public configuration surface. Existing provider environment
 	// defaults retain the earlier CLI setup and the original grader contract.
-	cfg, err := ensemble.ConfigFromEnv()
+	configPath, err := configPathFromArgs(os.Args[1:])
 	if err != nil {
 		return err
 	}
-	spec := ensemble.AgentSpecFromEnv()
+	var application *gui.ApplicationConfigStore
+	var cfg ensemble.Config
+	var spec ensemble.AgentSpec
+	if configPath != "" {
+		application, err = gui.LoadApplicationConfig(configPath)
+		if err != nil {
+			return err
+		}
+		cfg, spec, err = application.Snapshot().RuntimeConfig()
+	} else {
+		cfg, err = ensemble.ConfigFromEnv()
+		spec = ensemble.AgentSpecFromEnv()
+	}
+	if err != nil {
+		return err
+	}
+	flag.String("config", configPath, "explicit application settings file; ignores provider environment")
 	guiDebug := flag.Bool("gui-debug", false, "load the gui-debug skill before accepting input")
 	flag.StringVar(&spec.SkillsDir, "skills-dir", spec.SkillsDir, "skill directory (gui-debug defaults to skills)")
-	port := flag.Int("port", 8088, "localhost HTTP port")
+	defaultPort := 8088
+	if application != nil {
+		defaultPort = application.Snapshot().GUIPort
+	}
+	port := flag.Int("port", defaultPort, "localhost HTTP port")
 	directory := flag.String("gui-dir", "", "override embedded GUI assets with a disk directory")
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
 	flag.StringVar(&cfg.Model, "model", cfg.Model, "discovered provider model")
 	flag.StringVar(&cfg.BaseURL, "base-url", cfg.BaseURL, "provider API base URL")
 	flag.StringVar(&cfg.Workspace, "workspace", cfg.Workspace, "tool working directory")
-	flag.StringVar(&cfg.APIKey, "api-key", cfg.APIKey, "provider credential (prefer environment for secrets)")
-	flag.StringVar(&cfg.LogPath, "event-log", "event.log", "event history destination")
+	// Never expose a loaded credential as a flag default: Go prints defaults
+	// in both help and flag-error output.
+	apiKeyOverride := flag.String("api-key", "", "legacy provider credential override (prefer a credential file)")
+	if cfg.LogPath == "" {
+		cfg.LogPath = "event.log"
+	}
+	flag.StringVar(&cfg.LogPath, "event-log", cfg.LogPath, "event history destination")
 	flag.BoolVar(&cfg.DisableStreaming, "no-stream", cfg.DisableStreaming, "disable incremental delivery")
-	flag.StringVar(&cfg.SavePath, "save", "save.json", "save loaded at startup and written at exit")
+	if cfg.SavePath == "" {
+		cfg.SavePath = "save.json"
+	}
+	flag.StringVar(&cfg.SavePath, "save", cfg.SavePath, "save loaded at startup and written at exit")
 	flag.Parse()
+	if *apiKeyOverride != "" && application == nil {
+		cfg.APIKey = *apiKeyOverride
+	}
+	if application != nil {
+		var incompatible string
+		flag.Visit(func(f *flag.Flag) {
+			switch f.Name {
+			case "config":
+			case "port", "gui-dir", "gui-debug":
+				fmt.Fprintf(os.Stderr, "GUI launch override: --%s=%s\n", f.Name, f.Value.String())
+			default:
+				incompatible = f.Name
+			}
+		})
+		if incompatible != "" {
+			return fmt.Errorf("--%s cannot override --config; edit the settings file", incompatible)
+		}
+		if len(flag.Args()) != 0 {
+			return fmt.Errorf("unexpected arguments after --config launch")
+		}
+		fmt.Fprintf(os.Stderr, "Application settings: %s (provider environment ignored)\n", application.Path())
+	}
 	if *guiDebug && spec.SkillsDir == "" {
 		spec.SkillsDir = "skills"
 	}
@@ -79,26 +129,34 @@ func run() (runErr error) {
 		return fmt.Errorf("unknown vendor")
 	}
 	cfg.BuiltinTools = true
-	cfg.DataDir = "cr"
+	registryDirectory := "."
+	if application == nil {
+		cfg.DataDir = "cr"
+	} else {
+		registryDirectory = filepath.Dir(application.Path())
+	}
 	// Each log records a different boundary. Keep provider frames, transport
 	// messages and diagnostics separate so reconnect/debugging remains legible.
-	debug, err := os.Create("debug.log")
+	debug, err := os.Create(filepath.Join(registryDirectory, "debug.log"))
 	if err != nil {
 		return err
 	}
 	defer debug.Close()
-	api, err := os.Create("api.log")
+	api, err := os.Create(filepath.Join(registryDirectory, "api.log"))
 	if err != nil {
 		return err
 	}
 	defer api.Close()
-	trace, err := os.Create("gui.log")
+	trace, err := os.Create(filepath.Join(registryDirectory, "gui.log"))
 	if err != nil {
 		return err
 	}
 	defer trace.Close()
 	root := ensemble.New(debug)
-	if err := authcli.Configure(root); err != nil {
+	if application != nil {
+		settings := application.Snapshot()
+		root.ConfigureAuth(ensemble.AuthOptions{Directory: settings.AuthDirectory, Issuer: settings.AuthIssuer})
+	} else if err := authcli.Configure(root); err != nil {
 		return err
 	}
 	root.SetAPILog(api)
@@ -107,7 +165,7 @@ func run() (runErr error) {
 	displayDone := make(chan struct{})
 	defer close(displayDone)
 	go terminal.display(displayDone)
-	a, err := root.Start(".", cfg, spec, terminal)
+	a, err := root.Start(registryDirectory, cfg, spec, terminal)
 	if err != nil {
 		return err
 	}
@@ -117,7 +175,12 @@ func run() (runErr error) {
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,
 	// then ends Agent lifetime, then closes the application-owned log writers.
 	defer func() { runErr = errors.Join(runErr, root.Close()) }()
-	hub, err := gui.New(root, a, trace)
+	var hub *gui.Server
+	if application == nil {
+		hub, err = gui.New(root, a, trace)
+	} else {
+		hub, err = gui.NewConfigured(root, a, trace, application)
+	}
 	if err != nil {
 		return err
 	}
