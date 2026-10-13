@@ -1,5 +1,86 @@
 # Edition 2 Chapter 25: Codex-to-Ensemble crossover
 
+This is the evolving source record for the crossover chapter, not finished prose
+or chapter acceptance. Later entries supersede earlier deployment status. The
+active implementation is now `agent/`; historical paths and pause instructions
+below are retained as history, not current operating instructions.
+
+## First-use account and the chapter's central story
+
+After the file-configuration migration, Bill supplied essential context for the
+chapter: he reports that the book had been published, Codex had shown him how to
+launch Ensemble only a couple of hours earlier, and he had never tested Astra
+inside Ensemble before this crossover. Preserve this as Bill's first-use account;
+it is not an independently verified publication/upload event or a measured elapsed
+time for every entry in this cumulative record.
+
+Bill's formulation identifies the accomplishment: **“I gave Astra a book. Astra
+gave me an AI coding agent.”** The book included graders. Astra implemented the
+agent while working in Codex; Bill then began working with Astra inside the
+resulting Ensemble implementation. Do not flatten this into the generic claim
+that an AI helped write some software. Conversely, do not inflate it into a
+verified historical first, unaided autonomous creation, or proof that the running
+session inherited Codex's entire memory. The human-authored instruction, graders,
+expert direction, testing and review are central to the account.
+
+The crossover chapter now has concrete material, not just a launch recipe:
+
+- **Moving into the result.** The handoff became a real working session. Bill's
+  first requests came from actually using the GUI, including the nonlinear
+  Eloquence speech-speed control. The initial staged-binary confusion is part of
+  the lesson: building a replacement, installing it, restarting the server and
+  refreshing the browser are distinct operations.
+- **Making the partnership observable.** Bill repeatedly asked for explanations
+  before meaningful actions, not silence followed by a large retrospective.
+  He insisted that the Actions pane remain visible so he could inspect tool
+  calls and returns. A GUI redesign must preserve that oversight, not optimize
+  it away as clutter. The general visual-polish pass is not finished.
+- **Separating roles and lifecycles.** Main-agent `submit` instructions and the
+  runtime's corresponding wake-up rule belonged to delegated workers, not the
+  human conversation. Real sub-agents appeared in the tree, reported results,
+  and were joined/closed. Failed work must not be confused with successful idle
+  completion; retained data and actual submission matter.
+- **Choosing when to observe the browser.** Repeated spoken tool names exposed
+  the automatic snapshot/queue collection. Replacement of ephemeral context was
+  already correct. Bill chose ordinary on-demand tools, not a broad rewrite of
+  ephemeral context. Live verification after a hard refresh confirmed both the
+  absence of automatic attachments and successful explicit calls.
+- **Following an error to the correct boundary.** The three-second callback was
+  a check-in, not a deadline. The actual failure was a 60-second HTTP client
+  deadline covering the entire model response. A response lasting 61 seconds
+  passed with the fix and failed at 60 seconds with the original code; explicit
+  interruption still worked. This is a particularly teachable contrast between
+  observing a job and canceling it.
+- **Turning hidden launch state into inspectable configuration.** The immediate
+  question about reasoning exposed `high` effort with `auto`, not `detailed`,
+  summaries. That led to the larger settings-file request. The delivered design
+  makes the file authoritative, keeps credentials external, distinguishes active
+  from saved restart-only settings, and preserves grader-facing entry points.
+  Independent review caught a credential-as-flag-default leak before deployment;
+  the regression test rejects the unsafe behavior. This was engineering with
+  review and negative controls, not acceptance based on a successful demo alone.
+
+The configuration implementation and crossover evidence are committed at
+`ce6edb0e`; earlier runtime checkpoints include `3aad2b7e` and `09111e0b`. The
+configuration deployment is installed but awaits Bill's restart, browser refresh
+and live verification. Do not narrate that final verification as already done.
+The persona speech-test failure, general visual work, memory investigation and
+CodeRhapsody skill compatibility are not silently completed by this migration.
+
+Authoring lesson supplied by Bill: an expert guides the build, the solution is
+checked and corrected, and the chapter is extracted from that demonstrated work.
+Then a fresh agent can use the codebook and graders to build again. These are two
+connected directions of knowledge transfer, not merely a specification written
+first and an implementation declared successful afterward. This crossover is
+source material for the next chapter of that process.
+
+Formal chapter drafting still requires the full governing author/reviewer
+context and the normal review gates. The current runtime has retired earlier
+full-document tool output; this entry records source facts and editorial intent,
+not a substitute for that preparation. No publication artifacts were regenerated.
+
+## Initial crossover checkpoint (historical)
+
 Bill assigns Chapter 25 to the live crossover from Codex to Ensemble, Edition 2.
 This is his first look at this GUI. Capture fixes discovered during actual use;
 this note is not a chapter draft or an acceptance claim. Chapter 16 remains paused.
