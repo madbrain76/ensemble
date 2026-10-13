@@ -222,3 +222,16 @@ outside a PDF page. Representative table, code and chapter-opening pages were
 visually inspected. Manuscript, preface, chapter sources and EPUB are unchanged.
 No external publication action was taken; the physical paperback cover still
 needs a separate trim/spine layout and a print proof.
+
+## October 13: full artifact rebuild
+
+At Bill's request, rebuilt assembled Markdown, EPUB, print HTML, print interior
+and cover-prefixed PDF from the current sources, including Chapter 25's link
+to the live crossover record. The PDFs remain 562/563 pages at 7 × 10 inches,
+with measured 12pt body and minimum 10pt code; all 30 print contents references
+match. EPUB contains Chapters 0–26 and all closing sections, its cover and code
+stylesheet, with no navigation document in the spine or duplicate Contents
+section. All 1,895 internal links/resource references resolve. Its navigation
+has 31 TOC entries (30 book sections plus front matter); the build script's
+33-link count also includes two landmark links. Rebuild only: no source prose
+edits, external upload or paperback wraparound-cover generation.
