@@ -384,3 +384,45 @@ results exclude in-progress C3 provider changes. No full Stage C acceptance is
 claimed. The independent reviewer accepted C2 for scoped checkpoint with no
 production blocker and no formal Stage C correction round; its audit records the
 size comparison, exact source binding and remaining exclusions.
+
+## C3 implementation evidence: provider allowance and terminal failure
+
+After C2 checkpoint `ce52c166`, worker requests use the accepted Anthropic16,384
+allowance and omit optional Chat/Gemini caps; ordinary rendering is unchanged.
+All three SSE reconstruction paths preserve actual stop reasons. Semantic parsing
+rejects worker length stops before submission dispatch even when arguments parse.
+Responses already rejected incomplete output; it now retains complete measured
+usage on terminal failure and on malformed arguments in a completed envelope.
+Classic semantic failures likewise retain validated measurements. No successful
+response fact is fabricated for that accounting, and absent usage is not zero cost.
+This slice does not recover missing final measurements from an interrupted stream.
+
+The real-runtime HTTP fixtures cover four routes × streamed/nonstreamed × success/
+length-stop, plus Chat and Responses malformed-argument envelopes in both delivery
+modes. Success preserves the exact roughly52KB memory string; synthetic9000 output
+tokens are provider fixture measurements, not a tokenizer or live quality result.
+Failure checks require no submission/tool dispatch and exact measured usage; the
+main Agent's usage/occupancy remains unchanged before later managed import. Initial
+compile setup used a nonexistent History.Events helper and was corrected to the
+public EventsAfter API; the original setup failure remains in
+`/tmp/ensemble-compaction-stagec-provider-initial.txt`. Corrected16-case tests
+passed0.103s. The final20-case focused race passed1.919s. Inherited streaming,
+visible-explanation and engine boundary race checks passed (engine1.019s,
+ensemble1.366s); targeted vet passed. Raw files use the same provider prefix with
+`corrected`, `race`, `compatibility`, and `vet` suffixes.
+
+Thirteen focused mutations each failed their intended assertion: each of three
+worker caps restored; each of three semantic length refusals removed; each of
+three streamed terminal reasons discarded; classic failed usage dropped; Responses
+terminal failed usage dropped; ordinary Anthropic requests given the worker cap;
+and completed malformed Responses usage dropped. The last mutation covers both
+delivery modes through their shared semantic path, not two independent proofs.
+Logs: `/tmp/ensemble-compaction-stagec-provider-mutant-<case>.txt`; scratch removed.
+Existing Responses incomplete-output rejection and unchanged schema validation
+reuse their inherited tests; this slice does not claim a new independent mutation
+for each inherited assertion. Final combined C2/C3 race passed2.163s. Independent C3-only source reconstruction
+(accepted C2 archive plus exactly the C3 diff/test, excluding C4 and recovery)
+passed C3+C2 race2.030s. The reviewer accepted C3 for scoped checkpoint with no
+blocker and zero formal Stage C rounds; its audit retains the exact source binding.
+No parent
+lifetime, disk recovery, once-only auxiliary import or live capacity claim is made.

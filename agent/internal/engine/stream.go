@@ -14,8 +14,14 @@ import (
 // reconstruct the provider message, then reuse the existing semantic decoder:
 // accounting, provenance and opaque replay never grow a second implementation.
 func (e *engine) Parse(resp *http.Response, cb common.StreamCallbacks) error {
-	if e.parent.Config().Vendor == common.OpenAI && e.Features().Responses {
-		return e.parseResponses(resp, cb, e.parent.Config())
+	return e.parse(resp, cb, e.parent.Config())
+}
+
+// Keep failed-response accounting attached to the configuration that sent the
+// request. A rejected submission can still carry valid, billable usage.
+func (e *engine) parse(resp *http.Response, cb common.StreamCallbacks, cfg common.Config) error {
+	if cfg.Vendor == common.OpenAI && e.Features().Responses {
+		return e.parseResponses(resp, cb, cfg)
 	}
 	var data []byte
 	var ids []uint64
@@ -60,6 +66,11 @@ func (e *engine) Parse(resp *http.Response, cb common.StreamCallbacks) error {
 		response, err = e.parseGemini(data)
 	}
 	if err != nil {
+		// Semantic decoders return a producer only after validating usage. Account
+		// these measured counts, but publish no executable parts from a failed reply.
+		if e.parent.Spec().Compaction && response.From.Vendor != 0 {
+			e.account(cfg, response.Usage)
+		}
 		return err
 	}
 	if ids == nil {

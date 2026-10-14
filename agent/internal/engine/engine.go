@@ -330,7 +330,7 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	if cfg.Vendor == common.OpenAI && features.Responses {
 		err = e.parseResponses(resp, cb, cfg)
 	} else {
-		err = e.Parse(resp, cb)
+		err = e.parse(resp, cb, cfg)
 	}
 	return events, err
 }
