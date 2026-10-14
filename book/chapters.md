@@ -34,4 +34,23 @@ the ongoing Codex-to-Ensemble crossover.
 - [Epilogue](epilogue.md)
 - [A note from Bill](note-from-bill.md)
 
-[Read the assembled book](the-art-of-building-ai-coding-agents.md).
+Remaining chapters to be written may include:
+
+- **Artifacts, deep dive.** Ch8 introduced the artifact; this goes further:
+  renderers, addressable bytes, the content-addressed store that ch15 Q3
+  needs, and sandboxed untrusted renderers.
+- **Connections.** Connectors to outside systems (deferred from the GUI
+  design): auth, credential flow, and what the agent may touch.
+- Scheduler to work with gateway: Now you can wake up with a morning briefing.
+- **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
+  program; then workflows the agent writes for itself. Also where the ch5
+  three-agent exercise and the wake-once check were deferred.
+- Ollama local support, asked for by multiple commenters on LinkedIn.
+- Message board for agents to collaborate.
+- Auto-healing: a bug detection triggers a coding agent with exact logs and instructions to create reporo and if done, then repair.
+- Goals: messages that don't compact away until explicity marked as done.
+- Android and/or iPhone apps to interact with agents.  In particular, I want to remotely code via my phone, listing at high speed, talking to control the agent, so I can code while I mountain bike through the hills on fire roads.
+- Switch OpenAI to reuse the Codex OAuth key, and hit the codex endpoing, until OpenAI fixes their official OAuth flow.
+- Multimedia: paste/attach/read_file images, maybe voice, and what else?
+- Screen snapshots, saved as files in io, and read.
+- full computer auotmation.
