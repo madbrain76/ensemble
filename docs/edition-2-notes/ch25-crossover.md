@@ -323,3 +323,24 @@ Deployment uses the existing live launcher/binary path, with a `bin/ensemble-gui
 Separate continuity issue: Bill reports that `micro_handoff` hangs and used Interrupt. No successful handoff return was confirmed; do not claim it saved context or that this policy change repairs it. The checkpoint notes and scoped Git commit are the durable work record in the meantime. The PDF discussion was explicitly withdrawn as a misdirected message; no publication edits were made for it.
 
 Final GUI validation: `go test -race -count=1 ./...` passed for the GUI module against the completed source (GUI package 12.777s; command package 1.010s). Installation is for the next launch only; live enforcement remains to be verified after an explicit user restart.
+
+
+## Handoff isolated from memory compaction; restart verification
+
+This follow-up supersedes the earlier uncertainty about whether a checkpoint was recorded. It does not establish a fix for the original auxiliary-compressor stall.
+
+Bill disabled all six controls in the live GUI: Conversation, Session, 8×, 64×, Memory, and Soul. The saved application settings confirmed `disabled: true` for all six before the test and after restart. Disabling only the four upper bands had previously left Conversation → Session compression eligible. “Conversation” controls conversation compression, not the ability to chat; “Session” denotes compressed session memory, not the application's lifetime. These labels caused understandable confusion.
+
+The all-disabled test succeeded. Reconciliation of `session/save.json` with `session/save.json.journal`, deduplicated by sequence number, established:
+
+- Pre-test baseline: one `micro_handoff`, one `compactor_launched`, through sequence 3137.
+- New call 3146 at 2026-10-14T15:00:37.098325Z; tool return 3147 at 15:00:37.149202Z (about 51 milliseconds).
+- Checkpoint 3148 at 15:00:37.186165Z; the next ordinary main-model request began at 15:00:37.363740Z. Its response completed at 15:01:12.936876Z (about 35.6 seconds). This was not an auxiliary compressor request.
+- Post-test totals through sequence 3198: two handoffs, still only one compactor launch. No new compactor launched after the test baseline.
+- Bill then stopped Ensemble with Ctrl-C and restarted. The new snapshot was written at 15:09:43Z, with `as_of: 3184`; the journal resumed at sequence 3185. The specific “LIVE HANDOFF TEST WITH ALL MEMORY BANDS DISABLED” checkpoint was verified both in the saved handoff event and the saved dialogue. The six disabled settings survived restart.
+
+Astra initially checked the wrong live-evidence source: the exported `event.log` had stopped updating at sequence 3137. The authoritative recovery state was the snapshot plus its active `.journal`. Do not infer that an operation failed merely because an exported trace is stale. The original snapshot was retained as `.bak` during graceful shutdown.
+
+From the model's post-checkpoint context, old tool-result placeholders were no longer visible; new diagnostic results were visible normally. Bill observed only a modest token reduction. This is consistent with clearing already-stubbed tool traffic while retaining conversation and adding the checkpoint note; no exact token-savings claim was measured.
+
+The earlier incident remains distinct: its checkpoint tool returned quickly, but an auxiliary conversation-to-session compactor was launched and had not completed when Bill interrupted about 93 seconds later. That interval was an unfinished wait, not measured successful compression time. All-disabled success isolates the subsequent compaction path for further investigation; it does not prove why that earlier request stalled. No runtime code or timeout policy was changed during this experiment, and memory bands remain disabled until Bill chooses otherwise.
