@@ -329,3 +329,58 @@ for useful test comments and exact retained/selected identities; both were added
 before checkpoint. The reviewer accepted C1 for checkpoint, with no production
 changes requested; this is not full Stage C acceptance or a formal correction
 round. Final slice disposition is recorded in the runtime audit.
+
+## C2 implementation evidence: worker construction and finite execution
+
+Work after `c8ec3d4b` adds creation-only Compaction purpose, normalizes its startup
+specification before custom factories and in the normal constructor, replaces the
+main role, disables memory/recall/forcing, and registers/admit only submit. Default
+child construction no longer requires public delegation; EnableFleet preserves an
+existing custom factory. Ordinary Spawn and the public AgentSpec.Child helper reset purpose as well as schema.
+Ordinary Spawn still refuses when public delegation is disabled; the internal
+default factory does not silently grant that public capability. The actor
+admits one task, at most three Send invocations/three batches, rejects entire extra
+or forged-call batches, and treats prose-only completion as failure without idle wakes.
+
+Focused real-runtime tests cover default/custom construction with and without
+builtins, normalized factory input, primary-startup refusal avoidance, unchanged
+parent tools, actual safety ceilings, factory purpose mismatch, valid submission,
+invalid schema correction exhaustion, extra/forged calls, a held prose response
+with a pending hint, second-task refusal, and ordinary descendant defaults. This
+slice's provider is a concurrent Anthropic HTTP fake with faithful usage/call IDs;
+provider-specific output sizing and terminal-stop handling remain the next slice.
+Tests also run the Stage B structured-submission cases. Final focused race passed
+in 1.519s; affected ensemble/agent/fleet vet passed. Inherited Fleet, Named,
+Management and sandbox child/safe-mode compatibility race checks passed in 3.228s
+(`/tmp/ensemble-compaction-stagec-worker-compatibility.txt`). Initial tests incorrectly
+expected forbidden RegisterTool to succeed so later dispatch could reject it;
+registration already enforces admission. That fixture error is retained in
+`/tmp/ensemble-compaction-stagec-worker-initial.txt`; corrected and race outputs
+use the same prefix with `fixture-corrected`, `race-final`, and `vet` suffixes.
+
+Twelve focused scratch mutations failed their intended assertions: skipped startup
+normalization, inherited main role, unavailable default factory, overwritten custom
+factory, unchecked returned purpose, reopened tool registration, four-send budget,
+second task admission, successful prose-only response, accepting the first submit
+of a multi-call batch, inherited main forcing, and inherited worker purpose in an
+ordinary descendant. The startup mutant's nonexistent-skill failure demonstrates
+unexpected startup loading, not an actual MCP connection measurement. Logs are
+`/tmp/ensemble-compaction-stagec-worker-mutant-<case>.txt`; scratch copies removed.
+
+C2 does not yet launch these workers from normal memory policy: StartCompaction,
+provider sizing/terminal reasons, staged replacement/recovery, owner-lifetime
+scheduling, drained completion/accounting and registry/GUI dismissal remain required
+Stage C work. The legacy recovery tests still fail as recorded above. Independent
+C2 slice review found a missing purpose reset in the public Child helper and weak
+schema substring assertions. The helper now resets purpose; a real derived child
+proves ordinary construction. Both declarations and every actual input_schema are
+compared structurally with the exact memory contract. Two additional focused
+mutations remove that reset and allow extra submit properties; both fail the
+intended assertions. Raw outputs use the worker-mutant prefix with public-child
+and exact-schema suffixes. A C2-only scratch run restores HEAD Engine and omits
+C3/recovery tests: final focused race passed in 1.141s. The independent equivalent
+run including all Stage B tests passed in 1.526s. Scratch copies removed. These
+results exclude in-progress C3 provider changes. No full Stage C acceptance is
+claimed. The independent reviewer accepted C2 for scoped checkpoint with no
+production blocker and no formal Stage C correction round; its audit records the
+size comparison, exact source binding and remaining exclusions.

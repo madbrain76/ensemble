@@ -126,6 +126,18 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 	if len(specs) == 1 {
 		spec = specs[0]
 	}
+	spec = compactionSpec(spec)
+	if spec.Compaction {
+		if parent == nil {
+			return nil, errors.New("compaction worker requires an owning Agent")
+		}
+		// Worker isolation precedes primary/skill/MCP assembly. BuiltinTools is
+		// registration policy, not permission to bypass inherited safety limits.
+		cfg.SystemPrompt, cfg.BuiltinTools = compactionInstructions, false
+		cfg.Recall.Disabled = true
+		off := common.BandSettings{Disabled: true}
+		cfg.Memory = common.MemorySettings{Conversation: off, Soul: off, Memory: off, Tier64: off, Tier8: off, Session: off}
+	}
 	// Validate and own the submit contract before filesystem, authentication,
 	// skill or child-registration side effects can occur.
 	contract, err := fleet.CompileSubmissionSchema(spec.SubmitSchema)
@@ -280,13 +292,18 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 			a.Shutdown()
 		}
 	}()
-	if cfg.BuiltinTools {
+	if spec.Compaction {
+		for _, definition := range tools.FleetTools() {
+			if definition.Name == "submit" {
+				a.SetTools([]common.ToolDefinition{definition})
+			}
+		}
+	} else if cfg.BuiltinTools {
 		a.SetTools(tools.Builtins())
 	} else if e.FleetEnabled() {
 		a.SetTools(tools.FleetTools())
 	}
-	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "" || len(specs[0].StartupSkills) != 0) {
-		spec := specs[0]
+	if spec.SkillsDir != "" || spec.PrimarySkill != "" || len(spec.StartupSkills) != 0 {
 		sr, err := skills.New(a, spec.SkillsDir)
 		if err != nil {
 			return nil, err
@@ -316,7 +333,7 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		}
 		a.SetSystemPrompt(prompt)
 	}
-	if parent != nil {
+	if parent != nil && !spec.Compaction {
 		// A primary skill may replace the inherited prompt. Append the role only
 		// after loading it, without duplicating instructions for grandchildren.
 		prompt := strings.TrimSuffix(engine.BaseSystemPrompt(a), "\n\n"+subAgentInstructions)

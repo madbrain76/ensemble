@@ -221,6 +221,9 @@ func (a *agent) SetSystemPrompt(prompt string) {
 }
 
 func (a *agent) allowedTool(name string) bool {
+	if a.spec.Compaction {
+		return name == "submit"
+	}
 	switch name {
 	case "spawn_sub_agent", "join_agents", "agents_status", "shutdown_agent", "send_message_to_parent", "respond_to_parent_message", "submit", "wait_for_agent_change", "send_message", "wait_for_agent", "ask_agent", "get_submission", "kill_agent", "get_sub_agent_status", "interrupt_agent":
 		return a.Ensemble().FleetEnabled()
@@ -303,6 +306,9 @@ func (a *agent) SetContextSettings(target, retention int) error {
 // SetMemorySettings records content changes through the actor before acknowledging
 // the patch. A disabled band disappears even while the Agent is idle.
 func (a *agent) SetMemorySettings(settings common.MemorySettings) error {
+	if a.spec.Compaction {
+		return errors.New("compaction worker memory policy is immutable")
+	}
 	if err := a.memory.Validate(settings); err != nil {
 		return err
 	}

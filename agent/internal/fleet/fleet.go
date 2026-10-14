@@ -64,6 +64,11 @@ func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
 // SpawnWithSchema delegates contract validation to the public construction boundary.
 // Ordinary grandchildren get defaults unless their own launch explicitly opts in.
 func (m *manager) SpawnWithSchema(id, task, model string, schema json.RawMessage) (common.ChildStatus, error) {
+	// Internal child construction does not enable ordinary delegation. Preserve
+	// the previous refusal rather than start a child whose submit tool is hidden.
+	if !m.parent.Ensemble().FleetEnabled() {
+		return common.ChildStatus{}, errors.New("public delegation is not enabled")
+	}
 	if id == "" || id == "." || id == ".." || strings.ContainsAny(id, "/\\") || id == m.parent.Ensemble().UserID() || strings.TrimSpace(task) == "" {
 		return common.ChildStatus{}, errors.New("spawn requires a child ID and task; user and path addresses are reserved")
 	}
@@ -76,6 +81,7 @@ func (m *manager) SpawnWithSchema(id, task, model string, schema json.RawMessage
 		return common.ChildStatus{}, fmt.Errorf("child %q already exists", id)
 	}
 	spec := m.parent.Spec()
+	spec.Compaction = false
 	spec.SubmitSchema = append(json.RawMessage(nil), schema...)
 	spec.ID, spec.ParentID, spec.Model = id, m.parent.Spec().ID, model
 	spec.DataDir = filepath.Join(m.parent.Config().DataDir, "children", id)

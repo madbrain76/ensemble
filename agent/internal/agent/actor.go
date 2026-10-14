@@ -81,6 +81,10 @@ type runtime struct {
 	memoryDisabled [6]bool
 	forcingChecked uint64
 	warned         bool
+	// Managed workers have one task and a lifetime send budget. Hints and a
+	// queued request cannot reset it by creating another ordinary turn.
+	compactionStarted bool
+	compactionSends   int
 }
 
 // Construction installs children first; the first runtime operation starts the
@@ -307,7 +311,10 @@ func (r *runtime) finish(text string, err error) {
 		return
 	}
 	t := r.active
-	if err == nil && r.owner.Ensemble().FleetEnabled() {
+	if err == nil && r.owner.spec.Compaction && r.owner.fleet.Status().State != "submitted" {
+		err = errors.New("compaction worker finished without submitting memory")
+	}
+	if err == nil && !r.owner.spec.Compaction && r.owner.Ensemble().FleetEnabled() {
 		correction, escalation := r.owner.fleet.Idle()
 		if correction != "" {
 			if err = r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: correction}}}}); err == nil {
@@ -341,6 +348,15 @@ func (r *runtime) finish(text string, err error) {
 // Snapshot the round policy once per human turn. A later queued request gets
 // its own budget and cancellation context, never the previous request's state.
 func (r *runtime) begin(q request) {
+	if r.owner.spec.Compaction {
+		if r.compactionStarted {
+			if q.reply != nil {
+				q.reply <- common.Result{Err: errors.New("compaction worker accepts only one task")}
+			}
+			return
+		}
+		r.compactionStarted = true
+	}
 	if err := r.syncMemory(); err != nil {
 		if q.reply != nil {
 			q.reply <- common.Result{Err: err}
@@ -359,6 +375,9 @@ func (r *runtime) begin(q request) {
 	if limit == 0 {
 		limit = common.DefaultMaxToolRounds
 	}
+	if r.owner.spec.Compaction {
+		limit = 3
+	}
 	r.active = &turn{request: q, cancel: cancel, limit: limit}
 	r.active.request.ctx = ctx
 	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
@@ -369,6 +388,10 @@ func (r *runtime) begin(q request) {
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
+	if r.owner.spec.Compaction && r.compactionSends >= 3 {
+		r.finish("", errors.New("compaction worker model request limit reached"))
+		return
+	}
 	r.owner.setActivity(common.ActivityThinking, "", "")
 	t := r.active
 	t.ids = make(map[uint64]uint64)
@@ -403,6 +426,9 @@ func (r *runtime) sendRequest() {
 	if err = r.append(common.Event{Type: "request_sent", Request: request}); err != nil {
 		r.finish("", err)
 		return
+	}
+	if r.owner.spec.Compaction {
+		r.compactionSends++
 	}
 	r.workers++
 	go func() {
@@ -464,7 +490,7 @@ func (r *runtime) receive(m response) {
 			return
 		}
 	}
-	if m.err == nil && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
+	if m.err == nil && !r.owner.spec.Compaction && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
 		r.send()
 		return
 	}
@@ -485,6 +511,19 @@ func (r *runtime) receive(m response) {
 	// Rejected explanation-less batches also consume the existing round budget:
 	// corrective feedback must not create an unbounded model-only retry loop.
 	m.turn.batches++
+	if r.owner.spec.Compaction && (len(m.turn.calls) != 1 || m.turn.calls[0].Name != "submit") {
+		// Refuse the entire batch before creating jobs; accepting a first submit
+		// would conceal additional calls and prematurely mark work complete.
+		for _, call := range m.turn.calls {
+			if err := r.append(common.Event{Type: "tool_returned", Tool: &common.ToolData{CallID: call.CallID, IsError: true, Parts: []common.Part{{Type: "text", Text: "compaction requires exactly one submit call"}}}}); err != nil {
+				r.finish("", err)
+				return
+			}
+		}
+		m.turn.calls = nil
+		r.send()
+		return
+	}
 	toolFirstStream := m.turn.sawStreamCall && !m.turn.visibleBeforeStreamCall
 	if r.owner.engine.Features().RequireVisibleReasoning && (toolFirstStream || !visibleExplanationBeforeTools(m.events)) {
 		r.rejectUnexplainedTools(toolFirstStream)

@@ -134,6 +134,9 @@ func (r *runtime) compressed(m compressed) {
 // Occupancy is the prior conversation request, never lifetime usage or the
 // small compressor response. All three normalized input categories are disjoint.
 func (r *runtime) forceCheckpoint() error {
+	if r.owner.spec.Compaction {
+		return nil
+	}
 	c := r.owner.history.Context()
 	u := c.LastUsage
 	window := r.owner.engine.Features().ContextWindow

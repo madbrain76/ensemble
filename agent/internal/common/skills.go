@@ -5,6 +5,9 @@ import "encoding/json"
 // AgentSpec supplies per-Agent identity independently of provider configuration.
 // The composition root chooses full-access defaults when the caller omits a spec.
 type AgentSpec struct {
+	// Compaction selects a fresh, single-task worker with immutable submit-only admission.
+	// Ordinary child spawning resets this purpose instead of inheriting it.
+	Compaction bool
 	// ID is this Agent's address within its parent's children.
 	ID string
 	// ParentID names the spawning Agent or the configured human address.

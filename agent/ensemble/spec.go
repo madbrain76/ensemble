@@ -8,9 +8,11 @@ import (
 
 // Child derives restrictions before overriding the child's state directory.
 // Explicit log/save locations belong to the parent and must not be inherited.
+// Submission contracts and managed purpose apply only to the original task.
 func (s AgentSpec) Child(dataDir string) AgentSpec {
 	s.DataDir, s.LogPath, s.SavePath = dataDir, "", ""
 	s.SubmitSchema = nil
+	s.Compaction = false
 	return s
 }
 
