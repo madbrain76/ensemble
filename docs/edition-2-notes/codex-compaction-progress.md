@@ -1,0 +1,143 @@
+# Background compaction and structured submissions
+
+Coordinator: Astra (Codex), October 14, 2026. Status: Stage A audit checkpoint;
+no implementation or chapter changes, acceptance, deployment or publication.
+
+Bill authorized proceeding after reading Cadence's
+[handoff](codex-compaction-subagents-plan.md). He separately required full
+Chapters 14 and 15 and both governing documents before surgery. Those full
+reads are complete, including recovery of truncated output. The coordinator
+also read AGENTS.md, the entire `.agents/skills/ensemble-coding/SKILL.md`,
+deployment HANDOFF.md, voice and chapter procedure, chapter map, enhancement
+record, publication record and crossover notes. Reload full governing/craft
+documents after compaction before formal authorship/review.
+After coordinator compaction, all four governing/craft documents and the entire
+coding skill were reloaded in full before assessing the completed audit notes.
+
+## Isolation and ownership
+
+- Baseline: `56ec71cbde8477b6959ad2fbc65f9237a0fa8346` on main.
+- Worktree: `/Users/bill/projects/ensemble-compaction`, branch
+  `codex/background-compaction`. Main checkout remains untouched.
+- At capture there were no tracked modifications. Existing untracked publication,
+  historical, runtime and evidence paths remain untouched. Full status is in
+  `/tmp/ensemble-compaction-baseline/initial-status.txt`.
+- Cadence owns its data-directory migration and memory repository. No edits to
+  deployment, credentials, launcher, runtime settings, binary or shared crossover
+  notes. Reconcile any overlapping application changes before integration.
+- Codex owns new progress/audit notes and the eventual submission/compaction
+  changes in this separate worktree. Do not stage unrelated files or push.
+
+## Review assignments
+
+- `compaction_dependency_audit`: independent chapter/fixture/parity/snapshot
+  dependency audit, read-only except its own audit note.
+- `compaction_runtime_audit`: independent runtime ownership, schema and lifecycle
+  audit, read-only except its own audit note.
+- Both are GPT-6 Astra/high, fresh contexts, with explicit full-reading and
+  `.agents/skills/ensemble-coding/SKILL.md` handoffs. No author or implementation
+  coder has been released. This is maintenance of the existing runtime, not a
+  new blind student evaluation.
+
+## Stage A observations
+
+Chapter 15 explicitly requires a finite synchronous direct compressor and says
+it is not a sub-agent. Background children deliberately replace that scheduling
+contract; they must preserve its source-retention and memory semantics. Current
+full governing records contain historical versions/pauses; their current header
+and Bill's new direction govern this maintenance.
+
+Sequential baseline commands use an environment stripped of inherited `LLM_`,
+`OPENAI_`, `ANTHROPIC_`, `GEMINI_`, `EN_` and `CODEX_` variables, only in the test
+process. Raw output and command/timing records are in
+`/tmp/ensemble-compaction-baseline/`. No live provider requests are authorized
+by these fake-provider checks.
+
+- `go run ./cmd/grade-edition2 -ch 14 -json ./agent`: 100/100, exited 0.
+- Same for 15 and 16: each 100/100, exited 0.
+- Same for 22 and 23: build failed before grading. `grade.Build` selects
+  `agent/cmd/`, which now has subcommands but no Go source of its own. No runtime
+  behavior was assessed by those invocations. Preserve this result; investigate
+  a narrow explicit-entry-point fixture repair separately.
+- Supplying a CLI built with `go build -o /tmp/ensemble-compaction-baseline/ensemble-cli .`
+  from `agent/` to the unchanged `gradeedition2.Chapter22` and `Chapter23`
+  functions gives 200/200 and 100/100 respectively. A temporary root-module
+  driver invoked these functions with explicit core/GUI paths, then was removed.
+  These diagnostic passes bypass only build selection; the advertised CLI
+  invocations above still fail. No grader source was changed.
+- Core `go test -short -race ./...` exited 1; root package reproduced
+  `TestFleetCLIHumanReplyAndEscalation/true: human sink was unreachable` before
+  any edits. Other reported packages passed. No all-green suite claim.
+- Core and GUI `go vet ./...` each passed.
+- GUI `go test -race ./...` initially failed because this new worktree lacked
+  Playwright. After `npm ci --ignore-scripts --no-audit --no-fund` in its GUI
+  directory, the same suite passed (11.916 seconds). No tracked dependency
+  files changed.
+- Root `go test ./internal/gradeedition2 ./internal/grade` exited 1 (21.281
+  seconds): `TestChapter13Speech` cannot import Playwright from the frozen
+  `solutions/ch13/gui` fixture. Installing current GUI dependencies does not
+  install that separate snapshot's dependencies. This setup failure is retained;
+  no speech-runtime regression is established by it.
+- Deliberate long-response tests, new behavior tests, mutations and live work
+  have not run. The baseline is not acceptance of the proposed implementation.
+
+## Reviewed dependency result and pending decision
+
+Both independent audit notes are complete:
+[chapter dependencies](codex-compaction-dependency-audit.md) and
+[runtime boundaries](codex-compaction-runtime-audit.md). Their findings are
+source review, separate from the coordinator's executed baseline above.
+
+Recommended mapping: current17–23 become15–21; current15/16 become22/23;
+0–14 and24–26 keep their numbers. The accounting chapter currently requires
+compressor/judge usage and memory cache boundaries before the proposed new
+memory chapters. Stage those obligations at new22/23 while keeping ordinary
+accounting and handoff boundaries in new15/18. Nothing is dropped. Memory's
+existing explicit Chapter14 parity stays Chapter14 parity.
+
+The cumulative references are the material consequence: old17 already includes
+memory/recall. Renaming it new15 cannot demonstrate the new sequence. Recommend
+reviewed staged reconstruction from accepted14 through new23, then affected
+carry-forward/validation for24 and26. This is maintenance using reviewed source,
+not a fresh blind student run. Replace book-facing exports only after validation;
+preserve existing tags, source/manifests/results and Edition1. Historical grading
+can use the immutable old checkout and its own grader without a new dual-mode
+framework. Chapter25 remains a placeholder.
+
+Bill's final mapping/export decision is pending. The handoff §4 and Stage A
+explicitly require confirmation before renumbering; §11 requires presenting a
+real forward dependency rather than silently improvising. Both audit delegates
+have completed and no implementation delegate is running.
+
+## Runtime decisions to carry into the implementation plan
+
+- Preserve the current accounting promise: compaction cost belongs in owner
+  session totals exactly once, attributed to the actual model/tier, while main
+  last-request counts remain separate. A separately retained child receipt is
+  necessary but does not replace that existing promise. Review the concrete
+  auxiliary import boundary before implementation; never count it again through
+  a fleet aggregate or replay it as new spending.
+- Ordinary parent-turn completion and interruption leave useful compaction alive,
+  following the handoff's ordinary-child preference. Explicit worker kill,
+  owner shutdown and relevant memory disable cancel/invalidate it. This changes
+  the old interrupted-direct-compressor expectation deliberately.
+- A submission is a candidate. Acceptance waits for reliable child completion,
+  including save, and a safe parent boundary with selected-source/settings
+  revalidation. Automatic cleanup removes Fleet, root and GUI references and
+  preserves durable outcomes. No inference on replay.
+- Retain default string submission compatibility and add an explicit raw JSON
+  custom path; a string convenience call must obey the same custom validator.
+  Final schema dialect/dependency, durable envelope, bounded worker request policy
+  and Memory-owned crash recovery remain design work before Stage B/C. No schema
+  library has been selected or added.
+- The audit identified disk/event crash windows from source. They have not been
+  reproduced. Establish focused failures before implementing their repair.
+
+## Next gates
+
+Obtain Bill's mapping/staged-accounting/export decision, then finish and review
+the narrow Stage B/C design details above before implementation. Keep old chapter
+numbers during implementation/testing. Commit the audit checkpoint separately
+from future implementation acceptance. No old accepted snapshot can become a
+new-order result by changing its directory name. No production files, chapter
+prose, graders, live configuration or publishing artifacts have been changed.

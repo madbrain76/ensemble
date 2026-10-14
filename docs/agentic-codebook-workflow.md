@@ -1,5 +1,18 @@
 # Agentic codebook: edition workflow and learning record
 
+## October 14: background compaction dependency audit
+
+Bill authorized Cadence's structured-submission/background-compaction handoff.
+The isolated Codex audit at `56ec71cb` recommends moving current15/16 after23,
+with their memory-specific accounting obligations taught at the new introduction
+points. Existing cumulative exports contain the old-order features; renaming them
+would not validate a new build sequence. Final mapping and reviewed export
+replacement await Bill's decision under the handoff. Runtime review also found
+that submission precedes the reliable completion/save boundary: automatic child
+cleanup must wait for that boundary. Baseline results, independent reviews and
+remaining design work are in the [progress record](edition-2-notes/codex-compaction-progress.md).
+No implementation, renumbering, deployment or publication has occurred.
+
 ## October 12: Edition 2 is the current top-level tree
 
 **Local reading copy ready, October 12.** Gateway implementation and enhancement,
