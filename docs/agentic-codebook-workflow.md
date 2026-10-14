@@ -12,16 +12,16 @@ behavior/review acceptance. Runtime review also found
 that submission precedes the reliable completion/save boundary: automatic child
 cleanup must wait for that boundary. Baseline results, independent reviews and
 remaining design work are in the [progress record](edition-2-notes/codex-compaction-progress.md).
-Structured submissions and the isolated accounting reconstruction now pass their
-initial independent implementation reviews. Background compaction's concrete
-design and nine supporting implementation slices are independently accepted;
-final actor integration and coordinator review remain underway. Overall review
-reproduced a reverse-purpose factory-refusal overwrite/reference leak missed by
-the scoped tests; its unchanged reproduction now passes after correction, with
-related GUI removal still under review. Authentication and historical crossover
-reconstruction pass their independent implementation reviews. The reviewed combined
-web/status reconstruction plan is released, including the narrow GUI lock-order
-prerequisite needed by synchronous model selection; memory remains deferred.
+Structured submissions and background compaction runtime implementation now pass
+independent and coordinator review. Final source `7feb910a` and review `09e68149`
+close Stage C at initial formal review, zero correction rounds. Overall review
+found a reverse-purpose factory-refusal overwrite/reference leak missed by the
+scoped checks; its unchanged reproduction and the related GUI removal regression
+now pass. Historical failures and the separate baseline CLI failure remain recorded.
+Stage D author/grader plans follow before chapter edits. Accounting, authentication
+and historical crossover reconstruction are accepted; combined web/status is being
+validated with its necessary narrow GUI lock-order prerequisite. Memory remains
+deferred in that reconstructed early sequence.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.
 

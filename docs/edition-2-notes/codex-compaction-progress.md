@@ -1,12 +1,12 @@
 # Background compaction and structured submissions
 
-Coordinator: Astra (Codex), October 14, 2026. Current status: Stage B accepted;
-Stage C supporting slices C1–C9 are checkpointed; final actor integration is
-under independent and coordinator review. The coordinator's factory-refusal
-reproduction passes after correction; a related GUI removal edge is being fixed.
-Accounting, authentication and historical crossover reconstruction are accepted.
-The reviewed combined web/status reconstruction plan is released for implementation.
-No chapter changes, exports, deployment or publication. Earlier observations
+Coordinator: Astra (Codex), October 14, 2026. Current status: Stages B and C
+runtime implementation accepted. Final source `7feb910a` and independent review `09e68149`
+close the background actor gate, including the factory-refusal and GUI corrections.
+Stage D author and grader coder are preparing concrete editorial/coverage plans.
+Accounting, authentication and historical crossover reconstruction are accepted;
+combined web/status implementation is undergoing checks before review. No chapter
+changes, exports, deployment or publication by this workstream. Earlier observations
 retain their actual source/results.
 
 Bill authorized proceeding after reading Cadence's
@@ -465,10 +465,38 @@ new accepted export is authorized at this boundary.
 
 ## Next gates
 
-Stage B is accepted and Stage C's reviewed design is checkpointed at `01dfa4ce`.
-Complete staged implementation and independent review before releasing the
-chapter/grader enhancement. Keep old chapter numbers during implementation and
-testing. Continue each reconstructed cumulative stage only after its independent
-acceptance. No old accepted snapshot can become a new-order result by changing
-its directory name. Chapter prose, frozen exports, live configuration and
-publishing artifacts remain unchanged.
+Stage C's complete runtime implementation is accepted at initial formal review,
+zero formal correction rounds: source `7feb910a`, independent audit `09e68149`.
+Root read the complete final disposition and final changed source/tests, verified
+all 14 source-manifest hashes and diff hygiene, and retained its independent
+factory-refusal before/after reproduction. The independent frozen-source final
+race results are core 5.324s and GUI 4.434s; the coder's full core run retains the
+baseline CLI human-sink failure, with final full GUI 8.367s passing. Scope,
+ownership, comment and production/test comparisons are in the runtime audit.
+Passing local fixtures establishes mechanics, not semantic memory quality.
+
+Stage D is released for concrete plans first. `structured_submission_coder` owns
+grader checks and final TL;DR contracts; fresh GPT-6 Astra/high
+`compaction_chapter_author` owns narrative/explanations and a source-relative
+editorial plan. Both received the exact mandatory skill path and full-context
+rules; no chapter or grader implementation is released before their plans agree
+and receive review. Runtime reviewer remains independent for that next gate.
+Keep old chapter numbers until Stage E, preserve all 11 memory weights/obligations
+or explain any deliberate specification replacement, and distinguish turn-ended
+from actual background outcomes. The shared fake's locked callback must not
+supply a barrier that serializes main traffic.
+
+Main documentation-only changes through `bd4d907c` were merged at clean checkpoint
+`a322050b`. Root read the full session-migration record and artifact investigation.
+Cadence now records Bill's applied/live-verified session migration at `9d9ef6b8`:
+active configuration `/Users/bill/projects/cadence-memories/session/settings.json`.
+This supersedes the earlier prepared-only observation, not its historical record.
+The separate restored artifact-ID collision is reproduced but unfixed; it adds no
+current runtime change or deployment authorization. No private state was read or
+migration run by this workstream.
+
+Continue each reconstructed cumulative stage only after its independent acceptance.
+No old accepted snapshot can become a new-order result by changing its directory
+name. Current20's unchanged 155/155 run is coder evidence on the developing new18
+source, not yet implementation acceptance. Chapter prose, frozen exports, live
+configuration and publishing artifacts remain unchanged by this workstream.
