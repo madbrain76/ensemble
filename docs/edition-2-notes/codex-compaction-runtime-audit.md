@@ -1498,3 +1498,62 @@ authorship reload before changing chapter text. No tests, graders, live calls,
 chapter edits, runtime edits, exports or publication were performed by this plan
 review. Stage D implementation and prose review, Stage E reconstruction/mapping
 and Stage F bounded live evidence remain required.
+
+
+## Stage D narrative preparation review, October 14
+
+Reviewed author-only checkpoint e4b7480c against its predecessor and accepted
+runtime7feb910a. This is an intermediate review of the actual narrative changes
+to current15/16/22/23, not combined Stage D acceptance or a separate D1 gate.
+The coder still owns final TL;DRs, graded sections and active grader work; those
+intentionally unchanged old contracts are pending reconciliation, not author
+failures. No formal correction round is consumed. The full skill and four
+governing/craft documents loaded for the preceding plan review remain in active
+context without intervening compaction; their subsequent workflow amendment was
+read. Complete affected chapters were read for that review, and the full narrative
+diff and relevant surrounding passages were checked again here.
+
+The diff preserves the original openings, memory and recall incidents, checkpoint
+gap, five-versus-eight failure, settings lock cycle, delegation wiring failures
+and successful-work/bad-status story. Historical tables and five memory trials
+remain attributed to the synchronous source. New prose explains why independent
+lifetime needs dedicated role instructions, exact direct submit data, selected
+source validation, staged recovery and completion before disposal. It retains
+main Last versus auxiliary totals and cache-lens separation, and distinguishes
+ordinary delegated wakes from the worker's finite Send budget. Added explanation
+is proportional to those changed mechanisms; it does not turn the chapters into
+review ledgers or rewrite unaffected teaching. Soft length/person warnings alone
+are not a reason to remove useful explanation. The author's recorded lint/parser
+results retain author provenance; I did not rerun them or execute graders.
+
+One substantive clarification was returned to author and coder: current23.5 says
+“Select the child during work and after restoration,” which can imply automatic
+ephemeral-child restoration despite23.2/23.7 saying those children are not revived.
+Distinguish same-process live child selection/reconnect from replay of retained
+structured results in a restored owner's conversation, or describe explicit public
+construction/load when that is the exercised boundary. The existing GUI structured
+regression constructs a schema-bearing root Agent and explicitly loads it; it does
+not automatically restore a task child. My initial coordinator message incorrectly
+called that test an explicit child/factory reconstruction before opening the whole
+file; the subsequent source read corrected that description immediately. The
+wording finding stands independently. Coder acknowledges the distinction for its
+pending22/23 grader. Author correction and actual final examples remain to check.
+
+The coordinator's existing Stage F checklist is adequate preparation for the
+approved single isolated live compression. It covers actual Astra/high/route and
+visible explanation, source facts and reasons/uncertainty, structured submission,
+committed bytes, main progress, child dismissal and selected-owner fallback,
+no-tools recall and zero-inference restart. At review request it now explicitly
+retains effective memory budgets/watermarks and UTF-8 source/submitted/committed
+byte sizes, and measures main Last across auxiliary-only completion separately
+from the subsequent recall turn. Isolation, binary/path/source binding, synthetic
+public data, no private reasoning/credential capture, local launcher controls,
+bounded observation and cleanup are concrete. A worker that finishes too quickly
+leaves overlap or selected fallback unobserved; the checklist correctly retains
+that limit rather than promising another paid run or relabeling deterministic
+evidence. This is checklist review, not live execution or proof of memory quality.
+
+Combined Stage D disposition waits for final contracts, public examples, revised
+checks and targeted sensitivity/compatibility results, followed by independent
+review. The coder retains the grader execution slot. I changed only this audit
+note and made no chapter, runtime, grader, export, live or deployment changes.
