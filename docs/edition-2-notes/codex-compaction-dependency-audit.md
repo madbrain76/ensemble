@@ -893,3 +893,85 @@ and main-chat/child-submission maintenance retain their later integration gate.
 Acceptance permits the coordinator's next bounded reconstruction handoff; it
 does not merge this partial Agent into primary runtime, export snapshots,
 renumber, revise manuscript or publish. Stage D plan review is a separate task.
+
+
+## Sandbox reconstruction source-plan review
+
+October 14. **Plan accepted, no blocking findings:**
+`7ab4b60a357be5cb5d797181bebb6f3abc06a9e4`, current21 → proposed19.
+Verified clean reconstruction worktree and unchanged accepted Agent tree
+`6cb2eb95e7a7ad5d5fe9afc8ca2d4f5a7ad3e99d`. Reread the complete mandatory
+`.agents/skills/ensemble-coding/SKILL.md`; all four complete governing/craft
+documents remain active from the preceding full reload, with no intervening
+compaction. Read the complete current Chapter21, source plan, full historical
+22-path delta, all408 lines of sandbox tests, final correction and historical
+independent review. No implementation, grader or live test ran for this plan review.
+
+Independently bound accepted combined20 tree
+`a801628b1dd631e5ea20ad03ea7d255584728d31` to final sandbox source
+`64e5d0c17be8db116fa4c1da52cd290c45b4e2ef` / tree
+`9dc3e9e36a854ede4cc2cbef22dc389850cedc0c`. Evidence checkpoint320859a0,
+export574fbab5 and frozen solutions/ch21 retain that same tree. Both sandbox
+implementation blobs also match complete baselinea8eec84a exactly. First-green
+fcb98a94 and its live evidence precede the two fixes and are correctly excluded
+as reconstruction source. The22-path historical delta is1,124 insertions and
+76 removals; selecting20 paths and deferring only memory.go/recall.go is coherent.
+
+The selected boundary follows the current chapter's two distinct enforcement
+paths: required-Agent Sandbox owns rooted file operations, while commands and
+descendants use the macOS profile. Canonicalization includes existing ancestors
+of missing files, and operations use os.Root rather than reopening a checked
+name outside confinement (`internal/sandbox/files.go`, accepted21). State, media,
+cache artifacts and retained job output therefore need the selected hooks now;
+they are current consumers, not new services. Composition installs Sandbox before
+those consumers and preserves omitted-spec full access versus explicitly disabled
+web access. Spec policy and its implementation stay with their existing owners.
+
+The public defined AgentSpec supports Child/Clamp outside common without adding
+a fleet. Unconditional narrowing and its diagnostic remain independent, and
+canonical child-root checks reject existing symlink escapes. Safe mode enforces
+the named execution/supervision removals at registration, declaration and
+dispatch while file tools remain useful. Web policy withholds the named skill
+and its startup graph; it does not promise to police arbitrary custom MCP.
+There is no new policy framework, credential-store tool, alternate-platform
+implementation or invented future API in this source selection.
+
+Final64e5d0c's immediate physical-temp xcrun rule and caller-spelled cwd path
+are required corrections (`internal/sandbox/command.go:49` and `:100`,
+`internal/tools/tools.go:281` in the historical tree). Retain their real allowed
+Python/Git/relative-cwd controls beside the escape/disclosure assertions. The
+synchronized SetAPILog setter shares the root writer lock; configured-key log
+sanitization must be layered onto the accepted request-side configured/resolved/
+renewed-credential redaction, without replacing that single-Send code. The plan
+explicitly preserves this and the prior supported-model/deadline corrections.
+The direct OpenFile, actual readable-log, snapshot/job-output and absolute-in-root
+media tests address known historical observation gaps without extra capabilities.
+
+Planned core/GUI/separate-module tests and vet, focused sandbox race and affected
+HTTP/accounting/OAuth checks are proportionate to these public and filesystem
+changes. Serialized unchanged current21 grading has seven rows totaling100;
+its actual CLI/public consumer, reachable-host network control, successful file/
+Python/Git work and readable trace distinguish real enforcement from setup
+failure or blanket refusal. Confirm macOS/sandbox-exec availability first. The
+two new scratch restorations should expose the real nested-cache escape and cwd
+disclosure at their intended assertions, retaining successful controls and
+restored baseline. Reusing unchanged historical mutation evidence is appropriate
+with the OpenFile survivor and earlier media wrong-boundary attempt preserved.
+No new browser flow or paid live repeat is warranted by this bounded plan.
+
+The two omitted files are explicit later obligations: new22 memory Scan/write/
+temporary-install/archive operations use Sandbox; new23 confines memory/handoff
+walk/read, skips nonregular entries and disabled web-skill recall, and roots any
+explicitly selected external trusted skill corpus separately. Deferred auxiliary
+accounting, forcing/lens separation, judge Responses/credentials and later visible
+explanation/main-chat-child-submit maintenance remain unchanged. Actual child
+construction must enforce derived specs at the later fleet stage; Child/Clamp
+alone proves no spawned-child boundary.
+
+This accepts the concrete source plan for coordinator release into bounded
+implementation and subsequent independent review. It claims neither new runtime
+acceptance nor universal security: system/device/cache allowances, macOS scope
+and rooted-filesystem limitations remain explicit. Historical0/100 and the
+48.394s/9.847s live sessions retain their own source identities. No export, tag,
+renumbering, manuscript edit, whole-tree merge or publication follows from this
+plan disposition.
