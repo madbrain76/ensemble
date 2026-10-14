@@ -1,10 +1,12 @@
 # Background compaction and structured submissions
 
 Coordinator: Astra (Codex), October 14, 2026. Current status: Stage B accepted;
-Stage C concrete design is next. Mapping and grader prerequisite are accepted.
-The isolated accounting reconstruction is also independently accepted as a
-maintenance stage, without a new export. No chapter changes, deployment or
-publication. The Stage A observations below retain their original source/results.
+Stage C supporting slices C1–C9 are checkpointed, with final actor integration
+under implementation and overall review. Coordinator review found a remaining
+factory-refusal defect; correction is pending. Accounting and authentication
+reconstruction are accepted, and the historical crossover implementation is
+released after both source-plan reviews. No chapter changes, exports, deployment
+or publication. Earlier observations retain their actual source/results.
 
 Bill authorized proceeding after reading Cadence's
 [handoff](codex-compaction-subagents-plan.md). He separately required full
@@ -367,6 +369,57 @@ a prepared and fixture-tested move of application session files into
 code conflict. Merge that note at a clean checkpoint, and re-establish actual
 deployment paths before any later authorized live operation. Do not treat the
 proposed session location as active or run Cadence's migration.
+
+## October 14: coordinator review and reconstruction resumed
+
+After answering status questions, the coordinator resumed active work at Bill's
+"Please proceed." Earlier replies had ended coordination while runtime delegates
+continued; that delayed the crossover source-plan gate. This repeats the workflow's
+handoff lesson and is coordinator delay, not a technical blocker.
+
+Before formal review, reloaded all four complete governing/craft documents and
+the entire coding skill, then reread all current Chapters14/15 and the complete
+handoff. Root inspected the historical crossover's complete three-path delta,
+plan484c7234 and independent dispositionfa29b7ee. The bounded current19/new17
+implementation is released with its stated two mutations and affected checks.
+It remains ungraded; no paid task, new export or whole-tree merge is authorized.
+
+Runtime slices C1–C9 are checkpointed throughf111f1b3: range admission,
+restricted finite workers, provider sizing/terminal handling, selected-source
+validation, correlated journal receipts, staged filesystem recovery, auxiliary
+usage buckets, child completion/removal, and GUI dismissal. Each has scoped
+independent review; none alone establishes the complete background actor.
+The coder's C10 working tree is separate from this exact review baseline.
+Root's overall review is underway, not accepted, and uses the immutable source.
+
+### Reproduced reverse-purpose factory refusal defect
+
+Root's real-runtime external-boundary test on exactf111f1b3 calls
+StartCompaction with a trusted constructor-only custom factory. The factory
+returns a real owned child with Compaction=false and LogPath pointing to a
+preexisting sentinel file. CreateChild correctly refuses the purpose mismatch,
+but its Shutdown writes the empty log header over that file; ForgetCompaction
+then retains the rejected ordinary child because its purpose is false.
+The same redirected-path factory retaining Compaction=true is a passing control:
+refusal preserves the log and removes that managed child. No inference or mock
+was used, and arbitrary callback side effects are outside this finding.
+
+Actual command: `go test -race -run '^TestRootFactoryPurposeRefusal$' -count=1 ./ensemble`
+in an isolated f111f1b3 Agent archive, with provider/runtime variables stripped
+and a fresh EN_HOME. Exit1,0.022s package time; the ordinary-return case fails
+both exact-byte preservation and root-membership checks. Raw output:
+`/tmp/ensemble-root-review-factory-refusal.txt`; scratch location is recorded in
+`/tmp/ensemble-root-review-path.txt`, with test `agent/ensemble/root_factory_refusal_test.go`.
+The archive extraction emitted a Python tarfile deprecation warning; compilation
+and test execution succeeded before the intended behavioral failures.
+
+Coder and runtime reviewer received the unchanged probe. The existing C8 purpose
+regression covers the opposite ordinary-request/managed-return case and missed
+this direction. Prior scoped acceptance remains history. Correction must preserve
+ordinary valid lifecycle while rejecting the returned child without writing into
+its rejected paths or retaining its new registry entry. Recheck the unchanged
+probe and appropriate ordinary/managed controls before accepting the correction.
+This is overall review of accepted support, not a claim C10 has been submitted.
 
 ## Next gates
 

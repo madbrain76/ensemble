@@ -14,9 +14,12 @@ cleanup must wait for that boundary. Baseline results, independent reviews and
 remaining design work are in the [progress record](edition-2-notes/codex-compaction-progress.md).
 Structured submissions and the isolated accounting reconstruction now pass their
 initial independent implementation reviews. Background compaction's concrete
-design is independently accepted and implementation is released; authentication
-reconstruction also passes its initial independent implementation review. The
-historical crossover's next reconstruction source plan is being prepared.
+design and nine supporting implementation slices are independently accepted;
+final actor integration and coordinator review remain underway. Overall review
+reproduced a reverse-purpose factory-refusal overwrite/reference leak missed by
+the scoped tests; correction is pending. Authentication reconstruction passes its
+initial independent implementation review, and the historical crossover's reviewed
+three-path source plan is released for implementation.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.
 
