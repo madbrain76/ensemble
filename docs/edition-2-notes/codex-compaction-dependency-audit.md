@@ -635,3 +635,49 @@ reminder from coordination: when the later stages combine, explicitly place
 and preserve `09111e0b`'s response lifetime correction. The old cumulative
 snapshots predate those maintenance changes; this reminder adds no auth-stage
 implementation requirement.
+
+## Historical crossover reconstruction source-plan review
+
+October 14. **Plan accepted**, no blocking findings, at reconstruction plan
+`484c7234796492d7a0dbb470a7f24d58578d7fb8`. The clean reconstruction worktree
+still has accepted auth Agent tree `21b15bc6cd1c24a2ee3e03873a87a9c080744402`.
+Read the complete new source-plan section and exact accepted18→19 diff; reloaded
+the full mandatory `.agents/skills/ensemble-coding/SKILL.md`. The four complete
+governing/craft documents remain in active context from the preceding review;
+no intervening compaction occurred.
+
+Independently verified historical source `bade50cef5cdc53490d4263fa57f5e37abbb93ec`
+has tree `bd2998e68f976dbaf437b642b131d350e086242f`, and live source
+`fab031529cda55a76d530478f09de0cd08e7db36` has tree
+`59010a4c2b333c2f74777b6d76079e8f2b3af90d`. Only README changes between those
+two historical sources. The selected accepted18→19 delta is exactly three paths:
+the Astra capability row in `internal/engine/media.go`, actual-rendered
+model/high-effort assertions in `ensemble/responses_test.go`, and the README's
+explicit Astra/high/subscription configuration paragraph. Moving that row to
+the existing Responses renderer needs no new public API, dependency, credential
+mechanism or auxiliary service. Retaining the earlier Chat controls checks that
+the migration stays model-specific.
+
+The planned affected core/GUI tests and vet, focused boundary race check, and
+two isolated wrong-route/wrong-effort mutations are proportionate. The separate
+examples contain no Astra selection or reasoning-effort configuration; there is
+no reason to repeat their unchanged checks, the browser/lifetime tests or paid
+tasks solely for this row change. Preserve no-total-response-deadline and
+supported-model corrections. Current19/new17 remains ungraded; do not invent a
+score or copy the historical repair checklist into this small source stage.
+
+Historical receipts are correctly separated: ch20-code-review records the actual
+27.46-second five-request Astra/high task, six unchanged passing tests, normal
+exit/save and zero observed summaries/cache grants; enhancement-19-review records
+the separate1.003-second scripted replay and its additional recall-judge request.
+That extra fixture exchange establishes no early recall dependency. The plan
+keeps both original identities and makes no fresh live/current-provider claim.
+
+The explicit later integration ledger correctly preserves `df38abe0`'s visible
+explanation gate and the main-chat/child-submit distinction without importing
+fleet or later maintenance machinery here. Those outstanding obligations must
+be placed and validated before complete reconstruction/export acceptance; this
+plan earns no credit for their implementation. The coordinator may release the
+three-path stage, followed by independent implementation review. No Agent edits,
+test execution, exports, renumbering or primary-runtime replacement occurred in
+this plan review.
