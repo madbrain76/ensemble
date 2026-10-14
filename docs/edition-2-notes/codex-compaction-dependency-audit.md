@@ -493,3 +493,52 @@ No blocking scope, architecture, implementation or evidence finding remains for
 this stage. The coordinator may release the next bounded authentication plan.
 Keep this partial source on its reconstruction branch; later export and
 publication gates remain separate.
+
+## Authentication reconstruction source-plan review
+
+October 14. **Plan accepted**, no blocking findings, at plan-only commit
+`185a1e31969eb94c2cbec54a9437455988ce1fba` on the reconstruction branch. Read the
+complete new "Accounting acceptance and authentication source plan" section in
+the coder's consolidated note. Verified that `agent` remains the independently
+accepted accounting tree `2b671b45dc5f7b760f2faaff2a77c83e6c7c09c8`; no
+authentication implementation is accepted by this disposition.
+
+The proposed guide is accepted17 tree `2ee06bb6189898809d80de97df2b73c695cfb0d5`
+to accepted18 tree `c72d29294763f23f51071d7484b0d4283ee70c33`. Independently
+verified that recorded source `534112a2d6f9222577db94159c8bd3dbb8368376` has that
+accepted18 tree under its historical source path. Inspected the32-path delta,
+transport/lens integration, public auth API and shared command client, route
+capabilities/error mapping, Responses rendering, original retry fixture and
+newly selected model rows. The selected feature boundary is coherent.
+
+The four-line Responses branch in the historical judge belongs at new23 and
+stays deferred. The four `RecallSettings{Disabled:true}` literals in new tests
+can be omitted because no recall service exists; the OAuth/Responses assertions
+remain. No memory, forcing, fleet, sandbox, web, Codex backend or later model
+switching feature is needed. Keeping current14 handoff boundaries in the new
+Responses renderer preserves the already accepted accounting stage without
+restoring memory fallback. Only the reviewed Sol/course routing rows are added
+now; later crossover integration retains its own stage.
+
+The single existing Send path can receive credential acquisition, same-source
+401 renewal and successful response accounting without recreating the old
+auxiliary send seam. The plan explicitly checks successful usage exactly once,
+latest-main counts and one logical-request lens observation across the retry.
+Reviewer clarification sent to coder: perform that observation through the
+resolved-credential redaction path, preserving sanitized artifacts while
+retaining the logical-request prediction. Temporary `EN_HOME` matches the
+actual public command client's configuration boundary. The auth service's
+bounded exchange timeout is distinct from the already corrected model-response
+lifetime; carrying it does not undo `09111e0b`.
+
+The planned real external-boundary fakes, full affected module checks,
+OAuth/Responses/cache/cancellation races, actual browser summary/meter checks,
+repeated long-response regression and serialized old18/17/14 feature grading
+cover the adapted boundaries. New mutations focus on retry accounting and
+Responses input observation; unchanged historical evidence remains historical.
+The known browser callback EOF limitation is preserved honestly and must not
+become a fabricated authentication failure or new silent repair.
+
+No fresh provider-support claim, account access, source edit or test execution
+was performed by this plan review. The coordinator may release this bounded
+implementation, with independent implementation review before advancement.

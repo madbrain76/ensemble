@@ -303,7 +303,23 @@ Coordinator source inspection found two Stage D fixture issues at this HEAD:
   request inspection too. Releasing only the memory router's own mutex cannot
   establish background progress. Audit other route consumers before a narrow
   shared-fake correction, or use an appropriate external fake; preserve archived
-  Edition 1 graders. This is source analysis, not a completed concurrency probe.
+  Edition 1 graders.
+
+The coordinator then reproduced that fake-server serialization through real HTTP
+in `/tmp/ensemble-fakevendor-concurrency-probe`. On the unchanged helper,
+`go test -mod=mod -race -v -count=1 ./...` fails both intended assertions:
+the unrelated main request and `Requests()` remain blocked while the routed
+auxiliary response is held (exit1,0.612s). Releasing only that gate before the
+main request gives the passing control (exit0,1.017s). Original test restored,
+SHA-256 `13511e65951acc094fc04f8e72faa6a4e18e060dcf469b3ff96bd4ba592ffaaa`;
+raw `baseline.log` and `control.log` remain beside it. This proves a fixture
+limitation, not a new runtime compaction result. No fake implementation changed.
+
+Further source inspection found an existing narrow option:
+`ch23_driver.go:managementGUI` holds selected HTTP requests in a reverse-proxy
+boundary outside the same capture mutex. Stage D should consider that established
+pattern before changing shared fake concurrency semantics for every route caller.
+This is a design option, not an implemented correction or extra requirement.
 
 The current main-turn completion barrier also does not establish background
 worker completion. Stage D needs observable separate outcomes and causal
