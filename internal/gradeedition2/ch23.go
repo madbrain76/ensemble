@@ -30,7 +30,7 @@ func Chapter23(bin, gui string) (grade.Report, error) {
 	fleetIdle(bin, &checks[6], &checks[6])
 	guiBin, cleanup, err := grade.Build(gui)
 	if err != nil {
-		reuseFail(checks, err, 0, 1, 2, 3, 5)
+		reuseFail(checks, err, 0, 1, 2, 3, 5, 6)
 	} else {
 		defer cleanup()
 		fleetRootChat(guiBin, &checks[6])

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/waywardgeek/ensemble/internal/grade"
@@ -68,4 +69,30 @@ func TestManagementReplayText23(t *testing.T) {
 	if managementContains([]map[string]any{argument}, "RESTORED") {
 		t.Fatal("tool-call argument falsely proves restored result")
 	}
+}
+
+// TestManagementRootBuildFailure23 prevents an unexecuted root-chat predicate
+// from earning the combined regression row when only the core can be built.
+func TestManagementRootBuildFailure23(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	report, err := Chapter23(bin, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range report.Checks {
+		if c.ID == "composition-root" && !c.Passed {
+			t.Fatalf("valid core composition control failed: %v", c.Details)
+		}
+		if c.ID == "submit-idle-regression" {
+			if c.Passed || c.Earned != 0 || len(c.Details) != 1 || !strings.Contains(c.Details[0], "go build") {
+				t.Fatalf("unexecuted root-chat predicate earned credit: %+v", c)
+			}
+			return
+		}
+	}
+	t.Fatal("combined submit/idle/root-chat row absent")
 }

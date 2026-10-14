@@ -459,3 +459,21 @@ framework was added. Comments explain causal holds, current versus historical
 task state, and actual rendered-result evidence. No runtime, chapter, frozen
 export or live deployment bytes changed in this slice. Full Stage D acceptance,
 remaining memory/recall additions and chapter-contract reconciliation are pending.
+
+### D5 pre-submission review correction: failed GUI build
+
+The independent reviewer found that current23's GUI build-failure branch debited
+rows0/1/2/3/5 but omitted row6, although D3 added the root-chat predicate to that
+row. A valid core could therefore earn its10 points without running that new
+predicate. The corrected branch includes row6. A bounded regression builds and
+runs the real valid core with an intentionally unbuildable GUI directory; the
+composition control must pass, and the combined submit/idle/root-chat row must
+earn zero with exactly the build-error detail. That also establishes the retained
+fleetIdle scenarios did not contribute an unrelated failure.
+
+Focused race passes 2.068s (test 1.05s), raw
+`/tmp/ensemble-compaction-d5-build-failure.txt`. Restoring the omission in a scratch
+grader fails the intended assertion: the unexecuted predicate still earns10/10,
+0.670s, `/tmp/ensemble-compaction-d5-mutant-build-attribution.txt`. Scratch removed.
+This is a grader attribution correction, not a runtime defect or a new scoring
+row. No full-score rerun is claimed; successful-build behavior is unchanged.
