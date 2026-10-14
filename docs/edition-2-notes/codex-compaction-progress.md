@@ -273,6 +273,43 @@ Conversation compressor failure.
 - The audit initially identified disk/event crash windows from source; the
   controlled restart probes above now reproduce them before implementation.
 
+## October 14: next-stage preparation
+
+The coordinator reloaded all four governing/craft documents and the complete
+coding skill after compaction. Primary maintenance HEAD is `0a732ed4`, which
+merges Cadence's documentation-only migration commits through `f910e8f5`.
+Cadence reports the applied data directory as
+`/Users/bill/projects/cadence-memories`; its explicit conversation save remains
+at the deployment's `session/save.json`. This is Cadence's recorded live
+verification, not a new coordinator deployment test. No application overlap or
+live changes were introduced by the merge.
+
+The independent dependency reviewer accepted authentication source plan
+`185a1e31969eb94c2cbec54a9437455988ce1fba`. The coordinator read the full plan
+and disposition and released that bounded reconstruction from the accepted
+accounting tree, with implementation review still required. It retains the
+single Send path, resolved-credential sanitization, once-only successful renewal
+accounting and the no-total-response-deadline correction. Recall/judge integration
+remains deferred. No export, renumbering or new live use is implied.
+
+Coordinator source inspection found two Stage D fixture issues at this HEAD:
+
+- `internal/gradeedition2/ch15_driver.go:memoryCompressor` checks only that the
+  sole tool is named `submit`. The handoff's claim that it also inspects the
+  `memory` property is inaccurate. Revised classification must distinguish an
+  ordinary submit-only child from the compaction worker's actual contract.
+- `internal/fakevendor/fake.go:handle` holds its server-wide mutex while calling
+  `Options.Route`. A held memory route therefore blocks main requests and
+  request inspection too. Releasing only the memory router's own mutex cannot
+  establish background progress. Audit other route consumers before a narrow
+  shared-fake correction, or use an appropriate external fake; preserve archived
+  Edition 1 graders. This is source analysis, not a completed concurrency probe.
+
+The current main-turn completion barrier also does not establish background
+worker completion. Stage D needs observable separate outcomes and causal
+barriers while retaining all eleven existing weighted obligations. No grader,
+scoring or chapter change has been made or approved by this preparation.
+
 ## Next gates
 
 With Bill's decision recorded, finish and review the narrow Stage B/C design
