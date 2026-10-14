@@ -23,6 +23,27 @@ func TestFleetRootChat22(t *testing.T) {
 	}
 }
 
+// TestFleetStructured22 runs the scored schema, validation, JSON fan-in and
+// durable-row predicates through a real submitted CLI and its actual children.
+func TestFleetStructured22(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	checks := grade.Ch25Checks(grade.Ch25Result{})
+	for i := range checks {
+		checks[i].Passed = true
+		checks[i].Details = nil
+	}
+	fleetStructured(bin, checks)
+	for _, i := range []int{0, 1, 3} {
+		if !checks[i].Passed {
+			t.Errorf("%s: %v", checks[i].ID, checks[i].Details)
+		}
+	}
+}
+
 // These opt-in checks launch the real submitted binary; only its remote provider
 // is replaced. They also permit focused restored-defect checks without GUI work.
 func TestFleet22(t *testing.T) {

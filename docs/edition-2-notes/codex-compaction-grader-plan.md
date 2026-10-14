@@ -345,3 +345,47 @@ new check fail for an extra request/corrective wake in0.691s; raw
 `/tmp/ensemble-compaction-d3-mutant-root-idle.txt`. Scratch source was deleted.
 This restores an already accepted df38abe0 policy rather than changing runtime
 behavior. No runtime, historical transcript or frozen grader was edited.
+
+## D4 implementation: structured construction and fan-in, October14
+
+Current22 retains all ordinary scenarios and adds one real CLI fleet to its
+existing spawn15, child-isolation15 and join15 rows. Three malformed/unsupported
+schema launches must return actual errors without a child request or owned status.
+A custom child starts a default-schema grandchild, then receives separate missing,
+wrong-type, nested-missing and extra-field submission errors before its corrected
+object succeeds. Actual declarations must equal each child's own whole-argument
+schema. A default-text sibling remains a control. Correlated join/status results
+are parsed and compared as nested JSON, including array, false and null values;
+marker searches cannot accept double encoding. The version1 durable row must
+retain exact schema/payload beside the submitting child's actual saved task.
+This fixture adds a nullable follow_up field to the agreed compact example to
+exercise null preservation; it does not change the public schema dialect.
+
+Initial focused race passed1.966s. The full advertised current22 command against
+`./agent` passed200/200 at that source, raw
+`/tmp/ensemble-compaction-d4-grader22.txt`. Final owner-binding assertion plus
+explanatory comments passed focused race1.464s
+(`/tmp/ensemble-compaction-d4-structured-final.txt`); final package vet passes.
+The full score predates that narrow assertion; final affected rows pass afterward,
+without claiming a new full rerun. Current23 structured management and remaining
+memory/recall additions remain pending.
+
+Ten ultimately intended mutations failed their corresponding predicates: ignored
+spawn schema, admitted unsupported keyword, wrong grandchild wire declaration,
+quoted custom status payload, omitted durable schema, misplaced durable owner,
+and separate validation bypasses for missing/type/nested/extra arguments.
+Logs: `/tmp/ensemble-compaction-d4-mutant-{ignored-schema,unsupported,grandchild-declaration,double-encoding,durable-schema,durable-owner,missing,type,nested,extra}.txt`.
+Each invalid-argument bypass admits its specific malformed object; early completion
+then prevents later corrections and propagates wrong data, so downstream row
+failures are coupled rather than additional independent proofs. Misplaced output
+fails because its target directory lacks the submitting child's adjacent save.
+
+An earlier `grandchild-wire` mutant changed Fleet.SubmitSchema, so construction
+refused the child before a wire request. It failed the scenario but did not prove
+the advertised declaration assertion; that limit remains in its original log.
+The corrected declaration-only mutant reaches the actual provider and fails the
+exact schema comparison. This does not replace the separately non-scoring public
+AgentSpec.Child copy/reset regression. All scratch trees were removed. No runtime,
+frozen exports, chapter text or grader weights were changed. New fixture size is
+196 physical/177 active/14 comment-only lines, excluding blanks and // comments
+from active count; most code is the explicit schema/probe/result comparison.

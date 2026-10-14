@@ -33,7 +33,7 @@ func fleetRun(bin, work string, route func([]byte) *fakevendor.Reply, steer func
 		if fleetHas(body, "finish") {
 			return &fakevendor.Reply{Text: fleetDone}
 		}
-		for _, id := range []string{"child-submit", "mid-submit", "leaf-submit"} {
+		for _, id := range []string{"child-submit", "mid-submit", "leaf-submit", "review-submit"} {
 			if fleetHas(body, id) {
 				return &fakevendor.Reply{Text: "Submitted work is complete."}
 			}
@@ -258,6 +258,7 @@ func fleetChecks(bin string, checks []grade.Check) {
 	fleetMessaging(bin, &checks[4])
 	fleetWake(bin, &checks[5])
 	fleetIdle(bin, &checks[6], &checks[2])
+	fleetStructured(bin, checks)
 }
 
 func fleetMessaging(bin string, c *grade.Check) {
