@@ -18,9 +18,12 @@ close Stage C at initial formal review, zero correction rounds. Overall review
 found a reverse-purpose factory-refusal overwrite/reference leak missed by the
 scoped checks; its unchanged reproduction and the related GUI removal regression
 now pass. Historical failures and the separate baseline CLI failure remain recorded.
-Stage D author/grader plans follow before chapter edits. Accounting, authentication
-and historical crossover reconstruction are accepted; combined web/status is being
-validated with its necessary narrow GUI lock-order prerequisite. Memory remains
+Stage D author/grader plans are independently accepted for bounded chapter and
+grader enhancement. Plan review also identified the old fleet prose's stale
+root-submit requirement; preserve the existing main-chat/delegated-submit policy
+while retaining ordinary delegates' three corrective wakes. Accounting,
+authentication, historical crossover and combined web/status reconstruction are
+accepted; the sandbox source plan follows. Memory remains
 deferred in that reconstructed early sequence.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.

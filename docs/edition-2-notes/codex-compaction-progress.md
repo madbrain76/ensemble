@@ -3,9 +3,9 @@
 Coordinator: Astra (Codex), October 14, 2026. Current status: Stages B and C
 runtime implementation accepted. Final source `7feb910a` and independent review `09e68149`
 close the background actor gate, including the factory-refusal and GUI corrections.
-Stage D author and grader coder are preparing concrete editorial/coverage plans.
-Accounting, authentication and historical crossover reconstruction are accepted;
-combined web/status implementation is undergoing checks before review. No chapter
+Stage D author and grader plans are independently accepted for bounded edits.
+Accounting, authentication, historical crossover and combined web/status
+reconstruction are accepted; the sandbox source plan follows. No chapter
 changes, exports, deployment or publication by this workstream. Earlier observations
 retain their actual source/results.
 
@@ -500,3 +500,72 @@ No old accepted snapshot can become a new-order result by changing its directory
 name. Current20's unchanged 155/155 run is coder evidence on the developing new18
 source, not yet implementation acceptance. Chapter prose, frozen exports, live
 configuration and publishing artifacts remain unchanged by this workstream.
+
+Subsequent new18 acceptance: independent `387b79b2` accepts source `9af38643`,
+Agent tree `6cb2eb95e7a7ad5d5fe9afc8ca2d4f5a7ad3e99d`, at initial review with
+zero correction rounds. Root verified that exact clean tree and read the full
+coder submission and independent disposition. The unchanged grader remains
+155/155; the reviewer's separate causal GUI race check passes in1.025s. Source
+selection, supported-price limits, actual browser evidence and the lock mutant's
+blocked cleanup remain explicit in the review. Release a source plan only for
+current21/new19 Sandbox from this predecessor; no cumulative source import or
+new export is implied.
+
+Stage D plan review also found old22's root-submit instruction conflicts with
+the already approved main-chat/delegated-submit behavior. Root inspected the
+actual Fleet.Idle root exemption and the exact TL;DR passage, then supplied a
+bounded, attributed plan correction to the author and coder. Preserve ordinary
+delegated three-wake correction and historical transcripts. Root has reloaded
+the complete skill, four governing/craft documents, Chapters14/15 and handoff
+after compaction; the independent reviewer separately reloaded all required
+documents and read all five affected chapters before the plan review.
+
+The final author plan (SHA-256 `07a70665…`) and grader plan (`ae5c0f15…`)
+are now independently accepted in the runtime audit. Coordinator accepts their
+agreed ownership, preservation and scored-versus-source-evidence distinctions,
+and releases bounded Stage D implementation. The author owns narrative; coder
+owns final TL;DRs and graded sections, with shared example wording exchanged
+before edits. This is plan acceptance only, with no formal correction round
+consumed. Old numbers remain until Stage E. Full independent prose/grader review
+still follows the actual implementation, examples and targeted checks.
+
+## Stage F live checklist prepared during Stage D
+
+Coordinator preparation only, October14. No model request, credential read, live
+configuration change or deployment is performed by this checklist. Execution
+follows the chapter/sequence gates and independent checklist review. Use the
+accepted runtime then, recording its actual source tree and binary hashes before
+launch. Earlier live scripts are historical examples, not safe defaults: the old
+memory launcher selects excluded Haiku5.5, treats a changed log as turn completion,
+and can close input before a background child finishes. Do not reuse those rules.
+
+Run one isolated human-interface session with GPT-6 Astra/high through the
+existing read-only Codex credential adapter. Select the route explicitly and
+verify the actual model, effort, endpoint and visible-explanation policy from
+sanitized request metadata. Use only the needed existing credential path, never
+copy the credential file or print its values. Do not change the active Cadence
+profile. Give the test its own temporary workspace, settings/save/log/data paths,
+port and GUI process; its browser must never connect to the live application.
+Use a small primary skill and only synthetic public case text, preserving the
+normal visible explanation before tool calls. No production conversation enters
+the test or evidence.
+
+| Action | Receipt and honest limit |
+| --- | --- |
+| Analyze the chapter's Cedar Lantern case and request one completed-work checkpoint | Retain the exact public input, visible explanation, checkpoint fact and complete selected source. Set a small conversation budget and a large Session budget so this bounded run requests one conversation compression, without intentionally triggering a graduation cascade. |
+| Observe the real child and submit an unrelated ordinary question while it runs | Record monotonic launch, main-input admission, main completion and child completion times from actual events. A screenshot/text observation identifies the child and owner. Main completion before child completion demonstrates progress in this run; a child finishing too quickly leaves this live overlap unestablished, without erasing deterministic barrier evidence or spending another run merely for a better story. |
+| Inspect the worker's completion and parent acceptance | Verify the exact declared memory schema, dedicated role and source-owner first-person instructions, visible explanation before submit, actual structured payload, terminal outcome and committed bytes. Compare decision, reason for rejection, owner/date and unresolved attachment question with the original case. Record omissions or inventions instead of treating valid JSON as memory quality. |
+| Select the child in the browser before dismissal, when observable | Observe completion/save followed by removal from the tree and selected-conversation fallback to the owner. Retain durable outcome and trace identity. If timing prevents selection, report that limit and retain the separate deterministic GUI result; do not claim an unobserved transition. |
+| Ask the owner to recall the supplied case without tools after committed outcome | Inspect actual request memory as well as the reply. Distinguish correct delivery, preservation and model use. Record usage once at the owner with main Last unchanged by auxiliary-only completion. Counts and cache grants are observations, not an invoice. |
+| Close normally after the terminal outcome and reopen the isolated save without a prompt | Verify process exit, retained memory/outcome, no respawn or new inference at startup, and clean shutdown. Never use main turn-ended alone as the compaction-completion signal. |
+
+Before paid execution, validate changed launch/capture code against the existing
+local provider fixture and its failure controls. Check complete source/binary/path
+bindings and that empty or partial receipts cannot pass. Build the GUI first and
+supervise that binary directly. The launcher has a bounded observation budget and
+explicit cancellation/cleanup on exhaustion; this is not a new runtime HTTP
+deadline. Keep partial/failure receipts and do not retry automatically. Do not
+collect or commit hidden reasoning, raw credential-bearing traffic or the private
+profile. Retain only synthetic visible dialogue, relevant memory bytes and safe
+metadata needed for the stated observations. The final review decides whether
+any uncovered live requirement needs further action.
