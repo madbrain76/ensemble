@@ -354,3 +354,142 @@ The preceding command-selection failures remain historical baseline results.
 Broader package regression checks were still running when this disposition was
 written; their eventual outcome belongs in the coordinator's progress record.
 No model inference or live application operation was performed for this review.
+
+## Reordered accounting source-plan review
+
+October 14, after build/scope checkpoint `a8eec84a`. The coordinator reports
+broader grader-package regression PASS in30.429s, vet PASS, and the existing
+long-response baseline PASS in63.11s. These are coordinator-reported follow-up
+results, separate from this reviewer's independently executed Build probes above.
+
+Reviewed the complete pre-edit plan at
+`/Users/bill/projects/ensemble-reordered/docs/edition-2-notes/codex-reordered-foundations.md`
+from `reordered_foundations_coder`. **Plan accepted**, with no blocking findings.
+This is permission to perform the bounded maintenance stage, not acceptance of
+its implementation, an export or a new manuscript order. The independent source
+and validation review remains after implementation.
+
+Verified the proposed baseline source trees against `a8eec84a`:
+
+| Source | Tree |
+| --- | --- |
+| Accepted14 | `0c751dbd3985dee1a80284461e31346471ccc984` |
+| Accepted16 | `83e2f4cc85eb91ef9f62a54f638baa4d538cacf8` |
+| Accepted17 | `2ee06bb6189898809d80de97df2b73c695cfb0d5` |
+
+The plan uses14 as the actual cumulative baseline and16→17 only as a guide to
+the accounting change. It retains the real actor/history/journal and separate
+GUI, adding the Engine-owned lens, model/tier counts, markers and process meter.
+It excludes memory/recall construction, band settings, compressor/judge APIs,
+forcing, fleet and authentication/Responses. Handoff markers remain here;
+surviving-memory fallback and auxiliary attribution have explicit new22/23
+obligations. Mixed historical test helpers will be replaced by small external
+provider fakes while the actual runtime remains exercised.
+
+Two selected maintenance corrections have appropriate source provenance:
+`215ae6ac` excludes unsupported Anthropic5.5 models from active catalog/examples
+and tests; `09111e0b` removes the60-second whole-response timeout while retaining
+caller-context cancellation and default connection safeguards. The reviewer
+inspected the latter's actual Engine diff: it is a small transport correction,
+not a reason to import later billing, auth or fleet machinery. Historical
+snapshots and evidence retain their original identities.
+
+Validation clarification sent to coder and coordinator: if the renderer changes
+require adapting separate `ch05`/`ch06` example modules or their tests, run those
+affected modules as well. Core/GUI tests do not cover separate modules. Keep
+grader execution coordinated and use explicit staged `agent` paths with old14
+and17 feature IDs. The partial `agent` tree belongs only to the isolated
+reconstruction branch; it must never replace the full live development tree by
+an ordinary whole-branch merge.
+
+## Independent accounting implementation review
+
+October 14. **Accepted as the bounded reconstructed new15 maintenance stage**,
+at initial independent review with zero correction rounds. Source is
+`288fc6e8f866bc19d65c17909f270f294c90d1de`, `agent` tree
+`2b671b45dc5f7b760f2faaff2a77c83e6c7c09c8`, on
+`codex/reordered-foundations`. The worktree was clean when its identity was
+verified. This is not a blind student result, an accepted frozen export,
+manuscript acceptance, renumbering or permission to replace the complete runtime.
+
+Read the complete coder's consolidated source/validation review at
+`docs/edition-2-notes/codex-reordered-foundations.md` in that branch before
+deciding. Compared the staged source against accepted14 and the selected
+accepted16→17 accounting delta, including all31 changed paths, actual
+construction, renderer and transport changes, vocabulary, GUI integration,
+adapted tests and new lifetime regressions. The mandatory coding skill was
+reloaded for this review; the four complete governing/craft documents remain
+the previously reloaded active context, with no intervening compaction.
+
+The root constructs the lens with the actual Engine; attachment checks that
+owner and establishes its retained reference. Common remains vocabulary and
+interfaces. Send observes sanitized request bytes and retains the prediction
+locally through the corresponding response; account retains its request-local
+model/tier identity. GUI reads Engine's disposable meter rather than restored
+History usage. The implementation preserves Chapter14's actual actor, reducers,
+journaling, job and skill machinery unchanged. The new marker helper uses only
+surviving handoffs. No memory/recall construction, band kinds, forcing-window
+field, auxiliary send API, fleet, auth or Responses machinery was found.
+
+The supported-model correction is confined to catalog/active fixtures; the
+historical provider capture is unchanged. The transport correction retains the
+normal HTTP client and caller contexts while removing the total response
+deadline. Its tests use this stage's Chat Completions transport rather than
+importing later Responses code. These match the two approved carry-forwards.
+
+Independent line counting reproduced the coder's Go measurements, counting
+physical lines, active nonblank/non-comment-only lines and `//`-only comments:
+
+| Change against its own predecessor | Physical | Active | Comment-only |
+| --- | ---: | ---: | ---: |
+| Staged production Go versus14 | +502 | +388 | +85 |
+| Old17 production Go versus16 | +516 | +405 | +84 |
+| Staged primary Go tests versus14 | +685 | +631 | +32 |
+| Old17 primary Go tests versus16 | +598 | +547 | +35 |
+| Staged separate Go examples/tests versus14 | +8 | +6 | +2 |
+
+The slightly smaller production delta excludes future memory fallback and
+auxiliary plumbing. Test growth is explained by the151-line real response
+lifetime/cancellation coverage and scoped boundary adaptations. The new
+exported types, members and interface methods have useful contract comments;
+lens locking, actual-send placement, price identity and temporary meter meaning
+are explained beside their behavior. No generic framework or unnecessary
+abstraction was introduced. JavaScript/HTML integration remains the small
+historical meter addition; current application behavior, not line reduction,
+supports this acceptance.
+
+Independently executed, from the frozen stage with provider/application variable
+prefixes stripped:
+`go test -race ./ensemble -run 'TestCache|TestBlockedModelResponseCancellation' -count=1`
+in `agent`: PASS,1.410s package time, exit0. No grader or paid call was run by this
+reviewer. Inspected the coder's complete raw reports at
+`/tmp/ensemble-reordered-checks`: old14 and17 each100/100, all rows passing;
+core/GUI and affected separate-module checks, actual browser meter, race checks
+and the two real61-second response cases. The latter's raw package time is
+62.019s; the coder's70.046s entry includes build/launcher time.
+
+The five submitted mutation outputs fail their intended assertions: omitted
+handoff marker in both explicit renderers, lens rotation from offline rendering
+for all three vendors, wrong Sonnet price, absent real external-tool log despite
+surrounding lens diagnostics, and the restored60-second deadline on both
+streaming and buffered61-second responses. The failed initial log-mutation
+launcher remains a setup error. Unchanged historical overlap/rotation mutations
+retain their old identity; the current overlap tests were rerun under race.
+The stronger memory and auxiliary-accounting obligations remain deferred to
+new22/23 and receive no present acceptance credit.
+
+The ch05 test correction is accepted: it selects the actual tool's log record
+and validates that record's timestamp instead of requiring the tool record to
+remain the final diagnostic. Its omission mutant fails at that exact check.
+The prior disk-full runs establish infrastructure failures, not runtime
+regressions; subsequent clean checks are separate results. The peer idle-EOF
+timeout during concurrent browser checks remains an unexplained intermittent
+failure. The peer production source is unchanged, and both the exact14 control
+and isolated staged repeat pass; this supports retaining the limitation without
+inventing a reproduced baseline defect or waiving the shutdown behavior. No
+threshold or runtime workaround was added to hide it.
+
+No blocking scope, architecture, implementation or evidence finding remains for
+this stage. The coordinator may release the next bounded authentication plan.
+Keep this partial source on its reconstruction branch; later export and
+publication gates remain separate.
