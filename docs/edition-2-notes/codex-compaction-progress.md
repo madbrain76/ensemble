@@ -5,9 +5,10 @@ runtime implementation accepted. Final source `7feb910a` and independent review 
 close the background actor gate, including the factory-refusal and GUI corrections.
 Stage D author and grader plans are independently accepted for bounded edits.
 Accounting through Sandbox reconstruction is accepted through new19. Stage D
-narrative is checkpointed at `e4b7480c`; revised grader and final TL;DR contracts
-remain in progress. Independent narrative review and new20 source planning are
-active. No exports, renumbering, deployment or publication by this workstream.
+narrative is checkpointed at `e4b7480c`, with reviewed clarification `8057f854`.
+Grader slices D1–D5 are checkpointed through `8430d4b6`; remaining memory/recall
+checks and final TL;DR contracts are in progress. Independent grader review and
+new20 implementation are active. No exports, renumbering, deployment or publication by this workstream.
 Earlier observations retain their actual source/results.
 
 Bill authorized proceeding after reading Cadence's
@@ -638,3 +639,67 @@ source from either worktree through an explicit repository/revision and writes
 to absent destinations. Preserve exact source identities and old immutable tags;
 only promote freshly validated reconstructed exports. Current24/26 still need
 the affected carry-forward and validation. No accepted25 export is introduced.
+
+
+## October 14: structured graders reviewed; live launcher rehearsed
+
+Reconstruction plan `53958bcc` passed root and independent review `ab511273`.
+New20 implementation is released. Actual compilation/execution exposed two
+dependencies missed by both plan reviews: `df38abe0`'s after-tool interruption
+branch/test belongs with original26/new21 (`55cbef23`), and the successful
+`turn_ended` dispatch fact requires the matching zero-payload validation guard
+from `450f7a9`. Independent corrections `3257a817` and `924ba4fe` record the
+precise staging, restoration obligation and actual initial failures. The earlier
+memory-only course-row assertion remains deferred until new22. These are
+source-plan corrections, not acceptance of the unfinished new20 implementation.
+
+Grader checkpoints D2 `2b17971e`, D3 `5f7bc621`, D4 `5391d5eb` and D5
+`8430d4b6` follow D1 `1acfd47e`. They exercise a genuinely held memory worker,
+main-chat/delegated-submit compatibility, nested typed submissions and actual GUI
+retrieval/reload. Coder reports current22 200/200 and current23 100/100 on their
+respective checkpoint sources, with focused race/mutation evidence in the
+existing grader plan. Full memory/recall and chapter contracts remain pending.
+Independent reviewer resumed on these coherent slices and identified a build-
+failure scoring attribution gap in23; correction is underway. No full Stage D
+acceptance is claimed.
+
+Root reloaded the entire coding skill, workflow, carryover, voice and chapter
+procedure after compaction, then all current14/15 and the handoff before this
+work. Root prepared `scripts/edition2/background-memory-live.mjs` for the
+accepted Stage F checklist. It builds committed Agent source, binds the exact
+source tree and binary, uses an isolated file-configured GUI/Chrome instance
+and scratch paths, and defaults to an external HTTP fake. The live mode is
+explicit; no live request has been made. Raw provider logs stay in private
+scratch. The retained receipt permits only synthetic visible text, schema,
+source memory, usage and lifecycle metadata; opaque/provider reasoning parts
+are excluded. The tree-only screenshot shows the actual isolated interface.
+
+Final local preflight at source `924ba4fe`, Agent tree
+`ec61c01d3f9841364843c1b7e1998d9c573790a4`, passed with launcher SHA-256
+`2b3198ce220b3781e968583d0835af44e3dfa442b8e1bb14c19128130326cd9b`.
+Command: `node scripts/edition2/background-memory-live.mjs REPOSITORY preflight`
+(the executed identical script was still at `/tmp/ensemble-background-live.mjs`).
+[Sanitized receipt](../../solutions/evidence/background-compaction/preflight.json)
+and [actual tree](../../solutions/evidence/background-compaction/preflight-running-tree.png)
+retain the exact source/binary/launcher identity, scratch location and timings.
+
+The real main actor answered the unrelated question while the external worker
+response remained held. Its selected child then committed and disappeared, with
+selection returning to the owner. The selected source was2034 UTF-8 bytes;
+submitted memory and actual file were847 bytes each. This is fixture propagation,
+not a semantic compression measurement. Auxiliary-only completion added20
+uncached input,11 cached input and17 output tokens once; latest-main counts
+remained60,41 and7. Recall received the exact committed memory. Both application
+exits were0; restart without a prompt made zero inference requests. Seven
+negative controls refused empty/partial receipts, missing/wrong source identity,
+wrong binary identity, missing worker input, changed committed bytes and absent
+restart completion. No provider credentials were read by the launcher itself.
+
+The initial successful rehearsal at scratch suffix `mFnZxl` sampled the child
+title before selection acknowledgment, so it could not establish actual selected-
+child fallback. Root noticed the title was still main. The corrected launcher
+waits for the explicit child title before claiming selection; `lpI9zh` verifies
+that correction, and final `ELW14J` adds the tree capture and smaller receipt.
+Those earlier receipts remain in their scratch directories, with their limited
+claims preserved here. Live execution still waits for the required sequence
+gates and review; no runtime deployment, settings change or publication occurred.

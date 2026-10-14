@@ -24,8 +24,11 @@ root-submit requirement; preserve the existing main-chat/delegated-submit policy
 while retaining ordinary delegates' three corrective wakes. Accounting,
 authentication, historical crossover, combined web/status and Sandbox reconstruction
 are accepted through new19 (`922caeb4`, review `40372118`). Narrative checkpoint
-`e4b7480c` is under independent review while final contracts/graders and new20
-source planning continue. Memory remains
+`e4b7480c` passed interim review with clarification `8057f854`; final contracts
+and memory/recall graders remain pending. New20 reconstruction is implementing
+its reviewed plan; dependency corrections preserve the intended chapter stages.
+Structured grader slices through `8430d4b6` are under independent review. The
+isolated live launcher has passed a local-fake rehearsal, not a paid live run. Memory remains
 deferred in that reconstructed early sequence.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.
