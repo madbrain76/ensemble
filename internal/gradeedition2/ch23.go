@@ -31,6 +31,7 @@ func Chapter23(bin, gui string) (grade.Report, error) {
 		reuseFail(checks, err, 0, 1, 2, 3, 5)
 	} else {
 		defer cleanup()
+		fleetRootChat(guiBin, &checks[6])
 		managementGUI(guiBin, checks)
 	}
 	return grade.NewTitledReport("Edition 2, Chapter 23 — Managing the Swarm", checks, ""), nil
@@ -70,10 +71,7 @@ func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
 func managementReply(body []byte, work string) *fakevendor.Reply {
 	b := string(body)
 	if strings.Contains(b, "PENDING_TASK_23") {
-		if fleetHas(body, "pending-submit") {
-			return &fakevendor.Reply{Text: "PENDING_DONE_23"}
-		}
-		return fleetCall("pending-submit", "submit", map[string]any{"result": "PENDING_DONE_23"})
+		return &fakevendor.Reply{Text: "PENDING_DONE_23"}
 	}
 	// These are external scripted decisions, not replacement fleet machinery.
 	for _, final := range [][2]string{{"peer-submit", "NAMED_CONVERSATION_23"}, {"manage-submit", "MANAGEMENT_DONE_23"}, {"child-submit", "WORKER_RESULT_23"}, {"intruder-submit", "INTRUDER_DONE_23"}} {
@@ -99,7 +97,7 @@ func managementReply(body []byte, work string) *fakevendor.Reply {
 		return fleetCall("child-submit", "submit", map[string]any{"result": "WORKER_RESULT_23"})
 	}
 	if strings.Contains(b, "PEER_TASK_23") {
-		return fleetCall("peer-submit", "submit", map[string]any{"result": "NAMED_CONVERSATION_23"})
+		return &fakevendor.Reply{Text: "NAMED_CONVERSATION_23"}
 	}
 	for _, p := range []sandboxProbe{
 		{"spawn-worker", "spawn_sub_agent", map[string]any{"agent_id": "worker23", "task": "WORKER_TASK_23"}},
@@ -114,5 +112,5 @@ func managementReply(body []byte, work string) *fakevendor.Reply {
 			return &r
 		}
 	}
-	return fleetCall("manage-submit", "submit", map[string]any{"result": "MANAGEMENT_DONE_23"})
+	return &fakevendor.Reply{Text: "MANAGEMENT_DONE_23"}
 }

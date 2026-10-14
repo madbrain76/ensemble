@@ -22,6 +22,13 @@ func Chapter22(bin, core, gui string, legacy bool) (grade.Report, error) {
 	checks[6].Title = "Public root has a resolved GUI-free dependency graph and constructible API"
 	reuseChecks(core, gui, legacy, checks[:7])
 	fleetChecks(bin, checks[7:])
+	guiBin, cleanup, err := grade.Build(gui)
+	if err != nil {
+		fail(&checks[13], "root chat control: %v", err)
+	} else {
+		defer cleanup()
+		fleetRootChat(guiBin, &checks[13])
+	}
 	return grade.NewTitledReport("Edition 2, Chapter 22 — The Ensemble", checks, ""), nil
 }
 

@@ -23,7 +23,7 @@ const fleetDone = "FLEET_COMPLETED_22"
 // saved conversation and idle correction belongs to the submitted executable.
 func fleetRun(bin, work string, route func([]byte) *fakevendor.Reply, steer func(*mcpCommand) error) (reqs []fakevendor.Recorded, err error) {
 	skills := filepath.Join(work, "skills")
-	err = recallWrite(skills, map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Terminal fleet exercise\ntype: primary\ntools: spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit run_command wait_for_job tool_limits write_file read_file\n---\nFinish work with submit. Questions are not submissions.\n"})
+	err = recallWrite(skills, map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Terminal fleet exercise\ntype: primary\ntools: spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit run_command wait_for_job tool_limits write_file read_file\n---\nMain and named-peer Agents finish in chat. Delegated Agents finish with submit. Questions are not submissions.\n"})
 	if err != nil {
 		return
 	}
@@ -95,7 +95,60 @@ func fleetHas(body []byte, id string) bool {
 	return err == nil
 }
 func fleetFinish() *fakevendor.Reply {
-	return fleetCall("finish", "submit", map[string]any{"result": fleetDone})
+	return &fakevendor.Reply{Text: fleetDone}
+}
+
+// A root's plain reply must reach actual turn completion without corrective
+// wakes. Keep the socket open for a second turn: EOF must not hide a bad loop.
+func fleetRootChat(bin string, c *grade.Check) {
+	fleetTemp([]*grade.Check{c}, func(work string) {
+		if err := recallWrite(filepath.Join(work, "skills"), map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Main chat control\ntype: primary\ntools: submit spawn_sub_agent\n---\nMain Agents finish in chat; delegated Agents submit.\n"}); err != nil {
+			fail(c, "root chat setup: %v", err)
+			return
+		}
+		provider := fakevendor.NewWithOptions(nil, fakevendor.Options{Route: func([]byte) *fakevendor.Reply {
+			return &fakevendor.Reply{Text: "A normal main-chat answer.", Usage: fakevendor.Canonical{Input: 100, Output: 10}}
+		}})
+		defer provider.Close()
+		p, peer, err := managementStart(bin, work, provider.URL())
+		if err != nil {
+			fail(c, "root chat launch: %v", err)
+			return
+		}
+		defer p.close()
+		defer peer.close()
+		if err = peer.send("subscribe", ""); err != nil {
+			fail(c, "root chat subscribe: %v", err)
+			return
+		}
+		if _, err = readSettings(peer, "current_settings"); err != nil {
+			fail(c, "root chat settings: %v", err)
+			return
+		}
+		for i := 0; i < 2; i++ {
+			if err = peer.send("prompt", fmt.Sprintf("Root chat turn %d.", i)); err != nil {
+				fail(c, "root chat prompt: %v", err)
+				return
+			}
+			frames, err := peer.until(3*time.Second, messageKind("turn_ended"))
+			if err != nil {
+				fail(c, "root chat did not finish normally: %v", err)
+				return
+			}
+			last := frames[len(frames)-1]
+			if problem, _ := last["error"].(string); problem != "" {
+				fail(c, "root chat acquired submit failure: %s", problem)
+				return
+			}
+			if len(provider.Requests()) != i+1 {
+				fail(c, "root chat acquired an extra request/corrective wake")
+				return
+			}
+		}
+		if err = managementEOF(p); err != nil {
+			fail(c, "root chat shutdown: %v", err)
+		}
+	})
 }
 
 // Result lookup is correlated to the scripted call, never a marker in its

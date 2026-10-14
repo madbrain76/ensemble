@@ -323,3 +323,25 @@ part of this actual scenario and inherited B/C proof; no additional independent
 mutant is claimed for those assertions here. Final changes after execution add
 only explanatory comments about these boundaries. Full StageD coverage and
 independent implementation/prose acceptance remain pending.
+
+## D3 implementation: main chat versus delegated submit, October14
+
+Current22/23 scripted primary instructions now name the accepted distinction.
+Main and named-peer fixtures finish in chat; ordinary delegated fixtures still
+submit. The explicit premature root submit remains a refusal/admission control,
+not the required main completion path. The existing idle rows additionally run
+two real GUI main turns with fleet enabled, awaiting TurnEnded before the second
+prompt and keeping the process alive until both complete. Exact provider request
+counts expose root corrective wakes; premature EOF cannot conceal them. Existing
+delegated initial-plus-three-wakes and escalation checks remain unchanged.
+
+Sequential explicit-source advertised runs on this interim grader against
+`./agent` passed current22:200/200 and current23:100/100, raw
+`/tmp/ensemble-compaction-d3-grader{22,23}.txt`. These are actual D3 results, not
+final structured-submission grading or immutable old-grader reruns. Focused
+root-chat race passed1.801s (`/tmp/ensemble-compaction-d3-root-race.txt`); package
+vet passes. Removing the actual runtime's parentless-root exemption made the
+new check fail for an extra request/corrective wake in0.691s; raw
+`/tmp/ensemble-compaction-d3-mutant-root-idle.txt`. Scratch source was deleted.
+This restores an already accepted df38abe0 policy rather than changing runtime
+behavior. No runtime, historical transcript or frozen grader was edited.

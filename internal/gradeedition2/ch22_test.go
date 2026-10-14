@@ -6,6 +6,23 @@ import (
 	"testing"
 )
 
+// TestFleetRootChat22 checks two completed real GUI turns with fleet enabled,
+// so a root missing-submit loop cannot be concealed by early process EOF.
+func TestFleetRootChat22(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	c := grade.Ch25Checks(grade.Ch25Result{})[6]
+	c.Passed = true
+	c.Details = nil
+	fleetRootChat(bin, &c)
+	if !c.Passed {
+		t.Fatal(c.Details)
+	}
+}
+
 // These opt-in checks launch the real submitted binary; only its remote provider
 // is replaced. They also permit focused restored-defect checks without GUI work.
 func TestFleet22(t *testing.T) {

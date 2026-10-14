@@ -134,7 +134,7 @@ func managementContains(frames []map[string]any, text string) bool {
 func managementGUI(bin string, checks []grade.Check) {
 	fleetTemp([]*grade.Check{&checks[0], &checks[1], &checks[2], &checks[3], &checks[5]}, func(work string) {
 		skill := "---\nname: %s\ndescription: Fleet management fixture\ntype: primary\ntools: " + managementTools + "\n---\n%s\n"
-		if err := recallWrite(filepath.Join(work, "skills"), map[string]string{"base/SKILL.md": fmt.Sprintf(skill, "base", "Complete tasks using submit."), "peer/SKILL.md": fmt.Sprintf(skill, "peer", "PEER_SKILL_BODY_23. Complete tasks using submit.")}); err != nil {
+		if err := recallWrite(filepath.Join(work, "skills"), map[string]string{"base/SKILL.md": fmt.Sprintf(skill, "base", "Main and named-peer Agents finish in chat; delegated Agents submit."), "peer/SKILL.md": fmt.Sprintf(skill, "peer", "PEER_SKILL_BODY_23. Main and named-peer Agents finish in chat; delegated Agents submit.")}); err != nil {
 			reuseFail(checks, err, 0, 1, 2, 3, 5)
 			return
 		}
