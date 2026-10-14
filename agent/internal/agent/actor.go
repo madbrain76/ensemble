@@ -44,7 +44,7 @@ type record struct {
 	reply chan error
 }
 type flush struct{ reply chan error }
-type stop struct{}
+type stop struct{ discard bool }
 type gateReady struct{ turn *turn }
 type workerDone struct {
 	job common.Job
@@ -69,18 +69,22 @@ type turn struct {
 // All fields below are owned by run. Workers own external work only, and return
 // immutable messages. Interrupt detaches a turn without detaching its workers.
 type runtime struct {
-	owner          *agent
-	active         *turn
-	pending        []request
-	barriers       []chan error
-	workers        int
-	stopping       bool
-	failure        error
-	partID         uint64
-	memoryReady    bool
-	memoryDisabled [6]bool
-	forcingChecked uint64
-	warned         bool
+	owner             *agent
+	active            *turn
+	pending           []request
+	barriers          []chan error
+	workers           int
+	stopping          bool
+	discard           bool
+	failure           error
+	partID            uint64
+	memoryReady       bool
+	memoryDisabled    [6]bool
+	forcingChecked    uint64
+	memoryGeneration  [6]uint64
+	compaction        *compactionAttempt
+	compactionWaiting *turn
+	warned            bool
 	// Managed workers have one task and a lifetime send budget. Hints and a
 	// queued request cannot reset it by creating another ordinary turn.
 	compactionStarted bool
@@ -197,12 +201,18 @@ func (a *agent) Flush(ctx context.Context) error {
 
 // Stop admission once, then join the same owner on every call. The owner closes
 // done only after managed processes and both kinds of tool worker have finished.
-func (a *agent) Shutdown() error {
+func (a *agent) Shutdown() error { return a.shutdown(false) }
+
+// DiscardConstruction drains a refused factory result without writing its rejected
+// persistence paths. Factories must return before loading or starting work.
+func (a *agent) DiscardConstruction() error { return a.shutdown(true) }
+
+func (a *agent) shutdown(discard bool) error {
 	a.start()
 	a.lifecycle.Lock()
 	if !a.stopping {
 		a.stopping = true
-		a.box.Post(stop{})
+		a.box.Post(stop{discard: discard})
 	}
 	a.lifecycle.Unlock()
 	<-a.done
@@ -294,9 +304,9 @@ func (r *runtime) append(event common.Event) error {
 // The independent crash journal is appended by History before each fact is published.
 func (r *runtime) save() error {
 	path := r.owner.config.LogPath
-	// A factory refusal may drain a just-constructed managed worker. There are
-	// no facts to persist, and its rejected paths must not truncate old files.
-	if path == "" || (r.owner.spec.Compaction && r.owner.history.LastSeq() == 0) {
+	// Constructor refusal drains workers without touching rejected persistence
+	// paths, independently of the purpose actually returned by the factory.
+	if r.discard || path == "" {
 		return nil
 	}
 	file, err := r.owner.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -333,6 +343,9 @@ func (r *runtime) finish(text string, err error) {
 		}
 	}
 	t.cancel()
+	if r.compactionWaiting == t {
+		r.compactionWaiting = nil
+	}
 	r.active = nil
 	ended := common.TurnEnded{Text: text}
 	if err != nil {
@@ -390,6 +403,21 @@ func (r *runtime) begin(q request) {
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
+	limited := r.compaction != nil && r.atContextLimit()
+	if err := r.settleCompaction(); err != nil {
+		r.compressionWarning(err)
+		if limited || r.compaction != nil {
+			r.compactionWaiting = nil
+			r.finish("", err)
+			return
+		}
+	}
+	if r.compaction != nil && r.atContextLimit() {
+		r.compactionWaiting = r.active
+		r.owner.setActivity(common.ActivityWaiting, "", "waiting for memory compaction")
+		return
+	}
+	r.compactionWaiting = nil
 	if r.owner.spec.Compaction && r.compactionSends >= 3 {
 		r.finish("", errors.New("compaction worker model request limit reached"))
 		return
@@ -631,14 +659,11 @@ func (r *runtime) run() {
 			case modelSelection:
 				r.selectModel(m)
 			case memorySettings:
-				r.owner.configMu.Lock()
-				r.owner.config.Memory = m.value
-				r.owner.configMu.Unlock()
-				m.reply <- r.syncMemory()
+				r.changeMemory(m)
 			case recalled:
 				r.recalled(m)
-			case compressed:
-				r.compressed(m)
+			case compactionFinished:
+				r.compactionFinished(m)
 			case response:
 				r.receive(m)
 			case report:
@@ -692,6 +717,7 @@ func (r *runtime) run() {
 			case stop:
 				if !r.stopping {
 					r.stopping = true
+					r.discard = m.discard
 					// Release reverse callers waiting at the same Agent-wide gate.
 					r.owner.Unpause()
 					r.interrupt(common.ErrStopped)
@@ -704,6 +730,14 @@ func (r *runtime) run() {
 						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.fleet.Shutdown(), r.owner.mcp.Close())
 						r.owner.box.Post(workerDone{err: err})
 					}()
+				}
+			}
+		}
+		if r.active == nil && r.compaction != nil && r.compaction.completion != nil {
+			if err := r.settleCompaction(); err != nil {
+				r.compressionWarning(err)
+				if r.stopping && r.compaction != nil {
+					r.failure = errors.Join(r.failure, err)
 				}
 			}
 		}

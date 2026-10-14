@@ -205,6 +205,8 @@ type Memory interface {
 type CompactionOutcomeData struct {
 	// TaskID identifies the attempt whose source/result and trace remain auditable.
 	TaskID string `json:"task_id"`
+	// Usage retains drained attempt measurements for audit; replay never imports spend.
+	Usage []UsageBucket `json:"usage,omitempty"`
 	// State is committed, failed, canceled, invalidated, or abandoned.
 	State string `json:"state"`
 	// Reason explains refusal or cleanup failure without provider credentials.

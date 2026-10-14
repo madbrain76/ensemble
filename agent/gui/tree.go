@@ -72,7 +72,7 @@ func (s *Server) treeUpdates() {
 			s.mu.Lock()
 			stale := make(map[*websocket.Conn]*agentView)
 			for conn, v := range s.selected {
-				if v.agent.Spec().Compaction && !s.root.ContainsAgent(v.agent) {
+				if v.agent.ParentAgent() != nil && !s.root.ContainsAgent(v.agent) {
 					stale[conn] = v
 				}
 			}
@@ -104,7 +104,7 @@ func (s *Server) selectConversation(conn *websocket.Conn, queue chan [][]byte, s
 	s.settingsMu.Lock()
 	defer s.settingsMu.Unlock()
 	for {
-		for selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+		for selected.ParentAgent() != nil && !s.root.ContainsAgent(selected) {
 			selected = selected.ParentAgent()
 		}
 		s.mu.Lock()
@@ -118,7 +118,7 @@ func (s *Server) selectConversation(conn *websocket.Conn, queue chan [][]byte, s
 		}
 		// Removal uses this same view lock. Recheck after acquiring it so a
 		// selection delayed at the lock cannot recreate an already-deleted view.
-		if selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+		if selected.ParentAgent() != nil && !s.root.ContainsAgent(selected) {
 			s.mu.Unlock()
 			continue
 		}
@@ -126,7 +126,7 @@ func (s *Server) selectConversation(conn *websocket.Conn, queue chan [][]byte, s
 		s.mu.Unlock()
 		if !v.loaded {
 			if err := v.loadSettings(); err != nil {
-				if selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+				if selected.ParentAgent() != nil && !s.root.ContainsAgent(selected) {
 					continue
 				}
 				return err
@@ -135,7 +135,7 @@ func (s *Server) selectConversation(conn *websocket.Conn, queue chan [][]byte, s
 		}
 		tree := s.root.TreeSnapshot(s.agent)
 		s.mu.Lock()
-		if selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+		if selected.ParentAgent() != nil && !s.root.ContainsAgent(selected) {
 			delete(s.views, selected)
 			s.mu.Unlock()
 			continue

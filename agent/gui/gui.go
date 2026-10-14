@@ -110,7 +110,7 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 		delete(s.views, a)
 		return
 	}
-	if a.Spec().Compaction && !s.root.ContainsAgent(a) {
+	if a.ParentAgent() != nil && !s.root.ContainsAgent(a) {
 		return // A queued observation must not recreate a removed worker's view.
 	}
 	v := s.view(a)

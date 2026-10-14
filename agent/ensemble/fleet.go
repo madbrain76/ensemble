@@ -118,11 +118,11 @@ func (e *Ensemble) CreateChild(parent Agent, spec common.AgentSpec) (Agent, erro
 		// Refusal does not give us ownership of that Agent's lifetime.
 		return nil, errors.New("factory returned child with wrong ownership")
 	}
-	// A rejected owned worker still needs draining and root removal. Empty managed
-	// shutdown performs no persistence, so refusal cannot truncate foreign files.
+	// Refusal owns cleanup even when a factory changed the requested purpose.
+	// Drain without writing the rejected paths, then release the exact child.
 	refuse := func(reason string) (Agent, error) {
-		err := a.Shutdown()
-		e.ForgetCompaction(a)
+		err := a.DiscardConstruction()
+		e.forgetChild(a)
 		return nil, errors.Join(errors.New(reason), err)
 	}
 	if a.Spec().Compaction != spec.Compaction {
@@ -169,7 +169,7 @@ type FleetChanged = common.FleetChanged
 // ChildCompletion retains a managed task's reliable result and drained accounting.
 type ChildCompletion = common.ChildCompletion
 
-// AgentRemoved announces final removal of a managed worker and its surviving owner.
+// AgentRemoved announces a removed worker or refused construction and its owner.
 type AgentRemoved = common.AgentRemoved
 
 // ContainsAgent reports current root membership by identity, so a late queued
@@ -193,6 +193,12 @@ func (e *Ensemble) ForgetCompaction(a Agent) {
 	if a == nil || a.Ensemble() != e || a.ParentAgent() == nil || !a.Spec().Compaction {
 		return
 	}
+	e.forgetChild(a)
+}
+
+// Both managed completion and constructor refusal release exact owned children;
+// ordinary successful children retain their existing root lifetime.
+func (e *Ensemble) forgetChild(a Agent) {
 	e.agentsMu.Lock()
 	found := false
 	for i, current := range e.agents {

@@ -814,3 +814,175 @@ Reviewer accepts the locked-admission correction and inspected all8 final intend
 mutation failures, with the broader replay limitation preserved. Final coder
 admission-fix race passed4.401s. No C9 blocker; zero formal Stage C correction rounds.
 This is GUI dismissal acceptance, not parent actor or full Stage C acceptance.
+
+## C10 actor integration boundary
+
+The first new source regression holds only the memory HTTP exchange on an
+independent concurrent peer. On C9 `f111f1b3`, the owner's main turn cannot finish
+while that exchange is held: the explicit two-second progress assertion fails in
+2.020s (`/tmp/ensemble-compaction-stagec-actor-progress-before.txt`). This is the
+current actor's direct Compress path, separate from root's earlier saved-state
+write/event/archive probes. Existing memoryPeer also holds its callback under a
+mutex; it cannot establish background progress and will not supply this barrier.
+
+One runtime attempt holds immutable selection, source/destination generations,
+reliable drained completion, accounted flag and any terminal outcome awaiting
+persistence/cleanup. Its completion receiver counts in runtime.workers and posts
+directly to the mailbox even during shutdown. Completion imports final buckets
+once, then waits for idle or pre-render acceptance; ordinary finish/interrupt does
+not cancel it. Settings invalidate the relevant generation synchronously and
+request child shutdown outside the actor. Owner shutdown invalidates before its
+existing recursive drain and consumes the completion before exiting. Terminal
+write/cleanup errors keep the attempt/receipt; a committed receipt is finalized,
+never relabeled abandoned. A stopped owner returns persistence errors rather than
+waiting forever on unrepairable I/O. Outcome adds copied usage receipt data without
+replaying spend. Near-window waiting stores the active turn identity, and a failed
+held attempt fails that turn explicitly; interruption detaches only that waiter.
+
+C10 implementation now uses the existing Fleet worker rather than Engine.Compress
+from the actor. The legacy exported compressor remains source-compatible and is
+marked deprecated. The selected task is validated again after hidden staging and
+before the correlated pair. Parent Save establishes the journal before launch.
+Main 95% occupancy uses History.LastUsage; completion imports Engine buckets without
+changing that main observation. Root source review noted the completion count was
+decremented before identity admission; first exact completion now gates both worker
+retirement and import, without a new queue or ledger. There is one normal producer;
+no artificial duplicate-message hook was introduced to claim scheduler coverage.
+
+Focused concurrent-peer lifetime/safe-boundary race passed1.496s; cache/headroom
+success, failure, below-limit and interrupt cases passed1.261s with the refusal
+controls. Actor file-failure cases passed1.373s: worker log/save, staging refusal,
+human destination edit, and committed promotion permission failure. The latter
+holds render and settings until repair, then completes; terminal outcome/usage
+survive Save/Load and historical buckets are not imported into a new session.
+Raw outputs: `/tmp/ensemble-compaction-stagec-actor-lifetimes-meter.txt`,
+`/tmp/ensemble-compaction-stagec-context-limit-final.txt`, and
+`/tmp/ensemble-compaction-stagec-actor-persistence-first.txt`.
+
+Inherited memory tests now wait for actual terminal outcomes before checking disk
+or issue a marked verification turn before checking compressed request contents.
+The waterfall waits for three real committed outcomes. The old interrupt-then-owner-
+shutdown case is named for shutdown; ordinary interrupt preservation is independently
+covered by the new concurrent peer. First unchanged timing tests failed, then one
+leftover replay request count failed after adding a verification turn. The final
+memory/lifetime/refusal focused race passes2.740s, raw
+`/tmp/ensemble-compaction-stagec-refusal-correction.txt`. Fixture corrections also
+retain their actual failed logs: two guessed latest-usage method names did not
+compile (the real API is Meter().Usage); the ordinary-shutdown control initially
+omitted LogPath; its first draft used public AgentSpec where CreateChild takes the
+common type. These are test setup failures, not claimed runtime defects.
+
+Root overall review reproduced a C8 coverage gap on exact `f111f1b3`: a managed
+request whose factory returned an ordinary child could truncate a redirected old
+log during refusal and remain in the root. The managed-return positive control
+passed; reverse-purpose refusal failed both preservation and removal. Correction
+adds DiscardConstruction to the existing counted shutdown path and suppresses only
+its persistence, replacing the purpose-specific empty-log workaround. CreateChild
+checks ownership first, discards rejected owned construction, then shares private
+exact-identity root removal. Ordinary successful Shutdown still saves and retains
+its root entry. Factories must return before Load/Save/task admission; arbitrary
+trusted callback pre-return effects remain outside this contract. Root's unchanged
+probe is retained with formatting only in compaction_refusal_test.go, together with
+an ordinary lifecycle control. Independent review of this correction/full C10 and
+mutation evidence remain pending; prior C8 acceptance history is not overwritten.
+
+Final coherent checks: focused race across Compaction, Memory, StructuredSubmission
+and both refusal controls passes5.333s; core and GUI go vet pass. Full core tests
+pass the Ensemble package92.956s and all other packages except the previously
+reproduced CLI human-sink failure TestFleetCLIHumanReplyAndEscalation/true
+(unreachable sink, process killed). The full GUI module passes8.538s. These are
+isolated local peers with all six credential-prefix families stripped only from
+test subprocess environments. No live inference, graders or deployment ran.
+Logs: `/tmp/ensemble-compaction-stagec-actor-focused-final.txt`,
+`/tmp/ensemble-compaction-stagec-core-full.txt`,
+`/tmp/ensemble-compaction-stagec-gui-full.txt`,
+`/tmp/ensemble-compaction-stagec-vet.txt`.
+
+Fourteen isolated single-defect checks fail intended behavioral assertions:
+
+| Defect | Observed failure |
+| --- | --- |
+| Omit auxiliary import | Failed empty submission loses exactly80 input/20 cache/9000 output |
+| Accept while main response is held | Source commits before the safe boundary |
+| Omit policy generation advance | Disable/re-enable wrongly commits old work |
+| Ignore child cleanup/save error | Failed child save wrongly commits memory |
+| Omit 95% wait | Next main request arrives before headroom |
+| Resume failed held attempt | Main returns success after failed compaction |
+| Count cache twice | Below-threshold request remains incorrectly held |
+| Omit terminal usage receipt | Saved outcome has no measured usage |
+| Skip Memory.Finish | Promotion permission failure is falsely committed |
+| Skip settings recovery hold | Settings succeeds against unfinalized corpus |
+| Disable construction-discard save suppression | Root probe's existing log is overwritten |
+| Skip rejected child removal | Root probe retains rejected ordinary/managed child |
+| Kill worker on ordinary interrupt | Interrupted owner loses ongoing worker |
+| Omit counted completion receiver | Owner Shutdown returns without terminal outcome |
+
+Raw mutant outputs are `/tmp/ensemble-compaction-c10-mutant-<name>.txt`, with
+names usage, safe-boundary, generation, cleanup-error, headroom, failed-wait,
+double-cache, outcome-usage, finish, settings-hold, discard, root-removal,
+interrupt and shutdown-receiver. All outputs were inspected. The first interrupt
+patch did not match the actual parameter name and was not applied; the corrected
+patch produced the recorded behavioral failure. Scratch copies were removed.
+The cache timeout establishes the actual blocked-request property with a passing
+control; the shutdown timeout establishes the missing terminal result after actual
+Shutdown, not a generic hung build. The latter is one exercised schedule, not an
+exhaustive scheduler proof. Exact first-completion identity/duplicate admission
+remains source-reviewed because production has one completion producer; no test
+hook or growing task ledger was added. C1–C9 mutation evidence covers unchanged
+schema, adapter, selection, correlated history, staged recovery, accounting bucket,
+shared save/removal and GUI boundaries; these were not all mutated again.
+
+C10 size against its predecessor across the seven changed/new production Go paths:
++223 physical lines, +191 active nonblank/non-comment-only lines and +22 comment
+lines (full compared files1403→1594 active,525→547 comment). This includes removal
+of the old synchronous actor path and the root-found constructor refusal correction;
+tests and notes are excluded. One attempt and the existing workers/mailbox carry
+lifetime; Memory retains filesystem policy, History retains projection receipts,
+and Engine retains accounting. No extra scheduler, task ledger or persistence store
+was introduced. Whole-file totals include inherited exported-interface documentation;
+the independent review must judge the actual new lifetime/commit explanations too.
+The full module runs began before the final small finish-time clearing of a detached
+headroom waiter reference; the final5.333s focused race and both vet runs include
+that final source. Manifest `/tmp/ensemble-compaction-c10-final-source.json` binds
+the final production/test paths for independent review.
+
+The refusal correction also exposes a narrow GUI case: a selection holding a child
+pointer before refusal could select the now-removed ordinary child because the
+membership guards tested only managed purpose. Independent reviewer agreed with
+the source finding. Existing guards now check parented children against current
+root identity; valid ordinary children remain registered and preserve selection.
+The real refusal/socket regression invokes the shared selection continuation with
+the already-resolved pointer, without a runtime test hook. Restoring all prior
+purpose-only guards selects `main/rejected` and fails the exact owner assertion
+(`/tmp/ensemble-compaction-c10-mutant-gui-refusal.txt`,0.024s). This is the fifteenth
+intended mutation failure. The new test plus C9/ordinary selection race passes4.327s
+(`/tmp/ensemble-compaction-stagec-gui-refusal-corrected.txt`). Its first two attempts
+omitted the socket subscribe request and timed out before exercising the defect;
+those setup failures remain in gui-refusal-before/final logs, not claimed evidence.
+Root independently reran its unchanged factory refusal assertions with only its
+function/comment renamed to avoid duplicate test symbols: race1.030s, raw
+`/tmp/ensemble-root-review-factory-refusal-fixed.txt`; initial duplicate-symbol
+setup failure remains separate. Final manifest includes all14 core/GUI source/test
+paths, including the two AgentRemoved comment clarifications. No other runtime
+behavior changed during this final GUI correction.
+
+After the final GUI correction, the complete GUI module again passes8.367s and vet
+passes (`/tmp/ensemble-compaction-stagec-gui-final-all.txt`). The final core actor
+bytes remain those exercised by the5.333s race; subsequent core edits only clarify
+AgentRemoved comments. The manifest hash is
+`70ece4a33f7fb4cd6b6ad8995053809e19955fbaedb7e01dbbaf94fc952e5640`.
+The final ten production paths (including GUI and the comment-only activity type)
+retain the same +223 physical/+191 active/+22 comment delta; their full-file totals
+are2737→2960 physical,1986→2177 active and619→641 comment lines. Tests are separate:
+the actor regression file exercises external concurrent HTTP/filesystem boundaries;
+the refusal regression preserves the root probe and ordinary lifecycle control.
+
+Independent full Stage C acceptance: initial formal review, zero formal correction
+rounds. Final exact14-path independent race passes core5.324s and GUI4.434s;
+review binding `387b87f643844024bf1c41722be33905da8a51af38a2cd6e39d406694ba72305`.
+Reviewer inspected all15 C10 intended mutant failures, accepts the repaired root
+refusal coverage gap and GUI ordinary-child membership correction, and records the
+complete C1–C10 comparison and limitations in the separate runtime audit. Coordinator
+also accepts runtime implementation after final source/tests/hash review and its
+independent root refusal reproduction. This accepts Stage C runtime code, not
+Stage D revised graders, later prose/renumbering/exports, live quality or deployment.

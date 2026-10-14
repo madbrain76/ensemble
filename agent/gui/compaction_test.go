@@ -312,3 +312,70 @@ func TestCompactionRemovedDuringSelection(t *testing.T) {
 		t.Fatal("settings load recreated removed view")
 	}
 }
+
+// TestRejectedOrdinaryChildSelection covers a GUI selection that already resolved
+// a factory child when its managed-purpose check refuses and removes that child.
+func TestRejectedOrdinaryChildSelection(t *testing.T) {
+	app := ensemble.New(io.Discard)
+	root, err := app.NewAgent(ensemble.Config{Model: "claude-sonnet-5", DataDir: t.TempDir(), Recall: ensemble.RecallSettings{Disabled: true}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { root.Shutdown() })
+	hub, err := New(app, root, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(hub.Close)
+	server := httptest.NewServer(hub.Handler(""))
+	t.Cleanup(server.Close)
+	conn, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http")+"/ws", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	if err := conn.WriteJSON(map[string]string{"type": "subscribe"}); err != nil {
+		t.Fatal(err)
+	}
+	compactionFrame(t, conn, "agent_selected")
+	compactionFrame(t, conn, "current_settings")
+	var rejected ensemble.Agent
+	app.SetAgentFactory(func(parent ensemble.Agent, spec ensemble.AgentSpec) (ensemble.Agent, error) {
+		spec.Compaction = false
+		child, err := app.NewChildAgent(parent, parent.Config(), spec)
+		rejected = child
+		return child, err
+	})
+	if _, _, err := root.Fleet().StartCompaction("rejected", "source"); err == nil {
+		t.Fatal("wrong purpose accepted")
+	}
+	if rejected == nil || app.ContainsAgent(rejected) {
+		t.Fatal("actual refused child was not removed")
+	}
+	// The connection is real; calling the shared selection continuation models
+	// having resolved the old pointer before removal, without a runtime test hook.
+	hub.mu.Lock()
+	var connection *websocket.Conn
+	var queue chan [][]byte
+	for current, q := range hub.clients {
+		connection, queue = current, q
+	}
+	hub.mu.Unlock()
+	if connection == nil {
+		t.Fatal("socket not registered")
+	}
+	if err := hub.selectConversation(connection, queue, rejected, true, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := compactionFrame(t, conn, "agent_selected")["key"]; got != ensemble.AgentKey(root) {
+		t.Fatalf("selected rejected child: %v", got)
+	}
+	compactionFrame(t, conn, "current_settings")
+	hub.mu.Lock()
+	_, retained := hub.views[rejected]
+	selected := hub.selected[connection].agent
+	hub.mu.Unlock()
+	if retained || selected != root {
+		t.Fatal("refused ordinary child retained by GUI")
+	}
+}

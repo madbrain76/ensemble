@@ -419,6 +419,9 @@ type Agent interface {
 	Save() error
 	// Shutdown stops admission, stops managed processes and joins outstanding work.
 	Shutdown() error
+	// DiscardConstruction drains a refused factory result without persisting to
+	// its rejected paths; factories must return before loading or starting work.
+	DiscardConstruction() error
 }
 
 // A declaration is vendor-neutral; only Engine chooses its wire spelling.
@@ -603,6 +606,8 @@ type Engine interface {
 	Render(*Context) ([]byte, error)
 	// Usage returns measured session counts under the Engine's accounting lock.
 	Usage() Usage
-	// Compress makes one bounded, isolated request with only the submit tool.
+	// Compress makes one direct isolated request with only the submit tool.
+	// Deprecated: the actor uses Fleet managed workers for background compaction;
+	// this legacy convenience method retains its synchronous external contract.
 	Compress(context.Context, string, int) (string, error)
 }
