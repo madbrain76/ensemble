@@ -301,11 +301,13 @@ finishing a task correctly. The model decided that delegating was the job, and
 delegating is complete. Three children can finish and submit while the parent
 is no longer attending to them.
 
-These failures can combine. The framework wakes a parent that stopped early.
-The parent remembers to join, enters a blocking wait, and the disconnected input
+These failures can combine. A delegated parent can receive a framework wake after
+stopping early. The parent remembers to join, enters a blocking wait, and the disconnected input
 path prevents the human from steering it. Recovering attention does not ensure
 that the model uses it well. The fleet needs child ownership, message delivery
-through waits, and a bounded response when the model stops without submitting.
+through waits, and a bounded response when a delegated model stops without submitting.
+The human-facing root still has to attend to its children and verify their work;
+its ordinary chat completion is not proof that delegation succeeded.
 
 ## 22.6 Spawning
 
@@ -364,6 +366,20 @@ not routing fields copied into a model-visible specification.
 The shared root makes the factory available at every depth. A child reaches
 Ensemble through its actual parent relationships, rather than receiving a second
 copy of a callback whose propagation can be forgotten.
+
+Construction availability and public delegation are separate choices. Ensemble
+can supply its default child factory without adding fleet tools to every
+embedding application. Enabling public delegation retains a custom factory
+already supplied by that application. Neither choice turns a human-facing root
+or named peer into a delegated worker that must finish with `submit`.
+
+A launch can also supply `submit_schema`, an immutable contract for that child's
+answer. Validate and copy it before construction effects, and require the factory's
+returned child to retain it. Otherwise a caller could change the live contract by
+editing a byte slice after launch, or a factory could quietly drop the promised
+validation. Ordinary descendants start with the default text contract unless
+their own launch explicitly supplies a schema; the parent's answer format is
+not automatically appropriate for a different task.
 
 Shutting down a parent cascades to its children, recursively. The
 fleet's lifetime is bounded by its root. A child that outlives its
@@ -478,13 +494,68 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model` and `submit_schema` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |
 | `send_message_to_parent` | `content` |
 | `respond_to_parent_message` | `agent_id`, `response`, optional `message_id` |
-| `submit` | `result` |
+| `submit` | `result` by default; the complete custom argument object when launched with `submit_schema` |
+
+A parent reviewing files may need findings it can inspect individually instead
+of a paragraph it has to parse. The launch can make that expectation explicit:
+
+```json
+{
+  "agent_id": "reviewer",
+  "task": "Review the change; submit findings.",
+  "submit_schema": {
+    "type": "object",
+    "properties": {
+      "summary": {"type": "string"},
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {"path": {"type": "string"}, "fixed": {"type": "boolean"}},
+          "required": ["path", "fixed"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["summary", "findings"],
+    "additionalProperties": false
+  }
+}
+```
+
+The child then calls `submit` with the direct object:
+
+```json
+{"summary":"Checked the change.","findings":[{"path":"main.go","fixed":false}]}
+```
+
+There is no outer `result` field and no quoted JSON document inside a string.
+The same compiled contract supplies the declaration and validates the actual
+arguments before any durable submission or completion notification. Omitting
+`fixed`, supplying `"false"` as a string, or adding a forbidden nested field
+returns a tool error and leaves the child unsubmitted. It can correct the
+arguments within its existing bounded lifecycle. `false` is a valid boolean;
+whether the file is actually fixed still requires inspecting the work.
+
+The supported contract is an explicit subset of JSON Schema Draft 2020-12.
+Nested object and array constraints are enforced; unsupported keywords and all
+references are refused at launch. A declaration that accepts a keyword while
+ignoring its meaning would promise a check that does not exist. Schema and
+payload admission limits refuse oversized or excessively nested data instead of
+truncating it. The TL;DR specifies that public boundary. No schema resolution
+fetches a URL or reads a local file.
+
+Without a custom schema, `submit({"result":"text"})` keeps its existing meaning.
+The public string convenience method encodes that same default shape and enters
+the same validator, so it cannot bypass a custom contract. Structured joins,
+status and retrieval preserve the complete JSON object. Text-valued displays can
+format it for a reader without changing its stored type.
 
 Questions and fan-in use the ordinary supervised tool path. If the initial
 callback returns a running handle, `wait_for_job` retrieves the later reply or
@@ -518,31 +589,32 @@ model task. The actor remains the single place that orders conversation changes.
 
 ## 22.10 Three wakes, then tell someone
 
-“Done” has a precise fleet meaning: the Agent called `submit`, and its children
-have finished. A normal model response ending is not sufficient. The framework
-can enforce this protocol without deciding whether the result is good.
+“Done” has a precise meaning for a delegated Agent: it called `submit`, and its
+children have finished. A normal model response ending is not sufficient for
+that worker. The human-facing main Agent and named peers finish normally in chat;
+they have no Agent parent awaiting a submission. The framework can enforce the
+delegated protocol without deciding whether the result is good.
 
 First, `submit` rejects while any child is still active. The error tells the
 parent which children need attention. Submissions happen bottom-up. A failed
 child is unresolved too; shutting it down removes it from the managed set while
 preserving its files. Failure does not quietly become a successful child result.
 
-Second, a successful turn that ends without submission receives an immediate
-framework correction. With active children, the correction asks the Agent to
+Second, a delegated Agent's successful turn that ends without submission receives
+an immediate framework correction. With active children, the correction asks the Agent to
 join or shut them down. Without active children, it asks for the missing submit.
 No polling timer is needed: the runtime is already handling turn completion.
 
-The correction lives in the library's real completion path. Installing a factory
-enables the fleet protocol for the root and its descendants. An existing
-single-Agent embedding that has no factory still permits an ordinary final
-answer. The terminal installs one; the single-Agent GUI in this chapter does
-not. This keeps the fleet invariant where the application actually offers a
-fleet instead of breaking earlier consumers.
+The correction lives in the library's real completion path and checks the actual
+Agent parent. A factory-enabled root remains a chat agent; an ordinary delegated
+child owes its parent a result. This keeps construction, public tool availability
+and completion policy from becoming three accidental meanings of “has a factory.”
 
 Count consecutive framework wakes per Agent and reset the count when it submits.
-After exactly three wakes, stop re-prompting and escalate to the parent. At the
-root, deliver the escalation to the human sink. The bound limits attempted
-correction; it cannot force a model to cooperate or guarantee a useful result.
+After exactly three wakes, stop re-prompting and escalate to the parent. That
+parent can explain the failure to the human or resolve the child before continuing.
+The bound limits attempted correction; it cannot force a model to cooperate or
+guarantee a useful result.
 
 That distinction produced a real student correction. An exhausted child first
 remained labelled running. The parent could then wait for work the framework
@@ -557,9 +629,15 @@ refusal delivered as a successful response can still be an ordinary unsubmitted
 turn; use the actual runtime outcome rather than guessing from its prose.
 
 Framework wakes and escalation notices are recorded in the Agent's event log.
-The terminal's human sink exposes the root's question or escalation. These make
+The terminal's human sink exposes questions the root sends to the person. These make
 the protocol inspectable: which Agent stopped, how many wakes it received, and
 whether it submitted or exhausted the bound.
+
+Submission also precedes quiescence. Publishing the accepted result can wake a
+join while the child's submit tool still has a result to append and its actor
+still has completion and save work to finish. A caller that needs to stop or
+dispose of that worker must wait for its reliable completion and drain, rather
+than interrupt it from inside the submit callback.
 
 ## 22.11 Five wiring failures
 The first edition records five failures when its real executable finally ran
@@ -672,9 +750,16 @@ actual parent relationships and narrow-only child specifications. Demonstrate
 recursive spawning, distinct state files, pending questions and sender-bearing
 replies, fan-in, status and recursive shutdown. While the parent waits, deliver
 a terminal hint and later collect the same running job. Exercise successful
-submission, early-submit refusal, exactly three corrective wakes and truthful
+delegated submission, early-submit refusal, exactly three corrective wakes and truthful
 failure after exhaustion. A failed provider turn must not trigger the correction
 loop. The GUI fleet panel is next chapter's exercise.
+
+Also launch the structured reviewer from §22.8. Have a controlled provider first
+omit `fixed`, then correct it to boolean `false`; only the corrected object may
+complete the child or satisfy a join. Inspect the nested result and its durable
+row, not merely a marker in printed JSON. Retain a default text child and an
+ordinary grandchild as controls. This checks the contract's rejection and data
+preservation without asking a live model to make a particular mistake on demand.
 
 ### An outside GUI application
 
@@ -886,8 +971,9 @@ tools: read_file write_file edit_file list_directory search_files run_command wa
 ---
 Use tools to inspect facts and test code. Ask a parent question with
 send_message_to_parent and answer child questions with respond_to_parent_message.
-Join or shut down unfinished children. Call submit with the completed result;
-ordinary text does not submit. Keep task files in the shared working directory.
+Join or shut down unfinished children. Delegated agents finish with submit;
+the human-facing main Agent finishes with a normal chat answer. Ordinary text
+does not submit a child's result. Keep task files in the shared working directory.
 SKILL
 cd "$fleet_dir"
 LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
@@ -907,14 +993,14 @@ run assertions, then submit its result. Tell add to ask you whether negative
 integers are required before implementing; answer yes. Tell each child to run
 sleep 4 && python3 followed by its test command, so there is time to steer while
 you join. You must collect all three submissions, run combined assertions, and
-submit a concise result containing FLEET_DONE. Do not implement their functions
+answer in chat with a concise result containing FLEET_DONE. Do not implement their functions
 yourself.
 ```
 
 While a join is waiting, type:
 
 ```text
-In your final submission include STEER_COBALT, and confirm that negative
+In your final answer include STEER_COBALT, and confirm that negative
 integers were tested.
 ```
 
@@ -933,8 +1019,9 @@ and reported the actual 42-byte content. The run took 9.649 seconds and exited
 normally. Component-only rendering and relay lifetime have separate external
 consumer checks; that file task alone does not demonstrate them.
 
-The terminal fleet then ran a bounded coding task with three children, add,
-multiply and subtract. Each wrote a Python function and tested it. Add asked
+The terminal fleet then ran a bounded coding task under the earlier root-submit
+policy, with three children, add, multiply and subtract. Each wrote a Python
+function and tested it. Add asked
 whether negative integers mattered; the parent answered yes. One child's first
 shell command was malformed and exited 1. The model corrected the command and
 its test passed. This was model recovery within the task, not an automatic retry
@@ -952,6 +1039,10 @@ provider request, but the final submission omitted the marker. Delivery worked;
 compliance did not. A fleet can preserve the human's opportunity to steer without
 guaranteeing that the model follows the instruction. Check the input path and
 the resulting work separately.
+
+The reproduction above uses the current main-chat/delegated-submit distinction.
+The recorded parent's submission and omitted marker remain observations of that
+earlier run, rather than a new demonstration under the changed policy.
 
 The child conversations and results remained in their own saves. The terminal
 showed the parent's view; it did not become a monitor for every child's reasoning.

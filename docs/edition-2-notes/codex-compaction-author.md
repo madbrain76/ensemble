@@ -124,8 +124,9 @@ Only clarify the accepted interactions:
   remain main-only. This restores the accounting obligation deferred from17/20.
 - §16.5: preserve both actual turn-entry clients, current-context exclusion,
   recorded attachments, capped-source identity and turn cancellation. Explain
-  recovery before indexing/attachment; committed unfinished corpus work cannot
-  be read as a mixture of old originals and new output. Checkpoint removal of
+  recovery before indexing/attachment; establish committed bytes and refuse
+  conflicting disk state before scanning. Retired originals remain searchable.
+  Checkpoint removal of
   recall stays the existing behavior, including its cache-boundary consequence.
 
 ## Cross-role agreement and deferred mapping
@@ -165,3 +166,50 @@ root-submit transcripts attributed to their actual earlier source. This is a
 bounded reconciliation with existing authorized behavior, not an additional
 runtime design or a replacement of delegated workers' lifecycle. The grader
 coder owns corresponding final contract/check wording, with author review.
+
+## October 14 author narrative checkpoint
+
+Author: `compaction_chapter_author`. The released plan at `ac7c67b3`, checked
+independently at `215bcd7d`, now has bounded narrative edits in current15/16/22/23.
+This is an intermediate author checkpoint against accepted runtime `7feb910a`;
+the coder has not yet edited any chapter TL;DR or graded section. Those existing
+blocks still describe parts of the earlier contract and await reconciliation.
+No final chapter acceptance, renumbering or new live result is claimed.
+
+The source-relative diff preserves the original openers, memory/recall stories,
+five-versus-eight explanation, settings deadlock, fleet wiring failures, browser
+state failure, historical tables and transcripts. It replaces the synchronous
+compressor explanation with the approved restricted child, lifetime, acceptance,
+recovery, headroom, accounting and dismissal behavior. Current16 retains its
+stateless judge and active/retired corpus. Current22 introduces the agreed direct
+schema example; current23 explains typed retrieval and retained JSON. The current
+reproduction prompts now distinguish root/named-peer chat from delegated submit,
+while the earlier live results retain their actual completion policy.
+
+Coordinator interim feedback corrected two explanations: the hidden staging path
+is explicitly this implementation's example, and recovery establishes committed
+bytes/refuses conflicts rather than excluding retired originals from recall.
+The latter remain searchable. The grader coder agreed the meaningful schema/API
+wording before editing and confirmed that this checkpoint contains no unfinished
+coder-owned chapter ranges.
+
+Full skill and all four governing/craft documents were reloaded after compaction
+before the final corrections. Author checks on these four files:
+
+- `git diff --check` passes; source-relative prose and paragraph endings reviewed.
+- `go run ./cmd/lintprose book/chapter-15.md book/chapter-16.md book/chapter-22.md book/chapter-23.md`
+  passes all hard checks. Soft counts are 7,713 / 5,243 / 7,131 / 4,853 prose
+  words; person-gap warnings persist, and16 retains its negation-density warning.
+  No trimming target was applied; the added mechanisms retain their reasons.
+- Fence/table comparison finds only the intended memory schema, structured
+  launch/result examples, role-policy prompt edits, recovery table and tool
+  argument rows. Historical measurements and transcripts are unchanged. All
+  three newly added JSON examples parse. An initial blanket parser rejected
+  current23's unchanged multi-object WebSocket example as a single JSON document;
+  this was a checking-script assumption, not a chapter defect. The corrected
+  check parses new JSON examples and inspects unchanged fences separately.
+
+Runtime grading, executable example checks, final TL;DR reconciliation and
+independent full prose/grader review remain assigned to the existing later gates.
+Stage F still owes the new bounded live observations. Stage E owns the approved
+chapter move and coherent cross-reference/sequence changes.

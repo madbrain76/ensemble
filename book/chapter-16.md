@@ -338,9 +338,19 @@ paragraph boundaries. Use breadcrumb headers (`"Parent Header > Sub Header"`)
 so the reader knows where a sub-chunk came from.
 
 The whole engine is a few hundred lines of code. No dependencies, no
-configuration files, no external services. Build the index at startup,
-rebuild it when source bytes change. Equal-size edits count too; an unchanged
+configuration files, no external services. Build the index when the first query
+needs it, after loaded history and memory recovery permit a corpus scan; rebuild
+it when source bytes change. Equal-size edits count too; an unchanged
 file length is not evidence of unchanged content.
+
+Search both active and `.md.retired` memories, but keep hidden staging records
+outside the corpus (`.compaction/pending.json` in this implementation). A staged
+candidate may not yet be accepted. If a committed replacement still needs disk
+finalization, recovery establishes the committed bytes before indexing; a
+conflicting file must not silently become recall input. Retired originals remain
+searchable after recovery, subject to the same actual-context exclusion as other
+memories. Constructing the recall service must not scan disk before its embedding
+client has loaded history.
 
 ## §16.3 Per-Source Quotas: Why Memory Gets Half the Slots
 
@@ -447,6 +457,13 @@ to the final quota-selected BM25 results. Cancellation reaches the actual
 HTTP request; returning from a wait while leaving it running is not a
 timeout. The agent can continue with noisier recall.
 
+Its usage still belongs on the bill. Add measured judge input, cache and output
+counts to Engine's session totals with the judge's actual provider, model and price
+tier, once. A cheaper judge must not be priced as the main model. Keep the latest
+main-response counts unchanged, and exclude this separate prompt from main-request
+cache comparisons. Restoring an old recall attachment makes no new judge call
+and adds no historical usage to the fresh session meter.
+
 ## §16.5 Attachment: Permanent Until a Checkpoint
 
 Recalled snippets are formatted as blockquoted text with source attribution:
@@ -519,7 +536,9 @@ other client never retrieves anything. A function that was never called
 cannot complain.
 
 The present Agent has one actor begin path for both `Ask` and `Post`. Keep
-recall there, before the first main request, and verify both actual clients.
+recall there, after memory recovery and before the first main request, and verify
+both actual clients. An unresolved committed replacement must report its recovery
+error before search or attachment can consume a mixed corpus.
 The worker reads a snapshot while the actor can still accept hints or an
 interrupt. Its result carries the turn identity; a late judgment from an
 interrupted turn must not become context for the next user's message.

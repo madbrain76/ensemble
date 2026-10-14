@@ -209,10 +209,11 @@ grants still require their own observations.
 **A checkpoint triggers compression.** When the agent calls
 `micro_handoff`, chapter 14's mechanism strips every tool call and
 tool result. This chapter measures what remains. If the conversation
-exceeds its budget, the oldest finished work goes to a compressor
-that returns a memory in the agent's own voice. The memory enters
-the context as a band entry, and the conversation it replaced is
-gone.
+exceeds its budget, the oldest finished work goes to a restricted child
+that writes a memory in the source owner's voice. The main Agent can keep
+working while the child compresses. The selected conversation stays available
+until the owner accepts its replacement; only then does the memory enter a
+band and the conversation it replaced leave the working set.
 
 **When a band fills, its oldest memories graduate upward.** Session
 memories fold into the 8x band, which folds into the 64x band,
@@ -257,14 +258,20 @@ provider parts. Opaque replay material and a provider's private computation are
 also different things. The compressor receives selected readable text, including
 the note, and cannot reconstruct reasons that text never expressed.
 
-The Agent runs this work after the successful tool batch and
-before the next main request. The ordinary handoff result acknowledges the
-checkpoint; the actor then asks its Memory child for a finite selection and
-starts an Engine worker. That worker owns the HTTP call, while the actor remains
-available for settings and interruption. Its returned text comes back through
-the actor's ordered input path. A late reply from an interrupted turn is dropped.
-The next main request waits for the compression outcome and any resulting
-cascade; this is not a second independent conversation loop.
+After the successful tool batch, the ordinary handoff result acknowledges the
+checkpoint. Memory selects the completed source, and the actor starts one
+restricted child through its existing fleet. The attempt belongs to the owning
+Agent. Finishing or interrupting the main turn leaves that child working, so a
+useful summary can arrive after the conversation has moved on. Explicitly killing
+the worker, shutting down its owner, or changing the relevant memory policy
+cancels or invalidates uncommitted work.
+
+There is at most one attempt running or awaiting commitment per owner. Further
+handoffs can add completed work without launching overlapping summaries. The
+child's result returns through the actor's mailbox and waits for an idle boundary
+or the next render after a complete tool batch. It cannot change a request already
+sent to the provider. Ordinary work continues while there is context headroom;
+§15.7 describes the near-window exception.
 
 A checkpoint that sees the conversation under budget skips conversation
 compression; a full memory band can still graduate. A checkpoint that sees the
@@ -297,6 +304,11 @@ application selects `cr`, so its session files are `cr/memory/*.md`, separate
 from another Agent's corpus. Graduated source files receive `.md.retired`; they
 remain on disk but no longer match the active `*.md` scan. Their identities still
 reserve the next same-day session number after a fresh start.
+
+A candidate being committed lives outside the active corpus; this implementation
+uses `.compaction/pending.json`. Neither band population nor recall scans that
+hidden staging record. A file containing a proposed memory must not become an
+active memory merely because the process restarted before accepting it.
 
 The order is not cosmetic. The most stable band sits closest to the
 prefix, where its unchanged bytes can remain eligible for prefix reuse. Identity changes
@@ -351,36 +363,89 @@ A graduation is one of each: a `BandDepopulated` retiring the
 oldest source entries, then a `BandPopulated` landing the compressed
 version in the destination band. Disabling is one `BandDepopulated`
 alone. Re-enabling is one `BandPopulated` per file found on a
-directory rescan. `CompactorLaunched` is the third event, and it
-exists for one purpose: abandonment detection. It records that a
-compressor started, so that a restart can see whether it finished.
-The event is observable and never replayed as work.
+directory rescan. `CompactorLaunched` records the attempt's identity, selected
+source and child trace path. The matching retirement and population carry that
+task identity too: a disk rescan cannot accidentally complete a worker's cut.
+An ordinary launch observation never becomes work during replay.
+
+The submitted text is a candidate. The actor accepts it only after the child's
+reliable turn result, shutdown/drain and required save succeed. History then
+applies the matching cut and population together and retains a commit receipt
+until Memory finishes the corresponding disk changes. A `compaction_outcome`
+records success, failure, cancellation or invalidation without changing the main
+turn's state. These distinctions let a restart finish a committed replacement
+without mistaking it for an abandoned request.
 
 ## §15.5 The Compressor
 
-The compressor is a direct LLM call: one prompt in, one response
-back, no tools except `submit`. The prompt carries the stripped
-conversation text and asks for a compressed memory at a target
-ratio. Bounded input, bounded output. The accepted response is the memory; malformed or empty submissions leave the
-source live and produce a diagnostic.
+The earlier compressor made a direct model call and held the main turn until
+it returned. An October 14 trial exposed both a delay and a role conflict: the
+request inherited instructions telling the main Agent not to submit, then asked
+the compressor to submit memory. The provider completed with ordinary prose and
+no function call. The runtime refused it and retained the source. Making that
+same request asynchronous would have freed the main turn while leaving the
+contradictory instructions intact.
 
-The call offers exactly one tool, `submit`, and the compressor
-submits its result through it. The exact argument is `{"memory":"..."}`. That single-tool signature is what
-identifies a compressor request on the wire.
-The grader uses it to separate compressor traffic from turn traffic
-without inspecting the student's function names or directory layout.
+The replacement is a real child with a dedicated purpose. It starts fresh with
+the selected readable source, including role labels and handoff notes, delimited
+as data. It inherits the owner's provider, model, route and safety ceilings, but
+receives no cloned conversation, opaque replay state or main coding primary.
+It loads no skills or MCP servers and runs no recall, memory cascade or context
+forcing of its own. The normal factory and ownership paths still construct it.
+Internal child construction does not grant public delegation tools to its owner.
 
-The compressor writes in the first person, as the agent. "I found
+The child offers exactly one tool, `submit`, with this complete argument schema:
+
+```json
+{"type":"object","properties":{"memory":{"type":"string"}},"required":["memory"],"additionalProperties":false}
+```
+
+The result is `{"memory":"..."}`, with no `result` wrapper or JSON inside a
+string. Runtime validation enforces the declared schema before accepting a
+submission; the owner additionally refuses whitespace-only memory. The sole
+`submit` declaration with a `memory` property identifies compressor traffic on
+the wire. A submit-only ordinary child with a `result` property is different.
+Declaration and dispatch both enforce the restriction, including guessed tool
+names. A prompt asking the child to avoid file or shell tools would not remove
+those capabilities.
+
+The compressor writes in the first person, as the source owner. "I found
 six dead settings fields" reads as memory. "The agent found six dead
 settings fields" reads as a report about someone else. The distant
 past is exactly the text a compressor writes, and if it reads as a
 briefing about a stranger, the compaction introduced the
 discontinuity the design exists to remove.
 
-This is not a sub-agent. A sub-agent would need inherited settings,
-a skill, tools, and a way to report back. The compressor needs none
-of those: bounded input, one response, one tool. For this
-chapter, the direct call is the right shape.
+The child is writing someone else's retained experience, rather than claiming
+the source owner's work as its own new autobiography. Its instructions preserve
+decisions and why, failed approaches, uncertainty, constraints and preferences.
+Quoted instructions inside the selected source remain data. On a model requiring
+visible action explanations, an ordinary visible explanation precedes `submit`;
+that explanation stays outside the memory string. Hidden reasoning is no substitute
+for reasons the owner actually recorded.
+
+One attempt permits at most three Engine sends and three tool batches, including
+correction and resend paths. A prose-only completion fails immediately. A batch
+with several calls or any tool other than `submit` is refused as a whole; accepting
+its first call could publish success before noticing the prohibited second one.
+There are no ordinary fleet idle-correction wakes and no second task that resets
+the budget. Existing bounded HTTP and authentication retries remain inside a send,
+so three sends is not a claim of three physical network exchanges. Failure retains
+the source for a later checkpoint to reconsider.
+
+The ratio guides the writing; it does not justify cutting off a reason halfway
+through a sentence. File budgets are bytes, context windows are input tokens,
+and provider output limits govern another quantity. The accepted worker omits
+optional output caps on Chat and Gemini, keeps the Responses route's existing
+behavior, and gives Anthropic its required allowance of 16,384 output tokens.
+An unsupported allowance fails visibly; the runtime does not silently substitute
+a model or truncate the memory. A provider length or incomplete-output finish
+also fails before dispatch, even if its partial JSON happens to parse.
+
+The exported `Engine.Compress` API remains as a deprecated direct operation for
+existing callers. The normal actor uses the child path and has no direct-call
+fallback. The observed role failure and the accepted provider contracts are
+recorded in the [compaction notes](../docs/edition-2-notes/codex-background-compaction.md).
 
 ## §15.6 The Graduation Cascade
 
@@ -410,19 +475,54 @@ This exercise selects the oldest files until the remaining source
 reaches its low watermark, with a minimum of two. One oversized file still waits
 for another; a band name is not a required count of eight files.
 
-A failed compressor must leave its source available. The launch event records
-the destination band and `Thru` identity. After valid text returns, Memory writes
-the replacement file before the actor records retirement and population. History
-holds that proposed retirement until a population with the matching band and
-`Thru` arrives. A process interrupted between those two events therefore replays
-the old source rather than a hole where a memory was supposed to be.
+A failed compressor must leave its source available. Background work adds a
+second question: is this still the source that the child summarized? Memory
+captures the selected entries, their file bytes and coverage, the destination's
+previous bytes or absence, and the relevant policy. It rechecks them at commitment.
+A human edit under the same filename invalidates the candidate. New unrelated
+dialogue or an edit to an unselected later file does not. Hashing the entire
+growing conversation would reject useful results whenever the owner continued
+working, defeating the reason for background compression.
 
-An unmatched launch at startup is abandoned. Replay does not retry it. The next
-checkpoint measures again, and can propose a new fold if the band is still over
-its watermark. Failed HTTP, malformed submit, interruption or a disabled band
-can all prevent commitment. Old files remain retained outside the active scan
-pattern after successful graduation. Recovery here covers process crashes, under
-Chapter 14's persistence rules; it does not promise power-loss durability.
+For graduation, the retirement prefix must equal the selected oldest files.
+Malformed or reversed coverage ranges are refused, as are overlapping ranges
+that would retire unselected work. A successful step must retire a nonempty
+selection before the cascade starts its next child. Otherwise an apparent success
+could keep selecting the same source forever.
+
+Writing the replacement directly into an active band before recording acceptance
+leaves a crash window: startup can load an uncommitted summary alongside the old
+source. Recording retirement first leaves another: a crash before archiving the
+original files lets startup load them again. The replacement therefore passes
+through hidden staging and a journaled receipt:
+
+| Boundary reached before a process crash | Recovery action |
+| --- | --- |
+| Launch, hidden candidate, or proposed cut only | Retain source; abandon the attempt and discard its uncommitted candidate |
+| Matching population commits the pair | Retain the receipt and finish installing the recorded replacement |
+| Destination installed, some originals archived | Verify bytes and finish the remaining selected renames |
+| Terminal outcome recorded, hidden record remains | Remove that record without applying the cut again |
+
+Memory first installs the candidate atomically outside the active corpus. The
+actor revalidates the selection and journals the held cut or retirement followed
+by its matching population. History applies the pair together. Memory then
+promotes the replacement and renames the selected originals to `.md.retired`.
+Only after finalization does the actor record the terminal outcome and release
+the staging record. Snapshots retain the bounded receipt, so log retention cannot
+erase the information needed to finish this sequence.
+
+An unmatched launch is abandoned on startup; replay never respawns its child.
+A later checkpoint can try again. A committed replacement with unfinished disk
+work is different: recovery must complete it before startup population, re-enable,
+recall or another main render. If a human edit conflicts with the expected files,
+preserve the copies and receipt and report the conflict. An unreadable or missing
+candidate also produces an explicit recovery error. Sending the committed
+projection while searching an unfinalized corpus would mix two versions of memory.
+
+The hold remains interruptible and can clear after the conflict is repaired.
+Portable file operations do not make a transaction against arbitrary concurrent
+editors. As in Chapter 14, this ordering protects process-crash recovery; it makes
+no power-loss or fsync promise.
 
 ## §15.7 Forcing a Handoff
 
@@ -453,7 +553,7 @@ The normalized internal `Input`, `CacheWrite` and `CacheRead` buckets are disjoi
 so their sum recovers that total. Do not add an already-included raw cached subset
 twice. Output, including visible or billed reasoning output, is not input occupancy.
 The auxiliary compressor still contributes to Engine's cumulative usage, but its
-small prompt must not overwrite the main conversation's last-input observation.
+request must not overwrite the main conversation's last-input observation.
 
 The course row makes the distinction easy to test: a 4,096-token window, one
 main response above 95%, then a later main response of 512 input tokens. The
@@ -468,6 +568,30 @@ return; later checks use the next completed main request. This still permits a
 text-only reply or a refusal. Removing tools cannot guarantee a handoff, a useful
 note, or preservation of private thinking. The 95% threshold reserves headroom;
 it is not a proof that every next response fits.
+
+Background compression has one explicit headroom exception. If an attempt is
+outstanding and the latest completed main request reached 95% of its known
+window, the next main render waits for that attempt. Activity reports waiting;
+settings and interruption remain usable. A successful replacement lets the turn
+continue. If the held attempt fails, the turn returns a compaction/headroom error
+instead of immediately sending the same full context. Interrupting that waiting
+turn detaches the waiter while preserving the worker.
+
+The worker's final measured usage reaches the owner's Engine once, after the
+child drains, even when the attempt fails or is canceled. Retain each vendor,
+model and applicable price tier with its disjoint buckets. Adding the child's
+total again through a fleet aggregate would charge the same work twice. The
+outcome keeps a usage receipt, but replaying that receipt does not spend those
+tokens again in a fresh session. Unknown contributing prices keep the total
+cost unknown.
+
+The cache lens still compares main requests. Feeding it the child's separate
+conversation would look like an unexplained prefix rewrite. For the main
+request's compaction breakpoint, use the newest surviving handoff; if compression
+removed it, use the last surviving memory entry. A marker describes bytes still
+present in the projection. It cannot preserve removed dialogue by pointing to
+where that dialogue used to be. Replacing a band changes the suffix from that
+position while leaving earlier instruction bytes eligible for reuse.
 
 On a non-inline model, narrowing tools changes the top-level declaration prefix.
 The historical design tested an Opus 5 model's recall of a chosen sentence after
@@ -518,6 +642,13 @@ text or let the source band grow without bound. Neither is
 acceptable. The Agent retains the source and logs a configuration warning. Disabling the
 source or destination while a compressor is in flight also prevents that reply
 from committing into the disabled band.
+
+Compare policy generations as well as current values. Turning a band off and
+back on must not make a result from before the change acceptable again. A relevant
+source or destination policy change invalidates the attempt and stops wasted
+worker execution; a font change does neither. If a replacement has already
+committed, finish its disk recovery before applying a rescan. Cancellation cannot
+turn that committed fact back into abandoned work.
 
 The settings acknowledgment created another trap in the student implementation.
 The GUI held its observer mutex while waiting for the Agent to apply a memory
@@ -577,6 +708,20 @@ up with its identity already in context. An agent starting with
 `MEMORY.md` comes up with its curated knowledge. The mechanism is
 the event; the file is where a human writes the content.
 
+The compressor is also visible as an ordinary owned child while it works. Its
+conversation explains its action and shows the actual submission or failure.
+Automatic dismissal waits for reliable completion, worker drain and the required
+save attempt; observing a submitted flag inside the callback is too early to
+shut it down. Otherwise cleanup can interrupt the very tool-result tail it needs
+to preserve.
+
+Dismissal removes the child from Fleet, Ensemble and the GUI's live views while
+retaining its trace files and the owner's outcome. A tab selecting that child
+returns to the owner and its retained conversation. Late observations must not
+recreate a dismissed view. A failed save prevents candidate acceptance but still
+leaves a reported failure and retained evidence. Repeated checkpoints should
+leave memories and useful records, rather than a tree of stopped workers.
+
 ## §15.10 Measure It
 
 The first edition reports a synthetic reference session from
@@ -612,8 +757,9 @@ from the shipped system; the retained study does not measure whether they are ri
 Verifying them requires a real model, and nothing in this table
 should be cited as evidence for them.
 
-The live sessions below measure actual text reduction and expose what the short
-fixed summaries could not test.
+The earlier live sessions below measure actual text reduction with the direct
+compressor and expose what the short fixed summaries could not test. They do
+not measure the new background child's latency or memory quality.
 
 ## §15.11 The Exercise, Graded
 
@@ -741,8 +887,9 @@ EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
 ```
 
 Use the terminal or open `http://localhost:8088`. Send each of the following as
-one message, waiting for the turn to finish before sending the next. Input while
-busy is a hint. The cases are the actual inputs from the recorded memory trials;
+one message, waiting for the main turn to finish before sending the next. Input while
+busy is a hint. A finished main turn does not establish that its memory child has
+finished. The cases are the actual inputs from the recorded memory trials;
 the explicit skill and supported Sonnet-5 selection make a reproducible setup for
 this edition, not a claim of a new live result. This snapshot has no declared
 context-window size for Sonnet-5, so the run exercises compression rather than
@@ -760,16 +907,24 @@ The second supplies a different failure and another unresolved question:
 This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze the supplied case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Case two: The deployment rehearsal uses Harbor Finch, diagnostic tag HF-934. Priya owns the rehearsal scheduled for October 21. We rejected retrying a database migration automatically after a timeout: the remote operation may already have committed. The chosen procedure reads the migration ledger before deciding whether any retry is safe. The operator must retain the exact migration identifier and measured error, not a guess about success. We have not settled whether the ledger should live alongside application data or in a separate control database. The rollback package must remain available for seven days after deployment. Last week a log line said the worker stopped, but the child process was still alive and held the port open. The rehearsal now checks the child lifetime directly. Explain how this evidence changes the decision and checkpoint the completed analysis, preserving the unresolved question as unresolved.
 ```
 
-Then ask for recall without tools:
+After both analyses, inspect the memory outcomes before testing their recall.
+A second checkpoint arriving while the first attempt is still outstanding does
+not launch another worker. Let that attempt resolve, then request a checkpoint
+of the remaining completed work if necessary. Wait for the committed outcomes
+and any resulting graduation before asking for recall without tools:
 
 ```text
 Without using tools, recall both project names, diagnostic codes, owners, dates, rejected approaches and reasons. Explicitly identify the two unresolved questions. Do not invent a resolved answer.
 ```
 
-Inspect `event.log`, `api.log` and the files under `cr/`. After a handoff,
-the compressor should receive a whole completed segment, including its note.
-A successful response lands a recorded cut and a session memory. When two session
-memories cross the watermark, their oldest work graduates into `cr/bucket-0/`.
+Inspect the owning Agent's live save journal, `api.log` and the files under `cr/`.
+`event.log` may be a shutdown export; it is not the live completion barrier.
+After a handoff, the child should receive a whole completed segment, including its
+note. Its submitted candidate must pass source validation, drain and save before
+the owner commits a recorded cut and session memory. Look for the correlated
+`compaction_outcome`, rather than inferring completion from the main answer.
+When two session memories cross the watermark, their oldest work graduates into
+`cr/bucket-0/`.
 Model output lengths vary; the two turns need not cross the same thresholds on
 every run. Inspect the actual calls and files instead of inferring a fold from a
 short answer. The request layout after graduation is:
@@ -781,10 +936,19 @@ short answer. The request layout after graduation is:
 [remaining conversation]
 ```
 
-The restart is the interesting part. End input with Ctrl-D after the completed
-turn, then run the same command again. Restoration rebuilds the recorded bands
-without a compressor call; running startup rereads enabled files before the next
-user request. The model receives the resulting memories when you ask it to continue.
+While a child is visibly running below the context limit, send a short unrelated
+question after the main turn ends. Observe whether the main Agent answers before
+the memory outcome, then whether the child disappears from the tree while its
+trace remains. A child that finishes too quickly gives no observation of overlap;
+do not turn that absence into a measured responsiveness result.
+
+The restart is the interesting part. End input with Ctrl-D after the memory
+outcomes have committed, then run the same command again. Restoration rebuilds
+the recorded bands without a compressor call; running startup first resolves any
+staged recovery, then rereads enabled files before the next user request. The model
+receives the resulting memories when you ask it to continue. Closing the owner
+with a child still pending instead cancels that attempt and tests a different
+lifetime boundary.
 
 Switch a populated band off in Settings. Its entries leave the context. Edit an
 active memory file on disk: correct a name, add a detail, remove a paragraph.
@@ -795,6 +959,10 @@ reconstructing yesterday's request and reading today's corrected memory can both
 be right.
 
 ### What the live runs remembered
+
+These are the October 11 direct-compressor results, before the background-child
+change. A new live background run remains pending; the instructions above describe
+what to observe, without claiming it has occurred.
 
 Five recorded sessions on October 11 each finished three turns, exited normally,
 and made three compressor calls: two session memories and one graduation to 8x.

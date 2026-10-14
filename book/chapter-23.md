@@ -185,6 +185,11 @@ live within a task and are not automatically recreated on restart. The
 Ensemble owns the named agents. Each Agent's fleet manager owns its children.
 Two ownership relationships, two lifetimes, one Ensemble that manages both.
 
+Named peers have no Agent parent, just as the main Agent has none. They finish
+normally in chat. Ordinary delegated children owe a submission and receive the
+three corrective wakes if a successful turn stops without one. Being displayed
+under the same Ensemble node does not make those completion policies identical.
+
 In the supplied command, the application's working directory contains
 `ensemble.json`. The root uses `cr/` for its Agent data; its default
 `save.json` is in that working directory, or at the explicit `--save` path.
@@ -294,14 +299,33 @@ ask-and-wait. Unlike live steering, this queues a distinct question with its
 own completion. Observing new output from `wait_for_agent` alone is not the
 same as receiving that question’s result.
 
-`get_submission` retrieves a structured result that a child submitted via the
-`submit` tool. A successful submission is appended to `submit.md` in the
-child's data directory. The accepted file contains JSON lines, allowing
-multiline result text without guessing where one submission ends. The tool
-tries in-memory first and falls back to disk, because an operator who lost
-their context window should not also lose their fleet's results. The file
-survives shutdown, but lookup still requires an owned child. This is not a
-global archive API or automatic resurrection of ephemeral children.
+`get_submission` retrieves the result a child accepted through `submit`.
+Chapter 22's default result is text; a custom contract returns the complete
+direct JSON object. The public `Fleet.SubmissionData(id)` returns a typed
+`Submission`: `Result` holds default text, while `Payload` holds custom JSON.
+The older `Submission(id)` string API refuses a custom result and directs its
+caller to the typed method. Silently converting every object to a string would
+move parsing and error detection into every consumer.
+
+A successful submission is appended to `submit.md` in the child's data directory.
+Legacy JSONL rows remain `{"result":"..."}`. Custom rows have `version: 1`,
+`submit_schema` and `payload`, so each historical result retains the contract
+that accepted it even if a later task uses another schema. Unknown versions and
+malformed rows return errors. Newlines inside a result remain JSON string data,
+rather than ambiguous separators between submissions.
+
+The tool tries memory first and falls back to disk, because an operator who lost
+their context window should not also lose their fleet's results. It returns
+`agent_id` with either `result` or `payload`; the custom payload remains a nested
+JSON object. Status and joins preserve it too. Lookup still requires an owned
+child, and retrieving a historical row does not mark its current task complete.
+The file survives shutdown without becoming a global archive API or automatically
+resurrecting an ephemeral child.
+
+The accepted submission can be visible before the submit tool's result and the
+actor's final completion/save have finished. A join answers whether work was
+submitted; disposing of the child also requires its reliable completion and drain.
+Those boundaries are deliberately separate from how the JSON result is displayed.
 
 `get_sub_agent_status` reports detailed status including the activity phase
 from the first stage. The operator sees thinking, tool call (with tool name
@@ -357,6 +381,13 @@ both. On selection, the client resets the Artifact scroll and receives
 retained history before continuing with live output. Reusing one global
 partial map would make identical response-local IDs collide across
 conversations.
+
+Structured submissions use these same conversation surfaces. Render their tool
+arguments and results as text safely, retaining nested JSON data in the underlying
+result. Select the child during work and after restoration and compare the actual
+object, including arrays, booleans and nulls; finding one marker somewhere in a
+frame cannot establish that the payload survived. No separate result browser is
+needed.
 
 A tree traversal can take several managers' locks. It therefore runs in a
 small coalescing worker outside the synchronous actor Observer; an activity
@@ -427,14 +458,15 @@ mkdir -p "$CH23_WORK/skills/ensemble"
 cat > "$CH23_WORK/skills/ensemble/SKILL.md" <<'SKILL'
 ---
 name: ensemble
-description: A coding fleet that monitors children and submits verified work.
+description: A coding fleet that monitors children and verifies their work.
 type: primary
 tools: read_file write_file edit_file run_command wait_for_job tool_limits spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit wait_for_agent_change send_message wait_for_agent ask_agent get_submission kill_agent get_sub_agent_status interrupt_agent
 ---
 Delegate only when asked. Keep task children within their assigned work.
 Monitor their actual results, answer their questions, and verify their files.
-Finish with submit after all children are resolved. A running job notice is
-not its completed result; collect it with wait_for_job.
+Delegated agents finish with submit after all their children are resolved.
+Main and named peers finish with a normal chat answer. A running job notice
+is not its completed result; collect it with wait_for_job.
 Tools: $TOOLS
 SKILL
 ```
@@ -469,7 +501,7 @@ with unittest cases for empty input, mixed case, and repeated whitespace,
 run those tests, and submit its result. Monitor helper with get_sub_agent_status
 and wait_for_agent_change, join it, and retrieve get_submission. Independently
 run python3 -m unittest -v test_slugify.py. Write fleet-result.txt with the test
-outcome, then submit CH23_FLEET_COMPLETE and a concise explanation. Do not use
+outcome, then answer in chat with CH23_FLEET_COMPLETE and a concise explanation. Do not use
 web tools or create another child.
 ```
 
@@ -480,9 +512,9 @@ thinking, tool work and waiting as they occur; a very short phase need not
 remain visible long enough for a screenshot.
 
 Create an unused named peer `spare` with the same model and skill, then delete
-it. Once the task has submitted and the terminal is idle, use EOF to close the
+it. Once the task has finished and the terminal is idle, use EOF to close the
 application normally. Run the same launch again from `CH23_WORK`, select
-`console` and inspect its retained submission. `spare` stays absent, and the
+`console` and inspect its retained answer and retrieved child submission. `spare` stays absent, and the
 ephemeral `helper` is not restarted. Merely selecting the restored
 conversation must not ask the model to reconstruct it.
 
@@ -505,7 +537,8 @@ request must remain visibly busy.
 ## 23.8 Taking the console for a spin
 
 The recorded live exercise used the real browser, GPT-6 Astra at high
-reasoning and subscription billing. A named peer `console` created one child,
+reasoning and subscription billing under the earlier peer-submit policy.
+A named peer `console` created one child,
 `helper`. The child wrote `slugify.py` and three unittest cases, ran them
 successfully and submitted. The parent monitored it, joined, retrieved its
 submission, reran all three tests independently and wrote `fleet-result.txt`.
@@ -519,6 +552,10 @@ a normal shutdown, restart restored `console` and its submitted conversation
 without another inference request. It did not revive `helper`. The new
 reproduction setup above gives the primary skill explicitly; it is not a claim
 that every byte of that earlier launch was identical.
+
+The current setup also asks the named peer to finish in chat, while its delegated
+child still submits. The historical peer's submission remains part of that run;
+it does not demonstrate the current completion policy.
 
 The work was correct. One status label was not.
 
