@@ -1146,3 +1146,35 @@ comments, tests and evidence. New21 management/GUI selection, new22 memory-worke
 lifetimes and auxiliary accounting, new23 recall/judge obligations, and optional
 24/crossover integration remain in the explicit ledger. No whole-tree merge,
 export, tag, renumbering, manuscript change or publication is released here.
+
+
+### New20 plan correction: defer the later after-tool interrupt integration
+
+October 14, during implementation, before submission review. The coder found
+a forward dependency missed in the accepted plan and my initial source review.
+Independent inspection concurs with the coordinator: accepted new19 `922caeb4`
+has `Interrupt struct{}` in `agent/internal/common/actor.go`; its actor dispatch
+at lines488–489 invokes immediate interruption and its turn has no afterTool
+field. Commit `55cbef230e675ed0d42547b7ad21e53c5b8a554f` adds the public
+AfterTool field, private turn flag, inbound handling and report-boundary handling
+with original26 management, which belongs to reconstructed new21.
+
+**Accept this narrow staging correction:** defer only `df38abe0`
+`agent/internal/agent/visible_reasoning.go` lines52–55 and
+`TestVisibleReasoningRejectionHonorsAfterToolInterrupt` in
+`agent/ensemble/visible_reasoning_test.go` (its line349 posts AfterTool:true).
+Restore both when new21 introduces the actual AfterTool capability, alongside
+its accepted actor handling and focused test evidence. Keep the other explanation
+checks, actual stream ordering, whole-batch paired rejection, no execution/job
+side effects, round limits and existing immediate-interrupt behavior in new20.
+There is no absent earlier API to emulate, and no reason to import management
+early merely to compile this later integration branch.
+
+This corrects the original plan's promise to honor after-tool interruption and
+retain every focused test at new20. The full primary runtime keeps that behavior
+throughout; only reconstruction staging changes. The coder discovered the
+omission before formal implementation review, so it is an attributed source-plan
+correction, not a new formal correction round or waiver of final coverage. No
+runtime, grader or live execution was performed for this assessment. The full
+mandatory skill and four governing/craft documents remain in active context
+from the preceding reload, with no intervening compaction.
