@@ -17,9 +17,11 @@ initial independent implementation reviews. Background compaction's concrete
 design and nine supporting implementation slices are independently accepted;
 final actor integration and coordinator review remain underway. Overall review
 reproduced a reverse-purpose factory-refusal overwrite/reference leak missed by
-the scoped tests; correction is pending. Authentication reconstruction passes its
-initial independent implementation review, and the historical crossover's reviewed
-three-path source plan is released for implementation.
+the scoped tests; its unchanged reproduction now passes after correction, with
+related GUI removal still under review. Authentication and historical crossover
+reconstruction pass their independent implementation reviews. The reviewed combined
+web/status reconstruction plan is released, including the narrow GUI lock-order
+prerequisite needed by synchronous model selection; memory remains deferred.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.
 

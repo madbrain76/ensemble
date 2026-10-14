@@ -1,12 +1,13 @@
 # Background compaction and structured submissions
 
 Coordinator: Astra (Codex), October 14, 2026. Current status: Stage B accepted;
-Stage C supporting slices C1–C9 are checkpointed, with final actor integration
-under implementation and overall review. Coordinator review found a remaining
-factory-refusal defect; correction is pending. Accounting and authentication
-reconstruction are accepted, and the historical crossover implementation is
-released after both source-plan reviews. No chapter changes, exports, deployment
-or publication. Earlier observations retain their actual source/results.
+Stage C supporting slices C1–C9 are checkpointed; final actor integration is
+under independent and coordinator review. The coordinator's factory-refusal
+reproduction passes after correction; a related GUI removal edge is being fixed.
+Accounting, authentication and historical crossover reconstruction are accepted.
+The reviewed combined web/status reconstruction plan is released for implementation.
+No chapter changes, exports, deployment or publication. Earlier observations
+retain their actual source/results.
 
 Bill authorized proceeding after reading Cadence's
 [handoff](codex-compaction-subagents-plan.md). He separately required full
@@ -394,7 +395,7 @@ Root's overall review is underway, not accepted, and uses the immutable source.
 
 ### Reproduced reverse-purpose factory refusal defect
 
-Root's real-runtime external-boundary test on exactf111f1b3 calls
+Root's real-runtime external-boundary test on exact f111f1b3 calls
 StartCompaction with a trusted constructor-only custom factory. The factory
 returns a real owned child with Compaction=false and LogPath pointing to a
 preexisting sentinel file. CreateChild correctly refuses the purpose mismatch,
@@ -420,6 +421,47 @@ ordinary valid lifecycle while rejecting the returned child without writing into
 its rejected paths or retaining its new registry entry. Recheck the unchanged
 probe and appropriate ordinary/managed controls before accepting the correction.
 This is overall review of accepted support, not a claim C10 has been submitted.
+
+## October 14: integration review and next reconstruction handoff
+
+After the next compaction, the coordinator again reloaded the complete skill,
+workflow, carryover, voice and chapter procedure, then all Chapters 14/15 and the
+handoff before resuming formal review. The initial combined tool output was
+truncated; separate complete reads recovered it. Summaries were not substituted.
+
+The unchanged root factory-refusal test body now passes on the C10 correction:
+`go test -race -run '^TestCoordinatorFactoryPurposeRefusal$' -count=1 ./ensemble`,
+exit0,1.030s. Root overlaid current changed/new Agent files onto its exact f111f1b3
+scratch, binding file hashes in `/tmp/ensemble-root-review-fixed-source.json` and
+checking those source bytes did not change during capture. The first attempt
+failed to compile because the coder had retained the same test name; root renamed
+only its independent function/comment, preserving the body and assertions.
+That setup output remains `/tmp/ensemble-root-review-factory-refusal-fixed-setup.txt`;
+the actual passing result is `/tmp/ensemble-root-review-factory-refusal-fixed.txt`.
+
+Root inspected the explicit construction-discard path and exact-identity removal,
+then the complete C10 production diff. The earlier source-only completion-count
+concern is corrected: attempt identity and first-completion admission precede
+worker decrement and auxiliary import. No duplicate-delivery runtime reproduction
+is claimed. Independent runtime review separately identified the GUI consequence
+of removing a rejected ordinary child; the small membership correction and actual
+refusal test remain pending. Full Stage C acceptance is withheld until that final
+source and the independent review are complete. The coder's reported full core
+run retains its reproduced CLI human-sink failure; the Ensemble package and full
+GUI pass. Exact commands, timings and mutation evidence live in the coder/reviewer
+notes rather than being relabeled as coordinator executions.
+
+Historical crossover reconstruction `078cccbd` is accepted after independent `003ae75d`,
+Agent tree `f94f414deb977d9f106b8d749a57faa934987049`. The next plan `68793cad` is accepted
+by coordinator and independent reviewer `076048cd`: current20 → new18 combined
+web/status, including only the necessary earlier GUI settings-lock correction.
+Root read the complete plan, exact `05b43a0` lock diff, 23-path historical delta
+inventory and predecessor locking sites. The new synchronous model acknowledgment
+requires that lock ordering now; memory itself remains deferred. Supported fixture
+and unknown-price limits stay explicit. Implementation is released in the isolated
+reconstruction branch, with focused causal regression, grader serialization and
+independent implementation review before advancement. No whole-tree merge or
+new accepted export is authorized at this boundary.
 
 ## Next gates
 
