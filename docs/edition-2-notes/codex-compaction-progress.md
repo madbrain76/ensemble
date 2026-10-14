@@ -351,19 +351,29 @@ with independent implementation review afterward. No runtime correctness or
 semantic memory quality is established by design acceptance. Grader/chapter
 changes remain Stage D, and renumbering/export/live work retain their later gates.
 
-Parallel authentication reconstruction is submitted at `970676abeebce8f156d5cdc7ee0dd47a40708136`,
-Agent tree `21b15bc6cd1c24a2ee3e03873a87a9c080744402`. The coder reports all
-planned local checks passing, old18/17/14 each100/100, both61-second regressions,
-and four targeted mutation failures. Independent implementation review is active;
-this entry does not preaccept that stage or relabel historical live evidence.
+Parallel authentication reconstruction is accepted at `970676abeebce8f156d5cdc7ee0dd47a40708136`,
+Agent tree `21b15bc6cd1c24a2ee3e03873a87a9c080744402`, initial independent review
+with zero correction rounds. The reviewer verified all reported checks and source
+counts, old18/17/14 each100/100, both61-second regressions and four intended
+mutation failures; its independent frozen-source focused race run passes1.236s.
+The coordinator read and accepted the full disposition, then released a source
+plan only for current19/new17, the still-ungraded historical crossover. Historical
+live evidence keeps its source identity; no paid repeat, export or renumbering.
+
+Main advanced to documentation-only `67060b6e` while this work continued. Its new
+`cadence-session-directory-migration.md`, read in full by the coordinator, describes
+a prepared and fixture-tested move of application session files into
+`cadence-memories/session/`; it explicitly says not applied. It adds no application
+code conflict. Merge that note at a clean checkpoint, and re-establish actual
+deployment paths before any later authorized live operation. Do not treat the
+proposed session location as active or run Cadence's migration.
 
 ## Next gates
 
-With Bill's decision recorded, finish and review the narrow Stage B/C design
-details above before implementation. Keep old chapter
-numbers during implementation/testing. Commit the audit checkpoint separately
-from future implementation acceptance. No old accepted snapshot can become a
-new-order result by changing its directory name. Stage B now changes production
-source in the isolated branch; the reviewed grader build helper is committed.
-Chapter prose, frozen exports, live configuration and publishing artifacts remain
-unchanged.
+Stage B is accepted and Stage C's reviewed design is checkpointed at `01dfa4ce`.
+Complete staged implementation and independent review before releasing the
+chapter/grader enhancement. Keep old chapter numbers during implementation and
+testing. Continue each reconstructed cumulative stage only after its independent
+acceptance. No old accepted snapshot can become a new-order result by changing
+its directory name. Chapter prose, frozen exports, live configuration and
+publishing artifacts remain unchanged.

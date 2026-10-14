@@ -542,3 +542,96 @@ become a fabricated authentication failure or new silent repair.
 No fresh provider-support claim, account access, source edit or test execution
 was performed by this plan review. The coordinator may release this bounded
 implementation, with independent implementation review before advancement.
+
+## Authentication reconstruction implementation review
+
+October 14. **Accepted at initial independent review, zero correction rounds.**
+Reviewed frozen commit `970676abeebce8f156d5cdc7ee0dd47a40708136`, Agent tree
+`21b15bc6cd1c24a2ee3e03873a87a9c080744402`, against accepted accounting
+`288fc6e8` / tree `2b671b45dc5f7b760f2faaff2a77c83e6c7c09c8` and the selected
+historical17→18 trees recorded above. The reconstruction worktree remains clean.
+This is authorized maintenance with disclosed historical-answer access, not a
+new blind student run. Reloaded the entire mandatory
+`.agents/skills/ensemble-coding/SKILL.md` and all four governing/craft documents
+after compaction before this formal review. Read the coder's complete current
+plan and implementation report, all31 changed paths, and the raw auth results.
+
+The31-path selection follows the accepted plan. Exact byte comparison confirms
+the auth service, public auth API/shared command client, route-capability and
+safe-error handling, Responses renderer/parser and captured plan fixture match
+accepted18. Differences from that cumulative source are the deliberately absent
+memory/recall features, previously accepted supported-model/deadline corrections,
+single-Send integration and44 added test lines. No judge, forcing, memory,
+recall, web, sandbox, fleet or Codex-backend implementation entered this stage.
+The historical judge's Responses branch remains deferred to new23.
+
+Source review verifies the actual ownership and public-client paths:
+`agent/ensemble/auth.go:32` constructs the Ensemble-owned AuthStore;
+`agent/ensemble/ensemble.go:127` selects explicit/saved billing before constructing
+the Agent; both commands use the public auth client. Shared interfaces retain
+useful contract comments, and implementation spokes depend on common rather
+than each other. The auth service preserves private atomic replacement,
+cross-process refresh serialization, verified identity and scope checks, safe
+errors, and retained billing intent on expiry/sign-out. Its30-second exchange
+timeout does not reinstate a deadline on model generation.
+
+The adapted transport is coherent: `agent/internal/engine/engine.go:110` resolves
+request-local credentials before sanitizing diagnostics; line174 sends the same
+sanitized bytes to the log and main-request lens; line186 permits one renewal
+through the same selected AuthStore. The retry reuses rendered bytes without
+another lens rotation. Line254 accounts the successful response once, updates
+latest-main usage and applies that request's own prediction. Failed Responses
+streams cannot reach this accounting callback because terminal completion and
+present usage are validated first. Existing handoff-based marker placement and
+model/surface-bound opaque replay remain intact. No unused auxiliary transport
+seam or new framework is needed.
+
+Independently executed on the frozen source with provider/application variables
+stripped and a fresh temporary `EN_HOME`:
+`go test -race ./ensemble -run 'TestOAuthInferenceBillingAndIsolation|TestOAuthLensRedactsResolvedBearer|TestResponses' -count=1`
+from `agent`: **PASS,1.236s package time, exit0**. Raw output is
+`/tmp/ensemble-reordered-checks/auth-independent-review.txt`. This exercises the
+real Engine/AuthStore/actor against external HTTP peers, including the two
+adapted credential/retry tests and captured-wire Responses tool execution.
+
+Inspected complete coder logs in `/tmp/ensemble-reordered-checks/auth-*`:
+old18,17 and14 each score100/100 with every row passing; core/GUI tests and vet,
+separate ch05/ch06 tests and vet, ch07 build, focused and GUI race checks,
+actual-browser Responses summary and accounting checks pass. The real61-second
+response cases pass at62.018s package time. Distinguish package/browser durations
+from the report's launcher wall times. Earlier full/grader/lifetime results
+retain their pre-cleanup provenance; the final focused race run and this
+independent run cover the final equivalent cleanup. No broad grader or paid
+repeat was needed.
+
+The four new mutation outputs fail at their intended behavioral assertions:
+double successful usage, duplicate retry lens rotation, a resolved bearer left
+in the actual readable lens artifact, and omitted Responses input observation.
+They are ordinary assertion failures, with no compile/setup failure credited.
+The test additions exercise real transport and state; no internal mock or
+parallel test framework was introduced. Historical39-mutation evidence remains
+historical, not a claim of39 new runs. Callback acknowledgment EOF and the
+earlier intermittent peer EOF remain recorded limitations; this stage does not
+claim either fixed. There is no new grader exception.
+
+Independently reproduced the report's source counts from tracked Git blobs:
+physical/nonblank-non-`//`/comment-only production-Go delta is
+1631/1378/189 versus historical1635/1383/188; test delta799/741/40 versus
+755/702/36. Examples are unchanged; production JavaScript grows5/5/0 and
+JavaScript tests53/50/2 in both comparisons; HTML is unchanged. No generated or
+dependency files enter these counts. Production totals are10760/8546/1641.
+The auth delta's comment share is below the rough target, but the preserved
+explanations teach ownership, identity validation, token rotation, terminal
+authority and public-summary boundaries. Exported declarations retain useful
+documentation. Growth is the selected existing capability plus focused boundary
+coverage; line counts do not substitute for the source and behavior review.
+
+No blocking scope, architecture, implementation, comment or evidence finding
+remains. The coordinator may prepare/release the next bounded reconstruction
+stage; this acceptance does not merge this partial Agent tree into the primary
+runtime or authorize frozen exports, renumbering or publication. Carry-forward
+reminder from coordination: when the later stages combine, explicitly place
+`df38abe0`'s required actual visible reasoning and main-chat/child-submit behavior,
+and preserve `09111e0b`'s response lifetime correction. The old cumulative
+snapshots predate those maintenance changes; this reminder adds no auth-stage
+implementation requirement.

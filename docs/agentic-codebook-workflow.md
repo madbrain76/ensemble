@@ -13,7 +13,10 @@ that submission precedes the reliable completion/save boundary: automatic child
 cleanup must wait for that boundary. Baseline results, independent reviews and
 remaining design work are in the [progress record](edition-2-notes/codex-compaction-progress.md).
 Structured submissions and the isolated accounting reconstruction now pass their
-initial independent implementation reviews; background compaction design is next.
+initial independent implementation reviews. Background compaction's concrete
+design is independently accepted and implementation is released; authentication
+reconstruction also passes its initial independent implementation review. The
+historical crossover's next reconstruction source plan is being prepared.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.
 
