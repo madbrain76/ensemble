@@ -1,6 +1,6 @@
 # Cadence application-session migration
 
-Status: **prepared and fixture-tested, not applied**. Bill authorized placing the active application session inside Cadence's data directory. This is Cadence's separate migration work, not Codex's compaction/schema/book refactor. Coordinate deployment changes; do not touch Codex's application-source edits, stage its work, or rebuild from an in-progress tree.
+Status: **applied by Bill and live-verified on 2026-10-14**. The procedure below is historical/recovery documentation; do not rerun the initial migration. Bill authorized placing the active application session inside Cadence's data directory. This is Cadence's separate migration work, not Codex's compaction/schema/book refactor. Coordinate deployment changes; do not touch Codex's application-source edits, stage its work, or rebuild from an in-progress tree.
 
 ## Layout and intent
 
@@ -226,3 +226,16 @@ print("Session published and launcher switched. Old session retained; no restart
 print(f"Active configuration on next launch: {NEW / 'settings.json'}")
 print(f"Backup retained at: {backup}")
 ```
+
+## Live verification
+
+An initial restart still used the old config and had no migration backup/staging directory; Cadence did not claim that was a successful move. Bill subsequently reported running the Python script. Verification then found:
+
+- Launcher and running process both use `/Users/bill/projects/cadence-memories/session/settings.json`; process start was 15:27:33 local time on 2026-10-14.
+- Comparing old and new configs showed only `save_path` and `event_log` changed. Root data directory, workspace, skills, credentials/provider settings, budgets, and all six disabled memory switches were preserved.
+- The new session is mode0700 and ignored by Git. Journal and API/debug/GUI logs are advancing there; old files retain their pre-switch timestamps.
+- Snapshot sequence3779 includes the specific pre-migration handoff in both saved event history and saved dialogue. The exact post-restart human message was confirmed in a message event at3785, not merely matched in diagnostic-command text. The journal advanced through3792 at that follow-up. Totals remain four handoffs and two compactor launches.
+- Old session and private backup `/Users/bill/ensemble-edition2-codex/session/cadence-session-dir-backup-_zv8r920` are retained. No private staging directory remains.
+- No application-source changes, rebuild, automatic restart, or push were performed by Cadence. Bill performed stop/apply/restart. Named-peer/child restoration has not been exercised and is not claimed.
+
+The active actor/session layout is now nested as intended. Automatic identity-memory activation remains a separate task.
