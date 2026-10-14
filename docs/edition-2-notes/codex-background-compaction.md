@@ -1,0 +1,294 @@
+# Stage C: restricted background compaction design
+
+Coder: `/root/structured_submission_coder`, 2026-10-14. Design accepted by the
+coordinator and independent runtime reviewer on October 14; implementation is
+released in coherent slices and remains subject to separate review. Stage B is
+independently accepted at `a0acfb5e`; design began at `e8ddced4` and is checkpointed
+after documentation-only `cd798d36`. This is maintenance with prior-answer
+exposure, not a blind student run. Mandatory skill:
+[`.agents/skills/ensemble-coding/SKILL.md`](../../.agents/skills/ensemble-coding/SKILL.md).
+The full skill and carryover were reloaded after compaction; this design also
+uses the complete workflow, current chapters 14–16 and 22–23, complete handoff,
+runtime audit and progress record. No chapter, grader, export or deployment edits.
+
+## Ownership and public seams
+
+Keep the actor, Fleet, Memory, History and Engine as their existing owners.
+Shared immutable records/interfaces belong in common; implementation spokes
+continue importing common rather than each other. No new scheduler or store.
+
+- A creation-only `AgentSpec.Compaction` purpose selects the restricted worker.
+  The ordinary `Spawn` path resets it, as it resets `SubmitSchema`. Root validates
+  and normalizes the specification before invoking the custom factory, and the
+  normal constructor enforces it before skills, primary prompts, MCP or recall can
+  initialize. A public custom factory must return an actually restricted child
+  with the requested owners/schema/purpose; the checked constructor refuses a
+  mismatch. Safety ceilings still clamp normally. A custom Go factory is trusted
+  application code: the root can normalize its input and verify its returned child,
+  but cannot prevent arbitrary side effects performed inside that callback before
+  return. Test the normal constructor's pre-effect restriction and reject a
+  nonconforming returned child; do not claim the callback itself is sandboxed.
+- `Fleet.StartCompaction(id, task)` constructs one fresh child and returns its
+  actual Agent and reliable `Result` channel. It shares ordinary child creation,
+  registration, paths and observation, but does not discard Result or reload a
+  previous child task. A random path-safe task ID also names the child. Source,
+  policy and commit metadata remain with the parent, never model-authored.
+- Root supplies its ordinary default factory when no custom factory is set;
+  this does not set the public `FleetEnabled` flag. `EnableFleet` continues to
+  enable public delegation and preserves an already configured custom factory.
+  Internal construction must work without granting delegation to headless or
+  `BuiltinTools=false` parents. `BuiltinTools` controls default registration, not
+  an inherited security ceiling: register only submit in this special child while
+  leaving the parent's declarations and FleetEnabled unchanged. Preserve actual
+  AgentSpec safety ceilings (SafeMode, web and sandbox narrowing). If those ceilings
+  prevent required child construction or trace persistence, fail explicitly and
+  retain source; do not widen them to make internal delegation work.
+- Memory extends its existing selection value with selected-entry identities,
+  relevant policy and file/destination fingerprints. Its narrow new operations
+  are `ValidateSelection`, `Stage`, `Finish` and `Recover`; they own corpus I/O.
+  History projects correlated facts. Agent owns when facts may be appended.
+- Fleet dismissal stops/saves an exact child identity and removes that identity
+  from its map and root registry. Root issues a removal observation; GUI handles
+  it before creating a view, drops the retained view, and switches selected tabs
+  to the owner with the ordinary replay path. Directory allocation uses a root
+  monotonic counter, rather than the now-shrinking registry length.
+
+## Restricted construction and finite execution
+
+The child inherits provider/model/route and safety settings, not the parent's
+role or conversation. Before any startup side effect, clear primary/startup
+skills and variables, bypass skill/MCP initialization, disable recall and all
+memory bands, and bypass context forcing. Give it only the normal submit tool,
+with Stage B's exact whole-argument schema:
+
+```json
+{"type":"object","properties":{"memory":{"type":"string"}},"required":["memory"],"additionalProperties":false}
+```
+
+Both declaration and actual execution admission accept only `submit`, including
+guessed names and later registration attempts. These restrictions are immutable
+for this purpose; settings cannot reopen tools/recall/memory. Internal persistence
+still uses the normal sandbox and does not become a model filesystem capability.
+
+The dedicated prompt asks for the **source owner's first-person memory**, retaining
+decisions and reasons, failed approaches, uncertainty, constraints and preferences.
+The task message contains delimited source data with role labels and handoff notes;
+quoted instructions remain data. There is no main coding/no-submit prompt, cloned
+dialogue or opaque model state. Visible explanations precede submit where current
+model policy requires them; they stay outside the memory string.
+
+One attempt permits at most **three Engine.Send invocations and three tool batches**:
+the first request plus two opportunities to correct validation/visible-explanation
+errors. Count invocations immediately before actual sends, including ephemera-induced
+resends, across the worker's entire lifetime. Do not use ordinary missing-submit
+idle wakes. A completed prose-only response fails immediately. More than one call
+in a response, or a call other than submit, rejects that batch with paired errors;
+no first-call partial success. A successful submit finishes after its tool-return
+tail. The purpose admits one task only; messages cannot start fresh turns or reset
+its budget. An invocation can include the existing bounded authentication refresh
+and HTTP retry; three invocations is not a claim of three physical HTTP exchanges.
+Keep that separate retry bound and test that it cannot restart the worker budget.
+Failures do not automatically start another attempt on the same source.
+There is no total model deadline; explicit cancellation reaches the provider.
+
+For worker requests only, omit the optional Chat `max_completion_tokens` and
+Gemini `maxOutputTokens` caps, preserving existing Responses route behavior.
+Their APIs explicitly make these fields optional; Gemini's default varies by model.
+Anthropic requires `max_tokens`: request **16,384** for workers, a practical allowance
+over twice the observed 7,317-token failed compression, rather than the current
+1,024/4,096 chat allowance. This is an execution budget, not a claimed universal
+model maximum or a conversion from file bytes. Sonnet-5's documented output capacity
+exceeds it. A provider/model rejecting that allowance fails visibly with source
+retained; there is no silent model substitution, cap reduction or beta feature.
+Ordinary requests keep their existing settings. For workers, adapters must preserve
+and check actual terminal reasons in both streamed and nonstreamed responses:
+Anthropic `max_tokens`, Chat `length`, Gemini `MAX_TOKENS`, and Responses incomplete
+output are failures even when the returned submit arguments are syntactically valid.
+Propagate the failure before any submit tool dispatch; still retain final measured
+usage. Stage B's payload bounds also apply. No byte truncation forces a ratio.
+Test a memory over the old caps, malformed JSON, and a valid submit paired with a
+length stop; live quality/sizing evidence remains Stage F.
+
+Sources checked October 14: [Anthropic Messages](https://platform.claude.com/docs/en/api/messages/create),
+[Sonnet-5](https://platform.claude.com/docs/en/models/sonnet-5/overview),
+[Chat Completions](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
+[Gemini GenerationConfig](https://ai.google.dev/api/generate-content#generationconfig).
+These establish parameter contracts, not new model support; Bill's excluded 5.5
+models remain excluded. Existing synthetic course fixtures are not live evidence.
+
+## Parent lifetime, scheduling and acceptance
+
+The parent runtime holds one private attempt slot, independent of its ordinary
+turn: ID, immutable selection, generation, child, cancellation state, and eventual
+completion. Launch uses a background owner context, not `active.ctx`. Record launch
+correlation, source boundaries and child trace path. Main rendering continues after
+checkpoint cleanup while the child runs. Repeated handoffs cannot overlap this slot.
+
+Ordinary turn finish and parent interruption preserve the child. Explicit child
+kill, owner shutdown or a relevant memory policy change invalidate the attempt and
+cancel/drain it. Compare source/destination band settings at the actor's existing
+settings transition and increment their generation on every relevant change;
+disable/re-enable cannot restore an earlier generation. Unrelated UI settings and
+new dialogue do not invalidate it. Worker replies carry immutable task identity;
+late replies cannot adopt a newer slot. Shutdown drains the managed completion
+before the parent's final save/exit, retaining accounting and failure evidence.
+
+Keep existing 90% warning and 95% forcing arithmetic based solely on last completed
+main input, with cache buckets counted once. If an attempt is outstanding and that
+last main request reached 95% of a known context window, defer the next main render
+until this attempt resolves; show waiting activity and keep interruption/settings
+usable. Successful compaction resumes it. If that held attempt fails, end that main
+turn with the explicit compaction/headroom error rather than immediately sending the
+same full context. Unknown context windows retain the ordinary provider error path.
+This is the documented near-window exception to background progress, not a timer.
+
+Completion becomes a candidate only after the child's reliable Result, full
+shutdown/drain, and required Save succeed. `Status.Submitted`/Join alone is insufficient.
+The completion worker copies the validated payload and final usage, then posts one
+result through the parent's existing mailbox. Commit only when idle or at next-render
+with the tool batch complete, never while an already-sent response is in flight.
+
+At that boundary, Memory revalidates exactly the selected source and destination:
+
+- Conversation selection uses whole eligible completed checkpoint segments and
+  exact selected entry/part identity; independent skills/declarations, unfinished
+  tail, and newly appended dialogue are outside the hash and outside the cut.
+- Graduation validates selected entries against current file bytes, not only IDs
+  or sizes. Hash file bytes and coverage metadata; same-name human edits invalidate.
+  Validate the destination's prior bytes/absence too, including existing MEMORY.md.
+- Scan rejects malformed or reversed coverage ranges. Graduation also verifies its
+  retirement prefix equals the selected set and makes progress; overlapping ranges
+  cannot silently retire an unselected file or repeatedly select retired-nothing work.
+- Recheck relevant settings/generation. Reject empty/whitespace memory and stale
+  candidates explicitly. Existing filenames are not overwritten on collision.
+
+After a successful commit, policy may select the next graduation, one child at a
+time. Do not restart failed work without a later checkpoint. A graduation must
+retire its selected nonempty source set before another cascade step starts.
+
+## Durable replacement and restart protocol
+
+Retain paired cut/retirement and population facts. The identified baseline defects
+require a hidden durable candidate and a durable commit receipt, not a new database.
+Memory owns one atomic `.compaction/pending.json` record per parent, outside all
+active/recall scans. It includes version, task ID, selected file paths/hashes,
+destination precondition, candidate bytes/hash and population identity. All paths
+derive from the owner and use its Sandbox; the model supplies none of them.
+
+Extend the existing PendingCompression projection with TaskID and a committed
+population receipt. Legacy uncorrelated events keep their current replay behavior.
+For new tasks, the matching population atomically applies the held cut/retirement
+and retains the receipt until disk finalization. A correlated terminal outcome
+clears it and keeps only the latest task outcome in Context, so an orphan staging
+record can be recognized after a crash. Do not launch another attempt until this
+record has been removed successfully. This bounded receipt survives snapshots
+and log retention; it is not an ever-growing job ledger. Outcome facts do not change
+ordinary turn state (unlike `error_occurred`).
+
+Before launch, establish the parent's existing snapshot/journal if the embedding
+client has not called Load. Make successful History.Checkpoint establish its journal
+path under the same lock; Agent.Save then supplies this boundary without replaying
+or replacing live history. A persistence failure refuses launch. This also makes
+plain public NewAgent/Ask memory use durable without demanding hidden client setup.
+
+| Durable boundary | Normal action | Restart before the next action |
+| --- | --- | --- |
+| Launch journaled | Run fresh worker; source remains active | Mark abandoned; retain source; never respawn |
+| Hidden candidate installed | Revalidate selection and append cut/retirement, then matching population | Without matching population, discard hidden candidate and abandon; source stays active |
+| Cut/retirement alone journaled | Source is still in projection until matching population | Discard held cut and candidate; source stays active |
+| Population journaled | History commits the pair; Memory promotes staged bytes into active destination | Recover committed receipt before any startup population or recall; complete disk work without a model |
+| Destination installed | Rename selected originals to `.retired` | Verify destination hash, finish remaining expected source renames idempotently |
+| All source renames complete | Journal terminal committed outcome, then remove hidden record | Receipt or latest terminal outcome recognizes installed/retired state; finish only missing steps |
+| Terminal outcome journaled | Remove hidden record; release slot | Matching last outcome permits hidden-record cleanup without reapplying history |
+
+`Memory.Recover` runs after History recovery and before **all** startup corpus
+population/recall, including re-enable paths. It uses recorded bytes/decisions and
+never reconstructs the replacement with an LLM. A committed receipt with missing
+or mismatched staging data is an explicit recovery error; do not scan conflicting
+active files into context or silently start a new attempt. A cleared staging file
+with an already terminal outcome is normal. Old pending attempts retain legacy
+abandonment behavior; no claim is made to repair every old ambiguous disk artifact.
+
+Stage before appending the pair; on a pre-commit persistence failure, source remains
+unchanged. After journal commit, finalization errors leave the receipt and candidate
+available for retry/restart, block further compaction, corpus scans, recall and main
+rendering, and report the error. Startup and re-enable must pass recovery before
+any of those operations. If finalization cannot finish, return the explicit error
+to the waiting/new main turn; remain interruptible and retain the recovery hold
+until a successful recovery. Never send a mixture of committed projection and
+unfinalized active corpus. Do not call a committed replacement an abandoned attempt. Idempotent
+Finish accepts already-installed matching destination and already-retired matching
+source, but never overwrites a human edit or an unrelated `.retired` file. Recheck
+file preconditions immediately before each mutation. An external edit racing these
+steps can require explicit conflict repair: preserve both copies and the receipt,
+report failure, and stop automatic finalization. Portable filesystem operations do
+not provide a transaction against arbitrary concurrent external editors. This
+continues the repository's process-crash, not power-loss/fsync, durability contract.
+
+## Completion, dismissal and usage
+
+Capture the reliable Result, then call the existing child Shutdown and Save before
+acceptance/removal. Shutdown joins actual actor/job/provider workers; even canceled
+children can account usage after an interrupt Result. Do not cancel from the submit
+callback. Save failures prevent candidate acceptance, retain trace files, and become
+parent outcome errors. Fleet cleanup uses exact identity and a shared completion
+for concurrent manual kill/automatic dismissal, so it cannot delete a replacement
+child with the same name or save/remove a still-running child.
+
+Remove Fleet/root/GUI references only after drain and required save attempt, even
+on failure. Preserve journal, submit row and trace path on disk. No late observation
+may recreate a dismissed GUI view. Parent outcome records completion, cancellation,
+invalidation, persistence and cleanup errors; repeated dismissal is harmless.
+
+Engine exposes a copied breakdown of its existing usage buckets (vendor, model,
+large-price tier, disjoint usage) and an auxiliary addition operation. The actor's
+single active attempt owns an `accounted` bit: accept completion only for that exact
+attempt, add its final buckets once, then set the bit before releasing the slot.
+The shared child completion handles racing kill/dismissal; duplicate mailbox
+delivery cannot import twice, and a late result cannot match a subsequent attempt.
+Engine retains no task-ID deduplication set. Import after actual drain, for successes
+and failures, into parent session totals and corresponding model/tier buckets.
+Do not alter Engine.Last,
+History.LastUsage, parent response facts or latest-main context occupancy. Do not
+also add child totals through Fleet aggregation. The outcome retains the usage
+receipt for audit; replay does not import historical spend into fresh session
+totals. Pricing remains owned by Engine, including unknown-price behavior.
+
+The existing exported `Engine.Compress` method remains deliberately source-compatible
+for external callers, with a deprecation comment explaining that it is a direct
+legacy operation. The normal actor path never calls it or falls back to it.
+
+## Implementation slices and evidence
+
+First port root's real Memory/History restart-window and reversed-range probes into
+focused source regressions, retaining their exact baseline failures and positive
+controls. They model saved boundaries, not a forced process kill. Then implement
+coherent reviewable pieces: restricted construction/finite execution; Memory staged
+recovery and correlated projection; owner-lifetime scheduling/completion/accounting;
+registry/GUI dismissal. The full protocol above governs every piece.
+
+Use real Ensemble/actor/Engine/Fleet/Memory/History and a small concurrent HTTP peer.
+Identify workers by the actual sole submit declaration with a `memory` property.
+Root found the old grader classifier too broad and its fake server globally locked
+around Route, so a held compressor also blocks main requests there. C tests must
+release their request-capture lock before waiting at a provider barrier; graders
+remain Stage D work. No mocks, live calls or production GUI connections.
+
+Focused claims: main completes and accepts another turn while worker held; exact
+role/source/schema and visible explanation; default/custom/headless construction;
+no startup skill/MCP side effects and forged tool admission; finite requests despite
+ephemera, prose-only and invalid submit responses; unchanged selected source with
+unrelated dialogue; file/destination edits and off/on invalidation; safe tool-batch
+commit; all restart boundaries and journal/write failures; no truncated/empty commit;
+final submit tail and save failure; interrupt versus kill/owner shutdown; exact usage
+model/tier once with unchanged main Last; repeated registry/job/GUI removal including
+selected-child fallback; ordinary grandchildren and recall corpus remain compatible.
+
+Use deterministic external barriers and real filesystem refusal cases rather than
+timing guesses or mock persistence. Apply focused restored-defect mutations per
+distinct claim, recording coupled failures honestly. After coherent focused checks,
+run core/GUI tests, race, vet and required explicit-source old-number graders with
+root; retain known baseline CLI human-sink/browser-fixture failures separately.
+Strip only LLM_/OPENAI_/ANTHROPIC_/GEMINI_/EN_/CODEX_ in test subprocesses. Do not
+glob browser scripts or repeatedly rerun unchanged broad suites. Semantic memory
+quality, live provider acceptance and deployment remain unclaimed until Stage F.
