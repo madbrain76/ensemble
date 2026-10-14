@@ -644,3 +644,783 @@ filesystem failures; no new persistence mock or generic task framework is needed
 No unresolved design blocker remains. Production complexity, concrete ownership,
 boundary tests and required compatibility results still face independent code
 review before Stage C acceptance.
+
+### C1 range-admission slice review
+
+October 14, 2026. The range-only slice is accepted for its scoped checkpoint;
+this is pre-submission assistance, not full Stage C acceptance or a formal C
+correction round. Mandatory skill/four-document context remains active without
+intervening compaction. The reviewer inspected the exact `memory.go` diff,
+`compaction_ranges_test.go`, its shared real-Agent helper, the coder's C1 report
+and all three targeted mutation logs. No runtime edits were made by the reviewer.
+
+Scan now refuses reversed and extra-segment coverage names. Graduation separately
+checks restored entries, whose origin need not be today's Scan, for valid identities
+and ordered disjoint coverage before selection. This directly protects the existing
+prefix-retirement mechanism; watermarks and valid selection policy are unchanged.
+The small guards and their ordering comment belong with Memory policy and add no
+new abstraction. The new tests retain actual Memory/History and filesystem behavior.
+For this slice, Memory physical/active/comment-only lines move from 331/294/20
+to 357/317/23; the range test and shared helper contain 171/158/7. Counts exclude
+blank and `//`-only lines from active code, separating production from tests.
+The shared helper will also support the later recovery slice. The added production
+comment explains the failure mechanism; existing explanations remain intact.
+
+Independent focused race execution of `TestMemoryGraduationCoverage`,
+`TestMemoryScanMalformedCoverage`, `TestReversedRangesCannotRepeatFold` and
+`TestMemoryWaterfall` passed in 1.143s, with test-process provider/runtime prefixes
+stripped. The coder's final affected race also passes in 1.143s after the test-only
+refinement below; targeted vet passes. The two original restoration mutations
+fail the intended scan and restored-entry assertions. Their paired failures are
+not four independent proofs.
+
+Review requested useful documentation on two exported tests and explicit selected
+and surviving file identities instead of only a survivor count. Both are fixed:
+the valid control selects 1/2 and retains exactly 3. Reversing the retirement
+comparison leaves one wrong survivor and now fails specifically with ID1 in
+`/tmp/ensemble-compaction-stagec-mutant-prefix.txt`. This third mutation establishes
+the stronger prefix assertion. The reviewer inspected that result rather than
+inferring it from the final passing test.
+
+The old Write/event/Archive restart probes remain failing and are excluded from
+this checkpoint, as the coder's note explicitly records. The range correction
+does not fix either disk/event recovery window or implement background workers.
+No broad suite, grader, live-provider or complete Stage C success is claimed.
+
+### C2 restricted-construction and finite-execution slice review
+
+October 14, 2026. C2 is accepted for its scoped checkpoint, as pre-submission
+slice review with no formal Stage C correction round. The full mandatory skill
+and governing/craft context remains active without an intervening compaction.
+Review covered the nine owned production files, worker tests, consolidated C2
+evidence and fourteen mutation outputs. Concurrent C3 Engine/provider edits were
+excluded from this decision and from the independent verification below.
+
+Construction normalizes the managed purpose before invoking the trusted custom
+factory and again at the actual constructor, before primary/skill loading. The
+child gets its dedicated owner-memory role, disabled memory/recall/forcing and
+only submit admission, while the parent's declarations stay unchanged. Actual
+owner and sandbox restrictions continue through NewChildAgent. Default internal
+construction and public delegation remain distinct: EnableFleet retains a supplied
+factory, and ordinary Spawn explicitly refuses when FleetEnabled is false, preserving
+the earlier missing-factory refusal instead of starting an unusable ordinary child.
+The root's trusted factory callback is not claimed to be sandboxed.
+
+The actor owns one-task and three-Send state for the worker lifetime. Missing-submit
+prose fails without ordinary idle correction; extra or forged calls reject their
+entire batch before jobs can partially succeed. Existing visible-explanation policy
+still applies. The finite counter includes correction sends and cannot be reset by
+a second task. No new worker scheduler or retry framework is introduced.
+
+Review found that public AgentSpec.Child still inherited Compaction even though
+ordinary Spawn reset it. The coder now resets both purpose and schema in that
+public derivation helper, with an actual constructed-child control. Review also
+replaced substring-based schema assertions with structural comparisons of the
+declaration and actual captured Anthropic input_schema. Those corrections are
+attributed reviewer assistance, not independent initial discoveries.
+
+Independent verification used a temporary archive of exact `c8ec3d4b`, applied
+only the nine C2 production diffs and copied only `compaction_worker_test.go`.
+No C3 Engine edits/provider tests or intentionally red recovery probes entered
+that archive. Focused C2 plus all Stage B structured-submission race tests pass
+in 1.526s. The sorted C2 path-and-content SHA256 binding is
+`9a2443743da6ddc05ebe4e50f14a78e1260a97e2bb53c7b35a1aef0a7a6baff7`.
+Scratch was removed after completion; test-process provider/runtime prefixes were
+stripped. The coder separately reports a final isolated C2 race pass in 1.141s,
+earlier inherited Fleet/Named/Management/sandbox race in 3.228s and affected vet
+success. Its mixed-tree run is retained separately and is not relabeled C2-only.
+
+Mutation failures were inspected at
+`/tmp/ensemble-compaction-stagec-worker-mutant-*.txt`. They detect changed startup
+normalization/role, default/custom factory selection, returned purpose, tool
+registration, send count, one-task enforcement, missing submission, partial
+multi-call success, forcing and descendant inheritance. The final helper-reset
+mutation fails the public helper assertion; changing additionalProperties to true
+fails the exact schema comparison in all four constructor cases. The startup
+failure proves attempted loading of a nonexistent skill, not an actual external
+MCP connection. Registration refusal and forged-batch rejection remain distinct
+boundaries; fourteen mutations are not proof of every future managed-worker path.
+The initial test's mistaken expectation that forbidden registration should succeed
+remains documented as a fixture error.
+
+Across the nine production files, physical/active/comment-only lines move from
+2759/2186/371 to 2864/2274/385, net 105/88/14. The new test has 307/293/8.
+Active counts exclude blanks and comment-only lines; production and tests are
+separate. Comments explain startup timing, registration versus permissions, bounded
+task lifetime and whole-batch refusal. The small purpose checks extend existing
+owners and preserve ordinary behavior; no scope or KISS blocker remains.
+
+Normal memory still uses the old compressor. StartCompaction, provider sizing and
+terminal reasons, staged recovery, parent-lifetime scheduling, completion/drain
+accounting and automatic root/GUI cleanup remain required C work. No background
+progress, recovery or full Stage C acceptance follows from this slice checkpoint.
+
+
+### C3 provider allowance and terminal-failure slice review
+
+October 14, 2026. C3 is accepted for its scoped checkpoint as pre-submission
+slice review; no formal Stage C correction round is consumed. After compaction,
+the reviewer reloaded the entire `.agents/skills/ensemble-coding/SKILL.md` and
+all four governing/craft documents before this review. Review covers the nine
+Engine files, `compaction_provider_test.go` and the coder's complete C3 evidence.
+Concurrent C4 selection changes and intentionally red legacy recovery probes are
+excluded. This remains maintenance work, not a blind student attempt.
+
+Compared with accepted C2 `ce52c166`, worker rendering gets the agreed Anthropic
+16,384-token allowance and omits optional Chat/Gemini output caps. Ordinary
+allowances remain unchanged. The three classic SSE readers now preserve terminal
+reasons for their existing semantic decoders; a length stop rejects even valid
+submit JSON before completed response facts or tool dispatch. Responses retains
+its existing incomplete-response rejection. No parallel provider or worker loop
+is added.
+
+Measured failure usage stays in the worker Engine: classic semantic decoders
+return their already normalized counts, while Responses extracts present input
+and output measurements from failed terminal or malformed completed envelopes.
+The failure paths account once and do not publish a successful response event;
+the successful path retains its existing event-based accounting. Request-local
+configuration supplies the accounting bucket. Parent usage and latest main input
+remain untouched until the forthcoming managed import. This source review does
+not establish that later import or persistence protocol.
+
+Independent verification used an archive of exact `ce52c166` plus only the nine
+C3 Engine diffs and the new provider test. Focused provider/malformed-response
+checks and committed C2 construction/finite-execution controls pass under race
+in 2.030s. The sorted owned-path-and-content SHA256 binding is
+`a8dfa0985a8a4eac2da037272fb5c3bd03350b0bde9da13bcbce7066aefaccb4`.
+Provider/runtime environment prefixes were stripped, no credentials were read,
+and the temporary source archive was removed. The coder separately records the
+20-case focused race at 1.919s, final combined C2/C3 race at 2.163s, inherited
+streaming/visible-explanation/Engine race checks and targeted vet success.
+
+All thirteen `/tmp/ensemble-compaction-stagec-provider-mutant-*.txt` outputs were
+inspected. Restored caps fail actual request assertions; removed semantic checks
+or discarded SSE stop reasons allow a length-limited submission and fail that
+specific assertion; dropped accounting produces measured zero where exact usage
+was expected. The ordinary-cap mutation fails its ordinary rendering control.
+Malformed Responses accounting fails in both delivery modes through their shared
+semantic path, not two independent proofs. The initial nonexistent History.Events
+fixture error remains recorded; it is not runtime defect evidence. Unchanged
+Responses terminal refusal and schema enforcement retain inherited evidence.
+
+Across the nine production files, physical/active/comment-only counts move from
+1967/1602/302 to 2037/1656/315, net 70/54/13. The new test is 250/237/7.
+Counts exclude blank and comment-only lines from active code, keeping tests
+separate. Added comments explain the output allowance, terminal reason and
+failure-accounting boundary; exported fields have useful documentation. The
+small changes extend existing provider owners and avoid new protocols. No KISS,
+ownership or scope blocker remains for C3.
+
+The roughly 52KB exact-memory positive control and synthetic 9000 output tokens
+prove transport/validation preservation, not live tokenizer capacity or semantic
+compression quality. An interrupted stream without final measurements remains
+unreconstructed. Transient display deltas are distinct from executable completed
+parts. Parent scheduling, source retention, staged recovery, drain/import and
+automatic Fleet/root/GUI cleanup still require implementation and full Stage C
+review; this checkpoint does not establish background compaction success.
+
+
+### C4 selected-source snapshot slice review
+
+October 14, 2026. C4 is accepted for its scoped checkpoint as pre-submission
+assistance, with zero formal Stage C correction rounds. The full skill and four
+required governing/craft documents remain active from the C3 reload, with no
+intervening compaction. Review covers common memory vocabulary, existing Memory
+selectors, the new selection implementation, range-fixture adjustment, selection
+tests and the coder's C4 evidence. C3 is the predecessor `0a1bb906`; old recovery
+probes and future actor/recovery work are excluded.
+
+Memory owns snapshot derivation and revalidation through its existing Agent
+parent. The digest binds selected entry identities and full parts, task text and
+cut boundaries; effective source/destination settings and owner-relative file
+fingerprints bind the relevant policy and corpus. Returned History context is an
+owned snapshot, so retained entries do not alias later reducer changes. Source
+files must match projected source content already at selection. Terminal MEMORY.md
+is also checked against the input context before a worker can overwrite it.
+Nonterminal destination collisions refuse selection rather than silently replacing
+another file. Revalidation does not hash all history or unselected files, retaining
+the intended freedom for independent dialogue, skills and later files to change.
+
+The data stays a small extension of the existing Compression value, not a second
+runtime owner or general snapshot framework. Selection is an immutable caller
+contract; the actor must retain its own attempt identity and relevant generation.
+In particular, settings changing away and back need that later generation check.
+Validation is not an atomic filesystem transaction and does not replace the
+forthcoming stage/finalize/recovery ordering or final conflict checks.
+
+Independent verification archived exact `0a1bb906` and applied only the five C4
+source/test paths, excluding untracked recovery probes. Selection, C1 range and
+waterfall tests pass under race in 1.170s. Provider/runtime environment prefixes
+were stripped and the scratch archive removed. Final reviewed five-path SHA256
+binding is `a44c4493695786884458f810069202e12dcdb5559975d94eb0855123b9051725`.
+The only post-run change is the requested Sources comment correction: the field
+contains fingerprints, not the file contents themselves. No behavioral rerun is
+needed for that wording. Coder's final focused race is 1.167s; targeted vet passes.
+Its earlier misspelled fixture type is preserved as a setup failure.
+
+The five selection mutation outputs were inspected. Ignoring selected entries
+accepts redacted conversation; ignoring policy accepts a changed source budget;
+removing collision protection selects an occupied destination; omitting curated
+context/file agreement accepts stale input; removing both source-byte guards
+accepts an edited selected file. The last is explicitly a coupled unchecked-path
+mutation, not proof of two independent checks. Positive controls retain unchanged
+selections and unselected-file edits. Actual Memory, History and corpus files are
+exercised; no internal mocks or live-provider claims are introduced.
+
+Across the three production paths, physical/active/comment-only counts move from
+496/386/82 to 665/516/112, net 169/130/30. Across the two test paths they move
+from 138/128/6 to 327/303/14, including the existing range test and its real-file
+fixture adjustment. Active counts exclude blanks and comment-only lines. Comments
+explain selected-only hashing, ownership, collision protection and the generation
+limit; new exported vocabulary has useful documentation. Growth implements the
+approved stale-source checks without expanding policy. No C4 scope, ownership or
+KISS blocker remains.
+
+This slice does not invoke ValidateSelection from the final actor acceptance path,
+repair staged disk windows, import usage, schedule background work or remove child
+views. Those remain required Stage C work, with full implementation acceptance
+still pending. The known startup recall scan must also respect the accepted
+recovery-before-scan ordering when that next slice is implemented.
+
+
+### C5 correlated History and journal slice review
+
+October 14, 2026. C5 is accepted for its scoped checkpoint as pre-submission
+slice review, with zero formal Stage C correction rounds. Full mandatory skill
+and governing/craft context remains loaded without an intervening compaction.
+The predecessor is C4 `ffa0bb68`. Review covers the six production paths, new
+receipt test, full C5 evidence and all eleven mutation outputs; legacy recovery
+probes and unimplemented Memory staging/actor integration remain excluded.
+
+History owns the existing held-cut projection and now correlates managed launch,
+cut or retirement, population and outcome by task identity. Managed population
+also checks destination file/band/range and requires its previously held cut.
+A legacy disk population cannot satisfy that managed pair. Commit applies source
+removal with replacement and retains the receipt instead of dropping it; another
+launch, duplicate replacement or abandonment cannot erase committed finalization
+work. A matching terminal outcome clears the pending receipt and retains only the
+latest outcome. The new event does not change main-turn state or response usage.
+Legacy uncorrelated behavior remains separate and supported.
+
+The Checkpoint addition activates the journal while holding the same History lock
+after the snapshot install and journal reset succeed. This closes the fresh
+embedding-client path where Save preceded Load and subsequent launch/commit facts
+otherwise had no active journal. Existing snapshot-before-journal-reset ordering
+and process-crash rather than power-loss scope remain intact. Recovery later still
+must reconcile staged files with the exact retained receipt before allowing corpus
+scans or renders; receipt persistence alone does not repair either old disk window.
+
+Independent verification archived exact `ffa0bb68` with only the seven C5 paths,
+excluding old recovery probes. Receipt, C4 selection and waterfall race checks
+pass in 1.173s. Sorted owned-path/content SHA256 binding:
+`07758c5018362a1646ebf22dd32ade9b847d5ba1845272c98ab0b5b659ce9a8e`.
+The temporary archive was removed and provider/runtime environment prefixes were
+stripped. Coder's affected memory/context/save compatibility plus receipt race
+passed 3.062s, final focused receipt race passed 1.042s, and targeted
+history/ensemble vet passed. The final receipt log was inspected. The actual public
+Save-before-Load test restores the journal without model work; a final snapshot
+then preserves the terminal outcome. These are controlled persisted-state checks,
+not forced process-kill experiments.
+
+Eleven mutation logs under `/tmp/ensemble-compaction-stagec-receipt-mutant-*.txt`
+were inspected. They fail task/file/range/band identity assertions, committed-state
+protection, retained-receipt checks, disk-versus-managed correlation, deferred cuts,
+terminal cleanup, outstanding-receipt protection against a legacy launch, and
+fresh-Save journal recovery. No compile/setup failure is counted as a kill. The
+real graduation control also verifies the sole unselected survivor is file3.
+The tests exercise actual History, Agent saves and filesystem journals, without
+mocking the behavior whose ordering matters.
+
+Across six production paths, physical/active/comment-only lines move from
+1548/1032/445 to 1697/1150/472, net 149/118/27. The new test is 173/159/8.
+Active counts exclude blank and comment-only lines. New exported fields and event
+vocabulary explain their correlation and lifetime; local comments identify the
+recovery receipt and journal activation reasons. A narrow validation helper keeps
+managed correlation out of the general reducer without introducing another state
+machine owner or event framework. No C5 KISS, scope or ownership blocker remains.
+
+Full Stage C still requires staged candidate storage, promotion/archive/restart
+reconciliation, main-render and recall holds, actor lifetime/generation handling,
+reliable completion/drain, usage import and removal of child views. C5 acceptance
+neither validates those absent paths nor changes the known old restart failures.
+
+
+### C6 staged filesystem recovery slice review
+
+October 14, 2026. C6 is accepted for its scoped checkpoint as pre-submission
+review, with zero formal Stage C correction rounds. The full mandatory skill and
+four governing/craft documents remain active without an intervening compaction.
+Review covers seven production paths and `compaction_recovery_test.go` against
+C5 `c00af62b`, plus the complete C6 evidence and twenty-one mutation outputs.
+The normal actor's legacy compression path remains outside this slice's claim.
+
+Memory owns one hidden versioned candidate through its existing owner/Sandbox.
+Stage validates the captured selection and exact launch, writes only hidden data,
+and returns the proposed population. Finish requires the exact committed receipt,
+selection and candidate hashes; it promotes recorded bytes and archives only the
+selected source paths. Matching installed destinations and already-retired sources
+allow restart to continue. Changed destination/source/archive bytes refuse further
+automatic work and retain the record and receipt. Recover returns a terminal fact
+for the actor to journal; only a subsequent call removes the hidden record. An
+uncommitted managed attempt is abandoned without applying its held source cut.
+
+Startup/settings synchronization resolves this protocol before active scans.
+Committed unresolved receipts also block Memory selectors/scans, recall searches
+and rendering of their supplied Context. Deferring initial recall indexing removes
+the constructor scan that previously preceded an embedding client's Load. The
+Engine check remains based on its supplied context, preserving offline rendering
+ownership. The future actor must still serialize acceptance at its promised safe
+boundary, keep attempts across ordinary interruption and prevent new launches
+until terminal staging cleanup succeeds. These direct guards do not substitute
+for that missing scheduling/lifetime integration.
+
+Review identified one meaningful coverage gap: existing curated MEMORY.md promotion
+was not exercised by the initially absent nonterminal destinations. The coder added
+an actual staged commit followed by fresh Load/Ask that checks exact replacement
+bytes, and an after-commit human edit that must retain both bytes and receipt.
+Two targeted curated mutations now fail because old bytes remain or the human edit
+is overwritten. This was test-only reviewer assistance; production needed no
+correction. It is distinct from C4's earlier curated selection checks.
+
+Independent verification archived exact `c00af62b` and applied only these eight
+C6 source/test paths. All six focused recovery/staging/startup/curated test functions
+pass under race in 1.262s. The actual permission-refusal startup control passes,
+with no skip. Sorted owned-path/content SHA256 binding:
+`54c8cb203e88cc18e49146543897ff0e804083db866dab04ce0199742efe7831`.
+Provider/runtime environment prefixes were stripped, no credentials were read and
+the temporary archive was removed. Coder's final focused race passes 1.258s;
+its actual memory/recall/compaction compatibility race passes in 18.578s and targeted
+vet passes. The internal package no-tests/no-selected-tests limits remain explicit
+in the coder's note rather than being claimed as additional test coverage.
+
+The twenty-one staging mutation logs were inspected. They detect active exposure
+of a staged record, omitted startup recovery/archive, conflict overwrites,
+non-idempotent partial archival, selection/candidate/receipt corruption, unsupported
+record formats, bypassed scan/render/recall holds, eager startup indexing, premature
+staging deletion, empty/stale candidates and both curated branches. The failed
+scratch replacement assertion before the stale-ID mutation is retained as setup
+failure, not a kill. Active-record visibility establishes that hidden bytes entered
+Scan, not useful semantic memory. The skip-recovery mutation fails because the
+remaining scan hold refuses the otherwise valid restart; its dependency is explicit.
+
+Across seven production paths, physical/active/comment-only counts move from
+1674/1329/265 to 1963/1575/297, net 289/246/32. The new recovery test is
+436/409/18. Counts exclude blanks and comment-only lines from active code and keep
+tests separate. Local comments explain ownership, process-crash atomicity, exact
+receipt checks, partial archival and conflict handling; exported operations state
+their caller-serialization and History boundary. The extra code implements the
+approved one-record recovery protocol using existing owners, not a generalized
+transaction framework. No C6 scope, ownership or KISS blocker remains.
+
+These constructed saved-boundary tests use the new Stage/Finish API. The original
+direct-Write probes remain preserved baseline failures, including their no-write
+and completed-archive controls; these are not unchanged tests now passing. No
+forced process kill, power-loss durability, atomic transaction against concurrent
+external editors or repair of arbitrary legacy disk ambiguity is claimed. Normal
+background scheduling, actual child completion/drain, once-only usage import and
+Fleet/root/GUI dismissal remain required before full Stage C acceptance.
+
+
+### C7 auxiliary accounting API slice review
+
+October 14, 2026. C7 is accepted for its scoped checkpoint as pre-submission
+slice review, with zero formal Stage C correction rounds. The required full skill
+and four governing/craft documents remain active without an intervening compaction.
+Review covers four production paths and the new accounting test against accepted
+C6 `59c71d90`, the full coder evidence and seven mutation logs.
+
+Engine exposes owned value copies of its existing vendor/model/price-tier buckets
+and adds auxiliary buckets through the same locked totals helper as normal request
+accounting. It preserves original request tiers instead of repricing aggregated
+counts as one prompt or at the parent's model. Latest-main usage, History response
+facts and main occupancy remain unchanged. The public alias makes these receipt
+values constructible by outside consumers. No mutable shared receipt, extra usage
+owner or task-ID ledger is added. Calling once remains explicitly the owner
+attempt's responsibility after actual worker drain; this method is additive, not
+idempotent by itself.
+
+The real HTTP/runtime test obtains one main response and two child responses,
+including a schema retry across the existing small/large pricing threshold. It
+checks successful and measured-failure imports, exact bucket identity and counts,
+unknown-price behavior, unchanged main usage and fresh-session Save/Load semantics.
+The test shuts down and saves the actual child before manually importing its final
+buckets. The expected cost is consistent with the existing model table; this is
+not new live price verification. Returned buckets contain scalar values only,
+which also directly establishes their absence of aliases without inventing pointer
+state solely to mutate it. Review replaced the first-element child-copy assertion
+with a slice-wide check so map iteration order cannot weaken that observation.
+
+Independent verification used an exact `59c71d90` archive plus only the five C7
+source/test paths. Accounting plus C3 successful/failed provider tests pass under
+race in 1.989s. Sorted owned-path/content SHA256 binding:
+`bd66de002b296bc75bdbbd94332884b60dd17eb51cd9acdde1b9a309103f6676`.
+The temporary archive was removed and provider/runtime environment prefixes were
+stripped. Coder's affected accounting/provider/cache/status race passed 2.057s
+and targeted vet passed; its focused exact-bucket test passed 1.086s before the
+final slice-wide copy assertion. The initial overly strict floating-point meter
+comparison remains a documented fixture failure; tolerances now apply only to
+derived money, with exact count and identity comparisons retained.
+
+All seven mutation outputs were inspected. They detect omitted imports, lost tiers,
+substituted model/vendor, overwritten latest-main usage, missing copied counts and
+duplicate addition within one import call. The latter does not establish immunity
+to repeated future mailbox delivery, and the coder's note explicitly distinguishes
+those claims. No internal mocks, new model rows or live-provider calls are used.
+
+Across the four production paths, physical/active/comment-only counts move from
+1285/767/411 to 1335/795/428, net 50/28/17. The new test is 149/141/5.
+Active counts exclude blank and comment-only lines. New public vocabulary and
+methods document copies, drain timing, tier preservation and once-only ownership.
+This is a small reuse of existing Engine accounting, with no scope, architecture
+or KISS blocker. Full Stage C still needs managed launch/completion/dismissal,
+owner-lifetime scheduling, generation/headroom policy and the actual exactly-once
+actor import before background compaction is accepted.
+
+
+### C8 managed lifetime slice: initial review findings
+
+October 14, 2026. Review resumes against C7 `22763ac6` after reloading the
+complete `.agents/skills/ensemble-coding/SKILL.md` and all four full governing/
+craft documents. C8 is pre-submission slice assistance, not formal Stage C
+acceptance or a reset of its zero formal correction rounds. Core lifetime paths
+and real HTTP tests are being reviewed; GUI removal consumption and parent actor
+integration remain later obligations.
+
+The initial source review found that managed launch checks the requested fresh
+directory before calling the trusted custom factory, then saves the returned
+Agent without checking its actual paths. An isolated exact-HEAD archive plus
+the six current C8 production files reproduces overwrite of a preexisting actual
+factory-selected snapshot. The real callback only constructs through NewChildAgent;
+it never loads or saves. StartCompaction performs the destructive initial Save.
+The intended assertion fails in 0.030s under race; raw result is
+`/tmp/ensemble-compaction-c8-review-factory-path.txt`. This is an observed post-return
+runtime write, distinct from arbitrary trusted callback side effects that the
+root cannot prevent. Coder and coordinator received the narrow finding before
+acceptance.
+
+Additional preliminary review asks for an actual successful-submission/manual-kill
+interleaving: killing a provider-held request does not exercise racing automatic
+cleanup after Result. Shared sync.Once source ordering looks appropriate, but
+its distinct shared-error/cancellation claim still needs the intended boundary
+observation. Correct-owner rejected-factory cleanup is also under assessment;
+no reproduction or broad factory hardening claim is made for that source lead.
+
+The independent overwrite probe is retained at
+`/tmp/ensemble-compaction-c8-review-factory-path_test.go`, SHA256
+`5fcb14fd65e631a599ef68f3fa1d0e0548bf9e7ffa723bb97252072990356587`,
+for an unchanged rerun after correction. All 13 initial C8 mutation outputs were
+inspected and fail their intended checks. The early-stop test establishes lost
+provider admission, as the coder honestly records; it does not establish the
+post-Result shared-save interleaving. The initial-save test's zero usage is only
+no measured usage, not evidence by itself that no HTTP attempt occurred; source
+ordering and its targeted Save omission establish the actual launch refusal.
+
+Initial slice disposition: correction required before C8 checkpoint for the
+reproduced managed-path overwrite, with the shared-cleanup race evidence still
+pending. No additional runtime issue was established from the rejected-factory
+cleanup lead: the ordinary-request/factory-changes-purpose case is inherited,
+and managed constructor normalization prevents the suspected schema-changing
+path through the real constructor. This lead does not expand C8 into generic
+factory hardening. No production changes, commits, live calls or grader runs
+were performed by the reviewer.
+
+
+### C8 managed lifetime slice: final disposition
+
+C8 is accepted for its scoped checkpoint after the preliminary corrections, with
+zero formal Stage C correction rounds. The full mandatory skill and all four
+governing/craft documents remain active from this review's reload. This review
+covers seven production files and the new lifetime test against `22763ac6`; it
+does not accept the unfinished parent actor integration or GUI consumption.
+
+The reproduced overwrite is corrected at the actual construction boundary:
+CreateChild compares each explicit requested managed data/log/save path against
+the returned Agent Config before Fleet may save it. Provider configuration remains
+customizable. Correctly owned rejected managed workers are drained and forgotten;
+unrelated Agents are not shut down. Constructor-only managed shutdown skips empty
+log persistence, preventing refusal itself from replacing an existing log with an
+empty header. The trusted callback must return before Load, Save or task admission;
+this protection does not claim to undo arbitrary callback effects before return.
+The new per-path tests check exact old bytes as well as refusal and removal.
+
+Managed launch retains the actual child and reliable Result. A single child-entry
+sync.Once shares shutdown, job drain and final Save outcome between automatic
+completion and explicit cancellation. The envelope owns its copied submission and
+final usage buckets, retains task and cleanup errors separately, and records a
+kill requested while cleanup is still active. Exact reserved map identity avoids
+deriving removal from a custom display label. Root removal applies only to managed
+children, retains files and publishes the surviving owner; a monotonic allocation
+counter prevents reuse caused by a shrinking live registry. Ordinary spawning,
+restoration and retained ordinary root references preserve their earlier behavior.
+There is no secondary dismissed-child registry or duplicated execution loop.
+
+The new real FIFO test establishes the previously missing interleaving. Submitted
+idle plus actual child Shutdown puts the successful Result before the held final
+snapshot. Explicit kill publishes its cancellation request before joining that
+save. An external FIFO reader then releases the real filesystem operation. Both
+success and actual journal-reset failure preserve successful Result plus Cancelled;
+both callers receive the same final save error. This uses actual actors, History,
+jobs and persistence with an external filesystem barrier, rather than an internal
+mock or a repeated timing lottery. The six additional mutation outputs were
+independently inspected: all fail intended assertions, including the bounded
+second-caller liveness assertion for a duplicate Save. Together with the earlier
+13, these are 19 targeted defect detections, not proof of every possible race.
+Initial compile, peer-cleanup and initial-save fixture failures remain recorded.
+
+Independent verification reconstructed exact HEAD plus only the eight owned
+source/test paths. All eight C8 test functions and the unchanged independent
+overwrite probe pass under race in 1.146s. Raw result:
+`/tmp/ensemble-compaction-c8-review-final.txt`. Executed source binding:
+`9d399bc32e290904980c7115efde5351471636df3d80e4194bfe8e09cf198cfc`.
+The scratch archive was removed and provider/runtime environment prefixes stripped.
+Coder's final affected Fleet/Named/Management/factory race passed 4.468s and vet
+passed; its final exact-byte refinement passed 1.052s. A subsequent comment-only
+clarification explains that constructor refusal omits Save and may hold Fleet's
+lock, so removal observers must defer owner traversal. No runtime bytes changed
+after the independent test. Final eight-path binding including that comment:
+`55761342a65f2095753e758867d49564b87dfefa4dde408718f78545135b9df8`.
+
+Across seven production paths, physical/active/comment-only counts move from
+2672/1886/606 to 2839/2009/640, net 167/123/34. The new test is 515/482/20.
+Active counts exclude blanks and comment-only lines; tests are separate. Growth
+is explained by managed launch, shared lifetime completion and narrow root
+removal, with useful exported API and ordering comments. No KISS or ownership
+blocker remains in this slice. No live-provider or grader run was performed.
+
+Full Stage C still requires the GUI's late-observation/removal handling, one-slot
+parent scheduling and policy generation, headroom behavior, safe candidate commit
+and the parent's exactly-once usage/outcome consumption before its final Save.
+In particular, Fleet shutdown alone does not yet prove the parent consumed its
+completion envelope. Those requirements remain active, with normal actor memory
+scheduling still on the old path until the later integration replaces it.
+
+
+### C9 GUI dismissal slice review
+
+October 14, 2026. C9 is accepted for its scoped checkpoint against C8 `59d6fcfb`,
+after one preliminary source correction and with zero formal Stage C correction
+rounds. The full skill and four governing/craft documents remain active without
+an intervening compaction. Review covers `agent/gui/gui.go`, `tree.go`, the new
+`compaction_test.go` and the coder's complete C9 evidence. Full Stage C remains
+unaccepted until the parent actor protocol is integrated and reviewed.
+
+The synchronous observer handles managed removal before view creation, deletes
+the actual view and only wakes the existing tree worker. It neither traverses the
+owner Fleet nor loads settings while a rejecting factory may still hold Fleet's
+lock. Current root membership rejects actual late observations without storing
+tombstones. Deferred fallback follows the actual parent chain and shares ordinary
+selection, owner settings and indivisible replay. The expected-selection check
+preserves an already-applied newer user choice; ordinary selection retains slow-
+receiver disconnection and the established settings/observer lock separation.
+
+Initial source review found one admission race: membership was checked before
+acquiring the GUI view lock, allowing removal to delete a view before selection
+recreated it. The settings-error retry could then leave that new map reference.
+This was a source-identified ordering defect, not an independently reproduced
+interleaving. A membership recheck immediately before view construction, under
+the same lock used for removal, closes it: earlier removal causes retry; later
+removal waits and deletes the admitted view. The successful-load postcheck remains.
+No test hook or parallel view registry was added to prove a scheduler ordering.
+
+Real socket tests cover three successive workers with both root and nested owners,
+owner-positive tree checks, exact owner tool-result replay and saved font settings,
+view/selection reference release and replay of an actual captured late observation.
+A real settings FIFO holds selection while the child completes; it establishes
+that worker completion remains unblocked and the delayed settings-error path falls
+back to the owner. It does not establish every successful-load or newer-selection
+interleaving; those guards retain explicit source reasoning. The HTTP fake
+recognizes sole submit with a memory property, while exact schema enforcement
+retains C2's separate evidence. No actor, settings or GUI implementation is mocked.
+
+Independent verification reconstructed exact C8 plus only the three C9 paths.
+New compaction, existing selection and structured-submission replay tests pass
+under race in 4.409s. The GUI command package reports no selected tests (1.024s),
+and virtual-user has no tests; neither is claimed as extra GUI behavior coverage.
+Raw result: `/tmp/ensemble-compaction-c9-review-final.txt`. Sorted owned-path/
+content binding: `10881fb96e70b994dafa367aeae9f6f36eca3827404fdf3d01ada7fd73c177bd`.
+Scratch source was removed and provider/runtime environment prefixes stripped.
+Coder's full GUI suite passed 8.292s before the narrow admission correction; its
+post-correction affected race passed 4.401s. GUI vet passed. No full-suite result
+is relabeled as a run after that final correction.
+
+All eight final mutation logs were inspected: deleted view retention, accepted
+late observations, wrong actual owner, missing owner settings, omitted forced
+fallback, settings-error retry, missing tree and missing fallback history each
+fail intended observations. Tree has an owner-positive control; history omission
+reaches fallback before its bounded missing-tool-result read fails. The earlier
+broader replay mutation failed initial settings and is not credited as proof of
+fallback history. The original C8 regression failed two explicit missing-selection
+read deadlines (10.105s), and the initial late-observation fixture captured removal
+itself before being corrected. These limits and corrections remain in coder notes.
+
+Across two production files, physical/active/comment-only counts move from
+603/507/76 to 663/561/81, net 60/54/5. The test is 314/301/5. Active counts exclude
+blanks and comment-only lines; tests are separate. The larger helper mostly moves
+existing settings/replay behavior into one shared path; comments explain removal
+ordering, lock ownership and indivisible replay. No new core protocol, worker
+service or persistent removed-ID set is introduced. There is no remaining slice
+architecture or KISS blocker. No live model, browser demonstration or grader run
+is claimed. Parent scheduling, safe commit, headroom and exactly-once accounting
+through shutdown remain the next required Stage C work.
+
+
+### Overall-review correction to C8 refusal coverage
+
+Root's later overall review reproduces a missed reverse-purpose refusal defect
+on exact `f111f1b3`. A managed StartCompaction request uses a real custom factory
+that only constructs an ordinary child (`Compaction=false`) with an existing log
+path. CreateChild refuses it, but Shutdown replaces the sentinel with an empty
+log header and managed-only ForgetCompaction retains that rejected child. The
+same callback retaining managed purpose is the passing control. Root's race
+result is the intended two-assertion failure in 0.022s, retained at
+`/tmp/ensemble-root-review-factory-refusal.txt`; the unchanged test is
+`agent/ensemble/root_factory_refusal_test.go` under the scratch root recorded in
+`/tmp/ensemble-root-review-path.txt`. No inference is started by this fixture.
+
+The C8 scoped acceptance remains history. Its review considered ordinary-to-
+managed rejection but failed to follow managed-to-ordinary refusal through log
+persistence and root removal. This is a reviewer coverage gap, not evidence that
+the later C10 actor work introduced the defect. The coordinator has requested a
+narrow correction preserving normal lifecycle behavior, without a new sandbox
+claim for arbitrary callback effects. Independent review of that correction and
+the unchanged reproduction is pending alongside C10. Formal Stage C correction
+rounds have not been reset or consumed by this pre-submission finding.
+
+The coder's proposed narrow correction is accepted in principle: use an explicit
+constructor-refusal drain through the existing actor and worker joins, suppress
+persistence only on that path, and share private exact-child root removal behind
+the managed-only public removal method. Verify actual ownership before discarding.
+Normal ordinary Shutdown persistence and retained references remain unchanged.
+This explicit lifetime reason should replace the earlier purpose-specific empty-
+managed-log heuristic rather than adding another empty-history rule. The unchanged
+root reproduction and a normal ordinary lifecycle positive control are the focused
+verification boundary; actual corrected source review is still pending.
+
+### C10 and complete Stage C implementation disposition
+
+Independent runtime reviewer, October 14: **Stage C implementation accepted at
+initial formal review, zero formal correction rounds**. C1–C9 were scoped
+pre-submission reviews, not repeated resets of that count. This closes the runtime
+implementation gate, including C10 and the root-found refusal correction. It does
+not claim the later grader adaptation, chapter/export mapping, live quality or
+deployment gates complete. The entire exact mandatory skill
+[`.agents/skills/ensemble-coding/SKILL.md`](../../.agents/skills/ensemble-coding/SKILL.md)
+and all four governing/craft documents were reloaded in full after compaction;
+truncated read ranges were recovered before this review resumed. Prior complete
+Chapter 14/15 readings and the accepted design remain governing.
+
+The final C10 actor holds one attempt independently of the initiating turn. Its
+counted completion receiver survives shutdown admission closure. Only the first
+completion for the exact active attempt decrements the receiver count and imports
+final copied usage. Acceptance follows reliable Result, shared child drain/save and
+removal; usage is imported before success/failure disposition. Completion during a
+sent main response waits for idle or the next complete-batch render boundary.
+Ordinary interruption detaches the waiting turn without killing the worker, while
+explicit cancellation, owner shutdown and relevant policy generation changes
+invalidate uncommitted candidates. No task-ID set, second scheduler or callback bag
+was added. Successful retirement alone permits the next waterfall selection.
+
+The 95% hold uses the latest main input's disjoint input/cache buckets, independently
+of imported child totals. A failed held attempt ends that waiting turn explicitly.
+Committed finalization errors retain the receipt and staging bytes, hold rendering
+and re-enable, and can complete after repair. Terminal outcome/cleanup failure
+retains the attempt instead of launching over it. Shutdown consumes the completion
+and reports unrepairable persistence errors rather than waiting indefinitely for
+filesystem repair. Historical outcome usage is audit data and is not reimported
+into a fresh Engine. The old synchronous Compress API remains callable for existing
+clients, with deprecation documentation; the normal actor never falls back to it.
+
+Root's reverse-purpose factory finding is corrected by explicit construction
+discard, using the existing counted actor shutdown and suppressing persistence
+only on that refusal path. Ownership is checked before discarding; private exact
+root removal handles both returned purposes. Normal ordinary Shutdown still writes
+its log and retains its root entry. The previous empty-managed-history heuristic
+is removed. Root independently reran its original assertions unchanged apart from
+the test-function/comment rename needed to avoid the ported duplicate: race1.030s,
+`/tmp/ensemble-root-review-factory-refusal-fixed.txt`; the duplicate-symbol setup
+failure is retained separately. The independent run below also exercises the
+ported root assertions and ordinary lifecycle control. This does not claim to
+undo arbitrary trusted factory effects before returning a constructed Agent.
+
+The coder then identified the associated GUI omission: removal of a rejected
+ordinary child was outside guards checking only Compaction purpose. Independent
+source review agreed. The six existing checks now apply to parented children
+missing from the root; valid ordinary children remain registered. The actual
+refusal/socket regression passes the retained pointer to the shared selection
+continuation, verifies owner selection and absence of retained view references.
+It models delayed pointer consumption without claiming a deterministic in-flight
+socket interleaving. Restoring the old purpose guards selects main/rejected and
+fails that exact assertion in0.024s. Both initial omitted-subscribe fixture failures
+remain setup failures. Exported removal comments now include refused construction.
+
+Independent verification reconstructed committed base
+`7552f4276f91138b213dcf4a5c22912ac29cb676` plus exactly14 final code/test overlays.
+Core Compaction, Memory, StructuredSubmission, root refusal and ordinary lifecycle
+checks pass under race in5.324s. GUI compaction/refusal, inherited selection and
+structured replay checks pass under race in4.434s; the GUI command package reports
+no selected tests and is not extra behavior coverage. Source was unchanged after
+execution. Binding: `387b87f643844024bf1c41722be33905da8a51af38a2cd6e39d406694ba72305`,
+recorded in `/tmp/ensemble-compaction-c10-review-source.json`; raw output is
+`/tmp/ensemble-compaction-c10-review-final.txt`. Scratch was removed and credential
+prefixes stripped from test subprocesses. An earlier independent launch refused
+the stale manifest before any test because the authorized removal-comment edit
+changed fleet.go; it is not a behavioral failure or a test pass.
+
+All15 final C10 mutation outputs were inspected and fail their intended assertions:
+usage import, safe-boundary commit, policy generation, child cleanup refusal,
+headroom wait, failed-wait refusal, disjoint cache arithmetic, terminal usage,
+finalization, settings hold, construction persistence suppression, exact root
+removal, interrupt preservation, counted shutdown completion, and GUI refusal
+fallback. The explicit blocked-request and missing-terminal-outcome deadlines have
+passing controls and establish their named liveness failures; they are not hung
+builds. Exact duplicate mailbox admission remains source-reviewed because the
+runtime has one completion producer. No artificial runtime hook or broader
+scheduler proof is claimed. Earlier fixture mistakes and coupled slice mutations
+remain recorded in the coder's report and this audit.
+
+Coder's final core focused race passed5.333s and both vets passed. Its full core
+run passed Ensemble92.956s and the other packages except the independently
+baseline-reproduced CLI human-sink true case. That failure remains a failure,
+not a green suite. The full run predates the final detached-waiter reference clear;
+the focused race includes it. Final full GUI passes8.367s and vet after the
+ordinary-refusal membership correction. All original grader and later live work
+remain coordinator-owned, with their earlier source bindings preserved.
+
+Complete Stage C review traces each added mechanism to the approved behavior:
+C1 proves selection retirement makes progress; C2 restricts actual construction,
+capability and finite task execution; C3 gives provider allowance and rejects
+length/incomplete results while retaining measured usage; C4 captures exactly
+selected source/policy/destination; C5 correlates the held history pair; C6 stages
+and recovers corpus changes before scans/recall/render; C7 preserves owner totals
+without changing main occupancy; C8 shares reliable lifetime/save/removal; C9
+releases GUI references and restores owner replay; C10 integrates those owners.
+The range and saved-state window failures were reproduced on the immutable
+baseline; the staged tests are controlled saved-state/restart probes, not forced
+process kills. C8's missed reverse-purpose refusal remains an explicit review gap,
+now repaired, rather than being reassigned to C10 or hidden by later acceptance.
+
+For comparison, the frozen first-edition compressor and compact controller
+(`edition-1/agent/internal/llm/{compress,compact}.go`, reread in full) directly
+perform isolated HTTP calls and then write memory before separate cut/population
+facts. Their useful teaching about first-person memory, reasons, irreproducible
+output and later-checkpoint retry is retained. The current pre-C baseline likewise
+used a turn-owned direct compressor and write/event/archive sequence; it could not
+meet the newly authorized independent lifetime or identified restart windows.
+Neither historical implementation supplies an equivalent managed-background
+chapter delta, so its smaller synchronous feature is not presented as a numeric
+like-for-like win. Frozen sources are unchanged.
+
+Against Stage B checkpoint a0acfb5e, Stage C changes36 production Go paths:
+physical/active/comment-only totals for those paths move7839/6095/1338 to
+9147/7150/1535, net1308/1055/197. Active excludes blank and //-only lines; counts
+include moved code within the changed set. Thirteen test paths separately move
+690/650/25 to3966/3742/133, net3276/3092/108. Detailed inputs are retained in
+`/tmp/ensemble-compaction-stagec-review-counts.json`. C10's final ten production
+paths alone add223 physical/191 active/22 comments versus their own predecessor.
+The growth buys the required finite child, bounded receipt/staging state,
+selection safety, accounting and lifetime reuse. Tests are larger because they
+exercise real provider/filesystem/socket boundaries and preserved failure states;
+there are no mocks or test-only production hooks. New comments explain ownership,
+shutdown counting, safe commit, refusal persistence and recovery ordering; exported
+contracts remain documented. The comment balance is near the teaching target,
+without padding. No unresolved scope, architecture or KISS blocker remains.
