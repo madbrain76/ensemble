@@ -1,5 +1,39 @@
 # Edition 2 carryover: lessons for the fresh student
 
+## October 14: approved background-memory revision
+
+Bill authorized the structured-submission/background-compaction handoff and
+approved moving current15/16 after current23. The accepted mapping is
+current17–23 to new15–21, current15/16 to new22/23, with0–14 and24–26 unchanged.
+Chapter files and grader identities have not yet been renumbered. Reconstruct
+and review each cumulative stage before replacing its book-facing export;
+renaming an old cumulative answer cannot establish the new build order.
+
+Runtime source `7feb910a` passes independent review `09e68149`. Chapter/grader
+enhancement follows accepted plans at `ac7c67b3` and review `215bcd7d`; final
+prose, revised grading, reordered exports and bounded live evidence remain
+pending. See the [progress record](edition-2-notes/codex-compaction-progress.md).
+This deliberately supersedes the historical direct-compressor recommendation
+below. The recall relevance judge remains a stateless bounded call.
+
+A restricted compaction child now belongs to its source owner's lifetime.
+Ordinary turn completion and interruption preserve its work. Acceptance checks
+the exact selected source and relevant policy at a safe actor boundary; unrelated
+new dialogue does not invalidate the candidate. Submission precedes reliable
+completion/save and automatic dismissal. Staged replacement plus recorded commit
+and outcome facts protect recovery; failed or stale work preserves source.
+Auxiliary usage enters owner totals once while latest-main input and cache-lens
+comparisons remain separate. A pending attempt may hold main rendering at95%
+of a known context window; ordinary background work allows main progress.
+
+Generic optional submission schemas are taught with child construction, before
+memory. They describe the whole submit argument object and are enforced before
+completion. Main/named-peer Agents finish in chat; ordinary delegated Agents owe
+submission and retain their three corrective wakes. Restricted memory workers
+have their separately bounded execution policy. These are approved runtime
+contracts, not evidence that a model preserves or recalls every important reason;
+that distinction remains part of the later live assessment.
+
 ## October 12: Edition 2 is the current top-level tree
 
 **Local reading copy ready, October 12.** Gateway implementation and enhancement,
