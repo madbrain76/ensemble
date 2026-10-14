@@ -31,7 +31,19 @@ func TestMemoryGraduationCoverage(t *testing.T) {
 			for i, end := range sample.ends {
 				id := common.MemoryFileID{Date: "2026-10-01", Num: i + 1}
 				thru := common.MemoryFileID{Date: id.Date, Num: end}
-				appendCompactionFact(t, a, common.Event{Type: "band_populated", Populated: &common.BandPopulatedData{Band: common.BandSession, File: id, Thru: thru, Text: fmt.Sprintf("source-%d ten bytes", i)}})
+				text := fmt.Sprintf("source-%d ten bytes", i)
+				if sample.valid {
+					// Selection now fingerprints actual corpus bytes as well as replayed
+					// entries. Invalid ranges still fail before filesystem selection.
+					dir := filepath.Join(cfg.DataDir, "memory")
+					if err := os.MkdirAll(dir, 0700); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.WriteFile(filepath.Join(dir, fmt.Sprintf("2026-10-01-%d.md", i+1)), []byte(text), 0600); err != nil {
+						t.Fatal(err)
+					}
+				}
+				appendCompactionFact(t, a, common.Event{Type: "band_populated", Populated: &common.BandPopulatedData{Band: common.BandSession, File: id, Thru: thru, Text: text}})
 			}
 			task, err := a.Memory().Graduation()
 			if !sample.valid {

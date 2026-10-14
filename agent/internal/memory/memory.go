@@ -234,7 +234,10 @@ func (m *memory) Conversation() (*common.Compression, error) {
 	var err error
 	task.File, err = nextID(a)
 	task.Thru = task.File
-	return task, err
+	if err != nil {
+		return nil, err
+	}
+	return m.selected(task)
 }
 
 // Graduation walks bottom-up, returning one oldest-first fold at a time.
@@ -308,7 +311,7 @@ func (m *memory) Graduation() (*common.Compression, error) {
 			}
 		}
 		task.Text = input.String()
-		return task, nil
+		return m.selected(task)
 	}
 	return nil, nil
 }

@@ -95,6 +95,32 @@ type PendingCompression struct {
 	Retire *BandDepopulatedData `json:"retire,omitempty"`
 }
 
+// MemoryFingerprint identifies exact owner-relative bytes or their absence.
+// Only Memory derives these paths; model output never supplies corpus addresses.
+type MemoryFingerprint struct {
+	// Path is relative to the owning Agent's data directory.
+	Path string `json:"path"`
+	// Hash is the SHA-256 of present bytes, including an empty file.
+	Hash string `json:"hash,omitempty"`
+	// Exists distinguishes an absent destination from a present empty file.
+	Exists bool `json:"exists"`
+}
+
+// CompressionSelection freezes only selected inputs, leaving new dialogue free
+// to continue while a worker runs. The actor separately owns policy generations.
+type CompressionSelection struct {
+	// EntriesHash covers selected entry identities/parts and task boundaries.
+	EntriesHash string `json:"entries_hash"`
+	// SourcePolicy is the effective policy at selection, not a mutable config copy.
+	SourcePolicy BandSettings `json:"source_policy"`
+	// DestinationPolicy records the other policy relevant to this attempt.
+	DestinationPolicy BandSettings `json:"destination_policy"`
+	// Sources contains fingerprints of selected source files in retirement order.
+	Sources []MemoryFingerprint `json:"sources,omitempty"`
+	// Destination requires the same prior file or absence at commit time.
+	Destination MemoryFingerprint `json:"destination"`
+}
+
 // Compression is one finite proposed cut. The original context stays live until success.
 // It is work data passed to a worker, not a new Agent or runtime child.
 type Compression struct {
@@ -116,6 +142,8 @@ type Compression struct {
 	Ratio int
 	// Retired identifies the source files archived after the commit.
 	Retired []Entry
+	// Selection is captured by Memory; callers must treat it as immutable.
+	Selection *CompressionSelection
 }
 
 // Memory owns corpus policy and disk operations through its required Agent parent.
@@ -132,6 +160,9 @@ type Memory interface {
 	Conversation() (*Compression, error)
 	// Graduation selects the next oldest-first waterfall step.
 	Graduation() (*Compression, error)
+	// ValidateSelection refuses changed selected entries, files, destination or policy.
+	// New unrelated dialogue and files do not invalidate the selected prefix.
+	ValidateSelection(*Compression) error
 	// Write persists replacement bytes before any source retirement.
 	Write(*Compression, string) error
 	// Archive preserves retired files outside the active scan pattern.

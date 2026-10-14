@@ -426,3 +426,38 @@ passed C3+C2 race2.030s. The reviewer accepted C3 for scoped checkpoint with no
 blocker and zero formal Stage C rounds; its audit retains the exact source binding.
 No parent
 lifetime, disk recovery, once-only auxiliary import or live capacity claim is made.
+
+## C4 implementation evidence: selected-source acceptance
+
+Memory selections now capture a digest of the exact selected entries and task
+boundaries, effective source/destination policy, selected source-file bytes and
+prior destination bytes/absence. ValidateSelection rechecks these values. It does
+not hash the growing history: new dialogue, skills and unselected later files
+remain independent. Actual source bytes must match the selected context already
+at launch, including existing curated MEMORY.md. Nonterminal destination collisions
+are refused. Policy generations across off/on transitions remain actor work;
+equal current settings alone cannot prove generation continuity.
+
+Real Memory/History/corpus tests cover unchanged selection, unrelated growth,
+selected projected-content edits, same-name/same-length source-file edits,
+unselected-file edits, changed policy, destination creation, existing destination
+collision, and curated-file edits before/after selection. The C1 valid-prefix
+fixture now writes actual source files, since selection fingerprints them; invalid
+coverage still refuses before filesystem selection. Existing range and waterfall
+controls pass. Initial setup misspelled common.SkillData as SkillLoadedData and did
+not compile; corrected focused tests passed0.033s, final focused race1.167s and
+memory/ensemble vet passed. Outputs:
+`/tmp/ensemble-compaction-stagec-selection-{initial,corrected,race,final,vet}.txt`.
+
+Five focused mutations fail intended assertions: ignore selected entry bytes;
+ignore relevant policy; permit an existing destination; accept curated file/context
+disagreement; and omit selected file-byte validation. The last mutation removes
+both file/context comparison and captured-file comparison, explicitly a coupled
+restoration of the old unchecked path, not two independent proofs. Raw outputs:
+`/tmp/ensemble-compaction-stagec-selection-mutant-{entries,policy,collision,curated,source-bytes}.txt`.
+Scratch copies removed. Independent reconstruction from accepted C3 plus the five
+C4 paths passed selection/C1/waterfall race1.170s. The reviewer accepted C4 for
+scoped checkpoint after a comment correction clarifying that Sources holds
+fingerprints, not recoverable file bytes; no behavior correction or formal Stage C
+round. No staged replacement, restart-window repair or actor generation/lifetime
+claim is made. The runtime audit retains exact source binding and size comparison.
