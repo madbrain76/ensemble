@@ -1056,3 +1056,93 @@ remain deferred. Actual fleet construction must later enforce the derived policy
 No unresolved implementation or evidence finding blocks this stage. The
 coordinator may release the next bounded source plan; this acceptance authorizes
 no whole-tree runtime replacement, export, renumbering, manuscript or publication.
+
+
+## Combined GUI reuse/fleet reconstruction source-plan review
+
+October 14. **Plan accepted at initial independent review, zero correction
+rounds:** `53958bcc6f3171cbcd1a0d169c3cfec3a67e65a5`, consolidated
+reconstruction note, section “Combined GUI reuse/fleet source plan — current22
+→ new20” (line1128). The clean isolated tree still has accepted sandbox Agent
+`06c7edc9489eff9cf1bf071a8b6cccba303fcc8b` from `922caeb4`. This is source
+selection for authorized maintenance with historical-answer exposure; no new
+implementation, grade, live use or export is accepted by this disposition.
+Reloaded the entire `.agents/skills/ensemble-coding/SKILL.md` and all four full
+governing/craft documents after compaction before this formal disposition.
+
+The selected historical `64e5d0c`→`0430df4` GUI and `0430df4`→`e00d5bc` fleet
+deltas preserve the combined exercise. Their14 and23 paths share README, giving
+36 unique paths before the explicitly selected schema and maintenance work.
+The55-path estimate and necessary separate-example dependency metadata are
+reasonable scope estimates, not permission to copy an entire later answer.
+Source inspection covers the GUI asset/component/relay implementation, terminal
+construction and human-delivery paths, owner interfaces, actor/jobs/history
+integration, and the complete historical Fleet implementation. The original
+separate GUI module remains separate; public reuse adds no headless GUI import.
+Private embedded assets, explicit disk override, component-only rendering and
+correlated/cancellable relay are retained. Existing settings locking, supported
+models, credential sanitization and response-lifetime corrections must survive.
+
+The construction boundary now makes the previously taught sandbox policy real
+for spawned Agents. Historical `ensemble/fleet.go` NewChildAgent checks the root
+relationship and Clamp before construction; Spawn uses the actual spawning
+Agent, and the CLI factory retains parent configuration. The plan appropriately
+tests actual confined child work as well as widening/escape refusal. Questions,
+submissions and reliable completion remain separate; no factory, root-interface
+or parent-pointer shortcut is justified by routing IDs. Existing actor/jobs
+semantics preserve incoming-message wakeups without killing the waited job.
+
+Accepted Stage B `a0acfb5e` is a separate, explicit addition to this earlier
+chapter. Reviewed its schema admission, durable submission and affected public/
+GUI tests against the plan. Its Fleet-owned compiled contract, exact-number
+validation, independent bytes and validation-before-write/notification order
+remain applicable. The bounded validator and pinned dependency are already
+reviewed Stage B scope; their limits do not promise wall-clock completion.
+The only runtime lookup dependency is `internal/fleet/submission.go`
+SubmissionData calling later `management.go` Find. That function simply resolves
+the owned child map under its mutex, so a private lookup preserves the needed
+semantics without importing public traversal or management. Retaining factory
+references with synchronization adapts tests without exposing a new public API.
+Explicit factory/sink setup replaces EnableFleet; the existing single-Agent
+GUI construction and replay are sufficient. Defer get_submission and its tool
+assertion to new21, preserving typed SubmissionData and durable-read coverage
+here. Inert payload keys do not introduce a memory service.
+
+The four-line `450f7a9` dispatch correction is a justified prerequisite: once
+the submit batch drains, record the existing turn_ended fact before finishing.
+Its source fixes a state fact missing at the earlier submit introduction, not a
+new selection feature. Completed and freshly loaded state checks, paired with
+a genuinely held-running control, test this exact claim. This fact alone cannot
+establish worker quiescence, final save or automatic dismissal; those Stage C
+boundaries remain new22. No Terminal/Quiesce/outcome API is needed here.
+
+The selected five fleet/role paths from `3aad2b7e` preserve main-chat completion
+and delegated-child submission with three corrective wakes. The historical
+CLI root-escalation expectation is obsolete under that accepted policy; replacing
+only that branch while preserving human question/reply and child escalation is
+appropriate. `df38abe0` supplies the actual-stream and whole-response explanation
+gate now, including all six supported OpenAI rows, paired refusal and no job
+side effect. BaseSystemPrompt keeps authored child roles separate from the
+current-model policy. Synthetic fixtures remain unflagged; historical captured
+bytes keep their original identity. No Codex, speech-calibration, later GUI
+observations, management or memory mechanisms are prerequisites of these changes.
+
+The proposed affected-module tests/vet, focused races, outside-module GUI/browser
+controls and six adaptation mutants are proportionate. They exercise real
+Agents, histories, jobs, validators and transport with external fakes. Reuse of
+unchanged historical/Stage B mutation evidence retains its original source and
+limits; the fresh mutants must fail their intended assertions after passing
+baselines. No grader or runtime execution occurred during this plan review.
+Run the unchanged current22 14-row/200-point baseline only in the coordinator's
+serialized grader slot. Because Stage D's revised contracts/checks are still
+changing, that baseline is not final export acceptance: Stage E must separately
+run the finished revised grader against the exact reconstructed export. Keep
+original24/25 failed scores and historical live receipts distinct throughout.
+
+No blocking dependency, architecture or scope issue remains in this concrete
+plan. Coordinator release may proceed to bounded implementation, followed by
+independent comparative review of actual paths, active code, useful exported
+comments, tests and evidence. New21 management/GUI selection, new22 memory-worker
+lifetimes and auxiliary accounting, new23 recall/judge obligations, and optional
+24/crossover integration remain in the explicit ledger. No whole-tree merge,
+export, tag, renumbering, manuscript change or publication is released here.
