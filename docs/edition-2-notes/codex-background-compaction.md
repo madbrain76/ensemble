@@ -608,3 +608,135 @@ independent exact-predecessor-plus-five-path accounting/C3 race passed1.989s;
 the runtime audit retains the source binding. Managed launch, drained completion/dismissal,
 owner-lifetime scheduling, generation/headroom and once-only actor import remain
 required before full Stage C acceptance.
+
+## C8 concrete lifetime refinement before implementation
+
+StartCompaction returns the actual Agent and one buffered ChildCompletion channel.
+The envelope retains the normal reliable Result, copied Submission and final usage
+buckets, an explicit manual-cancellation fact, and shutdown/save errors separately
+from the task error. One launch goroutine consumes Submit's reliable Result, then
+uses the same child entry's once-only stop/save operation as manual ShutdownChild.
+It captures payload/counts only after drain and delivers the envelope afterward.
+A racing manual kill marks cancellation under the manager lock before sharing that
+operation, even if the successful submit Result has already arrived. The parent
+actor will reject cancellation and every task/cleanup error, but still account the
+final buckets. It must count its completion receiver until consuming this envelope,
+including during owner shutdown, before the parent's final Save.
+
+The goroutine naturally retains the entry until its envelope is delivered; Fleet
+and root can remove their exact child identity without a second map or tombstones.
+The shared entry retains its stop/save error for both racing callers. Managed
+workers start in a fresh child directory and never Load prior task history.
+Ordinary Spawn retains restoration and its public enablement gate. Ordinary kill
+continues preserving its historical GUI/reference behavior; automatic root/GUI
+removal applies to managed workers. Root exposes current identity membership for
+GUI late-observation rejection and uses a monotonic default-directory counter.
+A managed removal observation carries its owner for selected-tab fallback; the GUI
+must process removal before normal view construction. These are concrete existing
+owner APIs, not a new task service. The runtime reviewer accepted this refinement
+as consistent with the complete design before implementation.
+
+## C8 implementation evidence: managed Fleet completion and removal
+
+After C7 `22763ac6`, StartCompaction shares ordinary child construction but refuses
+an existing task directory and never loads prior work. Its buffered envelope
+follows the actual Result, shutdown/drain, final snapshot attempt and exact entry
+removal. Explicit kill/owner shutdown marks cancellation before sharing the entry's
+sync.Once stop/save result. Shutdown snapshots entries, rather than re-resolving
+IDs after automatic removal. The entry retains its manager address independently
+of a trusted custom factory's display label. Root removal is managed-only, retains
+files, publishes AgentRemoved, and releases its actual reference; current membership
+and a monotonic allocation sequence support later GUI cleanup without tombstones.
+Ordinary child restoration/public delegation and historical root retention remain.
+GUI consumption and parent-actor attempt accounting/commit are not this slice.
+
+Real HTTP/provider and filesystem tests cover a held request, successful saved
+submit tail, final snapshots containing actual job-finished facts, canceled actor
+admission, log-save failure, final snapshot failure, explicit kill, owner shutdown,
+five repeated fresh workers, no retained running submit jobs/root/Fleet entries,
+refusal to reuse a prior directory, monotonic default allocation, initial snapshot
+refusal before admission and custom-factory label versus reserved-address cleanup.
+Initial compile used a nonexistent Jobs.List and was corrected to inspect actual
+recorded job handles. The first cancellation peer did not consume its request body;
+its handler remained in httptest.Close after the real client stopped. That run was
+terminated with SIGQUIT after72.503s; its stack/output is retained, not counted as
+runtime success. The corrected peer drains the body and has an explicit cleanup
+release. Its new-test race passed1.111s. A later initial-save fixture used Mkdir
+without its parent, so the custom callback itself returned nil/error after creating
+an Agent; this was not the intended launch Save refusal. MkdirAll fixes that setup.
+The accepted trusted-callback side-effect limitation still applies.
+
+Final affected Fleet/Named/Management and new lifecycle race passed4.380s; targeted
+vet passed. Subsequent test-only refinements verify exact final snapshot job facts,
+all closed actor admission and the custom label case; final focused race passed1.128s.
+Outputs use `/tmp/ensemble-compaction-stagec-lifetime-` with `compile`, `initial`,
+`corrected`, `peer-corrected`, `race`, `vet`, `final`, `focused`, and `final-focused`
+suffixes. Original fixture failures retain their original files.
+
+Thirteen focused mutations fail intended assertions: discard reliable Result error;
+discard shutdown/save error; omit final snapshot; omit shutdown; retain root or
+Fleet entry; lose explicit cancellation; omit final usage; reuse an existing task
+directory; skip initial Save; reuse shrinking-registry directory numbering; remove
+by a custom label instead of the reserved key; and stop before waiting for Result.
+The last mutation fails the working provider-admission control after its bounded
+five-second test wait: it proves premature shutdown prevents the task, not a
+specific submit-tail interleaving. The real success test separately checks the saved
+tail/job facts. Cancellation-marker mutation changes both explicit and owner paths
+as one policy defect. Logs use `lifetime-mutant-<case>.txt`; scratch copies removed.
+No fake success is substituted for task Result or persistence errors.
+
+Independent C8 review is pending. Parent shutdown's obligation to consume the
+managed completion/accounting/outcome before its own final Save, near-window
+waiting, safe acceptance/generation and GUI dismissal still require integration.
+
+C8 preliminary review reproduced an actual factory-path defect: checking the
+requested fresh directory did not stop a constructor-only custom factory returning
+an existing actual save directory; initial Save overwrote its previous snapshot.
+The independent failing probe/log are `/tmp/ensemble-compaction-c8-review-factory-path_test.go`
+and `...-factory-path.txt`. CreateChild now requires each explicit managed data,
+log and save path to match the returned Config before Fleet performs persistence.
+A factory still chooses provider configuration, but must return before loading,
+saving or starting a managed child. Arbitrary callback effects before return remain
+trusted, rather than being claimed reversible. Correctly owned rejected managed
+children are drained and removed; foreign ownership remains untouched. Empty
+managed shutdown skips log Dump, since otherwise refusal itself truncated an old
+log with an empty header. This is limited to a worker with no recorded facts.
+
+The missing successful-Result/kill boundary now uses an actual FIFO at the final
+snapshot backup path. Submitted idle is published after active-turn detachment;
+joining the child then establishes that finish sent its reliable Result before
+stop completed. The FIFO still holds final Save. Explicit kill publishes its
+cancellation request before waiting on the shared stop/save; only then does the
+external reader release Save. Both success and a real journal-reset failure retain
+successful Result plus Cancelled, and return the same cleanup error to both callers.
+No actor, History, Engine, job or filesystem implementation is mocked. The Unix
+FIFO is a filesystem boundary fixture; this is not a timing-only repeated race.
+
+The new three tests passed race1.053s, including both shared-save outcomes. The
+initial new-test compile used AgentSpec where CreateChild exposes common.AgentSpec;
+that fixture correction and raw compile failure are retained. Final affected
+Fleet/Named/Management, structured factory ownership and lifecycle race passed4.468s;
+targeted vet passed. A later assertion-only refinement checks exact old bytes before
+reporting path-admission failure. Six additional intended mutations fail: remove
+actual path validation (old save/log bytes overwritten); dump empty refused worker
+log; omit rejected-worker removal; capture cancellation before held Save; discard
+shared error for the second caller; execute Save twice (the second FIFO open remains
+blocked and the explicit five-second shared-save assertion fails). These complement,
+rather than relabel, the earlier premature-stop mutant. Outputs use the existing
+`lifetime-` prefix with `review-fixes`, `review-fixes-corrected`, `review-race`,
+`final-review`, `final-review-vet`, and `mutant-actual-paths/empty-log/refusal-removal/
+race-cancel/shared-error/repeat-save`. Scratch copies were removed. Zero usage in
+the initial-Save refusal fixture means no measured usage, not independent proof of
+no HTTP attempt; source ordering and its skip-initial-Save mutant establish that
+admission boundary. C8 awaits final independent disposition.
+
+Independent C8 scoped acceptance: exact predecessor plus the seven production
+paths, lifecycle test and unchanged independent overwrite probe pass race1.146s
+(`/tmp/ensemble-compaction-c8-review-final.txt`). Reviewer inspected all19 intended
+mutation failures and accepted the FIFO, path-preservation and rejection cleanup
+corrections. Executed binding is
+`9d399bc32e290904980c7115efde5351471636df3d80e4194bfe8e09cf198cfc`;
+final comment-only binding is
+`55761342a65f2095753e758867d49564b87dfefa4dde408718f78545135b9df8`.
+Final coder assertion-only race passed1.052s. No remaining C8 blocker; zero formal
+Stage C correction rounds. Full GUI/actor/accounting integration remains pending.

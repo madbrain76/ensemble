@@ -54,27 +54,28 @@ type ToolContext = common.ToolContext
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
-	registryMu  sync.Mutex
-	directory   string
-	defaults    Config
-	defaultSpec AgentSpec
-	root        Agent
-	named       map[string]Agent
-	registry    []NamedAgent
-	auth        common.AuthStore
-	logger      *log.Logger
-	api         io.Writer
-	apiMu       sync.Mutex
-	secrets     []string
-	agents      []Agent
-	agentsMu    sync.Mutex
-	factory     AgentFactory
-	userID      string
-	userSink    common.UserSink
-	nextJob     atomic.Int64
-	merged      chan AgentObservation
-	observersMu sync.Mutex
-	observers   []common.AgentObserver
+	registryMu    sync.Mutex
+	directory     string
+	defaults      Config
+	defaultSpec   AgentSpec
+	root          Agent
+	named         map[string]Agent
+	registry      []NamedAgent
+	auth          common.AuthStore
+	logger        *log.Logger
+	api           io.Writer
+	apiMu         sync.Mutex
+	secrets       []string
+	agents        []Agent
+	agentsMu      sync.Mutex
+	agentSequence uint64
+	factory       AgentFactory
+	userID        string
+	userSink      common.UserSink
+	nextJob       atomic.Int64
+	merged        chan AgentObservation
+	observersMu   sync.Mutex
+	observers     []common.AgentObserver
 }
 
 // New gives logging one owner; applications choose the diagnostic destination.
@@ -227,11 +228,14 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		return nil, err
 	}
 	cfg.Workspace = workspace
+	// Allocation never follows the shrinking live registry. Reserve once per
+	// construction so a dismissed worker cannot make a later default reuse data.
+	e.agentsMu.Lock()
+	e.agentSequence++
 	if cfg.DataDir == "" {
-		e.agentsMu.Lock()
-		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
-		e.agentsMu.Unlock()
+		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", e.agentSequence))
 	}
+	e.agentsMu.Unlock()
 	if cfg.Credentials == nil {
 		if cfg.BillingMode == "" && cfg.Vendor == common.OpenAI && e.auth != nil {
 			status, err := e.auth.Status(context.Background())

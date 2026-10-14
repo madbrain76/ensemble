@@ -52,6 +52,21 @@ type ChildStatus struct {
 	Error string `json:"error,omitempty"`
 }
 
+// ChildCompletion is delivered only after reliable task completion and actual
+// worker shutdown/save. Failed/canceled tasks still carry their measured usage.
+type ChildCompletion struct {
+	// Result is the normal Submit acknowledgment, including its log-save error.
+	Result Result
+	// Submission is copied after drain; an earlier submitted status is insufficient.
+	Submission Submission
+	// Usage contains final measured model/tier buckets, including failed work.
+	Usage []UsageBucket
+	// Cancelled records explicit kill/owner shutdown racing automatic completion.
+	Cancelled bool
+	// CleanupErr retains actual shutdown/snapshot failure separately from task error.
+	CleanupErr error
+}
+
 // SubAgentManager owns child lifetimes and pending questions for one Agent.
 type SubAgentManager interface {
 	// Children returns the actual owned children for trusted tree traversal.
@@ -74,6 +89,9 @@ type SubAgentManager interface {
 	Spawn(id, task, model string) (ChildStatus, error)
 	// SpawnWithSchema validates and freezes the optional whole-argument submit contract.
 	SpawnWithSchema(id, task, model string, schema json.RawMessage) (ChildStatus, error)
+	// StartCompaction starts one fresh restricted child without public delegation.
+	// Its buffered completion follows Result, drain, save and exact-identity removal.
+	StartCompaction(id, task string) (Agent, <-chan ChildCompletion, error)
 	// List returns only this Agent's children in stable ID order.
 	List() []ChildStatus
 	// Join waits for all requested submissions, yielding early to pending questions.

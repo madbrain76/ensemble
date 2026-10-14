@@ -321,6 +321,8 @@ type Context struct {
 type Ensemble interface {
 	// CreateChild invokes the application factory with the actual parent.
 	CreateChild(Agent, AgentSpec) (Agent, error)
+	// ForgetCompaction removes an already-drained managed child by exact identity.
+	ForgetCompaction(Agent)
 	// FleetEnabled reports whether the application installed the fleet protocol.
 	FleetEnabled() bool
 	// UserID is the addressable human, never a managed child.

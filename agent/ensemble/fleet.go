@@ -6,6 +6,7 @@ import (
 	"ensemble/internal/common"
 	"ensemble/internal/fleet"
 	"errors"
+	"path/filepath"
 )
 
 // These instructions belong to delegated Agents, never the human-facing root.
@@ -58,6 +59,8 @@ type Submission = common.Submission
 
 // SetAgentFactory enables fleet execution before Agents are started. The callback
 // must construct through NewChildAgent so both actual parent links are retained.
+// Managed factories preserve explicit data/log/save paths and return before
+// loading, saving or starting the child; provider configuration may still vary.
 func (e *Ensemble) SetAgentFactory(factory AgentFactory) { e.factory = factory }
 
 // FleetEnabled distinguishes a fleet application from earlier single-Agent clients.
@@ -115,15 +118,28 @@ func (e *Ensemble) CreateChild(parent Agent, spec common.AgentSpec) (Agent, erro
 		// Refusal does not give us ownership of that Agent's lifetime.
 		return nil, errors.New("factory returned child with wrong ownership")
 	}
+	// A rejected owned worker still needs draining and root removal. Empty managed
+	// shutdown performs no persistence, so refusal cannot truncate foreign files.
+	refuse := func(reason string) (Agent, error) {
+		err := a.Shutdown()
+		e.ForgetCompaction(a)
+		return nil, errors.Join(errors.New(reason), err)
+	}
 	if a.Spec().Compaction != spec.Compaction {
-		a.Shutdown()
-		return nil, errors.New("factory changed child purpose")
+		return refuse("factory changed child purpose")
+	}
+	if spec.Compaction {
+		cfg := a.Config()
+		for _, paths := range [][2]string{{spec.DataDir, cfg.DataDir}, {spec.LogPath, cfg.LogPath}, {spec.SavePath, cfg.SavePath}} {
+			if paths[0] != "" && filepath.Clean(paths[0]) != filepath.Clean(paths[1]) {
+				return refuse("factory changed managed persistence paths")
+			}
+		}
 	}
 	// Factories choose model configuration, not a replacement submit contract.
 	// Keep our comparison bytes independent of the factory's mutable input.
 	if !bytes.Equal(a.Spec().SubmitSchema, expected) || !bytes.Equal(a.Fleet().SubmitSchema(), contract.Schema()) {
-		a.Shutdown()
-		return nil, errors.New("factory changed submission contract")
+		return refuse("factory changed submission contract")
 	}
 	return a, nil
 }
@@ -149,3 +165,47 @@ type ActivityChanged = common.ActivityChanged
 
 // FleetChanged marks a topology change, independent of turn activity.
 type FleetChanged = common.FleetChanged
+
+// ChildCompletion retains a managed task's reliable result and drained accounting.
+type ChildCompletion = common.ChildCompletion
+
+// AgentRemoved announces final removal of a managed worker and its surviving owner.
+type AgentRemoved = common.AgentRemoved
+
+// ContainsAgent reports current root membership by identity, so a late queued
+// observation cannot recreate a dismissed managed worker's GUI view.
+func (e *Ensemble) ContainsAgent(a Agent) bool {
+	e.agentsMu.Lock()
+	defer e.agentsMu.Unlock()
+	for _, current := range e.agents {
+		if current == a {
+			return true
+		}
+	}
+	return false
+}
+
+// ForgetCompaction removes only a drained managed child owned by this root.
+// Fleet calls after shutdown/save; constructor refusal drains without saving.
+// Observers must defer owner traversal because refusal may hold the Fleet lock.
+// Files remain for inspection.
+func (e *Ensemble) ForgetCompaction(a Agent) {
+	if a == nil || a.Ensemble() != e || a.ParentAgent() == nil || !a.Spec().Compaction {
+		return
+	}
+	e.agentsMu.Lock()
+	found := false
+	for i, current := range e.agents {
+		if current == a {
+			copy(e.agents[i:], e.agents[i+1:])
+			e.agents[len(e.agents)-1] = nil
+			e.agents = e.agents[:len(e.agents)-1]
+			found = true
+			break
+		}
+	}
+	e.agentsMu.Unlock()
+	if found {
+		e.Observe(a, common.AgentRemoved{Owner: a.ParentAgent()})
+	}
+}

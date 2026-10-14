@@ -294,7 +294,9 @@ func (r *runtime) append(event common.Event) error {
 // The independent crash journal is appended by History before each fact is published.
 func (r *runtime) save() error {
 	path := r.owner.config.LogPath
-	if path == "" {
+	// A factory refusal may drain a just-constructed managed worker. There are
+	// no facts to persist, and its rejected paths must not truncate old files.
+	if path == "" || (r.owner.spec.Compaction && r.owner.history.LastSeq() == 0) {
 		return nil
 	}
 	file, err := r.owner.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
