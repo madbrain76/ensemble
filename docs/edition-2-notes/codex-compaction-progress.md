@@ -1,7 +1,9 @@
 # Background compaction and structured submissions
 
-Coordinator: Astra (Codex), October 14, 2026. Status: Stage A audit checkpoint;
-no implementation or chapter changes, acceptance, deployment or publication.
+Coordinator: Astra (Codex), October 14, 2026. Current status: Stage B implementation;
+mapping approved and grader prerequisite accepted at `a8eec84a`. Structured
+submissions are in progress, not accepted. No chapter changes, deployment or
+publication. The Stage A observations below retain their original source/results.
 
 Bill authorized proceeding after reading Cadence's
 [handoff](codex-compaction-subagents-plan.md). He separately required full
@@ -13,6 +15,9 @@ record, publication record and crossover notes. Reload full governing/craft
 documents after compaction before formal authorship/review.
 After coordinator compaction, all four governing/craft documents and the entire
 coding skill were reloaded in full before assessing the completed audit notes.
+The coordinator repeated that full reload after the next compaction before
+accepting the accounting reconstruction plan; the truncated workflow range was
+read separately to recover the missing text.
 
 ## Isolation and ownership
 
@@ -35,9 +40,9 @@ coding skill were reloaded in full before assessing the completed audit notes.
 - `compaction_runtime_audit`: independent runtime ownership, schema and lifecycle
   audit, read-only except its own audit note.
 - Both are GPT-6 Astra/high, fresh contexts, with explicit full-reading and
-  `.agents/skills/ensemble-coding/SKILL.md` handoffs. No author or implementation
-  coder has been released. This is maintenance of the existing runtime, not a
-  new blind student evaluation.
+  `.agents/skills/ensemble-coding/SKILL.md` handoffs. Their initial Stage A was
+  read-only; the separately assigned implementation roles are listed below.
+  This is maintenance of the existing runtime, not a new blind student evaluation.
 
 ## Stage A observations
 
@@ -146,7 +151,50 @@ is released. The design uses a pinned genuine validator with an explicitly
 admitted Draft2020-12 subset and no references; admission bounds reject rather
 than truncate input. This is design acceptance, not implementation acceptance.
 
+Separate preparation branch `codex/reordered-foundations` at
+`/Users/bill/projects/ensemble-reordered` starts from `a8eec84a`.
+`reordered_foundations_coder` (fresh GPT-6 Astra/high) owns its staged `agent/`
+and note, with the dependency reviewer checking it independently. Its first scope
+is accepted14 plus accounting only, with future memory/recall obligations deferred.
+This isolated preparation does not replace runtime main or publish new snapshots.
+The coordinator and dependency reviewer accepted its concrete source plan before
+implementation: accepted14 plus the selected16-to17 accounting delta, with
+memory/recall integrations deferred to their new introduction points. Existing
+supported-model and response-lifetime corrections carry forward explicitly;
+affected separate example modules join the core/GUI validation. Implementation
+is now released in that branch; no reconstructed stage or export is accepted yet.
+
+Validation encountered host disk exhaustion at142 MiB free. The coordinator
+paused new builds across both coders and the reviewer, verified no Go build/test
+process remained, and ran `go clean -cache` against the11 GiB regenerable build
+cache. The command completed successfully and restored11 GiB free. Source,
+module downloads and evidence were preserved. Link/build failures during ENOSPC
+are retained as setup failures; affected checks require clean reruns.
+
 ## Runtime decisions to carry into the implementation plan
+
+Coordinator preparation reproduced both source-identified disk/event windows on
+an exact `a8eec84a:agent/` archive. The temporary external module uses real
+Ensemble, Memory and History with an HTTP provider fake. It saves at the selected
+boundary, creates a fresh Agent, restores that saved history and starts an ordinary
+turn. This is a controlled restart-boundary probe, not a forced process kill.
+
+- After replacement `Memory.Write`, before cut/population, restart injects the
+  uncommitted candidate alongside the retained conversation. The source-retention
+  control passes, then the candidate-absence assertion fails.
+- After paired retirement/population, before `Memory.Archive`, the pre-restart
+  context has retired the source, but restart reinjects those old source files.
+- Controls omit the first replacement write and complete the second archive;
+  both pass on the same unchanged application source.
+
+`go test -mod=mod -v -count=1 ./...` in the temporary probe module: baseline
+exit1, two intended failures (0.010s); controls exit0, two passes (0.011s).
+The original probe was restored after controls. Raw files are under
+`/tmp/ensemble-compaction-window-probe/`; probe SHA-256
+`ef869c4e0945e84c763c837dfd81f7a9f1ca85941b4aa4139d1418b5c5fae2af`.
+An initial run against the in-progress Stage B tree reproduced the same failures;
+the immutable-archive repeat establishes that they precede Stage B. These results
+support the narrow Stage C recovery work, not a claim that recovery is fixed.
 
 - Preserve the current accounting promise: compaction cost belongs in owner
   session totals exactly once, attributed to the actual model/tier, while main
@@ -164,11 +212,11 @@ than truncate input. This is design acceptance, not implementation acceptance.
   preserves durable outcomes. No inference on replay.
 - Retain default string submission compatibility and add an explicit raw JSON
   custom path; a string convenience call must obey the same custom validator.
-  Final schema dialect/dependency, durable envelope, bounded worker request policy
-  and Memory-owned crash recovery remain design work before Stage B/C. No schema
-  library has been selected or added.
-- The audit identified disk/event crash windows from source. They have not been
-  reproduced. Establish focused failures before implementing their repair.
+  The accepted Stage B contract specifies the schema subset, pinned validator and
+  durable envelope. Bounded worker request policy and Memory-owned crash recovery
+  remain Stage C design work before that implementation.
+- The audit initially identified disk/event crash windows from source; the
+  controlled restart probes above now reproduce them before implementation.
 
 ## Next gates
 
@@ -176,5 +224,7 @@ With Bill's decision recorded, finish and review the narrow Stage B/C design
 details above before implementation. Keep old chapter
 numbers during implementation/testing. Commit the audit checkpoint separately
 from future implementation acceptance. No old accepted snapshot can become a
-new-order result by changing its directory name. No production files, chapter
-prose, graders, live configuration or publishing artifacts have been changed.
+new-order result by changing its directory name. Stage B now changes production
+source in the isolated branch; the reviewed grader build helper is committed.
+Chapter prose, frozen exports, live configuration and publishing artifacts remain
+unchanged.

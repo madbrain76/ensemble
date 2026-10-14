@@ -12,7 +12,10 @@ behavior/review acceptance. Runtime review also found
 that submission precedes the reliable completion/save boundary: automatic child
 cleanup must wait for that boundary. Baseline results, independent reviews and
 remaining design work are in the [progress record](edition-2-notes/codex-compaction-progress.md).
-No implementation, renumbering, deployment or publication has occurred.
+Structured-submission implementation and isolated accounting reconstruction are
+underway after their design gates; neither implementation is accepted yet.
+Controlled restart probes now reproduce the audited memory disk/event windows
+on the immutable baseline. No renumbering, deployment or publication has occurred.
 
 ## October 12: Edition 2 is the current top-level tree
 
