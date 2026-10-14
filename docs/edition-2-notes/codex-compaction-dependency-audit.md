@@ -796,3 +796,100 @@ judge calls do not pull them forward. No runtime edits or tests occurred here.
 The coordinator may release this bounded implementation, including the stated
 lock prerequisite, followed by independent implementation review. Export,
 renumbering, manuscript and complete-runtime integration remain separate gates.
+
+
+## Combined web/status reconstruction implementation review
+
+October 14. **Accepted at initial independent review, zero correction rounds:**
+source `9af3864363c1d574f66b44585b35e65c488dfec1`, Agent tree
+`6cb2eb95e7a7ad5d5fe9afc8ca2d4f5a7ad3e99d`, extending accepted crossover
+`078cccbd` / `f94f414deb977d9f106b8d749a57faa934987049`. The isolated
+reconstruction worktree is clean. This is the approved maintenance reconstruction
+with historical-answer exposure, not a blind student run. After compaction,
+reloaded the entire `.agents/skills/ensemble-coding/SKILL.md` and all four full
+governing/craft documents before resuming formal review. Read the consolidated
+submission, selected historical deltas, final changes and raw local evidence.
+
+The 24 Agent paths implement accepted plan `68793cad` / review `076048cd`.
+HTTP transport, MCP client/manager, skill parsing, model selection and status
+implementation match their selected historical combined20 source. The extra
+production adaptation is the reviewed `05b43a0` GUI ordering prerequisite; it
+adds no memory service or future actor message. `agent/gui/gui.go:286` orders
+patches with settingsMu and takes the observation mutex only for publication;
+`agent/gui/settings.go:91` snapshots under the short lock and waits for SetModel
+without holding it. Subscription follows the same order. The model remains a
+separate session-only patch, with mixed persisted patches refused.
+
+The actual ownership path remains dispatched status → ToolContext.Engine →
+Engine.Agent, with no copied meter or model facts (`agent/internal/tools/status.go:17`).
+SetModel changes only model/resolved identity between turns, preserving provider,
+billing, credentials, history and accumulated usage (`agent/internal/agent/model.go:15`).
+The CLI and separate GUI call the public Agent; core and GUI still construct
+through the public Ensemble root. New exported interface/field/method contracts
+are documented. HTTP lifetime, redaction, optional request cancellation and
+transport ownership retain the accepted implementations and useful why comments.
+The existing single-Send credential/accounting path and deadline correction are
+unchanged. No production, architecture, scope or KISS blocker remains.
+
+Independently reproduced counts from tracked Git blobs, using physical / active
+(nonblank, not `//`-only) / comment-only lines. Historical web grows production
+230/192/25 and tests405/369/27; historical status grows production118/95/15 and
+tests314/283/23. Combined historical growth is348/287/40 production and
+719/652/50 tests. Reconstruction grows361/298/42 production and834/757/57 tests.
+The differences are exactly13/11/2 production for GUI ordering and115/105/7 tests
+for its causal regression. Both sequences add3 JavaScript and1 HTML line;
+JavaScript tests and separate ch05/ch06/ch07 examples are unchanged. Final
+production Go is11,123/8,844/1,685, examples711/625/64, tests7,079/6,462/421.
+The added production comment share is12.4%, below the rough teaching target;
+comments explain the actual lifetime/ordering/ownership decisions and preserve
+useful inherited teaching rather than padding the ratio. This is selected source
+reuse, not a claimed new size improvement over the historical solution.
+
+Raw evidence verifies core short tests, GUI tests, focused core/GUI race checks,
+separate ch05/ch06 tests, ch07 compilation and reported vet checks. The unchanged
+current20 grader returns155/155 across all11 rows; no grader or command path
+changed in this stage. The actual Chrome probe edits the model field, observes
+both tabs, captures Opus-5 then Sonnet-5 requests and checks retained prior
+conversation; its GUI exits0. This establishes effective interface behavior
+against a local external-provider fake, not live model/service availability.
+The status test is byte-identical to correction `215ae6ac`; no unsupported5.5
+fixture or invented pricing row is introduced.
+
+The new regression uses real Agent/GUI/WebSockets and a small external HTTP fake.
+Its observer gate establishes streamed progress, then observes the public
+SetModel waiting before releasing that progress. The reviewer independently ran
+`go test -race -count=1 -timeout=30s -run TestModelSelectionDuringStream -v .`
+in the GUI module with a fresh EN_HOME and stripped provider/application
+variables: PASS, package1.025s, including busy refusal, continued progress,
+later idle selection, two-tab acknowledgment and shutdown. Raw result:
+`/tmp/ensemble-reordered-checks/web-independent-review.txt`. No internal mock,
+production testing interface or generic test framework was added.
+
+All three scratch defects fail their intended claims. The lock defect first
+passes idle selection, then records a genuinely blocked SetModel and five-second
+wire-read failure; the retained stacks show the actor blocked in ObserveAgent
+on the GUI mutex held by the waiting setter. The12-second alarm also terminates
+blocked teardown. This is bounded causal liveness evidence with passing baseline
+and restored controls, not a clean ordinary assertion exit or an unrelated
+timeout credited as a kill. The other defects fail historical-count/cost
+preservation on selection and honest unknown cost after unpriced work. No
+compile/setup error is credited. Reviewed raw browser script/output, mutation
+JSON/logs, grader JSON and restored checks under `/tmp/ensemble-reordered-checks/`.
+Unchanged historical HTTP/control mutation evidence retains its original source
+and the previously recorded manager-only survivor limits; no broad repeat was
+needed.
+
+Supported pricing checks prove priced Sonnet-5 work, preservation of incurred
+cost on selection and unknown cost after unpriced Opus-5 work. They do not newly
+prove summing two priced Anthropic models. Historical23.35-second web and
+16.34-second browser status demonstrations, old failed grades and auxiliary
+judge sample exchanges keep their original identities. This review made no
+paid/live call or private-profile read, repeated no unchanged61-second request
+control, and makes no new EOF/callback claim.
+
+New22/23 auxiliary usage, latest-main forcing/lens separation, child credential
+inheritance and judge Responses remain deferred. Required visible-explanation
+and main-chat/child-submission maintenance retain their later integration gate.
+Acceptance permits the coordinator's next bounded reconstruction handoff; it
+does not merge this partial Agent into primary runtime, export snapshots,
+renumber, revise manuscript or publish. Stage D plan review is a separate task.
