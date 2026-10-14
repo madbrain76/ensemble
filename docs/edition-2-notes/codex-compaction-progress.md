@@ -547,6 +547,8 @@ sanitized request metadata. Use only the needed existing credential path, never
 copy the credential file or print its values. Do not change the active Cadence
 profile. Give the test its own temporary workspace, settings/save/log/data paths,
 port and GUI process; its browser must never connect to the live application.
+Retain the effective memory budgets/watermarks and UTF-8 byte sizes of the selected
+source, submitted memory and committed file alongside those safe run settings.
 Use a small primary skill and only synthetic public case text, preserving the
 normal visible explanation before tool calls. No production conversation enters
 the test or evidence.
@@ -557,7 +559,7 @@ the test or evidence.
 | Observe the real child and submit an unrelated ordinary question while it runs | Record monotonic launch, main-input admission, main completion and child completion times from actual events. A screenshot/text observation identifies the child and owner. Main completion before child completion demonstrates progress in this run; a child finishing too quickly leaves this live overlap unestablished, without erasing deterministic barrier evidence or spending another run merely for a better story. |
 | Inspect the worker's completion and parent acceptance | Verify the exact declared memory schema, dedicated role and source-owner first-person instructions, visible explanation before submit, actual structured payload, terminal outcome and committed bytes. Compare decision, reason for rejection, owner/date and unresolved attachment question with the original case. Record omissions or inventions instead of treating valid JSON as memory quality. |
 | Select the child in the browser before dismissal, when observable | Observe completion/save followed by removal from the tree and selected-conversation fallback to the owner. Retain durable outcome and trace identity. If timing prevents selection, report that limit and retain the separate deterministic GUI result; do not claim an unobserved transition. |
-| Ask the owner to recall the supplied case without tools after committed outcome | Inspect actual request memory as well as the reply. Distinguish correct delivery, preservation and model use. Record usage once at the owner with main Last unchanged by auxiliary-only completion. Counts and cache grants are observations, not an invoice. |
+| Ask the owner to recall the supplied case without tools after committed outcome | Inspect actual request memory as well as the reply. Distinguish correct delivery, preservation and model use. Record owner usage before and after auxiliary-only completion, proving main Last is unchanged across that boundary; keep the subsequent recall turn's new main usage separate. Counts and cache grants are observations, not an invoice. |
 | Close normally after the terminal outcome and reopen the isolated save without a prompt | Verify process exit, retained memory/outcome, no respawn or new inference at startup, and clean shutdown. Never use main turn-ended alone as the compaction-completion signal. |
 
 Before paid execution, validate changed launch/capture code against the existing
