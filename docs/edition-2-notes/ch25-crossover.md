@@ -344,3 +344,25 @@ Astra initially checked the wrong live-evidence source: the exported `event.log`
 From the model's post-checkpoint context, old tool-result placeholders were no longer visible; new diagnostic results were visible normally. Bill observed only a modest token reduction. This is consistent with clearing already-stubbed tool traffic while retaining conversation and adding the checkpoint note; no exact token-savings claim was measured.
 
 The earlier incident remains distinct: its checkpoint tool returned quickly, but an auxiliary conversation-to-session compactor was launched and had not completed when Bill interrupted about 93 seconds later. That interval was an unfinished wait, not measured successful compression time. All-disabled success isolates the subsequent compaction path for further investigation; it does not prove why that earlier request stalled. No runtime code or timeout policy was changed during this experiment, and memory bands remain disabled until Bill chooses otherwise.
+
+
+## Instrumented conversation-to-session test: completed prose rejected as missing submission
+
+Bill authorized a live test of the existing auxiliary compressor, not the planned regular background child. Conversation was enabled, Session was temporarily enabled through the GUI, and Soul/Memory/8x/64x remained disabled. Numeric values stayed at their zero/default settings. The GUI snapshot omitted the lower rows; saved settings, rather than an unseen checkbox state, were used to verify the changes.
+
+A separate, metadata-only watcher (job 47) followed the live snapshot/journal and API log for five minutes without cancelling model work. Its initial baseline was handoff count 2, compactor-launch count 1, through seq 3324. Evidence is retained outside the repository in `session/diagnostics/compaction-live-3ywxg9hp/` under the live deployment. `baseline.json`, `observations.jsonl`, and `result.json` contain no source transcript, generated summary, or credentials.
+
+### Observed sequence and outcome
+
+- The main model first prepared the handoff: request seq 3326 at 17:00:15.646324Z, response seq 3327 at 17:02:11.457789Z (2026-10-14). That wait was not compressor execution.
+- The checkpoint was recorded as seq 3330 at 17:02:11.621753Z, followed by Session-targeting `compactor_launched` seq 3331 at 17:02:11.707530Z.
+- A structurally identified sole-`submit(memory)` request reached the provider. It used `gpt-6-astra`, high reasoning effort, detailed summaries, and about 223,827 serialized input characters. The request contained the main-agent no-submit instruction. No `tool_choice`, `max_output_tokens`, or `max_tokens` field was present.
+- The provider promptly opened a response stream and continued sending ordinary text deltas. This test did not stall before HTTP dispatch or remain silent at the provider. The watcher ended its observation window at 17:05:15 without cancelling anything; subsequent inspection captured completion.
+- The provider completed with 43,594 input tokens, 7,317 output tokens (130 reasoning tokens), 35,476 characters of ordinary assistant text, and **no function call**. These are metadata counts, not a disclosure of private reasoning or generated memory contents.
+- The runtime rejected the completed response with `compressor must call submit exactly once`. No compressed Session population/replacement was recorded; the source was retained. The next main request, seq 3332 at 17:05:24.332683Z, followed approximately 192.625 seconds after the compactor launch. This was a completed-but-unacceptable response, not successful memory compaction.
+
+### What the evidence does and does not establish
+
+The output contract failed: a helper requiring `submit(memory)` used a main-agent prompt that forbids main submission, then received ordinary prose rather than the required tool call. The conflicting instructions are verified, but the trace does not prove the model's internal reason for choosing prose. This is stronger evidence than the earlier interrupted wait; it must not be represented as proof that the original 93-second incident had the identical cause. A background worker alone would not fix this output-contract defect. The planned restricted child needs its own role, an unambiguous result contract, bounded summary sizing, observable completion, and parent-controlled commit/cleanup.
+
+After the test, Session was restored to its pre-test disabled state through the GUI and verified in saved settings. Conversation remains enabled; the four upper bands remain disabled. This prevents another Conversation-to-Session request while the defect is unresolved. No runtime code was changed, rebuilt, or deployed, and no live restart occurred. The background-compaction-child refactor remains unimplemented.
