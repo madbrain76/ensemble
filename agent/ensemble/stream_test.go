@@ -276,8 +276,34 @@ func TestStreamingDeliveryAndContent(t *testing.T) {
 					if err := <-result; err != nil {
 						t.Fatal(err)
 					}
-					if !executed.Load() {
-						t.Fatal("finalized tool was not executed")
+					// This OpenAI SSE fixture deliberately delivers the call before
+					// text. Keep observing/reconstructing it, but the flagged model
+					// must not execute it. JSON has no streamed ordering violation.
+					wantExecution := vendor != ensemble.OpenAI || disabled
+					if executed.Load() != wantExecution {
+						t.Fatalf("tool execution=%t, want %t", executed.Load(), wantExecution)
+					}
+					if !wantExecution {
+						paired := false
+						var dump bytes.Buffer
+						if err := a.History().Dump(&dump); err != nil {
+							t.Fatal(err)
+						}
+						decoder := json.NewDecoder(&dump)
+						for {
+							var e ensemble.Event
+							if err := decoder.Decode(&e); err == io.EOF {
+								break
+							} else if err != nil {
+								t.Fatal(err)
+							}
+							if e.Type == "tool_returned" && e.Tool.IsError && strings.Contains(e.Tool.Parts[0].Text, "arrived in the stream") {
+								paired = true
+							}
+						}
+						if !paired {
+							t.Fatal("late explanation did not produce a paired stream-order rejection")
+						}
 					}
 					if !bytes.Contains(trace.Bytes(), []byte(`"event":`)) || !bytes.Contains(trace.Bytes(), []byte("Done")) && !bytes.Contains(trace.Bytes(), []byte("ne.")) {
 						t.Fatal("API trace lost response frames")

@@ -61,6 +61,9 @@ type turn struct {
 	presented      []common.Entry
 	checkpoint     bool
 	afterTool      bool
+	// Per-response stream order is separate from parser-normalized part order.
+	sawStreamCall           bool
+	visibleBeforeStreamCall bool
 }
 
 // All fields below are owned by run. Workers own external work only, and return
@@ -369,6 +372,7 @@ func (r *runtime) sendRequest() {
 	r.owner.setActivity(common.ActivityThinking, "", "")
 	t := r.active
 	t.ids = make(map[uint64]uint64)
+	t.sawStreamCall, t.visibleBeforeStreamCall = false, false
 	if err := r.prepareContext(); err != nil {
 		r.finish("", err)
 		return
@@ -478,7 +482,14 @@ func (r *runtime) receive(m response) {
 		r.finish("", common.ErrRoundLimit)
 		return
 	}
+	// Rejected explanation-less batches also consume the existing round budget:
+	// corrective feedback must not create an unbounded model-only retry loop.
 	m.turn.batches++
+	toolFirstStream := m.turn.sawStreamCall && !m.turn.visibleBeforeStreamCall
+	if r.owner.engine.Features().RequireVisibleReasoning && (toolFirstStream || !visibleExplanationBeforeTools(m.events)) {
+		r.rejectUnexplainedTools(toolFirstStream)
+		return
+	}
 	r.dispatch()
 }
 func (r *runtime) interrupt(reason error) {
@@ -533,6 +544,16 @@ func (r *runtime) run() {
 				}
 			case streamed:
 				if m.turn == r.active {
+					// Preserve actual stream order even when a provider parser later
+					// normalizes completed parts into text-before-tools order.
+					switch m.delta.Kind {
+					case common.DeltaText:
+						if !m.turn.sawStreamCall && strings.TrimSpace(m.delta.Chunk) != "" {
+							m.turn.visibleBeforeStreamCall = true
+						}
+					case common.DeltaToolCall:
+						m.turn.sawStreamCall = true
+					}
 					delta := m.delta
 					delta.PartID = r.displayID(m.turn, delta.PartID)
 					r.owner.notify(delta)

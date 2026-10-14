@@ -40,7 +40,7 @@ func TestCodexToolLoopAndCredentialReread(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		if body["store"] != false || body["stream"] != true || body["instructions"] != "Use the echo tool." {
+		if body["store"] != false || body["stream"] != true || !strings.HasPrefix(fmt.Sprint(body["instructions"]), "Use the echo tool.\n\n") || !strings.Contains(fmt.Sprint(body["instructions"]), "ordinary user-visible text") {
 			t.Error("Codex delivery/instruction contract missing")
 		}
 		if body["prompt_cache_options"] != nil || strings.Contains(fmt.Sprint(body), "prompt_cache_breakpoint") {
@@ -60,7 +60,8 @@ func TestCodexToolLoopAndCredentialReread(t *testing.T) {
 			// observe the replacement without restarting or writing to the file.
 			writeCodex(t, file, "token-two", "account-two")
 			frame(w, wireFrame{"response.reasoning_summary_text.delta", decoded(`{"output_index":0,"delta":"Check echo."}`)})
-			frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","model":"gpt-6-astra","output":[{"type":"reasoning","id":"r1","encrypted_content":"opaque-replay"},{"type":"function_call","call_id":"c1","name":"echo","arguments":"{}"}],"usage":{"input_tokens":5000,"output_tokens":10,"input_tokens_details":{"cached_tokens":4800}}}}`)})
+			frame(w, wireFrame{"response.output_text.delta", decoded(`{"output_index":1,"delta":"I will call echo to verify the tool result and credential rotation."}`)})
+			frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","model":"gpt-6-astra","output":[{"type":"reasoning","id":"r1","encrypted_content":"opaque-replay"},{"type":"message","content":[{"type":"output_text","text":"I will call echo to verify the tool result and credential rotation."}]},{"type":"function_call","call_id":"c1","name":"echo","arguments":"{}"}],"usage":{"input_tokens":5000,"output_tokens":10,"input_tokens_details":{"cached_tokens":4800}}}}`)})
 		} else {
 			items, _ := json.Marshal(body["input"])
 			if !strings.Contains(string(items), `"output":"actual tool output"`) || !strings.Contains(string(items), "opaque-replay") {

@@ -321,9 +321,11 @@ func TestCacheLensByteCounts(t *testing.T) {
 
 // TestCacheEmptyOptIn prevents explicit mode from disabling the provider's
 // implicit cache when an intentionally empty primary has no content to mark.
+// Use the synthetic course capability: real OpenAI models now always have the
+// visible-explanation instruction, so their effective prompt is not empty.
 func TestCacheEmptyOptIn(t *testing.T) {
 	dir := skillFiles(t, map[string]string{"base": "---\nname: base\ntype: primary\n---\n"})
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-5.6-sol", DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
 	if err != nil {
 		t.Fatal(err)
 	}

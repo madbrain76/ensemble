@@ -398,13 +398,30 @@ func canonical(raw json.RawMessage) (json.RawMessage, error) {
 	return json.Marshal(value)
 }
 
-// SystemPrompt resolves the Agent's role instruction for rendering and save metadata.
-// An explicitly empty primary skill suppresses the earlier clients' default.
-func (e *engine) SystemPrompt() string {
-	if s := e.parent.Config().SystemPrompt; s != "" || e.parent.Skills() != nil {
-		return s
+// BaseSystemPrompt selects authored role instructions without model-specific
+// additions. An explicitly empty primary skill suppresses the earlier clients'
+// default. Child composition uses this base so changing models cannot retain a
+// policy that was rendered only for the child's earlier model.
+func BaseSystemPrompt(a common.Agent) string {
+	if prompt := a.Config().SystemPrompt; prompt != "" || a.Skills() != nil {
+		return prompt
 	}
 	return systemPrompt
+}
+
+// SystemPrompt resolves the Agent's role and current model policy for rendering and save metadata.
+func (e *engine) SystemPrompt() string {
+	prompt := BaseSystemPrompt(e.parent)
+	const visibleReasoning = "Before calling tools, include ordinary user-visible text in the same response before the tool calls, explaining what you will do and why. Hidden thinking or a reasoning summary does not satisfy this requirement. Tool calls without this preceding text will be refused; retry with the explanation before the calls."
+	// Saved prompts and inherited child instructions can already contain the
+	// effective prompt. Do not append the same requirement again.
+	if e.Features().RequireVisibleReasoning && !strings.Contains(prompt, visibleReasoning) {
+		if prompt != "" {
+			prompt += "\n\n"
+		}
+		prompt += visibleReasoning
+	}
+	return prompt
 }
 
 // Features follows the Agent's model selection; fixture capabilities do not imply live support.
