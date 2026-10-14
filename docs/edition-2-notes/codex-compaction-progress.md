@@ -326,6 +326,37 @@ worker completion. Stage D needs observable separate outcomes and causal
 barriers while retaining all eleven existing weighted obligations. No grader,
 scoring or chapter change has been made or approved by this preparation.
 
+## Stage C design accepted; implementation released
+
+Coordinator and independent runtime reviewer accept the revised complete
+[`codex-background-compaction.md`](codex-background-compaction.md). The design
+uses one owner-lifetime attempt, restricted real children, reliable completion
+and save, selected-source validation, Memory-owned hidden staging and journal
+receipts, and bounded child/reference cleanup. Three Engine.Send invocations
+are distinct from existing bounded authentication retries. Ordinary parent
+completion/interruption preserves useful work; explicit kill/shutdown and
+relevant policy changes cancel or invalidate it. The stated near-window wait
+is limited to an outstanding attempt at the existing 95% main-input threshold.
+
+Pre-implementation review clarified bounded attempt-owned accounting instead
+of an accumulating deduplication set, default tool registration versus actual
+safety ceilings, and the trusted custom-factory callback boundary. A valid JSON
+submit accompanied by a provider length/incomplete terminal reason still fails
+before dispatch. Committed-but-unfinalized disk work blocks recall, corpus scans
+and main rendering until recovery; it cannot be mislabeled abandonment. The
+runtime audit records the independent disposition and required evidence.
+
+The coder is released to implement coherent tested slices and checkpoint them,
+with independent implementation review afterward. No runtime correctness or
+semantic memory quality is established by design acceptance. Grader/chapter
+changes remain Stage D, and renumbering/export/live work retain their later gates.
+
+Parallel authentication reconstruction is submitted at `970676abeebce8f156d5cdc7ee0dd47a40708136`,
+Agent tree `21b15bc6cd1c24a2ee3e03873a87a9c080744402`. The coder reports all
+planned local checks passing, old18/17/14 each100/100, both61-second regressions,
+and four targeted mutation failures. Independent implementation review is active;
+this entry does not preaccept that stage or relabel historical live evidence.
+
 ## Next gates
 
 With Bill's decision recorded, finish and review the narrow Stage B/C design

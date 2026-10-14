@@ -562,3 +562,85 @@ the probe and logs are in `/tmp/ensemble-compaction-window-probe/`, probe SHA256
 `ef869c4e0945e84c763c837dfd81f7a9f1ca85941b4aa4139d1418b5c5fae2af`.
 Acceptance of structured submissions does not claim those memory/lifecycle
 problems are fixed, authorize chapter moves now, or satisfy later live gates.
+
+### Stage C concrete design: accepted for implementation
+
+October 14, 2026. The independent reviewer accepts the revised
+[`codex-background-compaction.md`](codex-background-compaction.md) for Stage C
+implementation. Stage B is checkpointed at `a0acfb5e`; subsequent Cadence note
+merges and accounting notes do not change that runtime baseline. The entire
+mandatory `.agents/skills/ensemble-coding/SKILL.md` and four governing/craft
+documents remain loaded from the final B review, with no intervening compaction.
+The reviewer read both complete versions of the concrete C design and refreshed
+the actual Memory, actor completion, Engine usage, factory and admission paths.
+This is a design acceptance only; no C implementation, formal correction round,
+runtime test or recovery success is claimed.
+
+The proposed one owner-lifetime attempt reuses the existing actor, Fleet child,
+reliable request Result and mailbox. Ordinary turn completion/interruption leaves
+it useful; explicit kill, owner shutdown and relevant policy changes cancel or
+invalidate it. Commit waits for a safe parent boundary and exact selected-source,
+destination and policy-generation checks. Unrelated appended dialogue does not
+invalidate the result. A known 95%-full main context may wait for that outstanding
+attempt; failure produces an explicit error rather than another full-context send.
+This is a stated exception to ordinary background progress, not a model timeout.
+
+Restricted purpose is enforced in construction, declaration and dispatch, with
+no copied primary/skills/MCP, recall, memory recursion or arbitrary tools. It grants
+only the needed submit operation to the worker. Source inspection confirms
+`BuiltinTools=false` currently selects default registration rather than an inherited
+security ceiling; keeping the parent's declarations and FleetEnabled unchanged
+honors that contract. Actual SafeMode, web and sandbox ceilings remain binding.
+The revised design accurately distinguishes normalized input and checked public
+construction from an arbitrary trusted custom factory's own pre-return effects.
+The root cannot retrospectively prevent those effects by rejecting its result.
+
+The finite policy is three Engine.Send invocations, including correction/resend
+paths, with existing bounded authentication/HTTP retries explicitly separate.
+Prose-only completion fails and the purpose cannot acquire another task to reset
+its budget. The reviewed provider output policy is deliberate and worker-specific;
+its live acceptance and semantic quality remain Stage F obligations. Following
+review feedback, adapters must detect actual length/incomplete terminal reasons
+before dispatch even when a submit's JSON is syntactically valid, while retaining
+measured usage. Malformed JSON alone would not test that distinct failure.
+
+The single hidden candidate plus correlated journal receipt is justified by the
+two reproduced disk/event windows. Memory owns file staging, promotion, source
+archive and recovery; History atomically projects the matched cut/population and
+retains the receipt through snapshots. A latest terminal outcome recognizes the
+final cleanup window, and no new attempt starts before staging removal succeeds.
+Recovery precedes startup/re-enable population and recall. After journal commit,
+an unfinished disk finalization is a recoverable committed state, never abandonment.
+The clarified hold blocks main rendering and recall as well as corpus scans until
+finalization succeeds or the turn receives an explicit error. Human-edit conflicts
+preserve copies and receipt, rather than overwriting them. The design claims
+process-crash ordering, not power-loss durability or transactions against external
+editors. The implementation must still prove each described boundary.
+
+Completion, cancellation and accounting share a real child drain and save attempt
+before reference removal. The revised accounting proposal uses the active attempt's
+identity and accounted bit instead of an unbounded Engine task-ID deduplication set.
+Engine remains owner of measured model/tier buckets and adds final auxiliary usage
+once, including failed/canceled work, without replacing latest-main usage or replaying
+historical spending into a fresh session. Exact-child shared dismissal prevents
+manual kill races from removing a replacement. Root and GUI references must go
+with the Fleet entry; retained files provide the audit trail.
+
+The reversed-range issue now has a separate coordinator baseline reproduction:
+`ranges_test.go` under `/tmp/ensemble-compaction-window-probe/`, SHA256
+`a513c5c1fde6fa7bbd26ddc7ea0924394117f0d9264b41a421784be4056b27dd`.
+Malformed coverage retires nothing and immediately selects the same source; valid
+filenames pass the control. C's range admission and exact retirement-prefix checks
+address that demonstrated progress obligation, without claiming it caused Cadence's
+earlier conversation-compressor failure.
+
+Validation must hold the external request outside capture locks. The coordinator's
+separate real-HTTP probe reproduces the shared fakevendor Route lock blocking main
+requests and Requests(); it is Stage D fixture evidence, not a compaction result.
+The existing Chapter 23 reverse-proxy barrier is a narrow later grader option.
+C's independent concurrent HTTP peer can exercise actual main progress now. Tests
+remain real runtime plus external fakes, with targeted mutations and genuine
+filesystem failures; no new persistence mock or generic task framework is needed.
+No unresolved design blocker remains. Production complexity, concrete ownership,
+boundary tests and required compatibility results still face independent code
+review before Stage C acceptance.
