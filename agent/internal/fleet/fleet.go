@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -34,18 +33,19 @@ type manager struct {
 	changed   chan struct{}
 	stopped   bool
 	submitted bool
-	result    string
+	result    common.Submission
+	contract  *SubmissionContract
 	failure   string
 	wakes     int
 	sequence  uint64
 }
 
 // New requires the Agent whose children and messages this manager owns.
-func New(parent common.Agent) common.SubAgentManager {
-	if parent == nil {
-		panic("fleet requires Agent")
+func New(parent common.Agent, contract *SubmissionContract) common.SubAgentManager {
+	if parent == nil || contract == nil {
+		panic("fleet requires Agent and submission contract")
 	}
-	return &manager{parent: parent, children: map[string]*child{}, pending: map[string]question{}, messages: map[string]uint64{}, changed: make(chan struct{})}
+	return &manager{parent: parent, contract: contract, children: map[string]*child{}, pending: map[string]question{}, messages: map[string]uint64{}, changed: make(chan struct{})}
 }
 
 // Agent exposes the required owner, including its configuration and services.
@@ -58,6 +58,12 @@ func (m *manager) Changed() { m.mu.Lock(); defer m.mu.Unlock(); m.signal() }
 // Spawn reserves the child's identity through construction. A failed factory
 // publishes nothing, and no model starts until both ownership links exist.
 func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
+	return m.SpawnWithSchema(id, task, model, nil)
+}
+
+// SpawnWithSchema delegates contract validation to the public construction boundary.
+// Ordinary grandchildren get defaults unless their own launch explicitly opts in.
+func (m *manager) SpawnWithSchema(id, task, model string, schema json.RawMessage) (common.ChildStatus, error) {
 	if id == "" || id == "." || id == ".." || strings.ContainsAny(id, "/\\") || id == m.parent.Ensemble().UserID() || strings.TrimSpace(task) == "" {
 		return common.ChildStatus{}, errors.New("spawn requires a child ID and task; user and path addresses are reserved")
 	}
@@ -70,6 +76,7 @@ func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
 		return common.ChildStatus{}, fmt.Errorf("child %q already exists", id)
 	}
 	spec := m.parent.Spec()
+	spec.SubmitSchema = append(json.RawMessage(nil), schema...)
 	spec.ID, spec.ParentID, spec.Model = id, m.parent.Spec().ID, model
 	spec.DataDir = filepath.Join(m.parent.Config().DataDir, "children", id)
 	spec.LogPath = filepath.Join(spec.DataDir, "events.jsonl")
@@ -77,10 +84,6 @@ func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
 	a, err := m.parent.Ensemble().CreateChild(m.parent, spec)
 	if err != nil {
 		return common.ChildStatus{}, err
-	}
-	if a.ParentAgent() != m.parent || a.Ensemble() != m.parent.Ensemble() {
-		a.Shutdown()
-		return common.ChildStatus{}, errors.New("factory returned child with wrong ownership")
 	}
 	if err = a.Load(); err == nil {
 		err = a.Save()
@@ -118,7 +121,8 @@ func (m *manager) Status() common.ChildStatus {
 	}
 	if m.submitted {
 		s.State = "submitted"
-		s.Result = m.result
+		s.Result = m.result.Result
+		s.Payload = append(json.RawMessage(nil), m.result.Payload...)
 	}
 	return s
 }
@@ -325,41 +329,11 @@ func (m *manager) active() []string {
 	return ids
 }
 
-// Submit enforces bottom-up completion and resets only the successful agent's
-// correction count. The payload is model work; the framework cannot judge it.
-func (m *manager) Submit(result string) error {
-	m.mu.Lock()
-	if ids := m.active(); len(ids) > 0 {
-		m.mu.Unlock()
-		return fmt.Errorf("active children %v: join_agents or shutdown_agent before submit", ids)
-	}
-	file, err := m.parent.Sandbox().OpenFile(filepath.Join(m.parent.Config().DataDir, "submit.md"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
-	if err != nil {
-		m.mu.Unlock()
-		return err
-	}
-	err = errors.Join(json.NewEncoder(file).Encode(map[string]string{"result": result}), file.Close())
-	if err != nil {
-		m.mu.Unlock()
-		return err
-	}
-	m.submitted = true
-	m.result = result
-	m.failure = ""
-	m.wakes = 0
-	m.signal()
-	m.mu.Unlock()
-	if parent := m.parent.ParentAgent(); parent != nil {
-		parent.Fleet().Changed()
-	}
-	return nil
-}
-
 // Begin clears completion for new work while preserving the consecutive-wake bound.
 func (m *manager) Begin() {
 	m.mu.Lock()
 	m.submitted = false
-	m.result = ""
+	m.result = common.Submission{}
 	m.failure = ""
 	m.mu.Unlock()
 }

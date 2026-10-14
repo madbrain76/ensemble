@@ -1,8 +1,9 @@
 # Background compaction and structured submissions
 
-Coordinator: Astra (Codex), October 14, 2026. Current status: Stage B implementation;
-mapping approved and grader prerequisite accepted at `a8eec84a`. Structured
-submissions are in progress, not accepted. No chapter changes, deployment or
+Coordinator: Astra (Codex), October 14, 2026. Current status: Stage B accepted;
+Stage C concrete design is next. Mapping and grader prerequisite are accepted.
+The isolated accounting reconstruction is also independently accepted as a
+maintenance stage, without a new export. No chapter changes, deployment or
 publication. The Stage A observations below retain their original source/results.
 
 Bill authorized proceeding after reading Cadence's
@@ -32,6 +33,14 @@ read separately to recover the missing text.
   notes. Reconcile any overlapping application changes before integration.
 - Codex owns new progress/audit notes and the eventual submission/compaction
   changes in this separate worktree. Do not stage unrelated files or push.
+
+Later main reached `f910e8f5`; its two new commits change only Cadence's migration
+note, with no application-code overlap. The coordinator read the full updated
+note: Cadence records Bill applied the move and verified runtime output under
+`/Users/bill/projects/cadence-memories`, preserving the explicit save path and
+all six disabled bands. These are Cadence's observations, not a Codex live test.
+Do not rerun migration or assume the original deployment data path remains active.
+Reconcile those note-only commits at a clean checkpoint; preserve both workstreams.
 
 ## Review assignments
 
@@ -162,7 +171,12 @@ implementation: accepted14 plus the selected16-to17 accounting delta, with
 memory/recall integrations deferred to their new introduction points. Existing
 supported-model and response-lifetime corrections carry forward explicitly;
 affected separate example modules join the core/GUI validation. Implementation
-is now released in that branch; no reconstructed stage or export is accepted yet.
+was released in that branch. The resulting `288fc6e8` (agent tree
+`2b671b45dc5f7b760f2faaff2a77c83e6c7c09c8`) is now independently accepted at
+initial review, zero correction rounds. Its old14/17 graders each score100/100;
+affected checks and five targeted defects pass their intended observations.
+The original concurrent EOF timing failure remains unexplained, alongside passing
+exact14 and isolated staged controls. No export, renumber or auth stage is accepted.
 
 Validation encountered host disk exhaustion at142 MiB free. The coordinator
 paused new builds across both coders and the reviewer, verified no Go build/test
@@ -170,6 +184,36 @@ process remained, and ran `go clean -cache` against the11 GiB regenerable build
 cache. The command completed successfully and restored11 GiB free. Source,
 module downloads and evidence were preserved. Link/build failures during ENOSPC
 are retained as setup failures; affected checks require clean reruns.
+
+## Stage B acceptance
+
+Independent runtime review accepts the frozen structured-submission implementation
+at initial formal review, zero correction rounds. The coordinator read the full
+disposition and accepts the stage. Common holds vocabulary, Fleet owns the compiled
+contract and durable results, and the composition root refuses invalid construction
+before factory effects. Legacy APIs/rows remain compatible; custom results retain
+JSON data through public retrieval and GUI live/replay paths. The accepted bounded
+dialect and admission ceilings are in the coder's contract.
+
+Reviewer feedback corrected canonical-size/reload inconsistency, multiplicative
+validation-work exposure, unsafe shutdown on a wrong-owner factory result, missing
+required-parent admission and an incomplete GUI assertion. These were genuine
+pre-submission assistance, not independent student discoveries. No Stage C cleanup
+or memory behavior is claimed by this acceptance.
+
+Final focused races, full GUI race and both vets pass. Full ensemble race passes
+in91.778s, with the later parent guard separately covered by focused races. The
+full core suite retains its reproduced CLI human-sink failure. An unnecessary
+browser glob invocation lacked required harness environment; its separate speech
+assertion also fails on exact `a8eec84a`. Failed fixture/setup attempts and the
+mutation evidence's coupled/repeated claims remain in the coder/reviewer notes.
+
+Coordinator ran advertised explicit-source old22/23 commands sequentially on the
+frozen stage:200/200 in2.356s and100/100 in1.072s, exits0. All214 source-manifest
+files remained unchanged during the runs and matched at independent review.
+The reviewer verifies21 distinct targeted defects across24 executions with stated
+limits. Changed-file active production grows306 lines; the reviewed explanation
+and runtime coverage justify that scope. No new result browser or scheduler.
 
 ## Runtime decisions to carry into the implementation plan
 
@@ -195,6 +239,17 @@ The original probe was restored after controls. Raw files are under
 An initial run against the in-progress Stage B tree reproduced the same failures;
 the immutable-archive repeat establishes that they precede Stage B. These results
 support the narrow Stage C recovery work, not a claim that recovery is fixed.
+
+A separate exact-baseline range probe creates two source files whose parsed Thru
+precedes File. Scan accepts them; a completed write/paired retirement/population/
+archive retires no context entries, and Graduation immediately selects the same
+source again. `TestReversedRangesCannotRepeatFold` fails for that intended reason
+(0.008s, exit1). Replacing only the filenames with valid single-file identities
+passes (0.008s, exit0). The original probe was restored; SHA-256
+`a513c5c1fde6fa7bbd26ddc7ea0924394117f0d9264b41a421784be4056b27dd`, file
+`ranges_test.go` and logs in the same temporary directory. This establishes the
+separate no-progress defect before repair; it does not explain Cadence's observed
+Conversation compressor failure.
 
 - Preserve the current accounting promise: compaction cost belongs in owner
   session totals exactly once, attributed to the actual model/tier, while main

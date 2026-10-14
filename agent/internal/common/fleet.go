@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -24,6 +25,15 @@ type FleetMessage struct {
 	Content string `json:"content"`
 }
 
+// Submission preserves the distinction between legacy text and a custom JSON object.
+// Returned Payload bytes belong to the caller, not the live Fleet.
+type Submission struct {
+	// Result holds default-schema text; it can legitimately be empty.
+	Result string `json:"result,omitempty"`
+	// Payload holds the full custom argument object, without a result wrapper.
+	Payload json.RawMessage `json:"payload,omitempty"`
+}
+
 // ChildStatus is a snapshot of one owned child's completion, not a global registry.
 type ChildStatus struct {
 	// Activity distinguishes provider work, tools, waiting and idle.
@@ -34,8 +44,10 @@ type ChildStatus struct {
 	ID string `json:"agent_id"`
 	// State is idle, running, submitted, or failed.
 	State string `json:"state"`
-	// Result is the explicit submitted payload, never inferred from an idle reply.
+	// Result is default-schema text, never inferred from an idle reply.
 	Result string `json:"result,omitempty"`
+	// Payload is the custom submitted object, with caller-owned backing bytes.
+	Payload json.RawMessage `json:"payload,omitempty"`
 	// Error records a failed turn without retrying it.
 	Error string `json:"error,omitempty"`
 }
@@ -50,14 +62,18 @@ type SubAgentManager interface {
 	WaitChange(context.Context, []string, string, time.Duration) (string, error)
 	// Output returns finalized output since an event cursor, optionally waiting.
 	Output(context.Context, string, uint64, bool) (ChildOutput, error)
-	// Submission reads a child's in-memory result with durable submit.md fallback.
+	// Submission reads default text with durable fallback; custom data requires SubmissionData.
 	Submission(string) (string, error)
+	// SubmissionData reads typed text/custom data, resolving ownership before disk fallback.
+	SubmissionData(string) (Submission, error)
 	// GracefulShutdown waits for queued turns before ending one child's lifetime.
 	GracefulShutdown(context.Context, string) error
 	// Agent returns the required owner.
 	Agent() Agent
 	// Spawn constructs, restores and starts a child through the application factory.
 	Spawn(id, task, model string) (ChildStatus, error)
+	// SpawnWithSchema validates and freezes the optional whole-argument submit contract.
+	SpawnWithSchema(id, task, model string, schema json.RawMessage) (ChildStatus, error)
 	// List returns only this Agent's children in stable ID order.
 	List() []ChildStatus
 	// Join waits for all requested submissions, yielding early to pending questions.
@@ -75,8 +91,12 @@ type SubAgentManager interface {
 	// Reply answers a pending question; blank agentID selects human-addressed questions.
 	// Omitted messageID selects the sole matching question.
 	Reply(agentID, messageID, content string) error
-	// Submit records completion only when no unfinished children remain.
+	// Submit wraps result text in JSON and obeys the same custom contract as SubmitJSON.
 	Submit(string) error
+	// SubmitJSON validates the direct argument object before publishing completion.
+	SubmitJSON(json.RawMessage) error
+	// SubmitSchema returns an owned copy of the runtime submission contract.
+	SubmitSchema() json.RawMessage
 	// Status reports this Agent's explicit completion state.
 	Status() ChildStatus
 	// End records an actual turn failure; interruption leaves the child available.

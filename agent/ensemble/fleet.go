@@ -1,7 +1,10 @@
 package ensemble
 
 import (
+	"bytes"
+	"encoding/json"
 	"ensemble/internal/common"
+	"ensemble/internal/fleet"
 	"errors"
 )
 
@@ -22,6 +25,9 @@ type UserSink = common.UserSink
 
 // ChildStatus reports a direct child's explicit completion state.
 type ChildStatus = common.ChildStatus
+
+// Submission contains default result text or a custom raw JSON payload.
+type Submission = common.Submission
 
 // SetAgentFactory enables fleet execution before Agents are started. The callback
 // must construct through NewChildAgent so both actual parent links are retained.
@@ -51,10 +57,42 @@ func (e *Ensemble) DeliverUser(message FleetMessage) error {
 
 // CreateChild delegates construction, leaving provider choices in the application.
 func (e *Ensemble) CreateChild(parent Agent, spec common.AgentSpec) (Agent, error) {
+	if parent == nil || parent.Ensemble() != e {
+		return nil, errors.New("child requires parent in this Ensemble")
+	}
 	if e.factory == nil {
 		return nil, errors.New("no agent factory configured")
 	}
-	return e.factory(parent, AgentSpec(spec))
+	// Direct public callers and Fleet spawning share this boundary. Validate
+	// before the factory can create files, load skills or register an Agent.
+	contract, err := fleet.CompileSubmissionSchema(spec.SubmitSchema)
+	if err != nil {
+		return nil, err
+	}
+	var expected json.RawMessage
+	if len(spec.SubmitSchema) != 0 {
+		expected = contract.Schema()
+		spec.SubmitSchema = contract.Schema()
+	}
+	a, err := e.factory(parent, AgentSpec(spec))
+	if err != nil {
+		return nil, err
+	}
+	if a == nil {
+		return nil, errors.New("factory returned no child")
+	}
+	if a.ParentAgent() != parent || a.Ensemble() != e {
+		// A bad factory may return the parent or an unrelated live Agent.
+		// Refusal does not give us ownership of that Agent's lifetime.
+		return nil, errors.New("factory returned child with wrong ownership")
+	}
+	// Factories choose model configuration, not a replacement submit contract.
+	// Keep our comparison bytes independent of the factory's mutable input.
+	if !bytes.Equal(a.Spec().SubmitSchema, expected) || !bytes.Equal(a.Fleet().SubmitSchema(), contract.Schema()) {
+		a.Shutdown()
+		return nil, errors.New("factory changed submission contract")
+	}
+	return a, nil
 }
 
 // NewChildAgent enforces inherited restrictions at the construction boundary.

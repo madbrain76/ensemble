@@ -99,7 +99,13 @@ func (a *agent) Declarations() []common.ToolDeclaration {
 		if tool.Ephemeral != "" || !a.toolEnabled(tool.Name) {
 			continue
 		}
-		declarations = append(declarations, tool.ToolDeclaration)
+		declaration := tool.ToolDeclaration
+		if tool.Name == "submit" {
+			declaration.Schema = a.fleet.SubmitSchema()
+		} else {
+			declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)
+		}
+		declarations = append(declarations, declaration)
 	}
 	return declarations
 }
@@ -324,7 +330,11 @@ func (a *agent) AttachMemory(m common.Memory) {
 func (a *agent) Memory() common.Memory { return a.memory }
 
 // Spec returns identity and restrictions owned by this Agent.
-func (a *agent) Spec() common.AgentSpec { return a.spec }
+func (a *agent) Spec() common.AgentSpec {
+	spec := a.spec
+	spec.SubmitSchema = append(json.RawMessage(nil), spec.SubmitSchema...)
+	return spec
+}
 
 // Sandbox reaches the child enforcing this Agent's policy.
 func (a *agent) Sandbox() common.Sandbox { return a.sandbox }

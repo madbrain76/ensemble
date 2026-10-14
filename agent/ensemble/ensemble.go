@@ -126,6 +126,15 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 	if len(specs) == 1 {
 		spec = specs[0]
 	}
+	// Validate and own the submit contract before filesystem, authentication,
+	// skill or child-registration side effects can occur.
+	contract, err := fleet.CompileSubmissionSchema(spec.SubmitSchema)
+	if err != nil {
+		return nil, err
+	}
+	if len(spec.SubmitSchema) != 0 {
+		spec.SubmitSchema = contract.Schema()
+	}
 	if spec.ID == "" {
 		spec.ID = "main"
 	}
@@ -249,7 +258,7 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		parents = append(parents, parent)
 	}
 	a := agent.New(e, cfg, common.AgentSpec(spec), parents...)
-	a.AttachFleet(fleet.New(a))
+	a.AttachFleet(fleet.New(a, contract))
 	a.AttachSandbox(sandbox.New(a))
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
 		return nil, err

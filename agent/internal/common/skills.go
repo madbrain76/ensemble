@@ -1,5 +1,7 @@
 package common
 
+import "encoding/json"
+
 // AgentSpec supplies per-Agent identity independently of provider configuration.
 // The composition root chooses full-access defaults when the caller omits a spec.
 type AgentSpec struct {
@@ -9,6 +11,9 @@ type AgentSpec struct {
 	ParentID string
 	// Model optionally requests a model from the application child factory.
 	Model string
+	// SubmitSchema describes the entire submit argument object; absent uses result text.
+	// Construction owns a copy; this contract is not inherited by ordinary children.
+	SubmitSchema json.RawMessage
 	// DataDir optionally selects this Agent's state directory.
 	DataDir string
 	// LogPath optionally selects its history log.

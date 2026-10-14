@@ -409,3 +409,156 @@ ownership, durable retrieval/reload, adapter declarations and GUI replay. Review
 will assess the actual assertions and targeted mutation outcomes. No new tests
 have been run by this reviewer at this design boundary. Stage C's quiescence,
 restricted construction, background scheduling and accounting remain separate.
+
+### Stage B pre-submission source review
+
+The coordinator resumed production review while the coder completed its report,
+with the full governing context still active. The worktree had advanced to
+`a8eec84a`; implementation was uncommitted. This review does not consume a formal
+correction round. Findings were sent directly to coder and coordinator before
+the consolidated submission:
+
+- GUI result assertions initially searched for marker words instead of decoding
+  the actual submitted object. They could not establish the claimed nested-data
+  preservation. The coder is strengthening both live delivery and replay checks.
+- Separate schema/input ceilings did not control their multiplied validation
+  work. Dependency source collects errors across all array elements and retains
+  each element's missing required names; formatting those errors can amplify a
+  small input. No large or small executable amplification probe was run before
+  this finding. The agreed correction adds an explicit conservative combined
+  byte budget before validation, without replacing schema semantics or claiming
+  a CPU deadline.
+- Incoming byte caps preceded JSON's HTML escaping. An admitted annotation or
+  payload containing many `<` characters could be serialized above the same cap
+  enforced during durable rereading. The accepted shape would then reject its
+  own stored record. This was initially source-identified, not reproduced; the
+  coder is adding canonical-byte refusal checks and small restored-defect cases.
+- Moving factory checks into the public `CreateChild` path is appropriate. Its
+  inherited wrong-owner branch must not shut down an unrelated returned Agent.
+  In particular, returning the caller itself from a factory invoked by Spawn
+  would re-enter the manager lock during shutdown. Ownership rejection and
+  disposal of a newly created, correctly owned wrong-contract child are distinct.
+  The coder received this narrow finding and a real-Agent survival test suggestion.
+
+A host disk-full event temporarily paused builds/tests. The reviewer had no
+active process and ran no builds during that pause; the coordinator cleared
+regenerable caches and subsequently released bounded checks. Source analysis
+and later executable evidence retain their distinct statuses.
+
+### Stage B formal implementation review: accepted
+
+October 14, 2026. Independent reviewer `compaction_runtime_audit` accepts Stage B
+at initial formal review, with zero formal correction rounds. All pre-submission
+findings above remain attributed assistance. After the final context compaction,
+the reviewer again read the entire `.agents/skills/ensemble-coding/SKILL.md` and
+all four governing/craft documents before this decision, then reread the frozen
+production diff, schema/storage implementation and consolidated coder report.
+HEAD is `a92aaad9`; the Stage B source is still uncommitted for the coordinator
+to checkpoint. The sorted changed/new `agent/` path-and-SHA256 manifest hashes to
+`516f2d8205da583393b0fc2563f1032ddaebf9d295433985db0fd4a5f08f82ce`.
+All 214 files in the coordinator's grader source manifest still match disk.
+
+No Stage B blocking finding remains. The final public `CreateChild` boundary
+also refuses nil or foreign parents before invoking the factory, matching the
+existing required-parent construction rule. The real-Agent tests cover this
+entry point directly and through Spawn. A factory cannot discard the promised
+schema; wrong ownership does not authorize shutting down a live foreign Agent
+or the caller. This closes the additional pre-submission parent-boundary finding
+without adding lifecycle policy outside this stage.
+
+The implementation follows the accepted ownership plan: common holds data and
+interfaces; Fleet owns the immutable compiled contract, validation and durable
+submission behavior; the composition root validates before construction effects.
+The genuine validator owns schema semantics, with explicit admission restrictions
+and no external resource resolution. Exact-number decoding, raw and canonical
+byte checks, and the combined byte budget address the identified precision,
+reload and repeated-work risks. The combined budget is deliberately conservative
+and does not establish a measured CPU deadline; no amplification stress run was
+performed or needed for this acceptance.
+
+Legacy string submission and rows remain compatible. Custom JSON survives
+declaration, tool dispatch, status, join, typed retrieval and durable rereading
+without double encoding. The explicit envelope preserves contract identity even
+when custom data resembles a legacy result. Validation and successful writing
+precede completion publication; historical fallback does not complete a new task.
+Spec, declaration and returned payload bytes are copied. The existing text-valued
+Ask/display API renders compact custom JSON, while structured readers retain its
+object. GUI production code is unchanged; the new test checks full nested data
+in both actual subscribed live frames and restored replay, with no inference on
+reload.
+
+Independent reviewer executions:
+
+- `go test -race ./internal/fleet -run TestSubmission -count=1`: pass, 1.080s.
+- `go test -race ./ensemble -run TestStructuredSubmission -count=1`: pass,
+  1.429s after the HTTP fixture correction. The earlier failure was the fixture's
+  missing Anthropic usage, and remains a failed setup rather than an ownership
+  defect. After the final parent guard,
+  `go test -race ./ensemble -run 'TestStructuredSubmission(Construction|FactoryOwnership)$' -count=1`
+  passes, 1.036s.
+- GUI `go test -race . -run TestStructuredSubmissionGUIReplay -count=1`:
+  pass, 1.079s with the exact live/replay assertion.
+
+The consolidated coder evidence supplies passing final focused Stage B race
+checks, full GUI race (11.856s), both module vets and full ensemble race
+(91.778s). That full ensemble run began before the final required-parent guard;
+the final focused race run covers the added guard. Full core short/race is not
+claimed green: its CLI human-sink case reproduces on baseline. The coder's
+standalone browser glob was an invalid suite invocation, and its separate speech
+persona failure reproduces on exact `a8eec84a`; neither is silently passed or
+repaired in this stage. ENOSPC link failures and the initial missing GUI
+subscription are retained as setup failures. No live provider, deployment or
+publication result is claimed.
+
+The coordinator's advertised Edition 2 compatibility commands using current
+chapter numbers and explicit `./agent` score Chapter 22 200/200 and Chapter 23
+100/100, both exit 0. The reviewer inspected their JSON receipts and verified
+the complete source manifest against disk. These are the revised compatibility
+graders; historical original scores are unchanged. Receipts are under
+`/tmp/ensemble-compaction-baseline/grader-{22,23}-stageb*`, with
+`stageb-agent-source.json` binding the source.
+
+Mutation metadata and failure excerpts were inspected in
+`/tmp/ensemble-structured-submissions-mutations/`. They cover the reported 21
+distinct defects over 24 executions, including repeated location checks and the
+factory recheck. Canonical schema/payload and combined-budget omissions each
+admit the prohibited value; restored foreign-agent shutdown fails with
+`agent stopped`; removing parent admission invokes the factory; double encoding
+fails the actual nested GUI result comparison. Raw-byte corruption is caught on
+decode. The earlier factory run lacked a valid baseline until its peer supplied
+usage, so the repaired baseline/recheck supplies that claim. Declaration aliasing
+also causes cleanup serialization errors, and several schema-semantic assertions
+overlap. These are sensitivity observations, not 24 independent proofs or proof
+of every upstream keyword. The tests use real runtime objects with small external
+HTTP peers, without mocks or a new test framework.
+
+The independent size count agrees with the coder. Across 13 changed/new production
+Go files, physical/active/comment-only lines move from 2212/1701/332 to
+2596/2007/388, a net 384/306/56. Three new test files contain 764 physical,
+712 active and 33 comment-only lines. Active counts exclude blanks and
+comment-only lines; moved submission code is counted on both sides, avoiding a
+false wholly-new-code claim. Module dependency files are separate. This compares
+the maintenance change against its own `a8eec84a` predecessor; there is no
+first-edition structured-submission implementation to claim as its counterpart.
+
+The growth implements the requested contract and storage boundary rather than a
+new scheduler, result browser or schema framework. Useful comments explain
+ownership, copies, refusal versus semantic validation and the write/completion
+ordering. Exported API additions document their contracts. Comment-only lines
+are about 16% of nonblank production lines in this changed-file set, below the
+rough 20% teaching target but with the important new reasoning present; padding
+would not improve the code. Tests are longer because they exercise actual
+provider adapters, factory ownership, persistence and GUI delivery, not because
+they reconstruct the implementation behind mocks. No scope or KISS issue remains.
+
+Stage C still requires its concrete design gate. Stage B's submitted state is
+not worker quiescence: retain reliable turn completion through the actor tail
+and save before cleanup, and remove owned root/GUI references when that lifetime
+ends. The earlier disk/event findings now have coordinator-run controlled
+saved-state boundary/restart reproductions on exact `a8eec84a`: uncommitted output
+is reinjected before population, and retired sources return before Archive.
+No-write/completed-Archive controls pass. These are not forced process kills;
+the probe and logs are in `/tmp/ensemble-compaction-window-probe/`, probe SHA256
+`ef869c4e0945e84c763c837dfd81f7a9f1ca85941b4aa4139d1418b5c5fae2af`.
+Acceptance of structured submissions does not claim those memory/lifecycle
+problems are fixed, authorize chapter moves now, or satisfy later live gates.
