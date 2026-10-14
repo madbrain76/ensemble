@@ -341,3 +341,71 @@ implementation, record schema semantics, structured persistence shape, finite wo
 attempt bounds, task acceptance/recovery protocol and accounting attribution.
 The model/factory/lifecycle gaps above are engineering work under the handoff;
 the final chapter move and historical snapshot policy remain Bill's stated gates.
+
+## Stage B/C independent review resumed
+
+2026-10-14, reviewer `compaction_runtime_audit`, checkpoint `7a362ec2`.
+The coordinator reports Bill approved the recommended mapping, staged accounting
+and reviewed replacement exports. Those Stage A decision gates are resolved;
+the original audit above retains its then-current questions. Accounting will
+preserve the existing owner's session-total promise by attributing measured
+auxiliary usage exactly once, while keeping latest main-request usage separate.
+Stage C must retain the actual worker/model/tier identity and avoid re-importing
+historical spending on restart.
+
+After compaction the reviewer reloaded the entire mandatory
+`.agents/skills/ensemble-coding/SKILL.md`, workflow, carryover, voice and chapter
+procedure, recovered truncated read ranges, and checked the clean worktree at
+the checkpoint. Current Chapters 22 and 23 were also read in full for the
+submission and fleet contracts. The original full Chapters 14/15 reading is
+recorded above. No implementation, test or acceptance result is claimed by this
+preparation. The Stage B coder is separate from this reviewer; its concrete
+schema/API/storage/ownership design is awaiting review before implementation.
+
+### Stage B design acceptance
+
+The independent reviewer accepts the design in
+[`codex-structured-submissions.md`](codex-structured-submissions.md), including
+the coder's subsequent `SubmissionData` refinement, for implementation. This is
+a design gate, not formal implementation acceptance; zero formal code-review
+rounds have occurred. The coordinator and coder were notified directly.
+
+The accepted shape preserves `Spawn`, `Submit(string)`, legacy `Result` fields
+and `{"result":"..."}` durable rows. Custom contracts cover the direct submit
+argument object, use an owned raw-JSON `Payload`, and store an explicit version-1
+schema/payload envelope. `SubmissionData` retains default/custom identity even
+when a custom payload happens to look like a legacy result. Legacy string retrieval
+reports a clear error for custom results. The existing string-valued `Ask` and
+`ask_agent` completion can render custom JSON as text; structured callers keep
+the raw payload. Durable fallback never marks a newly spawned task complete.
+
+The pinned genuine validator is `github.com/santhosh-tekuri/jsonschema/v6`
+`v6.0.3`, using an explicit bounded Draft 2020-12 subset. All references and
+unsupported keywords are rejected; a refusing loader provides a second boundary
+against resource fetching. Local dependency-source inspection confirmed the
+draft/loader/resource APIs, exact-number parser and standard Go regexp default.
+No online research or dependency mutation was performed by the reviewer.
+The proposed size/depth/node/numeric ceilings are explicit admission limits,
+not truncation or summarization targets. Their implementation and tests still
+need review; declaring a limit alone does not prove bounded evaluation.
+
+The Fleet owns the immutable compiled contract. Construction validates/copies
+before side effects, Spawn validates before a custom factory, and the returned
+child must retain the requested contract. Every submit entry point uses that
+contract before persistence and completion; copies also protect outgoing Spec,
+declaration, status and retrieval buffers. Ordinary grandchildren reset the
+parent's custom schema.
+
+Two narrow clarifications accompany acceptance: absent-schema submission retains
+the old acceptance of extra keys and normalizes to its result text/legacy row;
+custom submission retains the full object. The keyword admission walk visits
+schema-bearing positions only, not object keys inside enum, const, default or
+examples data. These clarifications prevent compatibility loss and accidental
+rejection of valid data without adding another validator or result subsystem.
+
+The coder's planned real-runtime/provider-fake checks cover corrected invalid
+submissions, pending joins, public API enforcement, defensive copying, hierarchy,
+ownership, durable retrieval/reload, adapter declarations and GUI replay. Review
+will assess the actual assertions and targeted mutation outcomes. No new tests
+have been run by this reviewer at this design boundary. Stage C's quiescence,
+restricted construction, background scheduling and accounting remain separate.

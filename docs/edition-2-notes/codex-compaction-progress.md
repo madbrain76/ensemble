@@ -78,10 +78,36 @@ by these fake-provider checks.
   `solutions/ch13/gui` fixture. Installing current GUI dependencies does not
   install that separate snapshot's dependencies. This setup failure is retained;
   no speech-runtime regression is established by it.
-- Deliberate long-response tests, new behavior tests, mutations and live work
-  have not run. The baseline is not acceptance of the proposed implementation.
+- The separately run response-lifetime/cancellation baseline now passes:
+  `go test -race ./ensemble -run 'TestModelResponseBeyondOneMinute|TestBlockedModelResponseCancellation' -count=1`
+  from `agent/`, exit0 in63.110 seconds. Both real61-second cases were exercised.
+  New compaction/schema tests and live work have not run. The baseline is not
+  acceptance of the proposed implementation.
 
-## Reviewed dependency result and pending decision
+## Accepted prerequisite: grader entry-point selection
+
+Coordinator changed `internal/grade/harness.go` to prefer `cmd/` only when Go's
+package metadata identifies `main`. A directory containing subcommands or a
+library no longer hides the root executable. A selected command's compilation
+error still fails; it does not fall back to a healthy root. No grading predicate
+or application behavior changed.
+
+Five real temporary-module tests cover root, nested command container, command
+preference, library fallback and broken preferred command. Before the fix, the
+container and library scenarios failed; all pass afterward. Independent review
+accepted with zero correction rounds. Its scratch mutations (always-root and
+restored directory-only selection) fail the intended checks, with the correct
+control passing; exact hashes and comparison are in the dependency audit.
+
+Actual advertised explicit-source commands now pass: Chapter22 200/200 and
+Chapter23 100/100, exits0 in2.489 and1.125 seconds. Raw reports use
+`grader-{22,23}-buildfix` under the existing temporary evidence directory.
+After installing locked dependencies with `npm ci --ignore-scripts --no-audit
+--no-fund` in the isolated frozen ch13 GUI fixture (only ignored node_modules),
+`go test ./internal/gradeedition2 ./internal/grade` passes in30.429 seconds.
+No frozen tracked source changed. Earlier failures remain recorded above.
+
+## Reviewed dependency result and approved mapping
 
 Both independent audit notes are complete:
 [chapter dependencies](codex-compaction-dependency-audit.md) and
@@ -104,10 +130,21 @@ preserve existing tags, source/manifests/results and Edition1. Historical gradin
 can use the immutable old checkout and its own grader without a new dual-mode
 framework. Chapter25 remains a placeholder.
 
-Bill's final mapping/export decision is pending. The handoff §4 and Stage A
-explicitly require confirmation before renumbering; §11 requires presenting a
-real forward dependency rather than silently improvising. Both audit delegates
-have completed and no implementation delegate is running.
+Bill approved this mapping, staged accounting and reviewed replacement of current
+exports on October14: "Yes, approved." This resolves the handoff's mapping and
+historical-export decision. Apply the move only after the behavior/review gates;
+the approval is not acceptance of unbuilt intermediate solutions.
+
+Stage B is assigned to `structured_submission_coder` (fresh GPT-6 Astra/high),
+with `compaction_runtime_audit` as independent design/code reviewer. The coder
+must present concrete schema/API/persistence design before implementation.
+Coordinator owns the narrow grader build-selection repair, independently reviewed
+by `compaction_dependency_audit`. Work remains in the isolated worktree.
+The Stage B design is now accepted by the coordinator and independent runtime
+reviewer: see [the coder's contract](codex-structured-submissions.md). Implementation
+is released. The design uses a pinned genuine validator with an explicitly
+admitted Draft2020-12 subset and no references; admission bounds reject rather
+than truncate input. This is design acceptance, not implementation acceptance.
 
 ## Runtime decisions to carry into the implementation plan
 
@@ -135,8 +172,8 @@ have completed and no implementation delegate is running.
 
 ## Next gates
 
-Obtain Bill's mapping/staged-accounting/export decision, then finish and review
-the narrow Stage B/C design details above before implementation. Keep old chapter
+With Bill's decision recorded, finish and review the narrow Stage B/C design
+details above before implementation. Keep old chapter
 numbers during implementation/testing. Commit the audit checkpoint separately
 from future implementation acceptance. No old accepted snapshot can become a
 new-order result by changing its directory name. No production files, chapter

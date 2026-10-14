@@ -99,10 +99,22 @@ func Build(path string) (bin string, cleanup func(), err error) {
 		return "", nil, err
 	}
 
-	// Determine the build target: prefer cmd/ if it exists, else root.
+	// A cmd directory may only hold named subcommands. Ask Go which package
+	// applies to this build instead of mistaking the directory for an entry point.
+	// -e retains a known main identity even with dependency errors; the build
+	// below must report those errors rather than falling back to a healthy root.
 	buildTarget := "."
 	if fi, err := os.Stat(filepath.Join(path, "cmd")); err == nil && fi.IsDir() {
-		buildTarget = "./cmd/"
+		inspect := exec.Command("go", "list", "-e", "-f", "{{.Name}}", "./cmd/")
+		inspect.Dir = path
+		name, err := inspect.Output()
+		if err != nil {
+			os.RemoveAll(tmp)
+			return "", nil, fmt.Errorf("inspect cmd package: %w", err)
+		}
+		if strings.TrimSpace(string(name)) == "main" {
+			buildTarget = "./cmd/"
+		}
 	}
 
 	bin = filepath.Join(tmp, "submission")

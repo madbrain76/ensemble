@@ -246,3 +246,111 @@ public-interface and frozen-source sections cited above. After one compaction,
 the full mandatory skill and all four governing/craft documents were reloaded
 before completing this review. This is not a claim to have reread every runtime
 file or every grader line, nor a formal implementation acceptance.
+
+## Follow-up: approved mapping and build-selection preparation
+
+October 14, resumed at coordinator baseline `7a362ec2`. The coordinator reports
+Bill approved the proposed mapping, staged accounting and validated cumulative
+export replacement. The decision paragraphs above remain the original audit;
+they no longer represent an outstanding permission gate. New exports still need
+their implementation, validation and independent review before acceptance.
+
+The narrow build repair is justified by the existing advertised selection
+contract, without changing any chapter obligation. `internal/grade/harness.go:86`
+says to find a main package first at `cmd/`, then root; `:104` actually selects
+any directory named `cmd`. Independent metadata inspection with
+`go list -e -json ./cmd/` from `agent/` returns no package name and the explicit
+error `no Go files in .../agent/cmd`. This is a command-container directory,
+not the CLI package.
+
+Recommended implementation: ask Go for the candidate's package metadata, select
+`./cmd/` when it identifies a main package, otherwise build the root. Keep the
+existing single selected build; a selected main package's compilation error
+must fail instead of triggering a build of a healthy root. Go's error-tolerant
+metadata mode can still identify `main` when dependencies are invalid. Avoid
+recursive command discovery or choosing among arbitrary child executables;
+Gateway already passes its explicit command directory.
+
+Focused real-module tests are warranted because this selector serves earlier
+graders as well as current22/23. Check root-only, a `cmd` container with a nested
+command, preferred `cmd` main beside a healthy root, a non-main `cmd` package,
+and a selected `cmd` main that fails compilation despite a healthy root. Execute
+successful binaries and compare distinct output so a successful build of the
+wrong target cannot pass. Preserve the direct-file input behavior. These tests
+need neither mocks nor model inference. No existing `internal/grade/*_test.go`
+files were found during preparation. This is a strategy review, not approval of
+an implementation that has not yet been submitted.
+
+For later reconstruction, use the existing export tool and short source-stage
+commits instead of a new generator. Start from14, then validate new15 accounting,
+16 authentication,17 historical crossover's bounded integration,18 web/status,
+19 sandbox,20 fleet/schema,21 management,22 background memory, and23 recall.
+At each stage verify that the new capability is present and later memory/recall
+services have not accidentally arrived in an earlier cumulative tree. Carry
+the resulting23 into optional24 and Gateway26, preserving their existing route
+and Gateway exercises and adding only affected integration checks. Do not make
+unrelated live repetitions or an imagined chapter25 acceptance part of this
+work. Detailed source selection waits until the behavioral stages and prose
+contracts are accepted; the sequence itself is now approved.
+
+## Independent build-selection review
+
+October 14, reviewer disposition: **accepted for the narrow build repair**, with
+zero correction rounds and no blocking findings. This does not accept later
+submission-schema, compaction or chapter work. Reviewed against `7a362ec2`:
+
+- `internal/grade/harness.go`, SHA-256
+  `43f93da9b67504fc9cb69a88572fdc3ebd382463a2d5e31c6703fd422c01fb7c`.
+- `internal/grade/harness_test.go`, SHA-256
+  `05877258c04632ae5ba4b14eecb1f3d1307b1f37b27c091b85d20851ddcb9335`.
+
+The implementation queries Go package metadata only when `cmd` is a directory,
+selects it only for `main`, and keeps exactly one subsequent build. Metadata
+failure returns an error and cleans the temporary directory; selected command
+compilation failure is never replaced with a successful root build. Direct-file
+input and root-only behavior are unchanged. Go, rather than a hand-written source
+scanner, determines the package under the effective build constraints. No
+recursive command search, new dependencies, chapter assertions or runtime changes
+were introduced.
+
+For the `Build` function, counted from its declaration to the following function
+comment, physical lines grow31→43 and active lines27→36; active means nonblank,
+non-`//` lines. The nine active lines implement the necessary metadata query,
+error cleanup and selection. The explanatory comment states why directory
+existence is insufficient and why a broken main must remain selected. The five
+real-module scenarios execute successful binaries and distinguish their output;
+the broken-main case requires the actual undefined-symbol compiler diagnostic.
+This is small, behavior-based coverage of the reported failure and retained
+selection semantics, without mocks or a test framework.
+
+Independent verification copied the exact submitted `Build` function and
+unchanged test file into an isolated temporary Go module, adding only its
+standard-library imports. It did not modify shared source or invoke a grader:
+
+| Isolated source | Result | Intended observation |
+| --- | --- | --- |
+| Submitted implementation | PASS,0.319s | All five scenarios |
+| Always select root | FAIL,0.328s | Preferred command executes root; broken preferred command wrongly succeeds |
+| Original directory-existence predicate | FAIL,0.186s | Command container has no Go files; library archive cannot execute |
+
+The failures occur at the intended runtime/assertion boundaries, not because the
+mutated harness cannot compile. Temporary probe modules were removed. These
+mutations establish the selector's tested distinctions, not exhaustive coverage
+of every possible Go toolchain failure.
+
+The reviewer also tried a temporary main importing an unavailable module, with
+network lookup disabled. Both `go list -f '{{.Name}}' ./cmd/` and its `-e` form
+returned `main` and exit0 in this environment. Thus a missing-import test would
+broaden compilation-error examples but would not establish sensitivity to `-e`
+here. The existing undefined-symbol failure already protects against hiding a
+selected command's compile failure; no additional blocker is raised.
+
+Reviewed the coordinator's complete raw reports and invocation metadata at
+`/tmp/ensemble-compaction-baseline/grader-22-buildfix{,-run}.json` and
+`grader-23-buildfix{,-run}.json`: advertised explicit-`./agent` commands exit0,
+Chapter22 scores200/200 in2.489s and Chapter23 scores100/100 in1.125s, all rows
+passed. Those are coordinator-executed checks, independently inspected here.
+The preceding command-selection failures remain historical baseline results.
+Broader package regression checks were still running when this disposition was
+written; their eventual outcome belongs in the coordinator's progress record.
+No model inference or live application operation was performed for this review.
