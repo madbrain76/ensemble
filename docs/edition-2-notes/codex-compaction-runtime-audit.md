@@ -1424,3 +1424,77 @@ there are no mocks or test-only production hooks. New comments explain ownership
 shutdown counting, safe commit, refusal persistence and recovery ordering; exported
 contracts remain documented. The comment balance is near the teaching target,
 without padding. No unresolved scope, architecture or KISS blocker remains.
+
+
+## Stage D plan review, October 14
+
+Independent reviewer accepts the bounded author and grader plans for execution,
+not the unwritten chapters or unimplemented grader. Runtime remains7feb910a,
+accepted at09e68149; Stage C closed at1d211806. This is plan assistance before
+Stage D submission, with no formal correction round consumed. The exact mandatory
+`.agents/skills/ensemble-coding/SKILL.md` and all four complete governing/craft
+documents were reloaded after compaction before this disposition; truncated reads
+were recovered. Complete affected current Chapters14/15/16/22/23 were read.
+
+Reviewed plan SHA-256 values:
+
+- `codex-compaction-author.md`: `07a7066526673fde3004f7c9ae065166923487d493a5dea0fa5fd14369ff7f82`.
+- `codex-compaction-grader-plan.md`: `ae5c0f15457c11aebad5b0555c1f2fc92ae959ca13a57edeebeedf9fa3404e82`.
+
+The author plan preserves the family-assistant memory incident, checkpoint gap,
+watermark deadlock, decorative-disk and GUI-settings failures, provenance argument
+and five historical live outcomes. It keeps recall's filing-cabinet explanation,
+quota/judge and capped-snippet lessons, and fleet's wiring, steering and truthful
+status stories. Changed explanations follow the accepted runtime: one owner-lived
+restricted child, exact selected source and policy, safe commitment, staged disk
+recovery, reliable completion/save before dismissal and once-only auxiliary usage.
+These replace the old synchronous compressor explicitly. Historical measurements
+and lost-reason/incorrect-recall results do not become background-worker evidence.
+Current14 remains the invariant reference; its pointer changes at Stage E.
+
+Coordinator review identified a stale role rule that the initial plans had not
+explicitly corrected: current22 requires a factory-enabled root to submit, while
+accepted `internal/fleet/fleet.go` Idle returns immediately when ParentAgent is nil.
+I independently checked that source and agree with the bounded correction. The
+coordinator's attributed author-plan amendment and coder's revised plan now
+distinguish main/named-peer chat completion from delegated submission and bounded
+ordinary correction. Examples and primary instructions must follow that distinction;
+historical root-submit transcripts retain their original provenance. Explicit root
+submit admission checks remain valid. Managed workers' finite Send budget does not
+replace ordinary delegates' three corrective wakes. Actual prose remains to review.
+
+The grader plan preserves all eleven memory IDs/weights, totaling100, verified
+against the original table and current wrapper's ch14-parity rename. It retains
+current22's seven GUI plus seven fleet rows/200, current23's seven rows/100 and
+current16's ten rows/100. New background, structured-result and accounting predicates
+are assigned to relevant existing rows without dropping their prior valid checks.
+Numerical credit must come from the submitted executable and its public results,
+wire bytes or persisted facts. Precise staged-window, constructor-refusal, defensive
+copy, model/tier, save-race and reference-release tests remain separately identified
+B/C implementation evidence; their passing results cannot award points to another
+submission. Missing public observations fail or report an unexercised predicate.
+This resolves the coordinator's concern about the initial replay-row attribution.
+
+Source inspection confirms the proposed harness repair is necessary and small:
+current15 classifies sole submit without its schema and waits inside the router
+lock, while fakevendor serializes Route under its capture mutex. Current23 already
+holds selected requests in an external reverse proxy. Reusing that boundary permits
+main progress and capture reads during a held worker without changing the shared
+fake. Main turn_ended and HTTP ordinals cannot acknowledge background commitment.
+The revised plan instead follows correlated owner outcomes, waits for the intended
+outcome before EOF, and separates worker submission, saved completion, corpus state
+and GUI removal. Exact-schema comparison and an ordinary submit(result) negative
+control prevent a circular classifier from certifying itself.
+
+Scope and KISS are appropriate: reuse existing drivers, external peers and public
+observations; no runtime hooks, alternate protocol, fake History/Memory or new
+verification framework. New checks still need targeted defect sensitivity, with
+actual failed predicates and coupled limitations retained. Explicit-source grader
+commands must exercise the changed contract; old frozen scores remain historical,
+and old synchronous source is only a negative control for the new lifetime rule.
+The whole-TL;DR/graded-section ownership split is clear, with meaningful shared
+example wording exchanged before edits. Grader coder must complete its full-four
+authorship reload before changing chapter text. No tests, graders, live calls,
+chapter edits, runtime edits, exports or publication were performed by this plan
+review. Stage D implementation and prose review, Stage E reconstruction/mapping
+and Stage F bounded live evidence remain required.
