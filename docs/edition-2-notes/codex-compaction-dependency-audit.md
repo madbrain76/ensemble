@@ -1178,3 +1178,42 @@ correction, not a new formal correction round or waiver of final coverage. No
 runtime, grader or live execution was performed for this assessment. The full
 mandatory skill and four governing/craft documents remain in active context
 from the preceding reload, with no intervening compaction.
+
+
+### New20 plan correction: successful completion validation and fixtures
+
+October 14, first core validation before submission review. The coder found
+that the dispatch-only selection from `450f7a9` was incomplete: successful
+submit appends a payload-free turn_ended, but this earlier history validator
+requires one payload. Independent inspection confirms the same accepted commit
+`450f7a9599295dafb260c1650b9b5553010e2a54` changes
+`solutions/edition-2/main/internal/history/history.go` validate to admit exactly
+`e.Type == "turn_ended" && count == 0`, with the accompanying explanation.
+The earlier reducer already maps turn_ended to idle; no vocabulary or state
+architecture is being added. **Accept that guard/comment as a prerequisite**
+of the reviewed dispatch event. Retain all other payload-count and matching-tag
+refusals, and do not import later memory/recall union members. The existing
+completed/reloaded-state and held-running controls remain the relevant tests.
+
+Raw `/tmp/ensemble-reordered-checks/fleet-core.txt` retains the actual initial
+“event requires one payload” failures in lifecycle and submission tests. This
+is a source-plan omission missed by both the independent and coordinator plan
+reviews, discovered through implementation validation; it must not be reported
+as a passing first run. No formal implementation correction round has begun.
+
+Two adjacent fixture corrections are also within scope. The capability assertion
+requires claude-ch16-course to be a known model, but that synthetic row first
+enters `ccd63509c3b2e08ff5a231b0409423b236953022` with memory ContextWindow
+forcing. Defer that assertion to new22 alongside its row; preserve all current
+six OpenAI opt-ins and unknown/default-disabled controls. The newly written
+spawned-sandbox test instead looked for Tool.Name on tool_returned. Current
+`agent/internal/agent/dispatch.go` puts Name on tool_called (line55), while
+the returned record (line106) carries CallID, parts and IsError. Repair the
+test's actual outside-read call/result correlation; neither add a runtime field
+to accommodate the assertion nor let an unrelated error satisfy confinement.
+The raw initial known=false and outside-read assertion failures stay recorded.
+
+No runtime or test execution was performed by this reviewer. Source inspection
+and existing raw output establish the assessment; post-correction test results
+remain the coder's pending evidence. Mandatory skill and all four full governing/
+craft documents remain in active context without intervening compaction.
