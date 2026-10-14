@@ -207,6 +207,8 @@ type ToolData struct {
 // Only a summary needs a stored replacement: a deterministic filter or stub
 // can be reconstructed from the content it supersedes.
 type RedactData struct {
+	// TaskID binds a managed cut to its exact replacement, not the ordinary turn.
+	TaskID string `json:"task_id,omitempty"`
 	// From is the inclusive first original event sequence to rewrite in projection.
 	From uint64 `json:"from"`
 	// To is the inclusive last original event sequence to rewrite in projection.
@@ -262,6 +264,8 @@ type Event struct {
 	Depopulated *BandDepopulatedData `json:"depopulated,omitempty"`
 	// Compactor records a launch without making replay repeat external work.
 	Compactor *CompactorLaunchedData `json:"compactor,omitempty"`
+	// CompactionOutcome records managed completion independently of main turn state.
+	CompactionOutcome *CompactionOutcomeData `json:"compaction_outcome,omitempty"`
 }
 
 // Seq connects projected content back to its original event. It survives
@@ -291,6 +295,8 @@ type Context struct {
 	DisabledBands [6]bool `json:"disabled_bands"`
 	// Compression retains an unfinished attempt without replaying external work.
 	Compression *PendingCompression `json:"compression,omitempty"`
+	// CompactionOutcome is the latest bounded receipt for staged-file cleanup.
+	CompactionOutcome *CompactionOutcomeData `json:"compaction_outcome,omitempty"`
 	// Held waits for all current calls to have results before landing survivors.
 	Held []Entry `json:"held,omitempty"`
 	// StartupTools preserves the first request's declarations for inline-tool models.

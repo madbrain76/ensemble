@@ -81,6 +81,11 @@ func apply(c *common.Context, e common.Event) {
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindTools, Actor: common.System, Parts: []common.Part{{Type: "tool_decls", Added: e.Tools.Added, Removed: e.Tools.Removed}}})
 	case "compactor_launched":
 		c.Compression = &common.PendingCompression{Launch: *e.Compactor}
+	case "compaction_outcome":
+		c.CompactionOutcome = e.CompactionOutcome
+		if c.Compression != nil && c.Compression.Launch.TaskID == e.CompactionOutcome.TaskID {
+			c.Compression = nil
+		}
 	case "band_depopulated":
 		if e.Depopulated.Reason == "graduation" && c.Compression != nil {
 			c.Compression.Retire = e.Depopulated
@@ -89,14 +94,20 @@ func apply(c *common.Context, e common.Event) {
 		}
 	case "band_populated":
 		p := e.Populated
-		if pending := c.Compression; pending != nil && pending.Launch.Band == p.Band && pending.Launch.Thru == p.Thru {
+		if pending := c.Compression; pending != nil && pending.Launch.Band == p.Band && pending.Launch.Thru == p.Thru && pending.Launch.TaskID == p.TaskID {
 			if pending.Cut != nil {
 				redact(c, pending.Cut)
 			}
 			if pending.Retire != nil {
 				depopulate(c, pending.Retire)
 			}
-			c.Compression = nil
+			if p.TaskID == "" {
+				c.Compression = nil
+			} else {
+				// Keep the applied receipt until disk finalization is recorded. A
+				// restart must finish that work before scanning the active corpus.
+				pending.Committed = p
+			}
 		}
 		populate(c, p)
 	case "redacted":

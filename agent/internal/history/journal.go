@@ -124,6 +124,9 @@ func (h *history) Checkpoint(path string) error {
 	if err = h.parent.Sandbox().WriteFile(path+".journal", nil, 0600); err != nil {
 		return err
 	}
+	// A fresh embedding client may Save before ever calling Load. Subsequent
+	// launch/commit facts must still reach the journal established by this save.
+	h.journal = path + ".journal"
 	retention := h.parent.Config().LogRetention
 	if retention > 0 && len(h.events) > retention {
 		h.events = h.events[len(h.events)-retention:]

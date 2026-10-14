@@ -461,3 +461,38 @@ scoped checkpoint after a comment correction clarifying that Sources holds
 fingerprints, not recoverable file bytes; no behavior correction or formal Stage C
 round. No staged replacement, restart-window repair or actor generation/lifetime
 claim is made. The runtime audit retains exact source binding and size comparison.
+
+## C5 implementation evidence: correlated projection and journal receipt
+
+After C4 checkpoint `ffa0bb68`, History accepts task-correlated launch, cut/retirement,
+replacement and terminal outcome facts. A matching population applies the pair and
+retains its committed receipt until a matching committed outcome; abandonment
+cannot clear that committed state. An unrelated disk population cannot satisfy a
+managed cut. New launches cannot replace an outstanding managed receipt, including
+legacy launches. The latest terminal outcome survives snapshots for subsequent
+staging-file cleanup; repeated identical-state completion is harmless and does not
+change the main turn. Legacy uncorrelated event behavior remains compatible.
+Successful Checkpoint now establishes its journal path under the same lock, so a
+fresh embedding client calling Save before Load journals subsequent launch/commit
+facts. This is a projection/journal slice, not completed disk recovery.
+
+Real public History/Agent tests cover deferred source removal, exact task/file/range/
+band correlation, before-cut population refusal, premature success, duplicate
+launch/replacement, committed-versus-abandoned state, terminal cleanup identity,
+unchanged main-turn state, and actual snapshot+journal recovery without model work.
+Graduation retains the exact unselected third file. Initial new tests passed0.013s;
+affected memory/context/save compatibility plus new receipt race passed3.062s;
+history/ensemble vet passed. Outputs use
+`/tmp/ensemble-compaction-stagec-receipt-{initial,race,vet}.txt`.
+
+Eleven focused restored defects fail intended checks: ignored task/file/range/band
+identity, wrong terminal commit state, discarded committed receipt, disk population
+satisfying a managed pair, early cut, uncleared pending receipt after terminal
+outcome, legacy launch overwriting a managed receipt, and missing journal activation
+on fresh Save. Logs: `/tmp/ensemble-compaction-stagec-receipt-mutant-<case>.txt`.
+Scratch copies removed. Final focused receipt race passed1.042s. Independent
+reconstruction from accepted C4 plus the seven C5 paths passed receipt/C4/waterfall
+race1.173s; the reviewer accepted C5 for scoped checkpoint with no findings and
+zero formal Stage C rounds. Its audit retains exact source binding. The two original unsafe
+Write/event/Archive restart probes remain failures until Memory staging/finalization
+and runtime recovery gates are implemented; these receipt tests do not relabel them.

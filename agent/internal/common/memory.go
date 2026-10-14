@@ -54,6 +54,8 @@ type MemorySettings struct {
 
 // BandPopulatedData carries the actual nondeterministic bytes for pure replay.
 type BandPopulatedData struct {
+	// TaskID correlates managed replacement; empty preserves legacy disk/replay facts.
+	TaskID string `json:"task_id,omitempty"`
 	// Band selects the entry lifetime and canonical position.
 	Band Band `json:"band"`
 	// File identifies this memory's first source file or creation identity.
@@ -68,6 +70,8 @@ type BandPopulatedData struct {
 
 // BandDepopulatedData names removals without resolving anything from disk.
 type BandDepopulatedData struct {
+	// TaskID holds managed retirement until this exact replacement commits.
+	TaskID string `json:"task_id,omitempty"`
 	// Band selects the source band to retire.
 	Band Band `json:"band"`
 	// Thru retires only the oldest range; nil retires the entire band.
@@ -78,6 +82,20 @@ type BandDepopulatedData struct {
 
 // CompactorLaunchedData is observational: replay never launches external work.
 type CompactorLaunchedData struct {
+	// TaskID identifies one managed attempt; empty retains legacy replay behavior.
+	TaskID string `json:"task_id,omitempty"`
+	// SelectionHash binds the durable candidate to the captured source fingerprints.
+	SelectionHash string `json:"selection_hash,omitempty"`
+	// Source is zero for conversation, otherwise the graduating band.
+	Source Band `json:"source,omitempty"`
+	// File names the first selected corpus identity or new session identity.
+	File MemoryFileID `json:"file,omitzero"`
+	// From and To identify a managed conversation cut's inclusive boundaries.
+	From uint64 `json:"from,omitempty"`
+	// To is the last selected completed checkpoint boundary.
+	To uint64 `json:"to,omitempty"`
+	// TracePath is the owner-relative child trace directory, retained after dismissal.
+	TracePath string `json:"trace_path,omitempty"`
 	// Band is the destination, matching the successful population event.
 	Band Band `json:"band"`
 	// Thru correlates this attempt with its eventual populated memory.
@@ -93,6 +111,8 @@ type PendingCompression struct {
 	Cut *RedactData `json:"cut,omitempty"`
 	// Retire is a proposed source-band retirement, applied with its replacement.
 	Retire *BandDepopulatedData `json:"retire,omitempty"`
+	// Committed retains the applied pair until disk promotion and archive finish.
+	Committed *BandPopulatedData `json:"committed,omitempty"`
 }
 
 // MemoryFingerprint identifies exact owner-relative bytes or their absence.
@@ -167,4 +187,17 @@ type Memory interface {
 	Write(*Compression, string) error
 	// Archive preserves retired files outside the active scan pattern.
 	Archive(*Compression) error
+}
+
+// CompactionOutcomeData records a terminal managed attempt without changing the
+// main turn or its response usage. Only the latest outcome remains in Context.
+type CompactionOutcomeData struct {
+	// TaskID identifies the attempt whose source/result and trace remain auditable.
+	TaskID string `json:"task_id"`
+	// State is committed, failed, canceled, invalidated, or abandoned.
+	State string `json:"state"`
+	// Reason explains refusal or cleanup failure without provider credentials.
+	Reason string `json:"reason,omitempty"`
+	// TracePath preserves the dismissed child's owner-relative trace location.
+	TracePath string `json:"trace_path,omitempty"`
 }
