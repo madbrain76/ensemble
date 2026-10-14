@@ -573,6 +573,11 @@ type History interface {
 type Engine interface {
 	// Meter returns a disposable session-count and derived-price snapshot.
 	Meter() UsageMeter
+	// UsageBuckets returns owned copies of session counts by model and price tier.
+	UsageBuckets() []UsageBucket
+	// AddAuxiliaryUsage imports drained worker counts without changing latest-main
+	// usage. The owning attempt must call once; Engine retains no task-ID ledger.
+	AddAuxiliaryUsage([]UsageBucket)
 	// AttachCacheLens installs the Engine-owned diagnostic before any exchanges.
 	AttachCacheLens(CacheLens)
 	// CacheLens returns the optional request diagnostic.

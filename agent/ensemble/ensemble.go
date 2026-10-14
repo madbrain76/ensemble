@@ -42,6 +42,9 @@ type Usage = common.Usage
 // UsageMeter exposes a disposable process-session meter to optional clients.
 type UsageMeter = common.UsageMeter
 
+// UsageBucket exposes copied measured counts with their original model/price tier.
+type UsageBucket = common.UsageBucket
+
 // ToolDeclaration is the vendor-neutral schema visible to one Agent.
 type ToolDeclaration = common.ToolDeclaration
 

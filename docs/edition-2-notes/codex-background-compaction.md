@@ -565,3 +565,46 @@ curated checks: skipping an existing destination update leaves old bytes; ignori
 its prior fingerprint overwrites the human edit (`staging-mutant-curated-{replacement,conflict}.txt`).
 These bring the C6 total to21 intended mutant failures, with the setup assertion
 above kept separate. No production correction was required for these added cases.
+
+## C7 implementation evidence: auxiliary accounting seam
+
+After accepted C6 `59c71d90`, Engine exposes value-copied UsageBuckets and
+AddAuxiliaryUsage. The buckets retain vendor, configured model and the original
+request's large-price tier; aggregation cannot reconstruct that tier afterward.
+Both ordinary accounting and imports use the same locked totals helper. Imports
+leave Engine's latest-main measurement and History unchanged, with no task-ID
+ledger. The actor's forthcoming active-attempt bit remains responsible for calling
+once after drain; this seam deliberately does not claim duplicate-delivery safety.
+
+A real main actor and restricted child use an HTTP peer. The child corrects one
+schema-invalid response, crossing the existing small/large price threshold; both
+responses include cache-write/read counts. Cases cover successful completion,
+measured length failure and an unpriced supported model. After actual child
+Shutdown/Save, a manual import preserves exact original buckets, totals and cost,
+leaves latest-main/History occupancy untouched, and does not reimport spend after
+parent Save/Load. Receipt mutation cannot affect either Engine. The returned type
+contains only value fields; that copy property also follows directly from its
+representation, without adding artificial pointer state for a mutation test.
+
+Initial test execution failed one overly strict whole-meter equality assertion:
+map iteration changes floating-point addition order. The corrected assertion
+compares exact counts/identity and uses a small tolerance only for derived money.
+The original failure is retained in
+`/tmp/ensemble-compaction-stagec-accounting-initial.txt`. Affected provider/cache/
+status accounting race passed2.057s and targeted vet passed. After strengthening
+exact imported-bucket assertions, final focused race passed1.086s. Seven targeted
+mutations fail intended assertions: omit import, lose original tier, substitute
+parent model or vendor, overwrite latest-main usage, omit copied input/cache counts,
+and add each imported bucket twice. Logs use the accounting prefix with `race`,
+`vet`, `final` and `mutant-<case>` suffixes; scratch copies removed. Duplicate
+addition inside this single operation is distinct from future duplicate mailbox
+handling. Existing reload/session and provider usage semantics retain inherited
+coverage; no new live pricing or semantic memory claim is made.
+
+Independent C7 review accepted the scoped slice with no production finding and
+zero formal Stage C rounds. A slice-wide copy assertion replaces the earlier
+map-order-dependent first-element check; its focused race passed1.084s. The
+independent exact-predecessor-plus-five-path accounting/C3 race passed1.989s;
+the runtime audit retains the source binding. Managed launch, drained completion/dismissal,
+owner-lifetime scheduling, generation/headroom and once-only actor import remain
+required before full Stage C acceptance.
