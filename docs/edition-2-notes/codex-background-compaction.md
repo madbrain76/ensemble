@@ -740,3 +740,77 @@ final comment-only binding is
 `55761342a65f2095753e758867d49564b87dfefa4dde408718f78545135b9df8`.
 Final coder assertion-only race passed1.052s. No remaining C8 blocker; zero formal
 Stage C correction rounds. Full GUI/actor/accounting integration remains pending.
+
+## C9 implementation boundary: GUI managed-worker dismissal
+
+Reuse the existing selection/settings/replay path for explicit selection and
+automatic fallback. The synchronous root observer deletes a removed managed view
+and schedules the existing tree refresh worker; it must never traverse parent
+Fleet or load settings there. Current root membership rejects late observations
+before view construction. The refresh worker resolves selected removed workers to
+their actual surviving owner, loads that owner's ordinary settings outside the
+observer lock, and queues its full replay in one batch. Compare the expected old
+selection so a concurrent user selection wins; recheck membership after settings
+loading so an in-progress selection cannot recreate a removed worker. No tombstone
+map, extra worker service or result browser. Selected connection references survive
+only until this existing refresh work or connection teardown releases them.
+The real socket test first fails on C8 for both direct and nested owner fallback,
+with two explicit five-second read deadlines (10.105s total), retained in
+`/tmp/ensemble-compaction-stagec-gui-removal-before.txt`.
+
+C9 uses two GUI production paths: the observer handles removal before creating a
+view, and the existing tree worker performs deferred selection through the same
+helper as ordinary socket selection. The helper preserves indivisible replay,
+normal owner preferences, slow-client disconnect behavior and a user's newer
+selection. It checks managed membership both before view creation and after the
+settings read. No core source or new public GUI protocol changes in this slice.
+Physical production delta is100 added/40 removed lines (net60); most moved selection
+code is now shared rather than duplicated. Tests use the actual runtime, HTTP peer,
+WebSocket server/client and settings FIFO, with internal map inspection only to
+verify retained references. The provider routes a sole submit declaration with a memory property; exact
+whole-schema equality remains inherited C2 evidence. It does not hold a global
+route mutex while waiting.
+
+Both root and nested-owner cases repeat three fresh workers, select the live worker,
+then verify owner selection, tree removal with owner positive control, actual owner
+tool-result replay, saved font preference, released view/selection references and
+rejection of a retained actual late observation. The initial late-observation fixture
+captured AgentRemoved itself; inspection corrected it to retain an actual ordinary
+observation instead, and its targeted mutant now recreates the view and fails.
+A second test holds settings loading at a real FIFO while the worker completes:
+completion remains unblocked, and delayed selection falls back instead of publishing
+a removed worker or the now-inapplicable managed-settings error. This is a concrete
+selection race, not a probabilistic repeated timing loop.
+
+Initial new tests race passed1.128s; strengthened tests passed1.145s. Full GUI Go
+suite passed8.292s and GUI vet passed. Final focused new/selection/structured-replay
+race passed4.403s after explicit tree and owner-history assertions. Existing socket
+selection and slow-receiver tests run through the shared helper. Raw evidence uses
+`/tmp/ensemble-compaction-stagec-gui-removal-{before,first,races,all,vet,final}.txt`.
+Focused mutations remove view deletion, late membership refusal, actual-owner
+fallback, owner settings load, forced fallback replay, and the settings-error
+membership retry; all six fail intended assertions. Two further fallback-only replay/tree mutants also fail intended checks. The first
+broader replay mutation stopped initial settings delivery; it was narrowed so the
+recorded final mutant reaches fallback and fails the owner-history read. The expected-old-selection guard and the second
+membership check after a successful settings read are source-reviewed race guards;
+the FIFO establishes the actual settings-error/removal interleaving, not every
+possible scheduler interleaving. Full parent actor integration remains separate.
+
+
+Independent C9 source review identified a narrower view-admission race: selection
+could pass the first membership check, wait for the GUI mutex while removal deletes
+the view, then recreate it. A failed settings read retried without deleting that
+recreated entry. View admission now rechecks membership while holding the same GUI
+mutex used for deletion. If root removal occurs later, its observation necessarily
+deletes the admitted view after the lock releases. The FIFO test covers removal
+during settings loading; this additional lock window was source-identified rather
+than reproduced by that fixture. No test-only runtime hook was added.
+
+Independent C9 scoped acceptance: exact `59d6fcfb` plus the two GUI production paths
+and new test passes new/selection/structured-replay race4.409s, raw
+`/tmp/ensemble-compaction-c9-review-final.txt`, binding
+`10881fb96e70b994dafa367aeae9f6f36eca3827404fdf3d01ada7fd73c177bd`.
+Reviewer accepts the locked-admission correction and inspected all8 final intended
+mutation failures, with the broader replay limitation preserved. Final coder
+admission-fix race passed4.401s. No C9 blocker; zero formal Stage C correction rounds.
+This is GUI dismissal acceptance, not parent actor or full Stage C acceptance.

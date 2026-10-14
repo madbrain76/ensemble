@@ -100,11 +100,20 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 	if s.closed {
 		return
 	}
-	v := s.view(a)
 	select {
 	case s.treeWake <- struct{}{}:
 	default:
 	}
+	if _, removed := observation.(ensemble.AgentRemoved); removed {
+		// Constructor refusal can hold the owner's Fleet lock. Defer traversal,
+		// settings and selected-tab replay to the existing tree refresh worker.
+		delete(s.views, a)
+		return
+	}
+	if a.Spec().Compaction && !s.root.ContainsAgent(a) {
+		return // A queued observation must not recreate a removed worker's view.
+	}
+	v := s.view(a)
 	switch o := observation.(type) {
 	case ensemble.ActivityChanged:
 		s.broadcast(map[string]any{"type": "agent_activity", "key": ensemble.AgentKey(a), "activity": o.Activity})
@@ -325,46 +334,10 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 			}
-			tree := s.root.TreeSnapshot(s.agent)
-			s.settingsMu.Lock()
-			s.mu.Lock()
-			v := s.view(selected)
-			s.mu.Unlock()
-			if !v.loaded {
-				if err := v.loadSettings(); err != nil {
-					s.settingsMu.Unlock()
-					s.sendError(queue, err)
-					continue
-				}
-				v.loaded = true
+			if err := s.selectConversation(conn, queue, selected, input.Type == "select_agent", nil); err != nil {
+				s.sendError(queue, err)
+				continue
 			}
-			s.mu.Lock()
-			if s.closed {
-				s.mu.Unlock()
-				s.settingsMu.Unlock()
-				return
-			}
-			v.capture()
-			if _, exists := s.clients[conn]; !exists || input.Type == "select_agent" {
-				// One queued batch preserves the entire replay, even when it exceeds the
-				// live progress buffer. Socket writes remain outside the observer lock.
-				batch := [][]byte{wire(map[string]any{"type": "agent_selected", "key": ensemble.AgentKey(selected)}), wire(map[string]any{"type": "agent_tree", "root": tree})}
-				batch = append(batch, v.replay()...)
-				// Replay is indivisible. If this receiver cannot accept it,
-				// disconnect so it can replay afresh; never block all observers
-				// behind a dead writer while holding the server mutex.
-				select {
-				case queue <- batch:
-				default:
-					s.mu.Unlock()
-					s.settingsMu.Unlock()
-					return
-				}
-				s.clients[conn] = queue
-				s.selected[conn] = v
-			}
-			s.mu.Unlock()
-			s.settingsMu.Unlock()
 			if !mcpStarted {
 				mcpStarted = true
 				go func() {

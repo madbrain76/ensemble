@@ -3,6 +3,7 @@ package gui
 import (
 	"encoding/json"
 	"ensemble/ensemble"
+	"fmt"
 	"github.com/gorilla/websocket"
 )
 
@@ -66,6 +67,25 @@ func (s *Server) treeUpdates() {
 	for {
 		select {
 		case <-s.treeWake:
+			// Selection can wait on settings/actor acknowledgment. Keep it away
+			// from synchronous observations and retain no dismissed-ID registry.
+			s.mu.Lock()
+			stale := make(map[*websocket.Conn]*agentView)
+			for conn, v := range s.selected {
+				if v.agent.Spec().Compaction && !s.root.ContainsAgent(v.agent) {
+					stale[conn] = v
+				}
+			}
+			s.mu.Unlock()
+			for conn, v := range stale {
+				s.mu.Lock()
+				queue := s.clients[conn]
+				s.mu.Unlock()
+				if err := s.selectConversation(conn, queue, v.agent.ParentAgent(), true, v); err != nil {
+					s.sendError(queue, err)
+					conn.Close()
+				}
+			}
 			tree := s.root.TreeSnapshot(s.agent)
 			s.mu.Lock()
 			if !s.closed {
@@ -75,5 +95,72 @@ func (s *Server) treeUpdates() {
 		case <-s.treeDone:
 			return
 		}
+	}
+}
+
+// Explicit selection and removal fallback share one ordered settings/replay path.
+// expected is only for deferred fallback: a user's newer selection wins over it.
+func (s *Server) selectConversation(conn *websocket.Conn, queue chan [][]byte, selected ensemble.Agent, force bool, expected *agentView) error {
+	s.settingsMu.Lock()
+	defer s.settingsMu.Unlock()
+	for {
+		for selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+			selected = selected.ParentAgent()
+		}
+		s.mu.Lock()
+		if s.closed || !s.connections[conn] {
+			s.mu.Unlock()
+			return fmt.Errorf("connection closed")
+		}
+		if expected != nil && s.selected[conn] != expected {
+			s.mu.Unlock()
+			return nil
+		}
+		// Removal uses this same view lock. Recheck after acquiring it so a
+		// selection delayed at the lock cannot recreate an already-deleted view.
+		if selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+			s.mu.Unlock()
+			continue
+		}
+		v := s.view(selected)
+		s.mu.Unlock()
+		if !v.loaded {
+			if err := v.loadSettings(); err != nil {
+				if selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+					continue
+				}
+				return err
+			}
+			v.loaded = true
+		}
+		tree := s.root.TreeSnapshot(s.agent)
+		s.mu.Lock()
+		if selected.Spec().Compaction && !s.root.ContainsAgent(selected) {
+			delete(s.views, selected)
+			s.mu.Unlock()
+			continue
+		}
+		if s.closed || !s.connections[conn] {
+			s.mu.Unlock()
+			return fmt.Errorf("connection closed")
+		}
+		v.capture()
+		if _, exists := s.clients[conn]; !exists || force {
+			batch := [][]byte{wire(map[string]any{"type": "agent_selected", "key": ensemble.AgentKey(selected)}), wire(map[string]any{"type": "agent_tree", "root": tree})}
+			batch = append(batch, v.replay()...)
+			// Replay is indivisible. A stalled receiver disconnects rather than
+			// blocking all actor observers or silently losing half its history.
+			select {
+			case queue <- batch:
+			default:
+				s.mu.Unlock()
+				conn.Close()
+				return fmt.Errorf("replay receiver is full")
+			}
+			s.clients[conn] = queue
+			s.selected[conn] = v
+		}
+		s.mu.Unlock()
+		return nil
 	}
 }
