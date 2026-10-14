@@ -975,3 +975,84 @@ and rooted-filesystem limitations remain explicit. Historical0/100 and the
 48.394s/9.847s live sessions retain their own source identities. No export, tag,
 renumbering, manuscript edit, whole-tree merge or publication follows from this
 plan disposition.
+
+
+## Sandbox reconstruction implementation review
+
+October 14. **Accepted at initial independent review, zero correction rounds:**
+`922caeb4be404c335d209348a9d36aca4f88645e`, Agent tree
+`06c7edc9489eff9cf1bf071a8b6cccba303fcc8b`, extending accepted web/status
+`9af38643` / `6cb2eb95e7a7ad5d5fe9afc8ca2d4f5a7ad3e99d`. Clean isolated
+worktree verified. Read the complete submission and reread the entire mandatory
+`.agents/skills/ensemble-coding/SKILL.md`; all four full governing/craft documents
+remain in active context from the last full reload, without intervening
+compaction. This remains approved maintenance with historical-source exposure.
+
+Exactly the20 planned Agent paths change. Compared every selected path against
+accepted historical20→21: all added/removed source lines match, except gofmt
+alignment of the new private Agent fields in the smaller reconstructed struct.
+The five new files, including all408 sandbox-test lines, are byte-identical to
+accepted21. Shared files retain their earlier staged source and receive only the
+sandbox delta. No grader or executable-dispatch change accompanies this stage.
+The only non-Agent path in the implementation checkpoint is its consolidated
+reconstruction note. The source adaptation conflicts are resolved without
+importing memory, recall or their forced-handoff branch.
+
+Required-parent ownership, construction before consumers and rooted operations
+remain intact: Agent holds the specification and Sandbox, Sandbox retains that
+Agent, and tools/state/media/jobs reach its actual owner. The public root handles
+policy validation and configured-key log sanitization; the existing transport
+continues handling resolved/renewed credentials before trace or context. The
+selected SetAPILog lock matches writers. The current single-Send accounting and
+request-lifetime code is unchanged. Public Child/Clamp behavior stays outside
+common; no child runtime is introduced. Safe-mode registration/declaration/
+dispatch refusal, named web-skill withholding and physical confinement preserve
+their distinct meanings. No new architecture, scope or KISS finding remains.
+
+Independent tracked-blob counting reproduces historical growth620 physical /
+515 active /73 comment-only production Go lines versus reconstructed587/486/69.
+Both add408/376/20 test lines. Active excludes blanks and `//`-only lines;
+examples, tests and languages are separate. The33/29/4 difference is precisely
+deferred recall integration; omitted memory hooks have zero net line growth.
+Examples and JavaScript/HTML are unchanged. Final reconstructed production is
+11,710/9,330/1,754; tests7,487/6,838/441; separate examples711/625/64. The roughly
+12.4% comment share of added nonblank production remains below the teaching
+target but preserves useful explanation of ownership, rooted access, missing
+ancestors, caller-path diagnostics, descendant profile allowances and narrowing.
+New exported contracts are documented. This is smaller current scope, not a
+claimed redesign improvement inferred from counts.
+
+Raw local evidence under `/tmp/ensemble-reordered-checks/sandbox-*` confirms
+core tests (integration14.007s), GUI tests1.044s, focused sandbox/HTTP/web/status/
+OAuth race3.460s, separate ch05/ch06 tests0.008s/0.246s and restored command
+race1.250s. Vet/build reports retain empty successful outputs. The actual
+unchanged current21 grader reports100/100 across all seven rows. Its real
+CLI/public-consumer and OS checks remain separate from the source tests'
+additional web/state/media coverage. The misspelled timeout flag failed before
+tests; the corrected result is distinct and no confinement result is inferred
+from that setup failure. An initial reviewer read used the wrong cwd-mutant
+filename; the correctly named artifact was subsequently read in full.
+
+Both fresh scratch defects fail their intended behavioral observations. The
+nested-cache defect passes useful-command controls then returns the planted
+OUTSIDE_COMMAND_MARKER with exit0, causing the kernel-escape assertion. The
+cwd-prefix defect produces two explicit canonical-root disclosure assertions;
+the test continues through its remaining controls. These are actual defects
+observed through real Agent/jobs/process behavior, not compilation failures or
+timeouts. Restored source passes its race control. Unchanged historical
+mutations retain the earlier OpenFile survivor and wrong-boundary media attempt
+as limitations, with direct-open and absolute-in-root media controls now present.
+No internal mock or new test framework is added. Given exact source reuse and
+these fresh checks, no duplicate independent execution was needed; the other
+coder's exclusive grader slot was undisturbed.
+
+The implementation adds no fresh live-model claim. Original0/100 and the
+48.394s/9.847s historical sessions keep their original source identities.
+macOS scope and system/device/cache allowances remain explicit; these tests
+provide no general mount, hardlink or hostile-native-code certification. New22/23
+memory/recall filesystem hooks and all recorded auxiliary-accounting, forcing,
+lens, judge-credential/Responses and later explanation/submission obligations
+remain deferred. Actual fleet construction must later enforce the derived policy.
+No unresolved implementation or evidence finding blocks this stage. The
+coordinator may release the next bounded source plan; this acceptance authorizes
+no whole-tree runtime replacement, export, renumbering, manuscript or publication.
