@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,18 +29,49 @@ type memoryOpts struct {
 	replies    []fakevendor.Reply
 	settings   map[string]any
 	route      func([]byte) *fakevendor.Reply
-	// pending is signaled by an actual HTTP graduation; unblock releases its reply
-	// after the child has been killed, including all failed-run cleanup paths.
-	pending <-chan struct{}
+	// pending is signaled after the provider has handled an actual graduation.
+	// Its response is held outside the capture lock until release or cancellation.
+	pending chan struct{}
+	release <-chan struct{}
 	unblock func()
 }
 
-// The settings snapshot and turn-ended event are causal barriers. Counting
-// received HTTP requests or sleeping after the last one cannot establish that
-// compression, journaling and the final response have completed.
+// Turn-ended acknowledges the main turn only. Correlated durable outcomes below
+// establish worker completion before verification turns or EOF shuts its owner.
 func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) {
 	srv := fakevendor.NewWithOptions(o.replies, fakevendor.Options{Route: o.route})
 	defer srv.Close()
+	upstream, _ := url.Parse(srv.URL())
+	forward := httputil.NewSingleHostReverseProxy(upstream)
+	var held sync.Once
+	boundary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		raw, err := io.ReadAll(req.Body)
+		req.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		req.Body = io.NopCloser(bytes.NewReader(raw))
+		proxy := *forward
+		if o.pending != nil && memoryCompressor(raw) && strings.Count(memoryConversation(raw), "MEMO-") >= 2 {
+			// The fake has recorded and answered before this hook runs. Holding its
+			// HTTP response here leaves other requests and capture inspection free.
+			proxy.ModifyResponse = func(*http.Response) error {
+				wait := false
+				held.Do(func() { close(o.pending); wait = true })
+				if wait {
+					select {
+					case <-o.release:
+					case <-req.Context().Done():
+						return req.Context().Err()
+					}
+				}
+				return nil
+			}
+		}
+		proxy.ServeHTTP(w, req)
+	}))
+	defer boundary.Close()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return contextOut{fatal: err.Error()}
@@ -45,7 +80,7 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 	listener.Close()
 	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
 	cmd.Dir = o.dir
-	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL="+o.model, "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+srv.URL(), "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=base", "CH02_LOG="+filepath.Join(o.dir, "events.jsonl"))
+	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL="+o.model, "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+boundary.URL, "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=base", "CH02_LOG="+filepath.Join(o.dir, "events.jsonl"))
 	var stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
 	stdin, err := cmd.StdinPipe()
@@ -149,6 +184,9 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 		if n := len(memoryTurns(srv.Requests())); n != want {
 			return contextOut{fatal: fmt.Sprintf("completed prompt %d made %d requests, want %d", i+1, n, want)}
 		}
+		if err = memoryDrain(peer, o.dir); err != nil {
+			return contextOut{fatal: fmt.Sprintf("prompt %d memory completion: %v", i+1, err)}
+		}
 	}
 	stdin.Close()
 	select {
@@ -161,6 +199,102 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 		out.fatal = "GUI did not save and exit after EOF"
 	}
 	return out
+}
+
+// Read the journal before its snapshot: a concurrent checkpoint installs the
+// snapshot before trimming the journal. Union by task identity tolerates overlap.
+// Only complete JSON-lines count; an in-progress tail cannot acknowledge work.
+func memoryPending(dir string) ([]string, error) {
+	path := filepath.Join(dir, "save.json")
+	tail, err := os.ReadFile(path + ".journal")
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil && !os.IsNotExist(err) {
+		return nil, err
+	}
+	var save struct {
+		// Log is the public durable event sequence, not the disposable projection.
+		Log []json.RawMessage `json:"log"`
+	}
+	// A fresh ordinary turn need not have checkpointed a save yet. Its empty
+	// launch set is valid; a real managed launch must publish its durable record.
+	if len(data) > 0 {
+		if err = json.Unmarshal(data, &save); err != nil {
+			return nil, err
+		}
+	}
+	if end := bytes.LastIndexByte(tail, '\n'); end >= 0 {
+		for _, line := range bytes.Split(tail[:end], []byte{'\n'}) {
+			if len(bytes.TrimSpace(line)) != 0 {
+				save.Log = append(save.Log, line)
+			}
+		}
+	}
+	launched, finished := map[string]bool{}, map[string]bool{}
+	for _, raw := range save.Log {
+		var event map[string]any
+		if err = json.Unmarshal(raw, &event); err != nil {
+			return nil, err
+		}
+		switch event["type"] {
+		case "compactor_launched":
+			id, _ := object(event["compactor"])["task_id"].(string)
+			if id == "" {
+				return nil, fmt.Errorf("compactor launch lacks background task correlation")
+			}
+			launched[id] = true
+		case "compaction_outcome":
+			outcome := object(event["compaction_outcome"])
+			id, _ := outcome["task_id"].(string)
+			state, _ := outcome["state"].(string)
+			if id == "" || (state != "committed" && state != "failed" && state != "canceled" && state != "invalidated" && state != "abandoned") {
+				return nil, fmt.Errorf("invalid terminal compaction outcome: %s", raw)
+			}
+			reason, _ := outcome["reason"].(string)
+			if state != "committed" && strings.TrimSpace(reason) == "" {
+				return nil, fmt.Errorf("failed compaction outcome lacks reason: %s", raw)
+			}
+			finished[id] = true
+		}
+	}
+	var pending []string
+	for id := range launched {
+		if !finished[id] {
+			pending = append(pending, id)
+		}
+	}
+	return pending, nil
+}
+
+// A terminal outcome may immediately launch the next waterfall step. An empty
+// settings patch crosses the existing actor settings boundary, then a second
+// durable read checks that successor. Neither a sleep nor turn-ended is success.
+func memoryDrain(peer *guiPeer, dir string) error {
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		pending, err := memoryPending(dir)
+		if err != nil {
+			return err
+		}
+		if len(pending) == 0 {
+			if err = peer.conn.WriteJSON(map[string]any{"type": "update_settings", "settings": map[string]any{}}); err != nil {
+				return err
+			}
+			if _, err = readSettings(peer, "settings_changed"); err != nil {
+				return err
+			}
+			pending, err = memoryPending(dir)
+			if err != nil || len(pending) == 0 {
+				return err
+			}
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("no terminal compaction outcome for %v", pending)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 }
 
 // A full snapshot may include defaults absent from the patch. Every supplied
@@ -250,8 +384,26 @@ func memoryTools(body []byte) []string {
 	return names
 }
 func memoryCompressor(body []byte) bool {
-	n := memoryTools(body)
-	return len(n) == 1 && n[0] == "submit"
+	var request struct {
+		// Tools is the declaration list actually sent to the provider.
+		Tools []struct {
+			// Name distinguishes the completion tool from arbitrary capabilities.
+			Name string
+			// Schema distinguishes memory completion from an ordinary text result.
+			Schema struct {
+				// Properties contains the direct submit argument definitions.
+				Properties map[string]struct {
+					// Type requires memory text, not merely a similarly named property.
+					Type string
+				}
+			} `json:"input_schema"`
+		}
+	}
+	if json.Unmarshal(body, &request) != nil || len(request.Tools) != 1 {
+		return false
+	}
+	t := request.Tools[0]
+	return t.Name == "submit" && t.Schema.Properties["memory"].Type == "string"
 }
 func memoryTurns(reqs []fakevendor.Recorded) []fakevendor.Recorded {
 	var out []fakevendor.Recorded
@@ -320,10 +472,6 @@ func (r *memoryRouter) route(body []byte) *fakevendor.Reply {
 		r.foldBodies = append(r.foldBodies, append([]byte(nil), body...))
 		if r.folds == 1 {
 			r.firstFoldN = r.n
-		}
-		if r.pending != nil && r.folds == 1 {
-			close(r.pending)
-			<-r.release
 		}
 		if r.failFold {
 			return &fakevendor.Reply{Status: 500, ErrBody: `{"error":"graduation unavailable"}`}

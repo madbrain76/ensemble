@@ -232,3 +232,59 @@ structured payload double encoding. Reuse unchanged B/C mutation evidence explic
 new grader checks need their own targeted defect sensitivity on the submitted runtime.
 Record exact failed predicates and any coupled claims or survivors. The old runtime
 is a useful negative control for background progress, not proof every new check works.
+
+## D1 implementation: causal memory driver, October14
+
+Three owned grader paths now adapt the existing memory scenarios to accepted
+runtime7feb910a. The sole-submit route also requires a string memory property;
+ordinary delegated submit(result) is a negative control. This classification is
+not the later exact full-schema predicate. A reverse proxy holds the actual
+first graduation response after the fake has captured/answered it, outside the
+fake's capture mutex. The router no longer waits while holding either lock.
+
+After each ordinary main turn, the driver joins complete public save/journal
+launch/outcome facts by task identity, accepting all documented terminal states
+rather than treating failure as success. It reads the journal before the snapshot
+to tolerate checkpoint overlap. An empty settings patch crosses the existing
+actor boundary before a second no-pending check, covering the successor launch
+that can follow a successful waterfall outcome. Root independently spot-read
+that mailbox/ordering path without running a test. This is current retained-log
+fixture synchronization, not a private staged-file protocol or a general log
+retention reader. Main turn completion, HTTP counts and time passage alone do
+not prove compaction completion. A marked final verification turn sees accepted
+memory; EOF comes afterward. The deliberate process-kill scenario still kills
+at its held checkpoint, before that verification.
+
+`TestChapter15Memory` now explicitly builds `../../agent/gui`, not the frozen
+old chapter export. Initial current-source run failed1.797s because ordinary
+fresh turns can lack save.json until a real checkpoint: forced-handoff and
+fresh-start fixtures exposed this driver assumption. The reader now permits
+an absent initial save while still requiring correlation on an actual launch.
+Raw failure: `/tmp/ensemble-compaction-d1-memory.txt`.
+
+Final focused race run passed3.929s (memory integration2.90s, classifier controls
+and real snapshot/journal-file boundary controls), raw
+`/tmp/ensemble-compaction-d1-memory-final.txt`; grader-package vet passed,
+`/tmp/ensemble-compaction-d1-vet.txt`. Environment prefixes were stripped only
+in test subprocesses; no live calls. A canceled proxy response during the actual
+SIGKILL fixture emits the expected context-canceled diagnostic. No full numeric
+Chapter15 score or new-background-coverage completion is claimed by this slice.
+The final source after this run adds only useful declaration-field comments.
+
+Three isolated targeted mutants were applied and each failed its intended
+assertion: restoring name-only classification misroutes ordinary result and
+wrong-type memory; admitting an unterminated journal line acknowledges the
+partial terminal tail; treating another task's outcome as selected completion
+incorrectly clears that pending launch. Logs:
+`/tmp/ensemble-compaction-d1-mutant-{classify,partial,correlation}.txt`.
+Scratch trees were deleted after each run. These prove the new parser/barrier
+predicates, not the still-pending scored held-worker/main-progress, exact-schema,
+restriction, stale-result, accounting or GUI dismissal scenarios. Existing B/C
+runtime evidence remains separately attributed, not converted into grader points.
+
+Source size, counted as physical / nonblank non-comment-only / comment-only Go
+lines (all changed comments use //): ch15.go517/453/48→525/458/51;
+ch15_driver.go373/334/26→521/465/41; test file26/21/2→77/66/6. Growth is the narrow
+external response barrier, durable outcome reader and two focused controls;
+no shared fake rewrite, runtime change, new abstraction or scoring table change.
+Full independent StageD implementation/prose review remains pending.

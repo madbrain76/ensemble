@@ -88,7 +88,12 @@ func memoryOptions(dir string, n int, settings map[string]any, p *memoryRouter) 
 	for i := range expect {
 		expect[i] = 2 * (i + 1)
 	}
-	return memoryOpts{dir: dir, prompts: memoryPrompts(n), expect: expect, replies: memoryTalk(n), settings: settings, route: p.route}
+	// The last checkpoint's main continuation may precede background acceptance.
+	// Read its completed corpus in a separate, explicitly marked verification turn.
+	prompts := append(memoryPrompts(n), "Verify the completed memory without making another checkpoint.")
+	expect = append(expect, 2*n+1)
+	replies := append(memoryTalk(n), fakevendor.Reply{Text: "Memory verified.", Usage: fakevendor.Canonical{Input: 100}})
+	return memoryOpts{dir: dir, prompts: prompts, expect: expect, replies: replies, settings: settings, route: p.route}
 }
 func memoryCompleted(r *contextResult, out contextOut, ids ...string) bool {
 	if out.fatal == "" && len(memoryTurns(out.reqs)) > 0 {
@@ -476,7 +481,10 @@ func memoryAbandon(run memoryRunner, newDir func(string) string, r *contextResul
 			p.pending = make(chan struct{})
 			p.release = make(chan struct{})
 			o.pending = p.pending
+			o.release = p.release
 			o.unblock = p.unblock
+			// Kill at the actual checkpoint, before the ordinary verification turn.
+			o.prompts = o.prompts[:1]
 		}
 		failed := run(o)
 		if failed.fatal != "" || p.folds == 0 {
