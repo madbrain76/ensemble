@@ -4,10 +4,11 @@ Coordinator: Astra (Codex), October 14, 2026. Current status: Stages B and C
 runtime implementation accepted. Final source `7feb910a` and independent review `09e68149`
 close the background actor gate, including the factory-refusal and GUI corrections.
 Stage D author and grader plans are independently accepted for bounded edits.
-Accounting, authentication, historical crossover and combined web/status
-reconstruction are accepted; the sandbox source plan follows. No chapter
-changes, exports, deployment or publication by this workstream. Earlier observations
-retain their actual source/results.
+Accounting through Sandbox reconstruction is accepted through new19. Stage D
+narrative is checkpointed at `e4b7480c`; revised grader and final TL;DR contracts
+remain in progress. Independent narrative review and new20 source planning are
+active. No exports, renumbering, deployment or publication by this workstream.
+Earlier observations retain their actual source/results.
 
 Bill authorized proceeding after reading Cadence's
 [handoff](codex-compaction-subagents-plan.md). He separately required full
@@ -569,3 +570,38 @@ collect or commit hidden reasoning, raw credential-bearing traffic or the privat
 profile. Retain only synthetic visible dialogue, relevant memory bytes and safe
 metadata needed for the stated observations. The final review decides whether
 any uncovered live requirement needs further action.
+
+
+## October 14: Sandbox accepted; narrative checkpoint reviewed next
+
+Independent review `40372118` accepts reconstructed current21/new19 source
+`922caeb4be404c335d209348a9d36aca4f88645e`, Agent tree
+`06c7edc9489eff9cf1bf071a8b6cccba303fcc8b`, at initial review with zero correction
+rounds. Root read the full disposition and verified the review's one-file commit.
+The unchanged seven-row grader scores100/100; actual core/GUI checks and two
+restored-defect failures retain coder provenance. No duplicate root execution
+is claimed. Release the concrete source plan for combined current22/new20,
+including structured submissions at child construction and the applicable
+main-chat/delegated-submit policy. Later memory/recall remain deferred.
+
+Author checkpoint `e4b7480c` contains narrative changes to current15/16/22/23 and
+its existing note. Original stories and historical live results remain; final
+TL;DR and graded contracts deliberately await the coder. Independent reviewer
+`compaction_runtime_audit` now reads the narrative while grader implementation
+continues. Full combined Stage D acceptance follows the completed contracts,
+checks and examples, without an extra per-slice approval gate. Root's interim
+correction preserves recall of retired originals: staged recovery protects
+committed corpus consistency, not an invented ban on returning retired source.
+Private staging filenames are labeled implementation examples.
+
+The grader's first synchronization checkpoint is `1acfd47e`. It recognizes
+correlated terminal outcomes, incomplete journal tails and pending cascades;
+main turn completion alone is no longer a compression barrier. Focused race
+checks and targeted defects are recorded in the coder's plan. This is not yet
+a full revised memory score. The next actual-binary fixture holds a child
+response while exercising further main turns and observes acceptance/cleanup.
+
+After coordinator compaction, the entire skill and all four governing/craft
+documents were reloaded, followed by full Chapters14/15 and the handoff.
+Truncated carryover/handoff output was recovered in separate reads before
+formal review resumed. No summary substituted for the required source.

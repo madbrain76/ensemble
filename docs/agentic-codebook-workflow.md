@@ -22,8 +22,10 @@ Stage D author/grader plans are independently accepted for bounded chapter and
 grader enhancement. Plan review also identified the old fleet prose's stale
 root-submit requirement; preserve the existing main-chat/delegated-submit policy
 while retaining ordinary delegates' three corrective wakes. Accounting,
-authentication, historical crossover and combined web/status reconstruction are
-accepted; the sandbox source plan follows. Memory remains
+authentication, historical crossover, combined web/status and Sandbox reconstruction
+are accepted through new19 (`922caeb4`, review `40372118`). Narrative checkpoint
+`e4b7480c` is under independent review while final contracts/graders and new20
+source planning continue. Memory remains
 deferred in that reconstructed early sequence.
 Controlled restart probes now reproduce the audited memory disk/event windows
 on the immutable baseline. No renumbering, deployment or publication has occurred.
