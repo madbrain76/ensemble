@@ -681,3 +681,50 @@ plan earns no credit for their implementation. The coordinator may release the
 three-path stage, followed by independent implementation review. No Agent edits,
 test execution, exports, renumbering or primary-runtime replacement occurred in
 this plan review.
+
+## Historical crossover reconstruction implementation review
+
+October 14. **Accepted at initial independent review, zero correction rounds.**
+Frozen submission `078cccbd2e6b999b320289aa1d096f7abe394350` has Agent tree
+`f94f414deb977d9f106b8d749a57faa934987049`; its worktree is clean. Reloaded the
+entire mandatory `.agents/skills/ensemble-coding/SKILL.md` before review. The four
+complete governing/craft documents remain in active context with no intervening
+compaction. Read the coder's complete new implementation report and source diff,
+then inspected every retained `crossover-*` result.
+
+The source changes exactly the three approved paths and matches the selected
+historical18→19 delta: `agent/internal/engine/media.go:31` routes Astra through
+the existing Responses implementation; `agent/ensemble/responses_test.go:140`
+checks actual rendered model/high effort while keeping earlier Chat controls;
+`agent/README.md:126` documents the explicit configuration. The route comment
+explains reuse of existing Agent-owned settings. No new symbol, abstraction,
+dependency or future feature appears; existing authentication, accounting,
+supported-model and model-response lifetime source is untouched.
+
+Independently reproduced tracked-source counts against each stage's own
+predecessor: production Go +2 physical/0 active/+2 comment-only; Go tests
++6/+6/0; README +3 physical lines. Reconstruction and historical deltas match.
+Active lines exclude blanks and `//`-only comments. No example, other language,
+capture or generated file changes. Preserved comments explain the sole behavior
+change; the small test growth protects observable output from the real renderer
+without internal mocks or new test machinery.
+
+Raw evidence confirms core short tests (ensemble13.356s), GUI tests1.118s,
+core/GUI vet, focused model-boundary race1.020s and final restored focused
+test0.008s pass. Both scratch mutations compile and fail the intended checks:
+Astra's former Chat route fails its transport assertion, and forced low effort
+fails the model/effort assertion on all three Responses rows. No setup failure
+is credited. The initial nonexistent-filename read remains a reporting/setup
+observation, not a failed runtime check. This tiny, exact historical source
+selection needs no duplicate independent test run after inspecting those checks;
+this review ran no grader or live/model task.
+
+No blocking implementation, scope, architecture, comment or evidence finding
+remains. Current19/new17 remains ungraded, and the historical27.46-second live
+and1.003-second scripted results keep their original source identities and
+limits. Later visible-explanation, main-chat/child-submit and auxiliary/memory
+integration obligations remain outstanding. Acceptance permits the coordinator
+to release the current20/new18 source-plan stage; it does not accept those later
+features, merge the partial source into the primary runtime, export snapshots,
+renumber chapters or publish. Checkpointing waited for the coordinator's shared
+Git operation to finish at `6b8f4a2e`; only this owned review note is included.
