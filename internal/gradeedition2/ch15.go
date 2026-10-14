@@ -69,6 +69,9 @@ func memoryChecks(bin string) contextResult {
 	newDir := func(name string) string { d := filepath.Join(tmp, name); os.MkdirAll(d, 0755); return d }
 	base := newDir("compress")
 	memoryCompress(run, base, &r)
+	if err := memoryBackground(bin, newDir("background")); err != nil {
+		r.fail("micro-handoff-compresses", "background lifecycle: %v", err)
+	}
 	memoryGraduate(run, newDir("graduate"), &r)
 	memoryRestore(run, newDir("toggle"), &r)
 	memoryForce(run, newDir("force"), &r)

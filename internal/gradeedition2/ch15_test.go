@@ -27,6 +27,19 @@ func TestChapter15Memory(t *testing.T) {
 	}
 }
 
+// TestMemoryBackground exercises the new scored scenario independently so a
+// targeted runtime defect must fail that predicate rather than an older row.
+func TestMemoryBackground(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	if err = memoryBackground(bin, t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // TestMemoryRequestClassification keeps ordinary delegated submit traffic out of
 // the memory route, including a task whose prose itself mentions memory.
 func TestMemoryRequestClassification(t *testing.T) {

@@ -288,3 +288,38 @@ ch15_driver.go373/334/26→521/465/41; test file26/21/2→77/66/6. Growth is the
 external response barrier, durable outcome reader and two focused controls;
 no shared fake rewrite, runtime change, new abstraction or scoring table change.
 Full independent StageD implementation/prose review remains pending.
+
+## D2 implementation: scored held-worker scenario, October14
+
+`micro-handoff-compresses` now additionally runs the actual submitted GUI process
+through a held response, two completed main turns and a second checkpoint. Before
+release it requires one observed memory request and one real owned nonpersistent
+child in the public tree. It selects that child, releases the response, then
+requires automatic fallback to the actual owner, effective settings and eventual
+removal from the tree. The fake first requests a real forbidden write, then
+corrects to submit(memory). Both the error tool result and absence of its actual
+file effect are required. The complete wire schema must equal the published
+memory object; the worker must not inherit the main primary role. A final owner
+request proves exact replacement delivery, removal of the selected old dialogue
+and preservation of the newer work. These are executable predicates in the
+existing15-point row, not imported source-test credit.
+
+Full affected memory integration with this scenario passed race3.700s
+(`/tmp/ensemble-compaction-d2-memory.txt`). Its independently selectable external
+integration test passed race1.634s, actual scenario0.62s
+(`/tmp/ensemble-compaction-d2-background-final.txt`); package vet passes. No live
+calls or historical-score relabeling. All six isolated runtime mutations failed
+the intended new predicate: blocking main rendering whenever any attempt exists;
+permitting schema extra properties; returning a non-error forged-tool result;
+performing its requested filesystem effect despite refusal; omitting managed
+root removal; and retaining the parent's actual system prompt. Logs are
+`/tmp/ensemble-compaction-d2-mutant-{main-block,schema,refusal,side-effect,dismissal,role}.txt`.
+The effect mutant deliberately writes before returning refusal: it proves the
+external-effect check, not independent sensitivity to every normal admission
+layer. Main-block and dismissal timeouts establish their particular held-response
+and selection liveness failures with a passing control. Scratch copies were
+removed between runs. Simultaneous-attempt and newer-dialogue assertions remain
+part of this actual scenario and inherited B/C proof; no additional independent
+mutant is claimed for those assertions here. Final changes after execution add
+only explanatory comments about these boundaries. Full StageD coverage and
+independent implementation/prose acceptance remain pending.
