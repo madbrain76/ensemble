@@ -728,3 +728,71 @@ to release the current20/new18 source-plan stage; it does not accept those later
 features, merge the partial source into the primary runtime, export snapshots,
 renumber chapters or publish. Checkpointing waited for the coordinator's shared
 Git operation to finish at `6b8f4a2e`; only this owned review note is included.
+
+## Combined web/status reconstruction source-plan review
+
+October 14. **Plan accepted**, no blocking findings, at
+`68793cad6c3fd8cb88a27e250e4bc8b9c087e4c8`. The clean isolated worktree still
+has accepted crossover Agent tree `f94f414deb977d9f106b8d749a57faa934987049`.
+Reloaded the full mandatory `.agents/skills/ensemble-coding/SKILL.md`; all four
+complete governing/craft documents remain in active context with no intervening
+compaction. Read the complete new source plan, all23 historical delta paths
+(recovering the truncated test range), both selected correction diffs, existing
+GUI/settings/meter code and relevant combined-grader source/review.
+
+Independently verified source `f35b6ae8ce43c91a52b9972361093db6258e3e20` yields
+web tree `f351d66a7bc456650e05ac6656a7db59bbbd725a` and source
+`1da0891a7ea0f121b05225c62be3b2190e4f3918` yields combined20 tree
+`a801628b1dd631e5ea20ad03ea7d255584728d31`. Selection from those two accepted
+steps preserves MCP-owned HTTP, connection/job cancellation, safe diagnostics,
+skill declaration/dispatch enforcement, shipped web supervision, owner-derived
+status and actor-serialized model selection. The existing Engine already retains
+model/tier usage and unknown-price state (`agent/internal/engine/usage.go:20` and
+`:37`); status needs a formatter, not another accounting owner or copied facts.
+
+The narrow GUI prerequisite is justified independently of memory. Current
+`agent/gui/gui.go:283` holds `Server.mu` across `updateSettings`; root observation
+calls observers synchronously (`agent/ensemble/ensemble.go:217`). The proposed
+SetModel waits for the actor, so that actor can need the mutex held by its
+waiting settings caller. Historical `05b43a0` separates patch/subscription order
+from observation locking and takes only short snapshot/publication locks. Carry
+those sections into gui.go/settings.go, omitting all memory fields, validation,
+actor messages and tests. This is a necessary current feature dependency, not
+permission to copy the cumulative old15 or combined20 tree.
+
+The proposed causal real-GUI regression is appropriate: establish streamed
+observer delivery and a setter actually waiting on the actor before release;
+check busy refusal, progress/shutdown and an idle apply/broadcast control. A
+sleep or merely starting a goroutine cannot establish that ordering. Its scratch
+mutation must restore the actual lock cycle and fail the bounded liveness
+assertion; outer process timeout alone would not establish the claimed cause.
+This plan review establishes the source-level dependency, not a newly reproduced
+runtime deadlock or a preaccepted regression implementation.
+
+The supported fixtures correctly select the existing `215ae6ac` correction.
+Sonnet-5 charges are independently consistent with the declared rates:
+100 input,30 write,20 read,10 output yield $0.000379;70/10/20/3 yield $0.000199.
+Subsequent unpriced Opus-5 work must keep the total unknown. Current20's separate
+grader uses Sonnet-5→Opus4.6→Sonnet-5. Neither fixture establishes summation of two
+priced Anthropic models after the supported-model change; the plan preserves
+that limit and adds no5.5 row or fabricated price to evade it.
+
+Planned core/GUI and separate-module checks, focused HTTP/status/model/settings
+races, actual built CLI and browser model-field observation, and serialized
+current20 grading cover affected public paths. The advertised current grader
+total is155, retaining historical original21/22 scores separately. Its two
+manager-only surviving mutants remain limitations; HTTP cancellation, parked
+Recv wakeup and manager isolation retain their separate tests/source evidence.
+The three adapted-boundary mutations focus on the new lock dependency and the
+supported pricing fixtures, while unchanged historical mutations keep their
+identities. Temporary EN_HOME and stripped FIRECRAWL/provider variables preserve
+the no-live/no-private-profile boundary.
+
+No memory, recall, judge, fleet, sandbox or Codex backend enters this stage.
+Auxiliary usage/status, latest-main forcing, lens exclusion and credential/route
+inheritance remain obligations at new22/23. Later visible-explanation and
+main-chat/child-submit maintenance also remain outstanding; historical sample
+judge calls do not pull them forward. No runtime edits or tests occurred here.
+The coordinator may release this bounded implementation, including the stated
+lock prerequisite, followed by independent implementation review. Export,
+renumbering, manuscript and complete-runtime integration remain separate gates.
