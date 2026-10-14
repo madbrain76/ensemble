@@ -1,7 +1,9 @@
 package gradeedition2
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
@@ -18,12 +20,12 @@ func Chapter23(bin, gui string) (grade.Report, error) {
 		checks[i].Earned = checks[i].Points
 		checks[i].Details = nil
 	}
-	checks[0].Title = "Correlated child status and ordered observed activity"
+	checks[0].Title = "Correlated activity and validated structured submission state"
 	checks[1].Title = "Named creation selects model/skill, restores conversation and deletes durably"
-	checks[2].Title = "Owned success and indistinguishable foreign/missing management refusal"
+	checks[2].Title = "Owned typed retrieval and indistinguishable foreign/missing refusal"
 	checks[3].Title = "Selected child progress wakes its change wait; command and submission complete"
 	checks[4].Title = "Actual CLI recursively constructs and completes a three-generation fleet"
-	checks[5].Title = "Live nested GUI tree, conversation selection and truthful replay state"
+	checks[5].Title = "Live nested GUI tree, exact structured replay and truthful state"
 	fleetMessaging(bin, &checks[4])
 	fleetIdle(bin, &checks[6], &checks[6])
 	guiBin, cleanup, err := grade.Build(gui)
@@ -44,7 +46,7 @@ func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
 	if !strings.Contains(strings.ToLower(status), "activity") || !strings.Contains(strings.ToLower(status), "idle") {
 		fail(&checks[0], "completed child status lacks idle activity: %s", status)
 	}
-	for _, name := range []string{"get_sub_agent_status", "shutdown_agent"} {
+	for _, name := range []string{"get_sub_agent_status", "shutdown_agent", "get_submission"} {
 		foreign := fleetResult(&checks[2], reqs, name+"-foreign", true)
 		missing := fleetResult(&checks[2], reqs, name+"-missing", true)
 		foreign = strings.ReplaceAll(foreign, "worker23", "TARGET")
@@ -54,6 +56,15 @@ func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
 		}
 	}
 	fleetResult(&checks[2], reqs, "child-status", false)
+	fleetResult(&checks[0], reqs, "child-invalid", true)
+	var rejected, completed map[string]any
+	if err := json.Unmarshal([]byte(fleetResult(&checks[0], reqs, "invalid-status", false)), &rejected); err != nil || rejected["agent_id"] != "worker23" || rejected["state"] != "running" || rejected["payload"] != nil {
+		fail(&checks[0], "rejected submission completed the child: %v (%v)", rejected, err)
+	}
+	if err := json.Unmarshal([]byte(status), &completed); err != nil || completed["state"] != "submitted" || !reflect.DeepEqual(completed["payload"], fleetJSON(fleetReviewPayload)) {
+		fail(&checks[0], "accepted status lost structured result: %s (%v)", status, err)
+	}
+	managementPayload(&checks[2], fleetResult(&checks[2], reqs, "child-retrieve", false), "worker23")
 	changed := fleetResult(&checks[3], reqs, "wait-change", false)
 	if !strings.Contains(changed, "worker23") || (!strings.Contains(changed, "state") && !strings.Contains(changed, "status")) {
 		fail(&checks[3], "wait lost selected child transition: %s", changed)
@@ -63,13 +74,30 @@ func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
 		fail(&checks[3], "held child command did not complete: %s", output)
 	}
 	joined := fleetResult(&checks[3], reqs, "join-worker", false)
-	if !strings.Contains(joined, "WORKER_RESULT_23") {
+	var joinedRows []map[string]any
+	if err := json.Unmarshal([]byte(joined), &joinedRows); err != nil || len(joinedRows) != 1 || !reflect.DeepEqual(joinedRows[0]["payload"], fleetJSON(fleetReviewPayload)) {
 		fail(&checks[3], "selected child submission missing: %s", joined)
 	}
 }
 
 func managementReply(body []byte, work string) *fakevendor.Reply {
 	b := string(body)
+	// A restored owner explicitly reconstructs its task child before using the
+	// durable fallback. Registry restoration alone must not revive task children.
+	if strings.Contains(memoryConversation(body), "RESTORE_ROOT_23") {
+		for _, p := range []sandboxProbe{
+			{"respawn-worker", "spawn_sub_agent", map[string]any{"agent_id": "worker23", "task": "REOPEN_TASK_23"}},
+			{"durable-retrieve", "get_submission", map[string]any{"agent_id": "worker23"}},
+			{"durable-status", "get_sub_agent_status", map[string]any{"agent_id": "worker23"}},
+			{"stop-reopened", "kill_agent", map[string]any{"agent_id": "worker23"}},
+		} {
+			if !fleetHas(body, p.id) {
+				r := p.reply()
+				return &r
+			}
+		}
+		return &fakevendor.Reply{Text: "RESTORED_RESULT_23"}
+	}
 	if strings.Contains(b, "PENDING_TASK_23") {
 		return &fakevendor.Reply{Text: "PENDING_DONE_23"}
 	}
@@ -80,7 +108,7 @@ func managementReply(body []byte, work string) *fakevendor.Reply {
 		}
 	}
 	if !strings.Contains(b, "MANAGEMENT_ROOT_23") && strings.Contains(b, "INTRUDER_TASK_23") {
-		for _, name := range []string{"get_sub_agent_status", "shutdown_agent"} {
+		for _, name := range []string{"get_sub_agent_status", "shutdown_agent", "get_submission"} {
 			for _, pair := range [][2]string{{"foreign", "worker23"}, {"missing", "absent23"}} {
 				id := name + "-" + pair[0]
 				if !fleetHas(body, id) {
@@ -94,16 +122,21 @@ func managementReply(body []byte, work string) *fakevendor.Reply {
 		if !fleetHas(body, "child-command") {
 			return fleetCall("child-command", "run_command", map[string]any{"command": fmt.Sprintf("printf ready > %q; while [ ! -f %q ]; do sleep .02; done; printf COMMAND_RESULT_23", work+"/ready", work+"/release"), "ai_callback_delay": 10})
 		}
-		return fleetCall("child-submit", "submit", map[string]any{"result": "WORKER_RESULT_23"})
+		if !fleetHas(body, "child-invalid") {
+			return fleetCall("child-invalid", "submit", map[string]any{"summary": "missing required fields"})
+		}
+		return fleetCall("child-submit", "submit", fleetJSON(fleetReviewPayload))
 	}
 	if strings.Contains(b, "PEER_TASK_23") {
 		return &fakevendor.Reply{Text: "NAMED_CONVERSATION_23"}
 	}
 	for _, p := range []sandboxProbe{
-		{"spawn-worker", "spawn_sub_agent", map[string]any{"agent_id": "worker23", "task": "WORKER_TASK_23"}},
+		{"spawn-worker", "spawn_sub_agent", map[string]any{"agent_id": "worker23", "task": "WORKER_TASK_23", "submit_schema": fleetJSON(fleetReviewSchema)}},
 		{"wait-change", "wait_for_agent_change", map[string]any{"agent_ids": []string{"worker23"}, "timeout_seconds": 5, "ai_callback_delay": 10}},
+		{"invalid-status", "get_sub_agent_status", map[string]any{"agent_id": "worker23"}},
 		{"join-worker", "join_agents", map[string]any{"agent_ids": []string{"worker23"}, "ai_callback_delay": 5}},
 		{"child-status", "get_sub_agent_status", map[string]any{"agent_id": "worker23"}},
+		{"child-retrieve", "get_submission", map[string]any{"agent_id": "worker23"}},
 		{"spawn-intruder", "spawn_sub_agent", map[string]any{"agent_id": "intruder23", "task": "INTRUDER_TASK_23"}},
 		{"join-intruder", "join_agents", map[string]any{"agent_ids": []string{"intruder23"}, "ai_callback_delay": 5}},
 	} {

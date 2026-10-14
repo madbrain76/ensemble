@@ -9,6 +9,27 @@ import (
 	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
+// TestStructuredManagement23 exercises corrected submission, owned durable
+// retrieval and exact GUI replay through the real optional application.
+func TestStructuredManagement23(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	checks := grade.Ch26Checks(grade.Ch26Result{})
+	for i := range checks {
+		checks[i].Passed = true
+		checks[i].Details = nil
+	}
+	managementGUI(bin, checks)
+	for _, i := range []int{0, 1, 2, 3, 5} {
+		if !checks[i].Passed {
+			t.Errorf("%s: %v", checks[i].ID, checks[i].Details)
+		}
+	}
+}
+
 // An opt-in real executable keeps mutation runs focused on changed management
 // observations, without rerunning unchanged recursive CLI and idle-correction checks.
 func TestManagement23(t *testing.T) {

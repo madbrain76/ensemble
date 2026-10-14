@@ -148,6 +148,11 @@ func managementGUI(bin string, checks []grade.Check) {
 		}})
 		defer provider.Close()
 		entered, release := make(chan struct{}), make(chan struct{})
+		invalidEntered, correction := make(chan struct{}), make(chan struct{})
+		reopened := make(chan struct{})
+		var invalidOnce, correctionOnce, reopenOnce sync.Once
+		allowCorrection := func() { correctionOnce.Do(func() { close(correction) }) }
+		defer allowCorrection()
 		var enterOnce, releaseOnce sync.Once
 		unpark := func() { releaseOnce.Do(func() { close(release) }) }
 		upstream, _ := url.Parse(provider.URL())
@@ -158,6 +163,49 @@ func managementGUI(bin string, checks []grade.Check) {
 			raw, _ := io.ReadAll(r.Body)
 			r.Body.Close()
 			r.Body = io.NopCloser(bytes.NewReader(raw))
+			conversation := memoryConversation(raw)
+			// Park the correction at the remote boundary after its real rejection.
+			// The parent's status call therefore observes the invalid state, without
+			// relying on a short sleep or blocking the provider capture mutex.
+			if strings.Contains(conversation, "WORKER_TASK_23") && !strings.Contains(conversation, "MANAGEMENT_ROOT_23") && fleetHas(raw, "child-invalid") {
+				invalidOnce.Do(func() { close(invalidEntered) })
+				select {
+				case <-correction:
+				case <-r.Context().Done():
+					return
+				}
+			}
+			if strings.Contains(conversation, "MANAGEMENT_ROOT_23") && fleetHas(raw, "wait-change") {
+				if fleetHas(raw, "invalid-status") {
+					allowCorrection()
+				} else {
+					select {
+					case <-invalidEntered:
+					case <-r.Context().Done():
+						return
+					case <-time.After(2 * time.Second):
+						http.Error(w, "child never reached rejected-submit correction", http.StatusGatewayTimeout)
+						return
+					}
+				}
+			}
+			// Restart creates an owned child with a fresh current task while its old
+			// submission remains on disk. Keep that task pending until explicit kill.
+			if strings.Contains(conversation, "REOPEN_TASK_23") && !strings.Contains(conversation, "RESTORE_ROOT_23") {
+				reopenOnce.Do(func() { close(reopened) })
+				<-r.Context().Done()
+				return
+			}
+			if strings.Contains(conversation, "RESTORE_ROOT_23") && fleetHas(raw, "respawn-worker") {
+				select {
+				case <-reopened:
+				case <-r.Context().Done():
+					return
+				case <-time.After(2 * time.Second):
+					http.Error(w, "reopened task never reached provider boundary", http.StatusGatewayTimeout)
+					return
+				}
+			}
 			if strings.Contains(string(raw), "PENDING_TASK_23") {
 				enterOnce.Do(func() { close(entered) })
 				select {
@@ -267,7 +315,13 @@ func managementGUI(bin string, checks []grade.Check) {
 		if !nested {
 			fail(&checks[5], "no live nested child in GUI tree")
 		}
-		_ = live
+		managementSubmissionFrame(&checks[5], live, "child-retrieve", "", "worker23")
+		childReplay, selectErr := managementSelect(peer, "main/worker23")
+		if selectErr != nil {
+			fail(&checks[5], "structured child selection: %v", selectErr)
+		} else {
+			managementSubmissionFrame(&checks[5], childReplay, "child-submit", "submitted: ", "")
+		}
 		// Named peer creation is a real client command, not a planted registry file.
 		peer.conn.WriteJSON(map[string]string{"type": "create_agent", "name": "named23", "model": "claude-opus-4-6", "skill": "peer"})
 		_, err = peer.until(2*time.Second, func(m map[string]any) bool {
@@ -320,6 +374,39 @@ func managementGUI(bin string, checks []grade.Check) {
 		replay, err = managementSelect(view, "named23")
 		if err != nil || managementState(replay) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") || len(provider.Requests()) != count {
 			reuseFail(checks, fmt.Errorf("restart did not restore idle named conversation without inference: state=%s err=%v", managementState(replay), err), 1, 5)
+			return
+		}
+		// Selecting the restored owner replays the retained retrieval result, with
+		// no new inference and no automatic resurrection of its ephemeral child.
+		ownerReplay, e := managementSelect(view, "main")
+		if e != nil || len(provider.Requests()) != count {
+			reuseFail(checks, fmt.Errorf("structured owner replay: %v", e), 1, 5)
+			return
+		}
+		managementSubmissionFrame(&checks[5], ownerReplay, "child-retrieve", "", "worker23")
+		for _, frame := range ownerReplay {
+			if frame["type"] == "agent_tree" && managementNode(frame["root"], "worker23") != nil {
+				fail(&checks[1], "ephemeral task child was recreated by restart")
+			}
+		}
+		view.send("prompt", "RESTORE_ROOT_23")
+		restored, e := view.until(4*time.Second, func(m map[string]any) bool {
+			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "RESTORED_RESULT_23")
+		})
+		if e != nil {
+			reuseFail(checks, fmt.Errorf("owned durable fallback: %v", e), 1, 2)
+			return
+		}
+		managementSubmissionFrame(&checks[1], restored, "durable-retrieve", "", "worker23")
+		reqs := provider.Requests()
+		managementPayload(&checks[2], fleetResult(&checks[2], reqs, "durable-retrieve", false), "worker23")
+		var current map[string]any
+		if e := json.Unmarshal([]byte(fleetResult(&checks[2], reqs, "durable-status", false)), &current); e != nil || current["agent_id"] != "worker23" || current["state"] != "running" || current["payload"] != nil {
+			fail(&checks[2], "historical fallback completed the pending current task: %v (%v)", current, e)
+		}
+		fleetResult(&checks[2], reqs, "stop-reopened", false)
+		if _, e = managementSelect(view, "named23"); e != nil {
+			fail(&checks[5], "return to named peer: %v", e)
 			return
 		}
 		view.send("prompt", "PENDING_TASK_23")

@@ -389,3 +389,73 @@ AgentSpec.Child copy/reset regression. All scratch trees were removed. No runtim
 frozen exports, chapter text or grader weights were changed. New fixture size is
 196 physical/177 active/14 comment-only lines, excluding blanks and // comments
 from active count; most code is the explicit schema/probe/result comparison.
+
+## D5: typed management, durable ownership and GUI replay
+
+The existing current 23 real-application management session now spawns its worker
+with the reviewed custom contract. After the actual invalid submit result reaches
+the provider boundary, its correction request is held outside the capture mutex.
+The parent reads a running, unsubmitted status before releasing that correction;
+then status and join carry the exact accepted object. This keeps the existing
+command/change-wait and activity controls. `get_submission` adds an owned success
+and foreign-versus-missing error comparison alongside the existing management
+operations. The seven IDs and weights remain unchanged.
+
+The live owner's retrieval result and selected child's submit result are parsed
+from actual `tool_finished` frames. The latter's deliberate `submitted: ` prefix
+is removed before comparing the complete object, including array, false and null.
+After normal process shutdown, selecting the restored owner's conversation
+replays its retained retrieval result without another request. No task child is
+assumed to restart. The owner explicitly respawns the same local child ID with a
+new default-contract task, waits for that task's HTTP request to enter an external
+hold, retrieves the older custom result through the durable fallback, and checks
+that the current task remains running with no submitted payload. It then kills
+that held task through the real management tool. Named peer create/model/skill,
+conversation restore, pending-state and deletion controls remain in the session.
+
+This is public executable evidence, not a private staged-memory protocol. It
+establishes selected-child replay in the original process and restored-owner
+history plus explicitly reconstructed owned-child retrieval after restart; it
+does not claim automatic restoration of ephemeral task children or all possible
+submission/save interleavings. Stronger save-tail, schema-copy and malformed-row
+source regressions remain the separately reviewed B/C evidence.
+
+Actual isolated results, with only the six agreed credential/environment prefixes
+removed from test subprocesses:
+
+- Initial focused race passed 2.892s, scenario 1.87s; raw
+  `/tmp/ensemble-compaction-d5-management.txt`.
+- After strengthening pending-status identity/state checks, final focused race
+  passed 2.225s, scenario 1.20s, including the existing argument-versus-rendered-text
+  control; `/tmp/ensemble-compaction-d5-management-final.txt`.
+- `go run ./cmd/grade-edition2 -ch 23 ./agent` passed 100/100, exit 0;
+  `/tmp/ensemble-compaction-d5-grader23.txt`. This is the revised D5 grader against
+  current source, not a relabeled historical grader run. Package vet passed;
+  `/tmp/ensemble-compaction-d5-vet.txt`.
+
+Eight isolated runtime/GUI mutations failed their intended behavioral assertions:
+report pending status as submitted; drop accepted status payload; encode retrieval
+payload as a string; suppress disk fallback; let fallback mark the new task
+submitted; retrieve through the caller's parent fleet; quote GUI tool-result text;
+and quote only the custom submit JSON after preserving its valid text prefix.
+Raw logs are `/tmp/ensemble-compaction-d5-mutant-<name>.txt`, with names
+`pending-status`, `status-payload`, `retrieval-encoding`, `fallback-absent`,
+`fallback-completes`, `foreign-retrieval`, `gui-encoding`, `gui-submit-encoding`.
+The initial fallback-absence mutation left an unused variable and did not compile;
+its setup failure is preserved in `...-fallback-absent-setup.txt`. The corrected
+mutation executed the durable lookup and failed on its actual error result.
+All scratch trees were removed. Generic retrieval/GUI corruption causes coupled
+live and replay failures; those logs do not establish independent proofs for
+each downstream assertion. The prefix-preserving mutant specifically reaches
+and fails the direct custom-object comparison. D4's unchanged validation and
+join sensitivity evidence is reused rather than counted again here.
+
+Against D4 source 5391d5eb, physical/active/comment-only line counts (blank lines
+excluded from active; Go `//` comment-only lines counted separately) are:
+ch23.go 116/105/6→149/136/8; driver 373/346/20→460/426/27;
+new submission observer 44/36/4; tests 50/43/3→71/61/5. The small observer helper
+parses the two existing result representations; no generic runner or event
+framework was added. Comments explain causal holds, current versus historical
+task state, and actual rendered-result evidence. No runtime, chapter, frozen
+export or live deployment bytes changed in this slice. Full Stage D acceptance,
+remaining memory/recall additions and chapter-contract reconciliation are pending.
