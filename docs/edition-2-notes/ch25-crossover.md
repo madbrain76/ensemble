@@ -366,3 +366,25 @@ A separate, metadata-only watcher (job 47) followed the live snapshot/journal an
 The output contract failed: a helper requiring `submit(memory)` used a main-agent prompt that forbids main submission, then received ordinary prose rather than the required tool call. The conflicting instructions are verified, but the trace does not prove the model's internal reason for choosing prose. This is stronger evidence than the earlier interrupted wait; it must not be represented as proof that the original 93-second incident had the identical cause. A background worker alone would not fix this output-contract defect. The planned restricted child needs its own role, an unambiguous result contract, bounded summary sizing, observable completion, and parent-controlled commit/cleanup.
 
 After the test, Session was restored to its pre-test disabled state through the GUI and verified in saved settings. Conversation remains enabled; the four upper bands remain disabled. This prevents another Conversation-to-Session request while the defect is unresolved. No runtime code was changed, rebuilt, or deployed, and no live restart occurred. The background-compaction-child refactor remains unimplemented.
+
+## Restored artifact IDs route new streaming text into old cards (2026-10-14)
+
+Status: **reproduced; not fixed or deployed**. Bill reported that streaming text sometimes appeared in the wrong artifact and recalled an Edition 1 failure. He asked whether every artifact needed a unique ID.
+
+### Diagnosis and reproduction
+
+The current implementation already maps provider/parser-local part IDs to a counter owned by the actor runtime. That handles repeated parser IDs within one run, but a new runtime starts its counter at zero. Saved response parts retain their old `ArtifactID`, and GUI replay restores cards under those IDs. New deltas can therefore address an unrelated, restored card. The renderer keys by `String(part_id)`; a delta appends to that card, and a final replaces its text.
+
+A structured scan of the live snapshot and journal found 470 distinct finalized IDs, with 385 reused on multiple finalized parts, sometimes across different part kinds. A later scan found no collisions within a single response. These are point-in-time observations, not a claim that every visual anomaly has the same cause.
+
+An isolated probe used the real public agent, streaming parser, persistence, and two successive runtimes, with only the HTTP provider replaced by a local fixture. The first reply, `FIRST`, received delta/final ID1. After save/reload, the second reply, `SECOND`, also received delta/final ID1. Both replies remained separate in saved history.
+
+The real artifact renderer was then exercised in an isolated browser page with those frames. Actual DOM assertions confirmed one card throughout: `FIRST` after replay, `FIRSTSECOND` during the second reply, and only `SECOND` after its final. The renderer served by the running GUI was byte-for-byte equal to the inspected source. This was not a test against the live browser, and no real provider inference was used by the diagnostic probe.
+
+### Edition 1 connection and lesson
+
+The Edition 1 crossover changelog already records Bill's rule: anything talking to an artifact needs a unique ID. Its earlier fix introduced agent-lifetime allocation and required deltas and finals to share the same mapping. Related Edition 1 tests cover replay, restart, and final/delta correlation. The current gap is uniqueness across the logical actor's restored history, not merely one process lifetime.
+
+The repair must provide stable producer-owned identities, keep one identity throughout an artifact's stream and finalization, and handle old history that already contains collisions. Seeding a future counter alone would not disambiguate those older replayed parts. Clearing the scroll every turn or generating unrelated DOM IDs would hide or relocate the problem, not establish the identity contract.
+
+The complete source references, private diagnostic location, and proposed regression coverage are in [the artifact identity investigation](artifact-identity-investigation.md), committed as `bd4d907c`. The read-only history reviewer submitted, was joined, and was closed. The actor allocator overlaps Codex's concurrent lifecycle work, so no application patch was made without coordination. No corrected live behavior or full post-fix regression run is claimed.
