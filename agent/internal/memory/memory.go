@@ -138,6 +138,9 @@ func (m *memory) Scan(b common.Band) ([]common.BandPopulatedData, error) {
 		item := common.BandPopulatedData{Band: b, Text: string(data), Source: "disk"}
 		if b > common.BandMemory {
 			names := strings.Split(strings.TrimSuffix(filepath.Base(p), ".md"), "_")
+			if len(names) > 2 {
+				return nil, fmt.Errorf("invalid memory coverage filename %q", p)
+			}
 			item.File, err = parse(names[0])
 			if err != nil {
 				a.Ensemble().Logf("memory: skipped %s: %v", p, err)
@@ -147,6 +150,9 @@ func (m *memory) Scan(b common.Band) ([]common.BandPopulatedData, error) {
 				item.Thru, err = parse(names[1])
 				if err != nil {
 					return nil, err
+				}
+				if Less(item.Thru, item.File) {
+					return nil, fmt.Errorf("reversed memory coverage in %q", p)
 				}
 			}
 		}
@@ -254,6 +260,26 @@ func (m *memory) Graduation() (*common.Compression, error) {
 		if m.Settings(b - 1).Disabled {
 			a.Ensemble().Logf("memory: cannot graduate band %d into disabled band %d", b, b-1)
 			continue
+		}
+		// Retirement removes a prefix by coverage endpoint. Overlapping or reversed
+		// ranges could retire unselected files, or none at all and repeat forever.
+		// Validate restored entries too: they need not have come from today's Scan.
+		var previous common.MemoryFileID
+		for i, e := range files {
+			end := e.Thru
+			if end.Date == "" {
+				end = e.File
+			}
+			if _, err := parse(stem(e.File)); err != nil {
+				return nil, fmt.Errorf("invalid memory coverage start: %w", err)
+			}
+			if _, err := parse(stem(end)); err != nil {
+				return nil, fmt.Errorf("invalid memory coverage end: %w", err)
+			}
+			if Less(end, e.File) || i > 0 && !Less(previous, e.File) {
+				return nil, fmt.Errorf("memory band %d has reversed or overlapping coverage", b)
+			}
+			previous = end
 		}
 		task := &common.Compression{Source: b, Destination: b - 1, Ratio: 8}
 		var input strings.Builder

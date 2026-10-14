@@ -292,3 +292,40 @@ root; retain known baseline CLI human-sink/browser-fixture failures separately.
 Strip only LLM_/OPENAI_/ANTHROPIC_/GEMINI_/EN_/CODEX_ in test subprocesses. Do not
 glob browser scripts or repeatedly rerun unchanged broad suites. Semantic memory
 quality, live provider acceptance and deployment remain unclaimed until Stage F.
+
+## C1 implementation evidence: coverage admission
+
+On design checkpoint `01dfa4ce`, source regressions first reproduced all three
+root probes: uncommitted active replacement after restart, committed retirement
+before archive after restart, and reversed-range no-progress reselection. All
+three failed for their intended reasons in 0.015s. The initial filename
+`compaction_windows_test.go` was accidentally GOOS-filtered on macOS, causing
+undefined test helpers; this was setup failure, corrected before the measured run.
+Raw outputs: `/tmp/ensemble-compaction-stagec-baseline{,-corrected}.txt`.
+
+The first narrow runtime slice rejects reversed/malformed filename coverage and
+checks graduation's restored entries for invalid, reversed or overlapping ranges.
+It protects the prefix retirement rule without changing watermarks or selecting
+different valid work. Focused race tests include a valid ranged-file scan, exact
+prefix retirement/progress and inherited MemoryWaterfall; the final focused race
+run passed in 1.142s; after review strengthened retained-file identity assertions,
+the affected race checks passed in 1.143s. Targeted vet passed.
+Restoring scan admission admits both reversed and extra-segment filenames and
+fails the intended checks; restoring graduation admission fails both reversed and
+overlapping restored-entry checks while the valid control passes. These are two
+focused mutations, not four independent mutation proofs. A third mutation reverses
+the retirement comparison: the surviving count stays one, but the strengthened
+check rejects source 1 surviving instead of source 3. Scratch copies removed.
+Raw outputs: `/tmp/ensemble-compaction-stagec-ranges{,-final}.txt` and
+`/tmp/ensemble-compaction-stagec-mutant-{scan,graduation,prefix}.txt`; reviewed final
+race output is `/tmp/ensemble-compaction-stagec-ranges-reviewed.txt`.
+
+The two legacy Write/event/Archive restart probes are still failing and remain
+outside this coverage-only checkpoint. New Stage/Finish recovery tests will test
+the replacement protocol explicitly; they must not relabel these old-API failures
+as unchanged passing regressions. No background scheduling or recovery acceptance
+is claimed by C1. Independent source review found no production blocker and asked
+for useful test comments and exact retained/selected identities; both were added
+before checkpoint. The reviewer accepted C1 for checkpoint, with no production
+changes requested; this is not full Stage C acceptance or a formal correction
+round. Final slice disposition is recorded in the runtime audit.
