@@ -213,3 +213,17 @@ Runtime grading, executable example checks, final TL;DR reconciliation and
 independent full prose/grader review remain assigned to the existing later gates.
 Stage F still owes the new bounded live observations. Stage E owns the approved
 chapter move and coherent cross-reference/sequence changes.
+
+### Interim narrative clarification after review
+
+Author response to `972d7087`: §23.5 now distinguishes same-process selection or
+reconnection to a still-registered child from inspecting a retrieved result in
+the restored owner's conversation after restart. Ephemeral task children are not
+automatically recreated. The existing typed GUI regression explicitly constructs
+a schema-bearing root with `NewAgent` and calls `Load`; it does not establish
+automatic task-child restoration. This correction adds no product behavior or
+new live claim. The full required documents remain in active context without
+intervening compaction. Only this paragraph and this note changed; final combined
+Stage D acceptance still awaits coder contracts, examples and independent review.
+Chapter23 hard prose lint and `git diff --check` pass; the existing soft person-gap
+warning remains. No code fence, historical artifact or executable example changed.

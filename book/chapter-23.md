@@ -384,10 +384,12 @@ conversations.
 
 Structured submissions use these same conversation surfaces. Render their tool
 arguments and results as text safely, retaining nested JSON data in the underlying
-result. Select the child during work and after restoration and compare the actual
-object, including arrays, booleans and nulls; finding one marker somewhere in a
-frame cannot establish that the payload survived. No separate result browser is
-needed.
+result. Select a registered child during work, then reconnect or reselect it in
+the same running application. After an application restart, inspect the retrieved
+result retained in the restored owner's conversation; ephemeral task children
+are not automatically recreated. Compare the actual object, including arrays,
+booleans and nulls; finding one marker somewhere in a frame cannot establish that
+the payload survived. No separate result browser is needed.
 
 A tree traversal can take several managers' locks. It therefore runs in a
 small coalescing worker outside the synchronous actor Observer; an activity
