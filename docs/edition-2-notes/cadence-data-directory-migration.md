@@ -1,6 +1,6 @@
 # Cadence data-directory migration — offline operator procedure
 
-Status: **prepared, not applied**. Cadence owns this small migration; Codex owns the separate compaction/submission-schema/chapter refactor. This note is not permission to overwrite Codex's files, rebuild or install its in-progress code, restart the live GUI, or push either repository.
+Status: **applied by Bill and live-verified on 2026-10-14**. The steps below remain as the historical procedure and recovery reference; do not rerun the initial migration. Cadence owns this small migration; Codex owns the separate compaction/submission-schema/chapter refactor. This note is not permission to overwrite Codex's files, rebuild or install its in-progress code, restart the live GUI, or push either repository.
 
 ## Purpose and boundaries
 
@@ -178,3 +178,13 @@ python3 migrate-cadence-data-dir.py
 ```
 
 Do not run the later commands if migration or validation fails. Ask Cadence to verify the running location and recovery after restart.
+
+## Live verification after Bill applied the procedure
+
+- Bill reported running the operator commands and restarting. The process inspection found the expected deployed binary and `--config` path. New runtime output was observed in `/Users/bill/projects/cadence-memories/io/`; the old `session/cr/io/` retained its previous timestamps. This establishes active use, not merely a changed configuration file.
+- The private backup is `session/cadence-data-dir-backup-j09slkh1`. A semantic comparison of its settings with the current application settings showed exactly one changed top-level field: `data_dir`.
+- The explicit `save_path`, workspace, skills path, and all six disabled memory switches were unchanged. The new directory is mode0700.
+- The specific all-bands-disabled checkpoint was found in the saved event history and saved dialogue. The restart message was found in the live journal. The snapshot was at sequence3684 and the journal advanced through3698 at the recovery check. Total handoffs remained4 and compactor launches2; no new compression was introduced.
+- All six copied runtime entries were present and ignored by Git. The memory repository was clean before these verification-note edits. The old data directory and migration backup remain intact.
+- Automatic SOUL/MEMORY loading is still disabled. No child was spawned for this verification, so new-child placement and restoration of historical child data remain separate checks when those paths are exercised.
+- No source-code change, rebuild, forced restart, or push was performed by Cadence for this migration. Bill performed the stop, migration, and restart.
