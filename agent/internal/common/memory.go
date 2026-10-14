@@ -164,6 +164,8 @@ type Compression struct {
 	Retired []Entry
 	// Selection is captured by Memory; callers must treat it as immutable.
 	Selection *CompressionSelection
+	// SelectionHash binds the staged record to the parent-authored launch fact.
+	SelectionHash string
 }
 
 // Memory owns corpus policy and disk operations through its required Agent parent.
@@ -183,6 +185,15 @@ type Memory interface {
 	// ValidateSelection refuses changed selected entries, files, destination or policy.
 	// New unrelated dialogue and files do not invalidate the selected prefix.
 	ValidateSelection(*Compression) error
+	// Stage writes a hidden candidate for the matching launched attempt. It does
+	// not change active files or History; callers serialize these commit operations.
+	Stage(string, *Compression, string) (*BandPopulatedData, error)
+	// Finish promotes and archives a committed receipt idempotently, preserving
+	// conflicting files and the hidden record on any error.
+	Finish(string) error
+	// Recover returns a terminal fact for the actor to append, then a second call
+	// cleans its hidden record. It never launches work or mutates History itself.
+	Recover() (*CompactionOutcomeData, error)
 	// Write persists replacement bytes before any source retirement.
 	Write(*Compression, string) error
 	// Archive preserves retired files outside the active scan pattern.

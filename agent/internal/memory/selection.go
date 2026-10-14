@@ -114,6 +114,11 @@ func (m *memory) selected(t *common.Compression) (*common.Compression, error) {
 		return nil, err
 	}
 	t.Selection = selection
+	encoded, err := json.Marshal(selection)
+	if err != nil {
+		return nil, err
+	}
+	t.SelectionHash = digest(encoded)
 	return t, nil
 }
 
@@ -128,7 +133,11 @@ func (m *memory) ValidateSelection(t *common.Compression) error {
 	if err != nil {
 		return err
 	}
-	if !reflect.DeepEqual(current, t.Selection) {
+	encoded, err := json.Marshal(current)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(current, t.Selection) || digest(encoded) != t.SelectionHash {
 		return fmt.Errorf("compaction selection changed while worker ran")
 	}
 	return nil

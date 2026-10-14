@@ -24,6 +24,27 @@ type compressed struct {
 // Running startup and re-enable reread disk so human corrections replace logged
 // bytes with the same identity. Offline history replay itself never scans files.
 func (r *runtime) syncMemory() error {
+	pending := r.owner.history.Context().Compression
+	if !r.memoryReady || pending != nil && pending.Committed != nil {
+		// Startup must settle the durable pair before scans or recall can see
+		// partly promoted/archived corpus files. Do not abandon a live attempt
+		// merely because ordinary settings synchronization runs again.
+		outcome, err := r.owner.memory.Recover()
+		if err != nil {
+			r.memoryReady = false
+			return err
+		}
+		if outcome != nil {
+			if err := r.append(common.Event{Type: "compaction_outcome", CompactionOutcome: outcome}); err != nil {
+				r.memoryReady = false
+				return err
+			}
+			if _, err := r.owner.memory.Recover(); err != nil {
+				r.memoryReady = false
+				return err
+			}
+		}
+	}
 	for b := common.BandSoul; b <= common.BandSession; b++ {
 		disabled := r.owner.memory.Settings(b).Disabled
 		wasDisabled := r.memoryDisabled[b]

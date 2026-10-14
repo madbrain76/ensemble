@@ -115,6 +115,9 @@ func path(a common.Agent, b common.Band, file, thru common.MemoryFileID) string 
 
 // Scan rereads enabled corpus files; no file identity cache can hide human edits.
 func (m *memory) Scan(b common.Band) ([]common.BandPopulatedData, error) {
+	if err := m.ready(); err != nil {
+		return nil, err
+	}
 	a := m.parent
 	var paths []string
 	if b <= common.BandMemory {
@@ -191,6 +194,9 @@ func nextID(a common.Agent) (common.MemoryFileID, error) {
 // Conversation selects oldest whole checkpoint segments until dialogue meets its budget.
 // Handoff notes enter the compressor input too; their surviving kind is not counted as dialogue.
 func (m *memory) Conversation() (*common.Compression, error) {
+	if err := m.ready(); err != nil {
+		return nil, err
+	}
 	a := m.parent
 	s := m.Settings(0)
 	if s.Disabled || m.Settings(common.BandSession).Disabled {
@@ -242,6 +248,9 @@ func (m *memory) Conversation() (*common.Compression, error) {
 
 // Graduation walks bottom-up, returning one oldest-first fold at a time.
 func (m *memory) Graduation() (*common.Compression, error) {
+	if err := m.ready(); err != nil {
+		return nil, err
+	}
 	a := m.parent
 	c := a.History().Context()
 	for b := common.BandSession; b >= common.Band64x; b-- {

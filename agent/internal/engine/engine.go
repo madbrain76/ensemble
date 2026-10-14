@@ -80,6 +80,11 @@ func (e *engine) Target() common.Provenance {
 // Offline replay and live requests share these bytes; credentials and URL
 // construction are transport-only. Referenced files must still contain the same bytes.
 func (e *engine) Render(c *common.Context) ([]byte, error) {
+	// A committed projection cannot be rendered alongside an unresolved active
+	// corpus. Recovery clears this receipt only after promotion/archive succeed.
+	if c.Compression != nil && c.Compression.Committed != nil {
+		return nil, errors.New("memory commit requires disk recovery before rendering")
+	}
 	switch e.parent.Config().Vendor {
 	case common.Anthropic:
 		return e.renderAnthropic(c)

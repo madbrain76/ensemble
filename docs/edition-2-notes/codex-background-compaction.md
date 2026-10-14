@@ -496,3 +496,72 @@ race1.173s; the reviewer accepted C5 for scoped checkpoint with no findings and
 zero formal Stage C rounds. Its audit retains exact source binding. The two original unsafe
 Write/event/Archive restart probes remain failures until Memory staging/finalization
 and runtime recovery gates are implemented; these receipt tests do not relabel them.
+
+## C6 implementation evidence: staged disk recovery and corpus holds
+
+After C5 checkpoint `c00af62b`, Memory owns the hidden versioned staging record,
+exact launch/selection/candidate binding, idempotent destination promotion and
+selected-source archiving. Finish retains the record; Recover returns a terminal
+fact for the actor to journal before a second call removes staging. Committed
+receipts refuse missing/corrupt/mismatched records and conflicting human edits.
+Startup and memory-settings synchronization recover before scanning; a failed
+committed receipt also blocks Memory selection/scan, recall search and rendering
+of that Context. Recall construction now defers indexing until its first query,
+so NewAgent cannot scan files before its embedding client loads History. This is
+the recovery slice; normal actor compaction still uses its legacy path pending
+the next scheduling/lifetime slice.
+
+The original direct-Write probes remain recorded failures of the old API. Their
+source is preserved at `/tmp/ensemble-compaction-legacy-recovery-before-staging.go`
+and the original raw baseline described under C1. The new regressions explicitly
+use Stage/Finish and real History snapshot/journal recovery; they do not claim
+unchanged legacy probes now pass. Saved-boundary cases cover hidden candidate,
+held cut, committed pair, promoted destination, one source archived, all sources
+archived and terminal outcome before staging cleanup. These are constructed real
+saved states followed by a fresh Agent Load/Ask, not forced process kills.
+
+Eleven damaged-record/file cases prove recovery errors preserve the committed
+receipt, prevent requests, block scan/selection/render/recall/re-enable, and permit
+retry after an explicit repair. Empty/stale output and a real not-a-directory
+staging failure preserve active source. A real unreadable directory proves recall
+construction defers indexing while the subsequent query actually reaches that
+corpus; this permission test passed, rather than skipping, on this host. Initial
+new tests passed0.046s; final focused race passed1.243s. Affected memory/recall/
+compaction compatibility race passed ensemble18.578s; internal memory/history had
+no package tests and internal recall/engine selected no tests in that command.
+Targeted vet passed. Raw outputs use
+`/tmp/ensemble-compaction-stagec-staging-{compile,initial,race,final,compatibility,vet}.txt`.
+
+Nineteen focused scratch mutations failed the intended checks: putting the hidden
+record in active memory; skipping startup recovery; skipping archiving; ignoring
+destination, source or archive conflict; rejecting already-retired matching source;
+ignoring selection digest, candidate digest, committed population identity, record
+version or unknown fields; bypassing scan, render or recall hold; eager constructor
+recall; deleting staging before terminal outcome; accepting empty memory; and
+accepting a stale Stage task ID. The active-candidate mutation exposes serialized
+record bytes to Scan, sufficient to demonstrate visibility rather than semantic
+memory quality. Skip-recovery fails on the required successful restart because the
+remaining scan hold refuses access. Logs use
+`/tmp/ensemble-compaction-stagec-staging-mutant-<case>.txt`; each scratch tree was
+removed. The stale-ID mutation initially matched two source sites and was refused
+by the scratch edit assertion before building; a scoped replacement then failed
+the intended Stage refusal check. That setup assertion is not a mutation kill.
+Malformed JSON uses the standard decoder; write refusal uses the actual filesystem;
+inherited journal ordering/selection checks retain C4/C5 evidence rather than
+claiming new independent mutations for unchanged behavior.
+
+No model was called live. No power-loss guarantee, transaction against arbitrary
+external editors, full worker lifetime/accounting, or complete Stage C acceptance
+is claimed. Independent C6 review accepted this scoped slice with no production
+correction and zero formal Stage C rounds. Its exact predecessor-plus-eight-path
+reconstruction passed the six focused test functions under race in1.262s, with
+no skipped startup permission test; the runtime audit retains the source binding.
+
+Independent review requested the distinct existing-MEMORY.md promotion branch.
+Added a real staged commit/restart with exact curated replacement and a human
+edit refusal preserving bytes/receipt. The final focused race including both
+passed1.258s (`staging-reviewed.txt`). Two additional mutations fail the intended
+curated checks: skipping an existing destination update leaves old bytes; ignoring
+its prior fingerprint overwrites the human edit (`staging-mutant-curated-{replacement,conflict}.txt`).
+These bring the C6 total to21 intended mutant failures, with the setup assertion
+above kept separate. No production correction was required for these added cases.
