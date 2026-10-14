@@ -607,3 +607,34 @@ After coordinator compaction, the entire skill and all four governing/craft
 documents were reloaded, followed by full Chapters14/15 and the handoff.
 Truncated carryover/handoff output was recovered in separate reads before
 formal review resumed. No summary substituted for the required source.
+
+
+## Stage E preparation: references and executable identity
+
+Coordinator source inspection only; no renumbering or export is performed yet.
+The current command dispatch (`cmd/grade-edition2/main.go`) selects GUI for
+current14–20 except ungraded19, core for21–23 and the dedicated Gateway command
+for26. Under the approved mapping, GUI remains14,15,16,18,22,23; core becomes
+19,20,21;17 stays ungraded;26 retains its separate command. Update help strings,
+Makefile grade targets, default solution paths and report titles with those
+semantics. Memory still invokes Chapter14 parity. Original rubric IDs, course
+model IDs and immutable historical evidence keep their identities.
+
+The chapter index, solutions table/manifest links and map need the current
+sequence, while narrative references require contextual review. Invoice's
+current `Extend solutions/ch16` must become new14, not a mechanical mapping to
+new23. Historical original-numbered constructor lists in current20 and the
+Chapter19 grader/bisect story in current22 remain original-source references;
+label that provenance where needed. Current Chapter0 and epilogue references
+to the bounded crossover task move to new17, while Bill's preface remains his
+own. A preliminary121-line reference inventory lives at
+`/tmp/ensemble-stage-e-reference-inventory.txt`; regenerate after final D edits.
+It is an editing aid, not proof that every reference is covered.
+
+`scripts/assemble-book.sh` already consumes sorted chapter filenames; verify
+its inputs after the move, without rebuilding the committed assembled Markdown,
+PDF or EPUB automatically. Existing export tooling accepts committed `agent/`
+source from either worktree through an explicit repository/revision and writes
+to absent destinations. Preserve exact source identities and old immutable tags;
+only promote freshly validated reconstructed exports. Current24/26 still need
+the affected carry-forward and validation. No accepted25 export is introduced.
