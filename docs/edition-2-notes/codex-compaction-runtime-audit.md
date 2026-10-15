@@ -1682,3 +1682,69 @@ watermarks. Those effective values are1200/600 by memory.Settings, rather than a
 observed effective-settings snapshot. Label that derivation or explicitly configure
 and retain the values before live use. This requires no runtime change or paid
 repeat and does not change the verified rehearsal results.
+
+## Stage D stale/failure grader preparation, October 14
+
+Reviewed exact D6 checkpoint223d6b78 and D7 checkpoint8eb924fa, their complete
+coder explanations and all retained positive, initial-fixture and mutation outputs.
+The full skill and four governing/craft documents remain active from the preceding
+reload, without intervening compaction. Active D8 accounting edits are excluded
+from this disposition. No test, grader, application edit or live invocation was
+performed by this reviewer; this continues pre-submission assistance without an
+extra slice gate or a formal correction round.
+
+D6 establishes which oldest two files were selected in the real provider request
+before changing either their bytes or destination policy. It retains a third-file
+control, returns policy through acknowledged off/on settings, and checks the exact
+captured task's reasoned invalidation, all three surviving files byte-for-byte,
+empty active destination and source-bearing next main request. The shared public
+snapshot/journal reader retains its journal-first ordering and complete-line rule.
+No private staged-file format or internal hook awards points. The initial low200
+fixture legitimately selected all three202-byte files; corrected low225 passes.
+That fixture error is retained, not described as a runtime defect.
+
+D7 supplies whitespace, wrong-type and syntactically complete length-stopped
+responses through the actual child/provider path. The wrong-type case must put a
+real validation error in a subsequent child request; an eventual owner parse error
+cannot satisfy it. The length case changes the provider's terminal fact while
+preserving valid arguments and measured usage. Exactly one failed correlated
+attempt, bounded sends and retained source ends in the next actual request are
+checked independently of successful process exit. The local peer has no auth
+challenges, so its observed HTTP count is not a general transport-retry bound.
+
+The full memory predicate race runs pass3.737s and4.068s respectively; neither is
+relabeled a full advertised Chapter15 score including parity. I inspected all
+eight intended mutation failures. D6's bypassed admission is still stopped by
+Stage and fails the promised invalidated classification; it does not prove removal
+of every file guard. D7's empty-memory mutant removes four enforcement sites and
+is one coupled policy claim. The other failures reach the intended stale commit,
+active candidate, missing source, fourth request, missing correction and truncated
+commit assertions. Source and evidence support these narrow grader additions;
+there is no correction requested. Whole Stage D acceptance remains pending the
+remaining predicates, final public contracts/examples and advertised checks.
+
+### D8 accounting grader disposition
+
+Reviewed complete frozen checkpoint4ef71dbc, its note, inherited status/invoice
+comparators and every retained D8 output. The scoped grader addition is accepted;
+full Stage D remains pending. A held worker completes after the main response,
+then the existing public selection replay exposes the owner's current meter
+before another main response could overwrite Last. Actual agent_status calls
+separately establish four disjoint usage counts in owner totals once for successful
+and failed workers, followed by only each subsequent main request's new counts.
+A fresh restored process makes actual status requests and must not rebill retained
+historical outcome usage or launch another worker. This is submitted-executable
+evidence; model/tier attribution, cache-lens exclusion and defensive copies remain
+separate B/C source evidence. No runtime change or numerical weight change occurs.
+
+The original repeated-subscribe observation timed out because that operation does
+not request fresh replay; it is retained as a fixture error, not an accounting
+failure. The corrected public select_agent control passes2.041s; the full affected
+memory/accounting race run passes4.441s on Agent tree4871633e, with vet reported
+successful. This does not replace D7's earlier source identity or claim a full
+advertised Chapter15 score. Complete mutant logs confirm omitted failed-worker
+counts, duplicate import and historical rebilling fail the corresponding actual
+totals. Overwriting Last fails specifically the first post-drain snapshot while
+later status calls recover it, supporting the new observation's purpose. None of
+these four outputs contains a compile/setup failure. No additional test sweep or
+implementation edit is requested. I ran no tests or graders for this review.
