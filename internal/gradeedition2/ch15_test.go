@@ -87,6 +87,23 @@ func TestMemoryProtocolFailures(t *testing.T) {
 	}
 }
 
+// TestMemoryHeadroom checks actual near-window waiting, failure and interruption
+// with a held worker and the owner's responsive public settings interface.
+func TestMemoryHeadroom(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	for _, mode := range []string{"success", "failure", "interrupt"} {
+		t.Run(mode, func(t *testing.T) {
+			if err := memoryHeadroom(bin, t.TempDir(), mode); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 // TestMemoryAccounting checks measured successful and failed child usage through
 // actual status tools, repeated main requests, and a fresh restored process.
 func TestMemoryAccounting(t *testing.T) {

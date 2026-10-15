@@ -80,6 +80,11 @@ func memoryChecks(bin string) contextResult {
 		}
 	}
 	memoryForce(run, newDir("force"), &r)
+	for _, mode := range []string{"success", "failure", "interrupt"} {
+		if err := memoryHeadroom(bin, newDir("headroom-"+mode), mode); err != nil {
+			r.fail("forced-handoff", "%s pending headroom: %v", mode, err)
+		}
+	}
 	for _, failed := range []bool{false, true} {
 		usageErr, replayErr := memoryAccounting(run, newDir(fmt.Sprintf("accounting-%t", failed)), failed)
 		if usageErr != nil {

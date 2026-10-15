@@ -644,3 +644,52 @@ new accounting fixture99/88/8, tests137/117/12→168/145/14. Blank lines are exc
 from active counts. Existing status and invoice comparators are reused; no new
 runtime or accounting abstraction was introduced. Near-window/lifecycle/I/O and
 recall predicates, chapter contracts and combined StageD acceptance remain pending.
+
+## D9: causal near-window waiting and interruption
+
+The existing forced-handoff row now holds a real child after a measured main
+response with3000 input,900 cache-read and100 cache-write tokens against the course
+model's4096-token window. The owner must report waiting and acknowledge an empty
+settings transaction while only one main request has reached the peer. Releasing
+a valid child lets the turn continue with the exact replacement and without the
+selected raw work. Releasing an empty candidate must instead end that turn with
+an explicit compaction error before any second main request; a later explicit
+prompt verifies retained source. The third case interrupts the waiting turn,
+starts a new turn while the same worker is held, and then accepts that worker's
+successful outcome. All cases require the captured task's correlated terminal
+record and bounded actual main/worker request counts before EOF.
+
+The external hold leaves the fake's capture mutex free. Settings acknowledgment
+provides an actor boundary; a sleep or request arrival alone is not completion.
+The interruption case proves that the useful attempt survives and serves the new
+turn; it does not independently reproduce every stale/duplicate mailbox delivery
+or the internal waiter-pointer cleanup ordering. Existing C10 regressions retain
+those separately stated limits. Below-threshold progress remains D2's positive
+control; these checks deliberately exercise the accepted95% exception.
+
+Initial fixture failed9.883s by combining immediate model selection with saved
+memory preferences in one patch. The existing GUI correctly requires separate
+operations, so no runtime waiting defect was established. Raw
+`/tmp/ensemble-compaction-d9-headroom.txt`. Separate acknowledged patches, including
+an effective course-model check, pass focused race1.404s;
+`/tmp/ensemble-compaction-d9-headroom-fixed.txt`.
+
+Five isolated intended mutations fail: `no-wait` skips the actual pending-worker
+hold; `cached-input` ignores the two cache buckets in occupancy; `failed-render`
+resumes inference after failed held work; `interrupt-kills` shuts down the worker
+on owner interruption and loses the shared-attempt continuation; `settings-blocked`
+withholds settings acknowledgments while waiting. Raw logs are
+`/tmp/ensemble-compaction-d9-mutant-<name>.txt`. Waiting/settings timeouts are the
+specific liveness predicates with passing controls, not unrelated build failures.
+All scratch copies were removed; no runtime file was edited in the primary tree.
+
+Final affected memory/headroom race passes4.272s (memory2.85s, focused0.40s),
+`/tmp/ensemble-compaction-d9-memory-final.txt`; package vet passes,
+`/tmp/ensemble-compaction-d9-vet.txt`. Final changes afterward add only four
+explanatory comment lines. No advertised full15/parity score or live-model result
+is claimed. Against D8, physical/active/`//` comment-only counts are
+ch15.go547/480/51→552/485/51, new headroom fixture211/196/12,
+tests168/145/14→185/159/16. This fixture uses existing public process, settings,
+activity, request and durable-record helpers without a new synchronization
+framework. Explicit kill/shutdown, destination-I/O and recall predicates,
+chapter-contract reconciliation and combined review remain pending.
