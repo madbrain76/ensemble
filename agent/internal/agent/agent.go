@@ -100,11 +100,7 @@ func (a *agent) Declarations() []common.ToolDeclaration {
 			continue
 		}
 		declaration := tool.ToolDeclaration
-		if tool.Name == "submit" {
-			declaration.Schema = a.fleet.SubmitSchema()
-		} else {
-			declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)
-		}
+		declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)
 		declarations = append(declarations, declaration)
 	}
 	return declarations
@@ -223,10 +219,6 @@ func (a *agent) SetSystemPrompt(prompt string) {
 func (a *agent) allowedTool(name string) bool {
 	if a.spec.Compaction {
 		return name == "submit"
-	}
-	switch name {
-	case "spawn_sub_agent", "join_agents", "agents_status", "shutdown_agent", "send_message_to_parent", "respond_to_parent_message", "submit", "wait_for_agent_change", "send_message", "wait_for_agent", "ask_agent", "get_submission", "kill_agent", "get_sub_agent_status", "interrupt_agent":
-		return a.Ensemble().FleetEnabled()
 	}
 	if a.spec.SafeMode {
 		switch name {

@@ -505,3 +505,143 @@ func TestStructuredSubmissionFactoryOwnership(t *testing.T) {
 		}
 	}
 }
+
+// A shared name does not make a browser or application tool a fleet submission.
+// Exercise real MCP routing beside compiled precedence, including a factory
+// installed after an existing Agent's tools were composed but before it starts.
+func TestSubmissionToolIdentity(t *testing.T) {
+	for _, tc := range []struct {
+		name                          string
+		builtins, fleet, late, custom bool
+	}{
+		{name: "MCP without builtins"},
+		{name: "MCP with builtins", builtins: true},
+		{name: "compiled without builtins", fleet: true},
+		{name: "compiled with builtins", builtins: true, fleet: true},
+		{name: "MCP before factory", late: true},
+		{name: "custom before factory", late: true, custom: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			app := ensemble.New(io.Discard)
+			factory := func(parent ensemble.Agent, spec ensemble.AgentSpec) (ensemble.Agent, error) {
+				return app.NewChildAgent(parent, parent.Config(), spec)
+			}
+			if tc.fleet {
+				app.SetAgentFactory(factory)
+			}
+			a, err := app.NewAgent(ensemble.Config{Model: "fake", DataDir: t.TempDir(), BuiltinTools: tc.builtins}, ensemble.AgentSpec{SubmitSchema: json.RawMessage(memorySubmitSchema)})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer a.Shutdown()
+			schema := json.RawMessage(`{"type":"object","properties":{"question":{"type":"string"}},"required":["question"]}`)
+			if tc.custom {
+				err = a.RegisterTool(ensemble.ToolDeclaration{Name: "submit", Schema: schema}, func(_ ensemble.ToolContext, raw json.RawMessage) (string, error) {
+					var args struct {
+						// Question belongs to the custom tool, not the fleet contract.
+						Question string
+					}
+					if err := json.Unmarshal(raw, &args); err != nil {
+						return "", err
+					}
+					return "custom: " + args.Question, nil
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			if tc.late {
+				app.SetAgentFactory(factory)
+			}
+			local, remote := ensemble.MCPPipe()
+			defer remote.Close()
+			var peerCalls atomic.Int32
+			go func() {
+				for {
+					data, err := remote.Recv()
+					if err != nil {
+						return
+					}
+					var request struct {
+						// ID correlates this protocol reply with its caller.
+						ID json.RawMessage
+						// Method selects discovery or an actual remote invocation.
+						Method string
+						// Params preserves the call that reached the external peer.
+						Params struct {
+							// Name identifies the selected MCP tool.
+							Name string
+							// Arguments proves custom input survived dispatch and transport.
+							Arguments struct {
+								// Question is the peer's required input field.
+								Question string
+							}
+						}
+					}
+					if json.Unmarshal(data, &request) != nil {
+						return
+					}
+					var result any
+					switch request.Method {
+					case "initialize":
+						result = map[string]any{"protocolVersion": "2024-11-05", "capabilities": map[string]any{"tools": map[string]any{}}}
+					case "tools/list":
+						result = map[string]any{"tools": []any{map[string]any{"name": "submit", "inputSchema": schema}}}
+					case "tools/call":
+						peerCalls.Add(1)
+						if request.Params.Name != "submit" {
+							t.Error("wrong MCP tool", request.Params.Name)
+						}
+						result = map[string]any{"content": []any{map[string]any{"type": "text", "text": "peer: " + request.Params.Arguments.Question}}}
+					default:
+						continue
+					}
+					response, _ := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": request.ID, "result": result})
+					if remote.Send(response) != nil {
+						return
+					}
+				}
+			}()
+			ctx := submissionContext(t)
+			if err := a.MCP().Connect(ctx, "browser", local); err != nil {
+				t.Fatal(err)
+			}
+			found := 0
+			for _, declaration := range a.Declarations() {
+				if declaration.Name == "submit" {
+					found++
+					want := schema
+					if tc.fleet {
+						want = json.RawMessage(memorySubmitSchema)
+					}
+					sameJSON(t, declaration.Schema, want)
+				}
+				if !tc.fleet && declaration.Name == "spawn_sub_agent" {
+					t.Fatal("disabled fleet tool registered")
+				}
+			}
+			if found != 1 {
+				t.Fatal("submit declaration count", found)
+			}
+			args, want, wantPeer := json.RawMessage(`{"question":"IDENTITY_MARKER"}`), "peer: IDENTITY_MARKER", int32(1)
+			if tc.custom {
+				want, wantPeer = "custom: IDENTITY_MARKER", 0
+			}
+			if tc.fleet {
+				args, want, wantPeer = json.RawMessage(`{"memory":"IDENTITY_MARKER"}`), `submitted: {"memory":"IDENTITY_MARKER"}`, 0
+			}
+			got, err := a.Invoke(ctx, "submit", args)
+			if err != nil || got != want || peerCalls.Load() != wantPeer {
+				t.Fatal("submit dispatch identity", got, err, peerCalls.Load())
+			}
+			if !tc.fleet {
+				if a.Fleet().Status().State == "submitted" {
+					t.Fatal("external submit completed fleet")
+				}
+				if _, err := a.Invoke(ctx, "spawn_sub_agent", json.RawMessage(`{"agent_id":"x","task":"x"}`)); err == nil || !strings.Contains(err.Error(), "unknown tool") {
+					t.Fatal("disabled fleet dispatch", err)
+				}
+			}
+		})
+	}
+}

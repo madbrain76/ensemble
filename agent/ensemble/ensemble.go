@@ -299,17 +299,25 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 			a.Shutdown()
 		}
 	}()
-	if spec.Compaction {
-		for _, definition := range tools.FleetTools() {
-			if definition.Name == "submit" {
-				a.SetTools([]common.ToolDefinition{definition})
-			}
-		}
-	} else if cfg.BuiltinTools {
-		a.SetTools(tools.Builtins())
-	} else if e.FleetEnabled() {
-		a.SetTools(tools.FleetTools())
+	var definitions []common.ToolDefinition
+	if cfg.BuiltinTools {
+		definitions = tools.Builtins()
 	}
+	if spec.Compaction || e.FleetEnabled() {
+		for _, definition := range tools.FleetTools() {
+			// Internal workers retain submit without enabling public delegation.
+			if spec.Compaction && definition.Name != "submit" {
+				continue
+			}
+			// Bind the contract to this compiled handler, not the name of an
+			// unrelated custom/MCP tool such as the blind persona's submit.
+			if definition.Name == "submit" {
+				definition.Schema = contract.Schema()
+			}
+			definitions = append(definitions, definition)
+		}
+	}
+	a.SetTools(definitions)
 	if spec.SkillsDir != "" || spec.PrimarySkill != "" || len(spec.StartupSkills) != 0 {
 		sr, err := skills.New(a, spec.SkillsDir)
 		if err != nil {

@@ -738,3 +738,63 @@ distinction for future receipts. This last metadata-only label has syntax/source
 validation, without claiming another application rehearsal or changing the
 retained run's launcher hash. No live inference, deployment or publication has
 occurred; the sequence gates still precede Stage F.
+
+
+## October 14: submit identity carried into the full runtime
+
+Reconstruction coder carried only the independently reviewed tool-identity
+correction (`e9fd0676`, reconstructed source `f3009a05`) onto primary
+`80434965`, predecessor Agent tree `ec61c01d3f9841364843c1b7e1998d9c573790a4`.
+This is maintenance with reviewed-source exposure. No cumulative reconstructed
+Agent tree was merged. The three production regions install fleet definitions
+at composition, bind the immutable schema to the actual compiled submit handler,
+and uniformly copy stored declarations instead of classifying tools by name.
+Real MCP/custom submit retains its own contract and invocation, including when
+a public factory is enabled after construction. Compiled tools retain precedence.
+
+The current-runtime adaptation preserves restricted compaction construction:
+its normalized configuration disables ordinary builtins; its internal worker
+gets only compiled submit even without public delegation; its early admission
+filter remains. Default/custom factories, SafeMode, memory/recall, management and
+Gateway behavior are retained. The focused regression is copied unchanged from
+the reviewed reconstruction; no additional public API or origin framework exists.
+Root independently inspected these production paths before checkpoint.
+
+All commands strip provider/application environment and use temporary EN_HOME.
+Raw outputs below are in `/tmp/ensemble-submit-identity-checks/`:
+
+| Check | Actual result (launcher wall seconds) |
+| --- | --- |
+| `baseline.txt`: new identity regression on unchanged production | FAIL1.342s: missing MCP declaration, custom admission refused, and late-factory MCP schema replaced. |
+| `focused-race.txt`: identity/structured plus construction, safety, finite execution, factory, background/lifetime/accounting controls | PASS3.725s (`ensemble/ensemble`1.799s). |
+| `core-library.txt`: `go test -short -count=1 -timeout 120s ./ensemble ./internal/...` | PASS32.959s, including memory/recall and Gateway paths; this is not a root CLI suite claim. |
+| `gui.txt`: separate GUI `go test -short -count=1 -timeout 120s ./...` | PASS9.289s. |
+| `core-vet.txt`, `gui-vet.txt`: `go vet ./...` in each module | PASS0.325s /0.266s. |
+| `browser-speech.txt`: `node --test speech.test.mjs` | PASS3.473s, real browser/Agent and blind capability path. |
+| `mutant-worker-registration.txt`: remove internal-purpose alternative from composition guard in isolated scratch | Intended FAIL0.989s: both no-public-factory cases report `worker tools=[]`; trusted custom-factory controls still pass. |
+
+Baseline failures are preserved, not called setup failures. The two reviewed
+reconstruction restored-name-gate/schema mutants retain their original evidence
+and are reused for unchanged behavior; the additional primary mutation checks
+the actual memory-only adaptation. Scratch mutant removed. Formatting/diff checks
+pass. Existing separately recorded root CLI failure remains unchanged and is not
+relabeled by these passing library tests. No grader, paid run or deployment was
+performed; the grader coder held application builds during this source change.
+
+Comparing against primary80434965, production changes total0 physical/-3 active/
++3 comment-only Go lines; the focused regression adds140/129/10. Active excludes
+blank and `//`-only lines. These are a small composition correction and a real
+external-peer regression, preserving owner contracts and explaining binding and
+worker lifetime without introducing new machinery. Exact changed source hashes:
+
+- `agent/ensemble/ensemble.go`: `14eccb60037f15ad4ac14dd53492bdc3dbfc9e21ee5b499e9aefdb85abce15af`.
+
+- `agent/internal/agent/agent.go`: `b39f9c60c4a598791813c8a49af047f1b6fa8b53d38d4706b93d1bacdcade19a`.
+
+- `agent/internal/tools/tools.go`: `3c66f33f2cc95a5aac52d5d92d635e267f2f3f6400ac163f0a74dfe324d9ae44`.
+
+- `agent/ensemble/submission_test.go`: `6b0a245cebc69d67115189ca680f430734cd7a2f0d133a61a0fb5b49139250c4`.
+
+This checkpoint awaits its own final carry-forward review; reconstructed new20
+acceptance is separate. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`;
+the complete skill and four governing documents were reloaded after compaction.

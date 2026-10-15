@@ -69,7 +69,7 @@ func Builtins() []common.ToolDefinition {
 			Run: runCommand,
 		},
 	}
-	return append(append(append(definitions, supervision()...), contextTools()...), FleetTools()...)
+	return append(append(definitions, supervision()...), contextTools()...)
 }
 
 // Presence is different from an empty value: writing an empty file is valid,
