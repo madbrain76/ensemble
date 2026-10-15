@@ -220,6 +220,39 @@ def run_pandoc(src: Path) -> None:
         sys.exit(f"FATAL: pandoc failed:\n{r.stderr}")
 
 
+def build_reading_pdf(interior_path: Path) -> None:
+    """Prepend the cover without losing Chrome's named contents destinations.
+
+    Concatenation can retain link annotations while discarding their name tree.
+    Resolve those names in the original PDF, then offset explicit page targets.
+    resolve_link also converts PDF coordinates to PyMuPDF page coordinates.
+    """
+    output = BOOK / "The Art of Building AI Coding Agents.pdf"
+    with pymupdf.open(interior_path) as interior, pymupdf.open() as reading:
+        rect = interior[0].rect
+        cover = reading.new_page(width=rect.width, height=rect.height)
+        cover.insert_image(cover.rect, filename=str(BOOK / "cover.png"),
+                           keep_proportion=True)
+        reading.insert_pdf(interior, links=False)
+        count = 0
+        for index, page in enumerate(interior):
+            for original in page.get_links():
+                link = {k: v for k, v in original.items()
+                        if k not in ("xref", "id", "nameddest")}
+                if "nameddest" in original:
+                    target, x, y = interior.resolve_link("#" + original["nameddest"])
+                    if target < 0:
+                        sys.exit(f"FATAL: unresolved contents link {original['nameddest']}")
+                    link.update(kind=pymupdf.LINK_GOTO, page=target + 1,
+                                to=pymupdf.Point(x, y))
+                elif link["kind"] == pymupdf.LINK_GOTO:
+                    link["page"] += 1
+                reading[index + 1].insert_link(link)
+                count += 1
+        reading.save(output, deflate=True)
+    print(f"  reading PDF: cover plus interior, {count} links preserved")
+
+
 def main() -> None:
     src = BOOK / "interior-print.html"
     pdf = BOOK / "The Art of Building AI Coding Agents - Print Interior.pdf"
@@ -265,6 +298,7 @@ def main() -> None:
     check_type_size(pdf)
     n = subprocess.run(["pdfinfo", str(pdf)], capture_output=True, text=True).stdout
     print("\n" + "\n".join(l for l in n.splitlines() if l.startswith(("Pages", "Page size"))))
+    build_reading_pdf(pdf)
 
 
 if __name__ == "__main__":

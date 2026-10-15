@@ -970,3 +970,29 @@ live unrelated-turn overlap, selected-child fallback and sampled accounting-delt
 proof. Existing deterministic evidence establishes those mechanisms.
 No publication artifact was regenerated, no preface text changed, and no push or
 upload occurred. Publication and production deployment remain separate decisions.
+
+## October 14: authorized deployment and publishing rebuild complete
+
+Bill stopped Ensemble and authorized the remaining work. Root rebuilt the GUI
+from main `274d3a49` (Agent tree `4ff207e66df6d49cbdea462df2f6753d421779d8`),
+backed up the installed binary and three saved-state files, and installed it at
+`/Users/bill/ensemble-edition2-codex/bin/ensemble-gui`. The existing launcher still
+uses `/Users/bill/projects/cadence-memories/session/settings.json`; configuration
+and launcher hashes are unchanged. Astra/high and the Codex route are preserved.
+
+The first detached launch exited normally on closed terminal input. Starting via
+Terminal succeeded, with a running process and HTTP 200 at localhost:8088. No chat
+prompt or new paid compaction exercise was submitted. This is installed/startup
+verification, separate from the earlier isolated semantic-memory evidence.
+Rollback material is local under
+`/Users/bill/ensemble-edition2-codex/backups/before-background-compaction-20261014-191451/`.
+Stop the application before replacing a binary. The saved-state backup is for
+recovery; restoring it after new work would discard later conversation.
+
+All five publishing artifacts were regenerated. Independent review accepted the
+577-page interior, 578-page reading PDF, chapter order, EPUB references and
+representative pages at the retained 7×10, 12pt/10pt settings. Review caught and
+verified a repair to the reading PDF's contents links; the print builder now
+preserves them when prepending the cover. The preface and chapters are unchanged.
+See the [release receipt](../../solutions/evidence/background-compaction/deployment-publication.json)
+and [publication record](../edition-2-publication.md). No upload or push occurred.

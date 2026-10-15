@@ -12,7 +12,7 @@ checkpoint until a separate publication build is reviewed.
 ## Prerequisites
 
 Use Python 3 and pandoc. Print production also needs Google Chrome and the
-Poppler tools `pdftotext`, `pdfinfo` and `pdfunite`. The print build and cover-page
+Poppler tools `pdftotext` and `pdfinfo`. The print build and cover-page
 conversion use PyMuPDF, including checks of actual PDF font sizes
 (`python3 -m pip install pymupdf`).
 
@@ -74,21 +74,10 @@ Chrome's automatic scaling.
 Inspect the resulting PDF as well as the script's result, particularly long code
 lines, tables, chapter starts and page footers.
 
-To create the cover-prefixed PDF after a successful interior build:
-
-```sh
-python3 - <<'PY'
-import pymupdf
-with pymupdf.open() as cover:
-    page = cover.new_page(width=504, height=720)
-    # Preserve the existing artwork's proportions on the new page size.
-    page.insert_image(page.rect, filename='book/cover.png', keep_proportion=True)
-    cover.save('/tmp/ensemble-cover-page.pdf', deflate=True)
-PY
-pdfunite /tmp/ensemble-cover-page.pdf \
-  'book/The Art of Building AI Coding Agents - Print Interior.pdf' \
-  'book/The Art of Building AI Coding Agents.pdf'
-```
+The print build also creates the cover-prefixed PDF, preserving the existing
+artwork's proportions. It resolves the interior's named contents links and shifts
+their targets by one page. Plain PDF concatenation can discard those named
+destinations while leaving apparently clickable links that go nowhere.
 
 The cover-prefixed PDF should contain exactly one more page than the interior.
 Verify both page counts and the 504 × 720 point page size with `pdfinfo`.

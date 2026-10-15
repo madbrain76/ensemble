@@ -1,0 +1,138 @@
+{
+  "source_commit": "274d3a49ee720d322c3980be56b7aad02afdda4d",
+  "source_agent_tree": "4ff207e66df6d49cbdea462df2f6753d421779d8",
+  "user_authorization": "Bill stopped Ensemble and requested proceeding with the remaining deployment and publishing work.",
+  "commands": [
+    "make ebook",
+    "python3 book/build-print.py",
+    "build_reading_pdf(interior) after correcting named PDF destinations",
+    "go build -o /tmp/ensemble-gui-release-274d3a49 ./cmd (agent/gui)",
+    "start via Terminal"
+  ],
+  "artifacts": {
+    "book/the-art-of-building-ai-coding-agents.md": {
+      "sha256": "482f1f09347a1400f2df04929ba71b395b6137e989a670eb89d27092567532c0",
+      "bytes": 1062690
+    },
+    "book/The Art of Building AI Coding Agents.epub": {
+      "sha256": "d75e720ac3ae549735bb4c4c0e465db9f2a3cd488e1486e5f0c3ed2643495f48",
+      "bytes": 17065869
+    },
+    "book/interior-print.html": {
+      "sha256": "0d3b03735f7f5a93ed5e37d1ca0c7a0779bb34678b393965d78b75b7f6234c7d",
+      "bytes": 1513234
+    },
+    "book/The Art of Building AI Coding Agents - Print Interior.pdf": {
+      "sha256": "4a1777dd0d10b202bcafebbd18436491108ccf281fc540365ef24968162d056c",
+      "bytes": 6522260,
+      "pages": 577,
+      "page_points": [
+        504,
+        720
+      ],
+      "words_outside_page": 0
+    },
+    "book/The Art of Building AI Coding Agents.pdf": {
+      "sha256": "de1a40cbe606760f34d0af5148197fdf76b3ac83adfa1e3ce3b3e83e705177b7",
+      "bytes": 19375511,
+      "pages": 578,
+      "page_points": [
+        504,
+        720
+      ],
+      "words_outside_page": 0
+    }
+  },
+  "input_hashes_before": {
+    "book/front-matter.md": "62f8f4f2789959ddd2670b7efa669e337dc8cadee90be04e1b43d3b48ce92506",
+    "book/epilogue.md": "aa99f2dd1e90413adf4e8fc893ee81aa85c9df282f174709fb98eca931112bb5",
+    "book/voice.md": "35139b7897b13fdf9af038a2bc5bc341d6f1a3638e427578a70d94ced6bd9909",
+    "book/note-from-bill.md": "669ccd62c4df8462aff74152328a2f10dc67d89c303636e96782c31148897948",
+    "book/front-matter-print.md": "6a64689259d03c568befd803cbced41b2062f7a09cab1f7822f5187a6f437df8",
+    "book/chapter-15.md": "d2bdcb85251a47207731a4af4067b39cf77dff9e005b0c47e064e29bdd4b5b2f",
+    "book/chapter-21.md": "4988341ea73f3479ee3edaaa3f5866ab21d8bfee40bbcc8fbc4354c29834c121",
+    "book/chapter-05.md": "b50de003bcbf2f486fad04e3db608572350001c2a778114201e458a0dfa13297",
+    "book/chapter-25.md": "20d12b52df0d20241adc98f03c65d2242703569e4d1be8116900a75f03ae197a",
+    "book/chapter-11.md": "3b6e138ba7bcb0cad8e53b01b23d206b6a26f503670a05d8cf637bbd40378638",
+    "book/chapter-01.md": "f900577d2826a5adc1d6748297b0a20aa23879088ffd027a0fd01fb3c108828a",
+    "book/chapter-24.md": "2d8cafa7bac9555f79efa927f05f9e8d88a37ca9cff96f21caa3ecc993729351",
+    "book/chapter-10.md": "75f1936ca8f1bdd005d2f48411dc00c2d50885cfdf6d93c63cb7015bbcbb9d10",
+    "book/chapter-00.md": "e3b7e91ddb630b87edfd39affd177858fe9a773398054a5c843219c9f6b48317",
+    "book/chapter-14.md": "88d9ec81e886f9c8bdc5c5ebbc0865b794fdc4fda1af6005a94665435e775c9b",
+    "book/chapter-20.md": "1e3ba55bac4c9c4697619a10184e16c127ecbdd5d9d00ce4fc9978d02363faee",
+    "book/chapter-04.md": "b5b89281bdb8aaeee58fc2d5777c2fec8d70f6d048fb83f675487219188a308d",
+    "book/chapter-13.md": "fa4466761e22056e11063b032ff1c4d34e9c6cab6e6a90a940fd9119ab747328",
+    "book/README.md": "2e5f034b539f33900a4e93b1aa3989a5b970c6ed86e1887b12626c3f25cd0477",
+    "book/chapter-03.md": "605a504caa0f7828549e137473706286d7ad9c330069d1624afe770e80e72aa6",
+    "book/chapter-17.md": "bca4ef34f0f5046a9041572b1639948d13f9d9e590b692f05ddb7264eb4d72cd",
+    "book/chapter-23.md": "0b88bd6fa42f1cab51c97b2eb1e9969c479fb8d9777213ce01b66ae28eede7f6",
+    "book/chapter-07.md": "a37b55744fecb55ad5a80dbb4e735028a1ef954c2529121e3a6851388ab194b1",
+    "book/chapter-16.md": "02b7553faa21a851f07b338d9ee97d73bab2d43abed5b9f18deb56a4529d45a6",
+    "book/chapter-22.md": "bf04eaf452445667113b0e6365e34cda2a251446ff70cd8524effa04fb289a14",
+    "book/chapter-06.md": "55e92c2065539b543f09705dc7729cc7fc6b6ec1f7254f5ea17dffce274442c4",
+    "book/chapters.md": "cb4824a27fa21927a96b3eb5b26523717eed5f5337e959d61c90b4d4f84af6e4",
+    "book/chapter-26.md": "732145632e7d8724e7079a69e1365a58c04d09f3c5380f854579ba1cbc2cbd1a",
+    "book/chapter-12.md": "1976cc118bbdab5ca48d0b29ee5b3e4a46631367ad711d6bb4dd75fa2fe3bfff",
+    "book/chapter-02.md": "3bdf466630d594670779af9687f6ab0d6d4bcec6c5a525184f86d175e12bed7b",
+    "book/chapter-19.md": "c03f200280f489ac3bc80cd86c7f571980c06ce59c5e04b8ecd390c2026bad41",
+    "book/chapter-09.md": "5ceef9feb707cc2ff1293e82ea1fda50557f86c61e4b56c6289d2584adc03c91",
+    "book/preface.md": "915cf8c531169c5aacc4cb81bd743eeba8a181d20bc779d936ac5f7ab9998d96",
+    "book/chapter-writing-procedure.md": "81381b8892f22b9becfde4887b789f5ad0a1a7ac8f239d503e10b38811715d99",
+    "book/chapter-18.md": "e823fb61f6c4c1a9a18f0a00f9f25b7942a8943f11c1811ae142d5e817bb1693",
+    "book/chapter-08.md": "ad91434bf006d0353daa184125c9304672d77b6b3dd89e83828cb147e8efe9b0",
+    "book/print-header.html": "a3d3640ae9a3635d52ab0facb5646c2c1db949dd98899a614ab4555efbc8fc34",
+    "book/cover.png": "e45bf2d857937888c5aaf553bbb34fcd34be7e27bf012566dc3314086318eb4b",
+    "book/epub.css": "d54fdc8903529b82e5c1a25eb92bea92b5923a3914146cde1dfebe1f764bea01"
+  },
+  "input_changes": [
+    "book/README.md: replace the broken manual concatenation recipe with automatic link-preserving cover generation"
+  ],
+  "validation": {
+    "print_contents_destinations": 30,
+    "interior_pages": 577,
+    "reading_pages": 578,
+    "actual_body_pt": 12,
+    "minimum_code_pt": 10,
+    "epub_toc_entries": 31,
+    "epub_landmark_links": 2,
+    "epub_local_references_resolved": 1930,
+    "cover_internal_links_preserved": 30,
+    "cover_other_links_preserved": 112,
+    "cover_matches_all_interior_page_texts": true,
+    "preface_and_chapter_sources_unchanged": true,
+    "reviewer": "compaction_runtime_audit",
+    "review": "Accepted after explicit target/coordinate repair; eight representative interior pages and cover visually inspected.",
+    "negative_control": "Previous concatenated cover PDF retained locally; all30 named link destinations unresolved there.",
+    "limitations": [
+      "No external publication/upload or remote push.",
+      "No new Kindle/KDP/physical proof review.",
+      "Installed runtime startup/HTTP checks do not replace the earlier isolated live-compaction evidence."
+    ]
+  },
+  "deployment": {
+    "source_commit": "274d3a49ee720d322c3980be56b7aad02afdda4d",
+    "source_agent_tree": "4ff207e66df6d49cbdea462df2f6753d421779d8",
+    "new_binary_sha256": "294ea3e7d957fa5a118d8d8d918710bffa4f9fe6f7d8932a9e845f5ff116352b",
+    "settings_sha256": "9eb56873a2ff63d99d4571a698174f0a2d071e8b7c18e0f37efe129017edb9eb",
+    "launcher_sha256": "be008e89b3fec9dd2ecab0e92edfadd36037828e06051cb69a92870cafaaa9fa",
+    "prior_binary_sha256": "a33ae6b001198bbcd5a7296a3b321caacb495ed5378bab3fb5342161ceec4761",
+    "backup_directory": "/Users/bill/ensemble-edition2-codex/backups/before-background-compaction-20261014-191451",
+    "installed_binary": "/Users/bill/ensemble-edition2-codex/bin/ensemble-gui",
+    "installed": true,
+    "restarted": true,
+    "pid": [
+      42767
+    ],
+    "http_status": 200,
+    "running": true,
+    "settings_unchanged": true,
+    "initial_launch": {
+      "method": "detached process with closed stdin",
+      "result": "normal exit0 on terminal EOF; no startup error",
+      "http_status": null
+    },
+    "launch_method": "Terminal start script",
+    "saved_state_backup_files": 3,
+    "verification": "Installed binary hash, unchanged configuration/launcher, running process and HTTP200; no new paid inference or compaction requested."
+  }
+}

@@ -1,5 +1,27 @@
 # Edition 2 publication and layout migration
 
+## October 14: rebuilt reordered edition
+
+Bill authorized the remaining deployment and artifact build after stopping
+Ensemble. Regenerated the assembled Markdown, EPUB, print HTML, print interior
+and cover-prefixed reading PDF from reviewed source `274d3a49`. The interior is
+577 pages and the reading PDF 578, at 7 × 10 inches with measured 12pt body and
+minimum 10pt code. The preface, chapter sources, print styling and cover artwork
+are unchanged. The chapter order now includes background memory at 22 and
+Auto-Recall at 23.
+
+Independent artifact review found that the old cover-concatenation recipe dropped
+the PDF's named contents destinations. The print builder now creates the reading
+PDF itself, resolving those links before adding the cover-page offset. All 30
+contents targets and coordinates match the interior, and 112 other links remain
+unchanged. The EPUB's 1,930 internal references resolve; its navigation stays out
+of the reading spine. Representative rendered pages and the cover passed review.
+The earlier broken reading PDF remains a local negative control.
+
+The [release receipt](../solutions/evidence/background-compaction/deployment-publication.json)
+records exact artifacts, checks, deployment and preserved inputs. These are local
+publishing files; no upload, remote push or new physical print proof occurred.
+
 ## October 14: reordered manuscript inputs
 
 The current chapter files and index now follow the approved dependency order:
