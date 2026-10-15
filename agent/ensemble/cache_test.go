@@ -167,7 +167,12 @@ func TestCacheMarkers(t *testing.T) {
 				}
 				return
 			}
-			if !slices.Contains(marked, "settled boundary") || !slices.Contains(marked, "stable tail") || slices.Contains(marked, "volatile once") {
+			boundary := "settled boundary"
+			if tc.vendor == ensemble.OpenAI {
+				// This fixture uses Chat Completions, which joins the label and note.
+				boundary = "micro_handoff completed. Your checkpoint note:" + boundary
+			}
+			if !slices.Contains(marked, boundary) || !slices.Contains(marked, "stable tail") || slices.Contains(marked, "volatile once") {
 				t.Fatalf("wrong boundaries: %v", marked)
 			}
 			if tc.vendor == ensemble.Anthropic {

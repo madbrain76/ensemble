@@ -880,3 +880,53 @@ cover one rendered label, unchanged stored note/context, repeated rendering,
 full-log and snapshot restoration. The reviewer accepts the small correction.
 Final mapped graders and any corrected live exercise retain their own subsequent
 source/results; no live success is claimed here.
+
+## October 14: corrected isolated live exercise completes
+
+The single corrected exercise at `57920dd3`, Agent
+`9f421ae303b6d63ef8c9734dc3767587dff6340c`, completed successfully; receipt
+`solutions/evidence/background-compaction/live.json` retains its exact source,
+launcher and executable hashes. An initial sparse-worktree setup invocation had
+no checked-out launcher and made no model request; populating that new isolated
+worktree corrected the setup. No production binary, settings or process changed.
+
+Five model requests ran at GPT-6 Astra/high: four main requests and one worker
+request. The main agent called handoff once and finished the turn. It answered
+the arithmetic prompt and later recalled the supplied case. The worker submitted
+1257 UTF-8 bytes from2669 selected source bytes; the recorded population, submitted
+memory and committed file match exactly. Both GUI exits were normal, and restart
+sent zero model requests. No additional paid run is needed to improve the story.
+
+Root manually compared the retained memory and subsequent answer with the public
+synthetic case. Both preserve the project/code, owner/date without inventing a
+year, thirty-day retention, source identifiers, failure preservation, the two
+rejected approaches and their reasons, and unresolved attachment placement.
+The memory is in the source owner's first person and distinguishes a design
+decision from completed implementation. It includes exercise constraints, so
+this demonstrates useful retention rather than optimal compression. The final
+main request received the exact committed memory; recall was disabled, making
+this a memory-delivery check, not an Auto-Recall retrieval claim.
+
+The worker finished before browser selection and before the second human input.
+Therefore this paid run does **not** establish selected-child fallback, unrelated
+main progress during a pending worker, or usage changing across the sampled
+meters. Those claims retain the separate deterministic held-provider and grader
+evidence; the receipt states both timing limitations. Completed workers disappeared
+from the tree, and the retained terminal outcome survives restart.
+
+New22 assembly also exposed a test-only compatibility adjustment: the legacy
+OpenAI Chat Completions renderer concatenates the new status label with the note
+in its cache-marked text block. The exact expected string in `TestCacheMarkers`
+now includes that prefix while retaining the stable-tail/volatile exclusions and
+marker-count checks. The source still places the checkpoint marker at the same
+boundary. The initial failing assertion is retained by the reconstruction coder;
+this adjustment does not alter the live executable or weaken marker placement.
+
+Independent review confirms the actual memory/file/submission equality, all named
+facts/reasons, one handoff, four main request/response pairs, normal exits and
+restart result. Its clarification: the receipt's shorthand "No main answer before
+worker outcome" refers to the unrelated second turn. The first main response at
+Seq13 does precede the worker outcome at16; second human input arrives at17.
+The original receipt remains verbatim. The launcher's future limitation text now
+names the second turn explicitly. This wording correction changes no behavior or
+past evidence. Root's final cache/handoff focused race check passes1.295s.

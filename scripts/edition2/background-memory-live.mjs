@@ -162,7 +162,7 @@ try{
  assert.equal(receipt.outcome.state,'committed');
  const ownerEvents=await events(),secondInput=ownerEvents.filter(e=>e.type==='message_received'&&e.message?.actor==='human')[1];
  receipt.main_progress_during_worker={launch_seq:launchEvent.seq,second_input_seq:secondInput?.seq,outcome_seq:outcome.seq,answered_before_outcome:ownerEvents.some(e=>e.type==='response_ended'&&e.seq>secondInput?.seq&&e.seq<outcome.seq)};
- if(!receipt.main_progress_during_worker.answered_before_outcome)receipt.limits.push('No main answer before worker outcome in this run; deterministic held-provider proof remains separate.');
+ if(!receipt.main_progress_during_worker.answered_before_outcome)receipt.limits.push('No unrelated second-turn answer before worker outcome in this run; deterministic held-provider proof remains separate.');
  await waitFor(async()=>!(await page.locator(`[data-agent-key="${childKey}"]`).count()),'automatic tree dismissal');
  if(receipt.child_selected_ms){await childPage.waitForFunction(()=>document.querySelector('#conversation-title').textContent==='main');receipt.fallback_observed_ms=stamp();}
  // Fresh subscription observes the owner's current meter without model work.
