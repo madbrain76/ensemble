@@ -275,11 +275,11 @@ the strip is one function call at one call site. Neither `save_memory` nor `hand
 
 The acting model writes the checkpoint note because it has the current task
 in front of it. That is the chance to state the reasons that later compression
-must preserve. It is not a promise to capture hidden thinking. Tool clearing
-removes calls and results; it does not categorically erase retained opaque
-provider parts. Opaque replay material and a provider's private computation are
-also different things. The compressor receives selected readable text, including
-the note, and cannot reconstruct reasons that text never expressed.
+must preserve. It is not a promise to capture hidden thinking. At the completed
+batch boundary, the handoff clears calls, results, opaque reasoning and private
+replay signatures, including signatures attached to visible text. Visible dialogue
+and the original event log remain. The compressor receives selected readable text,
+including the note, and cannot reconstruct reasons that text never expressed.
 
 After the successful tool batch, the ordinary handoff result acknowledges the
 checkpoint. Memory selects the completed source, and the actor starts one
