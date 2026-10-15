@@ -85,7 +85,7 @@
     "book/epub.css": "d54fdc8903529b82e5c1a25eb92bea92b5923a3914146cde1dfebe1f764bea01"
   },
   "input_changes": [
-    "book/README.md: replace the broken manual concatenation recipe with automatic link-preserving cover generation"
+    "book/README.md: record the reviewed rebuild and replace broken manual concatenation with automatic link-preserving cover generation"
   ],
   "validation": {
     "print_contents_destinations": 30,
