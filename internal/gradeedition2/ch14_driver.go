@@ -145,6 +145,8 @@ type contextOpts struct {
 type contextOut struct {
 	reqs  []fakevendor.Recorded
 	fatal string
+	// meters are fresh public usage snapshots after a memory attempt drains.
+	meters []map[string]any
 }
 
 // Settings and turn completion are observed on the public socket. A request

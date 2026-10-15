@@ -52,7 +52,7 @@ func memoryChecks(bin string) contextResult {
 	skills, gui := filepath.Join(tmp, "skills"), filepath.Join(tmp, "gui")
 	os.MkdirAll(filepath.Join(skills, "base"), 0755)
 	os.MkdirAll(gui, 0755)
-	err = os.WriteFile(filepath.Join(skills, "base", "SKILL.md"), []byte("---\nname: base\ndescription: Memory fixture\ntype: primary\ntools: read_file keep_tool_results micro_handoff\n---\nYou are a helpful agent.\n"), 0644)
+	err = os.WriteFile(filepath.Join(skills, "base", "SKILL.md"), []byte("---\nname: base\ndescription: Memory fixture\ntype: primary\ntools: read_file keep_tool_results micro_handoff agent_status\n---\nYou are a helpful agent.\n"), 0644)
 	if err != nil {
 		r.Fatal = err.Error()
 		return r
@@ -80,6 +80,15 @@ func memoryChecks(bin string) contextResult {
 		}
 	}
 	memoryForce(run, newDir("force"), &r)
+	for _, failed := range []bool{false, true} {
+		usageErr, replayErr := memoryAccounting(run, newDir(fmt.Sprintf("accounting-%t", failed)), failed)
+		if usageErr != nil {
+			r.fail("forced-handoff", "final child accounting failed=%t: %v", failed, usageErr)
+		}
+		if replayErr != nil {
+			r.fail("replay-needs-no-llm", "historical child accounting failed=%t: %v", failed, replayErr)
+		}
+	}
 	memoryReplay(run, base, newDir, &r)
 	memoryAbandon(run, newDir, &r)
 	for _, mode := range []string{"empty", "type", "length"} {

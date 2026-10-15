@@ -36,6 +36,9 @@ type memoryOpts struct {
 	unblock func()
 	// lengthStop marks an otherwise complete worker reply as provider-truncated.
 	lengthStop bool
+	// accounting finishes the worker after the main reply, then samples the GUI
+	// meter before another main response could conceal a corrupted Last value.
+	accounting bool
 }
 
 // Turn-ended acknowledges the main turn only. Correlated durable outcomes below
@@ -46,6 +49,9 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 	upstream, _ := url.Parse(srv.URL())
 	forward := httputil.NewSingleHostReverseProxy(upstream)
 	var held sync.Once
+	mainFinished := make(chan struct{})
+	var releaseMain sync.Once
+	defer releaseMain.Do(func() { close(mainFinished) })
 	boundary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		raw, err := io.ReadAll(req.Body)
 		req.Body.Close()
@@ -69,6 +75,16 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 					}
 				}
 				return nil
+			}
+		}
+		if o.accounting && memoryCompressor(raw) {
+			proxy.ModifyResponse = func(*http.Response) error {
+				select {
+				case <-mainFinished:
+					return nil
+				case <-req.Context().Done():
+					return req.Context().Err()
+				}
 			}
 		}
 		if o.lengthStop && memoryCompressor(raw) {
@@ -210,8 +226,23 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 		if n := len(memoryTurns(srv.Requests())); n != want {
 			return contextOut{fatal: fmt.Sprintf("completed prompt %d made %d requests, want %d", i+1, n, want)}
 		}
+		releaseMain.Do(func() { close(mainFinished) })
 		if err = memoryDrain(peer, o.dir); err != nil {
 			return contextOut{fatal: fmt.Sprintf("prompt %d memory completion: %v", i+1, err)}
+		}
+		if o.accounting {
+			// Reselecting asks the real owner for its current meter without inference.
+			// The preceding drain/settings barrier consumed older replay trailers.
+			if err = peer.send("select_agent", ""); err != nil {
+				return contextOut{fatal: err.Error()}
+			}
+			frames, err := peer.until(5*time.Second, func(m map[string]any) bool {
+				return m["type"] == "usage" && m["replay"] == true
+			})
+			if err != nil {
+				return contextOut{fatal: "fresh accounting meter: " + err.Error()}
+			}
+			out.meters = append(out.meters, frames[len(frames)-1])
 		}
 	}
 	stdin.Close()

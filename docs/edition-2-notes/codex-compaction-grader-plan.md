@@ -593,3 +593,54 @@ reply script and public durable records; the external response modifier exists
 only to supply the specific provider terminal fact. No runtime or chapter text
 changed. Owner shutdown/kill versus interruption, destination I/O failure,
 near-window waiting/accounting, recall interaction and contract edits remain.
+
+## D8: final child accounting through actual public consumers
+
+The existing forced-handoff row now checks successful and failed measured workers
+through the submitted executable's `agent_status` tool. Four disjoint child usage
+buckets add once to owner totals; two subsequent status turns add only their own
+measured main work. A separate restored process must report only its new session's
+counts and make no worker request. That historical-rebilling predicate belongs to
+the existing replay row. No weight changes or source-test credit are involved.
+
+The first worker response is held outside the fake's capture lock until the main
+turn finishes. After its correlated outcome and the settings barrier, selecting
+the owner again obtains a fresh public GUI meter before another main response can
+mask an overwritten Last value. Later snapshots check the corresponding main Last
+and cumulative counts too. The actual `agent_status` output remains independently
+required; neither a raw outcome receipt nor a GUI label substitutes for that tool.
+Large auxiliary counts do not describe main input occupancy. Model/tier attribution,
+cache-lens exclusion and copies retain their separately identified C/source proof.
+
+Initial focused race failed10.957s because repeating `subscribe` does not replay
+an already subscribed connection. No accounting defect was established by those
+observation timeouts; raw `/tmp/ensemble-compaction-d8-accounting.txt`. Using the
+existing public `select_agent` command supplies the intended fresh replay. The
+corrected focused race passed2.041s (scenario1.02s), raw
+`/tmp/ensemble-compaction-d8-accounting-fixed.txt`.
+
+All four isolated runtime mutants execute and fail intended assertions:
+`missing-failed` removes auxiliary import and loses measured failed-worker counts;
+`duplicate` imports twice and inflates totals; `last` overwrites Engine Last on import
+and fails specifically the first post-drain meter; `historical` imports recorded
+outcome buckets on Load and fails the fresh-process status totals. Raw logs:
+`/tmp/ensemble-compaction-d8-mutant-<name>.txt`. Scratch trees were removed. The
+Last mutant demonstrates why a later status response alone was insufficient:
+that new main response repairs the current Last value before executing its tool.
+This does not dynamically reproduce every completion/mailbox scheduling order.
+
+Final affected memory and accounting race passes4.441s (memory2.88s,
+accounting0.55s), `/tmp/ensemble-compaction-d8-memory-final.txt`; package vet passes,
+`/tmp/ensemble-compaction-d8-vet.txt`. These runs use the accepted narrow submit-name
+collision carry-forward62c1e781, Agent tree4871633ee3e63dc6aa2cbc0a853f6ef22b4ddfa3,
+which reconstruction owned and validated separately. D7 evidence remains on its
+original source. Only the six agreed prefixes are removed from test subprocesses;
+no live calls. No advertised full Chapter15 score including parity is claimed.
+
+Against preceding committed grader bytes, physical/active/`//` comment-only counts
+are: ch14_driver.go550/435/86→552/436/87 (only result data for sampled meters),
+ch15.go538/471/51→547/480/51, ch15_driver.go556/495/45→587/522/49,
+new accounting fixture99/88/8, tests137/117/12→168/145/14. Blank lines are excluded
+from active counts. Existing status and invoice comparators are reused; no new
+runtime or accounting abstraction was introduced. Near-window/lifecycle/I/O and
+recall predicates, chapter contracts and combined StageD acceptance remain pending.

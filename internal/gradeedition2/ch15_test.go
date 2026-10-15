@@ -87,6 +87,37 @@ func TestMemoryProtocolFailures(t *testing.T) {
 	}
 }
 
+// TestMemoryAccounting checks measured successful and failed child usage through
+// actual status tools, repeated main requests, and a fresh restored process.
+func TestMemoryAccounting(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	dir := t.TempDir()
+	skills := filepath.Join(dir, "skills")
+	if err := recallWrite(skills, map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Memory accounting fixture\ntype: primary\ntools: micro_handoff agent_status\n---\nFinish main work in chat.\n"}); err != nil {
+		t.Fatal(err)
+	}
+	run := func(o memoryOpts) contextOut { return memoryLaunch(bin, skills, dir, o) }
+	for _, failed := range []bool{false, true} {
+		name := "success"
+		if failed {
+			name = "failure"
+		}
+		t.Run(name, func(t *testing.T) {
+			accounting, replay := memoryAccounting(run, t.TempDir(), failed)
+			if accounting != nil {
+				t.Error(accounting)
+			}
+			if replay != nil {
+				t.Error(replay)
+			}
+		})
+	}
+}
+
 // TestMemoryRequestClassification keeps ordinary delegated submit traffic out of
 // the memory route, including a task whose prose itself mentions memory.
 func TestMemoryRequestClassification(t *testing.T) {
