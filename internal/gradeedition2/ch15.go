@@ -82,6 +82,11 @@ func memoryChecks(bin string) contextResult {
 	memoryForce(run, newDir("force"), &r)
 	memoryReplay(run, base, newDir, &r)
 	memoryAbandon(run, newDir, &r)
+	for _, mode := range []string{"empty", "type", "length"} {
+		if err := memoryProtocolFailure(run, newDir("protocol-"+mode), mode); err != nil {
+			r.fail("abandon-on-restart", "%s candidate: %v", mode, err)
+		}
+	}
 	memoryNeighbor(run, newDir("neighbor"), &r)
 	memoryFresh(run, base, newDir("fresh"), &r)
 	return r

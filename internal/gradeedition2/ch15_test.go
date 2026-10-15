@@ -61,6 +61,32 @@ func TestMemoryStale(t *testing.T) {
 	}
 }
 
+// TestMemoryProtocolFailures exercises real bounded children against empty,
+// wrong-type and syntactically complete provider-length-stop submissions.
+func TestMemoryProtocolFailures(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	dir := t.TempDir()
+	skills := filepath.Join(dir, "skills")
+	if err := recallWrite(skills, map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Memory failure fixture\ntype: primary\ntools: micro_handoff\n---\nFinish main work in chat.\n"}); err != nil {
+		t.Fatal(err)
+	}
+	run := func(o memoryOpts) contextOut {
+		o.model = "claude-sonnet-5"
+		return memoryLaunch(bin, skills, dir, o)
+	}
+	for _, mode := range []string{"empty", "type", "length"} {
+		t.Run(mode, func(t *testing.T) {
+			if err := memoryProtocolFailure(run, t.TempDir(), mode); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 // TestMemoryRequestClassification keeps ordinary delegated submit traffic out of
 // the memory route, including a task whose prose itself mentions memory.
 func TestMemoryRequestClassification(t *testing.T) {

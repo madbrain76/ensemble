@@ -34,6 +34,8 @@ type memoryOpts struct {
 	pending chan struct{}
 	release <-chan struct{}
 	unblock func()
+	// lengthStop marks an otherwise complete worker reply as provider-truncated.
+	lengthStop bool
 }
 
 // Turn-ended acknowledges the main turn only. Correlated durable outcomes below
@@ -66,6 +68,30 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 						return req.Context().Err()
 					}
 				}
+				return nil
+			}
+		}
+		if o.lengthStop && memoryCompressor(raw) {
+			// Preserve valid tool arguments and measured usage. Truncation is the
+			// provider's terminal fact, even when its complete JSON happens to parse.
+			proxy.ModifyResponse = func(response *http.Response) error {
+				data, err := io.ReadAll(response.Body)
+				response.Body.Close()
+				if err != nil {
+					return err
+				}
+				var body map[string]any
+				if err = json.Unmarshal(data, &body); err != nil {
+					return err
+				}
+				body["stop_reason"] = "max_tokens"
+				data, err = json.Marshal(body)
+				if err != nil {
+					return err
+				}
+				response.Body = io.NopCloser(bytes.NewReader(data))
+				response.ContentLength = int64(len(data))
+				response.Header.Set("Content-Length", fmt.Sprint(len(data)))
 				return nil
 			}
 		}

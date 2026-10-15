@@ -546,3 +546,50 @@ request and completion helpers; its own short held-response setup keeps the two
 causal transitions explicit. No runtime or chapter text changed. Remaining
 near-window/accounting/failure/recall predicates, contracts and combined review
 remain pending.
+
+## D7: bounded protocol failures retain selected conversation
+
+The existing `abandon-on-restart` row now also runs three real-child refusal
+sessions through the public GUI runner: whitespace-only memory, a numeric memory
+field, and complete valid submit JSON whose Anthropic terminal reason is
+`max_tokens`. The last case changes only the fake response's terminal field at
+an external reverse proxy, preserving its valid call arguments and measured usage.
+It therefore checks the actual adapter stop-reason contract rather than a JSON
+parse error. The existing `fakevendor` implementation remains unchanged.
+
+Each case must produce exactly one correlated failed attempt with a nonempty
+reason and retain both ends of the selected completed work in a subsequent real
+verification request. Empty and length-stopped replies must terminate after one
+request. The repeated wrong-type reply permits correction but must stay within
+three sends; its first actual error result must reach a later child request, so
+an eventual owner-side JSON error cannot masquerade as submit-tool validation.
+This local peer sends no authentication challenges; the observed request count
+is not a universal bound on auth-retry HTTP traffic. The main verification turn
+contains no checkpoint and must not automatically retry the failed attempt.
+
+Initial focused race passes 1.498s, raw
+`/tmp/ensemble-compaction-d7-protocol.txt`. After adding the direct validation-error
+observation, full memory plus protocol race passes 4.068s (full memory 2.62s,
+protocol 0.42s), `/tmp/ensemble-compaction-d7-memory-final.txt`; package vet passes,
+`/tmp/ensemble-compaction-d7-vet.txt`. This remains the memory predicate suite,
+not an advertised full 15 score with Chapter 14 parity.
+
+Four isolated runtime mutations execute and fail intended assertions, raw
+`/tmp/ensemble-compaction-d7-mutant-<name>.txt`: `length` ignores the adapter's
+length stop and incorrectly commits; `send-limit` permits a fourth Send, observed
+as four requests; `type-admission` bypasses validation for the numeric memory and
+loses the real child correction error; `empty-policy` admits whitespace memory
+and incorrectly commits. The last deliberately removes the same empty-memory
+policy at all four enforcement layers (actor, Stage, reducer and staged reader);
+it is one coupled policy mutation, not four independent proofs. All scratch
+trees were removed. D6's retained-source/early-write controls and existing replay
+checks are reused rather than repeated as new claims. No mocks or live requests.
+
+Against D6 source 223d6b78, physical/active/`//` comment-only counts are:
+ch15.go 533/466/51→538/471/51; driver 530/472/42→556/495/45;
+new failure fixture 93/84/6; tests 111/94/10→137/117/12. Blank lines are excluded
+from active counts. The small failure fixture reuses the existing memory runner,
+reply script and public durable records; the external response modifier exists
+only to supply the specific provider terminal fact. No runtime or chapter text
+changed. Owner shutdown/kill versus interruption, destination I/O failure,
+near-window waiting/accounting, recall interaction and contract edits remain.
