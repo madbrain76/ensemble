@@ -1217,3 +1217,161 @@ No runtime or test execution was performed by this reviewer. Source inspection
 and existing raw output establish the assessment; post-correction test results
 remain the coder's pending evidence. Mandatory skill and all four full governing/
 craft documents remain in active context without intervening compaction.
+
+### New20 implementation review: initial disposition and evidence
+
+October 14, independent dependency reviewer. Reviewed reconstruction submission
+`f3009a05eb5875d029028c07c047e63adf33579f`, Agent tree
+`a709f71f0fb57fcfd541738d8bb578f172d06fd5`, against accepted new19
+`922caeb4` and the sources selected by plan `53958bcc` / review `ab511273`.
+The full mandatory `.agents/skills/ensemble-coding/SKILL.md`, workflow, carryover,
+voice and chapter procedure were read, including complete reloads after
+compaction. This is authorized maintenance reconstruction with disclosed answer
+exposure, not a fresh blind student run. No runtime, grader or live execution
+was performed by this reviewer; the assessment inspects source and actual retained
+outputs, rather than repeating the coder's unchanged checks.
+
+**Initial disposition: one documentation correction; no remaining production or
+test findings.** `agent/README.md:222–235` still tells the CLI/root to finish
+with submit and applies three corrective wakes without limiting them to ordinary
+delegates. That conflicts with the accepted main-chat/delegated-submit policy
+already implemented and tested. Return this single grouped finding as correction
+round 1 after initial review. Correct only the explanation and submission record;
+there is no behavior change requiring another test or paid run. Historical
+chapter numbers in this staged README are not a separate renumbering request.
+
+The 60 changed Agent paths match the accepted scope and subsequent narrow
+dependency corrections: 54 implementation/test/documentation paths and six
+separate-example module metadata files. Historical GUI reuse `64e5d0c→0430df4`
+and fleet `0430df4→e00d5bc` remain the foundation; selected `3aad2b7e` role
+policy, `df38abe0` explanation enforcement, Stage B `a0acfb5e` contracts and
+`450f7a9` completion facts are bounded additions. The validation guard and
+after-tool deferral preserve the two source-plan omissions recorded above.
+No memory/recall, management/selection, named peers, Stage C worker machinery,
+optional Codex route, core GUI dependency or unsupported model rows enter here.
+
+Actual ownership and construction are coherent. `ensemble/ensemble.go:109`
+validates the immutable schema before Agent side effects; required parent links
+and child-owned config remain explicit. Child specs copy their values and clear
+inherited submission schemas for ordinary grandchildren. `internal/fleet` owns
+its child map, message routing, bounded idle correction and durable submission
+behavior. Its private `findChild` (`submission.go:159`) resolves only owned
+children without importing the later public management lookup. Validation
+precedes durable rows and completion; custom JSON survives copies/reload while
+legacy rows remain supported. The successful submit batch records the existing
+turn-ended fact (`internal/agent/dispatch.go:18`, history validator:173). This
+establishes idle state, not Stage C worker quiescence or automatic dismissal.
+
+The independently reviewed identity correction `e9fd0676` is appropriate here:
+the composition root binds the immutable schema to its installed compiled submit
+definition (`ensemble/ensemble.go:266`); declarations copy stored definitions.
+An MCP or custom tool sharing the name retains its own schema/admission, including
+when a factory is installed later. SafeMode and compiled-over-MCP precedence
+remain enforced. Six real-runtime cases at `ensemble/submission_test.go:523`
+exercise these distinctions. The full primary runtime needs its own scoped
+carry-forward; this earlier cumulative tree must never replace it wholesale.
+
+The visible-explanation gate checks actual streamed order and the whole response,
+pairs refused calls without executing jobs, and retains the round limit and
+immediate interruption. Six supported OpenAI rows opt in; synthetic/unknown
+models remain unflagged. Restore the specifically deferred AfterTool branch/test
+with its real new21 API, and the memory course-row assertion with its new22 row.
+The CLI supplies recursive construction and human routing explicitly. Reusable
+GUI assets, component-only Artifact scroll and public MCP relay retain their
+historical behavior and separate module boundary; the external consumer constructs
+real public values and tests headless absence beside a GUI dependency control.
+
+KISS comparison independently reproduces `fleet-line-counts.json` for all four
+trees. Active lines exclude blanks and comment-only `//` lines; generated files,
+Markdown and module metadata are excluded, tests/examples/languages separated.
+New20 Go production grows 1,579 physical / 1,270 active / 226 comment-only lines,
+versus historical combined-stage growth 1,022 / 836 / 132. The extra 434 active
+lines implement the approved contracts, explanation policy and maintenance;
+they do not introduce a second registry or orchestration framework. Go tests
+grow 2,781 / 2,597 / 123 versus 1,087 / 1,015 / 50. Their additional 1,582 active
+lines protect real contract/copy/disk/provider/GUI boundaries and staged APIs.
+JS production grows 7 / 4 / 3 (historical 8 / 4 / 3, trailing blank difference),
+JS tests 38 / 35 / 2 in both; examples and HTML are unchanged. Cumulative Go
+production is 13,289 / 10,600 / 1,980. Comment shares of 15.1% for the delta and
+15.7% cumulatively fall below the approximate 20% target, but useful exported
+contracts and adjacent ownership, lifetime, validation and ordering explanations
+are present. No padding or arbitrary line reduction is warranted.
+
+The tests use real earlier actors, jobs, histories, renderers and transports with
+small external peers. GUI structured-submission tests (`gui/submission_test.go:23`
+and :119) compare live and freshly loaded nested JSON and idle state, alongside
+genuinely held inference. Factory-retained references adapt Stage B tests without
+inventing later Find/EnableFleet APIs. The spawned Sandbox check correlates the
+actual outside-read call and returned error and retains an allowed-read control.
+CLI checks exercise human reply while work runs and main chat completion. Actual
+Chrome and external-module checks cover reusable UI/relay behavior; they are not
+fresh live-model demonstrations.
+
+Raw `/tmp/ensemble-reordered-checks/fleet-*` outputs support the submitted checks:
+final core passes (ensemble 15.499s), GUI 4.429s, focused restored race ensemble
+3.874s/fleet 1.081s, structured GUI race 1.065s and CLI 0.266s. Separate ch05/06
+tests pass; ch07 is build-only. Vet output is empty, with successful invocation
+reported by the coder. The Responses browser passes, and the speech regression
+has a failed candidate, passing exact922caeb4 control and passing correction.
+Package/browser durations differ from the note's explicitly labeled launcher
+wall times. Initial completion-validation failures, the GUI peer cleanup timeout
+and fixture mistakes remain failures, with their corrections attributed.
+
+All eight executed mutations fail their intended observations: child Clamp,
+root idle correction, schema inheritance, owned lookup refusal, custom JSON
+GUI output, turn-ended state, submit name gating and name-based schema replacement.
+The ownership mutant reaches a deliberately malformed owned row, proving wrong
+lookup/refusal behavior, not foreign-file exfiltration. The schema setup attempt
+that matched two anchors did not execute a test and is not a kill. Restored
+focused checks pass. Reused historical/Stage B/explanation mutation evidence
+retains its original sources and limits; these eight defects are not complete
+coverage proofs.
+
+Independently matched all 166 manifest entries against the submitted Git blobs.
+The final source capture has SHA-256
+`eafea8fcaf7d1e2746b11a639520860fd986ac872ef6d6d1c3ee4d26f926ae97`.
+Actual current22 grading is 14 rows, 200/200, on the earlier capture
+`fa7009f5c5c8c2f4af3d170911fdda97118b1841b805383fddc1d85841300681`.
+Seven paths differ from that capture, including the identity correction; it is
+not a final-source grader pass. Final affected tests cover those changes.
+Stage E still requires the finished revised grader on the exact reconstructed
+export. Original24/25 0/100 scores and 9.649s/48.198s live observations remain
+historical. No new paid run, export, tag, renumbering or next-stage release is
+claimed by this implementation review.
+
+During reconciliation, root also identified current22 §22.6's default-factory
+wording as a forward dependency missed by narrative review. This reviewer
+confirmed new20 has only `SetAgentFactory` (`ensemble/fleet.go:32–37`) and the
+CLI callback (`main.go:137–143`); `EnableFleet`/default construction belongs to
+later `ensemble/registry.go`. Correct the prose to this stage's explicit factory
+and preserve later capabilities at their introduction; do not expand new20 code.
+
+### New20 final disposition after documentation correction round 1
+
+**Accept reconstructed new20** at
+`b4708839e8bb1a523069be02b9188145ae50dac4`, Agent tree
+`39449051049e6d7325b4c368e627739f97eab28f`. The exact two-path correction changes
+only README root/delegate completion wording and the consolidated submission
+note. It closes the sole initial-review finding: the root finishes in chat,
+ordinary delegated children submit and receive the bounded corrective wakes.
+All production and test bytes remain those reviewed at `f3009a05`; no rerun was
+needed for this documentation-only round. One formal correction round was used.
+
+The isolated reconstruction worktree is clean. Independently verified all166
+Git blobs in the updated source manifest and its aggregate SHA-256
+`b218df3d36173b91ea9163afdc9f02f48a8e0e57427850130e5fe7754be740e8`.
+The original submission, captures, initial failures, historical receipts and
+pre-identity 200/200 grade retain their original identities. Acceptance closes
+this scoped reconstruction implementation review, not Stage E's revised-grader
+and exact-export gate. Root controls the next source-plan release. No frozen
+export, full-runtime replacement, chapter renumbering or publication occurred.
+
+Scoped prose reconciliation also passes: the coordinator's two-paragraph
+`book/chapter-22.md` correction replaces the forward default-factory assertion
+with explicit terminal/application factory installation and parent-based
+completion policy, and ends the demonstration after the main Agent collects
+child results and answers in chat. This matches the accepted new20 construction
+and `internal/fleet/fleet.go:347–352` root exemption. It removes premature named
+peer/default-factory teaching without adding future APIs. This is only source
+consistency review of that diff, not full Stage D prose/grader acceptance. The
+chapter remains coordinator-owned and is excluded from this review checkpoint.
