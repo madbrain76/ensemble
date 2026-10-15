@@ -1748,3 +1748,46 @@ totals. Overwriting Last fails specifically the first post-drain snapshot while
 later status calls recover it, supporting the new observation's purpose. None of
 these four outputs contains a compile/setup failure. No additional test sweep or
 implementation edit is requested. I ran no tests or graders for this review.
+
+## New21 reconstruction plan review, October 14
+
+Reviewed the complete plan at reordered checkpoint
+7a4ba6fca51cfd7ff82de8d400f8d22dc8e4b1dd against accepted new20 b4708839,
+Agent tree39449051049e6d7325b4c368e627739f97eab28f. Before review I reloaded the
+entire `.agents/skills/ensemble-coding/SKILL.md` and all four governing/craft
+documents in the reordered tree, recovering truncated ranges. I also read current
+Chapter23 completely and inspected the actual historical management, actor,
+registry, GUI and test changes selected from e00d5bc through450f7a9, the remaining
+Stage B management integration and df38abe0's deferred AfterTool branch/test.
+This is maintenance plan review with historical-answer access, not a cold student
+assessment or an implementation result.
+
+The plan is acceptable with no blocking finding. The historical delta supplies
+the existing eight management tools, named peers, activity and selectable views;
+it does not import a cumulative later runtime. Replacing private findChild with
+the new owned Find retains the same direct-child boundary before disk fallback.
+Typed get_submission, status, change waits and output snapshots preserve raw
+payloads and caller-owned copies, while existing string APIs retain their
+documented behavior. The plan explicitly preserves composition-bound compiled
+submit identity, ordinary root/named-peer chat completion and delegated correction.
+The already-present typed dispatch completion and turn_ended validation must
+remain intact instead of being overwritten by historical string-only code.
+
+The deferred AfterTool branch belongs here because this stage introduces the
+actual interruption flag and tool-report handling. Its rejection regression uses
+the real actor/provider path and checks that a rejected unexplained batch does
+not trigger another request after the stop. GUI view conversion keeps settings
+acknowledgments outside the observer lock, tree traversal in its existing worker,
+and indivisible nonblocking replay admission. The planned held-work/no-progress,
+selected-question, real slow-socket, typed-output and named-peer chat controls
+address the consequential integration boundaries without a new framework. Actual
+results and intended mutation failures remain to be reviewed; historical results
+do not establish that the reconstructed binary works.
+
+No additional requirement or test matrix is requested. Memory, recall, managed
+compaction cleanup/recovery and auxiliary accounting remain at their approved
+later introductions. The coordinator retains the decision to release Agent edits;
+this review recommends the plan, not implementation acceptance. I ran no tests,
+graders or live calls and changed no application, chapter or grader source.
+Primary Stage D checkpoints D9–D11 throughf393c893 and unfinished chapter contracts
+are outside this disposition; combined Stage D review remains pending.
