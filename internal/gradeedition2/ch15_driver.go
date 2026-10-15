@@ -204,7 +204,8 @@ func memoryLaunch(bin, skillsDir, guiDir string, o memoryOpts) (out contextOut) 
 // Read the journal before its snapshot: a concurrent checkpoint installs the
 // snapshot before trimming the journal. Union by task identity tolerates overlap.
 // Only complete JSON-lines count; an in-progress tail cannot acknowledge work.
-func memoryPending(dir string) ([]string, error) {
+// These fixtures retain the complete public log; this is not a log-retention reader.
+func memoryRecords(dir string) ([]json.RawMessage, error) {
 	path := filepath.Join(dir, "save.json")
 	tail, err := os.ReadFile(path + ".journal")
 	if err != nil && !os.IsNotExist(err) {
@@ -232,8 +233,16 @@ func memoryPending(dir string) ([]string, error) {
 			}
 		}
 	}
+	return save.Log, nil
+}
+
+func memoryPending(dir string) ([]string, error) {
+	records, err := memoryRecords(dir)
+	if err != nil {
+		return nil, err
+	}
 	launched, finished := map[string]bool{}, map[string]bool{}
-	for _, raw := range save.Log {
+	for _, raw := range records {
 		var event map[string]any
 		if err = json.Unmarshal(raw, &event); err != nil {
 			return nil, err

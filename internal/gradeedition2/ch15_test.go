@@ -40,6 +40,27 @@ func TestMemoryBackground(t *testing.T) {
 	}
 }
 
+// TestMemoryStale checks a real held graduation against a same-identity file edit
+// and a completed off/on policy transition, preserving the exact source files.
+func TestMemoryStale(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	for _, edit := range []bool{false, true} {
+		name := "policy"
+		if edit {
+			name = "source"
+		}
+		t.Run(name, func(t *testing.T) {
+			if err := memoryStale(bin, t.TempDir(), edit); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 // TestMemoryRequestClassification keeps ordinary delegated submit traffic out of
 // the memory route, including a task whose prose itself mentions memory.
 func TestMemoryRequestClassification(t *testing.T) {

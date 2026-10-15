@@ -477,3 +477,72 @@ grader fails the intended assertion: the unexecuted predicate still earns10/10,
 0.670s, `/tmp/ensemble-compaction-d5-mutant-build-attribution.txt`. Scratch removed.
 This is a grader attribution correction, not a runtime defect or a new scoring
 row. No full-score rerun is claimed; successful-build behavior is unchanged.
+
+## D6: stale graduation refusal in the numeric memory row
+
+`disable-enable-idempotent` now includes two held, real graduation sessions. Three
+public session files are 202 bytes each; budget/low 225 and default high 450 select
+the oldest two while retaining the third. The actual worker request must contain
+those selected bytes and exclude the third marker before the fixture changes
+anything. One session turns the destination off and on through acknowledged
+public settings; the other edits the first selected file under its unchanged
+identity. Both release the prepared valid response, await the captured task's
+reasoned `invalidated` outcome, compare all surviving files byte-for-byte, require
+no active destination file, and inspect the next real main request for retained
+source rather than the candidate. No later checkpoint means no automatic retry.
+
+The policy case may cancel its transport before release; it proves refusal of the
+old attempt after an off/on transition, not that canceled model bytes are later
+consumed. The file-edit case preserves the human's exact disk bytes while the old
+source remains in current context; it does not claim implicit live rescan. Existing
+restart/re-enable scenarios retain their disk-refresh checks. Valid graduation
+and unrelated-new-dialogue acceptance remain the earlier positive controls.
+
+The existing public snapshot/journal reader is extracted as `memoryRecords` so
+pending-task and terminal-state checks consume the same complete records. It still
+reads journal before snapshot and tolerates duplicate retained-log facts. This is
+fixture code for retained complete logs, not a new general replay subsystem. No
+private candidate path or actor hook is used. The public corpus paths match the
+chapter's existing file contract.
+
+Initial fixture failure is preserved: with low 200, each 202-byte file correctly
+forced all three into the selected set. Both cases failed their distinguishing
+prefix assertion before performing a mutation; raw
+`/tmp/ensemble-compaction-d6-stale.txt` and the narrow source diagnostic
+`/tmp/ensemble-compaction-d6-stale-diagnostic.txt`. Correcting low/budget to 225
+retained the intended third-file control. Focused race then passed 1.361s;
+`/tmp/ensemble-compaction-d6-stale-fixed.txt`.
+
+Final full memory checks, stale controls and complete-outcome regressions pass
+race 3.737s (full memory scenario 2.36s; stale fixture 0.36s), with package vet passing.
+Raw `/tmp/ensemble-compaction-d6-memory-final.txt` and
+`/tmp/ensemble-compaction-d6-vet.txt`. Expected proxy cancellation diagnostics occur
+when policy invalidation or the existing crash control cancels a held exchange.
+This is the memory predicate suite, not a newly claimed full 15 advertised score
+including Chapter 14 parity. Final changes after execution are explanatory comments
+only; behavioral source is unchanged.
+
+Four isolated mutations execute and fail for the intended reason, raw
+`/tmp/ensemble-compaction-d6-mutant-<name>.txt`:
+
+- `generation`: omit the policy-generation increment; the off/on case commits the
+  stale candidate instead of recording invalidation.
+- `admission`: bypass the actor's two selection-validation calls; Memory.Stage
+  still refuses the edited source, but the resulting `failed` classification
+  violates the stale-invalidation observation. This is evidence of the admission
+  classification boundary, not proof that all downstream file checks were removed.
+- `early-write`: write the candidate to the active destination before validating;
+  the invalidated outcome leaves an active candidate file and fails that assertion.
+- `retire-failure`: archive selected source even on failure; the exact source-file
+  assertion detects its disappearance.
+
+All scratch trees were removed. Existing D1 correlation/truncated-tail and D2/D4
+acceptance controls are reused, not claimed as new independent mutation results.
+Against predecessor ce43d75e, physical/active/`//` comment-only counts are
+ch15.go 528/461/51→533/466/51; driver 521/465/41→530/472/42;
+new stale fixture 203/181/19; tests 90/76/8→111/94/10. Blank lines are excluded from
+active counts. The new fixture shares the existing process, settings, provider,
+request and completion helpers; its own short held-response setup keeps the two
+causal transitions explicit. No runtime or chapter text changed. Remaining
+near-window/accounting/failure/recall predicates, contracts and combined review
+remain pending.

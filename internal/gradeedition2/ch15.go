@@ -74,6 +74,11 @@ func memoryChecks(bin string) contextResult {
 	}
 	memoryGraduate(run, newDir("graduate"), &r)
 	memoryRestore(run, newDir("toggle"), &r)
+	for _, edit := range []bool{false, true} {
+		if err := memoryStale(bin, newDir(fmt.Sprintf("stale-%t", edit)), edit); err != nil {
+			r.fail("disable-enable-idempotent", "held candidate edit=%t: %v", edit, err)
+		}
+	}
 	memoryForce(run, newDir("force"), &r)
 	memoryReplay(run, base, newDir, &r)
 	memoryAbandon(run, newDir, &r)
