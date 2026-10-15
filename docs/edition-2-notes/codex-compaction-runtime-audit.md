@@ -1791,3 +1791,90 @@ this review recommends the plan, not implementation acceptance. I ran no tests,
 graders or live calls and changed no application, chapter or grader source.
 Primary Stage D checkpoints D9–D11 throughf393c893 and unfinished chapter contracts
 are outside this disposition; combined Stage D review remains pending.
+
+
+## Combined Stage D final disposition, October 14
+
+Accepted at initial combined formal review, zero correction rounds. This closes
+prose/grader Stage D, not reconstructed exports, renumbering or the later live
+assessment. Reviewed submission7ccdf847 and the separately accepted handoff
+correction1a54cf25 plus chapter15 reconciliation2c6563dd. I reloaded the entire
+`.agents/skills/ensemble-coding/SKILL.md`, workflow, carryover, voice and chapter
+procedure after compaction. Earlier complete narrative and D1–D8 reviews above
+remain evidence; this final review covers the remaining changed contracts,
+D9–D11 executable predicates and consolidated results without repeating unchanged
+checks. No application, chapter or grader was edited by this reviewer.
+
+D9 holds an actual worker response outside fakevendor's capture lock. It verifies
+main waiting at the known-window threshold, live settings application, ordinary
+interrupt survival and later resumption from the same attempt. Its failed-worker
+case requires an explicit turn error before another main request, then retained
+source on an explicit new prompt. D10 distinguishes explicit child kill, owner
+EOF and a real candidate-write permission refusal. Correlated outcomes, transport
+cancellation, bounded shutdown, actual owner-tree dismissal and source-bearing
+next requests establish those lifetimes; the shutdown case restarts the executable.
+The permission case actually ran rather than silently skipping. Neither fixture
+claims the exact committed-finalization crash windows established separately in C.
+
+D11 prepares its corpus by real successful or failed graduation, with an unchanged
+third-file control. The subsequent recall requests must include retired originals,
+exclude still-active/replacement duplicates and retrieve a separate positive-control
+document. Removing the recalled files before another process restarts establishes
+recorded attachment replay without another judge call. Its ten-row100-point rubric and
+memory's eleven original weights/100 remain intact. Supporting C recovery,
+model/tier, lens and marker source tests are explicitly non-scoring evidence,
+never numerical credit awarded to an arbitrary submitted implementation.
+
+I read every retained D9–D11 positive, fixture-failure and mutation output. The five
+headroom, four lifetime and three recall defects fail intended assertions. Initial
+mixed-settings and early duplicate-band observations retain their narrower causes;
+related duplicate-band assertions are coupled consequences of one mutation. The
+bounded timeout failures concern the exercised waiting/cancellation properties,
+with passing controls. Together with earlier reviewed sensitivity, this is adequate
+focused evidence; no extra framework, exhaustive matrix or repeated sweep is needed.
+
+The final contracts agree with accepted B/C ownership, immutable typed submission,
+default string compatibility, delegated-only corrective wakes, finite restricted
+workers, staged acceptance/recovery and once-only auxiliary accounting. Main Last
+and cache comparisons remain distinct from owner totals. The retained narrative
+still explains why these mechanisms matter and preserves the original stories;
+23.5's registered-child versus restored-owner-history clarification remains correct.
+The later handoff correction removes opaque parts and signatures on retained
+visible parts at the completed-batch boundary, without rewriting the event log.
+It is separately reviewed and is not attributed to the older D12 binary.
+
+All390 file hashes in `/tmp/ensemble-compaction-d-final-source.json` match7ccdf847;
+I independently recomputed sorted path/space/hash/newline binding
+051cd2b4c900283892503f063f0873038d703ba571359f501ad2e26e1eccd72c.
+Its pre-commit HEADc80755f7 is not confused with the submitted file contents.
+Application tree4871633ee3e63dc6aa2cbc0a853f6ef22b4ddfa3 matches. Complete actual
+sequential advertised results are14=100/100,15=100/100,16=100/100,22=200/200,
+23=100/100, including15 parity and16's actual judge timeout. Raw reports, timing
+records and package test outputs were inspected: gradeedition2 passes37.608s and
+shared grade0.407s; vet is recorded successful. Expected cancellation diagnostics
+before15's JSON do not invalidate its decoded report. Root's later primary
+handoff race1.260s and15=100/100 retain their separate post-correction provenance.
+
+I verified the four contract hashes and all46 final fences, including the indented
+memory schema. Only15's Go type sketch and newly inserted JSON schema differ;
+remaining fences match their immediate predecessors. All JSON examples decode;
+the coder records successful standalone type parsing/compilation. My first local
+fence scan omitted the indented example; the corrected scan confirms the recorded
+13/9/18/6 counts. These syntax/identity checks are not new live executions or
+validation of exports awaiting Stage E. Hard prose lint passes, with its stated
+soft length/person warnings preserved rather than prompting an unrelated rewrite.
+
+The21 changed grader-path counts independently match the coder's comparison to
+ac7c67b3: production physical/active/comment-only2829/2493/234 becomes
+4725/4220/369; `_test.go`155/130/12 becomes440/376/38. Active means nonblank and
+not `//`-only. Most growth is concrete public-process fixtures within the grader,
+not application machinery. Reusing existing launches, settings, correlation and
+HTTP peers keeps this substantially clearer than introducing another runner or
+private runtime protocol. Comments explain ordering and evidentiary limits;
+their below-target proportion is acknowledged, with no padding demanded. The
+added checks protect the changed behavior while preserving valid prior coverage.
+Original graders, frozen solutions and historical scores remain unchanged.
+
+No unresolved Stage D finding remains. I ran no Go tests, graders or live calls
+for this final review; acceptance rests on source inspection, independently
+checked bindings/examples/counts and the actual retained execution results.
