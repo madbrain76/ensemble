@@ -831,3 +831,52 @@ answer. Independent scoped consistency review in `2a9e7ed9` accepts both changes
 this is not full Stage D acceptance. Chapter22 prose lint has no hard failures
 (7140 prose words); its long mechanism/person-gap soft warning remains. No code
 fence changed and no runtime rerun is needed for these two prose corrections.
+
+## October 14: Stage D and new21 accepted; first live run exposes a lost acknowledgment
+
+Independent review `8935f486` accepts Stage D (grader/contracts) with no unresolved
+findings; `d085bd63` accepts reconstructed new21 `aae1e230`. Bill requests continuous
+automatic progression. New22/23 cumulative assembly and Stage E numbering are in
+progress. Historical source/result bindings remain unchanged.
+
+Root ran the reviewed isolated live launcher from `d085bd63`, Agent tree
+`0d4f2acc499cbd35717deca22c9d108f7600d849`, against GPT-6 Astra/high via Codex.
+It used synthetic Cedar Lantern data, scratch config/data/ports and a separate
+browser. No live production settings, files or process were changed.
+The preserved `solutions/evidence/background-compaction/live-first-attempt.json`
+is **failed**, not a successful full exercise. The main model called handoff
+four times and hit the fixture's three-tool-round limit before its first turn
+completed. Thus no second human prompt, recall prompt or restart check occurred.
+
+The background worker nevertheless made one valid submission and its owner
+committed that exact first-person memory. The separate sanitized
+`live-first-attempt-compaction.json` records this partial result without changing
+the failed receipt. The memory retains CL-721, Morgan/October 18 with no invented
+year, thirty-day retention, both rejected approaches and their reasons, source-ID
+and failure-preservation requirements, and unresolved attachment placement. It
+distinguishes planned work from completed implementation. It also includes exercise
+constraints, so this is useful retention evidence, not an optimum-size claim.
+
+Inspection of the actual next request found the missing fact: clearing tools
+and opaque reasoning leaves an assistant announcement and the unlabelled note,
+but removes the tool acknowledgment that the checkpoint completed. The note even
+repeats the original instruction to call handoff once. That motivates a narrow
+repair; it does not prove model causality or guarantee future compliance.
+
+Root and the independent reviewer chose the existing shared `engine.entries`
+renderer helper. It prepends a host-owned completion label to a copied rendered
+KindHandoff, preserving stored note bytes, context, fingerprints and event logs.
+Existing saved handoffs receive the label too. No event, state, retry mechanism
+or tool-limit policy was added. The user's suggestion about removing the limit
+was discussed; this repair addresses lost completion information instead.
+
+Before the source fix, the Responses/Gemini HTTP regression failed specifically
+for the absent marker. An earlier test compile error used a nonexistent public
+KindHandoff alias; it was corrected to existing common vocabulary and is not
+counted as a behavioral failure. After the fix, focused context/handoff/Responses/
+persistence race checks pass (2.401s), affected vet passes, and the final added
+Anthropic assertion plus Responses/Gemini race checks pass (1.245s). Assertions
+cover one rendered label, unchanged stored note/context, repeated rendering,
+full-log and snapshot restoration. The reviewer accepts the small correction.
+Final mapped graders and any corrected live exercise retain their own subsequent
+source/results; no live success is claimed here.

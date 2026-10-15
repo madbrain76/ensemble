@@ -300,6 +300,9 @@ func TestContextSurvivorsAndFrozenPrefix(t *testing.T) {
 	if bytes.Contains(requests[2], []byte("signed-replay")) || bytes.Contains(requests[2], []byte("encrypted-replay")) {
 		t.Fatal("handoff left signed or encrypted reasoning")
 	}
+	if bytes.Count(requests[2], []byte("micro_handoff completed")) != 1 {
+		t.Fatal("handoff completion missing or duplicated")
+	}
 	if !bytes.Contains(requests[1], []byte(`"tool_addition"`)) || !bytes.Contains(requests[3], []byte(`"tool_removal"`)) {
 		t.Fatal("declaration delta missing")
 	}

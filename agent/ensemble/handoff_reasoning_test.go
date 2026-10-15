@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"ensemble/ensemble"
+	"ensemble/internal/common"
 )
 
 // A real tool loop must replay reasoning before a checkpoint, clear both older
@@ -118,6 +119,9 @@ func microHandoffReasoning(t *testing.T, vendor ensemble.Vendor) {
 			t.Errorf("post-handoff request lost %q", wanted)
 		}
 	}
+	if bytes.Count(requests[2], []byte("micro_handoff completed")) != 1 {
+		t.Error("post-handoff request must identify the completed checkpoint once")
+	}
 	var log, save bytes.Buffer
 	siblingRan := false
 	for _, event := range a.History().EventsAfter(0) {
@@ -144,9 +148,26 @@ func microHandoffReasoning(t *testing.T, vendor ensemble.Vendor) {
 		if err := restore(); err != nil {
 			t.Fatal(err)
 		}
-		raw, err := a.Engine().Render(a.History().Context())
+		current := a.History().Context()
+		before, err := json.Marshal(current)
 		if err != nil {
 			t.Fatal(err)
+		}
+		// A stored handoff is still the original note, including in snapshots
+		// produced before the completion label was added to request rendering.
+		for _, entry := range current.Dialogue {
+			if entry.Kind == common.KindHandoff && entry.Parts[0].Text != "Keep this checkpoint note." {
+				t.Fatal("completion label changed the stored checkpoint note")
+			}
+		}
+		raw, err := a.Engine().Render(current)
+		if err != nil {
+			t.Fatal(err)
+		}
+		again, err := a.Engine().Render(current)
+		after, marshalErr := json.Marshal(current)
+		if err != nil || marshalErr != nil || !bytes.Equal(raw, again) || !bytes.Equal(before, after) || bytes.Count(raw, []byte("micro_handoff completed")) != 1 {
+			t.Fatal("render must label the completed checkpoint once without changing context")
 		}
 		if bytes.Contains(raw, []byte("before-checkpoint")) || bytes.Contains(raw, []byte("checkpoint-batch")) || !bytes.Contains(raw, []byte("after-checkpoint")) {
 			t.Fatal("live or restored context has the wrong checkpoint reasoning boundary")

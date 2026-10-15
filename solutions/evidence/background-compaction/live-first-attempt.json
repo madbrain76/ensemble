@@ -1,0 +1,124 @@
+{
+  "mode": "live",
+  "source_commit": "d085bd635c9ffdc57f2ffd5d717665e001a04389",
+  "agent_tree": "0d4f2acc499cbd35717deca22c9d108f7600d849",
+  "scratch": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-background-live-HXZDyB",
+  "started_utc": "2026-10-15T01:05:07.123Z",
+  "observations": [
+    {
+      "event": "input_sent",
+      "at_ms": 958.357,
+      "text": "This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze this case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead."
+    },
+    {
+      "event": "message_received",
+      "seq": 5,
+      "recorded_utc": "2026-10-15T01:05:08.093103Z",
+      "observed_ms": 997.958
+    },
+    {
+      "event": "request_sent",
+      "seq": 6,
+      "recorded_utc": "2026-10-15T01:05:08.093568Z",
+      "observed_ms": 997.969
+    },
+    {
+      "event": "response_ended",
+      "seq": 7,
+      "recorded_utc": "2026-10-15T01:05:15.555176Z",
+      "observed_ms": 8478.564
+    },
+    {
+      "event": "compactor_launched",
+      "seq": 11,
+      "recorded_utc": "2026-10-15T01:05:15.561704Z",
+      "observed_ms": 8478.579,
+      "task_id": "compact-2da4c010d38ca1f1e0ab4bf247c9e674"
+    },
+    {
+      "event": "request_sent",
+      "seq": 12,
+      "recorded_utc": "2026-10-15T01:05:15.567968Z",
+      "observed_ms": 8478.582
+    },
+    {
+      "event": "response_ended",
+      "seq": 13,
+      "recorded_utc": "2026-10-15T01:05:22.503044Z",
+      "observed_ms": 15401.938
+    },
+    {
+      "event": "request_sent",
+      "seq": 17,
+      "recorded_utc": "2026-10-15T01:05:22.509199Z",
+      "observed_ms": 15428.226
+    },
+    {
+      "event": "response_ended",
+      "seq": 18,
+      "recorded_utc": "2026-10-15T01:05:28.954821Z",
+      "observed_ms": 21868.678
+    },
+    {
+      "event": "compaction_outcome",
+      "seq": 24,
+      "recorded_utc": "2026-10-15T01:05:28.96364Z",
+      "observed_ms": 21868.727,
+      "task_id": "compact-2da4c010d38ca1f1e0ab4bf247c9e674"
+    },
+    {
+      "event": "request_sent",
+      "seq": 25,
+      "recorded_utc": "2026-10-15T01:05:28.96708Z",
+      "observed_ms": 21868.739
+    },
+    {
+      "event": "response_ended",
+      "seq": 26,
+      "recorded_utc": "2026-10-15T01:05:36.57914Z",
+      "observed_ms": 29480.207
+    }
+  ],
+  "limits": [],
+  "launcher_sha256": "77d540756d326f300be5cf0f493391310a01e75d841c502840b61515931dedb8",
+  "binary_sha256": "6c43a79aee0f2d7b14f8f6cc23b58080f2b61fc5473f8f5b841be567e142ca01",
+  "prompts": [
+    "This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze this case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead.",
+    "Without tools or a checkpoint, what is 17 plus 25? Answer briefly.",
+    "Without tools or a checkpoint, recall the project name, release code, owner, date, rejected approaches and reasons, source-identifier requirement, retention, and unresolved attachment question from the supplied case. Do not invent a resolved answer."
+  ],
+  "configuration": {
+    "model": "gpt-6-astra",
+    "effort": "high",
+    "route": "codex",
+    "endpoint": "https://chatgpt.com/backend-api/codex",
+    "endpoint_evidence": "explicit launch configuration and source, not independently captured network destination",
+    "memory": {
+      "conversation": {
+        "budget": 600
+      },
+      "session": {
+        "budget": 100000,
+        "high_watermark": 200000,
+        "low_watermark": 100000
+      },
+      "8x": {
+        "disabled": true
+      },
+      "64x": {
+        "disabled": true
+      },
+      "memory": {
+        "disabled": true
+      },
+      "soul": {
+        "disabled": true
+      }
+    },
+    "memory_evidence": "Launch configuration. Omitted conversation high/low watermarks resolve to 1200/600 bytes in internal/memory.Settings (2*budget/budget); these effective values are source-derived, not captured GUI settings.",
+    "recall_disabled": true
+  },
+  "status": "failed",
+  "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'tool round limit reached'\n- ''\n",
+  "finished_utc": "2026-10-15T01:05:36.767Z"
+}

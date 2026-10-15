@@ -1,0 +1,55 @@
+{
+  "status": "partial observation from failed live exercise",
+  "source_commit": "d085bd635c9ffdc57f2ffd5d717665e001a04389",
+  "agent_tree": "0d4f2acc499cbd35717deca22c9d108f7600d849",
+  "binary_sha256": "6c43a79aee0f2d7b14f8f6cc23b58080f2b61fc5473f8f5b841be567e142ca01",
+  "launcher_sha256": "77d540756d326f300be5cf0f493391310a01e75d841c502840b61515931dedb8",
+  "failure": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'tool round limit reached'\n- ''\n",
+  "launch": {
+    "task_id": "compact-2da4c010d38ca1f1e0ab4bf247c9e674",
+    "selection_hash": "a378d84dd016cdf845b8061c7ecff6fb28cd681cbf032dea07c9b92fd5b64fd8",
+    "file": {
+      "date": "2026-10-15",
+      "num": 1
+    },
+    "from": 5,
+    "to": 10,
+    "trace_path": "children/compact-2da4c010d38ca1f1e0ab4bf247c9e674",
+    "band": 5,
+    "thru": {
+      "date": "2026-10-15",
+      "num": 1
+    }
+  },
+  "outcome": {
+    "task_id": "compact-2da4c010d38ca1f1e0ab4bf247c9e674",
+    "usage": [
+      {
+        "vendor": "openai",
+        "model": "gpt-6-astra",
+        "usage": {
+          "input": 896,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 313
+        }
+      }
+    ],
+    "state": "committed",
+    "trace_path": "children/compact-2da4c010d38ca1f1e0ab4bf247c9e674"
+  },
+  "committed_memory": "My project is Cedar Lantern, release CL-721. I rejected automatic deletion of imported notes because support needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores accepted summaries separately. Acceptance requires each summary to preserve its source identifier; failed summarization must leave the original note available. Default retention is thirty days.\n\nThe initial approach tied cleanup to request arrival, allowing an unrelated request to delete unreviewed work. I moved the cleanup boundary to explicit completion of review instead, protecting work that has not been reviewed. These are design decisions, not evidence of completed implementation.\n\nMorgan owns the archive review, scheduled for October 18; no year was specified. Whether attachments belong in the same archive or a separate one remains unresolved. The next steps are Morgan\u2019s review and resolution of attachment placement, neither of which I should describe as completed.\n\nThis was a bounded memory exercise in an empty scratch workspace, with no filesystem or command tools permitted. I was asked to explain the decision briefly, call micro_handoff exactly once with the important facts and reasons, and then end the turn without further tool calls. The recorded response summarized the decisions and announced a checkpoint; the supplied record also retained the review details, unresolved question, and exercise constraints.",
+  "worker_visible": [
+    "I\u2019ll write a first-person memory of the decisions and their reasons, retaining the review details, safeguards, and unresolved attachment question without implying planned work is complete."
+  ],
+  "worker_submissions": [
+    {
+      "memory": "My project is Cedar Lantern, release CL-721. I rejected automatic deletion of imported notes because support needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores accepted summaries separately. Acceptance requires each summary to preserve its source identifier; failed summarization must leave the original note available. Default retention is thirty days.\n\nThe initial approach tied cleanup to request arrival, allowing an unrelated request to delete unreviewed work. I moved the cleanup boundary to explicit completion of review instead, protecting work that has not been reviewed. These are design decisions, not evidence of completed implementation.\n\nMorgan owns the archive review, scheduled for October 18; no year was specified. Whether attachments belong in the same archive or a separate one remains unresolved. The next steps are Morgan\u2019s review and resolution of attachment placement, neither of which I should describe as completed.\n\nThis was a bounded memory exercise in an empty scratch workspace, with no filesystem or command tools permitted. I was asked to explain the decision briefly, call micro_handoff exactly once with the important facts and reasons, and then end the turn without further tool calls. The recorded response summarized the decisions and announced a checkpoint; the supplied record also retained the review details, unresolved question, and exercise constraints."
+    }
+  ],
+  "limitations": [
+    "First main turn hit tool round limit after repeated handoffs.",
+    "No unrelated human turn or recall prompt was sent; no restart validation completed.",
+    "Original receipt remains failed."
+  ]
+}
