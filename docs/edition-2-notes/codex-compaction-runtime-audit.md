@@ -2020,3 +2020,40 @@ The README/map correctly state that transition. Existing Stage D sensitivity
 results are reused because no behavioral predicate changed. No open finding
 remains for these three scoped reviews; reconstructed recall and later exports
 remain separate work.
+
+
+## New23 recall carry-forward review, October 14
+
+Accepted at initial independent review, zero correction rounds:8faca2652d6bacd41014632450d5d6798862c852,
+Agent4518af327241e99543cd027e62ef9e9596e18f08. The full mandatory skill and all
+four governing/craft documents remain active from the preceding reload. I read
+the coder's final explanation, actual integration diff and retained outputs;
+no application edits, tests, graders or live calls were performed for this review.
+
+Recall spokes, actor recall, history/reducer and skills are byte-identical to
+accepted primary57920dd3. This restores the deferred actor hooks, recorded
+attachment/hash semantics, Sandbox corpus access and lazy startup/recovery hold.
+The new judge uses the existing private send(false) auxiliary seam; future Codex
+request fields are correctly absent. The actual main/auxiliary test now exercises
+both deprecated Compress and Judge, with distinctive measured usage and unchanged
+main cache artifacts. No typed-submission, ownership, OAuth or handoff correction
+is overwritten. The trusted skill directory remains construction-owned and does
+not enable tools through retrieval.
+
+All206 captured hashes and Git blobs match the submitted revision; aggregate
+cd2d2711dca4e7b83a4e1c913d312ae8c4ed17679bc6ea64e7efb7b071fc8243.
+Actual recall-* outputs show ensemble32.128s, GUI8.087s, affected race19.191s,
+restored auxiliary/recall-unit race1.078s/1.017s, examples0.011s/0.273s and recorded
+successful vets. Revised new23 grading is100/100,16.417s wall. The judge-main
+mutation fails the intended77/9 main-occupancy assertion on all three vendors.
+The first race selector's empty recall-unit selection is preserved, with the
+subsequent real unit run supplying that evidence. Historical recall, confinement
+and Stage C tests retain their original identities and live/semantic limits.
+
+Predecessor-relative Go growth851 physical/669 active/144 comment-only production
+lines compares with historical825/643/143; tests706/635/46 compare with612/550/39.
+Active excludes blanks and comment-only lines. The difference restores accepted
+confinement/recovery/Responses integration and deferred checks, while reusing the
+existing auxiliary transport. Useful ownership, cancellation, prompt ownership
+and deduplication comments remain; no extra framework or KISS finding exists.
+This accepts the reconstruction, not a new cold-student experiment or paid run.
