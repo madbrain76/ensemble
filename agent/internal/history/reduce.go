@@ -218,10 +218,24 @@ func land(c *common.Context, entry common.Entry) {
 	}
 	if entry.Kind == common.KindHandoff {
 		redact(c, &common.RedactData{From: 0, To: ^uint64(0), Level: "redact_tool"})
-		// A checkpoint already pays for a prefix rewrite; retire retrieved bytes now.
+		// A checkpoint already pays for a prefix rewrite; retire retrieved bytes
+		// and opaque reasoning together. Copy parts so the original log keeps the
+		// provider's replay material, while the next request starts without it.
 		var kept []common.Entry
 		for _, old := range c.Dialogue {
-			if old.Kind != common.KindRecall {
+			if old.Kind == common.KindRecall {
+				continue
+			}
+			var parts []common.Part
+			for _, part := range old.Parts {
+				if part.Type != "opaque" {
+					// Gemini can attach private replay material to visible text.
+					part.Opaque = nil
+					parts = append(parts, part)
+				}
+			}
+			old.Parts = parts
+			if len(parts) > 0 {
 				kept = append(kept, old)
 			}
 		}
