@@ -24,7 +24,7 @@ import (
 // The fixture is an outside application, not an in-tree test or replacement
 // GUI. Only construction differs for the explicitly selected historical API.
 //
-//go:embed ch22_consumer.go.txt
+//go:embed ch20_consumer.go.txt
 var reuseConsumer string
 
 func reuseGo(dir string, args ...string) (string, error) {

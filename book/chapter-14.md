@@ -866,7 +866,7 @@ reported zero cache writes and zero cache reads: the
 reference renderer sets no `cache_control` breakpoint, so the stable
 prefix this chapter guards is ready for a cache the agent never asks
 for. And the rising floor is dialogue, which nothing in this chapter
-removes. Chapter 15 removes it.
+removes. Chapter 22 removes it.
 
 
 ## §14.16 Try the Ladder

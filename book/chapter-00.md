@@ -173,7 +173,7 @@ A self-improvement loop with graded checkpoints and mutation-tested guardrails, 
 For this experiment, Bill explicitly selected GPT-6 Astra (`gpt-6-astra`) at
 high reasoning. The new Ensemble has demonstrated actual coding with that
 configuration: reading a program, reproducing failures, editing it and passing
-the unchanged tests. Chapter 19 records that bounded task.
+the unchanged tests. Chapter 17 records that bounded task.
 
 At this edition's first publication, the implementation catches up through the
 first edition's final exercise, Gateway, now Chapter 26. The actual move from

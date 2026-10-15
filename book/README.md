@@ -4,6 +4,11 @@ The chapter files are the manuscript source. The assembled Markdown is committed
 for reading on GitHub; EPUB and PDF are generated publication artifacts. The
 first-edition files and build instructions remain in `edition-1/book/`.
 
+The October 14 source order puts accounting and the fleet before background
+memory: Chapters 15–21 lead to memory in 22 and recall in 23. The committed
+assembled Markdown, EPUB and PDFs still describe their earlier reading-copy
+checkpoint until a separate publication build is reviewed.
+
 ## Prerequisites
 
 Use Python 3 and pandoc. Print production also needs Google Chrome and the

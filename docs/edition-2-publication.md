@@ -1,5 +1,17 @@
 # Edition 2 publication and layout migration
 
+## October 14: reordered manuscript inputs
+
+The current chapter files and index now follow the approved dependency order:
+old17–23 become15–21, old15/16 become22/23;0–14 and24–26 stay fixed.
+`assemble-book.sh` consumes the sorted numbered files, and `book-toc.py`
+derives titles and anchors from those inputs. No publication artifact is rebuilt
+by this change. The reading-copy counts and hashes below retain their earlier
+source identity, and Bill's preface remains unchanged. Revised cumulative
+solution exports are a separate reviewed step; see the
+[chapter map](edition-2-chapter-map.md) and
+[renumbering record](edition-2-notes/codex-compaction-renumber.md).
+
 ## Print contrast update
 
 At Bill's request, print code now uses black text on white backgrounds, including

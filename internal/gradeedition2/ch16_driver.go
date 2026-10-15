@@ -1,8 +1,11 @@
 package gradeedition2
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -15,287 +18,363 @@ import (
 	"sync"
 	"time"
 
-	"github.com/waywardgeek/ensemble/internal/fakevendor"
+	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
-type recallOpts struct {
-	dir, model            string
-	prompts               []string
-	expect                []int
-	replies               []fakevendor.Reply
-	judge                 string
-	judgeError, judgeHang bool
-	after                 func(int) error
+type subscriptionOpts struct {
+	prompts         []string
+	oauth           grade.Edition2OAuthOptions
+	responses       grade.Edition2ResponsesOptions
+	skipLogin, gate bool
 }
-type recallOut struct {
-	reqs   []fakevendor.Recorded
-	events []map[string]json.RawMessage
-	fatal  string
-}
-
-// A blocked judge cannot hold the capture mutex or the main response hostage.
-// This small external Anthropic peer leaves all recall/actor/rendering code real.
-type recallPeer struct {
-	*httptest.Server
-	mu       sync.Mutex
-	requests []fakevendor.Recorded
-	main     int
-	unblock  chan struct{}
-	once     sync.Once
+type subscriptionOut struct {
+	oauth                          grade.Edition2OAuthObservations
+	responses                      grade.Edition2ResponsesObservations
+	messages                       []map[string]any
+	errors                         []string
+	loginOutput, output, artifacts string
+	loginErr, exitErr, fatal       string
+	gated                          bool
 }
 
-func newRecallPeer(o recallOpts) *recallPeer {
-	p := &recallPeer{unblock: make(chan struct{})}
-	p.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-		judge := recallJudge(body)
-		p.mu.Lock()
-		p.requests = append(p.requests, fakevendor.Recorded{Vendor: "anthropic", Path: r.URL.Path, Body: body})
-		n := p.main
-		if !judge {
-			p.main++
-		}
-		p.mu.Unlock()
-		reply := fakevendor.Reply{Text: "Acknowledged."}
-		if judge {
-			if o.judgeHang {
-				select {
-				case <-p.unblock:
-				case <-r.Context().Done():
-					return
-				}
-			}
-			if o.judgeError {
-				http.Error(w, "judge unavailable", 500)
-				return
-			}
-			reply.Text = o.judge
-		} else if n < len(o.replies) {
-			reply = o.replies[n]
-		}
-		parts := []any{}
-		if reply.Text != "" {
-			parts = append(parts, map[string]any{"type": "text", "text": reply.Text})
-		}
-		stop := "end_turn"
-		if reply.ToolName != "" {
-			var args any
-			if json.Unmarshal([]byte(reply.ToolArgs), &args) != nil {
-				http.Error(w, "invalid fixture args", 500)
-				return
-			}
-			parts = append(parts, map[string]any{"type": "tool_use", "id": reply.ToolID, "name": reply.ToolName, "input": args})
-			stop = "tool_use"
-		}
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"id": "recall-response", "type": "message", "role": "assistant", "model": o.model, "content": parts, "stop_reason": stop, "usage": map[string]int{"input_tokens": 50, "output_tokens": 5}})
-	}))
-	return p
+// The proxy forwards the original peer's real SSE frames. It withholds the
+// remainder after the first summary delta until the client displays that delta.
+// Mere summary-before-text ordering after a buffered response cannot open it.
+type subscriptionGate struct {
+	mu             sync.Mutex
+	active, opened bool
+	release        chan struct{}
+	once           sync.Once
+	delivered      string
 }
-func (p *recallPeer) release() { p.once.Do(func() { close(p.unblock) }) }
 
-// Requests returns a stable copy of captured exchanges after brief locking.
-// Callers own the slice; the peer never mutates a recorded request body.
-func (p *recallPeer) Requests() []fakevendor.Recorded {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	return append([]fakevendor.Recorded(nil), p.requests...)
-}
-func recallJudge(body []byte) bool {
-	var r struct{ Tools []json.RawMessage }
-	return json.Unmarshal(body, &r) == nil && len(r.Tools) == 0
-}
-func recallTurns(reqs []fakevendor.Recorded) []fakevendor.Recorded {
-	var out []fakevendor.Recorded
-	for _, r := range reqs {
-		if !recallJudge(r.Body) {
-			out = append(out, r)
+func (g *subscriptionGate) observe(m map[string]any) {
+	if m["type"] != "part_delta" || m["kind"] != "reasoning_summary" {
+		return
+	}
+	g.mu.Lock()
+	if g.active {
+		chunk, _ := m["chunk"].(string)
+		g.delivered += chunk
+		// Delivery may split a provider delta across several observations.
+		if g.delivered == "Reading " {
+			g.opened = true
+			g.once.Do(func() { close(g.release) })
 		}
 	}
-	return out
+	g.mu.Unlock()
+}
+func (g *subscriptionGate) proxy(target string, gated bool) *httptest.Server {
+	var first sync.Once
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "request body", 400)
+			return
+		}
+		var request map[string]any
+		json.Unmarshal(body, &request)
+		model, _ := request["model"].(string)
+		req, err := http.NewRequestWithContext(r.Context(), r.Method, target+r.URL.RequestURI(), bytes.NewReader(body))
+		if err != nil {
+			http.Error(w, "request construction", 500)
+			return
+		}
+		req.Header = r.Header.Clone()
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			http.Error(w, "peer request failed", 502)
+			return
+		}
+		defer resp.Body.Close()
+		for k, v := range resp.Header {
+			w.Header()[k] = v
+		}
+		// Retain the original absent-Content-Type case instead of letting net/http
+		// invent a content type when the stream's first bytes are written.
+		if resp.Header.Get("Content-Type") == "" {
+			w.Header()["Content-Type"] = nil
+		}
+		w.WriteHeader(resp.StatusCode)
+		scan := bufio.NewScanner(resp.Body)
+		var frame strings.Builder
+		for scan.Scan() {
+			line := scan.Text()
+			// Captured real terminal responses identify their model. The original
+			// fake omitted it, which made valid provenance-aware replay impossible
+			// for clients that trust response metadata. Fill only that absent fact.
+			if strings.HasPrefix(line, "data: ") {
+				var event map[string]any
+				if json.Unmarshal([]byte(line[6:]), &event) == nil && event["type"] == "response.completed" {
+					response, _ := event["response"].(map[string]any)
+					if _, present := response["model"]; response != nil && !present {
+						response["model"] = model
+						data, _ := json.Marshal(event)
+						line = "data: " + string(data)
+					}
+				}
+			}
+			frame.WriteString(line + "\n")
+			if line != "" {
+				continue
+			}
+			data := frame.String()
+			frame.Reset()
+			hold := false
+			if gated && strings.Contains(data, "event: response.reasoning_summary_text.delta\n") {
+				first.Do(func() { hold = true })
+			}
+			if hold {
+				g.mu.Lock()
+				g.active = true
+				g.mu.Unlock()
+			}
+			io.WriteString(w, data)
+			w.(http.Flusher).Flush()
+			if hold {
+				select {
+				case <-g.release:
+				case <-r.Context().Done():
+				case <-time.After(3 * time.Second):
+				}
+				g.mu.Lock()
+				g.active = false
+				g.mu.Unlock()
+			}
+		}
+		// Ordinary JSON error bodies have no blank SSE delimiter.
+		io.WriteString(w, frame.String())
+	}))
 }
 
-// The existing settings snapshot establishes subscription readiness. No settings
-// patch is needed: these fixtures exercise the chapter's published defaults.
-// Turn-ended, not a request count or post-request sleep, establishes completion.
-func recallLaunch(bin, skillsDir, guiDir string, o recallOpts) (out recallOut) {
-	srv := newRecallPeer(o)
-	defer srv.Close()
+func subscriptionLogin(bin, dir string, env []string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, bin, "auth", "login", "--print-url")
+	cmd.Dir = dir
+	cmd.Env = env
+	var output subscriptionBuffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	visited := false
+	for {
+		select {
+		case err := <-done:
+			return output.String(), err
+		case <-time.After(10 * time.Millisecond):
+			if visited {
+				continue
+			}
+			for _, field := range strings.Fields(output.String()) {
+				raw := strings.Trim(field, "\"'<>()[],")
+				if !strings.HasPrefix(raw, "http") || !strings.Contains(raw, "/authorize") {
+					continue
+				}
+				visited = true
+				client := http.Client{Timeout: 5 * time.Second}
+				resp, err := client.Get(raw)
+				if err == nil {
+					io.Copy(io.Discard, resp.Body)
+					resp.Body.Close()
+				}
+				// The callback may close its listener after receiving the code,
+				// before the browser's response finishes. The bounded login process
+				// and observed token exchange determine authentication success.
+				break
+			}
+		}
+	}
+}
+
+func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out subscriptionOut) {
+	auth := grade.NewEdition2OAuthPeer(o.oauth)
+	defer auth.Close()
+	server := grade.NewEdition2ResponsesPeer(o.responses)
+	defer server.Close()
+	gate := &subscriptionGate{release: make(chan struct{})}
+	proxy := gate.proxy(server.URL(), o.gate)
+	defer proxy.Close()
+	endpoint := proxy.URL
+	defer func() {
+		out.oauth = auth.Observations()
+		out.responses = server.Observations()
+		gate.mu.Lock()
+		out.gated = gate.opened
+		gate.mu.Unlock()
+	}()
+	home := filepath.Join(dir, "profile")
+	os.MkdirAll(home, 0700)
+	env := append(os.Environ(), "HOME="+home, "EN_HOME="+home, "OPENAI_OIDC_ISSUER="+auth.URL(), "LLM_BASE_URL="+endpoint, "LLM_VENDOR=openai", "LLM_MODEL=gpt-ch19-course", "LLM_RESOLVED_MODEL=", "LLM_API_KEY="+grade.Edition2APIKey, "EN_BROWSER_CMD=true", "EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=base", "EN_DISABLE_STREAMING=", "CH02_LOG="+filepath.Join(dir, "events.jsonl"))
+	if !o.skipLogin {
+		var err error
+		out.loginOutput, err = subscriptionLogin(bin, dir, env)
+		if err != nil {
+			out.loginErr = err.Error()
+			if subscriptionAbnormalExit(err, out.loginOutput) {
+				out.fatal = "login did not complete with an ordinary refusal: " + err.Error()
+			}
+			return
+		}
+	}
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		return recallOut{fatal: err.Error()}
+		out.fatal = err.Error()
+		return
 	}
 	port := fmt.Sprint(listener.Addr().(*net.TCPAddr).Port)
 	listener.Close()
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
-	cmd.Dir = o.dir
-	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL="+o.model, "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+srv.URL, "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=base", "CH02_LOG="+filepath.Join(o.dir, "events.jsonl"))
-	var stderr bytes.Buffer
-	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", gui, "--save", filepath.Join(dir, "save.json"))
+	cmd.Dir = dir
+	cmd.Env = env
+	var output subscriptionBuffer
+	cmd.Stdout = &output
+	cmd.Stderr = &output
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		return recallOut{fatal: err.Error()}
+		out.fatal = err.Error()
+		return
 	}
 	if err = cmd.Start(); err != nil {
 		stdin.Close()
-		return recallOut{fatal: err.Error()}
+		out.fatal = err.Error()
+		return
 	}
 	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 	finished := false
-	// Join the real child before inspecting capture state. A held judge is
-	// released independently: its timeout must not block a main HTTP response.
 	defer func() {
 		stdin.Close()
 		if !finished {
 			cmd.Process.Kill()
 			<-done
 		}
-		srv.release()
-		out.reqs = srv.Requests()
-		out.events, err = recallReadEvents(o.dir)
-		if err != nil && out.fatal == "" {
-			out.fatal = err.Error()
-		}
+		out.output = output.String()
+		// The private credential directory is deliberately excluded. A protected
+		// token store is permitted; a save, event log or request capture is not.
+		filepath.WalkDir(dir, func(path string, d os.DirEntry, e error) error {
+			if e != nil {
+				return nil
+			}
+			if path == home {
+				return filepath.SkipDir
+			}
+			if d.IsDir() {
+				return nil
+			}
+			data, e := os.ReadFile(path)
+			if e == nil {
+				out.artifacts += string(data)
+			}
+			return nil
+		})
 		if out.fatal != "" {
-			out.fatal += ": " + stderr.String()
+			out.fatal += ": " + out.output
 		}
-
 	}()
 	var peer *guiPeer
 	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
-		peer, err = openGUIPeer("ws://localhost:" + port + "/ws")
-		if err == nil {
-			break
-		}
 		select {
 		case e := <-done:
 			finished = true
-			return recallOut{fatal: fmt.Sprintf("GUI exited before ready: %v", e)}
+			out.fatal = fmt.Sprintf("GUI exited before ready: %v", e)
+			return
 		default:
+		}
+		peer, err = openGUIPeer("ws://127.0.0.1:" + port + "/ws")
+		if err == nil {
+			break
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
 	if err != nil {
-		return recallOut{fatal: "GUI socket did not start: " + err.Error()}
+		out.fatal = "GUI did not start: " + err.Error()
+		return
 	}
 	defer peer.close()
 	if err = peer.send("subscribe", ""); err != nil {
-		return recallOut{fatal: err.Error()}
+		out.fatal = err.Error()
+		return
 	}
 	if _, err = readSettings(peer, "current_settings"); err != nil {
-		return recallOut{fatal: err.Error()}
+		out.fatal = err.Error()
+		return
 	}
 	for i, prompt := range o.prompts {
 		if err = json.NewEncoder(stdin).Encode(map[string]string{"kind": "prompt", "text": prompt}); err != nil {
-			return recallOut{fatal: err.Error()}
+			out.fatal = err.Error()
+			return
 		}
-		messages, e := peer.until(25*time.Second, messageKind("turn_ended"))
-		if e != nil {
-			return recallOut{fatal: fmt.Sprintf("prompt %d completion: %v", i+1, e)}
-		}
-		ending := messages[len(messages)-1]
-		if problem, ok := ending["error"].(string); ok && problem != "" {
-			return recallOut{fatal: "turn failed: " + problem}
-		}
-		if o.after != nil {
-			if err := o.after(i); err != nil {
-				return recallOut{fatal: err.Error()}
+		messages, e := peer.until(8*time.Second, func(m map[string]any) bool {
+			if o.gate {
+				gate.observe(m)
 			}
+			return m["type"] == "turn_ended"
+		})
+		out.messages = append(out.messages, messages...)
+		if e != nil {
+			out.fatal = fmt.Sprintf("turn %d: %v", i+1, e)
+			return
 		}
-		want := i + 1
-		if i < len(o.expect) {
-			want = o.expect[i]
-		}
-		if n := len(recallTurns(srv.Requests())); n != want {
-			return recallOut{fatal: fmt.Sprintf("completed prompt %d made %d requests, want %d", i+1, n, want)}
-		}
+		problem, _ := messages[len(messages)-1]["error"].(string)
+		out.errors = append(out.errors, problem)
 	}
+	// Keep the subscriber connected until the child exits: unrelated legacy
+	// disconnect races must not determine these credential/transport observations.
 	stdin.Close()
 	select {
 	case err = <-done:
 		finished = true
 		if err != nil {
-			out.fatal = "nonzero GUI exit after EOF: " + err.Error()
-		}
-	case <-time.After(10 * time.Second):
-		out.fatal = "GUI did not save and exit after EOF"
-	}
-	return out
-}
-
-// Both public GUI clients save the complete recorded Log. Reading that existing
-// persistence contract avoids assuming that every client honors CH02_LOG.
-func recallReadEvents(dir string) ([]map[string]json.RawMessage, error) {
-	raw, err := os.ReadFile(filepath.Join(dir, "save.json"))
-	if err != nil {
-		return nil, err
-	}
-	var saved struct{ Log []map[string]json.RawMessage }
-	if err := json.Unmarshal(raw, &saved); err != nil {
-		return nil, err
-	}
-	return saved.Log, nil
-}
-func recallAttachments(out recallOut) []string {
-	var texts []string
-	for _, e := range out.events {
-		var kind string
-		json.Unmarshal(e["type"], &kind)
-		if kind != "recall_attached" {
-			continue
-		}
-		var r struct{ Parts json.RawMessage }
-		json.Unmarshal(e["recall_attached"], &r)
-		texts = append(texts, recallParts(r.Parts))
-	}
-	return texts
-}
-
-// Match recorded attachment bytes inside actual text parts, not tool arguments,
-// results or a hard-coded message role. Adjacent user data may share a message.
-func recallWire(body []byte) string {
-	var r struct {
-		Messages []struct{ Content json.RawMessage }
-	}
-	json.Unmarshal(body, &r)
-	var texts []string
-	for _, m := range r.Messages {
-		var s string
-		if json.Unmarshal(m.Content, &s) == nil {
-			if i := strings.Index(s, recallHeader); i >= 0 {
-				texts = append(texts, s[i:])
-			}
-			continue
-		}
-		var parts []struct{ Type, Text string }
-		json.Unmarshal(m.Content, &parts)
-		for _, p := range parts {
-			if p.Type == "text" {
-				if i := strings.Index(p.Text, recallHeader); i >= 0 {
-					texts = append(texts, p.Text[i:])
-				}
+			// A reported authentication/billing refusal may end a client with a
+			// normal nonzero status. Positive sessions still require zero; signals
+			// and unexplained startup/lifetime failures never establish refusal.
+			if !subscriptionAbnormalExit(err, output.String()) {
+				out.exitErr = err.Error()
+			} else {
+				out.fatal = "GUI exit after EOF: " + err.Error()
 			}
 		}
+	case <-time.After(5 * time.Second):
+		out.fatal = "GUI did not exit after EOF"
 	}
-	return strings.Join(texts, "\n")
+	return
 }
 
-func recallParts(raw json.RawMessage) string {
-	var parts []struct{ Type, Text string }
-	if json.Unmarshal(raw, &parts) != nil {
-		return ""
+// Exit status alone cannot certify an expected refusal. Signals, deadlines and
+// Go runtime failures remain failures even if an earlier error was displayed.
+// Ordinary refusal still needs the scenario's actual issuer/request/error proof.
+func subscriptionAbnormalExit(err error, output string) bool {
+	var exit *exec.ExitError
+	if !errors.As(err, &exit) || exit.ExitCode() < 0 {
+		return true
 	}
-	var b strings.Builder
-	for _, p := range parts {
-		if p.Type == "text" {
-			b.WriteString(p.Text)
+	for _, line := range strings.Split(output, "\n") {
+		if strings.HasPrefix(line, "panic:") || strings.HasPrefix(line, "fatal error:") {
+			return true
 		}
 	}
-	return b.String()
+	return false
+}
+
+// Login prints while its child is still running; readers need a stable copy.
+type subscriptionBuffer struct {
+	mu   sync.Mutex
+	text strings.Builder
+}
+
+func (b *subscriptionBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.text.Write(p)
+}
+func (b *subscriptionBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.text.String()
 }

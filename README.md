@@ -98,10 +98,15 @@ go run ./cmd/grade-edition2 -ch 8         # matching snapshot by default
 go run ./cmd/grade-edition2 -ch 3 /path/to/your/submission
 ```
 
-Revised graders cover Chapters 1–18, 20–23 and 26. Chapter 19 is explanatory,
+Revised graders cover Chapters 1–16, 18–23 and 26. Chapter 17 is explanatory,
 Chapter 24 is optional and ungraded, and Chapter 25 is reserved. Checks run the
 actual application against local fake services without paid inference. The
 chapter states the public contract and any separate review or live-use work.
+
+The October 14 chapter reorder is in the manuscript and grader commands.
+Until reconstructed snapshots replace the old-order exports, grade an explicit
+submission directory; the [chapter map](docs/edition-2-chapter-map.md) records
+that transition.
 
 Original grader failures remain failures in the historical record, including
 independently accepted exceptions. Revised scores are separate results. Read

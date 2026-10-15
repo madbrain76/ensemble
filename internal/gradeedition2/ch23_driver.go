@@ -8,453 +8,294 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httputil"
-	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
-	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
-const managementTools = "spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit wait_for_agent_change send_message wait_for_agent ask_agent get_submission kill_agent get_sub_agent_status interrupt_agent run_command write_file read_file wait_for_job tool_limits"
+type recallOpts struct {
+	dir, model            string
+	prompts               []string
+	expect                []int
+	replies               []fakevendor.Reply
+	judge                 string
+	judgeError, judgeHang bool
+	after                 func(int) error
+}
+type recallOut struct {
+	reqs   []fakevendor.Recorded
+	events []map[string]json.RawMessage
+	fatal  string
+}
 
-// This launches the actual optional application. A free port is not readiness:
-// check the launched child's exit channel before trusting the connected socket.
-func managementStart(bin, work, base string) (*mcpCommand, *guiPeer, error) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return nil, nil, err
-	}
-	port := fmt.Sprint(l.Addr().(*net.TCPAddr).Port)
-	l.Close()
-	p, err := startMCPCommand(bin, work, []string{"--port", port}, []string{"LLM_MODEL=claude-sonnet-5", "LLM_BASE_URL=" + base, "EN_SKILLS_DIR=" + filepath.Join(work, "skills"), "EN_SKILL_DIR=" + filepath.Join(work, "skills"), "EN_PRIMARY_SKILL=base", "EN_RECALL_DISABLED=1"})
-	if err != nil {
-		return nil, nil, err
-	}
-	deadline := time.Now().Add(4 * time.Second)
-	for time.Now().Before(deadline) {
-		peer, e := openGUIPeer("ws://127.0.0.1:" + port + "/ws")
-		select {
-		case exit := <-p.done:
-			p.done <- exit
-			if peer != nil {
-				peer.close()
-			}
-			p.close()
-			return nil, nil, fmt.Errorf("GUI child exited before readiness: %v", exit)
-		default:
+// A blocked judge cannot hold the capture mutex or the main response hostage.
+// This small external Anthropic peer leaves all recall/actor/rendering code real.
+type recallPeer struct {
+	*httptest.Server
+	mu       sync.Mutex
+	requests []fakevendor.Recorded
+	main     int
+	unblock  chan struct{}
+	once     sync.Once
+}
+
+func newRecallPeer(o recallOpts) *recallPeer {
+	p := &recallPeer{unblock: make(chan struct{})}
+	p.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
 		}
-		if e == nil {
-			return p, peer, nil
+		judge := recallJudge(body)
+		p.mu.Lock()
+		p.requests = append(p.requests, fakevendor.Recorded{Vendor: "anthropic", Path: r.URL.Path, Body: body})
+		n := p.main
+		if !judge {
+			p.main++
+		}
+		p.mu.Unlock()
+		reply := fakevendor.Reply{Text: "Acknowledged."}
+		if judge {
+			if o.judgeHang {
+				select {
+				case <-p.unblock:
+				case <-r.Context().Done():
+					return
+				}
+			}
+			if o.judgeError {
+				http.Error(w, "judge unavailable", 500)
+				return
+			}
+			reply.Text = o.judge
+		} else if n < len(o.replies) {
+			reply = o.replies[n]
+		}
+		parts := []any{}
+		if reply.Text != "" {
+			parts = append(parts, map[string]any{"type": "text", "text": reply.Text})
+		}
+		stop := "end_turn"
+		if reply.ToolName != "" {
+			var args any
+			if json.Unmarshal([]byte(reply.ToolArgs), &args) != nil {
+				http.Error(w, "invalid fixture args", 500)
+				return
+			}
+			parts = append(parts, map[string]any{"type": "tool_use", "id": reply.ToolID, "name": reply.ToolName, "input": args})
+			stop = "tool_use"
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"id": "recall-response", "type": "message", "role": "assistant", "model": o.model, "content": parts, "stop_reason": stop, "usage": map[string]int{"input_tokens": 50, "output_tokens": 5}})
+	}))
+	return p
+}
+func (p *recallPeer) release() { p.once.Do(func() { close(p.unblock) }) }
+
+// Requests returns a stable copy of captured exchanges after brief locking.
+// Callers own the slice; the peer never mutates a recorded request body.
+func (p *recallPeer) Requests() []fakevendor.Recorded {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return append([]fakevendor.Recorded(nil), p.requests...)
+}
+func recallJudge(body []byte) bool {
+	var r struct{ Tools []json.RawMessage }
+	return json.Unmarshal(body, &r) == nil && len(r.Tools) == 0
+}
+func recallTurns(reqs []fakevendor.Recorded) []fakevendor.Recorded {
+	var out []fakevendor.Recorded
+	for _, r := range reqs {
+		if !recallJudge(r.Body) {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+// The existing settings snapshot establishes subscription readiness. No settings
+// patch is needed: these fixtures exercise the chapter's published defaults.
+// Turn-ended, not a request count or post-request sleep, establishes completion.
+func recallLaunch(bin, skillsDir, guiDir string, o recallOpts) (out recallOut) {
+	srv := newRecallPeer(o)
+	defer srv.Close()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return recallOut{fatal: err.Error()}
+	}
+	port := fmt.Sprint(listener.Addr().(*net.TCPAddr).Port)
+	listener.Close()
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
+	cmd.Dir = o.dir
+	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL="+o.model, "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+srv.URL, "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=base", "CH02_LOG="+filepath.Join(o.dir, "events.jsonl"))
+	var stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return recallOut{fatal: err.Error()}
+	}
+	if err = cmd.Start(); err != nil {
+		stdin.Close()
+		return recallOut{fatal: err.Error()}
+	}
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	finished := false
+	// Join the real child before inspecting capture state. A held judge is
+	// released independently: its timeout must not block a main HTTP response.
+	defer func() {
+		stdin.Close()
+		if !finished {
+			cmd.Process.Kill()
+			<-done
+		}
+		srv.release()
+		out.reqs = srv.Requests()
+		out.events, err = recallReadEvents(o.dir)
+		if err != nil && out.fatal == "" {
+			out.fatal = err.Error()
+		}
+		if out.fatal != "" {
+			out.fatal += ": " + stderr.String()
+		}
+
+	}()
+	var peer *guiPeer
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		peer, err = openGUIPeer("ws://localhost:" + port + "/ws")
+		if err == nil {
+			break
+		}
+		select {
+		case e := <-done:
+			finished = true
+			return recallOut{fatal: fmt.Sprintf("GUI exited before ready: %v", e)}
+		default:
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	p.close()
-	return nil, nil, fmt.Errorf("GUI readiness deadline: %s", p.stderr.String())
-}
-
-func managementEOF(p *mcpCommand) error {
-	p.stdin.Close()
-	select {
-	case err := <-p.done:
-		p.done <- err
-		if err != nil {
-			return fmt.Errorf("GUI exit: %w; %s", err, p.stderr.String())
-		}
-		return nil
-	case <-time.After(4 * time.Second):
-		return fmt.Errorf("GUI did not finish normally after EOF")
+	if err != nil {
+		return recallOut{fatal: "GUI socket did not start: " + err.Error()}
 	}
+	defer peer.close()
+	if err = peer.send("subscribe", ""); err != nil {
+		return recallOut{fatal: err.Error()}
+	}
+	if _, err = readSettings(peer, "current_settings"); err != nil {
+		return recallOut{fatal: err.Error()}
+	}
+	for i, prompt := range o.prompts {
+		if err = json.NewEncoder(stdin).Encode(map[string]string{"kind": "prompt", "text": prompt}); err != nil {
+			return recallOut{fatal: err.Error()}
+		}
+		messages, e := peer.until(25*time.Second, messageKind("turn_ended"))
+		if e != nil {
+			return recallOut{fatal: fmt.Sprintf("prompt %d completion: %v", i+1, e)}
+		}
+		ending := messages[len(messages)-1]
+		if problem, ok := ending["error"].(string); ok && problem != "" {
+			return recallOut{fatal: "turn failed: " + problem}
+		}
+		if o.after != nil {
+			if err := o.after(i); err != nil {
+				return recallOut{fatal: err.Error()}
+			}
+		}
+		want := i + 1
+		if i < len(o.expect) {
+			want = o.expect[i]
+		}
+		if n := len(recallTurns(srv.Requests())); n != want {
+			return recallOut{fatal: fmt.Sprintf("completed prompt %d made %d requests, want %d", i+1, n, want)}
+		}
+	}
+	stdin.Close()
+	select {
+	case err = <-done:
+		finished = true
+		if err != nil {
+			out.fatal = "nonzero GUI exit after EOF: " + err.Error()
+		}
+	case <-time.After(10 * time.Second):
+		out.fatal = "GUI did not save and exit after EOF"
+	}
+	return out
 }
 
-// Selection replay has an existing effective-settings trailer, not a new grader
-// protocol. Retain all preceding historical records and the current state frame.
-func managementSelect(peer *guiPeer, key string) ([]map[string]any, error) {
-	if err := peer.conn.WriteJSON(map[string]string{"type": "select_agent", "key": key}); err != nil {
+// Both public GUI clients save the complete recorded Log. Reading that existing
+// persistence contract avoids assuming that every client honors CH02_LOG.
+func recallReadEvents(dir string) ([]map[string]json.RawMessage, error) {
+	raw, err := os.ReadFile(filepath.Join(dir, "save.json"))
+	if err != nil {
 		return nil, err
 	}
-	return peer.until(2*time.Second, messageKind("current_settings"))
+	var saved struct{ Log []map[string]json.RawMessage }
+	if err := json.Unmarshal(raw, &saved); err != nil {
+		return nil, err
+	}
+	return saved.Log, nil
 }
-func managementNode(v any, id string) map[string]any {
-	m, ok := v.(map[string]any)
-	if !ok {
-		return nil
-	}
-	if m["id"] == id {
-		return m
-	}
-	for _, child := range list(m["children"]) {
-		if got := managementNode(child, id); got != nil {
-			return got
+func recallAttachments(out recallOut) []string {
+	var texts []string
+	for _, e := range out.events {
+		var kind string
+		json.Unmarshal(e["type"], &kind)
+		if kind != "recall_attached" {
+			continue
 		}
+		var r struct{ Parts json.RawMessage }
+		json.Unmarshal(e["recall_attached"], &r)
+		texts = append(texts, recallParts(r.Parts))
 	}
-	return nil
-}
-func managementPhase(v any) string {
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return fmt.Sprint(object(v)["phase"])
-}
-func managementState(frames []map[string]any) string {
-	state := ""
-	for _, m := range frames {
-		if m["type"] == "state_changed" {
-			state = fmt.Sprint(m["to"])
-		}
-	}
-	return state
-}
-func managementContains(frames []map[string]any, text string) bool {
-	// Only rendered result/text events qualify, never submitted call arguments.
-	for _, m := range frames {
-		content := ""
-		switch m["type"] {
-		case "part_final":
-			part := object(m["part"])
-			if part["type"] == "text" {
-				content, _ = part["text"].(string)
-			}
-		case "tool_finished":
-			content, _ = m["result"].(string)
-		case "turn_ended":
-			content, _ = m["text"].(string)
-		}
-		if strings.Contains(content, text) {
-			return true
-		}
-	}
-	return false
+	return texts
 }
 
-func managementGUI(bin string, checks []grade.Check) {
-	fleetTemp([]*grade.Check{&checks[0], &checks[1], &checks[2], &checks[3], &checks[5]}, func(work string) {
-		skill := "---\nname: %s\ndescription: Fleet management fixture\ntype: primary\ntools: " + managementTools + "\n---\n%s\n"
-		if err := recallWrite(filepath.Join(work, "skills"), map[string]string{"base/SKILL.md": fmt.Sprintf(skill, "base", "Main and named-peer Agents finish in chat; delegated Agents submit."), "peer/SKILL.md": fmt.Sprintf(skill, "peer", "PEER_SKILL_BODY_23. Main and named-peer Agents finish in chat; delegated Agents submit.")}); err != nil {
-			reuseFail(checks, err, 0, 1, 2, 3, 5)
-			return
-		}
-		provider := fakevendor.NewWithOptions(nil, fakevendor.Options{Route: func(body []byte) *fakevendor.Reply {
-			var r map[string]any
-			_ = json.Unmarshal(body, &r)
-			if len(list(r["tools"])) == 0 && !fleetHas(body, "peer-submit") && !fleetHas(body, "manage-submit") && !fleetHas(body, "child-submit") && !fleetHas(body, "intruder-submit") {
-				return &fakevendor.Reply{Text: "[]"}
+// Match recorded attachment bytes inside actual text parts, not tool arguments,
+// results or a hard-coded message role. Adjacent user data may share a message.
+func recallWire(body []byte) string {
+	var r struct {
+		Messages []struct{ Content json.RawMessage }
+	}
+	json.Unmarshal(body, &r)
+	var texts []string
+	for _, m := range r.Messages {
+		var s string
+		if json.Unmarshal(m.Content, &s) == nil {
+			if i := strings.Index(s, recallHeader); i >= 0 {
+				texts = append(texts, s[i:])
 			}
-			return managementReply(body, work)
-		}})
-		defer provider.Close()
-		entered, release := make(chan struct{}), make(chan struct{})
-		invalidEntered, correction := make(chan struct{}), make(chan struct{})
-		reopened := make(chan struct{})
-		var invalidOnce, correctionOnce, reopenOnce sync.Once
-		allowCorrection := func() { correctionOnce.Do(func() { close(correction) }) }
-		defer allowCorrection()
-		var enterOnce, releaseOnce sync.Once
-		unpark := func() { releaseOnce.Do(func() { close(release) }) }
-		upstream, _ := url.Parse(provider.URL())
-		forward := httputil.NewSingleHostReverseProxy(upstream)
-		// Hold only the external HTTP request, outside the fake vendor's capture
-		// mutex. Actual replay stays observable while the model is genuinely busy.
-		boundary := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			raw, _ := io.ReadAll(r.Body)
-			r.Body.Close()
-			r.Body = io.NopCloser(bytes.NewReader(raw))
-			conversation := memoryConversation(raw)
-			// Park the correction at the remote boundary after its real rejection.
-			// The parent's status call therefore observes the invalid state, without
-			// relying on a short sleep or blocking the provider capture mutex.
-			if strings.Contains(conversation, "WORKER_TASK_23") && !strings.Contains(conversation, "MANAGEMENT_ROOT_23") && fleetHas(raw, "child-invalid") {
-				invalidOnce.Do(func() { close(invalidEntered) })
-				select {
-				case <-correction:
-				case <-r.Context().Done():
-					return
+			continue
+		}
+		var parts []struct{ Type, Text string }
+		json.Unmarshal(m.Content, &parts)
+		for _, p := range parts {
+			if p.Type == "text" {
+				if i := strings.Index(p.Text, recallHeader); i >= 0 {
+					texts = append(texts, p.Text[i:])
 				}
 			}
-			if strings.Contains(conversation, "MANAGEMENT_ROOT_23") && fleetHas(raw, "wait-change") {
-				if fleetHas(raw, "invalid-status") {
-					allowCorrection()
-				} else {
-					select {
-					case <-invalidEntered:
-					case <-r.Context().Done():
-						return
-					case <-time.After(2 * time.Second):
-						http.Error(w, "child never reached rejected-submit correction", http.StatusGatewayTimeout)
-						return
-					}
-				}
-			}
-			// Restart creates an owned child with a fresh current task while its old
-			// submission remains on disk. Keep that task pending until explicit kill.
-			if strings.Contains(conversation, "REOPEN_TASK_23") && !strings.Contains(conversation, "RESTORE_ROOT_23") {
-				reopenOnce.Do(func() { close(reopened) })
-				<-r.Context().Done()
-				return
-			}
-			if strings.Contains(conversation, "RESTORE_ROOT_23") && fleetHas(raw, "respawn-worker") {
-				select {
-				case <-reopened:
-				case <-r.Context().Done():
-					return
-				case <-time.After(2 * time.Second):
-					http.Error(w, "reopened task never reached provider boundary", http.StatusGatewayTimeout)
-					return
-				}
-			}
-			if strings.Contains(string(raw), "PENDING_TASK_23") {
-				enterOnce.Do(func() { close(entered) })
-				select {
-				case <-release:
-				case <-r.Context().Done():
-					return
-				}
-			}
-			// Child-start acknowledgment comes from the actual shell, not an
-			// earlier activity event. Hold the parent's next response outside
-			// the capture mutex so the child can receive its own tool call.
-			if strings.Contains(string(raw), "MANAGEMENT_ROOT_23") && fleetHas(raw, "spawn-worker") && !fleetHas(raw, "wait-change") {
-				deadline := time.NewTimer(2 * time.Second)
-				defer deadline.Stop()
-				tick := time.NewTicker(10 * time.Millisecond)
-				defer tick.Stop()
-				for {
-					if _, err := os.Stat(filepath.Join(work, "ready")); err == nil {
-						break
-					}
-					select {
-					case <-tick.C:
-					case <-r.Context().Done():
-						return
-					case <-deadline.C:
-						http.Error(w, "child command never acknowledged startup", http.StatusGatewayTimeout)
-						return
-					}
-				}
-			}
-			forward.ServeHTTP(w, r)
-		}))
-		defer boundary.Close()
-		defer unpark()
-		p, peer, err := managementStart(bin, work, boundary.URL)
-		if err != nil {
-			reuseFail(checks, err, 0, 1, 2, 3, 5)
-			return
 		}
-		defer p.close()
-		defer peer.close()
-		peer.send("subscribe", "")
-		initial, err := peer.until(2*time.Second, func(m map[string]any) bool { return m["type"] == "agent_tree" || m["type"] == "agents_tree" })
-		if err != nil || len(initial) == 0 || len(object(initial[len(initial)-1]["root"])) == 0 {
-			reuseFail(checks, fmt.Errorf("initial real tree: %v", err), 0, 1, 2, 3, 5)
-			return
+	}
+	return strings.Join(texts, "\n")
+}
+
+func recallParts(raw json.RawMessage) string {
+	var parts []struct{ Type, Text string }
+	if json.Unmarshal(raw, &parts) != nil {
+		return ""
+	}
+	var b strings.Builder
+	for _, p := range parts {
+		if p.Type == "text" {
+			b.WriteString(p.Text)
 		}
-		peer.send("prompt", "MANAGEMENT_ROOT_23")
-		released := false
-		phases := []string{}
-		nested := false
-		live, err := peer.until(9*time.Second, func(m map[string]any) bool {
-			phase := ""
-			if m["type"] == "agent_activity" && strings.HasSuffix(fmt.Sprint(m["key"]), "/worker23") {
-				phase = managementPhase(m["activity"])
-			}
-			if m["type"] == "agent_tree" || m["type"] == "agents_tree" {
-				if n := managementNode(m["root"], "worker23"); n != nil {
-					nested = true
-					phase = managementPhase(n["activity"])
-				}
-			}
-			if phase != "" && (len(phases) == 0 || phases[len(phases)-1] != phase) {
-				phases = append(phases, phase)
-			}
-			// Waiting activity precedes handler execution. It only starts this
-			// bounded no-progress control; it is not an entry acknowledgment.
-			// The child's shell is already held and has no output/state change.
-			raw, _ := json.Marshal(m)
-			if !released && strings.Contains(string(raw), "wait_for_agent_change") && strings.Contains(string(raw), "waiting") {
-				quiet, e := peer.until(200*time.Millisecond, nil)
-				if e != nil {
-					fail(&checks[3], "held wait observation: %v", e)
-				}
-				for _, observed := range quiet {
-					if observed["type"] == "tool_finished" && observed["call_id"] == "wait-change" {
-						fail(&checks[3], "change wait completed while selected child had no progress")
-					}
-				}
-				released = true
-				if e = os.WriteFile(filepath.Join(work, "release"), nil, 0600); e != nil {
-					fail(&checks[3], "release selected child: %v", e)
-				}
-			}
-			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "MANAGEMENT_DONE_23")
-		})
-		if err != nil {
-			reuseFail(checks, fmt.Errorf("management turn: %v", err), 0, 2, 3)
-			_ = os.WriteFile(filepath.Join(work, "release"), nil, 0600)
-		}
-		managementResults(provider.Requests(), checks)
-		// Extra real transitions are allowed; require the promised phases in order,
-		// not one implementation-specific number of observations.
-		at := 0
-		for _, phase := range phases {
-			want := []string{"thinking", "tool_call", "idle"}
-			if at < len(want) && strings.ReplaceAll(phase, "toolcall", "tool_call") == want[at] {
-				at++
-			}
-		}
-		if at != 3 {
-			fail(&checks[0], "ordered child thinking/tool/idle phases absent: %v", phases)
-		}
-		if !released {
-			fail(&checks[3], "no actual waiting observation before child release")
-		}
-		if !nested {
-			fail(&checks[5], "no live nested child in GUI tree")
-		}
-		managementSubmissionFrame(&checks[5], live, "child-retrieve", "", "worker23")
-		childReplay, selectErr := managementSelect(peer, "main/worker23")
-		if selectErr != nil {
-			fail(&checks[5], "structured child selection: %v", selectErr)
-		} else {
-			managementSubmissionFrame(&checks[5], childReplay, "child-submit", "submitted: ", "")
-		}
-		// Named peer creation is a real client command, not a planted registry file.
-		peer.conn.WriteJSON(map[string]string{"type": "create_agent", "name": "named23", "model": "claude-opus-4-6", "skill": "peer"})
-		_, err = peer.until(2*time.Second, func(m map[string]any) bool {
-			return (m["type"] == "agent_tree" || m["type"] == "agents_tree") && managementNode(m["root"], "named23") != nil
-		})
-		if err == nil {
-			_, err = managementSelect(peer, "named23")
-		}
-		if err != nil {
-			reuseFail(checks, fmt.Errorf("named create/select: %v", err), 1, 5)
-			return
-		}
-		peer.send("prompt", "PEER_TASK_23")
-		_, err = peer.until(3*time.Second, func(m map[string]any) bool {
-			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "NAMED_CONVERSATION_23")
-		})
-		if err != nil {
-			reuseFail(checks, err, 1, 5)
-			return
-		}
-		replay, err := managementSelect(peer, "named23")
-		if err != nil || managementState(replay) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") {
-			reuseFail(checks, fmt.Errorf("completed selected replay: state=%s history=%t err=%v", managementState(replay), managementContains(replay, "NAMED_CONVERSATION_23"), err), 1, 5)
-		}
-		// An acknowledgment alone cannot prove constructor inputs took effect.
-		// Inspect the actual named Agent request, including its primary instruction.
-		selected := false
-		for _, r := range provider.Requests() {
-			if strings.Contains(string(r.Body), "PEER_TASK_23") && r.JSON()["model"] == "claude-opus-4-6" && strings.Contains(string(r.Body), "PEER_SKILL_BODY_23") {
-				selected = true
-			}
-		}
-		if !selected {
-			fail(&checks[1], "created model and primary-skill body did not reach actual provider request")
-		}
-		if err = managementEOF(p); err != nil {
-			reuseFail(checks, err, 1, 5)
-			return
-		}
-		// Keep the provider alive across restart: retained words must come from
-		// the saved conversation, with no request to reconstruct them.
-		count := len(provider.Requests())
-		second, view, err := managementStart(bin, work, boundary.URL)
-		if err != nil {
-			reuseFail(checks, err, 1, 5)
-			return
-		}
-		defer second.close()
-		defer view.close()
-		replay, err = managementSelect(view, "named23")
-		if err != nil || managementState(replay) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") || len(provider.Requests()) != count {
-			reuseFail(checks, fmt.Errorf("restart did not restore idle named conversation without inference: state=%s err=%v", managementState(replay), err), 1, 5)
-			return
-		}
-		// Selecting the restored owner replays the retained retrieval result, with
-		// no new inference and no automatic resurrection of its ephemeral child.
-		ownerReplay, e := managementSelect(view, "main")
-		if e != nil || len(provider.Requests()) != count {
-			reuseFail(checks, fmt.Errorf("structured owner replay: %v", e), 1, 5)
-			return
-		}
-		managementSubmissionFrame(&checks[5], ownerReplay, "child-retrieve", "", "worker23")
-		for _, frame := range ownerReplay {
-			if frame["type"] == "agent_tree" && managementNode(frame["root"], "worker23") != nil {
-				fail(&checks[1], "ephemeral task child was recreated by restart")
-			}
-		}
-		view.send("prompt", "RESTORE_ROOT_23")
-		restored, e := view.until(4*time.Second, func(m map[string]any) bool {
-			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "RESTORED_RESULT_23")
-		})
-		if e != nil {
-			reuseFail(checks, fmt.Errorf("owned durable fallback: %v", e), 1, 2)
-			return
-		}
-		managementSubmissionFrame(&checks[1], restored, "durable-retrieve", "", "worker23")
-		reqs := provider.Requests()
-		managementPayload(&checks[2], fleetResult(&checks[2], reqs, "durable-retrieve", false), "worker23")
-		var current map[string]any
-		if e := json.Unmarshal([]byte(fleetResult(&checks[2], reqs, "durable-status", false)), &current); e != nil || current["agent_id"] != "worker23" || current["state"] != "running" || current["payload"] != nil {
-			fail(&checks[2], "historical fallback completed the pending current task: %v (%v)", current, e)
-		}
-		fleetResult(&checks[2], reqs, "stop-reopened", false)
-		if _, e = managementSelect(view, "named23"); e != nil {
-			fail(&checks[5], "return to named peer: %v", e)
-			return
-		}
-		view.send("prompt", "PENDING_TASK_23")
-		select {
-		case <-entered:
-		case <-time.After(3 * time.Second):
-			fail(&checks[5], "real pending request never entered provider boundary")
-			return
-		}
-		pending, e := managementSelect(view, "named23")
-		if e != nil || managementState(pending) != "in_flight" {
-			fail(&checks[5], "genuinely pending selected state=%s err=%v", managementState(pending), e)
-		}
-		unpark()
-		_, e = view.until(3*time.Second, func(m map[string]any) bool {
-			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "PENDING_DONE_23")
-		})
-		if e != nil {
-			fail(&checks[5], "pending request did not complete: %v", e)
-			return
-		}
-		completed, e := managementSelect(view, "named23")
-		if e != nil || managementState(completed) != "idle" {
-			fail(&checks[5], "completed pending request state=%s err=%v", managementState(completed), e)
-		}
-		view.conn.WriteJSON(map[string]string{"type": "delete_agent", "name": "named23"})
-		_, err = view.until(2*time.Second, messageKind("agent_deleted"))
-		if err != nil {
-			fail(&checks[1], "named deletion: %v", err)
-		}
-		if err = managementEOF(second); err != nil {
-			fail(&checks[1], "%v", err)
-			return
-		}
-		third, last, err := managementStart(bin, work, boundary.URL)
-		if err != nil {
-			fail(&checks[1], "delete restart: %v", err)
-			return
-		}
-		defer third.close()
-		defer last.close()
-		last.send("subscribe", "")
-		frames, e := last.until(2*time.Second, func(m map[string]any) bool { return m["type"] == "agent_tree" || m["type"] == "agents_tree" })
-		if e != nil || len(frames) == 0 || managementNode(frames[len(frames)-1]["root"], "named23") != nil {
-			fail(&checks[1], "deleted peer returned after restart: %v", e)
-		}
-		if err = managementEOF(third); err != nil {
-			fail(&checks[1], "%v", err)
-		}
-	})
+	}
+	return b.String()
 }

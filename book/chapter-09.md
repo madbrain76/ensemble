@@ -355,7 +355,7 @@ creation-time content.
 That separation matters for memory. Pre-loaded context (memories,
 user preferences, project notes) belongs in the message history as
 data rather than the system prompt as instructions. The system prompt stays
-separate from those changing facts. Chapter 15 builds the memory cascade on
+separate from those changing facts. Chapter 22 builds the memory cascade on
 this foundation; this chapter adds no `save_memory` tool or memory storage.
 
 ## Taking it for a spin

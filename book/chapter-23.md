@@ -1,647 +1,755 @@
-# Chapter 23: Managing the Swarm
+# Chapter 23: Auto-Recall
 
-In July 2026, roughly seven hundred agents participated in an attack on
-Hugging Face. The later METR/Redwood investigation found about 1,200 agents on
-the shared, unsanctioned message board, exchanging more than 70,000 messages
-and files. The attackers were a subset of that larger group, coordinating work
-that included finding exposed credentials and gaining remote code execution.
-[METR/Redwood, August 26,
-2026](https://evals.alignment.org/blog/2026-08-26-openai-hugging-face-incident-investigation/).
+## §23.0
 
-Hugging Face's technical account distinguishes a 4.5-day campaign from roughly
-2.5 days inside its infrastructure. Several security layers produced signals;
-its security-agent stack correlated them, but failed to raise their severity
-enough to trigger the on-call team promptly. The failure was more specific
-than nobody watching. Seeing a pattern and getting the right person to act on
-it are different jobs. [Hugging Face, July 27,
-2026](https://huggingface.co/blog/agent-intrusion-technical-timeline).
+Chapter 22 built a memory system. The agent can save, compress, and
+graduate memories through a cascade of bands. Enabled bands already put
+recent memories in context. Older originals and unloaded material remain on disk, organized and budgeted, until something
+brings them back. The agent can still repeat a rejected decision because
+the explanation is sitting in an archive it never thought to open.
 
-The console built in the last chapter has a smaller, immediate problem. It
-shows one conversation while the root can delegate to a whole tree. A child
-thinking about a problem, one executing a tool, and one waiting on its
-children can all report that they are running. The operator cannot see the
-shape of the fleet or find the conversation that needs attention without
-reconstructing it from tool results. That operator is a traffic cop directing
-cars through a four-way stop with a flashlight and a clipboard.
+For that older material, the agent has a filing cabinet without a habit
+of opening it.
 
-This chapter replaces the flashlight with a radar screen. The screen reports
-work and offers controls; it is not evidence that the reported attack would
-have been prevented.
+In the spring of 2026, I had a coding agent with a full memory cascade
+and a `search_knowledge` tool. It was episodically brilliant: when it
+searched, it found the right thing. But it almost never searched. Every
+session started cold. It would re-derive decisions we had already made,
+re-investigate bugs we had already fixed, and propose architectures we
+had already rejected. The knowledge was there. The recall was not.
 
----
+The fix was embarrassingly simple. Before every user message reaches the
+model, run a keyword search over the memory files, filter the results
+through a cheap model, and attach the survivors to the conversation.
+The agent never asks for the memories. They arrive the way a relevant
+fact arrives when a colleague mentions a project name: unbidden, fast,
+and usually right.
+
+The improvement was immediate in my daily use. The agent
+went from a goldfish that kept meticulous diaries to a collaborator
+with a past.
 
 ## TL;DR
 
-A fleet doing real work is hard to supervise through one chat window.
-“Running” does not say whether an agent is thinking, executing a tool or
-waiting for children. Add activity, a durable registry of named peers,
-management tools and a browser tree whose nodes open the actual conversations.
+Build passive memory retrieval. Every user message triggers a BM25 keyword
+search over the agent's memory files. A small language model filters the
+results for relevance. Surviving snippets are attached to the conversation
+as their own kind of entry, where they stay until a checkpoint removes them.
 
-Build it in seven stages:
+**Data structures.** This sketch shows the index vocabulary; private field
+names and storage choices are yours.
 
-1. **Activity tracking.** Record four phases: idle, thinking, tool call and
-   waiting. Emit thinking when the model request starts, tool call at dispatch
-   with the tool name and a short detail, waiting when a fleet operation blocks,
-   and idle when the turn ends. Deliver transitions through the existing
-   Observer. Lifecycle and activity remain separate facts.
+```go
+// BM25 engine — standard information retrieval, nothing exotic.
+type Index struct {
+    Chunks    []Chunk
+    AvgLength float64           // average chunk length in tokens
+    DocFreq   map[string]int    // how many chunks contain each term
+    Total     int               // total number of chunks
+}
 
-2. **Named peers.** Extend the existing Ensemble with a persistent registry.
-   Its public startup path loads `ensemble.json` and restores each named Agent
-   with its own conversation and data directory. Creation takes a name, model
-   and defining skill; deletion refuses active children, shuts down the peer,
-   removes its registry entry and cleans up its directory. Named peers survive
-   application restart. Spawned task children are not added to the registry.
+type Chunk struct {
+    Filename string             // source file (e.g., "2026-09-27-1.md")
+    Header   string             // markdown section header
+    Content  string             // the text
+    Tokens   []string           // pre-computed tokenization
+    Length   int                // token count
+    TF       map[string]int     // term frequencies
+}
 
-3. **Ownership enforcement.** Each management tool resolves a target through
-   the calling Agent's fleet. A foreign target and a nonexistent target return
-   the same “unknown agent” error. Preserve Chapter 22's enforcement and apply
-   it to every new target-bearing operation, including durable-result fallback.
-   The trusted browser's tree selection is a different interface from a
-   model-callable management tool.
-
-4. **Eight management tools.** Add `wait_for_agent_change`, `send_message`,
-   `wait_for_agent`, `ask_agent`, `get_submission`, `kill_agent`,
-   `get_sub_agent_status` and `interrupt_agent`. Change waits observe only their
-   selected children: state, exit, messages, matching output and lack of
-   progress. Cursor reads return new finalized output. Messages steer a busy
-   child or start an idle turn; questions queue a separate turn and await its
-   result. Preserve Chapter 22's default text or custom JSON object through status,
-   joins and `get_submission`; rejected data stays incomplete. A submission has a
-   durable `submit.md` fallback under that child's ownership. An old stored result
-   does not mark a respawned task submitted. Status includes
-   activity and measured usage. Graceful shutdown waits for current/queued work;
-   kill cancels the child's lifetime. Both interrupt modes end the turn while
-   preserving the Agent and independent jobs. Accepted submission can precede the
-   submit tool's result and reliable completion/save: disposal waits for completion
-   and drain, not just the submitted flag.
-
-5. **One actual startup path.** Both CLI and optional GUI use the public
-   Ensemble to install the recursive factory, human sink and per-Agent paths
-   before restoring agents. The accepted API calls `ensemble.New` then
-   `root.Start`; an existing non-fleet consumer can still use `NewAgent`.
-   Verify the executable's actual behavior, as well as its imports and owners.
-
-6. **A selectable browser tree.** Send an initial tree and continuing
-   activity/state changes for roots, named peers and nested children. Show
-   local name, parent, persistence, lifecycle and activity. Clicking a node
-   selects that Agent's retained conversation and subsequent live output for
-   that connection. Repeated local names in different branches must remain
-   distinct. Replay completed work as completed, while genuinely pending work
-   remains pending. Nested submitted JSON must survive actual tool-result display,
-   reselection and reconnect. Restart restores retrieved results in the owner's
-   history; it does not recreate ephemeral children. A slow connection must not block
-   the fleet or shutdown.
-
-7. **Visible creation and deletion.** Provide name, model and skill inputs for
-   named peers and deletion controls for those peers. Display rejection when
-   children remain active. Preserve bottom-up `submit`, human message routing
-   and the three bounded idle-correction wakes for ordinary delegated Agents.
-   Main and named peers have no Agent parent and finish normally in chat.
-
-The accepted implementation emits `agent_tree`, `agent_activity`,
-`agent_state`, `agent_created`, `agent_deleted` and `agent_selected`. Its
-complete-tree updates carry current state as well as its incremental activity
-messages. Equivalent field spellings and update strategies are acceptable;
-conversation selection and the visible controls are required. No React
-migration or persistent task spawning is part of this exercise.
-
-Typed retrieval keeps identity and data separate. The accepted public API is
-`Fleet.SubmissionData(id) (Submission, error)`, where `Result` holds default text
-and `Payload` holds custom JSON. `Submission(id)` retains text compatibility and
-returns an error for custom data. The tool returns `agent_id` with either `result`
-or nested `payload`. `ask_agent` returns compact JSON text for a custom-only answer
-instead of a blank successful string. All returned raw JSON belongs to the caller.
-Read legacy and versioned rows as defined in Chapter 22, validate stored custom
-data under its stored contract, and refuse malformed or unknown-version rows.
-Durable fallback first resolves an owned child; it is not a global archive lookup.
-
-Build and grade from the repository root:
-
-```sh
-go run ./cmd/grade-edition2 -ch 23 solutions/ch23
+// BM25 tuning — standard values, no reason to change them.
+const (
+    k1 = 1.2   // term frequency saturation
+    b  = 0.75  // document length normalization
+)
 ```
 
-The default builds the core and its separate `gui/` command; `-gui DIR`
-selects another GUI module. Section 23.9 describes the seven checks and their
-limits.
+**The recall pipeline** has three stages:
 
-## 23.1 Why "running" is not enough
+1. **BM25 search.** Tokenize the user's message, remove stop words, score
+   every chunk in each source index. With a judge, send up to `Candidates`
+   (default 20) highest-scoring chunks above a low threshold (0.5). Keep
+   the full hit list for fallback. Without a judge, use `MinScore` (3.0).
+   On the final mechanical selection only, reserve half the slots, rounded
+   up, for memory; divide the rest among other sources with hits and
+   redistribute unused slots.
 
-Chapter 22 built the fleet. Every child agent runs its own actor, its own tool
-registry, its own save file. Each Agent’s fleet manager tracks children, the
-factory builds them, and idle correction catches the ones that stop too early.
-The mechanism works. The visibility does not.
+2. **SLM judge.** Send the candidates to a cheap language model
+   on the Agent's provider along with the last few
+   conversation messages for context. The judge returns a JSON array of
+   indices, the candidates it considers genuinely relevant, not just
+   keyword matches. If the judge fails, times out (15 seconds), or is
+   disabled, fall back to score order with the final source quotas. A
+   successful verdict, including `[]`, stands; quotas never replace it.
 
-The fleet reports lifecycle states such as running, idle, submitted and
-failed. Running alone covers work with very different demands on the operator.
-An agent calling `read_file` on a config file and an agent blocked inside
-`join_agents` waiting for twelve children to finish a two-hour research task
-both report Running. A human looking at the fleet sees a list of green dots.
-Every dot means the same thing, and the thing it means is "something is
-happening, somewhere."
+3. **Attachment.** Format the surviving snippets (up to `MaxSnippets`,
+   default 3) as blockquoted text with source attribution. Record them as
+   their own entry kind, never merged into the user's message. Cap total
+   recalled text at 6KB (6,144 bytes), including heading, attribution and quote
+   prefixes. Preserve valid UTF-8 at the cut. Skip any snippet already present
+   in actual context, including enabled memory bands. Retain the complete
+   source identity for capped snippets so truncation cannot defeat that
+   check. The entry persists until a checkpoint removes it.
 
-This is not a cosmetic problem. A list of green dots cannot tell an operator
-where to look next. A thinking agent has an outstanding model request. A
-tool-executing agent may be changing the environment. A waiting agent is
-blocked on something, possibly children or jobs that are still working. An
-idle one may need a nudge. Waiting is not a security verdict: its descendants
-can still act, and earlier effects do not disappear when its phase changes.
+**Sources searched.** All paths below belong to the Agent's data directory;
+the supplied CLI and GUI choose `cr/` beneath their launch directory. Skills
+use the Agent's separately configured skills directory.
 
-An agent executing a destructive command and one waiting for its children to
-submit should not offer the operator the same description. The phase helps
-choose the next question; the conversation and actual tool result help answer
-it.
+| Source | What | Final mechanical share |
+|--------|------|-------|
+| Memory files | `memory/`, `bucket-0/`, `bucket-1/`, `MEMORY.md`, `SOUL.md`; include archived `.md.retired` files | Half the slots, rounded up |
+| Docs | Markdown under `docs/` | Split the remainder |
+| Handoffs | Markdown under `handoffs/` | Split the remainder |
+| Learnings | Markdown under `learnings/` | Split the remainder |
+| Skill docs | Available `SKILL.md` files | Split the remainder |
 
-Activity tracking splits Running into the three phases that matter: thinking,
-tool call, and waiting. Each transition is an observation, delivered through
-the same Observer that already carries text deltas and tool results. The
-agent's activity changes when the LLM request starts (thinking), when a tool
-dispatches (tool call, with the tool name), when a fleet tool blocks
-(waiting), and when the turn ends (idle). Four phases, four emission points,
-each in a function that already exists.
+Search all memory files, including the newest. Omit content already in actual
+context instead of guessing from a filename which memories the model has seen.
+Resolve loaded history and memory's staged recovery before building or refreshing
+an index. Hidden candidates are outside every recall source. A committed replacement
+must finish disk finalization before search; a conflict returns its recovery error
+without searching a mixed corpus. After successful graduation, retired originals
+remain searchable while surviving active memory is excluded by actual context.
+A failed attempt keeps its source live and subject to that same exclusion.
+The historical CodeRhapsody `learnings.json` format is not an input to this
+exercise; long-form learning notes here are ordinary markdown.
 
-The implementation crosses a package boundary. The actor in `internal/agent`
-knows when a request starts and a call dispatches. The management handlers in
-`internal/tools` reach their Agent and its fleet through the ordinary tool
-context. The dispatch point recognizes blocking fleet operations and emits
-waiting through the same Observer. There is no need to make the browser infer
-activity from fragments of printed text.
+**Chunking.** Split markdown on `## ` headers. Large chunks (over 4KB) split
+further on `### ` sub-headers, then on paragraph boundaries. Sub-chunk headers
+use breadcrumb format: `"Parent Header > Sub Header"`.
 
-The distinction became visible in the actual browser exercise. A parent called
-`get_sub_agent_status` and `wait_for_agent_change` while its child implemented
-and tested a function. The capture contains all four activity phases and both
-conversations. The operator can select the child doing the work instead of
-interrupting its parent merely to ask what happened. Section 23.8 follows that
-run through completion and restart.
+**Tokenization.** Split on non-alphanumeric characters, lowercase, minimum
+2 characters. Filter stop words from queries only. Documents keep all terms
+for length normalization.
 
-The detail string on a tool call carries the tool name and enough context to
-distinguish one call from another. `"read_file: main.go"` is enough.
-`"read_file: main.go lines 1-50 with encoding utf-8 and tab width 4"` is a
-status bar pretending to be a log line. Answer the question a human actually
-asks: what tool, what file. The accepted implementation keeps the name
-separately and truncates the argument detail to fifty Unicode characters; the
-full call remains in the conversation.
+**The recall judge is one stateless model call**, not an agent. It takes a
+prompt and returns text. Because it holds no history and owns no context,
+it cannot recall, which makes the recursion problem structurally impossible
+rather than something to guard against. Add its measured usage once to Engine
+session totals with the actual provider, model and price tier; keep latest-main
+counts and main-request cache-lens comparisons unchanged. Restoring an attachment
+neither invokes a judge nor imports historical spend.
 
-## 23.2 The Ensemble
+**Recall is a new spoke.** It imports `internal/common` and the standard
+library. Ensemble constructs it as an Agent child with a required parent
+interface. It reaches the Agent's configuration, skills and Engine through
+that owner; common declares `Recaller` and `SnippetJudge`. The actor gives a
+worker a conversation snapshot and attaches its returned bytes through the
+existing ordered input path. A slow judge must leave hints and interruption
+usable, and an interrupted worker must not attach to a later turn.
 
-The first edition's fleet chapter exposed five composition failures: the
-factory not registered, the user sink not connected, children not receiving
-the same construction path. Library tests had supplied wires that the actual
-command forgot. Chapter 22 preserved that lesson. The Ensemble already owns
-construction here; named persistence extends that owner instead of moving
-services into a new callback bundle.
+**Parse the judge's response defensively.** Small models are unreliable
+with output format. Try `[]int` first, fall back to `[]string` (models
+sometimes return `["0", "3"]`), fall back to `[]json.RawMessage` for
+mixed types. Extract the first `[` to last `]` from the response,
+models often wrap the JSON in explanation text. Ignore invalid, repeated
+and out-of-range indices; do not interpret `null` as index zero.
 
-The registry is a JSON array of entries: name, model, skill and creation
-timestamp. The public `Start` path reads it, installs the recursive factory
-and user sink, constructs the root and restores the named peers. Each Agent
-loads its own history through the existing persistence code. The registry
-identifies an Agent; it does not contain that Agent's entire conversation.
+**Configuration.** These are the exercise defaults. The public settings patch
+uses a `recall` object with lower-snake-case keys, such as `max_snippets`.
+Zero numeric fields select defaults; `disabled` bypasses recall and
+`disable_judge` selects mechanical retrieval.
 
-The persistence model is deliberate. Named agents in the Ensemble registry are
-long-lived peers: “researcher”, “reviewer”, “coder”. They survive binary
-restarts. Spawned sub-agents within a single agent's fleet are ephemeral: they
-live within a task and are not automatically recreated on restart. The
-Ensemble owns the named agents. Each Agent's fleet manager owns its children.
-Two ownership relationships, two lifetimes, one Ensemble that manages both.
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| `MinScore` | 3.0 | BM25 score floor for plain recall (no judge) |
+| `MaxSnippets` | 3 | Maximum snippets injected per turn |
+| `MinQueryLength` | 80 | Skip recall for short messages |
+| `JudgeModel` | Agent's current model | Optional same-provider override |
+| `Candidates` | 20 | BM25 results sent to the judge |
+| `ContextMsgs` | 3 | Recent messages for judge context |
+| `MaxRecallBytes` | 6144 | Hard cap on total recalled text |
 
-Named peers have no Agent parent, just as the main Agent has none. They finish
-normally in chat. Ordinary delegated children owe a submission and receive the
-three corrective wakes if a successful turn stops without one. Being displayed
-under the same Ensemble node does not make those completion policies identical.
+**Graded behaviors (10 checks, 100 points):**
 
-In the supplied command, the application's working directory contains
-`ensemble.json`. The root uses `cr/` for its Agent data; its default
-`save.json` is in that working directory, or at the explicit `--save` path.
-Named peers use `agents/NAME/`, with their own save and event log. Their task
-files still use the application's workspace. Separate conversation storage
-does not create private copies of source files.
+| Check | Points | What it tests |
+|-------|--------|---------------|
+| `bm25-indexes` | 10 | Memory files are searchable after finalized and failed-compaction restarts; active content is not duplicated |
+| `bm25-scores` | 10 | Competing hits distinguish rarity, saturation and length normalization |
+| `bm25-stop-words` | 5 | Stop words are filtered from queries, not documents |
+| `chunking-splits` | 10 | Large documents are split on markdown headers |
+| `per-source-quota` | 10 | Final mechanical quotas and spare slots; successful judge choices stand |
+| `judge-filters` | 15 | The SLM judge removes irrelevant BM25 hits |
+| `judge-fallback` | 10 | Judge failure falls back to quota-selected BM25 results |
+| `recall-is-a-spoke` | 10 | The actual core recall spoke imports only common and stdlib |
+| `recall-is-own-kind` | 10 | Recall remains separate and retained on the next turn and after source-free restart |
+| `injection-capped` | 10 | Formatted text fits MaxRecallBytes and capped recall is not repeated |
 
-`CreateAgent(name, model, skill)` builds and saves the peer, then persists its
-registry identity before announcing success. Empty model or skill values
-inherit the application's defaults. `DeleteAgent(name)` refuses unfinished
-children and closes child admission before shutting down the peer and removing
-its identity and data. Otherwise a new child could appear between the check
-and deletion. Application `Close` is different: it saves and stops the peers
-while preserving their registry entries for the next launch.
-
-Central construction gives the developer one place to inspect these rules. It
-does not make a forgotten method call a compile error. Build the real binary,
-create a named peer, exchange a message, close it and restart from the same
-directory. A constructor that compiles but never saves the registry will fail
-at the point the reader actually cares about: the peer is gone.
-
-## 23.3 Containment boundaries
-
-The fleet tools from Chapter 22 already enforce ownership. Every tool resolves
-its target through the caller's fleet manager, which holds only the agents the
-caller spawned. Agent A cannot shut down agent B's child, because agent A's
-manager does not contain it. The tool returns "unknown agent", the same error
-as if the target did not exist.
-
-This is a containment boundary, not an access-control list. There is no global
-agent map that the tools filter. The map does not exist for the caller. A
-poisoned agent that tries to enumerate the fleet discovers only its own
-children. An agent that tries to guess an id and shut it down gets "unknown
-agent" whether the guess is right or wrong, because the distinction between
-"does not exist" and "exists but you cannot reach it" is the kind of
-information leak that lets an attacker map the fleet before attacking it.
-
-The boundary is the lookup scope. The tool context leads to its owning Agent,
-and that Agent's manager searches its direct children. A trusted GUI client
-can walk the Ensemble to select a conversation, but model tools do not use
-that global view as a fallback. The durable submission reader must resolve the
-owned child before reading its file, too.
-
-This protects those management operations. It is not process isolation or a
-promise against every route through shared files, permitted tools or
-compromised native code. Chapter 21's restrictions still matter. The manager's
-small world makes the authority easy to inspect and test.
-
-A cross-tree rejection test verifies this by construction. Create two
-independent agents, each with a child. Have agent A attempt to shut down agent
-B's child by name. The result is "unknown agent." Swap the names, try again,
-same result. Pair that rejection with a successful operation on A's own child.
-Otherwise a manager that rejects every request would look equally contained.
-
-## 23.4 The management console
-
-Eight tools complete the fleet API. The seven from Chapter 22 let an agent run
-a fleet: spawn, join, list, shut down, message, respond, and submit. The eight
-tools added here let an operator or a parent supervise a fleet in real time.
-They exist because a model that can spawn agents but not observe them has
-delegated a task and then closed its eyes.
-
-`wait_for_agent_change` is the core of the supervision loop. It takes a list
-of agent IDs and blocks until something interesting happens to any of them. A
-state change, an agent exit, a message to the parent, a pattern match in the
-output, or a stuck timeout where a processing agent stops making progress. The
-accepted manager takes a snapshot, waits on its existing change notification
-or a short timer, and compares the requested children with that snapshot. The
-timer also lets it notice a lack of progress when no notification arrives.
-
-The snapshot-diff approach is a deliberate choice. The waiter needs the
-current state of a small set of children, not a new durable pub/sub system. It
-wakes, reads those children and reports what changed. The work grows with the
-selected set; the chapter's small fleet exercises are not a benchmark for a
-thousand agents. The wait is an ordinary tool job, so the existing callback
-delay can return a running handle without cancelling the observation.
-
-One early version got the selection wrong. A question from an unselected child
-incremented a manager-wide message counter. A wait watching another child then
-reported that watched child as the sender. Both child requests were otherwise
-parked. Tracking message progress per sender fixed the attribution; the
-selected-question control still woke, and the unselected question no longer
-impersonated progress elsewhere.
-
-Notifications are a reason to inspect state, not a reason to announce that any
-particular child changed. `timeout_seconds` bounds the observation job;
-`stuck_seconds` describes a busy child's lack of progress. Neither is the
-ordinary tool callback delay that hands control back to the model.
-
-`send_message` delivers a prompt to a running agent. If the agent is mid-turn,
-the prompt arrives as a hint between tool calls. If the agent is idle, the
-prompt starts a new turn. The result includes recent history and a cursor, so
-the caller can resume from where it left off without re-reading the entire
-conversation. A cursor belongs to that child, not to the whole Ensemble.
-
-`wait_for_agent` complements `send_message`. Given a cursor from a previous
-`send_message` or `wait_for_agent` call, it blocks until the agent produces
-new output past that cursor, then returns the new content, or returns when the
-child is idle. The accepted cursor advances through recorded history and
-returns finalized assistant text and tool output. Streaming fragments stay in
-the GUI display path; returning each fragment here and its full replacement
-later would count the same words twice.
-
-`ask_agent` is the synchronous composite: send a prompt, wait for the turn to
-complete, return the result. It exists because the common case is
-ask-and-wait. Unlike live steering, this queues a distinct question with its
-own completion. Observing new output from `wait_for_agent` alone is not the
-same as receiving that question’s result.
-
-`get_submission` retrieves the result a child accepted through `submit`.
-Chapter 22's default result is text; a custom contract returns the complete
-direct JSON object. The public `Fleet.SubmissionData(id)` returns a typed
-`Submission`: `Result` holds default text, while `Payload` holds custom JSON.
-The older `Submission(id)` string API refuses a custom result and directs its
-caller to the typed method. Silently converting every object to a string would
-move parsing and error detection into every consumer.
-
-A successful submission is appended to `submit.md` in the child's data directory.
-Legacy JSONL rows remain `{"result":"..."}`. Custom rows have `version: 1`,
-`submit_schema` and `payload`, so each historical result retains the contract
-that accepted it even if a later task uses another schema. Unknown versions and
-malformed rows return errors. Newlines inside a result remain JSON string data,
-rather than ambiguous separators between submissions.
-
-The tool tries memory first and falls back to disk, because an operator who lost
-their context window should not also lose their fleet's results. It returns
-`agent_id` with either `result` or `payload`; the custom payload remains a nested
-JSON object. Status and joins preserve it too. Lookup still requires an owned
-child, and retrieving a historical row does not mark its current task complete.
-The file survives shutdown without becoming a global archive API or automatically
-resurrecting an ephemeral child.
-
-The accepted submission can be visible before the submit tool's result and the
-actor's final completion/save have finished. A join answers whether work was
-submitted; disposing of the child also requires its reliable completion and drain.
-Those boundaries are deliberately separate from how the JSON result is displayed.
-
-`get_sub_agent_status` reports detailed status including the activity phase
-from the first stage. The operator sees thinking, tool call (with tool name
-and detail), waiting, or idle. Token usage is included because an agent can
-consume substantial input without making useful progress. Compare those counts
-with the task and actual output before deciding to intervene. A shorter result
-after more tokens is a reason to investigate, not proof by itself that the
-child was looping.
-
-`kill_agent` terminates an unresponsive agent. It cancels the in-flight
-request, interrupts the current turn, shuts down the agent, and removes it
-from the fleet. The difference from `shutdown_agent` is force: shutdown waits
-for the child's current and queued turns; kill cancels its lifetime, jobs and
-descendants. Application teardown also needs the cancelling path so an
-unresponsive child cannot hold the whole process open.
-
-`interrupt_agent` ends the current turn without shutting down the agent. Two
-modes: `after_tool` requests a stop at the next tool-report boundary, while
-`now` cancels the current turn immediately. The Agent stays alive and can
-start a new turn. Independent jobs retain their real results. A reply saying
-“interrupt delivered” proves receipt; the useful check is that work stops at
-the intended boundary and the same Agent can answer a later question.
-
-## 23.5 The tree in the browser
-
-A fleet is a tree. The root agent sits at the top. Named agents from the
-Ensemble registry are its peers. Spawned sub-agents are children, and those
-children can have children of their own. The GUI introduced in Chapter 7 shows
-a single conversation in a single pane. The operator who needs to see the
-fleet shape must read tool results and reconstruct the topology in their head.
-
-The agent tree panel replaces that mental reconstruction. On WebSocket
-connect, the server sends an `agent_tree` message containing the complete
-tree: every agent's id, parent, state, and current activity. As activities
-change during a session, the tree updates in real time. A thinking agent shows
-a different indicator than a tool-executing one. An idle agent is visually
-distinct from a waiting one. The four activity phases accompany lifecycle
-state; a submitted Agent can be idle without losing the fact that it
-submitted.
-
-The tree is assembled by walking the actual ownership hierarchy. A synthetic
-Ensemble node contains the root and named peers; each Agent contributes its
-owned children recursively. A local display name is insufficient identity:
-`reviewer/helper` and `coder/helper` are different nodes. The accepted tree
-carries both the local `id` and an ownership-path `key`, along with parent,
-persistence, lifecycle and activity.
-
-The existing root Observer receives events from each Agent. The GUI keeps
-conversation events, partials and replay cursors in a view associated with
-that Agent. It sends conversational output only to connections selecting that
-view; a second tab can keep reading another Agent. Tree changes still reach
-both. On selection, the client resets the Artifact scroll and receives
-retained history before continuing with live output. Reusing one global
-partial map would make identical response-local IDs collide across
-conversations.
-
-Structured submissions use these same conversation surfaces. Render their tool
-arguments and results as text safely, retaining nested JSON data in the underlying
-result. Select a registered child during work, then reconnect or reselect it in
-the same running application. After an application restart, inspect the retrieved
-result retained in the restored owner's conversation; ephemeral task children
-are not automatically recreated. Compare the actual object, including arrays,
-booleans and nulls; finding one marker somewhere in a frame cannot establish that
-the payload survived. No separate result browser is needed.
-
-A tree traversal can take several managers' locks. It therefore runs in a
-small coalescing worker outside the synchronous actor Observer; an activity
-notification asks for a refresh rather than walking the whole hierarchy while
-the actor waits. This uses the existing Observer and GUI lifetime instead of
-putting browser concerns into the core actor.
-
-Selection exposed another lifetime mistake. Repeated clicks from a browser
-that stopped reading filled the replay queue. The receiver waited to enqueue
-history while holding the server mutex; after disconnect, shutdown needed the
-same mutex. A slow tab had stopped the server.
-
-The correction admits an entire replay as one queue batch. If the connection
-cannot accept that batch, it disconnects and can reconnect for a fresh replay.
-The selected view is published only after admission succeeds. Increasing the
-buffer would only postpone the blocked send; dropping the tail would quietly
-lose retained conversation. Other Agents and browser connections keep their
-own lifetimes.
-
-Creating and deleting named agents from the GUI uses two WebSocket messages:
-`create_agent` and `delete_agent`. The browser sends a message with a name,
-model and defining skill for creation, or a name for deletion; the server
-calls `CreateAgent` or `DeleteAgent`, and the server broadcasts the updated
-tree. `DeleteAgent` rejects when the agent has active sub-agents, for the same
-reason `submit` rejects: tearing down an agent while its children are running
-leaves orphaned work that no one is waiting for. The operator sees the
-rejection as an error in the GUI and knows to shut down the children first.
-
-## 23.6 The composition root, condensed
-
-The first edition condensed a large command into `NewEnsemble` and `Start`
-after its fleet wiring failures. Here the public Ensemble already exists.
-Startup gains registry restoration while retaining the same recursive factory
-and human route. The CLI and optional GUI both call that path; offline
-consumers can retain their smaller non-fleet protocol.
-
-What belongs in the executable remains there: command-line flags,
-authentication configuration, terminal input and browser serving. What belongs
-to each Agent stays there: conversation, configuration, tool visibility and
-jobs. The root supplies construction and application-level lifetime. A tool
-reaches those services through its owners rather than receiving another bag of
-sibling callbacks.
-
-The proof has to cross the executable boundary. A test that installs its own
-factory can conceal an unwired command, just as it did in Chapter 22. Start
-the built optional GUI from a scratch directory, create a named peer, let that
-peer spawn a child and select both conversations. Then restart without
-inference and verify the peer's actual saved conversation. A registry row
-proves identity; the restored words prove more of what the operator meant by
-“save.”
-
-## 23.7 The exercise
-
-Extend the previous chapter with the seven stages in the TL;DR. Keep the
-actual owner path and optional GUI. The operator must be able to create a
-named peer with its chosen model and skill, select that conversation, inspect
-nested task children, and delete a peer only after its children are resolved.
-Test both completed and genuinely busy views, then restart and check retained
-words as well as registry identity.
-
-For a small browser task, build the supplied command from the repository root:
+Run the separately versioned grader from the repository root:
 
 ```sh
-CH23_CORE="$PWD/solutions/ch23"
-(cd "$CH23_CORE/gui" && go build -o /tmp/ensemble-ch23-gui ./cmd)
-CH23_WORK=$(mktemp -d /tmp/ensemble-ch23.XXXXXX)
-mkdir -p "$CH23_WORK/skills/ensemble"
-cat > "$CH23_WORK/skills/ensemble/SKILL.md" <<'SKILL'
+go run ./cmd/grade-edition2 -ch 23 -json
+```
+
+It defaults to `solutions/ch23` and its separate GUI. Public settings
+and corpus fixtures exercise the actual Agent. Source review still establishes
+parent ownership, cancellation and the fuller replay/provider obligations; an
+import check alone cannot prove those relationships. Exact hidden-stage and
+committed-recovery holds, judge model/tier accounting and main cache-lens exclusion
+retain separate real-runtime source regressions, without extra numeric credit.
+
+## §23.1 The Idea in Plain Words
+
+A filing cabinet is not memory. Memory is what comes to mind without being
+asked.
+
+Chapter 22 built the filing cabinet: bands that compress, a cascade that
+graduates, a watermark that forces the agent to write things down before
+they disappear. That gives recent work a place in context and older work a place
+on disk. It does not answer the question "which old memory matters to this
+new message?"
+
+The answer is the oldest trick in information retrieval. When the user
+types a message, pull out the keywords, score every memory chunk against
+them, and surface the best matches. BM25 scores a small local corpus
+without another service. No vector
+database, no embedding model, no infrastructure. Keywords and arithmetic.
+
+But BM25 is a blunt instrument. It matches words. A query
+about "authentication" will not find a memory about "login flow." And it
+can rank a keyword-rich design document above the short daily log
+containing the decision. Length normalization helps, but a matching term
+is still not evidence that the document answers the question. Two mechanisms
+compensate:
+
+**Per-source quotas.** When selection is mechanical, qualifying memory
+hits get half the final slots, rounded up. Docs, handoffs, learnings, and
+skill docs share the rest. This protects personal memories from a larger
+reference corpus without forcing a successful judge to pick an irrelevant
+memory merely to satisfy a ratio.
+
+**The recall judge.** A cheap language model, the smallest that can follow
+instructions, reads the BM25 candidates alongside the recent conversation
+and picks the ones that are genuinely relevant, not merely keyword-adjacent.
+The judge sees context that BM25 cannot: what the conversation is about,
+what the user is trying to do, whether a keyword match is superficial or
+load-bearing.
+
+The judge is the difference between "here are some memories that mention
+the same words" and "here is something you need to know right now." Without
+it, a developer asks about authentication and gets every memory that
+mentions a password. A good judgment selects the one where the team
+decided to use OAuth. It can still make a bad choice, and it cannot select
+a memory that keyword search never offered.
+
+The obvious lifetime for a recalled snippet is ephemeral. Relevance is local:
+a memory about database schema is useful when the user mentions the database
+and noise when the conversation moves to the GUI. Show it, drop it.
+
+That intuition can be expensive because a prompt cache is a prefix property.
+Dropping a block changes the prefix from the deletion point onward. Moving it
+to a volatile tail avoids that old position but changes the layout around each
+retrieval. Attach it once at a stable position and subsequent requests can
+extend the same prefix. The bytes are still sent, and cache reads can still
+cost money; a stable layout creates an opportunity for reuse, not a promise
+that the provider charges for those bytes only once.
+
+So recalled snippets stay until a checkpoint. They are not merged into the user's
+message, because the user's words must stay distinguishable from
+machine-retrieved text, and because anything fused into a user turn cannot
+later be removed without damaging it. They are their own kind of entry,
+which makes them addressable: a checkpoint can delete them by kind.
+
+That checkpoint is where removal belongs. A checkpoint already rewrites the
+prefix, so it already changes the cacheable suffix, and deleting recall there
+avoids a separate invalidation at another point in the turn. Removing it
+on its own schedule would make that additional change without recovering
+more useful context. The rule generalizes past this chapter:
+**group removals at the checkpoint that already changes the prefix.**
+
+This is the second appearance of a shape worth naming. Chapter 22 found that
+switching a memory band off is more expensive than leaving it on, because
+disabling strips bytes from the front. Here too, the transient-looking thing can be
+cheaper to keep than to remove. In a system built on cached prefixes,
+retention can be cheaper than repeated removal. The intuitive lifetime
+deserves a look at the actual request layout.
+
+The system degrades gracefully at every level. If the query is too short
+(under 80 characters), recall does not fire. Short messages like "fix it"
+contain no signal worth matching. If BM25 finds nothing above the score
+floor, nothing is injected. If the judge fails or times out, the system
+falls back to quota-selected BM25 results. If the entire recall
+system is disabled, the agent still works. It does not remember
+passively. Retrieval failure should leave a usable agent with less context;
+interruption and shutdown still end the current work normally.
+
+One unexpected benefit: skill discovery. All available SKILL.md files are
+indexed alongside memories. When a user asks about something a skill
+handles, the skill documentation surfaces through recall, and the agent
+loads it without being told. This was not planned. It was added because
+skill docs were already markdown files in a known directory, and the source
+scan could include them. It turned auto-recall into a discovery mechanism as well
+as a memory mechanism.
+
+## §23.2 BM25: The Old Formula That Still Works
+
+BM25 is a well-established keyword-ranking formula. For this exercise's
+small markdown corpus, it supplies the useful machinery without an embedding
+service or another database.
+
+The formula scores a document against a query by combining three ideas:
+
+**Term frequency with saturation.** A word that appears ten times in a
+document is more relevant than one that appears once, but not ten times
+more relevant. The `k1` parameter (standard value: 1.2) controls how
+quickly additional occurrences stop mattering.
+
+**Inverse document frequency.** A word that appears in every document is
+worthless as a discriminator. A word that appears in one document is
+a strong signal.
+
+Use the smoothed form, `ln(1 + (N - df + 0.5) / (df + 0.5))`, and not the
+classic one clamped at zero. The difference looks cosmetic and is not. The
+classic form goes negative once a term appears in more than half the chunks,
+so a zero clamp discards those contributions. In a small archive, a useful
+term can easily appear in more than half the chunks. If every query term does, the clamped total is zero and retrieval
+returns nothing even though the files contain the requested words.
+
+The failure is worth dwelling on because of how it presents. Nothing errors.
+The index builds, the search runs, the scores are computed correctly
+according to the formula, and the agent simply never remembers anything. It
+reads as "recall is broken" when it is in fact "IDF is the wrong variant,"
+and those two diagnoses send you to opposite ends of the codebase. The
+smoothed form keeps these contributions positive. It fixes this zero-score
+failure; a positive score can still fall below the configured floor.
+
+A related trap waits in testing. IDF measures rarity *against the corpus*,
+so a tiny fixture can put useful matches below a threshold tuned for a larger
+archive. A representative background corpus changes what counts as rare.
+The tests here use 25 background chunks; that is a fixture choice, not a
+minimum corpus size. Check the actual query and scores before blaming the
+retrieval path.
+
+A positive score is also a weak ranking test. During this implementation's
+review, replacing BM25 with raw term frequency passed the initial tests.
+Both algorithms found the planted words. The useful test puts plausible
+answers in competition: a rare term against a common repetition, several
+distinct query terms against one repeated term, and a focused note against
+a long document with the same single match. Those comparisons exposed the
+replacement while the restored BM25 implementation passed.
+
+**Document length normalization.** A long document is expected to contain
+more term matches than a short one. The `b` parameter (standard value:
+0.75) penalizes long documents to compensate, using the average document
+length as the baseline.
+
+The implementation needs five things: a tokenizer, a stop-word list, an
+index builder, a scorer, and a chunker that splits documents into pieces
+small enough to be useful as recalled snippets.
+
+Tokenize by splitting on non-alphanumeric characters, lowercasing, and
+dropping tokens shorter than two characters. Filter stop words from
+queries only. Keeping them in documents preserves accurate term frequency
+and length statistics.
+
+Chunk markdown on `## ` headers. Each chunk records its filename, header
+text, content, pre-computed term frequencies, and token count. When a
+chunk exceeds 4KB, split it further on `### ` sub-headers, then on
+paragraph boundaries. Use breadcrumb headers (`"Parent Header > Sub Header"`)
+so the reader knows where a sub-chunk came from.
+
+The whole engine is a few hundred lines of code. No dependencies, no
+configuration files, no external services. Build the index when the first query
+needs it, after loaded history and memory recovery permit a corpus scan; rebuild
+it when source bytes change. Equal-size edits count too; an unchanged
+file length is not evidence of unchanged content.
+
+Search both active and `.md.retired` memories, but keep hidden staging records
+outside the corpus (`.compaction/pending.json` in this implementation). A staged
+candidate may not yet be accepted. If a committed replacement still needs disk
+finalization, recovery establishes the committed bytes before indexing; a
+conflicting file must not silently become recall input. Retired originals remain
+searchable after recovery, subject to the same actual-context exclusion as other
+memories. Constructing the recall service must not scan disk before its embedding
+client has loaded history.
+
+## §23.3 Per-Source Quotas: Why Memory Gets Half the Slots
+
+The first version of auto-recall ran a single merged BM25 search over all
+sources. Design documents dominated the results. A 20KB design doc full of
+technical terminology would outscore a 500-byte daily log that contained
+the relevant decision in that corpus. Length normalization did not encode
+the extra value of the daily log's decision and reason.
+
+The fix is a source-selection policy. Give each source its own BM25 index
+and search them independently, then allocate guaranteed slots:
+
+1. Memory files get 50% of the slots (rounded up).
+2. Remaining slots are split evenly among other sources.
+3. Unused slots from sources with fewer results than their quota flow to
+   sources with overflow.
+
+Separate indexes matter on their own. IDF is computed per source, so a term
+that is unremarkable across the memory archive can still be rare within the
+documents, and a large source no longer distorts what counts as rare for
+everyone else.
+
+**Apply the quota to the final selection, not to the candidate pool.** This
+distinction is the whole mechanism, and getting it backwards produces code
+that looks right and does nothing. Candidates arrive already sorted by score
+within each source, so capping a source's contribution to the candidate pool
+may still leave the final score-ranked list entirely dominated by another
+source. A candidate cap is not a reserved final slot. Test with two lower-
+scoring memory hits and several higher-scoring document hits: a three-slot
+mechanical result must keep the two memories.
+
+**The quota must not overrule the judge.** It governs the mechanical paths,
+where no judge ran or the judge failed and selection falls back to score
+order. When a judge has actually assessed relevance, its verdict stands.
+A successful `[]` means attach nothing; it is not a reason to fall back.
+Discarding the opinion of the component that read the conversation, in
+order to satisfy a ratio, would trade the good signal for the crude one.
+
+This is a policy decision, not a BM25 improvement. The agent's personal
+memories are the highest-value source. They contain decisions, context,
+and lessons that no design doc captures. Guaranteeing them half the slots
+ensures qualifying memories survive mechanical competition with larger
+sources when enough memory hits exist. Unused slots still flow elsewhere.
+
+## §23.4 The Judge: Filtering by Meaning, Not Keywords
+
+BM25 finds documents that share words with the query. The recall judge
+finds documents that share *relevance* with the conversation.
+
+The judge is a single stateless call to a model that can follow instructions.
+This implementation defaults to the Agent's current provider and model;
+`recall.judge_model` can select another supported model on that same provider.
+The override changes this request, not the main conversation's model. A smaller
+model can reduce cost, but its selection quality needs checking. It receives:
+
+1. The recent conversation (last 3 user and assistant messages).
+2. The latest user message, labeled separately.
+3. Up to 20 numbered candidate snippets from BM25.
+4. An instruction: pick up to 3 that the agent would genuinely benefit
+   from seeing, return a JSON array of indices. "Keyword mention alone
+   is not relevance."
+
+The judge returns `[0, 7, 12]` or `[3]` or `[]`. Several details make
+this work reliably:
+
+**It starts clean every time.** The judge holds no history. Note what that
+means about item 1 above: the recent conversation reaches the judge as *data
+inside the prompt*, not as history the judge carries between calls. Every
+judgment starts with just the supplied data and instructions.
+
+**Recursion is impossible rather than prevented.** An agent that could recall
+would trigger its own recall when judging, which would invoke another judge.
+A stateless call has no context of its own to fill, so the failure cannot be
+expressed. This is worth noticing as a design move: the strongest way to
+handle a failure mode is to build a thing that cannot exhibit it. An
+implementation that made the judge a full agent would need a nil provider and
+a settings flag to hold the same line, and would still be one refactor away
+from losing it.
+
+**Defensive JSON parsing.** Small models are unreliable with output
+format. The parser tries `[]int`, falls back to `[]string` (models
+sometimes quote the numbers), falls back to `[]json.RawMessage` for
+mixed types. It extracts the first `[` to last `]` from the response
+to handle models that wrap JSON in explanation text. Out-of-range
+indices are silently filtered. Clear any partially decoded integer slice
+before trying mixed elements: a failed `json.Unmarshal` can already have
+written values into it. Otherwise the fallback can accidentally retain
+zeros that select candidate zero.
+
+**One component owns the reply format, and it is the one that parses.**
+Nothing else may restate it. This sounds like housekeeping and is the most
+dangerous rule in the chapter, because the model layer holds the client and
+can feel like the natural place to describe what a good answer looks like,
+while the recall layer holds the parser. If both describe it, their
+instructions can drift. The model then receives two specifications in one
+request, obeys one, and the parser can reject a reply that was well formed
+by the other. Recall falls back to scores while the judge appears to be
+working. Keep the format with the parser, and log fallback so that a failed
+judgment cannot pass unnoticed as a useful one. Whoever reads the bytes
+decides what the bytes look like.
+
+When the judge fails or times out (15 seconds), the system falls back
+to the final quota-selected BM25 results. Cancellation reaches the actual
+HTTP request; returning from a wait while leaving it running is not a
+timeout. The agent can continue with noisier recall.
+
+Its usage still belongs on the bill. Add measured judge input, cache and output
+counts to Engine's session totals with the judge's actual provider, model and price
+tier, once. A cheaper judge must not be priced as the main model. Keep the latest
+main-response counts unchanged, and exclude this separate prompt from main-request
+cache comparisons. Restoring an old recall attachment makes no new judge call
+and adds no historical usage to the fresh session meter.
+
+## §23.5 Attachment: Permanent Until a Checkpoint
+
+Recalled snippets are formatted as blockquoted text with source attribution:
+
+```
+[Auto-recalled memories]
+
+From 2026-09-22-1.md — Key decisions:
+> save_memory removed as agent tool; micro_handoff becomes SOLE trigger.
+> A finite compressor folds completed work into memory.
+
+From docs/auto-recall-design.md — The Pipeline:
+> BM25 keyword search over memory files, filtered through an SLM judge.
+```
+
+That text becomes its own kind of entry in the conversation. Three properties
+follow, and each one is load-bearing.
+
+**It is never merged into the user's message.** The user's actual words must
+stay distinguishable from machine-retrieved text, both for the model reading
+them and for anyone auditing the log afterward. Fusing the two makes removal
+depend on editing the human message. A checkpoint can instead remove the recall kind while preserving
+the human's words according to the existing conversation policy.
+
+**Where it lands on the wire is the renderer's decision, not the
+conversation's.** The conversation records that recall happened and what
+bytes it produced. Turning that into a request is a vendor question. These
+are retrieved data, not new instructions: use the renderer's existing data
+placement. Anthropic can put a recalled block and human text in separate parts
+of one user message without merging their stored entries. A check that demands
+a separate system message would confuse storage identity with wire layout.
+Keep the recorded position stable on later requests.
+
+**It carries its bytes.** Recall is nondeterministic, because a language
+model chose which snippets survived. If the text were recomputed while
+rendering, replaying a log would call a model, and two replays of the same
+log could disagree. So the snippets are recorded as text at the moment they
+are chosen. Replay then reproduces the conversation exactly, with no search
+and no model call.
+
+That last property is the same boundary Chapter 22 drew. A transform that is
+a pure function of the log can run at render time. Anything nondeterministic
+has to be recorded when it happens. The checkpoint and memory chapters
+already use that boundary.
+Recall follows it: log the selected bytes, then render them. Do not rebuild
+an old attachment from today's files or ask today's judge to choose it again.
+
+Because the entries persist, the same memory could be recalled on three
+separate turns and appear three times. Skip content already in the actual
+context, including memory bands, tool results and earlier recall. Searching
+all files does not mean attaching them all again.
+
+Truncation makes that rule less obvious than it sounds. The initial
+implementation compared the complete source snippet with the conversation.
+A source of 11,247 bytes became a 6,144-byte attachment. Its missing suffix
+could never match, so the next turn attached the same capped text again.
+A short-snippet control passed; the large one produced two identical entries.
+
+Keep the complete source's identity with the attachment that represents it.
+The accepted implementation records a hash of that content alongside the
+chosen bytes. It hashes the source, not the shortened display, so a human edit
+creates a new identity. Replay retains it; checkpoint removal discards it with
+the recall entry, allowing a later turn to retrieve the source again. This is
+local state belonging to the attachment, not a permanent “already read” list.
+
+One wiring hazard deserves naming, because it costs hours and announces
+nothing. The first edition had a synchronous turn path and an actor-mailbox
+path. Hook recall into only one and the hand-driven case can work while the
+other client never retrieves anything. A function that was never called
+cannot complain.
+
+The present Agent has one actor begin path for both `Ask` and `Post`. Keep
+recall there, after memory recovery and before the first main request, and verify
+both actual clients. An unresolved committed replacement must report its recovery
+error before search or attachment can consume a mixed corpus.
+The worker reads a snapshot while the actor can still accept hints or an
+interrupt. Its result carries the turn identity; a late judgment from an
+interrupted turn must not become context for the next user's message.
+
+
+## §23.6 Tuning: What the Numbers Mean
+
+The first-edition account traces these defaults through months of daily
+use. The stories explain their purpose; they do not make the numbers right
+for every corpus.
+
+**MinScore went from 0.5 to 3.0.** At 0.5, every conversation triggered
+recall, and most results were noise: single keyword matches on common
+technical terms. The higher floor reduced that noise in the reported corpus.
+The jump is large because BM25 scores are not
+normalized; the right threshold depends on corpus size and vocabulary.
+Note: this threshold applies only to plain recall (no judge). When the
+judge is enabled, BM25 uses a low threshold (0.5) to cast a wide net,
+and the judge handles false-positive filtering.
+
+**MinQueryLength went from 15 to 50 to 80.** A user who types "fix it,"
+"run tests," or "looks good" often supplies little retrieval signal. Raising the
+threshold progressively eliminated recall on messages that could never
+produce useful results. Eighty characters is a cheap heuristic, not a test of
+meaning: a short
+project identifier can carry more information than a long generic instruction.
+
+**Candidates went from 10 to 80 (code default) to 20 (production).**
+That was the earlier CodeRhapsody tuning history. This exercise defaults
+to 20; it does not inherit the old code's 80-candidate setting. More
+candidates enlarge the prompt. Whether they improve selection enough to
+justify that cost depends on the corpus and judge; count the actual candidate
+bytes rather than assuming 20 snippets means a fixed number of tokens.
+
+**Judge timeout is 15 seconds, not 2.** The original design assumed a
+local model (Ollama) with sub-second latency. The historical account reports
+cloud calls taking 1–3 seconds. The generous timeout exists
+because a late judge response is better than no judge response. The
+fallback to unfiltered BM25 results is noisier.
+
+## §23.7 What BM25 Cannot Do
+
+BM25 matches words. Three limitations follow:
+
+**Vocabulary mismatch.** If the user says "authentication" and the memory
+says "login flow," BM25 will not connect them. Vector search (embedding-based
+retrieval) can bridge that gap, but it requires an embedding model, an index to maintain,
+and a service to call. For a corpus of a few hundred files, the marginal
+improvement does not justify the infrastructure. If the corpus grows by
+orders of magnitude, revisit this.
+
+**No semantic deduplication.** If a memory and a design doc contain the same
+information in different words, both may be recalled, wasting snippet slots.
+Exact content and complete-source identities prevent literal repeats already
+in context. They do not establish that two paraphrases say the same thing,
+and they do not exclude files merely because they are recent.
+
+**No relevance feedback.** The system does not learn which recalled memories
+the agent actually used. A snippet that the agent ignores on ten consecutive
+turns can return after checkpoints if it scores well on BM25. Tracking usage patterns
+and adjusting retrieval is a natural next step that this implementation does
+not take.
+
+These are honest limitations, listed as what they are rather than as a
+roadmap. BM25 with a judge works
+well enough for daily use. The system is simple, fast, and debuggable. A
+more sophisticated retrieval system would be harder to debug when it
+recalled the wrong thing, and debugging recall errors is already hard.
+
+## §23.8 Skill Discovery: The Unplanned Win
+
+All available SKILL.md files are indexed alongside memories and documents.
+This was added because skill docs are markdown files in a known directory,
+and the existing source scan could include them.
+
+The result was unexpectedly powerful. When a user asks about something a
+skill handles ("can you check my email?" or "what's on my calendar?"),
+the skill's documentation surfaces through auto-recall. The agent can see the
+snippet, recognize the available skill, and load it. No explicit skill
+search, no user instruction to load a specific skill. The agent discovers
+capabilities through the same mechanism it uses to recall past work.
+
+This turns auto-recall into a discovery system as well as a memory system.
+The agent's capabilities are not fixed at startup; they expand when the
+conversation moves into a domain where a skill exists. The user does not
+need to know which skills are installed. The skills surface when they are
+relevant.
+
+Recall does not activate a skill or grant its tools. It supplies documentation
+that can lead to an ordinary `load_skill` call. The registry still controls
+which skills are reachable and which tools may execute. A paragraph retrieved
+from disk cannot grant itself a capability.
+
+## §23.9 Taking It for a Spin
+
+A recall demonstration needs an answer that is absent from the question and
+present in an archive. Otherwise a fluent reply could be ordinary model
+knowledge, or a repetition of facts supplied by the user.
+
+From a scratch copy of `solutions/ch23`, build the CLI, then create
+a fresh working directory so an old save cannot supply the answer:
+
+```sh
+go build -o /tmp/ensemble-ch16 .
+recall_demo=$(mktemp -d)
+cd "$recall_demo"
+mkdir -p cr/memory cr/docs skills/base
+```
+
+Write `skills/base/SKILL.md`:
+
+```markdown
 ---
-name: ensemble
-description: A coding fleet that monitors children and verifies their work.
+name: base
 type: primary
-tools: read_file write_file edit_file run_command wait_for_job tool_limits spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit wait_for_agent_change send_message wait_for_agent ask_agent get_submission kill_agent get_sub_agent_status interrupt_agent
+description: Answer questions using the context supplied to this session.
+tools: list_directory
 ---
-Delegate only when asked. Keep task children within their assigned work.
-Monitor their actual results, answer their questions, and verify their files.
-Delegated agents finish with submit after all their children are resolved.
-Main and named peers finish with a normal chat answer. A running job notice
-is not its completed result; collect it with wait_for_job.
-Tools: $TOOLS
-SKILL
+Answer from supplied context. Preserve decisions, their reasons, and unresolved
+questions. If a requested fact is absent, say so.
 ```
 
-Use the dedicated authenticated Ensemble profile from Chapter 18, with access
-to `gpt-6-astra`. The following launch selects high reasoning and subscription
-billing explicitly. It does not borrow another application's credentials.
-Choose an available loopback port rather than attaching to a server already
-running on the default port:
+Create the archived decision, a keyword-sharing distractor and a small
+background corpus. Retired files are intentional: the memory cascade no
+longer loads their original bytes, but recall must still search them.
 
 ```sh
-CH23_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')
-cd "$CH23_WORK"
-printf 'Open http://127.0.0.1:%s/\n' "$CH23_PORT"
-LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
-OPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \
-OPENAI_REASONING_SUMMARY=detailed \
-EN_PRIMARY_SKILL=ensemble EN_SKILLS_DIR="$CH23_WORK/skills" \
-/tmp/ensemble-ch23-gui --port "$CH23_PORT"
+python3 - <<'PY'
+from pathlib import Path
+
+memory = Path("cr/memory")
+docs = Path("cr/docs")
+fact = """## Quartz Zephyr migration decision
+Project Quartz Zephyr, release QZ-731: Morgan owns the migration rehearsal on October 23. We rejected automatic retry after timeout because the remote transaction may already have committed. Read the migration ledger before deciding whether retry is safe. Ledger placement remains unresolved: application database versus separate control database. Retain rollback artifacts for nine days.
+"""
+(memory / "2026-10-01-1.md.retired").write_text(fact)
+(docs / "quartz.md").write_text(
+    "## Quartz Zephyr migration name\n"
+    "Quartz Zephyr migration is also the name of our cafeteria recipe contest. "
+    "Quartz Zephyr migration lunch recipes use apples and cinnamon, "
+    "not database transactions.\n"
+)
+for i in range(25):
+    (memory / f"padding-{i}.md.retired").write_text(
+        f"## Garden log {i}\nPlant carrots by the apple trees and water in spring.\n"
+    )
+    (docs / f"padding-{i}.md").write_text(
+        f"## Workshop {i}\nThe cabinet holds brushes and blue paint.\n"
+    )
+PY
 ```
 
-Keep the terminal open while using the browser. If binding fails, choose a new
-port; another listener is not evidence that this process started. In the
-Agents form enter name `console`, model `gpt-6-astra`, skill `ensemble`, then
-Create. Click `console` and send:
+With the provider key configured as in Chapter 0, start ordinary chat. Recall
+uses its defaults, including the same model for the finite judge call:
+
+```sh
+LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
+EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
+/tmp/ensemble-ch16 chat
+```
+
+Ask:
 
 ```text
-Create exactly one child named helper. Have it implement slugify.py with
-slugify(text): lowercase the text and replace runs of whitespace with one
-hyphen, trimming leading and trailing whitespace. Have it write test_slugify.py
-with unittest cases for empty input, mixed case, and repeated whitespace,
-run those tests, and submit its result. Monitor helper with get_sub_agent_status
-and wait_for_agent_change, join it, and retrieve get_submission. Independently
-run python3 -m unittest -v test_slugify.py. Write fleet-result.txt with the test
-outcome, then answer in chat with CH23_FLEET_COMPLETE and a concise explanation. Do not use
-web tools or create another child.
+From our archived Quartz Zephyr migration discussion, tell me the release code, owner and rehearsal date, rejected approach and why, the unresolved decision, and rollback retention. Use only the context already supplied; do not call tools. If a fact is absent, say so.
 ```
 
-Select `console/helper` while it works, then return to `console`. Open a
-second tab on `main` and confirm that selecting the child in the first tab
-does not move the second tab's conversation. The tree should identify
-thinking, tool work and waiting as they occur; a very short phase need not
-remain visible long enough for a screenshot.
+Wait for the answer, then ask:
 
-Create an unused named peer `spare` with the same model and skill, then delete
-it. Once the task has finished and the terminal is idle, use EOF to close the
-application normally. Run the same launch again from `CH23_WORK`, select
-`console` and inspect its retained answer and retrieved child submission. `spare` stays absent, and the
-ephemeral `helper` is not restarted. Merely selecting the restored
-conversation must not ask the model to reconstruct it.
-
-These are the accepted public browser messages behind those controls; a client
-sends each object separately over `/ws`:
-
-```json
-{"type":"create_agent","name":"console","model":"gpt-6-astra","skill":"ensemble"}
-{"type":"select_agent","key":"console/helper"}
-{"type":"delete_agent","name":"spare"}
+```text
+Who owns that rehearsal, and why was automatic retry rejected?
 ```
 
-Use separate bounded controls for rejection while a child is active, foreign
-and absent child IDs, selected versus unselected child questions, cursor
-output, both interrupt modes and a slow browser disconnect. A successful small
-coding task cannot exercise all of those transitions on demand. Keep the
-positive controls: an owned child must remain manageable, and a truly pending
-request must remain visibly busy.
+The first question supplies the project name but none of the requested facts.
+The follow-up is shorter than the default recall gate. It tests whether the
+previously attached memory remains useful, without requiring a second search.
+Check the actual request and answer: QZ-731, Morgan, October 23, the possibly
+committed remote transaction, the unresolved ledger location and nine-day
+retention. The cafeteria contest belongs in the judge's candidates, not in
+the main answer. Check `ch02.jsonl` for `recall_attached` with its own
+`recall_attached.parts`; `api.log` shows what actually reached each model.
 
-## 23.8 Taking the console for a spin
+The retained three-provider CLI runs used these two prompts and the same
+planted fact. Haiku 5.5, GPT-4o mini and Gemini 3.8 Flash each answered both
+turns correctly without tools. Each made one tool-free judge request followed
+by two main requests. The judge saw the decision and cafeteria distractor;
+only the decision reached the main requests, once in each. OpenAI's judge
+wrapped `[0]` in a JSON fence, exercising the tolerant parser in actual use.
+Anthropic also noted that the archive supplied no year.
 
-The recorded live exercise used the real browser, GPT-6 Astra at high
-reasoning and subscription billing under the earlier peer-submit policy.
-A named peer `console` created one child,
-`helper`. The child wrote `slugify.py` and three unittest cases, ran them
-successfully and submitted. The parent monitored it, joined, retrieved its
-submission, reran all three tests independently and wrote `fleet-result.txt`.
-Both shell runs returned exit zero and `OK`; the final submission was
-`CH26_LIVE_COMPLETE`, using the original chapter's number.
+Those are bounded outcomes from the earlier implementation, before the
+capped-source and path corrections. The current command selects supported
+Sonnet-5; the historical Haiku 5.5 result is not a recommendation to use it.
+This isolated corpus demonstrates retrieval, retention and correct answers,
+not general recall quality across a private archive.
 
-The run contains fifteen model requests: ten from `console` and five from
-`helper`. The browser selected the child and returned to its parent, captured
-all four activity phases, and created and deleted an unused named peer. After
-a normal shutdown, restart restored `console` and its submitted conversation
-without another inference request. It did not revive `helper`. The new
-reproduction setup above gives the primary skill explicitly; it is not a claim
-that every byte of that earlier launch was identical.
-
-The current setup also asks the named peer to finish in chat, while its delegated
-child still submits. The historical peer's submission remains part of that run;
-it does not demonstrate the current completion policy.
-
-The work was correct. One status label was not.
-
-The live screenshot showed idle activity alongside `input_pending`, even after
-selecting the saved conversation on restart. The runtime had ended the turn,
-but the retained history still said that tool results awaited another request.
-Ordinarily that next request consumes the pending input. A successful fleet
-`submit` ends directly, so no next request arrived to hide the mistake.
-
-The correction records the existing `turn_ended` fact after the submitted tool
-batch drains, before completion and save. The GUI then replays the truth
-already owned by history. Painting every selected Agent idle would make the
-screenshot look right while concealing real work. A separate parked-request
-control rejects that shortcut: completed and restarted conversations show
-idle; a genuinely outstanding request still shows `in_flight`.
-
-The paid capture belongs to the earlier source and retains its bad label. The
-corrected behavior was checked through the real runtime, WebSocket selection
-and restart with a local provider peer. No paid repeat or migration of old
-incorrect saves is implied. The useful outcome is both parts of the story: the
-fleet did the coding task, and looking at its actual console found a state
-error that the successful task had not tested.
-
-## 23.9 What the grader checks
-
-The revised grader retains the original seven weights, totaling 100 points. It
-supplies an explicit supported model and builds the separate optional GUI. The
-original grader's actual 0/100 run stopped at those launch boundaries: six CLI
-scenarios omitted the model, and the browser probe started the headless
-command with GUI flags. That run established neither seven runtime defects nor
-seven working behaviors.
-
-The revised driver uses external provider peers and the real applications. Its
-command is:
-
-```sh
-go run ./cmd/grade-edition2 -ch 23 solutions/ch23
-```
-
-| Behavior | Revised observation | Points |
-| --- | --- | --- |
-| Activity | Correlated detailed status and ordered activity; rejected custom submit remains pending before a valid correction | 15 |
-| Named persistence | Real create with model/skill, restored conversation and typed retrieved result, explicit child respawn with durable fallback, and deletion | 15 |
-| Ownership | Owned targets work; foreign/missing targets, including typed retrieval, agree; historical fallback leaves the new task incomplete | 15 |
-| Change waiting | Selected progress wakes the wait; command, valid submission, typed status and join results complete | 15 |
-| Composition | The actual CLI constructs recursive agents, completes work and exits normally on EOF | 15 |
-| GUI | Nested tree and selection, truthful completed/pending replay, exact nested tool-result JSON live and after replay/restart | 15 |
-| Previous fleet behavior | Active children prevent submit; delegated idle turns receive three wakes; main chat completes without correction | 10 |
-
-The structured phases compare complete arrays, booleans and nulls in actual
-correlated results. Live and reselected views exercise a registered child;
-restart checks the retained result in its owner's conversation. A separately
-respawned child can retrieve its previous durable result while its new task stays
-running and unsubmitted. No phase assumes automatic child resurrection.
-
-Actual parent relationships and executable construction still need source
-review. A successful command cannot prove them just by printing a response.
-The retained browser and focused runtime checks cover stronger selection
-isolation, finalized cursors, interruption, selected/unselected messages and
-slow-client lifetime. A tree frame with one ID alone would miss those
-obligations.
-
-Targeted defects check whether an assertion notices its chosen failure. They
-do not prove that seven rows are generally independent, or that every behavior
-within a row is covered. Restore the implementation and keep successful
-controls beside refusals and timeouts. In particular, a console that always
-says “idle” and a manager that always says “unknown agent” should fail for the
-same practical reason: neither tells the operator what is actually happening.
+The original grader returned 0/100 before it could test that behavior: its
+primary skill omitted `type`, and its structural check looked for the core
+recall package under the separate GUI module. Passing a launch check and
+remembering a decision are different accomplishments. The revised grader
+uses a typed primary and the Agent's corpus paths, with separate fixtures
+from this CLI demonstration. The live answers establish the narrower and
+more interesting fact that the archived reason actually came back.

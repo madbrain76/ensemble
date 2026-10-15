@@ -14,9 +14,9 @@ fmt:
 lint-prose:
 	go run ./cmd/lintprose $(LINTFLAGS) book/preface.md book/chapter-[0-9][0-9].md
 
-# Edition 2 numbering. Chapters 19/24 are ungraded; 25 is a placeholder.
+# Edition 2 numbering. Chapters 17/24 are ungraded; 25 is a placeholder.
 CH ?= 1
-GRADE_CHAPTERS := 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 20 21 22 23 26
+GRADE_CHAPTERS := 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 26
 .PHONY: $(addprefix grade,$(GRADE_CHAPTERS))
 grade:
 	go run ./cmd/grade-edition2 -ch $(CH) $(GRADEFLAGS)

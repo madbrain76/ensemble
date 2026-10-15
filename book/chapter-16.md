@@ -1,755 +1,880 @@
-# Chapter 16: Auto-Recall
+# Chapter 16: Leaving Anthropic for OpenAI
 
-## §16.0
+This chapter is about freedom. It is also about choosing how you pay.
 
-Chapter 15 built a memory system. The agent can save, compress, and
-graduate memories through a cascade of bands. Enabled bands already put
-recent memories in context. Older originals and unloaded material remain on disk, organized and budgeted, until something
-brings them back. The agent can still repeat a rejected decision because
-the explanation is sitting in an archive it never thought to open.
+I built this codebook on Anthropic's models. Eighteen chapters of tools,
+steering and context management. Then Anthropic
+shipped Opus 5.5 with restrictions on changing the context behind
+retained thinking. My agent depends on removing stale context. I am
+not giving that up to use a newer model.
 
-For that older material, the agent has a filing cabinet without a habit
-of opening it.
+Protecting private reasoning matters. So does letting the person
+building an agent control what it sees. The migration tests whether
+the vendor seam can preserve that choice.
 
-In the spring of 2026, I had a coding agent with a full memory cascade
-and a `search_knowledge` tool. It was episodically brilliant: when it
-searched, it found the right thing. But it almost never searched. Every
-session started cold. It would re-derive decisions we had already made,
-re-investigate bugs we had already fixed, and propose architectures we
-had already rejected. The knowledge was there. The recall was not.
+So we are voting with our feet. In this chapter the agent
+authenticates through your existing ChatGPT subscription. No
+separate API-key signup for that route. The subscription has its own
+permissions and limits; it is another funding source, not a promise
+of unlimited inference or a measured tenfold saving.
 
-The fix was embarrassingly simple. Before every user message reaches the
-model, run a keyword search over the memory files, filter the results
-through a cheap model, and attach the survivors to the conversation.
-The agent never asks for the memories. They arrive the way a relevant
-fact arrives when a colleague mentions a project name: unbidden, fast,
-and usually right.
-
-The improvement was immediate in my daily use. The agent
-went from a goldfish that kept meticulous diaries to a collaborator
-with a past.
+---
 
 ## TL;DR
 
-Build passive memory retrieval. Every user message triggers a BM25 keyword
-search over the agent's memory files. A small language model filters the
-results for relevance. Surviving snippets are attached to the conversation
-as their own kind of entry, where they stay until a checkpoint removes them.
+### The delta
 
-**Data structures.** This sketch shows the index vocabulary; private field
-names and storage choices are yours.
+Chapter 15 left the agent with three vendor renderers, a
+ModelFeatures table, capability flags, cache breakpoints, and
+per-vendor endpoints. This chapter:
+
+1. Introduces a **credential provider** abstraction that decouples
+   authentication from inference.
+2. Implements **OAuth 2.0 + PKCE** for OpenAI's ChatGPT plan, so
+   an existing subscription becomes the API credential.
+3. Adds **Responses API** transport for selected OpenAI models,
+   preserving **Chat Completions** for earlier model rows.
+4. Adds a **capability profile** for the ChatGPT plan's
+   restrictions.
+5. Streams **reasoning summaries** as first-class events, separate
+   from assistant output.
+6. Implements a **billing mode** state machine with explicit,
+   announced transitions.
+
+### Types (conceptual; adapt to your codebase)
 
 ```go
-// BM25 engine — standard information retrieval, nothing exotic.
-type Index struct {
-    Chunks    []Chunk
-    AvgLength float64           // average chunk length in tokens
-    DocFreq   map[string]int    // how many chunks contain each term
-    Total     int               // total number of chunks
+// CredentialProvider returns a bearer token for inference.
+// Both credential kinds produce the same Authorization header.
+// Renewal belongs to the provider rather than the renderer.
+type CredentialProvider interface {
+    GetBearerToken(ctx context.Context) (string, error)
+    Kind() CredentialKind
 }
 
-type Chunk struct {
-    Filename string             // source file (e.g., "2026-09-27-1.md")
-    Header   string             // markdown section header
-    Content  string             // the text
-    Tokens   []string           // pre-computed tokenization
-    Length   int                // token count
-    TF       map[string]int     // term frequencies
-}
-
-// BM25 tuning — standard values, no reason to change them.
+type CredentialKind int
 const (
-    k1 = 1.2   // term frequency saturation
-    b  = 0.75  // document length normalization
+    CredentialAPIKey CredentialKind = iota + 1
+    CredentialChatGPTOAuth
+)
+
+// OAuthProfile stores the state of one ChatGPT OAuth
+// registration. The OIDC sub claim is the account identity.
+type OAuthProfile struct {
+    ClientID       string    // issued by OpenAI
+    Subject        string    // validated OIDC account identity
+    Email          string    // display only
+    AccessToken    string    // secret
+    RefreshToken   string    // secret; rotates on refresh
+    IDToken        string    // secret — validated on receipt
+    ExpiresAt      time.Time // access token expiry
+    GrantedScopes  []string  // must include plan-use scope
+    HostID         string    // stable per-installation UUID
+}
+
+type BillingMode int
+const (
+    BillingChatGPT BillingMode = iota + 1
+    BillingAPI
+    BillingChatGPTThenAPI
 )
 ```
 
-**The recall pipeline** has three stages:
+### Rules
 
-1. **BM25 search.** Tokenize the user's message, remove stop words, score
-   every chunk in each source index. With a judge, send up to `Candidates`
-   (default 20) highest-scoring chunks above a low threshold (0.5). Keep
-   the full hit list for fallback. Without a judge, use `MinScore` (3.0).
-   On the final mechanical selection only, reserve half the slots, rounded
-   up, for memory; divide the rest among other sources with hits and
-   redistribute unused slots.
+1. **Credential abstraction.** The HTTP inference layer calls
+   `GetBearerToken()` and receives a valid bearer token without
+   implementing renewal itself. Both credential kinds produce `Authorization: Bearer <token>`. The
+   credential provider stays off the renderer interface. Ensemble
+   owns the auth service; Engine resolves a bearer into request-local
+   transport configuration. Rendering and offline replay need no token.
 
-2. **SLM judge.** Send the candidates to a cheap language model
-   on the Agent's provider along with the last few
-   conversation messages for context. The judge returns a JSON array of
-   indices, the candidates it considers genuinely relevant, not just
-   keyword matches. If the judge fails, times out (15 seconds), or is
-   disabled, fall back to score order with the final source quotas. A
-   successful verdict, including `[]`, stands; quotas never replace it.
+2. **PKCE.** Generate a cryptographically random verifier, compute
+   the S256 challenge, send the challenge in the authorization
+   request, and the verifier in the token exchange. Generate fresh
+   `state` and `nonce` for every authorization attempt.
 
-3. **Attachment.** Format the surviving snippets (up to `MaxSnippets`,
-   default 3) as blockquoted text with source attribution. Record them as
-   their own entry kind, never merged into the user's message. Cap total
-   recalled text at 6KB (6,144 bytes), including heading, attribution and quote
-   prefixes. Preserve valid UTF-8 at the cut. Skip any snippet already present
-   in actual context, including enabled memory bands. Retain the complete
-   source identity for capped snippets so truncation cannot defeat that
-   check. The entry persists until a checkpoint removes it.
+3. **Loopback listener.** Bind to `127.0.0.1` (not `localhost`),
+   any available port, path `/auth/callback`. The path must be
+   exactly `/auth/callback` and the host must be the literal
+   `127.0.0.1`. Only the port may vary.
 
-**Sources searched.** All paths below belong to the Agent's data directory;
-the supplied CLI and GUI choose `cr/` beneath their launch directory. Skills
-use the Agent's separately configured skills directory.
+4. **Host identity.** Generate a stable `urn:uuid:<v4>` once per
+   installation. Persist it. Send as `ext_agent_host_id` in every
+   authorization request. Never derive from username, hostname,
+   email, or MAC address.
 
-| Source | What | Final mechanical share |
-|--------|------|-------|
-| Memory files | `memory/`, `bucket-0/`, `bucket-1/`, `MEMORY.md`, `SOUL.md`; include archived `.md.retired` files | Half the slots, rounded up |
-| Docs | Markdown under `docs/` | Split the remainder |
-| Handoffs | Markdown under `handoffs/` | Split the remainder |
-| Learnings | Markdown under `learnings/` | Split the remainder |
-| Skill docs | Available `SKILL.md` files | Split the remainder |
+5. **Dynamic registration.** The first authorization uses
+   `client_id=dynamic_agent_client`. OpenAI returns an issued
+   `client_id` on the authorization callback. Persist it before
+   exchanging the authorization code. Reauthorization and token
+   exchange use the issued `client_id`; a conflicting returning
+   callback ID must be rejected. The bootstrap is a
+   registration entrypoint, never valid for token exchange.
 
-Search all memory files, including the newest. Omit content already in actual
-context instead of guessing from a filename which memories the model has seen.
-Resolve loaded history and memory's staged recovery before building or refreshing
-an index. Hidden candidates are outside every recall source. A committed replacement
-must finish disk finalization before search; a conflict returns its recovery error
-without searching a mixed corpus. After successful graduation, retired originals
-remain searchable while surviving active memory is excluded by actual context.
-A failed attempt keeps its source live and subject to that same exclusion.
-The historical CodeRhapsody `learnings.json` format is not an input to this
-exercise; long-form learning notes here are ordinary markdown.
+6. **ID token validation.** Validate the returned JWT: fetch
+   OpenAI's published JWKS, check the signature, verify issuer,
+   audience (must match issued `client_id`), expiry, and nonce.
+   The OIDC `sub` claim is the stable account identity. Retain the
+   issued client ID as well, so registrations remain separate.
 
-**Chunking.** Split markdown on `## ` headers. Large chunks (over 4KB) split
-further on `### ` sub-headers, then on paragraph boundaries. Sub-chunk headers
-use breadcrumb format: `"Parent Header > Sub Header"`.
+7. **Scope checking.** A successful login does not imply plan
+   usage. The granted scopes must include
+   `chatgpt.tokens.use.direct`. Without it, ChatGPT-plan
+   inference is forbidden even if identity was successfully saved.
+   Request `openid profile email offline_access resource.invoke
+   chatgpt.tokens.use.direct`, with `resource=https://api.openai.com/v1`
+   on authorization and code exchange. Inspect the granted scope.
 
-**Tokenization.** Split on non-alphanumeric characters, lowercase, minimum
-2 characters. Filter stop words from queries only. Documents keep all terms
-for length normalization.
+8. **Proactive refresh.** Refresh the access token when
+   `now >= expires_at - 5 minutes`. Each refresh returns a new
+   refresh token; the old one is invalidated immediately.
+   Serialize refresh per profile, including processes sharing its
+   storage. Never allow concurrent refreshes for the same session.
+   Save both new tokens atomically before using either.
 
-**The recall judge is one stateless model call**, not an agent. It takes a
-prompt and returns text. Because it holds no history and owns no context,
-it cannot recall, which makes the recursion problem structurally impossible
-rather than something to guard against. Add its measured usage once to Engine
-session totals with the actual provider, model and price tier; keep latest-main
-counts and main-request cache-lens comparisons unchanged. Restoring an attachment
-neither invokes a judge nor imports historical spend.
+9. **Terminal refresh errors.** Six errors are terminal:
+   `invalid_grant`, `invalid_refresh_token`, `token_expired`,
+   `refresh_token_expired`, `refresh_token_invalidated`,
+   `refresh_token_reused`. Mark the credential unusable, keep
+   the issued `client_id`, re-authenticate. Temporary
+   network/5xx errors: retry with backoff. Never delete valid
+   credentials on a transient failure.
 
-**Recall is a new spoke.** It imports `internal/common` and the standard
-library. Ensemble constructs it as an Agent child with a required parent
-interface. It reaches the Agent's configuration, skills and Engine through
-that owner; common declares `Recaller` and `SnippetJudge`. The actor gives a
-worker a conversation snapshot and attaches its returned bytes through the
-existing ordered input path. A slow judge must leave hints and interruption
-usable, and an interrupted worker must not attach to a later turn.
+10. **Responses API format.** ChatGPT-plan requests use the
+    Responses API endpoint. They require `store: false` and
+    `stream: true`, full history in `input`, and namespaced local
+    function tools. The plan's HTTP route excludes fields
+    including `temperature`, `top_p`, `max_output_tokens`,
+    `previous_response_id`, and `top_logprobs` (not `logprobs`).
+    Model restrictions as a capability data structure, not
+    scattered special cases. Require terminal completion before
+    committing output or executing a streamed tool call; preserve
+    completed output items even when the terminal `output` is empty.
 
-**Parse the judge's response defensively.** Small models are unreliable
-with output format. Try `[]int` first, fall back to `[]string` (models
-sometimes return `["0", "3"]`), fall back to `[]json.RawMessage` for
-mixed types. Extract the first `[` to last `]` from the response,
-models often wrap the JSON in explanation text. Ignore invalid, repeated
-and out-of-range indices; do not interpret `null` as index zero.
+11. **Cache breakpoints.** On the supported API-key route, set
+    `prompt_cache_options.mode: "explicit"` and place
+    `prompt_cache_breakpoint` markers on eligible content blocks,
+    including the developer-role constitution, within the four-marker
+    budget. The measured ChatGPT route rejected the options field;
+    its accepted capability profile omits both options and markers.
+    Keep the cache lens and actual usage counters on both routes.
 
-**Configuration.** These are the exercise defaults. The public settings patch
-uses a `recall` object with lower-snake-case keys, such as `max_snippets`.
-Zero numeric fields select defaults; `disabled` bypasses recall and
-`disable_judge` selects mechanical retrieval.
+12. **Reasoning summaries.** Request
+    `reasoning.summary: "auto"` on models that support it.
+    Stream summary events incrementally. Map them to separate
+    observer events: never buffer a full summary, never
+    concatenate into assistant text, never drop summaries
+    adjacent to tool calls.
 
-| Setting | Default | Purpose |
-|---------|---------|---------|
-| `MinScore` | 3.0 | BM25 score floor for plain recall (no judge) |
-| `MaxSnippets` | 3 | Maximum snippets injected per turn |
-| `MinQueryLength` | 80 | Skip recall for short messages |
-| `JudgeModel` | Agent's current model | Optional same-provider override |
-| `Candidates` | 20 | BM25 results sent to the judge |
-| `ContextMsgs` | 3 | Recent messages for judge context |
-| `MaxRecallBytes` | 6144 | Hard cap on total recalled text |
+13. **Billing mode.** `chatgpt` uses only OAuth credentials.
+    `api` uses only the API key. `chatgpt_then_api` prefers
+    OAuth, falls back to API only on
+    `subscription_sharing_usage_limit_exceeded` and only when
+    `allow_metered_fallback` is true. Announce the billing
+    transition before the first metered request. Never silently
+    switch billing. Deferring automatic fallback is permitted; this
+    chapter's accepted implementation supports only `api` and `chatgpt`.
 
-**Graded behaviors (10 checks, 100 points):**
+14. **Credential isolation.** Access tokens, refresh tokens, ID
+    tokens, and API keys never appear in prompts, agent memories,
+    conversation context, logs, debug output, or any
+    model-visible state.
 
-| Check | Points | What it tests |
-|-------|--------|---------------|
-| `bm25-indexes` | 10 | Memory files are searchable after finalized and failed-compaction restarts; active content is not duplicated |
-| `bm25-scores` | 10 | Competing hits distinguish rarity, saturation and length normalization |
-| `bm25-stop-words` | 5 | Stop words are filtered from queries, not documents |
-| `chunking-splits` | 10 | Large documents are split on markdown headers |
-| `per-source-quota` | 10 | Final mechanical quotas and spare slots; successful judge choices stand |
-| `judge-filters` | 15 | The SLM judge removes irrelevant BM25 hits |
-| `judge-fallback` | 10 | Judge failure falls back to quota-selected BM25 results |
-| `recall-is-a-spoke` | 10 | The actual core recall spoke imports only common and stdlib |
-| `recall-is-own-kind` | 10 | Recall remains separate and retained on the next turn and after source-free restart |
-| `injection-capped` | 10 | Formatted text fits MaxRecallBytes and capped recall is not repeated |
+15. **Sign-out.** Revoke the refresh token via OpenAI's
+    revocation endpoint. Clear local tokens. Retain the issued
+    `client_id` and host ID. If remote revocation fails, clear
+    locally and inform the user.
 
-Run the separately versioned grader from the repository root:
+### Yours
+
+- File layout for the OAuth subsystem
+- Profile storage format (JSON, keychain, or your existing
+  secret store)
+- How auth status is displayed to the user
+- Whether `chatgpt_then_api` is implemented now or deferred
+- Multiple-account support: the schema should support it even if
+  the UX exposes only one account
+
+### Exercise
 
 ```sh
-go run ./cmd/grade-edition2 -ch 16 -json
+go run ./cmd/grade-edition2 -ch 16
 ```
 
-It defaults to `solutions/ch16` and its separate GUI. Public settings
-and corpus fixtures exercise the actual Agent. Source review still establishes
-parent ownership, cancellation and the fuller replay/provider obligations; an
-import check alone cannot prove those relationships. Exact hidden-stage and
-committed-recovery holds, judge model/tier accounting and main cache-lens exclusion
-retain separate real-runtime source regressions, without extra numeric credit.
-
-## §16.1 The Idea in Plain Words
-
-A filing cabinet is not memory. Memory is what comes to mind without being
-asked.
-
-Chapter 15 built the filing cabinet: bands that compress, a cascade that
-graduates, a watermark that forces the agent to write things down before
-they disappear. That gives recent work a place in context and older work a place
-on disk. It does not answer the question "which old memory matters to this
-new message?"
-
-The answer is the oldest trick in information retrieval. When the user
-types a message, pull out the keywords, score every memory chunk against
-them, and surface the best matches. BM25 scores a small local corpus
-without another service. No vector
-database, no embedding model, no infrastructure. Keywords and arithmetic.
-
-But BM25 is a blunt instrument. It matches words. A query
-about "authentication" will not find a memory about "login flow." And it
-can rank a keyword-rich design document above the short daily log
-containing the decision. Length normalization helps, but a matching term
-is still not evidence that the document answers the question. Two mechanisms
-compensate:
-
-**Per-source quotas.** When selection is mechanical, qualifying memory
-hits get half the final slots, rounded up. Docs, handoffs, learnings, and
-skill docs share the rest. This protects personal memories from a larger
-reference corpus without forcing a successful judge to pick an irrelevant
-memory merely to satisfy a ratio.
-
-**The recall judge.** A cheap language model, the smallest that can follow
-instructions, reads the BM25 candidates alongside the recent conversation
-and picks the ones that are genuinely relevant, not merely keyword-adjacent.
-The judge sees context that BM25 cannot: what the conversation is about,
-what the user is trying to do, whether a keyword match is superficial or
-load-bearing.
-
-The judge is the difference between "here are some memories that mention
-the same words" and "here is something you need to know right now." Without
-it, a developer asks about authentication and gets every memory that
-mentions a password. A good judgment selects the one where the team
-decided to use OAuth. It can still make a bad choice, and it cannot select
-a memory that keyword search never offered.
-
-The obvious lifetime for a recalled snippet is ephemeral. Relevance is local:
-a memory about database schema is useful when the user mentions the database
-and noise when the conversation moves to the GUI. Show it, drop it.
-
-That intuition can be expensive because a prompt cache is a prefix property.
-Dropping a block changes the prefix from the deletion point onward. Moving it
-to a volatile tail avoids that old position but changes the layout around each
-retrieval. Attach it once at a stable position and subsequent requests can
-extend the same prefix. The bytes are still sent, and cache reads can still
-cost money; a stable layout creates an opportunity for reuse, not a promise
-that the provider charges for those bytes only once.
-
-So recalled snippets stay until a checkpoint. They are not merged into the user's
-message, because the user's words must stay distinguishable from
-machine-retrieved text, and because anything fused into a user turn cannot
-later be removed without damaging it. They are their own kind of entry,
-which makes them addressable: a checkpoint can delete them by kind.
-
-That checkpoint is where removal belongs. A checkpoint already rewrites the
-prefix, so it already changes the cacheable suffix, and deleting recall there
-avoids a separate invalidation at another point in the turn. Removing it
-on its own schedule would make that additional change without recovering
-more useful context. The rule generalizes past this chapter:
-**group removals at the checkpoint that already changes the prefix.**
-
-This is the second appearance of a shape worth naming. Chapter 15 found that
-switching a memory band off is more expensive than leaving it on, because
-disabling strips bytes from the front. Here too, the transient-looking thing can be
-cheaper to keep than to remove. In a system built on cached prefixes,
-retention can be cheaper than repeated removal. The intuitive lifetime
-deserves a look at the actual request layout.
-
-The system degrades gracefully at every level. If the query is too short
-(under 80 characters), recall does not fire. Short messages like "fix it"
-contain no signal worth matching. If BM25 finds nothing above the score
-floor, nothing is injected. If the judge fails or times out, the system
-falls back to quota-selected BM25 results. If the entire recall
-system is disabled, the agent still works. It does not remember
-passively. Retrieval failure should leave a usable agent with less context;
-interruption and shutdown still end the current work normally.
-
-One unexpected benefit: skill discovery. All available SKILL.md files are
-indexed alongside memories. When a user asks about something a skill
-handles, the skill documentation surfaces through recall, and the agent
-loads it without being told. This was not planned. It was added because
-skill docs were already markdown files in a known directory, and the source
-scan could include them. It turned auto-recall into a discovery mechanism as well
-as a memory mechanism.
-
-## §16.2 BM25: The Old Formula That Still Works
-
-BM25 is a well-established keyword-ranking formula. For this exercise's
-small markdown corpus, it supplies the useful machinery without an embedding
-service or another database.
-
-The formula scores a document against a query by combining three ideas:
-
-**Term frequency with saturation.** A word that appears ten times in a
-document is more relevant than one that appears once, but not ten times
-more relevant. The `k1` parameter (standard value: 1.2) controls how
-quickly additional occurrences stop mattering.
-
-**Inverse document frequency.** A word that appears in every document is
-worthless as a discriminator. A word that appears in one document is
-a strong signal.
-
-Use the smoothed form, `ln(1 + (N - df + 0.5) / (df + 0.5))`, and not the
-classic one clamped at zero. The difference looks cosmetic and is not. The
-classic form goes negative once a term appears in more than half the chunks,
-so a zero clamp discards those contributions. In a small archive, a useful
-term can easily appear in more than half the chunks. If every query term does, the clamped total is zero and retrieval
-returns nothing even though the files contain the requested words.
-
-The failure is worth dwelling on because of how it presents. Nothing errors.
-The index builds, the search runs, the scores are computed correctly
-according to the formula, and the agent simply never remembers anything. It
-reads as "recall is broken" when it is in fact "IDF is the wrong variant,"
-and those two diagnoses send you to opposite ends of the codebase. The
-smoothed form keeps these contributions positive. It fixes this zero-score
-failure; a positive score can still fall below the configured floor.
-
-A related trap waits in testing. IDF measures rarity *against the corpus*,
-so a tiny fixture can put useful matches below a threshold tuned for a larger
-archive. A representative background corpus changes what counts as rare.
-The tests here use 25 background chunks; that is a fixture choice, not a
-minimum corpus size. Check the actual query and scores before blaming the
-retrieval path.
-
-A positive score is also a weak ranking test. During this implementation's
-review, replacing BM25 with raw term frequency passed the initial tests.
-Both algorithms found the planted words. The useful test puts plausible
-answers in competition: a rare term against a common repetition, several
-distinct query terms against one repeated term, and a focused note against
-a long document with the same single match. Those comparisons exposed the
-replacement while the restored BM25 implementation passed.
-
-**Document length normalization.** A long document is expected to contain
-more term matches than a short one. The `b` parameter (standard value:
-0.75) penalizes long documents to compensate, using the average document
-length as the baseline.
-
-The implementation needs five things: a tokenizer, a stop-word list, an
-index builder, a scorer, and a chunker that splits documents into pieces
-small enough to be useful as recalled snippets.
-
-Tokenize by splitting on non-alphanumeric characters, lowercasing, and
-dropping tokens shorter than two characters. Filter stop words from
-queries only. Keeping them in documents preserves accurate term frequency
-and length statistics.
-
-Chunk markdown on `## ` headers. Each chunk records its filename, header
-text, content, pre-computed term frequencies, and token count. When a
-chunk exceeds 4KB, split it further on `### ` sub-headers, then on
-paragraph boundaries. Use breadcrumb headers (`"Parent Header > Sub Header"`)
-so the reader knows where a sub-chunk came from.
-
-The whole engine is a few hundred lines of code. No dependencies, no
-configuration files, no external services. Build the index when the first query
-needs it, after loaded history and memory recovery permit a corpus scan; rebuild
-it when source bytes change. Equal-size edits count too; an unchanged
-file length is not evidence of unchanged content.
-
-Search both active and `.md.retired` memories, but keep hidden staging records
-outside the corpus (`.compaction/pending.json` in this implementation). A staged
-candidate may not yet be accepted. If a committed replacement still needs disk
-finalization, recovery establishes the committed bytes before indexing; a
-conflicting file must not silently become recall input. Retired originals remain
-searchable after recovery, subject to the same actual-context exclusion as other
-memories. Constructing the recall service must not scan disk before its embedding
-client has loaded history.
-
-## §16.3 Per-Source Quotas: Why Memory Gets Half the Slots
-
-The first version of auto-recall ran a single merged BM25 search over all
-sources. Design documents dominated the results. A 20KB design doc full of
-technical terminology would outscore a 500-byte daily log that contained
-the relevant decision in that corpus. Length normalization did not encode
-the extra value of the daily log's decision and reason.
-
-The fix is a source-selection policy. Give each source its own BM25 index
-and search them independently, then allocate guaranteed slots:
-
-1. Memory files get 50% of the slots (rounded up).
-2. Remaining slots are split evenly among other sources.
-3. Unused slots from sources with fewer results than their quota flow to
-   sources with overflow.
-
-Separate indexes matter on their own. IDF is computed per source, so a term
-that is unremarkable across the memory archive can still be rare within the
-documents, and a large source no longer distorts what counts as rare for
-everyone else.
-
-**Apply the quota to the final selection, not to the candidate pool.** This
-distinction is the whole mechanism, and getting it backwards produces code
-that looks right and does nothing. Candidates arrive already sorted by score
-within each source, so capping a source's contribution to the candidate pool
-may still leave the final score-ranked list entirely dominated by another
-source. A candidate cap is not a reserved final slot. Test with two lower-
-scoring memory hits and several higher-scoring document hits: a three-slot
-mechanical result must keep the two memories.
-
-**The quota must not overrule the judge.** It governs the mechanical paths,
-where no judge ran or the judge failed and selection falls back to score
-order. When a judge has actually assessed relevance, its verdict stands.
-A successful `[]` means attach nothing; it is not a reason to fall back.
-Discarding the opinion of the component that read the conversation, in
-order to satisfy a ratio, would trade the good signal for the crude one.
-
-This is a policy decision, not a BM25 improvement. The agent's personal
-memories are the highest-value source. They contain decisions, context,
-and lessons that no design doc captures. Guaranteeing them half the slots
-ensures qualifying memories survive mechanical competition with larger
-sources when enough memory hits exist. Unused slots still flow elsewhere.
-
-## §16.4 The Judge: Filtering by Meaning, Not Keywords
-
-BM25 finds documents that share words with the query. The recall judge
-finds documents that share *relevance* with the conversation.
-
-The judge is a single stateless call to a model that can follow instructions.
-This implementation defaults to the Agent's current provider and model;
-`recall.judge_model` can select another supported model on that same provider.
-The override changes this request, not the main conversation's model. A smaller
-model can reduce cost, but its selection quality needs checking. It receives:
-
-1. The recent conversation (last 3 user and assistant messages).
-2. The latest user message, labeled separately.
-3. Up to 20 numbered candidate snippets from BM25.
-4. An instruction: pick up to 3 that the agent would genuinely benefit
-   from seeing, return a JSON array of indices. "Keyword mention alone
-   is not relevance."
-
-The judge returns `[0, 7, 12]` or `[3]` or `[]`. Several details make
-this work reliably:
-
-**It starts clean every time.** The judge holds no history. Note what that
-means about item 1 above: the recent conversation reaches the judge as *data
-inside the prompt*, not as history the judge carries between calls. Every
-judgment starts with just the supplied data and instructions.
-
-**Recursion is impossible rather than prevented.** An agent that could recall
-would trigger its own recall when judging, which would invoke another judge.
-A stateless call has no context of its own to fill, so the failure cannot be
-expressed. This is worth noticing as a design move: the strongest way to
-handle a failure mode is to build a thing that cannot exhibit it. An
-implementation that made the judge a full agent would need a nil provider and
-a settings flag to hold the same line, and would still be one refactor away
-from losing it.
-
-**Defensive JSON parsing.** Small models are unreliable with output
-format. The parser tries `[]int`, falls back to `[]string` (models
-sometimes quote the numbers), falls back to `[]json.RawMessage` for
-mixed types. It extracts the first `[` to last `]` from the response
-to handle models that wrap JSON in explanation text. Out-of-range
-indices are silently filtered. Clear any partially decoded integer slice
-before trying mixed elements: a failed `json.Unmarshal` can already have
-written values into it. Otherwise the fallback can accidentally retain
-zeros that select candidate zero.
-
-**One component owns the reply format, and it is the one that parses.**
-Nothing else may restate it. This sounds like housekeeping and is the most
-dangerous rule in the chapter, because the model layer holds the client and
-can feel like the natural place to describe what a good answer looks like,
-while the recall layer holds the parser. If both describe it, their
-instructions can drift. The model then receives two specifications in one
-request, obeys one, and the parser can reject a reply that was well formed
-by the other. Recall falls back to scores while the judge appears to be
-working. Keep the format with the parser, and log fallback so that a failed
-judgment cannot pass unnoticed as a useful one. Whoever reads the bytes
-decides what the bytes look like.
-
-When the judge fails or times out (15 seconds), the system falls back
-to the final quota-selected BM25 results. Cancellation reaches the actual
-HTTP request; returning from a wait while leaving it running is not a
-timeout. The agent can continue with noisier recall.
-
-Its usage still belongs on the bill. Add measured judge input, cache and output
-counts to Engine's session totals with the judge's actual provider, model and price
-tier, once. A cheaper judge must not be priced as the main model. Keep the latest
-main-response counts unchanged, and exclude this separate prompt from main-request
-cache comparisons. Restoring an old recall attachment makes no new judge call
-and adds no historical usage to the fresh session meter.
-
-## §16.5 Attachment: Permanent Until a Checkpoint
-
-Recalled snippets are formatted as blockquoted text with source attribution:
-
-```
-[Auto-recalled memories]
-
-From 2026-09-22-1.md — Key decisions:
-> save_memory removed as agent tool; micro_handoff becomes SOLE trigger.
-> A finite compressor folds completed work into memory.
-
-From docs/auto-recall-design.md — The Pipeline:
-> BM25 keyword search over memory files, filtered through an SLM judge.
-```
-
-That text becomes its own kind of entry in the conversation. Three properties
-follow, and each one is load-bearing.
-
-**It is never merged into the user's message.** The user's actual words must
-stay distinguishable from machine-retrieved text, both for the model reading
-them and for anyone auditing the log afterward. Fusing the two makes removal
-depend on editing the human message. A checkpoint can instead remove the recall kind while preserving
-the human's words according to the existing conversation policy.
-
-**Where it lands on the wire is the renderer's decision, not the
-conversation's.** The conversation records that recall happened and what
-bytes it produced. Turning that into a request is a vendor question. These
-are retrieved data, not new instructions: use the renderer's existing data
-placement. Anthropic can put a recalled block and human text in separate parts
-of one user message without merging their stored entries. A check that demands
-a separate system message would confuse storage identity with wire layout.
-Keep the recorded position stable on later requests.
-
-**It carries its bytes.** Recall is nondeterministic, because a language
-model chose which snippets survived. If the text were recomputed while
-rendering, replaying a log would call a model, and two replays of the same
-log could disagree. So the snippets are recorded as text at the moment they
-are chosen. Replay then reproduces the conversation exactly, with no search
-and no model call.
-
-That last property is the same boundary Chapter 15 drew. A transform that is
-a pure function of the log can run at render time. Anything nondeterministic
-has to be recorded when it happens. The checkpoint and memory chapters
-already use that boundary.
-Recall follows it: log the selected bytes, then render them. Do not rebuild
-an old attachment from today's files or ask today's judge to choose it again.
-
-Because the entries persist, the same memory could be recalled on three
-separate turns and appear three times. Skip content already in the actual
-context, including memory bands, tool results and earlier recall. Searching
-all files does not mean attaching them all again.
-
-Truncation makes that rule less obvious than it sounds. The initial
-implementation compared the complete source snippet with the conversation.
-A source of 11,247 bytes became a 6,144-byte attachment. Its missing suffix
-could never match, so the next turn attached the same capped text again.
-A short-snippet control passed; the large one produced two identical entries.
-
-Keep the complete source's identity with the attachment that represents it.
-The accepted implementation records a hash of that content alongside the
-chosen bytes. It hashes the source, not the shortened display, so a human edit
-creates a new identity. Replay retains it; checkpoint removal discards it with
-the recall entry, allowing a later turn to retrieve the source again. This is
-local state belonging to the attachment, not a permanent “already read” list.
-
-One wiring hazard deserves naming, because it costs hours and announces
-nothing. The first edition had a synchronous turn path and an actor-mailbox
-path. Hook recall into only one and the hand-driven case can work while the
-other client never retrieves anything. A function that was never called
-cannot complain.
-
-The present Agent has one actor begin path for both `Ask` and `Post`. Keep
-recall there, after memory recovery and before the first main request, and verify
-both actual clients. An unresolved committed replacement must report its recovery
-error before search or attachment can consume a mixed corpus.
-The worker reads a snapshot while the actor can still accept hints or an
-interrupt. Its result carries the turn identity; a late judgment from an
-interrupted turn must not become context for the next user's message.
-
-
-## §16.6 Tuning: What the Numbers Mean
-
-The first-edition account traces these defaults through months of daily
-use. The stories explain their purpose; they do not make the numbers right
-for every corpus.
-
-**MinScore went from 0.5 to 3.0.** At 0.5, every conversation triggered
-recall, and most results were noise: single keyword matches on common
-technical terms. The higher floor reduced that noise in the reported corpus.
-The jump is large because BM25 scores are not
-normalized; the right threshold depends on corpus size and vocabulary.
-Note: this threshold applies only to plain recall (no judge). When the
-judge is enabled, BM25 uses a low threshold (0.5) to cast a wide net,
-and the judge handles false-positive filtering.
-
-**MinQueryLength went from 15 to 50 to 80.** A user who types "fix it,"
-"run tests," or "looks good" often supplies little retrieval signal. Raising the
-threshold progressively eliminated recall on messages that could never
-produce useful results. Eighty characters is a cheap heuristic, not a test of
-meaning: a short
-project identifier can carry more information than a long generic instruction.
-
-**Candidates went from 10 to 80 (code default) to 20 (production).**
-That was the earlier CodeRhapsody tuning history. This exercise defaults
-to 20; it does not inherit the old code's 80-candidate setting. More
-candidates enlarge the prompt. Whether they improve selection enough to
-justify that cost depends on the corpus and judge; count the actual candidate
-bytes rather than assuming 20 snippets means a fixed number of tokens.
-
-**Judge timeout is 15 seconds, not 2.** The original design assumed a
-local model (Ollama) with sub-second latency. The historical account reports
-cloud calls taking 1–3 seconds. The generous timeout exists
-because a late judge response is better than no judge response. The
-fallback to unfiltered BM25 results is noisier.
-
-## §16.7 What BM25 Cannot Do
-
-BM25 matches words. Three limitations follow:
-
-**Vocabulary mismatch.** If the user says "authentication" and the memory
-says "login flow," BM25 will not connect them. Vector search (embedding-based
-retrieval) can bridge that gap, but it requires an embedding model, an index to maintain,
-and a service to call. For a corpus of a few hundred files, the marginal
-improvement does not justify the infrastructure. If the corpus grows by
-orders of magnitude, revisit this.
-
-**No semantic deduplication.** If a memory and a design doc contain the same
-information in different words, both may be recalled, wasting snippet slots.
-Exact content and complete-source identities prevent literal repeats already
-in context. They do not establish that two paraphrases say the same thing,
-and they do not exclude files merely because they are recent.
-
-**No relevance feedback.** The system does not learn which recalled memories
-the agent actually used. A snippet that the agent ignores on ten consecutive
-turns can return after checkpoints if it scores well on BM25. Tracking usage patterns
-and adjusting retrieval is a natural next step that this implementation does
-not take.
-
-These are honest limitations, listed as what they are rather than as a
-roadmap. BM25 with a judge works
-well enough for daily use. The system is simple, fast, and debuggable. A
-more sophisticated retrieval system would be harder to debug when it
-recalled the wrong thing, and debugging recall errors is already hard.
-
-## §16.8 Skill Discovery: The Unplanned Win
-
-All available SKILL.md files are indexed alongside memories and documents.
-This was added because skill docs are markdown files in a known directory,
-and the existing source scan could include them.
-
-The result was unexpectedly powerful. When a user asks about something a
-skill handles ("can you check my email?" or "what's on my calendar?"),
-the skill's documentation surfaces through auto-recall. The agent can see the
-snippet, recognize the available skill, and load it. No explicit skill
-search, no user instruction to load a specific skill. The agent discovers
-capabilities through the same mechanism it uses to recall past work.
-
-This turns auto-recall into a discovery system as well as a memory system.
-The agent's capabilities are not fixed at startup; they expand when the
-conversation moves into a domain where a skill exists. The user does not
-need to know which skills are installed. The skills surface when they are
-relevant.
-
-Recall does not activate a skill or grant its tools. It supplies documentation
-that can lead to an ordinary `load_skill` call. The registry still controls
-which skills are reachable and which tools may execute. A paragraph retrieved
-from disk cannot grant itself a capability.
-
-## §16.9 Taking It for a Spin
-
-A recall demonstration needs an answer that is absent from the question and
-present in an archive. Otherwise a fluent reply could be ordinary model
-knowledge, or a repetition of facts supplied by the user.
-
-From a scratch copy of `solutions/ch16`, build the CLI, then create
-a fresh working directory so an old save cannot supply the answer:
+Extend Chapter 15; the accepted result is `solutions/ch16`.
+Run the command from the repository root. It builds the core and
+its separate GUI; an explicit core path and `-gui DIR` select other
+submissions. The grader provides a fake OAuth
+server and a fake Responses API server. Complete the OAuth flow,
+perform inference through the Responses API, refresh tokens
+proactively, and stream reasoning summaries as separate events.
+
+---
+
+## The idea in plain words
+
+An encrypted reasoning block looks safe to store or share because
+its owner cannot read it. But the provider's model can. If another
+model accepts the same block, the encryption has not established
+who may ask for its contents. That distinction made a seemingly
+opaque artifact a source of leaked secrets.
+
+In August 2026, researchers demonstrated the consequence. They
+replayed a frontier model's encrypted reasoning into a cheaper
+model behind a jailbreak prompt, and the decoder treated the
+replayed block as its own prior thinking and decoded it. From
+6,708 public agent trajectories, they extracted 315,320 reasoning
+blocks. The genuine user sessions contained 62 distinct API keys,
+33 passwords, 24 access tokens and 7 private keys; 64 of the 704
+recovered artifacts were absent from visible chat history. These are
+the researchers' findings, not an invitation to test recovered
+credentials. The original account's $720 figure describes the
+paper's estimated cost for a separate 10,000-trace example, not
+the measured cost of this extraction. ([Panfilov et al., August 2026](https://arxiv.org/html/2608.09867v1), §§3.1 and 4.1.)
+
+Binding a reasoning artifact to its authorized context is one
+way to close that gap. OpenAI's September 30 report says it
+strengthened protections across users, workspaces, organizations
+and model families, closed a replay pathway, and added output
+checks. That report establishes the mitigation it describes; it
+does not disclose enough implementation detail to call it exactly
+the paper's proposed cryptographic design. ([OpenAI's incident report](https://openai.com/index/disrupting-a-coordinated-model-distillation-campaign/).)
+
+Anthropic's preserved-thinking policy creates a different integration
+constraint. The Opus 5.5 launch applied it to that model and Fable 5.1
+for API accounts created on or after August 31, 2026. The current
+documentation, checked October 11, ties retained thinking to the
+prefix against which it was produced. Changing earlier messages or
+tool results can invalidate later thinking. It also documents
+server-side editing and client-side compaction that discards stale
+thinking, so "no compaction at all" would be the wrong criticism.
+The conflict is with keeping those artifacts while independently
+editing the earlier context. ([Launch policy](https://www.anthropic.com/claude-opus-5-5),
+[preserved-thinking rules](https://platform.claude.com/docs/en/build-with-claude/preserved-thinking).)
+
+Several chapters depend on owning that editing policy: Chapter 2's
+ephemera, the changing GUI and speech views in Chapters 12–13,
+the cuts in Chapter 14, the later memory in Chapter 22, and Chapter 23's recorded
+recall attachments, which survive until a checkpoint. They do not
+all have the same lifetime. They do share the ability to stop
+sending material without asking a provider to make the cut.
+Beyond this codebook, any agent that needs to see its current
+state ephemerally is affected by such a constraint: a family assistant
+tracking a conversation, a virtual tabletop tracking game state, an
+accessibility tool streaming its reasoning to a developer who
+cannot see the screen.
+
+Protecting hidden reasoning is a legitimate requirement. So is
+choosing a service compatible with the context policy the agent
+already implements. This exercise takes the latter route instead
+of designing a new policy around preserved thinking. Current
+Anthropic examples elsewhere in this edition stay on supported
+older models such as Sonnet 5; a newer catalog entry is not proof
+that the existing ephemeral-context behavior works with it.
+
+This chapter migrates the agent to OpenAI. The vendor seam built
+in Chapter 2 and tested in Chapter 15 against three providers now
+faces the migration that motivated the first-edition account.
+The investment in the agent depends on the answer: if the seam
+works as designed, this is a refactor. If it was aspirational,
+this is a rewrite.
+
+It is a refactor.
+
+
+## The credential seam
+
+The existing pattern is a static API key: resolved at startup,
+stored on the configuration struct, passed to every request
+unchanged. This client treats it as a constant. The service can
+still revoke or expire it; a constant in configuration is not a
+promise from the provider.
+
+OAuth credentials are not constants. An access token expires in
+about an hour. The refresh token that renews it is invalidated
+the moment a new one is issued. A concurrent refresh can lock the
+account out of both tokens. The HTTP layer must handle all of this
+without implementing token rotation in every renderer.
+
+The `CredentialProvider` interface has two methods.
+`GetBearerToken` returns a valid bearer token or an error.
+`Kind` returns whether the credential is an API key or an OAuth
+token. The HTTP layer calls `GetBearerToken` and places the
+result in the `Authorization` header. Renewal stays with the
+provider; HTTP can request it after an authentication failure
+without taking ownership of the stored tokens.
+
+The API-key provider is a single field wrapping a string. It
+returns that string every time and never fails. The OAuth
+provider holds protected profile state and coordinates token refresh.
+It checks the expiry, refreshes if needed, and returns the
+current access token. Both providers produce an identical header.
+
+The credential provider stays off the renderer interface. Ensemble
+owns the auth store. Agent selects a funding mode, and Engine
+obtains the bearer just before HTTP through its request-local
+configuration. The renderer needs only the selected route's public
+capabilities: for example, whether tools need a namespace. It does
+not need an access token to turn history into bytes.
+
+This distinction also keeps offline replay offline. Rendering a
+saved conversation must not refresh a credential or require an
+account. A developer adding another renderer learns the neutral
+conversation and that provider's wire format, without implementing
+OAuth. The seam's job is to make the caller's life boring.
+
+
+## OAuth from first principles
+
+A distributed local application cannot hide a shared client secret.
+A web server can keep one on its backend, but a binary
+running on the user's machine can be decompiled, inspected, and
+copied. Authorization Code with PKCE solves this: instead of
+proving you possess a long-lived secret, you prove that the app
+finishing the flow is the same app that started it.
+
+The mechanism is a verifier and a challenge. Before redirecting
+the user to the authorization server, the agent generates 32
+random bytes, base64url-encodes them without padding as the
+verifier, and hashes that verifier string with SHA-256. The
+base64url-encoded digest goes in the authorization request; the
+verifier goes in the token exchange. The server checks the same
+transformation. An attacker who intercepts the code still needs
+the verifier, which is sent only in the token exchange.
+
+The agent binds a TCP socket to `127.0.0.1` on any available port,
+with the path `/auth/callback`. The host must be the literal
+`127.0.0.1`; the OpenAI documentation says "Do not substitute
+with `localhost`." The path must be exactly `/auth/callback`;
+their documentation says "`/callback` does not match
+`/auth/callback`." Only the port may vary. This makes the coding
+agent, for exactly one HTTP request, a web server. A tool-calling engine that reads files and
+runs processes now listens on a socket and serves a redirect.
+
+The authorization request includes several things that matter beyond
+PKCE. A `state` parameter prevents cross-site request forgery: the
+agent generates a random value, sends it in the request, and
+rejects any callback that returns a different one. A `nonce`
+prevents replay: it is embedded in the returned ID token and
+validated on receipt. A stable `ext_agent_host_id` identifies the
+installation. An RFC 8707 `resource` parameter
+(`https://api.openai.com/v1`) appears on the authorization request
+and is repeated at code exchange.
+
+On first registration, the `client_id` is the bootstrap value
+`dynamic_agent_client`. The authorization callback returns an
+issued `client_id` alongside the authorization code and state.
+Persist the issued ID before exchanging the code. All subsequent
+requests for that registration use it. A returning callback may
+omit the ID; if it supplies a different one, reject it.
+
+The course flow uses this callback-based registration rather than
+a separate RFC 7591 registration request. The bootstrap
+`dynamic_agent_client` is never valid for token exchange. Send
+`agent_name_hint=Ensemble` on first registration and omit it when
+reauthorizing. The requested scopes include identity, offline
+access, `resource.invoke` and `chatgpt.tokens.use.direct`. These
+small fields are part of the protocol, not labels to improvise.
+([Registration and sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in).)
+
+The user's browser opens. They sign in. OpenAI redirects to the
+loopback listener. The agent extracts the code, the state, and the
+issued client ID, then shuts down the HTTP server. One request
+served. The agent returns to reading files. A reader who has
+followed this book from chapter 1 will notice the irony: the tool
+that runs shell commands now runs a shell command's inverse,
+listening for network input instead of producing it.
+
+
+## Identity is not permission
+
+A successful login proves who the user is. It does not prove the
+user has granted plan usage. Two separate checks are required, and
+both must pass before inference.
+
+The token exchange returns three tokens: an access token for API
+calls, a refresh token for renewal, and an ID token for identity.
+The ID token is a signed JWT. Validating it requires fetching
+OpenAI's published JWKS (JSON Web Key Set), verifying the
+signature against those keys, and then checking five claims:
+issuer exactly matches the trusted `https://auth.openai.com` URL,
+audience matches the issued
+`client_id`, the token has not expired, and the nonce matches the
+one sent in the authorization request. The `sub` claim is the
+stable account identity. Keep the issued client ID with it: the
+same email, or the same person in another workspace registration,
+is not a reason to merge token sets. A returning verified identity
+must match the account being renewed before replacing its credentials.
+
+The second check is the granted scope. The token response includes
+a list of scopes the user authorized. Among them,
+`chatgpt.tokens.use.direct` means plan-usage inference is
+permitted. Without it, identity may be saved, but plan inference
+remains disabled. Refuse that request rather than quietly trying
+an API key. Login and permission to spend are separate results.
+
+The discovery document inspected during the original implementation listed
+`scopes_supported` as `openid`, `profile`, `email`, and
+`offline_access`. It did not advertise the plan-usage scope. The missing catalog
+entry did not make the scope optional. A developer implementing against the
+discovery document alone will build a login that works and an
+agent that cannot infer. Inspect the token response itself for
+the granted scopes. The current [sign-in contract](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)
+likewise makes that grant a separate inference gate.
+
+
+## Tokens that expire
+
+The access token is valid for about one hour. The refresh token
+is valid for about thirty days. Those are the documented lifetimes
+on October 11, not constants to substitute for the returned expiry. The agent tracks
+the expiry and refreshes proactively: when the current time
+passes five minutes before `expires_at`, the agent sends a
+refresh request before the next inference call.
+
+Refresh-token rotation is a security feature that punishes
+mistakes. Each refresh response returns a new access token and
+a new refresh token. The old refresh token is dead the instant
+the server issues the replacement. If two threads both see an
+expired access token and both attempt to refresh, the first one
+succeeds and the second one submits a dead token. The server
+treats that as a potential replay attack and may invalidate both
+tokens.
+
+The fix is mechanical: serialize refresh operations per profile.
+A mutex handles goroutines within one process; two clients
+sharing a credential file need cross-process coordination too.
+The accepted store locks and reloads the profile before deciding
+whether to refresh. A second request uses the replacement already
+saved by the first instead of rotating the old token again.
+Save both new tokens atomically before using either of them. If the process crashes between receiving the tokens and
+persisting them, the old refresh token is already dead and the
+new one is lost. Atomic persistence means writing a temporary
+file and renaming it, or using a transaction. Writing two
+fields in sequence can leave an unusable mixed profile. Atomic
+replacement prevents that partial local state; it cannot recover a
+new token lost between server-side rotation and local persistence.
+([Token lifetimes](https://developers.openai.com/siwc/token-sharing-open-source/token-reference),
+[refresh and storage](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions).)
+
+Six refresh errors are terminal: `invalid_grant`,
+`invalid_refresh_token`, `token_expired`,
+`refresh_token_expired`, `refresh_token_invalidated`, and
+`refresh_token_reused`. Any of these means the credential is
+unusable. Keep the issued `client_id` and host ID, discard the
+tokens, and re-authenticate from scratch. The user signs in
+again, but the agent remembers who it is.
+
+Network errors and HTTP 5xx are transient. Retry with
+exponential backoff. The critical distinction: a terminal error
+is the server saying the credential is dead. A transient exchange
+failure does not establish that: a reachable server can return a
+temporary error too. Retain the stored credentials. A 401 on
+inference alone does not establish revoked refresh credentials;
+this implementation attempts renewal once through the same funding
+source, and clears tokens only after a terminal refresh rejection.
+([Error recovery](https://developers.openai.com/siwc/token-sharing-open-source/errors-and-recovery).)
+
+
+## The Responses API
+
+The Responses API is a different wire format for the same
+conversation. Messages become input items. System-role messages
+become developer-role messages. The streaming event names change.
+HTTP 200 opens the transport; `response.completed` establishes
+completed inference. An incomplete or failed stream does not become
+a successful conversation fact merely because text appeared.
+The local conversation stays vendor-neutral while its encoding changes.
+
+ChatGPT-plan HTTP requests carry restrictions. `store: false` and
+`stream: true` are mandatory, and `input` carries the required
+history. The current route profile excludes `temperature`, `top_p`, `max_output_tokens`,
+`previous_response_id`, `background`, `conversation`,
+`metadata`, `max_tool_calls`, `moderation`, `multi_agent`,
+`prompt`, `prompt_cache_retention`, `safety_identifier`,
+`top_logprobs`, `truncation`, and `user`. The original printed
+list omitted `user` while including `previous_response_id`; the
+HTTP route excludes both. The capability table keeps these route
+restrictions separate from the model table. A renderer reads the
+selected profile instead of repeating policy decisions throughout
+its message loop.
+
+Local function tools go inside a namespace on this plan route.
+Preserve the returned namespace separately from the function name,
+and carry the call ID into the `function_call_output`. A model
+asking to read a file is only half the transaction: the next request
+must contain the actual result correlated to that call.
+([Current plan limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations),
+[models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference).)
+
+The top-level `instructions` field is legal on the plan route.
+It is a plain string, so it cannot carry its own content-block
+breakpoint. That does not make its bytes inherently uncacheable:
+a later reusable prefix can include earlier instructions. This
+renderer uses a developer-role content block for the constitution
+so the supported API-key route can place an explicit boundary there.
+
+The first subscription attempt exposed a route difference that the
+original chapter had missed. It returned HTTP 400 with
+`invalid_parameter`, naming `prompt_cache_options`. The same explicit
+mode had worked on the API-key route. The accepted plan profile
+therefore omits both that option and its associated breakpoint
+markers. Only the option's rejection was measured; the marker
+omission is a conservative choice for the paired mechanism.
+Changing credentials did not change the model name, but it changed
+which request was admissible.
+
+Keep explicit caching on the supported API-key route: set
+`prompt_cache_options.mode` to `"explicit"` and place the markers
+on eligible content blocks, within the four-marker budget. The
+published GPT-6.1 Sol standard rates for prompts through 272K input
+tokens are $2 per million fresh input tokens, $0.10 cached input,
+$2.50 cache writes and $10 output, verified October 11. Cache reads
+are 0.05x fresh input; cache writes are 1.25x. Those API prices
+explain why the boundary matters. They are not a subscription
+invoice or proof that a request received a cache grant.
+([September 29 model release](https://developers.openai.com/api/docs/changelog).)
+
+The migration is per-model. `SurfaceResponses` is a fact in the
+ModelFeatures table, set on specific model rows. Earlier models
+stay on Chat Completions; newer models move to Responses. A test
+pins the boundary so that a blanket vendor-wide flip cannot
+silently move tested models onto an untested surface.
+
+The first-edition coder found four artifacts waiting for this
+migration in that implementation. `provenance.go` declared `SurfaceResponses` and never
+wired it. `delta.go` documented that `StreamAll` deliberately
+excluded `StreamReasoningSummary`. `openai.go` carried a comment
+that encrypted reasoning was "a Responses-API concept ... for a
+renderer that can use it." The `gpt-5.6-sol` row recorded that
+function tools with reasoning were refused on Chat Completions,
+and that the fix was the Responses API. This chapter was someone
+doing it. The new implementation keeps the same lesson without
+requiring those historical filenames: authentication and wire
+format have separate seams, and the selected Responses models can
+now use reasoning and tools together.
+
+
+### The stream that had already finished its tool call
+
+After removing the unsupported cache option, the subscription
+request reached the model and still failed. The body contained SSE,
+but the parser selected its whole-JSON branch. Fixing that decision
+exposed the second assumption: a completed `read_file` item had
+already arrived in `response.output_item.done`, while the terminal
+`response.completed` carried an empty `output` array.
+
+The parser needs both parts of the protocol. Detect the stream
+without waiting to buffer its entire body, retain completed items
+by output index, and use them when terminal output is empty.
+A nonempty terminal output remains authoritative. In either case,
+terminal success and usage must arrive before those items become
+conversation facts or executable tool calls. The fact that a tool's
+arguments have streamed is no permission to execute a response
+that subsequently fails.
+
+The captured stream made both defects reproducible without another
+model call. A parser test that always repeats every completed item
+in the terminal array cannot expose the second defect. The real
+route had done less repetition than the fake, which was enough to
+lose a perfectly good tool call.
+
+
+## Reasoning summaries
+
+Reasoning summaries are model-generated descriptions of private
+thinking, streamed separately from the assistant's visible answer.
+They are not the private trace itself. Earlier adapters already
+distinguished displayable thinking from opaque replay material;
+Responses needs the same distinction. Preserve encrypted reasoning
+for compatible replay without reading or speaking its ciphertext.
+
+Bill has no macular vision and reads code at about 80 words per
+minute. He listens to model output at about five times speaking
+rate. A reasoning summary that arrives as a single paragraph after
+the answer has lost its chance to help him intervene. The
+value is in the delta: hearing the model think one phrase at a
+time while the answer is still forming, and sending a hint to
+redirect the model before it finishes the wrong approach. This
+is the accessibility payoff for the entire migration.
+
+> The first-edition coder treated the reasoning-summary gate as a research question
+> before any code was written. Live measurement against
+> `gpt-6.1-sol` with `reasoning.summary: "detailed"` and effort
+> set to high produced 314 summary deltas across 3 parts. The
+> `auto` setting produced 186 deltas. The `concise` setting
+> produced 4. Summaries stream, they produce enough content for
+> real-time listening, and the variation across settings is
+> large enough to warrant a configuration knob.
+>
+> The first probe returned zero summary deltas and looked like a
+> capability gap. The prompt was trivial and generated 18
+> reasoning tokens. The coder suspected there had been too little
+> reasoning to summarize. A single sample nearly produced a
+> "this does not work" report.
+> Measure with a prompt that makes the model think.
+
+That October 2 report is evidence of those probes, not a promise
+about every response. In the later student run, the API-key session
+produced 90 public-summary deltas. The subscription session requested
+`detailed` and used 165 reasoning tokens on its final response, yet
+returned no public summary at all. More reasoning is not a guarantee
+of a summary. Completion and shutdown must not depend on hearing one.
+
+The observer receives summary events through the existing
+observation interface. Summary deltas are a new event kind,
+separate from assistant-text deltas. They are delivered
+incrementally, kept separate from the assistant's visible text,
+and preserved when a tool call is adjacent. A response that
+interleaves reasoning, tool calls, and assistant text must emit
+every event in stream order. The existing part identities keep the streams associated with their
+finals. The GUI can feed summary phrases to the speech queue while
+the response continues, without merging them into the answer or
+speaking the encrypted item that accompanies them.
+
+
+## The billing state machine
+
+The agent now has two funding sources: a ChatGPT subscription
+and a metered API key. Switching between them is a state
+transition that the user must authorize and the agent must
+announce.
+
+Three modes. `chatgpt`: all inference uses the OAuth credential.
+`api`: all inference uses the API key. `chatgpt_then_api`:
+inference starts on the subscription and falls back to the API
+key only when the subscription quota is exhausted. The fallback
+requires an explicit flag (`allow_metered_fallback`) to be true.
+The safe default is false: a surprised bill is worse than a
+paused agent.
+
+The error codes that drive transitions are specific.
+`subscription_sharing_usage_limit_exceeded` is the signal for
+a plan-usage limit, which can be app-specific rather than the
+whole subscription being empty; if fallback is allowed, the agent transitions
+to API billing and announces the switch before sending the first
+metered request. `subscription_sharing_usage_unavailable` means
+temporary overload: back off, do not fall back.
+`subscription_sharing_unsupported_capability` means the request
+used a feature the plan route does not support: adapt the request
+or report the limitation. A 401 needs credential or permission
+diagnosis. Attempt the bounded same-source renewal described above;
+a terminal refresh error requires reauthorization, while a transient
+failure does not justify deleting the account or spending elsewhere.
+
+The announcement rule is the mechanism that prevents silent cost.
+Before the first metered request, the agent emits a clear
+observer event naming the billing source. The user hears it (or
+sees it, or reads the log) before any money is spent. Metered
+fallback is a decision, never an accident.
+
+The accepted implementation takes the permitted smaller choice:
+it rejects `chatgpt_then_api` and implements no automatic fallback.
+Both supported modes announce their selected funding source before
+the first request. A successful login selects `chatgpt` for later
+launches unless explicitly overridden. Logout leaves that selection
+in place, so removing a subscription credential cannot silently
+activate an API key already present in the environment.
+
+Model discovery uses the OAuth token. `GET /v1/models` returns
+the models available under the subscription, filtered by
+`visibility: "list"`. The `slug` field goes in the request; the
+`display_name` goes in the UI. The same endpoint, hit with an
+API key, returns a different model list reflecting the API-key
+tier's access. Two credentials, two views of the same catalog.
+
+Choose from the account's actual catalog and the model routes the
+application supports. A name being available from the provider does
+not add a missing transport row to the program. The public endpoint
+for this exercise is `https://api.openai.com/v1/responses`; it does
+not use another application's private credential store or a backend
+endpoint. ([Account-specific model discovery](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference).)
+
+
+## Exercise, graded
 
 ```sh
-go build -o /tmp/ensemble-ch16 .
-recall_demo=$(mktemp -d)
-cd "$recall_demo"
-mkdir -p cr/memory cr/docs skills/base
+go run ./cmd/grade-edition2 -ch 16
 ```
 
-Write `skills/base/SKILL.md`:
+Run from the repository root, optionally supplying the core path and
+`-gui DIR` for its separate GUI. Keep the seven original weights:
 
-```markdown
+| Check | Points | Observable behavior |
+|---|---|---|
+| credential-provider | 15 | Selected credentials authenticate actual requests; an unusable selection cannot become an API-key request |
+| oauth-flow | 15 | Real login follows the loopback/PKCE flow, validates identity and checks the inference grant |
+| token-refresh | 15 | Expiring credentials rotate and subsequent inference uses the replacement bearer |
+| responses-format | 15 | Plan format, completed output and the correlated file result survive the real tool loop |
+| cache-breakpoints | 10 | API-key developer content carries an explicit breakpoint; the plan profile omits the paired explicit mechanism |
+| reasoning-summaries | 15 | Public summary deltas reach the GUI before completion and remain separate from assistant text |
+| billing-mode | 15 | Actual failures preserve the selected funding source without unauthorized fallback |
+
+**Total: 100 points, seven checks; no inherited parity row.**
+
+The grader starts external OAuth and Responses fakes and runs the
+actual clients against them. Signed JWTs, a published fake JWKS,
+rotating tokens and real tool-result bytes exercise the boundaries
+without accessing a personal account. A login that never reaches
+inference cannot prove a billing rule; a copied error code cannot
+prove that the Agent treated the turn as failed.
+
+The numeric run is a bounded sample of the contract. Review the
+actual owner relationships, the full identity-validation cases,
+cross-process refresh coordination and atomic replacement separately.
+The retained browser tests exercise incremental summary speech;
+visible WebSocket events alone do not prove native speech delivery.
+Neither a fake summary nor a passing score guarantees that a live
+model will provide one.
+
+For a human run, build the core from your implementation directory.
+The matching reader snapshot is `solutions/ch16`:
+
+```sh
+go build -o /tmp/ensemble-ch18 .
+```
+
+Use a fresh workspace and a dedicated profile. This keeps the
+exercise's conversation and sign-in separate from another application's
+credentials. The profile directory contains secrets; the ordinary
+conversation save does not.
+
+```sh
+chapter18_work=$(mktemp -d)
+cd "$chapter18_work"
+mkdir -p skills/base profile
+chmod 700 profile
+export EN_HOME="$chapter18_work/profile"
+export EN_PRIMARY_SKILL=base
+cat > skills/base/SKILL.md <<'EOF'
 ---
 name: base
 type: primary
-description: Answer questions using the context supplied to this session.
-tools: list_directory
+description: Read the local scheduling exercise and explain the result.
+tools: read_file
 ---
-Answer from supplied context. Preserve decisions, their reasons, and unresolved
-questions. If a requested fact is absent, say so.
+Read requested files before answering. Keep public explanations separate
+from tool results. Never invent file contents or a successful operation.
+EOF
+cat > schedule.txt <<'EOF'
+Two identical workers. Each job uses one worker and cannot be split.
+Job duration prerequisites
+A   4        none
+B   3        none
+C   5        A
+D   2        A
+E   4        B
+F   3        C,E
+G   2        D,E
+H   1        F,G
+EOF
 ```
 
-Create the archived decision, a keyword-sharing distractor and a small
-background corpus. Retired files are intentional: the memory cascade no
-longer loads their original bytes, but recall must still search them.
+Sign in through your browser, inspect the safe status and discover
+models available to that account:
 
 ```sh
-python3 - <<'PY'
-from pathlib import Path
-
-memory = Path("cr/memory")
-docs = Path("cr/docs")
-fact = """## Quartz Zephyr migration decision
-Project Quartz Zephyr, release QZ-731: Morgan owns the migration rehearsal on October 23. We rejected automatic retry after timeout because the remote transaction may already have committed. Read the migration ledger before deciding whether retry is safe. Ledger placement remains unresolved: application database versus separate control database. Retain rollback artifacts for nine days.
-"""
-(memory / "2026-10-01-1.md.retired").write_text(fact)
-(docs / "quartz.md").write_text(
-    "## Quartz Zephyr migration name\n"
-    "Quartz Zephyr migration is also the name of our cafeteria recipe contest. "
-    "Quartz Zephyr migration lunch recipes use apples and cinnamon, "
-    "not database transactions.\n"
-)
-for i in range(25):
-    (memory / f"padding-{i}.md.retired").write_text(
-        f"## Garden log {i}\nPlant carrots by the apple trees and water in spring.\n"
-    )
-    (docs / f"padding-{i}.md").write_text(
-        f"## Workshop {i}\nThe cabinet holds brushes and blue paint.\n"
-    )
-PY
+/tmp/ensemble-ch18 auth login
+/tmp/ensemble-ch18 auth status
+/tmp/ensemble-ch18 auth models
 ```
 
-With the provider key configured as in Chapter 0, start ordinary chat. Recall
-uses its defaults, including the same model for the finite judge call:
+`auth login --print-url` also prints the authorization URL while
+opening the browser. It does not print access or refresh tokens.
+The client uses `EN_HOME` when supplied; otherwise it chooses its
+own `ensemble` directory under the operating system's user-config
+location. Keep the same selection for login and inference. A
+verified identity without plan permission is shown as disabled for
+inference, rather than silently spending through an API key.
+
+The recorded task used `gpt-6.1-sol`. If it is available to your
+account, start the supported Responses route explicitly:
 
 ```sh
-LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
-EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
-/tmp/ensemble-ch16 chat
+LLM_VENDOR=openai LLM_MODEL=gpt-6.1-sol \
+OPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \
+OPENAI_REASONING_SUMMARY=detailed \
+/tmp/ensemble-ch18 --skills-dir skills chat
 ```
 
-Ask:
+Enter this prompt and wait for the completed answer:
 
 ```text
-From our archived Quartz Zephyr migration discussion, tell me the release code, owner and rehearsal date, rejected approach and why, the unresolved decision, and rollback retention. Use only the context already supplied; do not call tools. If a fact is absent, say so.
+Read schedule.txt. Find a minimum-duration schedule for the two workers. Give each worker's job intervals and prove that a shorter schedule is impossible.
 ```
 
-Wait for the answer, then ask:
+A lower bound is the dependency chain A–C–F–H: 4+5+3+1 = 13.
+One feasible schedule places that chain on the first worker and
+B0–3, E3–7, D7–9, G9–11 on the second. The Agent must actually
+read the file; knowing the answer in advance is no substitute for
+checking the tool result in the next request.
 
-```text
-Who owns that rehearsal, and why was automatic retry rejected?
+A summary may arrive while the model is working. You can send a
+hint through the existing chat input, but do not wait for a summary
+as the condition for ending the session. After the answer completes,
+EOF ends chat normally and saves the conversation. To exercise
+API-key billing instead, use the same launch with
+`OPENAI_BILLING_MODE=api` and the provider key configured as in
+Chapter 0. That is an explicit change of funding source.
+
+When finished with the dedicated profile:
+
+```sh
+/tmp/ensemble-ch18 auth logout
 ```
 
-The first question supplies the project name but none of the requested facts.
-The follow-up is shorter than the default recall gate. It tests whether the
-previously attached memory remains useful, without requiring a second search.
-Check the actual request and answer: QZ-731, Morgan, October 23, the possibly
-committed remote transaction, the unresolved ledger location and nine-day
-retention. The cafeteria contest belongs in the judge's candidates, not in
-the main answer. Check `ch02.jsonl` for `recall_attached` with its own
-`recall_attached.parts`; `api.log` shows what actually reached each model.
+Logout attempts remote revocation, removes local tokens and keeps
+the registration and host identity. If remote revocation cannot
+be confirmed, the client reports that fact. It does not turn
+subscription billing into API billing on your behalf.
 
-The retained three-provider CLI runs used these two prompts and the same
-planted fact. Haiku 5.5, GPT-4o mini and Gemini 3.8 Flash each answered both
-turns correctly without tools. Each made one tool-free judge request followed
-by two main requests. The judge saw the decision and cafeteria distractor;
-only the decision reached the main requests, once in each. OpenAI's judge
-wrapped `[0]` in a JSON fence, exercising the tolerant parser in actual use.
-Anthropic also noted that the archive supplied no year.
 
-Those are bounded outcomes from the earlier implementation, before the
-capped-source and path corrections. The current command selects supported
-Sonnet-5; the historical Haiku 5.5 result is not a recommendation to use it.
-This isolated corpus demonstrates retrieval, retention and correct answers,
-not general recall quality across a private archive.
+## Taking it for a spin
 
-The original grader returned 0/100 before it could test that behavior: its
-primary skill omitted `type`, and its structural check looked for the core
-recall package under the separate GUI module. Passing a launch check and
-remembering a decision are different accomplishments. The revised grader
-uses a typed primary and the Agent's corpus paths, with separate fixtures
-from this CLI demonstration. The live answers establish the narrower and
-more interesting fact that the archived reason actually came back.
+The actual student API-key run used the scheduling task above with
+GPT-6.1 Sol, high reasoning and detailed summaries. It read the
+file and produced a valid schedule with makespan 13. The three
+requests included one prompt and a hint-triggered continuation;
+they were not two independent prompted turns. Ninety summary deltas
+arrived. The hint reached the third request, after an intermediate
+answer, and the process exited normally in 14.51 seconds.
+
+The subscription path took more work. First came the HTTP400
+cache-option rejection. Then came a response containing real SSE
+that the parser tried to decode as whole JSON. Even with stream
+framing selected, the empty terminal output hid an already-completed
+tool item. The corrected parser retained that item and let the
+ordinary tool loop continue.
+
+The final subscription run made two requests with no API key
+configured. It read the puzzle, put the correlated file result in
+the second request, and produced the same optimal 13-unit schedule.
+The response completed in 14.887 seconds. Both terminal output
+arrays were empty, so this was a direct exercise of the completed-item
+recovery rather than a fake that happened to include redundant data.
+
+It also returned zero public-summary deltas despite requesting
+`detailed`. The launcher had tied its hint and eventual EOF to
+seeing a summary. The task finished; the idle CLI stayed open until
+the launcher killed it at 150.03 seconds. That run demonstrates the
+answer and tool loop, not graceful shutdown or a saved conversation.
+Changing the launcher's completion condition was checked against
+captured events; no new paid run was made to turn the old timeout
+into a cleaner story.
+
+The cache lens needed its own correction. Its earlier extractor
+recognized messages from the old API but omitted Responses `input`.
+Comparing only the remaining tools produced a reassuring prediction
+while ignoring the conversation. Including the actual input fixed
+the instrument. The final plan request pair shared a predicted
+92.12% byte prefix, but both provider cache counters stayed zero.
+Each input was below 1,024 tokens. Stable bytes, a successful task
+and a granted cache hit remain separate observations.
+
+The seam held, with repairs at the seam. The conversation and tools
+kept working while authentication, request encoding and streaming
+parsing changed. The migration required a Responses renderer; the
+claim that no renderer changed would erase the very work the
+chapter teaches. Its payoff is smaller and more useful: changing
+provider and funding source did not require rebuilding the Agent.

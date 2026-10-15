@@ -28,18 +28,18 @@ func run() int {
 	streamExercise := flag.String("stream-exercise", "", "Chapter 6–13 external shape module (default: ch07 under or beside submission)")
 	gui := flag.String("gui", "", "Chapter 7–23 GUI module (default: gui under submission)")
 	guiModel := flag.String("gui-model", "claude-sonnet-5", "Chapter 7–13 declared Anthropic GUI fixture (historical default)")
-	recallData := flag.String("recall-data", "cr", "Chapter 16 grader corpus root relative to scratch cwd (legacy: .)")
-	cacheCurrent := flag.String("cache-current", "cr/cache-current.txt", "Chapter 17 current capture relative to scratch cwd")
-	cachePrior := flag.String("cache-prior", "cr/cache-prior.txt", "Chapter 17 prior capture relative to scratch cwd")
-	cachePrices := flag.String("cache-prices", "2,2.5,0.2,10", "Chapter 17 Sonnet-5 dollars/million: fresh,write,read,output (accepted October 11 table)")
-	statusPrices := flag.String("status-prices", "2,2.5,0.2,10", "Chapter 20 Sonnet-5 dollars/million: fresh,write,read,output")
-	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 20 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
-	sandboxLibrary := flag.String("sandbox-library", "ensemble", "Chapter 21 public package relative to submitted module (legacy: .)")
-	reuseLegacy := flag.Bool("reuse-legacy", false, "Chapter 22: use the historical same-module public construction API")
+	recallData := flag.String("recall-data", "cr", "Chapter 23 grader corpus root relative to scratch cwd (legacy: .)")
+	cacheCurrent := flag.String("cache-current", "cr/cache-current.txt", "Chapter 15 current capture relative to scratch cwd")
+	cachePrior := flag.String("cache-prior", "cr/cache-prior.txt", "Chapter 15 prior capture relative to scratch cwd")
+	cachePrices := flag.String("cache-prices", "2,2.5,0.2,10", "Chapter 15 Sonnet-5 dollars/million: fresh,write,read,output (accepted October 11 table)")
+	statusPrices := flag.String("status-prices", "2,2.5,0.2,10", "Chapter 18 Sonnet-5 dollars/million: fresh,write,read,output")
+	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 18 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
+	sandboxLibrary := flag.String("sandbox-library", "ensemble", "Chapter 19 public package relative to submitted module (legacy: .)")
+	reuseLegacy := flag.Bool("reuse-legacy", false, "Chapter 20: use the historical same-module public construction API")
 	gatewayWelcome := flag.String("gateway-welcome", "QueueDepth", "Chapter 26 public welcome queue field (legacy: QueuedCount)")
 	flag.Parse()
-	if *chapter < 1 || (*chapter > 23 && *chapter != 26) || *chapter == 19 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..18|20..23|26 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapters 19, 24 and 25 are ungraded")
+	if *chapter < 1 || (*chapter > 23 && *chapter != 26) || *chapter == 17 || flag.NArg() > 1 || (*chapter < 4 && (*consumer != "" || *consumerCase != "")) || (*chapter < 5 && (*workflow != "" || *mediaModels != "")) || (*chapter < 6 && *streamExercise != "") || (*chapter < 7 && *gui != "") {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition2 -ch 1..16|18..23|26 [-json] [-consumer DIR -consumer-case FILE] [-workflow DIR -media-models FILE] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [submission-directory]; Chapters 17, 24 and 25 are ungraded")
 		return 2
 	}
 	path := flag.Arg(0)
@@ -77,7 +77,8 @@ func run() int {
 		*gui = filepath.Join(path, "gui")
 	}
 	buildPath := path
-	if *chapter >= 14 && *chapter != 21 && *chapter != 22 && *chapter != 23 && *chapter != 26 {
+	switch *chapter {
+	case 14, 15, 16, 18, 22, 23:
 		buildPath = *gui
 	}
 	if *chapter == 26 {
@@ -93,13 +94,13 @@ func run() int {
 	switch *chapter {
 	case 26:
 		report, err = gradeedition2.Chapter26(bin, path, *gatewayWelcome)
-	case 23:
-		report, err = gradeedition2.Chapter23(bin, *gui)
-	case 22:
-		report, err = gradeedition2.Chapter22(bin, path, *gui, *reuseLegacy)
 	case 21:
-		report, err = gradeedition2.Chapter21(bin, path, *sandboxLibrary)
+		report, err = gradeedition2.Chapter21(bin, *gui)
 	case 20:
+		report, err = gradeedition2.Chapter20(bin, path, *gui, *reuseLegacy)
+	case 19:
+		report, err = gradeedition2.Chapter19(bin, path, *sandboxLibrary)
+	case 18:
 		var rates [4]float64
 		var second *[4]float64
 		rates, err = gradeedition2.ParseCachePrices(*statusPrices)
@@ -109,7 +110,7 @@ func run() int {
 			second = &value
 		}
 		if err == nil {
-			report, err = gradeedition2.Chapter20(bin, path, rates, second)
+			report, err = gradeedition2.Chapter18(bin, path, rates, second)
 		}
 	case 1:
 		var res *grade.RunResult
@@ -139,18 +140,18 @@ func run() int {
 		report, err = gradeedition2.Chapter11(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	case 12:
 		report, err = gradeedition2.Chapter12(bin, path, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
-	case 18:
-		report, err = gradeedition2.Chapter18(bin)
-	case 17:
+	case 16:
+		report, err = gradeedition2.Chapter16(bin)
+	case 15:
 		var rates [4]float64
 		rates, err = gradeedition2.ParseCachePrices(*cachePrices)
 		if err == nil {
-			report, err = gradeedition2.Chapter17(bin, *cacheCurrent, *cachePrior, rates)
+			report, err = gradeedition2.Chapter15(bin, *cacheCurrent, *cachePrior, rates)
 		}
-	case 16:
-		report, err = gradeedition2.Chapter16(bin, path, *gui, *recallData)
-	case 15:
-		report, err = gradeedition2.Chapter15(bin)
+	case 23:
+		report, err = gradeedition2.Chapter23(bin, path, *gui, *recallData)
+	case 22:
+		report, err = gradeedition2.Chapter22(bin)
 	case 14:
 		report, err = gradeedition2.Chapter14(bin)
 	case 13:

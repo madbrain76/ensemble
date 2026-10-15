@@ -164,7 +164,7 @@ Each attachment also retains hashes of the source snippets it represents, so a
 byte-capped snippet is not injected repeatedly. These identities leave with the
 attachment; edited source content can be recalled again.
 
-Chapter 18 introduces subscription authentication to both executables:
+Chapter 16 introduces subscription authentication to both executables:
 
     ensemble-cli auth login openai-chatgpt
     ensemble-cli auth status
@@ -205,7 +205,7 @@ requests omit that option and its paired explicit markers. API-key Responses
 requests retain explicit caching on supported models. Cache diagnostics remain
 active on both routes; an answered request does not establish a cache grant.
 
-Chapter 20 introduces Streamable HTTP MCP peers with `transport: url`, `url` and
+Chapter 18 introduces Streamable HTTP MCP peers with `transport: url`, `url` and
 `auth-env` fields. The named environment variable is resolved at skill load as
 a Bearer token; an absent value logs an anonymous-connection diagnostic. JSON
 and SSE POST replies, optional session headers and job cancellation use the
@@ -221,7 +221,7 @@ capabilities immediately. Search/page text is untrusted evidence; check source
 URLs and scrape metadata before citing it. Provider tools, schemas, access and
 quotas can change; this is not a promise of URL-only provider interchangeability.
 
-Chapter 21 introduces per-Agent confinement. Run `ensemble-cli chat --sandbox /absolute/work`
+Chapter 19 introduces per-Agent confinement. Run `ensemble-cli chat --sandbox /absolute/work`
 (and optionally `--safe-mode` or `--no-web-search`). File-tool relative paths use
 that root. Commands and descendants use macOS Seatbelt with no network; ordinary
 system tools remain readable so Python and Git work. Other platforms refuse
@@ -242,7 +242,7 @@ file tools, retained state and macOS command descendants, not a claim of immunit
 to arbitrary compromised native code or all forms of prompt injection.
 
 
-Chapter 22 makes browser assets reusable and deployment independent of the source
+Chapter 20 makes browser assets reusable and deployment independent of the source
 tree. Build with `cd gui && go build -o /tmp/ensemble-gui ./cmd`; the binary serves
 its embedded GUI from any working directory. `--gui-dir /absolute/path/to/web/gui`
 explicitly selects editable disk assets during development.
@@ -270,7 +270,7 @@ application chooses access to this listener; `Server.Close` closes its listeners
 and clients. The externally built test in `gui/testdata/reuse` demonstrates these
 public boundaries with real core objects and fake external peers.
 
-Chapter 22 introduces a recursive fleet in the CLI. Ask it to delegate work with
+Chapter 20 introduces a recursive fleet in the CLI. Ask it to delegate work with
 `spawn_sub_agent`, inspect `agents_status`, collect `join_agents`, and finish
 with `submit`. Each child owns a separate actor and `cr/children/ID` state
 directory; shutdown preserves its save for a later child with the same ID.
@@ -290,9 +290,9 @@ before starting Agents and construct every child with `NewChildAgent(parent,
 cfg, spec)`. Configure `SetUserSink` to receive human questions and escalation,
 and answer through the root's `Fleet().Reply`. Without a factory, the prior
 single-Agent turn protocol remains and fleet tools are hidden. The optional
-GUI also provides the Chapter 23 fleet console described below.
+GUI also provides the Chapter 21 fleet console described below.
 
-## Fleet console (Chapter 23)
+## Fleet console (Chapter 21)
 
 The shipped CLI and optional GUI call `Ensemble.Start` to restore named peers
 from `ensemble.json`. The GUI's Agents sidebar creates peers with a name, model

@@ -79,7 +79,7 @@ The [student and review records](../docs/edition-2-notes/) retain these
 comparisons, corrections and failed attempts.
 
 There is now a working second-edition Ensemble through the Gateway. It has also
-done real coding: in the bounded Chapter 19 demonstration, GPT-6 Astra at high
+done real coding: in the bounded Chapter 17 demonstration, GPT-6 Astra at high
 reasoning used Ensemble to inspect a CSV program, reproduce its failures, edit
 the source and pass all six unchanged tests. Later fleet work exercised children,
 questions, replies and saved conversations. Those are useful accomplishments to

@@ -1,5 +1,36 @@
 # Edition 2 chapter mapping
 
+## October 14: background memory follows the fleet
+
+Bill approved this dependency reorder. Current manuscript filenames, section
+numbers, chapter index and revised grader entry points follow this table.
+Chapters0–14 and24–26 retain their numbers. The older dated mappings below
+remain the record of their original checkpoints.
+
+| Previous Edition 2 | Current chapter | Current exercise command |
+| --- | --- | --- |
+| 17 | [15: The Invisible Invoice](../book/chapter-15.md) | `grade-edition2 -ch 15` |
+| 18 | [16: Leaving Anthropic for OpenAI](../book/chapter-16.md) | `grade-edition2 -ch 16` |
+| 19 | [17: The Crossover](../book/chapter-17.md) | Ungraded field report |
+| 20 | [18: Giving the Agent the Web, and a Status Line](../book/chapter-18.md) | `grade-edition2 -ch 18` |
+| 21 | [19: The Sandbox](../book/chapter-19.md) | `grade-edition2 -ch 19` |
+| 22 | [20: The Ensemble](../book/chapter-20.md) | `grade-edition2 -ch 20` |
+| 23 | [21: Managing the Swarm](../book/chapter-21.md) | `grade-edition2 -ch 21` |
+| 15 | [22: Forgetting on Purpose](../book/chapter-22.md) | `grade-edition2 -ch 22` |
+| 16 | [23: Auto-Recall](../book/chapter-23.md) | `grade-edition2 -ch 23` |
+
+Invoice now extends Chapter14. Memory22 extends fleet management21, then
+Auto-Recall23 adds its stateless relevance judge. Auxiliary accounting and
+cache-lens exclusions enter with those later features; the earlier accounting
+chapters do not require a compressor or judge before they exist.
+
+Current grader defaults use `solutions/chNN` under the new numbering. The
+existing cumulative exports and manifests are still the old-order historical
+source at this checkpoint; they are not made valid by renaming. Use an explicit
+submission path while separately reviewed reconstructed exports are prepared.
+The previous accepted trees and immutable tags remain historical evidence.
+See the [renumbering checks](edition-2-notes/codex-compaction-renumber.md).
+
 ## October 12: Edition 2 is the current top-level tree
 
 Promotion commit `564e316f` moves the accepted second edition to `agent/`,
