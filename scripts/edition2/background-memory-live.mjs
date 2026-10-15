@@ -23,11 +23,11 @@ const scratch=await mkdtemp(join(tmpdir(),'ensemble-background-live-'));
 const started=performance.now(), stamp=()=>+(performance.now()-started).toFixed(3);
 const receipt={mode,source_commit:git('rev-parse','HEAD'),agent_tree:git('rev-parse','HEAD:agent'),scratch,started_utc:new Date().toISOString(),observations:[],limits:[]};
 receipt.launcher_sha256=sha(await readFile(new URL(import.meta.url)));
-assert.equal(git('status','--porcelain','--untracked-files=no','--','agent'),'','Agent must be a committed source before building');
+assert.equal(git('status','--porcelain','--untracked-files=all','--','agent'),'','Agent must be committed with no nonignored untracked inputs before building');
 const binary=join(scratch,'ensemble-gui');
 execFileSync('go',['build','-o',binary,'./cmd'],{cwd:join(repo,'agent/gui'),env,stdio:'pipe'});
 assert.equal(git('rev-parse','HEAD:agent'),receipt.agent_tree,'Agent source changed during build');
-assert.equal(git('status','--porcelain','--untracked-files=no','--','agent'),'');
+assert.equal(git('status','--porcelain','--untracked-files=all','--','agent'),'','Agent inputs changed during build');
 receipt.binary_sha256=sha(await readFile(binary));
 const listen=server=>new Promise(resolve=>server.listen(0,'127.0.0.1',()=>resolve(server.address().port)));
 const portProbe=net.createServer(),port=await listen(portProbe);
@@ -64,7 +64,7 @@ await writeFile(join(scratch,'skills/base/SKILL.md'),'---\nname: base\ntype: pri
 if(fake)await writeFile(join(scratch,'fixture-key'),'unused-local-key',{mode:0o600});
 const config={version:1,provider:{vendor:'openai',model:'gpt-6-astra',billing_mode:fake?'api':'codex',base_url:baseURL,credential_file:fake?join(scratch,'fixture-key'):join(homedir(),'.codex/auth.json'),reasoning_effort:'high',reasoning_summary:'detailed'},workspace:scratch,skills_dir:'skills',primary_skill:'base',data_dir:'cr',save_path:'save.json',event_log:'event.log',auth_directory:'auth',gui_port:port,enable_web_search:false,recall:{disabled:true},gui:{tts_enabled:false,max_tool_rounds:3,memory:{conversation:{budget:600},session:{budget:100000,high_watermark:200000,low_watermark:100000},'8x':{disabled:true},'64x':{disabled:true},memory:{disabled:true},soul:{disabled:true}}}};
 await writeFile(join(scratch,'settings.json'),JSON.stringify(config),{mode:0o600});
-receipt.configuration={model:config.provider.model,effort:'high',route:config.provider.billing_mode,endpoint:baseURL,endpoint_evidence:'explicit launch configuration and source, not independently captured network destination',memory:config.gui.memory,recall_disabled:true};
+receipt.configuration={model:config.provider.model,effort:'high',route:config.provider.billing_mode,endpoint:baseURL,endpoint_evidence:'explicit launch configuration and source, not independently captured network destination',memory:config.gui.memory,memory_evidence:'Launch configuration. Omitted conversation high/low watermarks resolve to 1200/600 bytes in internal/memory.Settings (2*budget/budget); these effective values are source-derived, not captured GUI settings.',recall_disabled:true};
 
 // Merge only complete journal lines with the latest snapshot, keyed by Seq.
 async function events(save=join(scratch,'save.json')){
@@ -86,7 +86,7 @@ const observe=(async()=>{
  while(observing){
   for(const e of await events())if(!seen.has(e.seq)){
    seen.add(e.seq);
-   if(['compactor_launched','compaction_outcome','turn_ended','prompt'].includes(e.type))receipt.observations.push({event:e.type,seq:e.seq,recorded_utc:e.time,observed_ms:stamp(),task_id:e.compactor?.task_id||e.compaction_outcome?.task_id});
+   if(['compactor_launched','compaction_outcome','request_sent','response_ended'].includes(e.type)||e.type==='message_received'&&e.message?.actor==='human')receipt.observations.push({event:e.type,seq:e.seq,recorded_utc:e.time,observed_ms:stamp(),task_id:e.compactor?.task_id||e.compaction_outcome?.task_id});
   }
   await delay(25);
  }
@@ -160,6 +160,9 @@ try{
  const outcome=await waitFor(async()=>(await events()).find(e=>e.compaction_outcome?.task_id===receipt.launch.task_id),'terminal memory outcome');
  receipt.outcome=outcome.compaction_outcome;receipt.outcome_observed_ms=stamp();
  assert.equal(receipt.outcome.state,'committed');
+ const ownerEvents=await events(),secondInput=ownerEvents.filter(e=>e.type==='message_received'&&e.message?.actor==='human')[1];
+ receipt.main_progress_during_worker={launch_seq:launchEvent.seq,second_input_seq:secondInput?.seq,outcome_seq:outcome.seq,answered_before_outcome:ownerEvents.some(e=>e.type==='response_ended'&&e.seq>secondInput?.seq&&e.seq<outcome.seq)};
+ if(!receipt.main_progress_during_worker.answered_before_outcome)receipt.limits.push('No main answer before worker outcome in this run; deterministic held-provider proof remains separate.');
  await waitFor(async()=>!(await page.locator(`[data-agent-key="${childKey}"]`).count()),'automatic tree dismissal');
  if(receipt.child_selected_ms){await childPage.waitForFunction(()=>document.querySelector('#conversation-title').textContent==='main');receipt.fallback_observed_ms=stamp();}
  // Fresh subscription observes the owner's current meter without model work.
@@ -188,7 +191,7 @@ try{
  receipt.request_metadata=(await requests()).map(x=>({model:x.model,effort:x.reasoning?.effort,worker:!!isWorker(x)}));
  receipt.main_turns=mainEnds();receipt.browser_selections=frames.filter(f=>f.type==='agent_selected');
  receipt.last_tree=frames.filter(f=>f.type==='agent_tree').at(-1);
- if(fake){assert.equal(workerCalls,1);assert.equal(mainCalls,4);assert.equal(receipt.outcome_already_present,false);}
+ if(fake){assert.equal(workerCalls,1);assert.equal(mainCalls,4);assert.equal(receipt.outcome_already_present,false);assert.equal(receipt.main_progress_during_worker.answered_before_outcome,true);}
  receipt.first_exit=await stop();assert.equal(receipt.first_exit.code,0);
  for(const p of pages)if(!p.isClosed())await p.close();pages=[];
  // The GUI recreates api.log at restart. Preserve the sanitized first-run receipt now.

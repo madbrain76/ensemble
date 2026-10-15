@@ -1,42 +1,108 @@
 {
   "mode": "preflight",
-  "source_commit": "924ba4fe07c295fc64123c337e663e3c3e372b15",
+  "source_commit": "ce43d75e5231676bf061ed4588c45264d1546f1b",
   "agent_tree": "ec61c01d3f9841364843c1b7e1998d9c573790a4",
-  "scratch": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-background-live-ELW14J",
-  "started_utc": "2026-10-14T23:55:55.595Z",
+  "scratch": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-background-live-C8xXXZ",
+  "started_utc": "2026-10-15T00:01:04.975Z",
   "observations": [
     {
       "event": "input_sent",
-      "at_ms": 1616.488,
+      "at_ms": 893.146,
       "text": "This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze this case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead."
+    },
+    {
+      "event": "message_received",
+      "seq": 5,
+      "recorded_utc": "2026-10-15T00:01:05.880805Z",
+      "observed_ms": 933.979
+    },
+    {
+      "event": "request_sent",
+      "seq": 6,
+      "recorded_utc": "2026-10-15T00:01:05.881161Z",
+      "observed_ms": 933.988
+    },
+    {
+      "event": "response_ended",
+      "seq": 7,
+      "recorded_utc": "2026-10-15T00:01:05.883725Z",
+      "observed_ms": 933.99
     },
     {
       "event": "compactor_launched",
       "seq": 11,
-      "recorded_utc": "2026-10-14T23:55:57.230074Z",
-      "observed_ms": 1682.723,
-      "task_id": "compact-37e9792bd379130a5d538194b45ee70f"
+      "recorded_utc": "2026-10-15T00:01:05.88585Z",
+      "observed_ms": 933.993,
+      "task_id": "compact-c449b4082ab9326d7929e4e02e41becb"
+    },
+    {
+      "event": "request_sent",
+      "seq": 12,
+      "recorded_utc": "2026-10-15T00:01:05.887414Z",
+      "observed_ms": 933.994
+    },
+    {
+      "event": "response_ended",
+      "seq": 13,
+      "recorded_utc": "2026-10-15T00:01:05.888281Z",
+      "observed_ms": 933.997
     },
     {
       "event": "input_sent",
-      "at_ms": 1975.631,
+      "at_ms": 1223.964,
       "text": "Without tools or a checkpoint, what is 17 plus 25? Answer briefly."
+    },
+    {
+      "event": "message_received",
+      "seq": 14,
+      "recorded_utc": "2026-10-15T00:01:06.212176Z",
+      "observed_ms": 1272.784
+    },
+    {
+      "event": "request_sent",
+      "seq": 15,
+      "recorded_utc": "2026-10-15T00:01:06.213359Z",
+      "observed_ms": 1272.787
+    },
+    {
+      "event": "response_ended",
+      "seq": 16,
+      "recorded_utc": "2026-10-15T00:01:06.214805Z",
+      "observed_ms": 1272.787
     },
     {
       "event": "compaction_outcome",
       "seq": 19,
-      "recorded_utc": "2026-10-14T23:55:57.632814Z",
-      "observed_ms": 2076.39,
-      "task_id": "compact-37e9792bd379130a5d538194b45ee70f"
+      "recorded_utc": "2026-10-15T00:01:06.262014Z",
+      "observed_ms": 1324.937,
+      "task_id": "compact-c449b4082ab9326d7929e4e02e41becb"
     },
     {
       "event": "input_sent",
-      "at_ms": 2247.34,
+      "at_ms": 1478.682,
       "text": "Without tools or a checkpoint, recall the project name, release code, owner, date, rejected approaches and reasons, source-identifier requirement, retention, and unresolved attachment question from the supplied case. Do not invent a resolved answer."
+    },
+    {
+      "event": "message_received",
+      "seq": 20,
+      "recorded_utc": "2026-10-15T00:01:06.478579Z",
+      "observed_ms": 1535.223
+    },
+    {
+      "event": "request_sent",
+      "seq": 21,
+      "recorded_utc": "2026-10-15T00:01:06.47934Z",
+      "observed_ms": 1535.225
+    },
+    {
+      "event": "response_ended",
+      "seq": 22,
+      "recorded_utc": "2026-10-15T00:01:06.480609Z",
+      "observed_ms": 1535.226
     }
   ],
   "limits": [],
-  "launcher_sha256": "2b3198ce220b3781e968583d0835af44e3dfa442b8e1bb14c19128130326cd9b",
+  "launcher_sha256": "1c7986c22a62ca9011ef28ca83ab984e23bb4ef40b9a2347e49d0dfee2aaad3b",
   "binary_sha256": "4e9aed85e4f4ce582037797eace7df851593dd31b5d464519278eb5c39ed6e5f",
   "prompts": [
     "This is a bounded memory exercise in an empty scratch workspace. Do not use filesystem or command tools. Analyze this case, explain the decision briefly, then call micro_handoff exactly once with the important facts and reasons. After the tool returns, finish this turn without another tool call. Our project is Cedar Lantern, release code CL-721. We rejected automatic deletion of imported notes because the support team needs the originals when customers report mistakes. The replacement design keeps source notes in an archive and stores the accepted summary separately. Morgan owns the archive review, scheduled for October 18. Acceptance requires preserving a source identifier with each summary. The unresolved question is whether attachments belong in the same archive or a separate one; do not claim that has been decided. The default retention is thirty days. A failed summarization must leave the original note available. The initial approach coupled cleanup to request arrival, so an unrelated request could delete unreviewed work. We moved cleanup to an explicit completed-review boundary instead.",
@@ -47,7 +113,7 @@
     "model": "gpt-6-astra",
     "effort": "high",
     "route": "api",
-    "endpoint": "http://127.0.0.1:59295/v1",
+    "endpoint": "http://127.0.0.1:60301/v1",
     "endpoint_evidence": "explicit launch configuration and source, not independently captured network destination",
     "memory": {
       "conversation": {
@@ -74,29 +140,29 @@
     "recall_disabled": true
   },
   "launch": {
-    "task_id": "compact-37e9792bd379130a5d538194b45ee70f",
-    "selection_hash": "92638334c9c2cdfd4112f0538c4bc723edc925d0401d754061a5f99140495d63",
+    "task_id": "compact-c449b4082ab9326d7929e4e02e41becb",
+    "selection_hash": "69b05a88544e22859dfca653a3426e181812507708b320da947f3adb94ebe06c",
     "file": {
-      "date": "2026-10-14",
+      "date": "2026-10-15",
       "num": 1
     },
     "from": 5,
     "to": 10,
-    "trace_path": "children/compact-37e9792bd379130a5d538194b45ee70f",
+    "trace_path": "children/compact-c449b4082ab9326d7929e4e02e41becb",
     "band": 5,
     "thru": {
-      "date": "2026-10-14",
+      "date": "2026-10-15",
       "num": 1
     }
   },
-  "launch_observed_ms": 1700.391,
-  "child_selected_ms": 1896.033,
+  "launch_observed_ms": 967.293,
+  "child_selected_ms": 1152.925,
   "child_view": {
-    "title": "main/compact-37e9792bd379130a5d538194b45ee70f",
-    "tree": "main · saved — idle · idlecompact-37e9792bd379130a5d538194b45ee70f — running · thinking"
+    "title": "main/compact-c449b4082ab9326d7929e4e02e41becb",
+    "tree": "main · saved — idle · idlecompact-c449b4082ab9326d7929e4e02e41becb — running · thinking"
   },
   "usage_before_completion": {
-    "at_ms": 2030.993,
+    "at_ms": 1272.491,
     "page": "main",
     "agent_key": "main",
     "cache_read": 41,
@@ -116,7 +182,7 @@
   },
   "outcome_already_present": false,
   "outcome": {
-    "task_id": "compact-37e9792bd379130a5d538194b45ee70f",
+    "task_id": "compact-c449b4082ab9326d7929e4e02e41becb",
     "usage": [
       {
         "vendor": "openai",
@@ -130,12 +196,18 @@
       }
     ],
     "state": "committed",
-    "trace_path": "children/compact-37e9792bd379130a5d538194b45ee70f"
+    "trace_path": "children/compact-c449b4082ab9326d7929e4e02e41becb"
   },
-  "outcome_observed_ms": 2098.324,
-  "fallback_observed_ms": 2100.001,
+  "outcome_observed_ms": 1340.319,
+  "main_progress_during_worker": {
+    "launch_seq": 11,
+    "second_input_seq": 14,
+    "outcome_seq": 19,
+    "answered_before_outcome": true
+  },
+  "fallback_observed_ms": 1342.297,
   "usage_after_completion": {
-    "at_ms": 2234.689,
+    "at_ms": 1459.771,
     "page": "meter",
     "cache_read": 41,
     "cache_write": 0,
@@ -237,7 +309,7 @@
   ],
   "main_turns": [
     {
-      "at_ms": 1679.962,
+      "at_ms": 950.599,
       "page": "main",
       "agent_key": "main",
       "error": "",
@@ -245,7 +317,7 @@
       "type": "turn_ended"
     },
     {
-      "at_ms": 2030.995,
+      "at_ms": 1272.495,
       "page": "main",
       "agent_key": "main",
       "error": "",
@@ -253,7 +325,7 @@
       "type": "turn_ended"
     },
     {
-      "at_ms": 2314.48,
+      "at_ms": 1539.008,
       "page": "main",
       "agent_key": "main",
       "error": "",
@@ -263,38 +335,38 @@
   ],
   "browser_selections": [
     {
-      "at_ms": 1603.045,
+      "at_ms": 879.792,
       "page": "main",
       "key": "main",
       "type": "agent_selected"
     },
     {
-      "at_ms": 1825.075,
+      "at_ms": 1078.541,
       "page": "child-observer",
       "key": "main",
       "type": "agent_selected"
     },
     {
-      "at_ms": 1886.897,
+      "at_ms": 1146.764,
       "page": "child-observer",
-      "key": "main/compact-37e9792bd379130a5d538194b45ee70f",
+      "key": "main/compact-c449b4082ab9326d7929e4e02e41becb",
       "type": "agent_selected"
     },
     {
-      "at_ms": 2061.883,
+      "at_ms": 1304.067,
       "page": "child-observer",
       "key": "main",
       "type": "agent_selected"
     },
     {
-      "at_ms": 2229.381,
+      "at_ms": 1456.502,
       "page": "meter",
       "key": "main",
       "type": "agent_selected"
     }
   ],
   "last_tree": {
-    "at_ms": 2314.486,
+    "at_ms": 1539.014,
     "page": "main",
     "root": {
       "id": "ensemble",
@@ -342,5 +414,5 @@
     "missing restart"
   ],
   "status": "complete",
-  "finished_utc": "2026-10-14T23:55:58.657Z"
+  "finished_utc": "2026-10-15T00:01:07.290Z"
 }

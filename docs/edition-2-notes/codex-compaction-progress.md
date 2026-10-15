@@ -703,3 +703,38 @@ that correction, and final `ELW14J` adds the tree capture and smaller receipt.
 Those earlier receipts remain in their scratch directories, with their limited
 claims preserved here. Live execution still waits for the required sequence
 gates and review; no runtime deployment, settings change or publication occurred.
+
+
+## October 14: final local capture corrections and interim review
+
+Independent interim review `2355ad58` closes the Chapter23 build-failure
+scoring correction `ce43d75e` and checks the launcher against its checklist.
+The initial source guard ignored untracked Agent inputs. It now rejects them
+before and after building: a temporary untracked Go source was rejected at
+the intended pre-build assertion (exit1), then removed. The raw negative
+control is `/tmp/ensemble-live-source-binding-negative.txt`. No paid run was
+used. Review `e9fd0676` separately accepts the reconstructed speech/MCP submit
+identity correction; full new20 and combined Stage D acceptance remain pending.
+
+The latest actual preflight is scratch suffix `C8xXXZ`, source `ce43d75e`,
+unchanged Agent tree `ec61c01d3f9841364843c1b7e1998d9c573790a4`, launcher SHA-256
+`1c7986c22a62ca9011ef28ca83ab984e23bb4ef40b9a2347e49d0dfee2aaad3b`.
+The retained receipt and tree image now contain that run; the previous
+`ELW14J` artifacts remain in commit `6fa42fec` and their scratch directory.
+Capture now records the actual `message_received`, `request_sent` and
+`response_ended` event types, replacing nonexistent prompt/turn-end journal
+names. The owner admitted the second input at sequence14 after worker launch11
+and answered before committed outcome19. Selection/fallback, source2034 bytes,
+submitted/file847 bytes, auxiliary accounting, both normal exits and restart
+without inference still pass. Seven receipt negative controls still reject
+their intended omissions or mismatches.
+
+Review also clarified configuration provenance. These receipts retain launch
+configuration, not a GUI readback of effective settings. The omitted conversation
+watermarks resolve to high1200/low600 bytes in `internal/memory.Settings`, from
+its600-byte budget. Session values are explicitly high200000/low100000 with
+budget100000; other bands and recall are disabled. The launcher now labels that
+distinction for future receipts. This last metadata-only label has syntax/source
+validation, without claiming another application rehearsal or changing the
+retained run's launcher hash. No live inference, deployment or publication has
+occurred; the sequence gates still precede Stage F.
