@@ -265,9 +265,9 @@ func TestContextSurvivorsAndFrozenPrefix(t *testing.T) {
 	a, requests := contextSession(t, "claude-opus-5-course", func(n int) []map[string]any {
 		switch n {
 		case 1:
-			return []map[string]any{contextCall("load", "load_skill", map[string]any{"name": "extra"})}
+			return []map[string]any{{"type": "thinking", "thinking": "Earlier private reasoning", "signature": "signed-replay"}, contextCall("load", "load_skill", map[string]any{"name": "extra"})}
 		case 2:
-			return []map[string]any{contextCall("note", "micro_handoff", map[string]any{"text": "HANDOFF NOTE"}), contextCall("read", "read_file", map[string]any{"path": path})}
+			return []map[string]any{{"type": "redacted_thinking", "data": "encrypted-replay"}, contextCall("note", "micro_handoff", map[string]any{"text": "HANDOFF NOTE"}), contextCall("read", "read_file", map[string]any{"path": path})}
 		case 3:
 			return []map[string]any{contextCall("unload", "unload_skill", map[string]any{"name": "extra"})}
 		}
@@ -293,6 +293,12 @@ func TestContextSurvivorsAndFrozenPrefix(t *testing.T) {
 	}
 	if bytes.Contains(requests[2], []byte(`"tool_use"`)) || bytes.Contains(requests[2], []byte(`"tool_result"`)) {
 		t.Fatal("handoff left batch tool parts")
+	}
+	if !bytes.Contains(requests[1], []byte("signed-replay")) {
+		t.Fatal("reasoning disappeared before the checkpoint")
+	}
+	if bytes.Contains(requests[2], []byte("signed-replay")) || bytes.Contains(requests[2], []byte("encrypted-replay")) {
+		t.Fatal("handoff left signed or encrypted reasoning")
 	}
 	if !bytes.Contains(requests[1], []byte(`"tool_addition"`)) || !bytes.Contains(requests[3], []byte(`"tool_removal"`)) {
 		t.Fatal("declaration delta missing")

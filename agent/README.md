@@ -131,6 +131,9 @@ re-enabling rereads edits. Graduated source files remain beside the originals
 with a `.retired` suffix and are not active memories.
 
 `micro_handoff` checkpoints completed work and is the only compression trigger.
+At the completed-batch boundary it clears tool calls/results, opaque reasoning and
+private replay signatures, including those attached to visible text. Visible
+dialogue and the event log remain.
 The compressor makes one bounded request using the current provider and one
 `submit` tool. Failed or interrupted calls preserve the old source. Recorded
 memory bytes and cuts replay without another model call. A compression target

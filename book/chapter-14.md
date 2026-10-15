@@ -88,8 +88,10 @@ names. A `tool_decls` part holds that delta without becoming a call or result.
    batch's last result has arrived, so a call made alongside
    `micro_handoff` is cleared with it, even if it has not started yet in
    the serial dispatcher. Then it removes every tool call and tool
-   result part from the context, drops entries left empty, and appends
-   one `Handoff` entry. The text appears in the next request exactly
+   result part, opaque reasoning and private replay signatures from the context,
+   including signatures attached to visible text. It preserves visible dialogue
+   and the event log, drops entries left empty, and appends one `Handoff` entry.
+   The text appears in the next request exactly
    once, and no call is ever left without its result or a result without
    its call. The tool takes `{"text":"..."}`.
 6. **Keep or stub, per round trip.** On a model whose features row sets
@@ -426,9 +428,10 @@ file's contents.
 After the ladder runs, what does the agent remember about a file it
 read an hour ago? Exactly what it said about the file. The result is a
 stub and the call may be gone. The words the agent wrote in the dialogue
-remain a readable account through tool clearing. Opaque provider parts
-also survive, subject to their replay restrictions; the handoff removes
-tool parts. Chapter 2 wrote the rule
+remain a readable account through tool clearing. Ordinary tool redaction also
+preserves opaque provider parts under their replay restrictions. A `micro_handoff`
+additionally clears that private replay material and its signatures while keeping
+visible text. Chapter 2 wrote the rule
 into the definition of `RedactTool`: remove calls and results
 entirely, keep visible reasoning.
 
@@ -558,11 +561,13 @@ paths drift: CodeRhapsody's handoff path never triggered the memory
 cascade that its `save_memory` path did, and the gap sat in its notes
 as a known bug for months. Ensemble builds neither tool.
 
-`micro_handoff` keeps the same instance and the same dialogue. The
-actor writes a note, and the reducer removes every tool call and tool
-result in the context and appends the note as a `Handoff` entry. Two
-lessons from the older designs are built in. The model's discretion
-covers tool bytes that can often be regained by re-reading their sources;
+`micro_handoff` keeps the same instance and visible dialogue. The actor writes a
+note; after the complete tool batch, the reducer removes calls, results, opaque
+reasoning and private replay
+signatures, including signatures attached to visible text, then appends the note
+as a `Handoff` entry. The event log preserves the original records; this clears
+the working context. Two lessons from the older designs are built in. The model's
+discretion covers tool bytes that can often be regained by re-reading their sources;
 the dialogue, which cannot, stays. And the note travels with the same
 conversation, instead of becoming a stranger's only account of it.
 `micro_handoff` is available on every model row.
