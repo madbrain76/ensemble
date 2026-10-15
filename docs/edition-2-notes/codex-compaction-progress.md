@@ -798,3 +798,36 @@ worker lifetime without introducing new machinery. Exact changed source hashes:
 This checkpoint awaits its own final carry-forward review; reconstructed new20
 acceptance is separate. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`;
 the complete skill and four governing documents were reloaded after compaction.
+
+
+## October 14: full-runtime identity correction accepted; new21 planning released
+
+Root accepts the scoped carry-forward `62c1e781`, Agent tree
+`4871633ee3e63dc6aa2cbc0a853f6ef22b4ddfa3`, after independently inspecting the
+three production diffs, the real-MCP/custom/compiled regression, and all eight
+actual raw outputs listed above. The compaction configuration disables ordinary
+builtins before tool installation; internal workers still receive only compiled
+submit without enabling public fleet tools, and the early execution filter remains.
+Source/result binding and child-owned schema copies agree. No further correction
+is required. This review reuses the coder's actual checks; root did not rerun them.
+The existing root CLI limitation is separate from the passing library suite.
+
+Independent full new20 review `2a9e7ed9` accepts reconstruction `b4708839`, Agent
+tree `39449051049e6d7325b4c368e627739f97eab28f`, after one documentation-only
+correction round. The README now distinguishes main chat from delegated submission;
+production and tests remain those reviewed at `f3009a05`. Root read the complete
+comparative disposition and releases new21 source planning from that exact
+predecessor. Restore the deferred AfterTool explanation branch/test with the actual
+management API; memory and recall stay deferred to new22/23. Final revised grading
+and replacement exports still belong to Stage E.
+
+Root reloaded all four complete governing/craft documents and the mandatory skill,
+then read complete current14/15/16/22/23 and the handoff. That prose comparison
+found current22 §22.6 teaching default child construction before its implementation
+exists in new20. The corrected paragraph uses the actual application-supplied
+factory; the later default-construction capability remains in the memory chapter.
+The fleet demonstration now ends after collected child results and the main chat
+answer. Independent scoped consistency review in `2a9e7ed9` accepts both changes;
+this is not full Stage D acceptance. Chapter22 prose lint has no hard failures
+(7140 prose words); its long mechanism/person-gap soft warning remains. No code
+fence changed and no runtime rerun is needed for these two prose corrections.

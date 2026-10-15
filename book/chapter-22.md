@@ -367,11 +367,11 @@ The shared root makes the factory available at every depth. A child reaches
 Ensemble through its actual parent relationships, rather than receiving a second
 copy of a callback whose propagation can be forgotten.
 
-Construction availability and public delegation are separate choices. Ensemble
-can supply its default child factory without adding fleet tools to every
-embedding application. Enabling public delegation retains a custom factory
-already supplied by that application. Neither choice turns a human-facing root
-or named peer into a delegated worker that must finish with `submit`.
+The terminal installs this application-supplied factory before constructing
+its Agents. An embedding application that leaves the factory unset keeps its
+ordinary tool surface. Installing a factory does not turn the human-facing root
+into a delegated worker that must finish with `submit`: completion policy follows
+the actual Agent parent, rather than the availability of child construction.
 
 A launch can also supply `submit_schema`, an immutable contract for that child's
 answer. Validate and copy it before construction effects, and require the factory's
@@ -1005,9 +1005,9 @@ integers were tested.
 ```
 
 A delivered hint should wake the wait without killing the children. Follow the
-running handle back to the eventual fan-in result. After the final submission,
-exit normally with Control-D. Inspect `cr/children/add/save.json` and the other
-child saves, and run the combined assertions independently. If a model reports
+running handle back to the eventual fan-in result. After the main Agent has
+collected the child results and answered, exit normally with Control-D. Inspect
+`cr/children/add/save.json` and the other child saves, and run the combined assertions independently. If a model reports
 success without a file or test result, keep that discrepancy in the record.
 
 ## 22.14 Taking it for a spin
