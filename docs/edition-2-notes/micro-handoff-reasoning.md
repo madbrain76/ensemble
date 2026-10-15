@@ -29,3 +29,11 @@ handoff to clear retained reasoning; this change does not migrate old snapshots.
 
 Carry this fix into the compaction branch and reconstructed Chapter 14 onward
 before creating new exports. Preserve historical exports and test receipts.
+
+Bill subsequently reported rebuilding and restarting Ensemble himself, then
+confirmed: "It works!" This is user-reported live confirmation of the handoff
+cleanup. Root did not replace the installed binary, restart his process, or
+independently inspect the private live request. Main fix: `e454ed63`;
+compaction carry-forward: `1a54cf25` (prose follow-up `2c6563dd`);
+reordered carry-forward: `1b7bb652`. The latter omits recall-only code because
+that feature has not yet entered the reordered sequence.
