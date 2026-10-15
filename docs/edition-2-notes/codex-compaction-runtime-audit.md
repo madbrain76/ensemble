@@ -1652,3 +1652,33 @@ the fleet name-only gate. Preserve SafeMode and compiled-tool shadow precedence.
 No origin API or wider tool framework is needed. Implementation and actual
 MCP/custom/built-in controls remain the reconstruction reviewer's gate; this is
 source-only design assistance, not acceptance of new20 or a runtime edit here.
+
+### Scoped new20 tool-identity correction disposition
+
+The reconstruction coder subsequently implemented that narrow correction in the
+three existing production files and appended TestSubmissionToolIdentity. I read
+the changed regions and entire six-case regression. It exercises actual MCP
+discovery/invocation, custom registration, compiled precedence, late factory
+installation and absence/refusal of unregistered fleet tools. The unchanged
+browser speech test's original missing-submit failure, accepted predecessor pass
+and corrected pass are retained under `/tmp/ensemble-reordered-checks/`; I inspected
+their full outputs. Corrected browser duration is3822.490ms in the raw Node output;
+the focused real-MCP race check passes1.205s. The two restored defects fail intended
+assertions: name-only schema substitution changes question to memory, including
+late-factory/custom cases; name-only admission removes MCP submit or refuses custom
+registration. Neither is a compile failure or unrelated timeout.
+
+This scoped correction is accepted. Reviewed SHA-256 prefixes: ensemble/ensemble.go
+933e1342; internal/agent/agent.go9e306096; internal/tools/tools.go3c66f33f;
+ensemble/submission_test.go3b2b60a0, all in the reordered candidate above. It removes
+name-based identity guessing without adding metadata, an origin API or a framework,
+and preserves SafeMode and compiled-handler precedence. Full reconstruction review
+and any primary-source carry-forward remain separate. No test was run by this
+reviewer; the inspection and acceptance use actual coder source/evidence.
+
+One final Stage F evidence clarification was sent to the coordinator: the launch
+receipt retains configured conversation budget600 but omits its default high/low
+watermarks. Those effective values are1200/600 by memory.Settings, rather than an
+observed effective-settings snapshot. Label that derivation or explicitly configure
+and retain the values before live use. This requires no runtime change or paid
+repeat and does not change the verified rehearsal results.
