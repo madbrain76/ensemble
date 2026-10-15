@@ -86,11 +86,14 @@ func TestCLISaveLifecycle(t *testing.T) {
 			mu.Lock()
 			var request struct {
 				// System is the actual Anthropic role instruction received at the boundary.
-				System string `json:"system"`
+				System []struct {
+					// Text is the actual instruction content, excluding cache metadata.
+					Text string `json:"text"`
+				} `json:"system"`
 			}
 			decodeErr := json.Unmarshal(requests[len(requests)-1], &request)
 			mu.Unlock()
-			if decodeErr != nil || request.System == "" || *config.SystemPrompt != request.System {
+			if decodeErr != nil || len(request.System) != 1 || *config.SystemPrompt != request.System[0].Text {
 				t.Fatalf("saved prompt differs from actual default wire instruction: saved=%q wire=%q err=%v", *config.SystemPrompt, request.System, decodeErr)
 			}
 			if bytes.Contains(data, []byte("private-test-key")) || bytes.Contains(data, []byte(provider.URL)) {

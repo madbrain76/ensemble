@@ -17,7 +17,7 @@ type Pricing struct {
 type UsageMeter struct {
 	// Usage contains only the latest main conversation response's disjoint counts.
 	Usage
-	// Total includes every measured request in this process, including auxiliaries.
+	// Total includes every measured request in this process, excluding restored history.
 	Total Usage `json:"total"`
 	// HitRate is session cached input divided by total session input, never bytes.
 	HitRate float64 `json:"hit_rate"`

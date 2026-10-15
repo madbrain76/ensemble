@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 
 	"ensemble/internal/common"
 )
@@ -35,12 +34,14 @@ type engine struct {
 	billingOnce sync.Once
 }
 
-// New creates an Agent-owned HTTP engine with bounded transport requests.
+// New creates an Agent-owned HTTP engine. DefaultTransport bounds connection
+// setup and TLS negotiation, but model generation has no wall-clock deadline.
+// The caller's context still cancels an interrupted or explicitly bounded turn.
 func New(parent common.Agent) common.Engine {
 	if parent == nil {
 		panic("Engine requires Agent")
 	}
-	return &engine{parent: parent, client: &http.Client{Timeout: 60 * time.Second}}
+	return &engine{parent: parent, client: &http.Client{}}
 }
 
 // Agent returns the required owning Agent rather than a copied service bundle.
@@ -79,6 +80,11 @@ func (e *engine) Target() common.Provenance {
 // Offline replay and live requests share these bytes; credentials and URL
 // construction are transport-only. Referenced files must still contain the same bytes.
 func (e *engine) Render(c *common.Context) ([]byte, error) {
+	// A committed projection cannot be rendered alongside an unresolved active
+	// corpus. Recovery clears this receipt only after promotion/archive succeed.
+	if c.Compression != nil && c.Compression.Committed != nil {
+		return nil, errors.New("memory commit requires disk recovery before rendering")
+	}
 	switch e.parent.Config().Vendor {
 	case common.Anthropic:
 		return e.renderAnthropic(c)
@@ -96,38 +102,13 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 
 // Send performs one HTTP exchange from already rendered bytes and returns facts
 // without changing conversation.
-func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
-	cfg := e.parent.Config()
-	// Keep the prediction with this exchange: an interrupted worker may report
-	// its usage after the next turn has already observed another request.
-	predicted := 0.0
-	if e.lens != nil {
-		safe := body
-		if cfg.APIKey != "" {
-			safe = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
-		}
-		predicted = e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safe)
-	}
-	onEvent := cb.OnEvent
-	cb.OnEvent = func(event common.Event) {
-		if event.Response != nil {
-			e.mu.Lock()
-			e.last = event.Response.Usage
-			e.mu.Unlock()
-			if e.lens != nil {
-				e.lens.ObserveUsage(event.Response.Usage, predicted)
-			}
-		}
-		if onEvent != nil {
-			onEvent(event)
-		}
-	}
-	return e.send(ctx, body, cb, cfg)
+func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) ([]common.Event, error) {
+	return e.send(ctx, body, cb, e.parent.Config(), true)
 }
 
-// send accepts one request-local route, allowing the judge to choose a model
-// without mutating the Agent or constructing a second Engine.
-func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallbacks, cfg common.Config) (events []common.Event, err error) {
+// Auxiliary calls share transport and measured costs but leave main occupancy
+// and cache comparisons alone. Observe main bytes only after resolving secrets.
+func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallbacks, cfg common.Config, main bool) (events []common.Event, err error) {
 	// Error bodies and URLs may echo credentials. Preserve useful status/error
 	// identity but never return remote error prose or log authentication headers.
 	defer func() {
@@ -138,7 +119,7 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	}()
 	secrets := []string{cfg.APIKey}
 	// Resolve a request-local bearer. Rendered bytes and saved configuration never
-	// receive rotating OAuth tokens, including auxiliary judge/compressor calls.
+	// receive rotating OAuth tokens.
 	if cfg.Credentials != nil {
 		cfg.APIKey, err = cfg.Credentials.GetBearerToken(ctx)
 		if err != nil {
@@ -172,7 +153,6 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	switch cfg.Vendor {
 	case common.OpenAI:
 		path = "/v1/chat/completions"
-		features, _ := LookupModel(cfg.Model)
 		if features.Responses {
 			path = "/v1/responses"
 		}
@@ -191,8 +171,6 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	case common.Anthropic:
 		req.Header.Set("x-api-key", cfg.APIKey)
 		req.Header.Set("anthropic-version", "2023-06-01")
-		// Judge overrides must use the selected request model's protocol features.
-		features, _ := LookupModel(cfg.Model)
 		if features.InlineTools {
 			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
 		}
@@ -205,6 +183,13 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	// This worker returns response facts without borrowing the live projection.
 	safeBody := redact(body)
 	e.parent.Ensemble().APILog("request", safeBody)
+	// Observe one logical request after resolving and redacting its bearer.
+	// A 401 renewal retries these bytes; it must not rotate the lens again.
+	// Keep prediction local when interrupted workers overlap newer requests.
+	predicted := 0.0
+	if main && e.lens != nil {
+		predicted = e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safeBody)
+	}
 	resp, err := e.client.Do(req)
 	// Retry authentication once using the same billing source. A 401 alone does
 	// not delete credentials; only the token endpoint can reject their renewal.
@@ -279,7 +264,16 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		if event.Response != nil {
 			// Replay independently sums these same normalized categories. No vendor
 			// cache or reasoning interpretation belongs in session accounting.
-			e.account(cfg, event.Response.Usage)
+			u := event.Response.Usage
+			e.account(cfg, u)
+			if main {
+				e.mu.Lock()
+				e.last = u
+				e.mu.Unlock()
+				if e.lens != nil {
+					e.lens.ObserveUsage(u, predicted)
+				}
+			}
 		}
 		if onEvent != nil {
 			onEvent(event)
@@ -288,7 +282,7 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	if cfg.Vendor == common.OpenAI && features.Responses {
 		err = e.parseResponses(resp, cb, cfg)
 	} else {
-		err = e.Parse(resp, cb)
+		err = e.parse(resp, cb, cfg)
 	}
 	return events, err
 }
@@ -298,6 +292,14 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 // from Dialogue; RequestSent consumes it during both live application and replay.
 func entries(c *common.Context) []common.Entry {
 	out := append([]common.Entry(nil), c.Dialogue...)
+	for i, entry := range out {
+		if entry.Kind == common.KindHandoff {
+			// The call and its acknowledgment were cleared at the checkpoint.
+			// Render the completed status alongside the note, not just its contents.
+			// Keep stored notes unchanged, including those restored from old saves.
+			out[i].Parts = append([]common.Part{{Type: "text", Text: "micro_handoff completed. Your checkpoint note:"}}, entry.Parts...)
+		}
+	}
 	if len(c.Ephemera) > 0 {
 		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera})
 	}
@@ -356,13 +358,30 @@ func canonical(raw json.RawMessage) (json.RawMessage, error) {
 	return json.Marshal(value)
 }
 
-// SystemPrompt resolves the Agent's role instruction for rendering and save metadata.
-// An explicitly empty primary skill suppresses the earlier clients' default.
-func (e *engine) SystemPrompt() string {
-	if s := e.parent.Config().SystemPrompt; s != "" || e.parent.Skills() != nil {
-		return s
+// BaseSystemPrompt selects authored role instructions without model-specific
+// additions. An explicitly empty primary skill suppresses the earlier clients'
+// default. Child composition uses this base so changing models cannot retain a
+// policy that was rendered only for the child's earlier model.
+func BaseSystemPrompt(a common.Agent) string {
+	if prompt := a.Config().SystemPrompt; prompt != "" || a.Skills() != nil {
+		return prompt
 	}
 	return systemPrompt
+}
+
+// SystemPrompt resolves the Agent's role and current model policy for rendering and save metadata.
+func (e *engine) SystemPrompt() string {
+	prompt := BaseSystemPrompt(e.parent)
+	const visibleReasoning = "Before calling tools, include ordinary user-visible text in the same response before the tool calls, explaining what you will do and why. Hidden thinking or a reasoning summary does not satisfy this requirement. Tool calls without this preceding text will be refused; retry with the explanation before the calls."
+	// Saved prompts and inherited child instructions can already contain the
+	// effective prompt. Do not append the same requirement again.
+	if e.Features().RequireVisibleReasoning && !strings.Contains(prompt, visibleReasoning) {
+		if prompt != "" {
+			prompt += "\n\n"
+		}
+		prompt += visibleReasoning
+	}
+	return prompt
 }
 
 // Features follows the Agent's model selection; fixture capabilities do not imply live support.

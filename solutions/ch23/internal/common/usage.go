@@ -26,3 +26,16 @@ type UsageMeter struct {
 	// Priced is false if any contributing model has unknown pricing.
 	Priced bool `json:"priced"`
 }
+
+// UsageBucket preserves the model and prompt-price tier of measured work. Values
+// are copied between Engines after a worker drains; money is derived on read.
+type UsageBucket struct {
+	// Vendor identifies the provider that incurred the counts.
+	Vendor Vendor `json:"vendor"`
+	// Model retains the exact configured model, independent of later switches.
+	Model string `json:"model"`
+	// Large records the request's price tier before aggregation loses its size.
+	Large bool `json:"large,omitempty"`
+	// Usage contains normalized disjoint counts for this model/tier.
+	Usage Usage `json:"usage"`
+}

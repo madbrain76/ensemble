@@ -2,9 +2,7 @@ package fleet
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -46,31 +44,6 @@ func (m *manager) GracefulShutdown(ctx context.Context, id string) error {
 		return err
 	}
 	return m.ShutdownChild(id)
-}
-
-// Submission resolves ownership before touching storage, even on the fallback.
-func (m *manager) Submission(id string) (string, error) {
-	a, err := m.Find(id)
-	if err != nil {
-		return "", err
-	}
-	if s := a.Fleet().Status(); s.State == "submitted" {
-		return s.Result, nil
-	}
-	data, err := a.Sandbox().ReadFile(filepath.Join(a.Config().DataDir, "submit.md"))
-	if err != nil {
-		return "", err
-	}
-	var last struct {
-		// Result holds the most recent appended submission, including multiline text.
-		Result string `json:"result"`
-	}
-	for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
-		if err = json.Unmarshal([]byte(line), &last); err != nil {
-			return "", err
-		}
-	}
-	return last.Result, nil
 }
 
 // Output uses durable history sequence numbers. A caller never confuses a

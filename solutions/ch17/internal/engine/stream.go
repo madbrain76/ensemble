@@ -14,6 +14,9 @@ import (
 // reconstruct the provider message, then reuse the existing semantic decoder:
 // accounting, provenance and opaque replay never grow a second implementation.
 func (e *engine) Parse(resp *http.Response, cb common.StreamCallbacks) error {
+	if e.parent.Config().Vendor == common.OpenAI && e.Features().Responses {
+		return e.parseResponses(resp, cb, e.parent.Config())
+	}
 	var data []byte
 	var ids []uint64
 	var err error

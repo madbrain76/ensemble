@@ -20,7 +20,7 @@ import (
 
 // The shipped binary must supply the human sink and accept terminal replies
 // while the model is blocked. Library fixtures cannot establish this wiring.
-func TestFleetCLIHumanReplyAndEscalation(t *testing.T) {
+func TestFleetCLIHumanReplyAndRootCompletion(t *testing.T) {
 	binary := filepath.Join(t.TempDir(), "ensemble")
 	if out, err := exec.Command("go", "build", "-o", binary, ".").CombinedOutput(); err != nil {
 		t.Fatal(err, string(out))
@@ -70,11 +70,27 @@ func TestFleetCLIHumanReplyAndEscalation(t *testing.T) {
 			defer cancel()
 			cmd := exec.CommandContext(ctx, binary, "chat")
 			cmd.Dir = t.TempDir()
-			cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + t.TempDir(), "EN_HOME=" + t.TempDir(), "LLM_VENDOR=anthropic", "LLM_MODEL=fake", "LLM_API_KEY=fake", "LLM_BASE_URL=" + server.URL, "EN_DISABLE_STREAMING=1", "EN_RECALL_DISABLED=1"}
+			cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + t.TempDir(), "EN_HOME=" + t.TempDir(), "LLM_VENDOR=anthropic", "LLM_MODEL=fake", "LLM_API_KEY=fake", "LLM_BASE_URL=" + server.URL, "EN_DISABLE_STREAMING=1"}
 			stdin, _ := cmd.StdinPipe()
 			stderr, _ := cmd.StderrPipe()
 			var stdout bytes.Buffer
-			cmd.Stdout = &stdout
+			out, _ := cmd.StdoutPipe()
+			rootReply := make(chan struct{}, 1)
+			stdoutDrained := make(chan struct{})
+			go func() {
+				defer close(stdoutDrained)
+				scanner := bufio.NewScanner(out)
+				for scanner.Scan() {
+					line := scanner.Text()
+					fmt.Fprintln(&stdout, line)
+					if strings.Contains(line, "forgot to submit") {
+						select {
+						case rootReply <- struct{}{}:
+						default:
+						}
+					}
+				}
+			}()
 			if err := cmd.Start(); err != nil {
 				t.Fatal(err)
 			}
@@ -96,30 +112,33 @@ func TestFleetCLIHumanReplyAndEscalation(t *testing.T) {
 				}
 			}()
 			io.WriteString(stdin, "Please carry out the terminal task.\n")
-			select {
-			case notice := <-userNotice:
-				if idle {
-					if !strings.Contains(notice, "three framework wakes") {
-						t.Error("wrong escalation", notice)
-					}
-				} else {
+			if idle {
+				select {
+				case <-rootReply:
+				case <-ctx.Done():
+					t.Error("ordinary root reply was unreachable")
+				}
+			} else {
+				select {
+				case notice := <-userNotice:
 					if !strings.Contains(notice, "HUMAN_QUESTION") {
 						t.Error("question lost", notice)
 					}
 					io.WriteString(stdin, "/reply COBALT_REPLY\n")
+				case <-ctx.Done():
+					t.Error("human sink was unreachable")
 				}
-			case <-ctx.Done():
-				t.Error("human sink was unreachable")
 			}
 			stdin.Close()
 			err := cmd.Wait()
 			<-drained
+			<-stdoutDrained
 			if err != nil {
 				t.Fatal(err, diagnostics.String())
 			}
 			if idle {
-				if calls.Load() != 4 {
-					t.Fatal("CLI idle bound", calls.Load())
+				if calls.Load() != 1 || strings.Contains(diagnostics.String(), "[from main to user]") {
+					t.Fatal("ordinary root was corrected or escalated", calls.Load(), diagnostics.String())
 				}
 			} else if calls.Load() != 2 || !replySeen.Load() || !strings.Contains(stdout.String(), "CLI_COMPLETED") {
 				t.Fatalf("human reply never resumed model: calls=%d reply=%v stdout=%s stderr=%s", calls.Load(), replySeen.Load(), stdout.String(), diagnostics.String())

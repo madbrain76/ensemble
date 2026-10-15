@@ -11,6 +11,7 @@ import (
 
 func (e *engine) readOpenAI(r io.Reader, log func(string, []byte), delta func(uint64, common.DeltaKind, string)) ([]byte, []uint64, error) {
 	var model, content string
+	var finishReason string
 	var usage json.RawMessage
 	calls := map[int]*openAICall{}
 	hasText, finished := false, false
@@ -57,6 +58,7 @@ func (e *engine) readOpenAI(r io.Reader, log func(string, []byte), delta func(ui
 		choice := frame.Choices[0]
 		if choice.FinishReason != nil {
 			finished = true
+			finishReason = *choice.FinishReason
 		}
 		if choice.Delta.Content != nil {
 			hasText = true
@@ -109,6 +111,6 @@ func (e *engine) readOpenAI(r io.Reader, log func(string, []byte), delta func(ui
 	if len(ordered) > 0 {
 		message["tool_calls"] = ordered
 	}
-	data, err := json.Marshal(map[string]any{"model": model, "usage": usage, "choices": []any{map[string]any{"message": message}}})
+	data, err := json.Marshal(map[string]any{"model": model, "usage": usage, "choices": []any{map[string]any{"message": message, "finish_reason": finishReason}}})
 	return data, ids, err
 }

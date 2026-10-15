@@ -6,21 +6,12 @@ import (
 	"ensemble/internal/common"
 )
 
-// A surviving handoff is the compaction boundary. Memory compression can remove
-// it entirely; then the last surviving memory entry is the available prefix.
-// Never resurrect retired dialogue merely to give a marker somewhere to land.
+// The newest surviving Chapter14 handoff is the settled context boundary.
+// Mark the retained projection; rendering never recreates removed tool traffic.
 func compactionBound(c *common.Context) int {
 	boundary := -1
 	for i, e := range c.Dialogue {
 		if e.Kind == common.KindHandoff {
-			boundary = i
-		}
-	}
-	if boundary >= 0 {
-		return boundary
-	}
-	for i, e := range c.Dialogue {
-		if e.Kind >= common.KindSoul && e.Kind <= common.KindSession {
 			boundary = i
 		}
 	}

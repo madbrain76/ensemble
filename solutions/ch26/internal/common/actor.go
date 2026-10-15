@@ -152,6 +152,8 @@ const (
 type ModelFeatures struct {
 	// Responses selects the newer OpenAI transport for this particular model.
 	Responses bool
+	// RequireVisibleReasoning requires ordinary explanatory text before tools in the same response.
+	RequireVisibleReasoning bool
 	// Price is the ordinary USD-per-million rate, nil when unverified.
 	Price *Pricing
 	// PriceThreshold selects the large-prompt tier above this inclusive token limit.

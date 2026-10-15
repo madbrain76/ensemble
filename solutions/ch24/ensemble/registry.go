@@ -84,13 +84,9 @@ func (e *Ensemble) Start(dir string, cfg Config, spec AgentSpec, sink UserSink) 
 // Start also calls it; offline consumers may opt into the protocol without loading saves.
 func (e *Ensemble) EnableFleet(sink UserSink) {
 	e.SetUserSink("user", sink)
-	e.SetAgentFactory(func(parent Agent, child AgentSpec) (Agent, error) {
-		config := parent.Config()
-		if child.Model != "" {
-			config.Model = child.Model
-		}
-		return e.NewChildAgent(parent, config, child)
-	})
+	if e.factory == nil {
+		e.SetAgentFactory(e.defaultChild)
+	}
 }
 
 func validName(name string) bool {

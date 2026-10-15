@@ -42,7 +42,7 @@ func TestSelectionSubmittedTurnState(t *testing.T) {
 	}))
 	defer provider.Close()
 	dir := t.TempDir()
-	cfg := ensemble.Config{Model: "fake", BaseURL: provider.URL, BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}}
+	cfg := ensemble.Config{Model: "fake", BaseURL: provider.URL, BuiltinTools: true}
 	start := func() (*ensemble.Ensemble, ensemble.Agent) {
 		e := ensemble.New(io.Discard)
 		a, err := e.Start(dir, cfg, ensemble.AgentSpec{}, make(selectionInbox, 1))
@@ -117,7 +117,7 @@ func TestSelectionSubmittedTurnState(t *testing.T) {
 // every Agent and Server.Close. Keep the real socket writer and its backpressure.
 func TestSelectionSlowReceiverClose(t *testing.T) {
 	root := ensemble.New(io.Discard)
-	a, err := root.NewAgent(ensemble.Config{Model: "fake", DataDir: t.TempDir(), Recall: ensemble.RecallSettings{Disabled: true}})
+	a, err := root.NewAgent(ensemble.Config{Model: "fake", DataDir: t.TempDir()})
 	if err != nil {
 		t.Fatal(err)
 	}

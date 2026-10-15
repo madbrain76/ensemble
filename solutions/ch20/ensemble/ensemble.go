@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -18,11 +19,11 @@ import (
 	"ensemble/internal/cachelens"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
+	"ensemble/internal/fleet"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
-	"ensemble/internal/memory"
-	"ensemble/internal/recall"
+	"ensemble/internal/sandbox"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -52,7 +53,12 @@ type Ensemble struct {
 	logger      *log.Logger
 	api         io.Writer
 	apiMu       sync.Mutex
+	secrets     []string
 	agents      []Agent
+	agentsMu    sync.Mutex
+	factory     AgentFactory
+	userID      string
+	userSink    common.UserSink
 	nextJob     atomic.Int64
 	merged      chan AgentObservation
 	observersMu sync.Mutex
@@ -69,7 +75,19 @@ func (e *Ensemble) NextJobHandle() int { return int(e.nextJob.Add(1)) }
 
 // Logf exposes logging without giving children the concrete logger to reconfigure.
 // The standard logger serializes writers and stamps each diagnostic.
-func (e *Ensemble) Logf(format string, args ...any) { e.logger.Printf(format, args...) }
+func (e *Ensemble) Logf(format string, args ...any) {
+	e.apiMu.Lock()
+	defer e.apiMu.Unlock()
+	e.logger.Print(e.sanitize(fmt.Sprintf(format, args...)))
+}
+func (e *Ensemble) sanitize(text string) string {
+	for _, secret := range e.secrets {
+		if secret != "" {
+			text = strings.ReplaceAll(text, secret, "[redacted]")
+		}
+	}
+	return text
+}
 
 // Public vendor names allow optional clients to configure the same core.
 type Vendor = common.Vendor
@@ -85,11 +103,70 @@ const (
 
 // NewAgent assembles and retains an Agent with all required parent relationships.
 func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
+	return e.newAgent(nil, cfg, specs...)
+}
+
+func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent, error) {
 	if len(specs) > 1 {
 		return nil, errors.New("provide at most one AgentSpec")
 	}
 	if cfg.MaxToolRounds < 0 {
 		return nil, errors.New("MaxToolRounds must be nonnegative")
+	}
+	spec := AgentSpec{EnableWebSearch: true}
+	if len(specs) == 1 {
+		spec = specs[0]
+	}
+	// Validate and own the submit contract before filesystem, authentication,
+	// skill or child-registration side effects can occur.
+	contract, err := fleet.CompileSubmissionSchema(spec.SubmitSchema)
+	if err != nil {
+		return nil, err
+	}
+	if len(spec.SubmitSchema) != 0 {
+		spec.SubmitSchema = contract.Schema()
+	}
+	if spec.ID == "" {
+		spec.ID = "main"
+	}
+	if parent == nil {
+		spec.ParentID = e.UserID()
+	} else {
+		spec.ParentID = parent.Spec().ID
+	}
+	if spec.ID == e.UserID() {
+		return nil, errors.New("human address cannot be an Agent")
+	}
+	if spec.DataDir != "" {
+		cfg.DataDir = spec.DataDir
+	}
+	if spec.LogPath != "" {
+		cfg.LogPath = spec.LogPath
+	}
+	if spec.SavePath != "" {
+		cfg.SavePath = spec.SavePath
+	}
+	if spec.SandboxRoot != "" {
+		root, err := filepath.Abs(spec.SandboxRoot)
+		if err != nil {
+			return nil, errors.New("invalid sandbox root")
+		}
+		if err := os.MkdirAll(root, 0700); err != nil {
+			return nil, errors.New("cannot create sandbox root")
+		}
+		spec.SandboxRoot, err = filepath.EvalSymlinks(root)
+		if err != nil {
+			return nil, errors.New("cannot resolve sandbox root")
+		}
+		cfg.Workspace = spec.SandboxRoot
+		if cfg.DataDir == "" {
+			cfg.DataDir = filepath.Join(spec.SandboxRoot, "cr")
+		}
+		for _, path := range []string{cfg.DataDir, cfg.LogPath, cfg.SavePath} {
+			if path != "" && !sandbox.Within(spec.SandboxRoot, path) {
+				return nil, errors.New("Agent data paths must be inside sandbox")
+			}
+		}
 	}
 	// A zero vendor retains Chapter 1's public API default. Provenance itself
 	// always receives a concrete nonzero vendor before any event is captured.
@@ -124,7 +201,9 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	}
 	cfg.Workspace = workspace
 	if cfg.DataDir == "" {
+		e.agentsMu.Lock()
 		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
+		e.agentsMu.Unlock()
 	}
 	if cfg.Credentials == nil {
 		if cfg.BillingMode == "" && cfg.Vendor == common.OpenAI && e.auth != nil {
@@ -151,7 +230,18 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 			return nil, errors.New("billing mode must be api or chatgpt; automatic metered fallback is not implemented")
 		}
 	}
-	a := agent.New(e, cfg)
+	e.apiMu.Lock()
+	if cfg.APIKey != "" {
+		e.secrets = append(e.secrets, cfg.APIKey)
+	}
+	e.apiMu.Unlock()
+	var parents []common.Agent
+	if parent != nil {
+		parents = append(parents, parent)
+	}
+	a := agent.New(e, cfg, common.AgentSpec(spec), parents...)
+	a.AttachFleet(fleet.New(a, contract))
+	a.AttachSandbox(sandbox.New(a))
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
 		return nil, err
 	}
@@ -160,10 +250,6 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
-	a.AttachMemory(memory.New(a))
-	if err := a.Memory().Validate(cfg.Memory); err != nil {
-		return nil, err
-	}
 	assembled := false
 	// A failed primary can already have launched a peer or admitted reverse work.
 	// Construction owns that cleanup because no caller receives the Agent.
@@ -172,9 +258,21 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 			a.Shutdown()
 		}
 	}()
+	var definitions []common.ToolDefinition
 	if cfg.BuiltinTools {
-		a.SetTools(tools.Builtins())
+		definitions = tools.Builtins()
 	}
+	if e.FleetEnabled() {
+		for _, definition := range tools.FleetTools() {
+			// Bind the contract to this compiled handler, not the name of an
+			// unrelated custom/MCP tool such as the blind persona's submit.
+			if definition.Name == "submit" {
+				definition.Schema = contract.Schema()
+			}
+			definitions = append(definitions, definition)
+		}
+	}
+	a.SetTools(definitions)
 	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "" || len(specs[0].StartupSkills) != 0) {
 		spec := specs[0]
 		sr, err := skills.New(a, spec.SkillsDir)
@@ -206,13 +304,15 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		}
 		a.SetSystemPrompt(prompt)
 	}
-	if err := recall.Validate(cfg.Recall); err != nil {
-		return nil, err
+	if parent != nil {
+		// A primary skill may replace the inherited prompt. Append the role only
+		// after loading it, without duplicating instructions for grandchildren.
+		prompt := strings.TrimSuffix(engine.BaseSystemPrompt(a), "\n\n"+subAgentInstructions)
+		a.SetSystemPrompt(prompt + "\n\n" + subAgentInstructions)
 	}
-	if !cfg.Recall.Disabled {
-		a.AttachRecaller(recall.New(a))
-	}
+	e.agentsMu.Lock()
 	e.agents = append(e.agents, a)
+	e.agentsMu.Unlock()
 	assembled = true
 	return a, nil
 }
@@ -347,7 +447,11 @@ const Human = common.Human
 
 // SetAPILog selects the root's wire-trace destination before starting Agents.
 // The caller owns closing the writer; nil disables tracing.
-func (e *Ensemble) SetAPILog(w io.Writer) { e.api = w }
+func (e *Ensemble) SetAPILog(w io.Writer) {
+	e.apiMu.Lock()
+	defer e.apiMu.Unlock()
+	e.api = w
+}
 
 // APILog writes one JSON record per sanitized payload, retaining frame order.
 // Auth headers and credential-bearing URLs never enter this facility.
@@ -355,7 +459,7 @@ func (e *Ensemble) APILog(kind string, data []byte) {
 	e.apiMu.Lock()
 	defer e.apiMu.Unlock()
 	if e.api != nil {
-		json.NewEncoder(e.api).Encode(map[string]string{"event": kind, "data": string(data)})
+		json.NewEncoder(e.api).Encode(map[string]string{"event": kind, "data": e.sanitize(string(data))})
 	}
 }
 
@@ -409,8 +513,8 @@ type ToolFinished = common.ToolFinished
 // TurnEnded reports turn completion as display progress.
 type TurnEnded = common.TurnEnded
 
-// AgentSpec supplies skills identity separately from provider request settings.
-type AgentSpec = common.AgentSpec
+// AgentSpec supplies identity and confinement separately from provider request settings.
+type AgentSpec common.AgentSpec
 
 // ToolMeta records the first event that enabled a capability for one Agent.
 type ToolMeta = common.ToolMeta
@@ -438,15 +542,3 @@ func MCPPipe() (MCPTransport, MCPTransport) { return mcp.Pipe() }
 
 // MCPTransportOwner is the parent contract for optional transport implementations.
 type MCPTransportOwner = common.MCPTransportOwner
-
-// MemorySettings selects the Agent's corpus switches and byte budgets.
-type MemorySettings = common.MemorySettings
-
-// BandSettings controls one memory band, preserving zero defaults and false switches.
-type BandSettings = common.BandSettings
-
-// ValidateMemorySettings checks corpus policy before a client persists a patch.
-func ValidateMemorySettings(settings MemorySettings) error { return memory.Validate(settings) }
-
-// RecallSettings configures passive retrieval independently for each Agent.
-type RecallSettings = common.RecallSettings

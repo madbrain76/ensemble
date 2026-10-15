@@ -135,6 +135,11 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		thinking = map[string]string{"type": "adaptive"}
 		maxTokens = 4096
 	}
+	if e.parent.Spec().Compaction {
+		// This is a worker allowance, not a model maximum or a byte/token ratio.
+		// It leaves headroom above the observed 7,317-token compression response.
+		maxTokens = 16384
+	}
 	return json.Marshal(struct {
 		// Thinking asks supported models for reasoning in either delivery mode.
 		Thinking map[string]string `json:"thinking,omitempty"`
@@ -233,6 +238,8 @@ func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.R
 // visible before a completed-response event can be emitted.
 func (e *engine) parseAnthropic(data []byte) (common.ResponseData, error) {
 	var wire struct {
+		// StopReason distinguishes a complete submission from a length-limited one.
+		StopReason string `json:"stop_reason"`
 		// Model selects or reports the provider model identity for this exchange.
 		Model string `json:"model"`
 		// Content preserves the provider's ordered blocks or message text.
@@ -263,6 +270,9 @@ func (e *engine) parseAnthropic(data []byte) (common.ResponseData, error) {
 	// Passing these four counts through is correct; subtracting cache again
 	// would undercount a warm request.
 	result := common.ResponseData{From: from, Usage: common.Usage{Input: *wire.Usage.Input, Output: *wire.Usage.Output, CacheWrite: wire.Usage.Write, CacheRead: wire.Usage.Read}}
+	if e.parent.Spec().Compaction && wire.StopReason == "max_tokens" {
+		return result, errors.New("compaction response reached provider output limit")
+	}
 	// Walk the blocks in provider order. Extracting text and calls in separate
 	// passes would preserve their values but lose how the reply interleaved them.
 	for _, raw := range wire.Content {

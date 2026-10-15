@@ -80,6 +80,7 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 	go func() {
 		defer close(finished)
 		colour := term.IsTerminal(int(os.Stderr.Fd()))
+		displayedText := false
 		for {
 			<-d.wake
 			d.mu.Lock()
@@ -100,6 +101,13 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 					}
 				}
 				if !chat {
+					if ended, ok := o.(ensemble.TurnEnded); ok {
+						if ended.Error != "" {
+							emit(map[string]string{"error": ended.Error})
+						} else {
+							emit(map[string]string{"assistant": ended.Text})
+						}
+					}
 					emit(o)
 					continue
 				}
@@ -131,10 +139,19 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 					// Finals correct widgets in richer clients. The terminal only separates
 					// completed pieces; printing their content would duplicate every delta.
 					if v.Part.Type == "text" {
+						displayedText = true
 						fmt.Fprintln(os.Stdout)
 					} else if v.Part.Type == "opaque" || v.Part.Type == "tool_call" {
 						fmt.Fprintln(os.Stderr)
 					}
+				case ensemble.TurnEnded:
+					if v.Text != "" && !displayedText {
+						fmt.Fprintln(os.Stdout, v.Text)
+					}
+					if v.Error != "" {
+						fmt.Fprintln(os.Stderr, v.Error)
+					}
+					displayedText = false
 				case ensemble.StateChanged:
 					if v.To == "interrupted" {
 						fmt.Fprintln(os.Stderr, "[interrupted; other jobs continue]")
@@ -208,7 +225,19 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 		}
 		text := strings.TrimRight(line, "\r\n")
 		if chat {
-			if strings.HasPrefix(text, "/model ") {
+			if strings.HasPrefix(text, "/reply ") {
+				answer := strings.TrimPrefix(text, "/reply ")
+				err := a.Fleet().Reply("", "", answer)
+				if err != nil {
+					id, body, ok := strings.Cut(answer, " ")
+					if ok {
+						err = a.Fleet().Reply("", id, body)
+					}
+				}
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+				}
+			} else if strings.HasPrefix(text, "/model ") {
 				if err := a.SetModel(strings.TrimSpace(strings.TrimPrefix(text, "/model "))); err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				} else {
@@ -242,6 +271,10 @@ func converse(a ensemble.Agent, chat bool) (err error) {
 		if in.Kind != "" {
 			d.enabled.Store(true)
 			switch in.Kind {
+			case "reply":
+				if err := a.Fleet().Reply("", "", in.Text); err != nil {
+					emit(map[string]string{"error": err.Error()})
+				}
 			case "prompt":
 				a.Post(ensemble.UserMessage{Text: in.Text})
 			case "hint":

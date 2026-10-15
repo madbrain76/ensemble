@@ -353,6 +353,7 @@ function renderAgents(nodes, parent) {
 }
 renderAgents(agents, document.querySelector("#agent-tree"));
 const theme = document.querySelector("#theme");
+const model = document.querySelector("#model");
 const speed = document.querySelector("#tts-speed");
 const font = document.querySelector("#font-size");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
@@ -366,38 +367,11 @@ const logRetention = document.querySelector("#log-retention");
 // A snapshot acknowledging one field must not erase another field being edited.
 // Number inputs commit on change/blur, so retain only their unsent local text.
 const editingContext = new Set();
-for (const control of [contextTarget, logRetention]) {
+for (const control of [contextTarget, logRetention, model]) {
   control.addEventListener("input", () => editingContext.add(control));
 }
-// Band switches and byte budgets travel through the same persisted settings path.
-const memoryControls = new Map();
-for (const band of ["soul", "memory", "64x", "8x", "session", "conversation"]) {
-  const row = document.createElement("div");
-  const enabled = document.createElement("input"); enabled.type = "checkbox";
-  const label = document.createElement("label"); label.append(enabled, ` ${band} enabled `);
-  row.append(label);
-  const controls = { disabled: enabled };
-  for (const field of ["budget", "high_watermark", "low_watermark"]) {
-    const input = document.createElement("input"); input.type = "number"; input.min = "0"; input.step = "1";
-    input.setAttribute("aria-label", `${band} ${field} bytes (0 = default)`);
-    input.style.width = "7em";
-    input.addEventListener("input", () => editingContext.add(input));
-    controls[field] = input;
-    const caption = document.createElement("label");
-    caption.append(` ${field.replaceAll("_", " ")} `, input); row.append(caption);
-  }
-  for (const [field, input] of Object.entries(controls)) input.addEventListener("change", () => {
-    editingContext.delete(input);
-    send({ type: "update_settings", settings: { memory: { [band]: { [field]: field === "disabled" ? !input.checked : Number(input.value) } } } });
-  });
-  memoryControls.set(band, controls);
-  document.querySelector("#memory-settings").append(row);
-}
 function applySettings(settings) {
-  for (const [band, controls] of memoryControls) for (const [field, input] of Object.entries(controls)) {
-    if (field === "disabled") input.checked = !settings.memory?.[band]?.disabled;
-    else if (!editingContext.has(input)) input.value = settings.memory?.[band]?.[field] ?? 0;
-  }
+  if (!editingContext.has(model)) model.value = settings.model;
   if (!editingContext.has(contextTarget)) contextTarget.value = settings.context_target;
   if (!editingContext.has(logRetention)) logRetention.value = settings.log_retention;
   theme.value = settings.theme;
@@ -415,6 +389,7 @@ function applySettings(settings) {
 }
 for (const [control, field, value] of [
   [theme, "theme", () => theme.value],
+  [model, "model", () => model.value.trim()],
   [contextTarget, "context_target", () => Number(contextTarget.value)],
   [logRetention, "log_retention", () => Number(logRetention.value)],
   [voice, "tts_enabled", () => voice.checked],

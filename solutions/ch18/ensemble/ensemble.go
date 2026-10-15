@@ -21,8 +21,6 @@ import (
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
-	"ensemble/internal/memory"
-	"ensemble/internal/recall"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -160,10 +158,6 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
-	a.AttachMemory(memory.New(a))
-	if err := a.Memory().Validate(cfg.Memory); err != nil {
-		return nil, err
-	}
 	assembled := false
 	// A failed primary can already have launched a peer or admitted reverse work.
 	// Construction owns that cleanup because no caller receives the Agent.
@@ -205,12 +199,6 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 			prompt += "\n\n" + body
 		}
 		a.SetSystemPrompt(prompt)
-	}
-	if err := recall.Validate(cfg.Recall); err != nil {
-		return nil, err
-	}
-	if !cfg.Recall.Disabled {
-		a.AttachRecaller(recall.New(a))
 	}
 	e.agents = append(e.agents, a)
 	assembled = true
@@ -438,15 +426,3 @@ func MCPPipe() (MCPTransport, MCPTransport) { return mcp.Pipe() }
 
 // MCPTransportOwner is the parent contract for optional transport implementations.
 type MCPTransportOwner = common.MCPTransportOwner
-
-// MemorySettings selects the Agent's corpus switches and byte budgets.
-type MemorySettings = common.MemorySettings
-
-// BandSettings controls one memory band, preserving zero defaults and false switches.
-type BandSettings = common.BandSettings
-
-// ValidateMemorySettings checks corpus policy before a client persists a patch.
-func ValidateMemorySettings(settings MemorySettings) error { return memory.Validate(settings) }
-
-// RecallSettings configures passive retrieval independently for each Agent.
-type RecallSettings = common.RecallSettings

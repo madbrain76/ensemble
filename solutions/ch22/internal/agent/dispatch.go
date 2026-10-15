@@ -12,7 +12,17 @@ func (r *runtime) dispatch() {
 	t := r.active
 	if len(t.calls) == 0 {
 		if status := r.owner.fleet.Status(); status.State == "submitted" {
-			r.finish(status.Result, nil)
+			// A normal tool result prepares another request. Submission instead
+			// ends this turn after the whole batch drains; retain that fact so
+			// selection and restart do not resurrect input_pending work.
+			err := r.append(common.Event{Type: "turn_ended"})
+			text := status.Result
+			if len(status.Payload) != 0 {
+				// The longstanding Ask/display surface is text. Typed fleet readers
+				// retain the JSON object rather than receiving a quoted JSON string.
+				text = string(status.Payload)
+			}
+			r.finish(text, err)
 			return
 		}
 		if t.checkpoint {
@@ -66,6 +76,11 @@ func (r *runtime) dispatch() {
 	}
 	// The appended dispatch fact, not a guessed future result number, owns provenance.
 	owner.seq = r.owner.history.LastSeq()
+	r.owner.setActivity(common.ActivityToolCall, call.Name, string(call.Args))
+	switch call.Name {
+	case "join_agents", "wait_for_agent_change", "wait_for_agent", "ask_agent", "send_message_to_parent", "shutdown_agent":
+		r.owner.setActivity(common.ActivityWaiting, call.Name, string(call.Args))
+	}
 	r.owner.notify(common.ToolDispatched{CallID: call.CallID, Name: call.Name, Input: call.Args})
 	t.current = &report{turn: t, call: call, data: called, wake: wake}
 	run := func() (string, error) {

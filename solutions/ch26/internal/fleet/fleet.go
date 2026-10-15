@@ -20,7 +20,12 @@ type question struct {
 	reply   chan common.FleetMessage
 }
 type child struct {
+	id    string // the manager's reserved address, independent of a custom factory's label
 	agent common.Agent
+	// Both automatic completion and explicit kill share one drain/save result.
+	stop      sync.Once
+	stopErr   error
+	cancelled bool // protected by the owning manager's mutex
 }
 
 // The mutex protects fleet facts, never conversation state. Model work still
@@ -34,18 +39,19 @@ type manager struct {
 	changed   chan struct{}
 	stopped   bool
 	submitted bool
-	result    string
+	result    common.Submission
+	contract  *SubmissionContract
 	failure   string
 	wakes     int
 	sequence  uint64
 }
 
 // New requires the Agent whose children and messages this manager owns.
-func New(parent common.Agent) common.SubAgentManager {
-	if parent == nil {
-		panic("fleet requires Agent")
+func New(parent common.Agent, contract *SubmissionContract) common.SubAgentManager {
+	if parent == nil || contract == nil {
+		panic("fleet requires Agent and submission contract")
 	}
-	return &manager{parent: parent, children: map[string]*child{}, pending: map[string]question{}, messages: map[string]uint64{}, changed: make(chan struct{})}
+	return &manager{parent: parent, contract: contract, messages: map[string]uint64{}, children: map[string]*child{}, pending: map[string]question{}, changed: make(chan struct{})}
 }
 
 // Agent exposes the required owner, including its configuration and services.
@@ -58,50 +64,111 @@ func (m *manager) Changed() { m.mu.Lock(); defer m.mu.Unlock(); m.signal() }
 // Spawn reserves the child's identity through construction. A failed factory
 // publishes nothing, and no model starts until both ownership links exist.
 func (m *manager) Spawn(id, task, model string) (common.ChildStatus, error) {
+	return m.SpawnWithSchema(id, task, model, nil)
+}
+
+// SpawnWithSchema delegates contract validation to the public construction boundary.
+// Ordinary grandchildren get defaults unless their own launch explicitly opts in.
+func (m *manager) SpawnWithSchema(id, task, model string, schema json.RawMessage) (common.ChildStatus, error) {
+	// Internal child construction does not enable ordinary delegation. Preserve
+	// the previous refusal rather than start a child whose submit tool is hidden.
+	if !m.parent.Ensemble().FleetEnabled() {
+		return common.ChildStatus{}, errors.New("public delegation is not enabled")
+	}
+	c, result, err := m.launch(id, task, model, schema, false)
+	if err != nil {
+		return common.ChildStatus{}, err
+	}
+	go func() {
+		<-result
+		m.Changed()
+	}()
+	return common.ChildStatus{ID: c.id, State: "running"}, nil
+}
+
+// launch reserves identity through construction. Ordinary tasks restore their
+// conversation; managed workers require fresh paths and never load old results.
+func (m *manager) launch(id, task, model string, schema json.RawMessage, managed bool) (*child, <-chan common.Result, error) {
 	if id == "" || id == "." || id == ".." || strings.ContainsAny(id, "/\\") || id == m.parent.Ensemble().UserID() || strings.TrimSpace(task) == "" {
-		return common.ChildStatus{}, errors.New("spawn requires a child ID and task; user and path addresses are reserved")
+		return nil, nil, errors.New("spawn requires a child ID and task; user and path addresses are reserved")
 	}
 	m.mu.Lock()
-	defer func() { m.mu.Unlock(); m.parent.Ensemble().Observe(m.parent, common.FleetChanged{}) }()
 	if m.stopped {
-		return common.ChildStatus{}, common.ErrStopped
+		m.mu.Unlock()
+		return nil, nil, common.ErrStopped
 	}
 	if m.children[id] != nil {
-		return common.ChildStatus{}, fmt.Errorf("child %q already exists", id)
+		m.mu.Unlock()
+		return nil, nil, fmt.Errorf("child %q already exists", id)
 	}
 	spec := m.parent.Spec()
+	spec.Compaction = managed
+	spec.SubmitSchema = append(json.RawMessage(nil), schema...)
 	spec.ID, spec.ParentID, spec.Model = id, m.parent.Spec().ID, model
 	spec.DataDir = filepath.Join(m.parent.Config().DataDir, "children", id)
 	spec.LogPath = filepath.Join(spec.DataDir, "events.jsonl")
 	spec.SavePath = filepath.Join(spec.DataDir, "save.json")
+	if managed {
+		if _, err := m.parent.Sandbox().Stat(spec.DataDir); !os.IsNotExist(err) {
+			m.mu.Unlock()
+			if err == nil {
+				err = errors.New("compaction child directory already exists")
+			}
+			return nil, nil, err
+		}
+	}
 	a, err := m.parent.Ensemble().CreateChild(m.parent, spec)
 	if err != nil {
-		return common.ChildStatus{}, err
+		m.mu.Unlock()
+		return nil, nil, err
 	}
-	if a.ParentAgent() != m.parent || a.Ensemble() != m.parent.Ensemble() {
-		a.Shutdown()
-		return common.ChildStatus{}, errors.New("factory returned child with wrong ownership")
+	if !managed {
+		err = a.Load()
 	}
-	if err = a.Load(); err == nil {
+	if err == nil {
 		err = a.Save()
 	}
 	if err != nil {
-		a.Shutdown()
-		return common.ChildStatus{}, err
-	}
-	entry := &child{agent: a}
-	m.children[id] = entry
-	m.submitted = false
-	m.signal()
-	// Keep the reliable completion channel. Progress is lossy and cannot tell us
-	// whether a child failed, submitted, or was merely interrupted.
-	go func() {
-		<-a.Submit(context.Background(), task)
-		m.mu.Lock()
-		m.signal()
+		// Joining can notify the parent. Never retain its manager lock here.
 		m.mu.Unlock()
+		err = errors.Join(err, a.Shutdown())
+		m.parent.Ensemble().ForgetCompaction(a)
+		return nil, nil, err
+	}
+	c := &child{id: id, agent: a}
+	m.children[id] = c
+	if !managed {
+		m.submitted = false
+	}
+	m.signal()
+	result := a.Submit(context.Background(), task)
+	m.mu.Unlock()
+	m.parent.Ensemble().Observe(m.parent, common.FleetChanged{})
+	return c, result, nil
+}
+
+// StartCompaction retains the reliable Result before automatic drain/removal.
+// A concurrent explicit kill shares this exact entry's save result, even after
+// its map entry disappears; no dismissed-ID registry is needed.
+func (m *manager) StartCompaction(id, task string) (common.Agent, <-chan common.ChildCompletion, error) {
+	c, result, err := m.launch(id, task, "", nil, true)
+	if err != nil {
+		return nil, nil, err
+	}
+	done := make(chan common.ChildCompletion, 1)
+	go func() {
+		out := common.ChildCompletion{Result: <-result}
+		out.CleanupErr = m.stopChild(c)
+		status := c.agent.Fleet().Status()
+		out.Submission = common.Submission{Result: status.Result, Payload: append(json.RawMessage(nil), status.Payload...)}
+		out.Usage = c.agent.Engine().UsageBuckets()
+		m.mu.Lock()
+		out.Cancelled = c.cancelled
+		m.mu.Unlock()
+		done <- out
+		close(done)
 	}()
-	return common.ChildStatus{ID: id, State: "running"}, nil
+	return c.agent, done, nil
 }
 
 // Status reports explicit submission; ordinary text never means finished.
@@ -118,7 +185,8 @@ func (m *manager) Status() common.ChildStatus {
 	}
 	if m.submitted {
 		s.State = "submitted"
-		s.Result = m.result
+		s.Result = m.result.Result
+		s.Payload = append(json.RawMessage(nil), m.result.Payload...)
 	}
 	return s
 }
@@ -196,34 +264,49 @@ func (m *manager) Join(ctx context.Context, ids []string) (string, error) {
 func (m *manager) ShutdownChild(id string) error {
 	m.mu.Lock()
 	c := m.children[id]
+	if c != nil {
+		c.cancelled = true
+		m.signal()
+	}
 	m.mu.Unlock()
 	if c == nil {
 		return fmt.Errorf("unknown agent %q", id)
 	}
-	err := errors.Join(c.agent.Shutdown(), c.agent.Save())
-	m.mu.Lock()
-	if m.children[id] == c {
-		delete(m.children, id)
-	}
-	m.signal()
-	m.mu.Unlock()
+	// Publish the cancellation request before a potentially long shared drain.
 	m.parent.Ensemble().Observe(m.parent, common.FleetChanged{})
-	return err
+	return m.stopChild(c)
+}
+
+func (m *manager) stopChild(c *child) error {
+	c.stop.Do(func() {
+		c.stopErr = errors.Join(c.agent.Shutdown(), c.agent.Save())
+		m.mu.Lock()
+		id := c.id
+		if m.children[id] == c {
+			delete(m.children, id)
+		}
+		m.signal()
+		m.mu.Unlock()
+		m.parent.Ensemble().ForgetCompaction(c.agent)
+		m.parent.Ensemble().Observe(m.parent, common.FleetChanged{})
+	})
+	return c.stopErr
 }
 
 // Shutdown closes spawning first, then joins the retained child set recursively.
 func (m *manager) Shutdown() error {
 	m.mu.Lock()
 	m.stopped = true
-	var ids []string
-	for id := range m.children {
-		ids = append(ids, id)
+	var children []*child
+	for _, c := range m.children {
+		c.cancelled = true
+		children = append(children, c)
 	}
 	m.signal()
 	m.mu.Unlock()
 	var errs []error
-	for _, id := range ids {
-		errs = append(errs, m.ShutdownChild(id))
+	for _, c := range children {
+		errs = append(errs, m.stopChild(c))
 	}
 	return errors.Join(errs...)
 }
@@ -325,41 +408,11 @@ func (m *manager) active() []string {
 	return ids
 }
 
-// Submit enforces bottom-up completion and resets only the successful agent's
-// correction count. The payload is model work; the framework cannot judge it.
-func (m *manager) Submit(result string) error {
-	m.mu.Lock()
-	if ids := m.active(); len(ids) > 0 {
-		m.mu.Unlock()
-		return fmt.Errorf("active children %v: join_agents or shutdown_agent before submit", ids)
-	}
-	file, err := m.parent.Sandbox().OpenFile(filepath.Join(m.parent.Config().DataDir, "submit.md"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
-	if err != nil {
-		m.mu.Unlock()
-		return err
-	}
-	err = errors.Join(json.NewEncoder(file).Encode(map[string]string{"result": result}), file.Close())
-	if err != nil {
-		m.mu.Unlock()
-		return err
-	}
-	m.submitted = true
-	m.result = result
-	m.failure = ""
-	m.wakes = 0
-	m.signal()
-	m.mu.Unlock()
-	if parent := m.parent.ParentAgent(); parent != nil {
-		parent.Fleet().Changed()
-	}
-	return nil
-}
-
 // Begin clears completion for new work while preserving the consecutive-wake bound.
 func (m *manager) Begin() {
 	m.mu.Lock()
 	m.submitted = false
-	m.result = ""
+	m.result = common.Submission{}
 	m.failure = ""
 	m.mu.Unlock()
 }
@@ -367,6 +420,10 @@ func (m *manager) Begin() {
 // Idle applies reactive correction only to a successful turn; the actor never
 // calls it for transport, persistence or interruption failures.
 func (m *manager) Idle() (string, string) {
+	// Human-facing Agents finish in chat. Only delegated Agents owe a submit.
+	if m.parent.ParentAgent() == nil {
+		return "", ""
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.submitted || m.stopped {

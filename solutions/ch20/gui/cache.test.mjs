@@ -22,7 +22,7 @@ test('session meter renders measured usage and unknown price', async () => {
  provider.listen(0,'127.0.0.1');await once(provider,'listening');
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
  try {
-  for(const model of ['claude-haiku-5-5','unknown-model']) {
+  for(const model of ['claude-sonnet-5','unknown-model']) {
    const cwd=join(scratch,model);mkdirSync(join(cwd,'cr'),{recursive:true});writeFileSync(join(cwd,'cr/settings.json'),JSON.stringify({tts_enabled:false}));
    const probe=createServer();probe.listen(0,'127.0.0.1');await once(probe,'listening');const port=probe.address().port;await new Promise(r=>probe.close(r));
    const child=spawn(binary,['--port',String(port),'--gui-dir',resolve('web/gui'),'--no-stream'],{cwd,env:{...process.env,LLM_VENDOR:'anthropic',LLM_MODEL:model,LLM_API_KEY:'fixture',LLM_BASE_URL:`http://127.0.0.1:${provider.address().port}`,EN_SKILLS_DIR:'',EN_PRIMARY_SKILL:''},stdio:['pipe','ignore','pipe']});
@@ -36,7 +36,7 @@ test('session meter renders measured usage and unknown price', async () => {
      await page.locator('#input').fill('show meter');await page.locator('#input').press('Enter');
      await page.waitForFunction(n=>window.ensembleTurn>=n,turn);
      const text=await page.locator('#usage').innerText();
-     assert.equal(text,`Cost ${model==='unknown-model'?'—':'$0.0000'} · Input 100 · Cache 80 · Hit 80.0%`);
+     assert.equal(text,`Cost ${model==='unknown-model'?'—':`$${(.000076*turn).toFixed(4)}`} · Input 100 · Cache 80 · Hit 80.0%`);
      assert.equal(await page.locator('#usage').getAttribute('title'),`Session tokens: input ${20*turn}, cache write 0, cache read ${80*turn}, output ${2*turn}`);
     }
    } finally {await page.close();child.kill('SIGINT');await exited;}

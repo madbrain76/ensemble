@@ -190,6 +190,24 @@ func land(c *common.Context, entry common.Entry) {
 	}
 	if entry.Kind == common.KindHandoff {
 		redact(c, &common.RedactData{From: 0, To: ^uint64(0), Level: "redact_tool"})
+		// The checkpoint clears private replay material too. Copy parts so the
+		// event log preserves it while the next request retains visible dialogue.
+		var kept []common.Entry
+		for _, old := range c.Dialogue {
+			var parts []common.Part
+			for _, part := range old.Parts {
+				if part.Type != "opaque" {
+					// Gemini can attach private replay material to visible text.
+					part.Opaque = nil
+					parts = append(parts, part)
+				}
+			}
+			old.Parts = parts
+			if len(parts) > 0 {
+				kept = append(kept, old)
+			}
+		}
+		c.Dialogue = kept
 	}
 	c.Dialogue = append(c.Dialogue, entry)
 }

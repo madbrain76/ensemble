@@ -132,7 +132,17 @@ func run() (runErr error) {
 	if err := authcli.Configure(app); err != nil {
 		return err
 	}
-	a, err := app.NewAgent(cfg, spec)
+	var a ensemble.Agent
+	if mode == "render" || mode == "dump" {
+		app.EnableFleet(terminalUser{})
+		a, err = app.NewAgent(cfg, spec)
+	} else {
+		directory := "."
+		if spec.SandboxRoot != "" {
+			directory = spec.SandboxRoot
+		}
+		a, err = app.Start(directory, cfg, spec, terminalUser{})
+	}
 	if err != nil {
 		return err
 	}
@@ -176,12 +186,9 @@ func run() (runErr error) {
 	if a.Config().BillingMode != ensemble.CredentialChatGPT && cfg.APIKey == "" && mode != "--mcp-pipe" {
 		return errors.New("provider API key is not set")
 	}
-	if err := a.Load(); err != nil {
-		return err
-	}
 	// Register saving only after a successful load. Joining first preserves final
 	// job facts and prevents a bad input file from ever reaching replacement.
-	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
+	defer func() { runErr = errors.Join(runErr, app.Close()) }()
 	if mode == "--mcp-pipe" {
 		transport := ensemble.NewMCPTransport(os.Stdin, os.Stdout, pipeBoundary{})
 		if err := a.MCP().Connect(context.Background(), "pipe", transport); err != nil {
@@ -206,3 +213,16 @@ type pipeBoundary struct{}
 
 // Close interrupts both directions of the dedicated command's protocol pipe.
 func (pipeBoundary) Close() error { return errors.Join(os.Stdin.Close(), os.Stdout.Close()) }
+
+// terminalUser is the actual human delivery boundary, present in protocol and
+// chat modes. /reply sends an answer without turning it into a model hint.
+type terminalUser struct{}
+
+// Deliver makes fleet questions and escalation visible at the human terminal.
+func (terminalUser) Deliver(message ensemble.FleetMessage) error {
+	_, err := fmt.Fprintf(os.Stderr, "[from %s to %s] %s\n", message.From, message.To, message.Content)
+	if message.ID != "" {
+		fmt.Fprintln(os.Stderr, "Reply with /reply TEXT (or /reply MESSAGE_ID TEXT if several questions are pending).")
+	}
+	return err
+}

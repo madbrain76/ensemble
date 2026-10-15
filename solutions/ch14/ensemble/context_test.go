@@ -265,9 +265,9 @@ func TestContextSurvivorsAndFrozenPrefix(t *testing.T) {
 	a, requests := contextSession(t, "claude-opus-5-course", func(n int) []map[string]any {
 		switch n {
 		case 1:
-			return []map[string]any{contextCall("load", "load_skill", map[string]any{"name": "extra"})}
+			return []map[string]any{{"type": "thinking", "thinking": "Earlier private reasoning", "signature": "signed-replay"}, contextCall("load", "load_skill", map[string]any{"name": "extra"})}
 		case 2:
-			return []map[string]any{contextCall("note", "micro_handoff", map[string]any{"text": "HANDOFF NOTE"}), contextCall("read", "read_file", map[string]any{"path": path})}
+			return []map[string]any{{"type": "redacted_thinking", "data": "encrypted-replay"}, contextCall("note", "micro_handoff", map[string]any{"text": "HANDOFF NOTE"}), contextCall("read", "read_file", map[string]any{"path": path})}
 		case 3:
 			return []map[string]any{contextCall("unload", "unload_skill", map[string]any{"name": "extra"})}
 		}
@@ -293,6 +293,15 @@ func TestContextSurvivorsAndFrozenPrefix(t *testing.T) {
 	}
 	if bytes.Contains(requests[2], []byte(`"tool_use"`)) || bytes.Contains(requests[2], []byte(`"tool_result"`)) {
 		t.Fatal("handoff left batch tool parts")
+	}
+	if !bytes.Contains(requests[1], []byte("signed-replay")) {
+		t.Fatal("reasoning disappeared before the checkpoint")
+	}
+	if bytes.Contains(requests[2], []byte("signed-replay")) || bytes.Contains(requests[2], []byte("encrypted-replay")) {
+		t.Fatal("handoff left signed or encrypted reasoning")
+	}
+	if bytes.Count(requests[2], []byte("micro_handoff completed")) != 1 {
+		t.Fatal("handoff completion missing or duplicated")
 	}
 	if !bytes.Contains(requests[1], []byte(`"tool_addition"`)) || !bytes.Contains(requests[3], []byte(`"tool_removal"`)) {
 		t.Fatal("declaration delta missing")
@@ -320,6 +329,40 @@ func TestContextSurvivorsAndFrozenPrefix(t *testing.T) {
 	}
 	if !(result > 0 && result < handoff && handoff < read) {
 		t.Fatal("handoff chronology or sibling execution changed")
+	}
+	// Keep the original provider facts while replaying the same checkpoint cut.
+	var log, save bytes.Buffer
+	if err := a.History().Dump(&log); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(log.Bytes(), []byte("signed-replay")) || !bytes.Contains(log.Bytes(), []byte("encrypted-replay")) {
+		t.Fatal("checkpoint erased private reasoning from the event log")
+	}
+	if err := a.History().Save(&save); err != nil {
+		t.Fatal(err)
+	}
+	for _, restore := range []func() error{
+		func() error { return nil },
+		func() error { return a.History().Load(bytes.NewReader(log.Bytes())) },
+		func() error { return a.History().Restore(bytes.NewReader(save.Bytes())) },
+	} {
+		if err := restore(); err != nil {
+			t.Fatal(err)
+		}
+		current := a.History().Context()
+		before, _ := json.Marshal(current)
+		raw, err := a.Engine().Render(current)
+		if err != nil {
+			t.Fatal(err)
+		}
+		again, err := a.Engine().Render(current)
+		after, _ := json.Marshal(current)
+		if err != nil || !bytes.Equal(raw, again) || !bytes.Equal(before, after) || bytes.Count(raw, []byte("micro_handoff completed")) != 1 {
+			t.Fatal("render must label the checkpoint once without changing retained context")
+		}
+		if bytes.Contains(raw, []byte("signed-replay")) || bytes.Contains(raw, []byte("encrypted-replay")) || !bytes.Contains(raw, []byte("HANDOFF NOTE")) {
+			t.Fatal("restored checkpoint lost its note or revived reasoning")
+		}
 	}
 }
 
@@ -469,5 +512,53 @@ func TestCheckpointFailureRetainsJournal(t *testing.T) {
 	after, _ := os.ReadFile(path + ".journal")
 	if len(before) == 0 || !bytes.Equal(before, after) {
 		t.Fatal("failed checkpoint truncated journal")
+	}
+}
+
+// TestContextHandoffTextSignature checks a text-bound private signature through
+// the actual public journal/reducer/renderer, before Responses exists in the book.
+func TestContextHandoffTextSignature(t *testing.T) {
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.Gemini, Model: "gemini-3.8-flash", DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	for _, event := range []common.Event{
+		{Type: "response_ended", Response: &common.ResponseData{From: a.Engine().Target(), Parts: []common.Part{{Type: "text", Text: "Visible answer", Opaque: json.RawMessage(`{"thoughtSignature":"text-private-signature"}`)}}}},
+		{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "Stored note"}},
+	} {
+		if err := a.Record(event); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var log, save bytes.Buffer
+	if err := a.History().Dump(&log); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.History().Save(&save); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(log.Bytes(), []byte("text-private-signature")) {
+		t.Fatal("log lost original text signature")
+	}
+	for _, restore := range []func() error{
+		func() error { return nil },
+		func() error { return a.History().Load(bytes.NewReader(log.Bytes())) },
+		func() error { return a.History().Restore(bytes.NewReader(save.Bytes())) },
+	} {
+		if err := restore(); err != nil {
+			t.Fatal(err)
+		}
+		contextBytes, err := json.Marshal(a.History().Context())
+		if err != nil || bytes.Contains(contextBytes, []byte("text-private-signature")) {
+			t.Fatal("checkpoint retained private text signature in projected context")
+		}
+		raw, err := a.Engine().Render(a.History().Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if bytes.Contains(raw, []byte("text-private-signature")) || !bytes.Contains(raw, []byte("Visible answer")) || !bytes.Contains(raw, []byte("Stored note")) {
+			t.Fatal("checkpoint must clear private signature while retaining visible text and note")
+		}
 	}
 }

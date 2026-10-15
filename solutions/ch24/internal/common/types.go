@@ -207,6 +207,8 @@ type ToolData struct {
 // Only a summary needs a stored replacement: a deterministic filter or stub
 // can be reconstructed from the content it supersedes.
 type RedactData struct {
+	// TaskID binds a managed cut to its exact replacement, not the ordinary turn.
+	TaskID string `json:"task_id,omitempty"`
 	// From is the inclusive first original event sequence to rewrite in projection.
 	From uint64 `json:"from"`
 	// To is the inclusive last original event sequence to rewrite in projection.
@@ -262,6 +264,8 @@ type Event struct {
 	Depopulated *BandDepopulatedData `json:"depopulated,omitempty"`
 	// Compactor records a launch without making replay repeat external work.
 	Compactor *CompactorLaunchedData `json:"compactor,omitempty"`
+	// CompactionOutcome records managed completion independently of main turn state.
+	CompactionOutcome *CompactionOutcomeData `json:"compaction_outcome,omitempty"`
 }
 
 // Seq connects projected content back to its original event. It survives
@@ -291,6 +295,8 @@ type Context struct {
 	DisabledBands [6]bool `json:"disabled_bands"`
 	// Compression retains an unfinished attempt without replaying external work.
 	Compression *PendingCompression `json:"compression,omitempty"`
+	// CompactionOutcome is the latest bounded receipt for staged-file cleanup.
+	CompactionOutcome *CompactionOutcomeData `json:"compaction_outcome,omitempty"`
 	// Held waits for all current calls to have results before landing survivors.
 	Held []Entry `json:"held,omitempty"`
 	// StartupTools preserves the first request's declarations for inline-tool models.
@@ -315,6 +321,8 @@ type Context struct {
 type Ensemble interface {
 	// CreateChild invokes the application factory with the actual parent.
 	CreateChild(Agent, AgentSpec) (Agent, error)
+	// ForgetCompaction removes an already-drained managed child by exact identity.
+	ForgetCompaction(Agent)
 	// FleetEnabled reports whether the application installed the fleet protocol.
 	FleetEnabled() bool
 	// UserID is the addressable human, never a managed child.
@@ -357,10 +365,10 @@ type Agent interface {
 	SetMaxToolRounds(int) error
 	// SetContextSettings updates tool-byte and saved-log policy on the owning Agent.
 	SetContextSettings(target, retention int) error
-	// SetMemorySettings records corpus switches and applies byte budgets through the actor.
-	SetMemorySettings(MemorySettings) error
 	// SetModel changes the selected model between turns, retaining provider, billing and usage.
 	SetModel(string) error
+	// SetMemorySettings records corpus switches and applies byte budgets through the actor.
+	SetMemorySettings(MemorySettings) error
 	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config
 	// Engine reaches the transport and measured usage through the owning Agent.
@@ -411,6 +419,9 @@ type Agent interface {
 	Save() error
 	// Shutdown stops admission, stops managed processes and joins outstanding work.
 	Shutdown() error
+	// DiscardConstruction drains a refused factory result without persisting to
+	// its rejected paths; factories must return before loading or starting work.
+	DiscardConstruction() error
 }
 
 // A declaration is vendor-neutral; only Engine chooses its wire spelling.
@@ -567,6 +578,11 @@ type History interface {
 type Engine interface {
 	// Meter returns a disposable session-count and derived-price snapshot.
 	Meter() UsageMeter
+	// UsageBuckets returns owned copies of session counts by model and price tier.
+	UsageBuckets() []UsageBucket
+	// AddAuxiliaryUsage imports drained worker counts without changing latest-main
+	// usage. The owning attempt must call once; Engine retains no task-ID ledger.
+	AddAuxiliaryUsage([]UsageBucket)
 	// AttachCacheLens installs the Engine-owned diagnostic before any exchanges.
 	AttachCacheLens(CacheLens)
 	// CacheLens returns the optional request diagnostic.
@@ -590,6 +606,8 @@ type Engine interface {
 	Render(*Context) ([]byte, error)
 	// Usage returns measured session counts under the Engine's accounting lock.
 	Usage() Usage
-	// Compress makes one bounded, isolated request with only the submit tool.
+	// Compress makes one direct isolated request with only the submit tool.
+	// Deprecated: the actor uses Fleet managed workers for background compaction;
+	// this legacy convenience method retains its synchronous external contract.
 	Compress(context.Context, string, int) (string, error)
 }

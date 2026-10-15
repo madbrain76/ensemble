@@ -2,8 +2,8 @@ package engine
 
 import "ensemble/internal/common"
 
-// Keep model identity and prompt tier with the counts that incurred them. A
-// judge's override must not reprice its work at the conversation model's rate.
+// Keep model identity and prompt tier with the counts that incurred them.
+// A later display must not reprice large-prompt work at the ordinary rate.
 type usageKey struct {
 	vendor common.Vendor
 	model  string

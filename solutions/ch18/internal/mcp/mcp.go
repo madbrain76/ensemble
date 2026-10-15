@@ -45,7 +45,7 @@ func (m *manager) StartSkill(skill string, servers []common.MCPServer, allowed [
 		return errClosed
 	}
 	for _, server := range servers {
-		if server.Name == "" || (server.Transport != "stdio" && server.Transport != "websocket") || (server.Transport == "stdio" && server.Command == "") {
+		if server.Name == "" || (server.Transport != "stdio" && server.Transport != "websocket" && server.Transport != "url") || (server.Transport == "stdio" && server.Command == "") || (server.Transport == "url" && server.URL == "") {
 			m.mu.Unlock()
 			return fmt.Errorf("invalid MCP server declaration")
 		}
@@ -70,6 +70,8 @@ func (m *manager) StartSkill(skill string, servers []common.MCPServer, allowed [
 			if t == nil {
 				continue
 			}
+		} else if server.Transport == "url" {
+			t = NewHTTP(m, server)
 		} else {
 			t, err = startStdio(m.parent, server)
 		}

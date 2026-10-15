@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -24,6 +25,15 @@ type FleetMessage struct {
 	Content string `json:"content"`
 }
 
+// Submission preserves the distinction between legacy text and a custom JSON object.
+// Returned Payload bytes belong to the caller, not the live Fleet.
+type Submission struct {
+	// Result holds default-schema text; it can legitimately be empty.
+	Result string `json:"result,omitempty"`
+	// Payload holds the full custom argument object, without a result wrapper.
+	Payload json.RawMessage `json:"payload,omitempty"`
+}
+
 // ChildStatus is a snapshot of one owned child's completion, not a global registry.
 type ChildStatus struct {
 	// Activity distinguishes provider work, tools, waiting and idle.
@@ -34,14 +44,35 @@ type ChildStatus struct {
 	ID string `json:"agent_id"`
 	// State is idle, running, submitted, or failed.
 	State string `json:"state"`
-	// Result is the explicit submitted payload, never inferred from an idle reply.
+	// Result is default-schema text, never inferred from an idle reply.
 	Result string `json:"result,omitempty"`
+	// Payload is the custom submitted object, with caller-owned backing bytes.
+	Payload json.RawMessage `json:"payload,omitempty"`
 	// Error records a failed turn without retrying it.
 	Error string `json:"error,omitempty"`
 }
 
+// ChildCompletion is delivered only after reliable task completion and actual
+// worker shutdown/save. Failed/canceled tasks still carry their measured usage.
+type ChildCompletion struct {
+	// Result is the normal Submit acknowledgment, including its log-save error.
+	Result Result
+	// Submission is copied after drain; an earlier submitted status is insufficient.
+	Submission Submission
+	// Usage contains final measured model/tier buckets, including failed work.
+	Usage []UsageBucket
+	// Cancelled records explicit kill/owner shutdown racing automatic completion.
+	Cancelled bool
+	// CleanupErr retains actual shutdown/snapshot failure separately from task error.
+	CleanupErr error
+}
+
 // SubAgentManager owns child lifetimes and pending questions for one Agent.
 type SubAgentManager interface {
+	// Submission reads default text with durable fallback; custom data requires SubmissionData.
+	Submission(string) (string, error)
+	// SubmissionData reads typed text/custom data, resolving ownership before disk fallback.
+	SubmissionData(string) (Submission, error)
 	// Children returns the actual owned children for trusted tree traversal.
 	Children() []Agent
 	// Find resolves only this manager's children; foreign and absent IDs are identical.
@@ -50,14 +81,17 @@ type SubAgentManager interface {
 	WaitChange(context.Context, []string, string, time.Duration) (string, error)
 	// Output returns finalized output since an event cursor, optionally waiting.
 	Output(context.Context, string, uint64, bool) (ChildOutput, error)
-	// Submission reads a child's in-memory result with durable submit.md fallback.
-	Submission(string) (string, error)
 	// GracefulShutdown waits for queued turns before ending one child's lifetime.
 	GracefulShutdown(context.Context, string) error
 	// Agent returns the required owner.
 	Agent() Agent
 	// Spawn constructs, restores and starts a child through the application factory.
 	Spawn(id, task, model string) (ChildStatus, error)
+	// SpawnWithSchema validates and freezes the optional whole-argument submit contract.
+	SpawnWithSchema(id, task, model string, schema json.RawMessage) (ChildStatus, error)
+	// StartCompaction starts one fresh restricted child without public delegation.
+	// Its buffered completion follows Result, drain, save and exact-identity removal.
+	StartCompaction(id, task string) (Agent, <-chan ChildCompletion, error)
 	// List returns only this Agent's children in stable ID order.
 	List() []ChildStatus
 	// Join waits for all requested submissions, yielding early to pending questions.
@@ -75,8 +109,12 @@ type SubAgentManager interface {
 	// Reply answers a pending question; blank agentID selects human-addressed questions.
 	// Omitted messageID selects the sole matching question.
 	Reply(agentID, messageID, content string) error
-	// Submit records completion only when no unfinished children remain.
+	// Submit wraps result text in JSON and obeys the same custom contract as SubmitJSON.
 	Submit(string) error
+	// SubmitJSON validates the direct argument object before publishing completion.
+	SubmitJSON(json.RawMessage) error
+	// SubmitSchema returns an owned copy of the runtime submission contract.
+	SubmitSchema() json.RawMessage
 	// Status reports this Agent's explicit completion state.
 	Status() ChildStatus
 	// End records an actual turn failure; interruption leaves the child available.

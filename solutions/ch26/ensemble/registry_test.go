@@ -2,6 +2,7 @@ package ensemble_test
 
 import (
 	"context"
+	"encoding/json"
 	"ensemble/ensemble"
 	"io"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -17,16 +19,22 @@ import (
 // request must contain its old conversation, and deletion must remove its files.
 func TestNamedRegistryRestartAndTree(t *testing.T) {
 	replayed := make(chan bool, 1)
+	var peerRequests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		if strings.Contains(string(body), "SECOND_TASK") {
 			replayed <- strings.Contains(string(body), "FIRST_TASK")
 		}
-		fleetCall(w, "submit", map[string]string{"result": "saved answer"})
+		if strings.Contains(string(body), "CHILD_TASK") {
+			fleetCall(w, "submit", map[string]string{"result": "saved answer"})
+			return
+		}
+		peerRequests.Add(1)
+		json.NewEncoder(w).Encode(map[string]any{"content": []map[string]string{{"type": "text", "text": "saved answer"}}, "usage": map[string]int{"input_tokens": 1, "output_tokens": 1}})
 	}))
 	t.Cleanup(server.Close)
 	dir := t.TempDir()
-	cfg := ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: filepath.Join(dir, "main"), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}}
+	cfg := ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: filepath.Join(dir, "main"), BuiltinTools: true}
 	start := func() *ensemble.Ensemble {
 		e := ensemble.New(io.Discard)
 		if _, err := e.Start(dir, cfg, ensemble.AgentSpec{}, make(humanInbox, 10)); err != nil {
@@ -55,6 +63,9 @@ func TestNamedRegistryRestartAndTree(t *testing.T) {
 	}
 	if _, err = peer.Ask(ctx, "SECOND_TASK"); err != nil {
 		t.Fatal(err)
+	}
+	if peerRequests.Load() != 2 || peer.Fleet().Status().State != "idle" {
+		t.Fatal("named peer ordinary chat was corrected", peerRequests.Load(), peer.Fleet().Status())
 	}
 	if !<-replayed {
 		t.Fatal("restart lost peer history")
@@ -101,7 +112,7 @@ func TestNamedDeleteActiveChildGuard(t *testing.T) {
 	t.Cleanup(server.Close)
 	dir := t.TempDir()
 	app := ensemble.New(io.Discard)
-	cfg := ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: filepath.Join(dir, "main"), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}}
+	cfg := ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: filepath.Join(dir, "main"), BuiltinTools: true}
 	if _, err := app.Start(dir, cfg, ensemble.AgentSpec{}, make(humanInbox, 10)); err != nil {
 		t.Fatal(err)
 	}

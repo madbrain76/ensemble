@@ -95,6 +95,9 @@ func (e *engine) readAnthropic(r io.Reader, log func(string, []byte), delta func
 				}
 			}
 		case "message_delta":
+			if reason := frame.Delta["stop_reason"]; len(reason) != 0 {
+				message["stop_reason"] = reason
+			}
 			var usage map[string]json.RawMessage
 			json.Unmarshal(message["usage"], &usage)
 			if usage == nil {

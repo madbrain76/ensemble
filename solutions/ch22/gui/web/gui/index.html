@@ -17,6 +17,13 @@
         </div>
         <section id="agents-panel" role="tabpanel" aria-labelledby="agents-tab">
           <ul id="agent-tree" aria-label="Agents"></ul>
+          <form id="create-agent">
+            <label>Name <input id="agent-name" required autocomplete="off"></label>
+            <label>Model <input id="agent-model" placeholder="Application default" autocomplete="off"></label>
+            <label>Skill <input id="agent-skill" placeholder="Application default" autocomplete="off"></label>
+            <button>Create agent</button>
+          </form>
+          <p id="agent-status" role="status"></p>
         </section>
         <section id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" hidden>
           <label>Model (current provider, between turns) <input id="model" type="text" autocomplete="off"></label>
@@ -41,7 +48,7 @@
       <div class="drag-bar" id="sidebar-drag" role="separator" aria-label="Sidebar width" aria-orientation="vertical" tabindex="0"></div>
       <section class="center" aria-label="Chat">
         <header>
-          <h2>Chat</h2><span id="state" role="status">connecting</span>
+          <h2 id="conversation-title">Chat</h2><span id="state" role="status">connecting</span>
           <span id="pause-state"></span>
           <span id="usage" aria-label="Session usage" title="No requests this session">Cost — · Input 0 · Cache 0 · Hit 0%</span>
           <button id="resume">Unpause everyone</button><button id="interrupt">Interrupt turn</button>

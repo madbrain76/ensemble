@@ -15,7 +15,7 @@ func apply(c *common.Context, e common.Event) {
 	// Classification belongs here, after capture. Replaying a System arrival
 	// recovers pending instructions even before the first request is sent.
 	case "message_received", "hint_received":
-		if e.Type == "hint_received" || e.Message.Actor == common.System || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending")) {
+		if e.Message.Actor == common.System || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending")) {
 			c.Ephemera = append(c.Ephemera, e.Message.Parts...)
 		} else {
 			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Kind: common.KindDialogue, Actor: e.Message.Actor, Parts: e.Message.Parts})
@@ -73,14 +73,17 @@ func apply(c *common.Context, e common.Event) {
 		}
 	case "skill_loaded":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindSkill, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Skill.Body}}})
-	case "recall_attached":
-		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindRecall, Actor: common.Human, Parts: e.Recall.Parts, RecallHashes: e.Recall.Hashes})
 	case "micro_handoff":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindHandoff, Actor: common.System, Parts: []common.Part{{Type: "text", Text: e.Handoff.Text}}})
 	case "tools_changed":
 		survivor(c, common.Entry{Seq: e.Seq, Kind: common.KindTools, Actor: common.System, Parts: []common.Part{{Type: "tool_decls", Added: e.Tools.Added, Removed: e.Tools.Removed}}})
 	case "compactor_launched":
 		c.Compression = &common.PendingCompression{Launch: *e.Compactor}
+	case "compaction_outcome":
+		c.CompactionOutcome = e.CompactionOutcome
+		if c.Compression != nil && c.Compression.Launch.TaskID == e.CompactionOutcome.TaskID {
+			c.Compression = nil
+		}
 	case "band_depopulated":
 		if e.Depopulated.Reason == "graduation" && c.Compression != nil {
 			c.Compression.Retire = e.Depopulated
@@ -89,14 +92,20 @@ func apply(c *common.Context, e common.Event) {
 		}
 	case "band_populated":
 		p := e.Populated
-		if pending := c.Compression; pending != nil && pending.Launch.Band == p.Band && pending.Launch.Thru == p.Thru {
+		if pending := c.Compression; pending != nil && pending.Launch.Band == p.Band && pending.Launch.Thru == p.Thru && pending.Launch.TaskID == p.TaskID {
 			if pending.Cut != nil {
 				redact(c, pending.Cut)
 			}
 			if pending.Retire != nil {
 				depopulate(c, pending.Retire)
 			}
-			c.Compression = nil
+			if p.TaskID == "" {
+				c.Compression = nil
+			} else {
+				// Keep the applied receipt until disk finalization is recorded. A
+				// restart must finish that work before scanning the active corpus.
+				pending.Committed = p
+			}
 		}
 		populate(c, p)
 	case "redacted":
@@ -218,10 +227,20 @@ func land(c *common.Context, entry common.Entry) {
 	}
 	if entry.Kind == common.KindHandoff {
 		redact(c, &common.RedactData{From: 0, To: ^uint64(0), Level: "redact_tool"})
-		// A checkpoint already pays for a prefix rewrite; retire retrieved bytes now.
+		// The checkpoint clears private replay material too. Copy parts so the
+		// event log preserves it while the next request retains visible dialogue.
 		var kept []common.Entry
 		for _, old := range c.Dialogue {
-			if old.Kind != common.KindRecall {
+			var parts []common.Part
+			for _, part := range old.Parts {
+				if part.Type != "opaque" {
+					// Gemini can attach private replay material to visible text.
+					part.Opaque = nil
+					parts = append(parts, part)
+				}
+			}
+			old.Parts = parts
+			if len(parts) > 0 {
 				kept = append(kept, old)
 			}
 		}
@@ -244,7 +263,7 @@ func populate(c *common.Context, p *common.BandPopulatedData) {
 	out = append(out, common.Entry{Kind: kind, File: p.File, Thru: p.Thru, Actor: common.Human, Parts: []common.Part{{Type: "text", Text: p.Text}}})
 	sort.SliceStable(out, func(i, j int) bool {
 		a, b := out[i], out[j]
-		am, bm := a.Kind >= common.KindSoul && a.Kind <= common.KindSession, b.Kind >= common.KindSoul && b.Kind <= common.KindSession
+		am, bm := a.Kind >= common.KindSoul, b.Kind >= common.KindSoul
 		if am != bm {
 			return am
 		}

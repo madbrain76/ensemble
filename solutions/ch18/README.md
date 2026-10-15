@@ -6,7 +6,12 @@ Set `LLM_VENDOR` (`anthropic`, `openai`, or `gemini`), `LLM_MODEL`, and
 `LLM_API_KEY`, then run `ensemble-cli chat` from your chosen workspace. Model
 names are explicit; select one available to your provider account. Messages
 while the agent is busy are hints; `/interrupt` ends the current turn while
-other jobs continue. EOF waits for the current turn and shuts down the Agent.
+other jobs continue. Use `/model NAME` between turns to select another model
+on the same provider and billing route. The optional GUI exposes the same
+session control in Settings. Launch configuration wins on restart. Ask for
+`agent_status` to inspect the current model, last response, session tokens,
+cache hit rate and per-model cost; unavailable prices are reported as unknown.
+EOF waits for the current turn and shuts down the Agent.
 
 Known models stream by default. `EN_DISABLE_STREAMING=1` requests one-piece
 responses. Unknown models remain usable for text with streaming off. Replies
@@ -108,46 +113,7 @@ Unloading immediately disconnects MCP tools and peers while instruction removal
 remains pending. Programmatic browser input updates the control without taking
 the human typing pause; actual typing and explicit Agent-wide unpause still work.
 
-Memory uses the owning Agent's data directory: `SOUL.md`, `MEMORY.md`, session
-files in `memory/`, and graduated files in `bucket-0/` and `bucket-1/`.
-The optional GUI's Context Management tab controls each band. Budgets and
-watermarks are bytes; zero selects defaults (conversation 3,000, bands 1,500,
-high twice the budget, low the budget). Disabling a band preserves its files;
-re-enabling rereads edits. Graduated source files remain beside the originals
-with a `.retired` suffix and are not active memories.
-
-`micro_handoff` checkpoints completed work and is the only compression trigger.
-The compressor makes one bounded request using the current provider and one
-`submit` tool. Failed or interrupted calls preserve the old source. Recorded
-memory bytes and cuts replay without another model call. A compression target
-is a prompt guideline, not a guarantee that the model preserves every fact;
-review important memories on disk and correct them when necessary.
-
-Auto-recall searches the Agent's memory files (including retired originals),
-`docs/`, `handoffs/`, `learnings/` markdown, and its configured skill directory.
-These directories are relative to `Config.DataDir` (`cr/` in the commands).
-It skips text already present in context, including the newest memories when
-already loaded by a band. Markdown learnings are the supported public corpus
-format; this application does not read another application's private JSON files.
-
-Each user turn of at least 80 characters searches per-source BM25 indexes. The
-stateless judge defaults to the current provider/model; set
-`EN_RECALL_JUDGE_MODEL` to a cheaper compatible model on that same provider.
-`EN_RECALL_DISABLE_JUDGE=1` selects mechanical recall, and
-`EN_RECALL_DISABLED=1` bypasses recall. Embedders can set `Config.Recall` limits;
-zero selects the chapter defaults (3 snippets, 20 candidates, 3 recent messages,
-6,144 attachment bytes). Judge failure falls back to final source quotas:
-memories receive half the slots rounded up, and unused slots are redistributed.
-A successful judge's selections, including none, stand unchanged.
-
-Recall is recorded under `recall_attached.parts`, separately from the user's
-words. Renderers retain its position; offline replay never searches or judges.
-A `micro_handoff` removes recalled context at the existing checkpoint boundary.
-Each attachment also retains hashes of the source snippets it represents, so a
-byte-capped snippet is not injected repeatedly. These identities leave with the
-attachment; edited source content can be recalled again.
-
-Chapter 19 adds subscription authentication to both executables:
+Chapter 16 adds subscription authentication to both executables:
 
     ensemble-cli auth login openai-chatgpt
     ensemble-cli auth status
@@ -162,9 +128,12 @@ select metered billing or `chatgpt` to require the subscription. Automatic
 API keys. Identity-only login is retained and displayed, but inference requires
 the actual `chatgpt.tokens.use.direct` grant.
 
-Select an account-available model with `LLM_MODEL`. `gpt-6.1-sol` uses Responses;
-earlier tested model rows retain Chat Completions. Subscription inference requires
-a supported Responses row. `OPENAI_REASONING_EFFORT` configures effort and
+Select an account-available model with `LLM_MODEL`. `gpt-6-astra` and `gpt-6.1-sol`
+use Responses; the other tested OpenAI rows retain Chat Completions. For Bill's
+crossover configuration, set `LLM_VENDOR=openai`, `LLM_MODEL=gpt-6-astra`,
+`OPENAI_REASONING_EFFORT=high` and `OPENAI_BILLING_MODE=chatgpt`.
+Subscription inference requires a supported Responses row.
+`OPENAI_REASONING_EFFORT` configures effort and
 `OPENAI_REASONING_SUMMARY` configures summary detail (`auto` by default). Responses
 always streams internally because terminal completion establishes success.
 Public summaries are distinct from assistant text and private reasoning bytes.
@@ -183,3 +152,23 @@ The observed ChatGPT route rejects `prompt_cache_options`, so subscription
 requests omit that option and its paired explicit markers. API-key Responses
 requests retain explicit caching on supported models. Cache diagnostics remain
 active on both routes; an answered request does not establish a cache grant.
+
+Chapter 18 adds Streamable HTTP MCP peers with `transport: url`, `url` and
+`auth-env` fields. The named environment variable is resolved at skill load as
+a Bearer token; an absent value logs an anonymous-connection diagnostic. JSON
+and SSE POST replies, optional session headers and job cancellation use the
+same MCP manager and dispatch path. Non-2xx response bodies retain their reason,
+with the configured credential redacted if a server reflects it.
+
+Run `ensemble-cli chat --skills-dir /absolute/path/to/skills` and ask to load
+`web-search`. The shipped primary permits that skill, which declares only
+`firecrawl_search` and `firecrawl_scrape` at `https://mcp.firecrawl.dev/v2/mcp`.
+Set `FIRECRAWL_API_KEY` in the launching environment; never paste it into chat
+or a skill. Discovery does not grant additional tools. Unload removes the web
+capabilities immediately. Search/page text is untrusted evidence; check source
+URLs and scrape metadata before citing it. Provider tools, schemas, access and
+quotas can change; this is not a promise of URL-only provider interchangeability.
+
+At the completed tool-batch boundary, `micro_handoff` also removes opaque
+reasoning and private replay signatures from retained context. Visible dialogue
+and the checkpoint note survive; the original event log keeps the provider facts.

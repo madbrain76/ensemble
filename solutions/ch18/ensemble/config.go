@@ -39,10 +39,6 @@ func ConfigFromEnv() (Config, error) {
 	cfg.ReasoningEffort = os.Getenv("OPENAI_REASONING_EFFORT")
 	cfg.ReasoningSummary = os.Getenv("OPENAI_REASONING_SUMMARY")
 	cfg.ResolvedModel = os.Getenv("LLM_RESOLVED_MODEL")
-	// Recall uses this provider by default; no second credential source is hidden.
-	cfg.Recall.JudgeModel = os.Getenv("EN_RECALL_JUDGE_MODEL")
-	cfg.Recall.Disabled = os.Getenv("EN_RECALL_DISABLED") == "1"
-	cfg.Recall.DisableJudge = os.Getenv("EN_RECALL_DISABLE_JUDGE") == "1"
 	return cfg, nil
 }
 

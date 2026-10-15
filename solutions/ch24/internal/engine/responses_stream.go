@@ -61,7 +61,23 @@ type responsesResult struct {
 	} `json:"usage"`
 }
 
-func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, cfg common.Config) error {
+// Only complete provider measurements may enter the meter; absent counts do
+// not become an invented zero-cost result when a response fails.
+func (r responsesResult) measuredUsage() (common.Usage, bool) {
+	if r.Usage == nil || r.Usage.Input == nil || r.Usage.Output == nil {
+		return common.Usage{}, false
+	}
+	u := r.Usage
+	return common.Usage{Input: *u.Input - u.Details.Read - u.Details.Write, CacheRead: u.Details.Read, CacheWrite: u.Details.Write, Output: *u.Output}, true
+}
+
+func (e *engine) accountFailedResponse(result responsesResult, cfg common.Config) {
+	if usage, ok := result.measuredUsage(); ok && e.parent.Spec().Compaction {
+		e.account(cfg, usage)
+	}
+}
+
+func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, cfg common.Config) (err error) {
 	ids := map[string]uint64{}
 	seen := map[string]bool{}
 	identify := func(key string) uint64 {
@@ -130,6 +146,7 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 				result = frame.Response
 				completed = true
 			case "response.failed", "response.incomplete", "error":
+				e.accountFailedResponse(frame.Response, cfg)
 				return providerError(0, data)
 			}
 			return nil
@@ -164,11 +181,20 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 		completed = result.Status == "completed"
 	}
 	if !completed || result.Status != "completed" {
+		e.accountFailedResponse(result, cfg)
 		return errors.New("Responses stream ended without response.completed")
 	}
-	if result.Usage == nil || result.Usage.Input == nil || result.Usage.Output == nil {
+	usage, measured := result.measuredUsage()
+	if !measured {
 		return errors.New("Responses response missing usage")
 	}
+	// A complete envelope can still contain malformed function arguments.
+	// Retain its measured usage without publishing a successful response fact.
+	defer func() {
+		if err != nil {
+			e.accountFailedResponse(result, cfg)
+		}
+	}()
 	from := common.Provenance{Vendor: common.OpenAI, Model: cfg.Model, Surface: common.Responses}
 	if cfg.ResolvedModel != "" {
 		from.Model = cfg.ResolvedModel
@@ -176,8 +202,7 @@ func (e *engine) parseResponses(resp *http.Response, cb common.StreamCallbacks, 
 	if result.Model != "" {
 		from.Model = result.Model
 	}
-	u := result.Usage
-	out := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input - u.Details.Read - u.Details.Write, CacheRead: u.Details.Read, CacheWrite: u.Details.Write, Output: *u.Output}}
+	out := common.ResponseData{From: from, Usage: usage}
 	var partIDs []uint64
 	add := func(key string, p common.Part, kind common.DeltaKind, value string) {
 		id := identify(key)

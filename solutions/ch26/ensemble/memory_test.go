@@ -187,7 +187,7 @@ func TestMemoryCompression(t *testing.T) {
 				if n == 1 {
 					return "micro_handoff", "I completed this segment; retain PLANTED-721.", common.Usage{Input: 10, Output: 5}
 				}
-				if !strings.Contains(wireText(wire), "I retained PLANTED-721") || strings.Contains(wireText(wire), "RAW-OBSOLETE") {
+				if strings.Contains(wireText(wire), "VERIFY-COMMITTED") && (!strings.Contains(wireText(wire), "I retained PLANTED-721") || strings.Contains(wireText(wire), "RAW-OBSOLETE")) {
 					t.Error("next request did not replace raw dialogue with memory")
 				}
 				messages, _ := wire["messages"].([]any)
@@ -200,8 +200,15 @@ func TestMemoryCompression(t *testing.T) {
 				return "", "done", common.Usage{Input: 10, Output: 2}
 			})
 			askMemory(t, a, "PLANTED-721. RAW-OBSOLETE "+strings.Repeat("A completed investigation. ", 8))
-			if calls != 1 || len(p.snapshot()) != 3 {
-				t.Fatalf("compressions=%d requests=%d", calls, len(p.snapshot()))
+			if outcome := backgroundOutcome(t, a); outcome.State != "committed" {
+				t.Fatalf("compression outcome: %+v", outcome)
+			}
+			askMemory(t, a, "VERIFY-COMMITTED")
+			p.mu.Lock()
+			gotCalls := calls
+			p.mu.Unlock()
+			if gotCalls != 1 || len(p.snapshot()) != 4 {
+				t.Fatalf("compressions=%d requests=%d", gotCalls, len(p.snapshot()))
 			}
 			c := a.History().Context()
 			files, _ := filepath.Glob(filepath.Join(a.Config().DataDir, "memory", "*.md"))
@@ -244,7 +251,7 @@ func TestMemoryCompression(t *testing.T) {
 			if !reflect.DeepEqual(c, other.History().Context()) {
 				t.Fatal("snapshot restore changed context")
 			}
-			if len(p.snapshot()) != 3 {
+			if len(p.snapshot()) != 4 {
 				t.Fatal("replay made vendor calls")
 			}
 		})
@@ -385,7 +392,7 @@ func TestMemoryWaterfall(t *testing.T) {
 			m := ensemble.MemorySettings{Session: band, Tier8: band, Tier64: band}
 			m.Tier8.Disabled = disabled
 			folds := 0
-			a, _, diagnostics := memoryAgent(t, ensemble.Anthropic, dir, m, func(n int, compressor bool, w map[string]any) (string, string, common.Usage) {
+			a, p, diagnostics := memoryAgent(t, ensemble.Anthropic, dir, m, func(n int, compressor bool, w map[string]any) (string, string, common.Usage) {
 				if compressor {
 					folds++
 					if folds == 1 && (!strings.Contains(wireText(w), "SESSION-1") || !strings.Contains(wireText(w), "SESSION-2") || strings.Contains(wireText(w), "SESSION-3")) {
@@ -402,14 +409,35 @@ func TestMemoryWaterfall(t *testing.T) {
 				return "", "done", common.Usage{Input: 10, Output: 1}
 			})
 			askMemory(t, a, "checkpoint")
+			if !disabled {
+				deadline := time.Now().Add(5 * time.Second)
+				for {
+					completed := 0
+					for _, event := range a.History().EventsAfter(0) {
+						if event.CompactionOutcome != nil && event.CompactionOutcome.State == "committed" {
+							completed++
+						}
+					}
+					if completed == 3 {
+						break
+					}
+					if time.Now().After(deadline) {
+						t.Fatalf("waterfall did not finish: %v", a.History().Context().CompactionOutcome)
+					}
+					time.Sleep(time.Millisecond)
+				}
+			}
+			p.mu.Lock()
+			gotFolds := folds
+			p.mu.Unlock()
 			c := a.History().Context()
 			if disabled {
-				if folds != 0 || countKind(c, common.KindSession) != 3 || !strings.Contains(diagnostics.String(), "disabled band") {
+				if gotFolds != 0 || countKind(c, common.KindSession) != 3 || !strings.Contains(diagnostics.String(), "disabled band") {
 					t.Fatal("disabled destination did not preserve source and warn")
 				}
 			} else {
-				if folds != 3 || countKind(c, common.KindSession) != 1 || countKind(c, common.Kind8x) != 0 || countKind(c, common.Kind64x) != 0 || countKind(c, common.KindMemory) != 1 {
-					t.Fatalf("waterfall incomplete: folds=%d context=%+v", folds, c.Dialogue)
+				if gotFolds != 3 || countKind(c, common.KindSession) != 1 || countKind(c, common.Kind8x) != 0 || countKind(c, common.Kind64x) != 0 || countKind(c, common.KindMemory) != 1 {
+					t.Fatalf("waterfall incomplete: folds=%d context=%+v", gotFolds, c.Dialogue)
 				}
 				paths, _ := filepath.Glob(filepath.Join(dir, "memory", "*.md"))
 				if len(paths) != 1 {
@@ -460,7 +488,7 @@ func TestMemoryFailureKeepsSource(t *testing.T) {
 	for _, reply := range []string{"text-only", "empty-submit"} {
 		t.Run(reply, func(t *testing.T) {
 			compressorCalls := 0
-			a, p, diagnostics := memoryAgent(t, ensemble.Anthropic, t.TempDir(), ensemble.MemorySettings{Conversation: ensemble.BandSettings{Budget: 30}}, func(n int, compressor bool, w map[string]any) (string, string, common.Usage) {
+			a, p, _ := memoryAgent(t, ensemble.Anthropic, t.TempDir(), ensemble.MemorySettings{Conversation: ensemble.BandSettings{Budget: 30}}, func(n int, compressor bool, w map[string]any) (string, string, common.Usage) {
 				if compressor {
 					compressorCalls++
 					if reply == "empty-submit" {
@@ -474,7 +502,13 @@ func TestMemoryFailureKeepsSource(t *testing.T) {
 				return "", "done", common.Usage{Input: 1, Output: 1}
 			})
 			askMemory(t, a, strings.Repeat("IRREPLACEABLE-FINDING ", 6))
-			if compressorCalls != 1 || countKind(a.History().Context(), common.KindSession) != 0 || !strings.Contains(wireText(p.snapshot()[2]), "IRREPLACEABLE-FINDING") || !strings.Contains(diagnostics.String(), "abandoned") {
+			outcome := backgroundOutcome(t, a)
+			askMemory(t, a, "VERIFY-RETAINED")
+			p.mu.Lock()
+			gotCalls := compressorCalls
+			p.mu.Unlock()
+			requests := p.snapshot()
+			if gotCalls != 1 || countKind(a.History().Context(), common.KindSession) != 0 || !strings.Contains(wireText(requests[len(requests)-1]), "IRREPLACEABLE-FINDING") || outcome.State != "failed" || outcome.Reason == "" {
 				t.Fatal("failed compression lost source or retried")
 			}
 		})
@@ -577,9 +611,10 @@ func TestMemoryRestartReenable(t *testing.T) {
 	}
 }
 
-// TestMemoryInterruptedCompressor keeps the HTTP boundary open while the real
-// actor interrupts, then checks that a late successful response cannot cut source.
-func TestMemoryInterruptedCompressor(t *testing.T) {
+// TestMemoryShutdownAfterInterrupt keeps the HTTP boundary open through ordinary
+// interruption, then shuts down the owner; that explicit shutdown preserves source.
+// Ordinary interruption alone now preserves the worker (covered separately).
+func TestMemoryShutdownAfterInterrupt(t *testing.T) {
 	entered, release := make(chan struct{}), make(chan struct{})
 	a, _, _ := memoryAgent(t, ensemble.Anthropic, t.TempDir(), ensemble.MemorySettings{Conversation: ensemble.BandSettings{Budget: 30}}, func(n int, compressor bool, w map[string]any) (string, string, common.Usage) {
 		if compressor {
@@ -647,7 +682,12 @@ func TestMemoryWholeSegments(t *testing.T) {
 		a.History().Append(common.Event{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "finished " + label}})
 	}
 	askMemory(t, a, "checkpoint now")
-	final := wireText(p.snapshot()[2])
+	if outcome := backgroundOutcome(t, a); outcome.State != "committed" {
+		t.Fatalf("segment outcome: %+v", outcome)
+	}
+	askMemory(t, a, "VERIFY-SEGMENTS")
+	requests := p.snapshot()
+	final := wireText(requests[len(requests)-1])
 	if strings.Contains(final, "OLDEST-SEGMENT") || !strings.Contains(final, "NEWER-SEGMENT") {
 		t.Fatal("whole-segment retirement lost newer work or retained old work")
 	}

@@ -40,7 +40,7 @@ func (e *engine) Judge(ctx context.Context, prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	events, err := e.send(ctx, body, common.StreamCallbacks{}, cfg)
+	events, err := e.send(ctx, body, common.StreamCallbacks{}, cfg, false)
 	if err != nil {
 		return "", err
 	}

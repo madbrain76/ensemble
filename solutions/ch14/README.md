@@ -107,3 +107,7 @@ Startup grants have dynamic provenance with sequence zero (before history).
 Unloading immediately disconnects MCP tools and peers while instruction removal
 remains pending. Programmatic browser input updates the control without taking
 the human typing pause; actual typing and explicit Agent-wide unpause still work.
+
+At the completed tool-batch boundary, `micro_handoff` also removes opaque
+reasoning and private replay signatures from retained context. Visible dialogue
+and the checkpoint note survive; the original event log keeps the provider facts.

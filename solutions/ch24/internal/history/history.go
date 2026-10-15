@@ -163,7 +163,7 @@ func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
 	// Require one matching payload, except for successful turn completion.
 	count := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.Recall != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.CompactionOutcome != nil, e.Recall != nil} {
 		if present {
 			count++
 		}
@@ -195,6 +195,19 @@ func validate(e common.Event) error {
 	case "band_depopulated":
 		if e.Depopulated == nil || e.Depopulated.Band < common.BandSoul || e.Depopulated.Band > common.BandSession {
 			return errors.New("invalid memory retirement")
+		}
+	case "compaction_outcome":
+		if e.CompactionOutcome == nil || e.CompactionOutcome.TaskID == "" {
+			return errors.New("invalid compaction outcome")
+		}
+		switch e.CompactionOutcome.State {
+		case "committed":
+		case "failed", "canceled", "invalidated", "abandoned":
+			if strings.TrimSpace(e.CompactionOutcome.Reason) == "" {
+				return errors.New("compaction failure requires reason")
+			}
+		default:
+			return errors.New("invalid compaction outcome state")
 		}
 	case "compactor_launched":
 		if e.Compactor == nil || e.Compactor.Band < common.BandMemory || e.Compactor.Band > common.BandSession {
@@ -336,7 +349,7 @@ func (h *history) LastSeq() uint64 {
 // skipped atomically. Validation never mutates the projected context.
 func knownEvent(kind string) bool {
 	switch kind {
-	case "fleet_notice", "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "recall_attached":
+	case "fleet_notice", "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "compaction_outcome", "recall_attached":
 		return true
 	}
 	return false
@@ -351,6 +364,9 @@ func validateDeclarations(declarations []common.ToolDeclaration) error {
 }
 func validateFor(c *common.Context, e common.Event) error {
 	if err := validate(e); err != nil {
+		return err
+	}
+	if err := validateCompaction(c, e); err != nil {
 		return err
 	}
 	if e.Redact != nil {

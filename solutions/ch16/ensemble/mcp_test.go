@@ -290,7 +290,7 @@ func TestMCPAnthropicEmptyToolArguments(t *testing.T) {
 			return
 		}
 		io.WriteString(w, `event: message_start
-data: {"type":"message_start","message":{"id":"reply","model":"claude-haiku-5-5","usage":{"input_tokens":1,"output_tokens":1}}}
+data: {"type":"message_start","message":{"id":"reply","model":"claude-sonnet-5","usage":{"input_tokens":1,"output_tokens":1}}}
 
 event: content_block_start
 data: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":"done"}}
@@ -304,7 +304,7 @@ data: {"type":"message_stop"}
 `)
 	}))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir()})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir()})
 	if err != nil {
 		t.Fatal(err)
 	}

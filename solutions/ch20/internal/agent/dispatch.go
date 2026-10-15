@@ -11,11 +11,18 @@ import (
 func (r *runtime) dispatch() {
 	t := r.active
 	if len(t.calls) == 0 {
-		if t.checkpoint {
-			t.checkpoint = false
-			r.owner.forceHandoff.Store(false)
-			r.forcingChecked = r.owner.history.Context().SentThrough
-			r.checkpoint(true)
+		if status := r.owner.fleet.Status(); status.State == "submitted" {
+			// A normal tool result prepares another request. Submission instead
+			// ends this turn after the whole batch drains; retain that fact so
+			// selection and restart do not resurrect input_pending work.
+			err := r.append(common.Event{Type: "turn_ended"})
+			text := status.Result
+			if len(status.Payload) != 0 {
+				// The longstanding Ask/display surface is text. Typed fleet readers
+				// retain the JSON object rather than receiving a quoted JSON string.
+				text = string(status.Payload)
+			}
+			r.finish(text, err)
 			return
 		}
 		r.send()
@@ -42,6 +49,8 @@ func (r *runtime) dispatch() {
 	t.calls = t.calls[1:]
 	definition := r.owner.definition(call.Name, false)
 	limits, notice, limitErr := r.owner.jobs.Consume(call.Args)
+	wake := make(chan struct{})
+	limits.Wake = wake
 	owner := &callContext{parent: r.owner, limits: limits}
 	called := &common.ToolData{CallID: call.CallID, Name: call.Name, Args: call.Args}
 	if definition == nil || !definition.Supervision {
@@ -61,7 +70,7 @@ func (r *runtime) dispatch() {
 	// The appended dispatch fact, not a guessed future result number, owns provenance.
 	owner.seq = r.owner.history.LastSeq()
 	r.owner.notify(common.ToolDispatched{CallID: call.CallID, Name: call.Name, Input: call.Args})
-	t.current = &report{turn: t, call: call, data: called}
+	t.current = &report{turn: t, call: call, data: called, wake: wake}
 	run := func() (string, error) {
 		if limitErr != nil {
 			return "", limitErr

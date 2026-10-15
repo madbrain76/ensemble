@@ -31,7 +31,7 @@ func TestPromptSkillEnvironment(t *testing.T) {
 		if body["system"].([]any)[0].(map[string]any)["text"] != "Identity cli-value" {
 			t.Errorf("CLI primary: %v", body["system"])
 		}
-		fmt.Fprint(w, `{"content":[{"type":"text","text":"prompt worked"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		fmt.Fprint(w, `{"content":[{"type":"tool_use","id":"submit","name":"submit","input":{"result":"prompt worked"}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer server.Close()
 	binary := filepath.Join(t.TempDir(), "ensemble")
@@ -138,6 +138,8 @@ for line in sys.stdin:
 			name, input = "gui_input", map[string]string{"selector": "#search-box", "text": "chapter13"}
 		case 3:
 			name, input = "unload_skill", map[string]string{"name": "gui-debug"}
+		case 4:
+			name, input = "submit", map[string]string{"result": "browser exercise finished"}
 		}
 		content := []any{map[string]any{"type": "text", "text": "browser exercise finished"}}
 		if name != "" {

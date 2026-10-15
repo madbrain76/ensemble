@@ -134,19 +134,3 @@ not at the macOS default used by this test. The root `tts-harness.sh` implements
 the original grader's separate transcript interface; it uses the same application
 and a small asynchronous synthesizer fake. Neither fake establishes how speech
 sounds. Test setup and scoped limitations are recorded with the chapter evidence.
-
-The header meter shows process-session USD cost, the latest conversation input
-(including cache once), latest cache reads, and session cache hit rate. Hover for
-session token totals. A dash means at least one contributing model is unpriced.
-Engine derives dollars from counts using the effective request model and its
-prompt-size tier; restoring history never restores session charges. Current
-verified prices cover Haiku 5.5, Sonnet 5, GPT-5.6 Sol and Gemini 3.8 Flash; the latter's
-introductory rates need updating January 1, 2027. Other models retain counts and
-show unknown cost until their prices are verified.
-
-The cache lens writes `cr/cache-current.txt` and `cr/cache-prior.txt`, in prompt
-section order, and reports append/change verdicts and byte/token ratios in
-`debug.log`. These are sensitive request-content diagnostics, like `api.log`;
-credentials are excluded. Judge/compressor prompts do not replace the main
-conversation comparison. A predicted stable byte prefix does not prove provider
-cache eligibility or a grant; inspect the measured token reads separately.

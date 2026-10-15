@@ -28,6 +28,7 @@ func (e *engine) Judge(ctx context.Context, prompt string) (string, error) {
 		features, _ := LookupModel(cfg.Model)
 		if features.Responses {
 			request = map[string]any{"model": cfg.Model, "input": []any{map[string]any{"role": "user", "content": prompt}}, "store": false, "stream": true}
+
 		}
 	case common.Gemini:
 		request = map[string]any{"contents": []any{map[string]any{"role": "user", "parts": []any{map[string]any{"text": prompt}}}}}
@@ -36,7 +37,7 @@ func (e *engine) Judge(ctx context.Context, prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	events, err := e.send(ctx, body, common.StreamCallbacks{}, cfg)
+	events, err := e.send(ctx, body, common.StreamCallbacks{}, cfg, false)
 	if err != nil {
 		return "", err
 	}

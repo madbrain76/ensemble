@@ -190,12 +190,12 @@ func TestSaveIntentionallyEmptyPrimary(t *testing.T) {
 	}
 	var request struct {
 		// System is Anthropic's instruction field, distinct from its conversation.
-		System string `json:"system"`
+		System []json.RawMessage `json:"system"`
 	}
 	if err := json.Unmarshal(body, &request); err != nil {
 		t.Fatal(err)
 	}
-	if save.Config.SystemPrompt != "" || request.System != "" {
+	if save.Config.SystemPrompt != "" || len(request.System) != 0 {
 		t.Fatalf("empty primary acquired default instructions: save=%q wire=%q", save.Config.SystemPrompt, request.System)
 	}
 }

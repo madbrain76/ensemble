@@ -131,7 +131,7 @@ func TestChatModelSelection(t *testing.T) {
 	cmd.Dir = t.TempDir()
 	// A minimal child environment prevents unrelated provider credentials from
 	// entering a fake-only process or loading a user's private auth profile.
-	cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + t.TempDir(), "EN_HOME=" + t.TempDir(), "LLM_VENDOR=anthropic", "LLM_MODEL=claude-haiku-5-5", "LLM_API_KEY=fake", "LLM_BASE_URL=" + server.URL, "EN_DISABLE_STREAMING=1"}
+	cmd.Env = []string{"PATH=" + os.Getenv("PATH"), "HOME=" + t.TempDir(), "EN_HOME=" + t.TempDir(), "LLM_VENDOR=anthropic", "LLM_MODEL=claude-opus-5", "LLM_API_KEY=fake", "LLM_BASE_URL=" + server.URL, "EN_DISABLE_STREAMING=1"}
 	cmd.Stdin = strings.NewReader("/model claude-sonnet-5\nhello\n")
 	out, err := cmd.CombinedOutput()
 	if err != nil {

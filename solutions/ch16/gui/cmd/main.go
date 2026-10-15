@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	gui "ensemble-gui-stub"
+	"ensemble/authcli"
 	"ensemble/ensemble"
 	"errors"
 	"flag"
@@ -26,6 +27,13 @@ func main() {
 	}
 }
 func run() (runErr error) {
+	if len(os.Args) > 1 && os.Args[1] == "auth" {
+		root := ensemble.New(os.Stderr)
+		if err := authcli.Configure(root); err != nil {
+			return err
+		}
+		return authcli.Run(context.Background(), root, os.Args[2:], os.Stdout)
+	}
 	// Flags are the public configuration surface. Existing provider environment
 	// defaults retain the earlier CLI setup and the original grader contract.
 	cfg, err := ensemble.ConfigFromEnv()
@@ -70,9 +78,6 @@ func run() (runErr error) {
 	default:
 		return fmt.Errorf("unknown vendor")
 	}
-	if cfg.APIKey == "" {
-		return fmt.Errorf("provider API key is not set")
-	}
 	cfg.BuiltinTools = true
 	cfg.DataDir = "cr"
 	// Each log records a different boundary. Keep provider frames, transport
@@ -93,6 +98,9 @@ func run() (runErr error) {
 	}
 	defer trace.Close()
 	root := ensemble.New(debug)
+	if err := authcli.Configure(root); err != nil {
+		return err
+	}
 	root.SetAPILog(api)
 	terminal := &terminal{events: make(chan ensemble.AgentObservation, 256)}
 	root.AddObserver(terminal)
@@ -102,6 +110,9 @@ func run() (runErr error) {
 	a, err := root.NewAgent(cfg, spec)
 	if err != nil {
 		return err
+	}
+	if a.Config().BillingMode != ensemble.CredentialChatGPT && cfg.APIKey == "" {
+		return fmt.Errorf("provider API key is not set")
 	}
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,
 	// then ends Agent lifetime, then closes the application-owned log writers.
@@ -179,6 +190,8 @@ func (t *terminal) display(done <-chan struct{}) {
 		select {
 		case event := <-t.events:
 			switch o := event.Observation.(type) {
+			case ensemble.BillingSelected:
+				fmt.Fprintf(os.Stderr, "[billing: %s]\n", o.Source)
 			case ensemble.PartDelta:
 				fmt.Print(o.Chunk)
 			case ensemble.PartFinal:

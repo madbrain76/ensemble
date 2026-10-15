@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"sync/atomic"
+	"time"
 
 	"ensemble/internal/common"
 )
@@ -16,7 +16,12 @@ import (
 // imports the other implementation package. Their shared interfaces let the
 // owner coordinate one actor without a second orchestration path.
 type agent struct {
+	activityMu   sync.Mutex
+	activity     common.Activity
+	progressTime time.Time
 	parent       common.Ensemble
+	parentAgent  common.Agent
+	fleet        common.SubAgentManager
 	spec         common.AgentSpec
 	sandbox      common.Sandbox
 	config       common.Config
@@ -27,9 +32,6 @@ type agent struct {
 	jobs         common.Jobs
 	skills       common.Skills
 	mcp          common.MCP
-	memory       common.Memory
-	recaller     common.Recaller
-	forceHandoff atomic.Bool
 	once         sync.Once
 	box          *box
 	done         chan struct{}
@@ -45,11 +47,18 @@ type agent struct {
 
 // New creates an Agent with a required Ensemble parent; the root installs its
 // children before use.
-func New(parent common.Ensemble, cfg common.Config, spec common.AgentSpec) *agent {
+func New(parent common.Ensemble, cfg common.Config, spec common.AgentSpec, parents ...common.Agent) *agent {
 	if parent == nil {
 		panic("Agent requires Ensemble")
 	}
-	return &agent{parent: parent, config: cfg, spec: spec, box: newBox(), done: make(chan struct{}), progress: make(chan common.Observation, 256)}
+	var spawning common.Agent
+	if len(parents) > 0 {
+		spawning = parents[0]
+		if spawning == nil {
+			panic("child Agent requires spawning parent")
+		}
+	}
+	return &agent{parentAgent: spawning, parent: parent, config: cfg, spec: spec, box: newBox(), done: make(chan struct{}), progress: make(chan common.Observation, 256)}
 }
 
 // Ensemble returns the owning application root, including its logging services.
@@ -86,7 +95,9 @@ func (a *agent) Declarations() []common.ToolDeclaration {
 		if tool.Ephemeral != "" || !a.toolEnabled(tool.Name) {
 			continue
 		}
-		declarations = append(declarations, tool.ToolDeclaration)
+		declaration := tool.ToolDeclaration
+		declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)
+		declarations = append(declarations, declaration)
 	}
 	return declarations
 }
@@ -215,9 +226,6 @@ func (a *agent) toolEnabled(name string) bool {
 	if !a.allowedTool(name) {
 		return false
 	}
-	if a.forceHandoff.Load() && name != "micro_handoff" {
-		return false
-	}
 	if a.skills == nil {
 		return true
 	}
@@ -277,37 +285,12 @@ func (a *agent) SetContextSettings(target, retention int) error {
 	return nil
 }
 
-// SetMemorySettings records content changes through the actor before acknowledging
-// the patch. A disabled band disappears even while the Agent is idle.
-func (a *agent) SetMemorySettings(settings common.MemorySettings) error {
-	if err := a.memory.Validate(settings); err != nil {
-		return err
-	}
-	reply := make(chan error, 1)
-	if err := a.post(memorySettings{settings, reply}); err != nil {
-		return err
-	}
-	select {
-	case err := <-reply:
-		return err
-	case <-a.done:
-		return common.ErrStopped
-	}
-}
-
-// AttachMemory establishes both sides of corpus ownership before runtime use.
-func (a *agent) AttachMemory(m common.Memory) {
-	if m == nil || m.Agent() != a {
-		panic("Memory must belong to this Agent")
-	}
-	a.memory = m
-}
-
-// Memory returns the corpus service owned by this Agent.
-func (a *agent) Memory() common.Memory { return a.memory }
-
 // Spec returns identity and restrictions owned by this Agent.
-func (a *agent) Spec() common.AgentSpec { return a.spec }
+func (a *agent) Spec() common.AgentSpec {
+	spec := a.spec
+	spec.SubmitSchema = append(json.RawMessage(nil), spec.SubmitSchema...)
+	return spec
+}
 
 // Sandbox reaches the child enforcing this Agent's policy.
 func (a *agent) Sandbox() common.Sandbox { return a.sandbox }
@@ -318,4 +301,18 @@ func (a *agent) AttachSandbox(s common.Sandbox) {
 		panic("Sandbox must belong to this Agent")
 	}
 	a.sandbox = s
+}
+
+// ParentAgent exposes the spawning owner independently of Ensemble ownership.
+func (a *agent) ParentAgent() common.Agent { return a.parentAgent }
+
+// Fleet returns the manager whose lifetime follows this Agent.
+func (a *agent) Fleet() common.SubAgentManager { return a.fleet }
+
+// AttachFleet establishes the manager side of the required ownership link.
+func (a *agent) AttachFleet(f common.SubAgentManager) {
+	if f == nil || f.Agent() != a {
+		panic("fleet must belong to Agent")
+	}
+	a.fleet = f
 }

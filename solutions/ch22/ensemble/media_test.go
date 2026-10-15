@@ -25,8 +25,8 @@ func TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused(t *testing.T) {
 		vendor             ensemble.Vendor
 		model, mime, field string
 	}{
-		{ensemble.Anthropic, "claude-haiku-5-5", "image/png", "media_type"},
-		{ensemble.Anthropic, "claude-haiku-5-5", "application/pdf", "document"},
+		{ensemble.Anthropic, "claude-sonnet-5", "image/png", "media_type"},
+		{ensemble.Anthropic, "claude-sonnet-5", "application/pdf", "document"},
 		{ensemble.OpenAI, "gpt-5.4-mini", "image/png", "image_url"},
 		{ensemble.OpenAI, "gpt-5.4-mini", "application/pdf", "file_data"},
 		{ensemble.Gemini, "gemini-3.8-flash", "image/png", "inlineData"},
@@ -82,7 +82,7 @@ func TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused(t *testing.T) {
 			}
 		})
 	}
-	for _, sample := range []struct{ model, mime, want string }{{"unknown-media-model", "image/png", "image"}, {"claude-haiku-5-5", "audio/wav", "audio"}} {
+	for _, sample := range []struct{ model, mime, want string }{{"unknown-media-model", "image/png", "image"}, {"claude-sonnet-5", "audio/wav", "audio"}} {
 		a, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: sample.model})
 		c := &common.Context{Dialogue: []common.Entry{{Actor: common.Human, Parts: []common.Part{{Type: "blob", MIME: sample.mime, Ref: common.Ref{Kind: common.RefPath, Locator: path}}}}}}
 		if _, err := a.Engine().Render(c); err == nil || !strings.Contains(err.Error(), sample.model) || !strings.Contains(err.Error(), sample.want) {
@@ -96,7 +96,7 @@ func TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused(t *testing.T) {
 
 // Result redaction removes addresses from new stubs while the captured fact retains its Ref.
 func TestMediaRedactionRetainsReference(t *testing.T) {
-	a, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5"})
+	a, _ := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5"})
 	ref := common.Ref{Kind: common.RefPath, Locator: "recoverable-image.png"}
 	a.History().Append(common.Event{Type: "tool_returned", Tool: &common.ToolData{CallID: "image", Parts: []common.Part{{Type: "blob", MIME: "image/png", Ref: ref}}}})
 	a.History().Append(common.Event{Type: "redacted", Redact: &common.RedactData{From: 1, To: 1, Level: "redact_result"}})

@@ -1,8 +1,31 @@
 package common
 
+import "encoding/json"
+
 // AgentSpec supplies per-Agent identity independently of provider configuration.
-// Omit it to retain the unrestricted tool setup used before skills.
+// The composition root chooses full-access defaults when the caller omits a spec.
 type AgentSpec struct {
+	// ID is this Agent's address within its parent's children.
+	ID string
+	// ParentID names the spawning Agent or the configured human address.
+	ParentID string
+	// Model optionally requests a model from the application child factory.
+	Model string
+	// SubmitSchema describes the entire submit argument object; absent uses result text.
+	// Construction owns a copy; this contract is not inherited by ordinary children.
+	SubmitSchema json.RawMessage
+	// DataDir optionally selects this Agent's state directory.
+	DataDir string
+	// LogPath optionally selects its history log.
+	LogPath string
+	// SavePath optionally selects its snapshot.
+	SavePath string
+	// SandboxRoot confines file tools and command descendants when nonempty.
+	SandboxRoot string
+	// SafeMode removes shell execution and its attendant tools.
+	SafeMode bool
+	// EnableWebSearch permits discovery and loading of the web-search skill.
+	EnableWebSearch bool
 	// SkillsDir contains one named directory per SKILL.md.
 	SkillsDir string
 	// PrimarySkill selects the identity loaded before the first request.
@@ -35,8 +58,6 @@ type ToolMeta struct {
 // Skills owns one Agent's discovered capabilities and point-of-use renderers.
 // Compiled instruction removal is pending; MCP servers stop on unload.
 type Skills interface {
-	// Directory identifies this Agent's skill corpus for passive discovery.
-	Directory() string
 	// Agent returns the owner whose declarations and services the registry uses.
 	Agent() Agent
 	// LoadInitial enables the primary and dependencies and renders their bodies once.

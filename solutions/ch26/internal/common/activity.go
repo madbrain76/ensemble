@@ -33,3 +33,11 @@ func (ActivityChanged) observation() {}
 type FleetChanged struct{}
 
 func (FleetChanged) observation() {}
+
+// AgentRemoved retires a completed worker or refused construction's GUI view.
+type AgentRemoved struct {
+	// Owner is the surviving conversation selected when a child tab is dismissed.
+	Owner Agent
+}
+
+func (AgentRemoved) observation() {}

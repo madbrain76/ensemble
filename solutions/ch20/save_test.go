@@ -30,7 +30,7 @@ func TestCLISaveLifecycle(t *testing.T) {
 		mu.Lock()
 		requests = append(requests, body)
 		mu.Unlock()
-		io.WriteString(w, `{"model":"fake","content":[{"type":"text","text":"remembered"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		io.WriteString(w, `{"model":"fake","content":[{"type":"tool_use","id":"submit","name":"submit","input":{"result":"remembered"}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer provider.Close()
 	for _, override := range []bool{false, true} {

@@ -67,7 +67,7 @@ func TestSavedBudgetEntry(t *testing.T) {
 		finish := "stop"
 		if results < 18 {
 			finish = "tool_calls"
-			message["content"] = nil
+			message["content"] = "I will run the next budget fixture step to verify the saved execution limit."
 			message["tool_calls"] = []any{map[string]any{"id": fmt.Sprintf("call-%d", results), "type": "function", "function": map[string]string{"name": "run_command", "arguments": `{"command":"printf budget","yield_time_ms":1000}`}}}
 		}
 		json.NewEncoder(w).Encode(map[string]any{"model": "gpt-4o-mini", "choices": []any{map[string]any{"message": message, "finish_reason": finish}}, "usage": map[string]int{"prompt_tokens": 1, "completion_tokens": 1}})

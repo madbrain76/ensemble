@@ -72,7 +72,7 @@ func TestResponsesSummaryToolLoop(t *testing.T) {
 		}
 	}))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", BaseURL: server.URL, DataDir: t.TempDir(), Recall: ensemble.RecallSettings{Disabled: true}})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", BaseURL: server.URL, DataDir: t.TempDir()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestResponsesRequiresCompletion(t *testing.T) {
 				}
 			}))
 			defer server.Close()
-			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", BaseURL: server.URL, DataDir: t.TempDir(), Recall: ensemble.RecallSettings{Disabled: true}})
+			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", BaseURL: server.URL, DataDir: t.TempDir()})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -220,55 +220,78 @@ func TestResponsesCapturedPlanStream(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, header := range []string{"application/json", "text/event-stream"} {
-		t.Run(header, func(t *testing.T) {
-			workspace := t.TempDir()
-			t.Chdir(workspace)
-			if err := os.WriteFile(filepath.Join(workspace, "puzzle.txt"), []byte("actual captured-plan tool result"), 0600); err != nil {
-				t.Fatal(err)
-			}
-			requests := 0
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				requests++
-				if requests == 1 {
-					w.Header().Set("Content-Type", header)
-					w.Write(fixture)
-					return
-				}
-				body, _ := io.ReadAll(r.Body)
-				var request struct {
-					// Input contains the actual next-turn tool result, not earlier arguments.
-					Input []struct {
-						// Type selects a function result item.
-						Type string
-						// Output is the real handler's completed readout.
-						Output string
-						// CallID preserves provider correlation across the tool boundary.
-						CallID string `json:"call_id"`
-					} `json:"input"`
-				}
-				json.Unmarshal(body, &request)
-				found := false
-				for _, item := range request.Input {
-					if item.Type == "function_call_output" && item.CallID == "call_u83Vpd7Ol6P1ixYjORjuBVXU" && strings.Contains(item.Output, "actual captured-plan tool result") {
-						found = true
+	// The historical wire capture is unchanged. Preserve its parser/tool-loop
+	// coverage with the course model, and prove a flagged real model refuses it.
+	for _, model := range []string{"gpt-ch19-course", "gpt-6.1-sol"} {
+		t.Run(model, func(t *testing.T) {
+			for _, header := range []string{"application/json", "text/event-stream"} {
+				t.Run(header, func(t *testing.T) {
+					workspace := t.TempDir()
+					t.Chdir(workspace)
+					if err := os.WriteFile(filepath.Join(workspace, "puzzle.txt"), []byte("actual captured-plan tool result"), 0600); err != nil {
+						t.Fatal(err)
 					}
-				}
-				if !found {
-					t.Errorf("completed streamed tool/result lost: %+v", request.Input)
-				}
-				w.Header().Set("Content-Type", "text/event-stream")
-				frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"done"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
-			}))
-			defer server.Close()
-			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-6.1-sol", BaseURL: server.URL, Workspace: workspace, DataDir: t.TempDir(), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}})
-			if err != nil {
-				t.Fatal(err)
-			}
-			defer a.Shutdown()
-			answer, err := a.Ask(context.Background(), "read puzzle")
-			if err != nil || answer != "done" || requests != 2 {
-				t.Fatalf("captured plan stream failed: answer=%q requests=%d err=%v", answer, requests, err)
+					requests := 0
+					server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						requests++
+						if requests == 1 {
+							w.Header().Set("Content-Type", header)
+							w.Write(fixture)
+							return
+						}
+						body, _ := io.ReadAll(r.Body)
+						var request struct {
+							// Input contains the actual next-turn tool result, not earlier arguments.
+							Input []struct {
+								// Type selects a function result item.
+								Type string
+								// Output is the real handler's completed readout.
+								Output string
+								// CallID preserves provider correlation across the tool boundary.
+								CallID string `json:"call_id"`
+							} `json:"input"`
+						}
+						json.Unmarshal(body, &request)
+						expected := "actual captured-plan tool result"
+						if model == "gpt-6.1-sol" {
+							expected = "Not executed:"
+						}
+						found := false
+						for _, item := range request.Input {
+							if item.Type == "function_call_output" && item.CallID == "call_u83Vpd7Ol6P1ixYjORjuBVXU" && strings.Contains(item.Output, expected) {
+								found = true
+							}
+						}
+						if !found {
+							t.Errorf("completed streamed tool/result lost: %+v", request.Input)
+						}
+						w.Header().Set("Content-Type", "text/event-stream")
+						frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"done"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
+					}))
+					defer server.Close()
+					a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: model, BaseURL: server.URL, Workspace: workspace, DataDir: t.TempDir(), BuiltinTools: true})
+					if err != nil {
+						t.Fatal(err)
+					}
+					defer a.Shutdown()
+					answer, err := a.Ask(context.Background(), "read puzzle")
+					if err != nil || answer != "done" || requests != 2 {
+						t.Fatalf("captured plan stream failed: answer=%q requests=%d err=%v", answer, requests, err)
+					}
+					dispatched := 0
+					for _, event := range events(t, a) {
+						if event.Type == "tool_called" {
+							dispatched++
+						}
+					}
+					want := 1
+					if model == "gpt-6.1-sol" {
+						want = 0
+					}
+					if dispatched != want {
+						t.Fatalf("dispatched=%d want=%d", dispatched, want)
+					}
+				})
 			}
 		})
 	}

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"ensemble/authcli"
 	"ensemble/ensemble"
 )
 
@@ -24,6 +25,13 @@ func run() (runErr error) {
 	// cannot accept model flags that would make byte-identity depend on a
 	// second source of request settings.
 	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "auth" {
+		app := ensemble.New(os.Stderr)
+		if err := authcli.Configure(app); err != nil {
+			return err
+		}
+		return authcli.Run(context.Background(), app, args[1:], os.Stdout)
+	}
 	savePath := "save.json"
 	spec := ensemble.AgentSpecFromEnv()
 	guiDebug := false
@@ -98,6 +106,9 @@ func run() (runErr error) {
 		return err
 	}
 	app := ensemble.New(os.Stderr)
+	if err := authcli.Configure(app); err != nil {
+		return err
+	}
 	if mode == "chat" || mode == "protocol" || mode == "prompt" {
 		trace, err := os.Create("api.log")
 		if err != nil {
@@ -136,7 +147,7 @@ func run() (runErr error) {
 		_, err = fmt.Fprintln(os.Stdout, string(body))
 		return err
 	}
-	if cfg.APIKey == "" && mode != "--mcp-pipe" {
+	if a.Config().BillingMode != ensemble.CredentialChatGPT && cfg.APIKey == "" && mode != "--mcp-pipe" {
 		return errors.New("provider API key is not set")
 	}
 	if err := a.Load(); err != nil {

@@ -14,12 +14,12 @@ import (
 	"sync/atomic"
 
 	"ensemble/internal/agent"
+	"ensemble/internal/cachelens"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
-	"ensemble/internal/memory"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -32,6 +32,9 @@ type Agent = common.Agent
 
 // Usage exposes measured, disjoint token counts without fixing prices.
 type Usage = common.Usage
+
+// UsageMeter exposes a disposable process-session meter to optional clients.
+type UsageMeter = common.UsageMeter
 
 // ToolDeclaration is the vendor-neutral schema visible to one Agent.
 type ToolDeclaration = common.ToolDeclaration
@@ -124,13 +127,10 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 		return nil, err
 	}
 	a.AttachEngine(engine.New(a))
+	a.Engine().AttachCacheLens(cachelens.New(a.Engine()))
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
-	a.AttachMemory(memory.New(a))
-	if err := a.Memory().Validate(cfg.Memory); err != nil {
-		return nil, err
-	}
 	assembled := false
 	// A failed primary can already have launched a peer or admitted reverse work.
 	// Construction owns that cleanup because no caller receives the Agent.
@@ -397,12 +397,3 @@ func MCPPipe() (MCPTransport, MCPTransport) { return mcp.Pipe() }
 
 // MCPTransportOwner is the parent contract for optional transport implementations.
 type MCPTransportOwner = common.MCPTransportOwner
-
-// MemorySettings selects the Agent's corpus switches and byte budgets.
-type MemorySettings = common.MemorySettings
-
-// BandSettings controls one memory band, preserving zero defaults and false switches.
-type BandSettings = common.BandSettings
-
-// ValidateMemorySettings checks corpus policy before a client persists a patch.
-func ValidateMemorySettings(settings MemorySettings) error { return memory.Validate(settings) }

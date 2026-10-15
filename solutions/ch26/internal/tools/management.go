@@ -82,11 +82,14 @@ func getSubmission(owner common.ToolContext, raw json.RawMessage) (string, error
 	if err != nil {
 		return "", err
 	}
-	result, err := owner.Agent().Fleet().Submission(args.ID)
+	result, err := owner.Agent().Fleet().SubmissionData(args.ID)
 	if err != nil {
 		return "", err
 	}
-	return fleetJSON(map[string]string{"agent_id": args.ID, "result": result})
+	if len(result.Payload) != 0 {
+		return fleetJSON(map[string]any{"agent_id": args.ID, "payload": result.Payload})
+	}
+	return fleetJSON(map[string]string{"agent_id": args.ID, "result": result.Result})
 }
 func killAgent(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	_, args, err := target(owner, raw)

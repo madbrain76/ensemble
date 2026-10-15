@@ -36,6 +36,7 @@ type report struct {
 	turn *turn
 	call common.Part
 	data *common.ToolData
+	wake chan struct{}
 }
 type record struct {
 	event common.Event
@@ -57,24 +58,22 @@ type turn struct {
 	batches, limit int
 	ephemeralTurn  bool
 	presented      []common.Entry
-	checkpoint     bool
+	// Per-response stream order is separate from parser-normalized part order.
+	sawStreamCall           bool
+	visibleBeforeStreamCall bool
 }
 
 // All fields below are owned by run. Workers own external work only, and return
 // immutable messages. Interrupt detaches a turn without detaching its workers.
 type runtime struct {
-	owner          *agent
-	active         *turn
-	pending        []request
-	barriers       []chan error
-	workers        int
-	stopping       bool
-	failure        error
-	partID         uint64
-	memoryReady    bool
-	memoryDisabled [6]bool
-	forcingChecked uint64
-	warned         bool
+	owner    *agent
+	active   *turn
+	pending  []request
+	barriers []chan error
+	workers  int
+	stopping bool
+	failure  error
+	partID   uint64
 }
 
 // Construction installs children first; the first runtime operation starts the
@@ -281,7 +280,7 @@ func (r *runtime) save() error {
 	if path == "" {
 		return nil
 	}
-	file, err := os.Create(path)
+	file, err := r.owner.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -295,6 +294,22 @@ func (r *runtime) finish(text string, err error) {
 		return
 	}
 	t := r.active
+	if err == nil && r.owner.Ensemble().FleetEnabled() {
+		correction, escalation := r.owner.fleet.Idle()
+		if correction != "" {
+			if err = r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: correction}}}}); err == nil {
+				r.owner.notify(common.PartDelta{Kind: common.DeltaText, Hint: true, Chunk: correction})
+				r.send()
+				return
+			}
+		}
+		if escalation != "" {
+			err = r.append(common.Event{Type: "fleet_notice", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: escalation}}}})
+			// Parent delivery may post to another actor or the human sink, never wait
+			// for a reply from inside this actor.
+			err = errors.Join(err, r.owner.fleet.Escalate(escalation))
+		}
+	}
 	t.cancel()
 	r.active = nil
 	ended := common.TurnEnded{Text: text}
@@ -311,18 +326,13 @@ func (r *runtime) finish(text string, err error) {
 // Snapshot the round policy once per human turn. A later queued request gets
 // its own budget and cancellation context, never the previous request's state.
 func (r *runtime) begin(q request) {
-	if err := r.syncMemory(); err != nil {
-		if q.reply != nil {
-			q.reply <- common.Result{Err: err}
-		}
-		return
-	}
 	if err := q.ctx.Err(); err != nil {
 		if q.reply != nil {
 			q.reply <- common.Result{Err: err}
 		}
 		return
 	}
+	r.owner.fleet.Begin()
 	ctx, cancel := context.WithCancel(q.ctx)
 	limit := r.owner.Config().MaxToolRounds
 	if limit == 0 {
@@ -334,12 +344,13 @@ func (r *runtime) begin(q request) {
 		r.finish("", err)
 		return
 	}
-	r.recall()
+	r.send()
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
 	t := r.active
 	t.ids = make(map[uint64]uint64)
+	t.sawStreamCall, t.visibleBeforeStreamCall = false, false
 	if err := r.prepareContext(); err != nil {
 		r.finish("", err)
 		return
@@ -449,7 +460,14 @@ func (r *runtime) receive(m response) {
 		r.finish("", common.ErrRoundLimit)
 		return
 	}
+	// Rejected explanation-less batches also consume the existing round budget:
+	// corrective feedback must not create an unbounded model-only retry loop.
 	m.turn.batches++
+	toolFirstStream := m.turn.sawStreamCall && !m.turn.visibleBeforeStreamCall
+	if r.owner.engine.Features().RequireVisibleReasoning && (toolFirstStream || !visibleExplanationBeforeTools(m.events)) {
+		r.rejectUnexplainedTools(toolFirstStream)
+		return
+	}
 	r.dispatch()
 }
 func (r *runtime) interrupt(reason error) {
@@ -500,6 +518,16 @@ func (r *runtime) run() {
 				r.interrupt(common.ErrInterrupted)
 			case streamed:
 				if m.turn == r.active {
+					// Preserve actual stream order even when a provider parser later
+					// normalizes completed parts into text-before-tools order.
+					switch m.delta.Kind {
+					case common.DeltaText:
+						if !m.turn.sawStreamCall && strings.TrimSpace(m.delta.Chunk) != "" {
+							m.turn.visibleBeforeStreamCall = true
+						}
+					case common.DeltaToolCall:
+						m.turn.sawStreamCall = true
+					}
 					delta := m.delta
 					delta.PartID = r.displayID(m.turn, delta.PartID)
 					r.owner.notify(delta)
@@ -535,15 +563,6 @@ func (r *runtime) run() {
 				}
 			case modelSelection:
 				r.selectModel(m)
-			case memorySettings:
-				r.owner.configMu.Lock()
-				r.owner.config.Memory = m.value
-				r.owner.configMu.Unlock()
-				m.reply <- r.syncMemory()
-			case recalled:
-				r.recalled(m)
-			case compressed:
-				r.compressed(m)
 			case response:
 				r.receive(m)
 			case report:
@@ -559,7 +578,6 @@ func (r *runtime) run() {
 					var handoff common.MicroHandoffData
 					if err = json.Unmarshal(m.call.Args, &handoff); err == nil {
 						err = r.append(common.Event{Type: "micro_handoff", Handoff: &handoff})
-						m.turn.checkpoint = err == nil
 					}
 				}
 				var result strings.Builder
@@ -604,7 +622,7 @@ func (r *runtime) run() {
 					r.pending = nil
 					r.workers++
 					go func() {
-						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.mcp.Close())
+						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.fleet.Shutdown(), r.owner.mcp.Close())
 						r.owner.box.Post(workerDone{err: err})
 					}()
 				}
@@ -648,6 +666,12 @@ func (r *runtime) input(text string) {
 	}
 	// Reducer uses active turn state to preserve a hint as pending context.
 	r.append(common.Event{Type: "hint_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: text}}}})
+	// Close only the current wait's signal. A message arriving with no waiter
+	// cannot leave a sticky interrupt for a future job.
+	if current := r.active.current; current != nil && current.wake != nil {
+		close(current.wake)
+		current.wake = nil
+	}
 }
 
 // Parser IDs restart each response. Assign display identities once in the actor,

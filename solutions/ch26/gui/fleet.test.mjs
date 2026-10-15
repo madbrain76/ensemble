@@ -17,14 +17,16 @@ const provider=http.createServer(async(request,response)=>{
  const content=value.messages.filter(m=>m.role==="user" && ["ROOT","ROOT_OTHER","PEER","TREE_TASK","CHILD_TASK","LEAF_TASK"].includes(m.content)).at(-1)?.content;
  const prompt=typeof content==="string"?content:content?.map(part=>part.text||"").join("");
  const step=steps.get(prompt)||0;steps.set(prompt,step+1);
- let tool="submit",args={result:`${prompt}_RESULT`};
+ let tool=["CHILD_TASK","LEAF_TASK"].includes(prompt)?"submit":"",args={result:`${prompt}_RESULT`};
  if(prompt==="TREE_TASK"||prompt==="CHILD_TASK"){
   if(step===0){tool="spawn_sub_agent";args={agent_id:"peer",task:prompt==="TREE_TASK"?"CHILD_TASK":"LEAF_TASK"};}
   if(step===1){tool="join_agents";args={agent_ids:["peer"],ai_callback_delay:30};}
  }
  if(prompt==="LEAF_TASK")await leafGate;
  response.setHeader("content-type","application/json");
- response.end(JSON.stringify({choices:[{message:{role:"assistant",content:`${prompt}_REPLY`,tool_calls:[{id:`call-${step}`,type:"function",function:{name:tool,arguments:JSON.stringify(args)}}]},finish_reason:"tool_calls"}],usage:{prompt_tokens:3,completion_tokens:2}}));
+ const message={role:"assistant",content:tool?`${prompt}_REPLY`:`${prompt}_REPLY ${prompt}_RESULT`};
+ if(tool)message.tool_calls=[{id:`call-${step}`,type:"function",function:{name:tool,arguments:JSON.stringify(args)}}];
+ response.end(JSON.stringify({choices:[{message,finish_reason:tool?"tool_calls":"stop"}],usage:{prompt_tokens:3,completion_tokens:2}}));
 });
 await new Promise(resolve=>provider.listen(0,"127.0.0.1",resolve));
 const probe=net.createServer();await new Promise(resolve=>probe.listen(0,"127.0.0.1",resolve));
@@ -42,7 +44,7 @@ try{
  await page.goto(`http://127.0.0.1:${port}/?speech=transcript`);
  await page.locator('[data-agent-key="main"]').waitFor();
  async function prompt(text){await page.locator("#input").fill(text);await page.locator("#input-form button").click();}
- async function complete(text){await page.waitForFunction(text=>document.querySelector("#actions").textContent.includes(text),text);}
+ async function complete(text){await page.waitForFunction(text=>document.querySelector("#artifacts").textContent.includes(text),text);}
  await prompt("ROOT");await complete("ROOT_RESULT");
  await page.locator("#agent-name").fill("peer");await page.locator("#agent-model").fill("gpt-4o-mini");await page.locator("#create-agent button").click();
  await page.locator('[data-agent-key="peer"]').click();await prompt("PEER");await complete("PEER_RESULT");
@@ -50,7 +52,7 @@ try{
  const second=await browser.newPage();await second.goto(`http://127.0.0.1:${port}/?speech=transcript`);
  await second.locator('[data-agent-key="main"]').waitFor();
  await second.locator("#input").fill("ROOT_OTHER");await second.locator("#input-form button").click();
- await second.waitForFunction(()=>document.querySelector("#actions").textContent.includes("ROOT_OTHER_RESULT"));
+ await second.waitForFunction(()=>document.querySelector("#artifacts").textContent.includes("ROOT_OTHER_RESULT"));
  assert.ok(!(await page.locator("#artifacts").textContent()).includes("ROOT_OTHER_REPLY"),"another tab's root output leaked into peer conversation");
  await second.close();
 

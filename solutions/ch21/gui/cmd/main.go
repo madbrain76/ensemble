@@ -1,4 +1,4 @@
-// This optional application owns one Ensemble, one Agent and two human views.
+// This optional application owns one Ensemble fleet and its terminal/browser views.
 package main
 
 import (
@@ -44,7 +44,7 @@ func run() (runErr error) {
 	guiDebug := flag.Bool("gui-debug", false, "load the gui-debug skill before accepting input")
 	flag.StringVar(&spec.SkillsDir, "skills-dir", spec.SkillsDir, "skill directory (gui-debug defaults to skills)")
 	port := flag.Int("port", 8088, "localhost HTTP port")
-	directory := flag.String("gui-dir", "web/gui", "static GUI directory")
+	directory := flag.String("gui-dir", "", "override embedded GUI assets with a disk directory")
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
 	flag.StringVar(&cfg.Model, "model", cfg.Model, "discovered provider model")
 	flag.StringVar(&cfg.BaseURL, "base-url", cfg.BaseURL, "provider API base URL")
@@ -107,7 +107,7 @@ func run() (runErr error) {
 	displayDone := make(chan struct{})
 	defer close(displayDone)
 	go terminal.display(displayDone)
-	a, err := root.NewAgent(cfg, spec)
+	a, err := root.Start(".", cfg, spec, terminal)
 	if err != nil {
 		return err
 	}
@@ -116,10 +116,7 @@ func run() (runErr error) {
 	}
 	// Shutdown joins actual jobs. Defer order first detaches the HTTP receiver,
 	// then ends Agent lifetime, then closes the application-owned log writers.
-	if err := a.Load(); err != nil {
-		return err
-	}
-	defer func() { runErr = errors.Join(runErr, a.Shutdown(), a.Save()) }()
+	defer func() { runErr = errors.Join(runErr, root.Close()) }()
 	hub, err := gui.New(root, a, trace)
 	if err != nil {
 		return err
@@ -213,4 +210,10 @@ func (t *terminal) display(done <-chan struct{}) {
 			return
 		}
 	}
+}
+
+// Deliver presents an addressed human question without blocking any Agent actor.
+func (t *terminal) Deliver(message ensemble.FleetMessage) error {
+	fmt.Fprintf(os.Stderr, "[from %s, message %s] %s\n", message.From, message.ID, message.Content)
+	return nil
 }

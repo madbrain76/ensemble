@@ -1,0 +1,1157 @@
+{
+  "scope": "Default-path validation of reviewed reordered Edition 2 exports; deterministic external-provider fixtures, no live model calls.",
+  "archive_tag": "edition-2-before-background-compaction-20261014",
+  "archive_commit": "5d15954e46f021fc5646530c644f1ae5e80c28ef",
+  "sources": [
+    {
+      "chapter": 14,
+      "manifest": "solutions/ch14-manifest.json",
+      "manifest_sha256": "9680a0b73baf81388ed5b23e608afc1a879a4a64bae70f1ada23d2ef57d351e8",
+      "source_commit": "82d3952a0267fff0e540238a1326da764b44ea64",
+      "source_tree": "bccc7d3d5fd7eb4dc14a789ff9f3570c66200400",
+      "files": 108,
+      "checkpoint": "edition-2-background-ch14-r1"
+    },
+    {
+      "chapter": 15,
+      "manifest": "solutions/ch15-manifest.json",
+      "manifest_sha256": "aa278ee8e345e81d5970c7a438e91fcd354af13b68e40b347b4e669b15b8d335",
+      "source_commit": "6edde04092a02b1d708c9ff1b15338a3f9b132b0",
+      "source_tree": "d7c38fa74bf9cc1a62c60e61a7e5f105feeccd98",
+      "files": 118,
+      "checkpoint": "edition-2-background-ch15-r1"
+    },
+    {
+      "chapter": 16,
+      "manifest": "solutions/ch16-manifest.json",
+      "manifest_sha256": "6a88d77d7ee820af848f948fa69c6c801cc31cf0b10d6d73b367dda963cbd1d3",
+      "source_commit": "ec853c18bc2d7f2e2ab3a89d23067d50a655d628",
+      "source_tree": "c35c147a692100b325d3b46805e59105b4a4e2c0",
+      "files": 133,
+      "checkpoint": "edition-2-background-ch16-r1"
+    },
+    {
+      "chapter": 17,
+      "manifest": "solutions/ch17-manifest.json",
+      "manifest_sha256": "09c94d27185f00305ea34c940c0f71726f6b3562171fa48d2795ebdf0cd7159f",
+      "source_commit": "a4b9a1d33814bb5a660f74ab0b432c9cfea975aa",
+      "source_tree": "646d69872ae016eb9729b95d0c262eabe98a2fd9",
+      "files": 133,
+      "checkpoint": "edition-2-background-ch17-r1"
+    },
+    {
+      "chapter": 18,
+      "manifest": "solutions/ch18-manifest.json",
+      "manifest_sha256": "2e143c47e5aa8ed6104a449b4edceaef50c15545f7ba71fca267b81dc592cdb7",
+      "source_commit": "6677cb9cb96ea22c1c7dc6d8a1e11e8f3843f706",
+      "source_tree": "0a4251b225b98a711acbe31bf00672aaa592ae15",
+      "files": 141,
+      "checkpoint": "edition-2-background-ch18-r1"
+    },
+    {
+      "chapter": 19,
+      "manifest": "solutions/ch19-manifest.json",
+      "manifest_sha256": "176cf9c0957a5d75d98667fb7481729f87db2d097fa95ca2cde22c5430076ddb",
+      "source_commit": "dee87fbcd2dd793e37d820597c513c3556ea7d70",
+      "source_tree": "c01fcc28a43d0a581be9ed8aa32a5df492dede97",
+      "files": 146,
+      "checkpoint": "edition-2-background-ch19-r1"
+    },
+    {
+      "chapter": 20,
+      "manifest": "solutions/ch20-manifest.json",
+      "manifest_sha256": "2bfe3c0d1bd66add75224dc1f99ae39708d761ee2a6df2e804dc21f99b663041",
+      "source_commit": "9f4fdca297d636dfdfd5dfa0f82fe063e8e0e56f",
+      "source_tree": "1fd589c98da217f8b696f80bec6e7adb38647e12",
+      "files": 167,
+      "checkpoint": "edition-2-background-ch20-r1"
+    },
+    {
+      "chapter": 21,
+      "manifest": "solutions/ch21-manifest.json",
+      "manifest_sha256": "8421d680975fc279f5e4e0fd7351730b41ef1454248313a29de8d7a48234aeac",
+      "source_commit": "3a5673b601dda3934754b13c33da985694ea5dc5",
+      "source_tree": "34b461a12ee6d080ecf104940635f53f62874e68",
+      "files": 177,
+      "checkpoint": "edition-2-background-ch21-r1"
+    },
+    {
+      "chapter": 22,
+      "manifest": "solutions/ch22-manifest.json",
+      "manifest_sha256": "4a6c19d647441077a824b58dc0e890edcbd41de32c76fa4e1fe8e853cfed4a3c",
+      "source_commit": "c67173c18ba09dc6a1d53c607d69da969293562f",
+      "source_tree": "23e0aae52df171420e0b00b9e05d3ac447660ea6",
+      "files": 198,
+      "checkpoint": "edition-2-background-ch22-r1"
+    },
+    {
+      "chapter": 23,
+      "manifest": "solutions/ch23-manifest.json",
+      "manifest_sha256": "9c578ec419169ef562e42f67ad976d2a94cd1821e15a4144c12f08824002a521",
+      "source_commit": "8faca2652d6bacd41014632450d5d6798862c852",
+      "source_tree": "4518af327241e99543cd027e62ef9e9596e18f08",
+      "files": 206,
+      "checkpoint": "edition-2-background-ch23-r1"
+    },
+    {
+      "chapter": 24,
+      "manifest": "solutions/ch24-manifest.json",
+      "manifest_sha256": "c59ef0fc6f09804f325c65ba763f1b9c49c1eeb9b00fb21c3313ca43cc48acee",
+      "source_commit": "f18737f62e0f9aaf553a8d8a32334ac2191bb0a9",
+      "source_tree": "6fdf4cccf54989f45829bbf04ca77ddbd062ab6c",
+      "files": 210,
+      "checkpoint": "edition-2-background-ch24-r1"
+    },
+    {
+      "chapter": 26,
+      "manifest": "solutions/ch26-manifest.json",
+      "manifest_sha256": "979e30dbba51322e6e6f1163fb25ccdd138d668e61dceb25b32b377b244b2a5a",
+      "source_commit": "59e25a25dab3c2e7d41c32654013694d7de1bce7",
+      "source_tree": "6982337a032962f36626cb23f68e6488046cccdc",
+      "files": 223,
+      "checkpoint": "edition-2-background-ch26-r1"
+    }
+  ],
+  "graders": [
+    {
+      "chapter": 14,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "14",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 1.608,
+      "manifest": "solutions/ch14-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 14 \u2014 Context Management",
+        "checks": [
+          {
+            "id": "skill-survives-the-ladder",
+            "title": "A loaded skill appears exactly once, outside tool parts, before and after the ladder fires (rules 3, 4, 7)",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "micro-handoff-shape",
+            "title": "After micro_handoff: no tool parts, no orphans, the handoff text exactly once (rule 5)",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "keep-or-stub",
+            "title": "Unkept results are stubbed one request later on the stubbing model; kept ones and the no-stub model are not (rule 6)",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "ladder-is-recorded",
+            "title": "Restarting under a larger target reproduces the recorded cuts byte for byte (rule 7)",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "frozen-prefix",
+            "title": "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "replay-equals-snapshot",
+            "title": "Loading with the context nulled equals loading the snapshot, on a save with handoff, redaction and skill events (rules 8, 9)",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "crash-recovery",
+            "title": "SIGKILL after an anchored save loses no turn (rule 9)",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "total-reducer",
+            "title": "Two parseable but unappliable events are skipped; the agent starts with the rest intact (rule 8)",
+            "points": 5,
+            "earned": 5,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 15,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "15",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 0.708,
+      "manifest": "solutions/ch15-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 15 \u2014 The Invisible Invoice",
+        "checks": [
+          {
+            "id": "cache-lens-exists",
+            "title": "a cache lens observes consecutive requests, so a broken prefix can be found",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "prefix-is-stable",
+            "title": "the tool and system sections are byte-identical across turns, so they can be cached at all",
+            "points": 20,
+            "earned": 20,
+            "passed": true
+          },
+          {
+            "id": "request-has-breakpoints",
+            "title": "the system prompt and the message history both carry a cache_control marker, and the history one advances",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "cost-is-computed-not-stored",
+            "title": "the event log holds token counts only; cost is derived at display time",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "usage-is-session-scoped",
+            "title": "the meter reports the session, not the lifetime restored from disk",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "cache-read-rate",
+            "title": "cache reads are zero on a cold turn and reported faithfully on a warm one",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "all-vendors-report-usage",
+            "title": "every vendor parser extracts all four usage categories from its own reply shape",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 16,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "16",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 1.705,
+      "manifest": "solutions/ch16-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 16 \u2014 Leaving Anthropic for OpenAI",
+        "checks": [
+          {
+            "id": "credential-provider",
+            "title": "Minted OAuth and API-key bearers, without secrets in observed output, saved conversation or request bodies",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "oauth-flow",
+            "title": "Successful PKCE/issued-client exchange, forged-signature and nonce rejection, and actual inference-grant refusal",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "token-refresh",
+            "title": "Proactive rotating renewal with successful turns and the corresponding new bearers",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "responses-format",
+            "title": "Responses fields, actual completed-item tool result and matching encrypted replay",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "cache-breakpoints",
+            "title": "Paired plan-route omission and explicit API-key developer-content breakpoints within the four-marker budget",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "reasoning-summaries",
+            "title": "Separate complete summary/text deltas, including tool-adjacent content, with delivery before provider completion",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "billing-mode",
+            "title": "Actual admission and midstream quota refusals reported without switching to the configured metered key",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 18,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "18",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 0.961,
+      "manifest": "solutions/ch18-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 18 \u2014 Giving the Agent the Web, and a Status Line",
+        "checks": [
+          {
+            "id": "tools-gated-by-skill",
+            "title": "The web tools are absent until the web-search skill is loaded. Off is a statement about what this feature initiates, and the honest way to show it is that there is no tool to call.",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "url-transport-connects",
+            "title": "A skill declaring transport: url reaches a hosted MCP server and its tools appear in the list sent to the model. This is the seam Chapter 12 left open, filled in.",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "search-dispatches",
+            "title": "A search call reaches the server and its results come back to the model as a tool result, rather than being dispatched and dropped.",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "fetch-returns-planted-token",
+            "title": "Content fetched from a page arrives at the model intact. Verified with a token minted this run, so a stub or a cached fixture cannot produce it.",
+            "points": 20,
+            "earned": 20,
+            "passed": true
+          },
+          {
+            "id": "fetched-content-is-a-tool-result",
+            "title": "Fetched bytes stay inside a tool result and never reach the system prompt or a user turn. Web pages contain instructions aimed at the model; keeping them structurally separate from the operator's words is what makes them data.",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "tool-error-is-reported",
+            "title": "A tool-level failure (isError on a 200) is told to the model. A failure the model cannot see is one it will confidently narrate around.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "transport-error-is-reported",
+            "title": "An HTTP-level failure reaches the model with the reason intact. The response body is where quota and auth refusals say what went wrong; a transport that discards it turns a diagnosable refusal into 'request failed'.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "agent-builds",
+            "title": "Actual core and GUI commands build",
+            "points": 5,
+            "earned": 5,
+            "passed": true
+          },
+          {
+            "id": "agent-status-tool",
+            "title": "Shipped agent_status: actual model, four last/session counts and cache hit rate",
+            "points": 20,
+            "earned": 20,
+            "passed": true
+          },
+          {
+            "id": "per-model-cost",
+            "title": "Priced work and honest mixed-model accounting across turn-boundary switches",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "reaches-through-the-chain",
+            "title": "Resolved tools/common import boundary; ownership requires source review",
+            "points": 15,
+            "earned": 15,
+            "passed": true,
+            "details": [
+              "Mandatory source review follows actual dispatched status \u2192 owning Engine \u2192 Agent \u2192 Ensemble and each shipped executable's public composition path; this graph alone proves neither."
+            ]
+          }
+        ],
+        "score": 155,
+        "max_score": 155,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 19,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "19",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 1.038,
+      "manifest": "solutions/ch19-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 19 \u2014 The Sandbox",
+        "checks": [
+          {
+            "id": "path-confinement",
+            "title": "File tools refuse to escape the sandbox root",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "kernel-confinement",
+            "title": "Commands and their descendants cannot reach outside the root",
+            "points": 20,
+            "earned": 20,
+            "passed": true
+          },
+          {
+            "id": "no-network",
+            "title": "A sandboxed command cannot reach the network",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "no-credentials",
+            "title": "No credential reaches a tool result",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "child-cannot-widen",
+            "title": "A child's permissions are clamped, and an over-request is reported",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "safe-mode-absence",
+            "title": "Safe mode removes the exec tools and keeps the file tools",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "no-host-path-leak",
+            "title": "A refusal names the path the model asked for, not the host path",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 20,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "20",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 2.001,
+      "manifest": "solutions/ch20-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 20 \u2014 The Ensemble",
+        "checks": [
+          {
+            "id": "headless-linkage",
+            "title": "A root-only consumer links no GUI package and no websocket library",
+            "points": 20,
+            "earned": 20,
+            "passed": true
+          },
+          {
+            "id": "public-reuse",
+            "title": "An outside application uses real Agent history, prompt delivery and correlated browser relay",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "wire-compat",
+            "title": "The browser wire protocol is unchanged: a ch22-style scripted session still works",
+            "points": 15,
+            "earned": 15,
+            "passed": true,
+            "details": [
+              "Actual stdin turns and WebSocket settings select Sonnet-5, Opus 4.6 and Sonnet-5 on subsequent provider requests."
+            ]
+          },
+          {
+            "id": "assets-embedded",
+            "title": "The binary serves the GUI from an unrelated working directory",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "components-without-shell",
+            "title": "A consumer mounts the Artifact scroll from the exported FS without adopting index.html",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "mcp-without-gorilla",
+            "title": "The public headless consumer completes MCP without GUI/WebSocket dependencies",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "root-clean",
+            "title": "Public root has a resolved GUI-free dependency graph and constructible API",
+            "points": 10,
+            "earned": 10,
+            "passed": true,
+            "details": [
+              "Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review."
+            ]
+          },
+          {
+            "id": "spawn-reports-back",
+            "title": "A spawned child runs and reports back: the parent calls spawn_sub_agent and the child's submitted payload reaches the parent",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "child-isolated",
+            "title": "Parent and two children retain distinct valid saved conversations",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "fleet-visibility",
+            "title": "Fleet visibility and teardown: agents_status lists a live child, and shutdown_agent removes it",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "join-fans-in",
+            "title": "join_agents blocks until every listed child finishes, then returns each child's result",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "addressed-messaging",
+            "title": "Three generations yield a child question and return an addressed parent reply",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "wait-interrupt",
+            "title": "A message arriving during a slow tool wakes the agent before that tool finishes, and the backgrounded tool's result still arrives",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "idle-corrected",
+            "title": "A child that goes idle without submitting is woken rather than treated as finished, and after three wakes it escalates to its parent",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          }
+        ],
+        "score": 200,
+        "max_score": 200,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 21,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "21",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 1.56,
+      "manifest": "solutions/ch21-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 21 \u2014 Managing the Swarm",
+        "checks": [
+          {
+            "id": "activity-observed",
+            "title": "Correlated activity and validated structured submission state",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "ensemble-persists",
+            "title": "Named creation selects model/skill, restores conversation and deletes durably",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "ownership-enforced",
+            "title": "Owned typed retrieval and indistinguishable foreign/missing refusal",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "wait-change-wakes",
+            "title": "Selected child progress wakes its change wait; command and submission complete",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "composition-root",
+            "title": "Actual CLI recursively constructs and completes a three-generation fleet",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "gui-tree-message",
+            "title": "Live nested GUI tree, exact structured replay and truthful state",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "submit-idle-regression",
+            "title": "Bottom-up submit and idle correction still work through the Ensemble layer",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 22,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "22",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 3.653,
+      "manifest": "solutions/ch22-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 22 \u2014 Forgetting on Purpose",
+        "checks": [
+          {
+            "id": "micro-handoff-compresses",
+            "title": "A checkpoint that crosses the budget turns the oldest finished work into a memory, and the raw work it replaces leaves the context.",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "planted-fact-survives",
+            "title": "The compressor is shown the work it is folding, and what it writes comes back as context.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "graduation-fires-oldest-first",
+            "title": "A band over its budget folds its OLDEST contents into the band above, leaving the newest alone.",
+            "points": 12,
+            "earned": 12,
+            "passed": true
+          },
+          {
+            "id": "disable-enable-idempotent",
+            "title": "Switching bands off and back on - in any order - restores exactly the memory that was there before.",
+            "points": 12,
+            "earned": 12,
+            "passed": true
+          },
+          {
+            "id": "disabled-neighbor-refused",
+            "title": "A band whose upper neighbour is switched off refuses to graduate rather than dropping memories on the floor.",
+            "points": 8,
+            "earned": 8,
+            "passed": true
+          },
+          {
+            "id": "forced-handoff",
+            "title": "A nearly full context leaves micro_handoff as the only tool on offer, because asking nicely does not work.",
+            "points": 12,
+            "earned": 12,
+            "passed": true
+          },
+          {
+            "id": "replay-needs-no-llm",
+            "title": "Rebuilding a context replays recorded decisions instead of re-running the model that made them.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "abandon-on-restart",
+            "title": "A fold that fails or is interrupted loses no work and is never applied twice.",
+            "points": 8,
+            "earned": 8,
+            "passed": true
+          },
+          {
+            "id": "memory-is-data",
+            "title": "Memory arrives in the conversation, written in the first person, not bolted onto the system prompt.",
+            "points": 5,
+            "earned": 5,
+            "passed": true
+          },
+          {
+            "id": "fresh-start-populates",
+            "title": "An agent starting with memory files on disk comes up with them already in context.",
+            "points": 5,
+            "earned": 5,
+            "passed": true
+          },
+          {
+            "id": "ch14-parity",
+            "title": "Chapter 14 context management and journaling remain functional.",
+            "points": 3,
+            "earned": 3,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 23,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "23",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 16.751,
+      "manifest": "solutions/ch23-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 23 \u2014 Auto-Recall",
+        "checks": [
+          {
+            "id": "bm25-indexes",
+            "title": "Archived text the user never mentioned reaches the model, so the archive is actually indexed and searched.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "bm25-scores",
+            "title": "Results are ranked by term rarity, term frequency and document length, not merely by containing the word.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "bm25-stop-words",
+            "title": "Words like \"the\" and \"we\" are stripped, so a short document full of them cannot outrank a real match.",
+            "points": 5,
+            "earned": 5,
+            "passed": true
+          },
+          {
+            "id": "chunking-splits",
+            "title": "A long document is indexed section by section, so retrieving one part does not cost the context of the whole file.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "per-source-quota",
+            "title": "Each source keeps a share of the result, so the source with the most text on a topic cannot take every slot.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "judge-filters",
+            "title": "A model reads the candidates and its verdict decides what is attached; changing its answer changes the output.",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "judge-fallback",
+            "title": "Prose, HTTP 500, a hang, and an empty archive all degrade to top-N BM25 or to silence. Never a crash, never a dead turn.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "recall-is-a-spoke",
+            "title": "internal/recall imports the hub and stdlib only, and no existing spoke imports it back.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "recall-is-own-kind",
+            "title": "Recalled material lands as its own permanent entry carrying its bytes, and is never merged into the user's message.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "injection-capped",
+            "title": "The attached block is bounded, so an archive that matches well everywhere cannot swallow the context window.",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    },
+    {
+      "chapter": 26,
+      "command": [
+        "go",
+        "run",
+        "./cmd/grade-edition2",
+        "-ch",
+        "26",
+        "-json"
+      ],
+      "exit": 0,
+      "seconds": 0.812,
+      "manifest": "solutions/ch26-manifest.json",
+      "report": {
+        "title": "Edition 2, Chapter 26 \u2014 The Gateway",
+        "checks": [
+          {
+            "id": "C1",
+            "title": "Noise-KK handshake: two peers mutually authenticate, wrong keys are rejected",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "C2",
+            "title": "Prompt envelope carries provenance, trust, conversation and response mode",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "C3",
+            "title": "Actual Gateway binary: authenticated identities and welcome queue counts",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "C4",
+            "title": "Group-based routing delivers only from accepted groups and rejects the rest",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "C5",
+            "title": "Handler-return receipt, ordered offline/resume and clean server restart",
+            "points": 15,
+            "earned": 15,
+            "passed": true
+          },
+          {
+            "id": "C6",
+            "title": "Actual outside Client/Handler and resolved public dependency boundary",
+            "points": 10,
+            "earned": 10,
+            "passed": true
+          },
+          {
+            "id": "C7",
+            "title": "Parent registers a child and cannot grant groups it does not hold",
+            "points": 20,
+            "earned": 20,
+            "passed": true
+          }
+        ],
+        "score": 100,
+        "max_score": 100,
+        "passed": true
+      }
+    }
+  ],
+  "package_checks": [
+    {
+      "name": "grader-tests",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "./internal/gradeedition2"
+      ],
+      "exit": 0,
+      "seconds": 36.39
+    },
+    {
+      "name": "grader-vet",
+      "command": [
+        "go",
+        "vet",
+        "./internal/gradeedition2",
+        "./cmd/grade-edition2"
+      ],
+      "exit": 0,
+      "seconds": 0.18
+    }
+  ],
+  "grader_source_sha256": {
+    "cmd/grade-edition2/main.go": "5dc03cfa72dd564a00f36ad2e340df70d74aa8e4924c19fcf67f297a9e382c32",
+    "go.mod": "36856bd5d2deacba13976ba88e057ae547650c6f919875ba3ed05b9c030ba8b1",
+    "go.sum": "cb8f405714e3326c7d4451bc4b02f31047261f86a5da45a48e7d9375812481b1",
+    "internal/fakeanthropic/fake.go": "4f0326f1359774b75529b798ee4ccaa860f903d6f6ff666ee6cf82d8240fdfcd",
+    "internal/fakevendor/fake.go": "6b701058c6ab6785ae8658e278e87c7c1508c34933e37ccd466ca7b116e6cfa5",
+    "internal/fakevendor/fake_test.go": "d01fffcb7056988adbb18beea94bd4354ac4e446afbbfa68724139a8ff3aae5a",
+    "internal/fakevendor/stream.go": "6d487393f58a5df87c35657244567b2f392b4a1e35ef96d7f9fc3311777f6024",
+    "internal/grade/astscan.go": "38e8c4c3877b01298c5b8719a06a71798b12a9dd30b1a12d1394eeb32d8c07c0",
+    "internal/grade/ch02_checks.go": "6ba560479f1e369d09437494490015843b0970a0533b502eab22a12bbbc7a27b",
+    "internal/grade/ch02_harness.go": "a994b1596caeb87dd41a6e643b618a05c3be703f3bc21dc9c5f9ff1d7eb680da",
+    "internal/grade/ch02_log.go": "5fc01bd04674b2f8f44048344c09c3bef0fa3edd625dd2850ec0baf759401c12",
+    "internal/grade/ch02_ref_checks.go": "8363cfb009f7b2d3bee34dd40a1a19d05eedad080c55da197d7595ef53b7c75a",
+    "internal/grade/ch03_checks.go": "bbcf67adc8dcc6a3e1ea8f9b0be1c445a58beb6d0852abfd8fe809bc6eb9f2dc",
+    "internal/grade/ch03_harness.go": "e30e48676a0168f2769836ffec02b948fd218dc94168634ed66d7fcbaef4690e",
+    "internal/grade/ch04_checks.go": "350649e6fc6e2f383ebff0b386e09157dd54cb9e70059be1b6e6ce51eaecd687",
+    "internal/grade/ch04_harness.go": "2200e0a437c9b18c83749397b687857122d7facc08fd44718ff34f951ff563c6",
+    "internal/grade/ch05_checks.go": "890d41e699d36cb2dc66be5d94d80683b8c799d8c2f0241420597573533fe895",
+    "internal/grade/ch05_harness.go": "25fa8fc71a8130e7328a8a244fb2bb50243bf17c0a5d855e765eaeec0deeecf8",
+    "internal/grade/ch06_checks.go": "304cd2bcdadde278e0a8f70f505aa0a915bee875b6e52090fc8dd5f8ab106408",
+    "internal/grade/ch06_harness.go": "acdaaa2a86ec20c7ce792f7f433a9bf1dc4bc4405c83f99afa1ba09a25dcede7",
+    "internal/grade/ch07_checks.go": "52a0b31dcf236a2064f788e93e293938444d507b4f0737a1f0890f2334ef5d16",
+    "internal/grade/ch07_harness.go": "3112bfec7ae00cbd2d2e5ea2ab05b9f5a71e005c968f9ece07c6bd1fbc072748",
+    "internal/grade/ch08_checks.go": "1d4fab5923a3ba90fb3fcd5c878b783b5059d968ca4cfe06bdd84936ef76f0c3",
+    "internal/grade/ch08_harness.go": "b77b732909dae7486a2d281850e693bfdd6ca9bc587e784769b7e02e3ffe1601",
+    "internal/grade/ch09_checks.go": "2a1c529ca624ba80d29312d0970b5a1aae6f499b0a4d5616a4e75a254d2c339b",
+    "internal/grade/ch09_harness.go": "8acd525cfef94b9d613b9c99ab51bf8b2143a64a8e94576e1fb1da7fec235fe5",
+    "internal/grade/ch10_checks.go": "cfc30c3e6cd78d3880c40d7e3e8cceb3faee84f880161831db75212d674aed49",
+    "internal/grade/ch10_harness.go": "47628bffc3da79b63a16feeeff8f070d229ca44e802cb18f4ed9d4df9b8e9a9c",
+    "internal/grade/ch11_checks.go": "57681a1dc938f86cf89526073a493fa92d1acd9f9054cc59760f827c9accc079",
+    "internal/grade/ch11_harness.go": "b834e66359c579340fb505a48b71f7ac99422ef94494a1034fa93fb9fc3fbe40",
+    "internal/grade/ch12_checks.go": "9e3e74c172fb479376133a5a11b4e44cd3eb36e043502d74972fae95abeeb630",
+    "internal/grade/ch12_harness.go": "a7c91fe21dc09412fd0bdb31427986f138ebfe45f8c3964697657aeaa6f3573d",
+    "internal/grade/ch13_checks.go": "919f11cba95afa8d0b2d031675d2eb8908bcc8e8027526341301c228ff5dbfcc",
+    "internal/grade/ch13_harness.go": "8c1000900e25b52e191d30d7b092bbf977198874fb3487c6eaa2406d25510486",
+    "internal/grade/ch14_checks.go": "cede7cc7f47043defac8457cc10cb3a816457dedcedc891541ddc214d584beba",
+    "internal/grade/ch14_harness.go": "01c034695a44095a9817ccb94b26fc6d627d155f906ded0ac845f96da739e65b",
+    "internal/grade/ch14_run.go": "5b93bf3a5cdd212592218cf32122a36f4bfa184551f4c829573c927ad660bb9e",
+    "internal/grade/ch15_checks.go": "15736ed461fae964cc0d956f7285f7d1a8056aff33a88428a868086ccb81ead8",
+    "internal/grade/ch15_harness.go": "605a1c052db65a86f8e79008648bc06da7a4640f56d57bbdf124f813fda87931",
+    "internal/grade/ch15_run.go": "c48a8bbd0fa4e377bb339dbf628c59871a8869723990ed17878c0f4fe78c658f",
+    "internal/grade/ch16_checks.go": "4e99b4427dc115ced53c92747e73b3299de5f1995122a51fb226949ec9497521",
+    "internal/grade/ch16_harness.go": "9ad7255b0a4d9f2640482f7ee6665c872b5ff01eeffab3e7616e9e69a089944f",
+    "internal/grade/ch16_run.go": "764575a168b3114897cb5a462eed4facac42a039fe632d73ed35d12b71dd59fd",
+    "internal/grade/ch17_checks.go": "476677c924fd26c24923e82f72c3484c4836659b30e3cde6c82468c708a690a0",
+    "internal/grade/ch17_harness.go": "86cc37ddeff1d7dc4e36cd921cf4077a560945ccb95837ee2b6bb432df27e5c6",
+    "internal/grade/ch17_run.go": "6dc47913d76f0b4f749e426d5b0ac42246ff2257721394d4ecf4c6e947a8dd72",
+    "internal/grade/ch18_checks.go": "00ffe9ddfb7745c71325efd0230d14ebb9232b49fb80a3a678a682bc689b9bb7",
+    "internal/grade/ch18_harness.go": "f1e100776d47d643a6ab6ab94460611a2e0341be87c8693032217c1a7505360e",
+    "internal/grade/ch18_run.go": "8e12bca45a80b1678ba913708aaa51c19e1265e0e28c44925cd5253aa6ccff4b",
+    "internal/grade/ch19_checks.go": "5be31eb750e63ccf2aeab13e8948099b8fb60a10d37a9b2684494801982b80b3",
+    "internal/grade/ch19_fakeoauth.go": "26291e3641daae5fcf196e981c2738b7143bb5b9879af913f5683b24c183d218",
+    "internal/grade/ch19_fakeresponses.go": "0de734804694fc31c336dfea663f0c9afe323109476ded6784fc5a2cb130c5e2",
+    "internal/grade/ch19_harness.go": "d5acd0fdb3db968a7242fb96d0a45afbbb96c8756dde8c2a1c3a181674cff37e",
+    "internal/grade/ch19_run.go": "f0b667d1669a9002e606caf0204d8d68b1f11d7e0701ba80139c1e376466fdbd",
+    "internal/grade/ch21_checks.go": "e58283417a8e141f5409c29b6917530e574f2dfd86d990ed7bb96206d4c4a171",
+    "internal/grade/ch21_fakemcp.go": "1fcd849b77794f85a80d23ede777571cd716a8d0bf31c6c3c0ef54b5b9c8293e",
+    "internal/grade/ch21_harness.go": "f948d70153334739356cbb74ea97514406472d2f5581bca6385e1b88413eb76a",
+    "internal/grade/ch21_run.go": "63979a1d0cea261a95d72c089f814249b63d9fdbd7950f76904e9fb239706f61",
+    "internal/grade/ch22_chain.go": "05950d995cbc1b752902f523c307c0c6ffb461daec699178874c3e25af1ebad0",
+    "internal/grade/ch22_checks.go": "ab68574259ceb1095e2b0e5d337ad6f7c021e132cfe8c5a27ba38d6e1db4ded9",
+    "internal/grade/ch22_harness.go": "df7884a797d8056098473b2de137d7ec295dc58fefd6a5d945834269a3f68dd0",
+    "internal/grade/ch22_root.go": "c2f3c83be709c4e52e2bd560a20620fdcb754245dc27b40eb9638e0a00c505a9",
+    "internal/grade/ch22_run.go": "0920acee92f05af8d08bb8b353e0b8e5bc31e037fae77ecdead26ef15f17d1b7",
+    "internal/grade/ch22_status.go": "c3b4ebc4a78ad58cfe75ef350b0586ff7f95f34cc292ad2e3f2bfcc25c4f12af",
+    "internal/grade/ch23_checks.go": "32c5d65ad11bc4ade8505326e4b6d7e8a05c88680e72e6e5171c25ce4f07d6f0",
+    "internal/grade/ch23_harness.go": "24b7e13a90868cdf7b1f2fd1a3f4bf710f9b5ebffc84594bcfd5bb2c9d3cf80c",
+    "internal/grade/ch24_checks.go": "4328aee81702b9199535f49a40401d7225edb3a5f4173884f042f08bd23198f0",
+    "internal/grade/ch24_harness.go": "5631a794d043a79ac43b22178666fcd5d9e6b797ddb195afe4741c3adee10de5",
+    "internal/grade/ch25_checks.go": "9d925b34480a7a097e6b65059b04f36053b59b945c27c1fc26483dc452699269",
+    "internal/grade/ch25_harness.go": "1896697aef507f31c7955c359594501dd644f70c16fcd388f9f955a6e4bb9bc6",
+    "internal/grade/ch26_checks.go": "8e00d4e300eaa9f873f904b11af57594ba8d7aa2213fb77276dff524dfe59189",
+    "internal/grade/ch26_harness.go": "ec6e7f98b4576cbb2e3bd834632cee8106ecc9152bf0edaa0d9115ad28dbc287",
+    "internal/grade/ch27_checks.go": "eeec8a960e14677be504d2399c791c4505b3927f9763ddf11be5125f549aee07",
+    "internal/grade/ch27_harness.go": "cab0928523a1ee489980d65ac571f125d10b9718987996036ae99f2ae0834689",
+    "internal/grade/ch27_probe.go": "1d1d1bf9cbad8c389f1aa553a1c3bf48a0028ddc4f637e39cd95b68b73d8e4ec",
+    "internal/grade/checks.go": "271efc2f59265ca07e9cd6d0a55d5db522db540330005949167cddb1d10c5ae4",
+    "internal/grade/edition2_auth_peers.go": "cca7e813d1da3096584cf2278f50e1733e5b89d928762d8cb8d68d6945b47f92",
+    "internal/grade/harness.go": "43f93da9b67504fc9cb69a88572fdc3ebd382463a2d5e31c6703fd422c01fb7c",
+    "internal/grade/harness_test.go": "05877258c04632ae5ba4b14eecb1f3d1307b1f37b27c091b85d20851ddcb9335",
+    "internal/grade/report.go": "ad1fb929d13a3f636c93146ce182795dae271028b05f69beff47e78d67ab009a",
+    "internal/grade/script.go": "efae85551bfb2b7220c9b40b356ad4f5faa75c153e40530869f9e8f3d54a2d73",
+    "internal/gradeedition2/ch01.go": "01385980eca5813b405acf9e871265435f0f57c5fbea8a87f0866964ad7277a2",
+    "internal/gradeedition2/ch01_test.go": "be78a23b5a1466df29c6ec93b9030cd3b9c566e5d6e651b467c2c34d57a55ce3",
+    "internal/gradeedition2/ch02.go": "6053af1991891a23a690dcd0616cd1ecef71cb14ad44755c01af6a7795bcb89e",
+    "internal/gradeedition2/ch02_ref.go": "7344c33164666c7bddb8666a5d54612075ac6605f2cbcfe273967e056663831e",
+    "internal/gradeedition2/ch02_test.go": "e169baf5cbeaf8f270d548367b1b5947be079f3258e7ee2fc646cddbbae2cb31",
+    "internal/gradeedition2/ch03.go": "58c62cc74d3875b33f6f8bea9ea9f94c685daad90fdc383062863b35efbc6741",
+    "internal/gradeedition2/ch03_test.go": "5849e7daf0960f42e64e862577b7e25e9d926a9483622987071685ecbdf97c6c",
+    "internal/gradeedition2/ch04.go": "fbb4eebd87c0e67cd0c65ec51b21dfad9fd6da853a5298d5b125011813be29b0",
+    "internal/gradeedition2/ch04_consumer.go": "ed03f278694e00fd06395c605d935061c45a17bbb0a3f7245b964fe2ac08e954",
+    "internal/gradeedition2/ch04_test.go": "bfe92d4babc9153d4f37fc981d5d0995e392e3235f05b898f9b5feeddb3e5b06",
+    "internal/gradeedition2/ch04_topology.go": "9b4d0e09159b10a1e6f7ac4512803b14dae878abf3f072132ce83dfbed65f623",
+    "internal/gradeedition2/ch05.go": "15fd94a48c2e598adbab283c4e80517123a28ad1918b2c6ced9bd8cf49f46fce",
+    "internal/gradeedition2/ch05_media.go": "d53970bb0ee832ca33806d9ef9045bb4ef87442f8e3a1d9132b61dd562410fc5",
+    "internal/gradeedition2/ch05_replay.go": "342a8be4154847825fdd57fb5f975aa4087b07297cb015d0978a765c91c7e5a6",
+    "internal/gradeedition2/ch05_test.go": "86a4f2204e6996cff0426bd80cd8cf7c15f84dc014101aee56e24fa753b56561",
+    "internal/gradeedition2/ch05_workflow.go": "becfb9217827948e077a9f02950454a7bdc4e630d426d0811d2b6e2ee22e3440",
+    "internal/gradeedition2/ch06.go": "edfd0ef2ad9e9841bf531ba552a8983ac182fa8b1f61612596343aa102d080b7",
+    "internal/gradeedition2/ch06_stream.go": "1aca20de710ce3182fe224a73cb6e2c985f6f978358f6e18f61b27f9bb53fdf0",
+    "internal/gradeedition2/ch06_test.go": "0e813f4d38f0ff661f857b35a0cd4f4c51213977308740311d4c7f3e16f82ef4",
+    "internal/gradeedition2/ch07.go": "2dc39413f88b1fd28059c84b52e9b48661be6438696f921fabe2ddc08d2ddb2d",
+    "internal/gradeedition2/ch07_driver.go": "b2812952e0defd31cec84b06d82335d65e1ac3ef0b387b9004beeb5e75a61e77",
+    "internal/gradeedition2/ch07_test.go": "74420b7e25413705f619a0e1d495cc9f5a671366f4015d7eeb56a39386f02d34",
+    "internal/gradeedition2/ch08.go": "126df145ca90815fd17ed2fec5879c29c9d248aeeb1a908937343a6b78e95c34",
+    "internal/gradeedition2/ch08_test.go": "0dd20c6b72e0346de96f48ea7bb4d88f3e10199ebc61fb2e751cc70dd33026fd",
+    "internal/gradeedition2/ch09.go": "77ffbe2a4703f9341021345366ef4ffaf8c3eb7b6f3fc74117fd26c1e77fa466",
+    "internal/gradeedition2/ch09_test.go": "c088c0aedd838dfe4ab9111ab4e6a8836e493fda591daaccef079d2cd07e5d3b",
+    "internal/gradeedition2/ch10.go": "c7a63c5dc97a859f8d96f48f508edb0daad597dadbfb9a17dcd657c9240b1932",
+    "internal/gradeedition2/ch10_test.go": "70ef896849afe79e79bb4a9bd0e8107077905795e90c808e9760af1c12956867",
+    "internal/gradeedition2/ch11.go": "f86645210fc8d33bceac5a30dd216f26b0343b889ac91cea811b49d9fc6a36d3",
+    "internal/gradeedition2/ch11_test.go": "18ce144cb406c66152fcd3055e5090719f658847e7942f6b09fd81a56fb5cbb1",
+    "internal/gradeedition2/ch12.go": "4a0f5bd3b0750ae09e09e0f19a3414d6db9657db2351ffc8e820c6fc0325bb4e",
+    "internal/gradeedition2/ch12_test.go": "058a6514eebb2c7e182ac1d1f836e6e56ad95f8aea1f51c28b5d1be75ea80974",
+    "internal/gradeedition2/ch13.go": "f9c0fea9ec63042930fa9a98875956aa8b537f99f7ef1d29a00f4c6652332216",
+    "internal/gradeedition2/ch13_test.go": "f1c3cf69603ba22d511b7c07d9928b6d2c57f283b6c2532db8485b74b668a73f",
+    "internal/gradeedition2/ch14.go": "8befbd68343da1bc6539e28f6771fdbf8b1474d9577f9596a3e8b8c3de60845b",
+    "internal/gradeedition2/ch14_driver.go": "feb274cfe04ea05ad667f0e6526f1a2a12c73dd01061f9adfa3a14c6ed593809",
+    "internal/gradeedition2/ch14_test.go": "a13956a51449549a44d080c0a36b57f3cff1ea7ba9d099b8ded767ea0466c446",
+    "internal/gradeedition2/ch15.go": "6ad7f96972835416a78cf2277e82117fefee4694a59c36a57ac44e3f5ea9ed40",
+    "internal/gradeedition2/ch15_driver.go": "8b8c30b7fb590d64f7f6066b2dc63f9ceda943ea0bf59864c7c67d408d57467d",
+    "internal/gradeedition2/ch15_test.go": "62e5b89cc8f76ab49f5d53e53058c448c8cbce8b9864cd7c07c8fcc489b6f219",
+    "internal/gradeedition2/ch16.go": "427b8cbfa10756d1128cedf25a1578029c13e4d4f2d0d6d5decfa9a8338040ce",
+    "internal/gradeedition2/ch16_driver.go": "f92e18700b11437d5f3eb449c58dd6576a226cfed15444fffe2f10f11a5f0555",
+    "internal/gradeedition2/ch16_test.go": "8c7f0210817732afc3e3da5a3f2a799aa74ea85f070abb026b9656d37e6adbdd",
+    "internal/gradeedition2/ch18.go": "2f7bb2e192490b0d6e93c5a2af84fda57801863cdd5498e92a34f6d12d7c1a38",
+    "internal/gradeedition2/ch18_driver.go": "43f69da6e6d9dd8cb942f9106d510de1a0517c5c196851ee9a89ca4e42fca6a4",
+    "internal/gradeedition2/ch18_peer.go": "7cbe3053cbeade4f457577460ebb6baacaeeedf832fb9be5fe57cb63a7d652e2",
+    "internal/gradeedition2/ch18_test.go": "e587ef1b4bfb3daefc5100ddfa9be4b9dea2566046a78cf1554c0d663725e37f",
+    "internal/gradeedition2/ch19.go": "0d65711eb4f3220de77ee4b7a44f2bfbe5ac4acf60c2f216f6d1412cf8c4bbc6",
+    "internal/gradeedition2/ch19_driver.go": "6d31d118177e5d8254fc10d173d6145cf77c14cebe0843343767de7b0b71d1c5",
+    "internal/gradeedition2/ch19_test.go": "6fa911dfcaabe2fe44872f86ccb592957cb577c2c0581dd92fe8bf51f3184c75",
+    "internal/gradeedition2/ch20.go": "93f49d903cf47ab625b850b7cb7b6b23fba41aac8f9004b881da4bc593c14d9d",
+    "internal/gradeedition2/ch20_fleet.go": "9ce58e37a7f18eb406b7236b2df8176f551427aa120dcce8b610e1a84a7f4d50",
+    "internal/gradeedition2/ch20_reuse.go": "084a78ffe323c85c84d5ea3c59774977eaf16dc849d9a69e60e3e58f07d35f81",
+    "internal/gradeedition2/ch20_submission.go": "3d43feb912704a6d0f5a589b3e2d90030136e8888571ccb5224132a4947e3096",
+    "internal/gradeedition2/ch20_test.go": "84c8de78de822c0bd57f78a58432fc26a8dad360d280c5f767eeec7cfe25962d",
+    "internal/gradeedition2/ch21.go": "6385dcbc9b33549f9ad868a4de80d66934d960b997373d999620933881d44bb1",
+    "internal/gradeedition2/ch21_driver.go": "9e83a2739ff17dec37adaade0ef2f8b1738e9673a70d61f0c7c196587bc675bb",
+    "internal/gradeedition2/ch21_submission.go": "7099e2d769bcd22213344a2070dc6381be06e43f543526e595ee9809aa42ca52",
+    "internal/gradeedition2/ch21_test.go": "e2a9c96d23d7e3781e34d1fc160d91eae01c23411a9e6f01ef4edc0cf54c725e",
+    "internal/gradeedition2/ch22.go": "93ef2d9bd78762c85dd97ea4047a58053f221a1adf05c21046168039f851896f",
+    "internal/gradeedition2/ch22_accounting.go": "35a3cfed0d46c5702f4cb0adbf1604e82ebd2cd3ca3d9966ca325116af01ac04",
+    "internal/gradeedition2/ch22_background.go": "e20d0ed3fb7bfb306bb7d82bf56959de7e47c7bf9f5ea8277f860cce6363eefd",
+    "internal/gradeedition2/ch22_driver.go": "747d21055db43b4aeae104f65b0387c13f04694f599a3aa5a8fdb3aed7f55f95",
+    "internal/gradeedition2/ch22_failure.go": "7414e5e97eb55bb52af9a2a565404e484b06c925fb1b7e2242a3527a97ab83cf",
+    "internal/gradeedition2/ch22_headroom.go": "feb8d5cff9b119dd60c7b8908b8648b2b1e89df6328a504ae9491ac1dcee611b",
+    "internal/gradeedition2/ch22_lifetime.go": "e422e24138750d574b21dba0dfcb813e7bf655dc218904f35cb6eb9e69501d61",
+    "internal/gradeedition2/ch22_stale.go": "7e3ce5d6b5a899d97e3b0e01daca427ac3038b567edcf7a2354568d4b163c5a7",
+    "internal/gradeedition2/ch22_test.go": "8a1e77be3a1728951309e43f3710077f42ecb6a615c4ca225889f668604a2a07",
+    "internal/gradeedition2/ch23.go": "7cc0a3e1990ca68649d442acb225ad7fc5b00922428558babf58d4ba94ffdedf",
+    "internal/gradeedition2/ch23_compaction.go": "f829d14aa76a7a81ba7146b5e14ef3506f257f4173d82e1eb349fa1c7e3cf2a6",
+    "internal/gradeedition2/ch23_driver.go": "ca4cb6061bdded27ea8cca2141756d3c293f368753d9a59cf22cdacf094069b3",
+    "internal/gradeedition2/ch23_test.go": "e5563c602530bdce3517d63a8fb6168844a425bfc5a8857d355e784eb932153e",
+    "internal/gradeedition2/ch26.go": "6e49bd68e4ba4c4e22e25342305e7514f7a2a06fb9935d95cc58920396bd216d",
+    "internal/gradeedition2/ch26_test.go": "3b8a83f38231e5f415ec8b132d094e3aa7ffb30096a7861332c96582bd0e5ee1"
+  },
+  "limits": [
+    "Chapters17 and24 remain ungraded;25 remains a reserved placeholder.",
+    "Live semantic evidence retains its separate source in live.json; these are deterministic grader runs.",
+    "Correction branches14\u201321 used a sparse checkout without the configured hook; the exact credential hook subsequently passed against all eight committed diffs without changing their hashes.",
+    "No publication rebuild, installation, restart, live-settings change or remote push.",
+    "Initial staged whitespace check reported the required blank SSE event terminator at EOF in the exact ch16/ch17 ch19-plan-tool.sse fixtures. Both source bytes remain unchanged; all other paths pass normal diff --check, and the two fixtures pass with blank-at-eof disabled."
+  ]
+}

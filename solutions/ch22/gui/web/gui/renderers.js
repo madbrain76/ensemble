@@ -73,4 +73,3 @@ export function partText(part) {
   if (part.type === "text") return part.text ?? "";
   return part.stub ?? "";
 }
-

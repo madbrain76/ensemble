@@ -16,7 +16,7 @@ import (
 )
 
 // Lens belongs to one Engine and retains only its preceding main request.
-// Interrupted workers can overlap new turns; auxiliary requests bypass the lens.
+// Interrupted workers can overlap new turns; each response keeps its own prediction.
 type Lens struct {
 	parent   common.Engine
 	mu       sync.Mutex
@@ -67,7 +67,7 @@ func (l *Lens) ObserveRequest(name string, body []byte) float64 {
 		l.name = name
 	}
 	keys := []string{}
-	for _, key := range []string{"tools", "system", "systemInstruction", "messages", "contents"} {
+	for _, key := range []string{"tools", "system", "systemInstruction", "messages", "contents", "input"} {
 		if _, ok := sections[key]; ok {
 			keys = append(keys, key)
 		}
@@ -100,9 +100,9 @@ func (l *Lens) ObserveRequest(name string, body []byte) float64 {
 			state = "appended"
 		}
 		verdicts = append(verdicts, key+":"+state)
-		// Chat Completions embeds its stable system instruction in messages.
+		// OpenAI embeds stable instructions in messages or Responses input.
 		// Inspect that head separately, but count its bytes only once.
-		if l.previous != nil && key == "messages" {
+		if l.previous != nil && (key == "messages" || key == "input") {
 			var a, b []json.RawMessage
 			json.Unmarshal(old, &a)
 			json.Unmarshal(now, &b)
@@ -112,7 +112,7 @@ func (l *Lens) ObserveRequest(name string, body []byte) float64 {
 					Role string `json:"role"`
 				}
 				json.Unmarshal(b[0], &head)
-				if head.Role == "system" && !bytes.Equal(a[0], b[0]) {
+				if (head.Role == "system" || head.Role == "developer") && !bytes.Equal(a[0], b[0]) {
 					root.Logf("cache prefix changed: system (changed)")
 				}
 			}
@@ -128,8 +128,8 @@ func (l *Lens) ObserveRequest(name string, body []byte) float64 {
 				open = false
 			}
 		}
-		// Conversation arrays are recognized by their role-bearing elements, including
-		// Gemini's contents. Only unexpected non-conversation changes raise the alarm.
+		// Conversation arrays include role-bearing messages and Responses tool/replay
+		// items. Only unexpected non-conversation changes raise the alarm.
 		if l.previous != nil && state != "identical" && !conversation(now) {
 			root.Logf("cache prefix changed: %s (%s)", key, state)
 		}
@@ -178,7 +178,14 @@ func conversation(raw []byte) bool {
 	}
 	for _, entry := range entries {
 		if _, ok := entry["role"]; !ok {
-			return false
+			var kind string
+			json.Unmarshal(entry["type"], &kind)
+			switch kind {
+			case "function_call", "function_call_output", "reasoning":
+				// Responses mixes messages with role-free replay and tool items.
+			default:
+				return false
+			}
 		}
 	}
 	return true

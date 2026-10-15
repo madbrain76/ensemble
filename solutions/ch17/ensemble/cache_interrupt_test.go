@@ -44,7 +44,7 @@ func TestCacheLensInterruptedObservation(t *testing.T) {
 				fmt.Fprint(w, `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":10,"output_tokens":1}}`)
 			}))
 			defer s.Close()
-			a, err := ensemble.New(w).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: s.URL, DataDir: t.TempDir(), DisableStreaming: true})
+			a, err := ensemble.New(w).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: s.URL, DataDir: t.TempDir(), DisableStreaming: true})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -104,7 +104,7 @@ func TestCacheLensInterruptedAttribution(t *testing.T) {
 		fmt.Fprintf(w, `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":%d,"output_tokens":1}}`, 10*count.Add(1))
 	}))
 	defer s.Close()
-	a, err := ensemble.New(&logs).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: s.URL, DataDir: t.TempDir(), DisableStreaming: true})
+	a, err := ensemble.New(&logs).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: s.URL, DataDir: t.TempDir(), DisableStreaming: true})
 	if err != nil {
 		t.Fatal(err)
 	}

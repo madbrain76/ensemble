@@ -14,13 +14,13 @@ import (
 	"sync/atomic"
 
 	"ensemble/internal/agent"
+	"ensemble/internal/auth"
+	"ensemble/internal/cachelens"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
 	"ensemble/internal/mcp"
-	"ensemble/internal/memory"
-	"ensemble/internal/recall"
 	"ensemble/internal/skills"
 	"ensemble/internal/tools"
 )
@@ -34,6 +34,9 @@ type Agent = common.Agent
 // Usage exposes measured, disjoint token counts without fixing prices.
 type Usage = common.Usage
 
+// UsageMeter exposes a disposable process-session meter to optional clients.
+type UsageMeter = common.UsageMeter
+
 // ToolDeclaration is the vendor-neutral schema visible to one Agent.
 type ToolDeclaration = common.ToolDeclaration
 
@@ -43,6 +46,7 @@ type ToolContext = common.ToolContext
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
+	auth        common.AuthStore
 	logger      *log.Logger
 	api         io.Writer
 	apiMu       sync.Mutex
@@ -120,18 +124,40 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 	if cfg.DataDir == "" {
 		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
 	}
+	if cfg.Credentials == nil {
+		if cfg.BillingMode == "" && cfg.Vendor == common.OpenAI && e.auth != nil {
+			status, err := e.auth.Status(context.Background())
+			if err != nil {
+				return nil, err
+			}
+			cfg.BillingMode = status.Billing
+		}
+		switch cfg.BillingMode {
+		case "", common.CredentialAPIKey:
+			cfg.BillingMode = common.CredentialAPIKey
+			cfg.Credentials = auth.APIKey(cfg.APIKey)
+		case common.CredentialChatGPT:
+			if cfg.Vendor != common.OpenAI || e.auth == nil {
+				return nil, errors.New("ChatGPT billing requires OpenAI and configured authentication")
+			}
+			features, _ := engine.LookupModel(cfg.Model)
+			if !features.Responses {
+				return nil, errors.New("selected model has no supported ChatGPT Responses route")
+			}
+			cfg.Credentials = e.auth
+		default:
+			return nil, errors.New("billing mode must be api or chatgpt; automatic metered fallback is not implemented")
+		}
+	}
 	a := agent.New(e, cfg)
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
 		return nil, err
 	}
 	a.AttachEngine(engine.New(a))
+	a.Engine().AttachCacheLens(cachelens.New(a.Engine()))
 	a.AttachHistory(history.New(a))
 	a.AttachJobs(jobs.New(a))
 	a.AttachMCP(mcp.New(a))
-	a.AttachMemory(memory.New(a))
-	if err := a.Memory().Validate(cfg.Memory); err != nil {
-		return nil, err
-	}
 	assembled := false
 	// A failed primary can already have launched a peer or admitted reverse work.
 	// Construction owns that cleanup because no caller receives the Agent.
@@ -173,12 +199,6 @@ func (e *Ensemble) NewAgent(cfg Config, specs ...AgentSpec) (Agent, error) {
 			prompt += "\n\n" + body
 		}
 		a.SetSystemPrompt(prompt)
-	}
-	if err := recall.Validate(cfg.Recall); err != nil {
-		return nil, err
-	}
-	if !cfg.Recall.Disabled {
-		a.AttachRecaller(recall.New(a))
 	}
 	e.agents = append(e.agents, a)
 	assembled = true
@@ -347,6 +367,8 @@ const (
 	StreamAll = common.StreamAll
 	// DeltaThinking displays reasoning separately from the reply.
 	DeltaThinking = common.DeltaThinking
+	// DeltaReasoningSummary displays a public model summary separately from its answer.
+	DeltaReasoningSummary = common.DeltaReasoningSummary
 	// DeltaText displays reply text.
 	DeltaText = common.DeltaText
 	// DeltaToolCall displays a tool name and argument fragments.
@@ -404,15 +426,3 @@ func MCPPipe() (MCPTransport, MCPTransport) { return mcp.Pipe() }
 
 // MCPTransportOwner is the parent contract for optional transport implementations.
 type MCPTransportOwner = common.MCPTransportOwner
-
-// MemorySettings selects the Agent's corpus switches and byte budgets.
-type MemorySettings = common.MemorySettings
-
-// BandSettings controls one memory band, preserving zero defaults and false switches.
-type BandSettings = common.BandSettings
-
-// ValidateMemorySettings checks corpus policy before a client persists a patch.
-func ValidateMemorySettings(settings MemorySettings) error { return memory.Validate(settings) }
-
-// RecallSettings configures passive retrieval independently for each Agent.
-type RecallSettings = common.RecallSettings

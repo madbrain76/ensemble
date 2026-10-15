@@ -78,10 +78,18 @@ func TestExternalToolLoop(t *testing.T) {
 	if err != nil || !strings.HasPrefix(answer, "HELLO FRAMEWORK") {
 		t.Fatalf("answer = %q, %v", answer, err)
 	}
-	if !strings.HasSuffix(logs.String(), " shout called\n") || len(logs.String()) < 20 {
+	// Later transport diagnostics may follow the tool. Inspect its own record,
+	// including that record's timestamp, rather than requiring it to be last.
+	var toolRecord string
+	for _, line := range strings.Split(logs.String(), "\n") {
+		if strings.HasSuffix(line, " shout called") {
+			toolRecord = line
+		}
+	}
+	if len(toolRecord) < 20 {
 		t.Fatalf("tool did not reach root logger: %q", logs.String())
 	}
-	if _, err := time.Parse("2006/01/02 15:04:05", logs.String()[:19]); err != nil {
+	if _, err := time.Parse("2006/01/02 15:04:05", toolRecord[:19]); err != nil {
 		t.Fatalf("logger omitted timestamp: %q", logs.String())
 	}
 }

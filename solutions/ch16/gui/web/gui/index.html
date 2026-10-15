@@ -30,7 +30,6 @@
           <p id="settings-status" role="status"></p>
         </section>
         <section id="context-panel" role="tabpanel" aria-labelledby="context-tab" hidden>
-          <fieldset id="memory-settings"><legend>Memory</legend></fieldset>
           <label for="context-target">Context target (bytes; 0 = 400,000)</label>
           <input id="context-target" type="number" min="0" step="1" value="0" />
           <label for="log-retention">Saved log events (0 = all)</label>
@@ -42,6 +41,7 @@
         <header>
           <h2>Chat</h2><span id="state" role="status">connecting</span>
           <span id="pause-state"></span>
+          <span id="usage" aria-label="Session usage" title="No requests this session">Cost — · Input 0 · Cache 0 · Hit 0%</span>
           <button id="resume">Unpause everyone</button><button id="interrupt">Interrupt turn</button>
         </header>
         <section id="artifacts" class="scroll" aria-label="Conversation"></section>

@@ -10,6 +10,7 @@ import (
 
 func (e *engine) readGemini(r io.Reader, log func(string, []byte), delta func(uint64, common.DeltaKind, string)) ([]byte, []uint64, error) {
 	var model string
+	var finishReason string
 	var usage json.RawMessage
 	var parts []geminiPart
 	finished := false
@@ -47,6 +48,7 @@ func (e *engine) readGemini(r io.Reader, log func(string, []byte), delta func(ui
 		c := frame.Candidates[0]
 		if c.FinishReason != "" {
 			finished = true
+			finishReason = c.FinishReason
 		}
 		for i, p := range c.Content.Parts {
 			id := len(parts)
@@ -95,6 +97,6 @@ func (e *engine) readGemini(r io.Reader, log func(string, []byte), delta func(ui
 	for i := range ids {
 		ids[i] = uint64(i)
 	}
-	data, err := json.Marshal(map[string]any{"modelVersion": model, "usageMetadata": usage, "candidates": []any{map[string]any{"content": geminiContent{Role: "model", Parts: parts}}}})
+	data, err := json.Marshal(map[string]any{"modelVersion": model, "usageMetadata": usage, "candidates": []any{map[string]any{"content": geminiContent{Role: "model", Parts: parts}, "finishReason": finishReason}}})
 	return data, ids, err
 }

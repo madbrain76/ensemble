@@ -3,7 +3,6 @@ package gui
 import (
 	"bytes"
 	"encoding/json"
-	"ensemble/ensemble"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,8 +13,6 @@ import (
 type Settings struct {
 	// Model is the effective session selection; launch configuration wins on restart.
 	Model string `json:"model"`
-	// Memory controls the Agent corpus; full snapshots preserve nested false and zero values.
-	Memory ensemble.MemorySettings `json:"memory"`
 	// Theme selects dark, light, or the browser's system preference.
 	Theme string `json:"theme"`
 	// TTSEnabled controls automatic speech in connected browsers.
@@ -66,7 +63,6 @@ func (s *Server) snapshotSettings() Settings {
 	snapshot.MaxToolRounds = s.agent.Config().MaxToolRounds
 	snapshot.ContextTarget = s.agent.Config().ContextTarget
 	snapshot.LogRetention = s.agent.Config().LogRetention
-	snapshot.Memory = s.agent.Config().Memory
 	return snapshot
 }
 func (s *Server) loadSettings() error {
@@ -84,9 +80,6 @@ func (s *Server) loadSettings() error {
 	}
 	s.settings = next
 	if err := s.agent.SetMaxToolRounds(next.MaxToolRounds); err != nil {
-		return err
-	}
-	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
 		return err
 	}
 	return s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
@@ -129,10 +122,6 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	if err != nil {
 		return Settings{}, err
 	}
-	// Validate before persistence; a rejected patch must not change the saved file.
-	if err := ensemble.ValidateMemorySettings(next.Memory); err != nil {
-		return Settings{}, err
-	}
 	// Shadow the display-only model field when writing preferences; a stored
 	// model must not override an explicitly selected launch provider/credential.
 	data, err := json.MarshalIndent(struct {
@@ -158,9 +147,6 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	}
 	s.agent.SetMaxToolRounds(next.MaxToolRounds) // Already clamped by settingsPatch.
 	s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
-	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
-		return Settings{}, err
-	}
 	s.mu.Lock()
 	s.settings = next
 	s.mu.Unlock()

@@ -16,7 +16,13 @@ func (r *runtime) dispatch() {
 			// ends this turn after the whole batch drains; retain that fact so
 			// selection and restart do not resurrect input_pending work.
 			err := r.append(common.Event{Type: "turn_ended"})
-			r.finish(status.Result, err)
+			text := status.Result
+			if len(status.Payload) != 0 {
+				// The longstanding Ask/display surface is text. Typed fleet readers
+				// retain the JSON object rather than receiving a quoted JSON string.
+				text = string(status.Payload)
+			}
+			r.finish(text, err)
 			return
 		}
 		if t.checkpoint {

@@ -23,17 +23,13 @@ type recaller struct {
 	indexes map[string]index
 }
 
-// New creates one Agent-owned corpus. Failure to read a source degrades recall,
-// not construction of the working Agent; each later query retries the scan.
+// New creates one Agent-owned corpus. Indexing waits until the first query so
+// callers can load History and finish staged memory recovery before any scan.
 func New(parent common.Agent) common.Recaller {
 	if parent == nil {
 		panic("Recall requires Agent")
 	}
-	r := &recaller{parent: parent}
-	if _, err := r.search(nil, 0); err != nil {
-		parent.Ensemble().Logf("recall index: %v", err)
-	}
-	return r
+	return &recaller{parent: parent}
 }
 
 // Agent exposes the required owner of configuration, files and model services.
@@ -75,6 +71,9 @@ func settings(s common.RecallSettings) common.RecallSettings {
 // Hash the bytes already read so human edits (even equal-size edits) invalidate
 // indexes. Only changed corpora incur tokenization; there is no watcher lifetime.
 func (r *recaller) search(query []string, floor float64) ([]hit, error) {
+	if pending := r.parent.History().Context().Compression; pending != nil && pending.Committed != nil {
+		return nil, fmt.Errorf("memory commit requires disk recovery before recall")
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	root := r.parent.Config().DataDir

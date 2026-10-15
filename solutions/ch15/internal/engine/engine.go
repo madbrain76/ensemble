@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 
 	"ensemble/internal/common"
 )
@@ -24,18 +23,23 @@ const systemPrompt = "You are a helpful assistant built from raw HTTP calls in C
 // remains reachable through Agent, so sibling Agents never share credentials
 // or a mutable vendor selection by accident.
 type engine struct {
-	parent common.Agent
-	client *http.Client
-	usage  common.Usage
-	mu     sync.Mutex
+	parent  common.Agent
+	client  *http.Client
+	usage   common.Usage
+	last    common.Usage
+	byModel map[usageKey]common.Usage
+	lens    common.CacheLens
+	mu      sync.Mutex
 }
 
-// New creates an Agent-owned HTTP engine with bounded transport requests.
+// New creates an Agent-owned HTTP engine. DefaultTransport bounds connection
+// setup and TLS negotiation, but model generation has no wall-clock deadline.
+// The caller's context still cancels an interrupted or explicitly bounded turn.
 func New(parent common.Agent) common.Engine {
 	if parent == nil {
 		panic("Engine requires Agent")
 	}
-	return &engine{parent: parent, client: &http.Client{Timeout: 60 * time.Second}}
+	return &engine{parent: parent, client: &http.Client{}}
 }
 
 // Agent returns the required owning Agent rather than a copied service bundle.
@@ -132,6 +136,12 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 		safeBody = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
 	}
 	e.parent.Ensemble().APILog("request", safeBody)
+	// Observation belongs to an actual send, not disposable renders. Keep its
+	// prediction local: an interrupted worker may finish after a newer request.
+	predicted := 0.0
+	if e.lens != nil {
+		predicted = e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safeBody)
+	}
 	resp, err := e.client.Do(req)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -169,12 +179,13 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 			// Replay independently sums these same normalized categories. No vendor
 			// cache or reasoning interpretation belongs in session accounting.
 			u := event.Response.Usage
+			e.account(cfg, u)
 			e.mu.Lock()
-			e.usage.Input += u.Input
-			e.usage.CacheRead += u.CacheRead
-			e.usage.CacheWrite += u.CacheWrite
-			e.usage.Output += u.Output
+			e.last = u
 			e.mu.Unlock()
+			if e.lens != nil {
+				e.lens.ObserveUsage(u, predicted)
+			}
 		}
 		if onEvent != nil {
 			onEvent(event)
@@ -189,6 +200,14 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 // from Dialogue; RequestSent consumes it during both live application and replay.
 func entries(c *common.Context) []common.Entry {
 	out := append([]common.Entry(nil), c.Dialogue...)
+	for i, entry := range out {
+		if entry.Kind == common.KindHandoff {
+			// The call and its acknowledgment were cleared at the checkpoint.
+			// Render the completed status alongside the note, not just its contents.
+			// Keep stored notes unchanged, including those restored from old saves.
+			out[i].Parts = append([]common.Part{{Type: "text", Text: "micro_handoff completed. Your checkpoint note:"}}, entry.Parts...)
+		}
+	}
 	if len(c.Ephemera) > 0 {
 		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera})
 	}
@@ -273,3 +292,14 @@ func (e *engine) declarations(c *common.Context) []common.ToolDeclaration {
 	}
 	return c.Tools
 }
+
+// AttachCacheLens links both sides at construction; a foreign owner is invalid.
+func (e *engine) AttachCacheLens(l common.CacheLens) {
+	if l == nil || l.Engine() != e {
+		panic("CacheLens requires owning Engine")
+	}
+	e.lens = l
+}
+
+// CacheLens exposes the optional Engine-owned instrument.
+func (e *engine) CacheLens() common.CacheLens { return e.lens }

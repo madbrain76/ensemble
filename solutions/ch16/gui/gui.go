@@ -18,10 +18,8 @@ import (
 // Server owns browser connections; its supplied Agent remains the conversation
 // owner. Construct the server before starting the Agent, and close it afterward.
 type Server struct {
-	agent    ensemble.Agent
-	settings Settings
-	// settingsMu orders patches and subscriptions without blocking actor observations.
-	settingsMu  sync.Mutex
+	agent       ensemble.Agent
+	settings    Settings
 	mu          sync.Mutex
 	clients     map[*websocket.Conn]chan [][]byte
 	partials    map[uint64]map[string]any
@@ -72,6 +70,8 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 	// start must bring its already-recorded arguments along with it.
 	s.capture()
 	switch o := observation.(type) {
+	case ensemble.BillingSelected:
+		s.broadcast(map[string]any{"type": "billing_selected", "source": o.Source})
 	case ensemble.PartDelta:
 		// A reconnect needs the accumulated prefix; live subscribers need only the
 		// new fragment. Sending the accumulated value live would duplicate words.
@@ -87,6 +87,7 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 	case ensemble.StateChanged:
 		s.broadcast(map[string]any{"type": "state_changed", "from": o.From, "to": o.To})
 	case ensemble.TurnEnded:
+		s.broadcast(s.usageWire())
 		// Cancellation may leave a part without a final. Those abandoned bytes
 		// must not reappear as an active stream on the next subscription.
 		s.partials = make(map[uint64]map[string]any)
@@ -101,6 +102,7 @@ func (s *Server) capture() {
 		s.seq = event.Seq
 		s.events = append(s.events, event)
 		if event.Type == "response_ended" {
+			s.broadcast(s.usageWire())
 			for _, p := range event.Response.Parts {
 				delete(s.partials, p.ArtifactID)
 			}
@@ -257,11 +259,9 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 			case <-tunnel.done:
 			}
 		case "subscribe":
-			s.settingsMu.Lock()
 			s.mu.Lock()
 			if s.closed {
 				s.mu.Unlock()
-				s.settingsMu.Unlock()
 				return
 			}
 			s.capture()
@@ -272,7 +272,6 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				s.clients[conn] = queue
 			}
 			s.mu.Unlock()
-			s.settingsMu.Unlock()
 			if !mcpStarted {
 				mcpStarted = true
 				go func() {
@@ -282,11 +281,10 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				}()
 			}
 		case "update_settings":
-			// Settings retain one order across tabs, but the actor must be free
-			// to publish progress while this call waits for its acknowledgment.
-			s.settingsMu.Lock()
-			settings, err := s.updateSettings(input.Settings)
+			// Serialize apply and broadcast with subscribe: every tab observes the
+			// same ordering, even when two clients update at once.
 			s.mu.Lock()
+			settings, err := s.updateSettings(input.Settings)
 			if err != nil {
 				data, _ := json.Marshal(map[string]any{"type": "settings_error", "error": err.Error()})
 				select {
@@ -298,7 +296,6 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				s.broadcast(map[string]any{"type": "settings_changed", "settings": settings})
 			}
 			s.mu.Unlock()
-			s.settingsMu.Unlock()
 		case "prompt":
 			// Live input uses the same actor door as terminal input. It may become
 			// a hint; the browser does not guess whether the Agent is currently busy.
@@ -365,6 +362,7 @@ func (s *Server) replay() [][]byte {
 	add(map[string]any{"type": "state_changed", "from": state, "to": state})
 	add(map[string]any{"type": "pause_changed", "paused": s.agent.Paused()})
 	add(map[string]any{"type": "current_settings", "settings": s.snapshotSettings()})
+	add(s.usageWire())
 	return out
 }
 
@@ -383,3 +381,9 @@ func (s *Server) Close() {
 
 // Agent reaches the conversation served by this server's transport children.
 func (s *Server) Agent() ensemble.Agent { return s.agent }
+
+// usageWire reads Engine's session counter, never the replayed history total.
+func (s *Server) usageWire() map[string]any {
+	u := s.agent.Engine().Meter()
+	return map[string]any{"type": "usage", "input": u.Input, "cache_write": u.CacheWrite, "cache_read": u.CacheRead, "output": u.Output, "total": u.Total, "cost_usd": u.CostUSD, "priced": u.Priced, "hit_rate": u.HitRate}
+}

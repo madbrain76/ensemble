@@ -8,7 +8,7 @@ import (
 // TestChapter15Invoice runs actual GUI clients, save/restart and provider parsers.
 // The external fake supplies disjoint counts; no cache grant is inferred from it.
 func TestChapter15Invoice(t *testing.T) {
-	bin, clean, err := grade.Build("../../agent/gui")
+	bin, clean, err := grade.Build("../../solutions/ch15/gui")
 	if err != nil {
 		t.Fatal(err)
 	}

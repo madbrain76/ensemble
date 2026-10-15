@@ -16,7 +16,7 @@ import (
 )
 
 // Lens belongs to one Engine and retains only its preceding main request.
-// Interrupted workers can overlap new turns; auxiliary requests bypass the lens.
+// Interrupted workers can overlap new turns; each response keeps its own prediction.
 type Lens struct {
 	parent   common.Engine
 	mu       sync.Mutex

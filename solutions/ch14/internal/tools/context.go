@@ -12,7 +12,7 @@ import (
 // after the result, and the reducer delays clearing until the whole batch ends.
 func contextTools() []common.ToolDefinition {
 	return []common.ToolDefinition{
-		{ToolDeclaration: common.ToolDeclaration{Name: "micro_handoff", Description: "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic but preserves conversation and this note.", Schema: json.RawMessage(`{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}`)}, Supervision: true, Run: handoff},
+		{ToolDeclaration: common.ToolDeclaration{Name: "micro_handoff", Description: "Checkpoint at a completed micro-goal. Write text with what succeeded, what failed, source locations and next steps. Removes all tool traffic and opaque reasoning from context but preserves conversation and this note.", Schema: json.RawMessage(`{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}`)}, Supervision: true, Run: handoff},
 		{ToolDeclaration: common.ToolDeclaration{Name: "keep_tool_results", Description: "Keep the previous batch of tool results instead of automatic stubbing on supported models. Does not keep results of tools called alongside this call.", Schema: json.RawMessage(`{"type":"object","properties":{}}`)}, Supervision: true, Run: keepResults},
 	}
 }

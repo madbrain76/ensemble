@@ -114,45 +114,6 @@ Unloading immediately disconnects MCP tools and peers while instruction removal
 remains pending. Programmatic browser input updates the control without taking
 the human typing pause; actual typing and explicit Agent-wide unpause still work.
 
-Memory uses the owning Agent's data directory: `SOUL.md`, `MEMORY.md`, session
-files in `memory/`, and graduated files in `bucket-0/` and `bucket-1/`.
-The optional GUI's Context Management tab controls each band. Budgets and
-watermarks are bytes; zero selects defaults (conversation 3,000, bands 1,500,
-high twice the budget, low the budget). Disabling a band preserves its files;
-re-enabling rereads edits. Graduated source files remain beside the originals
-with a `.retired` suffix and are not active memories.
-
-`micro_handoff` checkpoints completed work and is the only compression trigger.
-The compressor makes one bounded request using the current provider and one
-`submit` tool. Failed or interrupted calls preserve the old source. Recorded
-memory bytes and cuts replay without another model call. A compression target
-is a prompt guideline, not a guarantee that the model preserves every fact;
-review important memories on disk and correct them when necessary.
-
-Auto-recall searches the Agent's memory files (including retired originals),
-`docs/`, `handoffs/`, `learnings/` markdown, and its configured skill directory.
-These directories are relative to `Config.DataDir` (`cr/` in the commands).
-It skips text already present in context, including the newest memories when
-already loaded by a band. Markdown learnings are the supported public corpus
-format; this application does not read another application's private JSON files.
-
-Each user turn of at least 80 characters searches per-source BM25 indexes. The
-stateless judge defaults to the current provider/model; set
-`EN_RECALL_JUDGE_MODEL` to a cheaper compatible model on that same provider.
-`EN_RECALL_DISABLE_JUDGE=1` selects mechanical recall, and
-`EN_RECALL_DISABLED=1` bypasses recall. Embedders can set `Config.Recall` limits;
-zero selects the chapter defaults (3 snippets, 20 candidates, 3 recent messages,
-6,144 attachment bytes). Judge failure falls back to final source quotas:
-memories receive half the slots rounded up, and unused slots are redistributed.
-A successful judge's selections, including none, stand unchanged.
-
-Recall is recorded under `recall_attached.parts`, separately from the user's
-words. Renderers retain its position; offline replay never searches or judges.
-A `micro_handoff` removes recalled context at the existing checkpoint boundary.
-Each attachment also retains hashes of the source snippets it represents, so a
-byte-capped snippet is not injected repeatedly. These identities leave with the
-attachment; edited source content can be recalled again.
-
 Chapter 19 adds subscription authentication to both executables:
 
     ensemble-cli auth login openai-chatgpt
@@ -259,9 +220,10 @@ and clients. The externally built test in `gui/testdata/reuse` demonstrates thes
 public boundaries with real core objects and fake external peers.
 
 Chapter 25 enables a recursive fleet in the CLI. Ask it to delegate work with
-`spawn_sub_agent`, inspect `agents_status`, collect `join_agents`, and finish
-with `submit`. Each child owns a separate actor and `cr/children/ID` state
-directory; shutdown preserves its save for a later child with the same ID.
+`spawn_sub_agent`, inspect `agents_status`, and collect `join_agents`. The root
+finishes in ordinary chat; delegated children finish with `submit`. Each child
+owns a separate actor and `cr/children/ID` state directory; shutdown preserves
+its save for a later child with the same ID.
 Children share the application's working directory for task files. The human
 is an addressable recipient, not a managed child.
 
@@ -270,8 +232,9 @@ A child asks its parent with `send_message_to_parent`; the parent answers with
 `/reply ANSWER`, or `/reply MESSAGE_ID ANSWER` when several questions are pending.
 Ordinary text entered during a tool wait steers the next request and releases
 that wait while the actual job continues; its handle still retrieves the result.
-Three automatic reminders follow a successful turn without submission, then
-the fleet reports escalation. Failed turns are reported without automatic retry.
+A delegated child receives three automatic reminders after successful turns
+without submission, then the fleet reports escalation. Root chat turns receive
+no submission reminders. Failed turns are reported without automatic retry.
 
 Library applications enable this protocol by installing `SetAgentFactory`
 before starting Agents and construct every child with `NewChildAgent(parent,
@@ -300,3 +263,52 @@ streamed partials are a GUI display concern.
 Build the optional browser app in `gui` with `go build -o /tmp/ensemble-gui ./cmd`.
 Run the browser regression with `GUI_BINARY=/tmp/ensemble-gui node fleet.test.mjs`
 from that module. It uses a local provider fake and real Chrome, not paid inference.
+Memory uses the owning Agent's data directory: `SOUL.md`, `MEMORY.md`, session
+files in `memory/`, and graduated files in `bucket-0/` and `bucket-1/`.
+The optional GUI's Context Management tab controls each band. Budgets and
+watermarks are bytes; zero selects defaults (conversation 3,000, bands 1,500,
+high twice the budget, low the budget). Disabling a band preserves its files;
+re-enabling rereads edits. Graduated source files remain beside the originals
+with a `.retired` suffix and are not active memories.
+
+`micro_handoff` checkpoints completed work and is the only compression trigger.
+At the completed-batch boundary it clears tool calls/results, opaque reasoning and
+private replay signatures, including those attached to visible text. Visible
+dialogue and the event log remain.
+
+Memory compression runs in one restricted child per owner while the main Agent
+continues. The child has only a typed `submit` tool and at most three requests;
+it cannot use skills, MCP, or spawn children. Completion and save precede cleanup
+and once-only transfer of the child's measured usage into the owner's totals.
+That auxiliary spend never replaces the main request's context occupancy.
+
+The owner checks that source and settings still match before committing recorded
+memory bytes and cuts. Failed, interrupted, or stale work leaves the source
+available. Recovery uses the staged bytes and receipt without another model call;
+an unresolved recovery hold blocks inference until its commit can finish.
+Compression size is a prompt guideline, not a guarantee that every fact survives;
+review important memories on disk and correct them when necessary.
+
+Auto-recall searches the Agent's memory files (including retired originals),
+`docs/`, `handoffs/`, `learnings/` markdown, and its configured skill directory.
+These directories are relative to `Config.DataDir` (`cr/` in the commands).
+It skips text already present in context, including the newest memories when
+already loaded by a band. Markdown learnings are the supported public corpus
+format; this application does not read another application's private JSON files.
+
+Each user turn of at least 80 characters searches per-source BM25 indexes. The
+stateless judge defaults to the current provider/model; set
+`EN_RECALL_JUDGE_MODEL` to a cheaper compatible model on that same provider.
+`EN_RECALL_DISABLE_JUDGE=1` selects mechanical recall, and
+`EN_RECALL_DISABLED=1` bypasses recall. Embedders can set `Config.Recall` limits;
+zero selects the chapter defaults (3 snippets, 20 candidates, 3 recent messages,
+6,144 attachment bytes). Judge failure falls back to final source quotas:
+memories receive half the slots rounded up, and unused slots are redistributed.
+A successful judge's selections, including none, stand unchanged.
+
+Recall is recorded under `recall_attached.parts`, separately from the user's
+words. Renderers retain its position; offline replay never searches or judges.
+A `micro_handoff` removes recalled context at the existing checkpoint boundary.
+Each attachment also retains hashes of the source snippets it represents, so a
+byte-capped snippet is not injected repeatedly. These identities leave with the
+attachment; edited source content can be recalled again.

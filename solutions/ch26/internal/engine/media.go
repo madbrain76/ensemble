@@ -31,16 +31,20 @@ func LookupModel(model string) (common.ModelFeatures, bool) {
 		return common.ModelFeatures{Media: common.MediaImage, Stream: common.StreamText | common.StreamToolArgs}, true
 	// Astra tool calling requires Responses; the existing per-Agent reasoning
 	// settings then reach that renderer without a second configuration path.
-	case "gpt-6-astra", "gpt-6.1-sol", "gpt-ch19-course":
+	case "gpt-6-astra", "gpt-6.1-sol":
+		return common.ModelFeatures{RequireVisibleReasoning: true, Responses: true, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+	case "gpt-ch19-course":
+		// This synthetic legacy grader model tests transport/cache behavior, not
+		// live OpenAI policy. Preserve its tool-only fixture responses.
 		return common.ModelFeatures{Responses: true, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-4o-mini":
-		return common.ModelFeatures{ContextWindow: 128000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+		return common.ModelFeatures{ContextWindow: 128000, RequireVisibleReasoning: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-5.6-sol":
-		return common.ModelFeatures{Price: &common.Pricing{Input: 4, Output: 20, CacheWrite: 5, CacheRead: .4}, PriceThreshold: 272000, LargePrice: &common.Pricing{Input: 8, Output: 30, CacheWrite: 10, CacheRead: .8}, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+		return common.ModelFeatures{RequireVisibleReasoning: true, Price: &common.Pricing{Input: 4, Output: 20, CacheWrite: 5, CacheRead: .4}, PriceThreshold: 272000, LargePrice: &common.Pricing{Input: 8, Output: 30, CacheWrite: 10, CacheRead: .8}, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-5.4-mini", "gpt-4o":
-		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+		return common.ModelFeatures{RequireVisibleReasoning: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gemini-3.8-flash":
-		return common.ModelFeatures{Price: &common.Pricing{Input: .75, Output: 3.75, CacheRead: .075}, ContextWindow: 1048576, Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
+		return common.ModelFeatures{ContextWindow: 1048576, Price: &common.Pricing{Input: .75, Output: 3.75, CacheRead: .075}, Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
 	case "gemini-2.5-flash", "gemini-3.1-pro-preview":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
 	}

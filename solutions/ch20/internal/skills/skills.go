@@ -16,16 +16,15 @@ import (
 // The lock permits observation while a tool worker loads instructions. Renderers
 // run outside it because $TOOLS queries declarations through this same registry.
 type registry struct {
-	parent    common.Agent
-	directory string
-	mu        sync.Mutex
-	loadMu    sync.Mutex
-	all       map[string]skill
-	loaded    map[string]bool
-	pending   map[string]bool
-	tools     map[string]common.ToolMeta
-	vars      map[string]func() string
-	variable  *regexp.Regexp
+	parent   common.Agent
+	mu       sync.Mutex
+	loadMu   sync.Mutex
+	all      map[string]skill
+	loaded   map[string]bool
+	pending  map[string]bool
+	tools    map[string]common.ToolMeta
+	vars     map[string]func() string
+	variable *regexp.Regexp
 }
 
 // New discovers files without enabling them; the root attaches this child before
@@ -34,7 +33,7 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 	if parent == nil {
 		panic("Skills requires Agent")
 	}
-	r := &registry{parent: parent, directory: directory, all: make(map[string]skill), loaded: make(map[string]bool), pending: make(map[string]bool), tools: make(map[string]common.ToolMeta), vars: make(map[string]func() string), variable: regexp.MustCompile(`\$[A-Za-z_][A-Za-z0-9_]*`)}
+	r := &registry{parent: parent, all: make(map[string]skill), loaded: make(map[string]bool), pending: make(map[string]bool), tools: make(map[string]common.ToolMeta), vars: make(map[string]func() string), variable: regexp.MustCompile(`\$[A-Za-z_][A-Za-z0-9_]*`)}
 	entries, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
@@ -55,6 +54,10 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", path, err)
 		}
+		// Withholding the skill also withholds its dependency graph and MCP startup.
+		if s.name == "web-search" && !parent.Spec().EnableWebSearch {
+			continue
+		}
 		if _, exists := r.all[s.name]; exists {
 			return nil, fmt.Errorf("duplicate skill %q", s.name)
 		}
@@ -65,6 +68,11 @@ func New(parent common.Agent, directory string) (common.Skills, error) {
 	r.tools["unload_skill"] = common.ToolMeta{Source: common.SourceInitial}
 	r.tools["micro_handoff"] = common.ToolMeta{Source: common.SourceInitial}
 	r.tools["keep_tool_results"] = common.ToolMeta{Source: common.SourceInitial}
+	// Submission is the fleet protocol's completion verb, like the existing
+	// framework handoff controls. A primary cannot accidentally make it impossible.
+	if parent.Ensemble().FleetEnabled() {
+		r.tools["submit"] = common.ToolMeta{Source: common.SourceInitial}
+	}
 	r.RegisterVar("TOOLS", func() string {
 		var lines []string
 		for _, d := range r.parent.Declarations() {
@@ -262,7 +270,7 @@ func (r *registry) MarkUnload(name string) error {
 	// Instructions remain in context, but only non-pending skills grant tools.
 	// Shared grants survive while another loaded skill still owns them.
 	for tool := range r.tools {
-		if tool == "load_skill" || tool == "unload_skill" || tool == "micro_handoff" || tool == "keep_tool_results" {
+		if tool == "load_skill" || tool == "unload_skill" || tool == "micro_handoff" || tool == "keep_tool_results" || tool == "submit" && r.parent.Ensemble().FleetEnabled() {
 			continue
 		}
 		granted := false
@@ -294,6 +302,3 @@ func (r *registry) PendingUnload() []string {
 	sort.Strings(names)
 	return names
 }
-
-// Directory returns the corpus selected at construction, without enabling skills.
-func (r *registry) Directory() string { return r.directory }

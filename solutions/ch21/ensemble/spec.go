@@ -10,6 +10,7 @@ import (
 // Explicit log/save locations belong to the parent and must not be inherited.
 func (s AgentSpec) Child(dataDir string) AgentSpec {
 	s.DataDir, s.LogPath, s.SavePath = dataDir, "", ""
+	s.SubmitSchema = nil
 	return s
 }
 

@@ -17,6 +17,13 @@ type Config struct {
 	// BaseURL selects the endpoint; APIKey is transport-only. Model routes requests,
 	// while ResolvedModel optionally supplies exact replay identity.
 	BaseURL, APIKey, Model, ResolvedModel string
+	// ReasoningEffort and ReasoningSummary configure supported Responses models.
+	// Empty summary requests auto; empty effort leaves the provider default.
+	ReasoningEffort, ReasoningSummary string
+	// Credentials supplies transport-only authentication; it is never serialized.
+	Credentials CredentialProvider `json:"-"`
+	// BillingMode selects api or chatgpt; blank follows explicit saved login choice.
+	BillingMode CredentialKind
 	// Audio retains the earlier client input flag; explicit ModelFeatures now govern
 	// media rendering.
 	Audio bool
@@ -37,10 +44,6 @@ type Config struct {
 	ContextTarget int
 	// LogRetention keeps this many saved events; zero preserves all.
 	LogRetention int
-	// Memory selects per-band byte budgets and enabled content.
-	Memory MemorySettings
-	// Recall selects passive retrieval and its bounded stateless judge.
-	Recall RecallSettings
 	// DisableStreaming selects length-one delivery even for known streaming models.
 	DisableStreaming bool
 }
@@ -127,6 +130,8 @@ type Part struct {
 	Data json.RawMessage `json:"data,omitempty"`
 	// CallID correlates a tool call and its result across vendor role conventions.
 	CallID string `json:"call_id,omitempty"`
+	// Namespace preserves a Responses tool grouping without changing dispatch names.
+	Namespace string `json:"namespace,omitempty"`
 	// Name selects the declared tool for a tool_call part.
 	Name string `json:"name,omitempty"`
 	// Args holds canonical JSON arguments without interpreting them as prose.
@@ -243,27 +248,13 @@ type Event struct {
 	Handoff *MicroHandoffData `json:"handoff,omitempty"`
 	// Tools records a change in available declarations after the frozen prefix.
 	Tools *ToolsChangedData `json:"tools,omitempty"`
-	// Recall records selected source bytes for deterministic replay.
-	Recall *RecallData `json:"recall_attached,omitempty"`
-	// Populated records memory bytes, independent of the current filesystem.
-	Populated *BandPopulatedData `json:"populated,omitempty"`
-	// Depopulated retires a band or its oldest file range.
-	Depopulated *BandDepopulatedData `json:"depopulated,omitempty"`
-	// Compactor records a launch without making replay repeat external work.
-	Compactor *CompactorLaunchedData `json:"compactor,omitempty"`
 }
 
 // Seq connects projected content back to its original event. It survives
 // category filtering and supplies stable IDs when a provider omitted one.
 type Entry struct {
-	// RecallHashes identify source snippets represented by this recall entry, even when capped.
-	RecallHashes []string `json:"recall_hashes,omitempty"`
 	// Kind names the lifetime of this entry; zero in older saves means dialogue.
 	Kind EntryKind `json:"kind"`
-	// File orders memory independently of event sequence.
-	File MemoryFileID `json:"file,omitzero"`
-	// Thru identifies the last source memory covered by a graduated file.
-	Thru MemoryFileID `json:"thru,omitzero"`
 	// Seq refers back to the original fact even after projection rewrites.
 	Seq uint64 `json:"seq"`
 	// Actor retains authorship independently of provider role spelling.
@@ -276,10 +267,6 @@ type Entry struct {
 // projection; the Engine separately measures exchanges made in this process.
 // Ephemera is pending delivery, never a second retained conversation slice.
 type Context struct {
-	// DisabledBands preserves toggle state across a restart without reading files during replay.
-	DisabledBands [6]bool `json:"disabled_bands"`
-	// Compression retains an unfinished attempt without replaying external work.
-	Compression *PendingCompression `json:"compression,omitempty"`
 	// Held waits for all current calls to have results before landing survivors.
 	Held []Entry `json:"held,omitempty"`
 	// StartupTools preserves the first request's declarations for inline-tool models.
@@ -296,8 +283,6 @@ type Context struct {
 	Ephemera []Part `json:"ephemera"`
 	// Usage is historical accounting derived from replayed response facts.
 	Usage Usage `json:"usage"`
-	// LastUsage measures the prior conversation request, never a compressor or lifetime sum.
-	LastUsage Usage `json:"last_usage"`
 }
 
 // These are actual ownership links, not a bag of sibling service callbacks.
@@ -326,8 +311,6 @@ type Agent interface {
 	SetMaxToolRounds(int) error
 	// SetContextSettings updates tool-byte and saved-log policy on the owning Agent.
 	SetContextSettings(target, retention int) error
-	// SetMemorySettings records corpus switches and applies byte budgets through the actor.
-	SetMemorySettings(MemorySettings) error
 	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config
 	// Engine reaches the transport and measured usage through the owning Agent.
@@ -360,10 +343,6 @@ type Agent interface {
 	RegisterTool(ToolDeclaration, func(ToolContext, json.RawMessage) (string, error)) error
 	// MCP returns this Agent's external-tool connection owner.
 	MCP() MCP
-	// Memory exposes the Agent-owned corpus child and its ownership relationship.
-	Memory() Memory
-	// Recaller exposes this Agent's passive retrieval child.
-	Recaller() Recaller
 	// Invoke runs a reverse call through admission, history and real job supervision.
 	Invoke(context.Context, string, json.RawMessage) (string, error)
 	// Skills returns the optional Agent-owned capability registry, nil without a primary.
@@ -530,8 +509,13 @@ type History interface {
 // private to Engine, so adding a vendor cannot impose its roles on clients.
 // Send returns facts; the Agent appends them through the same history door.
 type Engine interface {
-	// SnippetJudge makes an isolated text exchange without a tool loop.
-	SnippetJudge
+	// Meter returns a disposable session-count and derived-price snapshot.
+	Meter() UsageMeter
+	// AttachCacheLens installs the Engine-owned diagnostic before any exchanges.
+	AttachCacheLens(CacheLens)
+	// CacheLens returns the optional request diagnostic.
+	CacheLens() CacheLens
+
 	// Features returns capabilities of this Agent's selected model.
 	Features() ModelFeatures
 	// Agent returns the required owning Agent rather than a copied service bundle.
@@ -549,6 +533,4 @@ type Engine interface {
 	Render(*Context) ([]byte, error)
 	// Usage returns measured session counts under the Engine's accounting lock.
 	Usage() Usage
-	// Compress makes one bounded, isolated request with only the submit tool.
-	Compress(context.Context, string, int) (string, error)
 }

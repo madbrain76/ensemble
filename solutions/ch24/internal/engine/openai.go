@@ -171,6 +171,10 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 			cacheOptions = map[string]string{"mode": "explicit"}
 		}
 	}
+	maxTokens := 1024
+	if e.parent.Spec().Compaction {
+		maxTokens = 0 // Omit the optional chat cap; do not silently truncate memory.
+	}
 	return json.Marshal(struct {
 		// ReasoningEffort preserves tool support on the verified GPT-5.6 surface.
 		ReasoningEffort string `json:"reasoning_effort,omitempty"`
@@ -186,10 +190,10 @@ func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
 		// Model selects or reports the provider model identity for this exchange.
 		Model string `json:"model"`
 		// MaxTokens bounds generated response tokens on this provider surface.
-		MaxTokens int `json:"max_completion_tokens"`
+		MaxTokens int `json:"max_completion_tokens,omitempty"`
 		// Messages retains provider message order, including tool-result boundaries.
 		Messages []openAIMessage `json:"messages"`
-	}{effort, cacheOptions, StreamingFor(e.parent.Config()) != 0, streamOptions, tools, e.parent.Config().Model, 1024, messages})
+	}{effort, cacheOptions, StreamingFor(e.parent.Config()) != 0, streamOptions, tools, e.parent.Config().Model, maxTokens, messages})
 }
 
 // This parser consumes the first response choice, matching one conversational
@@ -201,6 +205,8 @@ func (e *engine) parseOpenAI(data []byte) (common.ResponseData, error) {
 		Model string `json:"model"`
 		// Choices holds provider alternatives; this client consumes the first.
 		Choices []struct {
+			// FinishReason reports length truncation even if arguments still parse.
+			FinishReason string `json:"finish_reason"`
 			// Message contains the first choice's text and function calls.
 			Message struct {
 				// Content preserves the provider's ordered blocks or message text.
@@ -242,6 +248,9 @@ func (e *engine) parseOpenAI(data []byte) (common.ResponseData, error) {
 	// includes reasoning, so no second output addition belongs here.
 	u := wire.Usage
 	result := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input - u.Details.Read - u.Details.Write, CacheRead: u.Details.Read, CacheWrite: u.Details.Write, Output: *u.Output}}
+	if e.parent.Spec().Compaction && wire.Choices[0].FinishReason == "length" {
+		return result, errors.New("compaction response reached provider output limit")
+	}
 	// Pointer presence preserves "" separately from null/absent tool-only content.
 	message := wire.Choices[0].Message
 	if message.Content != nil {

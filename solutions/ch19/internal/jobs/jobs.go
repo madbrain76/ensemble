@@ -49,10 +49,10 @@ func (j *jobs) Start() (common.Job, error) {
 	// launch work whose result has no recovery address.
 	handle := j.parent.Ensemble().NextJobHandle()
 	path := filepath.Join(j.parent.Config().DataDir, "io", fmt.Sprint(handle))
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := j.parent.Sandbox().MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return nil, err
 	}
-	file, err := os.Create(path)
+	file, err := j.parent.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (j *job) Finish(text string, err error) {
 func (j *job) read(offset, count int64) (string, error) {
 	// Reopen by address so a completed job remains readable after its writer
 	// closes. The cursor is a job fact, not a file descriptor position.
-	file, err := os.Open(j.data.Output.Locator)
+	file, err := j.parent.Agent().Sandbox().OpenFile(j.data.Output.Locator, os.O_RDONLY, 0)
 	if err != nil {
 		return "", err
 	}

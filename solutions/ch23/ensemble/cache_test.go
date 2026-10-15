@@ -24,8 +24,29 @@ import (
 func TestCacheLensMainBoundary(t *testing.T) {
 	for _, vendor := range []ensemble.Vendor{ensemble.Anthropic, ensemble.OpenAI, ensemble.Gemini} {
 		t.Run(vendor.String(), func(t *testing.T) {
-			peer := &recallPeer{vendor: vendor, judgment: "[]"}
-			server := httptest.NewServer(http.HandlerFunc(peer.serve))
+			var requests atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if requests.Add(1) >= 3 {
+					// Different measured counts expose accidental main-usage replacement.
+					switch vendor {
+					case ensemble.Anthropic:
+						io.WriteString(w, `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":77,"output_tokens":9}}`)
+					case ensemble.OpenAI:
+						io.WriteString(w, `{"choices":[{"message":{"content":"ok"}}],"usage":{"prompt_tokens":77,"completion_tokens":9}}`)
+					case ensemble.Gemini:
+						io.WriteString(w, `{"candidates":[{"content":{"parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":77,"candidatesTokenCount":9}}`)
+					}
+					return
+				}
+				switch vendor {
+				case ensemble.Anthropic:
+					replyText(w, "ok")
+				case ensemble.OpenAI:
+					io.WriteString(w, `{"choices":[{"message":{"content":"ok"}}],"usage":{"prompt_tokens":10,"completion_tokens":2}}`)
+				case ensemble.Gemini:
+					io.WriteString(w, `{"candidates":[{"content":{"parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":10,"candidatesTokenCount":2}}`)
+				}
+			}))
 			defer server.Close()
 			var logs bytes.Buffer
 			a, err := ensemble.New(&logs).NewAgent(ensemble.Config{Vendor: vendor, Model: "fake-model", BaseURL: server.URL, DataDir: t.TempDir()})
@@ -54,13 +75,18 @@ func TestCacheLensMainBoundary(t *testing.T) {
 				t.Fatalf("verdicts: %s", logs.String())
 			}
 			a.Engine().Render(a.History().Context())
+			meter := a.Engine().Meter()
+			// A text-only reply fails the direct compressor's submit contract,
+			// but its measured spend still counts without changing main usage.
+			if _, err := a.Engine().Compress(context.Background(), "compress source", 8); err == nil {
+				t.Fatal("fixture unexpectedly submitted memory")
+			}
 			if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
 				t.Fatal(err)
 			}
-			// A valid text-only provider response fails the compressor's submit
-			// contract, but even that paid auxiliary exchange must bypass the lens.
-			if _, err := a.Engine().Compress(context.Background(), "compress source", 8); err == nil {
-				t.Fatal("fixture unexpectedly submitted memory")
+			next := a.Engine().Meter()
+			if next.Usage != meter.Usage || next.Total.Output != meter.Total.Output+18 {
+				t.Fatalf("auxiliary changed main usage or lost spend: before=%+v after=%+v", meter, next)
 			}
 			after, _ := os.ReadFile(current)
 			if !bytes.Equal(before, after) {
@@ -118,7 +144,7 @@ func TestCacheMarkers(t *testing.T) {
 		vendor ensemble.Vendor
 		model  string
 		marker string
-	}{{ensemble.Anthropic, "claude-haiku-5-5", "cache_control"}, {ensemble.OpenAI, "gpt-5.6-sol", "prompt_cache_breakpoint"}, {ensemble.Gemini, "gemini-3.8-flash", ""}, {ensemble.OpenAI, "gpt-4o-mini", ""}} {
+	}{{ensemble.Anthropic, "claude-sonnet-5", "cache_control"}, {ensemble.OpenAI, "gpt-5.6-sol", "prompt_cache_breakpoint"}, {ensemble.Gemini, "gemini-3.8-flash", ""}, {ensemble.OpenAI, "gpt-4o-mini", ""}} {
 		t.Run(tc.model, func(t *testing.T) {
 			a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: tc.vendor, Model: tc.model, DataDir: t.TempDir(), BuiltinTools: true})
 			if err != nil {
@@ -167,7 +193,12 @@ func TestCacheMarkers(t *testing.T) {
 				}
 				return
 			}
-			if !slices.Contains(marked, "settled boundary") || !slices.Contains(marked, "stable tail") || slices.Contains(marked, "volatile once") {
+			boundary := "settled boundary"
+			if tc.vendor == ensemble.OpenAI {
+				// Chat text combines the render-only completion label with the note.
+				boundary = "micro_handoff completed. Your checkpoint note:" + boundary
+			}
+			if !slices.Contains(marked, boundary) || !slices.Contains(marked, "stable tail") || slices.Contains(marked, "volatile once") {
 				t.Fatalf("wrong boundaries: %v", marked)
 			}
 			if tc.vendor == ensemble.Anthropic {
@@ -201,6 +232,7 @@ func TestCacheMarkers(t *testing.T) {
 			if !slices.Contains(marked, "surviving memory") || !slices.Contains(marked, "after fold") || bytes.Contains(folded, []byte("settled boundary")) {
 				t.Fatal("compacted boundary lost")
 			}
+
 		})
 	}
 }
@@ -214,7 +246,7 @@ func TestCacheMeterSessionAndTiers(t *testing.T) {
 		want         common.Usage
 		cost         float64
 	}{
-		{ensemble.Anthropic, "claude-haiku-5-5", `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":100001,"cache_creation_input_tokens":40,"cache_read_input_tokens":60,"output_tokens":10}}`, common.Usage{Input: 100001, CacheWrite: 40, CacheRead: 60, Output: 10}, .0500535},
+		{ensemble.Anthropic, "claude-sonnet-5", `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":100001,"cache_creation_input_tokens":40,"cache_read_input_tokens":60,"output_tokens":10}}`, common.Usage{Input: 100001, CacheWrite: 40, CacheRead: 60, Output: 10}, .200214},
 		{ensemble.OpenAI, "gpt-5.6-sol", `{"choices":[{"message":{"content":"ok"}}],"usage":{"prompt_tokens":272001,"prompt_tokens_details":{"cache_write_tokens":40,"cached_tokens":60},"completion_tokens":10}}`, common.Usage{Input: 271901, CacheWrite: 40, CacheRead: 60, Output: 10}, 2.175956},
 		{ensemble.Gemini, "gemini-3.8-flash", `{"candidates":[{"content":{"parts":[{"text":"ok"}]}}],"usageMetadata":{"promptTokenCount":100,"cachedContentTokenCount":60,"candidatesTokenCount":7,"thoughtsTokenCount":3}}`, common.Usage{Input: 40, CacheRead: 60, Output: 10}, .000072},
 	} {
@@ -272,33 +304,6 @@ func TestCacheMeterSessionAndTiers(t *testing.T) {
 	}
 }
 
-// TestCacheMeterAuxiliaryIdentity verifies a differently routed judge contributes
-// counts without replacing last-response prompt size or concealing unknown cost.
-func TestCacheMeterAuxiliaryIdentity(t *testing.T) {
-	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
-	server := httptest.NewServer(http.HandlerFunc(peer.serve))
-	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "unknown-priced-model"}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer a.Shutdown()
-	if _, err := a.Ask(context.Background(), "hello"); err != nil {
-		t.Fatal(err)
-	}
-	before := a.Engine().Meter()
-	if !before.Priced || before.CostUSD <= 0 {
-		t.Fatal("effective environment model unpriced")
-	}
-	if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
-		t.Fatal(err)
-	}
-	after := a.Engine().Meter()
-	if after.Priced || after.CostUSD != 0 || after.Usage != before.Usage || after.Total.Output != 2*before.Total.Output {
-		t.Fatalf("auxiliary accounting: %+v", after)
-	}
-}
-
 // TestCacheLensByteCounts pins the measured unit to serialized section bytes,
 // including JSON punctuation, without involving a tokenizer or a remarshal.
 func TestCacheLensByteCounts(t *testing.T) {
@@ -321,9 +326,11 @@ func TestCacheLensByteCounts(t *testing.T) {
 
 // TestCacheEmptyOptIn prevents explicit mode from disabling the provider's
 // implicit cache when an intentionally empty primary has no content to mark.
+// Use the synthetic course capability: real OpenAI models now always have the
+// visible-explanation instruction, so their effective prompt is not empty.
 func TestCacheEmptyOptIn(t *testing.T) {
 	dir := skillFiles(t, map[string]string{"base": "---\nname: base\ntype: primary\n---\n"})
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-5.6-sol", DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -337,13 +344,13 @@ func TestCacheEmptyOptIn(t *testing.T) {
 	}
 }
 
-// TestCacheMeterKnownJudge checks two known prices in one real Engine session.
-// The judge's route must retain its own rate while last conversation usage stays put.
-func TestCacheMeterKnownJudge(t *testing.T) {
+// TestCacheMeterAuxiliaryIdentity verifies a differently routed judge contributes
+// counts without replacing last-response prompt size or concealing unknown cost.
+func TestCacheMeterAuxiliaryIdentity(t *testing.T) {
 	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
 	server := httptest.NewServer(http.HandlerFunc(peer.serve))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-haiku-5-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "claude-sonnet-5"}})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "unknown-priced-model"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -352,14 +359,41 @@ func TestCacheMeterKnownJudge(t *testing.T) {
 		t.Fatal(err)
 	}
 	before := a.Engine().Meter()
-	if math.Abs(before.CostUSD-.000002) > 1e-12 {
-		t.Fatalf("Haiku base price: %+v", before)
+	if !before.Priced || before.CostUSD <= 0 {
+		t.Fatal("effective environment model unpriced")
 	}
 	if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
 		t.Fatal(err)
 	}
 	after := a.Engine().Meter()
-	if !after.Priced || math.Abs(after.CostUSD-.000042) > 1e-12 || after.Usage != before.Usage {
-		t.Fatalf("mixed model prices: %+v", after)
+	if after.Priced || after.CostUSD != 0 || after.Usage != before.Usage || after.Total.Output != 2*before.Total.Output {
+		t.Fatalf("auxiliary accounting: %+v", after)
+	}
+}
+
+// TestCacheMeterSupportedUnpricedJudge keeps a supported but unpriced judge
+// from borrowing the main model’s rate; last conversation usage stays put.
+func TestCacheMeterSupportedUnpricedJudge(t *testing.T) {
+	peer := &recallPeer{vendor: ensemble.Anthropic, judgment: "[]"}
+	server := httptest.NewServer(http.HandlerFunc(peer.serve))
+	defer server.Close()
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "claude-sonnet-5", BaseURL: server.URL, DataDir: t.TempDir(), DisableStreaming: true, Recall: ensemble.RecallSettings{JudgeModel: "claude-opus-5"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	if _, err := a.Ask(context.Background(), "hello"); err != nil {
+		t.Fatal(err)
+	}
+	before := a.Engine().Meter()
+	if math.Abs(before.CostUSD-.000040) > 1e-12 {
+		t.Fatalf("Sonnet base price: %+v", before)
+	}
+	if _, err := a.Engine().Judge(context.Background(), "zero-based candidate indices"); err != nil {
+		t.Fatal(err)
+	}
+	after := a.Engine().Meter()
+	if after.Priced || after.CostUSD != 0 || after.Usage != before.Usage {
+		t.Fatalf("unpriced judge accounting: %+v", after)
 	}
 }

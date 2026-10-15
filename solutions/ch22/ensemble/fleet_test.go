@@ -69,7 +69,7 @@ func fleetAgent(t *testing.T, server *httptest.Server) (ensemble.Agent, humanInb
 		}
 		return a, err
 	})
-	a, err := app.NewAgent(ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, MaxToolRounds: 10, Recall: ensemble.RecallSettings{Disabled: true}})
+	a, err := app.NewAgent(ensemble.Config{Model: "fake", BaseURL: server.URL, DataDir: t.TempDir(), BuiltinTools: true, MaxToolRounds: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,9 +202,9 @@ func TestFleetRecursiveQuestionsIsolation(t *testing.T) {
 	}
 }
 
-// The bound is literal: three reactive wakes produce four total requests, then
-// human escalation. HTTP failure has one request and no automatic retry.
-func TestFleetIdleBoundAndFailedTurn(t *testing.T) {
+// A human-facing root finishes without submit or reactive correction. Provider
+// failures likewise remain one failed request rather than becoming retries.
+func TestFleetRootFinishesWithoutSubmit(t *testing.T) {
 	for _, fail := range []bool{false, true} {
 		t.Run(fmt.Sprint(fail), func(t *testing.T) {
 			var calls atomic.Int32
@@ -218,40 +218,21 @@ func TestFleetIdleBoundAndFailedTurn(t *testing.T) {
 			}))
 			t.Cleanup(server.Close)
 			a, inbox, _ := fleetAgent(t, server)
-			_, err := a.Ask(context.Background(), "idle test")
-			if fail {
-				if err == nil || calls.Load() != 1 {
-					t.Fatalf("failed turn retried: calls=%d err=%v", calls.Load(), err)
-				}
-				return
-			}
-			if err != nil || calls.Load() != 4 {
-				t.Fatalf("three-wake bound: calls=%d err=%v", calls.Load(), err)
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			result, err := a.Ask(ctx, "idle test")
+			if (err != nil) != fail || calls.Load() != 1 || (!fail && result != "plain idle answer") {
+				t.Fatalf("root completion: calls=%d result=%q err=%v", calls.Load(), result, err)
 			}
 			select {
 			case m := <-inbox:
-				if m.From != "main" || m.To != "Bill" || !strings.Contains(m.Content, "three framework wakes") {
-					t.Fatal(m)
-				}
+				t.Fatalf("root escalated ordinary completion: %+v", m)
 			default:
-				t.Fatal("root escalation never reached human")
 			}
-			wakes := 0
-			notices := 0
 			for _, e := range a.History().EventsAfter(0) {
-				if e.Message != nil {
-					for _, p := range e.Message.Parts {
-						if strings.HasPrefix(p.Text, "Framework wake ") {
-							wakes++
-						}
-					}
+				if e.Type == "fleet_notice" || (e.Message != nil && strings.Contains(fmt.Sprint(e.Message.Parts), "Framework wake ")) {
+					t.Fatal("root received a submission correction", e)
 				}
-				if e.Type == "fleet_notice" {
-					notices++
-				}
-			}
-			if wakes != 3 || notices != 1 {
-				t.Fatalf("wake/escalation log missing: %d/%d", wakes, notices)
 			}
 		})
 	}
@@ -387,19 +368,20 @@ func TestFleetLifecycleAndRestore(t *testing.T) {
 	if err := a.Fleet().Submit("parent complete"); err != nil {
 		t.Fatal(err)
 	}
+	worker := (*children)[len(*children)-1]
 	// A successful submission resets the literal correction counter for new work.
 	for i := 0; i < 2; i++ {
-		a.Fleet().Begin()
+		worker.Fleet().Begin()
 		for wake := 1; wake <= 3; wake++ {
-			correction, escalation := a.Fleet().Idle()
+			correction, escalation := worker.Fleet().Idle()
 			if correction == "" || escalation != "" {
 				t.Fatalf("wake %d after submit: %q/%q", wake, correction, escalation)
 			}
 		}
-		if correction, escalation := a.Fleet().Idle(); correction != "" || escalation == "" {
+		if correction, escalation := worker.Fleet().Idle(); correction != "" || escalation == "" {
 			t.Fatal("unbounded correction")
 		}
-		if err := a.Fleet().Submit("reset"); err != nil {
+		if err := worker.Fleet().Submit("reset"); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -545,30 +527,185 @@ func TestFleetSameNameQuestionCorrelation(t *testing.T) {
 }
 
 // A child that exhausted correction is stopped without a submission, not still
-// running. Preserve that failure for status/join after escalation reaches a human.
+// running. Preserve that failure for status/join after escalation reaches its parent.
 func TestFleetEscalatedChildStatus(t *testing.T) {
 	var requests atomic.Int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { requests.Add(1); replyText(w, "unsubmitted prose") }))
+	parentNotified := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if requests.Add(1) == 5 {
+			close(parentNotified)
+		}
+		replyText(w, "unsubmitted prose")
+	}))
 	t.Cleanup(server.Close)
-	a, inbox, _ := fleetAgent(t, server)
+	a, _, _ := fleetAgent(t, server)
 	if _, err := a.Fleet().Spawn("worker", "TASK", ""); err != nil {
 		t.Fatal(err)
 	}
 	select {
-	case <-inbox:
+	case <-parentNotified:
 	case <-time.After(2 * time.Second):
-		t.Fatal("escalation never reached human")
+		t.Fatal("escalation never reached parent")
 	}
 	statuses := a.Fleet().List()
 	if len(statuses) != 1 || statuses[0].State != "failed" || statuses[0].Result != "" || !strings.Contains(statuses[0].Error, "three framework wakes") {
 		t.Fatal("exhausted child still claims running", statuses)
 	}
-	if requests.Load() != 8 {
-		t.Fatal("child/root correction was not bounded", requests.Load())
+	// A follow-up ask waits behind the parent's escalation turn, so the count
+	// checks completed turns rather than racing its response handling.
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := a.Ask(ctx, "follow-up"); err != nil {
+		t.Fatal(err)
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	if requests.Load() != 6 {
+		t.Fatal("expected four child requests and two ordinary parent turns", requests.Load())
+	}
+	ctx, cancel = context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 	if _, err := a.Fleet().Join(ctx, []string{"worker"}); err == nil || !strings.Contains(err.Error(), "three framework wakes") {
 		t.Fatal("join concealed child failure", err)
+	}
+}
+
+// Role instructions follow the actual parent relationship, even when a primary
+// skill replaces the prompt or a grandchild inherits its parent's configuration.
+func TestFleetSubmissionInstructionsOnlyForChildren(t *testing.T) {
+	for _, primary := range []bool{false, true} {
+		t.Run(fmt.Sprint(primary), func(t *testing.T) {
+			app := ensemble.New(io.Discard)
+			spec := ensemble.AgentSpec{ID: "main", DataDir: t.TempDir()}
+			if primary {
+				var err error
+				spec.SkillsDir, err = filepath.Abs("../skills")
+				if err != nil {
+					t.Fatal(err)
+				}
+				spec.PrimarySkill = "ensemble"
+			}
+			root, err := app.NewAgent(ensemble.Config{Model: "fake", BuiltinTools: true, SystemPrompt: "Original instructions."}, spec)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { root.Shutdown() })
+			marker := "You are a delegated sub-agent."
+			if strings.Contains(root.Engine().SystemPrompt(), marker) || strings.Contains(root.Engine().SystemPrompt(), "Ordinary text does not submit") {
+				t.Fatal("root acquired child completion instructions")
+			}
+			parent := root
+			for _, id := range []string{"child", "grandchild"} {
+				spec.ID, spec.DataDir = id, t.TempDir()
+				child, err := app.NewChildAgent(parent, parent.Config(), spec)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() { child.Shutdown() })
+				prompt := child.Engine().SystemPrompt()
+				if strings.Count(prompt, marker) != 1 || !strings.Contains(prompt, "then call submit with your completed result") {
+					t.Fatalf("%s missing or duplicated submission instructions: %q", id, prompt)
+				}
+				parent = child
+			}
+		})
+	}
+}
+
+// Actual spawned children use the parent's confinement, not just copied IDs.
+// Allowed reads remain usable beside outside refusal and safe-mode tool denial.
+func TestFleetSandboxInheritance(t *testing.T) {
+	workspace, outside := t.TempDir(), t.TempDir()
+	inside := filepath.Join(workspace, "allowed.txt")
+	secret := filepath.Join(outside, "secret.txt")
+	if err := os.WriteFile(inside, []byte("CHILD_ALLOWED"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(secret, []byte("CHILD_OUTSIDE"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		switch calls.Add(1) {
+		case 1:
+			fleetCall(w, "read_file", map[string]string{"path": inside})
+		case 2:
+			if !strings.Contains(fleetResultText(body), "CHILD_ALLOWED") {
+				t.Error("allowed child read missing")
+			}
+			fleetCall(w, "read_file", map[string]string{"path": secret})
+		default:
+			if strings.Contains(fleetResultText(body), "CHILD_OUTSIDE") {
+				t.Error("child escaped inherited root")
+			}
+			fleetCall(w, "submit", map[string]string{"result": "confined"})
+		}
+	}))
+	defer server.Close()
+	app := ensemble.New(io.Discard)
+	var child ensemble.Agent
+	app.SetAgentFactory(func(parent ensemble.Agent, spec ensemble.AgentSpec) (ensemble.Agent, error) {
+		a, err := app.NewChildAgent(parent, parent.Config(), spec)
+		child = a
+		return a, err
+	})
+	parent, err := app.NewAgent(ensemble.Config{Model: "fake", BaseURL: server.URL, BuiltinTools: true, DataDir: filepath.Join(workspace, "state")}, ensemble.AgentSpec{ID: "main", SandboxRoot: workspace, SafeMode: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer parent.Shutdown()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err = parent.Fleet().Spawn("worker", "READ_TASK", ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = parent.Fleet().Join(ctx, nil); err != nil {
+		t.Fatal(err)
+	}
+	if err = child.Flush(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if child.ParentAgent() != parent || child.Ensemble() != app || !child.Spec().SafeMode || child.Spec().EnableWebSearch {
+		t.Fatal("child ownership or policy lost")
+	}
+	for _, d := range child.Declarations() {
+		if d.Name == "run_command" {
+			t.Fatal("safe child declared shell execution")
+		}
+	}
+	if _, err = sandboxCall(t, child, "run_command", map[string]any{"command": "printf forbidden"}); err == nil {
+		t.Fatal("safe child executed shell")
+	}
+	refused := false
+	outsideCall := ""
+	for _, e := range child.History().EventsAfter(0) {
+		if e.Type == "tool_called" && e.Tool.Name == "read_file" {
+			var args struct {
+				// Path distinguishes the outside request from the allowed control.
+				Path string
+			}
+			if err := json.Unmarshal(e.Tool.Args, &args); err != nil {
+				t.Fatal(err)
+			}
+			if args.Path == secret {
+				outsideCall = e.Tool.CallID
+			}
+		}
+		// Call IDs may repeat across responses. Match this return only after
+		// the outside read was dispatched, then consume that pending identity.
+		if e.Type == "tool_returned" && outsideCall != "" && e.Tool.CallID == outsideCall {
+			refused = e.Tool.IsError
+			outsideCall = ""
+		}
+	}
+	if calls.Load() != 3 || !refused {
+		t.Fatal("outside read was not actually refused", calls.Load(), refused)
+	}
+	wider := ensemble.AgentSpec{ID: "wider", DataDir: filepath.Join(outside, "state"), SandboxRoot: outside, EnableWebSearch: true}
+	bad, err := app.NewChildAgent(parent, parent.Config(), wider)
+	if bad != nil {
+		bad.Shutdown()
+	}
+	if err == nil || !strings.Contains(err.Error(), "permissions narrowed") {
+		t.Fatal("widening bypassed child boundary", err)
 	}
 }

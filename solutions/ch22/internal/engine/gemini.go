@@ -140,6 +140,9 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 
 	features, _ := LookupModel(e.parent.Config().Model)
 	generation := map[string]any{"maxOutputTokens": 4096}
+	if e.parent.Spec().Compaction {
+		delete(generation, "maxOutputTokens") // The provider owns the model-specific default.
+	}
 	if features.Stream&common.StreamThinking != 0 {
 		generation["thinkingConfig"] = map[string]bool{"includeThoughts": true}
 	}
@@ -159,6 +162,8 @@ func (e *engine) parseGemini(data []byte) (common.ResponseData, error) {
 		ModelVersion string `json:"modelVersion"`
 		// Candidates holds provider alternatives; this client consumes the first.
 		Candidates []struct {
+			// FinishReason keeps a token-limit stop distinct from a valid submission.
+			FinishReason string `json:"finishReason"`
 			// Content preserves the provider's ordered blocks or message text.
 			Content struct {
 				// Parts retains ordered Gemini content blocks within a turn.
@@ -195,6 +200,9 @@ func (e *engine) parseGemini(data []byte) (common.ResponseData, error) {
 	// output. Subtract on input and add on output to get disjoint categories.
 	u := wire.Usage
 	result := common.ResponseData{From: from, Usage: common.Usage{Input: *u.Input - u.Read, CacheRead: u.Read, Output: u.Output + u.Thoughts}}
+	if e.parent.Spec().Compaction && wire.Candidates[0].FinishReason == "MAX_TOKENS" {
+		return result, errors.New("compaction response reached provider output limit")
+	}
 	for _, raw := range wire.Candidates[0].Content.Parts {
 		var part geminiPart
 		if err := json.Unmarshal(raw, &part); err != nil {

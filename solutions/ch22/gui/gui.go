@@ -19,15 +19,17 @@ import (
 // Server owns browser connections; its supplied Agent remains the conversation
 // owner. Construct the server before starting the Agent, and close it afterward.
 type Server struct {
-	agent    ensemble.Agent
-	settings Settings
+	agent       ensemble.Agent
+	root        *ensemble.Ensemble
+	views       map[ensemble.Agent]*agentView
+	selected    map[*websocket.Conn]*agentView
+	treeWake    chan struct{}
+	treeDone    chan struct{}
+	treeStopped chan struct{}
 	// settingsMu orders patches and subscriptions without blocking actor observations.
 	settingsMu       sync.Mutex
 	mu               sync.Mutex
 	clients          map[*websocket.Conn]chan [][]byte
-	partials         map[uint64]map[string]any
-	events           []ensemble.Event
-	seq              uint64
 	logMu            sync.Mutex
 	log              io.Writer
 	closed           bool
@@ -45,15 +47,24 @@ func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server,
 	if root == nil || agent == nil || agent.Ensemble() != root || log == nil {
 		panic("GUI requires its Ensemble, Agent and log")
 	}
-	s := &Server{agent: agent, clients: make(map[*websocket.Conn]chan [][]byte), partials: make(map[uint64]map[string]any), log: log}
+	s := &Server{agent: agent, clients: make(map[*websocket.Conn]chan [][]byte), log: log}
 	s.connections = make(map[*websocket.Conn]bool)
 	s.tunnels = make(map[*websocket.Conn]*WSTransport)
 	s.relays = make(map[net.Listener]bool)
 	s.relayConnections = make(map[net.Conn]bool)
-	if err := s.loadSettings(); err != nil {
+	s.root = root
+	s.views = make(map[ensemble.Agent]*agentView)
+	s.selected = make(map[*websocket.Conn]*agentView)
+	s.treeWake = make(chan struct{}, 1)
+	s.treeDone = make(chan struct{})
+	s.treeStopped = make(chan struct{})
+	view := s.view(agent)
+	if err := view.loadSettings(); err != nil {
 		return nil, fmt.Errorf("load settings: %w", err)
 	}
+	view.loaded = true
 	root.AddObserver(s)
+	go s.treeUpdates()
 	return s, nil
 }
 
@@ -65,20 +76,37 @@ func Submit(ctx context.Context, agent ensemble.Agent, input string) (string, er
 // ObserveAgent makes the history frontier and partials one synchronized view.
 // Subscribe takes this same lock: a final can never overtake its old partial.
 func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation) {
-	if a != s.agent {
-		return
-	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.closed {
 		return
 	}
+	select {
+	case s.treeWake <- struct{}{}:
+	default:
+	}
+	if _, removed := observation.(ensemble.AgentRemoved); removed {
+		// Constructor refusal can hold the owner's Fleet lock. Defer traversal,
+		// settings and selected-tab replay to the existing tree refresh worker.
+		delete(s.views, a)
+		return
+	}
+	if a.ParentAgent() != nil && !s.root.ContainsAgent(a) {
+		return // A queued observation must not recreate a removed worker's view.
+	}
+	v := s.view(a)
+	switch o := observation.(type) {
+	case ensemble.ActivityChanged:
+		s.broadcast(map[string]any{"type": "agent_activity", "key": ensemble.AgentKey(a), "activity": o.Activity})
+	case ensemble.StateChanged:
+		s.broadcast(map[string]any{"type": "agent_state", "key": ensemble.AgentKey(a), "state": a.Fleet().Status().State})
+	}
 	// Advance durable facts before transient delivery. In particular, a tool
 	// start must bring its already-recorded arguments along with it.
-	s.capture()
+	v.capture()
 	switch o := observation.(type) {
 	case ensemble.BillingSelected:
-		s.broadcast(map[string]any{"type": "billing_selected", "source": o.Source})
+		v.broadcast(map[string]any{"type": "billing_selected", "source": o.Source})
 	case ensemble.PartDelta:
 		// A reconnect needs the accumulated prefix; live subscribers need only the
 		// new fragment. Sending the accumulated value live would duplicate words.
@@ -86,25 +114,25 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 			return
 		} // The durable hint was already published by capture.
 		previous := ""
-		if p := s.partials[o.PartID]; p != nil {
+		if p := v.partials[o.PartID]; p != nil {
 			previous = p["chunk"].(string)
 		}
-		s.partials[o.PartID] = map[string]any{"type": "part_delta", "part_id": o.PartID, "kind": o.Kind, "chunk": previous + o.Chunk}
-		s.broadcast(map[string]any{"type": "part_delta", "part_id": o.PartID, "kind": o.Kind, "chunk": o.Chunk})
+		v.partials[o.PartID] = map[string]any{"type": "part_delta", "part_id": o.PartID, "kind": o.Kind, "chunk": previous + o.Chunk}
+		v.broadcast(map[string]any{"type": "part_delta", "part_id": o.PartID, "kind": o.Kind, "chunk": o.Chunk})
 	case ensemble.StateChanged:
-		s.broadcast(map[string]any{"type": "state_changed", "from": o.From, "to": o.To})
+		v.broadcast(map[string]any{"type": "state_changed", "from": o.From, "to": o.To})
 	case ensemble.TurnEnded:
-		s.broadcast(s.usageWire())
+		v.broadcast(v.usageWire())
 		// Cancellation may leave a part without a final. Those abandoned bytes
 		// must not reappear as an active stream on the next subscription.
-		s.partials = make(map[uint64]map[string]any)
-		s.broadcast(map[string]any{"type": "turn_ended", "text": o.Text, "error": o.Error})
+		v.partials = make(map[uint64]map[string]any)
+		v.broadcast(map[string]any{"type": "turn_ended", "text": o.Text, "error": o.Error})
 	}
 }
 
 // New durable data always comes from history. The GUI retains a renderable view
 // of that log, never reconstructs facts by trusting transient progress chunks.
-func (s *Server) capture() {
+func (s *agentView) capture() {
 	for _, event := range s.agent.History().EventsAfter(s.seq) {
 		s.seq = event.Seq
 		s.events = append(s.events, event)
@@ -223,6 +251,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 		<-written
 		s.mu.Lock()
 		delete(s.clients, conn)
+		delete(s.selected, conn)
 		delete(s.connections, conn)
 		delete(s.tunnels, conn)
 		s.mu.Unlock()
@@ -256,6 +285,8 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 		var input struct {
 			// Type selects the client command; Text carries its human input.
 			Type, Text string
+			// Key selects an owned conversation; Name/Model/Skill configure named peers.
+			Key, Name, Model, Skill string
 			// Settings carries a sparse preference patch; absent fields stay unchanged.
 			Settings json.RawMessage
 			// Payload carries an opaque JSON-RPC object for this connection.
@@ -273,23 +304,19 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 			case tunnel.incoming <- input.Payload:
 			case <-tunnel.done:
 			}
-		case "subscribe":
-			s.settingsMu.Lock()
-			s.mu.Lock()
-			if s.closed {
-				s.mu.Unlock()
-				s.settingsMu.Unlock()
-				return
+		case "subscribe", "select_agent":
+			var selected ensemble.Agent = s.agent
+			if input.Key != "" {
+				selected, err = s.root.FindAgent(input.Key, s.agent)
+				if err != nil {
+					s.sendError(queue, err)
+					continue
+				}
 			}
-			s.capture()
-			if _, exists := s.clients[conn]; !exists {
-				// One queued batch preserves the entire replay, even when it exceeds the
-				// live progress buffer. Socket writes remain outside the observer lock.
-				queue <- s.replay()
-				s.clients[conn] = queue
+			if err := s.selectConversation(conn, queue, selected, input.Type == "select_agent", nil); err != nil {
+				s.sendError(queue, err)
+				continue
 			}
-			s.mu.Unlock()
-			s.settingsMu.Unlock()
 			if !mcpStarted {
 				mcpStarted = true
 				go func() {
@@ -298,11 +325,38 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 					}
 				}()
 			}
+		case "create_agent":
+			a, err := s.root.CreateAgent(input.Name, input.Model, input.Skill)
+			if err != nil {
+				s.sendError(queue, err)
+				continue
+			}
+			s.mu.Lock()
+			s.view(a)
+			s.broadcast(map[string]any{"type": "agent_created", "key": ensemble.AgentKey(a)})
+			s.mu.Unlock()
+			select {
+			case s.treeWake <- struct{}{}:
+			default:
+			}
+		case "delete_agent":
+			if err := s.root.DeleteAgent(input.Name); err != nil {
+				s.sendError(queue, err)
+				continue
+			}
+			s.mu.Lock()
+			s.broadcast(map[string]any{"type": "agent_deleted", "key": input.Name})
+			s.mu.Unlock()
+			select {
+			case s.treeWake <- struct{}{}:
+			default:
+			}
 		case "update_settings":
 			// Settings retain one order across tabs, but the actor must be free
 			// to publish progress while this call waits for its acknowledgment.
 			s.settingsMu.Lock()
-			settings, err := s.updateSettings(input.Settings)
+			v := s.selection(conn)
+			settings, err := v.updateSettings(input.Settings)
 			s.mu.Lock()
 			if err != nil {
 				data, _ := json.Marshal(map[string]any{"type": "settings_error", "error": err.Error()})
@@ -312,28 +366,29 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 					conn.Close()
 				}
 			} else {
-				s.broadcast(map[string]any{"type": "settings_changed", "settings": settings})
+				v.broadcast(map[string]any{"type": "settings_changed", "settings": settings})
 			}
 			s.mu.Unlock()
 			s.settingsMu.Unlock()
 		case "prompt":
 			// Live input uses the same actor door as terminal input. It may become
 			// a hint; the browser does not guess whether the Agent is currently busy.
-			s.agent.Post(ensemble.UserMessage{Text: input.Text})
+			s.selection(conn).agent.Post(ensemble.UserMessage{Text: input.Text})
 		case "hint":
-			s.agent.Post(ensemble.Hint{Text: input.Text})
+			s.selection(conn).agent.Post(ensemble.Hint{Text: input.Text})
 		case "interrupt":
-			s.agent.Post(ensemble.Interrupt{})
+			s.selection(conn).agent.Post(ensemble.Interrupt{})
 		case "pause", "unpause":
 			// These commands affect the Agent gate directly, ahead of queued tool
 			// completions. No connection owns a share or veto of that global state.
+			v := s.selection(conn)
 			if input.Type == "pause" {
-				s.agent.Pause()
+				v.agent.Pause()
 			} else {
-				s.agent.Unpause()
+				v.agent.Unpause()
 			}
 			s.mu.Lock()
-			s.broadcast(map[string]any{"type": "pause_changed", "paused": s.agent.Paused()})
+			v.broadcast(map[string]any{"type": "pause_changed", "paused": v.agent.Paused()})
 			s.mu.Unlock()
 		}
 	}
@@ -341,7 +396,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 
 // The fixed window retains the last hour OR 100 renderable events, whichever
 // is larger. Configuration and restoring an Agent from disk come later.
-func (s *Server) replay() [][]byte {
+func (s *agentView) replay() [][]byte {
 	cutoff, count, start := time.Now().Add(-time.Hour), 0, len(s.events)
 	for start > 0 {
 		event := s.events[start-1]
@@ -390,7 +445,12 @@ func (s *Server) replay() [][]byte {
 // never closed, so concurrent fan-out cannot panic on a closed channel.
 func (s *Server) Close() {
 	s.mu.Lock()
+	if s.closed {
+		s.mu.Unlock()
+		return
+	}
 	s.closed = true
+	close(s.treeDone)
 	for listener := range s.relays {
 		listener.Close()
 	}
@@ -403,13 +463,14 @@ func (s *Server) Close() {
 	s.mu.Unlock()
 	// Join writers before the application closes gui.log.
 	s.workers.Wait()
+	<-s.treeStopped
 }
 
 // Agent reaches the conversation served by this server's transport children.
 func (s *Server) Agent() ensemble.Agent { return s.agent }
 
 // usageWire reads Engine's session counter, never the replayed history total.
-func (s *Server) usageWire() map[string]any {
+func (s *agentView) usageWire() map[string]any {
 	u := s.agent.Engine().Meter()
 	return map[string]any{"type": "usage", "input": u.Input, "cache_write": u.CacheWrite, "cache_read": u.CacheRead, "output": u.Output, "total": u.Total, "cost_usd": u.CostUSD, "priced": u.Priced, "hit_rate": u.HitRate}
 }

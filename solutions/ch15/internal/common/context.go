@@ -12,16 +12,6 @@ const (
 	KindSkill
 	// KindTools holds a declaration change at its original conversation position.
 	KindTools
-	// KindSoul holds identity data outside the system instruction.
-	KindSoul
-	// KindMemory holds terminal, curated memory.
-	KindMemory
-	// Kind64x holds the oldest compressed tier.
-	Kind64x
-	// Kind8x holds graduated session memories.
-	Kind8x
-	// KindSession holds compressed completed conversation.
-	KindSession
 )
 
 // SkillData captures rendered instructions, so replay never rereads a changed file.

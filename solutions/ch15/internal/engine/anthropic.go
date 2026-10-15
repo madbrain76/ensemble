@@ -53,7 +53,12 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		}
 	}
 	var declarations []json.RawMessage
-	for _, entry := range entries(c) {
+	// Render retained entries first so the rolling boundary excludes ephemera,
+	// even when both later coalesce into one provider user message.
+	bound := compactionBound(c)
+	var stableMessage, stableBlock int
+	stableMessage, stableBlock = -1, -1
+	for index, entry := range entries(c) {
 		blocks, err := e.anthropicParts(c, entry)
 		if err != nil {
 			return nil, err
@@ -65,6 +70,9 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 			declarations = append(declarations, blocks...)
 			continue
 		}
+		if index < len(c.Dialogue) && index == bound {
+			markAnthropic(blocks)
+		}
 		role := "user"
 		if entry.Actor == common.AgentActor {
 			// Contentful system messages must follow the complete user turn and
@@ -75,6 +83,13 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 			role = "assistant"
 		}
 		appendMessage(role, blocks)
+		if index < len(c.Dialogue) {
+			stableMessage = len(messages) - 1
+			stableBlock = len(messages[stableMessage].Content)
+		}
+	}
+	if stableMessage >= 0 {
+		markAnthropic(messages[stableMessage].Content[:stableBlock])
 	}
 	appendMessage("system", declarations)
 	// Results can arrive on either side of human text. Anthropic requires every
@@ -106,6 +121,13 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 	for _, d := range e.declarations(c) {
 		tools = append(tools, map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema})
 	}
+	if len(tools) > 0 {
+		tools[len(tools)-1]["cache_control"] = map[string]string{"type": "ephemeral"}
+	}
+	system := []map[string]any{}
+	if prompt := e.SystemPrompt(); prompt != "" {
+		system = append(system, map[string]any{"type": "text", "text": prompt, "cache_control": map[string]string{"type": "ephemeral"}})
+	}
 	features, _ := LookupModel(e.parent.Config().Model)
 	var thinking map[string]string
 	maxTokens := 1024
@@ -125,10 +147,10 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		// MaxTokens bounds generated response tokens on this provider surface.
 		MaxTokens int `json:"max_tokens"`
 		// System carries the role instruction outside ordinary Anthropic messages.
-		System string `json:"system"`
+		System []map[string]any `json:"system"`
 		// Messages retains provider message order, including tool-result boundaries.
 		Messages []anthropicMessage `json:"messages"`
-	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, e.SystemPrompt(), messages})
+	}{thinking, StreamingFor(e.parent.Config()) != 0, tools, e.parent.Config().Model, maxTokens, system, messages})
 }
 func (e *engine) anthropicParts(c *common.Context, entry common.Entry) ([]json.RawMessage, error) {
 	var out []json.RawMessage

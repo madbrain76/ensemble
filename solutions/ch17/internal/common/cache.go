@@ -1,6 +1,6 @@
 package common
 
-// CacheLens compares main-conversation requests, never judge/compressor prompts.
+// CacheLens compares actual conversation sends rather than disposable renders.
 // Engine supplies sanitized wire bytes and normalized usage at the send boundary.
 type CacheLens interface {
 	// Engine exposes the required owner, including its Agent's data directory.

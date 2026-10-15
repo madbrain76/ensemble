@@ -57,24 +57,19 @@ type turn struct {
 	batches, limit int
 	ephemeralTurn  bool
 	presented      []common.Entry
-	checkpoint     bool
 }
 
 // All fields below are owned by run. Workers own external work only, and return
 // immutable messages. Interrupt detaches a turn without detaching its workers.
 type runtime struct {
-	owner          *agent
-	active         *turn
-	pending        []request
-	barriers       []chan error
-	workers        int
-	stopping       bool
-	failure        error
-	partID         uint64
-	memoryReady    bool
-	memoryDisabled [6]bool
-	forcingChecked uint64
-	warned         bool
+	owner    *agent
+	active   *turn
+	pending  []request
+	barriers []chan error
+	workers  int
+	stopping bool
+	failure  error
+	partID   uint64
 }
 
 // Construction installs children first; the first runtime operation starts the
@@ -311,12 +306,6 @@ func (r *runtime) finish(text string, err error) {
 // Snapshot the round policy once per human turn. A later queued request gets
 // its own budget and cancellation context, never the previous request's state.
 func (r *runtime) begin(q request) {
-	if err := r.syncMemory(); err != nil {
-		if q.reply != nil {
-			q.reply <- common.Result{Err: err}
-		}
-		return
-	}
 	if err := q.ctx.Err(); err != nil {
 		if q.reply != nil {
 			q.reply <- common.Result{Err: err}
@@ -334,7 +323,7 @@ func (r *runtime) begin(q request) {
 		r.finish("", err)
 		return
 	}
-	r.recall()
+	r.send()
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
@@ -533,15 +522,8 @@ func (r *runtime) run() {
 						r.sendRequest()
 					}
 				}
-			case memorySettings:
-				r.owner.configMu.Lock()
-				r.owner.config.Memory = m.value
-				r.owner.configMu.Unlock()
-				m.reply <- r.syncMemory()
-			case recalled:
-				r.recalled(m)
-			case compressed:
-				r.compressed(m)
+			case modelSelection:
+				r.selectModel(m)
 			case response:
 				r.receive(m)
 			case report:
@@ -557,7 +539,6 @@ func (r *runtime) run() {
 					var handoff common.MicroHandoffData
 					if err = json.Unmarshal(m.call.Args, &handoff); err == nil {
 						err = r.append(common.Event{Type: "micro_handoff", Handoff: &handoff})
-						m.turn.checkpoint = err == nil
 					}
 				}
 				var result strings.Builder

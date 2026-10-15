@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"ensemble/internal/common"
 )
@@ -43,7 +44,7 @@ type record struct {
 	reply chan error
 }
 type flush struct{ reply chan error }
-type stop struct{}
+type stop struct{ discard bool }
 type gateReady struct{ turn *turn }
 type workerDone struct {
 	job common.Job
@@ -58,24 +59,36 @@ type turn struct {
 	batches, limit int
 	ephemeralTurn  bool
 	presented      []common.Entry
-	checkpoint     bool
+	afterTool      bool
+	// Per-response stream order is separate from parser-normalized part order.
+	sawStreamCall           bool
+	visibleBeforeStreamCall bool
+	checkpoint              bool
 }
 
 // All fields below are owned by run. Workers own external work only, and return
 // immutable messages. Interrupt detaches a turn without detaching its workers.
 type runtime struct {
-	owner          *agent
-	active         *turn
-	pending        []request
-	barriers       []chan error
-	workers        int
-	stopping       bool
-	failure        error
-	partID         uint64
-	memoryReady    bool
-	memoryDisabled [6]bool
-	forcingChecked uint64
-	warned         bool
+	owner             *agent
+	active            *turn
+	pending           []request
+	barriers          []chan error
+	workers           int
+	stopping          bool
+	discard           bool
+	failure           error
+	partID            uint64
+	memoryReady       bool
+	memoryDisabled    [6]bool
+	forcingChecked    uint64
+	memoryGeneration  [6]uint64
+	compaction        *compactionAttempt
+	compactionWaiting *turn
+	warned            bool
+	// Managed workers have one task and a lifetime send budget. Hints and a
+	// queued request cannot reset it by creating another ordinary turn.
+	compactionStarted bool
+	compactionSends   int
 }
 
 // Construction installs children first; the first runtime operation starts the
@@ -188,12 +201,18 @@ func (a *agent) Flush(ctx context.Context) error {
 
 // Stop admission once, then join the same owner on every call. The owner closes
 // done only after managed processes and both kinds of tool worker have finished.
-func (a *agent) Shutdown() error {
+func (a *agent) Shutdown() error { return a.shutdown(false) }
+
+// DiscardConstruction drains a refused factory result without writing its rejected
+// persistence paths. Factories must return before loading or starting work.
+func (a *agent) DiscardConstruction() error { return a.shutdown(true) }
+
+func (a *agent) shutdown(discard bool) error {
 	a.start()
 	a.lifecycle.Lock()
 	if !a.stopping {
 		a.stopping = true
-		a.box.Post(stop{})
+		a.box.Post(stop{discard: discard})
 	}
 	a.lifecycle.Unlock()
 	<-a.done
@@ -224,7 +243,13 @@ func (a *agent) Wait(ctx context.Context, predicate func(common.Observation) boo
 	}
 }
 func (a *agent) notify(observation common.Observation) {
+	a.activityMu.Lock()
+	a.progressTime = time.Now()
+	a.activityMu.Unlock()
 	a.parent.Observe(a, observation)
+	if parent := a.ParentAgent(); parent != nil {
+		parent.Fleet().Changed()
+	}
 	select {
 	case a.progress <- observation:
 	default:
@@ -279,7 +304,9 @@ func (r *runtime) append(event common.Event) error {
 // The independent crash journal is appended by History before each fact is published.
 func (r *runtime) save() error {
 	path := r.owner.config.LogPath
-	if path == "" {
+	// Constructor refusal drains workers without touching rejected persistence
+	// paths, independently of the purpose actually returned by the factory.
+	if r.discard || path == "" {
 		return nil
 	}
 	file, err := r.owner.Sandbox().OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
@@ -296,7 +323,10 @@ func (r *runtime) finish(text string, err error) {
 		return
 	}
 	t := r.active
-	if err == nil && r.owner.Ensemble().FleetEnabled() {
+	if err == nil && r.owner.spec.Compaction && r.owner.fleet.Status().State != "submitted" {
+		err = errors.New("compaction worker finished without submitting memory")
+	}
+	if err == nil && !r.owner.spec.Compaction && r.owner.Ensemble().FleetEnabled() {
 		correction, escalation := r.owner.fleet.Idle()
 		if correction != "" {
 			if err = r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.System, Parts: []common.Part{{Type: "text", Text: correction}}}}); err == nil {
@@ -313,11 +343,16 @@ func (r *runtime) finish(text string, err error) {
 		}
 	}
 	t.cancel()
+	if r.compactionWaiting == t {
+		r.compactionWaiting = nil
+	}
 	r.active = nil
 	ended := common.TurnEnded{Text: text}
 	if err != nil {
 		ended.Error = err.Error()
 	}
+	r.owner.fleet.End(err)
+	r.owner.setActivity(common.ActivityIdle, "", "")
 	r.owner.notify(ended)
 	err = errors.Join(err, r.save())
 	if t.request.reply != nil {
@@ -328,6 +363,15 @@ func (r *runtime) finish(text string, err error) {
 // Snapshot the round policy once per human turn. A later queued request gets
 // its own budget and cancellation context, never the previous request's state.
 func (r *runtime) begin(q request) {
+	if r.owner.spec.Compaction {
+		if r.compactionStarted {
+			if q.reply != nil {
+				q.reply <- common.Result{Err: errors.New("compaction worker accepts only one task")}
+			}
+			return
+		}
+		r.compactionStarted = true
+	}
 	if err := r.syncMemory(); err != nil {
 		if q.reply != nil {
 			q.reply <- common.Result{Err: err}
@@ -346,18 +390,42 @@ func (r *runtime) begin(q request) {
 	if limit == 0 {
 		limit = common.DefaultMaxToolRounds
 	}
+	if r.owner.spec.Compaction {
+		limit = 3
+	}
 	r.active = &turn{request: q, cancel: cancel, limit: limit}
 	r.active.request.ctx = ctx
 	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
 		r.finish("", err)
 		return
 	}
-	r.recall()
+	r.send()
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
+	limited := r.compaction != nil && r.atContextLimit()
+	if err := r.settleCompaction(); err != nil {
+		r.compressionWarning(err)
+		if limited || r.compaction != nil {
+			r.compactionWaiting = nil
+			r.finish("", err)
+			return
+		}
+	}
+	if r.compaction != nil && r.atContextLimit() {
+		r.compactionWaiting = r.active
+		r.owner.setActivity(common.ActivityWaiting, "", "waiting for memory compaction")
+		return
+	}
+	r.compactionWaiting = nil
+	if r.owner.spec.Compaction && r.compactionSends >= 3 {
+		r.finish("", errors.New("compaction worker model request limit reached"))
+		return
+	}
+	r.owner.setActivity(common.ActivityThinking, "", "")
 	t := r.active
 	t.ids = make(map[uint64]uint64)
+	t.sawStreamCall, t.visibleBeforeStreamCall = false, false
 	if err := r.prepareContext(); err != nil {
 		r.finish("", err)
 		return
@@ -388,6 +456,9 @@ func (r *runtime) sendRequest() {
 	if err = r.append(common.Event{Type: "request_sent", Request: request}); err != nil {
 		r.finish("", err)
 		return
+	}
+	if r.owner.spec.Compaction {
+		r.compactionSends++
 	}
 	r.workers++
 	go func() {
@@ -449,7 +520,7 @@ func (r *runtime) receive(m response) {
 			return
 		}
 	}
-	if m.err == nil && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
+	if m.err == nil && !r.owner.spec.Compaction && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
 		r.send()
 		return
 	}
@@ -467,7 +538,27 @@ func (r *runtime) receive(m response) {
 		r.finish("", common.ErrRoundLimit)
 		return
 	}
+	// Rejected explanation-less batches also consume the existing round budget:
+	// corrective feedback must not create an unbounded model-only retry loop.
 	m.turn.batches++
+	if r.owner.spec.Compaction && (len(m.turn.calls) != 1 || m.turn.calls[0].Name != "submit") {
+		// Refuse the entire batch before creating jobs; accepting a first submit
+		// would conceal additional calls and prematurely mark work complete.
+		for _, call := range m.turn.calls {
+			if err := r.append(common.Event{Type: "tool_returned", Tool: &common.ToolData{CallID: call.CallID, IsError: true, Parts: []common.Part{{Type: "text", Text: "compaction requires exactly one submit call"}}}}); err != nil {
+				r.finish("", err)
+				return
+			}
+		}
+		m.turn.calls = nil
+		r.send()
+		return
+	}
+	toolFirstStream := m.turn.sawStreamCall && !m.turn.visibleBeforeStreamCall
+	if r.owner.engine.Features().RequireVisibleReasoning && (toolFirstStream || !visibleExplanationBeforeTools(m.events)) {
+		r.rejectUnexplainedTools(toolFirstStream)
+		return
+	}
 	r.dispatch()
 }
 func (r *runtime) interrupt(reason error) {
@@ -515,9 +606,23 @@ func (r *runtime) run() {
 			case common.Hint:
 				r.input(m.Text)
 			case common.Interrupt:
-				r.interrupt(common.ErrInterrupted)
+				if m.AfterTool && r.active != nil {
+					r.active.afterTool = true
+				} else {
+					r.interrupt(common.ErrInterrupted)
+				}
 			case streamed:
 				if m.turn == r.active {
+					// Preserve actual stream order even when a provider parser later
+					// normalizes completed parts into text-before-tools order.
+					switch m.delta.Kind {
+					case common.DeltaText:
+						if !m.turn.sawStreamCall && strings.TrimSpace(m.delta.Chunk) != "" {
+							m.turn.visibleBeforeStreamCall = true
+						}
+					case common.DeltaToolCall:
+						m.turn.sawStreamCall = true
+					}
 					delta := m.delta
 					delta.PartID = r.displayID(m.turn, delta.PartID)
 					r.owner.notify(delta)
@@ -554,14 +659,9 @@ func (r *runtime) run() {
 			case modelSelection:
 				r.selectModel(m)
 			case memorySettings:
-				r.owner.configMu.Lock()
-				r.owner.config.Memory = m.value
-				r.owner.configMu.Unlock()
-				m.reply <- r.syncMemory()
-			case recalled:
-				r.recalled(m)
-			case compressed:
-				r.compressed(m)
+				r.changeMemory(m)
+			case compactionFinished:
+				r.compactionFinished(m)
 			case response:
 				r.receive(m)
 			case report:
@@ -589,6 +689,8 @@ func (r *runtime) run() {
 					m.turn.current = nil
 					if err != nil {
 						r.finish("", err)
+					} else if m.turn.afterTool {
+						r.interrupt(common.ErrInterrupted)
 					} else {
 						r.dispatch()
 					}
@@ -613,6 +715,7 @@ func (r *runtime) run() {
 			case stop:
 				if !r.stopping {
 					r.stopping = true
+					r.discard = m.discard
 					// Release reverse callers waiting at the same Agent-wide gate.
 					r.owner.Unpause()
 					r.interrupt(common.ErrStopped)
@@ -625,6 +728,14 @@ func (r *runtime) run() {
 						err := errors.Join(r.owner.jobs.Shutdown(), r.owner.fleet.Shutdown(), r.owner.mcp.Close())
 						r.owner.box.Post(workerDone{err: err})
 					}()
+				}
+			}
+		}
+		if r.active == nil && r.compaction != nil && r.compaction.completion != nil {
+			if err := r.settleCompaction(); err != nil {
+				r.compressionWarning(err)
+				if r.stopping && r.compaction != nil {
+					r.failure = errors.Join(r.failure, err)
 				}
 			}
 		}

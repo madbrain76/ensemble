@@ -52,6 +52,10 @@ func (r *registry) parse(text string) (skill, error) {
 					server.Transport = strings.Trim(value, "\"'")
 				case "command":
 					server.Command = strings.Trim(value, "\"'")
+				case "url":
+					server.URL = strings.Trim(value, "\"'")
+				case "auth-env":
+					server.AuthEnv = strings.Trim(value, "\"'")
 				case "args":
 					if err := json.Unmarshal([]byte(value), &server.Args); err != nil {
 						return skill{}, fmt.Errorf("MCP args must be a JSON-style string array: %w", err)

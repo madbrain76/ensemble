@@ -163,7 +163,7 @@ func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
 	// Require both one payload and the payload appropriate for the tag.
 	count := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.Recall != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil} {
 		if present {
 			count++
 		}
@@ -183,31 +183,9 @@ func validate(e common.Event) error {
 			return fmt.Errorf("unknown actor %q", e.Message.Actor)
 		}
 		parts = e.Message.Parts
-	case "band_populated":
-		if e.Populated == nil || e.Populated.Band < common.BandSoul || e.Populated.Band > common.BandSession {
-			return errors.New("invalid memory population")
-		}
-	case "band_depopulated":
-		if e.Depopulated == nil || e.Depopulated.Band < common.BandSoul || e.Depopulated.Band > common.BandSession {
-			return errors.New("invalid memory retirement")
-		}
-	case "compactor_launched":
-		if e.Compactor == nil || e.Compactor.Band < common.BandMemory || e.Compactor.Band > common.BandSession {
-			return errors.New("invalid compressor launch")
-		}
 	case "skill_loaded":
 		if e.Skill == nil || e.Skill.Name == "" {
 			return errors.New("skill payload missing")
-		}
-	case "recall_attached":
-		if e.Recall == nil {
-			return errors.New("recall payload missing")
-		}
-		parts = e.Recall.Parts
-		for _, p := range parts {
-			if p.Type != "text" {
-				return errors.New("recall must contain text")
-			}
 		}
 	case "micro_handoff":
 		if e.Handoff == nil || strings.TrimSpace(e.Handoff.Text) == "" {
@@ -263,7 +241,7 @@ func validate(e common.Event) error {
 // A known vendor with no model identity is still unusable provenance.
 // Never infer an old producer from the Agent's current target configuration.
 func provenance(p common.Provenance) error {
-	if p.Vendor < common.Anthropic || p.Vendor > common.Gemini || p.Surface < common.Messages || p.Surface > common.GenerateContent || p.Model == "" {
+	if p.Vendor < common.Anthropic || p.Vendor > common.Gemini || p.Surface < common.Messages || p.Surface > common.Responses || p.Model == "" {
 		return errors.New("missing or invalid provenance")
 	}
 	return nil
@@ -331,7 +309,7 @@ func (h *history) LastSeq() uint64 {
 // skipped atomically. Validation never mutates the projected context.
 func knownEvent(kind string) bool {
 	switch kind {
-	case "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "recall_attached":
+	case "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed":
 		return true
 	}
 	return false

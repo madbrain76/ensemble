@@ -31,7 +31,7 @@ test('Responses summaries reach speech before completion without duplication', a
  });
  provider.listen(0,'127.0.0.1');await once(provider,'listening');
  const probe=createServer();probe.listen(0,'127.0.0.1');await once(probe,'listening');const port=probe.address().port;await new Promise(r=>probe.close(r));
- const child=spawn(binary,['--port',String(port),'--gui-dir',resolve('web/gui')],{cwd:scratch,env:{...process.env,EN_HOME:join(scratch,'auth'),LLM_VENDOR:'openai',LLM_MODEL:'gpt-ch19-course',LLM_API_KEY:'fixture',LLM_BASE_URL:`http://127.0.0.1:${provider.address().port}`,OPENAI_BILLING_MODE:'api',EN_SKILLS_DIR:'',EN_PRIMARY_SKILL:''},stdio:['pipe','ignore','pipe']});
+ const child=spawn(binary,['--port',String(port)],{cwd:scratch,env:{...process.env,EN_HOME:join(scratch,'auth'),LLM_VENDOR:'openai',LLM_MODEL:'gpt-ch19-course',LLM_API_KEY:'fixture',LLM_BASE_URL:`http://127.0.0.1:${provider.address().port}`,OPENAI_BILLING_MODE:'api',EN_SKILLS_DIR:'',EN_PRIMARY_SKILL:''},stdio:['pipe','ignore','pipe']});
  const exited=once(child,'exit');
  const ready=new Promise((resolve,reject)=>{child.stderr.on('data',b=>{if(b.toString().includes('Open http'))resolve()});child.on('exit',()=>reject(Error('GUI exited before ready')))});
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_BIN||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});

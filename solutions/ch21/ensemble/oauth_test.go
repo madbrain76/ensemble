@@ -358,7 +358,7 @@ func TestOAuthInferenceBillingAndIsolation(t *testing.T) {
 		frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"access-secret-1"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
 	}))
 	defer peer.Close()
-	a, err := root.NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", APIKey: "metered-secret", BaseURL: peer.URL, DataDir: t.TempDir(), BuiltinTools: true, Recall: ensemble.RecallSettings{Disabled: true}})
+	a, err := root.NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", APIKey: "metered-secret", BaseURL: peer.URL, DataDir: t.TempDir(), BuiltinTools: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -369,6 +369,16 @@ func TestOAuthInferenceBillingAndIsolation(t *testing.T) {
 	}
 	if requests != 2 || p.rotations != 1 {
 		t.Fatalf("401 recovery requests=%d rotations=%d", requests, p.rotations)
+	}
+	// Renewal retries one logical request: only its successful response spends,
+	// and there is no preceding main request to rotate into the prior artifact.
+	meter := a.Engine().Meter()
+	wantUsage := ensemble.Usage{Input: 1, Output: 1}
+	if meter.Usage != wantUsage || meter.Total != wantUsage {
+		t.Fatalf("401 retry accounting: %+v", meter)
+	}
+	if _, err := os.Stat(filepath.Join(a.Config().DataDir, "cache-prior.txt")); !os.IsNotExist(err) {
+		t.Fatalf("401 retry rotated the main request twice: %v", err)
 	}
 	var saved strings.Builder
 	a.History().Save(&saved)
@@ -482,5 +492,39 @@ func TestOAuthCLI(t *testing.T) {
 		if strings.Contains(string(data), "access-secret") || strings.Contains(string(data), "refresh-one") {
 			t.Fatal("auth command printed credential")
 		}
+	}
+}
+
+// Even caller-supplied rendered bytes can echo a credential. The real transport
+// resolves the current bearer before the lens writes its readable artifact.
+func TestOAuthLensRedactsResolvedBearer(t *testing.T) {
+	p := newOAuthPeer(t)
+	p.mu.Lock()
+	p.initialExpiry = 3600
+	p.mu.Unlock()
+	root := authRoot(t, p, t.TempDir())
+	if _, err := loginFake(root); err != nil {
+		t.Fatal(err)
+	}
+	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer access-secret-0" {
+			t.Error("resolved bearer not used")
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"done"}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
+	}))
+	defer peer.Close()
+	a, err := root.NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", APIKey: "metered-secret", BaseURL: peer.URL, DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	body := []byte(`{"model":"gpt-ch19-course","input":[{"role":"user","content":"access-secret-0 metered-secret"}],"stream":true,"store":false}`)
+	if _, err := a.Engine().Send(context.Background(), body, ensemble.StreamCallbacks{}); err != nil {
+		t.Fatal(err)
+	}
+	artifact, err := os.ReadFile(filepath.Join(a.Config().DataDir, "cache-current.txt"))
+	if err != nil || strings.Contains(string(artifact), "access-secret") || strings.Contains(string(artifact), "metered-secret") || strings.Count(string(artifact), "[REDACTED]") != 2 {
+		t.Fatalf("lens artifact did not redact both resolved and configured credentials: %v", err)
 	}
 }

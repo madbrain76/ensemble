@@ -1,6 +1,7 @@
 package ensemble
 
 import (
+	"ensemble/internal/common"
 	"errors"
 	"os"
 	"strings"
@@ -34,11 +35,10 @@ func ConfigFromEnv() (Config, error) {
 		return os.Getenv(strings.ToUpper(vendor) + "_" + name)
 	}
 	cfg.BaseURL, cfg.APIKey, cfg.Model = env("BASE_URL"), env("API_KEY"), env("MODEL")
+	cfg.BillingMode = common.CredentialKind(os.Getenv("OPENAI_BILLING_MODE"))
+	cfg.ReasoningEffort = os.Getenv("OPENAI_REASONING_EFFORT")
+	cfg.ReasoningSummary = os.Getenv("OPENAI_REASONING_SUMMARY")
 	cfg.ResolvedModel = os.Getenv("LLM_RESOLVED_MODEL")
-	// Recall uses this provider by default; no second credential source is hidden.
-	cfg.Recall.JudgeModel = os.Getenv("EN_RECALL_JUDGE_MODEL")
-	cfg.Recall.Disabled = os.Getenv("EN_RECALL_DISABLED") == "1"
-	cfg.Recall.DisableJudge = os.Getenv("EN_RECALL_DISABLE_JUDGE") == "1"
 	return cfg, nil
 }
 

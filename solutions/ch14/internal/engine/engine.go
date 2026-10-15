@@ -189,6 +189,14 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 // from Dialogue; RequestSent consumes it during both live application and replay.
 func entries(c *common.Context) []common.Entry {
 	out := append([]common.Entry(nil), c.Dialogue...)
+	for i, entry := range out {
+		if entry.Kind == common.KindHandoff {
+			// The call and its acknowledgment were cleared at the checkpoint.
+			// Render the completed status alongside the note, not just its contents.
+			// Keep stored notes unchanged, including those restored from old saves.
+			out[i].Parts = append([]common.Part{{Type: "text", Text: "micro_handoff completed. Your checkpoint note:"}}, entry.Parts...)
+		}
+	}
 	if len(c.Ephemera) > 0 {
 		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera})
 	}

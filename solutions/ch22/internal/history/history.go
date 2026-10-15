@@ -161,12 +161,17 @@ func (h *history) Dump(w io.Writer) error {
 // vocabulary fails at the boundary instead of being silently skipped.
 func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
-	// Require both one payload and the payload appropriate for the tag.
+	// Require one matching payload, except for successful turn completion.
 	count := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.Recall != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.CompactionOutcome != nil} {
 		if present {
 			count++
 		}
+	}
+	// Completion is also a fact when there is no failure to attach. Keep the
+	// existing error payload for failed endings and reject other payloads below.
+	if e.Type == "turn_ended" && count == 0 {
+		return nil
 	}
 	if count != 1 {
 		return errors.New("event requires one payload")
@@ -191,6 +196,19 @@ func validate(e common.Event) error {
 		if e.Depopulated == nil || e.Depopulated.Band < common.BandSoul || e.Depopulated.Band > common.BandSession {
 			return errors.New("invalid memory retirement")
 		}
+	case "compaction_outcome":
+		if e.CompactionOutcome == nil || e.CompactionOutcome.TaskID == "" {
+			return errors.New("invalid compaction outcome")
+		}
+		switch e.CompactionOutcome.State {
+		case "committed":
+		case "failed", "canceled", "invalidated", "abandoned":
+			if strings.TrimSpace(e.CompactionOutcome.Reason) == "" {
+				return errors.New("compaction failure requires reason")
+			}
+		default:
+			return errors.New("invalid compaction outcome state")
+		}
 	case "compactor_launched":
 		if e.Compactor == nil || e.Compactor.Band < common.BandMemory || e.Compactor.Band > common.BandSession {
 			return errors.New("invalid compressor launch")
@@ -198,16 +216,6 @@ func validate(e common.Event) error {
 	case "skill_loaded":
 		if e.Skill == nil || e.Skill.Name == "" {
 			return errors.New("skill payload missing")
-		}
-	case "recall_attached":
-		if e.Recall == nil {
-			return errors.New("recall payload missing")
-		}
-		parts = e.Recall.Parts
-		for _, p := range parts {
-			if p.Type != "text" {
-				return errors.New("recall must contain text")
-			}
 		}
 	case "micro_handoff":
 		if e.Handoff == nil || strings.TrimSpace(e.Handoff.Text) == "" {
@@ -331,7 +339,7 @@ func (h *history) LastSeq() uint64 {
 // skipped atomically. Validation never mutates the projected context.
 func knownEvent(kind string) bool {
 	switch kind {
-	case "fleet_notice", "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "recall_attached":
+	case "fleet_notice", "message_received", "hint_received", "request_sent", "response_started", "response_ended", "tool_called", "tool_returned", "job_report", "job_finished", "job_killed", "redacted", "error_occurred", "turn_ended", "turn_interrupted", "skill_loaded", "micro_handoff", "tools_changed", "band_populated", "band_depopulated", "compactor_launched", "compaction_outcome":
 		return true
 	}
 	return false
@@ -346,6 +354,9 @@ func validateDeclarations(declarations []common.ToolDeclaration) error {
 }
 func validateFor(c *common.Context, e common.Event) error {
 	if err := validate(e); err != nil {
+		return err
+	}
+	if err := validateCompaction(c, e); err != nil {
 		return err
 	}
 	if e.Redact != nil {

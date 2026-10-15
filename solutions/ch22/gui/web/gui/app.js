@@ -126,15 +126,30 @@ function route(message) {
     message.kind === "tool_call" || message.part?.type === "tool_call";
   (tool ? actionsScroll : chatScroll).receive(message);
 }
-const agents = [{ id: "root", name: "Ensemble", state: "idle", children: [] }];
+let agents = [], selectedAgent = "";
 function renderAgents(nodes, parent) {
   parent.replaceChildren();
   for (const agent of nodes) {
     const node = document.createElement("li");
     node.dataset.state = agent.state;
-    const indicator = document.createElement("span");
-    indicator.className = "agent-indicator";
-    node.append(indicator, `${agent.name} — ${agent.state}`);
+    node.dataset.activity = agent.activity?.phase || "idle";
+    const select = document.createElement("button");
+    select.type = "button";
+    select.dataset.agentKey = agent.key;
+    select.setAttribute("aria-pressed", String(agent.key === selectedAgent));
+    const phase = agent.activity?.phase || "idle";
+    select.textContent = `${agent.id}${agent.persistent ? " · saved" : ""} — ${agent.state} · ${phase}`;
+    select.title = agent.activity?.detail || "Select conversation";
+    select.onclick = () => send({ type: "select_agent", key: agent.key });
+    node.append(select);
+    if (agent.deletable) {
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Delete";
+      remove.setAttribute("aria-label", `Delete ${agent.id}`);
+      remove.onclick = () => send({ type: "delete_agent", name: agent.id });
+      node.append(remove);
+    }
     if (agent.children.length) {
       const children = document.createElement("ul");
       renderAgents(agent.children, children);
@@ -143,7 +158,11 @@ function renderAgents(nodes, parent) {
     parent.append(node);
   }
 }
-renderAgents(agents, document.querySelector("#agent-tree"));
+document.querySelector("#create-agent").onsubmit = (event) => {
+  event.preventDefault();
+  send({ type: "create_agent", name: document.querySelector("#agent-name").value,
+    model: document.querySelector("#agent-model").value, skill: document.querySelector("#agent-skill").value });
+};
 const theme = document.querySelector("#theme");
 const model = document.querySelector("#model");
 const speed = document.querySelector("#tts-speed");
@@ -264,11 +283,28 @@ function connect() {
   socket.onopen = () => {
     chatScroll.reset();
     actionsScroll.reset();
-    send({ type: "subscribe" });
+    send({ type: "subscribe", key: selectedAgent });
   };
   socket.onmessage = (event) => {
     const message = JSON.parse(event.data);
     if (message.type === "jsonrpc") { receiveMCP(message.payload); return; }
+    if (message.type === "agent_selected") {
+      // Reset only at the server's ordered replay boundary. Older queued frames
+      // have arrived already; new live frames follow the selected Agent's replay.
+      speech.cancel(); chatScroll.reset(); actionsScroll.reset();
+      selectedAgent = message.key;
+      document.querySelector("#conversation-title").textContent = message.key;
+    }
+    if (message.type === "agent_tree") {
+      agents = message.root.children;
+      renderAgents(agents, document.querySelector("#agent-tree"));
+    }
+    if (message.type === "agent_error") document.querySelector("#agent-status").textContent = message.error;
+    if (message.type === "agent_created") document.querySelector("#agent-status").textContent = `Created ${message.key}`;
+    if (message.type === "agent_deleted") {
+      document.querySelector("#agent-status").textContent = `Deleted ${message.key}`;
+      if (selectedAgent === message.key || selectedAgent.startsWith(message.key + "/")) send({ type: "select_agent" });
+    }
     route(message);
     if (["current_settings", "settings_changed"].includes(message.type)) applySettings(message.settings);
     if (message.type === "settings_error") {
@@ -282,8 +318,6 @@ function connect() {
     }
     if (message.type === "state_changed") {
       state.textContent = message.to;
-      agents[0].state = message.to;
-      renderAgents(agents, document.querySelector("#agent-tree"));
     }
     if (message.type === "pause_changed")
       pauseState.textContent = message.paused ? "paused" : "";

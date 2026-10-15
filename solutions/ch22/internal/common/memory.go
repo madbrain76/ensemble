@@ -54,6 +54,8 @@ type MemorySettings struct {
 
 // BandPopulatedData carries the actual nondeterministic bytes for pure replay.
 type BandPopulatedData struct {
+	// TaskID correlates managed replacement; empty preserves legacy disk/replay facts.
+	TaskID string `json:"task_id,omitempty"`
 	// Band selects the entry lifetime and canonical position.
 	Band Band `json:"band"`
 	// File identifies this memory's first source file or creation identity.
@@ -68,6 +70,8 @@ type BandPopulatedData struct {
 
 // BandDepopulatedData names removals without resolving anything from disk.
 type BandDepopulatedData struct {
+	// TaskID holds managed retirement until this exact replacement commits.
+	TaskID string `json:"task_id,omitempty"`
 	// Band selects the source band to retire.
 	Band Band `json:"band"`
 	// Thru retires only the oldest range; nil retires the entire band.
@@ -78,6 +82,20 @@ type BandDepopulatedData struct {
 
 // CompactorLaunchedData is observational: replay never launches external work.
 type CompactorLaunchedData struct {
+	// TaskID identifies one managed attempt; empty retains legacy replay behavior.
+	TaskID string `json:"task_id,omitempty"`
+	// SelectionHash binds the durable candidate to the captured source fingerprints.
+	SelectionHash string `json:"selection_hash,omitempty"`
+	// Source is zero for conversation, otherwise the graduating band.
+	Source Band `json:"source,omitempty"`
+	// File names the first selected corpus identity or new session identity.
+	File MemoryFileID `json:"file,omitzero"`
+	// From and To identify a managed conversation cut's inclusive boundaries.
+	From uint64 `json:"from,omitempty"`
+	// To is the last selected completed checkpoint boundary.
+	To uint64 `json:"to,omitempty"`
+	// TracePath is the owner-relative child trace directory, retained after dismissal.
+	TracePath string `json:"trace_path,omitempty"`
 	// Band is the destination, matching the successful population event.
 	Band Band `json:"band"`
 	// Thru correlates this attempt with its eventual populated memory.
@@ -93,6 +111,34 @@ type PendingCompression struct {
 	Cut *RedactData `json:"cut,omitempty"`
 	// Retire is a proposed source-band retirement, applied with its replacement.
 	Retire *BandDepopulatedData `json:"retire,omitempty"`
+	// Committed retains the applied pair until disk promotion and archive finish.
+	Committed *BandPopulatedData `json:"committed,omitempty"`
+}
+
+// MemoryFingerprint identifies exact owner-relative bytes or their absence.
+// Only Memory derives these paths; model output never supplies corpus addresses.
+type MemoryFingerprint struct {
+	// Path is relative to the owning Agent's data directory.
+	Path string `json:"path"`
+	// Hash is the SHA-256 of present bytes, including an empty file.
+	Hash string `json:"hash,omitempty"`
+	// Exists distinguishes an absent destination from a present empty file.
+	Exists bool `json:"exists"`
+}
+
+// CompressionSelection freezes only selected inputs, leaving new dialogue free
+// to continue while a worker runs. The actor separately owns policy generations.
+type CompressionSelection struct {
+	// EntriesHash covers selected entry identities/parts and task boundaries.
+	EntriesHash string `json:"entries_hash"`
+	// SourcePolicy is the effective policy at selection, not a mutable config copy.
+	SourcePolicy BandSettings `json:"source_policy"`
+	// DestinationPolicy records the other policy relevant to this attempt.
+	DestinationPolicy BandSettings `json:"destination_policy"`
+	// Sources contains fingerprints of selected source files in retirement order.
+	Sources []MemoryFingerprint `json:"sources,omitempty"`
+	// Destination requires the same prior file or absence at commit time.
+	Destination MemoryFingerprint `json:"destination"`
 }
 
 // Compression is one finite proposed cut. The original context stays live until success.
@@ -116,6 +162,10 @@ type Compression struct {
 	Ratio int
 	// Retired identifies the source files archived after the commit.
 	Retired []Entry
+	// Selection is captured by Memory; callers must treat it as immutable.
+	Selection *CompressionSelection
+	// SelectionHash binds the staged record to the parent-authored launch fact.
+	SelectionHash string
 }
 
 // Memory owns corpus policy and disk operations through its required Agent parent.
@@ -132,8 +182,35 @@ type Memory interface {
 	Conversation() (*Compression, error)
 	// Graduation selects the next oldest-first waterfall step.
 	Graduation() (*Compression, error)
+	// ValidateSelection refuses changed selected entries, files, destination or policy.
+	// New unrelated dialogue and files do not invalidate the selected prefix.
+	ValidateSelection(*Compression) error
+	// Stage writes a hidden candidate for the matching launched attempt. It does
+	// not change active files or History; callers serialize these commit operations.
+	Stage(string, *Compression, string) (*BandPopulatedData, error)
+	// Finish promotes and archives a committed receipt idempotently, preserving
+	// conflicting files and the hidden record on any error.
+	Finish(string) error
+	// Recover returns a terminal fact for the actor to append, then a second call
+	// cleans its hidden record. It never launches work or mutates History itself.
+	Recover() (*CompactionOutcomeData, error)
 	// Write persists replacement bytes before any source retirement.
 	Write(*Compression, string) error
 	// Archive preserves retired files outside the active scan pattern.
 	Archive(*Compression) error
+}
+
+// CompactionOutcomeData records a terminal managed attempt without changing the
+// main turn or its response usage. Only the latest outcome remains in Context.
+type CompactionOutcomeData struct {
+	// TaskID identifies the attempt whose source/result and trace remain auditable.
+	TaskID string `json:"task_id"`
+	// Usage retains drained attempt measurements for audit; replay never imports spend.
+	Usage []UsageBucket `json:"usage,omitempty"`
+	// State is committed, failed, canceled, invalidated, or abandoned.
+	State string `json:"state"`
+	// Reason explains refusal or cleanup failure without provider credentials.
+	Reason string `json:"reason,omitempty"`
+	// TracePath preserves the dismissed child's owner-relative trace location.
+	TracePath string `json:"trace_path,omitempty"`
 }

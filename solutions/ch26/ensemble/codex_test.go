@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"ensemble/ensemble"
 )
@@ -39,7 +40,7 @@ func TestCodexToolLoopAndCredentialReread(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		if body["store"] != false || body["stream"] != true || body["instructions"] != "Use the echo tool." {
+		if body["store"] != false || body["stream"] != true || !strings.HasPrefix(fmt.Sprint(body["instructions"]), "Use the echo tool.\n\n") || !strings.Contains(fmt.Sprint(body["instructions"]), "ordinary user-visible text") {
 			t.Error("Codex delivery/instruction contract missing")
 		}
 		if body["prompt_cache_options"] != nil || strings.Contains(fmt.Sprint(body), "prompt_cache_breakpoint") {
@@ -59,7 +60,8 @@ func TestCodexToolLoopAndCredentialReread(t *testing.T) {
 			// observe the replacement without restarting or writing to the file.
 			writeCodex(t, file, "token-two", "account-two")
 			frame(w, wireFrame{"response.reasoning_summary_text.delta", decoded(`{"output_index":0,"delta":"Check echo."}`)})
-			frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","model":"gpt-6-astra","output":[{"type":"reasoning","id":"r1","encrypted_content":"opaque-replay"},{"type":"function_call","call_id":"c1","name":"echo","arguments":"{}"}],"usage":{"input_tokens":5000,"output_tokens":10,"input_tokens_details":{"cached_tokens":4800}}}}`)})
+			frame(w, wireFrame{"response.output_text.delta", decoded(`{"output_index":1,"delta":"I will call echo to verify the tool result and credential rotation."}`)})
+			frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","model":"gpt-6-astra","output":[{"type":"reasoning","id":"r1","encrypted_content":"opaque-replay"},{"type":"message","content":[{"type":"output_text","text":"I will call echo to verify the tool result and credential rotation."}]},{"type":"function_call","call_id":"c1","name":"echo","arguments":"{}"}],"usage":{"input_tokens":5000,"output_tokens":10,"input_tokens_details":{"cached_tokens":4800}}}}`)})
 		} else {
 			items, _ := json.Marshal(body["input"])
 			if !strings.Contains(string(items), `"output":"actual tool output"`) || !strings.Contains(string(items), "opaque-replay") {
@@ -266,5 +268,56 @@ func TestCodexAuxiliaryRequests(t *testing.T) {
 	}
 	if value, err := a.Engine().Compress(context.Background(), "Remember the reason", 2); err != nil || value != "I retained the reason." {
 		t.Fatalf("compress: %q %v", value, err)
+	}
+}
+
+// The launcher configures summaries through the environment. Verify that the
+// real Codex request carries that choice, independently of provider verbosity.
+func TestCodexDetailedSummaryFromEnvironment(t *testing.T) {
+	file := filepath.Join(t.TempDir(), "auth.json")
+	writeCodex(t, file, "fixture-token", "fixture-account")
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+			http.Error(w, "bad JSON", http.StatusBadRequest)
+			return
+		}
+		reasoning, _ := body["reasoning"].(map[string]any)
+		if reasoning["summary"] != "detailed" || reasoning["effort"] != "high" {
+			t.Errorf("reasoning options did not reach provider: %v", reasoning)
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		frame(w, wireFrame{"response.completed", decoded(`{"response":{"status":"completed","model":"gpt-6-astra","output":[{"type":"message","content":[{"type":"output_text","text":"Done."}]}],"usage":{"input_tokens":1,"output_tokens":1}}}`)})
+	}))
+	defer server.Close()
+	for key, value := range map[string]string{
+		"LLM_VENDOR": "openai", "LLM_MODEL": "gpt-6-astra", "LLM_BASE_URL": server.URL,
+		"OPENAI_BILLING_MODE": "codex", "EN_CODEX_AUTH_FILE": file,
+		"OPENAI_REASONING_EFFORT": "high", "OPENAI_REASONING_SUMMARY": "detailed",
+	} {
+		t.Setenv(key, value)
+	}
+	cfg, err := ensemble.ConfigFromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg.DataDir, cfg.Workspace = t.TempDir(), t.TempDir()
+	cfg.SystemPrompt = "Be concise."
+	cfg.Recall.Disabled = true
+	a, err := ensemble.New(io.Discard).NewAgent(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if _, err := a.Ask(ctx, "Check request settings."); err != nil {
+		t.Fatal(err)
+	}
+	if calls.Load() != 1 {
+		t.Fatalf("provider calls: %d", calls.Load())
 	}
 }

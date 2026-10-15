@@ -83,10 +83,16 @@ func (c *client) close() error {
 	return err
 }
 func (c *client) send(m message) error {
+	return c.sendContext(context.Background(), m)
+}
+func (c *client) sendContext(ctx context.Context, m message) error {
 	m.JSONRPC = "2.0"
 	raw, err := json.Marshal(m)
 	if err != nil {
 		return err
+	}
+	if transport, ok := c.transport.(common.MCPContextTransport); ok {
+		return transport.SendContext(ctx, raw)
 	}
 	return c.transport.Send(raw)
 }
@@ -103,7 +109,10 @@ func (c *client) request(ctx context.Context, method string, params any, result 
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := c.send(message{ID: raw(id), Method: method, Params: raw(params)}); err != nil {
+	if err := c.sendContext(ctx, message{ID: raw(id), Method: method, Params: raw(params)}); err != nil {
+		if ctx.Err() != nil {
+			go c.send(message{Method: "$/cancelRequest", Params: raw(map[string]any{"id": id})})
+		}
 		return err
 	}
 	select {

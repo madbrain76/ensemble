@@ -90,7 +90,10 @@ type Hint struct {
 }
 
 // Interrupt ends the current turn while keeping the Agent and other jobs alive.
-type Interrupt struct{}
+type Interrupt struct {
+	// AfterTool waits for the current or next tool report before ending this turn.
+	AfterTool bool
+}
 
 func (UserMessage) inbound() {}
 func (Hint) inbound()        {}
@@ -149,6 +152,8 @@ const (
 type ModelFeatures struct {
 	// Responses selects the newer OpenAI transport for this particular model.
 	Responses bool
+	// RequireVisibleReasoning requires ordinary explanatory text before tools in the same response.
+	RequireVisibleReasoning bool
 	// Price is the ordinary USD-per-million rate, nil when unverified.
 	Price *Pricing
 	// PriceThreshold selects the large-prompt tier above this inclusive token limit.
@@ -157,8 +162,6 @@ type ModelFeatures struct {
 	LargePrice *Pricing
 	// ExplicitCache permits Chat Completions content breakpoints on verified models.
 	ExplicitCache bool
-	// ContextWindow is the supported input window in tokens; zero disables forcing.
-	ContextWindow int
 
 	// InlineTools permits declaration changes in the dialogue without rewriting the prefix.
 	InlineTools bool

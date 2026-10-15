@@ -10,7 +10,7 @@ import (
 // wait_for_job recovers its real answer.
 func FleetTools() []common.ToolDefinition {
 	return append(managementTools(), []common.ToolDefinition{
-		{ToolDeclaration: common.ToolDeclaration{Name: "spawn_sub_agent", Description: "Start a full child agent with an isolated data directory. It inherits your model and restrictions; optional model selects another supported model. Children must submit results.", Schema: json.RawMessage(`{"type":"object","properties":{"agent_id":{"type":"string"},"task":{"type":"string"},"model":{"type":"string"}},"required":["agent_id","task"]}`)}, Run: spawnChild},
+		{ToolDeclaration: common.ToolDeclaration{Name: "spawn_sub_agent", Description: "Start a full child agent with an isolated data directory. It inherits your model and restrictions; optional model selects another supported model. submit_schema optionally defines the entire submit argument object. Children must submit results.", Schema: json.RawMessage(`{"type":"object","properties":{"agent_id":{"type":"string"},"task":{"type":"string"},"model":{"type":"string"},"submit_schema":{"type":"object"}},"required":["agent_id","task"]}`)}, Run: spawnChild},
 		{ToolDeclaration: common.ToolDeclaration{Name: "join_agents", Description: "Wait for the listed children to submit; an empty list means all children. Returns early with pending questions: answer using respond_to_parent_message, then join again. A running job report is not completion.", Schema: waitSchema(`"agent_ids":{"type":"array","items":{"type":"string"}}`, "")}, Run: joinChildren},
 		{ToolDeclaration: common.ToolDeclaration{Name: "agents_status", Description: "List only your owned children and their explicit submission or failure state.", Schema: json.RawMessage(`{"type":"object","properties":{}}`)}, Run: childrenStatus},
 		{ToolDeclaration: common.ToolDeclaration{Name: "shutdown_agent", Description: "Stop and remove one owned child recursively. Its saved conversation remains for a later spawn with the same ID.", Schema: json.RawMessage(`{"type":"object","properties":{"agent_id":{"type":"string"}},"required":["agent_id"]}`)}, Run: shutdownChild},
@@ -28,11 +28,13 @@ func spawnChild(owner common.ToolContext, raw json.RawMessage) (string, error) {
 		Task string `json:"task"`
 		// Model optionally overrides the inherited provider model.
 		Model string `json:"model"`
+		// SubmitSchema is the whole child submit argument schema, not a result wrapper.
+		SubmitSchema json.RawMessage `json:"submit_schema"`
 	}
 	if err := decode(raw, &args, "agent_id", "task"); err != nil {
 		return "", err
 	}
-	status, err := owner.Agent().Fleet().Spawn(args.ID, args.Task, args.Model)
+	status, err := owner.Agent().Fleet().SpawnWithSchema(args.ID, args.Task, args.Model, args.SubmitSchema)
 	if err != nil {
 		return "", err
 	}
@@ -99,15 +101,12 @@ func replyChild(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	return "reply delivered", nil
 }
 func submitFleet(owner common.ToolContext, raw json.RawMessage) (string, error) {
-	var args struct {
-		// Result is the completed work, not an idle model reply.
-		Result string `json:"result"`
-	}
-	if err := decode(raw, &args, "result"); err != nil {
+	if err := owner.Agent().Fleet().SubmitJSON(raw); err != nil {
 		return "", err
 	}
-	if err := owner.Agent().Fleet().Submit(args.Result); err != nil {
-		return "", err
+	status := owner.Agent().Fleet().Status()
+	if len(status.Payload) != 0 {
+		return "submitted: " + string(status.Payload), nil
 	}
-	return "submitted: " + args.Result, nil
+	return "submitted: " + status.Result, nil
 }

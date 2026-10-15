@@ -181,6 +181,7 @@ function partText(part) {
   if (part.type === "opaque") {
     const value = part.data || {};
     // Signatures and redacted thinking are replay bytes, never spoken prose.
+    if (value.type === "reasoning") return (value.summary ?? []).map(part => part.text ?? "").join("");
     if (value.type === "thinking") return value.thinking ?? "";
     if (value.thought === true) return value.text ?? "";
     return "";
@@ -235,7 +236,7 @@ class ArtifactScroll {
     const shown = card.text.slice(0, 4000);
     const body = document.createElement("div");
     card.content.append(body);
-    if (card.kind === "text" || card.kind === "thinking") markdown(body, shown);
+    if (card.kind === "text" || ["thinking", "reasoning_summary"].includes(card.kind)) markdown(body, shown);
     else {
       const pre = document.createElement("pre");
       if (card.label.textContent === "edit_file") {
@@ -252,7 +253,7 @@ class ArtifactScroll {
       } else ansi(pre, shown);
       body.append(pre);
     }
-    if (card.kind === "thinking") {
+    if (["thinking", "reasoning_summary"].includes(card.kind)) {
       const details = document.createElement("details");
       const summary = document.createElement("summary");
       summary.textContent = "Thinking";
@@ -279,7 +280,7 @@ class ArtifactScroll {
       card.text += message.chunk;
       card.streamed = true;
       this.render(card);
-      if (!message.replay && ["text", "thinking"].includes(message.kind))
+      if (!message.replay && ["text", "thinking", "reasoning_summary"].includes(message.kind))
         speech.chunk(id, message.chunk, false, message.kind);
     } else if (
       message.type === "part_final" ||
@@ -290,14 +291,14 @@ class ArtifactScroll {
         message.type === "user_message"
           ? "user"
           : part.type === "opaque"
-            ? "thinking"
+            ? (part.from?.surface === "responses" ? "reasoning_summary" : "thinking")
             : part.type;
       const card = this.card(id, kind);
       card.kind = kind;
       card.text = partText(part);
       this.render(card);
       if (part.type === "tool_call") this.calls.set(part.call_id, card);
-      if (!message.replay && ["text", "thinking"].includes(kind))
+      if (!message.replay && ["text", "thinking", "reasoning_summary"].includes(kind))
         speech.chunk(id, card.streamed ? "" : card.text, true, kind);
     } else if (message.type === "tool_dispatched") {
       const card =
@@ -368,35 +369,7 @@ const editingContext = new Set();
 for (const control of [contextTarget, logRetention]) {
   control.addEventListener("input", () => editingContext.add(control));
 }
-// Band switches and byte budgets travel through the same persisted settings path.
-const memoryControls = new Map();
-for (const band of ["soul", "memory", "64x", "8x", "session", "conversation"]) {
-  const row = document.createElement("div");
-  const enabled = document.createElement("input"); enabled.type = "checkbox";
-  const label = document.createElement("label"); label.append(enabled, ` ${band} enabled `);
-  row.append(label);
-  const controls = { disabled: enabled };
-  for (const field of ["budget", "high_watermark", "low_watermark"]) {
-    const input = document.createElement("input"); input.type = "number"; input.min = "0"; input.step = "1";
-    input.setAttribute("aria-label", `${band} ${field} bytes (0 = default)`);
-    input.style.width = "7em";
-    input.addEventListener("input", () => editingContext.add(input));
-    controls[field] = input;
-    const caption = document.createElement("label");
-    caption.append(` ${field.replaceAll("_", " ")} `, input); row.append(caption);
-  }
-  for (const [field, input] of Object.entries(controls)) input.addEventListener("change", () => {
-    editingContext.delete(input);
-    send({ type: "update_settings", settings: { memory: { [band]: { [field]: field === "disabled" ? !input.checked : Number(input.value) } } } });
-  });
-  memoryControls.set(band, controls);
-  document.querySelector("#memory-settings").append(row);
-}
 function applySettings(settings) {
-  for (const [band, controls] of memoryControls) for (const [field, input] of Object.entries(controls)) {
-    if (field === "disabled") input.checked = !settings.memory?.[band]?.disabled;
-    else if (!editingContext.has(input)) input.value = settings.memory?.[band]?.[field] ?? 0;
-  }
   if (!editingContext.has(contextTarget)) contextTarget.value = settings.context_target;
   if (!editingContext.has(logRetention)) logRetention.value = settings.log_retention;
   theme.value = settings.theme;
@@ -480,6 +453,10 @@ function connect() {
       speech.flush();
       speech.enqueue(message.error, "error");
     }
+    if (message.type === "billing_selected") {
+      state.textContent = `Billing: ${message.source}`;
+      speech.enqueue(`Billing: ${message.source}`, "status");
+    }
     if (message.type === "state_changed") {
       state.textContent = message.to;
       agents[0].state = message.to;
@@ -487,6 +464,14 @@ function connect() {
     }
     if (message.type === "pause_changed")
       pauseState.textContent = message.paused ? "paused" : "";
+    if (message.type === "usage") {
+      const meter = document.querySelector("#usage");
+      const input = message.input + message.cache_write + message.cache_read;
+      const cost = message.priced ? `$${message.cost_usd.toFixed(4)}` : "—";
+      meter.textContent = `Cost ${cost} · Input ${input} · Cache ${message.cache_read} · Hit ${(100 * message.hit_rate).toFixed(1)}%`;
+      const total = message.total;
+      meter.title = `Session tokens: input ${total.input}, cache write ${total.cache_write}, cache read ${total.cache_read}, output ${total.output}`;
+    }
     if (message.type === "turn_ended") {
       // End of stream must release even a trailing colon or interrupted phrase.
       speech.flush();

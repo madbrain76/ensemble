@@ -35,8 +35,6 @@ type ToolMeta struct {
 // Skills owns one Agent's discovered capabilities and point-of-use renderers.
 // Compiled instruction removal is pending; MCP servers stop on unload.
 type Skills interface {
-	// Directory identifies this Agent's skill corpus for passive discovery.
-	Directory() string
 	// Agent returns the owner whose declarations and services the registry uses.
 	Agent() Agent
 	// LoadInitial enables the primary and dependencies and renders their bodies once.

@@ -111,14 +111,14 @@ func TestSkillsThroughLoop(t *testing.T) {
 	if len(requests) != 3 {
 		t.Fatalf("requests: %d", len(requests))
 	}
-	initial := requests[0]["system"].(string)
+	initial := requests[0]["system"].([]any)[0].(map[string]any)["text"].(string)
 	for _, fragment := range []string{"Constitution creation", "read_file", "Next: code", "$UNKNOWN", "---\nBody after rule."} {
 		if !strings.Contains(initial, fragment) {
 			t.Errorf("missing initial %q: %s", fragment, initial)
 		}
 	}
 	for _, body := range requests[1:] {
-		if body["system"] != initial {
+		if body["system"].([]any)[0].(map[string]any)["text"] != initial {
 			t.Error("system prompt changed after load")
 		}
 	}

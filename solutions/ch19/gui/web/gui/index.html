@@ -19,6 +19,7 @@
           <ul id="agent-tree" aria-label="Agents"></ul>
         </section>
         <section id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" hidden>
+          <label>Model (current provider, between turns) <input id="model" type="text" autocomplete="off"></label>
           <label for="theme">Theme</label>
           <select id="theme"><option>dark</option><option>light</option><option>system</option></select>
           <label><input id="voice" type="checkbox" checked /> Read aloud</label>
@@ -30,7 +31,6 @@
           <p id="settings-status" role="status"></p>
         </section>
         <section id="context-panel" role="tabpanel" aria-labelledby="context-tab" hidden>
-          <fieldset id="memory-settings"><legend>Memory</legend></fieldset>
           <label for="context-target">Context target (bytes; 0 = 400,000)</label>
           <input id="context-target" type="number" min="0" step="1" value="0" />
           <label for="log-retention">Saved log events (0 = all)</label>

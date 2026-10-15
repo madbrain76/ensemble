@@ -37,8 +37,6 @@ type Config struct {
 	ContextTarget int
 	// LogRetention keeps this many saved events; zero preserves all.
 	LogRetention int
-	// Memory selects per-band byte budgets and enabled content.
-	Memory MemorySettings
 	// DisableStreaming selects length-one delivery even for known streaming models.
 	DisableStreaming bool
 }
@@ -241,12 +239,6 @@ type Event struct {
 	Handoff *MicroHandoffData `json:"handoff,omitempty"`
 	// Tools records a change in available declarations after the frozen prefix.
 	Tools *ToolsChangedData `json:"tools,omitempty"`
-	// Populated records memory bytes, independent of the current filesystem.
-	Populated *BandPopulatedData `json:"populated,omitempty"`
-	// Depopulated retires a band or its oldest file range.
-	Depopulated *BandDepopulatedData `json:"depopulated,omitempty"`
-	// Compactor records a launch without making replay repeat external work.
-	Compactor *CompactorLaunchedData `json:"compactor,omitempty"`
 }
 
 // Seq connects projected content back to its original event. It survives
@@ -254,10 +246,6 @@ type Event struct {
 type Entry struct {
 	// Kind names the lifetime of this entry; zero in older saves means dialogue.
 	Kind EntryKind `json:"kind"`
-	// File orders memory independently of event sequence.
-	File MemoryFileID `json:"file,omitzero"`
-	// Thru identifies the last source memory covered by a graduated file.
-	Thru MemoryFileID `json:"thru,omitzero"`
 	// Seq refers back to the original fact even after projection rewrites.
 	Seq uint64 `json:"seq"`
 	// Actor retains authorship independently of provider role spelling.
@@ -270,10 +258,6 @@ type Entry struct {
 // projection; the Engine separately measures exchanges made in this process.
 // Ephemera is pending delivery, never a second retained conversation slice.
 type Context struct {
-	// DisabledBands preserves toggle state across a restart without reading files during replay.
-	DisabledBands [6]bool `json:"disabled_bands"`
-	// Compression retains an unfinished attempt without replaying external work.
-	Compression *PendingCompression `json:"compression,omitempty"`
 	// Held waits for all current calls to have results before landing survivors.
 	Held []Entry `json:"held,omitempty"`
 	// StartupTools preserves the first request's declarations for inline-tool models.
@@ -290,8 +274,6 @@ type Context struct {
 	Ephemera []Part `json:"ephemera"`
 	// Usage is historical accounting derived from replayed response facts.
 	Usage Usage `json:"usage"`
-	// LastUsage measures the prior conversation request, never a compressor or lifetime sum.
-	LastUsage Usage `json:"last_usage"`
 }
 
 // These are actual ownership links, not a bag of sibling service callbacks.
@@ -320,8 +302,6 @@ type Agent interface {
 	SetMaxToolRounds(int) error
 	// SetContextSettings updates tool-byte and saved-log policy on the owning Agent.
 	SetContextSettings(target, retention int) error
-	// SetMemorySettings records corpus switches and applies byte budgets through the actor.
-	SetMemorySettings(MemorySettings) error
 	// Config returns request/workspace configuration with the current turn policy.
 	Config() Config
 	// Engine reaches the transport and measured usage through the owning Agent.
@@ -354,8 +334,6 @@ type Agent interface {
 	RegisterTool(ToolDeclaration, func(ToolContext, json.RawMessage) (string, error)) error
 	// MCP returns this Agent's external-tool connection owner.
 	MCP() MCP
-	// Memory exposes the Agent-owned corpus child and its ownership relationship.
-	Memory() Memory
 	// Invoke runs a reverse call through admission, history and real job supervision.
 	Invoke(context.Context, string, json.RawMessage) (string, error)
 	// Skills returns the optional Agent-owned capability registry, nil without a primary.
@@ -522,6 +500,13 @@ type History interface {
 // private to Engine, so adding a vendor cannot impose its roles on clients.
 // Send returns facts; the Agent appends them through the same history door.
 type Engine interface {
+	// Meter returns a disposable session-count and derived-price snapshot.
+	Meter() UsageMeter
+	// AttachCacheLens installs the Engine-owned diagnostic before any exchanges.
+	AttachCacheLens(CacheLens)
+	// CacheLens returns the optional request diagnostic.
+	CacheLens() CacheLens
+
 	// Features returns capabilities of this Agent's selected model.
 	Features() ModelFeatures
 	// Agent returns the required owning Agent rather than a copied service bundle.
@@ -539,6 +524,4 @@ type Engine interface {
 	Render(*Context) ([]byte, error)
 	// Usage returns measured session counts under the Engine's accounting lock.
 	Usage() Usage
-	// Compress makes one bounded, isolated request with only the submit tool.
-	Compress(context.Context, string, int) (string, error)
 }

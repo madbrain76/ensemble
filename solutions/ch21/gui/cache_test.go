@@ -17,7 +17,7 @@ func TestUsageWireSession(t *testing.T) {
 		io.WriteString(w, `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":20,"cache_read_input_tokens":80,"cache_creation_input_tokens":0,"output_tokens":2}}`)
 	}))
 	defer provider.Close()
-	cfg := ensemble.Config{Model: "claude-haiku-5-5", BaseURL: provider.URL, DataDir: t.TempDir(), DisableStreaming: true}
+	cfg := ensemble.Config{Model: "claude-sonnet-5", BaseURL: provider.URL, DataDir: t.TempDir(), DisableStreaming: true}
 	root := ensemble.New(io.Discard)
 	a, err := root.NewAgent(cfg)
 	if err != nil {

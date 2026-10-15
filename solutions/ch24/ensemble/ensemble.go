@@ -42,6 +42,9 @@ type Usage = common.Usage
 // UsageMeter exposes a disposable process-session meter to optional clients.
 type UsageMeter = common.UsageMeter
 
+// UsageBucket exposes copied measured counts with their original model/price tier.
+type UsageBucket = common.UsageBucket
+
 // ToolDeclaration is the vendor-neutral schema visible to one Agent.
 type ToolDeclaration = common.ToolDeclaration
 
@@ -51,27 +54,28 @@ type ToolContext = common.ToolContext
 // The root retains its Agents and one logger. It has no parent or global state.
 // A single-Agent executable still constructs this same ownership graph.
 type Ensemble struct {
-	registryMu  sync.Mutex
-	directory   string
-	defaults    Config
-	defaultSpec AgentSpec
-	root        Agent
-	named       map[string]Agent
-	registry    []NamedAgent
-	auth        common.AuthStore
-	logger      *log.Logger
-	api         io.Writer
-	apiMu       sync.Mutex
-	secrets     []string
-	agents      []Agent
-	agentsMu    sync.Mutex
-	factory     AgentFactory
-	userID      string
-	userSink    common.UserSink
-	nextJob     atomic.Int64
-	merged      chan AgentObservation
-	observersMu sync.Mutex
-	observers   []common.AgentObserver
+	registryMu    sync.Mutex
+	directory     string
+	defaults      Config
+	defaultSpec   AgentSpec
+	root          Agent
+	named         map[string]Agent
+	registry      []NamedAgent
+	auth          common.AuthStore
+	logger        *log.Logger
+	api           io.Writer
+	apiMu         sync.Mutex
+	secrets       []string
+	agents        []Agent
+	agentsMu      sync.Mutex
+	agentSequence uint64
+	factory       AgentFactory
+	userID        string
+	userSink      common.UserSink
+	nextJob       atomic.Int64
+	merged        chan AgentObservation
+	observersMu   sync.Mutex
+	observers     []common.AgentObserver
 }
 
 // New gives logging one owner; applications choose the diagnostic destination.
@@ -125,6 +129,27 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 	spec := AgentSpec{EnableWebSearch: true}
 	if len(specs) == 1 {
 		spec = specs[0]
+	}
+	spec = compactionSpec(spec)
+	if spec.Compaction {
+		if parent == nil {
+			return nil, errors.New("compaction worker requires an owning Agent")
+		}
+		// Worker isolation precedes primary/skill/MCP assembly. BuiltinTools is
+		// registration policy, not permission to bypass inherited safety limits.
+		cfg.SystemPrompt, cfg.BuiltinTools = compactionInstructions, false
+		cfg.Recall.Disabled = true
+		off := common.BandSettings{Disabled: true}
+		cfg.Memory = common.MemorySettings{Conversation: off, Soul: off, Memory: off, Tier64: off, Tier8: off, Session: off}
+	}
+	// Validate and own the submit contract before filesystem, authentication,
+	// skill or child-registration side effects can occur.
+	contract, err := fleet.CompileSubmissionSchema(spec.SubmitSchema)
+	if err != nil {
+		return nil, err
+	}
+	if len(spec.SubmitSchema) != 0 {
+		spec.SubmitSchema = contract.Schema()
 	}
 	if spec.ID == "" {
 		spec.ID = "main"
@@ -203,11 +228,14 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		return nil, err
 	}
 	cfg.Workspace = workspace
+	// Allocation never follows the shrinking live registry. Reserve once per
+	// construction so a dismissed worker cannot make a later default reuse data.
+	e.agentsMu.Lock()
+	e.agentSequence++
 	if cfg.DataDir == "" {
-		e.agentsMu.Lock()
-		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", len(e.agents)+1))
-		e.agentsMu.Unlock()
+		cfg.DataDir = filepath.Join("cr", fmt.Sprintf("agent-%d", e.agentSequence))
 	}
+	e.agentsMu.Unlock()
 	if cfg.Credentials == nil {
 		if cfg.BillingMode == "" && cfg.Vendor == common.OpenAI && e.auth != nil {
 			status, err := e.auth.Status(context.Background())
@@ -249,7 +277,7 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		parents = append(parents, parent)
 	}
 	a := agent.New(e, cfg, common.AgentSpec(spec), parents...)
-	a.AttachFleet(fleet.New(a))
+	a.AttachFleet(fleet.New(a, contract))
 	a.AttachSandbox(sandbox.New(a))
 	if err := a.SetContextSettings(cfg.ContextTarget, cfg.LogRetention); err != nil {
 		return nil, err
@@ -271,13 +299,26 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 			a.Shutdown()
 		}
 	}()
+	var definitions []common.ToolDefinition
 	if cfg.BuiltinTools {
-		a.SetTools(tools.Builtins())
-	} else if e.FleetEnabled() {
-		a.SetTools(tools.FleetTools())
+		definitions = tools.Builtins()
 	}
-	if len(specs) == 1 && (specs[0].SkillsDir != "" || specs[0].PrimarySkill != "" || len(specs[0].StartupSkills) != 0) {
-		spec := specs[0]
+	if spec.Compaction || e.FleetEnabled() {
+		for _, definition := range tools.FleetTools() {
+			// Internal workers retain submit without enabling public delegation.
+			if spec.Compaction && definition.Name != "submit" {
+				continue
+			}
+			// Bind the contract to this compiled handler, not the name of an
+			// unrelated custom/MCP tool such as the blind persona's submit.
+			if definition.Name == "submit" {
+				definition.Schema = contract.Schema()
+			}
+			definitions = append(definitions, definition)
+		}
+	}
+	a.SetTools(definitions)
+	if spec.SkillsDir != "" || spec.PrimarySkill != "" || len(spec.StartupSkills) != 0 {
 		sr, err := skills.New(a, spec.SkillsDir)
 		if err != nil {
 			return nil, err
@@ -306,6 +347,12 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 			prompt += "\n\n" + body
 		}
 		a.SetSystemPrompt(prompt)
+	}
+	if parent != nil && !spec.Compaction {
+		// A primary skill may replace the inherited prompt. Append the role only
+		// after loading it, without duplicating instructions for grandchildren.
+		prompt := strings.TrimSuffix(engine.BaseSystemPrompt(a), "\n\n"+subAgentInstructions)
+		a.SetSystemPrompt(prompt + "\n\n" + subAgentInstructions)
 	}
 	if err := recall.Validate(cfg.Recall); err != nil {
 		return nil, err

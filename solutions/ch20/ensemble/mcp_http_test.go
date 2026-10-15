@@ -141,7 +141,7 @@ func TestMCPHTTPSkillAndResults(t *testing.T) {
 		io.WriteString(w, `{"content":[{"type":"text","text":"done"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer provider.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "fake", BaseURL: provider.URL, Workspace: t.TempDir(), DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "fake", BaseURL: provider.URL, Workspace: t.TempDir(), DataDir: t.TempDir()}, ensemble.AgentSpec{EnableWebSearch: true, SkillsDir: dir, PrimarySkill: "base"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +238,7 @@ func TestMCPHTTPJobCancellationAndClose(t *testing.T) {
 		"base":   "---\nname: base\ntype: primary\nloadable-skills: remote\n---\nBase",
 		"remote": "---\nname: remote\ntype: loadable\ntools: wait_remote\nmcp_servers:\n  - name: remote\n    transport: url\n    url: " + server.URL + "\n    auth-env: ENSEMBLE_EMPTY_MCP_KEY\n---\nRemote",
 	})
-	a, err := ensemble.New(&log).NewAgent(ensemble.Config{Model: "fake", DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+	a, err := ensemble.New(&log).NewAgent(ensemble.Config{Model: "fake", DataDir: t.TempDir()}, ensemble.AgentSpec{EnableWebSearch: true, SkillsDir: dir, PrimarySkill: "base"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,7 +296,7 @@ func TestShippedWebSkill(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "fake", BuiltinTools: true, DataDir: t.TempDir()}, ensemble.AgentSpec{SkillsDir: path, PrimarySkill: "ensemble"})
+	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{Model: "fake", BuiltinTools: true, DataDir: t.TempDir()}, ensemble.AgentSpec{EnableWebSearch: true, SkillsDir: path, PrimarySkill: "ensemble"})
 	if err != nil {
 		t.Fatal(err)
 	}

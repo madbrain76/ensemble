@@ -28,6 +28,8 @@ const (
 	ChatCompletions
 	// GenerateContent identifies Gemini call signatures and thought material.
 	GenerateContent
+	// Responses identifies OpenAI Responses replay items.
+	Responses
 )
 
 // String returns the canonical provider name used by configuration and JSON.
@@ -50,6 +52,8 @@ func (s Surface) String() string {
 		return "messages"
 	case ChatCompletions:
 		return "chat_completions"
+	case Responses:
+		return "responses"
 	case GenerateContent:
 		return "generate_content"
 	}
@@ -89,7 +93,7 @@ func (s *Surface) UnmarshalJSON(b []byte) error {
 	if name == "generatecontent" {
 		name = "generate_content"
 	}
-	for _, candidate := range []Surface{Messages, ChatCompletions, GenerateContent} {
+	for _, candidate := range []Surface{Messages, ChatCompletions, GenerateContent, Responses} {
 		if name == candidate.String() {
 			*s = candidate
 			return nil

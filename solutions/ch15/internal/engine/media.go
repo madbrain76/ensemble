@@ -10,29 +10,32 @@ import (
 	"ensemble/internal/common"
 )
 
+// Pricing verified October 11, 2026 against official model/pricing pages;
+// Gemini 3.8 introductory rates expire January 1, 2027. Unverified rows remain
+// visibly unpriced rather than inheriting a similar model's rates.
 // The explicit table describes supported rendering on our current API surfaces.
 // Unknown models remain usable for text; guessing their media capability would
 // turn an omitted attachment into a plausible but misleading answer.
 func LookupModel(model string) (common.ModelFeatures, bool) {
 	switch model {
-	case "claude-ch16-course":
-		return common.ModelFeatures{ContextWindow: 4096, StubsToolResults: true}, true
 	case "claude-opus-5-course":
 		return common.ModelFeatures{InlineTools: true, StubsToolResults: true}, true
 	case "claude-sonnet-5-course":
 		return common.ModelFeatures{}, true
-	case "claude-haiku-5-5":
-		return common.ModelFeatures{ContextWindow: 1000000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
-	case "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5-5", "claude-sonnet-5-5", "claude-opus-5", "claude-sonnet-5":
+	case "claude-sonnet-4-6", "claude-opus-4-6", "claude-opus-5":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
+	case "claude-sonnet-5":
+		return common.ModelFeatures{Price: &common.Pricing{Input: 2, Output: 10, CacheWrite: 2.5, CacheRead: .2}, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamAll}, true
 	case "claude-3-haiku-20240307":
 		return common.ModelFeatures{Media: common.MediaImage, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gpt-4o-mini":
-		return common.ModelFeatures{ContextWindow: 128000, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
-	case "gpt-5.4-mini", "gpt-4o", "gpt-6-astra", "gpt-5.6-sol":
+		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+	case "gpt-5.6-sol":
+		return common.ModelFeatures{Price: &common.Pricing{Input: 4, Output: 20, CacheWrite: 5, CacheRead: .4}, PriceThreshold: 272000, LargePrice: &common.Pricing{Input: 8, Output: 30, CacheWrite: 10, CacheRead: .8}, ExplicitCache: true, Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
+	case "gpt-5.4-mini", "gpt-4o", "gpt-6-astra":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaDocument, Stream: common.StreamText | common.StreamToolArgs}, true
 	case "gemini-3.8-flash":
-		return common.ModelFeatures{ContextWindow: 1048576, Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
+		return common.ModelFeatures{Price: &common.Pricing{Input: .75, Output: 3.75, CacheRead: .075}, Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
 	case "gemini-2.5-flash", "gemini-3.1-pro-preview":
 		return common.ModelFeatures{Media: common.MediaImage | common.MediaAudio | common.MediaVideo | common.MediaDocument, Stream: common.StreamText | common.StreamThinking}, true
 	}

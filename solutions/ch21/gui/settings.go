@@ -3,7 +3,6 @@ package gui
 import (
 	"bytes"
 	"encoding/json"
-	"ensemble/ensemble"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,8 +13,6 @@ import (
 type Settings struct {
 	// Model is the effective session selection; launch configuration wins on restart.
 	Model string `json:"model"`
-	// Memory controls the Agent corpus; full snapshots preserve nested false and zero values.
-	Memory ensemble.MemorySettings `json:"memory"`
 	// Theme selects dark, light, or the browser's system preference.
 	Theme string `json:"theme"`
 	// TTSEnabled controls automatic speech in connected browsers.
@@ -60,16 +57,15 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 
 // The optional GUI owns browser preferences and the startup envelope. The
 // Agent owns the effective budget; snapshots always read it from that owner.
-func (s *Server) snapshotSettings() Settings {
+func (s *agentView) snapshotSettings() Settings {
 	snapshot := s.settings
 	snapshot.Model = s.agent.Config().Model
 	snapshot.MaxToolRounds = s.agent.Config().MaxToolRounds
 	snapshot.ContextTarget = s.agent.Config().ContextTarget
 	snapshot.LogRetention = s.agent.Config().LogRetention
-	snapshot.Memory = s.agent.Config().Memory
 	return snapshot
 }
-func (s *Server) loadSettings() error {
+func (s *agentView) loadSettings() error {
 	s.settings = Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
 	data, err := os.ReadFile(s.settingsPath())
 	if os.IsNotExist(err) {
@@ -86,19 +82,16 @@ func (s *Server) loadSettings() error {
 	if err := s.agent.SetMaxToolRounds(next.MaxToolRounds); err != nil {
 		return err
 	}
-	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
-		return err
-	}
 	return s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
 }
-func (s *Server) settingsPath() string {
+func (s *agentView) settingsPath() string {
 	return filepath.Join(s.agent.Config().DataDir, "settings.json")
 }
 
 // Called under settingsMu, together with broadcast and subscription. Never hold
 // the observer mutex while waiting for the actor: streamed progress needs it.
 // Persist before applying/publishing so a failed write leaves accepted state alone.
-func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
+func (s *agentView) updateSettings(raw json.RawMessage) (Settings, error) {
 	// Model selection is an immediate session operation, not a persisted GUI
 	// preference. A separate patch avoids partially accepting a mixed update
 	// when an active turn rejects the model change.
@@ -117,20 +110,16 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 		if err := s.agent.SetModel(model); err != nil {
 			return Settings{}, err
 		}
-		s.mu.Lock()
+		s.parent.mu.Lock()
 		snapshot := s.snapshotSettings()
-		s.mu.Unlock()
+		s.parent.mu.Unlock()
 		return snapshot, nil
 	}
-	s.mu.Lock()
+	s.parent.mu.Lock()
 	current := s.snapshotSettings()
-	s.mu.Unlock()
+	s.parent.mu.Unlock()
 	next, err := settingsPatch(current, raw)
 	if err != nil {
-		return Settings{}, err
-	}
-	// Validate before persistence; a rejected patch must not change the saved file.
-	if err := ensemble.ValidateMemorySettings(next.Memory); err != nil {
 		return Settings{}, err
 	}
 	// Shadow the display-only model field when writing preferences; a stored
@@ -158,11 +147,8 @@ func (s *Server) updateSettings(raw json.RawMessage) (Settings, error) {
 	}
 	s.agent.SetMaxToolRounds(next.MaxToolRounds) // Already clamped by settingsPatch.
 	s.agent.SetContextSettings(next.ContextTarget, next.LogRetention)
-	if err := s.agent.SetMemorySettings(next.Memory); err != nil {
-		return Settings{}, err
-	}
-	s.mu.Lock()
+	s.parent.mu.Lock()
 	s.settings = next
-	s.mu.Unlock()
+	s.parent.mu.Unlock()
 	return next, nil
 }

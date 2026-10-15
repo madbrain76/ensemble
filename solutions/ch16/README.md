@@ -108,41 +108,43 @@ Unloading immediately disconnects MCP tools and peers while instruction removal
 remains pending. Programmatic browser input updates the control without taking
 the human typing pause; actual typing and explicit Agent-wide unpause still work.
 
-Memory uses the owning Agent's data directory: `SOUL.md`, `MEMORY.md`, session
-files in `memory/`, and graduated files in `bucket-0/` and `bucket-1/`.
-The optional GUI's Context Management tab controls each band. Budgets and
-watermarks are bytes; zero selects defaults (conversation 3,000, bands 1,500,
-high twice the budget, low the budget). Disabling a band preserves its files;
-re-enabling rereads edits. Graduated source files remain beside the originals
-with a `.retired` suffix and are not active memories.
+Chapter 16 adds subscription authentication to both executables:
 
-`micro_handoff` checkpoints completed work and is the only compression trigger.
-The compressor makes one bounded request using the current provider and one
-`submit` tool. Failed or interrupted calls preserve the old source. Recorded
-memory bytes and cuts replay without another model call. A compression target
-is a prompt guideline, not a guarantee that the model preserves every fact;
-review important memories on disk and correct them when necessary.
+    ensemble-cli auth login openai-chatgpt
+    ensemble-cli auth status
+    ensemble-cli auth models
+    ensemble-cli auth logout
 
-Auto-recall searches the Agent's memory files (including retired originals),
-`docs/`, `handoffs/`, `learnings/` markdown, and its configured skill directory.
-These directories are relative to `Config.DataDir` (`cr/` in the commands).
-It skips text already present in context, including the newest memories when
-already loaded by a band. Markdown learnings are the supported public corpus
-format; this application does not read another application's private JSON files.
+A successful login explicitly selects `chatgpt` billing for later OpenAI
+launches, including when an API key is also configured. Expiry, sign-out and
+quota errors never switch to that key. Set `OPENAI_BILLING_MODE=api` to explicitly
+select metered billing or `chatgpt` to require the subscription. Automatic
+`chatgpt_then_api` fallback is deferred. Other providers continue using their own
+API keys. Identity-only login is retained and displayed, but inference requires
+the actual `chatgpt.tokens.use.direct` grant.
 
-Each user turn of at least 80 characters searches per-source BM25 indexes. The
-stateless judge defaults to the current provider/model; set
-`EN_RECALL_JUDGE_MODEL` to a cheaper compatible model on that same provider.
-`EN_RECALL_DISABLE_JUDGE=1` selects mechanical recall, and
-`EN_RECALL_DISABLED=1` bypasses recall. Embedders can set `Config.Recall` limits;
-zero selects the chapter defaults (3 snippets, 20 candidates, 3 recent messages,
-6,144 attachment bytes). Judge failure falls back to final source quotas:
-memories receive half the slots rounded up, and unused slots are redistributed.
-A successful judge's selections, including none, stand unchanged.
+Select an account-available model with `LLM_MODEL`. `gpt-6.1-sol` uses Responses;
+earlier tested model rows retain Chat Completions. Subscription inference requires
+a supported Responses row. `OPENAI_REASONING_EFFORT` configures effort and
+`OPENAI_REASONING_SUMMARY` configures summary detail (`auto` by default). Responses
+always streams internally because terminal completion establishes success.
+Public summaries are distinct from assistant text and private reasoning bytes.
 
-Recall is recorded under `recall_attached.parts`, separately from the user's
-words. Renderers retain its position; offline replay never searches or judges.
-A `micro_handoff` removes recalled context at the existing checkpoint boundary.
-Each attachment also retains hashes of the source snippets it represents, so a
-byte-capped snippet is not injected repeatedly. These identities leave with the
-attachment; edited source content can be recalled again.
+Credentials live in the platform's user configuration directory under `ensemble`,
+or the explicit `EN_HOME` directory. The application never borrows Codex or
+CodeRhapsody profiles. Atomic owner-only files and a cross-process lock protect
+rotating refresh tokens. `auth login --print-url` exposes a browser handoff for
+headless use; optional identity-token hints are omitted so it cannot print a
+retained token. `EN_BROWSER_CMD` selects a browser executable and arguments;
+it is executed without a shell. `OPENAI_OIDC_ISSUER` and `LLM_BASE_URL` support
+isolated external peers for protocol tests. Production OAuth uses OpenAI's public
+issuer and `/v1` API endpoints.
+
+The observed ChatGPT route rejects `prompt_cache_options`, so subscription
+requests omit that option and its paired explicit markers. API-key Responses
+requests retain explicit caching on supported models. Cache diagnostics remain
+active on both routes; an answered request does not establish a cache grant.
+
+At the completed tool-batch boundary, `micro_handoff` also removes opaque
+reasoning and private replay signatures from retained context. Visible dialogue
+and the checkpoint note survive; the original event log keeps the provider facts.

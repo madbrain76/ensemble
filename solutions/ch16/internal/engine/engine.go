@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 
 	"ensemble/internal/common"
 )
@@ -24,18 +24,24 @@ const systemPrompt = "You are a helpful assistant built from raw HTTP calls in C
 // remains reachable through Agent, so sibling Agents never share credentials
 // or a mutable vendor selection by accident.
 type engine struct {
-	parent common.Agent
-	client *http.Client
-	usage  common.Usage
-	mu     sync.Mutex
+	parent      common.Agent
+	client      *http.Client
+	usage       common.Usage
+	last        common.Usage
+	byModel     map[usageKey]common.Usage
+	lens        common.CacheLens
+	mu          sync.Mutex
+	billingOnce sync.Once
 }
 
-// New creates an Agent-owned HTTP engine with bounded transport requests.
+// New creates an Agent-owned HTTP engine. DefaultTransport bounds connection
+// setup and TLS negotiation, but model generation has no wall-clock deadline.
+// The caller's context still cancels an interrupted or explicitly bounded turn.
 func New(parent common.Agent) common.Engine {
 	if parent == nil {
 		panic("Engine requires Agent")
 	}
-	return &engine{parent: parent, client: &http.Client{Timeout: 60 * time.Second}}
+	return &engine{parent: parent, client: &http.Client{}}
 }
 
 // Agent returns the required owning Agent rather than a copied service bundle.
@@ -61,6 +67,9 @@ func (e *engine) Target() common.Provenance {
 	switch cfg.Vendor {
 	case common.OpenAI:
 		surface = common.ChatCompletions
+		if e.Features().Responses {
+			surface = common.Responses
+		}
 	case common.Gemini:
 		surface = common.GenerateContent
 	}
@@ -75,6 +84,9 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 	case common.Anthropic:
 		return e.renderAnthropic(c)
 	case common.OpenAI:
+		if e.Features().Responses {
+			return e.renderResponses(c)
+		}
 		return e.renderOpenAI(c)
 	case common.Gemini:
 		return e.renderGemini(c)
@@ -86,12 +98,7 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 // Send performs one HTTP exchange from already rendered bytes and returns facts
 // without changing conversation.
 func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
-	return e.send(ctx, body, cb, e.parent.Config())
-}
-
-// send accepts one request-local route, allowing the judge to choose a model
-// without mutating the Agent or constructing a second Engine.
-func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallbacks, cfg common.Config) (events []common.Event, err error) {
+	cfg := e.parent.Config()
 	// Error bodies and URLs may echo credentials. Preserve useful status/error
 	// identity but never return remote error prose or log authentication headers.
 	defer func() {
@@ -100,6 +107,35 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 			events = append(events, common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		}
 	}()
+	secrets := []string{cfg.APIKey}
+	// Resolve a request-local bearer. Rendered bytes and saved configuration never
+	// receive rotating OAuth tokens.
+	if cfg.Credentials != nil {
+		cfg.APIKey, err = cfg.Credentials.GetBearerToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	secrets = append(secrets, cfg.APIKey)
+	redact := func(data []byte) []byte {
+		for _, secret := range secrets {
+			if secret != "" {
+				data = bytes.ReplaceAll(data, []byte(secret), []byte("[REDACTED]"))
+			}
+		}
+		return data
+	}
+	features, _ := LookupModel(cfg.Model)
+	if cfg.Vendor == common.OpenAI && features.Responses {
+		e.billingOnce.Do(func() {
+			kind := common.CredentialAPIKey
+			if cfg.Credentials != nil {
+				kind = cfg.Credentials.Kind()
+			}
+			e.parent.Ensemble().Observe(e.parent, common.BillingSelected{Source: kind})
+			e.parent.Ensemble().Logf("OpenAI billing source: %s", kind)
+		})
+	}
 	// URLs and authentication are deliberately outside Render. Offline replay
 	// needs neither credentials nor a reachable provider, and bodies cannot
 	// accidentally serialize an API key from the configuration.
@@ -107,6 +143,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	switch cfg.Vendor {
 	case common.OpenAI:
 		path = "/v1/chat/completions"
+		if features.Responses {
+			path = "/v1/responses"
+		}
 	case common.Gemini:
 		path = "/v1beta/models/" + url.PathEscape(cfg.Model) + ":generateContent"
 		if StreamingFor(cfg) != 0 {
@@ -122,8 +161,6 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	case common.Anthropic:
 		req.Header.Set("x-api-key", cfg.APIKey)
 		req.Header.Set("anthropic-version", "2023-06-01")
-		// Judge overrides must use the selected request model's protocol features.
-		features, _ := LookupModel(cfg.Model)
 		if features.InlineTools {
 			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
 		}
@@ -134,12 +171,39 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	}
 	// The actor already recorded request_sent and consumed delivered ephemera.
 	// This worker returns response facts without borrowing the live projection.
-	safeBody := body
-	if cfg.APIKey != "" {
-		safeBody = []byte(strings.ReplaceAll(string(body), cfg.APIKey, "[REDACTED]"))
-	}
+	safeBody := redact(body)
 	e.parent.Ensemble().APILog("request", safeBody)
+	// Observe one logical request after resolving and redacting its bearer.
+	// A 401 renewal retries these bytes; it must not rotate the lens again.
+	// Keep prediction local when interrupted workers overlap newer requests.
+	predicted := 0.0
+	if e.lens != nil {
+		predicted = e.lens.ObserveRequest(fmt.Sprintf("%s/%s", cfg.Vendor, cfg.Model), safeBody)
+	}
 	resp, err := e.client.Do(req)
+	// Retry authentication once using the same billing source. A 401 alone does
+	// not delete credentials; only the token endpoint can reject their renewal.
+	if err == nil && resp.StatusCode == http.StatusUnauthorized && cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialChatGPT {
+		resp.Body.Close()
+		store, ok := cfg.Credentials.(common.AuthStore)
+		if !ok {
+			return nil, errors.New("ChatGPT credential cannot renew")
+		}
+		if err := store.Refresh(ctx, cfg.APIKey); err != nil {
+			return nil, err
+		}
+		cfg.APIKey, err = store.GetBearerToken(ctx)
+		if err != nil {
+			return nil, err
+		}
+		secrets = append(secrets, cfg.APIKey)
+		req.Body, err = req.GetBody()
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		resp, err = e.client.Do(req)
+	}
 	if err != nil {
 		if ctx.Err() != nil {
 			return events, ctx.Err()
@@ -153,41 +217,61 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	// provider error text is not trusted to avoid echoing supplied secrets.
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return events, fmt.Errorf("provider HTTP status %d", resp.StatusCode)
+		data, _ := io.ReadAll(io.LimitReader(resp.Body, 65536))
+		return events, providerError(resp.StatusCode, data)
 	}
 
 	// Frames share the owner's trace facility. Headers and URLs never enter it;
 	// remote bytes are redacted before leaving Engine, even if a server echoes a key.
 	onFrame := cb.OnFrame
 	cb.OnFrame = func(kind string, data []byte) {
-		safe := data
-		if cfg.APIKey != "" {
-			safe = []byte(strings.ReplaceAll(string(data), cfg.APIKey, "[REDACTED]"))
-		}
+		safe := redact(data)
 		e.parent.Ensemble().APILog(kind, safe)
 		if onFrame != nil {
 			onFrame(kind, safe)
 		}
 	}
+	// Remote content is untrusted too: a server echo must not turn the bearer
+	// into a saved fact, tool argument or observer fragment after safe logging.
+	onDelta, onFinal := cb.OnDelta, cb.OnPartFinal
+	cb.OnDelta = func(id uint64, kind common.DeltaKind, chunk string) {
+		if onDelta != nil {
+			onDelta(id, kind, string(redact([]byte(chunk))))
+		}
+	}
+	cb.OnPartFinal = func(id uint64, part common.Part) {
+		if onFinal != nil {
+			raw, _ := json.Marshal(part)
+			json.Unmarshal(redact(raw), &part)
+			onFinal(id, part)
+		}
+	}
 	onEvent := cb.OnEvent
 	cb.OnEvent = func(event common.Event) {
+		raw, _ := json.Marshal(event)
+		json.Unmarshal(redact(raw), &event)
 		events = append(events, event)
 		if event.Response != nil {
 			// Replay independently sums these same normalized categories. No vendor
 			// cache or reasoning interpretation belongs in session accounting.
 			u := event.Response.Usage
+			e.account(cfg, u)
 			e.mu.Lock()
-			e.usage.Input += u.Input
-			e.usage.CacheRead += u.CacheRead
-			e.usage.CacheWrite += u.CacheWrite
-			e.usage.Output += u.Output
+			e.last = u
 			e.mu.Unlock()
+			if e.lens != nil {
+				e.lens.ObserveUsage(u, predicted)
+			}
 		}
 		if onEvent != nil {
 			onEvent(event)
 		}
 	}
-	err = e.Parse(resp, cb)
+	if cfg.Vendor == common.OpenAI && features.Responses {
+		err = e.parseResponses(resp, cb, cfg)
+	} else {
+		err = e.Parse(resp, cb)
+	}
 	return events, err
 }
 
@@ -196,6 +280,14 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 // from Dialogue; RequestSent consumes it during both live application and replay.
 func entries(c *common.Context) []common.Entry {
 	out := append([]common.Entry(nil), c.Dialogue...)
+	for i, entry := range out {
+		if entry.Kind == common.KindHandoff {
+			// The call and its acknowledgment were cleared at the checkpoint.
+			// Render the completed status alongside the note, not just its contents.
+			// Keep stored notes unchanged, including those restored from old saves.
+			out[i].Parts = append([]common.Part{{Type: "text", Text: "micro_handoff completed. Your checkpoint note:"}}, entry.Parts...)
+		}
+	}
 	if len(c.Ephemera) > 0 {
 		out = append(out, common.Entry{Actor: common.System, Parts: c.Ephemera})
 	}
@@ -280,3 +372,14 @@ func (e *engine) declarations(c *common.Context) []common.ToolDeclaration {
 	}
 	return c.Tools
 }
+
+// AttachCacheLens links both sides at construction; a foreign owner is invalid.
+func (e *engine) AttachCacheLens(l common.CacheLens) {
+	if l == nil || l.Engine() != e {
+		panic("CacheLens requires owning Engine")
+	}
+	e.lens = l
+}
+
+// CacheLens exposes the optional Engine-owned instrument.
+func (e *engine) CacheLens() common.CacheLens { return e.lens }

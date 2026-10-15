@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -20,6 +19,7 @@ import (
 // second argument validator; typed decoding below still checks untrusted calls.
 func Builtins() []common.ToolDefinition {
 	definitions := []common.ToolDefinition{
+		{ToolDeclaration: common.ToolDeclaration{Name: "agent_status", Description: "Report the selected model, last response and session token counts, cache hit rate and derived session USD cost (unknown when prices are unavailable).", Schema: json.RawMessage(`{"type":"object","properties":{}}`)}, Run: agentStatus},
 		{
 			ToolDeclaration: common.ToolDeclaration{
 				Name:        "read_file",
@@ -114,7 +114,7 @@ func readFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	if args.Start < 1 || args.End < 0 || (args.End > 0 && args.End < args.Start) || args.Max < 0 {
 		return "", errors.New("invalid line range or max_bytes")
 	}
-	data, err := os.ReadFile(args.Path)
+	data, err := owner.Agent().Sandbox().ReadFile(args.Path)
 	if err != nil {
 		return "", err
 	}
@@ -148,7 +148,7 @@ func listDirectory(owner common.ToolContext, raw json.RawMessage) (string, error
 	if err := decode(raw, &args, "path"); err != nil {
 		return "", err
 	}
-	entries, err := os.ReadDir(args.Path)
+	entries, err := owner.Agent().Sandbox().ReadDir(args.Path)
 	if err != nil {
 		return "", err
 	}
@@ -180,7 +180,7 @@ func writeFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	if err := decode(raw, &args, "path", "content"); err != nil {
 		return "", err
 	}
-	if err := os.MkdirAll(filepath.Dir(args.Path), 0755); err != nil {
+	if err := owner.Agent().Sandbox().MkdirAll(filepath.Dir(args.Path), 0755); err != nil {
 		return "", err
 	}
 	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
@@ -191,9 +191,9 @@ func writeFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	}
 	// O_EXCL enforces the guard at open, not only at an earlier existence check.
 	// The diagnostic tells the model what it must explicitly acknowledge next.
-	file, err := os.OpenFile(args.Path, flags, 0644)
+	file, err := owner.Agent().Sandbox().OpenFile(args.Path, flags, 0644)
 	if errors.Is(err, fs.ErrExist) {
-		info, statErr := os.Stat(args.Path)
+		info, statErr := owner.Agent().Sandbox().Stat(args.Path)
 		if statErr != nil {
 			return "", statErr
 		}
@@ -231,7 +231,7 @@ func editFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	if args.Old == "" {
 		return "", errors.New("old_text must be a nonempty exact anchor")
 	}
-	data, err := os.ReadFile(args.Path)
+	data, err := owner.Agent().Sandbox().ReadFile(args.Path)
 	if err != nil {
 		return "", err
 	}
@@ -251,7 +251,12 @@ func editFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 		return "", fmt.Errorf("exact edit refused: old_text matched %d times in %s; read the file and supply one unique anchor; file unchanged", count, args.Path)
 	}
 	updated := strings.Replace(string(data), args.Old, args.New, 1)
-	if err := os.WriteFile(args.Path, []byte(updated), 0644); err != nil {
+	file, err := owner.Agent().Sandbox().OpenFile(args.Path, os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return "", err
+	}
+	_, writeErr := file.WriteString(updated)
+	if err := errors.Join(writeErr, file.Close()); err != nil {
 		return "", err
 	}
 	return "replaced one exact match in " + args.Path, nil
@@ -273,26 +278,10 @@ func runCommand(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	if strings.TrimSpace(args.Command) == "" {
 		return "", errors.New("command must not be empty")
 	}
-	command := exec.Command("/bin/sh", "-c", args.Command)
-	command.Dir = owner.Engine().Agent().Config().Workspace
-	if args.Cwd != "" {
-		if filepath.IsAbs(args.Cwd) {
-			command.Dir = args.Cwd
-		} else {
-			command.Dir = filepath.Join(command.Dir, args.Cwd)
-		}
+	command, err := owner.Agent().Sandbox().Command(args.Command, args.Cwd)
+	if err != nil {
+		return "", err
 	}
-	// Provider credentials belong to transport, never an unrelated shell child.
-	// TERM is set once after filtering so an inherited terminal cannot override it.
-	for _, variable := range os.Environ() {
-		name, _, _ := strings.Cut(variable, "=")
-		switch name {
-		case "LLM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "TERM":
-		default:
-			command.Env = append(command.Env, variable)
-		}
-	}
-	command.Env = append(command.Env, "TERM=dumb")
 	return "", owner.Job().StartProcess(command)
 }
 
@@ -322,14 +311,14 @@ func searchFiles(owner common.ToolContext, raw json.RawMessage) (string, error) 
 	printed := false
 	// WalkDir gives stable path order and does not follow symlink directories.
 	// Match on lines, then merge adjacent context windows exactly as grep -C does.
-	err = filepath.WalkDir(args.Path, func(path string, entry fs.DirEntry, walkErr error) error {
+	err = owner.Agent().Sandbox().WalkDir(args.Path, func(path string, entry fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
 		if !entry.Type().IsRegular() {
 			return nil
 		}
-		data, err := os.ReadFile(path)
+		data, err := owner.Agent().Sandbox().ReadFile(path)
 		if err != nil {
 			return err
 		}

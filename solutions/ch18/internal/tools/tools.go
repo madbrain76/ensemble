@@ -20,6 +20,7 @@ import (
 // second argument validator; typed decoding below still checks untrusted calls.
 func Builtins() []common.ToolDefinition {
 	definitions := []common.ToolDefinition{
+		{ToolDeclaration: common.ToolDeclaration{Name: "agent_status", Description: "Report the selected model, last response and session token counts, cache hit rate and derived session USD cost (unknown when prices are unavailable).", Schema: json.RawMessage(`{"type":"object","properties":{}}`)}, Run: agentStatus},
 		{
 			ToolDeclaration: common.ToolDeclaration{
 				Name:        "read_file",

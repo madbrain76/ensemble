@@ -157,8 +157,6 @@ type ModelFeatures struct {
 	LargePrice *Pricing
 	// ExplicitCache permits Chat Completions content breakpoints on verified models.
 	ExplicitCache bool
-	// ContextWindow is the supported input window in tokens; zero disables forcing.
-	ContextWindow int
 
 	// InlineTools permits declaration changes in the dialogue without rewriting the prefix.
 	InlineTools bool
