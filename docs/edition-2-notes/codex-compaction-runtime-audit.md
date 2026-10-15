@@ -1878,3 +1878,66 @@ Original graders, frozen solutions and historical scores remain unchanged.
 No unresolved Stage D finding remains. I ran no Go tests, graders or live calls
 for this final review; acceptance rests on source inspection, independently
 checked bindings/examples/counts and the actual retained execution results.
+
+
+## New21 management implementation review, October 14
+
+Accepted at initial independent implementation review, zero correction rounds:
+reordered sourceaae1e23043b317d92c8ec84d35340e91902f2ce9, Agent tree
+fd057880524045b1e37a65519a1d5bf7f026c1da. This maintenance reconstruction extends
+1b7bb652, retaining the separately accepted handoff correction on new20. The full
+mandatory `.agents/skills/ensemble-coding/SKILL.md` and four governing/craft
+documents remain active from the preceding reload, with no intervening compaction.
+I read the final coder explanation, changed integration and actual raw results,
+reusing the approved plan and unchanged historical review instead of reopening
+that entire implementation. No code, test, grader or live invocation was performed.
+
+The new public Find replaces the private duplicate and resolves direct ownership
+before durable SubmissionData fallback. Typed get_submission emits the payload
+as an object; status, output and change-wait retain copied typed status. Existing
+Ask/display completion remains text, and submission still records turn completion
+after its batch. Composition-bound compiled submit identity is preserved rather
+than overwritten by the historical name-based gate. The restored AfterTool branch
+ends a rejected unexplained batch without executing its calls or requesting a
+corrective response. Ordinary roots/named peers retain chat completion while
+delegates owe submission. Real registry/browser controls exercise those roles.
+
+Historical registry and tree implementations are byte-identical; management
+behavior differs only by removing the duplicated old string reader and using the
+accepted typed result API. Selected conversation/settings/history remain in their
+owned GUI views, settings acknowledgment stays outside the observer lock, and
+whole replay admission cannot block the shared observer mutex. Actual CLI/GUI
+construction uses Start/EnableFleet. The preserved real held-request, selected
+versus unselected message and slow-socket tests remain applicable; no managed
+compaction cleanup or memory/recall service is imported prematurely.
+
+All177 captured paths match committed Git blobs and working bytes; aggregate
+path/space/SHA-256/newline binding is
+dbbeba92145d679637577a96bb2fa177a75d12e477b7b92692e8a3342f29bcc5.
+The four handoff source/test files match accepted1b7bb652 exactly. Actual outputs
+under `/tmp/ensemble-reordered-checks/management-*` show core ensemble15.926s,
+GUI7.685s, focused core/GUI race4.879s/4.249s, corrected examples0.011s/0.267s,
+and recorded successful vets/builds. Real Chrome fleet capture reports10 provider
+requests,111 tree frames, nested selection, two-tab isolation and the four work
+phases; existing speech/Responses browser tests both pass. The unchanged current23
+grader scores100/100. This is that baseline grader/source result, not a final
+revised Stage D score on a reconstructed export or a paid live demonstration.
+
+Both adaptation mutants fail the intended assertion: removing AfterTool handling
+returns nil instead of interruption; stringifying retrieval produces a quoted
+payload rather than an object. Correct-source restored race passes1.155s. Root's
+explicitly narrowed mutation scope reuses historical evidence for unchanged
+behavior; no new five-mutant sweep is claimed. The initial nonexistent ChildOutput
+alias compile failure and wrong example-directory setup attempts remain recorded;
+correcting a test decoder did not require an extra public type.
+
+The coder's predecessor-relative Go production delta is973 physical/827 active/
+100 comment-only lines versus historical1,027/870/109; Go tests add713/660/31
+versus636/585/30. JavaScript production adds34/32/2 in both, with77/74/1 test
+lines versus75/72/1; HTML adds7 and CSS9 physical lines, examples unchanged.
+Active counts exclude blanks and `//`-only lines. The historical transfer and
+owned-view move account for the size; typed boundaries and AfterTool supply the
+additional tests. Existing comments explain ownership and ordering despite a
+below-target overall proportion. No new framework or unresolved KISS finding
+remains. This accepts new21 implementation only; new22 memory, new23 recall,
+reordered exports, final grader mapping and live assessment remain separate.
