@@ -1557,3 +1557,98 @@ Combined Stage D disposition waits for final contracts, public examples, revised
 checks and targeted sensitivity/compatibility results, followed by independent
 review. The coder retains the grader execution slot. I changed only this audit
 note and made no chapter, runtime, grader, export, live or deployment changes.
+
+## Stage D grader preparation and local launch review, October 14
+
+The author corrected the sole interim narrative finding at8057f854:23.5 now
+distinguishes reconnect/reselection of a registered child in the same application
+from retained structured results replayed in the restored owner's conversation.
+It expressly does not promise automatic recreation of ephemeral children. I read
+the exact correction; that finding is closed. Final coder-owned contracts and
+verified examples remain pending, so this is still pre-submission assistance,
+not combined Stage D acceptance or a formal correction round.
+
+Reviewed the coherent D1–D5 source at1acfd47e/2b17971e/5f7bc621/5391d5eb/8430d4b6,
+the coder's explanations and retained outputs. After context compaction I reloaded
+the entire `.agents/skills/ensemble-coding/SKILL.md` and all four complete governing
+and craft documents before further review. D6 memory work was explicitly excluded
+while changing. The coder retains the grader execution slot; I ran no graders or
+tests during this preparation.
+
+The memory driver holds an actual provider response outside fakevendor's capture
+lock, allowing the real main actor and request recorder to progress. It joins
+complete public launch/outcome records by task identity and crosses an existing
+actor boundary before certifying that a cascade has drained. It does not substitute
+main turn completion, elapsed time or HTTP ordinals for memory completion. The new
+background scenario checks actual simultaneous main progress, exact sole memory
+schema, primary-role exclusion, forged-tool refusal with a forbidden-file control,
+selected-child dismissal and the next request's retained/new memory. Structured
+fleet checks compare whole nested JSON values, arrays, false and null at actual
+status/join/retrieval/display boundaries, including durable schema/owner binding.
+Restarted owner-history replay is separate from explicitly respawning a new pending
+task that retrieves an older result; that retrieval must not complete the new task.
+Root chat and ordinary delegated corrective wakes remain distinct controls.
+
+I found one scoring defect in current23: its GUI build-failure branch omitted
+row6 even though the new root-chat predicate belongs to that row. Earlier core
+fleetIdle success could therefore award10 points for an unexecuted predicate.
+Coder correction ce43d75e adds row6 to the failure attribution. Its real-core,
+deliberately unbuildable-GUI regression passes under race2.068s; restoring the
+omission fails the exact assertion with Earned10,0.670s. I inspected both complete
+raw outputs and the source/test diff. This closes the finding without adding a
+row or changing successful-build behavior; no fresh full score is inferred.
+
+Inspected all retained D1–D5 mutant outputs and the relevant passing controls.
+The intended liveness/schema/result/ownership assertions fail as reported. Preserve
+the D4 earlier grandchild-wire mutation's constructor refusal instead of claiming
+it tested the declaration; the narrower declaration mutation does. Preserve D5's
+unused-variable setup failure separately from its corrected fallback failure.
+Invalid early submission and generic GUI encoding cause coupled downstream
+failures, not independent proof for every affected row. Actual earlier full22=200
+and23=100 retain their respective source versions. Public numeric grading remains
+separate from B/C implementation-specific recovery, pointer-release and accounting
+evidence. No new framework or runtime test hook appears in these slices; the
+additional driver code serves the necessary observable concurrency and data checks.
+Whole-D size/coverage comparison and final disposition wait for the complete work.
+
+Read the entire canonical `scripts/edition2/background-memory-live.mjs`, the
+coordinator's Stage F checklist and revised synthetic receipt at scratch suffix
+1nKWZM (launcher SHA f79114560a7f84560e4481b94a315fa9294514c69d39ea7a05bd671b52ba9695).
+I also viewed the retained tree-only screenshot. The receipt's owner sequences11,
+14,16,19 establish launch, second human admission, main response and later outcome.
+It retains2034 source bytes and847 submitted/committed bytes, exact schema and public
+explanation before submit, selected child then owner fallback, auxiliary delta
+20/11/17 with latest-main60/41/7 unchanged, exact memory in recall and two clean
+exits with zero restart inference. These are local fake-provider observations,
+not live inference, semantic-quality proof or a measured invoice. The script's
+allowlisted output excludes auth headers and opaque/private reasoning; raw logs
+stay in private scratch. The initial early-title capture and later actual event-name
+correction retain their distinct provenance in the coordinator's record.
+
+I also found a source-binding gap in the launcher:
+pre/post-build checks used `--untracked-files=no`, so an untracked Go source or
+embedded asset could affect the binary without appearing in the committed Agent
+tree identity. Root changed both checks to `--untracked-files=all`. I inspected
+the exact correction and `/tmp/ensemble-live-source-binding-negative.txt`: the
+harmless untracked source fixture is refused before building at the intended
+assertion. The fixture was removed and the Agent tree is clean. That source
+finding is closed. The final corrected positive rehearsal C8xXXZ is complete;
+its inspected receipt records the same committed Agent tree, seven verifier
+refusals, main response before outcome, clean exits and zero restart requests,
+with launcher SHA1c7986c22a62ca9011ef28ca83ab984e23bb4ef40b9a2347e49d0dfee2aaad3b.
+The earlier capture retains its own provenance. No live run was requested. Launch readiness retains the
+existing sequence gates; this review does not authorize deployment or publication.
+
+At the coordinator's explicit request I additionally inspected the new20 speech
+collision plan in `/Users/bill/projects/ensemble-reordered`, HEAD53958bcc plus its
+uncommitted candidate. Name-only fleet admission hides the real MCP `submit`, and
+name-only schema substitution would overwrite its contract. Current construction
+does install compiled FleetTools when a factory exists even with BuiltinTools=false.
+However, a documented pre-start SetAgentFactory after constructing a custom/MCP
+Agent still defeats a global FleetEnabled test of tool identity. I accepted the
+narrow design: conditionally install FleetTools in composition, bind the immutable
+schema to that actual built-in definition, uniformly copy declarations, and remove
+the fleet name-only gate. Preserve SafeMode and compiled-tool shadow precedence.
+No origin API or wider tool framework is needed. Implementation and actual
+MCP/custom/built-in controls remain the reconstruction reviewer's gate; this is
+source-only design assistance, not acceptance of new20 or a runtime edit here.
