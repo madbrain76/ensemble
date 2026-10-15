@@ -930,3 +930,43 @@ Seq13 does precede the worker outcome at16; second human input arrives at17.
 The original receipt remains verbatim. The launcher's future limitation text now
 names the second turn explicitly. This wording correction changes no behavior or
 past evidence. Root's final cache/handoff focused race check passes1.295s.
+
+
+## October 14: reconstructed source and deployment handoff reviewed
+
+Independent reviewer compaction_runtime_audit accepts the complete bounded
+carry-forwards through Gateway 26, with zero formal correction rounds. The
+[runtime review](codex-compaction-runtime-audit.md) records actual source identities,
+necessary transport adaptations and reused historical evidence. Corrected 14–21
+sources are in the [carry-forward table](codex-handoff-carryforward.md); memory,
+recall, optional Codex and Gateway sources are in the
+[reconstruction note](codex-reordered-foundations.md). This is reviewed maintenance,
+not another cold student run. The missing sparse-worktree precommit hook was
+subsequently checked against all eight exact correction diffs, all passing;
+that retrospective check does not rewrite the original commit procedure.
+
+Current solutions/ch14–ch24 and ch26 now contain the exact accepted cumulative
+sources, with manifests and fresh edition-2-background-chNN-r1 source tags.
+The former directories/manifests remain verbatim at
+edition-2-before-background-compaction-20261014 (5d15954e), alongside all existing
+immutable tags. The [solution index](../../solutions/README.md) follows the new
+chapter order and preserves historical score/source distinctions. Final default-path
+grades pass: Chapters 14/15/16/19/21/22/23/26 score 100/100, 18 scores 155/155,
+and 20 scores 200/200. Root's grader package tests pass in 36.390s and vet passes.
+The [final receipt](../../solutions/evidence/background-compaction/reordered-final.json)
+retains commands, timing, full reports and source hashes. Independent review
+confirms the eight test-path substitutions, all 12 source tags/manifests, all
+1,960 installed file hashes/modes and all 155 grader-source hashes. No behavioral
+check was changed for adoption.
+
+Root staged `/tmp/ensemble-gui-background-compaction-b4746ac9` from clean primary
+b4746ac985bd84a38d59778ecfa6a3c7f3c3bc7e, Agent 4ff207e66df6d49cbdea462df2f6753d421779d8.
+SHA-256: db81a99f17f50a13dd05c98fe620af7a2bd92ce49e7cafa58ce46c2564a4325c.
+Build and --help exit 0 on Go 1.25.4 darwin/arm64. It is an optional deployment
+handoff artifact, not the earlier live exercise's executable. Nothing was installed
+or restarted; no settings or production memory changed. The successful live
+receipt and its failed predecessor remain separate, including the absence of
+live unrelated-turn overlap, selected-child fallback and sampled accounting-delta
+proof. Existing deterministic evidence establishes those mechanisms.
+No publication artifact was regenerated, no preface text changed, and no push or
+upload occurred. Publication and production deployment remain separate decisions.

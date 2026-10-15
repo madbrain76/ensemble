@@ -2057,3 +2057,79 @@ confinement/recovery/Responses integration and deferred checks, while reusing th
 existing auxiliary transport. Useful ownership, cancellation, prompt ownership
 and deduplication comments remain; no extra framework or KISS finding exists.
 This accepts the reconstruction, not a new cold-student experiment or paid run.
+
+
+## Final bounded carry-forwards and deployment handoff, October 14
+
+Accepted at initial independent review, zero correction rounds: corrected 14–21
+as identified in [the exact source table](codex-handoff-carryforward.md), optional 24
+f18737f62e0f9aaf553a8d8a32334ac2191bb0a9 / Agent 6fdf4cccf54989f45829bbf04ca77ddbd062ab6c,
+and Gateway 26 59e25a25dab3c2e7d41c32654013694d7de1bce7 /
+Agent 6982337a032962f36626cb23f68e6488046cccdc. The full mandatory skill and all four
+governing/craft documents remain active. These reviews reuse accepted historical
+behavior and inspect the necessary integration, actual deltas and retained outputs;
+I ran no application tests, graders or live calls.
+
+For 14 I compared the exact old solutions/ch14 subtree, not the maintenance
+commit's relocated parent Agent. The five changed files carry the accepted
+opaque/signature cleanup and shared render-only completion label. Its early
+Anthropic HTTP test exercises the real batch, log/snapshot replay and render
+purity; a public Record/reducer test checks retained text-bound signatures.
+The initially surviving signature mutant exposed a renderer-only assertion;
+the added projected-context assertion detects it. The original survivor and
+fixture type compile failure remain visible. From 16 onward the Responses/Gemini
+HTTP regression is the accepted test with only the unavailable Recall setting
+removed. 15's cache expectation remains exact. 17–19's correction hunks match 16;
+20–21 already had cleanup and add only the label and corresponding assertions.
+The README changes correct current chapter references without rewriting history.
+All eight actual core/focused/vet outputs and seven mapped grade reports support
+the source table; 17 remains ungraded. No future memory or early Responses code
+is imported. Short checks 16–21 explicitly reuse 15's unchanged long lifetime test.
+The maintenance checkout omitted the relative precommit hook: the coder later
+ran the configured credential hook against all eight exact commit-parent diffs,
+all passing. This is a post-commit audit, not a claim the original hooks ran.
+
+Optional 24's credential reader, endpoint restriction, redirect refusal, paired
+account/bearer, affinity key, Responses renderer and integration tests match
+accepted primary. Existing main/auxiliary transport and resolved redaction remain;
+Judge stays auxiliary after receiving the Codex-specific request fields. All 210
+captured hashes/blobs match, aggregate c9edbfbc9e3a41e85e6035a71b9c13c4ffc9c2c4d886ceabceb43c75da39381d.
+Actual core 32.489s, GUI 8.261s, race 3.473s/1.017s and vets pass. Production delta
+193 physical/148 active/33 comment-only lines matches historical behavior
+(194/148/33, one blank difference); tests 341/313/17 versus 288/263/15 retain
+accepted explanation/summary fixtures. No new grader, paid run or repeated
+historical mutation sweep is claimed. The original optional Chapter 24 implementation was explicitly self-reviewed;
+this independent review covers its reconstruction integration.
+
+Gateway's 13 added files and dependency union are byte-identical to accepted
+8935f486. All 223 captured hashes match, aggregate
+71b1a664bb1a104afaabd39d57982bd1d1e34d684e0f4c8bfcb72ababe884cbc.
+Its real client/server/Agent race checks pass 1.045s/1.253s/1.045s, vet passes and
+revised 26 scores 100/100. GUI verification is explicitly compile-only. The final
+Go-sum ordering reconciliation changes no dependencies/checksums; original source
+and failed-grade/live evidence remain historical. Production 1871/1475/306 and
+tests 592/543/29 are the identical historical deltas. No runtime adaptation, new
+framework or unresolved KISS finding remains in either carry-forward.
+
+Root installed exact accepted exports and fresh source tags for 14–24/26, retaining
+the complete old directories/manifests at immutable
+edition-2-before-background-compaction-20261014 (5d15954e). I updated the current
+solutions index from installed manifest identities and preserved original results.
+Final integration is accepted: the eight grader-test diffs only replace temporary
+main paths with their matching installed chapter paths, including the recall
+source/import check; no predicate or weight changes. I verified all 1,960 exported
+file bytes, modes and blob identities against 12 manifests and source tags, and
+all 155 grader-source hashes in the [final receipt](../../solutions/evidence/background-compaction/reordered-final.json).
+Its ten complete default-path reports pass: 14/15/16/19/21/22/23/26 at 100/100,
+18 at 155/155 and 20 at 200/200. Root's package tests pass in 36.390s and vet passes.
+These adoption results retain their own source binding, separate from earlier
+explicit-main, historical-grader and paid live results.
+
+The staged GUI binary is `/tmp/ensemble-gui-background-compaction-b4746ac9`, built
+by root from b4746ac985bd84a38d59778ecfa6a3c7f3c3bc7e /
+Agent 4ff207e66df6d49cbdea462df2f6753d421779d8 with Go 1.25.4 darwin/arm64.
+Its reported SHA-256 is db81a99f17f50a13dd05c98fe620af7a2bd92ce49e7cafa58ce46c2564a4325c;
+build and --help exit 0. This staging result is separate from the earlier live
+receipt's binary/source. No install, running-process restart, settings change or
+production-memory access occurred. Publication artifacts and Bill's preface remain
+unchanged; adoption does not imply a published build or production deployment.
