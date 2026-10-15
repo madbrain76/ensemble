@@ -57,7 +57,10 @@ Build the fleet in four stages:
    chain. Derive each child specification from its parent and enforce Chapter
    21's narrow-only constraints. Recursive shutdown preserves the saved work.
    These separate state directories do not give children private copies of the
-   task workspace.
+   task workspace. Optional `submit_schema` describes this child's whole submit
+   argument object. Validate and defensively copy it before construction, preserve
+   it through the factory, and return independent schema/result bytes. Ordinary
+   descendants reset to the default unless their own launch supplies a schema.
 
    Each Agent also has its own ID and its parent's routing ID. The user is an
    address, configurable at the application boundary, but never a managed child.
@@ -72,7 +75,12 @@ Build the fleet in four stages:
 
    Asking and finishing are different verbs. `submit` is the explicit completion
    signal; prose saying “done” is not one. The framework observes submission.
-   The parent still judges whether the submitted work is correct.
+   The parent still judges whether the submitted work is correct. Default submit
+   accepts `{"result":"text"}`. A custom submit takes its direct JSON object, with
+   no wrapper or JSON string encoding. Runtime validation precedes persistence
+   and completion; invalid arguments return a tool error and leave it unsubmitted.
+   Preserve nested values through joins, status and durable storage. String
+   convenience calls use the same validator; they cannot bypass a custom contract.
 
 3. **Interruptible waits.** An incoming message wakes an Agent waiting on a
    tool while the job keeps running. Preserve its handle and eventual result.
@@ -81,19 +89,55 @@ Build the fleet in four stages:
    per-tool-name configuration map. Do not leave a sticky interrupt for a future
    waiter when no waiter is present.
 
-4. **Bounded idle correction.** In a factory-enabled fleet, including its root,
-   a successful turn that ends without `submit` receives a framework wake.
-   Active children make early submission fail. Submissions proceed bottom-up;
-   a parent must resolve or shut down a failed child as well as wait for a
-   running one. Allow exactly three consecutive framework wakes, resetting the
-   count on successful submission. If the Agent still stops, report failure to
-   its parent, or to the user at the root. Do not invent a successful result.
-   Failed turns are reported without this automatic retry loop.
+4. **Bounded delegated correction.** An ordinary delegated Agent whose successful
+   turn ends without `submit` receives exactly three consecutive framework wakes
+   before failure is reported to its parent. Reset the count on submission. Active
+   or unresolved failed children prevent early submit; finish or shut them down
+   first. Failed turns do not enter this retry loop. Main and named peers have no
+   Agent parent and may finish normally in chat, even with a factory installed.
+   Explicit root submit remains available under the same admission rules.
 
-The terminal application installs the factory and human message sink. Existing
-single-Agent embedders without a factory retain their ordinary turn behavior;
-they do not acquire a requirement to submit. The GUI in this chapter remains
-a single-Agent client. Fleet views arrive in Chapter 23.
+The terminal installs the factory and human sink. A non-fleet embedder keeps its
+ordinary turn behavior. Submission can wake a join before the child's tool-result
+tail and reliable completion/save finish; wait for that completion and drain before
+disposing of it. The GUI remains a single-Agent client until Chapter 23.
+
+### Submission contract
+
+Absent `submit_schema` retains the default object schema with required string
+`result`. Extra keys remain accepted and ignored on that legacy path; store the
+normalized row `{"result":"text"}`. Explicit custom schemas preserve the complete
+object, even when their shape happens to resemble the default. Custom JSONL rows
+in the child's `submit.md` contain `version: 1`, `submit_schema` and `payload`.
+Unknown versions or malformed rows are errors, not permission to return an older
+valid result silently.
+
+Use the following supported subset of JSON Schema Draft 2020-12. The root must
+declare `type: "object"`; nested schemas can be objects or booleans. An optional
+`$schema` must name `https://json-schema.org/draft/2020-12/schema`.
+
+| Supported keywords | Meaning |
+| --- | --- |
+| `type`, `enum`, `const` | JSON types (including type arrays), permitted values and exact values |
+| `properties`, `required`, `additionalProperties`, `minProperties`, `maxProperties` | Object fields and bounds, recursively validated |
+| `items`, `minItems`, `maxItems`, `uniqueItems` | Array item schema, bounds and uniqueness |
+| `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf` | Exact numeric constraints |
+| `minLength`, `maxLength`, `pattern` | String bounds and Go regular-expression syntax |
+| `title`, `description`, `default`, `examples` | Annotations; no default insertion or data coercion |
+
+Refuse all references, combinators, formats/content and other unsupported keywords
+at launch; never fetch schema resources. Validate the schema itself, not merely
+its keyword names. Annotation and enum objects are data, not nested schemas.
+Preserve JSON numbers without rounding through `float64`.
+
+Admission limits are refusal boundaries, never truncation: schema 65,536 bytes
+and 2,048 JSON value nodes; payload 1,048,576 bytes and 65,536 nodes; maximum
+nesting depth 64 with root at zero; number literals at most 128 bytes and exponent
+magnitude at most 1,000. Byte caps apply to incoming and canonical owned JSON.
+Also require canonical schema bytes × canonical payload bytes ≤ 67,108,864 before
+validation. This conservative combined budget can reject an otherwise individually
+admissible pair; it does not promise a CPU deadline. Use a real schema validator
+for the admitted semantics rather than treating a declaration as enforcement.
 
 Exact type and field spelling is yours where the public behavior is equivalent.
 The seven fleet tool names are the contract; extra fleet tools are unnecessary.
@@ -1068,13 +1112,20 @@ rendering.
 | Components without shell | Selected Artifact modules are served while the application shell is absent | 10 |
 | Headless MCP boundary | Core MCP consumer excludes WebSocket implementation while the optional client retains it | 15 |
 | Public root boundary | Resolved imports and constructible public API preserve the core/GUI split | 10 |
-| Spawn and result | A real child submits a payload the parent receives | 15 |
-| Child state and factory | Actual child construction and distinct data/save paths | 15 |
+| Spawn and result | Default text and custom-schema children; launch/schema refusals, invalid argument correction and exact nested payload delivery | 15 |
+| Child state and factory | Actual construction and distinct paths; structured durable row; default contract on an ordinary grandchild | 15 |
 | Fleet visibility and shutdown | Status reports a managed child; shutdown removes it | 10 |
-| Fan-in | Selected children all submit and their results reach the parent | 15 |
+| Fan-in | Selected children all submit; correlated results preserve arrays, booleans and nulls without string encoding | 15 |
 | Questions and replies | Three-generation question/reply routing; fan-in yields so the parent can answer | 15 |
 | Wake a running wait | Incoming input wakes the wait and its background job remains collectible | 15 |
-| Bounded correction | Early submit fails; missing submission receives three wakes before escalation | 15 |
+| Bounded correction | Early submit fails; delegated missing submission receives three wakes; main chat finishes without a wake | 15 |
+
+The structured fixture uses a non-memory reviewer contract. It checks missing,
+wrong-type, nested and extra fields, then a valid correction; invalid, unsupported
+and referenced schemas must refuse launch. Parse actual correlated tool results
+and saved rows rather than searching a frame for a marker. Defensive copies,
+factory-contract ownership and Go string-call validation retain separate public-API
+regressions; those source tests award no numeric credit to another implementation.
 
 An import check does not inspect the runtime parent chain. HTTP delivery of a
 JavaScript module does not show a browser rendering it. Keep the actual factory,

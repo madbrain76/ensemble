@@ -65,10 +65,15 @@ Build it in seven stages:
    selected children: state, exit, messages, matching output and lack of
    progress. Cursor reads return new finalized output. Messages steer a busy
    child or start an idle turn; questions queue a separate turn and await its
-   result. A submission has a durable `submit.md` fallback. Status includes
+   result. Preserve Chapter 22's default text or custom JSON object through status,
+   joins and `get_submission`; rejected data stays incomplete. A submission has a
+   durable `submit.md` fallback under that child's ownership. An old stored result
+   does not mark a respawned task submitted. Status includes
    activity and measured usage. Graceful shutdown waits for current/queued work;
    kill cancels the child's lifetime. Both interrupt modes end the turn while
-   preserving the Agent and independent jobs.
+   preserving the Agent and independent jobs. Accepted submission can precede the
+   submit tool's result and reliable completion/save: disposal waits for completion
+   and drain, not just the submitted flag.
 
 5. **One actual startup path.** Both CLI and optional GUI use the public
    Ensemble to install the recursive factory, human sink and per-Agent paths
@@ -82,12 +87,16 @@ Build it in seven stages:
    selects that Agent's retained conversation and subsequent live output for
    that connection. Repeated local names in different branches must remain
    distinct. Replay completed work as completed, while genuinely pending work
-   remains pending. A slow connection must not block the fleet or shutdown.
+   remains pending. Nested submitted JSON must survive actual tool-result display,
+   reselection and reconnect. Restart restores retrieved results in the owner's
+   history; it does not recreate ephemeral children. A slow connection must not block
+   the fleet or shutdown.
 
 7. **Visible creation and deletion.** Provide name, model and skill inputs for
    named peers and deletion controls for those peers. Display rejection when
    children remain active. Preserve bottom-up `submit`, human message routing
-   and the three bounded idle-correction wakes through the same Ensemble.
+   and the three bounded idle-correction wakes for ordinary delegated Agents.
+   Main and named peers have no Agent parent and finish normally in chat.
 
 The accepted implementation emits `agent_tree`, `agent_activity`,
 `agent_state`, `agent_created`, `agent_deleted` and `agent_selected`. Its
@@ -95,6 +104,16 @@ complete-tree updates carry current state as well as its incremental activity
 messages. Equivalent field spellings and update strategies are acceptable;
 conversation selection and the visible controls are required. No React
 migration or persistent task spawning is part of this exercise.
+
+Typed retrieval keeps identity and data separate. The accepted public API is
+`Fleet.SubmissionData(id) (Submission, error)`, where `Result` holds default text
+and `Payload` holds custom JSON. `Submission(id)` retains text compatibility and
+returns an error for custom data. The tool returns `agent_id` with either `result`
+or nested `payload`. `ask_agent` returns compact JSON text for a custom-only answer
+instead of a blank successful string. All returned raw JSON belongs to the caller.
+Read legacy and versioned rows as defined in Chapter 22, validate stored custom
+data under its stored contract, and refuse malformed or unknown-version rows.
+Durable fallback first resolves an owned child; it is not a global archive lookup.
 
 Build and grade from the repository root:
 
@@ -599,13 +618,19 @@ go run ./cmd/grade-edition2 -ch 23 solutions/ch23
 
 | Behavior | Revised observation | Points |
 | --- | --- | --- |
-| Activity | Correlated detailed status and ordered thinking, tool-call and idle observations | 15 |
-| Named persistence | Real create with model/skill, retained conversation after restart, and deletion | 15 |
-| Ownership | An owned target works; foreign and missing management targets are refused | 15 |
-| Change waiting | Selected child progress wakes its change wait; command and submission complete | 15 |
+| Activity | Correlated detailed status and ordered activity; rejected custom submit remains pending before a valid correction | 15 |
+| Named persistence | Real create with model/skill, restored conversation and typed retrieved result, explicit child respawn with durable fallback, and deletion | 15 |
+| Ownership | Owned targets work; foreign/missing targets, including typed retrieval, agree; historical fallback leaves the new task incomplete | 15 |
+| Change waiting | Selected progress wakes the wait; command, valid submission, typed status and join results complete | 15 |
 | Composition | The actual CLI constructs recursive agents, completes work and exits normally on EOF | 15 |
-| GUI | Initial and nested tree changes, selected conversation, truthful completed and pending replay | 15 |
-| Previous fleet behavior | Active children prevent submit; successful idle turns receive bounded correction | 10 |
+| GUI | Nested tree and selection, truthful completed/pending replay, exact nested tool-result JSON live and after replay/restart | 15 |
+| Previous fleet behavior | Active children prevent submit; delegated idle turns receive three wakes; main chat completes without correction | 10 |
+
+The structured phases compare complete arrays, booleans and nulls in actual
+correlated results. Live and reselected views exercise a registered child;
+restart checks the retained result in its owner's conversation. A separately
+respawned child can retrieve its previous durable result while its new task stays
+running and unsubmitted. No phase assumes automatic child resurrection.
 
 Actual parent relationships and executable construction still need source
 review. A successful command cannot prove them just by printing a response.

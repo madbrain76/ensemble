@@ -33,7 +33,7 @@ func Chapter15(bin string) (grade.Report, error) {
 	return grade.NewTitledReport("Edition 2, Chapter 15 — Forgetting on Purpose", checks, ""), nil
 }
 
-// The chapter needs the optional GUI only for its public settings boundary.
+// Public settings, child selection and tree dismissal use the optional GUI.
 // All memory work still runs in the submitted Agent; the provider is the sole fake.
 // These tools are declared by both implementations, unlike the old think fixture.
 func memoryChecks(bin string) contextResult {

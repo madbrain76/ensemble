@@ -105,6 +105,12 @@ use the Agent's separately configured skills directory.
 
 Search all memory files, including the newest. Omit content already in actual
 context instead of guessing from a filename which memories the model has seen.
+Resolve loaded history and memory's staged recovery before building or refreshing
+an index. Hidden candidates are outside every recall source. A committed replacement
+must finish disk finalization before search; a conflict returns its recovery error
+without searching a mixed corpus. After successful graduation, retired originals
+remain searchable while surviving active memory is excluded by actual context.
+A failed attempt keeps its source live and subject to that same exclusion.
 The historical CodeRhapsody `learnings.json` format is not an input to this
 exercise; long-form learning notes here are ordinary markdown.
 
@@ -119,7 +125,10 @@ for length normalization.
 **The recall judge is one stateless model call**, not an agent. It takes a
 prompt and returns text. Because it holds no history and owns no context,
 it cannot recall, which makes the recursion problem structurally impossible
-rather than something to guard against.
+rather than something to guard against. Add its measured usage once to Engine
+session totals with the actual provider, model and price tier; keep latest-main
+counts and main-request cache-lens comparisons unchanged. Restoring an attachment
+neither invokes a judge nor imports historical spend.
 
 **Recall is a new spoke.** It imports `internal/common` and the standard
 library. Ensemble constructs it as an Agent child with a required parent
@@ -155,7 +164,7 @@ Zero numeric fields select defaults; `disabled` bypasses recall and
 
 | Check | Points | What it tests |
 |-------|--------|---------------|
-| `bm25-indexes` | 10 | Memory files are indexed and searchable |
+| `bm25-indexes` | 10 | Memory files are searchable after finalized and failed-compaction restarts; active content is not duplicated |
 | `bm25-scores` | 10 | Competing hits distinguish rarity, saturation and length normalization |
 | `bm25-stop-words` | 5 | Stop words are filtered from queries, not documents |
 | `chunking-splits` | 10 | Large documents are split on markdown headers |
@@ -163,7 +172,7 @@ Zero numeric fields select defaults; `disabled` bypasses recall and
 | `judge-filters` | 15 | The SLM judge removes irrelevant BM25 hits |
 | `judge-fallback` | 10 | Judge failure falls back to quota-selected BM25 results |
 | `recall-is-a-spoke` | 10 | The actual core recall spoke imports only common and stdlib |
-| `recall-is-own-kind` | 10 | Recorded recall is separate from the human entry and retained on the next turn |
+| `recall-is-own-kind` | 10 | Recall remains separate and retained on the next turn and after source-free restart |
 | `injection-capped` | 10 | Formatted text fits MaxRecallBytes and capped recall is not repeated |
 
 Run the separately versioned grader from the repository root:
@@ -175,7 +184,9 @@ go run ./cmd/grade-edition2 -ch 16 -json
 It defaults to `solutions/ch16` and its separate GUI. Public settings
 and corpus fixtures exercise the actual Agent. Source review still establishes
 parent ownership, cancellation and the fuller replay/provider obligations; an
-import check alone cannot prove those relationships.
+import check alone cannot prove those relationships. Exact hidden-stage and
+committed-recovery holds, judge model/tier accounting and main cache-lens exclusion
+retain separate real-runtime source regressions, without extra numeric credit.
 
 ## §16.1 The Idea in Plain Words
 

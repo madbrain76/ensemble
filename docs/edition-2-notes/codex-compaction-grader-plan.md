@@ -805,3 +805,98 @@ Engine boundary after actual worker drain; D8 supplies actor once-only totals.
 Recovery conflict controls block the real corpus entry points. These unchanged
 source tests and their earlier mutation evidence add no arbitrary implementation's
 grader points. Final contracts, advertised grading and combined review remain.
+
+## D12: final contracts and advertised current-source checks
+
+The coder reloaded the entire `.agents/skills/ensemble-coding/SKILL.md`, workflow,
+carryover, voice and chapter procedure after compaction, then complete current
+14/15/16/22/23 before editing. A truncated combined craft read was recovered by
+bounded reads. Only the agreed TL;DR/graded blocks changed: complete15/22/23
+contracts and15.11/22.15/23.9, plus16 TL;DR corpus/recovery/accounting and its
+existing score table. Author narrative remains at its preceding checkpoints,
+including root's22 main-chat clarification. No preface or historical transcript
+changed. One grader comment now names its actual GUI selection/tree use.
+
+The15 contract replaces the old direct synchronous call with the accepted child,
+finite sends/batches, selected-source validation, staged commit/recovery, owner
+lifetime, drain/save/dismissal and near-window policy. It restores final child
+model/tier usage once, main Last/lens isolation and the surviving-memory cache
+breakpoint. The22 contract publishes the actual supported schema subset and all
+admission limits, direct-object versus default-string compatibility, default
+ordinary descendants and delegated-only correction. The23 contract carries typed
+retrieval through actual ownership and durable history, distinguishing submission
+from completed drain/save and restored-owner results from child resurrection.
+The16 clauses retain its stateless judge and restore corpus recovery and auxiliary
+accounting obligations. Numeric tables describe actual D predicates; public/source
+regressions are explicitly separate evidence rather than another student's credit.
+
+All four chapter hard prose checks pass. Soft warnings remain for length/person
+gaps (15/22) and inherited negation/person density (16/23); no arbitrary trimming
+or narrative rewrite was applied. Raw `/tmp/ensemble-compaction-d-contract-lint.txt`.
+Against the immediately preceding chapter bytes, raw whole-file/TL;DR word counts
+are15 8858/973→9437/1185,16 6075/1135→6208/1268,22 8417/720→8927/1142,
+23 5343/588→5626/788. Code and tables are included in those raw counts. The larger
+22 contract publishes supported constraints and refusal boundaries instead of
+leaving them as private implementation knowledge;15 replaces scheduling/recovery
+semantics while preserving its band vocabulary and explanations.
+
+All current JSON fences parse, allowing the documented sequence of independent
+WebSocket objects in23. The first checker incorrectly parsed that sequence as one
+JSON document and returned `Extra data`; this was a checking error, not a chapter
+change. The only new/changed fences in this contract pass are15's type sketch and
+exact memory schema; the type sketch passes gofmt parsing and standalone Go type
+compilation. All other fences remain byte-identical to their immediately preceding
+versions. Counts and hashes: `/tmp/ensemble-compaction-d-contract-examples.json`.
+This is local syntax/contract validation, not a new live execution of historical
+examples or of commands whose book-facing exports await Stage E.
+
+Final actual advertised commands ran sequentially, each `go run
+./cmd/grade-edition2 -ch N -json ./agent`, with LLM_, OPENAI_, ANTHROPIC_, GEMINI_,
+EN_ and CODEX_ variables removed only from the test subprocess environment:
+
+| Current chapter | Actual score | Rows | Exit | Wall seconds |
+| --- | ---: | ---: | ---: | ---: |
+|14|100/100|8|0|1.924|
+|15|100/100|11|0|3.021|
+|16|100/100|10|0|16.401|
+|22|200/200|14|0|1.593|
+|23|100/100|7|0|1.199|
+
+These are complete new runs, including15's actual14 parity and16's15-second judge
+timeout, not sums of earlier focused passes. Raw files:
+`/tmp/ensemble-compaction-d-final-grade{14,15,16,22,23}.txt`; timings:
+`/tmp/ensemble-compaction-d-final-grades.json`. Expected cancellation diagnostics
+precede15's JSON report; an initial whole-file JSON decoder rejected that diagnostic
+prefix before the actual report was decoded successfully. No score was inferred
+from exit alone. Full affected root grader package tests pass (edition2 37.608s,
+shared grade0.407s; command has no tests), and package vet passes. Raw
+`/tmp/ensemble-compaction-d-final-{tests,vet}.txt`. Diff whitespace check passes.
+
+Application source is exactly62c1e781's Agent tree
+`4871633ee3e63dc6aa2cbc0a853f6ef22b4ddfa3`. That accepted carry-forward already has
+full affected core/GUI/vet/identity evidence from its coder; D11 separately reran
+the deferred source controls. No application code changed in these D slices.
+Bill's newly reported opaque-reasoning handoff correction is being handled by
+root separately; none of these results claims that later source or its changed
+contract. The existing15 narrative about retained opaque material awaits that
+separate coordinated correction.
+
+Across changed grader files since accepted plan ac7c67b3, physical/active/`//`
+comment-only totals are production2829/2493/234→4725/4220/369 and
+ tests155/130/12→440/376/38. Counts treat nonblank non-`//` lines as active and
+separate `_test.go`; most production growth is explicit executable fixtures in
+this grader package, not application code. Per-file counts are in
+`/tmp/ensemble-compaction-d-final-counts.json`, with slice counts above preserving
+which behavior introduced each addition. The fixtures reuse existing launches,
+settings, correlation readers and external HTTP peers rather than a new harness
+framework. Comments explain ordering, positive controls and evidence boundaries;
+they are below the teaching target and were not padded to meet a percentage.
+
+Original graders, snapshots and actual historical scores remain unchanged. The
+recorded old15/16 100/100 and22/23 200/200,100/100 belong to their original source
+and grader identities. Old synchronous memory is intentionally incompatible with
+the new background contract; old ordinal/main-end fixtures are likewise not the
+new worker completion protocol. This final pass neither relabels those historical
+results nor claims a new run of old source against the revised grader. Combined
+independent grader/prose review is pending; renumbering, reconstructed cumulative
+exports, bounded live assessment and deployment remain later gates.

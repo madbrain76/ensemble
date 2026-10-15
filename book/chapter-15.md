@@ -39,21 +39,18 @@ and fail to use it.
 
 ## TL;DR
 
-The agent gets memory that the model reads on every request. Five
-bands hold text between the frozen prefix and the conversation,
-ordered from most stable to most volatile. A
-checkpoint triggers compression: the oldest finished work becomes a
-memory, and the raw conversation it replaced leaves the context.
-When a band fills, its oldest contents graduate into the denser band
-above. Every compression is a recorded event carrying the compressed
-bytes, so replay reproduces the bands without asking a model. Forcing
-is by tool removal: a nearly full context gets `micro_handoff` as its
-only tool.
+The agent gets memory that the model reads on every request. Five bands hold
+text between the frozen prefix and the conversation, ordered from most stable
+to most volatile. A checkpoint selects old completed work for a restricted child
+to compress while the owner continues. The source stays live until its replacement
+is accepted. Full bands graduate upward. Recorded cuts and replacement bytes make
+replay independent of a new model answer.
 
-Shared vocabulary belongs in `internal/common`; Memory owns corpus policy and
-files through its required Agent parent. The Agent actor commits facts and worker
-results, History projects them, and Engine performs the bounded compressor call.
-The optional GUI continues to use public interfaces.
+Shared vocabulary belongs in `internal/common`. Memory owns selection and corpus
+files through its required Agent parent; the Agent actor owns attempt lifetime
+and commits; History projects recorded facts; the child's Engine calls the provider.
+The optional GUI consumes the existing public child and conversation interfaces.
+The following sketch retains the band vocabulary:
 
 ```go
 // Band orders memory from stable identity to recent completed work.
@@ -75,6 +72,7 @@ type MemoryFileID struct {
 
 // BandPopulatedData records actual replacement or disk-read bytes.
 type BandPopulatedData struct {
+    TaskID string       `json:"task_id,omitempty"`
     Band   Band         `json:"band"`
     File   MemoryFileID `json:"file"`
     Text   string       `json:"text"`
@@ -84,22 +82,35 @@ type BandPopulatedData struct {
 
 // BandDepopulatedData retires a prefix, or an entire disabled band.
 type BandDepopulatedData struct {
+    TaskID string        `json:"task_id,omitempty"`
     Band   Band          `json:"band"`
     Thru   *MemoryFileID `json:"thru,omitempty"`
     Reason string        `json:"reason"`
 }
 
-// CompactorLaunchedData correlates an attempt with its eventual population.
+// CompactorLaunchedData identifies work; replay never starts a child.
 type CompactorLaunchedData struct {
-    Band Band         `json:"band"`
-    Thru MemoryFileID `json:"thru"`
+    TaskID        string       `json:"task_id"`
+    SelectionHash string       `json:"selection_hash"`
+    Source        Band         `json:"source,omitempty"` // zero: conversation
+    File          MemoryFileID `json:"file"`
+    From          uint64       `json:"from,omitempty"`
+    To            uint64       `json:"to,omitempty"`
+    TracePath     string       `json:"trace_path"` // owner-relative child trace
+    Band          Band         `json:"band"`       // destination
+    Thru          MemoryFileID `json:"thru"`
 }
 ```
 
 Add `KindSoul`, `KindMemory`, `Kind64x`, `Kind8x`, `KindSession`, and the event
-names `band_populated`, `band_depopulated`, `compactor_launched`. Each memory
-entry has `Seq: 0`, its own kind and file identity, and text rendered as data.
-The log event still has its ordinary sequence number.
+names `band_populated`, `band_depopulated`, `compactor_launched` and
+`compaction_outcome`. Each memory entry has `Seq: 0`, its own kind and file
+identity, and text rendered as data. Log events retain ordinary sequence numbers.
+A managed cut and its population share `task_id`; ordinary disk populations do
+not complete an attempt. Outcomes carry that identity, a state (`committed`,
+`failed`, `canceled`, `invalidated` or `abandoned`), a reason for nonsuccess, and
+the retained trace path and measured usage. Keep pending commit receipts in the
+snapshot until disk finalization completes; log retention must not erase them.
 
 The application's memory settings live at the owning Agent's settings path:
 
@@ -116,65 +127,77 @@ Budgets and watermarks are bytes. Zero selects defaults; optional
 `high_watermark` and `low_watermark` default to twice and once the budget.
 `disabled: true` turns a band off. `ContextWindow` in the model table is tokens.
 
-1. **`micro_handoff` is the sole trigger.** After stripping tool
-   calls and results (chapter 14's mechanism), measure the remaining
-   `KindDialogue` text. If it exceeds the conversation budget,
-   select one or more whole completed checkpoint segments, oldest first,
-   including their handoff notes. Compress after the successful tool batch,
-   before the next main request; leave the unfinished tail and independent
-   skills/declarations alone.
-2. **The compressor gets one tool, `submit`, and writes in first
-   person.** It receives the stripped conversation text and submits
-   `{"memory":"compressed text"}`. Require exactly one valid, nonempty
-   submission from this finite direct call. No tool loop or recursive retry.
-3. **Two events record the compression.** A `redacted` event with
-   level `redact_summary` and an empty replacement removes the selected
-   dialogue and its handoff. A session `band_populated` adds the
-   compressed memory as its own entry. Hold the cut until its matching
-   population arrives. No text appears twice.
-4. **Band entries sit at `Seq: 0` and are ordered canonically** by
-   `(band, date, num)`, ahead of the conversation. Switching bands
-   off and restoring them in any order must produce the same context.
-5. **Graduation is oldest-first and watermark-based.** When a band
-   crosses its high watermark, compress its oldest files until the source
-   reaches its low watermark, taking at least two files. Emit
-   `band_depopulated` then `band_populated` carrying the replacement bytes.
-   Measure the destination and continue if it too crossed its watermark:
-   session to 8x, 8x to 64x, 64x to MEMORY.md. Keep retired files outside
-   the active scan pattern. SOUL never graduates; MEMORY is terminal.
-6. **A band will not graduate into a disabled band.** Refuse and
-   surface a warning while preserving the source. Disabling either source
-   or destination during compression also prevents that reply from committing.
-7. **Replay applies recorded events.** A log with compaction events
-   rebuilds the context with zero vendor calls. The bytes and cuts are in
-   the events; rendering neither recomputes them nor reads today's files.
-8. **An abandoned compaction is dropped.** Emit `compactor_launched`
-   when a compressor starts. A launch at startup with no matching population
-   carrying the same band and `Thru` is abandoned: the old source stays
-   live, and the next checkpoint measures again. Failed or malformed
-   submissions likewise leave the source available.
-9. **Forcing.** Warn at 90% of the model's `ContextWindow`; at 95%,
-   declare and admit only `micro_handoff`. Compare total input from the
-   latest completed main request, counting cached input exactly once.
-   Exclude output and auxiliary compressor usage. After the handoff,
-   restore normal tools. Tool restriction still permits text or refusal.
-10. **Memory is data.** Band entries are in the conversation, not in
-    the frozen system prompt. Changing a memory must not rewrite instructions.
-11. **Fresh start and ordinary restart.** Scan enabled bands at running
-    startup, before the first user request. Record each file's current bytes;
-    an edited file replaces the old text at the same identity. Offline replay
-    still reproduces the recorded version without consulting disk.
-12. **Disable and enable.** Switching a band off records depopulation;
-    its entries leave context but its files remain. Switching it back on
-    rescans disk and records population per file. A human edit must reach
-    the next request. A settings acknowledgment follows effective application,
-    including while idle.
+1. **One trigger, one outstanding attempt.** After a successful `micro_handoff`
+   batch strips tool parts, select whole oldest completed dialogue segments and
+   their notes when over budget. Leave unfinished work, skills and declarations.
+   Start one child through the existing factory and Fleet. Repeated checkpoints
+   while it runs or awaits commitment launch no overlapping attempt.
+2. **A fresh, restricted worker.** Inherit provider, model, route and safety
+   ceilings, but no conversation or coding primary. Restrict construction before
+   skills or MCP can start: no recall, memory cascade, public delegation or tools
+   except `submit`. Enforce the restriction at dispatch too. Send selected readable
+   source as data; ask for first-person memory preserving reasons and uncertainty.
+   The whole submit schema is:
+
+   ```json
+   {"type":"object","properties":{"memory":{"type":"string"}},"required":["memory"],"additionalProperties":false}
+   ```
+
+   Require nonblank memory. Permit at most three Engine sends and three tool
+   batches, including corrections; existing bounded HTTP/auth retries are separate.
+   Reject prose-only completion, multi-call batches, forbidden calls and provider
+   length stops, even with parseable JSON. Use an adequate provider output allowance
+   (§15.5), without a short model deadline or another attempt hidden as a retry.
+3. **Accept the selected source at a safe boundary.** Main work normally continues.
+   After reliable child completion, drain and successful save, recheck selected
+   entries, file bytes, coverage, destination bytes or absence, and relevant policy
+   generation. An off/on change still invalidates old work; unrelated new dialogue
+   does not. Apply only while idle or before a main render after a complete batch.
+4. **Stage, record, finalize.** Stage the candidate outside active scans. Journal
+   the task-correlated `redact_summary` cut or band retirement and matching
+   population; History applies them together. Then install the destination and
+   archive selected originals, record the outcome and clear staging. A cut alone
+   cannot remove source. Failure before commitment preserves it.
+5. **Canonical bands and progress.** Order entries by `(band, date, num)` before
+   conversation. Above a high watermark, select at least two oldest files until
+   the remaining source reaches the low watermark. Retirement must equal that
+   nonempty selection; refuse malformed, reversed or overlapping coverage. Continue
+   session → 8x → 64x → MEMORY only after the preceding commit and cleanup. SOUL
+   never graduates; MEMORY is terminal. Refuse a disabled destination with a warning.
+6. **Owner lifetime.** Main turn completion and interruption preserve the worker.
+   Explicit child kill and owner shutdown cancel and drain it; relevant policy
+   changes invalidate it. Record final measured usage and a reasoned outcome.
+   Remove finished workers from Fleet, Ensemble and GUI views after completion/save,
+   preserving traces. A selected worker's tab returns to its owner; late observations
+   cannot recreate it. Ordinary child lifecycle stays unchanged.
+7. **Recovery precedes corpus use.** Abandon unmatched launches without respawning.
+   Discard uncommitted candidates, retaining source. Finish committed disk work
+   before startup scans, re-enable, recall or main rendering; preserve conflicting
+   bytes and the receipt and report an error until recovery succeeds. Replay uses
+   recorded bytes and cuts without model or filesystem guesses. As in Chapter 14,
+   this is process-crash ordering, without an fsync or power-loss guarantee.
+8. **Forcing and headroom.** Warn at 90% of a known model window; at 95% declare
+   and admit only `micro_handoff`. Use latest completed main input, including cache
+   buckets exactly once, excluding output and auxiliary work. Restore normal tools
+   after handoff. If a worker is outstanding at 95%, wait before the next main
+   render; keep settings and interruption usable. Success resumes; failure returns
+   an explicit headroom error. Interrupt detaches the turn's waiter, not the worker.
+9. **Account once, compare main requests.** Import final child usage once after
+   drain, including failed work, with actual provider/model/price-tier buckets.
+   Keep latest-main usage and main cache-lens comparisons unchanged; replay never
+   rebills receipts. A compaction cache breakpoint uses the newest surviving
+   handoff, or the last surviving memory when the handoff is gone.
+10. **Memory is data, disk edits matter.** Keep bands out of frozen instructions.
+    After recovery, scan enabled files at startup and record their current bytes.
+    Disable removes context entries but keeps files; re-enable rereads edits and
+    restores canonical order without duplicates. Acknowledge settings after actual
+    application, including while idle.
 
 The deterministic forcing row remains `claude-ch16-course`, with a 4,096-token
 window and `StubsToolResults` true; its original-numbered name is a fixture ID.
 Unknown window sizes do not justify guessed thresholds. The compressor prompt,
-internal corpus layout and settings appearance are yours; retain actual ownership
-and the public submit contract.
+staging layout and settings appearance are yours; retain actual ownership, public
+submit validation and the commit/recovery ordering.
 
 ```sh
 go run ./cmd/grade-edition2 -ch 15
@@ -765,27 +788,37 @@ not measure the new background child's latency or memory quality.
 
 The grader reads what its fake vendor receives and what the agent
 leaves on disk. It builds the optional GUI, applies memory settings through its
-public settings channel, and waits for completed turns before checking requests
-or closing stdin. A settings file in the wrong directory can leave a perfectly
-working compressor idle throughout a test.
+public settings channel, and correlates each launched task with its terminal
+`compaction_outcome` before a verification turn or normal EOF. Main `turn_ended`
+does not mean the background child finished. A held provider response waits outside
+the capture lock, so unrelated main requests can still proceed. A settings file
+in the wrong directory can leave a working compressor idle throughout a test.
 
 **micro-handoff-compresses** (15) scripts enough dialogue and
 checkpoints to exceed the conversation budget. After the
 compression, the next request contains a session-band entry with
 the returned text, and the raw conversation it replaced is gone. The compressor
-request must actually contain the selected work.
+request must actually contain the selected work. A held-worker phase requires the
+main Agent to finish and answer another turn before release, while repeated
+checkpoints leave one owned child. It checks the exact submit schema, dedicated
+role, refusal of a forged file-write call and absence of its effect. Successful
+completion removes the child from the tree and returns its selected GUI tab to
+the owner. A verification request must retain unrelated dialogue added while
+the selected older work was being compressed.
 
 **planted-fact-survives** (10) plants a distinctive token in early
 dialogue, pushes it through a checkpoint and compression. The token
 must reach the compressor; the fake's returned memory must then reach the next
 main request. This tests delivery through compression, not a real model's judgment
-about which facts to preserve.
+about which facts and reasons to preserve.
 
 **graduation-fires-oldest-first** (12) scripts enough session
 memories to exceed the session band's high watermark. An 8x entry
 appears in the next request; the graduated oldest entries are gone,
 and newer session work remains. The fixture distinguishes taking the oldest
-files from taking the newest.
+files from taking the newest, waits for committed outcomes between steps, and
+checks that successful retirement makes progress rather than selecting the same
+files again.
 
 **disable-enable-idempotent** (12) switches the session band off,
 checks that its entries leave the next request, then switches it
@@ -794,6 +827,9 @@ disabling, by count and content. A second pass edits a memory file
 on disk between disable and re-enable, and the edit must be
 reflected. An ordinary enabled-band restart also rereads the edit. Checks inspect
 actual memory order in the request, rather than sorting markers in the test.
+Separate held graduations change relevant policy off and on, or edit selected
+bytes under the same filename. Both invalidate the late candidate and preserve
+current source without immediately launching a replacement attempt.
 
 **disabled-neighbor-refused** (8) disables the 8x band while the
 session band is over its high watermark. No fold reaches the compressor,
@@ -806,18 +842,31 @@ checks that only `micro_handoff` remains in the tool list. Mixed cache buckets
 count once. After the handoff and a smaller completed main response, normal tools
 must be available even though lifetime usage has grown. A separate phase checks
 that large auxiliary compressor usage does not restrict small main requests.
+Actual `agent_status` calls check successful and failed child usage in owner totals
+once, while fresh usage observations retain latest-main counts. A held worker at
+95% must block the next main request, report waiting and still acknowledge settings.
+Success resumes it; failure returns an error without sending the unchanged full
+context. Interrupting the waiting turn permits a new turn to wait for the same
+worker and receive its committed result.
 
 **replay-needs-no-llm** (10) starts from recorded memory populations and compares
 a saved snapshot with full-log reconstruction. Startup alone makes zero HTTP
 requests; identical subsequent prompts produce byte-identical vendor requests
 without a compressor call. Running startup also rescans disk. Pure offline
 restoration of populations and retirements, without disk reads, remains a separate
-source regression.
+source regression. Restarted accounting starts with the new measured calls; an
+old outcome neither respawns a child nor adds its receipt to fresh session totals.
 
 **abandon-on-restart** (8) first populates a real source band, then exercises
 a failed fold and a genuinely pending fold interrupted by process kill. Restart
 retains the source without immediately retrying compression; a later checkpoint
 can try again. An empty band with zero attempts cannot pass as failure recovery.
+Other phases refuse empty memory, wrong-type submit arguments and a length stop
+containing otherwise valid JSON. Rejected submissions remain within the
+finite request bound. Explicit child kill and owner EOF must cancel the held
+HTTP request, drain and record a reasoned outcome while retaining source. A real
+destination write refusal must also leave source available to the next request;
+this tests failure before commitment, not every disk-finalization crash window.
 
 **memory-is-data** (5) checks that the returned memory appears in the
 conversation rather than the system prompt. The fake supplies first-person text;
@@ -826,15 +875,20 @@ to write that way. The numeric check does not grade resistance to malicious text
 
 **fresh-start-populates** (5) places memory files on disk before
 the agent starts. The first request sent to the model contains
-their content.
+their content, including a fresh session built from the finalized corpus.
 
 **ch14-parity** (3) runs the chapter 14 grader against the same
 solution and checks it still scores full marks.
 
-These eleven weights total 100. Low-watermark arithmetic, the required disabled-
-neighbor diagnostic, all-provider normalization, whole-segment reducer cases,
-native browser settings and the GUI/actor interleaving retain their focused source
-and browser checks. The original grader scored **20/100 FAIL** on an
+These eleven weights total 100. Separate source and public-API regressions cover
+exact staged-write, paired-event and archive restart boundaries, conflicting
+committed recovery holds, range admission, save-tail races, factory safety ceilings
+and retained-reference cleanup. Model/tier attribution, main cache-lens isolation
+and the surviving-memory breakpoint also retain explicit source checks. They
+award no points to another submitted implementation. Whole-segment reducer cases,
+all-provider normalization, low-watermark arithmetic, disabled-neighbor diagnostics
+and native browser settings retain their affected checks.
+The original grader scored **20/100 FAIL** on an
 intermediate student build: its settings missed the owning Agent's directory,
 and its awarded recovery points did not require a fold to occur. The
 [student record](../docs/edition-2-notes/ch16.md) preserves that result and the
