@@ -693,3 +693,55 @@ tests168/145/14→185/159/16. This fixture uses existing public process, setting
 activity, request and durable-record helpers without a new synchronization
 framework. Explicit kill/shutdown, destination-I/O and recall predicates,
 chapter-contract reconciliation and combined review remain pending.
+
+## D10: explicit cancellation, owner drain and destination failure
+
+The existing abandon row now exercises three real pending-worker lifetimes below
+the window threshold. The owner first completes its turn while the external worker
+response remains held. The public tree supplies the actual child ID for an explicit
+`kill_agent` tool call; a separate case closes owner input and requires normal
+shutdown while that response is still held. Both must cancel the actual HTTP
+transport and retain a correlated, reasoned `canceled` outcome. Shutdown's outcome
+must already be durable before restarting the process. This is stronger than
+calling EOF after releasing the response and observing ordinary success.
+
+The third case makes the owner's corpus directory read/search-only after the
+child has been created. A real attempted file creation must fail with a permission
+error, proving that the host enforces the fixture. Existing child directories
+remain writable. Releasing its valid response then exercises a precommit corpus
+write failure, which must reach a reasoned `failed` outcome with the permission
+error. The driver waits for that actual terminal record before restoring directory
+permissions and asking for a settings acknowledgment, since settings persistence
+also writes that directory. No private staging filename or fake filesystem is
+required. This case does not model a committed-but-unfinalized disk conflict;
+those exact recovery holds remain the separately reviewed C6/C10 source evidence.
+
+All cases verify dismissal from the actual owner tree, no active uncommitted
+session file, exactly one worker request, and both ends of the original source in
+a later actual main request. The shutdown case makes that request from a restored
+process. Kill must also have a successful correlated tool result. D9 separately
+establishes that ordinary parent interruption preserves the worker. Initial
+focused race passes2.033s, `/tmp/ensemble-compaction-d10-lifetime.txt`; the actual
+permission test ran and passed without skipping.
+
+Four isolated runtime mutants fail intended predicates: `kill-noop` returns from
+ShutdownChild without stopping its real transport; `owner-no-drain` omits fleet
+shutdown and cannot complete owner EOF while its counted worker remains held;
+`shutdown-outcome` drops terminal recording during stopping and loses the durable
+receipt; `failure-source` applies an erroneous ordinary dialogue cut after the
+write failure and loses source on the next request. Logs:
+`/tmp/ensemble-compaction-d10-mutant-<name>.txt`. The first two bounded timeouts
+exercise actual cancellation/drain liveness, with passing controls. All scratch
+copies were removed. Existing restriction, accounting and GUI dismissal mutations
+are reused, not counted again as independent proofs of every assertion here.
+
+Final affected memory/lifetime race passes4.495s (memory3.03s, focused0.44s),
+`/tmp/ensemble-compaction-d10-memory-final.txt`; package vet passes,
+`/tmp/ensemble-compaction-d10-vet.txt`. Expected proxy cancellation diagnostics
+accompany real invalidation, crash and cancellation cases. No live calls or full
+advertised15/parity score is claimed yet. Against D9, physical/active/`//`
+comment-only counts are ch15.go552/485/51→557/490/51, new lifetime fixture263/250/10,
+tests185/159/16→202/173/18. Most fixture lines explicitly sequence public process,
+settings, requests and file effects; no new runner framework or application code
+was introduced. Recall interactions, final contracts, combined grading and
+independent final review remain pending.

@@ -87,6 +87,23 @@ func TestMemoryProtocolFailures(t *testing.T) {
 	}
 }
 
+// TestMemoryLifetime checks real explicit cancellation, owner shutdown and
+// destination permission failure without losing the selected source or outcome.
+func TestMemoryLifetime(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../agent/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanup()
+	for _, mode := range []string{"kill", "shutdown", "write"} {
+		t.Run(mode, func(t *testing.T) {
+			if err := memoryLifetime(bin, t.TempDir(), mode); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 // TestMemoryHeadroom checks actual near-window waiting, failure and interruption
 // with a held worker and the owner's responsive public settings interface.
 func TestMemoryHeadroom(t *testing.T) {

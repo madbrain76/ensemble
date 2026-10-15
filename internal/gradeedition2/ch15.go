@@ -96,6 +96,11 @@ func memoryChecks(bin string) contextResult {
 	}
 	memoryReplay(run, base, newDir, &r)
 	memoryAbandon(run, newDir, &r)
+	for _, mode := range []string{"kill", "shutdown", "write"} {
+		if err := memoryLifetime(bin, newDir("lifetime-"+mode), mode); err != nil {
+			r.fail("abandon-on-restart", "%s lifetime: %v", mode, err)
+		}
+	}
 	for _, mode := range []string{"empty", "type", "length"} {
 		if err := memoryProtocolFailure(run, newDir("protocol-"+mode), mode); err != nil {
 			r.fail("abandon-on-restart", "%s candidate: %v", mode, err)
