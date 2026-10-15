@@ -745,3 +745,63 @@ tests185/159/16→202/173/18. Most fixture lines explicitly sequence public proc
 settings, requests and file effects; no new runner framework or application code
 was introduced. Recall interactions, final contracts, combined grading and
 independent final review remain pending.
+
+## D11: recall after actual graduation and failure
+
+Current16 retains ten rows/100 points. Its indexing and own-kind rows now prepare
+real corpus state through the submitted memory executable: three distinguishable
+session files cross the watermark; success retires the oldest two and installs
+the exact candidate, while an empty result retains all three. Actual source bytes
+and the retained third-file control are verified before restarting with recall.
+The main test now explicitly builds `../../agent/gui` and checks that same core's
+recall topology, instead of silently using the historical frozen ch16 export.
+
+After success, the two retired originals must be searchable; finalized replacement
+and still-active source bytes must not be duplicated into recall. After the real
+failed graduation, startup preserves all active sources and excludes them from
+new recall. A separate matching document supplies a positive retrieval control in
+both cases. Two main turns require exactly one judge request and one distinct
+recorded attachment. The final restart removes the actual recalled source files,
+then a short prompt must render the exact recorded attachment without another
+judge. File removal errors fail the fixture rather than claiming source-free replay.
+
+These executable predicates cover finalized and failed-attempt corpus restarts.
+They do not synthesize private hidden-stage files or award points for exact
+committed-finalization conflict windows. C6's public Memory/source regressions
+remain that separate evidence; D1/D6/D10 retain actual pending/crash/cancellation
+observations. No private stage name or receiver is a universal student contract.
+
+Initial focused race passes2.103s, `/tmp/ensemble-compaction-d11-corpus.txt`.
+Three isolated mutations fail intended checks: `retired-omitted` excludes retired
+originals from scanning; `bands-duplicated` omits active memory from actual-context
+exclusion and repeats source in the rendered request; `restored-recall-lost` drops
+recall entries during restore and loses the source-free persisted attachment.
+Raw `/tmp/ensemble-compaction-d11-mutant-<name>.txt`. The first duplicate-band run
+stopped at its extra-judge/request-count failure; its valid but narrower evidence
+is retained as `...-bands-duplicated-initial.txt`. Continuing inspection when both
+main requests exist now also reaches the actual duplicated source and attachment
+checks. Those failures are coupled consequences of one exclusion defect, not
+independent mutation claims. Scratch copies were removed.
+
+Final current-source recall/corpus race passes3.038s (suite1.52s, focused0.49s),
+`/tmp/ensemble-compaction-d11-recall-final.txt`; package vet passes,
+`/tmp/ensemble-compaction-d11-vet.txt`. The full advertised16 command separately
+includes the actual15-second judge timeout; this focused run does not claim it.
+Physical/active/`//` comment-only counts: ch16.go442/400/26→443/401/26,
+new compaction fixture136/126/7, tests30/24/3→53/44/5. No runtime changes.
+
+Existing deferred source evidence was rerun separately against Agent4871633e and
+passes race1.279s: `TestCacheLensMainBoundary`, `TestCacheMarkers`,
+`TestCacheMeterAuxiliaryIdentity`, `TestCacheMeterSupportedUnpricedJudge`,
+`TestCompactionAuxiliaryAccounting`, `TestCompactionRecoveryHold`, and
+`TestCompactionRecallStartup`; raw
+`/tmp/ensemble-compaction-d11-deferred-source.txt`. These run real Engine/Agent,
+History, Memory and HTTP peers. Judge usage keeps its identity and main Last;
+unknown contributing cost remains unknown. Main lens tests cover the stateless
+judge and deprecated direct compressor; managed-worker ownership/isolation remains
+C's separate source evidence. Marker tests explicitly render a surviving-memory
+projection after its handoff disappeared. Tiered worker import tests call the
+Engine boundary after actual worker drain; D8 supplies actor once-only totals.
+Recovery conflict controls block the real corpus entry points. These unchanged
+source tests and their earlier mutation evidence add no arbitrary implementation's
+grader points. Final contracts, advertised grading and combined review remain.

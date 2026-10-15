@@ -50,6 +50,7 @@ func recallChecks(bin, dataRoot string, timeout bool) contextResult {
 	}
 	os.MkdirAll(s.gui, 0755)
 	recallIndexing(&s, &r)
+	recallCompaction(&s, &r)
 	recallRanking(&s, &r)
 	recallChunking(&s, &r)
 	recallQuotas(&s, &r)
