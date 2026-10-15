@@ -1941,3 +1941,82 @@ additional tests. Existing comments explain ownership and ordering despite a
 below-target overall proportion. No new framework or unresolved KISS finding
 remains. This accepts new21 implementation only; new22 memory, new23 recall,
 reordered exports, final grader mapping and live assessment remain separate.
+
+
+## Live receipt, new22 reconstruction and Stage E review, October 14
+
+Accepted with the limits below. These are maintenance reviews, with prior-answer
+exposure. I reloaded the entire `.agents/skills/ensemble-coding/SKILL.md` and all
+four governing/craft documents after compaction before completing this review.
+No runtime edits, live calls or repeated grader/test sweep were performed.
+
+The corrected live receipt retains source57920dd3 / Agent9f421ae303b6d63ef8c9734dc3767587dff6340c.
+I compared the sanitized receipt with its original L8GeVX capture, binary and
+launcher hashes, saved event ordering, accepted submission and actual memory
+file. The exact1257-byte memory matches submission and commit, replacing2669
+source bytes. Its first-person account retains the Cedar Lantern identifier,
+owner/date,30-day choice, rejected cleanup timing and reason, and unresolved
+attachment policy without turning proposed work into completed implementation.
+The final answer receives the exact memory and correctly answers those facts.
+This is useful retention in one bounded Astra/high run, not optimal compression
+or an Auto-Recall demonstration; recall was disabled. Four main requests and
+one worker request complete, each process exits0, and restart makes no inference.
+
+The worker finished before the unrelated second input and child selection.
+Consequently this live run proves no unrelated-turn overlap, selected-child
+fallback or before/after auxiliary delta; the earlier held-worker tests supply
+those separate claims. First-turn response13 does precede outcome16. I requested
+clarification of the receipt's broader “No main answer” limit: root preserved
+live.json verbatim and clarified that it means no unrelated second-turn answer.
+Root e1ec1511 records that clarification, launch-versus-derived threshold limits,
+and the still-failed first HXZDyB attempt. The render-only handoff completion
+label fixes that attempt's lost acknowledgment without changing stored notes,
+source fingerprints, private-reasoning removal or tool-round policy. The exact
+OpenAI cache-test expectation still protects the stable marker boundary, volatile
+tail exclusion and marker count; its test-only update does not relabel the live
+binary. Earlier actual failure and local regression provenance remain separate.
+
+New22 c67173c18ba09dc6a1d53c607d69da969293562f, Agent23e0aae52df171420e0b00b9e05d3ac447660ea6,
+is accepted at initial independent review, zero correction rounds. All198 captured
+source hashes match committed blobs (aggregate f0bf38db46701a2550c6b012de436ff1a7df541bf9c2887653fc2112b85b50e1).
+The memory selectors/staging, receipt/history, actor compaction, fleet lifecycle
+and GUI cleanup carry the accepted Stage C implementation. Recall-only hooks are
+properly deferred. The necessary private main/auxiliary send flag retains new16's
+resolved-credential sanitization and counts auxiliary usage without replacing
+main Last or rotating the main cache lens. The accepted handoff-render fix is
+carried forward, including the legacy OpenAI concatenated-text expectation.
+
+Actual memory-* outputs show core ensemble16.959s, GUI8.380s, focused core/GUI
+race7.997s/4.456s and restored auxiliary race1.057s; module examples/vet are
+recorded green. Both adaptation mutants fail intended main-occupancy/cache-lens
+assertions across three vendors. The new-number22 grader scores100/100; all13
+recorded grader source hashes independently match the later88ce721a checkpoint.
+Unchanged Stage C failure/recovery evidence remains applicable with its original
+source identities. Initial fixture compile/cache-expectation failures stay in
+the coder's note. Production growth2225 physical/1797 active/326 comment lines
+and tests4137/3895/148 follow the historical memory plus reviewed C transfer;
+active excludes blank and comment-only lines. Useful ownership/recovery comments
+and reuse of existing actors explain the growth; no new framework or KISS finding
+remains. Historical deltas are not additive identities or a cold-student claim.
+
+Stage E88ce721a is accepted at initial review, zero correction rounds. I inspected
+the moved chapter/grader diffs, dispatch and references against the approved
+old17–23→15–21 and old15/16→22/23 permutation. The existing stories, mechanisms,
+examples and valid scoring predicates survive. Invoice extends14 and explicitly
+defers memory/judge accounting and cache-boundary duties to22/23, where the
+requirements remain. Memory extends managed fleet21. Historical rubric IDs,
+grade.ChNN calls, models, evidence paths and recorded outcomes remain historical.
+The change introduces no application behavior or extra abstraction.
+
+All308 hashes in the actual Stage E run manifest match88ce721a. I read the nine
+actual reports: new14/15/16/19/21/22/23 each100/100, new18=155/155 and20=200/200.
+Recorded package tests pass (gradeedition235.046s), vet and hard lint pass with
+soft warnings retained. The13 default/admission observations select the intended
+core/GUI/Gateway paths and reject ungraded17/24/25; the27 input/title/section and
+136 local-link controls agree with the mapping. Commit inspection confirms no
+preface, frozen export or publication artifact edit. These are explicit-main
+mapping results, not proof that old cumulative exports have been reconstructed.
+The README/map correctly state that transition. Existing Stage D sensitivity
+results are reused because no behavioral predicate changed. No open finding
+remains for these three scoped reviews; reconstructed recall and later exports
+remain separate work.
