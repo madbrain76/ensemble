@@ -218,6 +218,12 @@ are not that explanation. One explanation may cover a coherent batch; text
 after the first call is too late. The runtime checks presence and order, not
 the quality of the explanation.
 
+Do not mistake signed ordinary text for hidden thinking. The Edition 3
+student's inherited Gemini parser did, producing blank answers and false
+explanation refusals. Keep that text visible and portable. Bind each signature
+to its exact text part and source vendor, API surface and model, and replay it
+only to that same source. Genuine hidden thinking remains hidden.
+
 Reject the whole unexplained batch before invoking any handler. Preserve the
 assistant response and return a matching error result for every call, saying
 that nothing ran and asking for explanation before retrying. The retry uses
@@ -675,11 +681,27 @@ rest, because this is the first chapter that could plausibly break Chapter
 2's work, and folding it would hide the one failure a student is most likely
 to cause and least likely to notice.
 
-From the repository root, run:
+Build the CLI package, not the library at your module root. With the inherited
+`cmd/ch01` layout, run this from the student module (substitute your actual CLI
+package if it lives elsewhere):
 
 ```bash
-go run ./cmd/grade-edition2 -ch 3 path/to/your/solution
+go build -o /tmp/ch3agent ./cmd/ch01
 ```
+
+Then, from the course repository root, run both graders against that same
+executable:
+
+```bash
+go run ./cmd/grade-edition2 -ch 3 -json /tmp/ch3agent
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch3agent
+```
+
+Both must report `passed: true` and exit 0. The Chapter 3 grader includes
+Chapter 2's checks; the Edition 3 Chapter 1 run preserves the transport and
+lifetime checks. A score alone does not establish the selected-model
+explanation policy: its rejection-before-effects, explained retry and
+unaffected nonselected path still need public-API tests and source review.
 
 The revised grader keeps all ten checks and their weights. It uses the
 corrected Chapter 2 checks and adds observations for search context and append,
@@ -735,11 +757,11 @@ commands on your machine. The first time it fixes a typo you pointed at
 vaguely, the abstraction collapses into something physical.
 
 Start the serve-only fake from §3.7 and use its printed environment with your
-own binary. This costs nothing and needs no provider key. From your module
-directory, build once:
+own binary. This costs nothing and needs no provider key. If you kept the
+`cmd/ch01` layout, build the CLI from your module directory as in §3.7:
 
 ```
-go build -o /tmp/ch3agent .
+go build -o /tmp/ch3agent ./cmd/ch01
 ```
 
 Then launch `/tmp/ch3agent chat` from the disposable project, with `CH02_LOG`
@@ -859,7 +881,7 @@ on your path instead:
 
 ```
 mkdir -p "$HOME/bin"
-go build -o "$HOME/bin/ch3agent" .
+go build -o "$HOME/bin/ch3agent" ./cmd/ch01
 ```
 
 Then go to a project you care about and run it there:

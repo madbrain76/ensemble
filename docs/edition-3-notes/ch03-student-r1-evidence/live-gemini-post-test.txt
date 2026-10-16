@@ -1,0 +1,3 @@
+ok  	repairdemo	(cached)
+
+exit_status=0
