@@ -85,10 +85,12 @@ Build it in seven stages:
    activity/state changes for roots, named peers and nested children. Show
    local name, parent, persistence, lifecycle and activity. Clicking a node
    selects that Agent's retained conversation and subsequent live output for
-   that connection. Repeated local names in different branches must remain
-   distinct. Replay completed work as completed, while genuinely pending work
-   remains pending. Nested submitted JSON must survive actual tool-result display,
-   reselection and reconnect. Restart restores retrieved results in the owner's
+   that connection. Before switching, cancel outgoing speech, clear speech/typing
+   pause causes, and unpause the outgoing Agent. Late outgoing callbacks and
+   output must not alter the incoming Agent's pause. Repeated local names in
+   different branches must remain distinct. Replay completed work as completed,
+   while genuinely pending work remains pending. Nested submitted JSON must
+   survive actual tool-result display, reselection and reconnect. Restart restores retrieved results in the owner's
    history; it does not recreate ephemeral children. A slow connection must not block
    the fleet or shutdown.
 
