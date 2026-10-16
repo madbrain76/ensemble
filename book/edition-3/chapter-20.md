@@ -425,6 +425,22 @@ validation. Ordinary descendants start with the default text contract unless
 their own launch explicitly supplies a schema; the parent's answer format is
 not automatically appropriate for a different task.
 
+The model's instructions must agree with this runtime distinction. A root
+Agent finishes with ordinary chat; a delegated worker must call `submit`
+with its result or declared structured contract. Compose the child's role
+from authored base instructions, not an already-rendered root prompt with
+a prohibition on submission. Apply the selected model's policy without
+duplicating it or retaining a rule specific to the parent's former model.
+Inspect the actual rendered instructions for a root, a worker and a worker
+selecting a different model; successful construction cannot reveal a role
+conflict.
+
+Children inherit the parent's resolved, running provider configuration.
+They do not re-read launch environment variables or saved next-launch
+settings. Permitted model and local-preference overrides remain explicit.
+When Chapter 21 introduces saved provider edits, those edits must not switch
+a new child's billing or credentials while its parent keeps the old values.
+
 Shutting down a parent cascades to its children, recursively. The
 fleet's lifetime is bounded by its root. A child that outlives its
 parent is a resource leak with a model attached, and the cascade

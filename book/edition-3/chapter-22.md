@@ -674,6 +674,21 @@ worker execution; a font change does neither. If a replacement has already
 committed, finish its disk recovery before applying a rescan. Cancellation cannot
 turn that committed fact back into abandoned work.
 
+Extend Chapter 21's `ApplicationConfig` with this chapter's band,
+compression and context/retention settings now that their types exist. Keep
+strict validation and private atomic saves; do not create a parallel root
+memory-settings file in file mode. Child preferences remain local, and a
+memory patch preserves provider values and all unrelated fields.
+
+Memory settings apply immediately, unlike saved next-launch provider settings.
+Acknowledge a patch only after durable persistence and application to the
+live Agent, including its required rescan or policy invalidation. The browser
+must show applied memory state without presenting saved provider edits as
+active. Exercise a memory patch while a provider edit is pending as well as
+during streaming; neither may clobber the other or deadlock observation.
+Recall settings join this same contract in Chapter 23, not before their type
+exists.
+
 The settings acknowledgment created another trap in the student implementation.
 The GUI held its observer mutex while waiting for the Agent to apply a memory
 patch. During streaming, that actor was trying to publish an observation through

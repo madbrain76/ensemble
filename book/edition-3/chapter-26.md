@@ -25,6 +25,9 @@ boundary. That router belongs in the framework, not bolted on after.
 
 ## TL;DR
 
+For Edition 3, continue from the exact accepted Chapter 24 commit; Chapter 25
+is a historical-only interlude with no intervening code checkpoint.
+
 The gateway is a standalone edge service that sits at the trust boundary,
 routing messages between agents over Noise-KK encrypted WebSocket
 connections. It uses group-based access control where an agent's

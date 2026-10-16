@@ -322,6 +322,21 @@ the vendor-independence claim has rested on since Chapter 2. Adding a third to
 ship a feature would concede that the seam was shaped around the features that
 existed when it was drawn, which is the thing a seam exists to deny.
 
+Final construction must not erase evidence needed by Chapter 3's
+explanation-before-dispatch check. Record whether nonblank ordinary text
+arrived before the first tool-call delta in this response. Reasoning deltas
+do not count. If the call arrived first, later text cannot authorize the
+batch, even if a provider decoder places text before tools in its finalized
+parts. Keep the finalized-response check too, including for plain JSON.
+Neither path dispatches until the response has completed successfully.
+
+Exercise a tool-first stream that finishes with explanatory text, a
+reasoning-only prefix, and a text-first stream. The first two must produce
+corrective tool results without executing the batch when the model's policy
+requires explanation; the third may execute after completion. A test that
+only inspects reordered final parts cannot establish what the user actually
+saw before the tool call.
+
 ---
 
 ## 6.4 Part ids: who is allowed to name a part

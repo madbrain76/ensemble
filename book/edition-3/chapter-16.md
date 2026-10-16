@@ -165,7 +165,17 @@ const (
     Stream summary events incrementally. Map them to separate
     observer events: never buffer a full summary, never
     concatenate into assistant text, never drop summaries
-    adjacent to tool calls.
+    adjacent to tool calls. Keep `auto` as the default; permit an explicit
+    supported summary choice such as `detailed` without silently promoting
+    every request to that setting.
+
+    The selected model's capability also determines whether explanation
+    before tools is required. For those models, place the rule in the
+    model-facing instructions and enforce the dispatch and arrival-order
+    checks from Chapters 3 and 6. Public reasoning summaries, like hidden
+    thinking, do not satisfy the requirement for ordinary assistant text.
+    Select this policy from the actual model configuration, including a
+    worker's model override; do not infer it from whether a summary arrived.
 
 13. **Billing mode.** `chatgpt` uses only OAuth credentials.
     `api` uses only the API key. `chatgpt_then_api` prefers

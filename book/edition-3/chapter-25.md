@@ -34,9 +34,13 @@ with credentials referenced separately. File mode isolates provider settings
 from inherited environment; legacy startup remains available for tests.
 Provider changes require restart, while ordinary GUI and memory settings apply
 immediately. Persist a valid update before accepting it in memory, and keep
-secrets out of flag defaults and help output. This whole-application integration
-belongs here, after the provider, memory and fleet interfaces exist, not in the
-early GUI-preferences exercise.
+secrets out of flag defaults and help output. Chapter 21 now owns this
+application integration and its GUI startup path. Chapters 22 and 23 extend
+the same strict schema and immediate-application contract when memory and
+recall exist. Chapter 16 owns provider capability and reasoning choices;
+Chapter 20 owns inherited running configuration and role-specific instructions.
+The explanation-before-tools checks belong in Chapters 3 and 6, where dispatch
+and actual stream order first become observable. None is a new exercise here.
 
 Other repairs are already in the preceding chapters: root conversation does
 not require worker submission; completed handoffs retire old opaque replay
@@ -50,6 +54,8 @@ in the archive. Chapters 7 and 10 clarify the existing identity obligation;
 that clarification is not a claim that the copied baseline or legacy saved
 collisions have been repaired.
 
-This chapter remains a crossover account, not an invented new exercise or a
-passing grader receipt. Its evidence informs the earlier teaching and the
-remaining integration work; Edition 3 must earn its own execution results.
+This chapter remains a historical crossover account, with no independent
+construction exercise, grader receipt or code checkpoint. Its demonstrated
+repairs belong in the earlier construction chapters. Chapter 26 continues
+from the exact accepted Chapter 24 code, not a hidden Chapter 25 repair pass.
+Edition 3 must earn its own execution results.

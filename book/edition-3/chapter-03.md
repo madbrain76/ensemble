@@ -209,6 +209,24 @@ Tool calls run one at a time, on purpose. Ordering is observable to the
 model, and a shell command that changes the working tree changes what the
 next tool sees. Run them in the order the model asked.
 
+For a model whose policy requires explanation before tools, enforce that
+policy at this dispatch boundary as well as stating it in the model's
+instructions. The same response must contain nonblank ordinary assistant
+text before its first tool call, explaining what will run and why. Earlier
+conversation, tool output, hidden thinking and a readable reasoning summary
+are not that explanation. One explanation may cover a coherent batch; text
+after the first call is too late. The runtime checks presence and order, not
+the quality of the explanation.
+
+Reject the whole unexplained batch before invoking any handler. Preserve the
+assistant response and return a matching error result for every call, saying
+that nothing ran and asking for explanation before retrying. The retry uses
+the existing round budget, not an unbounded repair loop. This is a selected
+model policy, not a reason to change every model's behavior. Test the refused
+batch with a handler that would leave an observable effect, then test an
+explained retry; the first attempt must leave no effect. Chapter 6 carries
+this check into real stream arrival order.
+
 An unexpected call still needs an error result when the registry is empty.
 The student initially returned early in that case, silently leaving the call
 unanswered. Removing the shortcut also required its inherited Chapter 2 fake

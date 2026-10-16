@@ -76,6 +76,9 @@ the JSON fields without requiring these exact internal type names.
    the larger of `as_of` and the last log event's Seq. GUI artifact identities
    must also survive restart: replay an old response, then stream a new one
    and verify that the new text cannot append to or replace the old card.
+   Already-colliding archived IDs must also produce distinct presentations,
+   deterministically across replay and restart, without rewriting archive
+   facts. Preventing new collisions alone does not repair that case.
 6. **Save at exit.** When stdin closes, finish admitted work, shut down the
    Agent and join its managed jobs, then write the file and exit. `as_of`
    is the Seq of the last event folded into the saved context. The

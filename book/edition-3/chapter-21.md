@@ -224,6 +224,57 @@ its identity and data. Otherwise a new child could appear between the check
 and deletion. Application `Close` is different: it saves and stops the peers
 while preserving their registry entries for the next launch.
 
+### One application file, two application times
+
+Introduce the versioned `ApplicationConfig` in the real GUI command, after
+provider, fleet and Agent construction exist. Its initial schema contains
+provider/model/billing/base-URL settings, reasoning effort and summary choice,
+external credential and authentication-store references, workspace and skill
+paths, data/save/event-log paths, streaming and sandbox/web options, and GUI
+port and preferences. Chapters 22 and 23 add memory and recall fields when
+those types exist. Do not invent their placeholders here.
+
+Select explicit `--config` file mode before invoking environment builders.
+Inherited provider, skill and authentication settings must not override the
+file, even when the inherited values are invalid. Keep deterministic optional
+defaults and resolve relative paths against the configuration file's directory.
+Accept only explicit `--port`, `--gui-dir` and `--gui-debug` launch overrides
+in file mode and report them; reject competing provider or Agent flags.
+Without `--config`, retain legacy environment/flag behavior and the public
+constructors used by existing callers and graders. This is GUI application
+configuration, not a new CLI loader requirement.
+
+Require a supported explicit schema version and reject unknown fields,
+invalid values, malformed or trailing JSON and embedded credential contents.
+Credentials remain in the referenced external key file or authentication
+store, not in settings, browser payloads or flag defaults. Help and invalid-flag
+output must not leak secrets. Use private directories and private
+same-directory temporary files for atomic replacement. Validate before writing,
+and publish the saved snapshot only after success; a failed write or rename
+must leave the prior file and snapshot usable.
+
+Settings shows the file path and separates active provider values from saved
+next-launch values. Provider/model/billing/reasoning edits require an explicit
+Save and restart; they do not rebuild a live engine or change its children's
+inherited configuration. Speech, theme, font and budget preferences remain
+immediate. Manual file edits take effect on restart, not through an implied
+live watcher.
+
+In file mode the root's preferences share the application file without
+clobbering provider fields. Ignore the old root `cr/settings.json` in this
+mode without deleting it; children retain local preferences. Correlate Save
+requests and acknowledgments so another tab's broadcast or an unrelated
+preferences update cannot mark a provider edit saved. Preserve edits made
+while a save is in flight and handle normalized credential paths without
+exposing their contents.
+
+Test the actual GUI command from a different working directory with poisoned
+provider/skill/authentication environment values, then test malformed files,
+failed saves and secret-free help. In the browser distinguish immediate
+preferences from pending provider changes and verify restart application.
+A constructor supplied with already-correct settings cannot prove startup
+isolation or the visible Save contract.
+
 Central construction gives the developer one place to inspect these rules. It
 does not make a forgotten method call a compile error. Build the real binary,
 create a named peer, exchange a message, close it and restart from the same

@@ -631,16 +631,22 @@ paying in Chapter 3, and that is where it gets graded.
 Free, as often as you like:
 
 ```bash
-go run ./cmd/grade-edition2 -ch 1 path/to/your/solution
+go run ./cmd/grade-edition3 -ch 1 path/to/your/solution
 # Add -json before the solution path for machine output.
 ```
 
-Run this from the repository root. The separate Edition 2 entry point retains
+Run this from the repository root. Edition 3 retains the seven conversation
+checks and adds two required, zero-point lifetime gates: real 62-second delays
+before response headers and during the response body, taking about two minutes
+in total. Require `passed: true`; a score of 100 alone is not a pass.
+
+The separate Edition 2 entry point retains
 the seven checks and their points, and repairs the version-header check: the
 original fake accepted any non-empty version. A deliberately wrong version
 still scored 100 there. The corrected check requires the documented value.
 The original grader and its results remain available with
-`make grade-dir CH=1 DIR=path/to/your/solution`.
+`make grade-dir CH=1 DIR=path/to/your/solution`. These original and Edition 2
+commands are historical comparisons, not the Edition 3 acceptance gate.
 
 The grader binary returns 0 for pass, 1 for fail and 2 when it could not run.
 With `go run`, read the diagnostic too: the Go wrapper reports a child status
