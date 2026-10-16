@@ -13,6 +13,7 @@ let socket,
   localPaused = false,
   speaking = false,
   humanTyping = false;
+let pendingSelection = null;
 const send = (message) => {
   if (socket?.readyState === WebSocket.OPEN)
     socket.send(JSON.stringify(message));
@@ -20,6 +21,7 @@ const send = (message) => {
 // Only local cause transitions send automatic commands. An explicit unpause
 // elsewhere must remain effective while this tab has an unchanged local cause.
 function pace() {
+  if (pendingSelection !== null) return;
   // Field contents can come from MCP. Keep the human cause separately so a
   // later speech callback cannot reinterpret programmatic text as typing.
   const next = speaking || humanTyping;
@@ -43,7 +45,7 @@ class Speech {
     if (!text) return;
     this.transcript.push({ text, source });
     window.dispatchEvent(new CustomEvent("ensemble-speech", { detail: { text, source } }));
-    if (!this.audio || !voice.checked) return;
+    if (pendingSelection !== null || !this.audio || !voice.checked) return;
     this.queue.push({ text, source, queued_at: Date.now() });
     speaking = true;
     pace();
@@ -133,6 +135,17 @@ function route(message) {
   (tool ? actionsScroll : chatScroll).receive(message);
 }
 let agents = [], selectedAgent = "";
+// The same socket orders release before selection. Suppress outgoing pacing
+// until the requested replay boundary. Only one selection may be outstanding.
+function selectAgent(key = "main") {
+  if (pendingSelection !== null) return;
+  pendingSelection = key;
+  renderAgents(agents, document.querySelector("#agent-tree"));
+  humanTyping = localPaused = false;
+  speech.cancel();
+  send({ type: "unpause" });
+  send({ type: "select_agent", key });
+}
 function renderAgents(nodes, parent) {
   parent.replaceChildren();
   for (const agent of nodes) {
@@ -146,7 +159,8 @@ function renderAgents(nodes, parent) {
     const phase = agent.activity?.phase || "idle";
     select.textContent = `${agent.id}${agent.persistent ? " · saved" : ""} — ${agent.state} · ${phase}`;
     select.title = agent.activity?.detail || "Select conversation";
-    select.onclick = () => send({ type: "select_agent", key: agent.key });
+    select.disabled = pendingSelection !== null;
+    select.onclick = () => selectAgent(agent.key);
     node.append(select);
     if (agent.deletable) {
       const remove = document.createElement("button");
@@ -348,6 +362,7 @@ function connect() {
   );
   // Reconnection requests history only; stale local causes must not veto another tab's unpause.
   socket.onopen = () => {
+    pendingSelection = null;
     chatScroll.reset();
     actionsScroll.reset();
     send({ type: "subscribe", key: selectedAgent });
@@ -358,7 +373,10 @@ function connect() {
     if (message.type === "agent_selected") {
       // Reset only at the server's ordered replay boundary. Older queued frames
       // have arrived already; new live frames follow the selected Agent's replay.
+      // Cancellation belongs to the outgoing view, never the new selection.
+      humanTyping = localPaused = false;
       speech.cancel(); chatScroll.reset(); actionsScroll.reset();
+      if (pendingSelection === message.key) pendingSelection = null;
       if (selectedAgent !== message.key) {
         resetApplicationDraft();
         applicationPanel.hidden = true;
@@ -371,11 +389,15 @@ function connect() {
       agents = message.root.children;
       renderAgents(agents, document.querySelector("#agent-tree"));
     }
-    if (message.type === "agent_error") document.querySelector("#agent-status").textContent = message.error;
+    if (message.type === "agent_error") {
+      pendingSelection = null;
+      renderAgents(agents, document.querySelector("#agent-tree"));
+      document.querySelector("#agent-status").textContent = message.error;
+    }
     if (message.type === "agent_created") document.querySelector("#agent-status").textContent = `Created ${message.key}`;
     if (message.type === "agent_deleted") {
       document.querySelector("#agent-status").textContent = `Deleted ${message.key}`;
-      if (selectedAgent === message.key || selectedAgent.startsWith(message.key + "/")) send({ type: "select_agent" });
+      if (selectedAgent === message.key || selectedAgent.startsWith(message.key + "/")) selectAgent();
     }
     route(message);
     if (["current_settings", "settings_changed", "settings_update"].includes(message.type)) applySettings(message.settings, message.request_id);

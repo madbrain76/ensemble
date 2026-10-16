@@ -452,6 +452,14 @@ retained history before continuing with live output. Reusing one global
 partial map would make identical response-local IDs collide across
 conversations.
 
+Before requesting another Agent on the same connection, cancel the outgoing
+view’s speech, clear its local speech/typing pause causes, and send `unpause`
+before `select_agent`. Switching views must not strand an Agent behind a tool
+gate. Late speech callbacks and queued outgoing output must not pause or
+unpause the incoming Agent. Test switching from speech-paused and typing-paused
+views: the outgoing Agent’s pending tool must proceed without another prompt,
+while the incoming Agent’s existing pause remains unchanged.
+
 Structured submissions use these same conversation surfaces. Render their tool
 arguments and results as text safely, retaining nested JSON data in the underlying
 result. Select a registered child during work, then reconnect or reselect it in
