@@ -1,0 +1,38 @@
+<style>
+@page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+@page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
+@page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+@page         { @bottom-center { content: counter(page); font-size: 10pt; font-family: Georgia, serif; } }
+/* Page margins own the print measure; pandoc's screen padding must not narrow it. */
+body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 12pt; line-height: 1.4; }
+h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
+h2            { font-size: 16pt; margin-top: 2em; }
+h3            { font-size: 14pt; margin-top: 1.5em; }
+p             { margin: 0; text-indent: 1.5em; }
+p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
+table         { border-collapse: collapse; margin: 1em auto; font-size: 11pt; }
+th, td        { border: 1px solid #666; padding: 4px 8px; }
+th            { background: #eee; }
+code          { font-size: 10pt; background: #f4f4f4; padding: 1px 3px; overflow-wrap: anywhere; }
+pre           { font-size: 10pt; background: #f4f4f4; padding: 8px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* One overflowing example makes Chrome shrink the ENTIRE printed book.
+   Override pandoc's unbreakable code spans, including its print hanging indent.
+   Wrap long tokens only when necessary; never fit the page by shrinking type. */
+pre code, pre > code.sourceCode { white-space: pre-wrap; overflow-wrap: anywhere; }
+pre > code.sourceCode > span { display: inline; text-indent: 0; padding-left: 0; }
+th, td        { overflow-wrap: anywhere; }
+/* Black ink on white paper: preserve syntax emphasis without pale token colors. */
+pre, code, div.sourceCode, pre *, code * {
+  color: #000 !important;
+  background: #fff !important;
+}
+blockquote    { margin: 1em 2em; font-style: italic; }
+.front-matter          { page-break-after: always; padding-top: 4em; }
+.front-matter p        { text-indent: 0; margin-bottom: 1em; }
+.fm-title              { font-size: 22pt; font-weight: bold; text-align: center; margin-bottom: 0.3em !important; }
+.fm-subtitle           { font-size: 14pt; text-align: center; font-style: italic; margin-bottom: 2em !important; }
+.fm-section-head       { font-weight: bold; margin-top: 2em !important; }
+.dedication            { page-break-after: always; padding-top: 10em; text-align: center; font-style: italic; }
+.dedication p          { text-indent: 0; }
+.tocpg                 { float: right; }
+</style>

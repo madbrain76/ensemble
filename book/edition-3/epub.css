@@ -1,0 +1,52 @@
+/* Ebook-only overrides. The print PDF uses book/print-header.html instead,
+   and its code spacing is already correct — do not port these rules there.
+
+   PROBLEM: code blocks render with roughly double line spacing in the
+   ebook while looking fine in the PDF.
+
+   ROOT CAUSE (measured, not guessed): pandoc injects a syntax-highlighting
+   <style> block into every chapter xhtml, and it contains
+
+     pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+
+   Every single line of a highlighted code block is its own inline-block.
+   Inside white-space:pre the literal newline separating those spans is
+   preserved, so each code line costs a line box PLUS the newline — one
+   blank line per line of code.
+
+   ABOUT !important: pandoc emits its highlighting <style> in the head
+   BEFORE the <link> to this stylesheet, so this file already wins on
+   source order at equal specificity. !important is kept as insurance,
+   because that ordering is an implementation detail of pandoc's EPUB
+   template and some readers inject stylesheets of their own. It is
+   deliberate, not sloppiness.
+
+   Fixing it this way keeps syntax highlighting. The alternative was
+   --syntax-highlighting=none, which removes the spans and the colours
+   with them. */
+
+pre > code.sourceCode > span {
+  display: inline !important;
+  line-height: 1.15 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-indent: 0 !important;
+}
+
+/* The empty per-line anchors exist so a web page can link to a code line.
+   They are useless in an ebook and are a known source of stray breaks. */
+pre > code.sourceCode > span > a:first-child {
+  display: none !important;
+}
+
+/* Pandoc gives empty lines an explicit height; let them be normal lines. */
+pre > code.sourceCode > span:empty {
+  height: auto !important;
+}
+
+/* Tighten code leading generally. Body text keeps the stylesheet default. */
+pre,
+pre code,
+pre > code.sourceCode {
+  line-height: 1.15 !important;
+}

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Ensemble</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <aside class="sidebar" aria-label="Ensemble sidebar">
+        <h1>Ensemble</h1>
+        <div role="tablist" aria-label="Sidebar">
+          <button id="agents-tab" role="tab" aria-controls="agents-panel" aria-selected="true">Agents</button>
+          <button id="context-tab" role="tab" aria-controls="context-panel" aria-selected="false">Context Management</button>
+          <button id="settings-tab" role="tab" aria-controls="settings-panel" aria-selected="false">Settings</button>
+        </div>
+        <section id="agents-panel" role="tabpanel" aria-labelledby="agents-tab">
+          <ul id="agent-tree" aria-label="Agents"></ul>
+          <form id="create-agent">
+            <label>Name <input id="agent-name" required autocomplete="off"></label>
+            <label>Model <input id="agent-model" placeholder="Application default" autocomplete="off"></label>
+            <label>Skill <input id="agent-skill" placeholder="Application default" autocomplete="off"></label>
+            <button>Create agent</button>
+          </form>
+          <p id="agent-status" role="status"></p>
+        </section>
+        <section id="settings-panel" role="tabpanel" aria-labelledby="settings-tab" hidden>
+          <div id="legacy-model-setting"><label>Model (current provider, between turns) <input id="model" type="text" autocomplete="off"></label></div>
+          <fieldset id="application-settings" hidden style="min-width: 0;">
+            <legend>Application settings — changes apply after restart</legend>
+            <p>Configuration file: <span id="application-path" style="overflow-wrap: anywhere;"></span></p>
+            <p id="application-active" style="overflow-wrap: anywhere;"></p>
+            <p id="application-restart" role="status" hidden>Restart required to apply saved application settings.</p>
+            <label for="provider-vendor">Provider (saved)</label>
+            <select id="provider-vendor"><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option><option value="gemini">Gemini</option></select>
+            <label for="provider-model">Model (saved, next restart)</label>
+            <input id="provider-model" type="text" autocomplete="off" style="width: 100%; box-sizing: border-box;">
+            <label for="provider-billing-mode">Billing mode</label>
+            <select id="provider-billing-mode"><option value="api">API</option><option value="codex">Codex</option><option value="chatgpt">ChatGPT</option></select>
+            <label for="provider-reasoning-effort">Reasoning effort</label>
+            <select id="provider-reasoning-effort"><option value="">Default</option><option>none</option><option>minimal</option><option>low</option><option>medium</option><option>high</option><option>xhigh</option></select>
+            <label for="provider-reasoning-summary">Reasoning summary</label>
+            <select id="provider-reasoning-summary"><option value="">Default</option><option>auto</option><option>concise</option><option>detailed</option></select>
+            <details id="application-advanced">
+              <summary>Advanced application settings</summary>
+              <label for="provider-base-url">Endpoint override</label>
+              <input id="provider-base-url" type="text" autocomplete="off" style="width: 100%; box-sizing: border-box;">
+              <label for="provider-credential-file">Credential file path</label>
+              <input id="provider-credential-file" type="text" autocomplete="off" style="width: 100%; box-sizing: border-box;">
+              <p>Leave the endpoint blank for the provider default. Credentials are loaded from a file; enter only its path, never API keys or tokens.</p>
+            </details>
+            <button id="save-application-settings" type="button" disabled>Save application settings</button>
+            <p id="application-status" role="status"></p>
+          </fieldset>
+          <label for="theme">Theme</label>
+          <select id="theme"><option>dark</option><option>light</option><option>system</option></select>
+          <label><input id="voice" type="checkbox" checked /> Read aloud</label>
+          <label for="tts-speed">Speech speed (approx.) <output id="speed-value">1</output>×</label>
+          <!-- Saved rates may fall between tenths; preserve them in the slider. -->
+          <input id="tts-speed" type="range" min="0.5" max="5" step="any" value="1" />
+          <label for="font-size">Font size</label>
+          <select id="font-size"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>22</option><option>24</option></select>
+          <p id="settings-status" role="status"></p>
+        </section>
+        <section id="context-panel" role="tabpanel" aria-labelledby="context-tab" hidden>
+          <fieldset id="memory-settings"><legend>Memory</legend></fieldset>
+          <label for="context-target">Context target (bytes; 0 = 400,000)</label>
+          <input id="context-target" type="number" min="0" step="1" value="0" />
+          <label for="log-retention">Saved log events (0 = all)</label>
+          <input id="log-retention" type="number" min="0" step="1" value="0" />
+        </section>
+      </aside>
+      <div class="drag-bar" id="sidebar-drag" role="separator" aria-label="Sidebar width" aria-orientation="vertical" tabindex="0"></div>
+      <section class="center" aria-label="Chat">
+        <header>
+          <h2 id="conversation-title">Chat</h2><span id="state" role="status">connecting</span>
+          <span id="pause-state"></span>
+          <span id="usage" aria-label="Session usage" title="No requests this session">Cost — · Input 0 · Cache 0 · Hit 0%</span>
+          <button id="resume">Unpause everyone</button><button id="interrupt">Interrupt turn</button>
+        </header>
+        <section id="artifacts" class="scroll" aria-label="Conversation"></section>
+        <form id="input-form">
+          <label for="input">Message or hint while busy</label><textarea id="input" rows="2" autofocus></textarea><button>Send</button>
+        </form>
+        <p id="speech-status" role="status"></p>
+      </section>
+      <div class="drag-bar" id="actions-drag" role="separator" aria-label="Actions width" aria-orientation="vertical" tabindex="0"></div>
+      <section class="actions" aria-label="Actions">
+        <header><h2>Actions</h2></header>
+        <section id="actions" class="scroll" aria-label="Tool activity"></section>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

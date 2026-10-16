@@ -1,0 +1,59 @@
+{
+  "checked_at_utc": "2026-10-16T15:03:22.971297+00:00",
+  "source_commit": "4309d5688992f64067f4f75e1cef6bd2e9e25e6a",
+  "original_files_checked": 278,
+  "source_drift": [],
+  "copied_application_files_checked": 231,
+  "copied_application_drift": [],
+  "changed_book_files": [
+    "book/edition-3/README.md",
+    "book/edition-3/chapter-00.md",
+    "book/edition-3/chapter-01.md",
+    "book/edition-3/chapter-02.md",
+    "book/edition-3/chapter-03.md",
+    "book/edition-3/chapter-04.md",
+    "book/edition-3/chapter-05.md",
+    "book/edition-3/chapter-06.md",
+    "book/edition-3/chapter-07.md",
+    "book/edition-3/chapter-08.md",
+    "book/edition-3/chapter-09.md",
+    "book/edition-3/chapter-10.md",
+    "book/edition-3/chapter-11.md",
+    "book/edition-3/chapter-12.md",
+    "book/edition-3/chapter-13.md",
+    "book/edition-3/chapter-14.md",
+    "book/edition-3/chapter-17.md",
+    "book/edition-3/chapter-18.md",
+    "book/edition-3/chapter-22.md",
+    "book/edition-3/chapter-24.md",
+    "book/edition-3/chapter-25.md",
+    "book/edition-3/chapter-26.md",
+    "book/edition-3/chapter-writing-procedure.md",
+    "book/edition-3/chapters.md",
+    "book/edition-3/epilogue.md",
+    "book/edition-3/front-matter-print.md",
+    "book/edition-3/front-matter.md"
+  ],
+  "word_counts": {
+    "before": 161373,
+    "after": 161947,
+    "delta": 574,
+    "growth_percent": 0.3557
+  },
+  "local_link_paths_checked": 103,
+  "missing_local_link_paths": [],
+  "new_missing_local_link_paths": [],
+  "added_trailing_whitespace": [],
+  "verbatim_preserved": [
+    "preface.md",
+    "note-from-bill.md",
+    "the-art-of-building-ai-coding-agents.md"
+  ],
+  "checks_not_run": [
+    "URL and anchor resolution",
+    "Markdown/PDF/EPUB rendering",
+    "Edition 3 graders and student execution",
+    "independent text review (explicitly omitted for preparation)"
+  ],
+  "status": "pass"
+}
