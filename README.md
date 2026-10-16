@@ -45,24 +45,75 @@ the paths and source revisions at which they were measured; the
 
 ## Build and run
 
-Use the Go version declared in each module. Build from the module directory:
+### Prerequisites
+
+- Go **1.25 or newer** (see the runtime modules' `go.mod` files).
+- GNU Make and a Unix-like shell (macOS or Linux).
+- Network access on the first build to download Go dependencies.
+- For chat, a supported provider account, credentials and a model available to
+  that account.
+
+### Build
+
+From `projects/ensemble` (the directory containing this README), run:
 
 ```sh
-mkdir -p bin
-(cd agent && go build -o ../bin/ensemble .)
-(cd agent/gui && go build -o ../../bin/ensemble-gui ./cmd)
+make
 ```
 
-For API-key use, select `LLM_VENDOR`, `LLM_MODEL` and `LLM_API_KEY`, then run the
-CLI from the workspace you want it to use:
+This creates **`./ensemble`**, the browser application with terminal input.
+The browser assets are embedded: no Node, npm or separate frontend build is
+needed. Run `make` again after updating the source; Go caches unchanged work.
+`make build` is equivalent. The executable is built for your current platform.
+
+### Configure and run
+
+For API-key use, set `LLM_VENDOR` (`anthropic`, `openai` or `gemini`),
+`LLM_MODEL` and `LLM_API_KEY` in your environment, then run:
 
 ```sh
-/path/to/ensemble/bin/ensemble chat --skills-dir /path/to/ensemble/agent/skills
+./ensemble --workspace "$PWD" --skills-dir "$PWD/agent/skills"
 ```
 
 Choose a model supported by the implementation and available to your account.
-The application [README](agent/README.md) documents configuration, authentication,
-streaming and persistence; the [GUI README](agent/gui/README.md) covers the browser.
+Supply the API key securely rather than putting it in a command or shell history.
+Open **http://localhost:8088** (or the address printed at startup). You can chat
+in the browser or the terminal; Ctrl-C stops the application. `./ensemble --help`
+lists launch options, including `--port` for a different browser port.
+Conversation state and logs are written in the launch directory by default;
+`--workspace` selects where the agent's tools work.
+
+For persistent configuration, copy
+[`agent/gui/settings.example.json`](agent/gui/settings.example.json) to a private
+session directory as `settings.json`. Edit the provider/model, `workspace` and
+`skills_dir` paths, and set `provider.credential_file` to a private plain-text API
+key file (restrict its permissions with `chmod 600`). Do not put secrets in the
+settings JSON. Relative paths resolve against the settings file's directory;
+the example paths must be adjusted for your chosen session directory. Launch with:
+
+```sh
+./ensemble --config /absolute/path/to/session/settings.json
+```
+
+In this mode the settings file, not provider environment variables, controls the
+application. See the [GUI README](agent/gui/README.md) for the settings schema,
+authentication choices and browser controls.
+
+### Optional terminal-only client and cleanup
+
+```sh
+make cli
+./bin/ensemble chat --skills-dir "$PWD/agent/skills"
+```
+
+This separate client uses the same provider environment variables. Run it from
+its intended workspace, using absolute binary and skills paths if necessary.
+The application [README](agent/README.md) documents its authentication, streaming
+and persistence options.
+
+`make clean` removes `ensemble` and `bin/ensemble`, but leaves settings,
+credentials, conversations and logs alone. Existing grading and book targets
+remain available below.
 
 For the optional Chapter 24 route, an existing Codex sign-in supplies the
 read-only credential file. This example keeps conversation state outside the
@@ -76,7 +127,7 @@ mkdir -p "$HOME/ensemble-session"
   unset LLM_BASE_URL OPENAI_BASE_URL LLM_RESOLVED_MODEL
   LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
   OPENAI_REASONING_EFFORT=high OPENAI_BILLING_MODE=codex \
-    "$ensemble_repo/bin/ensemble-gui" \
+    "$ensemble_repo/ensemble" \
     --workspace "$ensemble_repo" \
     --skills-dir "$ensemble_repo/agent/skills" --save save.json
 )

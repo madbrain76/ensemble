@@ -1,3 +1,23 @@
+# Build the browser/terminal application by default, not the book tooling.
+.DEFAULT_GOAL := all
+GO ?= go
+
+.PHONY: all build ensemble cli clean
+all: build
+build: ensemble
+
+# Let Go track source, nested-module and embedded-asset dependencies.
+ensemble:
+	cd agent/gui && $(GO) build -o ../../ensemble ./cmd
+
+# Optional terminal-only client; retain the documented bin/ensemble path.
+cli:
+	mkdir -p bin
+	cd agent && $(GO) build -o ../bin/ensemble .
+
+clean:
+	rm -f ensemble bin/ensemble
+
 .PHONY: test vet fmt lint-prose grade grade-dir fake fake-serve book ebook
 
 # The root module contains grading/tooling; runtime modules remain separate.
