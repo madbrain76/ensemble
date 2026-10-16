@@ -1,0 +1,4 @@
+=== RUN   TestConversation
+--- PASS: TestConversation (0.00s)
+PASS
+ok  	ensemble	0.009s

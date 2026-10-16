@@ -1,0 +1,1 @@
+Scoped R1 verification completed successfully; evidence saved.

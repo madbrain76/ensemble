@@ -1,6 +1,6 @@
 # Edition 3 readiness closure
 
-Bill authorized closing the known preparation issues before execution on 2026-10-16. This is a bounded preparation gate, not a new author-led design pass. Baseline preparation commit: `2be995ebc12c6a7efb21cee3b9740a758489adda`. No student has started.
+Bill authorized closing the known preparation issues before execution on 2026-10-16. This is a bounded preparation gate, not a new author-led design pass. Baseline preparation commit: `2be995ebc12c6a7efb21cee3b9740a758489adda`. At that preparation checkpoint, no student had started. Current execution progress is recorded in [the execution guide](edition-3-execution.md).
 
 This checklist records the facts submitted for independent acceptance. The frozen review manifest and final verdict are `edition-3-notes/readiness-review-manifest.json` and `edition-3-notes/readiness-review.md`; the checklist alone is not a review verdict.
 

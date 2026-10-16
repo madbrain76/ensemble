@@ -15,11 +15,13 @@ Do not read `agent/`, `solutions/`, `edition-1/`, future chapters, grader implem
 
 Chapter 1 starts from an empty source tree. Later chapters extend your exact accepted predecessor; do not copy the full reference. The orchestrator supplies the assigned chapter revision, accepted predecessor and grader revision. No later capabilities early. Implement required behavior with the simplest adequate design, with useful explanations of non-obvious choices.
 
-Run the assigned chapter grader with the student path explicitly present. For Chapter 1's Edition 3 grader, from `/Users/bill/projects/ensemble` (the repository-root Go module, not `agent/`):
+Run the assigned chapter grader with an explicit positional target. Chapter 1 accepts a supported solution directory or a built CLI executable. If your public root is a library with a nested CLI, follow the chapter's “Grade yourself” build instructions rather than grading the library directory. For the executable, from `/Users/bill/projects/ensemble` (the repository-root Go module, not `agent/`):
 
 ```sh
-go run ./cmd/grade-edition3 -ch 1 -json /Users/bill/projects/ensemble-edition-3-student
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/your/student-cli
 ```
+
+Substitute the executable you actually built; its package layout is your implementation choice.
 
 The Edition 3 command requires an explicit target and currently supports Chapter 1 only; it preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 

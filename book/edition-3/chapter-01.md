@@ -628,15 +628,31 @@ paying in Chapter 3, and that is where it gets graded.
 
 ### Grade yourself
 
-Free, as often as you like:
+Free, as often as you like. Run the grader from this book repository's root.
+For a solution with a main package at its root or directly in `cmd/`, pass the
+solution directory:
 
 ```bash
 go run ./cmd/grade-edition3 -ch 1 path/to/your/solution
 # Add -json before the solution path for machine output.
 ```
 
-Run this from the repository root. Edition 3 retains the seven conversation
-checks and adds two required, zero-point lifetime gates: real 62-second delays
+Directory builds do not discover nested commands such as `cmd/ch01`. For that
+layout, build the CLI from your solution's Go module root, then pass the
+executable instead:
+
+```bash
+cd /absolute/path/to/your/solution
+go build -o /absolute/path/to/ch01 ./cmd/ch01
+cd /absolute/path/to/this/book/repository
+go run ./cmd/grade-edition3 -ch 1 /absolute/path/to/ch01
+```
+
+Substitute your actual paths and CLI package. Building a library root produces
+an archive, not a runnable CLI; you do not need to move your main package.
+
+Edition 3 retains the seven conversation checks and adds two required,
+zero-point lifetime gates: real 62-second delays
 before response headers and during the response body, taking about two minutes
 in total. Require `passed: true`; a score of 100 alone is not a pass.
 
