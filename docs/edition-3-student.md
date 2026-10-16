@@ -23,6 +23,17 @@ go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/your/student-cli
 
 Substitute the executable you actually built; its package layout is your implementation choice.
 
+For Chapter 2, follow its revised exercise and run both existing graders against
+that same built executable from the book repository root:
+
+```sh
+go run ./cmd/grade-edition2 -ch 2 -json /absolute/path/to/your/student-cli
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/your/student-cli
+```
+
+Both must pass and exit successfully. The second command preserves inherited
+Chapter 1 obligations; it does not replace the Chapter 2 pass.
+
 The Edition 3 command requires an explicit target and currently supports Chapter 1 only; it preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.

@@ -726,6 +726,12 @@ one vendor and undercount on another, producing a cost figure that is
 confidently wrong in opposite directions depending on which model you are
 talking to. Nothing crashes. No test fails. You act on the number for months.
 
+For OpenAI Chat Completions, those cache counts live at
+`usage.prompt_tokens_details.cached_tokens` and
+`usage.prompt_tokens_details.cache_write_tokens`. The latter is optional in
+the [current API reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+An omitted bucket stays zero; do not infer a cache write from its absence.
+
 The canonical form: the four fields are disjoint and sum to the billable
 total. Where a vendor's convention is a subset, the parser subtracts; where it
 is already disjoint, it passes through. The exercise grades that arithmetic
@@ -1251,11 +1257,25 @@ as well as replay, and the interleaved-result case from Exhibit B. Exact Ref
 carryforward through the reducer remains a source-test and review obligation;
 a secret-free rendered stub alone cannot prove which locator survived inside.
 
-From the repository root, grade your own directory with:
+Build the package that owns your CLI, not necessarily the module root. For
+the inherited `cmd/ch01` layout, run this from your implementation directory:
 
 ```bash
-go run ./cmd/grade-edition2 -ch 2 path/to/your/solution
+go build -o /absolute/path/to/student-cli ./cmd/ch01
 ```
+
+Use `.` instead of `./cmd/ch01` if your `main` package is at the module root;
+no package move is needed. From the book repository root, run both existing
+graders against that same executable:
+
+```bash
+go run ./cmd/grade-edition2 -ch 2 -json /absolute/path/to/student-cli
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/student-cli
+```
+
+Chapter 2 still uses the Edition 2 grader. The Edition 3 Chapter 1 pass retains
+the inherited conversation and request-lifetime checks. Require a successful
+exit and `passed: true` from both, not just a score of 100.
 
 The revised table preserves 100 points. The old four-point URI-render check is
 removed from this chapter's scope and its points join the corrected redaction
@@ -1285,13 +1305,14 @@ not demonstrate the program you just wrote.
 The fake's scripted replies do not depend on understanding what you said.
 A fake proves your plumbing, not your prompting.
 
-Build from your implementation directory, then use your actual chat interface
-against all three. Before each invocation, set `LLM_MODEL`, `LLM_API_KEY` and
-`LLM_BASE_URL` for that provider, using a discovered model rather than a name
-remembered from the book:
+Build your CLI package from your implementation directory, then use your
+actual chat interface against all three. The example below uses the inherited
+`cmd/ch01` layout; use `.` if your `main` package is at the module root. Before
+each invocation, set `LLM_MODEL`, `LLM_API_KEY` and `LLM_BASE_URL` for that
+provider, using a discovered model rather than a name remembered from the book:
 
 ```
-go build -o ch02 .
+go build -o ch02 ./cmd/ch01
 LLM_VENDOR=anthropic CH02_LOG=anthropic.jsonl ./ch02 chat
 LLM_VENDOR=openai CH02_LOG=openai.jsonl ./ch02 chat
 LLM_VENDOR=gemini CH02_LOG=gemini.jsonl ./ch02 chat

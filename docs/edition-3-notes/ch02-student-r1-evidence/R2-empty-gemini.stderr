@@ -1,0 +1,3 @@
+input=11 output=2 cache_write=0 cache_read=0
+engine request failed
+error: gemini response contained no candidates
