@@ -86,6 +86,24 @@ interruption and job behavior, round-budget semantics, media loading, actual
 workflow tool effects and human-interface exercises still require their own
 focused tests and independent acceptance beyond those scores.
 
-The Edition 3 command requires an explicit target and currently supports Chapters 1, 4 and 5. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+For Chapter 6, build the actual CLI and identify the core, inherited consumer,
+workflow, and separate public-API streaming exercise modules explicitly. From
+the book repository root run:
+
+```sh
+go run ./cmd/grade-edition3 -ch 6 -json -core /absolute/path/to/your/core-module -consumer /absolute/path/to/your/consumer-module -workflow /absolute/path/to/your/workflow-module -stream-exercise /absolute/path/to/your/stream-exercise-module -stream-model YOUR_DECLARED_STREAMING_MODEL /absolute/path/to/your/student-cli
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/your/student-cli
+```
+
+The streaming model is required and must select an explicit capability row in
+your core; the adapter does not invent one. Put optional `-consumer-case` and
+`-media-models` JSON paths before the executable as above. The first report
+retains the existing Chapter 6 checks and Chapter 5 parity; the second retains
+the lifetime obligation on the same binary. Both must pass and exit zero.
+Actual arrival order, early human CLI delivery, SSE framing, source-bound replay,
+and inherited job wake-up behavior still require the chapter's public-interface
+tests, source review and independent acceptance beyond those reports.
+
+The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5 and 6. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.

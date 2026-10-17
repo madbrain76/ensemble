@@ -1,0 +1,8 @@
+{
+  "name": "shout",
+  "arguments": {
+    "text": "hello framework"
+  },
+  "result": "HELLO FRAMEWORK",
+  "diagnostic": "shout called"
+}

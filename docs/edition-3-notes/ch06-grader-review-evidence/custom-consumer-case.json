@@ -1,0 +1,8 @@
+{
+  "name": "shout",
+  "arguments": {
+    "text": "hello framework"
+  },
+  "result": "ADAPTER CASE FORWARDING EXPECTATION",
+  "diagnostic": "ADAPTER CASE FORWARDING DIAGNOSTIC"
+}

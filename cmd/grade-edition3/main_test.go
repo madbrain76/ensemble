@@ -63,7 +63,7 @@ func TestHelpSucceedsWithoutLaunchingTarget(t *testing.T) {
 	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked >> "+strconv.Quote(marker)+"\nexit 1\n"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}} {
+	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}} {
 		if got := run(args); got != 0 {
 			t.Errorf("run(%q) = %d, want 0", args, got)
 		}
@@ -116,5 +116,75 @@ func TestChapter5ValidationBeforeLaunch(t *testing.T) {
 				t.Fatalf("invalid input launched target: %v", err)
 			}
 		})
+	}
+}
+
+func TestChapter6ValidationBeforeLaunch(t *testing.T) {
+	dir := t.TempDir()
+	module := filepath.Join(dir, "module")
+	if err := os.Mkdir(module, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(module, "go.mod"), []byte("module example.test/core\n\ngo 1.25\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	badJSON := filepath.Join(dir, "bad.json")
+	if err := os.WriteFile(badJSON, []byte("{"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	badModels := filepath.Join(dir, "bad-models.json")
+	if err := os.WriteFile(badModels, []byte(`{"anthropic":""}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	marker := filepath.Join(dir, "invoked")
+	target := filepath.Join(dir, "sentinel")
+	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked >> "+strconv.Quote(marker)+"\nexit 99\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	base := []string{"-ch", "6", "-core", module, "-consumer", module, "-workflow", module, "-stream-exercise", module, "-stream-model", "declared-model"}
+	check := func(name string, flags []string) {
+		t.Helper()
+		t.Run(name, func(t *testing.T) {
+			args := append(append([]string(nil), flags...), target)
+			if code := run(args); code != 2 {
+				t.Fatalf("run(%q) exit=%d, want 2", args, code)
+			}
+			if _, err := os.Stat(marker); !os.IsNotExist(err) {
+				t.Fatalf("invalid input launched target: %v", err)
+			}
+		})
+	}
+	for _, flag := range []string{"-core", "-consumer", "-workflow", "-stream-exercise", "-stream-model"} {
+		args := make([]string, 0, len(base))
+		for i := 0; i < len(base); i += 2 {
+			if base[i] != flag {
+				args = append(args, base[i], base[i+1])
+			}
+		}
+		check("missing "+flag, args)
+		check("empty "+flag, append(append([]string(nil), base...), flag, ""))
+	}
+	for _, flag := range []string{"-core", "-consumer", "-workflow", "-stream-exercise"} {
+		check("non-module "+flag, append(append([]string(nil), base...), flag, dir))
+		check("absent "+flag, append(append([]string(nil), base...), flag, filepath.Join(dir, "absent")))
+	}
+	check("blank model", append(append([]string(nil), base...), "-stream-model", " \t\n"))
+	for _, flag := range []string{"-consumer-case", "-media-models"} {
+		check("bad JSON "+flag, append(append([]string(nil), base...), flag, badJSON))
+		check("missing JSON "+flag, append(append([]string(nil), base...), flag, filepath.Join(dir, "absent.json")))
+	}
+	check("invalid model schema", append(append([]string(nil), base...), "-media-models", badModels))
+	for _, chapter := range []string{"1", "4", "5"} {
+		args := []string{"-ch", chapter}
+		if chapter != "1" {
+			args = append(args, "-core", module, "-consumer", module)
+		}
+		if chapter == "5" {
+			args = append(args, "-workflow", module)
+		}
+		for _, flag := range []string{"-stream-exercise", "-stream-model"} {
+			check("older chapter "+chapter+" empty "+flag, append(append([]string(nil), args...), flag+"="))
+			check("older chapter "+chapter+" nonempty "+flag, append(append([]string(nil), args...), flag, "not-valid-here"))
+		}
 	}
 }
