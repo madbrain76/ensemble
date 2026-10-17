@@ -591,6 +591,13 @@ A hint arriving during HTTP cannot rewrite bytes already sent; record the
 request boundary before releasing the transport worker. The hint does not
 start a new turn and does not change the turn state.
 
+An HTTP response containing only assistant text is also a delivery boundary.
+If a hint arrived while that request was in flight, preserve the assistant
+reply, apply the pending hint and continue the same turn with another request.
+The student's first implementation returned the final reply instead, leaving
+the admitted hint waiting for a later `Ask`. Receiving the hint promptly had
+not made it useful to the model.
+
 **Recording a result** records the tool result as a `ToolReturned` event,
 checks whether all outstanding calls have results, and if so, sends
 the accumulated results back to the vendor for the next round.
@@ -644,6 +651,14 @@ completion arrive together, retain both, resolve each observation call only
 once, and retire its timer so it cannot produce a ghost return during a later
 wait. Job-completion events and reliable per-request replies remain separate
 from lossy observer notifications.
+
+An output notification asks a waiter to recheck its conditions; it need not
+finish the observation. During the wakeup implementation, returning on every
+new byte made `send_input` report a running PTY's echo before the process
+exited. The immediate read of already-available bytes on resumed
+`wait_for_job` is a different case. `send_input` retains its pattern,
+completion or callback-delay conditions unless an actual hint or question
+wakes the observation.
 
 Bill saw why this matters: "Your student agents keep calling you, and you're
 stuck in join_agents, and don't wake up. The student calls time out, and they

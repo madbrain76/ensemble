@@ -1,0 +1,2 @@
+> NEW_TURN_OK
+> The real job printed CH05_JOB_FINISHED. RETAINED_INSPECTED

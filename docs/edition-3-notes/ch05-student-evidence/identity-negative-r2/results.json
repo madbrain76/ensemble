@@ -1,0 +1,12 @@
+[
+  {
+    "case": "wrong-source",
+    "exit_code": 2,
+    "refused": true
+  },
+  {
+    "case": "wrong-binary",
+    "exit_code": 2,
+    "refused": true
+  }
+]

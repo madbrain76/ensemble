@@ -66,6 +66,26 @@ resolved by the consumer, not a similarly named copy. Required focused tests,
 source ownership review, job lifecycle/cursor/limit checks and inherited
 selected-model policy evidence remain necessary beyond those reports.
 
-The Edition 3 command requires an explicit target and currently supports Chapters 1 and 4. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+For Chapter 5, build the actual CLI and keep the core, external consumer and
+three-Agent workflow as explicit module paths. Run from the book repository root:
+
+```sh
+go run ./cmd/grade-edition3 -ch 5 -json -core /absolute/path/to/your/core-module -consumer /absolute/path/to/your/consumer-module -workflow /absolute/path/to/your/workflow-module /absolute/path/to/your/student-cli
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/your/student-cli
+```
+
+Put optional `-consumer-case /absolute/case.json` and
+`-media-models /absolute/media-map.json` before the executable. The media mapping
+is a JSON object with exactly the nonempty `anthropic`, `openai`, and `gemini`
+model IDs selecting your explicit capability rows; it selects grader inputs,
+not live-provider capabilities. The case uses the chapter's public schema.
+Both reports must pass on that same executable. The first retains Chapter 5's
+seven checks and 100-point total, including Chapter 4 parity; the second
+retains inherited lifetime checks. Public actor/reply/observer contracts,
+interruption and job behavior, round-budget semantics, media loading, actual
+workflow tool effects and human-interface exercises still require their own
+focused tests and independent acceptance beyond those scores.
+
+The Edition 3 command requires an explicit target and currently supports Chapters 1, 4 and 5. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.

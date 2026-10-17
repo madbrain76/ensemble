@@ -1,0 +1,3 @@
+cwd: /Users/bill/projects/ensemble
+environment: GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off
+command: go run ./cmd/lintprose -v /tmp/cadence-ch05-poststudent-baseline/chapter-05.md
