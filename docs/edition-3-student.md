@@ -47,6 +47,25 @@ tests and source review for the selected-model explanation policy: grader
 scores alone do not establish it. The chapter leaves the policy-selection
 interface to the implementation; no hidden activation flag is required.
 
-The Edition 3 command requires an explicit target and currently supports Chapter 1 only; it preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+For Chapter 4, the Edition 3 command exposes the chapter's existing grading
+checks with separate executable, core-source and external-consumer identities.
+Build your actual CLI; do not turn a public library root into `main` to suit a
+builder. From the book repository root run:
+
+```sh
+go run ./cmd/grade-edition3 -ch 4 -json -core /absolute/path/to/your/core-module -consumer /absolute/path/to/your/consumer-module /absolute/path/to/your/student-cli
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/your/student-cli
+```
+
+For a consumer other than the default `shout` example, add
+`-consumer-case /absolute/path/to/case.json` before the executable, using the
+chapter's public case schema. The first report retains the chapter's 160-point
+jobs/inherited/consumer checks; the second retains the lifetime obligation on
+that same executable. Both must pass. The core path must be the actual module
+resolved by the consumer, not a similarly named copy. Required focused tests,
+source ownership review, job lifecycle/cursor/limit checks and inherited
+selected-model policy evidence remain necessary beyond those reports.
+
+The Edition 3 command requires an explicit target and currently supports Chapters 1 and 4. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.

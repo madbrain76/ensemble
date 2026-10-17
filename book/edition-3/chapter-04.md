@@ -405,6 +405,13 @@ and one more category the model has to hold in its head, and a limit set
 several calls ago and still pending is a persistent escape hatch wearing a
 friendlier name. *The next call* is a rule a model can keep.
 
+When that next call is another `tool_limits`, separate what it consumes from
+what it sets. The old pending limits govern observation of this call and are
+then spent. The new pending limits start from defaults plus only the fields
+explicitly supplied to this new setter. A byte cap set by the first call must
+not survive merely because the second sets only a delay; omitted fields go
+back to their defaults, not to the consumed values.
+
 The footgun in a one-shot setting is a silent misfire, and a live model named
 it first: "it's easy to burn it on the wrong thing." You set
 `max_output_bytes: 200000` for the `read_file` you are about to make, glance
@@ -784,18 +791,38 @@ save this as `consumer-case.json`:
 {"name":"shout","arguments":{"text":"hello framework"},"result":"HELLO FRAMEWORK","diagnostic":"shout called"}
 ```
 
-From the course repository root:
+Build the actual CLI package from your core module. For a public library at
+the module root with a nested command, substitute that command's path here;
+use `.` instead if your CLI is at the module root:
 
 ```bash
-go run ./cmd/grade-edition2 -ch 4 -consumer path/to/consumer -consumer-case consumer-case.json path/to/core
+go build -o /tmp/ch4agent ./cmd/your-cli
 ```
+
+From the book repository root, run both gates against that same executable:
+
+```bash
+go run ./cmd/grade-edition3 -ch 4 -json -core /absolute/path/to/your/core-module -consumer /absolute/path/to/your/consumer-module /tmp/ch4agent
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch4agent
+```
+
+The positional target is the executable, not the library directory. `-core`
+names the actual core module resolved by the separate `-consumer` module, not
+a similarly named copy. This keeps the executable under test distinct from
+the source inspected for the public boundary; it does not require a particular
+package layout. The Chapter 4 report retains the 160 points above. The Chapter
+1 pass checks inherited lifetime obligations on the same binary. Both reports
+must have `passed: true` and successful exit status; score alone is not enough.
+The Edition 3 command currently supports Chapters 1 and 4, not Chapters 2 or 3.
 
 The case file is grader input, not a new product configuration format. Choose
 your own tool and a result derived from its arguments; the grader supplies that
-call through its fake and checks the next request. The default case, when the
-flag is omitted, is the `shout` case above. The grader builds the ordinary core
-CLI separately and runs its inherited jobs checks; the consumer does not
-replace that binary or need to understand the CLI's JSON-lines protocol.
+call through its fake and checks the next request. The default case is the
+`shout` case above. For another case, add
+`-consumer-case /absolute/path/to/consumer-case.json` before the executable;
+all flags precede that positional target. The grader builds the consumer
+separately. It does not replace the core binary or need to understand the
+CLI's JSON-lines protocol.
 
 The numeric result has limits. Independent source review still checks actual
 parent relationships, Ensemble-owned logging, behavior in the correct package
@@ -884,13 +911,15 @@ scheduler. Four supervision tools and one ordinary-job path.
 Ungraded, and the one to do first, because this is the chapter where the
 frustration from the end of Chapter 3 gets its answer.
 
-Rebuild your own binary from its module directory. Configure the provider,
-discovered model, endpoint and selected key as in Chapter 3, keeping the key
-out of command arguments and tool subprocesses. Then go back to a disposable
-project:
+Rebuild your own binary from its module directory, naming the actual CLI
+package as in the grading example. Replace `./cmd/your-cli` below with that
+package (`.` for a root command), not a public library package. Configure the
+provider, discovered model, endpoint and selected key as in Chapter 3, keeping
+the key out of command arguments and tool subprocesses. Then go back to a
+disposable project:
 
 ```
-go build -o /tmp/ch4agent .
+go build -o /tmp/ch4agent ./cmd/your-cli
 cd /path/to/scratch/project
 CH02_LOG=session.jsonl /tmp/ch4agent chat
 ```
