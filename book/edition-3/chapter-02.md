@@ -868,6 +868,29 @@ within the remaining content. The original log and Context keep arrival order;
 only Anthropic's disposable request gets that grouping. The student's first
 tests passed with the bad ordering. An independent offline replay exposed it.
 
+An interruption can leave history with a tool call and no recorded result. That
+absence does not establish whether the tool ran, failed or succeeded. While
+rendering, look for the real recorded result correlated to each call, including
+one that arrived later; use it whenever present. Do not rerun the tool to repair
+a transcript.
+
+For a missing result, use this bridge's recovery policy: emit a deterministic,
+wire-only `tool_result` with the exact call ID as `tool_use_id`,
+`is_error: true`, and the text “No result was recorded; execution outcome
+unknown.” The error flag describes the missing record, not a diagnosed tool
+failure; do not fabricate success either. Normalize only the disposable wire
+projection. Never mutate history or Context or append synthetic facts to either.
+Group all results immediately after their assistant `tool_use` message, before
+any intervening user text. Validate call/result pairing, adjacency and block
+order before sending; if the history cannot be represented safely, return a
+local error instead of malformed HTTP.
+
+Test a single missing result and a partially completed multi-call batch with
+intervening user text. A real result arriving later must supersede the placeholder
+in a freshly rendered projection. Check deterministic replay and an unchanged
+dumped log. These are renderer tests over supplied history; Chapter 2 still
+requires no actor or tool-execution machinery.
+
 ### Exhibit C: parsing back
 
 Three response shapes normalize to one context:
