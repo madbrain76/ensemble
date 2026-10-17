@@ -102,8 +102,12 @@ question came up during the build: "Even `read_file` can hang if an NFS mount
 is unmounted." The cold open is a tool that was on the wrong side of that list.
 
 So the chapter's operating rule is that you cannot tell from a tool's name
-which side of the boundary it is on, and you should stop trying. Every tool
-call is a job. The cost of uniformity is stated in §4.3, and it is one
+which side of the boundary it is on, and you should stop trying. Every ordinary
+tool call is a job, including a quick `read_file` and a long
+`run_command`. Application-registered tools use that same dispatch path.
+When later chapters introduce `send_message`, `join_agents`, or tools served
+through MCP, their adapters inherit it too; this chapter does not require
+those frameworks. The cost of uniformity is stated in §4.3, and it is one
 function. The cost of the list is §4.6, and it was a shipped defect.
 
 ## 4.2 Four lines, and what they do not do
@@ -260,8 +264,10 @@ The log contract, so you do not guess it. Both `tool_called` and
 `tool_returned` carry `tool.job = {handle, status, output, bytes, exit_code?}`,
 with `status` one of `running`, `done`, `killed`, and `output` a
 `Ref{RefHandle, "cr/io/N"}`. The `job` field is absent on the four supervision
-tools; they are the only calls that are not jobs. One new event, `job_killed`,
-carries the job and a `reason` of `kill_job` or `shutdown`.
+tools; they are the only calls that are not jobs. A control can identify the
+existing job it observes or changes in its arguments and report, but receives
+no new job handle of its own. One new event, `job_killed`, carries the job and
+a `reason` of `kill_job` or `shutdown`.
 
 On disk the killed event uses a top-level `job` payload, with the reason inside
 that object. This is an illustrative event, not a live receipt:
@@ -287,10 +293,17 @@ work that is going fine and is waiting for an answer. A test runner asking
 `y/N`. A REPL. A debugger sitting at its prompt. §4.8 spends the whole
 chapter's budget on the last of those.
 
+A common observation result does not give every job an input stream.
+`send_input` actually sends input to jobs that support it, such as a PTY
+process. A file read or a join-like application handler need not accept stdin;
+report unsupported input honestly rather than pretending it was delivered.
+
 `wait_for_job` has one requirement that will cost you an hour if nobody says
 it. It must work on a job that has already finished. A student who
 implements it as "block on the channel" hangs forever on a completed job, and
 diagnoses it as a deadlock in their own code rather than a missing case.
+Return the retained terminal result immediately. Available unseen output can
+also be reported immediately; observing again never starts the handler again.
 
 Completion, new output and kill must also wake a waiter that is already
 blocked. Checking terminal state at entry covers a different ordering. A late
@@ -367,7 +380,10 @@ caller supplies it. So there is nothing to declare and no row to be missing
 from. The `send_secret` defect does not get caught by the second design.
 There is no longer anywhere to write it.
 
-Three limits, and they are ordinary arguments on the tools that wait:
+Three limits govern each observation: the initial ordinary-tool call and
+later calls that inspect its job. The delay is the maximum observation silence,
+not a timeout on the job; completion, available output or a matched pattern
+can return sooner. They are ordinary arguments on the tools that wait:
 
 | limit | default | on |
 |---|---|---|
@@ -404,6 +420,13 @@ rule, "applies to the next job-creating or waiting call," is one line of code
 and one more category the model has to hold in its head, and a limit set
 several calls ago and still pending is a persistent escape hatch wearing a
 friendlier name. *The next call* is a rule a model can keep.
+
+Dispatch consumes that setting in model-response order, including when one
+response contains both the setter and its target. Apply and consume the pending
+limits before validating or running the next call: an argument error or tool
+failure spends them too. This orders dispatch, not job completion; it requires
+no separate parallel-call framework. A call-specific override wins for that
+call without becoming a new pending setting.
 
 When that next call is another `tool_limits`, separate what it consumes from
 what it sets. The old pending limits govern observation of this call and are

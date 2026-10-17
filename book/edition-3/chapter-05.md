@@ -111,6 +111,13 @@ mailbox has a message, the loop drains it:
 - `Interrupt`: end the active turn, keep the actor receiving input and retain
   real results from jobs that continue.
 
+A live hint or an addressed incoming question must wake a foreground job
+observation promptly, even if the model chose an hour-long callback delay.
+Cancel that observation's timer, not the job. Return an honest, correlated
+observation result, deliver the message to the actor and model, and keep the
+same job handle for `wait_for_job`. This is neither Interrupt nor a rewrite of
+an HTTP request already in flight.
+
 The synchronous Ask API still exists. It posts a
 request with its own buffered reply channel and waits for that request's
 text or error. Concurrent blocking requests queue as separate turns;
@@ -242,7 +249,9 @@ and returns three role texts. Its observations and ordered completion markers
 do not, by themselves, establish that every manuscript tool works, stored edits
 reach the reviewer, or a saturated progress stream cannot lose request replies.
 Keep those required behaviors covered by real public-API integration tests and
-source review. Passing a marker check does not waive them.
+source review. Passing a marker check does not waive them. Nor does the existing
+`not-deaf` check establish prompt wakeup from a long foreground observation;
+§5.10 adds bounded offline regressions for that requirement.
 
 
 ## §5.1 The idea in plain words
@@ -493,6 +502,13 @@ pending and the loop will drain the queue. `Drain` returns everything
 and clears the queue. The mutex protects the slice; the channel is
 just a wake signal. The queue preserves arrival order and nothing else.
 
+An incoming question addressed to this Agent is actor input, not a lossy
+observer cue. Preserve its sender, recipient and request/turn correlation
+metadata through admission and delivery; the model needs the actual question,
+not merely a notification that somebody asked one. An application can deliver
+that event without this chapter building a child-agent framework. This live
+input does not change the separate-turn contract of blocking `Ask`/`Submit`.
+
 ### Why one queue
 
 A prompt, a hint, a tool completion, and an interrupt arrive through
@@ -519,7 +535,9 @@ They post their outcomes to the mailbox. The Agent is back at its
 mailbox drain loop, free to
 process hints and interrupts while the tool runs. The tool result
 arrives as a message, not a return value, and the actor processes it
-in queue order alongside everything else.
+in queue order alongside everything else. Keeping the actor free is only
+half the fix: a hint or question must also wake the foreground observation
+worker so the model receives it without waiting for the chosen callback delay.
 
 ## §5.5 The actor loop
 
@@ -566,10 +584,12 @@ serial within their batch, with each wait performed outside the actor.
 When no further calls or pending hints remain, the turn can finish.
 
 **Applying a hint** records the hint as a `HintReceived` event and
-attaches it to the pending context. The next vendor request will
-include it. A hint arriving during HTTP cannot rewrite bytes already sent;
-record the request boundary before releasing the transport worker. The hint does not start a new turn and does not change
-the turn state.
+attaches it to the pending context. If a foreground job observation is waiting,
+wake it promptly; its callback delay is a maximum silence, not a job timeout.
+The next vendor request will include the hint and the observation result.
+A hint arriving during HTTP cannot rewrite bytes already sent; record the
+request boundary before releasing the transport worker. The hint does not
+start a new turn and does not change the turn state.
 
 **Recording a result** records the tool result as a `ToolReturned` event,
 checks whether all outstanding calls have results, and if so, sends
@@ -581,6 +601,69 @@ calls honestly: a wait was interrupted, not necessarily its job. Refuse calls
 that were never dispatched. A later real report must not become a duplicate
 vendor result or finish a newer turn. The accepted implementation retains it
 as `job_report`, with the bytes still in the job output file.
+
+### Wake the observation, keep the work
+
+Suppose the model starts `go test ./...` and chooses a callback delay of 3,600
+seconds. A human then says, "Check the first failure before changing anything."
+The actor must receive that hint promptly and let the model act on it, rather
+than wait for the test, more output, or the hour. The same rule applies if the
+long wait is a later `wait_for_job` on that test's handle. The hour describes
+the model's chosen maximum silence; no demonstration has to let it elapse.
+
+Wakeup cancels the foreground observation timer, not the underlying test.
+Resolve the outstanding tool call once, under its original call id, with the
+existing job handle, bounded unseen output and truthful state: for example,
+"observation interrupted; job still running." If completion won the race,
+report the outcome actually observed instead. Do not leave an unresolved tool
+call in history, invent success or failure, resend the job, or end the actor's
+turn. Record the correlated return and incoming event before the next model
+request, keeping the save-before-reply rule below. The next request carries
+the hint or question as well as the observation result.
+
+At wakeup, finish pairing the current model-response batch before the next
+HTTP request. Preserve the original assistant calls and signatures, keeping
+completed calls' real results. Already dispatched jobs follow the observed-state
+rule above, not a fabricated execution failure. Every remaining **undispatched**
+call gets an error saying "interrupted; not executed," correlated to its exact
+call id: no handler invocation, effects or new job id. Never replay that tail
+automatically or hold the hint/question behind another queued long wait. The
+actor's serial dispatch boundary decides a race: once a call has started, it
+belongs to the dispatched case and cannot be labeled unexecuted. Consume pending
+one-shot limits on the literal next call, including its interrupted/not-executed
+error, then reset them; settings cannot leak across the discarded tail. An
+unexecuted `tool_limits` cannot arm new settings. The model may issue new calls
+after wakeup even while the original job continues; completion is not a
+prerequisite for answering a student or deciding what to do next.
+
+A later `wait_for_job` resumes observation of that **same** handle. It returns
+available unseen output or a retained finished result immediately, using the
+new call's limits. Output retention and the cursor still belong to the job:
+waking a wait neither discards bytes nor reports them twice. If a message and
+completion arrive together, retain both, resolve each observation call only
+once, and retire its timer so it cannot produce a ghost return during a later
+wait. Job-completion events and reliable per-request replies remain separate
+from lossy observer notifications.
+
+Bill saw why this matters: "Your student agents keep calling you, and you're
+stuck in join_agents, and don't wake up. The student calls time out, and they
+don't get an answer." He also saw a `message_fleet` attempt, "perhaps in
+desperation." The attempt is his observation; desperation is a possible
+motive, not an established fact. This is Bill's report, not a reconstructed
+wire trace proving the incident's exact timing or cause.
+
+The parent waits for students to finish; the students wait for the parent to
+answer. A long observation timer can stall that dependency while the tools
+and their underlying work remain alive. Extending the timeout does not solve
+it. The addressed question must interrupt the parent's foreground wait. Only
+the observation and its timer stop: the original join job persists. The
+parent answers, then can resume with `wait_for_job` on the **same join id**.
+
+An application-registered join-like handler held on application-owned work
+exercises this seam here. Later `send_message`, `join_agents` and MCP adapters
+inherit it when introduced. Neither child-agent spawning nor `message_fleet`
+is an exercise dependency. The four Chapter 4 controls create no new jobs,
+and the common result shape does not make `send_input` valid on a join.
 
 ### Ask, rebuilt
 
@@ -641,7 +724,8 @@ One actor goroutine owns the engine. A tool execution worker runs the
 handler; a separate job-report worker waits for completion, the callback
 deadline or an output pattern. These must be separate: a blocked handler
 must not prevent the model from receiving a running-job report. A callback
-is not cancellation. Both workers belong to the shutdown join.
+is not cancellation. A hint or question wakes the report worker's observation
+without stopping its execution worker. Both workers belong to the shutdown join.
 
 Workers return results and context effects through the mailbox rather than
 mutating the engine. The job subsystem synchronizes process state, output
@@ -726,8 +810,9 @@ the turn, and the turn state is the reducer's business.
 > compile error, the dependency is real, and the fix is to move the
 > interface to the hub.
 
-An `Interrupt` ends the active turn, not the actor's lifetime. The actor
-continues draining its mailbox and recording results. A Go handler may
+A hint or question wakeup ends only the foreground observation; it does not
+force the turn to end. An `Interrupt` ends the active turn, not the actor's
+lifetime. The actor continues draining its mailbox and recording results. A Go handler may
 still complete after the interrupt; its real output is not garbage. An
 explicit job kill has different semantics: it suppresses late output for
 that killed job. Shutdown must stop managed processes, join workers and
@@ -943,6 +1028,44 @@ records belong to the application protocol, not new sealed core observation
 types. Log them and the observations to `CH06_LOG`; keep each Agent's durable
 conversation history separately so one Agent's sequence numbers do not become
 another's. EOF waits for the submitted workflow before shutdown.
+
+Add brief offline regressions through the real Agent and job interfaces, with
+fake boundaries rather than a replacement actor or job manager:
+
+- Hold a real test command and an application-registered join-like handler.
+  Exercise both initial job observation and a later `wait_for_job`, with a
+  long callback delay such as 3,600 seconds. Deliver a human hint and an
+  addressed incoming question while each observation is blocked. Within a
+  short, bounded test interval, verify the correlated observation return and
+  the actual message, including its metadata, in the next fake-provider
+  request. Neither test waits an hour or uses Interrupt to get unstuck.
+- Keep the underlying work held after wakeup: its original handle stays
+  running, its handler runs once, and no job-control call allocates another
+  handle. Resume with `wait_for_job` on that same id, check immediately
+  available output, then release the work and check a finished-job read.
+  Use a small output cap to verify bounded reports, full retained bytes and
+  the unseen-output cursor across those observations.
+- Arrange message-before-completion, completion-before-message and a close
+  race. Preserve both the message and real outcome, one return per outstanding
+  tool call, and the correct private request reply. Check that the old timer
+  cannot later answer a new wait. Use short controlled timers for that race;
+  a long-delay test alone cannot establish that obsolete timers are retired.
+
+- Wake a response batch containing a completed call, a dispatched held job and
+  undispatched calls, including a side-effecting handler and `tool_limits`.
+  Check original calls/signatures and one exact correlated result per call
+  before the next fake-provider request: real completed results, observed job
+  state/handle, and interrupted/not-executed errors for the tail. Its handlers
+  never run, create effects or allocate job ids, and it never replays itself.
+  Let the model issue fresh calls while the held job still runs. Vary wakeup
+  around dispatch and setter/next-call boundaries: started work must never be
+  labeled unexecuted, pending limits are consumed by the next-call error, and
+  an unexecuted setter cannot change the fresh calls' limits.
+
+These are behavioral requirements, not new API names or a scheduler framework.
+Keep HTTP-freeze and Interrupt checks separate so success there cannot stand
+in for prompt job-observation wakeup. The historical demonstrations below
+retain their original scope; these regressions need no new live campaign.
 
 ## §5.11 What this chapter does not build
 
