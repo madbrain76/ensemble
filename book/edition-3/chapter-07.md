@@ -217,13 +217,51 @@ credentials in the intended process environment rather than command arguments.
 The original flags-only sentence conflicted with its own environment-configured
 grader; it did not justify breaking the earlier key setup.
 
-```
-go run ./cmd/grade-edition2 -ch 7 path/to/core
+For Edition 3, build the headless CLI from its command directory first. For a
+nested `core/cmd/ensemble` layout, run:
+
+```sh
+(cd /path/to/core/cmd/ensemble && go build -o /tmp/ch7-cli .)
 ```
 
-The grader builds the GUI module separately: `-gui DIR` selects it, defaulting
-to `gui/` under the core. It builds `./cmd` when present, otherwise the module
-root, and launches `--port` plus `--gui-dir` pointing to that module's `web/gui`.
+Then, from this book repository's root, pass that executable separately from
+the source modules. Replace the paths and model names with your declarations:
+
+```sh
+go run ./cmd/grade-edition3 -ch 7 -json \
+  -core /path/to/core \
+  -consumer /path/to/consumer \
+  -consumer-case /path/to/consumer-case.json \
+  -workflow /path/to/workflow \
+  -media-models /path/to/media-models.json \
+  -stream-exercise /path/to/stream-exercise \
+  -stream-model DECLARED_STREAM_MODEL \
+  -gui /path/to/gui \
+  -gui-model DECLARED_GUI_MODEL \
+  /tmp/ch7-cli > chapter7-report.json
+chapter7_exit=$?
+
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch7-cli > chapter1-report.json
+chapter1_exit=$?
+printf 'Chapter 7 exit: %s; Chapter 1 exit: %s\n' "$chapter7_exit" "$chapter1_exit"
+```
+
+Use the same frozen CLI for both gates: do not rebuild it or substitute the GUI
+executable between commands. Require exit status zero for each command and
+`passed: true` with 100/100 in each JSON report; a score alone cannot override a
+failed required zero-point check. The Chapter 1 gate includes two genuine
+delayed-response phases, so allow about two minutes for those waits.
+
+The positional target is the executable, not the core directory or the GUI
+server. The shallow directory build does not find a nested CLI command. Keep
+the declared media map and all inherited module arguments; omitting them does
+not isolate the GUI checks. An early student run also supplied a blanket
+`LLM_BASE_URL` override, sending fixture requests to the wrong endpoint. Leave
+that override out of the grading environment so the adapter can route them.
+
+The grader builds the GUI module separately from the explicit `-gui DIR`.
+It builds `./cmd` when present, otherwise the module root, and launches `--port`
+plus `--gui-dir` pointing to that module's `web/gui`.
 HTTP `/` must become available and WebSocket `/ws` accepts the messages above.
 Its faithful provider peer supplies the inherited `LLM_VENDOR`, `LLM_MODEL`,
 `LLM_API_KEY` and `LLM_BASE_URL` environment. `-gui-model MODEL` selects the
@@ -302,6 +340,12 @@ flag. Chapter 4's distinction still holds. A timeout can return a handle while
 the actual job continues, and its later output must remain visible even if
 the human has interrupted the turn. `TurnEnded` announces the end of the turn
 to displays; it does not replace the reliable completion used by `Ask`.
+
+A requested call is not yet an execution. The Edition 3 student GUI announced
+starts for a batch the core had refused, both live and on replay.
+`ToolDispatched` belongs only to calls admitted to run. Keep the requested calls
+and refusal results visible, but do not infer an execution from their presence
+in history. A result can explain why a tool never ran.
 
 The names avoid a silent collision. The event log already has
 `tool_called` and `tool_returned` for replay. The mailbox has its
@@ -552,6 +596,11 @@ TTS auto-speaks the stream. Thinking and chat in full. Tool
 dispatches abbreviated: "read file: main.go, line 42." Tool results
 silent. A speaker icon on every Artifact card speaks the accessible
 text on click.
+
+The Edition 3 student page could display a long tool result yet speak only its
+short generated caption. On-demand speech must use the full readable result or
+error available to the page, not the abbreviated label used for automatic
+speech.
 
 The original Chrome exercise found `speechSynthesis` asleep after a tab switch.
 Its workaround sends a zero-volume empty utterance on `visibilitychange`.

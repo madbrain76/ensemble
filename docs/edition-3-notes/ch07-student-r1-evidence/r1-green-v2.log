@@ -1,0 +1,4 @@
+# ensemble-gui [ensemble-gui.test]
+./hub.go:99:72: undefined: id
+FAIL	ensemble-gui [build failed]
+FAIL
