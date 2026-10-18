@@ -138,6 +138,23 @@ go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/SAME/student-cli
 
 Put optional `-consumer-case` and `-media-models` paths before the executable as above. Both reports must pass and exit zero on the same frozen CLI, including the real delayed-header/body phases. Settings snapshots, restart persistence, and Chapter 7 parity do not replace Chapter 8's public source/integration obligations: effective next-turn budget use, validation/save ordering, and actual browser controls and speech-rate propagation still need evidence. No particular budget-setting API is prescribed.
 
-The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7 and 8. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+For Chapter 9, use the accepted Chapter 8 predecessor and the same separate executable and module identities. After building your actual CLI target, run from the book repository root:
+
+```sh
+go run ./cmd/grade-edition3 -ch 9 -json \
+  -core /absolute/path/to/core-module \
+  -consumer /absolute/path/to/consumer-module \
+  -workflow /absolute/path/to/workflow-module \
+  -stream-exercise /absolute/path/to/stream-exercise-module \
+  -stream-model YOUR_DECLARED_STREAMING_MODEL \
+  -gui /absolute/path/to/gui-module \
+  -gui-model YOUR_DECLARED_GUI_MODEL \
+  /absolute/path/to/student-cli
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/SAME/student-cli
+```
+
+Optional `-consumer-case` and `-media-models` paths precede the executable. Declare models supported by your implementation rather than adding feature rows to satisfy historical defaults. Both reports must pass and exit zero on the same frozen CLI, including the real delayed-header/body phases. The skills and inherited settings checks do not establish every public obligation: full-graph validation before activation, failed-load atomicity, Agent isolation, variable expansion outside the Agent mutex, and durable enabling-event provenance also require source and integration evidence. `unload_skill` records pending removal only in this chapter; it does not implement future compaction. Preserve the chapter's real GUI/manual exercise without expanding it into a provider campaign.
+
+The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8 and 9. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.

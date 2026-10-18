@@ -134,30 +134,53 @@ The exercise is:
    Track each tool's first enabling source and event sequence. Keep registries
    independent between Agents and preserve earlier behavior without a skill spec.
 
-From the core module, build the headless command. With ordinary provider
-settings already configured, the public launch is:
+From the core module, build the command at the accepted `./cmd/ch01` path,
+rather than the importable module root. With ordinary provider settings already
+configured, launch its human chat interface:
 
 ```sh
-go build -o /tmp/ensemble-ch09 .
-EN_SKILLS_DIR=path/to/skills EN_PRIMARY_SKILL=base /tmp/ensemble-ch09 prompt "load the code-tools skill"
+go build -o /tmp/ensemble-ch09 ./cmd/ch01
+EN_SKILLS_DIR=path/to/skills EN_PRIMARY_SKILL=base /tmp/ensemble-ch09 chat
 ```
 
-Use `chat` in place of `prompt TEXT` for the human interface. Both CLI and
-optional GUI translate the same skill environment values into per-Agent
-construction inputs. The GUI keeps Chapter 7's separate module and launch.
+At the chat prompt, type "load the code-tools skill". Both CLI and optional GUI
+translate the same skill environment values into per-Agent construction inputs.
+The GUI keeps Chapter 7's separate module and launch.
 `EN_CUSTOM_VAR` supplies `$CUSTOM_VAR` for these commands; it is an application
 example rather than a reason for the registry to read process environment.
 
-From the repository root, grade the submitted core and its optional GUI:
+From the book repository root, grade that executable with the Edition 3
+adapter. Identify the core source and all four separate client modules
+explicitly; the GUI module is required for this gate even if you normally use
+the headless command:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 9 path/to/core
+go run ./cmd/grade-edition3 -ch 9 -json \
+  -core /absolute/path/to/core-module \
+  -consumer /absolute/path/to/consumer-module \
+  -workflow /absolute/path/to/workflow-module \
+  -stream-exercise /absolute/path/to/stream-exercise-module \
+  -stream-model YOUR_DECLARED_STREAMING_MODEL \
+  -gui /absolute/path/to/gui-module \
+  -gui-model YOUR_DECLARED_GUI_MODEL \
+  -media-models /absolute/path/to/media-models.json \
+  /tmp/ensemble-ch09
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ensemble-ch09
 ```
 
-`-gui DIR` selects the GUI module, defaulting to `gui/` under the core;
-`-gui-model` and inherited consumer, workflow, media and streaming fixture
-options remain available. The skills phases use the actual WebSocket prompt
-path. Headless parity uses the headless command.
+Each module path must contain its own `go.mod`. The final argument is the built
+CLI, not the core source directory; all flags precede it. Choose streaming and
+GUI model identifiers from your implementation's declared capability rows.
+The media map is a JSON object with exactly `anthropic`, `openai` and `gemini`
+keys, each naming a nonblank model identifier declared by your implementation.
+Supplying this map avoids relying on historical fixture defaults; it does not
+discover live provider capabilities. An optional `-consumer-case FILE` selects
+a different consumer fixture instead of the default shout example.
+
+Both reports must pass and exit zero on the same frozen CLI. The Chapter 9
+skills phases use the actual WebSocket prompt path; Chapter 1 retains the
+headless lifetime checks. A passing WebSocket grade does not replace the
+browser and live-provider exercise below.
 
 | Check | Points | Observable behavior |
 | --- | ---: | --- |
@@ -238,6 +261,13 @@ is that Agent, supplied through the common interface; the composition root
 attaches both sides before loading the primary. Keep parsing, traversal and
 rendering in the skills package. Shared types and interfaces remain in common.
 
+The Agent uses a lifecycle interface from common, not the concrete registry in
+the skills package. The root constructs that registry and injects it into the
+Agent. A per-Agent lifetime prevents shared mutable state, but it does not
+justify an Agent-to-skills sibling import. Keeping that implementation behind
+the interface preserves the star-shaped package dependencies as well as the
+registry's owner.
+
 The command's environment variables are construction convenience. An embedding
 application passes its skills directory and primary choice to the Agent it is
 creating. Changing a process-wide primary must not change every live Agent's
@@ -285,17 +315,18 @@ agent discovers `refactor-tools` without rebuilding its initial instructions.
 Skill bodies contain `$VAR` placeholders. A small map of names to renderer
 functions is enough. The skills package supplies `$TOOLS` and `$SKILLS` from
 the owning Agent's enabled declarations and current loadable set. Application
-variables enter through the public API. For example, given the existing
-Ensemble root `app` and its provider configuration `cfg`:
+variables enter through the public API. Given the Ensemble root `app` and its
+provider configuration `cfg`, the accepted implementation uses `Config.Skills`:
 
 ```go
-agent, err := app.NewAgent(cfg, ensemble.AgentSpec{
-    SkillsDir: "skills",
-    PrimarySkill: "base",
+cfg.Skills = &ensemble.SkillSpec{
+    Directory: "skills",
+    Primary: "base",
     Variables: map[string]func() string{
         "CUSTOM_VAR": func() string { return "creation value" },
     },
-})
+}
+agent, err := app.NewAgent(cfg)
 if err != nil {
     return err
 }
@@ -303,8 +334,9 @@ if err != nil {
 agent.RegisterVar("CUSTOM_VAR", func() string { return "load-time value" })
 ```
 
-The constructor's variables must be installed before primary rendering.
-`RegisterVar` changes future renderings. It cannot reach back into text already
+Leave `cfg.Skills` nil for the inherited non-skill Agent behavior. You may choose
+different identifiers; the constructor's variables must still be installed before
+primary rendering. `RegisterVar` changes future renderings. It cannot reach back into text already
 sent to a model. Select non-secret settings or context deliberately; substituting
 a value puts it into model-visible instructions, so an environment variable
 holding a credential is not a suitable example.
