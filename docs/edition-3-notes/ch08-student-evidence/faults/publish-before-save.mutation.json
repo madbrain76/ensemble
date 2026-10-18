@@ -1,0 +1,5 @@
+{
+  "file": "gui/settings.go",
+  "before": "err = saveSettings(h.settingsPath, next)",
+  "after": "h.settings = next\n\t\t_ = h.agent.SetToolBatchLimit(next.MaxToolRounds)\n\t\terr = saveSettings(h.settingsPath, next)"
+}

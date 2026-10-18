@@ -28,7 +28,7 @@ func TestInvalidInputsFailBeforeGrading(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := [][]string{
-		{}, {""}, {"-ch", "2", target}, {"-ch", "4"},
+		{}, {""}, {"-ch", "2", target}, {"-ch", "9", target}, {"-ch", "4"},
 		{"-ch", "1", "-core", module, target},
 		{"-ch", "1", "-consumer", "", target},
 		{"-ch", "1", "-consumer-case", "", target},
@@ -63,7 +63,7 @@ func TestHelpSucceedsWithoutLaunchingTarget(t *testing.T) {
 	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked >> "+strconv.Quote(marker)+"\nexit 1\n"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}, {"-ch", "7", "-h", target}} {
+	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}, {"-ch", "7", "-h", target}, {"-ch", "8", "-h", target}} {
 		if got := run(args); got != 0 {
 			t.Errorf("run(%q) = %d, want 0", args, got)
 		}
@@ -190,6 +190,14 @@ func TestChapter6ValidationBeforeLaunch(t *testing.T) {
 }
 
 func TestChapter7ValidationBeforeLaunch(t *testing.T) {
+	testGUIChapterValidationBeforeLaunch(t, "7")
+}
+
+func TestChapter8ValidationBeforeLaunch(t *testing.T) {
+	testGUIChapterValidationBeforeLaunch(t, "8")
+}
+
+func testGUIChapterValidationBeforeLaunch(t *testing.T, chapter string) {
 	dir := t.TempDir()
 	module := filepath.Join(dir, "module")
 	if err := os.Mkdir(module, 0700); err != nil {
@@ -211,7 +219,7 @@ func TestChapter7ValidationBeforeLaunch(t *testing.T) {
 	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked >> "+strconv.Quote(marker)+"\nexit 99\n"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	base := []string{"-ch", "7", "-core", module, "-consumer", module, "-workflow", module, "-stream-exercise", module, "-stream-model", "declared-stream", "-gui", module, "-gui-model", "declared-gui"}
+	base := []string{"-ch", chapter, "-core", module, "-consumer", module, "-workflow", module, "-stream-exercise", module, "-stream-model", "declared-stream", "-gui", module, "-gui-model", "declared-gui"}
 	check := func(name string, flags []string) {
 		t.Helper()
 		t.Run(name, func(t *testing.T) {

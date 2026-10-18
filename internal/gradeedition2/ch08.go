@@ -154,8 +154,9 @@ func driveSettings(r *grade.Ch9Result, bin, static, model string) (problems [4][
 			_, enabled := initial["tts_enabled"].(bool)
 			_, speed := initial["tts_speed"].(float64)
 			font, hasFont := initial["font_size"].(float64)
-			if !theme || !enabled || !speed || !hasFont || font != float64(int(font)) {
-				problems[1] = append(problems[1], "initial snapshot lacks four correctly typed visible preferences")
+			rounds, hasRounds := initial["max_tool_rounds"].(float64)
+			if !theme || !enabled || !speed || !hasFont || font != float64(int(font)) || !hasRounds || rounds != float64(int(rounds)) {
+				problems[1] = append(problems[1], "initial snapshot lacks five correctly typed visible settings")
 			}
 		}
 		for i, patch := range patches {
