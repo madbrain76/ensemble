@@ -239,16 +239,32 @@ func editFile(owner common.ToolContext, raw json.RawMessage) (string, error) {
 	// Never fall back to rewriting or guessing; the failed result enables repair.
 	// Count overlapping sites too: "aa" in "aaa" names two possible edits.
 	count := 0
+	line := 1
+	var lines []int
 	for rest := string(data); ; {
 		index := strings.Index(rest, args.Old)
 		if index < 0 {
 			break
 		}
 		count++
+		line += strings.Count(rest[:index], "\n")
+		// Bound location output, not the count. Locations name match starts,
+		// including repeated starts on one line and anchors beginning at a newline.
+		if len(lines) < 5 {
+			lines = append(lines, line)
+		}
+		line += strings.Count(rest[index:index+1], "\n")
 		rest = rest[index+1:]
 	}
 	if count != 1 {
-		return "", fmt.Errorf("exact edit refused: old_text matched %d times in %s; read the file and supply one unique anchor; file unchanged", count, args.Path)
+		locations := ""
+		if count > 1 {
+			locations = fmt.Sprintf("; match start lines (one-based): %v", lines)
+			if count > len(lines) {
+				locations += fmt.Sprintf("; %d more locations omitted", count-len(lines))
+			}
+		}
+		return "", fmt.Errorf("exact edit refused: old_text matched %d times in %s%s; read the file and supply one unique anchor; file unchanged", count, args.Path, locations)
 	}
 	updated := strings.Replace(string(data), args.Old, args.New, 1)
 	file, err := owner.Agent().Sandbox().OpenFile(args.Path, os.O_WRONLY|os.O_TRUNC, 0644)

@@ -3,6 +3,7 @@ package ensemble_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -140,6 +141,61 @@ func TestFileContractsThroughLoop(t *testing.T) {
 	data, err := os.ReadFile(path)
 	if err != nil || strings.Contains(string(data), "wrong") || !strings.HasSuffix(string(data), "tail\n") {
 		t.Fatal("refusal changed file")
+	}
+}
+
+// Diagnostics run through public dispatch and real sandboxed files, with exact
+// byte checks so a helpful refusal cannot hide a partial or guessed replacement.
+func TestEditFileDiagnosticsThroughDispatch(t *testing.T) {
+	for _, tc := range []struct {
+		name, content, old, replacement string
+		count                           int
+		locations, want                 string
+	}{
+		{name: "zero", content: "keep\x00\r\nunchanged", old: "absent", replacement: "wrong"},
+		{name: "exact-not-normalized", content: "a\r\nb", old: "a\nb", replacement: "wrong"},
+		{name: "repeated", content: "hit hit\nmiss\nhit", old: "hit", count: 3, locations: "[1 1 3]"},
+		{name: "overlapping", content: "aaaa", old: "aa", count: 3, locations: "[1 1 1]"},
+		{name: "multiline", content: "top\na\nb\ngap\na\nb", old: "a\nb", count: 2, locations: "[2 5]"},
+		{name: "multiline-overlap", content: "a\na\na", old: "a\na", count: 2, locations: "[1 2]"},
+		{name: "newlines", content: "\n\nx\n", old: "\n", count: 3, locations: "[1 2 3]"},
+		{name: "newline-prefix", content: "x\na\nx\na", old: "\na", count: 2, locations: "[1 3]"},
+		{name: "five", content: "x\nx\nx\nx\nx", old: "x", count: 5, locations: "[1 2 3 4 5]"},
+		{name: "many", content: strings.Repeat("x\n", 8), old: "x", count: 8, locations: "[1 2 3 4 5]; 3 more locations omitted"},
+		{name: "many-overlaps", content: "aaaaaaaaa", old: "aa", count: 8, locations: "[1 1 1 1 1]; 3 more locations omitted"},
+		{name: "unique", content: "before\nold\nafter", old: "old", replacement: "new", count: 1, want: "before\nnew\nafter"},
+		{name: "unique-multiline", content: "before\na\nb\nafter", old: "a\nb", replacement: "c\nd", count: 1, want: "before\nc\nd\nafter"},
+		{name: "deletion", content: "before\nremove\nafter", old: "remove\n", count: 1, want: "before\nafter"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			path := filepath.Join(root, "anchor.txt")
+			if err := os.WriteFile(path, []byte(tc.content), 0600); err != nil {
+				t.Fatal(err)
+			}
+			a := sandboxAgent(t, root, false)
+			out, err := sandboxCall(t, a, "edit_file", map[string]any{"path": "anchor.txt", "old_text": tc.old, "new_text": tc.replacement})
+			want := tc.want
+			if tc.count == 1 {
+				if err != nil || !strings.Contains(out, "replaced one exact match in anchor.txt") {
+					t.Fatalf("unique edit: %q %v", out, err)
+				}
+			} else {
+				want = tc.content
+				locations := ""
+				if tc.count > 1 {
+					locations = "; match start lines (one-based): " + tc.locations
+				}
+				diagnostic := fmt.Sprintf("exact edit refused: old_text matched %d times in anchor.txt%s; read the file and supply one unique anchor; file unchanged", tc.count, locations)
+				if err == nil || !strings.Contains(err.Error(), diagnostic) {
+					t.Fatalf("refusal: %q %v; want %q", out, err, diagnostic)
+				}
+			}
+			data, readErr := os.ReadFile(path)
+			if readErr != nil || string(data) != want {
+				t.Fatalf("file bytes = %q, %v; want %q", data, readErr, want)
+			}
+		})
 	}
 }
 
