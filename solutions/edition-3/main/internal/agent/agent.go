@@ -1,4 +1,4 @@
-// Package agent owns configuration and the completed conversation, not HTTP.
+// Package agent owns turn orchestration and configuration, not HTTP or replay.
 package agent
 
 import (
@@ -14,7 +14,7 @@ type agent struct {
 	parent  common.Ensemble
 	config  common.Config
 	engine  common.Engine
-	history []common.Message
+	history common.History
 }
 
 // New validates configuration before any request and retains the actual owner.
@@ -26,11 +26,37 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if strings.TrimSpace(config.Model) == "" {
 		return nil, errors.New("ANTHROPIC_MODEL is not set; ask GET /v1/models which models exist")
 	}
-	if strings.TrimSpace(config.APIKey) == "" {
-		return nil, errors.New("ANTHROPIC_API_KEY is not set")
+
+	if config.Vendor == 0 {
+		config.Vendor = common.Anthropic
 	}
-	if config.BaseURL == "" {
-		config.BaseURL = "https://api.anthropic.com"
+	switch config.Vendor {
+	case common.Anthropic:
+		if config.Surface == 0 {
+			config.Surface = common.Messages
+		}
+		if config.BaseURL == "" {
+			config.BaseURL = "https://api.anthropic.com"
+		}
+	case common.OpenAI:
+		if config.Surface == 0 {
+			config.Surface = common.ChatCompletions
+		}
+		if config.BaseURL == "" {
+			config.BaseURL = "https://api.openai.com"
+		}
+	case common.Gemini:
+		if config.Surface == 0 {
+			config.Surface = common.GenerateContent
+		}
+		if config.BaseURL == "" {
+			config.BaseURL = "https://generativelanguage.googleapis.com"
+		}
+	default:
+		return nil, errors.New("unknown vendor")
+	}
+	if (config.Vendor == common.Anthropic && config.Surface != common.Messages) || (config.Vendor == common.OpenAI && config.Surface != common.ChatCompletions) || (config.Vendor == common.Gemini && config.Surface != common.GenerateContent) {
+		return nil, errors.New("unsupported vendor surface")
 	}
 	config.BaseURL = strings.TrimRight(config.BaseURL, "/")
 	u, err := url.Parse(config.BaseURL)
@@ -58,23 +84,89 @@ func (a *agent) Config() common.Config { return a.config }
 // Engine exposes the owned transport and its parent relationship.
 func (a *agent) Engine() common.Engine { return a.engine }
 
-// History returns a defensive copy of completed turns.
-func (a *agent) History() []common.Message { return append([]common.Message(nil), a.history...) }
+// SetHistory completes the other child edge at the composition root.
+func (a *agent) SetHistory(h common.History) {
+	if h == nil || a.history != nil || h.Parent() != a {
+		panic("invalid Agent/History wiring")
+	}
+	a.history = h
+}
+func (a *agent) Log() common.History     { return a.history }
+func (a *agent) Render() ([]byte, error) { return a.engine.Render(a.history.Context()) }
+func (a *agent) ParseResponse(status int, b []byte) ([]common.Event, error) {
+	return a.engine.Parse(status, b)
+}
 
-// Usage delegates accounting to its single authoritative owner.
+// History preserves Chapter 1's completed-text view, derived from the log.
+func (a *agent) History() []common.Message {
+	var messages, pending []common.Message
+	events := a.history.Events()
+	for i, e := range events {
+		switch e.Type {
+		case common.MessageReceived:
+			if e.Message.Actor == common.Human {
+				var b strings.Builder
+				for _, p := range e.Message.Parts {
+					if p.Type == "text" {
+						b.WriteString(p.Text)
+					}
+				}
+				pending = append(pending, common.Message{Role: "user", Content: b.String()})
+			}
+		case common.ResponseEnded:
+			if i+1 < len(events) && events[i+1].Type == common.ErrorOccurred {
+				pending = nil
+				continue
+			}
+			var b strings.Builder
+			for _, p := range e.Response.Parts {
+				if p.Type == "text" {
+					b.WriteString(p.Text)
+				}
+			}
+			if strings.TrimSpace(b.String()) != "" {
+				messages = append(messages, pending...)
+				messages = append(messages, common.Message{Role: "assistant", Content: b.String()})
+			}
+			pending = nil
+		case common.ErrorOccurred:
+			pending = nil
+		}
+	}
+	return messages
+}
 func (a *agent) Usage() common.Usage { return a.engine.Usage() }
 
-// Ask stages the user turn so a failed exchange cannot poison alternation.
-// No retry is hidden here: one question makes at most one paid request.
+// Ask adds causal facts through History only. No hidden retry or tool execution.
 func (a *agent) Ask(ctx context.Context, question string) (string, error) {
 	if strings.TrimSpace(question) == "" {
 		return "", errors.New("user message is empty")
 	}
-	pending := append(a.history, common.Message{Role: "user", Content: question})
-	reply, err := a.engine.Send(ctx, pending)
-	if err != nil {
+	if err := a.history.Append(common.Event{Type: common.MessageReceived, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text(question)}}}); err != nil {
 		return "", err
 	}
-	a.history = append(pending, common.Message{Role: "assistant", Content: reply})
-	return reply, nil
+	projection := a.history.Context()
+	// Validate the disposable request before declaring it sent; ephemera is
+	// consumed by RequestSent, but this snapshot still delivers it exactly once.
+	if _, err := a.engine.Render(projection); err != nil {
+		return "", err
+	}
+	if err := a.history.Append(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: a.config.Target()}}); err != nil {
+		return "", err
+	}
+	events, err := a.engine.Exchange(ctx, projection)
+	var reply strings.Builder
+	for _, event := range events {
+		if appendErr := a.history.Append(event); appendErr != nil {
+			return "", appendErr
+		}
+		if event.Type == common.ResponseEnded {
+			for _, p := range event.Response.Parts {
+				if p.Type == "text" {
+					reply.WriteString(p.Text)
+				}
+			}
+		}
+	}
+	return reply.String(), err
 }

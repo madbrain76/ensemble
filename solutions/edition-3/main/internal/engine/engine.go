@@ -1,123 +1,169 @@
-// Package engine owns raw HTTP exchange and measured token accounting.
+// Package engine owns HTTP and vendor translation, never retained dialogue.
 package engine
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"ensemble/internal/common"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
-
-	"ensemble/internal/common"
 )
 
 const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
 
 type engine struct {
-	parent common.Agent
-	client *http.Client
-	usage  common.Usage
+	parent    common.Agent
+	client    *http.Client
+	liveUsage common.Usage // Only Exchange charges this process; Parse and replay never do.
 }
 
-// New retains Agent as parent, not a copy of its configuration or logger.
 func New(parent common.Agent) (common.Engine, error) {
 	if parent == nil {
 		return nil, errors.New("Engine requires an Agent parent")
 	}
-	// Default transport retains connection/TLS protections. No Client.Timeout:
-	// model work may take over a minute before headers or while reading a body.
-	// Refuse redirects rather than forwarding the API key to another endpoint.
-	client := &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error {
-		return http.ErrUseLastResponse
-	}}
-	return &engine{parent: parent, client: client}, nil
+	return &engine{parent: parent, client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
-
-// Parent exposes the Agent that owns this Engine.
 func (e *engine) Parent() common.Agent { return e.parent }
-
-// Usage returns a value copy of Engine's authoritative measured totals.
-func (e *engine) Usage() common.Usage { return e.usage }
-
-// failure follows real owners for diagnostics. Only locally chosen messages
-// reach this helper: remote bodies, URLs and transport errors can contain secrets.
+func (e *engine) Usage() common.Usage  { return e.liveUsage }
 func (e *engine) failure(message string) error {
 	e.parent.Parent().Logger().Print(message)
 	return errors.New(message)
 }
+func (e *engine) Render(c common.Context) ([]byte, error) { return render(c, e.parent.Config()) }
+func (e *engine) Parse(status int, b []byte) ([]common.Event, error) {
+	return parse(status, b, e.parent.Config())
+}
+func errorEvent(message string) common.Event {
+	return common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: message}}
+}
 
-// Send sends the full pending conversation once. The caller's context controls
-// both header and body waiting; there is no independent model-work deadline.
-func (e *engine) Send(ctx context.Context, messages []common.Message) (string, error) {
+// Exchange preserves caller-owned header/body cancellation and refuses redirects.
+// Only locally chosen diagnostics escape: bodies and transport errors may hold keys.
+func (e *engine) Exchange(ctx context.Context, c common.Context) ([]common.Event, error) {
+	b, err := e.Render(c)
+	if err != nil {
+		return []common.Event{errorEvent(err.Error())}, err
+	}
 	config := e.parent.Config()
-	body, err := json.Marshal(struct {
-		Model     string           `json:"model"`
-		MaxTokens int              `json:"max_tokens"`
-		System    string           `json:"system"`
-		Messages  []common.Message `json:"messages"`
-	}{config.Model, 1024, systemPrompt, messages})
-	if err != nil {
-		return "", e.failure("encoding request failed")
+	if strings.TrimSpace(config.APIKey) == "" {
+		err = e.failure("API key is not set")
+		return []common.Event{errorEvent(err.Error())}, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, config.BaseURL+"/v1/messages", bytes.NewReader(body))
-	if err != nil {
-		return "", e.failure("creating request failed")
+	endpoint := config.BaseURL
+	switch config.Vendor {
+	case common.Anthropic:
+		endpoint += "/v1/messages"
+	case common.OpenAI:
+		if strings.HasSuffix(endpoint, "/v1") {
+			endpoint += "/chat/completions"
+		} else {
+			endpoint += "/v1/chat/completions"
+		}
+	case common.Gemini:
+		if !strings.HasSuffix(endpoint, "/v1beta") {
+			endpoint += "/v1beta"
+		}
+		endpoint += "/models/" + url.PathEscape(config.Model) + ":generateContent"
 	}
-	req.Header.Set("x-api-key", config.APIKey)
-	req.Header.Set("anthropic-version", "2023-06-01")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(b))
+	if err != nil {
+		return []common.Event{errorEvent("creating request failed")}, e.failure("creating request failed")
+	}
 	req.Header.Set("content-type", "application/json")
+	switch config.Vendor {
+	case common.Anthropic:
+		req.Header.Set("x-api-key", config.APIKey)
+		req.Header.Set("anthropic-version", "2023-06-01")
+	case common.OpenAI:
+		req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	case common.Gemini:
+		req.Header.Set("x-goog-api-key", config.APIKey)
+	}
 	resp, err := e.client.Do(req)
 	if err != nil {
+		err = e.failure("HTTP request failed")
 		if ctx.Err() != nil {
-			return "", ctx.Err()
+			err = ctx.Err()
 		}
-		return "", e.failure("HTTP request failed")
+		return []common.Event{errorEvent(err.Error())}, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", e.failure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
+		err = e.failure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
+		return []common.Event{errorEvent(err.Error())}, err
 	}
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
+		err = e.failure("reading response failed")
 		if ctx.Err() != nil {
-			return "", ctx.Err()
+			err = ctx.Err()
 		}
-		return "", e.failure("reading response failed")
+		return []common.Event{errorEvent(err.Error())}, err
 	}
-	var parsed struct {
-		Content []struct {
-			Type string `json:"type"`
-			Text string `json:"text"`
-		} `json:"content"`
-		Usage *struct {
-			Input  *int64 `json:"input_tokens"`
-			Output *int64 `json:"output_tokens"`
-		} `json:"usage"`
-	}
-	if err := json.Unmarshal(raw, &parsed); err != nil {
-		return "", e.failure("decoding response failed")
-	}
-	// Pointers distinguish a measured zero from absent accounting.
-	if parsed.Usage == nil || parsed.Usage.Input == nil || parsed.Usage.Output == nil {
-		return "", e.failure("response is missing usage")
-	}
-	if *parsed.Usage.Input < 0 || *parsed.Usage.Output < 0 {
-		return "", e.failure("response has negative usage")
-	}
-	// Even an unusable answer cost tokens. Count them before validating text.
-	e.usage.Input += *parsed.Usage.Input
-	e.usage.Output += *parsed.Usage.Output
-	var text strings.Builder
-	for _, block := range parsed.Content {
-		if block.Type == "text" {
-			text.WriteString(block.Text)
+	events, err := e.Parse(resp.StatusCode, raw)
+	// The same measured response facts feed two distinct owners: this process's
+	// HTTP bill here, and replay totals when Agent appends them to History.
+	for _, event := range events {
+		if event.Type == common.ResponseEnded {
+			u := event.Response.Usage
+			e.liveUsage.Input += u.Input
+			e.liveUsage.Output += u.Output
+			e.liveUsage.CacheRead += u.CacheRead
+			e.liveUsage.CacheWrite += u.CacheWrite
 		}
 	}
-	if strings.TrimSpace(text.String()) == "" {
-		return "", e.failure("response has no usable text")
+	if err != nil {
+		e.parent.Parent().Logger().Print(err.Error())
 	}
-	return text.String(), nil
+	return events, err
+}
+
+// Send preserves the accepted text API as a disposable view, not stored state.
+func (e *engine) Send(ctx context.Context, messages []common.Message) (string, error) {
+	c := common.Context{Turn: common.InputPending}
+	for i, m := range messages {
+		actor := common.Human
+		if m.Role == "assistant" {
+			actor = common.Assistant
+		}
+		c.Dialogue = append(c.Dialogue, common.Entry{Seq: common.Seq(i + 1), Actor: actor, Parts: common.PartList{common.Text(m.Content)}})
+	}
+	events, err := e.Exchange(ctx, c)
+	return responseText(events), err
+}
+func responseText(events []common.Event) string {
+	var b strings.Builder
+	for _, e := range events {
+		if e.Type == common.ResponseEnded {
+			for _, p := range e.Response.Parts {
+				if p.Type == "text" {
+					b.WriteString(p.Text)
+				}
+			}
+		}
+	}
+	return b.String()
+}
+
+// Canonical JSON preserves integers beyond float64's exact range.
+func canonical(raw json.RawMessage) (json.RawMessage, error) {
+	if len(raw) == 0 {
+		return json.RawMessage(`{}`), nil
+	}
+	var v any
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.UseNumber()
+	if err := d.Decode(&v); err != nil {
+		return nil, err
+	}
+	var extra any
+	if d.Decode(&extra) != io.EOF {
+		return nil, errors.New("invalid JSON value")
+	}
+	return json.Marshal(v)
 }

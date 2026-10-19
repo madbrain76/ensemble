@@ -9,6 +9,7 @@ import (
 	"ensemble/internal/agent"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
+	"ensemble/internal/history"
 )
 
 // Config configures one conversation; APIKey must be treated as a secret.
@@ -56,6 +57,29 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		return nil, err
 	}
 	a.SetEngine(transport)
+	a.SetHistory(history.New(a))
 	e.agents = append(e.agents, a)
 	return a, nil
 }
+
+// Public aliases expose the common contracts without exporting implementation owners.
+type Event = common.Event
+type Context = common.Context
+type History = common.History
+type Part = common.Part
+type PartList = common.PartList
+type MessageData = common.MessageData
+type Provenance = common.Provenance
+type Vendor = common.Vendor
+type Surface = common.Surface
+
+const (
+	Anthropic       = common.Anthropic
+	OpenAI          = common.OpenAI
+	Gemini          = common.Gemini
+	Messages        = common.Messages
+	ChatCompletions = common.ChatCompletions
+	GenerateContent = common.GenerateContent
+	MessageReceived = common.MessageReceived
+	System          = common.System
+)

@@ -372,7 +372,8 @@ func vendorEnv(vendor, baseURL, work string) []string {
 		"LLM_VENDOR="+vendor,
 		"LLM_API_KEY=course-grader-fake",
 		"LLM_MODEL="+ch2RequestedModel(vendor),
-		"LLM_RESOLVED_MODEL=",
+		// Offline fixtures declare this exact producer as their replay target.
+		"LLM_RESOLVED_MODEL="+ch2RequestedModel(vendor),
 		"CH02_LOG="+filepath.Join(work, "ch02-"+vendor+".log"),
 	)
 	if baseURL != "" {

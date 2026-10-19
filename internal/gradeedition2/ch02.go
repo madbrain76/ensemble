@@ -126,21 +126,10 @@ const interleavedLog = `{"log_version":1}
 
 func checkInterleaved(check *grade.Check, body string) {
 	var request struct {
-		// Messages holds the complete Anthropic conversation projection.
 		Messages []struct {
-			// Role distinguishes user turns containing results from assistant calls.
 			Role string
-			// Content retains block order so interleaving defects remain observable.
-			Content []struct {
-				// Type identifies result blocks before ordinary text.
-				Type string
-				// ToolUseID must match the original call identity.
-				ToolUseID string `json:"tool_use_id"`
-				// Text must retain the interleaved human instruction.
-				Text string
-				// Content preserves each result payload without prescribing its wrapper.
-				Content json.RawMessage
-			}
+			// Anthropic permits either text or a block array here.
+			Content json.RawMessage
 		}
 	}
 	if err := json.Unmarshal([]byte(body), &request); err != nil {
@@ -148,8 +137,24 @@ func checkInterleaved(check *grade.Check, body string) {
 		return
 	}
 	for _, message := range request.Messages {
-		parts := message.Content
-		if message.Role != "user" || len(parts) != 3 {
+		if message.Role != "user" {
+			continue
+		}
+		var text string
+		if json.Unmarshal(message.Content, &text) == nil {
+			continue // Ordinary text cannot be the result-bearing message.
+		}
+		var parts []struct {
+			Type      string
+			ToolUseID string `json:"tool_use_id"`
+			Text      string
+			Content   json.RawMessage
+		}
+		if err := json.Unmarshal(message.Content, &parts); err != nil {
+			fail(check, "interleaved Anthropic user content is invalid: %v", err)
+			return
+		}
+		if len(parts) != 3 {
 			continue
 		}
 		if parts[0].Type == "tool_result" && parts[0].ToolUseID == "one" &&

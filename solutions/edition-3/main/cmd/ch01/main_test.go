@@ -43,7 +43,7 @@ func TestLargeJSONLine(t *testing.T) {
 	if err != nil {
 		t.Fatalf("well-formed large JSON line: %v; calls=%d; stdout=%q", err, calls.Load(), out.String())
 	}
-	if calls.Load() != 1 || out.String() != "{\"assistant\":\"received\"}\n{\"usage\":{\"input\":7,\"output\":1}}\n" || diagnostics.Len() != 0 {
+	if calls.Load() != 1 || out.String() != "{\"assistant\":\"received\"}\n{\"usage\":{\"input\":7,\"output\":1,\"cache_write\":0,\"cache_read\":0}}\n" || diagnostics.Len() != 0 {
 		t.Fatalf("calls=%d stdout=%q stderr=%q", calls.Load(), out.String(), diagnostics.String())
 	}
 }
@@ -63,9 +63,9 @@ func TestInputLines(t *testing.T) {
 		calls           int32
 		want, wantError string
 	}{
-		{"ordinary", strings.NewReader(line + "\n" + line + "\r\n"), 2, answer + answer + "{\"usage\":{\"input\":14,\"output\":2}}\n", ""},
-		{"final without newline", strings.NewReader(line), 1, answer + "{\"usage\":{\"input\":7,\"output\":1}}\n", ""},
-		{"EOF", strings.NewReader(""), 0, "{\"usage\":{\"input\":0,\"output\":0}}\n", ""},
+		{"ordinary", strings.NewReader(line + "\n" + line + "\r\n"), 2, answer + answer + "{\"usage\":{\"input\":14,\"output\":2,\"cache_write\":0,\"cache_read\":0}}\n", ""},
+		{"final without newline", strings.NewReader(line), 1, answer + "{\"usage\":{\"input\":7,\"output\":1,\"cache_write\":0,\"cache_read\":0}}\n", ""},
+		{"EOF", strings.NewReader(""), 0, "{\"usage\":{\"input\":0,\"output\":0,\"cache_write\":0,\"cache_read\":0}}\n", ""},
 		{"read error", brokenReader{}, 0, "", "reading input failed"},
 		{"error after complete line", io.MultiReader(strings.NewReader(line+"\n"), brokenReader{}), 1, answer, "reading input failed"},
 		{"error in partial line", io.MultiReader(strings.NewReader(line), brokenReader{}), 0, "", "reading input failed"},

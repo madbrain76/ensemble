@@ -3,13 +3,17 @@ package common
 
 import (
 	"context"
+	"io"
 	"log"
 )
 
 // Config belongs to one Agent. Model names must come from provider discovery.
 type Config struct {
 	// BaseURL selects the provider or a local HTTP peer; empty means Anthropic.
-	BaseURL string
+	BaseURL       string
+	Vendor        Vendor
+	Surface       Surface
+	ResolvedModel string
 	// APIKey authenticates requests and must never appear in diagnostics.
 	APIKey string
 	// Model is required; there is deliberately no remembered model default.
@@ -29,7 +33,9 @@ type Usage struct {
 	// Input counts input tokens reported by the provider.
 	Input int64 `json:"input"`
 	// Output counts output tokens reported by the provider.
-	Output int64 `json:"output"`
+	Output     int64 `json:"output"`
+	CacheWrite int64 `json:"cache_write"`
+	CacheRead  int64 `json:"cache_read"`
 }
 
 // Ensemble is the Agent's actual owner and the source of application services.
@@ -46,10 +52,13 @@ type Agent interface {
 	Config() Config
 	// Engine returns this Agent's transport and accounting owner.
 	Engine() Engine
-	// Ask completes one exchange, retaining history only on success.
+	// Ask records every attempt; the compatibility History view contains completed text pairs.
 	Ask(context.Context, string) (string, error)
 	// History returns a copy so callers cannot corrupt retained turns.
 	History() []Message
+	Log() History
+	Render() ([]byte, error)
+	ParseResponse(int, []byte) ([]Event, error)
 	// Usage reads measured totals from Engine rather than keeping a second copy.
 	Usage() Usage
 }
@@ -60,6 +69,19 @@ type Engine interface {
 	Parent() Agent
 	// Send makes one HTTP request, with cancellation controlled by the caller.
 	Send(context.Context, []Message) (string, error)
+	Exchange(context.Context, Context) ([]Event, error)
+	Render(Context) ([]byte, error)
+	Parse(int, []byte) ([]Event, error)
 	// Usage returns cumulative measured totals, not estimates.
 	Usage() Usage
+}
+
+// History owns causal facts and their projection; its parent is the real Agent.
+type History interface {
+	Parent() Agent
+	Append(Event) error
+	Events() []Event
+	Context() Context
+	Load(io.Reader) error
+	Dump(io.Writer) error
 }

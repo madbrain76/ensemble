@@ -77,6 +77,15 @@ implementation can only be a copy-paste. An interface extracted from one
 implementation records that implementation's accidents as if they were
 requirements, and then defends them.
 
+## TL;DR
+
+- Implement the frozen event/content/JSONL vocabulary and exercise CLI as
+  interoperability contracts, not illustrative names to replace with a smaller
+  parallel protocol. The reducer must preserve causal turn state, cumulative
+  usage in all four buckets, and the ephemeral arrival/delivery lifecycle;
+  a message-only transcript is insufficient. API shapes marked as pseudocode
+  remain flexible.
+
 ## 2.1 Taking Chapter 1 apart
 
 Chapter 1 gave you this and told you to enjoy it:
@@ -737,6 +746,13 @@ total. Where a vendor's convention is a subset, the parser subtracts; where it
 is already disjoint, it passes through. The exercise grades that arithmetic
 separately, because a student who gets the message shapes right and the
 arithmetic wrong deserves to be told which half broke.
+
+Suppose OpenAI reports `prompt_tokens = 100`, `cached_tokens = "bad"`,
+`cache_write_tokens = 0`, and `completion_tokens = 7`. The calculation is
+`100 − unknown − 0`, so fresh input is unknown, not 100. Cache-read usage is
+unknown too; the independently measured output remains 7. Preserve that charge
+and report the incomplete accounting. The zero default above applies to an
+omitted optional bucket, not an invalid supplied value.
 
 Record counts, never money. A dollar amount in the log is wrong the moment a
 vendor reprices, and it destroys your ability to re-cost old sessions under

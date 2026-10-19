@@ -9,3 +9,7 @@ Require the same diagnostic writer's configured retention operation after a succ
 Focused proof must cover default/override/explicit zero record counts, whole records and continued writes, successful handoff ordering, save-failure non-destruction, dialogue projection and checkpoint/tail restart with apply-once sequence correctness. Full historical replay remains possible only while its required source history exists. A checkpoint supports diagnosis of its represented state and replay of its retained tail, not reconstruction of discarded earlier steps.
 
 No Chapter 14 prose, grader, runtime, or student source has been changed by this record. Chapter 10 follow-up acceptance and later Chapter 11 integration remain separate decisions. User's memory-log Git backup is reported, not independent recovery validation or deletion authority.
+
+## Restarted-run update: backup-anchored recovery
+
+Bill's later direction supersedes arbitrary canonical recovery-event counts: see [the Chapter 10 boundary review](ch10-snapshot-recovery-followup.md). Retain the independent journal after the validated **backup** snapshot anchor, not just the newest anchor, so fallback can replay the complete retained suffix exactly once. Rotation and save must succeed before trimming. The diagnostic-record cap and full/dialogue archive choice remain distinct. All earlier acceptance references above describe the discarded run, not new-run implementation evidence. Public contracts and tests must be aligned before Chapter 10/14 student entry.

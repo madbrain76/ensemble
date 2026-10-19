@@ -105,7 +105,8 @@ func TestConversationAndOwners(t *testing.T) {
 	}
 }
 
-// TestFailureDoesNotCommitHistory checks rollback of an unusable turn without erasing the tokens it consumed.
+// TestFailureDoesNotCommitHistory keeps the completed-answer view distinct from
+// Chapter 2 causal dialogue, which retains failed attempts and their paid usage.
 func TestFailureDoesNotCommitHistory(t *testing.T) {
 	var calls atomic.Int32
 	requests := make(chan []ensemble.Message, 3)
@@ -116,7 +117,7 @@ func TestFailureDoesNotCommitHistory(t *testing.T) {
 		}
 		requests <- body.Messages
 		if calls.Add(1) == 2 {
-			// This response was paid for, but cannot enter the conversation.
+			// This response was paid for, but is not a completed text answer.
 			fmt.Fprint(w, `{"content":[],"usage":{"input_tokens":7,"output_tokens":1}}`)
 			return
 		}
@@ -139,9 +140,11 @@ func TestFailureDoesNotCommitHistory(t *testing.T) {
 	if _, err := a.Ask(context.Background(), "retry manually"); err != nil {
 		t.Fatal(err)
 	}
-	want := append(before, ensemble.Message{Role: "user", Content: "retry manually"})
-	if got := <-requests; !reflect.DeepEqual(got, want) {
-		t.Fatalf("failed user leaked into next request: %v", got)
+	got := <-requests
+	if len(got) != len(before)+1 || !reflect.DeepEqual(got[:len(before)], before) ||
+		got[len(before)].Role != "user" || !strings.Contains(got[len(before)].Content, "failed") ||
+		!strings.HasSuffix(got[len(before)].Content, "retry manually") {
+		t.Fatalf("causal failed input or retry missing from next request: %v", got)
 	}
 	if calls.Load() != 3 || a.Usage() != (ensemble.Usage{Input: 13, Output: 5}) {
 		t.Fatal("unexpected request count or usage")
@@ -159,8 +162,8 @@ func TestResponseErrorsAndUsage(t *testing.T) {
 		{"malformed", "remote-secret fake-key", "decoding response failed", 200, ensemble.Usage{}},
 		{"missing usage", `{"content":[{"type":"text","text":"answer"}]}`, "missing usage", 200, ensemble.Usage{}},
 		{"null usage", `{"usage":null}`, "missing usage", 200, ensemble.Usage{}},
-		{"partial usage", `{"usage":{"input_tokens":1}}`, "missing usage", 200, ensemble.Usage{}},
-		{"negative usage", `{"usage":{"input_tokens":-1,"output_tokens":2}}`, "negative usage", 200, ensemble.Usage{}},
+		{"partial usage", `{"usage":{"input_tokens":1}}`, "missing usage", 200, ensemble.Usage{Input: 1}},
+		{"negative usage", `{"usage":{"input_tokens":-1,"output_tokens":2}}`, "negative usage", 200, ensemble.Usage{Output: 2}},
 		{"empty text", `{"content":[{"type":"text","text":"  "}],"usage":{"input_tokens":5,"output_tokens":2}}`, "no usable text", 200, ensemble.Usage{Input: 5, Output: 2}},
 		{"measured zero", `{"content":[{"type":"text","text":"zero"}],"usage":{"input_tokens":0,"output_tokens":0}}`, "", 200, ensemble.Usage{}},
 	} {
@@ -213,7 +216,7 @@ func TestValidationBeforeHTTP(t *testing.T) {
 	}
 	app := ensemble.New(nil)
 	for _, config := range []ensemble.Config{
-		{APIKey: "fake-key"}, {Model: "fake-model"},
+		{APIKey: "fake-key"},
 		{APIKey: "fake-key", Model: "fake-model", BaseURL: "https://user:secret@example.invalid"},
 		{APIKey: "fake-key", Model: "fake-model", BaseURL: "not-a-url"},
 	} {
@@ -224,6 +227,13 @@ func TestValidationBeforeHTTP(t *testing.T) {
 	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls.Add(1); fmt.Fprint(w, goodReply) }))
 	defer server.Close()
+	offline := newAgent(t, app, server.URL, "", "fake-model")
+	if _, err := offline.Render(); err != nil {
+		t.Fatalf("credential-free offline render: %v", err)
+	}
+	if _, err := offline.Ask(context.Background(), "no paid request"); err == nil || calls.Load() != 0 || offline.Usage() != (ensemble.Usage{}) {
+		t.Fatal("missing key reached live HTTP or incurred usage")
+	}
 	a := newAgent(t, app, server.URL, "fake-key", "fake-model")
 	if _, err := a.Ask(context.Background(), " \n\t"); err == nil || calls.Load() != 0 || len(a.History()) != 0 || a.Usage() != (ensemble.Usage{}) {
 		t.Fatal("blank question reached HTTP or changed state")
