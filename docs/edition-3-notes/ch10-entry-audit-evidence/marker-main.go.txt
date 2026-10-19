@@ -1,0 +1,3 @@
+package main
+import "os"
+func main(){if err:=os.WriteFile(os.Args[1],[]byte("DIRECT_POSITIVE_MARKER\n"),0600);err!=nil{panic(err)}}

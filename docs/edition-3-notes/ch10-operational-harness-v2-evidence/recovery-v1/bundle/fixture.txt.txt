@@ -1,0 +1,2 @@
+item=cobalt
+quantity=7

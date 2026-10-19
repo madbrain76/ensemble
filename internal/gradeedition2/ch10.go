@@ -480,7 +480,7 @@ func checkPersistenceCurrentConfig(c *grade.Check, bin, work string, args []stri
 		fail(c, "%v", err)
 		return
 	}
-	if err := os.WriteFile(filepath.Join(skills, "SKILL.md"), []byte("---\nname: current\ndescription: Current runtime identity\ntype: primary\ntools: read_file\n---\nCURRENT_RUNTIME_PROMPT\n"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(skills, "SKILL.md"), []byte("---\nname: current\ndescription: Current runtime identity\ntype: primary\ntools: read_file\n---\nCURRENT_RUNTIME_PROMPT"), 0600); err != nil {
 		fail(c, "%v", err)
 		return
 	}
