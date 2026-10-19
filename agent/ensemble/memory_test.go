@@ -394,6 +394,7 @@ func TestMemoryWaterfall(t *testing.T) {
 			folds := 0
 			a, p, diagnostics := memoryAgent(t, ensemble.Anthropic, dir, m, func(n int, compressor bool, w map[string]any) (string, string, common.Usage) {
 				if compressor {
+					checkCompactionTask(t, w, true)
 					folds++
 					if folds == 1 && (!strings.Contains(wireText(w), "SESSION-1") || !strings.Contains(wireText(w), "SESSION-2") || strings.Contains(wireText(w), "SESSION-3")) {
 						t.Error("graduation did not select oldest files to low watermark")

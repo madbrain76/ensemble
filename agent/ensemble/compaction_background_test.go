@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -41,6 +42,10 @@ func TestCompactionBackgroundProgress(t *testing.T) {
 			managed = tool["name"] == "submit" && properties["memory"] != nil
 		}
 		if managed {
+			checkCompactionTask(t, request, false)
+			if !strings.Contains(fmt.Sprint(request["messages"]), "SOURCE-REASON: completed work.") {
+				t.Error("conversation task lost selected source")
+			}
 			once.Do(func() { close(entered) })
 			select {
 			case <-release:
