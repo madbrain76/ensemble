@@ -55,3 +55,71 @@ parent/configuration/logger isolation, replay and failed-turn retention, usage,
 sanitized errors, caller cancellation, redirects, and the CLI's line/EOF rules.
 JSON input has no arbitrary physical-line size limit; a final unterminated line
 is processed at EOF. The default JSON mode does not print chat prompts.
+
+
+## Chapter 3 — synchronous tools
+
+The same Agent now owns an independent six-tool registry. Root composition wires
+Agent, Engine, History, and Tools through `internal/common` interfaces; each
+implementation keeps its state locally. Engine owns HTTP, Render, Parse, and all
+provider tool envelopes. Tools do not retain conversation, and the GUI continues
+to call the same Agent rather than providing a second implementation.
+
+`Config.Tools == nil` enables the default six tools. A non-nil empty slice really
+disables every tool and omits `tools` from provider requests. A nonempty slice
+selects names. CLI/GUI environment equivalents are `LLM_TOOLS=default`,
+`LLM_TOOLS=none`, or a comma-separated list of built-in names. Registry declarations
+and configuration are returned as copies, not mutable backing storage. Each
+registry entry joins its declaration with its handler; declarations and dispatch
+use that same per-Agent registered set.
+
+The selected model's explanation policy is explicit:
+`Config.RequireToolExplanation` / `LLM_REQUIRE_TOOL_EXPLANATION=true`. When enabled,
+a whole batch lacking nonblank ordinary assistant text before its first call is
+refused before effects. Each call gets a matching error result instructing a retry
+with an explanation. Hidden reasoning, opaque blocks, stop reasons, and usage do
+not satisfy this rule. Turn completion is based on returned calls. Up to sixteen
+batches run synchronously; a final request consumes batch sixteen's results. If
+that response asks for more tools, matching refusal results are retained and a
+local limit error ends the turn without additional effects.
+
+Tools use strict JSON argument types and reject unknown fields. Their schemas
+are sent with each enabled declaration. `read_file` has optional one-based
+inclusive `start_line`/`end_line` and a `max_bytes` cap. Omitted or zero start
+means line 1, end means EOF, and `max_bytes` means 32,768 bytes. Negative bounds
+or caps and an end before the start are errors. The tool selects the requested
+line range first, then caps returned bytes; actual truncation adds an explicit
+`[truncated at max_bytes=N]` marker outside the cap. Exact-size results do not
+claim truncation. Reads use bounded fragments, including for very long lines.
+`list_directory` is sorted and nonrecursive. `search_files` uses Go regular
+expressions, walks regular text files without following symlinks, defaults
+`context_lines` to zero, and merges overlapping/adjacent context ranges. Match
+lines use `path:line:text`; context lines use `path-line-text`. Positive-context
+groups have `--` separators, including across file boundaries; zero-context
+searches emit only matching lines without separators.
+
+`write_file` creates parents and refuses to replace existing files by default;
+the refusal reports the current size and names the opt-in flags.
+`overwrite:true` opts into replacement, `append:true` preserves existing bytes,
+and using both is rejected. `edit_file` replaces one nonempty, exact, unique
+`old_text` anchor; zero or multiple matches (including overlaps) leave the file
+unchanged. Both refusal diagnostics identify the supplied path. Zero-match
+refusals explicitly report 0 matches and suggest rereading
+the file. Ambiguity refusals report the total count (including overlaps), list
+up to eight one-based match-start line numbers, and say how many locations were
+omitted if the list is truncated. Repeated line numbers represent distinct
+matches on the same line; multiline anchors report their starting lines. No
+file excerpts, fuzzy matching, or automatic match selection are used: reread
+the current file and give a larger exact anchor on ambiguity. A unique anchor
+can be deleted by supplying an empty `new_text`. `run_command` invokes `/bin/sh -c` and returns
+JSON text with separate `stdout`, `stderr`, and `exit_code` fields. A nonzero
+process exit is still a completed tool result; startup failure is a tool error.
+It adds no timeout beyond caller context cancellation. The shell environment
+removes `LLM_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `GEMINI_API_KEY`,
+while retaining ordinary build variables. This removes those four credentials;
+it is not a general secret detector or sandbox.
+
+Relative paths and command `cwd` resolve against the registry's launch directory;
+absolute paths and `..` are allowed. This is not a sandbox. No command changes the
+process-wide directory. The synchronous runner returns actual completed output,
+not a job handle. These tools are for trusted local use.

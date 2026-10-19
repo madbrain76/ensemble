@@ -28,7 +28,7 @@ func textParts(ps common.PartList) (string, error) {
 	}
 	return b.String(), nil
 }
-func render(c common.Context, cfg common.Config) ([]byte, error) {
+func render(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
 	var err error
 	c, err = withCallIDs(c)
 	if err != nil {
@@ -36,16 +36,19 @@ func render(c common.Context, cfg common.Config) ([]byte, error) {
 	}
 	switch cfg.Vendor {
 	case common.Anthropic:
-		return renderAnthropic(c, cfg)
+		return renderAnthropic(c, cfg, defs)
 	case common.OpenAI:
-		return renderOpenAI(c, cfg)
+		return renderOpenAI(c, cfg, defs)
 	case common.Gemini:
-		return renderGemini(c, cfg)
+		return renderGemini(c, cfg, defs)
 	}
 	return nil, fmt.Errorf("unsupported vendor")
 }
-func system(c common.Context) (string, error) {
+func system(c common.Context, cfg common.Config) (string, error) {
 	s := systemPrompt
+	if cfg.RequireToolExplanation {
+		s += " Before each tool batch, emit nonblank ordinary assistant text explaining what you will do and why, before the first tool call. Hidden reasoning is not an explanation. A batch without this explanation will be refused without effects."
+	}
 	for _, entry := range c.Dialogue {
 		if entry.Actor == common.System {
 			t, err := textParts(entry.Parts)
@@ -96,8 +99,8 @@ func (m aMessage) MarshalJSON() ([]byte, error) {
 	return json.Marshal(plain(m))
 }
 func aText(s string) json.RawMessage { return raw(aBlock{Type: "text", Text: &s}) }
-func renderAnthropic(c common.Context, cfg common.Config) ([]byte, error) {
-	sys, err := system(c)
+func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
+	sys, err := system(c, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -202,11 +205,12 @@ func renderAnthropic(c common.Context, cfg common.Config) ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Model     string     `json:"model"`
-		MaxTokens int        `json:"max_tokens"`
-		System    string     `json:"system"`
-		Messages  []aMessage `json:"messages"`
-	}{cfg.Model, 1024, sys, messages})
+		Model     string        `json:"model"`
+		MaxTokens int           `json:"max_tokens"`
+		System    string        `json:"system"`
+		Messages  []aMessage    `json:"messages"`
+		Tools     []aDefinition `json:"tools,omitempty"`
+	}{cfg.Model, 1024, sys, messages, anthropicDefinitions(defs)})
 }
 
 // OpenAI has its own tool authorship; it does not inherit Anthropic's grouping.
@@ -226,8 +230,8 @@ type oMessage struct {
 	ToolCallID string  `json:"tool_call_id,omitempty"`
 }
 
-func renderOpenAI(c common.Context, cfg common.Config) ([]byte, error) {
-	sys, err := system(c)
+func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
+	sys, err := system(c, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -291,10 +295,11 @@ func renderOpenAI(c common.Context, cfg common.Config) ([]byte, error) {
 	}
 
 	return json.Marshal(struct {
-		Model     string     `json:"model"`
-		Messages  []oMessage `json:"messages"`
-		MaxTokens int        `json:"max_tokens"`
-	}{cfg.Model, messages, 1024})
+		Model     string        `json:"model"`
+		Messages  []oMessage    `json:"messages"`
+		MaxTokens int           `json:"max_tokens"`
+		Tools     []oDefinition `json:"tools,omitempty"`
+	}{cfg.Model, messages, 1024, openAIDefinitions(defs)})
 }
 
 type gCall struct {
@@ -318,8 +323,8 @@ type gMessage struct {
 	Parts []json.RawMessage `json:"parts"`
 }
 
-func renderGemini(c common.Context, cfg common.Config) ([]byte, error) {
-	sys, err := system(c)
+func renderGemini(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
+	sys, err := system(c, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -402,13 +407,18 @@ func renderGemini(c common.Context, cfg common.Config) ([]byte, error) {
 		messages = append(messages, gMessage{Role: "user", Parts: []json.RawMessage{raw(gPart{Text: &tail})}})
 	}
 
+	tools, err := geminiDefinitions(defs)
+	if err != nil {
+		return nil, err
+	}
 	return json.Marshal(struct {
-		System     gMessage   `json:"systemInstruction"`
-		Contents   []gMessage `json:"contents"`
+		System     gMessage       `json:"systemInstruction"`
+		Contents   []gMessage     `json:"contents"`
+		Tools      []gDefinitions `json:"tools,omitempty"`
 		Generation struct {
 			Max int `json:"maxOutputTokens"`
 		} `json:"generationConfig"`
-	}{gMessage{Parts: []json.RawMessage{raw(gPart{Text: &sys})}}, messages, struct {
+	}{gMessage{Parts: []json.RawMessage{raw(gPart{Text: &sys})}}, messages, tools, struct {
 		Max int `json:"maxOutputTokens"`
 	}{1024}})
 }

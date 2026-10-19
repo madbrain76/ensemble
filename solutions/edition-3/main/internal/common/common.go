@@ -18,6 +18,10 @@ type Config struct {
 	APIKey string
 	// Model is required; there is deliberately no remembered model default.
 	Model string
+	// Tools selects enabled built-ins: nil enables all six; non-nil empty disables all.
+	Tools []string
+	// RequireToolExplanation selects this model's before-effects explanation policy.
+	RequireToolExplanation bool
 }
 
 // Message is a retained user or assistant turn, sent verbatim on later requests.
@@ -52,6 +56,8 @@ type Agent interface {
 	Config() Config
 	// Engine returns this Agent's transport and accounting owner.
 	Engine() Engine
+	// Tools is this Agent's independently owned synchronous registry.
+	Tools() ToolRegistry
 	// Ask records every attempt; the compatibility History view contains completed text pairs.
 	Ask(context.Context, string) (string, error)
 	// History returns a copy so callers cannot corrupt retained turns.

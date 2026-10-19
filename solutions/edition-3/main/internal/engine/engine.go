@@ -14,9 +14,11 @@ import (
 	"strings"
 )
 
-const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+const systemPrompt = "You are a helpful coding assistant. Use the available tools when needed. Base claims about files and commands on returned results, and answer clearly."
 
-type engine struct {
+type engine struct{ privateState }
+
+type privateState struct {
 	parent    common.Agent
 	client    *http.Client
 	liveUsage common.Usage // Only Exchange charges this process; Parse and replay never do.
@@ -26,7 +28,7 @@ func New(parent common.Agent) (common.Engine, error) {
 	if parent == nil {
 		return nil, errors.New("Engine requires an Agent parent")
 	}
-	return &engine{parent: parent, client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
+	return &engine{privateState: privateState{parent: parent, client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, nil
 }
 func (e *engine) Parent() common.Agent { return e.parent }
 func (e *engine) Usage() common.Usage  { return e.liveUsage }
@@ -34,7 +36,9 @@ func (e *engine) failure(message string) error {
 	e.parent.Parent().Logger().Print(message)
 	return errors.New(message)
 }
-func (e *engine) Render(c common.Context) ([]byte, error) { return render(c, e.parent.Config()) }
+func (e *engine) Render(c common.Context) ([]byte, error) {
+	return render(c, e.parent.Config(), e.parent.Tools().Definitions())
+}
 func (e *engine) Parse(status int, b []byte) ([]common.Event, error) {
 	return parse(status, b, e.parent.Config())
 }

@@ -11,13 +11,17 @@ import (
 	"time"
 )
 
-type history struct {
+type history struct{ privateState }
+
+type privateState struct {
 	parent  common.Agent
 	events  []common.Event
 	context common.Context
 }
 
-func New(parent common.Agent) common.History { return &history{parent: parent, context: empty()} }
+func New(parent common.Agent) common.History {
+	return &history{privateState: privateState{parent: parent, context: empty()}}
+}
 func empty() common.Context {
 	return common.Context{Turn: common.Idle, Dialogue: []common.Entry{}, Ephemera: common.PartList{}}
 }
@@ -50,7 +54,7 @@ func (h *history) Append(e common.Event) error {
 func (h *history) Load(r io.Reader) error {
 	// Unbounded lines, optional version header, atomic publication on success.
 	reader := bufio.NewReader(r)
-	next := &history{parent: h.parent, context: empty()}
+	next := &history{privateState: privateState{parent: h.parent, context: empty()}}
 	n := 0
 	for {
 		line, err := reader.ReadString('\n')

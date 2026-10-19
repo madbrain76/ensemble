@@ -278,7 +278,14 @@ func TestRound2CallIDsAreStableRenderOnly(t *testing.T) {
 						}
 					}
 				}
-				walk(value)
+				// Chapter 3 declarations also have type:function. Inspect actual
+				// message calls/results, not the separate tool-declaration catalog.
+				request := value.(map[string]any)
+				if v == ensemble.Gemini {
+					walk(request["contents"])
+				} else {
+					walk(request["messages"])
+				}
 				if len(calls) != 2 || calls[0] == "" || calls[1] == "" || calls[0] == "<nil>" || calls[1] == "<nil>" || calls[0] == calls[1] {
 					t.Fatalf("invalid IDs %v: %s", calls, wire)
 				}

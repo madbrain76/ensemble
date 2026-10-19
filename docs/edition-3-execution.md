@@ -6,7 +6,7 @@ Bill's instructions of October 16, 2026, as amended by his later simplicity and 
 
 Restart from Chapter 1 in an empty `solutions/edition-3/main`; keep the improved manuscript and save accepted snapshots as `solutions/edition-3/chNN`. This user-authorized restart supersedes the previous external-workspace and immutable-FINAL-path policy. Use the lean workflow and direct-comparison gate below.
 
-Chapters 1 and 2 of the restarted run are complete, with accepted snapshots in `solutions/edition-3/ch01` and `ch02`; the evolving `main` workspace matches `ch02` at closure. Chapter 2 used one fresh re-execution and two bounded correction rounds. Direct reference comparison found the final design appropriately scoped; both same-binary grades and the three-provider live exercise passed. One formal text review passed with no revision. Chapter 3 is next. Concise notes use `ch01-restart-*` and `ch02-restart-*`. The requested backup-snapshot boundary review is recorded in `ch10-snapshot-recovery-followup.md` for contract alignment before Chapters 10 and 14.
+Chapters 1–3 of the restarted run are complete, with accepted snapshots in `solutions/edition-3/ch01` through `ch03`; the evolving `main` workspace matches `ch03` at closure. Chapter 3 used three code-correction rounds. Direct reference comparison accepted its owner-local design; final same-binary grades and qualified three-provider tool/chat evidence passed. One formal text review required one author revision, directly verified by root without re-review. Chapter 4 is next. Concise notes use `chNN-restart-*`. The requested backup-snapshot direction remains in `ch10-snapshot-recovery-followup.md` for contract alignment before Chapters 10 and 14.
 
 ## Preparation history (before the current restart)
 

@@ -10,6 +10,7 @@ import (
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
+	"ensemble/internal/tool"
 )
 
 // Config configures one conversation; APIKey must be treated as a secret.
@@ -26,7 +27,9 @@ type Usage = common.Usage
 
 // Ensemble owns its Agents and logger; it has no invented parent of its own.
 // Agent creation, like conversation calls, is synchronous in this chapter.
-type Ensemble struct {
+type Ensemble struct{ privateState }
+
+type privateState struct {
 	logger *log.Logger
 	agents []common.Agent
 }
@@ -36,7 +39,7 @@ func New(logger *log.Logger) *Ensemble {
 	if logger == nil {
 		logger = log.New(io.Discard, "", 0)
 	}
-	return &Ensemble{logger: logger}
+	return &Ensemble{privateState: privateState{logger: logger}}
 }
 
 // Logger supplies the application-owned logger to descendants through parents.
@@ -58,6 +61,11 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	}
 	a.SetEngine(transport)
 	a.SetHistory(history.New(a))
+	registry, err := tool.New(a)
+	if err != nil {
+		return nil, err
+	}
+	a.SetTools(registry)
 	e.agents = append(e.agents, a)
 	return a, nil
 }
@@ -83,3 +91,7 @@ const (
 	MessageReceived = common.MessageReceived
 	System          = common.System
 )
+
+// Tool contracts expose declarations and dispatch without implementation state.
+type ToolRegistry = common.ToolRegistry
+type ToolDefinition = common.ToolDefinition

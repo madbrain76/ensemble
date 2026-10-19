@@ -2,6 +2,7 @@ package ensemble
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -32,5 +33,22 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 	c.APIKey = value("API_KEY")
 	c.BaseURL = value("BASE_URL")
 	c.ResolvedModel = get("LLM_RESOLVED_MODEL")
+	switch selected := strings.TrimSpace(get("LLM_TOOLS")); selected {
+	case "", "default": // nil means the default six built-ins.
+	case "none":
+		c.Tools = []string{}
+	default:
+		c.Tools = strings.Split(selected, ",")
+		for i := range c.Tools {
+			c.Tools[i] = strings.TrimSpace(c.Tools[i])
+		}
+	}
+	if policy := get("LLM_REQUIRE_TOOL_EXPLANATION"); policy != "" {
+		enabled, err := strconv.ParseBool(policy)
+		if err != nil {
+			return Config{}, fmt.Errorf("LLM_REQUIRE_TOOL_EXPLANATION must be a boolean")
+		}
+		c.RequireToolExplanation = enabled
+	}
 	return c, nil
 }

@@ -108,6 +108,15 @@ CLI installs the six tools; an ordinary library client can construct an Agent
 with none. Empty-registry omission is a library property to check directly,
 not a hidden CLI switch or a special case that recognizes the grader.
 
+The Engine projects the common JSON Schema into each provider's declaration
+dialect. In the Edition 3 live exercise, Gemini's `parameters` rejected
+top-level `additionalProperties`. For the current built-in object schemas,
+omit that unsupported keyword in the Gemini projection; keep the shared
+schemas, strict local argument validation and other providers' declarations
+unchanged. This is a projection for these six tools, not a general recursive
+schema translator or a promise that every provider accepts every JSON Schema
+keyword.
+
 A tool is a name, a description, a schema, and a function. The function also
 needs access to its owner, so it can reach existing services without adding
 globals when it needs a diagnostic:
@@ -423,6 +432,14 @@ refuses both sites, reports the count and leaves the file unchanged. This
 demonstrates the student's chosen policy, not a requirement to replace every
 other coherent policy with it.
 
+For the student's strict exact-unique policy, make each refusal useful to the
+model. On zero matches, report zero matches and suggest rereading the file.
+On multiple matches, report the actual match count, including overlapping
+sites, and a bounded list of their one-based starting line numbers so the model
+can choose a more specific anchor. Say when the location list is truncated;
+the count still covers every match. Both refusals identify the target file and
+leave its bytes unchanged, without choosing a match or relaxing exact comparison.
+
 The question is open in a way a riddle is not, and the proof is in
 CodeRhapsody's own code. Both answers ship. `edit_file` refuses on an
 exact-match failure. `replace_lines` deliberately fuzzy-searches within fifty
@@ -552,6 +569,15 @@ provider's model endpoint and verify tool support. Keep real credentials out
 of command arguments, prompts, transcripts and files in the exercise. Pass
 only the selected key to the intended process; §3.3 keeps it out of the shell
 that process launches.
+
+When exercising Gemini signatures bound to an exact producer, the runtime also
+needs a known resolved target identity. Set `LLM_RESOLVED_MODEL` from an
+observed returned model on the same vendor, API surface and route, not from
+the routing alias in `LLM_MODEL`. An unknown identity correctly suppresses
+private extras. The Edition 3 exercise omitted this field in both the launch
+authorization and the harness; correcting that setup required no source
+change. A missing launch identity is not evidence that the parser lost a
+signature.
 
 The first edition recorded September 2026 coding defaults of `claude-opus-5`,
 `gemini-3.8-flash`, and `gpt-5.6-sol`, each verified against its vendor's
@@ -765,7 +791,10 @@ go build -o /tmp/ch3agent ./cmd/ch01
 ```
 
 Then launch `/tmp/ch3agent chat` from the disposable project, with `CH02_LOG`
-pointing to a log there. Repeat for each dialect using its printed environment.
+pointing outside it. Repeat for each dialect using its printed environment.
+Keep prompts, logs, harness files, and the exercise's `HOME` and temporary
+directories outside the tool workspace, so a search cannot answer a memory
+test from its fixtures.
 
 Watch the trace line the fake prints on every request. It reports the request
 size, whether tools were declared, and how many tool results the request is
@@ -793,15 +822,16 @@ endpoint, discovered model and selected key before leaving the fake. From the
 scratch project, run your binary:
 
 ```
-LLM_VENDOR=anthropic CH02_LOG=session.jsonl /tmp/ch3agent chat
+LLM_VENDOR=anthropic CH02_LOG=../anthropic-session.jsonl /tmp/ch3agent chat
 ```
 
 Repeat in separate scratch projects for Gemini and OpenAI, setting each one's
 model, endpoint and key. Their logs and files should remain separate.
 
 First give it a codename to remember, ask it to do work with the tools, then
-ask for the codename back. Recall shows the conversation survived the work;
-the log and actual file changes establish which tools ran. Do not accept
+ask for the codename back. Check that third turn's actual answer, not the last
+available text from a failed run. Recall shows the conversation survived the
+work; the log and actual file changes establish which tools ran. Do not accept
 “I fixed it” as evidence of a changed file.
 
 Then go off script. Things worth trying, roughly in order of

@@ -47,7 +47,7 @@ func New(a ensemble.Agent) http.Handler {
 	})
 }
 
-const page = `<!doctype html><html><head><meta charset="utf-8"><title>Ensemble Chapter 2</title></head><body><h1>Ensemble</h1><pre id="conversation"></pre><form><label>Message <input id="message" required></label><button>Send</button></form><p id="status"></p><script>
+const page = `<!doctype html><html><head><meta charset="utf-8"><title>Ensemble Chapter 3</title></head><body><h1>Ensemble</h1><pre id="conversation"></pre><form><label>Message <input id="message" required></label><button>Send</button></form><p id="status"></p><script>
 const form=document.querySelector('form'),input=document.querySelector('#message'),view=document.querySelector('#conversation'),status=document.querySelector('#status');
 form.onsubmit=async e=>{e.preventDefault();const user=input.value;form.querySelector('button').disabled=true;status.textContent='Waiting…';try{const r=await fetch('/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user})});if(!r.ok)throw new Error(await r.text());const data=await r.json();view.textContent+='You: '+user+'\nAgent: '+data.assistant+'\n';input.value='';status.textContent=JSON.stringify(data.usage)}catch(err){status.textContent=err.message}finally{form.querySelector('button').disabled=false}};
 </script></body></html>`
