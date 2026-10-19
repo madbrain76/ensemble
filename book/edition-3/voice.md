@@ -1,39 +1,34 @@
 # Voice
 
-*Version 6, 2026-10-09. A specification, written plainly on purpose. Version 2
-was written in the voice it described, and the chapter drafted the same day
-copied the document's tics instead of following its rules. A voice document
-should be followed, not enjoyed.*
+*Version 7, 2026-10-18. A specification, written plainly on purpose. An
+earlier version written in its own prescribed voice taught the chapter to
+copy its tics. This guide describes editorial decisions, not a style to mimic.*
 
-*What changed from v5: Bill supplied a characteristic line and explained the
-ambition behind agentic codebooks. §10.2 preserves both for later authorship,
-with predictions distinguished from demonstrated outcomes.*
+*This revision prioritizes reader understanding, coherent explanations, and
+integration of new requirements. It replaces the sentence-level cut test,
+relaxes mechanical quotas, and adds sustained technical exemplars. Evidence,
+authorship, privacy, and publication guardrails remain in force.*
 
-*What changed from v4: Bill asks the second edition to recover human story
-and personality lost during the rewrite. §4.1 makes that a required author
-and reviewer pass. Third-person narration still allows warmth, judgment,
-humor, and documented human experience; it does not require impersonal prose.*
-
-*What changed from v3: person is settled per surface, because the chapters had
-already moved to third person while v3 still described a first-person narrator.
-Laura Zavelson's brand guide (`book/suggested-voice.md`, built from Bill's
-written answers, September 2026) is merged in. Her avoid list is better than
-v3's and is now the spine of §8; the countable entries moved into the budget
-table. Her before/after pairs are in §12, where they do more teaching per line
-than a rule does. v3's numeric budgets, receipts discipline, and binding
-rulings survive unchanged, because a rule without a number gets applied
-everywhere or nowhere.*
-
-*The two source documents were written for different jobs. v3 is a craft
-specification for a technical book. Laura's guide is a brand voice for Bill
-Cox the person, and it began life as a Google Doc for LinkedIn. Neither is
-wrong. They govern different surfaces, and §1 says which is which.*
+*Sources: the book's craft specification and Laura Zavelson's brand guide
+(`book/suggested-voice.md`, based on Bill's written answers, September 2026).
+They serve different surfaces: chapter bodies and Bill's personal register.
+Bill's later story-preservation request and codebook ambitions are retained
+in §4.1 and §10.2.*
 
 ## 0. How to use this
 
-Read §1 and §5 before drafting. Run `make lint-prose` before review. When a
-rule and a sentence disagree and the sentence is clearly better, the sentence
-wins and the rule gets an entry in §13 saying so, with a date.
+Read §1, §6, and §7 before drafting. When instructions compete, use this order:
+
+1. Truth, technical accuracy, and the guardrails in §9 and §13.
+2. The reader's understanding and reason to care.
+3. Coherent explanation and useful organization.
+4. Voice, rhythm, and stylistic preferences.
+5. Lint checks as diagnostics, not the definition of good prose.
+
+A stylistic preference never justifies altering evidence, obscuring a
+requirement, or deleting a useful explanation. Run `make lint-prose` before
+review and inspect its findings (§5). Record deliberate style exceptions in
+the review notes; add durable changes to the guide in §13 with a date.
 
 ## 1. Who is speaking
 
@@ -77,8 +72,9 @@ opener, and do not cut the opener to sound more like the rest.
 
 Outside the motivational opener, Bill is a character. His stories are told
 about him, in third person, with his words quoted where a quote exists. A
-story we do not have is a marked gap, never an invention. Budget: two mentions
-per chapter.
+story we do not have is a marked gap, never an invention. Mention him when
+his action, judgment, or experience matters to the explanation. Do not ration
+his name inside a useful story or insert him merely to satisfy a quota.
 
 ### 1.4 Authorship and disclosure
 
@@ -107,8 +103,10 @@ count.
 
 They have probably built the four-hundred-line toy agent and hit the wall
 where it stops working. They distrust hype, dislike framework bloat, and
-respect people who have built real things. They need no hand-holding and want
-the mechanism. Skip definitions a senior engineer already knows. See `icp.md`.
+respect people who have built real things. Skip definitions a senior engineer
+already knows, but do not confuse orientation with hand-holding. A reader can
+know concurrency and still need a clear account of this system's lifecycle.
+See `icp.md`.
 
 They can leave at any moment and will not say why. There are two ways to lose
 them: filler, and monotone. Monotone is a page where the sentences have the
@@ -123,7 +121,7 @@ Lewis's rule is not "open with a scene"; it is that someone has something at
 stake for the entire length of the piece.
 
 **Joel Spolsky for mechanism.** Conversational, opinionated, unwilling to
-summarize what he just said. Names the reader's objection before the reader
+repeat a summary that adds nothing. Names the reader's objection before the reader
 does. Confident because he checked, and the checking shows.
 
 Underneath both, the compiler-book register: *Crafting Interpreters*,
@@ -145,17 +143,19 @@ will abandon after the cold open.
 A mention is not a stake. A confession ("I had this wrong") is not a stake. A
 stake is something that could still go wrong in the next paragraph.
 
-When a stretch of mechanism runs more than 1,200 words with no person on the
-page, put one back. The linter warns at that length.
+When a long stretch of mechanism loses sight of its purpose, reconnect it to
+the problem and its consequences. A documented person may carry that stake;
+a concrete reader problem can carry it too. A person-gap warning is a prompt to
+check engagement, not an instruction to insert a person.
 
 ### 4.1 Preserve the human story when rewriting
 
-For every second-edition chapter, the author must examine the corresponding
-first-edition material for a documented incident, revealing exchange, reader
+For every edition rewrite, the author must examine the corresponding
+previous-edition material for a documented incident, revealing exchange, reader
 frustration, or memorable explanation worth retaining. Record the choice and
 its source in the outline, or explain why that material no longer serves the
 chapter. The reviewer checks the choice against both versions. This applies
-to existing second-edition drafts as well as future chapters.
+to existing drafts as well as future chapters.
 
 Keep enough of an incident to show what someone wanted, what went wrong,
 what they tried, and what the outcome taught. Compressing Bill's two-week bet
@@ -164,7 +164,7 @@ be on the page. Preserve the stakes when they explain why the work matters.
 Use Bill's first-person voice in a short motivational opener under §1.2, or
 tell the incident in third person in the body under §1.3.
 
-The second edition teaches the rules before implementation. An earlier
+The book teaches the rules before implementation. An earlier
 failure can motivate the right design without asking the student to recreate
 the flawed architecture. Connect the incident to the decision it explains,
 and return to its consequence when the new mechanism resolves the problem.
@@ -175,7 +175,7 @@ speak for itself. Preserve a sharp, accurate sentence when it teaches. Avoid
 adding jokes, stock catchphrases, or a personal anecdote to satisfy a quota.
 A concrete reader problem can carry a chapter when no historical story fits.
 
-Use actual second-edition experience too. A model claiming an edit succeeded
+Use actual implementation experience too. A model claiming an edit succeeded
 while the file remains unchanged, followed by an observed corrective turn,
 can teach more than another instruction to verify results. Retain the failure
 and its resolution; distinguish model behavior from an implementation defect.
@@ -185,85 +185,70 @@ Verify quotations, dates, figures, and claimed outcomes. Never invent dialogue,
 feelings, scenes, or a successful result. Use the story-slot rule in §9 when
 needed. Keep the essential receipt and reproduction steps in the chapter;
 link detailed audit ledgers and checkpoint history so they do not overwhelm
-the reader's journey. Required exercise contracts remain explicit.
+the reader's journey. Required exercise contracts remain explicit and easy to
+find, separated from the explanation where appropriate (§7.1).
 
-## 5. Budgets
+## 5. Style diagnostics and lint
 
-Every move below is legitimate. Each becomes a tic at density, and the first
-drafts proved that a rule without a number is applied everywhere. Budgets are
-per chapter file. `make lint-prose` counts them and fails a build that exceeds
-a hard ceiling; soft ceilings print a warning.
+Repeated moves become tics. Counts can reveal them, but cannot decide whether
+a particular sentence helps. Read a flagged passage in context before changing
+it. A chapter that satisfies every count can still be exhausting to read.
 
-| move | pattern the linter counts | ceiling |
-|---|---|---|
-| chapter length | words outside code blocks and tables | 4,000 to 7,500 (soft; see §13) |
-| confessions | "I believed", "I had this wrong", "I wrote it that way", "an earlier draft", "the first draft of", "shipped a bug", "I went into this" | 3 (hard) |
-| self-defense | "looks like over-", "feels like over-", "looks like a violation" | 1 (hard) |
-| negation forms | ", not ", ", never ", sentence-initial "Not " | 1 per 500 words (soft) |
-| inventory openers | paragraph opens with a number word and a period within six words ("Two rules." "Three nouns, and...") | 3 (hard) |
-| short closers | paragraphs whose final sentence is eight words or fewer | one in three paragraphs (soft) |
-| pointer closers | final sentence begins "That is", "That sentence", "That number", "That habit", "That shape", "Read that", "Look at", "Hold on to", "Here is the" | 2 (hard) |
-| superlatives of scope | "the most X in the/this chapter/book", "the only X in the/this book", "the whole X in this chapter" | 2 (hard) |
-| "I won't pretend otherwise" | literal | 1 (hard) |
-| Bill mentions | "Bill" outside the motivational opener | 2 (soft) |
-| first person in the body | "I", "me", "my" outside the motivational opener and quoted speech | 0 (hard) |
-| em-dash | U+2014 outside code | 0 (hard) |
-| LLM crutches | delve, tapestry, testament to, "not just", "it's not X, it's Y", "at its core", "in a world where", "it's worth noting", "navigate" (figurative), "landscape" (figurative), "the reality is", "let's dive in", "let's unpack" | 0 (hard) |
-| suspenseful transitions | "Here's the kicker", "Here's where it gets interesting", "Here's what most people miss" | 0 (hard) |
-| rhetorical-question reveals | "The result?", "The worst part?", "The kicker?", "The problem?" | 0 (hard) |
-| countdown negation | anaphoric negative triples ("Not a framework. Not a wrapper. Just...") | 0 (hard) |
-| stakes inflation | "fundamentally reshape", "the future of engineering", "changes everything" | 0 (hard) |
-| business clichés | synergy, bandwidth (figurative), ecosystem, seamless, holistic, robust, cutting-edge, innovative, game-changer, thought leadership, leverage (as a verb), unlock, empower | 0 (hard) |
-| borrowed authority | "experts say", "studies show", "research suggests", "it's well known that", "successful people", "high performers" | 0 (hard) |
-| hedging | "might potentially", "could possibly", "may want to consider", "in my humble opinion", "take this with a grain of salt", "this might not be for everyone" | 0 (hard) |
-| motivational padding | "You've got this", "believe in yourself", "just showing up is enough" | 0 (hard) |
-| academic register | "it is important to note that", "as previously mentioned", "in conclusion", "one might argue" | 0 (hard) |
-| connective adverbs | "thus", "therefore", "moreover", "furthermore" | 2 (soft) |
-| callbacks | any specific figure or phrase repeated | 3 (reading test; not counted) |
+Chapter length has no minimum, maximum, or lint warning. A chapter may be one
+page or a hundred; it needs to be the right length for its material and reader.
+Do not pad a short chapter or compress a long one to meet a numerical target.
 
-Two notes on the imported rows. Laura's guide bans em-dashes anywhere; this
-document keeps the carve-out for code, because a Go comment or a shell
-transcript is quoted material and editing it would be a lie. And "thus" and
-"therefore" are soft rather than banned, because technical prose occasionally
-earns them, while "in conclusion" never does.
+Use these style thresholds as review prompts, not drafting quotas:
 
-The linter measures density, not presence. It cannot tell a good short closer
-from a bad one. It can tell that four in five paragraphs end the same way, and
-that is the finding.
+| pattern | review prompt |
+|---|---|
+| confessions or accounts of an earlier draft | more than three: keep the histories that teach; integrate the rest |
+| inventory openers such as "Two rules." | more than three: check whether the sections are becoming checklists |
+| short final sentences | more than one paragraph in three: read for repetitive emphasis |
+| pointer closers such as "That is" or "That number" | more than two: check whether they explain or merely underline |
+| negation forms | more than one per 500 words: check whether the correction needs its negative half |
+| repeated figures or phrases | more than three uses: check whether the callback adds understanding |
 
-Written-to-the-linter prose is a risk. The countermeasure is §11's cut test,
-which the linter does not replace.
+The default register still excludes authorial first person outside the surfaces
+allowed by §1. Avoid the stock language in §8 and em-dashes outside code or
+quoted artifacts. Do not alter evidence to satisfy a style preference.
+
+`make lint-prose` may enforce older numeric ceilings, including a Bill-mention
+limit that this guide no longer endorses. This revision changes the editorial
+policy, not the linter implementation. Review every failure: fix real defects
+and record justified exceptions for the reviewer rather than distorting prose
+to obtain a pass. Report the actual lint result; an editorial exception does
+not turn a failed command into a successful one. Any build-policy change is a
+separate task.
+
+Passing lint establishes neither readability nor completeness. The explanation
+and integration passes in §11 remain necessary.
 
 ## 6. Paragraph shape
 
-The only closer v2 modelled was the snap. Here is the menu. A page should use
-several.
+Let sentence and paragraph length follow the thought. Review for monotony,
+but do not manufacture variety. Short sentences can emphasize a consequence;
+ordinary connective sentences carry the reader between emphases. A paragraph
+may need more than four sentences to complete one useful step of an argument.
 
-**Endings:** a number; a filename or identifier; a question the next paragraph
-answers; a quoted word; a long sentence that does not resolve until its last
-clause; a concrete image; a hand-off ("and the same statement says what") that
-the next paragraph completes; and, at most one in three, the short flat
-sentence.
+**Openings and endings serve the explanation.** Open with the actor, artifact,
+question, or claim the reader needs next. End when that unit of thought is
+complete. Not every paragraph needs a punch line, a summary, or a surprise.
+If a page repeatedly ends with the same emphatic move, revise the passage
+rather than mechanically swapping its last sentences.
 
-**Openings:** a person doing something; a quoted line; the objection, stated as
-the reader would; a concrete artifact (a request body, a log line, a number); a
-question; a plain claim. Not, more than three times a chapter, an inventory
-("Two rules.").
+**Headings help readers find their way.** Name the question, mechanism, or task.
+Vary the form when repetition becomes distracting, not merely to make adjacent
+headings look different.
 
-**Headings:** vary the form. Chapter 2's first draft had five consecutive
-section headings shaped "X is not Y" or "X is Z", and the table of contents was
-monotone before the body began.
+**Lists and prose do different jobs.** Use lists for steps, parallel choices,
+requirements, and checks that readers need to locate independently. Use prose
+to explain causes, dependencies, and consequences. A list of individually
+clear rules is not necessarily a clear account of how a system works.
 
-**Sentence length varies deliberately.** Follow a long chained sentence with a
-short one. Medium sentences may chain clauses with commas and "and".
-
-**Paragraphs run one to four sentences.** Bullets are for procedures and specs.
-Prose that could be a list usually should be one, and a list that could be
-prose usually should not.
-
-**Avoid abstract nouns as sentence subjects.** "The asset being purchased at
-these prices is expert software engineers" is a sentence with nobody in it.
-Put an actor in the subject slot: a person, a program, a request, a number.
+**Prefer identifiable actors.** Say which person, program, request, or event
+causes a change. An abstract term can be useful once the reader knows what it
+means; avoid abstract subjects that conceal who does what.
 
 ## 7. Facts, receipts, tone
 
@@ -288,9 +273,10 @@ Put an actor in the subject slot: a person, a program, a request, a number.
    performs its own amusement is doing a bit. A page that reports precisely is
    a witness.
 
-3. **Each section's one wild fact gets performed, not filed.** Find it before
-   drafting the section. If a section has none, it is probably two sections or
-   half of one.
+3. **Each section answers a worthwhile question.** Identify what the reader
+   needs to understand, decide, or do. A surprising fact is welcome when the
+   material supplies one. Ordinary but consequential explanation needs no
+   manufactured surprise.
 
 4. **Every criticism carries a receipt.** A status code, a measured number, a
    request you can paste. Say what the API did; the reader supplies the
@@ -310,10 +296,11 @@ Put an actor in the subject slot: a person, a program, a request, a number.
    reason to believe an argument is a credential, and the argument has to
    stand without it.
 
-8. **Our own wrong claims stay in print with the results attached**, within the
-   confession budget. Three per chapter. The rest are stated as facts without
-   an origin story: "Gemini 2.5 omits `functionCall.id`; pass ids through"
-   needs no "I believed otherwise."
+8. **Correct our own wrong claims honestly.** Keep a failure and its result
+   when the history teaches the reader something the final rule cannot.
+   Otherwise integrate the correction into the current explanation; preserve
+   detailed revision history in linked evidence. Never leave a false claim
+   uncorrected or imply a failed approach succeeded.
 
 9. **No profanity.** Translate heat into precision.
 
@@ -321,23 +308,60 @@ Put an actor in the subject slot: a person, a program, a request, a number.
 
 11. **Diagnose before prescribing.** Say what the common approach does, show
     how it breaks, then give the fix. A fix offered before the failure is
-    visible reads as taste.
+    visible reads as taste. Explain the ordinary path before branching into
+    exceptions: walk through a concrete sequence in time order, naming what
+    each participant knows, what changes, and why the next step follows.
+    Then explain the edge cases against that shared example.
 
 12. **Frustration is allowed, and it points at mechanisms.** Name what is
     broken and why, then show the better way. It never points at a named
     person, and by default it does not point at a named employer. See §9.
 
+### 7.1 Explanation, contract, and evidence
+
+Separate three reading tasks. The main explanation teaches the problem,
+mechanism, and consequence. The implementation contract states exact required
+behavior and edge cases. The evidence establishes what was observed and how
+it was checked. Keep all three accessible, but do not interleave them sentence
+by sentence.
+
+Introduce an exception in the main explanation when it changes the reader's
+mental model. Put exhaustive cases, grading commands, and regression checks
+in clearly labeled exercise or reference sections. Link them at the point of
+need. The TL;DR should orient the reader to the problem, design, and deliverable;
+it should not reproduce the full grading recipe. Relocation must not weaken,
+hide, or contradict a required contract.
+
+### 7.2 Integrate revisions
+
+When a new requirement changes an explanation, revise the surrounding passage
+so it teaches the current design as a coherent whole. Do not leave the reader
+to assemble that design from an original account followed by successive
+corrections. Preserve the history of a mistake when it teaches something the
+final rule cannot; otherwise lead with the corrected account.
+
+After an insertion, reread the whole section. Does it explain the design to a
+new reader, or does it record the order in which reviewers discovered defects?
+
+### 7.3 State the evidence boundary where it matters
+
+Attribute reports, distinguish observations from inference, and qualify
+uncertainty that affects the conclusion. Do the verification work without
+narrating every precaution. If an incidental detail requires more qualification
+than explanation, omit the detail rather than surrounding it with disclaimers.
+Never remove uncertainty merely to make a claim sound stronger.
+
 ## 8. What to avoid
 
-The budget table counts what a linter can count. This section covers the rest,
-and the overlap is deliberate: a writer reads this list, a build checks that
-table.
+These are common symptoms of generic or inflated prose. Review their use in
+context; replacing flagged words alone does not improve an explanation.
 
 **Borrowed authority.** "Experts say", "studies show", "research suggests",
 "it's well known that". If a claim needs support, cite the artifact.
 
 **Hedging.** No pre-apologizing, no "this might not be for everyone", no
-softening a position the book actually holds. Take positions cleanly.
+softening a position the book actually holds. Take positions cleanly. Necessary
+uncertainty about evidence is accuracy, not a stylistic defect (§7.3).
 
 **Motivational padding.** The reader is a professional engineer on their own
 time. They did not come for encouragement.
@@ -368,6 +392,9 @@ interesting." "Here's what most people miss."
 **Invented concept labels.** No coining "the supervision paradox" or "the
 deskilling trap" unless Bill asks. Real technical names the book already uses
 (real-time steering, event log, the seam) are fine.
+
+**Business clichés.** Synergy, seamless, holistic, cutting-edge, game-changer,
+thought leadership. Name the actual capability or effect instead.
 
 **Ornate language where a plain word works.**
 
@@ -482,26 +509,34 @@ the voice; whether regeneration succeeds is something the work must establish.
 
 ## 11. Process
 
-Chapter 2's first draft was committed at 11,101 words with none of the review
-tests run. The tests are now steps.
+Work from structure to sentences. Lint cannot repair an explanation whose
+parts arrive in the wrong order.
 
-1. Write the through-line stake sentence (§4) and each section's wild fact
-   (§7.3) at the top of the outline.
-   For an edition rewrite, record the story-preservation decision under §4.1.
-2. Draft.
-3. Run `make lint-prose`. Fix hard failures. Read the soft warnings.
-4. Cut pass. The test for each sentence: delete it; if no claim, number,
-   instruction, or laugh dies, leave it deleted. There is no target
-   percentage (§13).
-5. Read the last sentence of every paragraph in sequence. If they sound alike,
-   the page is monotone regardless of the sentences between.
-6. Find the person on the page in every stretch over 1,200 words.
-7. Verify every figure you added during the pass against the artifact, not
-   against memory.
-8. Extract code blocks and tables from the old and new versions and diff them;
-   a prose pass changes no artifact. Then `make grade`.
-9. Run the §14 voice check.
-10. Send for review.
+1. Outline the through-line stake (§4) and the question each section answers
+   (§7, item 3). For an edition rewrite, record the story-preservation decision
+   under §4.1.
+2. Draft the explanation, then make its contract and evidence easy to find
+   (§7.1). Use a concrete sequence before enumerating interacting edge cases.
+3. Integration pass. Read each changed section as a new reader would. Rewrite
+   around new requirements rather than appending corrections (§7.2). Check
+   that relocation preserves every required behavior and its discoverability.
+4. Usefulness pass. Ask what each passage helps the reader understand, decide,
+   or do. Preserve orientation, causal explanation, and transitions when they
+   reduce the reader's effort. A sentence does not earn its place merely by
+   containing a unique fact or instruction. Remove, combine, or relocate
+   details that interrupt the explanation, even when they are correct. There
+   is no target reduction percentage (§13).
+5. Read for rhythm and continuity. Scan paragraph endings for repeated emphasis,
+   then read the full passages. Let variation follow the thought; do not add
+   punch lines or people to satisfy a quota.
+6. Verify every changed quotation, figure, and claimed outcome against its
+   source. Distinguish observation, attribution, and inference (§7.3).
+7. Extract code blocks and tables from the old and new versions and diff them;
+   a prose-only pass changes no artifact. Check that reordered requirements
+   retain their meaning. Then run `make grade`.
+8. Run `make lint-prose`. Inspect findings and report actual results. Fix
+   defects; document justified style exceptions under §5.
+9. Run the §14 voice check and send for review with the verification results.
 
 ## 12. Exemplars
 
@@ -568,11 +603,90 @@ Bill: the passage in §12.2.
 Chapter 2's first draft, §2.5, is the failure case: 11,000 words with no stake
 after the cold open, five consecutive headings of the same shape, and the same
 closer move on four paragraphs in five. Read it when a draft feels flat and
-the reason is not obvious. The defect is never in the sentence being examined;
-it is in the sentence's similarity to the nine before it.
+the reason is not obvious. The defect may be hard to see in an isolated sentence;
+it becomes clear in the sentence's similarity to the nine before it.
+
+### 12.5 From requirements to a causal explanation
+
+The next two pairs are constructed editorial demonstrations based on the
+edition-3 Chapter 05 wakeup design and Chapter 01 timeout discussion. They are
+not quotations, observed runs, or complete implementation contracts. Their
+purpose is to show how to organize true technical material.
+
+**Before: requirements carry the whole explanation.**
+
+> On a hint, wake the foreground observation. Do not cancel the job. Resolve
+> the outstanding call under its original id with the existing handle,
+> bounded unseen output, and truthful state. Record the result and hint before
+> the next model request. Do not resend the job or end the turn. Preserve
+> completed results and pair undispatched calls with not-executed errors.
+> Retire the observation timer. A later wait uses the same job handle.
+
+**After: establish the sequence, then state the contract.**
+
+> The model is waiting for a test when the human asks it to check the first
+> failure. The test can keep running while the model answers. What needs to
+> end is the current wait for a report, so the human's hint can reach the next
+> model request.
+>
+> The runtime returns the existing job handle, any bounded unseen output, and
+> the job's observed state as the result of that wait. It records that result
+> and the hint before sending another request to the model. The model can
+> respond to the hint and later resume observation of the same job. It does
+> not need to launch the test again or wait for the test to finish.
+>
+> **Required pairing and lifecycle behavior**
+>
+> - Resolve the wait exactly once under its original call id, using the
+>   observed state if completion raced with the hint. Retire its timer.
+> - Preserve completed calls' results. Pair remaining undispatched calls
+>   with errors saying they were not executed; do not dispatch that tail.
+> - Do not cancel the job or end the turn. A later wait refers to the same
+>   job handle, whether it is still running or has finished.
+
+The causal sequence now carries the explanation. The exact pairing rules
+remain visible in a separate contract, where a reader can check them during
+implementation. The rewrite adds orientation rather than optimizing for the
+fewest words. A real chapter must also retain its other wakeup requirements,
+including signature preservation, one-shot limits, and output-cursor rules.
+
+### 12.6 Integrating a newly discovered failure
+
+**Before: an original instruction followed by a patch.**
+
+> Set a 60-second client timeout so a stalled request cannot hang the agent.
+>
+> Some valid model responses take longer than 60 seconds, so this timeout can
+> kill useful work. Do not use that blanket deadline. Keep connection and TLS
+> protections, and make sure cancellation still works.
+
+**After: teach the corrected distinction.**
+
+> A timeout that protects connection setup answers a different question from
+> a deadline on the whole model request. The first bounds how long the client
+> waits to establish a connection. The second also limits how long a valid
+> generation may take.
+>
+> A blanket 60-second client timeout can therefore cancel useful work even
+> when the connection is healthy. Keep bounded connection and TLS setup,
+> but do not impose that blanket deadline on generation. Give the request a
+> cancellation path so the user can stop waiting without mistaking elapsed
+> time for evidence that the model has failed.
+
+The revision replaces the obsolete instruction instead of leaving both
+versions for the reader to reconcile. It preserves the connection safeguards
+and cancellation requirement, and explains why they serve different purposes.
+If an actual failed run is useful evidence, link it or tell its verified story;
+do not invent one to dramatize the distinction.
 
 ## 13. Rulings that bind the prose
 
+- **Explanation before stylistic quotas:** approved for this revision,
+  2026-10-18. The priority order in §0, usefulness test in §11.4, and integration
+  pass supersede the old sentence-level deletion test and mechanical quotas
+  for Bill mentions, human reappearances, wild facts, and paragraph length.
+  Style counts are diagnostics under §5. Factual, technical, privacy, and
+  publication guardrails remain binding.
 - **Second-edition personality:** preserve documented human story and restore
   warmth and personality during the rewrite. Requested by Bill, 2026-10-07.
   §4.1 is a required author and reviewer pass. This clarifies §1.1; third-person
@@ -588,7 +702,7 @@ it is in the sentence's similarity to the nine before it.
 - **Printable:** Bill's Gemini `compress_context` story (an SDK's compaction
   deleted eighty percent of context starting from message one, which is what
   led to handoffs). Ruled 2026-09-14. Name the API surface, not the company.
-- **Printable:** "Forty years" as biography (§7.7). Bill is 62; Berkeley 1986.
+- **Printable:** "Forty years" as biography (§7, item 7). Bill is 62; Berkeley 1986.
 - **Not printable, any form:** the vendor model Bill watched threaten its
   sub-agents at work. No public log exists. Carry as mechanism in the
   sub-agent chapter; cite a public receipt if one appears.
@@ -597,36 +711,46 @@ it is in the sentence's similarity to the nine before it.
   framing (§10.1).
 - **Print promise:** no profit on proxied tokens; billing costs pass through.
   Any pricing text honours this wording.
-- **Length is not the test** (Bill, 2026-09-14, during the Chapter 2 pass): the
-  word ceiling is a warning, not a gate. The test for each sentence is §11.4's:
-  does a claim, number, instruction, or laugh die if it goes? A chapter with
-  more code has more to explain; a sentence that earns its place stays
-  regardless of the count. Cutting to hit a number is a different mistake
-  wearing the linter's badge.
-- **Chapter 19 names vendors.** §7.6 ("name the API and the model family,
+- **Length is not the test** (Bill, 2026-09-14, during the Chapter 2 pass;
+  clarified 2026-10-18): there is no chapter-length target or linter check.
+  A chapter can be one page or a hundred; it needs to be the right length.
+  Apply §11.4's passage-level usefulness test. Orientation and transitions
+  can earn their space; a unique fact may belong elsewhere. Neither cutting
+  to a number nor retaining every fact is a substitute for editorial judgment.
+- **Chapter 19 names vendors.** §7, item 6 ("name the API and the model family,
   never the company") is suspended for chapter 19. Anthropic is named for
   their policy decision (freezing the context window); OpenAI is named for
   their approach (OAuth for third-party agents, signature binding as the
-  narrower fix). Every criticism carries a receipt (§7.4): the arXiv paper,
+  narrower fix). Every criticism carries a receipt (§7, item 4): the arXiv paper,
   the OpenAI blog post, the dated policy change. This is a one-chapter
   exception, not a general license. If Anthropic reverses course, the chapter
   is revised. Ruled 2026-10-02.
 
 ## 14. Quick voice check
 
+
 Run this before sending a chapter for review.
 
-1. Does the body open with a claim rather than a warm-up?
-2. Is every big claim followed by something concrete: a tool, a bug, a number,
-   or a story?
-3. Would a senior engineer feel talked down to anywhere? Cut it.
-4. Any em-dashes outside code, hedges, or §8 patterns? Cut them.
-5. Is there any first person outside a §1.2 opener or a quote?
-6. Read the last sentence of every paragraph in sequence. Do they vary?
-7. Does every criticism carry a receipt?
-8. Is every figure verified against an artifact rather than memory?
-9. Does it read like an engineer at a whiteboard, or like a press release?
-10. What human stake, memorable explanation, or documented incident survived
-    the rewrite? If one was removed, does the outline explain why?
-11. Does the chapter make the reader care before its detailed requirements,
-    and does the mechanism resolve the problem that made them care?
+1. Does the opening give the reader a reason to care and a clear direction?
+2. Can the reader explain the basic mechanism before meeting its edge cases?
+3. Do interacting rules follow a concrete sequence, with actors and causes
+   visible, or does a list of prohibitions stand in for an explanation?
+4. Are explanation, contract, and evidence easy to find without constantly
+   interrupting one another? Are all required behaviors still explicit?
+5. Does each revised section teach the current design coherently, rather than
+   record the order in which reviewers found defects?
+6. Have useful transitions and orientation survived the cut pass? Could any
+   technically correct detail be combined, relocated, or omitted to help?
+7. Would a senior engineer feel talked down to, or be forced to reconstruct an
+   unstated causal step? Fix either problem.
+8. Is the rhythm natural across full passages, without manufactured variation,
+   mandatory surprises, or a punch line at every paragraph end?
+9. Does every criticism carry a receipt? Are quotations, figures, and outcomes
+   verified, with consequential uncertainty preserved?
+10. Does the prose state relevant evidence boundaries without narrating every
+    verification precaution?
+11. Are person, privacy, publication, and evidence guardrails respected? Have
+    lint findings been reviewed and any style exceptions documented?
+12. What human stake, memorable explanation, or documented incident survived
+    the rewrite? If one was removed, does the outline explain why? Does the
+    mechanism resolve the problem that made the reader care?

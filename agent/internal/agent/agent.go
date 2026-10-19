@@ -176,8 +176,8 @@ func (a *agent) AttachHistory(h common.History) {
 	a.history = h
 }
 
-// SetMaxToolRounds changes the next turn's budget, preserving the active turn's
-// snapshot. Zero selects the named default; negative budgets are invalid.
+// SetMaxToolRounds preserves a legacy saved value without limiting execution.
+// Deprecated: tool-round limits are no longer enforced. Negative values remain invalid.
 func (a *agent) SetMaxToolRounds(limit int) error {
 	if limit < 0 {
 		return fmt.Errorf("MaxToolRounds must be nonnegative")

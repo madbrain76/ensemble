@@ -1,5 +1,63 @@
 # Edition 2 publication and layout migration
 
+## Hardcover front-cover preparation
+
+A separate front-image asset for the 7 × 10 hardcover is now available at
+`book/ensemble-edition-2-hardcover-front-7x10.png` (2800 × 4000 pixels, 400 DPI).
+JPEG and PNG delivery copies are in
+`/Users/bill/Downloads/AI Coding Agents - Hardcover Front/`.
+The original artwork was preserved in full, reduced proportionally and inset
+on an extended background to give the lettering additional clearance.
+
+This is an image for **Cover Creator**, not a complete case-wrap PDF. The earlier
+paperback bleed assets must not be substituted for a hardcover wrap. See the
+[KDP print publishing guide](kdp-print-publishing.md) for upload steps,
+provenance, safe-area caveats and official references.
+
+The current interior was inspected, not rebuilt: **496 pages**, all
+**504 × 720 points (7 × 10 inches)**. This is within the 75–550-page hardcover
+range. Hardcover cover allowances do not require different interior margins.
+No manuscript, build script, preface, existing cover or previous publication
+artifact was changed for this task. Image dimensions, DPI and text detection
+were checked; no visual/KDP preview, upload or physical proof was performed.
+Historical page counts below retain their original artifact identity.
+
+## Current release: Second Edition — Update 2
+
+Update 2 is the first update after the original second-edition release (implicitly
+version 1), and the final update before the third edition. Both front-matter
+files say **Second Edition — Update 2, October 2026**. `book/note-from-bill.md`
+identifies the release and explains that the third edition will result from
+executing this book using Ensemble v2, built with Codex. It does not claim that
+third-edition execution is complete.
+
+This release rebuilt the current manuscript with `make book`, `make ebook`, and
+`python3 book/build-print.py`. The preface, Chapters 0–26, epilogue, cover artwork,
+and build scripts/styles were preserved byte-for-byte from the pre-build baseline.
+Chapter 25 remains the deliberate crossover placeholder. Concurrent application
+and third-edition work was left untouched.
+
+Verification evidence: `solutions/evidence/publication-update2/verification.json`
+(records source and artifact SHA-256 hashes).
+
+- EPUB: 31 TOC entries, 32 NCX entries, one matching embedded cover, no navigation
+  page in the reading spine, and all 1,896 internal XHTML links resolved.
+- Print interior: 577 pages, all 504 × 720 points (7 × 10 inches); measured body
+  text 12pt and minimum code text 10pt. Contents pagination remained stable.
+- Reading PDF: 578 pages, with the cover followed by identical interior text;
+  all 142 links preserved, including the 30 contents destinations shifted by
+  one page. Every page remains 504 × 720 points.
+- Text bounding boxes remain within the page; measured code spans are black.
+  These mechanical checks do not substitute for visual layout review.
+
+No new visual PDF review, Kindle/device preview, KDP print preview, physical
+proof, or external URL reachability check was performed for this update. The
+paperback wraparound cover remains separate from the reading PDF's front cover.
+No commit, push, upload, or publication was performed.
+
+The sections below retain the earlier publication history and review evidence;
+they are not claims of a new independent or visual review of Update 2.
+
 ## October 14: rebuilt reordered edition
 
 Bill authorized the remaining deployment and artifact build after stopping
@@ -269,3 +327,77 @@ section. All 1,895 internal links/resource references resolve. Its navigation
 has 31 TOC entries (30 book sections plus front matter); the build script's
 33-link count also includes two landmark links. Rebuild only: no source prose
 edits, external upload or paperback wraparound-cover generation.
+
+
+## October 17: 10.5pt print body text
+
+At Bill's request, reduced the current print body from 11pt to 10.5pt to
+reduce the book's bulk. Code stays 10pt, tables 11pt, and line-height 1.4.
+The 7 × 10 inch trim and mirrored margins are unchanged: 0.875 inch inside,
+0.5 inch outside, and 0.75 inch top/bottom. The measured-font build check
+now requires 10.5pt body and at least 10pt code, allowing rounding tolerance.
+
+Rebuilt print HTML, print interior and cover-prefixed reading PDF. Interior
+pagination fell from 519 to 496 pages; the reading PDF has 497 pages.
+The build measured 10.5pt body and minimum 10pt code, matched all 30 contents
+headings, and verified stable pagination across both passes. All PDF pages
+measure 504 × 720 points. Extracted text stays inside even the stricter
+501–700-page no-bleed minimum margins (0.75 inch inside; 0.25 inch other
+edges), with a 0.5pt coordinate tolerance. This is a text-bound check, not
+a visual inspection of graphics or KDP Preview.
+
+Hashes confirm that manuscript sources, front matter, assembled Markdown,
+EPUB and cover artwork are unchanged. No external upload was performed.
+KDP Preview and a physical proof of this rebuild remain to be checked; the
+paperback wraparound cover needs a spine sized for the new page count.
+
+
+## Print quotation contrast and Preface-based numbering
+
+The printed proof exposed gray quotations: the previous PDF contained 4,724
+italic characters in #606060 inherited from Pandoc. Print blockquotes and their
+descendants now explicitly use black while retaining italics and the existing
+10.5pt size. Print links and pagination text are also black. EPUB/manuscript
+content and styling were not changed by this print-only adjustment.
+
+Replaced the two-render HTML TOC injection with a single Chrome render followed
+by PyMuPDF stamping into a reserved TOC column. All 30 entries use resolved PDF
+links checked against independently located chapter headings. Footers and PDF
+labels start at 1 on the Preface, physical interior page 5. Earlier pages have
+no footer numbers. The old blank page after Contents is replaced by an explicit
+blank before the Preface, preserving recto start and all body-page positions.
+Chrome did not enforce break-before:right in testing; the build verifies parity
+and fails rather than silently accept an incorrect gutter/number arrangement.
+
+The rebuilt interior remains 496 physical pages (last printed number 492); the
+reading PDF remains 497. All 492 body pages have identical extracted text on
+identical physical pages to the previous build. Verified every reading-PDF link
+(144 total) and page label against the interior with the cover offset. Build
+checks cover all text colors, 10.5pt body / minimum 10pt code, TOC references,
+footers and page labels. Seven regression tests include a wrapped named-link
+PDF fixture, gray-text rejection, and rejection of a verso Preface.
+
+An initial TOC verification rectangle was too tall and captured the preceding
+line; it was corrected. Removed optional whole-document font subsetting after
+MuPDF warnings; existing Chrome fonts are left intact and Georgia pagination
+font is embedded. This was programmatically verified, not a new physical proof
+or a KDP Preview approval. Nothing was uploaded.
+
+
+## Distinct print sidebar panels
+
+The three explicit `Sidebar:` passages previously rendered as normal h3 sections.
+Added a print-only Pandoc filter to wrap each heading and its body through the
+next heading at the same or higher level. Their IDs/links remain intact; regular
+"Sidebar tabs" sections are not matched. Panels use black borders with a heavier
+left edge, inset padding, and 11pt bold headings; body and code retain 10.5pt and
+10pt respectively. Panels may break across pages rather than force large gaps.
+No manuscript source or EPUB was changed.
+
+Rebuilt both PDFs: 496 interior / 497 reading pages, unchanged totals. Sidebar
+headings occur on printed pages 16, 19 and 34. Verified bold black heading sizes
+and enclosing black frame paths in the PDF. Full body text matches the previous
+PDF in reading order after excluding footers and whitespace; the default PDF
+object-order extraction differs around a split code block, so that comparison
+must use sort=True. All 11 tests pass, including four new Pandoc grouping tests;
+existing font, all-black-text, TOC, footer, label and reading-link checks pass.

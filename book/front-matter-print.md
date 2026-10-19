@@ -5,7 +5,7 @@
 
 <p>Series: The Singularity as it Happened, Book 5</p>
 
-<p>Second Edition, October 2026</p>
+<p>Second Edition — Update 2, October 2026</p>
 
 <p>By Bill Cox</p>
 

@@ -19,10 +19,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// TestSavedBudgetEntry builds the actual two-client application and restarts it
+// TestLegacySavedBudgetDoesNotLimitEntry builds the actual two-client application and restarts it
 // in one data directory. Only the external provider is fake: HTTP rendering,
 // tools, the actor, stdin, WebSocket input and persistence all remain real.
-func TestSavedBudgetEntry(t *testing.T) {
+func TestLegacySavedBudgetDoesNotLimitEntry(t *testing.T) {
 	binary := filepath.Join(t.TempDir(), "gui")
 	if out, err := exec.Command("go", "build", "-o", binary, "./cmd").CombinedOutput(); err != nil {
 		t.Fatalf("build: %v %s", err, out)
@@ -67,7 +67,7 @@ func TestSavedBudgetEntry(t *testing.T) {
 		finish := "stop"
 		if results < 18 {
 			finish = "tool_calls"
-			message["content"] = "I will run the next budget fixture step to verify the saved execution limit."
+			message["content"] = "I will run the next budget fixture step to verify that a legacy setting does not limit execution."
 			message["tool_calls"] = []any{map[string]any{"id": fmt.Sprintf("call-%d", results), "type": "function", "function": map[string]string{"name": "run_command", "arguments": `{"command":"printf budget","yield_time_ms":1000}`}}}
 		}
 		// Fleet completion is explicit; keep the budget at eighteen batches by
@@ -170,8 +170,8 @@ func TestSavedBudgetEntry(t *testing.T) {
 	update(peer, 2)
 	stop()
 	peer, stdin, stop := start()
-	// Save a new budget while the first response is outstanding. The old turn
-	// keeps its two batches; the terminal's next turn gets the newly saved 18.
+	// Save another legacy value while a response is outstanding. Neither the
+	// saved value nor its live update may truncate GUI or terminal turns.
 	send(t, peer, "prompt", "small")
 	select {
 	case <-entered:
@@ -180,7 +180,7 @@ func TestSavedBudgetEntry(t *testing.T) {
 	}
 	update(peer, 18)
 	once.Do(func() { close(release) })
-	check(peer, 2, true)
+	check(peer, 18, false)
 	fmt.Fprintln(stdin, "terminal")
 	check(peer, 18, false)
 	stop()

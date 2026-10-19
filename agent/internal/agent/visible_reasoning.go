@@ -32,7 +32,7 @@ func visibleExplanationBeforeTools(events []common.Event) bool {
 // Pair every rejected call without dispatching it, consuming one-shot tool
 // limits, or creating a job. Preserve the original assistant response, including
 // opaque provider replay data, and return corrective feedback on the next wire
-// request so the model can try again within the existing round budget.
+// request so the model can try again. Interrupt and shutdown still stop the turn.
 func (r *runtime) rejectUnexplainedTools(toolFirstStream bool) {
 	message := "Not executed: this model requires a visible explanation before tool calls. In your next response, first explain what you will do and why in ordinary user-visible text, then retry the calls. Private reasoning and reasoning summaries do not satisfy this requirement. No tool in this batch ran."
 	if toolFirstStream {

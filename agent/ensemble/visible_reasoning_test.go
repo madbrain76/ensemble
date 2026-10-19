@@ -226,12 +226,12 @@ func TestVisibleReasoningRequiredAgainForNextResponse(t *testing.T) {
 	}
 }
 
-func TestVisibleReasoningRejectionsUseRoundLimit(t *testing.T) {
+func TestVisibleReasoningRejectionsContinueWithoutRoundLimit(t *testing.T) {
 	var requests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		n := requests.Add(1)
 		if n > 3 {
-			explanationResponse(w, "gpt-6-astra", explanationText("Unexpected extra retry."))
+			explanationResponse(w, "gpt-6-astra", explanationText("Done."))
 			return
 		}
 		explanationResponse(w, "gpt-6-astra", explanationCall("blocked"))
@@ -240,10 +240,10 @@ func TestVisibleReasoningRejectionsUseRoundLimit(t *testing.T) {
 	a, _, path, calls := explanationAgent(t, server, "gpt-6-astra", 2)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if _, err := a.Ask(ctx, "Act"); !errors.Is(err, ensemble.ErrRoundLimit) {
-		t.Fatalf("want round limit, got %v", err)
+	if text, err := a.Ask(ctx, "Act"); err != nil || text != "Done." {
+		t.Fatalf("want completed reply, got %q %v", text, err)
 	}
-	if requests.Load() != 3 || calls.Load() != 0 {
+	if requests.Load() != 4 || calls.Load() != 0 {
 		t.Fatalf("requests=%d executions=%d", requests.Load(), calls.Load())
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {

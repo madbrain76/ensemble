@@ -131,9 +131,9 @@ func TestCompactionSafetyCeilings(t *testing.T) {
 	}
 }
 
-// TestCompactionFiniteExecution keeps the actor, parser, jobs and submission
+// TestCompactionExecutionWithoutRoundLimit keeps the actor, parser, jobs and submission
 // real; a concurrent provider supplies only the responses at its HTTP boundary.
-func TestCompactionFiniteExecution(t *testing.T) {
+func TestCompactionExecutionWithoutRoundLimit(t *testing.T) {
 	for _, mode := range []string{"success", "invalid", "extra-call", "forged-tool", "prose-with-hint"} {
 		t.Run(mode, func(t *testing.T) {
 			var count atomic.Int32
@@ -166,15 +166,15 @@ func TestCompactionFiniteExecution(t *testing.T) {
 				content := []any{map[string]any{"type": "text", "text": "I will preserve the decision and its reason."}}
 				if mode != "prose-with-hint" {
 					name, args := "submit", any(map[string]string{"memory": "I retained the decision because it avoids a repeated failure."})
-					if mode == "invalid" {
+					if mode == "invalid" && n < 5 {
 						args = map[string]int{"memory": 7}
 					}
-					if mode == "forged-tool" {
+					if mode == "forged-tool" && n < 5 {
 						name = "forbidden"
 						args = map[string]any{}
 					}
 					content = append(content, map[string]any{"type": "tool_use", "id": fmt.Sprint("call-", n), "name": name, "input": args})
-					if mode == "extra-call" {
+					if mode == "extra-call" && n < 5 {
 						content = append(content, map[string]any{"type": "tool_use", "id": fmt.Sprint("extra-", n), "name": "forbidden", "input": map[string]any{}})
 					}
 				}
@@ -234,21 +234,21 @@ func TestCompactionFiniteExecution(t *testing.T) {
 			if invoked.Load() {
 				t.Fatal("forged worker capability ran")
 			}
-			if mode == "success" {
-				if got.Err != nil || !strings.Contains(got.Text, `"memory"`) || count.Load() != 1 {
-					t.Fatalf("successful worker: %+v requests=%d", got, count.Load())
+			if mode == "prose-with-hint" {
+				if got.Err == nil || count.Load() != 1 || child.Fleet().Status().State == "submitted" {
+					t.Fatalf("prose must not submit: %+v requests=%d", got, count.Load())
 				}
 			} else {
-				want := int32(3)
-				if mode == "prose-with-hint" {
+				want := int32(5)
+				if mode == "success" {
 					want = 1
 				}
-				if got.Err == nil || count.Load() != want || child.Fleet().Status().State == "submitted" {
-					t.Fatalf("failed worker: %+v requests=%d", got, count.Load())
+				if got.Err != nil || !strings.Contains(got.Text, `"memory"`) || count.Load() != want {
+					t.Fatalf("worker retry and submit: %+v requests=%d", got, count.Load())
 				}
 			}
 			before := count.Load()
-			if _, err := child.Ask(ctx, "a second task must not reset the budget"); err == nil || count.Load() != before {
+			if _, err := child.Ask(ctx, "a second task must not repurpose the worker"); err == nil || count.Load() != before {
 				t.Fatalf("second task admitted: %v requests=%d", err, count.Load())
 			}
 		})

@@ -22,12 +22,6 @@ var ErrStopped = errors.New("agent stopped")
 // ErrInterrupted ends this request without ending the Agent lifetime.
 var ErrInterrupted = errors.New("turn interrupted")
 
-// ErrRoundLimit reports a refused tool batch after the configured budget.
-var ErrRoundLimit = errors.New("tool round limit reached")
-
-// DefaultMaxToolRounds permits 200 dispatched batches when configuration is zero.
-const DefaultMaxToolRounds = 200
-
 // Observation is sealed progress vocabulary; delivery may be dropped.
 type Observation interface{ observation() }
 

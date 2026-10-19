@@ -504,7 +504,16 @@ func mcpTunnelCheck(gui, model string) error {
 	if err != nil {
 		return err
 	}
-	url, stop, err := startGUI(bin, static, model, "http://127.0.0.1:1/unused", work, "EN_SKILLS_DIR=", "EN_PRIMARY_SKILL=")
+	skillsDir := filepath.Join(work, "skills")
+	primaryDir := filepath.Join(skillsDir, "primary")
+	if err := os.MkdirAll(primaryDir, 0700); err != nil {
+		return err
+	}
+	primary := "---\nname: primary\ndescription: MCP tunnel fixture\ntype: primary\ntools: read_file auto_round\nmcp_servers:\n  - name: browser\n    transport: websocket\n---\nExercise the declared browser tunnel."
+	if err := os.WriteFile(filepath.Join(primaryDir, "SKILL.md"), []byte(primary), 0600); err != nil {
+		return err
+	}
+	url, stop, err := startGUI(bin, static, model, "http://127.0.0.1:1/unused", work, "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=primary")
 	if err != nil {
 		return err
 	}

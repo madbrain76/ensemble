@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"ensemble/ensemble"
 	"ensemble/internal/common"
@@ -181,22 +182,34 @@ func TestRegistryDeclarationsAndIsolation(t *testing.T) {
 	}
 }
 
-// A zero setting must allow the named default batch budget and then refuse the next
-// batch.
-func TestLoopRoundBound(t *testing.T) {
+// A default-configured turn can complete more than the former 200-batch cap.
+// Malformed tool arguments still produce paired errors, not an early turn end.
+func TestLoopBeyondFormerRoundLimit(t *testing.T) {
 	requests := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requests++
+		if requests > 205 {
+			replyText(w, "completed")
+			return
+		}
 		_, _ = io.WriteString(w, `{"content":[{"type":"tool_use","id":"again","name":"read_file","input":{"path":42}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer server.Close()
-	a, err := ensemble.New(io.Discard).NewAgent(ensemble.Config{DataDir: t.TempDir(), Model: "fake", BaseURL: server.URL, BuiltinTools: true})
-	if err != nil {
-		t.Fatal(err)
+	a := actorAgent(t, server, func(c *ensemble.Config) { c.BuiltinTools = true })
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	text, err := a.Ask(ctx, "keep calling")
+	if err != nil || text != "completed" || requests != 206 {
+		t.Fatalf("uncapped turn: requests=%d text=%q error=%v", requests, text, err)
 	}
-	_, err = a.Ask(context.Background(), "keep calling")
-	if err == nil || !strings.Contains(err.Error(), "tool round limit") || requests != ensemble.DefaultMaxToolRounds+1 {
-		t.Fatalf("round bound: requests=%d error=%v", requests, err)
+	returned := 0
+	for _, e := range events(t, a) {
+		if e.Type == "tool_returned" {
+			returned++
+		}
+	}
+	if returned != 205 {
+		t.Fatalf("paired results=%d, want 205", returned)
 	}
 }
 

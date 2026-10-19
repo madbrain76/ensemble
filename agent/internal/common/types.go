@@ -39,8 +39,8 @@ type Config struct {
 	SystemPrompt, LogPath string
 	// SavePath names this Agent's save; empty selects DataDir/save.json.
 	SavePath string
-	// MaxToolRounds permits this many dispatched batches per human turn; zero selects
-	// 200.
+	// MaxToolRounds retains a legacy saved-configuration value.
+	// Deprecated: ignored; turns have no tool-round limit.
 	MaxToolRounds int
 	// ContextTarget is the tool-byte policy target; zero selects 400,000 bytes.
 	ContextTarget int
@@ -361,7 +361,8 @@ type Agent interface {
 	Paused() bool
 	// Ensemble returns the owning application root, including its logging services.
 	Ensemble() Ensemble
-	// SetMaxToolRounds sets the next turn budget; zero selects default 200.
+	// SetMaxToolRounds retains a legacy configuration value without limiting turns.
+	// Deprecated: tool-round limits are no longer enforced.
 	SetMaxToolRounds(int) error
 	// SetContextSettings updates tool-byte and saved-log policy on the owning Agent.
 	SetContextSettings(target, retention int) error

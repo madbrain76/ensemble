@@ -35,7 +35,7 @@ type Settings struct {
 	TTSSpeed float64 `json:"tts_speed"`
 	// FontSize is the interface text size in pixels, bounded to 12 through 24.
 	FontSize int `json:"font_size"`
-	// MaxToolRounds permits N tool batches per turn; zero selects default 200.
+	// MaxToolRounds is a legacy saved value, accepted but ignored by execution.
 	MaxToolRounds int `json:"max_tool_rounds"`
 	// ContextTarget sets the tool-byte target; zero selects 400,000.
 	ContextTarget int `json:"context_target"`

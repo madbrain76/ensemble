@@ -240,9 +240,10 @@
   @page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
   @page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
   @page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
-  @page         { @bottom-center { content: counter(page); font-size: 10pt; font-family: Georgia, serif; } }
+  /* Footers and TOC references are stamped after Chrome pagination. */
   /* Page margins own the print measure; pandoc's screen padding must not narrow it. */
-  body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 12pt; line-height: 1.4; }
+  html, body, a, a:visited { color: #000; }
+  body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 10.5pt; line-height: 1.4; }
   h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
   h2            { font-size: 16pt; margin-top: 2em; }
   h3            { font-size: 14pt; margin-top: 1.5em; }
@@ -264,7 +265,33 @@
     color: #000 !important;
     background: #fff !important;
   }
-  blockquote    { margin: 1em 2em; font-style: italic; }
+  /* Pandoc defaults blockquotes to #606060: too faint on printed paper. */
+  blockquote    { margin: 1em 2em; font-style: italic; color: #000; }
+  blockquote *  { color: #000 !important; }
+  /* Sidebars are framed callouts, not ordinary chapter subsections. Keep
+     full-size black text, and permit long callouts to split across pages. */
+  .print-sidebar {
+    margin: 1.2em 0.1in;
+    padding: 10pt 12pt;
+    border: 0.75pt solid #000;
+    border-left-width: 2pt;
+    color: #000;
+    background: #fff;
+    break-inside: auto;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .print-sidebar > .print-sidebar-title {
+    font-size: 11pt;
+    font-weight: bold;
+    line-height: 1.25;
+    text-align: left;
+    margin: 0 0 0.6em;
+    break-before: auto;
+    break-after: avoid;
+  }
+  .print-sidebar p { text-indent: 0; margin: 0 0 0.6em; }
+  .print-sidebar > :last-child { margin-bottom: 0; }
   .front-matter          { page-break-after: always; padding-top: 4em; }
   .front-matter p        { text-indent: 0; margin-bottom: 1em; }
   .fm-title              { font-size: 22pt; font-weight: bold; text-align: center; margin-bottom: 0.3em !important; }
@@ -272,7 +299,13 @@
   .fm-section-head       { font-weight: bold; margin-top: 2em !important; }
   .dedication            { page-break-after: always; padding-top: 10em; text-align: center; font-style: italic; }
   .dedication p          { text-indent: 0; }
-  .tocpg                 { float: right; }
+  /* Reserve a number column before layout; PDF stamping cannot reflow titles. */
+  #TOC                  { break-after: page; }
+  #TOC li               { break-inside: avoid; }
+  #TOC a                { display: block; padding-right: 0.6in; }
+  /* Printed page 1 must be recto; physical page parity still owns the gutters. */
+  #preface              { break-before: right; }
+  .recto-spacer         { height: 1pt; break-after: page; }
   </style>
 </head>
 <body>
@@ -282,92 +315,91 @@
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#preface" id="toc-preface">Preface</a><span class="tocpg">5</span></li>
+<li><a href="#preface" id="toc-preface">Preface</a></li>
 <li><a href="#chapter-0-the-perpetual-machine"
 id="toc-chapter-0-the-perpetual-machine">Chapter 0: The Perpetual
-Machine</a><span class="tocpg">12</span></li>
+Machine</a></li>
 <li><a href="#chapter-1-one-loop-sixty-billion-dollars"
 id="toc-chapter-1-one-loop-sixty-billion-dollars">Chapter 1: One Loop,
-Sixty Billion Dollars</a><span class="tocpg">21</span></li>
+Sixty Billion Dollars</a></li>
 <li><a href="#chapter-2-one-log-three-vendors"
 id="toc-chapter-2-one-log-three-vendors">Chapter 2: One Log, Three
-Vendors</a><span class="tocpg">39</span></li>
+Vendors</a></li>
 <li><a
 href="#chapter-3-six-tools-ninety-two-percent-of-an-ai-coding-agent"
 id="toc-chapter-3-six-tools-ninety-two-percent-of-an-ai-coding-agent">Chapter
-3: Six Tools, Ninety-Two Percent of an AI Coding Agent</a><span class="tocpg">78</span></li>
+3: Six Tools, Ninety-Two Percent of an AI Coding Agent</a></li>
 <li><a
 href="#chapter-4-jobs-or-why-a-tool-call-is-a-process-you-supervise"
 id="toc-chapter-4-jobs-or-why-a-tool-call-is-a-process-you-supervise">Chapter
-4: Jobs, or Why a Tool Call Is a Process You Supervise</a><span class="tocpg">103</span></li>
+4: Jobs, or Why a Tool Call Is a Process You Supervise</a></li>
 <li><a href="#chapter-5-two-seams-and-a-loop"
 id="toc-chapter-5-two-seams-and-a-loop">Chapter 5: Two Seams and a
-Loop</a><span class="tocpg">132</span></li>
+Loop</a></li>
 <li><a href="#chapter-6-streaming-or-the-same-answer-in-pieces"
 id="toc-chapter-6-streaming-or-the-same-answer-in-pieces">Chapter 6:
-Streaming, or the Same Answer in Pieces</a><span class="tocpg">160</span></li>
+Streaming, or the Same Answer in Pieces</a></li>
 <li><a href="#chapter-7-everything-is-an-artifact"
 id="toc-chapter-7-everything-is-an-artifact">Chapter 7: Everything Is an
-Artifact</a><span class="tocpg">184</span></li>
+Artifact</a></li>
 <li><a href="#chapter-8-build-your-dream-gui"
 id="toc-chapter-8-build-your-dream-gui">Chapter 8: Build Your Dream
-GUI</a><span class="tocpg">203</span></li>
+GUI</a></li>
 <li><a href="#chapter-9-skills" id="toc-chapter-9-skills">Chapter 9:
-Skills</a><span class="tocpg">219</span></li>
+Skills</a></li>
 <li><a href="#chapter-10-persistence"
-id="toc-chapter-10-persistence">Chapter 10: Persistence</a><span class="tocpg">232</span></li>
+id="toc-chapter-10-persistence">Chapter 10: Persistence</a></li>
 <li><a href="#chapter-11-mcp-the-extension-protocol"
 id="toc-chapter-11-mcp-the-extension-protocol">Chapter 11: MCP: The
-Extension Protocol</a><span class="tocpg">244</span></li>
+Extension Protocol</a></li>
 <li><a href="#chapter-12-the-agent-sees-itself"
 id="toc-chapter-12-the-agent-sees-itself">Chapter 12: The Agent Sees
-Itself</a><span class="tocpg">258</span></li>
+Itself</a></li>
 <li><a href="#chapter-13-the-channel-nobody-tested"
 id="toc-chapter-13-the-channel-nobody-tested">Chapter 13: The Channel
-Nobody Tested</a><span class="tocpg">278</span></li>
+Nobody Tested</a></li>
 <li><a
 href="#chapter-14-the-worlds-best-context-engineering-before-breakfast"
 id="toc-chapter-14-the-worlds-best-context-engineering-before-breakfast">Chapter
-14: The World’s Best Context Engineering, Before Breakfast</a><span class="tocpg">297</span></li>
+14: The World’s Best Context Engineering, Before Breakfast</a></li>
 <li><a href="#chapter-15-the-invisible-invoice"
 id="toc-chapter-15-the-invisible-invoice">Chapter 15: The Invisible
-Invoice</a><span class="tocpg">324</span></li>
+Invoice</a></li>
 <li><a href="#chapter-16-leaving-anthropic-for-openai"
 id="toc-chapter-16-leaving-anthropic-for-openai">Chapter 16: Leaving
-Anthropic for OpenAI</a><span class="tocpg">347</span></li>
+Anthropic for OpenAI</a></li>
 <li><a href="#chapter-17-the-crossover"
-id="toc-chapter-17-the-crossover">Chapter 17: The Crossover</a><span class="tocpg">369</span></li>
+id="toc-chapter-17-the-crossover">Chapter 17: The Crossover</a></li>
 <li><a href="#chapter-18-giving-the-agent-the-web-and-a-status-line"
 id="toc-chapter-18-giving-the-agent-the-web-and-a-status-line">Chapter
-18: Giving the Agent the Web, and a Status Line</a><span class="tocpg">387</span></li>
+18: Giving the Agent the Web, and a Status Line</a></li>
 <li><a href="#chapter-19-the-sandbox"
-id="toc-chapter-19-the-sandbox">Chapter 19: The Sandbox</a><span class="tocpg">416</span></li>
+id="toc-chapter-19-the-sandbox">Chapter 19: The Sandbox</a></li>
 <li><a href="#chapter-20-the-ensemble"
-id="toc-chapter-20-the-ensemble">Chapter 20: The Ensemble</a><span class="tocpg">441</span></li>
+id="toc-chapter-20-the-ensemble">Chapter 20: The Ensemble</a></li>
 <li><a href="#chapter-21-managing-the-swarm"
 id="toc-chapter-21-managing-the-swarm">Chapter 21: Managing the
-Swarm</a><span class="tocpg">474</span></li>
+Swarm</a></li>
 <li><a href="#chapter-22-forgetting-on-purpose"
 id="toc-chapter-22-forgetting-on-purpose">Chapter 22: Forgetting on
-Purpose</a><span class="tocpg">493</span></li>
+Purpose</a></li>
 <li><a href="#chapter-23-auto-recall"
-id="toc-chapter-23-auto-recall">Chapter 23: Auto-Recall</a><span class="tocpg">524</span></li>
+id="toc-chapter-23-auto-recall">Chapter 23: Auto-Recall</a></li>
 <li><a href="#chapter-24-while-the-cache-is-broken"
 id="toc-chapter-24-while-the-cache-is-broken">Chapter 24: While the
-Cache Is Broken</a><span class="tocpg">545</span></li>
+Cache Is Broken</a></li>
 <li><a href="#chapter-25-crossing-over-to-ensemble"
 id="toc-chapter-25-crossing-over-to-ensemble">Chapter 25: Crossing Over
-to Ensemble</a><span class="tocpg">550</span></li>
+to Ensemble</a></li>
 <li><a href="#chapter-26-gateway" id="toc-chapter-26-gateway">Chapter
-26: Gateway</a><span class="tocpg">551</span></li>
+26: Gateway</a></li>
 <li><a href="#epilogue-what-the-student-changed"
 id="toc-epilogue-what-the-student-changed">Epilogue: What the student
-changed</a><span class="tocpg">574</span></li>
+changed</a></li>
 <li><a href="#a-note-from-bill" id="toc-a-note-from-bill">A Note from
-Bill</a><span class="tocpg">577</span></li>
+Bill</a></li>
 </ul>
 </nav>
-<div style="page-break-after: always;"></div>
 <div class="front-matter">
 <p class="fm-title">
 The Art of Building AI Coding Agents
@@ -379,7 +411,7 @@ An agentic codebook: A book that builds the agent that builds the book
 Series: The Singularity as it Happened, Book 5
 </p>
 <p>
-Second Edition, October 2026
+Second Edition — Update 2, October 2026
 </p>
 <p>
 By Bill Cox
@@ -396,6 +428,7 @@ First edition with CodeRhapsody; second edition with Codex
 For Riggio, my inspirational supporter from the Sausalito Yacht Club.
 </p>
 </div>
+<div class="recto-spacer" aria-hidden="true"></div>
 <h1 id="preface">Preface</h1>
 <p>You are reading something that has never existed before: a
 self-evolving book. Chapter by graded chapter, it builds an AI coding
@@ -996,7 +1029,10 @@ there.</p>
 <p>None of that matters yet. The program in this chapter needs none of
 those three capabilities, which is why frameworks feel fine on day
 one.</p>
-<h3 id="sidebar-how-the-hint-got-in">Sidebar: how the hint got in</h3>
+<section id="sidebar-how-the-hint-got-in"
+class="print-sidebar-title print-sidebar"
+aria-labelledby="sidebar-how-the-hint-got-in" role="note">
+<h3 class="print-sidebar-title">Sidebar: how the hint got in</h3>
 <p>In July 2025 Bill found he could interrupt the agent while it worked.
 Nothing in the API said he could. It said something close to the
 opposite: the message after a tool call must begin with the tool’s
@@ -1022,6 +1058,7 @@ tell the user I’m busy with their last request.” OpenAI caught up in
 February 2026, when GPT-5.3-Codex shipped steering as a headline item,
 behind a settings toggle: “Enable steering while the model works.” A
 toggle in a product is not a call in an SDK.</p>
+</section>
 <h3 id="give-the-loop-owners-before-giving-it-features">Give the loop
 owners before giving it features</h3>
 <p>The first edition began with one client struct and sorted out
@@ -1146,8 +1183,11 @@ model asks to call a tool, and by then the line that reads position zero
 is old code you trust. The grader’s fake does not wait for Chapter 3. It
 splits every reply across two blocks, so the shortcut fails on day one,
 where failure is cheap.</p>
-<h3 id="sidebar-ask-the-api-which-models-exist">Sidebar: ask the API
-which models exist</h3>
+<section id="sidebar-ask-the-api-which-models-exist"
+class="print-sidebar-title print-sidebar"
+aria-labelledby="sidebar-ask-the-api-which-models-exist" role="note">
+<h3 class="print-sidebar-title">Sidebar: ask the API which models
+exist</h3>
 <p>Do not take a model ID from a blog post, a tutorial, or your own
 memory. Ask:</p>
 <div class="sourceCode" id="cb4"><pre
@@ -1163,6 +1203,7 @@ training data has a date on it. Ask; don’t remember. That goes double
 for the reader whose memory is a blog post from last spring.</p>
 <p>Every model ID printed in this book will age, including the one in
 the request above. The sidebar teaches the lookup, not the answer.</p>
+</section>
 <h2 id="the-obvious-data-structure">1.3 The obvious data structure</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Message is one turn. Role is &quot;user&quot; or &quot;assistant&quot;; this exercise requires that</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">// they strictly alternate.</span></span>
@@ -1780,7 +1821,10 @@ context window, depends on the projection being yours to rewrite before
 you send it, while the original facts stay in the log. Vendors offer
 server-side threads that would take the re-send cost away. They take the
 editing away with it, and §2.6 declines them for that reason.</p>
-<h3 id="sidebar-is-this-request-mid-turn">Sidebar: “Is this request
+<section id="sidebar-is-this-request-mid-turn"
+class="print-sidebar-title print-sidebar"
+aria-labelledby="sidebar-is-this-request-mid-turn" role="note">
+<h3 class="print-sidebar-title">Sidebar: “Is this request
 mid-turn?”</h3>
 <p>A bug from building this chapter’s grader, and it is the shape of the
 mistake this section exists to prevent. The grader needed to know
@@ -1795,6 +1839,7 @@ the classification failed students who had done nothing wrong.</p>
 on the end. Any question shaped like “what is happening right now?” has
 to be asked of the <em>end</em> of the request, or of the log. Never of
 the whole.</p>
+</section>
 <h2 id="the-log">2.4 The log</h2>
 <p>Append-only. Every event gets a monotonic sequence number, and
 ordering comes from that number and from nothing else. Wall-clock time
@@ -22096,14 +22141,16 @@ the ones we received.</p>
 <p>I would like to see what that student finds wrong.</p>
 <hr />
 <h1 id="a-note-from-bill">A Note from Bill</h1>
-<p>This is the first publication of the second edition of <em>The Art of
-Building AI Coding Agents</em>. The new implementation has caught up
-with the first edition, including the gateway. The move from Codex into
-Ensemble has only begun.</p>
-<p>I want to publish that result now, while keeping the unfinished part
-visible. Chapter 25 is reserved for the actual crossover. It will come
-from using Ensemble and fixing what gets in the way. This edition does
-not claim that Ensemble has already produced Edition 3.</p>
+<p>This is Update 2 of the second edition of <em>The Art of Building AI
+Coding Agents</em>, the final update to this edition before the third.
+The second edition built Ensemble v2 with Codex, catching up with the
+first edition through the gateway.</p>
+<p>The next step is to execute this second-edition book using Ensemble
+v2. The third edition will come from that run: what Ensemble builds,
+what the exercises teach it, and what we learn by fixing what gets in
+the way. That work is underway; this update does not claim that Ensemble
+has already produced the third edition. Chapter 25 remains reserved for
+the crossover account.</p>
 <p>The point of the experiment is still the same: preserve the judgment
 needed to build the agent, test whether another builder can apply it,
 and improve the book from what actually happens. The first edition stays

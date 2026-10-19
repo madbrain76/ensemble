@@ -178,6 +178,9 @@ python3 book/build-print.py
 ```
 
 The assembled Markdown is committed so it can be read directly in the repository.
+The print PDFs use **10.5 pt default body text**, with 10 pt code and 11 pt
+tables, on 7 × 10 inch pages.
+
 The [publication instructions](book/README.md) describe EPUB navigation, print
 page verification and the cover-prefixed PDF. The first-edition publication
 files remain in `edition-1/book/`.

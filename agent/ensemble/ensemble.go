@@ -454,12 +454,6 @@ var ErrStopped = common.ErrStopped
 // ErrInterrupted ends this request without ending the Agent lifetime.
 var ErrInterrupted = common.ErrInterrupted
 
-// ErrRoundLimit reports a refused tool batch after the configured budget.
-var ErrRoundLimit = common.ErrRoundLimit
-
-// DefaultMaxToolRounds permits 200 dispatched batches when configuration is zero.
-const DefaultMaxToolRounds = common.DefaultMaxToolRounds
-
 // Media is a bit set of input categories a declared model accepts.
 type Media = common.Media
 

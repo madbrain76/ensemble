@@ -84,18 +84,18 @@ Settings contains theme (dark/light/system), Read aloud, approximate speech spee
 tabs and persist in the application's `gui` section in file mode, or in
 `cr/settings.json` for legacy launches. System theme follows changes in the browser's OS preference.
 Speech rate applies to the next utterance; disabling speech cancels its queue.
-The same settings envelope accepts `max_tool_rounds` over the WebSocket: zero
-selects 200; positive N permits N tool batches. It affects the next turn, including
-terminal turns, and is restored on restart. Saved conversation history is
-restored separately.
+Tool turns have no round-count limit; use Interrupt or shutdown to stop ongoing
+work. The settings envelope still accepts and saves the legacy `max_tool_rounds`
+field for compatibility, but all values are ignored by execution. Saved conversation
+history is restored separately.
 
 `update_settings` carries a sparse `settings` object. The server validates the
 patch, saves it, and broadcasts a complete `settings_changed` snapshot; subscribers
 receive `current_settings`. Omitted fields stay unchanged, while explicit false
 and zero are retained. Errors return `settings_error` without accepting the edit.
 Malformed saved JSON fails startup instead of silently discarding preferences.
-GUI preference behavior stays in this module; the core owns the effective tool
-budget and has no browser preference fields.
+GUI preference behavior stays in this module; the core has no browser preference
+fields or tool-round budget.
 
 The module uses only the core's public `ensemble` package. The application creates
 one Ensemble root with Agents. Terminal input addresses the main Agent; each

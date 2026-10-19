@@ -51,16 +51,15 @@ type workerDone struct {
 	err error
 }
 type turn struct {
-	request        request
-	cancel         context.CancelFunc
-	calls          []common.Part
-	ids            map[uint64]uint64
-	current        *report
-	batches, limit int
-	ephemeralTurn  bool
-	presented      []common.Entry
-	checkpoint     bool
-	afterTool      bool
+	request       request
+	cancel        context.CancelFunc
+	calls         []common.Part
+	ids           map[uint64]uint64
+	current       *report
+	ephemeralTurn bool
+	presented     []common.Entry
+	checkpoint    bool
+	afterTool     bool
 	// Per-response stream order is separate from parser-normalized part order.
 	sawStreamCall           bool
 	visibleBeforeStreamCall bool
@@ -85,10 +84,9 @@ type runtime struct {
 	compaction        *compactionAttempt
 	compactionWaiting *turn
 	warned            bool
-	// Managed workers have one task and a lifetime send budget. Hints and a
-	// queued request cannot reset it by creating another ordinary turn.
+	// Managed workers accept one task; hints and queued requests cannot
+	// repurpose a completed worker.
 	compactionStarted bool
-	compactionSends   int
 }
 
 // Construction installs children first; the first runtime operation starts the
@@ -360,8 +358,7 @@ func (r *runtime) finish(text string, err error) {
 	}
 }
 
-// Snapshot the round policy once per human turn. A later queued request gets
-// its own budget and cancellation context, never the previous request's state.
+// Each request gets its own cancellation context, never the previous turn's state.
 func (r *runtime) begin(q request) {
 	if r.owner.spec.Compaction {
 		if r.compactionStarted {
@@ -386,14 +383,7 @@ func (r *runtime) begin(q request) {
 	}
 	r.owner.fleet.Begin()
 	ctx, cancel := context.WithCancel(q.ctx)
-	limit := r.owner.Config().MaxToolRounds
-	if limit == 0 {
-		limit = common.DefaultMaxToolRounds
-	}
-	if r.owner.spec.Compaction {
-		limit = 3
-	}
-	r.active = &turn{request: q, cancel: cancel, limit: limit}
+	r.active = &turn{request: q, cancel: cancel}
 	r.active.request.ctx = ctx
 	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
 		r.finish("", err)
@@ -418,10 +408,6 @@ func (r *runtime) sendRequest() {
 		return
 	}
 	r.compactionWaiting = nil
-	if r.owner.spec.Compaction && r.compactionSends >= 3 {
-		r.finish("", errors.New("compaction worker model request limit reached"))
-		return
-	}
 	r.owner.setActivity(common.ActivityThinking, "", "")
 	t := r.active
 	t.ids = make(map[uint64]uint64)
@@ -456,9 +442,6 @@ func (r *runtime) sendRequest() {
 	if err = r.append(common.Event{Type: "request_sent", Request: request}); err != nil {
 		r.finish("", err)
 		return
-	}
-	if r.owner.spec.Compaction {
-		r.compactionSends++
 	}
 	r.workers++
 	go func() {
@@ -528,19 +511,6 @@ func (r *runtime) receive(m response) {
 		r.finish(answer.String(), m.err)
 		return
 	}
-	// A permitted batch has already run and been consumed by the model. Refuse
-	// the entire next batch and pair every call; never edit signed assistant data.
-	if m.turn.batches >= m.turn.limit {
-		for _, call := range m.turn.calls {
-			r.append(common.Event{Type: "tool_returned", Tool: &common.ToolData{CallID: call.CallID, IsError: true, Parts: []common.Part{{Type: "text", Text: "not executed: tool round limit reached"}}}})
-		}
-		r.append(common.Event{Type: "turn_ended", Error: &common.ErrorData{Message: common.ErrRoundLimit.Error()}})
-		r.finish("", common.ErrRoundLimit)
-		return
-	}
-	// Rejected explanation-less batches also consume the existing round budget:
-	// corrective feedback must not create an unbounded model-only retry loop.
-	m.turn.batches++
 	if r.owner.spec.Compaction && (len(m.turn.calls) != 1 || m.turn.calls[0].Name != "submit") {
 		// Refuse the entire batch before creating jobs; accepting a first submit
 		// would conceal additional calls and prematurely mark work complete.

@@ -281,9 +281,9 @@ func TestHintDuringHTTPReplaysAtNextRequest(t *testing.T) {
 	}
 }
 
-// The limit must reject every excess call, save its result and leave the next turn
-// usable.
-func TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn(t *testing.T) {
+// Legacy positive limits must not refuse calls; every result remains saved and
+// the next turn stays usable.
+func TestLegacyRoundLimitIgnoredAndResultsSaved(t *testing.T) {
 	calls := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls++
@@ -306,13 +306,13 @@ func TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn(t *testing.T) {
 	a := actorAgent(t, server, func(c *ensemble.Config) { c.MaxToolRounds = 1; c.LogPath = path })
 	executions := 0
 	a.RegisterTool(ensemble.ToolDeclaration{Name: "count", Schema: json.RawMessage(`{"type":"object"}`)}, func(_ ensemble.ToolContext, _ json.RawMessage) (string, error) { executions++; return "executed", nil })
-	_, err := a.Ask(context.Background(), "limit")
-	if !errors.Is(err, ensemble.ErrRoundLimit) || calls != 2 || executions != 1 {
+	text, err := a.Ask(context.Background(), "limit")
+	if err != nil || text != "recovered" || calls != 3 || executions != 3 {
 		t.Fatalf("limit: %d requests %d executions %v", calls, executions, err)
 	}
 	raw, err := os.ReadFile(path)
-	if err != nil || bytes.Count(raw, []byte("not executed: tool round limit reached")) != 2 {
-		t.Fatalf("rejected batch not saved before completion: %s %v", raw, err)
+	if err != nil || bytes.Count(raw, []byte(`"type":"tool_returned"`)) != 3 || bytes.Contains(raw, []byte("tool round limit")) {
+		t.Fatalf("executed results not saved before completion: %s %v", raw, err)
 	}
 	if text, err := a.Ask(context.Background(), "again"); err != nil || text != "recovered" {
 		t.Fatalf("next turn: %q %v", text, err)
@@ -500,5 +500,57 @@ func TestBudgetUpdateRejectsNegative(t *testing.T) {
 	defer a.Shutdown()
 	if err := a.SetMaxToolRounds(-1); err == nil || a.Config().MaxToolRounds != 3 {
 		t.Fatal("negative budget changed the accepted configuration", err, a.Config().MaxToolRounds)
+	}
+}
+
+// Removing an automatic cap does not remove explicit ownership of a long turn.
+func TestLongToolTurnRemainsStoppable(t *testing.T) {
+	for _, mode := range []string{"cancel", "interrupt", "shutdown"} {
+		t.Run(mode, func(t *testing.T) {
+			entered, released := make(chan struct{}), make(chan struct{})
+			requests := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.Copy(io.Discard, r.Body)
+				requests++
+				if requests <= 205 {
+					_, _ = io.WriteString(w, `{"content":[{"type":"tool_use","id":"again","name":"read_file","input":{"path":42}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+					return
+				}
+				close(entered)
+				<-r.Context().Done()
+				close(released)
+			}))
+			defer server.Close()
+			a := actorAgent(t, server, func(c *ensemble.Config) { c.BuiltinTools = true; c.MaxToolRounds = 1 })
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+			result := a.Submit(ctx, "continue until explicitly stopped")
+			select {
+			case <-entered:
+			case got := <-result:
+				t.Fatalf("turn ended before explicit stop: %+v", got)
+			case <-ctx.Done():
+				t.Fatal(ctx.Err())
+			}
+			switch mode {
+			case "cancel":
+				cancel()
+			case "interrupt":
+				a.Post(ensemble.Interrupt{})
+			case "shutdown":
+				if err := a.Shutdown(); err != nil {
+					t.Fatal(err)
+				}
+			}
+			got := receive(t, result)
+			if got.Err == nil {
+				t.Fatalf("explicit %s did not end turn: %+v", mode, got)
+			}
+			select {
+			case <-released:
+			case <-time.After(3 * time.Second):
+				t.Fatal("HTTP worker did not release")
+			}
+		})
 	}
 }

@@ -14,15 +14,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-// Budgets from voice.md §5. Change the document first, then this table.
+// Style thresholds; see voice.md §5 for editorial policy and known differences.
+// Chapter length has no minimum, maximum, or diagnostic.
 const (
-	minWords          = 4000 // chapters only; the preface is exempt
-	maxWords          = 7500
 	maxConfessions    = 3
 	maxDefenses       = 1
 	negationPer       = 500 // soft: one per this many words
@@ -171,14 +169,6 @@ func lint(path string, verbose bool) ([]result, error) {
 	var res []result
 	add := func(name string, count int, limit string, hard, failed bool) {
 		res = append(res, result{name, count, limit, hard, failed})
-	}
-
-	isChapter := strings.HasPrefix(filepath.Base(path), "chapter-")
-	if isChapter {
-		add("words", d.words, fmt.Sprintf("%d..%d", minWords, maxWords), false,
-			d.words < minWords || d.words > maxWords)
-	} else {
-		add("words", d.words, "exempt", false, false)
 	}
 
 	c := len(confessionRe.FindAllString(body, -1))

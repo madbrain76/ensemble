@@ -28,7 +28,7 @@ func TestInvalidInputsFailBeforeGrading(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := [][]string{
-		{}, {""}, {"-ch", "2", target}, {"-ch", "11", target}, {"-ch", "4"},
+		{}, {""}, {"-ch", "2", target}, {"-ch", "12", target}, {"-ch", "4"},
 		{"-ch", "1", "-core", module, target},
 		{"-ch", "1", "-consumer", "", target},
 		{"-ch", "1", "-consumer-case", "", target},
@@ -63,7 +63,7 @@ func TestHelpSucceedsWithoutLaunchingTarget(t *testing.T) {
 	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked >> "+strconv.Quote(marker)+"\nexit 1\n"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}, {"-ch", "7", "-h", target}, {"-ch", "8", "-h", target}, {"-ch", "9", "-h", target}, {"-ch", "10", "-h", target}} {
+	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}, {"-ch", "7", "-h", target}, {"-ch", "8", "-h", target}, {"-ch", "9", "-h", target}, {"-ch", "10", "-h", target}, {"-ch", "11", "-h", target}} {
 		if got := run(args); got != 0 {
 			t.Errorf("run(%q) = %d, want 0", args, got)
 		}
@@ -203,6 +203,10 @@ func TestChapter9ValidationBeforeLaunch(t *testing.T) {
 
 func TestChapter10ValidationBeforeLaunch(t *testing.T) {
 	testGUIChapterValidationBeforeLaunch(t, "10")
+}
+
+func TestChapter11ValidationBeforeLaunch(t *testing.T) {
+	testGUIChapterValidationBeforeLaunch(t, "11")
 }
 
 func testGUIChapterValidationBeforeLaunch(t *testing.T, chapter string) {
