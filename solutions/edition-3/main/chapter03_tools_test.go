@@ -60,12 +60,12 @@ func TestChapter3Round1Registry(t *testing.T) {
 		}
 		names[d.Name] = true
 	}
-	for _, name := range []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command"} {
+	for _, name := range []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "tool_limits", "wait_for_job", "send_input", "kill_job"} {
 		if !names[name] {
 			t.Fatalf("missing %s", name)
 		}
 	}
-	if len(names) != 6 {
+	if len(names) != 10 {
 		t.Fatalf("definitions: %v", names)
 	}
 	for _, vendor := range []ensemble.Vendor{ensemble.Anthropic, ensemble.OpenAI, ensemble.Gemini} {
@@ -110,7 +110,7 @@ func TestChapter3Round1Registry(t *testing.T) {
 	if text, failed := c3Call(t, b, "read_file", map[string]any{"path": target}); failed || text != "owned bytes" {
 		t.Fatalf("selected entry not dispatchable: %q failed=%t", text, failed)
 	}
-	if len(a.Tools().Definitions()) != 6 {
+	if len(a.Tools().Definitions()) != 10 {
 		t.Fatal("another Agent changed defaults")
 	}
 	for _, selected := range [][]string{{"read_file", "read_file"}, {"unknown"}} {
@@ -120,10 +120,39 @@ func TestChapter3Round1Registry(t *testing.T) {
 	}
 }
 
+// Chapter 4 keeps explicit read bounds, but observes every ordinary call through
+// Jobs. Assert the retained bytes separately from the bounded inline report.
+func c3JobOutput(t *testing.T, a ensemble.Agent) (ensemble.JobData, string) {
+	t.Helper()
+	var latest ensemble.Job
+	for _, job := range a.Parent().JobTable() {
+		if job.Parent().Parent() == a && (latest == nil || job.Data().Handle > latest.Data().Handle) {
+			latest = job
+		}
+	}
+	if latest == nil {
+		t.Fatal("ordinary call did not allocate a job")
+	}
+	data := latest.Data()
+	if data.Status != ensemble.JobDone || data.Output.Kind != ensemble.RefHandle {
+		t.Fatalf("completed job metadata: %+v", data)
+	}
+	path := data.Output.Locator
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(a.Config().BaseDir, path)
+	}
+	disk := c3Contents(t, path)
+	if data.Bytes != int64(len(disk)) {
+		t.Fatalf("job bytes=%d disk=%d", data.Bytes, len(disk))
+	}
+	return data, disk
+}
+
 func TestChapter3Round1ReadBoundsAndCap(t *testing.T) {
 	a := c3Agent(t, ensemble.Config{})
 	path := filepath.Join(t.TempDir(), "lines.txt")
-	c3Write(t, path, strings.Repeat("p", 70000)+"\nalpha\nbeta\nlast")
+	full := strings.Repeat("p", 70000) + "\nalpha\nbeta\nlast"
+	c3Write(t, path, full)
 	cases := []struct {
 		name string
 		args map[string]any
@@ -135,15 +164,35 @@ func TestChapter3Round1ReadBoundsAndCap(t *testing.T) {
 		{"zero end means EOF", map[string]any{"start_line": 3, "end_line": 0}, "beta\nlast"},
 		{"past EOF", map[string]any{"start_line": 99}, ""},
 		{"explicit larger cap", map[string]any{"max_bytes": 40000}, strings.Repeat("p", 40000) + "\n[truncated at max_bytes=40000]\n"},
-		{"default cap", map[string]any{}, strings.Repeat("p", 32768) + "\n[truncated at max_bytes=32768]\n"},
-		{"zero defaults", map[string]any{"start_line": 0, "end_line": 0, "max_bytes": 0}, strings.Repeat("p", 32768) + "\n[truncated at max_bytes=32768]\n"},
+		{"default full disk output", map[string]any{}, full},
+		{"zero defaults", map[string]any{"start_line": 0, "end_line": 0, "max_bytes": 0}, full},
 	}
+	const inlineCap = 16384
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.args["path"] = path
 			got, failed := c3Call(t, a, "read_file", tc.args)
-			if failed || got != tc.want {
-				t.Fatalf("result mismatch: failed=%t got length=%d want length=%d", failed, len(got), len(tc.want))
+			if failed {
+				t.Fatalf("read failed: %s", got)
+			}
+			data, disk := c3JobOutput(t, a)
+			if disk != tc.want {
+				t.Fatalf("retained read mismatch: got length=%d want length=%d", len(disk), len(tc.want))
+			}
+			if len(tc.want) <= inlineCap {
+				if got != tc.want {
+					t.Fatalf("small completed output changed: %q", got)
+				}
+			} else {
+				header, payload, found := strings.Cut(got, "\n")
+				wantHeader := fmt.Sprintf("job %d done; %d bytes total; output: %s", data.Handle, data.Bytes, data.Output.Locator)
+				if !found || header != wantHeader {
+					t.Fatalf("incorrect truncated-report header: got %q want %q", header, wantHeader)
+				}
+				wantPayload := fmt.Sprintf("%s\n[output truncated; %d bytes omitted; %d bytes total; full output: %s]\n%s", tc.want[:inlineCap/2], len(tc.want)-inlineCap, len(tc.want), data.Output.Locator, tc.want[len(tc.want)-inlineCap/2:])
+				if len(got) > inlineCap+1024 || payload != wantPayload {
+					t.Fatalf("incorrect head/tail/cap/omitted-count/locator payload: inline length=%d disk length=%d payload=%q", len(got), len(disk), payload)
+				}
 			}
 		})
 	}
@@ -160,9 +209,9 @@ func TestChapter3Round1ReadBoundsAndCap(t *testing.T) {
 	if _, failed := c3Call(t, a, "read_file", map[string]any{"path": path + "-missing"}); !failed {
 		t.Fatal("missing file was not an error")
 	}
-	c3Write(t, path, strings.Repeat("x", 32768))
-	if text, failed := c3Call(t, a, "read_file", map[string]any{"path": path}); failed || text != strings.Repeat("x", 32768) {
-		t.Fatal("exact default cap falsely truncated")
+	c3Write(t, path, strings.Repeat("x", inlineCap))
+	if text, failed := c3Call(t, a, "read_file", map[string]any{"path": path}); failed || text != strings.Repeat("x", inlineCap) {
+		t.Fatal("exact observation cap falsely truncated")
 	}
 	c3Write(t, path, "")
 	if text, failed := c3Call(t, a, "read_file", map[string]any{"path": path}); failed || text != "" {
@@ -171,8 +220,8 @@ func TestChapter3Round1ReadBoundsAndCap(t *testing.T) {
 }
 
 func TestChapter3Round1ShellEnvironmentAndResults(t *testing.T) {
-	// Synthetic values only. The assertion executes inside the actual child shell,
-	// tests unset rather than merely empty, and never prints a credential value.
+	// Synthetic values only. Inspect the actual shell environment, never print a
+	// credential. PTY output is merged in Chapter 4, not the old separated JSON.
 	for _, name := range []string{"LLM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"} {
 		t.Setenv(name, "synthetic-test-only")
 	}
@@ -187,23 +236,21 @@ exit 7`
 	if failed {
 		t.Fatalf("normal exit became tool error: %s", text)
 	}
-	var result struct {
-		Stdout   string `json:"stdout"`
-		Stderr   string `json:"stderr"`
-		ExitCode int    `json:"exit_code"`
+	data, disk := c3JobOutput(t, a)
+	if disk != "retained|-mod=readonly -p=1separate stderr\nexit_code: 7\n" || data.ExitCode == nil || *data.ExitCode != 7 || !strings.Contains(text, disk) {
+		t.Fatalf("wrong merged output/exit: disk=%q job=%+v report=%q", disk, data, text)
 	}
-	if err := json.Unmarshal([]byte(text), &result); err != nil {
-		t.Fatal(err)
+	for _, code := range []int{0, 127} {
+		text, failed = c3Call(t, a, "run_command", map[string]any{"command": fmt.Sprintf("printf normal; exit %d", code)})
+		data, disk = c3JobOutput(t, a)
+		if failed || data.ExitCode == nil || *data.ExitCode != code || disk != fmt.Sprintf("normal\nexit_code: %d\n", code) || !strings.Contains(text, disk) {
+			t.Fatalf("ordinary exit %d became startup failure: failed=%v job=%+v output=%q", code, failed, data, text)
+		}
 	}
-	if result.Stdout != "retained|-mod=readonly -p=1" || result.Stderr != "separate stderr" || result.ExitCode != 7 {
-		t.Fatalf("wrong separated result: %+v", result)
-	}
-	text, failed = c3Call(t, a, "run_command", map[string]any{"command": "exit 127"})
-	if failed || json.Unmarshal([]byte(text), &result) != nil || result.ExitCode != 127 {
-		t.Fatal("ordinary 127 exit became startup failure")
-	}
-	if _, failed = c3Call(t, a, "run_command", map[string]any{"command": "printf should-not-run", "cwd": filepath.Join(t.TempDir(), "missing")}); !failed {
-		t.Fatal("startup failure was not a tool error")
+	text, failed = c3Call(t, a, "run_command", map[string]any{"command": "printf should-not-run", "cwd": filepath.Join(t.TempDir(), "missing")})
+	data, disk = c3JobOutput(t, a)
+	if !failed || data.ExitCode != nil || strings.Contains(disk, "should-not-run") || !strings.Contains(disk, "starting command:") || !strings.Contains(text, disk) {
+		t.Fatalf("startup failure not truthful: failed=%v job=%+v output=%q", failed, data, text)
 	}
 }
 

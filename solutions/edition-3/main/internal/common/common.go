@@ -9,6 +9,10 @@ import (
 
 // Config belongs to one Agent. Model names must come from provider discovery.
 type Config struct {
+	// BaseDir resolves relative tool paths; DataDir retains job output.
+	// Empty BaseDir uses the launch directory; empty DataDir creates an Agent-local directory.
+	BaseDir string
+	DataDir string
 	// BaseURL selects the provider or a local HTTP peer; empty means Anthropic.
 	BaseURL       string
 	Vendor        Vendor
@@ -18,7 +22,7 @@ type Config struct {
 	APIKey string
 	// Model is required; there is deliberately no remembered model default.
 	Model string
-	// Tools selects enabled built-ins: nil enables all six; non-nil empty disables all.
+	// Tools selects enabled built-ins: nil enables all ten; non-nil empty disables all.
 	Tools []string
 	// RequireToolExplanation selects this model's before-effects explanation policy.
 	RequireToolExplanation bool
@@ -46,6 +50,10 @@ type Usage struct {
 type Ensemble interface {
 	// Logger returns this application's diagnostic destination.
 	Logger() *log.Logger
+	RegisterJob(Job) (int, error)
+	LookupJob(int) (Job, bool)
+	JobTable() []Job
+	Shutdown() error
 }
 
 // Agent owns one synchronous conversation. Calls on one Agent must be serialized.
@@ -58,6 +66,8 @@ type Agent interface {
 	Engine() Engine
 	// Tools is this Agent's independently owned synchronous registry.
 	Tools() ToolRegistry
+	Jobs() Jobs
+	Shutdown() error
 	// Ask records every attempt; the compatibility History view contains completed text pairs.
 	Ask(context.Context, string) (string, error)
 	// History returns a copy so callers cannot corrupt retained turns.

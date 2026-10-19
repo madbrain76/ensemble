@@ -211,6 +211,11 @@ out, toolErr := job.Wait(limits)
 // Record out and toolErr as the correlated tool_returned event.
 ```
 
+The sketch omits error-result bookkeeping. If preparing the output file fails,
+do not start the handler; still pair the provider's call with a returned error
+under its exact call id, and continue pairing the remaining calls in that
+response.
+
 Three things follow from putting it there and nowhere else.
 
 The handle goes at the dispatch site, not in the tools. One funnel, which is
@@ -306,13 +311,21 @@ Return the retained terminal result immediately. Available unseen output can
 also be reported immediately; observing again never starts the handler again.
 
 Completion, new output and kill must also wake a waiter that is already
-blocked. Checking terminal state at entry covers a different ordering. A late
-Go handler can finish after its job is killed; that completion must not turn
-the retained state back into `done` or reopen the output file.
+blocked. Checking terminal state at entry covers a different ordering.
+Waking the waiter is only the notification. A later no-pattern `wait_for_job`
+must return when unseen output arrives, rather than go back to sleep until
+the delay expires. The initial no-pattern observation instead preserves
+§4.3's fast full-result path. A supplied pattern still matches only unseen
+bytes; nonmatching output alone does not end that wait.
+
+A late Go handler can finish after its job is killed; that completion must not
+turn the retained state back into `done` or reopen the output file.
 
 `kill_job` is SIGKILL to the process group, and the killed job is reported as
 `killed`. Never as `done` with a strange exit code. The exercise section has
-the story of how the grader learned that.
+the story of how the grader learned that. A wait does not fail merely because
+it observes `killed`; keep genuine job or observation errors separate from
+that terminal status.
 
 The fourth tool is not a verb and has no row in the table, because it did not
 exist when the corpus was recorded. `tool_limits` sets the wait for the next

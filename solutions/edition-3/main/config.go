@@ -34,7 +34,7 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 	c.BaseURL = value("BASE_URL")
 	c.ResolvedModel = get("LLM_RESOLVED_MODEL")
 	switch selected := strings.TrimSpace(get("LLM_TOOLS")); selected {
-	case "", "default": // nil means the default six built-ins.
+	case "", "default": // nil means the default ten built-ins.
 	case "none":
 		c.Tools = []string{}
 	default:

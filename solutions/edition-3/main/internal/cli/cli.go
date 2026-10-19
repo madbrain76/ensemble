@@ -29,7 +29,13 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	if dumpMode && config.Model == "" {
 		config.Model = "offline-dump"
 	}
-	app := ensemble.New(log.New(diagnostics, "", 0))
+	config.DataDir = "cr"
+	app := ensemble.New(log.New(diagnostics, "", log.LstdFlags))
+	defer func() {
+		if err := app.Shutdown(); err != nil && result == nil {
+			result = err
+		}
+	}()
 	a, err := app.NewAgent(config)
 	if err != nil {
 		return err
@@ -63,6 +69,9 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	// Sessions start fresh. Persist even failed attempts, but never hide the
 	// original session error behind a secondary disk error.
 	defer func() {
+		if err := app.Shutdown(); err != nil && result == nil {
+			result = err
+		}
 		f, err := os.Create(path)
 		if err == nil {
 			err = a.Log().Dump(f)

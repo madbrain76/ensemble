@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"ensemble/internal/common"
@@ -19,6 +21,7 @@ type privateState struct {
 	engine  common.Engine
 	history common.History
 	tools   common.ToolRegistry
+	jobs    common.Jobs
 }
 
 // New validates configuration before any request and retains the actual owner.
@@ -71,6 +74,22 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
 	}
+	if config.BaseDir == "" {
+		config.BaseDir, err = os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+	}
+	config.BaseDir, err = filepath.Abs(config.BaseDir)
+	if err != nil {
+		return nil, err
+	}
+	if config.DataDir == "" {
+		config.DataDir, err = os.MkdirTemp("", "ensemble-agent-")
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &agent{privateState: privateState{parent: parent, config: config}}, nil
 }
 
@@ -101,6 +120,14 @@ func (a *agent) SetTools(t common.ToolRegistry) {
 	a.tools = t
 }
 func (a *agent) Tools() common.ToolRegistry { return a.tools }
+func (a *agent) SetJobs(j common.Jobs) {
+	if j == nil || a.jobs != nil || j.Parent() != a {
+		panic("invalid Agent/Jobs wiring")
+	}
+	a.jobs = j
+}
+func (a *agent) Jobs() common.Jobs { return a.jobs }
+func (a *agent) Shutdown() error   { return a.jobs.Shutdown() }
 
 // Engine exposes the owned transport and its parent relationship.
 func (a *agent) Engine() common.Engine { return a.engine }
@@ -231,14 +258,7 @@ func (a *agent) Ask(ctx context.Context, question string) (string, error) {
 		}
 		// Decide whole-batch refusal before invoking even the first handler.
 		for _, call := range calls {
-			if err := a.history.Append(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{CallID: call.CallID, Name: call.Name, Args: call.Args}}); err != nil {
-				return "", err
-			}
-			result, failed := common.PartList{common.Text(refusal)}, true
-			if refusal == "" {
-				result, failed = a.tools.Dispatch(ctx, call.Name, call.Args)
-			}
-			if err := a.history.Append(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{CallID: call.CallID, Name: call.Name, Parts: result, IsError: failed}}); err != nil {
+			if err := a.tools.Invoke(ctx, call, refusal); err != nil {
 				return "", err
 			}
 		}

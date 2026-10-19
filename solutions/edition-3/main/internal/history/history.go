@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 )
 
 type history struct{ privateState }
 
 type privateState struct {
+	mu      sync.Mutex
 	parent  common.Agent
 	events  []common.Event
 	context common.Context
@@ -27,9 +29,11 @@ func empty() common.Context {
 }
 func (h *history) Parent() common.Agent    { return h.parent }
 func clone[T any](v T) T                   { b, _ := json.Marshal(v); var c T; _ = json.Unmarshal(b, &c); return c }
-func (h *history) Events() []common.Event  { return clone(h.events) }
-func (h *history) Context() common.Context { return clone(h.context) }
+func (h *history) Events() []common.Event  { h.mu.Lock(); defer h.mu.Unlock(); return clone(h.events) }
+func (h *history) Context() common.Context { h.mu.Lock(); defer h.mu.Unlock(); return clone(h.context) }
 func (h *history) Append(e common.Event) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	next := common.Seq(1)
 	if len(h.events) > 0 {
 		next = h.events[len(h.events)-1].Seq + 1
@@ -93,6 +97,8 @@ func (h *history) Load(r io.Reader) error {
 			break
 		}
 	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	h.events, h.context = next.events, next.context
 	return nil
 }
@@ -103,7 +109,7 @@ func (h *history) Dump(w io.Writer) error {
 	}{1}); err != nil {
 		return err
 	}
-	for _, e := range h.events {
+	for _, e := range h.Events() {
 		if err := enc.Encode(e); err != nil {
 			return err
 		}
@@ -157,7 +163,7 @@ func parts(ps common.PartList) error {
 }
 func validate(e common.Event) error {
 	n := 0
-	for _, yes := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil} {
+	for _, yes := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil} {
 		if yes {
 			n++
 		}
@@ -189,6 +195,10 @@ func validate(e common.Event) error {
 				return fmt.Errorf("negative usage")
 			}
 			return parts(e.Response.Parts)
+		}
+	case common.JobKilled:
+		if e.Job != nil && e.Job.Handle > 0 && e.Job.Status == common.JobKilledStatus && (e.Job.Reason == "kill_job" || e.Job.Reason == "shutdown") {
+			return nil
 		}
 	case common.ToolCalled:
 		if e.Tool != nil {

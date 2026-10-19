@@ -174,6 +174,7 @@ const (
 	ToolReturned    EventType = "tool_returned"
 	Redacted        EventType = "redacted"
 	ErrorOccurred   EventType = "error_occurred"
+	JobKilled       EventType = "job_killed"
 )
 
 type MessageData struct {
@@ -193,6 +194,7 @@ type ResponseData struct {
 	UsageMissing []string `json:"usage_missing,omitempty"`
 }
 type ToolData struct {
+	Job     *JobData        `json:"job,omitempty"`
 	CallID  string          `json:"call_id"`
 	Name    string          `json:"name,omitempty"`
 	Args    json.RawMessage `json:"args,omitempty"`
@@ -222,6 +224,7 @@ type ErrorData struct {
 
 // Event is the interoperable eight-case envelope, never a vendor request dump.
 type Event struct {
+	Job      *JobData      `json:"job,omitempty"`
 	Seq      Seq           `json:"seq"`
 	Type     EventType     `json:"type"`
 	Time     time.Time     `json:"time"`

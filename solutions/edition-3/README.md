@@ -12,4 +12,5 @@ The previous copied FINAL reference was retired, not reused as starting code. It
 
 - `ch01`: code, required validation and three-turn live exercise accepted; one code correction, one formal text PASS, no author revision.
 - `ch02`: causal history and three-provider seam accepted; three correction rounds, both same-binary grades, three-provider live exercise, one formal text PASS and no author revision.
-- `ch03`: synchronous tools and ordered Agent loop accepted; three correction rounds, both final same-binary grades, qualified three-provider tool/chat evidence, one formal text review and its sole root-verified author revision. `main` matches this snapshot before Chapter 4 begins.
+- `ch03`: synchronous tools and ordered Agent loop accepted; three correction rounds, both final same-binary grades, qualified three-provider tool/chat evidence, one formal text review and its sole root-verified author revision.
+- `ch04`: root-owned jobs, synchronous-tool adaptation, PTY supervision and public consumer accepted; two correction rounds, both final same-binary grades, local long-process/debugger/shutdown exercises, and bounded three-provider/consumer live evidence. One formal text PASS, no author revision. `main` matches this 42-file snapshot before Chapter 5 begins.
