@@ -10,6 +10,27 @@ import (
 // so a callback can return a handle before even a Go-only handler finishes.
 func (r *runtime) dispatch() {
 	t := r.active
+	if t.hintedBatch {
+		// The current report is already retained. Settle the remaining call IDs
+		// without dispatch, jobs or side effects, then let the model see the hint.
+		for _, call := range t.calls {
+			_, notice, _ := r.owner.jobs.Consume(call.Args)
+			text := "Not executed: interrupted by a hint before dispatch. This call did not run."
+			if notice != "" {
+				text = fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", call.Name, notice) + text
+			}
+			if err := r.append(common.Event{Type: "tool_returned", Tool: &common.ToolData{
+				CallID: call.CallID, Name: call.Name, IsError: true,
+				Parts: []common.Part{{Type: "text", Text: text}},
+			}}); err != nil {
+				r.finish("", err)
+				return
+			}
+			r.owner.notify(common.ToolFinished{CallID: call.CallID, Result: text, IsError: true})
+		}
+		t.calls = nil
+		t.hintedBatch = false
+	}
 	if len(t.calls) == 0 {
 		if status := r.owner.fleet.Status(); status.State == "submitted" {
 			// A normal tool result prepares another request. Submission instead

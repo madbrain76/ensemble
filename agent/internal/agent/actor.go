@@ -60,6 +60,8 @@ type turn struct {
 	presented     []common.Entry
 	checkpoint    bool
 	afterTool     bool
+	// A hint ends only the undispatched tail of the current response batch.
+	hintedBatch bool
 	// Per-response stream order is separate from parser-normalized part order.
 	sawStreamCall           bool
 	visibleBeforeStreamCall bool
@@ -749,6 +751,9 @@ func (r *runtime) input(text string) {
 	}
 	// Reducer uses active turn state to preserve a hint as pending context.
 	r.append(common.Event{Type: "hint_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: text}}}})
+	if len(r.active.calls) != 0 {
+		r.active.hintedBatch = true
+	}
 	// Close only the current wait's signal. A message arriving with no waiter
 	// cannot leave a sticky interrupt for a future job.
 	if current := r.active.current; current != nil && current.wake != nil {
