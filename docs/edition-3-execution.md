@@ -6,6 +6,8 @@ Bill's instructions of October 16, 2026, as amended by his later simplicity and 
 
 Restart from Chapter 1 in an empty `solutions/edition-3/main`; keep the improved manuscript and save accepted snapshots as `solutions/edition-3/chNN`. This user-authorized restart supersedes the previous external-workspace and immutable-FINAL-path policy. Use the lean workflow and direct-comparison gate below.
 
+Chapter 1 of the restarted run is complete: accepted source is `solutions/edition-3/ch01`, with the evolving `main` workspace identical at closure. The direct reference comparison found no material bloat; one input-reader correction passed validation, the required live exercise completed, and one formal text review passed. Chapter 2 is next. Concise notes use the `ch01-restart-*` names.
+
 ## Preparation history (before the current restart)
 
 1. Copy current application code to `solutions/edition-3/` and current book to `book/edition-3/`. Completed from source commit `4309d5688992f64067f4f75e1cef6bd2e9e25e6a`; `edition-3-baseline.json` records exact copied bytes. The code copy is a reference baseline, not evidence of fresh student completion. Copied publication artifacts remain Edition 2 artifacts until deliberately rebuilt.

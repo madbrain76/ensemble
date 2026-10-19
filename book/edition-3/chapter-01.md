@@ -552,6 +552,32 @@ so with no arguments your program must speak the stdio protocol. The REPL of
 §1.6 is opt-in: `./ch01 chat`. If your program greets a human on startup, it
 hangs the grader, and you get a timeout instead of a diagnosis.
 
+Read whole physical lines without imposing an accidental input-size limit.
+The default `bufio.Scanner` stops at roughly 64 KiB; a valid JSON question can
+be longer. Use `bufio.Reader.ReadString` in both modes. In a CLI function that
+returns an error, the read loop has this shape:
+
+```go
+reader := bufio.NewReader(in)
+for {
+	line, readErr := reader.ReadString('\n')
+	if readErr != nil && readErr != io.EOF {
+		return errors.New("reading input failed")
+	}
+	if readErr == io.EOF && len(line) == 0 {
+		break
+	}
+	// Process this line: decode JSON in protocol mode, call Ask, and
+	// write the reply. Return on any error.
+}
+// Emit cumulative protocol usage here, after normal EOF.
+```
+
+`ReadString` can return a final unterminated line together with `io.EOF`.
+Process that line once; the next read ends the loop. Other read errors return
+before the final usage output: report them on stderr and exit nonzero. The
+terminal usage object belongs to successful EOF, not a failed input read.
+
 **The grader supplies three environment variables. Read all three; hardcode
 none.**
 
