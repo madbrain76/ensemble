@@ -5,15 +5,15 @@ Read this with the shared [execution procedure](edition-3-execution.md), the com
 ## Permitted inputs
 
 - The assigned `book/edition-3/chapter-NN.md`, Chapter 00 for orientation, and earlier chapters as needed.
-- Your own working tree and accepted predecessor history in `/Users/bill/projects/ensemble-edition-3-student`.
+- Your own working tree in `/Users/bill/projects/ensemble/solutions/edition-3/main` and the specific accepted predecessor snapshot supplied by the orchestrator under `solutions/edition-3/chNN`. Chapter 1 starts empty; other snapshots are not automatically permitted inputs.
 - The current role, shared procedure, this public brief, and narrow public-contract clarifications explicitly supplied by the orchestrator. Mandatory governing instructions may contain incidental historical path/revision references; reading those instructions is allowed, but following those pointers into old solutions or repair evidence is not.
 - Public dependency/provider documentation needed for the assigned exercise.
 
-Do not read `agent/`, `solutions/`, `edition-1/`, future chapters, grader implementation, historical answer/repair notes, or their Git blobs to solve the exercise. Do not read the coordinator's readiness/carryover/evidence records unless a specific student-safe excerpt is supplied. The historical skill's direction to read Edition 2 carryover is replaced for the fresh Edition 3 student by this brief; authors/reviewers still read their complete governing documents. Do not follow answer-revealing links from permitted documents. These are input-separation rules, not a claim of OS sandboxing.
+Apart from your assigned workspace and permitted predecessor, do not read `agent/`, other `solutions/` trees, `edition-1/`, future chapters, grader implementation, historical answer/repair notes, or their Git blobs to solve the exercise. Do not read the coordinator's readiness/carryover/evidence records unless a specific student-safe excerpt is supplied. The historical skill's direction to read Edition 2 carryover is replaced for the fresh Edition 3 student by this brief; authors/reviewers still read their complete governing documents. Do not follow answer-revealing links from permitted documents. These are input-separation rules, not a claim of OS sandboxing.
 
 ## Chapter boundary
 
-Chapter 1 starts from an empty source tree. Later chapters extend your exact accepted predecessor; do not copy the full reference. The orchestrator supplies the assigned chapter revision, accepted predecessor and grader revision. No later capabilities early. Implement required behavior with the simplest adequate design, with useful explanations of non-obvious choices.
+Chapter 1 starts from an empty source tree. Later chapters extend your exact accepted predecessor; do not copy the full reference. The orchestrator supplies the assigned chapter revision, accepted predecessor and grader revision. The orchestrator owns snapshots and repository commits; do not create a nested repository or edit other main-repository files. Submit one concise author-facing chapter review, not an evidence bundle. No later capabilities early. Implement required behavior with the simplest adequate design, with useful explanations of non-obvious choices.
 
 Run the assigned chapter grader with an explicit positional target. Chapter 1 accepts a supported solution directory or a built CLI executable. If your public root is a library with a nested CLI, follow the chapter's “Grade yourself” build instructions rather than grading the library directory. For the executable, from `/Users/bill/projects/ensemble` (the repository-root Go module, not `agent/`):
 
