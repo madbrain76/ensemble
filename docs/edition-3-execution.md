@@ -1,6 +1,6 @@
 # Edition 3: execute, then improve
 
-Bill's instructions of October 16, 2026 govern this run. This is execution and improvement of the existing book, not new-chapter design. They supersede contrary historical phase instructions and the coordinator's proposal to revise each chapter before its student attempt.
+Bill's instructions of October 16, 2026, as amended by his later simplicity and comparative-acceptance directions, govern this run. This is execution and improvement of the existing book, not new-chapter design. They supersede contrary historical phase instructions and the coordinator's proposal to revise each chapter before its student attempt.
 
 ## Preparation
 
@@ -14,9 +14,40 @@ Bill's instructions of October 16, 2026 govern this run. This is execution and i
 - **Orchestrator:** prepares permitted inputs, supervises workers, answers narrow contract questions from authoritative sources, retains actual evidence and assistance, and respects scope/architecture stop gates. Skills hold procedure; handoffs hold position, reasons, blockers and next action. No new goals subsystem is required.
 - **Coder/student:** executes the existing chapter against its accepted predecessor, runs grading and required tests/live exercises, and writes the chapter review. KISS: implement only the actual requirement, with the simplest adequate design. No speculative abstractions, future features or machinery to satisfy invented promises. Preserve explanations of non-obvious decisions. Do not inspect old answers or grader internals. Only the agent doing the exercise supplies experience-based clarification requests; the author does not simulate a student's difficulties.
 - **Code reviewer:** independently reviews the result and student's chapter review under the existing code-review rules, including KISS, architecture, test sensitivity, scope and bounded correction rounds. Findings about code do not license new chapter requirements. Preserve failures and explicitly recorded exceptions; never relabel them as passing tests. After the initial code review, allow at most three correction/re-review rounds; unresolved material findings then stop for Bill rather than start another round. Do not reset the count by replacing the student. This limit is separate from the author's single text-review/single-revision loop.
-- **Author:** begins only after the student has finished and grading/code acceptance is settled. Improve the existing chapter solely from the student's chapter review and verified clarifications. Do not invent requirements, enlarge the exercise, redesign the chapter, add anticipated student difficulties or expand text to demonstrate contribution. A chapter needing no clarification may remain unchanged.
+- **Author:** normally begins only after the student has finished and grading/code acceptance is settled. The targeted TL;DR correction before re-execution described below is the sole comparative-review exception. Improve the existing chapter solely from the student's chapter review and verified clarifications. Do not invent requirements, enlarge the exercise, redesign the chapter, add anticipated student difficulties or expand text to demonstrate contribution. A chapter needing no clarification may remain unchanged.
 - **Text reviewer:** makes one pass on that bounded edit: accuracy, faithfulness to the student's findings, no new requirements, and load-bearing prose. Not a second designer or a source of speculative exercise scope.
 - **Author:** makes one revision in response. Do not start an unbounded prose-review loop. Escalate any material unresolved issue rather than silently add rounds or requirements.
+
+## Keep execution lean
+
+Bill's current instruction is to minimize red tape. This supersedes earlier task-specific demands for routine manifests, seals, authorization files, parent-verification reports, or duplicated evidence bundles. Keep existing records; do not start a cleanup project.
+
+The coder delivers working code, appropriate tests/exercises, and **one concise chapter review for the author** covering demonstrated ambiguities, failures, assistance and useful clarifications. Git commits identify source revisions; keep useful raw test output locally and summarize actual results honestly. The independent code reviewer reviews the solution and reports concrete findings, not a second administrative package. Do not repeat successful unchanged tests merely to generate fresh receipts. Use additional controls only when needed to resolve a real acceptance question.
+
+After code acceptance, the author makes minimal changes tied directly to the coder's feedback and demonstrated experience; no change is valid. Conduct **one text review and one author response/edit pass, without re-review**. Then commit and continue. Required tests, secret handling, independent review, correction limits, worker completion and protection of unrelated work still apply; they are not reasons to create extra deliverables. The orchestrator checks actual results and manages workers without commissioning an audit trail of that management. Later chapter entry work is only what is necessary to use the existing contract and grader, not an automatic separate audit campaign.
+
+## Direct comparison and teaching-driven re-execution
+
+Before accepting each executable chapter, **the orchestrator personally compares the actual student solution with the corresponding original solution under `solutions/`**, normally `solutions/chNN`. Resolve moved/merged chapters using the chapter map; do not substitute the protected final `solutions/edition-3` tree for a chapter-specific reference. The independent code reviewer also applies this comparison within the ordinary code review. The root must inspect the files supporting material conclusions, not merely repeat a delegate's verdict.
+
+Judge both implementations against the **current public contract**. The reference is a comparison, not an oracle or a student starting tree. The mandatory star architecture still governs: owner-local implementations/state, cross-package interfaces in `internal/common`, and root composition. Neither reference reuse nor a lower line count waives these boundaries. Identify missing behavior or bugs in either version, and account for explicit Edition 3 additions before calling growth waste. Compare:
+
+- Ownership and clarity: where state lives, how lifetimes and control flow are understood, and whether interfaces expose responsibilities or become collections of unrelated capabilities.
+- Reuse and machinery: duplicated mechanisms, hand-written protocol infrastructure, unnecessary callbacks/adapters, framework scaffolding, and established libraries/helpers that could meet the same requirement more simply.
+- Teaching and maintenance: readable code, useful explanations, relevant tests, and the cost of understanding or changing the implementation. Do not reward compressed code, deleted comments, weaker tests, or removed requirements.
+
+Use production-size measurements when they illuminate a material difference; distinguish each chapter's delta from inherited code and keep tests, examples, generated code and support files separate. Counts are diagnostic, never a quota or proof of quality. A large percentage alone is not a rejection; **concrete avoidable complexity or materially less clear implementation is**. Record a short comparative verdict and the decisive source locations in the existing review/chapter notes, not a new report system. Passing grades do not override this gate.
+
+If the new solution has significant unjustified bloat or poorer clarity, withhold acceptance and re-execute the chapter:
+
+1. Preserve the failed attempt and identify the demonstrated design/teaching gap. Explain the simpler responsibility or mechanism and why it meets the same requirements. Distinguish student mistakes from unclear teaching and inherited defects.
+2. Have the author make the **smallest useful TL;DR improvement** grounded in that finding and the student's experience. Clarify ownership, reuse, boundaries or the intended mechanism; do not add features, dictate a copy of reference internals, or expand the chapter into a repair diary. Change other passages only if needed to keep the chapter consistent. The orchestrator checks this clarification against the existing contract.
+3. Use a **fresh student context**, the revised public chapter and the same accepted predecessor. Do not supply the rejected implementation, original solution, private comparison, grader internals or a repair patch. The purpose is to test whether the improved teaching produces a simpler adequate solution, not whether an instructed patch can pass.
+4. Review the new result through the normal code review and direct comparison. A re-execution consumes a correction round within the existing three-round limit; changing contexts does not reset it. Stop for Bill at the limit or for a consequential unresolved contract issue.
+
+Trace inherited problems to their actual boundary. If re-executing the current chapter from its accepted predecessor cannot address the problem without revising earlier contracts, surface that dependency and obtain a scope decision; do not silently reset the book or require an undocumented redesign. Ordinary localized correctness findings still use the normal coder correction path.
+
+This is a narrow, experience-driven exception to author timing, not a return to author-led speculative design. After code acceptance, retain the normal minimal author pass, **one final text review and one author response/edit pass without re-review**. Do not add a formal prose-review cycle for each retry. Historical-only Chapter 25 still has no student implementation or artificial comparison gate.
 
 ## Role loading and student isolation
 

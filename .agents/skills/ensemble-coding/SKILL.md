@@ -5,6 +5,10 @@ description: Mandatory architecture, KISS and comparative-review rules for Ensem
 
 # Ensemble student coding
 
+## Current Edition 3 execution
+
+For Edition 3, `docs/edition-3-execution.md` governs phase ordering, lean reporting and the required direct reference comparison. The orchestrator must personally compare each chapter's solution with the corresponding original under `solutions/`; material unjustified bloat or poorer clarity triggers the shared targeted TL;DR correction and fresh re-execution procedure. Historical instructions below do not authorize extra reporting campaigns, obsolete author timing, or student access to reference answers. Keep comparison findings concise in the ordinary review.
+
 ## October 12: Edition 2 is the current top-level tree
 
 Promotion commit `564e316f` moves the accepted second edition to `agent/`,
@@ -113,6 +117,15 @@ lessons guide the current exercise, not early implementation of later features.
   2 retain the requested client separation with a small GUI stub until its
   chapter. Later MCP permits different transports, including the GUI WebSocket
   tunnel; do not implement it early.
+
+## Concrete KISS choices
+
+These choices do not relax the mandatory star architecture: keep implementations and private state with their owning package; put cross-package interfaces in `internal/common` to break dependency cycles; compose and wire components at the Ensemble root. A smaller reference solution is not permission to collapse ownership or introduce sibling-package coupling.
+
+- Inspect existing owners, helpers and dependencies before adding another mechanism. Prefer the smallest clear change satisfying the current chapter; do not build for hypothetical later chapters.
+- Keep private state and behavior with their natural owner. Shared interfaces/data belong in common only when genuinely shared; avoid unrelated capability collections and plumbing that merely moves the same state through more layers.
+- Reuse established protocol libraries and existing infrastructure where the chapter permits them. Hand-writing a protocol, queue, dispatcher or compatibility layer needs a concrete requirement, not merely the ability to implement it.
+- Make necessary departures understandable in code and the short chapter review. Review maintainability as well as correctness; passing tests do not excuse needless machinery. Preserve useful comments and explicit control flow instead of pursuing short line counts.
 
 ## Student, review, then checkpoint
 
