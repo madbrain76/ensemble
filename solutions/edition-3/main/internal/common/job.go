@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 )
 
@@ -17,13 +18,17 @@ const (
 
 // JobData is a snapshot, never the live runtime record.
 type JobData struct {
-	Handle   int       `json:"handle"`
-	Status   JobStatus `json:"status"`
-	Output   Ref       `json:"output"`
-	Bytes    int64     `json:"bytes"`
-	ExitCode *int      `json:"exit_code,omitempty"`
-	Cwd      string    `json:"cwd,omitempty"`
-	Reason   string    `json:"reason,omitempty"`
+	TurnID   uint64          `json:"turn_id,omitempty"`
+	CallID   string          `json:"call_id,omitempty"`
+	Name     string          `json:"name,omitempty"`
+	Args     json.RawMessage `json:"args,omitempty"`
+	Handle   int             `json:"handle"`
+	Status   JobStatus       `json:"status"`
+	Output   Ref             `json:"output"`
+	Bytes    int64           `json:"bytes"`
+	ExitCode *int            `json:"exit_code,omitempty"`
+	Cwd      string          `json:"cwd,omitempty"`
+	Reason   string          `json:"reason,omitempty"`
 }
 
 type ToolLimits struct {
@@ -49,12 +54,13 @@ type Job interface {
 	Wait(context.Context, ToolLimits) (JobReport, error)
 	SendInput(context.Context, string, ToolLimits) (JobReport, error)
 	Kill(string) error
+	Shutdown() error
 }
 
 // Jobs belongs to one Agent. The Ensemble's table allocates all handles.
 type Jobs interface {
 	Parent() Agent
-	Start(ctx context.Context, handler ToolHandler, args []byte, cwd string, called func(JobData) error) (Job, error)
+	Start(ctx context.Context, handler ToolHandler, args []byte, cwd string, origin JobData) (Job, error)
 	Get(int) (Job, error)
 	Shutdown() error
 }

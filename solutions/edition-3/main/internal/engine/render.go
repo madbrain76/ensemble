@@ -30,6 +30,10 @@ func textParts(ps common.PartList) (string, error) {
 }
 func render(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
 	var err error
+	c, err = prepareMedia(c, cfg)
+	if err != nil {
+		return nil, err
+	}
 	c, err = withCallIDs(c)
 	if err != nil {
 		return nil, err
@@ -46,6 +50,9 @@ func render(c common.Context, cfg common.Config, defs []common.ToolDefinition) (
 }
 func system(c common.Context, cfg common.Config) (string, error) {
 	s := systemPrompt
+	if cfg.SystemPrompt != "" {
+		s += "\n" + cfg.SystemPrompt
+	}
 	if cfg.RequireToolExplanation {
 		s += " Before each tool batch, emit nonblank ordinary assistant text explaining what you will do and why, before the first tool call. Hidden reasoning is not an explanation. A batch without this explanation will be refused without effects."
 	}
@@ -155,8 +162,8 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 				blocks = append(blocks, aText(p.Text))
 			case "redacted":
 				blocks = append(blocks, aText(p.Stub))
-			case "blob":
-				return nil, fmt.Errorf("Anthropic renderer does not load blob refs")
+			case "blob", "image", "audio", "video":
+				blocks = append(blocks, raw(map[string]any{"type": "image", "source": map[string]any{"type": "base64", "media_type": p.MIME, "data": mediaData(p)}}))
 			case "opaque":
 				if matches(p.From, cfg) {
 					blocks = append(blocks, p.Data)
@@ -225,7 +232,7 @@ type oCall struct {
 }
 type oMessage struct {
 	Role       string  `json:"role"`
-	Content    *string `json:"content,omitempty"`
+	Content    any     `json:"content,omitempty"`
 	ToolCalls  []oCall `json:"tool_calls,omitempty"`
 	ToolCallID string  `json:"tool_call_id,omitempty"`
 }
@@ -246,17 +253,22 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		}
 		var text strings.Builder
 		present := false
+		hasMedia := false
+		content := []any{}
 		results := []oMessage{}
 		for _, p := range e.Parts {
 			switch p.Type {
 			case "text":
 				present = true
 				text.WriteString(p.Text)
+				content = append(content, map[string]any{"type": "text", "text": p.Text})
 			case "redacted":
 				present = true
 				text.WriteString(p.Stub)
-			case "blob":
-				return nil, fmt.Errorf("OpenAI renderer does not load blob refs")
+				content = append(content, map[string]any{"type": "text", "text": p.Stub})
+			case "blob", "image", "audio", "video":
+				hasMedia = true
+				content = append(content, map[string]any{"type": "image_url", "image_url": map[string]any{"url": "data:" + p.MIME + ";base64," + mediaData(p)}})
 			case "opaque":
 				if matches(p.From, cfg) {
 					return nil, fmt.Errorf("unsupported OpenAI opaque replay material")
@@ -281,7 +293,10 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 			t := text.String()
 			m.Content = &t
 		}
-		if present || len(m.ToolCalls) > 0 {
+		if hasMedia {
+			m.Content = content
+		}
+		if present || hasMedia || len(m.ToolCalls) > 0 {
 			messages = append(messages, m)
 		}
 		messages = append(messages, results...)
@@ -357,8 +372,8 @@ func renderGemini(c common.Context, cfg common.Config, defs []common.ToolDefinit
 			case "redacted":
 				t := p.Stub
 				m.Parts = append(m.Parts, raw(gPart{Text: &t}))
-			case "blob":
-				return nil, fmt.Errorf("Gemini renderer does not load blob refs")
+			case "blob", "image", "audio", "video":
+				m.Parts = append(m.Parts, raw(map[string]any{"inlineData": map[string]any{"mimeType": p.MIME, "data": mediaData(p)}}))
 			case "opaque":
 				if matches(p.From, cfg) {
 					m.Parts = append(m.Parts, p.Data)

@@ -10,8 +10,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 // TestLargeJSONLine protects valid questions larger than Scanner's default physical-line limit.
@@ -91,6 +93,21 @@ func TestInputLines(t *testing.T) {
 	}
 }
 
+// completedChatOutput exposes the real CLI private-reply boundary to the feeder.
+type completedChatOutput struct {
+	*bytes.Buffer
+	first chan struct{}
+	once  sync.Once
+}
+
+func (w *completedChatOutput) Write(p []byte) (int, error) {
+	n, err := w.Buffer.Write(p)
+	if strings.Contains(string(p), "assistant> received") {
+		w.once.Do(func() { close(w.first) })
+	}
+	return n, err
+}
+
 // TestChatAndConfiguration checks opt-in human output and startup rejection without paid calls.
 func TestChatAndConfiguration(t *testing.T) {
 	var calls atomic.Int32
@@ -103,10 +120,35 @@ func TestChatAndConfiguration(t *testing.T) {
 	t.Setenv("ANTHROPIC_API_KEY", "fake-key")
 	t.Setenv("ANTHROPIC_MODEL", "fake-model")
 	var out, diagnostics bytes.Buffer
-	if err := run(context.Background(), []string{"chat"}, strings.NewReader("\nhello\nagain"), &out, &diagnostics); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	input, feed := io.Pipe()
+	defer input.Close()
+	defer feed.Close()
+	printed := &completedChatOutput{Buffer: &out, first: make(chan struct{})}
+	fed := make(chan error, 1)
+	go func() {
+		_, err := io.WriteString(feed, "\nhello\n")
+		if err == nil {
+			select {
+			case <-printed.first:
+			case <-ctx.Done():
+				err = ctx.Err()
+			}
+		}
+		if err == nil {
+			_, err = io.WriteString(feed, "again")
+		}
+		feed.CloseWithError(err)
+		fed <- err
+	}()
+	if err := run(ctx, []string{"chat"}, input, printed, &diagnostics); err != nil {
 		t.Fatal(err)
 	}
-	if calls.Load() != 2 || strings.Count(out.String(), "claude> received") != 2 || !strings.Contains(diagnostics.String(), "[4 turns | 14 input tokens | 2 output tokens]") || !strings.Contains(diagnostics.String(), "you> ") {
+	if err := <-fed; err != nil {
+		t.Fatal(err)
+	}
+	if calls.Load() != 2 || strings.Count(out.String(), "assistant> received") != 2 || !strings.Contains(diagnostics.String(), "[4 turns | 14 input tokens | 2 output tokens]") || !strings.Contains(diagnostics.String(), "you> ") {
 		t.Fatalf("calls=%d stdout=%q stderr=%q", calls.Load(), out.String(), diagnostics.String())
 	}
 	out.Reset()

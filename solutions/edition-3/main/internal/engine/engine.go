@@ -12,13 +12,13 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 const systemPrompt = "You are a helpful coding assistant. Use the available tools when needed. Base claims about files and commands on returned results, and answer clearly."
 
-type engine struct{ privateState }
-
-type privateState struct {
+type engine struct {
+	mu        sync.Mutex
 	parent    common.Agent
 	client    *http.Client
 	liveUsage common.Usage // Only Exchange charges this process; Parse and replay never do.
@@ -28,10 +28,10 @@ func New(parent common.Agent) (common.Engine, error) {
 	if parent == nil {
 		return nil, errors.New("Engine requires an Agent parent")
 	}
-	return &engine{privateState: privateState{parent: parent, client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}}, nil
+	return &engine{parent: parent, client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
 func (e *engine) Parent() common.Agent { return e.parent }
-func (e *engine) Usage() common.Usage  { return e.liveUsage }
+func (e *engine) Usage() common.Usage  { e.mu.Lock(); defer e.mu.Unlock(); return e.liveUsage }
 func (e *engine) failure(message string) error {
 	e.parent.Parent().Logger().Print(message)
 	return errors.New(message)
@@ -53,6 +53,13 @@ func (e *engine) Exchange(ctx context.Context, c common.Context) ([]common.Event
 	if err != nil {
 		return []common.Event{errorEvent(err.Error())}, err
 	}
+	return e.ExchangeRequest(ctx, b)
+}
+
+// ExchangeRequest sends the immutable bytes frozen by the actor before its
+// request_sent marker. The Engine performs exactly one exchange.
+func (e *engine) ExchangeRequest(ctx context.Context, b []byte) ([]common.Event, error) {
+	var err error
 	config := e.parent.Config()
 	if strings.TrimSpace(config.APIKey) == "" {
 		err = e.failure("API key is not set")
@@ -112,6 +119,7 @@ func (e *engine) Exchange(ctx context.Context, c common.Context) ([]common.Event
 	events, err := e.Parse(resp.StatusCode, raw)
 	// The same measured response facts feed two distinct owners: this process's
 	// HTTP bill here, and replay totals when Agent appends them to History.
+	e.mu.Lock()
 	for _, event := range events {
 		if event.Type == common.ResponseEnded {
 			u := event.Response.Usage
@@ -121,6 +129,7 @@ func (e *engine) Exchange(ctx context.Context, c common.Context) ([]common.Event
 			e.liveUsage.CacheWrite += u.CacheWrite
 		}
 	}
+	e.mu.Unlock()
 	if err != nil {
 		e.parent.Parent().Logger().Print(err.Error())
 	}

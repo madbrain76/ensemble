@@ -46,10 +46,18 @@ func exerciseWorkflow(core, dir string) []grade.Check {
 		return setupFailure(fmt.Errorf("workflow build: %w: %s", err, output))
 	}
 	const callID = "call_a1"
+	// Role completion must follow the real application tools. Text claiming a
+	// draft or review exists is not a substitute for changing shared manuscript
+	// state; the documented example schemas keep this fixture implementation-free.
 	fake := fakevendor.New([]fakevendor.Reply{
 		{ToolName: "think", ToolArgs: `{"seconds":3,"thought":"composing draft"}`, ToolID: callID},
+		{ToolName: "write_draft", ToolArgs: `{"text":"The ocean carries waves to shore."}`, ToolID: "call_write"},
+		{ToolName: "word_count", ToolArgs: `{}`, ToolID: "call_count"},
 		{Text: "I have written a draft about the topic."},
+		{ToolName: "read_draft", ToolArgs: `{}`, ToolID: "call_read"},
+		{ToolName: "edit_draft", ToolArgs: `{"text":"Blue ocean waves break against the sunlit shore."}`, ToolID: "call_edit"},
 		{Text: "I have improved the draft with better flow."},
+		{ToolName: "review", ToolArgs: `{"decision":"accept","notes":"The edited draft is vivid and clear."}`, ToolID: "call_review"},
 		{Text: "APPROVED. The draft is excellent."},
 	})
 	defer fake.Close()

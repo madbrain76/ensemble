@@ -2,26 +2,38 @@
 package agent
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"ensemble/internal/common"
 )
 
-type agent struct{ privateState }
-
-type privateState struct {
-	parent  common.Ensemble
-	config  common.Config
-	engine  common.Engine
-	history common.History
-	tools   common.ToolRegistry
-	jobs    common.Jobs
+type agent struct {
+	parent       common.Ensemble
+	config       common.Config
+	engine       common.Engine
+	history      common.History
+	tools        common.ToolRegistry
+	jobs         common.Jobs
+	box          mailbox
+	done         chan struct{}
+	shutdownErr  error
+	workers      sync.WaitGroup
+	observersMu  sync.Mutex
+	observers    map[uint64]chan common.Observation
+	nextObserver uint64
+	// The fields below are accessed only by the actor.
+	active   *turn
+	pending  []*request
+	nextTurn uint64
+	partID   uint64
+	state    common.TurnState
+	stopping bool
 }
 
 // New validates configuration before any request and retains the actual owner.
@@ -90,7 +102,13 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 			return nil, err
 		}
 	}
-	return &agent{privateState: privateState{parent: parent, config: config}}, nil
+	if config.MaxToolRounds < 0 {
+		return nil, errors.New("MaxToolRounds must be nonnegative")
+	}
+	if config.MaxToolRounds == 0 {
+		config.MaxToolRounds = common.DefaultMaxToolRounds
+	}
+	return &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), state: common.Idle}, nil
 }
 
 // SetEngine completes the root's one-time wiring; it cannot replace an owner.
@@ -127,7 +145,6 @@ func (a *agent) SetJobs(j common.Jobs) {
 	a.jobs = j
 }
 func (a *agent) Jobs() common.Jobs { return a.jobs }
-func (a *agent) Shutdown() error   { return a.jobs.Shutdown() }
 
 // Engine exposes the owned transport and its parent relationship.
 func (a *agent) Engine() common.Engine { return a.engine }
@@ -150,6 +167,9 @@ func (a *agent) History() []common.Message {
 	var messages, pending []common.Message
 	events := a.history.Events()
 	for i, e := range events {
+		if e.Stale {
+			continue
+		}
 		switch e.Type {
 		case common.MessageReceived:
 			if e.Message.Actor == common.Human {
@@ -193,90 +213,6 @@ func (a *agent) History() []common.Message {
 	return messages
 }
 func (a *agent) Usage() common.Usage { return a.engine.Usage() }
-
-// Ask adds each fully returned response before dispatching its ordered calls.
-// A budget counts batches, not elapsed time, stop reasons, or usage estimates.
-func (a *agent) Ask(ctx context.Context, question string) (string, error) {
-	if strings.TrimSpace(question) == "" {
-		return "", errors.New("user message is empty")
-	}
-	if err := a.history.Append(common.Event{Type: common.MessageReceived, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text(question)}}}); err != nil {
-		return "", err
-	}
-	const maxBatches = 16
-	for batches := 0; ; batches++ {
-		projection := a.history.Context()
-		// Validate before declaring a request sent. This snapshot delivers ephemera
-		// once even though RequestSent consumes it from the retained projection.
-		if _, err := a.engine.Render(projection); err != nil {
-			return "", err
-		}
-		if err := a.history.Append(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: a.config.Target()}}); err != nil {
-			return "", err
-		}
-		events, exchangeErr := a.engine.Exchange(ctx, projection)
-		// Missing live IDs need durable identities, unlike offline render-only IDs.
-		idErr := a.identifyCalls(events)
-		var parts common.PartList
-		for _, event := range events {
-			if err := a.history.Append(event); err != nil {
-				return "", err
-			}
-			if event.Type == common.ResponseEnded {
-				parts = event.Response.Parts
-			}
-		}
-		if exchangeErr != nil {
-			return "", exchangeErr
-		}
-		if idErr != nil {
-			return "", a.recordError(idErr.Error())
-		}
-		var calls common.PartList
-		var reply strings.Builder
-		explained := false
-		for _, p := range parts {
-			if p.Type == "text" {
-				reply.WriteString(p.Text)
-				if len(calls) == 0 && strings.TrimSpace(p.Text) != "" {
-					explained = true
-				}
-			}
-			if p.Type == "tool_call" {
-				calls = append(calls, p)
-			}
-		}
-		if len(calls) == 0 {
-			return reply.String(), nil
-		}
-		refusal := ""
-		if a.config.RequireToolExplanation && !explained {
-			refusal = "No tools ran: provide nonblank ordinary assistant text explaining what will run and why before the first tool call, then retry."
-		}
-		if batches == maxBatches {
-			refusal = "No tools ran: the limit of 16 tool batches has been reached."
-		}
-		// Decide whole-batch refusal before invoking even the first handler.
-		for _, call := range calls {
-			if err := a.tools.Invoke(ctx, call, refusal); err != nil {
-				return "", err
-			}
-		}
-		// The request after batch sixteen consumed its actual results. A seventeenth
-		// request for tools is paired with refusals, logged, and terminates locally.
-		if batches == maxBatches {
-			return "", a.recordError("tool batch limit reached (16)")
-		}
-	}
-}
-
-func (a *agent) recordError(message string) error {
-	err := a.history.Append(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: message}})
-	if err != nil {
-		return err
-	}
-	return errors.New(message)
-}
 
 func (a *agent) identifyCalls(events []common.Event) error {
 	used := map[string]bool{}

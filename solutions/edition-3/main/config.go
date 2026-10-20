@@ -50,5 +50,13 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		}
 		c.RequireToolExplanation = enabled
 	}
+	c.LogPath = get("LLM_LOG_PATH")
+	if rounds := get("LLM_MAX_TOOL_ROUNDS"); rounds != "" {
+		n, err := strconv.Atoi(rounds)
+		if err != nil || n < 0 {
+			return Config{}, fmt.Errorf("LLM_MAX_TOOL_ROUNDS must be nonnegative")
+		}
+		c.MaxToolRounds = n
+	}
 	return c, nil
 }

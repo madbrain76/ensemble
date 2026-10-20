@@ -16,10 +16,12 @@ type ToolDefinition struct {
 // ToolRegistry owns one Agent's built-ins. Dispatch returns a result even on failure.
 // Every ordinary dispatch uses the Agent-owned Jobs collection.
 type ToolRegistry interface {
+	// Invoke is the compatibility recording path, admitted by the Agent actor.
+	Invoke(context.Context, Part, string) error
 	Parent() Agent
 	Definitions() []ToolDefinition
 	Dispatch(context.Context, string, json.RawMessage) (PartList, bool)
-	Invoke(context.Context, Part, string) error
+	Prepare(context.Context, Part, string, uint64) ToolOperation
 	Register(ToolDefinition, ToolHandler) error
 }
 
@@ -33,3 +35,10 @@ type ToolCall interface {
 }
 
 type ToolHandler func(context.Context, ToolCall, json.RawMessage) error
+
+// ToolOperation separates serial admission from a cancellable observation.
+// Cancellation of Await releases observation, never execution.
+type ToolOperation interface {
+	Called() ToolData
+	Await(context.Context) ToolData
+}

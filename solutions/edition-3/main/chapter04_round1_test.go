@@ -95,15 +95,20 @@ func TestChapter4Round1KilledMetadata(t *testing.T) {
 			ownerReady := make(chan struct{})
 			late := make(chan struct{})
 			lateDone := make(chan struct{})
+			cancelled := make(chan struct{})
 			var once sync.Once
 			release := func() { once.Do(func() { close(late) }) }
 			t.Cleanup(release)
-			c4Register(t, a, "late", func(_ context.Context, call ensemble.ToolCall, _ json.RawMessage) error {
+			c4Register(t, a, "late", func(ctx context.Context, call ensemble.ToolCall, _ json.RawMessage) error {
 				call.SetExitCode(7)
 				if _, err := io.WriteString(call, "before kill"); err != nil {
 					return err
 				}
 				close(ownerReady)
+				if reason == "shutdown" {
+					<-ctx.Done()
+					close(cancelled)
+				}
 				<-late // Deliberately uncooperative handler: late effects must remain inert.
 				call.SetExitCode(99)
 				_, err := io.WriteString(call, "FORBIDDEN LATE OUTPUT")
@@ -126,10 +131,48 @@ func TestChapter4Round1KilledMetadata(t *testing.T) {
 			blocked, armed := c4Observe(t, job, "")
 			c4Signal(t, armed)
 			if reason == "shutdown" {
-				err = app.Shutdown()
-			} else {
-				err = job.Kill(reason)
+				stopped := make(chan error, 1)
+				go func() { stopped <- app.Shutdown() }()
+				c4Signal(t, cancelled)
+				select {
+				case err := <-stopped:
+					t.Fatalf("shutdown abandoned held Go work: %v", err)
+				default:
+				}
+				if d := job.Data(); d.Status != ensemble.JobRunning || d.ExitCode == nil || *d.ExitCode != 7 || d.Reason != "" {
+					t.Fatalf("invented held shutdown outcome: %+v", d)
+				}
+				select {
+				case got := <-blocked:
+					t.Fatalf("shutdown fabricated observation completion: %+v", got)
+				default:
+				}
+				release()
+				c4Signal(t, lateDone)
+				select {
+				case err := <-stopped:
+					if err != nil {
+						t.Fatal(err)
+					}
+				case <-time.After(3 * time.Second):
+					t.Fatal("shutdown did not join released handler")
+				}
+				wake := c4Result(t, blocked)
+				if wake.Job.Status != ensemble.JobDone || wake.Job.ExitCode == nil || *wake.Job.ExitCode != 99 || wake.Job.Reason != "" {
+					t.Fatalf("shutdown lost real outcome: %+v", wake)
+				}
+				disk, err := os.ReadFile(filepath.Join(dir, "cr", "io", "1"))
+				if err != nil || string(disk) != "before killFORBIDDEN LATE OUTPUT" {
+					t.Fatalf("shutdown discarded real output: %q %v", disk, err)
+				}
+				for _, e := range a.Log().Events() {
+					if e.Type == ensemble.JobKilled {
+						t.Fatal("shutdown fabricated a killed Go job")
+					}
+				}
+				return
 			}
+			err = job.Kill(reason)
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -11,7 +11,11 @@ import (
 )
 
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx := context.Background()
+	stop := func() {}
+	if len(os.Args) != 2 || os.Args[1] != "chat" {
+		ctx, stop = signal.NotifyContext(ctx, os.Interrupt)
+	}
 	defer stop()
 	if err := run(ctx, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
 		fmt.Fprintln(os.Stderr, err)

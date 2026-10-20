@@ -2,6 +2,7 @@
 package ensemble
 
 import (
+	"context"
 	"errors"
 	"io"
 	"log"
@@ -18,7 +19,7 @@ import (
 // Config configures one conversation; APIKey must be treated as a secret.
 type Config = common.Config
 
-// Agent is the public synchronous conversation interface.
+// Agent is a conversation actor with synchronous and asynchronous adapters.
 type Agent = common.Agent
 
 // Message is one retained user or assistant turn.
@@ -28,16 +29,18 @@ type Message = common.Message
 type Usage = common.Usage
 
 // Ensemble owns its Agents and logger; it has no invented parent of its own.
-// Agent creation, like conversation calls, is synchronous in this chapter.
-type Ensemble struct{ privateState }
-
-type privateState struct {
-	mu         sync.Mutex
-	closed     bool
-	nextHandle int
-	jobs       map[int]common.Job
-	logger     *log.Logger
-	agents     []common.Agent
+// Construction wires children before the single conversation actor starts.
+type Ensemble struct {
+	mu           sync.Mutex
+	closed       bool
+	nextHandle   int
+	watchers     map[uint64]chan AgentObservation
+	nextWatcher  uint64
+	shutdownDone chan struct{}
+	shutdownErr  error
+	jobs         map[int]common.Job
+	logger       *log.Logger
+	agents       []common.Agent
 }
 
 // New creates an independent application. A nil logger discards diagnostics.
@@ -45,7 +48,7 @@ func New(logger *log.Logger) *Ensemble {
 	if logger == nil {
 		logger = log.New(io.Discard, "", 0)
 	}
-	return &Ensemble{privateState: privateState{logger: logger, jobs: make(map[int]common.Job)}}
+	return &Ensemble{logger: logger, jobs: make(map[int]common.Job), watchers: make(map[uint64]chan AgentObservation), shutdownDone: make(chan struct{})}
 }
 
 // Logger supplies the application-owned logger to descendants through parents.
@@ -78,6 +81,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		return nil, err
 	}
 	a.SetTools(registry)
+	a.Start()
 	e.agents = append(e.agents, a)
 	return a, nil
 }
@@ -138,14 +142,25 @@ func (e *Ensemble) JobTable() []common.Job {
 // Shutdown stops admission before killing jobs, and is safe to repeat.
 func (e *Ensemble) Shutdown() error {
 	e.mu.Lock()
+	if e.closed {
+		e.mu.Unlock()
+		<-e.shutdownDone
+		return e.shutdownErr
+	}
 	e.closed = true
 	agents := append([]common.Agent(nil), e.agents...)
 	e.mu.Unlock()
-	var errs []error
-	for _, a := range agents {
-		errs = append(errs, a.Shutdown())
+	// Stop every child before waiting for any potentially uncooperative work.
+	errs := make([]error, len(agents))
+	var joins sync.WaitGroup
+	for i, a := range agents {
+		joins.Add(1)
+		go func() { defer joins.Done(); errs[i] = a.Shutdown() }()
 	}
-	return errors.Join(errs...)
+	joins.Wait()
+	e.shutdownErr = errors.Join(errs...)
+	close(e.shutdownDone)
+	return e.shutdownErr
 }
 
 type ToolHandler = common.ToolHandler
@@ -153,12 +168,15 @@ type ToolCall = common.ToolCall
 type Jobs = common.Jobs
 type Job = common.Job
 type JobData = common.JobData
+type ToolData = common.ToolData
 type JobReport = common.JobReport
 type JobStatus = common.JobStatus
 type ToolLimits = common.ToolLimits
 type Ref = common.Ref
 
 const (
+	ToolCalled      = common.ToolCalled
+	ToolReturned    = common.ToolReturned
 	RefHandle       = common.RefHandle
 	JobRunning      = common.JobRunning
 	JobDone         = common.JobDone
@@ -167,3 +185,78 @@ const (
 )
 
 func DefaultToolLimits() ToolLimits { return common.DefaultToolLimits() }
+
+// Mailbox and observation contracts are shared by importers and adapters.
+type Inbound = common.Inbound
+type UserMessage = common.UserMessage
+type Hint = common.Hint
+type Ephemeral = common.Ephemeral
+type Question = common.Question
+type Interrupt = common.Interrupt
+type Result = common.Result
+type Observation = common.Observation
+type Observer = common.Observer
+type PartDelta = common.PartDelta
+type PartFinal = common.PartFinal
+type StateChanged = common.StateChanged
+type ModelFeatures = common.ModelFeatures
+type Media = common.Media
+type RefKind = common.RefKind
+
+const (
+	MediaImage    = common.MediaImage
+	MediaAudio    = common.MediaAudio
+	MediaVideo    = common.MediaVideo
+	MediaDocument = common.MediaDocument
+	RefPath       = common.RefPath
+	RefURI        = common.RefURI
+)
+const DefaultMaxToolRounds = common.DefaultMaxToolRounds
+const HintReceived = common.HintReceived
+const JobReported = common.JobReported
+const TurnEnded = common.TurnEnded
+const TurnInterrupted = common.TurnInterrupted
+
+var ErrInterrupted = common.ErrInterrupted
+var ErrStopped = common.ErrStopped
+var ErrToolRoundLimit = common.ErrToolRoundLimit
+
+func LookupModel(model string) (ModelFeatures, bool) { return common.LookupModel(model) }
+
+// Agent identity belongs to the parent envelope, not conversation events.
+type AgentObservation struct {
+	Agent       Agent
+	Observation Observation
+}
+
+func (e *Ensemble) Publish(a Agent, o Observation) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, ch := range e.watchers {
+		select {
+		case ch <- AgentObservation{a, o}:
+		default:
+		}
+	}
+}
+func (e *Ensemble) WaitAny(ctx context.Context, predicate func(AgentObservation) bool) (AgentObservation, error) {
+	e.mu.Lock()
+	e.nextWatcher++
+	id := e.nextWatcher
+	ch := make(chan AgentObservation, 64)
+	e.watchers[id] = ch
+	e.mu.Unlock()
+	defer func() { e.mu.Lock(); delete(e.watchers, id); e.mu.Unlock() }()
+	for {
+		select {
+		case o := <-ch:
+			if predicate == nil || predicate(o) {
+				return o, nil
+			}
+		case <-ctx.Done():
+			return AgentObservation{}, ctx.Err()
+		case <-e.shutdownDone:
+			return AgentObservation{}, ErrStopped
+		}
+	}
+}

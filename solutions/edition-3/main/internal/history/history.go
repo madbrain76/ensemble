@@ -12,9 +12,7 @@ import (
 	"time"
 )
 
-type history struct{ privateState }
-
-type privateState struct {
+type history struct {
 	mu      sync.Mutex
 	parent  common.Agent
 	events  []common.Event
@@ -22,7 +20,7 @@ type privateState struct {
 }
 
 func New(parent common.Agent) common.History {
-	return &history{privateState: privateState{parent: parent, context: empty()}}
+	return &history{parent: parent, context: empty()}
 }
 func empty() common.Context {
 	return common.Context{Turn: common.Idle, Dialogue: []common.Entry{}, Ephemera: common.PartList{}}
@@ -58,7 +56,7 @@ func (h *history) Append(e common.Event) error {
 func (h *history) Load(r io.Reader) error {
 	// Unbounded lines, optional version header, atomic publication on success.
 	reader := bufio.NewReader(r)
-	next := &history{privateState: privateState{parent: h.parent, context: empty()}}
+	next := &history{parent: h.parent, context: empty()}
 	n := 0
 	for {
 		line, err := reader.ReadString('\n')
@@ -126,7 +124,7 @@ func parts(ps common.PartList) error {
 	for _, p := range ps {
 		switch p.Type {
 		case "text":
-		case "blob":
+		case "blob", "image", "audio", "video":
 			if p.Ref == nil {
 				return fmt.Errorf("blob missing ref")
 			}
@@ -172,7 +170,7 @@ func validate(e common.Event) error {
 		return fmt.Errorf("event requires exactly one typed payload")
 	}
 	switch e.Type {
-	case common.MessageReceived:
+	case common.MessageReceived, common.HintReceived, common.TurnEnded:
 		if e.Message != nil {
 			switch e.Message.Actor {
 			case common.Human, common.Assistant, common.System, common.Tool:
@@ -195,6 +193,13 @@ func validate(e common.Event) error {
 				return fmt.Errorf("negative usage")
 			}
 			return parts(e.Response.Parts)
+		}
+	case common.JobReported:
+		if e.Job != nil && e.Job.Handle > 0 {
+			return nil
+		}
+		if e.Tool != nil {
+			return parts(e.Tool.Parts)
 		}
 	case common.JobKilled:
 		if e.Job != nil && e.Job.Handle > 0 && e.Job.Status == common.JobKilledStatus && (e.Job.Reason == "kill_job" || e.Job.Reason == "shutdown") {
@@ -219,7 +224,7 @@ func validate(e common.Event) error {
 				return parts(r.Replacement)
 			}
 		}
-	case common.ErrorOccurred:
+	case common.ErrorOccurred, common.TurnInterrupted:
 		if e.Error != nil {
 			return nil
 		}
@@ -238,8 +243,14 @@ func add(a *common.Usage, b common.Usage) {
 // Apply is total for known events. Dialogue changes and turn transitions are
 // separate: a known event can add a fact without changing this turn's state.
 func Apply(c *common.Context, e common.Event) {
+	if e.Stale {
+		if e.Type == common.ResponseEnded && e.Response != nil {
+			add(&c.Usage, e.Response.Usage)
+		}
+		return
+	}
 	switch e.Type {
-	case common.MessageReceived:
+	case common.MessageReceived, common.HintReceived:
 		if e.Message.Actor == common.System {
 			c.Ephemera = append(c.Ephemera, e.Message.Parts...)
 		} else {
@@ -250,9 +261,7 @@ func Apply(c *common.Context, e common.Event) {
 		}
 	case common.RequestSent:
 		c.Ephemera = common.PartList{}
-		if c.Turn == common.InputPending {
-			c.Turn = common.InFlight
-		}
+		c.Turn = common.InFlight
 	case common.ResponseEnded:
 		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.Assistant, Parts: e.Response.Parts})
 		add(&c.Usage, e.Response.Usage)
@@ -282,6 +291,11 @@ func Apply(c *common.Context, e common.Event) {
 				c.Turn = common.InputPending
 			}
 		}
+	case common.TurnEnded:
+		c.Turn = common.Idle
+		c.Pending = nil
+	case common.TurnInterrupted:
+		c.Turn = common.Interrupted
 	case common.ErrorOccurred:
 		// An error changes turn state, not projected causal facts. Only an
 		// explicit redaction may remove or replace retained dialogue.

@@ -44,23 +44,75 @@ func (r *registry) Register(d common.ToolDefinition, handler common.ToolHandler)
 	return nil
 }
 func (r *registry) Dispatch(ctx context.Context, name string, input json.RawMessage) (common.PartList, bool) {
-	parts, failed, err := r.dispatch(ctx, common.Part{Name: name, Args: input}, "", false)
-	if err != nil {
-		return common.PartList{common.Text(err.Error())}, true
+	result := r.Prepare(ctx, common.Part{Name: name, Args: input}, "", 0).Await(ctx)
+	return result.Parts, result.IsError
+}
+
+type operation struct {
+	registry *registry
+	call     common.Part
+	args     arguments
+	limits   common.ToolLimits
+	custom   bool
+	job      common.Job
+	control  bool
+	err      error
+	ready    *common.ToolData
+}
+
+func (o *operation) Called() common.ToolData {
+	d := common.ToolData{CallID: o.call.CallID, Name: o.call.Name, Args: o.call.Args}
+	if o.job != nil {
+		j := o.job.Data()
+		d.Job = &j
 	}
-	return parts, failed
+	return d
 }
-func (r *registry) Invoke(ctx context.Context, call common.Part, refusal string) error {
-	_, _, err := r.dispatch(ctx, call, refusal, true)
-	return err
+func (o *operation) Await(ctx context.Context) common.ToolData {
+	if o.ready != nil {
+		return *o.ready
+	}
+	d := o.Called()
+	var text string
+	err := o.err
+	if err == nil && o.control {
+		var report *common.JobReport
+		text, report, err = o.registry.control(ctx, o.call.Name, o.args, o.limits)
+		if report != nil {
+			// Controls report an existing target; they never own a job.
+			text = formatReport(*report)
+			d.IsError = report.IsError
+		}
+	} else if err == nil {
+		report, reportErr := o.job.InitialReport(ctx, o.limits)
+		err = reportErr
+		d.Job = &report.Job
+		d.IsError = report.IsError
+		text = report.Text
+		if report.Job.Status != common.JobDone || report.Job.Bytes > int64(o.limits.MaxOutputBytes) || report.Job.Cwd != "" {
+			text = formatReport(report)
+		}
+	}
+	if err != nil {
+		text = err.Error()
+		d.IsError = true
+	}
+	if o.custom {
+		pattern := "none"
+		if o.limits.Pattern != "" {
+			pattern = fmt.Sprintf("%q", o.limits.Pattern)
+		}
+		text = fmt.Sprintf("[tool_limits consumed by this %s call: ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d]\n", o.call.Name, o.limits.Delay, pattern, o.limits.MaxOutputBytes) + text
+	}
+	d.Parts = common.PartList{common.Text(text)}
+	return d
 }
-func (r *registry) dispatch(ctx context.Context, call common.Part, refusal string, record bool) (common.PartList, bool, error) {
-	// Consume before lookup, validation, refusal, setters, and supervision alike.
+func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string, turn uint64) common.ToolOperation {
+	// Literal next means every position, including refusals and skipped setters.
 	r.mu.Lock()
-	limits := common.DefaultToolLimits()
-	custom := r.next != nil
-	if custom {
-		limits = *r.next
+	o := &operation{registry: r, call: call, limits: common.DefaultToolLimits(), custom: r.next != nil}
+	if o.custom {
+		o.limits = *r.next
 	}
 	r.next = nil
 	var selected *entry
@@ -72,68 +124,33 @@ func (r *registry) dispatch(ctx context.Context, call common.Part, refusal strin
 		}
 	}
 	r.mu.Unlock()
-	args, argErr := decode(call.Args)
-	if argErr == nil && (call.Name == "run_command" || call.Name == "wait_for_job" || call.Name == "send_input") {
-		limits, argErr = parseLimits(args, limits)
+	o.args, o.err = decode(call.Args)
+	if o.err == nil && (call.Name == "run_command" || call.Name == "wait_for_job" || call.Name == "send_input") {
+		o.limits, o.err = parseLimits(o.args, o.limits)
 	}
 	if selected == nil {
-		argErr = fmt.Errorf("unknown or disabled tool %q", call.Name)
+		o.err = fmt.Errorf("unknown or disabled tool %q", call.Name)
 	}
 	if refusal != "" {
-		argErr = errors.New(refusal)
+		o.err = errors.New(refusal)
 	}
-	calledAlready := false
-	var eventErr error
-	called := func(data *common.JobData) error {
-		if record {
-			eventErr = r.parent.Log().Append(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{CallID: call.CallID, Name: call.Name, Args: call.Args, Job: data}})
-		}
-		calledAlready = eventErr == nil
-		return eventErr
+	// Rejection is a tool result, never execution or job allocation.
+	if o.err != nil {
+		return o
 	}
-	result := func(text string, failed bool, data *common.JobData) (common.PartList, bool, error) {
-		if custom {
-			pattern := "none"
-			if limits.Pattern != "" {
-				pattern = fmt.Sprintf("%q", limits.Pattern)
-			}
-			text = fmt.Sprintf("[tool_limits consumed by this %s call: ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d]\n", call.Name, limits.Delay, pattern, limits.MaxOutputBytes) + text
+	if selected.control {
+		o.control = true
+		if call.Name == "tool_limits" {
+			d := o.Await(ctx)
+			o.ready = &d
 		}
-		parts := common.PartList{common.Text(text)}
-		if record {
-			if err := r.parent.Log().Append(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{CallID: call.CallID, Name: call.Name, Parts: parts, IsError: failed, Job: data}}); err != nil {
-				return nil, true, err
-			}
-		}
-		return parts, failed, nil
-	}
-	if selected != nil && selected.control {
-		if err := called(nil); err != nil {
-			return nil, true, err
-		}
-		var text string
-		var report *common.JobReport
-		if argErr == nil {
-			text, report, argErr = r.control(ctx, call.Name, args, limits)
-		}
-		failed := argErr != nil
-		if report != nil {
-			text = formatReport(*report)
-			failed = failed || report.IsError
-		}
-		if argErr != nil {
-			text = argErr.Error()
-		}
-		return result(text, failed, nil) // Supervision observes another job, never owns one.
+		return o
 	}
 	handler := func(ctx context.Context, owner common.ToolCall, raw json.RawMessage) error {
-		if argErr != nil {
-			return argErr
-		}
 		if selected.handler != nil {
 			return selected.handler(ctx, owner, raw)
 		}
-		text, err := selected.execute(ctx, args)
+		text, err := selected.execute(ctx, o.args)
 		if err != nil {
 			return err
 		}
@@ -141,44 +158,14 @@ func (r *registry) dispatch(ctx context.Context, call common.Part, refusal strin
 		return err
 	}
 	cwd := ""
-	if call.Name == "run_command" && args != nil {
-		if override, err := args.text("cwd", false); err == nil && override != "" {
+	if call.Name == "run_command" {
+		if override, err := o.args.text("cwd", false); err == nil && override != "" {
 			cwd = r.path(override)
 		}
 	}
-	job, err := r.parent.Jobs().Start(ctx, handler, call.Args, cwd, func(data common.JobData) error { return called(&data) })
-	if err != nil {
-		// Failed admission/output setup must still pair with this exact call. No
-		// handler ran without its output owner; the remaining batch can continue.
-		if eventErr != nil {
-			return nil, true, eventErr
-		}
-		var data *common.JobData
-		if job != nil {
-			snapshot := job.Data()
-			data = &snapshot
-		}
-		if !calledAlready {
-			if eventErr = called(data); eventErr != nil {
-				return nil, true, eventErr
-			}
-		}
-		return result("preparing job: "+err.Error(), true, data)
-	}
-	observation := limits
-	if argErr != nil {
-		observation = common.DefaultToolLimits()
-	}
-	report, err := job.InitialReport(ctx, observation)
-	if err != nil {
-		data := job.Data()
-		return result(err.Error(), true, &data)
-	}
-	text := report.Text
-	if report.Job.Status != common.JobDone || report.Job.Bytes > int64(observation.MaxOutputBytes) || report.Job.Cwd != "" {
-		text = formatReport(report)
-	}
-	return result(text, report.IsError, &report.Job)
+	origin := common.JobData{TurnID: turn, CallID: call.CallID, Name: call.Name, Args: append([]byte(nil), call.Args...)}
+	o.job, o.err = r.parent.Jobs().Start(ctx, handler, call.Args, cwd, origin)
+	return o
 }
 func formatReport(r common.JobReport) string {
 	d := r.Job
@@ -309,6 +296,12 @@ func controlDefinitions() []entry {
 		definition("tool_limits", "Set observation limits for the literal next tool call only, including errors, setters, and supervision. Omitted values are fresh defaults: 3 seconds, no pattern, 16384 bytes. Limits never kill jobs.", limits, ""),
 		definition("wait_for_job", "Observe new output from this Agent's job, including a finished job. Delay or a pattern on unseen output ends observation, never execution. Omitted delay is 3 seconds; cap is 16384 bytes.", `"handle":{"type":"integer","minimum":1},`+limits, `"handle"`),
 		definition("send_input", "Submit a line to a running PTY job, appending a terminal newline if absent and preserving an existing terminator. Then observe with non-destructive callback limits; no raw-input mode.", `"handle":{"type":"integer","minimum":1},"input":{"type":"string"},`+limits, `"handle","input"`),
-		definition("kill_job", "Explicitly stop a job and its process group, close output, reap the process, and record kill_job. Repeated kills are safe.", `"handle":{"type":"integer","minimum":1}`, `"handle"`),
+		definition("kill_job", "Kill and reap a managed process group. For Go-only work, mark killed and close output; Go cannot stop the handler. Repeated kills are safe.", `"handle":{"type":"integer","minimum":1}`, `"handle"`),
 	}
+}
+
+// Invoke retains the direct Chapter 4 API without making the registry a History
+// writer. The Agent admits, records, and joins this operation like other work.
+func (r *registry) Invoke(ctx context.Context, call common.Part, refusal string) error {
+	return r.parent.InvokeTool(ctx, call, refusal)
 }

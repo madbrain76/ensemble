@@ -19,8 +19,7 @@ import (
 	"sync"
 )
 
-type registry struct{ privateState }
-type privateState struct {
+type registry struct {
 	mu        sync.Mutex
 	next      *common.ToolLimits
 	parent    common.Agent
@@ -42,7 +41,7 @@ func New(parent common.Agent) (common.ToolRegistry, error) {
 		return nil, fmt.Errorf("Tools requires an Agent parent")
 	}
 	directory := parent.Config().BaseDir
-	r := &registry{privateState: privateState{parent: parent, directory: directory}}
+	r := &registry{parent: parent, directory: directory}
 	available := r.builtins()
 	selected := parent.Config().Tools
 	if selected == nil {

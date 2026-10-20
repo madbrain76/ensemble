@@ -3,6 +3,7 @@ package ensemble_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -445,7 +446,7 @@ func TestChapter3LoopBudgetAndFinalConsumption(t *testing.T) {
 				}
 				return c3Reply(ensemble.Anthropic, common.Text("I will append one marker and read to verify this batch."), c3ToolPart(fmt.Sprintf("write-%d", n), "write_file", map[string]any{"path": path, "content": "x", "append": true}), c3ToolPart(fmt.Sprintf("read-%d", n), "read_file", map[string]any{"path": path}))
 			})
-			a := c3LocalAgent(t, url, ensemble.Anthropic, true, nil)
+			a := c3Agent(t, ensemble.Config{BaseURL: url, APIKey: "synthetic-local-fixture", Vendor: ensemble.Anthropic, RequireToolExplanation: true, MaxToolRounds: 16})
 			reply, err := a.Ask(context.Background(), "Perform the bounded sequence.")
 			if count.Load() != 17 || c3Contents(t, path) != strings.Repeat("x", 16) {
 				t.Fatalf("budget requests=%d contents=%q", count.Load(), c3Contents(t, path))
@@ -453,7 +454,7 @@ func TestChapter3LoopBudgetAndFinalConsumption(t *testing.T) {
 			want := 32
 			if exhaust {
 				want = 34
-				if err == nil || !strings.Contains(err.Error(), "16") {
+				if !errors.Is(err, ensemble.ErrToolRoundLimit) {
 					t.Fatalf("missing budget error: %q %v", reply, err)
 				}
 			} else if err != nil || reply != "Consumed the sixteenth result." {

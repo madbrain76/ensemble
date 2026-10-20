@@ -26,6 +26,9 @@ type Config struct {
 	Tools []string
 	// RequireToolExplanation selects this model's before-effects explanation policy.
 	RequireToolExplanation bool
+	LogPath                string
+	MaxToolRounds          int
+	SystemPrompt           string
 }
 
 // Message is a retained user or assistant turn, sent verbatim on later requests.
@@ -50,13 +53,14 @@ type Usage struct {
 type Ensemble interface {
 	// Logger returns this application's diagnostic destination.
 	Logger() *log.Logger
+	Publish(Agent, Observation)
 	RegisterJob(Job) (int, error)
 	LookupJob(int) (Job, bool)
 	JobTable() []Job
 	Shutdown() error
 }
 
-// Agent owns one synchronous conversation. Calls on one Agent must be serialized.
+// Agent owns one mailbox and one conversation actor.
 type Agent interface {
 	// Parent returns the Ensemble which owns this conversation.
 	Parent() Ensemble
@@ -68,6 +72,15 @@ type Agent interface {
 	Tools() ToolRegistry
 	Jobs() Jobs
 	Shutdown() error
+	Post(Inbound) error
+	Submit(context.Context, string) <-chan Result
+	// SubmitLive starts a turn if idle, or adds a hint to the current turn.
+	// Joined callers receive the same reliable result and TurnID at completion.
+	SubmitLive(context.Context, string) <-chan Result
+	Subscribe(Observer)
+	Wait(context.Context, func(Observation) bool) (Observation, error)
+	ReportJob(JobReport)
+	InvokeTool(context.Context, Part, string) error
 	// Ask records every attempt; the compatibility History view contains completed text pairs.
 	Ask(context.Context, string) (string, error)
 	// History returns a copy so callers cannot corrupt retained turns.
@@ -86,6 +99,7 @@ type Engine interface {
 	// Send makes one HTTP request, with cancellation controlled by the caller.
 	Send(context.Context, []Message) (string, error)
 	Exchange(context.Context, Context) ([]Event, error)
+	ExchangeRequest(context.Context, []byte) ([]Event, error)
 	Render(Context) ([]byte, error)
 	Parse(int, []byte) ([]Event, error)
 	// Usage returns cumulative measured totals, not estimates.

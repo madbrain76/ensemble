@@ -707,6 +707,10 @@ failed completion, not durable success. The accepted library's empty `LogPath`
 leaves persistence with its embedding caller. Notify observers of the same outcome without making observation
 delivery a prerequisite for returning to the caller.
 
+The reply buffer protects delivery after admission. Requests and control messages
+still need reliable mailbox admission; dropping one when the queue is full can
+strand the caller before the actor ever sees its message.
+
 The excerpt shows the request-specific reply; production also handles
 shutdown without losing an already completed reply. Starting the actor is lazy
 and idempotent. Repeated callers use the same Agent-owned mailbox consumer;
@@ -715,7 +719,9 @@ Shutdown stops new work, cancels in-flight model requests, stops managed
 processes, joins workers, records their outcomes and saves. An arbitrary Go
 tool may not be cancellable: shutdown must wait for it, not discard its real
 result and pretend it stopped. Repeated shutdown is safe; later requests
-return a distinguishable stopped error.
+return a distinguishable stopped error. Keep the actor alive until joined workers
+and admitted kill calls have delivered their terminal facts; handler return alone
+is too early for the final save.
 
 Delete `Engine.Ask` and any sibling orchestration loop after migrating their
 callers, including legacy CLI prompt formats and embedding programs. Keep
@@ -829,10 +835,10 @@ A hint or question wakeup ends only the foreground observation; it does not
 force the turn to end. An `Interrupt` ends the active turn, not the actor's
 lifetime. The actor continues draining its mailbox and recording results. A Go handler may
 still complete after the interrupt; its real output is not garbage. An
-explicit job kill has different semantics: it suppresses late output for
-that killed job. Shutdown must stop managed processes, join workers and
-save their outcomes rather than silently applying kill semantics to every
-non-cancellable Go function.
+explicit job kill has different semantics: it returns without joining a Go-only
+handler and suppresses late output for that killed job. Shutdown must stop managed
+processes, join workers and save their outcomes rather than silently applying kill
+semantics to every non-cancellable Go function.
 
 ### The stdin protocol
 
@@ -1128,11 +1134,15 @@ and uses the separate request reply
 to decide when to send the next prompt. The observer seam carries all
 three without knowing about any of them.
 
-Now try it with a real vendor. Build your own core from its module root:
+Now try it with a real vendor. Build your CLI from the core module root,
+targeting its command package:
 
 ```sh
-go build -o /tmp/ch5agent .
+go build -o /tmp/ch5agent ./cmd/ch01
 ```
+
+Use your own command-package path if it differs. The module root remains an
+importable library.
 
 Use the credential procedure from Chapter 0: configure the intended child's
 `LLM_VENDOR`, discovered `LLM_MODEL`, and `LLM_API_KEY` without printing keys

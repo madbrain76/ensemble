@@ -104,14 +104,22 @@ type TurnState string
 
 const (
 	Idle         TurnState = "idle"
+	Interrupted  TurnState = "interrupted"
 	InputPending TurnState = "input_pending"
 	InFlight     TurnState = "in_flight"
 	ToolsPending TurnState = "tools_pending"
 )
 
+type RefKind = int
+
+const (
+	RefPath RefKind = 1
+	RefURI  RefKind = 2
+)
+
 type Ref struct {
-	Kind    int    `json:"kind"`
-	Locator string `json:"locator"`
+	Kind    RefKind `json:"kind"`
+	Locator string  `json:"locator"`
 }
 
 // Part is a tagged union. Each variant keeps its own wire-neutral distinctions.
@@ -167,6 +175,10 @@ type EventType string
 
 const (
 	MessageReceived EventType = "message_received"
+	HintReceived    EventType = "hint_received"
+	TurnEnded       EventType = "turn_ended"
+	TurnInterrupted EventType = "turn_interrupted"
+	JobReported     EventType = "job_report"
 	RequestSent     EventType = "request_sent"
 	ResponseStarted EventType = "response_started"
 	ResponseEnded   EventType = "response_ended"
@@ -178,8 +190,12 @@ const (
 )
 
 type MessageData struct {
-	Actor Actor    `json:"actor"`
-	Parts PartList `json:"parts"`
+	Sender    string   `json:"sender,omitempty"`
+	Recipient string   `json:"recipient,omitempty"`
+	RequestID string   `json:"request_id,omitempty"`
+	TurnID    string   `json:"turn_id,omitempty"`
+	Actor     Actor    `json:"actor"`
+	Parts     PartList `json:"parts"`
 }
 type RequestData struct {
 	To Provenance `json:"to"`
@@ -224,6 +240,8 @@ type ErrorData struct {
 
 // Event is the interoperable eight-case envelope, never a vendor request dump.
 type Event struct {
+	Stale    bool          `json:"stale,omitempty"`
+	TurnID   uint64        `json:"turn_id,omitempty"`
 	Job      *JobData      `json:"job,omitempty"`
 	Seq      Seq           `json:"seq"`
 	Type     EventType     `json:"type"`
