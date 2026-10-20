@@ -410,7 +410,11 @@ func (a *agent) startNext() {
 		}
 		a.nextTurn++
 		ctx, cancel := context.WithCancel(r.ctx)
-		a.active = &turn{id: a.nextTurn, request: r, ctx: ctx, cancel: cancel, limit: a.config.MaxToolRounds}
+		limit := int(a.maxToolRounds.Load())
+		if limit == 0 {
+			limit = common.DefaultMaxToolRounds
+		}
+		a.active = &turn{id: a.nextTurn, request: r, ctx: ctx, cancel: cancel, limit: limit}
 		r.turnID = a.active.id
 		event := common.Event{Type: common.MessageReceived, TurnID: a.active.id, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text(r.text)}}}
 		if r.message != nil {
@@ -467,7 +471,14 @@ func (a *agent) send() {
 	if a.waitGate("Before next model request", a.send) {
 		return
 	}
-	body, err := a.engine.Render(a.history.Context())
+	// The final consuming request gets a private stop instruction. Keep it in
+	// request-local ephemera: neither durable History nor signed assistant parts
+	// may be rewritten, and later ordinary turns must not inherit this policy.
+	requestContext := a.history.Context()
+	if t.limit > 0 && t.rounds >= t.limit {
+		requestContext.Ephemera = append(requestContext.Ephemera, common.Text("The tool-round limit has been reached for this turn. Do not call any more tools. Use the results already available to give your final response."))
+	}
+	body, err := a.engine.Render(requestContext)
 	if err != nil {
 		a.finish("", err)
 		return

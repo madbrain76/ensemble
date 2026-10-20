@@ -135,9 +135,12 @@ did exactly that: two orchestration loops read a hard-coded limit of 16
 while the GUI faithfully saved 200. Chapter 5 now has one owner and one
 policy: zero selects the named default of 200; positive N permits N tool
 batches per human turn. Read the setting at turn start so an update takes
-effect on the next turn, not halfway through the current one. Test both a
-small saved limit that stops execution and a large one that permits more
-than 16 batches, through the actual entry point and across a restart.
+effect on the next turn, not halfway through the current one. At that captured
+limit, retain Chapter 5's final-response allowance: put the stop-tools instruction
+in request-local prompt context, without changing History or signed content or
+carrying it into later turns. Test both a small saved limit that stops execution
+and a large one that permits more than 16 batches, through the actual entry
+point and across a restart.
 
 The four visible controls remain theme, TTS enabled, speech speed and font
 size. `max_tool_rounds` already belongs to the execution exercise; it travels
@@ -238,7 +241,8 @@ the workbench's state controls. The routing is a filter, not a fork: both panes 
 ArtifactScroll API, the same CSS, the same streaming protocol. The
 abstraction that Chapter 7 promised holds up under reuse. If it had
 not, you would know it here, because the right pane would need its own
-rendering logic.
+rendering logic. Keep each pane independently scrollable, with the follow
+control clear of the transcript text.
 
 ## Settings over the wire
 
@@ -481,8 +485,12 @@ ws.addEventListener('message', e => {
 
 `applySettings` sets the theme, updates TTS and adjusts font size from the
 accepted snapshot. Handle the initial snapshot as well as later changes.
-Disabling speech cancels the local queue; a changed speech rate applies to
-the next utterance. A successful update reaches the sender and other connected
+Disabling Read aloud cancels automatic speech; explicit Speak requests
+(`on demand`) still play. A changed speech rate applies to the next utterance.
+Changing Read aloud releases the old typing pause without deleting the draft.
+Fresh typing must still veto automatic continuation, even if an earlier
+acknowledgement arrives afterward. Explicit Continue in any tab releases that
+veto. A successful update reaches the sender and other connected
 clients; a fresh subscription or restart restores that saved state. Existing
 slow-client progress limits still apply, so this is not a new reliable-message
 transport.
@@ -505,10 +513,11 @@ The correction was one attribute, with a reason beside it:
 ```
 
 The crossover extended the approximate range to 5× in both the control and
-saved-setting validation. Native voice rates are nonlinear: retain the behavior
-at or below 2× and map higher settings at the speech consumer rather than call
-a native rate of 5 a measured fivefold speed. Verify the saved value, control
-and next utterance separately. The original fractional-rate check below used
+saved-setting validation. Preserve arbitrary fractions in the control, but clamp
+the rate to 0.5–3 at every native utterance construction: a saved 2.5 reaches
+native speech as 2.5; a saved 5 reaches it as 3. Native voice rates are nonlinear,
+so these numbers do not establish measured speedups. Verify the saved value,
+control and next utterance separately. The original fractional-rate check below used
 the earlier 2× range; it is not evidence for the later extension.
 
 That focused check saved 1.75, restarted the real application, inspected the

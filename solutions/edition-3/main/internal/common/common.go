@@ -77,6 +77,9 @@ type Agent interface {
 	Parent() Ensemble
 	// Config returns a value copy, leaving configuration with its owner.
 	Config() Config
+	// SetMaxToolRounds changes next-turn policy, not an active turn.
+	// Zero selects DefaultMaxToolRounds; negative values are rejected.
+	SetMaxToolRounds(int) error
 	// Engine returns this Agent's transport and accounting owner.
 	Engine() Engine
 	// Tools is this Agent's independently owned synchronous registry.

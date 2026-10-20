@@ -44,19 +44,29 @@ type client struct {
 func (c *client) stop() { c.once.Do(func() { close(c.done) }) }
 
 type Hub struct {
-	mu          sync.Mutex
-	en          *ensemble.Ensemble
-	agents      map[string]*agentView
-	clients     map[*client]bool
-	nextClient  uint64
-	session     string
-	unsubscribe func()
-	closed      bool
-	speech      *speaker
+	mu              sync.Mutex
+	en              *ensemble.Ensemble
+	agents          map[string]*agentView
+	clients         map[*client]bool
+	nextClient      uint64
+	session         string
+	unsubscribe     func()
+	closed          bool
+	speech          *speaker
+	settings        Settings
+	settingsApplied bool
+	store           settingsStore
 }
 
 func NewHub(en *ensemble.Ensemble) *Hub {
+	return newHub(en, DefaultSettings(), settingsStore{})
+}
+
+func newHub(en *ensemble.Ensemble, settings Settings, store settingsStore) *Hub {
 	h := &Hub{en: en, agents: map[string]*agentView{}, clients: map[*client]bool{}, session: fmt.Sprint(time.Now().UnixNano())}
+	h.settings = settings
+	h.store = store
+	h.settingsApplied = store.path != ""
 	h.speech = newSpeaker(h)
 	for _, a := range en.Agents() {
 		v := h.view(a)
@@ -88,6 +98,10 @@ func (h *Hub) trace(kind, agent, detail string) {
 func (h *Hub) view(a ensemble.Agent) *agentView {
 	v := h.agents[a.ID()]
 	if v == nil {
+		if h.settingsApplied {
+			_ = a.SetMaxToolRounds(h.settings.MaxToolRounds)
+			_ = a.Post(ensemble.SetSpeaking{Enabled: h.settings.TTSEnabled})
+		}
 		cfg := a.Config()
 		v = &agentView{agent: a, state: controlState{Paused: cfg.PauseOnStart, Speaking: cfg.Speaking, Turn: ensemble.Idle}, partial: map[uint64]Card{}, spoken: map[uint64]int{}}
 		h.agents[a.ID()] = v
@@ -310,6 +324,9 @@ func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
 		return c
 	}
 	c.queue <- raw
+	settings := h.currentSettings()
+	settingsRaw, _ := json.Marshal(Wire{Type: "current_settings", Settings: &settings})
+	c.queue <- settingsRaw
 	h.clients[c] = true
 	h.trace("client_connect", "", c.id)
 	return c
@@ -333,4 +350,11 @@ func (h *Hub) emit(w Wire) {
 	if !h.closed {
 		h.broadcast(w)
 	}
+}
+
+func (h *Hub) sendSettingsError(c *client, err error) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	raw, _ := json.Marshal(Wire{Type: "settings_error", Data: err.Error()})
+	h.enqueue(c, raw, "settings_error", "")
 }

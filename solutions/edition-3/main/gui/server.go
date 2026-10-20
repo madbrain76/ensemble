@@ -27,6 +27,18 @@ type Server struct {
 }
 
 func NewServer(root *ensemble.Ensemble, assets string) (*Server, error) {
+	return NewServerWithSettings(root, assets, filepath.Join("cr", "settings.json"))
+}
+
+// NewServerWithSettings accepts the settings path selected by the launcher.
+func NewServerWithSettings(root *ensemble.Ensemble, assets, path string) (*Server, error) {
+	if path == "" {
+		path = filepath.Join("cr", "settings.json")
+	}
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
 	abs, err := filepath.Abs(assets)
 	if err != nil {
 		return nil, err
@@ -36,7 +48,12 @@ func NewServer(root *ensemble.Ensemble, assets string) (*Server, error) {
 			return nil, fmt.Errorf("GUI asset missing: %s", filepath.Join(abs, name))
 		}
 	}
-	return &Server{Root: root, Hub: NewHub(root), Assets: abs}, nil
+	store := settingsStore{path: path}
+	settings, loadErr := store.load()
+	if loadErr != nil {
+		return nil, fmt.Errorf("load GUI settings: %w", loadErr)
+	}
+	return &Server{Root: root, Hub: newHub(root, settings, store), Assets: abs}, nil
 }
 func (s *Server) wireTrace(direction string, raw []byte) {
 	if s.Trace == nil {
@@ -146,17 +163,25 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 }
 
 type command struct {
-	Type     string            `json:"type"`
-	AgentID  string            `json:"agent_id"`
-	Text     string            `json:"text"`
-	Parts    ensemble.PartList `json:"parts"`
-	Enabled  bool              `json:"enabled"`
-	PartID   uint64            `json:"part_id"`
-	SpeechID string            `json:"speech_id"`
-	Status   string            `json:"status"`
+	Type      string            `json:"type"`
+	Settings  json.RawMessage   `json:"settings"`
+	AgentID   string            `json:"agent_id"`
+	Text      string            `json:"text"`
+	Parts     ensemble.PartList `json:"parts"`
+	Enabled   bool              `json:"enabled"`
+	Automatic bool              `json:"automatic,omitempty"`
+	PartID    uint64            `json:"part_id"`
+	SpeechID  string            `json:"speech_id"`
+	Status    string            `json:"status"`
 }
 
 func (s *Server) command(c *client, m command) error {
+	if m.Type == "update_settings" {
+		if err := s.Hub.updateSettings(m.Settings); err != nil {
+			s.Hub.sendSettingsError(c, err)
+		}
+		return nil
+	}
 	id := m.AgentID
 	if id == "" {
 		id = s.DefaultAgent
@@ -178,7 +203,21 @@ func (s *Server) command(c *client, m command) error {
 	case "pause":
 		return a.Pause()
 	case "unpause":
-		return a.Unpause()
+		if m.Automatic {
+			return a.Unpause()
+		}
+		// Explicit Continue is user authority in every tab. Publish it before
+		// the asynchronous state acknowledgement so fresh typing after this
+		// notification cannot be cleared again by an older continuation epoch.
+		s.Hub.mu.Lock()
+		defer s.Hub.mu.Unlock()
+		s.Hub.sync(s.Hub.view(a), a.View())
+		if err := a.Unpause(); err != nil {
+			return err
+		}
+		s.Hub.speech.cancelAgent(id, false)
+		s.Hub.broadcast(Wire{Type: "continued", AgentID: id, Data: map[string]any{"client": c.id, "epoch": s.Hub.agents[id].state.Epoch}})
+		return nil
 	case "interrupt":
 		return a.Post(ensemble.Interrupt{})
 	case "speaking":

@@ -18,24 +18,25 @@ import (
 )
 
 type agent struct {
-	id           string
-	parent       common.Ensemble
-	config       common.Config
-	engine       common.Engine
-	history      common.History
-	tools        common.ToolRegistry
-	jobs         common.Jobs
-	box          mailbox
-	done         chan struct{}
-	shutdownErr  error
-	jobParts     map[int]uint64
-	workers      sync.WaitGroup
-	observersMu  sync.Mutex
-	observers    map[uint64]chan common.Observation
-	queues       map[*observationQueue]struct{}
-	nextObserver uint64
-	gateMu       sync.Mutex
-	paused       bool
+	id            string
+	parent        common.Ensemble
+	config        common.Config
+	maxToolRounds atomic.Int64
+	engine        common.Engine
+	history       common.History
+	tools         common.ToolRegistry
+	jobs          common.Jobs
+	box           mailbox
+	done          chan struct{}
+	shutdownErr   error
+	jobParts      map[int]uint64
+	workers       sync.WaitGroup
+	observersMu   sync.Mutex
+	observers     map[uint64]chan common.Observation
+	queues        map[*observationQueue]struct{}
+	nextObserver  uint64
+	gateMu        sync.Mutex
+	paused        bool
 	// The fields below are accessed only by the actor.
 	active     *turn
 	pending    []*request
@@ -124,6 +125,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 		config.MaxToolRounds = common.DefaultMaxToolRounds
 	}
 	a := &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), queues: make(map[*observationQueue]struct{}), state: common.Idle, paused: config.PauseOnStart, speaking: config.Speaking}
+	a.maxToolRounds.Store(int64(config.MaxToolRounds))
 	a.viewState = common.ViewSnapshot{State: common.Idle, Paused: config.PauseOnStart, Speaking: config.Speaking}
 	a.viewParts = make(map[uint64]common.PartDelta)
 	a.jobParts = make(map[int]uint64)
@@ -154,10 +156,22 @@ func (a *agent) SetID(id string) {
 // Config returns a value copy of the Agent-owned configuration.
 func (a *agent) Config() common.Config {
 	c := a.config
+	c.MaxToolRounds = int(a.maxToolRounds.Load())
 	if c.Tools != nil {
 		c.Tools = append([]string{}, c.Tools...)
 	}
 	return c
+}
+
+// SetMaxToolRounds synchronously publishes next-turn policy; zero selects
+// common.DefaultMaxToolRounds (200). The actor captures this once at admission;
+// a later edit cannot move an active turn's boundary.
+func (a *agent) SetMaxToolRounds(rounds int) error {
+	if rounds < 0 {
+		return errors.New("MaxToolRounds must not be negative")
+	}
+	a.maxToolRounds.Store(int64(rounds))
+	return nil
 }
 
 func (a *agent) SetTools(t common.ToolRegistry) {

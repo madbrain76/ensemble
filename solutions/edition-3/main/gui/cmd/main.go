@@ -19,6 +19,7 @@ import (
 func main() {
 	port := flag.Int("port", 8088, "loopback HTTP port")
 	assets := flag.String("gui-dir", "web/gui", "GUI asset directory (absolute paths work outside cwd)")
+	settings := flag.String("settings", "", "GUI settings JSON path (default: cr/settings.json under the working directory)")
 	pause := flag.Bool("pause-on-start", false, "pause before the first model request")
 	speaking := flag.Bool("speaking", false, "enable Agent speech requests")
 	flag.Parse()
@@ -40,7 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app, err := gui.NewServer(root, *assets)
+	app, err := gui.NewServerWithSettings(root, *assets, *settings)
 	if err != nil {
 		log.Fatal(err)
 	}
