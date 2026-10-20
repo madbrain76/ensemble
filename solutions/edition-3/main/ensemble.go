@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -22,6 +23,23 @@ import (
 
 // Config configures one conversation; APIKey must be treated as a secret.
 type Config = common.Config
+
+// LogMode selects full or dialogue-only recovery archives.
+type LogMode = common.LogMode
+
+// SavedConfig is descriptive checkpoint metadata, never runtime configuration.
+type SavedConfig = common.SavedConfig
+
+// SaveFile is the public recovery envelope.
+type SaveFile = common.SaveFile
+
+// Recovery names the selected artifact and recovered sequence.
+type Recovery = common.Recovery
+
+const (
+	LogFull         = common.LogFull
+	LogDialogueOnly = common.LogDialogueOnly
+)
 
 // Agent is a conversation actor with synchronous and asynchronous adapters.
 type Agent = common.Agent
@@ -89,6 +107,19 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if config.StreamCapability != StreamUnknown && config.StreamCapability != StreamPlain && config.StreamCapability != StreamSSE {
 		return nil, errors.New("invalid stream capability")
 	}
+	if config.SavePath == "" && config.DataDir != "" {
+		// Derived recovery paths follow the job owner's BaseDir-relative data
+		// directory. Explicit SavePath values retain their caller semantics.
+		dataDir := config.DataDir
+		if !filepath.IsAbs(dataDir) {
+			dataDir = filepath.Join(config.BaseDir, dataDir)
+		}
+		dataDir, err := filepath.Abs(dataDir)
+		if err != nil {
+			return nil, err
+		}
+		config.SavePath = filepath.Join(dataDir, fmt.Sprintf("agent-%d", id), "save.json")
+	}
 	a, err := agent.New(e, config)
 	if err != nil {
 		return nil, err
@@ -100,6 +131,9 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	a.SetID(fmt.Sprintf("agent-%d", id))
 	a.SetEngine(transport)
 	a.SetHistory(history.New(a))
+	if err := a.Load(); err != nil {
+		return nil, err
+	}
 	a.SetJobs(jobs.New(a))
 	registry, err := tool.New(a)
 	if err != nil {
@@ -118,6 +152,19 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	defer e.mu.Unlock()
 	if e.closed {
 		return nil, errors.New("Ensemble is shut down")
+	}
+	candidate, err := filepath.Abs(a.Config().SavePath)
+	if err != nil {
+		return nil, err
+	}
+	for _, existing := range e.agents {
+		other, err := filepath.Abs(existing.Config().SavePath)
+		if err != nil {
+			return nil, err
+		}
+		if candidate == other || candidate == other+".bak" || candidate+".bak" == other {
+			return nil, errors.New("Agents must use distinct recovery paths")
+		}
 	}
 	a.Start()
 	e.agents = append(e.agents, a)
@@ -413,7 +460,9 @@ func (e *Ensemble) runTrace() {
 		case <-e.shutdownDone:
 			return
 		case item := <-e.traceQueue:
-			_, _ = item.writer.Write(item.data)
+			if _, err := item.writer.Write(item.data); err != nil {
+				e.logger.Printf("diagnostic write: %v", err)
+			}
 		}
 	}
 }

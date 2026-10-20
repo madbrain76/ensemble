@@ -14,10 +14,12 @@ import (
 )
 
 type history struct {
-	mu      sync.Mutex
-	parent  common.Agent
-	events  []common.Event
-	context common.Context
+	mu       sync.Mutex
+	parent   common.Agent
+	events   []common.Event
+	through  common.Seq
+	dialogue []common.DialogueRecord
+	context  common.Context
 }
 
 func New(parent common.Agent) common.History {
@@ -32,10 +34,7 @@ func (h *history) Events() []common.Event { return h.EventsRange(0, ^common.Seq(
 func (h *history) LastSeq() common.Seq {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if len(h.events) == 0 {
-		return 0
-	}
-	return h.events[len(h.events)-1].Seq
+	return h.through
 }
 func (h *history) EventsSince(after common.Seq) []common.Event {
 	return h.EventsRange(after, ^common.Seq(0))
@@ -83,9 +82,9 @@ func (h *history) RecentThrough(through common.Seq, since time.Time, minimum int
 }
 func (h *history) Context() common.Context { h.mu.Lock(); defer h.mu.Unlock(); return clone(h.context) }
 func (h *history) prepare(e common.Event) (common.Event, error) {
-	next := common.Seq(1)
-	if len(h.events) > 0 {
-		next = h.events[len(h.events)-1].Seq + 1
+	next := h.through + 1
+	if next == 0 {
+		return e, fmt.Errorf("sequence exhausted")
 	}
 	if e.Seq == 0 {
 		e.Seq = next
@@ -103,6 +102,7 @@ func (h *history) prepare(e common.Event) (common.Event, error) {
 }
 func (h *history) appendPrepared(e common.Event) {
 	h.events = append(h.events, e)
+	h.through = e.Seq
 	Apply(&h.context, e)
 }
 func (h *history) Append(e common.Event) error {
@@ -180,7 +180,7 @@ func (h *history) Load(r io.Reader) error {
 	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	h.events, h.context = next.events, next.context
+	h.events, h.context, h.through = next.events, next.context, next.through
 	return nil
 }
 func (h *history) Dump(w io.Writer) error { return dumpEvents(w, h.Events()) }

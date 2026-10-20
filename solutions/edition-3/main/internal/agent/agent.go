@@ -21,6 +21,9 @@ type agent struct {
 	id            string
 	parent        common.Ensemble
 	config        common.Config
+	configMu      sync.RWMutex
+	saveMu        sync.Mutex
+	recovery      common.Recovery
 	maxToolRounds atomic.Int64
 	engine        common.Engine
 	history       common.History
@@ -120,6 +123,28 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 			return nil, err
 		}
 	}
+	if config.SavePath == "" {
+		config.SavePath = filepath.Join(config.DataDir, "save.json")
+	}
+	if config.DiagnosticMaxRecords == nil {
+		n := 200
+		config.DiagnosticMaxRecords = &n
+	} else {
+		n := *config.DiagnosticMaxRecords
+		if n < 0 {
+			return nil, errors.New("negative diagnostic_max_records")
+		}
+		config.DiagnosticMaxRecords = &n
+	}
+	if config.LogMode == "" {
+		config.LogMode = common.LogFull
+	}
+	if config.LogMode != common.LogFull && config.LogMode != common.LogDialogueOnly {
+		return nil, errors.New("invalid log mode")
+	}
+	if config.SavePath != "" && config.SavePath == config.LogPath {
+		return nil, errors.New("save and legacy log paths must differ")
+	}
 	if config.MaxToolRounds < 0 {
 		return nil, errors.New("MaxToolRounds must be nonnegative")
 	}
@@ -160,8 +185,15 @@ func (a *agent) SetID(id string) {
 }
 
 // Config returns a value copy of the Agent-owned configuration.
+func (a *agent) Recovery() common.Recovery { return a.recovery }
 func (a *agent) Config() common.Config {
+	a.configMu.RLock()
+	defer a.configMu.RUnlock()
 	c := a.config
+	if c.DiagnosticMaxRecords != nil {
+		n := *c.DiagnosticMaxRecords
+		c.DiagnosticMaxRecords = &n
+	}
 	c.MaxToolRounds = int(a.maxToolRounds.Load())
 	c.Skills = cloneSkillSpec(c.Skills)
 	if c.Tools != nil {
@@ -275,6 +307,13 @@ func (a *agent) Usage() common.Usage { return a.engine.Usage() }
 func (a *agent) identifyCalls(events []common.Event) error {
 	used := map[string]bool{}
 	prior := a.history.Events()
+	for _, entry := range a.history.Context().Dialogue {
+		for _, p := range entry.Parts {
+			if p.Type == "tool_call" && p.CallID != "" {
+				used[p.CallID] = true
+			}
+		}
+	}
 	for _, e := range prior {
 		if e.Response != nil {
 			for _, p := range e.Response.Parts {

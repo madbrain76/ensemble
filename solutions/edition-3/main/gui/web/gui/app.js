@@ -6,8 +6,8 @@ const agents = new Map(), cards = new Map(), order = [];
 let audio = [], speakingNow = null;
 const typing = new Set(), delayed = new Map(), requests = new Map(), voiceAgents = new Set();
 let inputOccupied=false;
-let settings={theme:'dark',tts_enabled:true,tts_speed:1,font_size:16,max_tool_rounds:0},settingsReady=false;
-const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','tts-speed':'tts_speed','font-size':'font_size','max-tool-rounds':'max_tool_rounds'};
+let settings={theme:'dark',tts_enabled:true,tts_speed:1,font_size:16,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200},settingsReady=false;
+const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','tts-speed':'tts_speed','font-size':'font_size','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records'};
 const systemTheme=window.matchMedia?.('(prefers-color-scheme: dark)');
 function applyTheme(){document.documentElement.dataset.theme=settings.theme==='system'?(systemTheme?.matches?'dark':'light'):settings.theme;}
 if(systemTheme?.addEventListener)systemTheme.addEventListener('change',()=>{if(settings.theme==='system')applyTheme();});
@@ -37,8 +37,8 @@ function applySettings(value){
 }
 for(const [id,key] of Object.entries(preferenceFields))$(id).onchange=()=>{
  const control=$(id);let value=control.type==='checkbox'?control.checked:control.value;
- if(['font_size','tts_speed','max_tool_rounds'].includes(key))value=Number(value);
- if((typeof value==='number'&&!Number.isFinite(value))||(key==='max_tool_rounds'&&!Number.isSafeInteger(value))){$('settings-status').textContent='Enter a finite whole-number budget.';preferenceControls();return;}
+ if(['font_size','tts_speed','max_tool_rounds','diagnostic_max_records'].includes(key))value=Number(value);
+ if((typeof value==='number'&&!Number.isFinite(value))||(['max_tool_rounds','diagnostic_max_records'].includes(key)&&!Number.isSafeInteger(value))){$('settings-status').textContent='Enter a finite whole-number budget.';preferenceControls();return;}
  // A server-accepted snapshot owns rendering, never a speculative local edit.
  preferenceControls();if(send('update_settings',{settings:{[key]:value}}))$('settings-status').textContent='Saving…';
 };
@@ -210,3 +210,5 @@ function draftChanged(){const nonempty=!!$('input').value.trim();if(nonempty&&!i
 $('input').oninput=draftChanged;
 $('composer').onsubmit=e=>{e.preventDefault();submit('input');};$('hint').onclick=()=>submit('hint');$('input').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();submit('input');}};
 addEventListener('pagehide',()=>cancelAudio(undefined,false));connect();
+
+$("save").onclick=()=>send("save");

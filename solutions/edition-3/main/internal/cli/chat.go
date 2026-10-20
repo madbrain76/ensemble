@@ -149,7 +149,13 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 			if strings.TrimSpace(text) == "" {
 				continue
 			}
-			if text == "/interrupt" {
+			if text == "/save" {
+				if err := a.Save(); err != nil {
+					fmt.Fprintln(diagnostics, "save:", err)
+				} else {
+					fmt.Fprintln(diagnostics, "save complete (if configured)")
+				}
+			} else if text == "/interrupt" {
 				if err := a.Post(ensemble.Interrupt{}); err != nil {
 					return err
 				}

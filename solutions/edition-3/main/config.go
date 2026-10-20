@@ -9,7 +9,7 @@ import (
 // ConfigFromEnv is shared by live and offline adapters; the core owns no
 // process environment or default log filename. Empty generic values fall back.
 func ConfigFromEnv(get func(string) string) (Config, error) {
-	var c Config
+	c := Config{SavePath: strings.TrimSpace(get("ENSEMBLE_SAVE")), LogMode: LogMode(strings.TrimSpace(get("ENSEMBLE_LOG_MODE")))}
 	prefix := "ANTHROPIC"
 	switch strings.ToLower(get("LLM_VENDOR")) {
 	case "", "anthropic":

@@ -13,15 +13,17 @@ import (
 // Settings is a complete GUI-local snapshot. False and zero stay on the wire;
 // only the tool-budget policy is applied through the public Agent boundary.
 type Settings struct {
-	Theme         string  `json:"theme"`
-	TTSEnabled    bool    `json:"tts_enabled"`
-	TTSSpeed      float64 `json:"tts_speed"`
-	FontSize      int     `json:"font_size"`
-	MaxToolRounds int     `json:"max_tool_rounds"`
+	Theme                string           `json:"theme"`
+	TTSEnabled           bool             `json:"tts_enabled"`
+	TTSSpeed             float64          `json:"tts_speed"`
+	FontSize             int              `json:"font_size"`
+	LogMode              ensemble.LogMode `json:"log_mode"`
+	DiagnosticMaxRecords int              `json:"diagnostic_max_records"`
+	MaxToolRounds        int              `json:"max_tool_rounds"`
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
+	return Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16, LogMode: ensemble.LogFull, DiagnosticMaxRecords: 200}
 }
 
 // A sparse patch is decoded onto a copy, then validated as a whole. The same
@@ -46,6 +48,10 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 			target = &next.TTSSpeed
 		case "font_size":
 			target = &next.FontSize
+		case "log_mode":
+			target = &next.LogMode
+		case "diagnostic_max_records":
+			target = &next.DiagnosticMaxRecords
 		case "max_tool_rounds":
 			target = &next.MaxToolRounds
 		default:
@@ -66,6 +72,12 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 	next.TTSSpeed = max(0.5, min(5, next.TTSSpeed))
 	next.FontSize = max(12, min(24, next.FontSize))
 	next.MaxToolRounds = max(0, next.MaxToolRounds)
+	if next.DiagnosticMaxRecords < 0 {
+		return current, errors.New("diagnostic_max_records must be nonnegative")
+	}
+	if next.LogMode != ensemble.LogFull && next.LogMode != ensemble.LogDialogueOnly {
+		return current, errors.New("invalid log_mode")
+	}
 	return next, nil
 }
 
@@ -124,7 +136,10 @@ func (s settingsStore) save(value Settings) error {
 func (h *Hub) currentSettings() Settings {
 	value := h.settings
 	if agents := h.en.Agents(); len(agents) > 0 {
-		value.MaxToolRounds = agents[0].Config().MaxToolRounds
+		cfg := agents[0].Config()
+		value.MaxToolRounds = cfg.MaxToolRounds
+		value.LogMode = cfg.LogMode
+		value.DiagnosticMaxRecords = *cfg.DiagnosticMaxRecords
 	}
 	return value
 }
@@ -142,6 +157,7 @@ func (h *Hub) updateSettings(raw json.RawMessage) error {
 	// it before the success snapshot, while active turns keep their captured limit.
 	for _, a := range h.en.Agents() {
 		_ = a.SetMaxToolRounds(next.MaxToolRounds)
+		_ = a.SetPersistencePolicy(next.LogMode, next.DiagnosticMaxRecords)
 		if next.TTSEnabled != h.settings.TTSEnabled {
 			_ = a.Post(ensemble.SetSpeaking{Enabled: next.TTSEnabled})
 		}

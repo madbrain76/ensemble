@@ -4,14 +4,16 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"ensemble"
 	"fmt"
 	"io"
 	"strings"
 )
 
-// Terminal is another bounded hub client. EOF ends input, not the Agent/HTTP
-// host. Its output writer remains subscribed while the supplied context lives.
-func (s *Server) Terminal(ctx context.Context, in io.Reader, out io.Writer) {
+// Terminal uses unbounded line input. The returned channel closes on EOF or
+// /quit after all admitted input has completed; the application owns shutdown.
+func (s *Server) Terminal(ctx context.Context, in io.Reader, out io.Writer) <-chan struct{} {
+	done := make(chan struct{})
 	c := s.Hub.connect()
 	go func() {
 		defer s.Hub.disconnect(c)
@@ -28,13 +30,34 @@ func (s *Server) Terminal(ctx context.Context, in io.Reader, out io.Writer) {
 		}
 	}()
 	go func() {
+		defer close(done)
+		var pending []<-chan ensemble.Result
+		// SubmitLive completion is reliable; observer frames and Running are not
+		// completion acknowledgements. Keep reading so live hints still arrive.
+		defer func() {
+			for _, result := range pending {
+				select {
+				case reply := <-result:
+					if reply.Err != nil {
+						s.Hub.sendError(c, s.DefaultAgent, reply.Err)
+					}
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
 		reader := bufio.NewReader(in)
 		for {
 			line, err := reader.ReadString('\n')
 			line = strings.TrimSpace(line)
+			if line == "/quit" || line == "/exit" {
+				return
+			}
 			if line != "" {
 				m := command{AgentID: s.DefaultAgent, Type: "input", Text: line}
 				switch {
+				case line == "/save":
+					m.Type = "save"
 				case line == "/pause":
 					m.Type = "pause"
 				case line == "/continue":
@@ -50,7 +73,14 @@ func (s *Server) Terminal(ctx context.Context, in io.Reader, out io.Writer) {
 					m.Type = "hint"
 					m.Text = strings.TrimPrefix(line, "/hint ")
 				}
-				if cmdErr := s.command(c, m); cmdErr != nil {
+				if m.Type == "input" {
+					a, ok := s.Root.Agent(m.AgentID)
+					if !ok {
+						s.Hub.sendError(c, m.AgentID, fmt.Errorf("unknown Agent %q", m.AgentID))
+						continue
+					}
+					pending = append(pending, a.SubmitLive(ctx, m.Text))
+				} else if cmdErr := s.command(c, m); cmdErr != nil {
 					s.Hub.sendError(c, m.AgentID, cmdErr)
 				}
 			}
@@ -58,11 +88,12 @@ func (s *Server) Terminal(ctx context.Context, in io.Reader, out io.Writer) {
 				if err != io.EOF {
 					s.Hub.sendError(c, s.DefaultAgent, err)
 				}
-				s.Hub.trace("terminal_detached", s.DefaultAgent, "input ended; HTTP host remains running")
+				s.Hub.trace("terminal_eof", s.DefaultAgent, "input ended; draining admitted work before shutdown")
 				return
 			}
 		}
 	}()
+	return done
 }
 
 type terminalPart struct {

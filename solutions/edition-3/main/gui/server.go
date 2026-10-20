@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -59,10 +60,21 @@ func (s *Server) wireTrace(direction string, raw []byte) {
 	if s.Trace == nil {
 		return
 	}
+	var payload bytes.Buffer
+	if err := json.Compact(&payload, raw); err != nil {
+		// Invalid inbound frames still leave one readable diagnostic record.
+		// Quoting keeps malformed input readable without extra record lines.
+		payload.Reset()
+		quoted, _ := json.Marshal(string(raw))
+		payload.Write(quoted)
+	}
 	s.traceMu.Lock()
 	defer s.traceMu.Unlock()
-	_, _ = fmt.Fprintf(s.Trace, "%s %s %s\n", time.Now().Format(time.RFC3339Nano), direction, raw)
+	if _, err := fmt.Fprintf(s.Trace, "%s %s %s\n", time.Now().Format(time.RFC3339Nano), direction, payload.Bytes()); err != nil {
+		s.Hub.en.Logger().Printf("GUI diagnostic write: %v", err)
+	}
 }
+
 func (s *Server) Close() { s.Hub.Close() }
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
@@ -192,6 +204,8 @@ func (s *Server) command(c *client, m command) error {
 		return errors.New("unknown agent")
 	}
 	switch m.Type {
+	case "save":
+		return a.Save()
 	case "subscribe":
 		return nil
 	case "input", "prompt":

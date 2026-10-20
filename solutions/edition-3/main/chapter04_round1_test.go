@@ -484,7 +484,18 @@ func TestChapter4Round1FileStreaming(t *testing.T) {
 func TestChapter4Round1SetupFailureCorrelation(t *testing.T) {
 	for _, mode := range []string{"mkdir", "open", "admission"} {
 		t.Run(mode, func(t *testing.T) {
-			app, a, dir := c4Agent(t)
+			// This test deliberately breaks job storage, not recovery storage.
+			dir := t.TempDir()
+			app := ensemble.New(nil)
+			a, err := app.NewAgent(ensemble.Config{Model: "local-only", BaseDir: dir, DataDir: "cr", SavePath: filepath.Join(t.TempDir(), "save.json")})
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() {
+				if err := app.Shutdown(); err != nil {
+					t.Error(err)
+				}
+			})
 			if err := os.WriteFile(filepath.Join(dir, "input"), []byte("readable\n"), 0600); err != nil {
 				t.Fatal(err)
 			}
@@ -549,9 +560,10 @@ func TestChapter4Round1SetupFailureCorrelation(t *testing.T) {
 			}))
 			defer server.Close()
 			config := a.Config()
+			config.SavePath = filepath.Join(t.TempDir(), "save.json")
 			config.BaseURL = server.URL
 			config.APIKey = "local-regression-only"
-			a, err := app.NewAgent(config)
+			a, err = app.NewAgent(config)
 			if err != nil {
 				t.Fatal(err)
 			}

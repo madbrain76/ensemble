@@ -26,6 +26,8 @@ func controlsOf(s ensemble.ViewSnapshot) controlState {
 }
 
 type agentView struct {
+	ids                *displayIDs
+	contextReplay      []ensemble.Event
 	unsubscribeSkills  func()
 	agent              ensemble.Agent
 	cursor             ensemble.Seq
@@ -76,7 +78,7 @@ func newHub(en *ensemble.Ensemble, settings Settings, store settingsStore) *Hub 
 		v.revision = s.Revision
 		v.speechID = s.SpeechID
 		v.state = controlsOf(s)
-		v.partial = partialCards(s)
+		v.partial = partialCards(s, v.ids)
 		v.turn = s.TurnID
 	}
 	h.unsubscribe = en.SubscribeIdentified(h.observe)
@@ -106,10 +108,22 @@ func (h *Hub) view(a ensemble.Agent) *agentView {
 	if v == nil {
 		if h.settingsApplied {
 			_ = a.SetMaxToolRounds(h.settings.MaxToolRounds)
+			_ = a.SetPersistencePolicy(h.settings.LogMode, h.settings.DiagnosticMaxRecords)
 			_ = a.Post(ensemble.SetSpeaking{Enabled: h.settings.TTSEnabled})
 		}
 		cfg := a.Config()
 		v = &agentView{agent: a, state: controlState{Paused: cfg.PauseOnStart, Speaking: cfg.Speaking, Turn: ensemble.Idle}, partial: map[uint64]Card{}, spoken: map[uint64]int{}}
+		all := contextEvents(a)
+		v.ids = newDisplayIDs(all)
+		first := a.Log().LastSeq() + 1
+		if events := a.Log().Events(); len(events) > 0 {
+			first = events[0].Seq
+		}
+		for _, e := range all {
+			if e.Seq < first {
+				v.contextReplay = append(v.contextReplay, e)
+			}
+		}
 		h.agents[a.ID()] = v
 		v.unsubscribeSkills = a.Skills().SubscribeSkills(func() {
 			h.mu.Lock()
@@ -122,10 +136,14 @@ func (h *Hub) view(a ensemble.Agent) *agentView {
 	}
 	return v
 }
-func partialCards(s ensemble.ViewSnapshot) map[uint64]Card {
+func partialCards(s ensemble.ViewSnapshot, ids ...*displayIDs) map[uint64]Card {
 	parts := make(map[uint64]Card, len(s.Partials))
 	for _, p := range s.Partials {
-		parts[p.PartID] = Card{Kind: string(p.Kind), Role: "agent", Name: p.Name, Text: p.Chunk, Partial: true, TurnID: p.TurnID}
+		id := p.PartID
+		if len(ids) > 0 {
+			id = ids[0].partial(id)
+		}
+		parts[id] = Card{Kind: string(p.Kind), Role: "agent", Name: p.Name, Text: p.Chunk, Partial: true, TurnID: p.TurnID}
 	}
 	return parts
 }
@@ -147,7 +165,15 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 		h.speech.cancelAgent(id, old.Speaking && !v.state.Speaking)
 	}
 	for _, e := range v.agent.Log().EventsRange(v.cursor, s.Through) {
-		for _, f := range projectEvent(id, e) {
+		for _, f := range v.ids.project(id, e) {
+			if f.Type == "part_final" && f.Part != nil && f.Part.Role == "agent" && f.Part.Kind == "text" {
+				// A coalesced checkpoint may already contain the final and no
+				// partial. Deliver its unseen suffix first under the same ID.
+				seen := v.partial[f.PartID].Text
+				if strings.HasPrefix(f.Part.Text, seen) && len(f.Part.Text) > len(seen) {
+					h.broadcast(Wire{Type: "part_delta", AgentID: id, PartID: f.PartID, TurnID: f.Part.TurnID, Kind: "text", Chunk: f.Part.Text[len(seen):]})
+				}
+			}
 			if f.Type != "job_update" {
 				delete(v.partial, f.PartID)
 			}
@@ -163,7 +189,7 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 		}
 	}
 	v.cursor = s.Through
-	next := partialCards(s)
+	next := partialCards(s, v.ids)
 	for id := range v.partial {
 		if _, ok := next[id]; !ok {
 			h.broadcast(Wire{Type: "part_removed", AgentID: v.agent.ID(), PartID: id})
@@ -314,8 +340,10 @@ func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
 	for _, id := range ids {
 		v := h.agents[id]
 		s := snapshots[id]
-		for _, e := range v.agent.Log().RecentThrough(s.Through, time.Now().Add(-time.Hour), 100, eventVisible) {
-			frames := projectEvent(id, e)
+		replay := append([]ensemble.Event(nil), v.contextReplay...)
+		replay = append(replay, v.agent.Log().RecentThrough(s.Through, time.Now().Add(-time.Hour), 100, eventVisible)...)
+		for _, e := range replay {
+			frames := v.ids.project(id, e)
 			for i := range frames {
 				frames[i].Replay = true
 			}
@@ -330,7 +358,7 @@ func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
 		data.Events = append(data.Events, skillFrame(v.agent))
 		data.Events = append(data.Events, Wire{Type: "state_changed", AgentID: id, Replay: true, From: s.State, To: s.State, State: &a.State})
 		for _, p := range s.Partials {
-			data.Partials = append(data.Partials, Wire{Type: "part_delta", AgentID: id, PartID: p.PartID, TurnID: p.TurnID, Kind: string(p.Kind), Name: p.Name, Chunk: p.Chunk, Replay: true})
+			data.Partials = append(data.Partials, Wire{Type: "part_delta", AgentID: id, PartID: v.ids.partial(p.PartID), TurnID: p.TurnID, Kind: string(p.Kind), Name: p.Name, Chunk: p.Chunk, Replay: true})
 		}
 	}
 	raw, err := json.Marshal(Wire{Type: "replay", Data: data, Replay: true})

@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -15,16 +16,28 @@ import (
 )
 
 func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.Writer) (result error) {
+	flags := flag.NewFlagSet("ch01", flag.ContinueOnError)
+	flags.SetOutput(diagnostics)
+	savePath := flags.String("save", "", "recovery archive (default: save.json)")
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+	args = flags.Args()
 	chat := len(args) == 1 && args[0] == "chat"
 	renderMode := len(args) == 2 && args[0] == "render"
 	dumpMode := len(args) == 1 && args[0] == "dump"
 	if len(args) != 0 && !chat && !renderMode && !dumpMode {
-		return errors.New("usage: ch01 [chat | render LOG | dump]")
+		return errors.New("usage: ch01 [--save PATH] [chat | render LOG | dump]")
 	}
 	config, err := ensemble.ConfigFromEnv(os.Getenv)
 	if err != nil {
 		return err
 	}
+	flags.Visit(func(f *flag.Flag) {
+		if f.Name == "save" {
+			config.SavePath = *savePath
+		}
+	})
 	if dumpMode && config.Model == "" {
 		config.Model = "offline-dump"
 	}
@@ -39,27 +52,52 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		config.LogPath = path
 	}
 	config.DataDir = "cr"
+	if config.SavePath == "" {
+		config.SavePath = "save.json"
+	}
+	// Offline log tools must not load or overwrite the conversational save.
+	if renderMode || dumpMode {
+		dir, err := os.MkdirTemp("", "ensemble-log-tool-")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(dir)
+		config.SavePath = dir + "/save.json"
+	}
 	app := ensemble.New(log.New(diagnostics, "", log.LstdFlags))
 	tracePath := os.Getenv("E3_TRACE")
 	if tracePath == "" && !renderMode && !dumpMode {
 		tracePath = "api.log"
 	}
+	var trace *ensemble.DiagnosticLog
 	if path := tracePath; path != "" {
-		trace, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		trace, err = ensemble.OpenDiagnosticLog(path, func() int {
+			agents := app.Agents()
+			if len(agents) > 0 {
+				return *agents[0].Config().DiagnosticMaxRecords
+			}
+			return 200
+		})
 		if err != nil {
 			return errors.New("opening trace failed")
 		}
 		defer trace.Close()
 		app.SetTrace(trace)
 	}
+	ready := false
 	defer func() {
-		if err := app.Shutdown(); err != nil && result == nil {
-			result = err
+		shutdownErr := app.Shutdown()
+		if result == nil && shutdownErr == nil && ready && trace != nil {
+			result = trace.Retain()
 		}
+		result = errors.Join(result, shutdownErr)
 	}()
 	a, err := app.NewAgent(config)
 	if err != nil {
 		return err
+	}
+	if r := a.Recovery(); r.Path != "" {
+		fmt.Fprintf(diagnostics, "loaded %s through sequence %d (backup=%t)\n", r.Path, r.AsOf, r.Backup)
 	}
 	if renderMode || dumpMode {
 		if renderMode {
@@ -83,6 +121,19 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		_, err = fmt.Fprintln(out, string(b))
 		return err
 	}
+	// Prune only after a usable recovery boundary exists, never on failed load
+	// or failed fresh save. Quiet startup must apply policy even without requests.
+	if a.Recovery().Path == "" {
+		if err = a.Save(); err != nil {
+			return err
+		}
+	}
+	if trace != nil {
+		if err = trace.Retain(); err != nil {
+			return err
+		}
+	}
+	ready = true
 	if chat {
 		return runChat(ctx, a, in, out, diagnostics)
 	}
@@ -108,6 +159,15 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		}
 		if err := json.Unmarshal([]byte(line), &input); err != nil {
 			return errors.New("invalid input JSON")
+		}
+		if input.Kind == "save" {
+			if err := a.Save(); err != nil {
+				return err
+			}
+			if err := encoder.Encode(map[string]string{"ack": "save"}); err != nil {
+				return err
+			}
+			continue
 		}
 		if input.Kind == "prompt" {
 			input.User = input.Text

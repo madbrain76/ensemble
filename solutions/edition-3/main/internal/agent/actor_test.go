@@ -93,6 +93,10 @@ func TestQueuedStaleResponseIsNotPublishedInNewTurn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// This handcrafted actor-ordering seam excludes persistence; its fake
+	// Engine/History and absent Skills do not model archive ownership. Public
+	// root composition and real recovery are exercised by integration tests.
+	a.config.SavePath = ""
 	history := &seamHistory{parent: a}
 	engine := &seamEngine{parent: a, started: make(chan struct{}, 4)}
 	a.SetHistory(history)

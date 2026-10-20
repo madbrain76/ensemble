@@ -30,12 +30,18 @@ type Config struct {
 	// RequireToolExplanation selects this model's before-effects explanation policy.
 	RequireToolExplanation bool
 	LogPath                string
-	MaxToolRounds          int
-	SystemPrompt           string
-	DisableStreaming       bool
-	PauseOnStart           bool
-	Speaking               bool
-	StreamCapability       StreamCapability
+	// SavePath selects the archive; empty uses an isolated Agent path under DataDir.
+	SavePath string
+	// LogMode selects full (default) or dialogue-only archives.
+	LogMode LogMode
+	// Nil selects 200; an explicit zero retains unlimited diagnostics.
+	DiagnosticMaxRecords *int
+	MaxToolRounds        int
+	SystemPrompt         string
+	DisableStreaming     bool
+	PauseOnStart         bool
+	Speaking             bool
+	StreamCapability     StreamCapability
 }
 
 // Message is a retained user or assistant turn, sent verbatim on later requests.
@@ -81,6 +87,8 @@ type Agent interface {
 	// SetMaxToolRounds changes next-turn policy, not an active turn.
 	// Zero selects DefaultMaxToolRounds; negative values are rejected.
 	SetMaxToolRounds(int) error
+	// SetPersistencePolicy changes archive mode and diagnostic retention for future writes.
+	SetPersistencePolicy(LogMode, int) error
 	// Engine returns this Agent's transport and accounting owner.
 	Engine() Engine
 	// Tools is this Agent's independently owned synchronous registry.
@@ -89,6 +97,10 @@ type Agent interface {
 	RegisterVar(string, func() string)
 	Jobs() Jobs
 	Shutdown() error
+	// Save writes a coherent archive without stopping this Agent.
+	Save() error
+	// Recovery describes the file and boundary installed at startup.
+	Recovery() Recovery
 	Post(Inbound) error
 	Submit(context.Context, string) <-chan Result
 	// SubmitLive starts a turn if idle, or adds a hint to the current turn.
@@ -119,6 +131,8 @@ type Engine interface {
 	Exchange(context.Context, Context) ([]Event, error)
 	ExchangeRequest(context.Context, []byte, ...ParseCallbacks) ([]Event, error)
 	Render(Context) ([]byte, error)
+	// EffectiveSystemPrompt describes the same system instructions used by Render.
+	EffectiveSystemPrompt(Context) (string, error)
 	Parse(*http.Response, ParseCallbacks) ([]Event, error)
 	// Usage returns cumulative measured totals, not estimates.
 	Usage() Usage
@@ -139,6 +153,10 @@ type History interface {
 	Context() Context
 	Load(io.Reader) error
 	Dump(io.Writer) error
+	// SaveFile captures and atomically replaces a validated recovery archive.
+	SaveFile(string, SavedConfig, LogMode) error
+	// LoadFile stages primary/backup recovery before installing any state.
+	LoadFile(string) (Recovery, error)
 }
 
 // Unknown capabilities intentionally use plain responses. Explicit declarations

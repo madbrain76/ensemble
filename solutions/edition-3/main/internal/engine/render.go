@@ -54,8 +54,14 @@ func render(c common.Context, cfg common.Config, defs []common.ToolDefinition, d
 }
 func system(c common.Context, cfg common.Config) (string, error) {
 	s := systemPrompt
+	if cfg.Skills != nil {
+		s = ""
+	}
 	if cfg.SystemPrompt != "" {
-		s += "\n" + cfg.SystemPrompt
+		if s != "" {
+			s += "\n"
+		}
+		s += cfg.SystemPrompt
 	}
 	if cfg.RequireToolExplanation {
 		s += " Before each tool batch, emit nonblank ordinary assistant text explaining what you will do and why, before the first tool call. Hidden reasoning is not an explanation. A batch without this explanation will be refused without effects."

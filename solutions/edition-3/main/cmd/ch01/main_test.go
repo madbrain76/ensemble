@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -18,6 +19,7 @@ import (
 
 // TestLargeJSONLine protects valid questions larger than Scanner's default physical-line limit.
 func TestLargeJSONLine(t *testing.T) {
+	t.Setenv("ENSEMBLE_SAVE", filepath.Join(t.TempDir(), "save.json"))
 	question := strings.Repeat("x", 70*1024)
 	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -75,6 +77,7 @@ func TestInputLines(t *testing.T) {
 		{"missing user", strings.NewReader("{}\n"), 0, "", "user message is empty"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("ENSEMBLE_SAVE", filepath.Join(t.TempDir(), "save.json"))
 			var calls atomic.Int32
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls.Add(1)
@@ -110,6 +113,7 @@ func (w *completedChatOutput) Write(p []byte) (int, error) {
 
 // TestChatAndConfiguration checks opt-in human output and startup rejection without paid calls.
 func TestChatAndConfiguration(t *testing.T) {
+	t.Setenv("ENSEMBLE_SAVE", filepath.Join(t.TempDir(), "save.json"))
 	var calls atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)

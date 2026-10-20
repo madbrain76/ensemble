@@ -59,6 +59,13 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 	return render(c, cfg, snapshot.Definitions, disclosure)
 }
 
+// EffectiveSystemPrompt uses the same system composition as all renderers.
+func (e *engine) EffectiveSystemPrompt(c common.Context) (string, error) {
+	cfg := e.parent.Config()
+	cfg.SystemPrompt += e.parent.Skills().Snapshot().Instructions
+	return system(c, cfg)
+}
+
 // Parse owns transport framing only. The caller owns resp.Body and callbacks;
 // no retained History, observation subscription, or reply channel lives here.
 func (e *engine) Parse(resp *http.Response, callbacks common.ParseCallbacks) (events []common.Event, err error) {

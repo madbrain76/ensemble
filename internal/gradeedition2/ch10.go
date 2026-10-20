@@ -152,8 +152,12 @@ func readPersistenceSave(data []byte) (persistenceSave, error) {
 	if err := json.Unmarshal(data, &s.fields); err != nil {
 		return s, err
 	}
-	if len(s.fields) != 4 {
-		return s, fmt.Errorf("want four save fields, got %d", len(s.fields))
+	for key := range s.fields {
+		switch key {
+		case "config", "as_of", "context", "log", "log_mode", "dialogue_log":
+		default:
+			return s, fmt.Errorf("unknown save field %s", key)
+		}
 	}
 	for _, key := range []string{"config", "as_of", "context", "log"} {
 		if s.fields[key] == nil {
@@ -345,6 +349,11 @@ func persistenceClient(bin string, clientArgs []string) []grade.Check {
 	}
 	checkPersistenceOverride(&checks[1], bin, work, clientArgs, first.saved)
 	checkPersistenceCurrentConfig(&checks[1], bin, work, clientArgs, second.saved)
+	backup, backupErr := os.ReadFile(filepath.Join(work, "save.json.bak"))
+	if backupErr != nil || !sameJSON(backup, first.saved) {
+		fail(&checks[5], "previous validated primary not retained as backup: %v", backupErr)
+	}
+	checkPersistenceBackup(&checks[5], bin, work, clientArgs, first.saved)
 	checkPersistenceBad(&checks[5], bin, work, clientArgs)
 	return checks
 }
@@ -496,7 +505,7 @@ func checkPersistenceCurrentConfig(c *grade.Check, bin, work string, args []stri
 		return
 	}
 	request := run.requests[0]
-	if request.JSON()["model"] != "gpt-5-course" || persistenceSystem(request, "openai") != "CURRENT_RUNTIME_PROMPT" {
+	if request.JSON()["model"] != "gpt-5-course" || strings.TrimSpace(persistenceSystem(request, "openai")) != "CURRENT_RUNTIME_PROMPT" {
 		fail(c, "historical model/vendor/prompt replaced runtime configuration")
 	}
 	var names []string
@@ -528,16 +537,68 @@ func checkPersistenceBad(c *grade.Check, bin, work string, args []string) {
 			fail(c, "%v", err)
 			return
 		}
+		backupPath := path + ".bak"
+		if err := os.WriteFile(backupPath, []byte("null"), 0600); err != nil {
+			fail(c, "%v", err)
+			return
+		}
 		run := runPersistence(bin, dir, args, "anthropic", "fake-model", "", "", "MUST_NOT_SEND")
+		backupAfter, backupErr := os.ReadFile(backupPath)
+		if backupErr != nil || string(backupAfter) != "null" {
+			fail(c, "invalid backup was overwritten: %v", backupErr)
+		}
 		after, err := os.ReadFile(path)
 		var exit *exec.ExitError
-		// A deadline or spawn failure is not a correct nonzero refusal. The real
-		// process must explain the selected file without modifying or using it.
+		// A deadline or spawn failure is not a correct nonzero refusal. Require
+		// a diagnostic, but the contract prescribes no literal filename or format.
 		if run.err != nil {
 			exit, _ = run.err.(*exec.ExitError)
 		}
-		if exit == nil || !strings.Contains(run.stderr, "save.json") || len(run.requests) != 0 || err != nil || string(after) != bad {
-			fail(c, "bad save %d: exit=%v named=%t requests=%d unchanged=%t", i, run.err, strings.Contains(run.stderr, "save.json"), len(run.requests), err == nil && string(after) == bad)
+		diagnosed := strings.TrimSpace(run.stderr) != ""
+		if exit == nil || !diagnosed || len(run.requests) != 0 || err != nil || string(after) != bad {
+			fail(c, "bad save %d: exit=%v diagnosed=%t requests=%d unchanged=%t", i, run.err, diagnosed, len(run.requests), err == nil && string(after) == bad)
+		}
+	}
+}
+
+// Recovery chooses one independently valid snapshot, not a fabricated splice
+// from a broken primary. Successful exit must retain that recovery copy.
+func checkPersistenceBackup(c *grade.Check, bin, work string, args []string, backup []byte) {
+	for _, missing := range []bool{false, true} {
+		dir := filepath.Join(work, fmt.Sprintf("backup-missing-%t", missing))
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			fail(c, "backup fixture: %v", err)
+			return
+		}
+		path := filepath.Join(dir, "save.json")
+		if err := os.WriteFile(path+".bak", backup, 0600); err != nil {
+			fail(c, "backup fixture: %v", err)
+			return
+		}
+		if !missing {
+			if err := os.WriteFile(path, []byte(`{"config":`), 0600); err != nil {
+				fail(c, "primary fixture: %v", err)
+				return
+			}
+		}
+		run := runPersistence(bin, dir, args, "anthropic", "fake-model", "", "", "RECOVERED_WORD")
+		if run.err != nil || len(run.requests) != 1 {
+			fail(c, "backup fallback missing=%t: %v (%d requests)", missing, run.err, len(run.requests))
+			continue
+		}
+		checkPersistenceWords(c, run.requests[0], "FIRST_WORD", "SECOND_WORD", "RECOVERED_WORD")
+		// Recovery notices have no prescribed format or output channel. Source
+		// and manual review check that they identify backup recovery and its
+		// saved boundary; this finite probe checks state and file preservation.
+		after, err := os.ReadFile(path + ".bak")
+		if err != nil || !bytes.Equal(after, backup) {
+			fail(c, "backup fallback missing=%t replaced recovery copy: %v", missing, err)
+		}
+		primary, err := os.ReadFile(path)
+		if err != nil {
+			fail(c, "recovered primary: %v", err)
+		} else if _, err := readPersistenceSave(primary); err != nil {
+			fail(c, "recovered primary: %v", err)
 		}
 	}
 }

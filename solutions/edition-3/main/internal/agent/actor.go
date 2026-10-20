@@ -388,7 +388,7 @@ func (a *agent) run() {
 				a.pending = nil
 				go func() { err := a.jobs.Shutdown(); a.workers.Wait(); _ = a.box.post(stopped{err}, false) }()
 			case stopped:
-				a.shutdownErr = errors.Join(m.err, a.save())
+				a.shutdownErr = errors.Join(m.err, a.save(), a.Save())
 				close(a.done)
 				return
 			}

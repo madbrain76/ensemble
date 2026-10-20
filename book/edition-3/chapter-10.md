@@ -76,11 +76,12 @@ Ordinary full-mode saves may omit both new fields.
    Agent's data directory. `--save PATH` names a different
    file. The flag changes where, never whether: the same path is loaded
    at start and written at exit.
-2. **Load at start.** A missing file means a fresh start. A file that
-   exists but does not parse as a `SaveFile` is a fatal error: exit
-   non-zero, name the file, leave its bytes untouched. Starting fresh
-   over a save that failed to load would overwrite the user's history
-   at exit.
+2. **Load at start.** Validate the selected primary completely. If it is
+   missing or invalid, validate its `.bak` sibling with the same rules
+   (`save.json.bak` by default). Start fresh only when both are absent.
+   If neither existing candidate validates, exit non-zero, name the failures,
+   install no Agent and leave both files untouched. Report backup recovery
+   and its saved boundary rather than implying that newer lost events survived.
 3. **Snapshot plus tail.** If `context` is non-null, install it, then
    apply in order every log event with `seq > as_of`. If `context` is
    null, require a complete canonical log and apply it to a fresh context.
@@ -123,9 +124,18 @@ Ordinary full-mode saves may omit both new fields.
     leaves diagnostics intact. Coordinate trimming with the owning writer
     (§10.5). Chapter 14 adds the successful `micro_handoff` save boundary.
 
-Yours: indentation, whether to write through a temporary file and rename
-(recommended; a crash mid-write otherwise destroys the only copy), a
-`verify` subcommand for debugging, and what to print on load.
+11. **Keep a validated backup.** Fully encode and validate the new save before
+    changing either file. Before atomically replacing a valid primary, retain
+    that validated primary as its `.bak` sibling. Never rotate corrupt primary
+    bytes over a good backup. After backup recovery, preserve that backup until
+    the new primary is installed. Serialize saves for the same Agent; a failed
+    encode, validation or write must leave a valid recovery candidate intact.
+    Use temporary files and rename for replacement, without claiming universal
+    power-loss durability or introducing Chapter 14's journal early.
+
+Yours: indentation, a `verify` subcommand for debugging, and the wording of
+load and recovery notices. A backup restores its own boundary, not newer bytes
+lost with a damaged primary.
 
 **Exercise.** Extend your Chapter 9 agent with this save/load lifecycle in
 both CLI and GUI. Keep one public Agent implementation behind them.
@@ -183,7 +193,7 @@ each phase rather than applying headless checks to a GUI server.
 | replay-equals-snapshot | 20 | rule 8 |
 | tail-applied-once | 15 | turn-2 snapshot spliced onto the turn-3 log yields the same next request as the turn-3 save |
 | log-not-needed | 10 | rules 4 and 5 |
-| bad-save-refused | 5 | rule 2 |
+| bad-save-refused | 5 | validated backup fallback; refusal without destructive writes when neither candidate is valid |
 | ch9-parity | 15 | Chapter 9 still passes through the appropriate clients |
 
 The persistence phases exercise both actual commands through their existing
@@ -305,6 +315,11 @@ An invalid later event must not leave the live Agent half-restored. The accepted
 loader stages the candidate context and log, then replaces the owned state only
 after all checks succeed.
 
+Validation must accept the events the public API legitimately produces.
+`Tools().Dispatch` can record tool events outside a model turn without a native
+call ID. Preserve that absence rather than inventing historical IDs; model-turn
+tool calls still require their supplied correlation IDs.
+
 The tail looks unnecessary. A normal save from a complete history has
 `AsOf` equal to the last Seq in its log, so the tail is empty and a
 loader that skips it passes every test built from its own output. The
@@ -354,8 +369,14 @@ byte are not.
 
 Byte-identical requests do not require byte-identical save files. Indentation
 and object-key formatting on disk are yours; the renderer already determines
-the bytes compared here. A canonical disk format, checksums or an origin
-certificate would solve a different problem and add nothing to this test.
+the bytes compared here. When validating a replay against its snapshot, compare
+decoded values: formatting inside a JSON tool argument does not change its
+meaning. Normalize nil and empty in-memory `Dialogue` or `Ephemera` collections
+for that comparison. Preserve exact numbers; rounding a large integer could
+conceal a changed argument. This tolerance for representation does not relax
+required snapshot fields, snapshot facts, sequence ordering or anchor checks.
+A canonical disk format, checksums or an origin certificate would solve a
+different problem and add nothing to this test.
 
 The precondition is real. A save with a trimmed log (§10.5) lacks the
 complete history needed for a rebuild. An empty log would leave an empty
@@ -477,28 +498,53 @@ loading on.
 That is the command's choice, so a project directory remembers its own
 conversation. The library itself resolves its default under the owning Agent's
 data directory; two Agents with different directories must not share one
-process-wide save. An explicit path belongs to Agent configuration too. In the
+process-wide save. A relative `DataDir` follows the owning `BaseDir`, rather
+than the launch directory. Resolve that derived default without rebasing an
+explicit `SavePath`, whose location remains the caller's choice. In the
 current GUI command, preferences remain at `cr/settings.json`; the save does
 not need to move beside them or take over their persistence.
 
 Loading by default makes one failure mode dangerous. If `save.json`
-exists but cannot be read, the agent exits with an error and leaves the
-file untouched. Starting fresh instead looks friendlier and is worse:
-the fresh session saves on exit and overwrites the history the user
-came back for. A refusal costs one confusing startup. A silent reset
-costs the conversation.
+cannot be validated, starting fresh looks friendlier and is worse: the fresh
+session saves on exit and overwrites the history the user came back for.
+Try `save.json.bak` instead, including when the primary is missing. Validate
+that candidate independently before installing any state. Only two absent
+files mean a fresh conversation; if neither existing candidate validates,
+refuse startup and preserve both files. A refusal costs one confusing startup.
+A silent reset costs the conversation.
+
+A recovered backup is an older valid snapshot, not evidence that nothing was
+lost. Report its anchor. Keep Context, `as_of` and Log from the selected
+candidate coherent; do not splice in an arbitrary tail from a corrupt primary.
+This chapter's log lives inside the save, so newer bytes lost with that file
+cannot be reconstructed. Chapter 14 adds a separate journal retaining complete
+events after the **backup** anchor. That later mechanism is not part of this
+exercise.
+
+EOF ends input admission, but accepted work may still be running. Wait for its
+reliable completion before shutdown; a quiet observer stream does not prove
+that the final turn has finished. The CLI emits final usage before its deferred
+shutdown saves. Receiving that usage record is not a save acknowledgment:
+wait for successful process exit before inspecting or reopening the file.
 
 Install save-on-exit only after load succeeds. An unconditional deferred save
 placed above `Load` would overwrite the bad file while returning the right
 error. Check the bytes after refusal and verify that no HTTP request was sent;
 an error message alone leaves the destructive half of that bug invisible.
 
-For a successful exit, the accepted implementation writes a temporary file in
-the destination directory, closes it, then renames it over the selected path.
-Encoding, close and rename failures propagate to the caller. This avoids
-truncating the old save before the replacement is complete; it makes no promise
-of power-loss durability. A database or write-ahead journal is unnecessary for
-the normal-exit exercise.
+For a successful exit, encode and validate the complete new save before
+changing primary or backup. If the existing primary validates, install its
+bytes as the backup using a temporary file and rename before replacing the
+primary the same way. If recovery selected the backup because the primary was
+missing or corrupt, leave the good backup alone while installing the new
+primary. Never copy corruption over the recovery record.
+
+Keep this sequence with the existing save owner, serialized for one Agent.
+Encoding, close and replacement failures propagate to the caller; failure must
+leave a valid recovery candidate intact and must not trigger diagnostic
+trimming. Atomic replacement prevents partial JSON installation, not every
+filesystem or power-loss failure. A database, checksum framework or write-ahead
+journal is unnecessary for this normal-exit exercise.
 
 ## §10.7 Taking It for a Spin
 
@@ -565,8 +611,13 @@ variant independently from it. Delete `"log"` down to `[]` and the agent
 still remembers, because the log was never on the rendering path. In another
 copy, set `"context"` to `null` and it still remembers, because the full log
 rebuilds the same context. Do not make that second edit to the already trimmed
-copy. Truncate a third copy to half its bytes and the agent refuses to start,
-which is the correct answer.
+copy. With a valid backup retained from the second save, truncate the primary
+and verify recovery from that backup; repeat independently with a missing
+primary. Confirm the recovery notice, boundary and next save, and that corrupt
+primary bytes never replace the backup. With both candidates invalid, verify
+non-zero exit, zero provider requests and unchanged bytes. Exercise a failed
+replacement locally too: a valid recovery copy must survive. These local
+failure checks need no additional paid model requests.
 
 The first-edition reference also shipped a `verify` subcommand that rebuilt
 from the log and printed `MATCH` or `MISMATCH` against the saved

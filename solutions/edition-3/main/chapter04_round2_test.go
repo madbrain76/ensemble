@@ -214,6 +214,7 @@ func TestChapter4Round2AgentWireAndKilledObservation(t *testing.T) {
 	}))
 	defer server.Close()
 	cfg := a.Config()
+	cfg.SavePath = "" // A second live Agent needs its own derived recovery path.
 	cfg.BaseURL = server.URL
 	cfg.APIKey = "loopback-only"
 	a, err := app.NewAgent(cfg)
