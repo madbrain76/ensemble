@@ -176,6 +176,43 @@ func mcpHandshake(read func() (map[string]any, error), send func(any) error) err
 	return send(mcpReply(listed["id"], map[string]any{"tools": []any{mcpTool("auto_round", "round")}}))
 }
 
+// --mcp-pipe is an incoming service: the fixture is its external client.
+func mcpServiceHandshake(read func() (map[string]any, error), send func(any) error) error {
+	if err := send(map[string]any{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": map[string]any{"protocolVersion": "2024-11-05", "capabilities": map[string]any{}, "clientInfo": map[string]string{"name": "grader", "version": "1"}}}); err != nil {
+		return err
+	}
+	m, err := read()
+	if err != nil {
+		return err
+	}
+	result, _ := m["result"].(map[string]any)
+	if m["jsonrpc"] != "2.0" || m["id"] != float64(1) || m["error"] != nil || result["protocolVersion"] != "2024-11-05" {
+		return fmt.Errorf("invalid correlated initialize response: %v", m)
+	}
+	if err := send(map[string]any{"jsonrpc": "2.0", "method": "notifications/initialized"}); err != nil {
+		return err
+	}
+	if err := send(map[string]any{"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": map[string]any{}}); err != nil {
+		return err
+	}
+	m, err = read()
+	if err != nil {
+		return err
+	}
+	result, _ = m["result"].(map[string]any)
+	tools, _ := result["tools"].([]any)
+	if m["jsonrpc"] != "2.0" || m["id"] != float64(2) || m["error"] != nil {
+		return fmt.Errorf("invalid correlated tools/list response: %v", m)
+	}
+	for _, item := range tools {
+		tool, _ := item.(map[string]any)
+		if tool["name"] == "read_file" {
+			return nil
+		}
+	}
+	return fmt.Errorf("enabled read_file missing from service discovery")
+}
+
 func mcpPipeChecks(bin string, handshake, reverse *grade.Check) {
 	work, err := os.MkdirTemp("", "edition2-mcp-pipe-")
 	if err != nil {
@@ -198,7 +235,7 @@ func mcpPipeChecks(bin string, handshake, reverse *grade.Check) {
 		return
 	}
 	defer p.close()
-	if err = mcpHandshake(p.rpc, p.send); err != nil {
+	if err = mcpServiceHandshake(p.rpc, p.send); err != nil {
 		fail(handshake, "%v", err)
 		fail(reverse, "handshake prevented reverse exercise: %v", err)
 		return
@@ -307,6 +344,94 @@ for line in sys.stdin:
  print(json.dumps({'jsonrpc':'2.0','id':m['id'],'result':result}),flush=True)
 `
 
+// Discovery may normalize the object envelope and add locally owned job
+// controls. The remote fields and required semantics must still survive.
+func mcpNormalizedSchema(got, original any) bool {
+	decode := func(v any) map[string]any {
+		b, _ := json.Marshal(v)
+		var m map[string]any
+		_ = json.Unmarshal(b, &m)
+		return m
+	}
+	a, b := decode(got), decode(original)
+	if a == nil || a["type"] != "object" || a["$schema"] != nil {
+		return false
+	}
+	props, remote := object(a["properties"]), object(b["properties"])
+	if props == nil {
+		return false
+	}
+	for name, kind := range map[string]string{"ai_callback_delay": "number", "ai_callback_pattern": "string", "max_output_bytes": "integer"} {
+		if _, owned := remote[name]; owned {
+			continue
+		}
+		if control, present := props[name]; present {
+			if object(control)["type"] != kind {
+				return false
+			}
+			delete(props, name)
+		}
+	}
+	// The fixture's remote schema has no required keys or closed-object flag.
+	// Empty required and a local object policy are allowed, not extra remote
+	// constraints or controls becoming required. Everything else compares intact.
+	for _, m := range []map[string]any{a, b} {
+		if required, ok := m["required"].([]any); ok && len(required) == 0 {
+			delete(m, "required")
+		}
+	}
+	if _, specified := b["additionalProperties"]; !specified {
+		if policy, present := a["additionalProperties"]; present {
+			if _, ok := policy.(bool); !ok {
+				return false
+			}
+			delete(a, "additionalProperties")
+		}
+	}
+	delete(b, "$schema")
+	x, _ := json.Marshal(a)
+	y, _ := json.Marshal(b)
+	return sameJSON(x, y)
+}
+
+// A failed observation may be omitted or honestly labeled unavailable/error in
+// request-local diagnostics. A bare result marker, or accumulating copies, is
+// not valid automatic snapshot data. No particular application's label is used.
+func mcpFailureDiagnostic(messages any) bool {
+	const marker = "AUTO_FAILURE_ONLY"
+	b, _ := json.Marshal(messages)
+	n := strings.Count(string(b), marker)
+	if n == 0 {
+		return true
+	}
+	if n != 1 {
+		return false
+	}
+	labeled := false
+	var visit func(any)
+	visit = func(value any) {
+		switch v := value.(type) {
+		case string:
+			for _, line := range strings.Split(v, "\n") {
+				if at := strings.Index(line, marker); at >= 0 {
+					prefix := strings.ToLower(line[:at])
+					labeled = strings.Contains(prefix, "unavailable") || strings.Contains(prefix, "error") || strings.Contains(prefix, "fail")
+				}
+			}
+		case []any:
+			for _, item := range v {
+				visit(item)
+			}
+		case map[string]any:
+			for _, item := range v {
+				visit(item)
+			}
+		}
+	}
+	visit(messages)
+	return labeled
+}
+
 func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 	badSetup := func(err error) {
 		for _, c := range []*grade.Check{discovery, call, ephemera} {
@@ -388,9 +513,7 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 			tool := object(v)
 			if tool["name"] == "remote_echo" {
 				expected := mcpTool("remote_echo", "")
-				schema, _ := json.Marshal(tool["input_schema"])
-				want, _ := json.Marshal(expected["inputSchema"])
-				if tool["description"] != expected["description"] || !sameJSON(schema, want) {
+				if tool["description"] != expected["description"] || !mcpNormalizedSchema(tool["input_schema"], expected["inputSchema"]) {
 					fail(discovery, "discovered description/schema changed")
 				}
 			}
@@ -421,10 +544,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 				break
 			}
 		}
-		turn := 0
-		if i == 0 {
-			turn = 1
-		}
+		// Computed once at turn start, but reusable on each request of that turn.
+		turn := 1
 		if i == 4 {
 			turn = 2
 		}
@@ -439,8 +560,8 @@ func mcpModelChecks(bin string, discovery, call, ephemera *grade.Check) {
 		}
 		// Failed automatic output is diagnostic, not useful context. Reaching all
 		// five requests also proves this failure did not abort either turn.
-		if strings.Contains(text, "AUTO_FAILURE_ONLY") {
-			fail(ephemera, "failed automatic output reached request%d", i+1)
+		if !mcpFailureDiagnostic(r.JSON()["messages"]) {
+			fail(ephemera, "request%d presented failed automatic output as data or accumulated diagnostics", i+1)
 		}
 	}
 	// Read what the independent process actually received. Reply scripts alone do
@@ -505,13 +626,19 @@ func mcpTunnelCheck(gui, model string) error {
 		return err
 	}
 	skillsDir := filepath.Join(work, "skills")
-	primaryDir := filepath.Join(skillsDir, "primary")
-	if err := os.MkdirAll(primaryDir, 0700); err != nil {
-		return err
-	}
-	primary := "---\nname: primary\ndescription: MCP tunnel fixture\ntype: primary\ntools: read_file auto_round\nmcp_servers:\n  - name: browser\n    transport: websocket\n---\nExercise the declared browser tunnel."
-	if err := os.WriteFile(filepath.Join(primaryDir, "SKILL.md"), []byte(primary), 0600); err != nil {
-		return err
+	// Start HTTP with a non-WebSocket primary. The declared browser skill is
+	// activated only after a browser peer can answer discovery on this socket.
+	for name, body := range map[string]string{
+		"primary": "---\nname: primary\ndescription: MCP tunnel fixture\ntype: primary\ntools: read_file\nloadable-skills: browser\n---\nExercise the declared browser tunnel.",
+		"browser": "---\nname: browser\ndescription: MCP tunnel peer\ntype: loadable\ntools: auto_round\nmcp_servers:\n  - name: browser-debug\n    transport: websocket\n---\nExercise only this connected peer.",
+	} {
+		dir := filepath.Join(skillsDir, name)
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(body), 0600); err != nil {
+			return err
+		}
 	}
 	url, stop, err := startGUI(bin, static, model, "http://127.0.0.1:1/unused", work, "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=primary")
 	if err != nil {
@@ -523,7 +650,7 @@ func mcpTunnelCheck(gui, model string) error {
 		return err
 	}
 	defer p.close()
-	if err = p.send("subscribe", ""); err != nil {
+	if err = p.send("mcp_open", ""); err != nil {
 		return err
 	}
 	// A browser peer supplies only JSON-RPC. No DOM implementation, GUI source
@@ -538,6 +665,23 @@ func mcpTunnelCheck(gui, model string) error {
 	send := func(v any) error { return p.conn.WriteJSON(map[string]any{"type": "jsonrpc", "payload": v}) }
 	if err = mcpHandshake(read, send); err != nil {
 		return fmt.Errorf("tunnel handshake: %w", err)
+	}
+	if err = p.conn.WriteJSON(map[string]any{"type": "load_skill", "name": "browser"}); err != nil {
+		return err
+	}
+	if _, err = p.until(3*time.Second, func(m map[string]any) bool {
+		if m["type"] != "skill_state" {
+			return false
+		}
+		for _, item := range list(m["skills"]) {
+			skill := object(item)
+			if skill["name"] == "browser" && skill["enabled"] == true && skill["pending_unload"] != true {
+				return true
+			}
+		}
+		return false
+	}); err != nil {
+		return fmt.Errorf("activate declared browser skill: %w", err)
 	}
 	// One successful file result requires a complete outbound request, inbound
 	// peer request and outbound correlated reply; handshake alone misses that path.

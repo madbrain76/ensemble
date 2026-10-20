@@ -478,3 +478,23 @@ func (j *job) SendInput(ctx context.Context, text string, l common.ToolLimits) (
 	// available unseen output immediately.
 	return j.InitialReport(ctx, l)
 }
+
+// Complete is a cancellable observer of terminal output, not an execution timeout.
+// It is used for automatic context; ordinary model calls retain callback reports.
+func (j *job) Complete(ctx context.Context) (common.JobReport, error) {
+	select {
+	case <-ctx.Done():
+		return common.JobReport{}, ctx.Err()
+	case <-j.settled:
+	}
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	report := common.JobReport{Job: j.data, IsError: j.failed}
+	if j.setupError != "" {
+		report.Text = j.setupError
+		return report, nil
+	}
+	data, err := os.ReadFile(j.outputPath())
+	report.Text = string(data)
+	return report, err
+}

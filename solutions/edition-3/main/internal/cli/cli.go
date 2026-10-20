@@ -18,11 +18,17 @@ import (
 func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.Writer) (result error) {
 	flags := flag.NewFlagSet("ch01", flag.ContinueOnError)
 	flags.SetOutput(diagnostics)
+	mcpPipe := flags.Bool("mcp-pipe", false, "serve MCP on stdin/stdout until EOF")
+	mcpSocket := flags.String("mcp-socket", "", "serve MCP on a dedicated TCP address")
 	savePath := flags.String("save", "", "recovery archive (default: save.json)")
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
 	args = flags.Args()
+	protocolMode := *mcpPipe || *mcpSocket != ""
+	if (*mcpPipe && *mcpSocket != "") || (protocolMode && len(args) > 0) {
+		return errors.New("MCP modes are mutually exclusive and take no chat/render arguments")
+	}
 	chat := len(args) == 1 && args[0] == "chat"
 	renderMode := len(args) == 2 && args[0] == "render"
 	dumpMode := len(args) == 1 && args[0] == "dump"
@@ -38,6 +44,9 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 			config.SavePath = *savePath
 		}
 	})
+	if protocolMode && config.Model == "" {
+		config.Model = "offline-mcp"
+	}
 	if dumpMode && config.Model == "" {
 		config.Model = "offline-dump"
 	}
@@ -95,6 +104,18 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	a, err := app.NewAgent(config)
 	if err != nil {
 		return err
+	}
+	if protocolMode {
+		ready = true
+		if *mcpPipe {
+			return ensemble.ServeMCP(ctx, a, ensemble.NewMCPStream(ensemble.SplitReadWriteCloser{Reader: in, Writer: out, CloseFunc: func() error {
+				if closer, ok := in.(io.Closer); ok {
+					return closer.Close()
+				}
+				return nil
+			}}))
+		}
+		return ensemble.ListenMCP(ctx, a, *mcpSocket)
 	}
 	if r := a.Recovery(); r.Path != "" {
 		fmt.Fprintf(diagnostics, "loaded %s through sequence %d (backup=%t)\n", r.Path, r.AsOf, r.Backup)

@@ -57,6 +57,7 @@ type Job interface {
 	StartAfter(func() error) (bool, error)
 	Abort(error)
 	InitialReport(context.Context, ToolLimits) (JobReport, error)
+	Complete(context.Context) (JobReport, error)
 	Wait(context.Context, ToolLimits) (JobReport, error)
 	SendInput(context.Context, string, ToolLimits) (JobReport, error)
 	Kill(string) error

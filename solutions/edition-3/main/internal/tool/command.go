@@ -42,16 +42,7 @@ func (r *registry) run(ctx context.Context, owner common.ToolCall, raw json.RawM
 	}
 	cmd := exec.Command("/bin/sh", "-c", command)
 	cmd.Dir = r.path(cwd)
-	cmd.Env = []string{}
-	for _, variable := range os.Environ() {
-		name, _, _ := strings.Cut(variable, "=")
-		switch name {
-		case "LLM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY", "TERM":
-			continue
-		}
-		cmd.Env = append(cmd.Env, variable)
-	}
-	cmd.Env = append(cmd.Env, "TERM=dumb")
+	cmd.Env = common.ProcessEnvironment()
 	var terminal *os.File
 	var waitErr, errorRead error
 	reaped := make(chan struct{})

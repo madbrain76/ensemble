@@ -12,6 +12,7 @@ import (
 type Wire struct {
 	Skills         []ensemble.SkillInfo `json:"skills,omitempty"`
 	LoadableSkills []ensemble.SkillInfo `json:"loadable_skills,omitempty"`
+	Payload        json.RawMessage      `json:"payload,omitempty"`
 	Type           string               `json:"type"`
 	Settings       *Settings            `json:"settings,omitempty"`
 	AgentID        string               `json:"agent_id"`

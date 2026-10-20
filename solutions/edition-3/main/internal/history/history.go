@@ -367,6 +367,9 @@ func Apply(c *common.Context, e common.Event) {
 			}
 		}
 	case common.ToolReturned:
+		if e.Tool.Automatic {
+			break
+		}
 		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.Tool, Parts: common.PartList{{Type: "tool_result", CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: e.Tool.IsError}}})
 		if c.Turn == common.ToolsPending {
 			for i, id := range c.Pending {

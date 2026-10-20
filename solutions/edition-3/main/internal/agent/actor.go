@@ -67,6 +67,11 @@ type response struct {
 	events   []common.Event
 	err      error
 }
+type gathered struct {
+	turn        uint64
+	round, once common.PartList
+	err         error
+}
 type report struct {
 	turn uint64
 	call common.ToolData
@@ -104,6 +109,8 @@ type stopped struct{ err error }
 type pauseChanged struct{}
 
 type turn struct {
+	gathering, turnGathered             bool
+	turnEphemera                        common.PartList
 	id                                  uint64
 	response                            uint64
 	arrivalInvalid, toolSeen, explained bool
@@ -366,6 +373,8 @@ func (a *agent) run() {
 				m.delta.PartID = a.displayID(t, m.delta.PartID)
 				a.publish(m.delta)
 				a.parent.Trace(common.TraceRecord{Stage: "delta_publish", TurnID: m.turn, ResponseID: m.response, PartID: m.delta.PartID, Kind: string(m.delta.Kind), Bytes: len(m.delta.Chunk)})
+			case gathered:
+				a.gathered(m)
 			case response:
 				a.receive(m)
 			case report:
@@ -386,7 +395,15 @@ func (a *agent) run() {
 					a.reply(r, "", common.ErrStopped)
 				}
 				a.pending = nil
-				go func() { err := a.jobs.Shutdown(); a.workers.Wait(); _ = a.box.post(stopped{err}, false) }()
+				go func() {
+					var mcpErr error
+					if a.mcp != nil {
+						mcpErr = a.mcp.Close()
+					}
+					err := errors.Join(mcpErr, a.jobs.Shutdown())
+					a.workers.Wait()
+					_ = a.box.post(stopped{err}, false)
+				}()
 			case stopped:
 				a.shutdownErr = errors.Join(m.err, a.save(), a.Save())
 				close(a.done)
@@ -471,6 +488,51 @@ func (a *agent) send() {
 	if a.waitGate("Before next model request", a.send) {
 		return
 	}
+	if t.gathering {
+		return
+	}
+	if a.mcp == nil {
+		a.sendReady(nil)
+		return
+	}
+	t.gathering = true
+	ctx, cancel := context.WithCancel(t.ctx)
+	t.httpCancel = cancel
+	turnID, first := t.id, !t.turnGathered
+	a.workers.Add(1)
+	go func() {
+		defer a.workers.Done()
+		defer cancel()
+		round, once := a.mcp.Gather(ctx, first)
+		_ = a.box.post(gathered{turnID, round, once, ctx.Err()}, false)
+	}()
+}
+func (a *agent) gathered(g gathered) {
+	t := a.active
+	if t == nil || t.id != g.turn || t.ctx.Err() != nil || g.err != nil {
+		return
+	}
+	t.gathering = false
+	t.httpCancel = nil
+	t.turnGathered = true
+	if len(g.once) > 0 {
+		t.turnEphemera = g.once
+	}
+	parts := append(append(common.PartList(nil), t.turnEphemera...), g.round...)
+	a.sendReady(parts)
+}
+func (a *agent) sendReady(automatic common.PartList) {
+	if a.waitGate("Before next model request", func() { a.sendReady(automatic) }) {
+		return
+	}
+	t := a.active
+	if len(automatic) > 0 {
+		parts := append(a.history.Context().Ephemera, automatic...)
+		if _, err := a.record(common.Event{Type: common.MessageReceived, TurnID: t.id, Message: &common.MessageData{Actor: common.System, Parts: parts}}); err != nil {
+			a.finish("", err)
+			return
+		}
+	}
 	// The final consuming request gets a private stop instruction. Keep it in
 	// request-local ephemera: neither durable History nor signed assistant parts
 	// may be rewritten, and later ordinary turns must not inherit this policy.
@@ -478,12 +540,7 @@ func (a *agent) send() {
 	if t.limit > 0 && t.rounds >= t.limit {
 		requestContext.Ephemera = append(requestContext.Ephemera, common.Text("The tool-round limit has been reached for this turn. Do not call any more tools. Use the results already available to give your final response."))
 	}
-	body, err := a.engine.Render(requestContext)
-	if err != nil {
-		a.finish("", err)
-		return
-	}
-	if _, err = a.record(common.Event{Type: common.RequestSent, TurnID: t.id, Request: &common.RequestData{To: a.config.Target()}}); err != nil {
+	if _, err := a.record(common.Event{Type: common.RequestSent, TurnID: t.id, Request: &common.RequestData{To: a.config.Target()}}); err != nil {
 		a.finish("", err)
 		return
 	}
@@ -500,6 +557,16 @@ func (a *agent) send() {
 	go func() {
 		defer a.workers.Done()
 		defer cancel()
+
+		if ctx.Err() != nil {
+			_ = a.box.post(response{turn: t.id, response: responseID, err: ctx.Err()}, false)
+			return
+		}
+		body, err := a.engine.Render(requestContext)
+		if err != nil {
+			_ = a.box.post(response{turn: t.id, response: responseID, err: err}, false)
+			return
+		}
 		events, err := a.engine.ExchangeRequest(ctx, body, common.ParseCallbacks{OnDelta: func(d common.PartDelta) {
 			_ = a.box.post(streamNotice{t.id, responseID, d}, false)
 		}})
@@ -684,7 +751,7 @@ func (a *agent) returned(turn uint64, d common.ToolData) error {
 	a.partID++
 	d.DisplayID = a.partID
 	seq, err := a.record(common.Event{Type: common.ToolReturned, TurnID: turn, Tool: &d})
-	if err == nil {
+	if err == nil && !d.Automatic {
 		a.publish(common.ToolFinished{TurnID: turn, PartID: d.DisplayID, CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
 		a.final(seq, common.Part{DisplayID: d.DisplayID, Type: "tool_result", CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
 	}

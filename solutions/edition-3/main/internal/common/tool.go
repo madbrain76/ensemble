@@ -22,6 +22,7 @@ type ToolRegistry interface {
 	Catalog() []ToolSpec
 	Snapshot() CapabilitySnapshot
 	Definitions() []ToolDefinition
+	Collect(context.Context, string) (PartList, error)
 	Dispatch(context.Context, string, json.RawMessage) (PartList, bool)
 	// Prepare reserves an ordinary job; Await obtains actor admission if needed.
 	Prepare(context.Context, Part, string, uint64) ToolOperation

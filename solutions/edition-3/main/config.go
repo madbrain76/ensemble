@@ -1,6 +1,7 @@
 package ensemble
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -69,6 +70,11 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		}
 		custom := get("EN_CUSTOM_VAR")
 		c.Skills = &SkillSpec{Directory: directory, Primary: primary, Variables: map[string]func() string{"CUSTOM_VAR": func() string { return custom }}}
+	}
+	if raw := get("EN_MCP_SERVERS"); raw != "" {
+		if err := json.Unmarshal([]byte(raw), &c.MCPServers); err != nil {
+			return Config{}, fmt.Errorf("EN_MCP_SERVERS must be a JSON endpoint array: %w", err)
+		}
 	}
 	c.LogPath = get("LLM_LOG_PATH")
 	if rounds := get("LLM_MAX_TOOL_ROUNDS"); rounds != "" {

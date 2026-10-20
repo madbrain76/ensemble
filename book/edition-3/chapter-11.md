@@ -27,8 +27,8 @@ job cancellation, hidden automatic context, browser tunneling and skill-owned
 server startup/shutdown. Keep the common interfaces, real parent relationships
 and optional GUI module. The exercise and check table below cover the same
 capabilities through their appropriate clients; `--mcp-pipe` is a dedicated
-protocol service, with no implicit model turn. From the repository root, grade
-with `go run ./cmd/grade-edition2 -ch 11 path/to/core`.
+protocol service, with no implicit model turn. Use the Edition 3 grader with
+the explicit executable and module paths shown in the exercise below.
 
 ## Transport
 
@@ -113,6 +113,13 @@ A discovered tool may carry an `ephemeral` field: `"round"` or `"turn"`. Ephemer
 - **round**: called before every `RequestSent`, for a fresh environment observation.
 - **turn**: called once when a new turn starts, for data that can stay fixed
   through that turn. A later turn gets a fresh call.
+
+Exclude automatic tools from every provider disclosure surface, including
+Chapter 9's deferred catalogue and skill-loading `tool_reference` blocks.
+Filtering ordinary definitions or refusing guessed calls at dispatch is not
+enough: those other views can be built from the full capability snapshot. Keep
+that snapshot complete for automatic collection, while preserving ordinary tool
+discovery and canonical history.
 
 Results are combined and attached through the existing event/reducer path into
 `Context.Ephemera`, the pending field consumed by the next request. The log
@@ -278,8 +285,15 @@ feature; this chapter adds no new way to erase the retained manual.
 Extend the accepted Chapter 10 agent. Implement the transport/client/bridge,
 automatic round and turn tools, reverse calls, browser tools/tunnel and skill
 server lifecycle above. Preserve prior behavior through the same Agent runtime.
-Build from the core module with `go build -o /tmp/ensemble-ch11 .`. Begin
-with a protocol peer connected to that executable:
+The core module's root package is a library. From that module, build the CLI
+entrypoint and the GUI executable in its separate module:
+
+```sh
+go build -o /tmp/ensemble-ch11 ./cmd/ch01
+(cd gui && go build -o /tmp/ensemble-ch11-gui ./cmd)
+```
+
+Begin with a protocol peer connected to the CLI:
 
 ```sh
 /tmp/ensemble-ch11 --mcp-pipe
@@ -310,12 +324,32 @@ snapshot to check the effect.
 | ws-tunnel | 10 | JSON-RPC through the actual separate GUI connection |
 | ch10-parity | 10 | Chapter 10 through its appropriate clients |
 
+From the repository root, use your actual module paths and declared model IDs,
+as in the [public invocation guide](../../docs/edition-3-student.md). Flags go
+before the required executable path:
+
 ```sh
-go run ./cmd/grade-edition2 -ch 11 path/to/core
+go run ./cmd/grade-edition3 -ch 11 -json \
+  -core /absolute/path/to/core-module \
+  -consumer /absolute/path/to/consumer-module \
+  -workflow /absolute/path/to/workflow-module \
+  -stream-exercise /absolute/path/to/stream-exercise-module \
+  -stream-model YOUR_DECLARED_STREAMING_MODEL \
+  -gui /absolute/path/to/gui-module \
+  -gui-model YOUR_DECLARED_GUI_MODEL \
+  /tmp/ensemble-ch11
 ```
 
-Omit the final path to grade `solutions/ch11`. Existing `-gui DIR`,
-`-gui-model` and inherited fixture options remain available. Keep focused source
+Only after Chapter 11 passes, grade Chapter 1 on that same unchanged CLI:
+
+```sh
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ensemble-ch11
+```
+
+Require a passing report and exit zero from both. Let Chapter 1's genuine
+62-second response-header and response-body waits finish. Optional
+`-consumer-case` and `-media-models` paths also precede the executable.
+Keep focused source
 tests for ownership, out-of-order correlation, slow automatic completion,
 callback versus kill/interrupt, per-server grants and subprocess unload/reaping.
 The numeric checks do not establish all those properties. Browser DOM and native
@@ -394,7 +428,7 @@ usual `LLM_VENDOR`, available `LLM_MODEL` and `LLM_API_KEY` in the child
 environment without putting the key in a command line or transcript:
 
 ```sh
-go build -o /tmp/ensemble-ch11 .
+go build -o /tmp/ensemble-ch11 ./cmd/ch01
 ```
 
 ```sh

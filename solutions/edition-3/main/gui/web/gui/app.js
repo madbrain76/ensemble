@@ -2,6 +2,8 @@
 const $ = id => document.getElementById(id);
 let socket, clientID = '', selected = '', retry = 500, session = '';
 const skillsByAgent=new Map();
+const mcpAgents=new Set(), mcpReady=new Set(), speechRecent=[];
+const nodeIDs=new WeakMap();let nextNodeID=0;
 const agents = new Map(), cards = new Map(), order = [];
 let audio = [], speakingNow = null;
 const typing = new Set(), delayed = new Map(), requests = new Map(), voiceAgents = new Set();
@@ -20,7 +22,7 @@ function cancelAutomaticAudio(){
  const removed=audio.filter(automaticSpeech);audio=audio.filter(task=>!automaticSpeech(task));
  for(const [id,item] of delayed){if(automaticSpeech(item.task)){clearTimeout(item.timer);delayed.delete(id);removed.push(item.task);}}
  if(speakingNow&&automaticSpeech(speakingNow)){removed.push(speakingNow);speakingNow=null;window.speechSynthesis?.cancel();}
- for(const task of removed)send('speech_done',{agent_id:task.agent,speech_id:task.id,status:'disabled'});
+ for(const task of removed){speechRecord(task,'disabled');send('speech_done',{agent_id:task.agent,speech_id:task.id,status:'disabled'});}
  speakNext();
 }
 function applySettings(value){
@@ -62,6 +64,7 @@ function toolContent(c){
 function jobInfo(job){const box=element('div','job-state');let text=`Job ${job.handle} · ${job.status} · ${job.bytes} bytes`;if(job.exit_code!==undefined)text+=` · exit ${job.exit_code}`;if(job.reason)text+=` · ${job.reason}`;box.append(element('div','',text));if(job.output?.locator)box.append(element('div','muted',job.output.locator));return box;}
 function renderCard(record) {
  const {frame, node} = record, c=frame.part, wasOpen=node.querySelector('details')?.open;
+ node.dataset.agentId=frame.agent_id;node.dataset.partId=String(frame.part_id);node.id=`part-${frame.agent_id}-${frame.part_id}`;
  node.replaceChildren();node.className=`card ${c.type} ${c.role==='human'?'human':''} ${c.partial?'partial':''} ${c.is_error?'error':''}`;
  const heading=element('div','card-title');
  const names={text:c.role==='human'?'You':c.role==='system'?'System':'Assistant',thinking:'Thinking',tool_call:`Tool request · ${c.name||'pending'}`,tool_result:`Tool result · ${c.name||c.call_id||''}`,image:'Image',audio:'Audio',video:'Video',file:'File'};
@@ -94,8 +97,8 @@ function skillView(){
  const loadable=new Set((state.loadable_skills||[]).map(s=>s.name));
  for(const s of state.skills||[]){
   const row=document.createElement('div'),label=document.createElement('span'),button=document.createElement('button');
-  label.textContent=`${s.name} (${s.type}) — ${s.enabled?(s.pending_unload?'pending unload; still active':'enabled'):(loadable.has(s.name)?'loadable':'discovered')} ${s.description||''} `;
-  row.append(label);if(s.enabled&&!s.pending_unload){button.textContent='Mark pending unload';button.onclick=()=>send('unload_skill',{name:s.name});row.append(button);}else if(loadable.has(s.name)||s.pending_unload&&s.type==='loadable'){button.textContent=s.pending_unload?'Keep loaded':'Load';button.onclick=()=>send('load_skill',{name:s.name});row.append(button);}box.append(row);
+  label.textContent=`${s.name} (${s.type}) — ${s.enabled?(s.pending_unload?(s.mcp_servers?.length?'external tools stopped; instructions retained':'pending unload; still active'):'enabled'):(loadable.has(s.name)?'loadable':'discovered')} ${s.description||''} `;
+  row.append(label);if(s.enabled&&!s.pending_unload){button.textContent='Mark pending unload';button.onclick=()=>send('unload_skill',{name:s.name});row.append(button);}else if(loadable.has(s.name)||s.pending_unload&&s.type==='loadable'){button.textContent=s.pending_unload?(s.mcp_servers?.length?'Reload':'Keep loaded'):'Load';button.onclick=()=>send('load_skill',{name:s.name});row.append(button);}box.append(row);
  }
  if(!(state.skills||[]).length)box.textContent='No skills configured.';
 }
@@ -122,6 +125,7 @@ function apply(frame) {
  else if(frame.type==='continued'&&!frame.replay){
   if(frame.data.client!==clientID&&frame.data.epoch===agents.get(frame.agent_id)?.state.epoch)explicitContinue(frame.agent_id);
  }else if(frame.type==='skill_state'){skillsByAgent.set(frame.agent_id,frame);skillView();
+ if(frame.skills?.some(skill=>!skill.pending_unload&&skill.mcp_servers?.some(server=>server.name==='browser-debug'&&server.transport==='websocket'))&&!mcpAgents.has(frame.agent_id)){mcpAgents.add(frame.agent_id);send('mcp_open',{agent_id:frame.agent_id});}
  }else if(frame.type==='current_settings'||frame.type==='settings_changed') applySettings(frame.settings);
  else if(frame.type==='settings_error') {$('settings-status').textContent=String(frame.data);preferenceControls();}
  else if(frame.type==='error') $('errors').textContent=String(frame.data);
@@ -150,6 +154,7 @@ function renderAgentTree(a){
 }
 function controls(){skillView();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
 function replay(data){
+ mcpAgents.clear();mcpReady.clear();
  const previousAgents=new Map(agents);
  cancelAudio(undefined,false);clientID=data.client;session=data.session;cards.clear();order.length=0;$('conversation').replaceChildren();$('tool-cards').replaceChildren();agents.clear();skillsByAgent.clear();
  for(const a of data.agents){if(!a.state.paused||a.state.continue_epoch!==previousAgents.get(a.id)?.state.continue_epoch)typing.delete(a.id);agents.set(a.id,a);}
@@ -158,33 +163,34 @@ function replay(data){
 }
 function connect(){socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws`);
  socket.onopen=()=>{$('connection').textContent='Connected · synchronizing';retry=500;};
- socket.onmessage=event=>{let frame;try{frame=JSON.parse(event.data);}catch{return;}const near=nearBottom(),toolNear=nearBottom($('tool-cards'));if(frame.type==='replay'){replay(frame.data);$('connection').textContent='Connected';}else apply(frame);follow(near);if(toolNear)requestAnimationFrame(()=>{$('tool-cards').scrollTop=$('tool-cards').scrollHeight;});};
+ socket.onmessage=event=>{let frame;try{frame=JSON.parse(event.data);}catch{return;}if(handleMCPFrame(frame))return;const near=nearBottom(),toolNear=nearBottom($('tool-cards'));if(frame.type==='replay'){replay(frame.data);$('connection').textContent='Connected';}else apply(frame);follow(near);if(toolNear)requestAnimationFrame(()=>{$('tool-cards').scrollTop=$('tool-cards').scrollHeight;});};
  socket.onclose=()=>{$('connection').textContent='Disconnected · reconnecting';settingsReady=false;preferenceControls();cancelAudio(undefined,false);setTimeout(connect,retry);retry=Math.min(retry*2,8000);};
  socket.onerror=()=>socket.close();
 }
 function busy(agent){return voiceAgents.has(agent)||[...requests.values()].some(r=>r.agent===agent)||speakingNow?.agent===agent||audio.some(t=>t.agent===agent)||[...delayed.values()].some(x=>x.task.agent===agent);}
 function maybeResume(agent){if(!busy(agent)&&!typing.has(agent))send('unpause',{agent_id:agent,automatic:true});}
 function explicitContinue(agent){typing.delete(agent);if(agent===selected)inputOccupied=false;cancelAudio(agent,false);}
-function enqueueAudio(task){audio.push(task);speakNext();}
+function speechRecord(task,state,extra={}){const record={speech_id:task.id,agent_id:task.agent,state,at:Date.now(),text:task.text,reason:task.reason,...extra};speechRecent.push(record);if(speechRecent.length>40)speechRecent.shift();task.speechState=state;}
+function enqueueAudio(task){speechRecord(task,'queued');audio.push(task);speakNext();}
 function cancelAudio(agent,resume=false){
  for(const [id,r] of requests)if(!agent||r.agent===agent)requests.delete(id);
  if(agent)voiceAgents.delete(agent);else voiceAgents.clear();
  const removed=audio.filter(t=>!agent||t.agent===agent);audio=audio.filter(t=>agent&&t.agent!==agent);
  for(const [id,x] of delayed){if(!agent||x.task.agent===agent){clearTimeout(x.timer);delayed.delete(id);removed.push(x.task);}}
  if(speakingNow&&(!agent||speakingNow.agent===agent)){removed.push(speakingNow);speakingNow=null;window.speechSynthesis?.cancel();}
- for(const t of removed)send('speech_done',{agent_id:t.agent,speech_id:t.id,status:'cancelled'});
+ for(const t of removed){speechRecord(t,'cancelled');send('speech_done',{agent_id:t.agent,speech_id:t.id,status:'cancelled'});}
  if(resume)for(const id of new Set(removed.map(t=>t.agent)))maybeResume(id);
  speakNext();
 }
 function speakNext(){
  if(speakingNow||!audio.length)return;
  const task=audio.shift();speakingNow=task;
- const complete=status=>{if(speakingNow!==task)return;speakingNow=null;send('speech_done',{agent_id:task.agent,speech_id:task.id,status});speakNext();};
+ const complete=status=>{if(speakingNow!==task)return;speechRecord(task,status);speakingNow=null;send('speech_done',{agent_id:task.agent,speech_id:task.id,status});speakNext();};
  if(automaticSpeech(task)&&!settings.tts_enabled){complete('disabled');return;}
  if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){complete('unsupported');return;}
  // Read every codepoint in order. No preview truncation or chunk dropping.
  const chunks=Array.from(task.text);let offset=0;
- const next=()=>{if(speakingNow!==task)return;if(offset>=chunks.length){complete('done');return;}const utterance=new SpeechSynthesisUtterance(chunks.slice(offset,offset+1200).join(''));offset+=1200;utterance.rate=Math.max(0.5,Math.min(3,settings.tts_speed));utterance.onend=next;utterance.onerror=()=>complete('failed');speechSynthesis.speak(utterance);};next();
+ const next=()=>{if(speakingNow!==task)return;if(offset>=chunks.length){complete('done');return;}const utterance=new SpeechSynthesisUtterance(chunks.slice(offset,offset+1200).join(''));offset+=1200;utterance.rate=Math.max(0.5,Math.min(3,settings.tts_speed));utterance.onstart=()=>{if(speakingNow===task)speechRecord(task,'speaking',{chunk_start:Math.max(0,offset-1200)});};utterance.onend=()=>{if(speakingNow===task)speechRecord(task,'chunk-ended',{chunk_end:Math.min(offset,chunks.length)});next();};utterance.onerror=event=>{if(speakingNow===task)speechRecord(task,'error',{error:event.error});complete('failed');};speechSynthesis.speak(utterance);};next();
 }
 $('agent-root').onclick=()=>{selected=$('agent-root').dataset.agentId;for(const r of cards.values())r.node.hidden=r.frame.agent_id!==selected;controls();};
 function showSidebar(open){$('sidebar').hidden=!open;$('sidebar-resizer').hidden=!open;$('menu-toggle').setAttribute('aria-expanded',String(open));}
@@ -212,3 +218,85 @@ $('composer').onsubmit=e=>{e.preventDefault();submit('input');};$('hint').onclic
 addEventListener('pagehide',()=>cancelAudio(undefined,false));connect();
 
 $("save").onclick=()=>send("save");
+
+// Historical browser MCP tools: on-demand observations, never automatic context.
+function nodeIdentity(node){
+ if(!nodeIDs.has(node))nodeIDs.set(node,`dom-${++nextNodeID}`);
+ const id=nodeIDs.get(node);node.setAttribute('data-ensemble-snapshot-id',id);return id;
+}
+function visibleNode(node){const style=getComputedStyle(node),rect=node.getBoundingClientRect();return !node.closest('[hidden],[aria-hidden="true"]')&&style.display!=='none'&&style.visibility!=='hidden'&&style.opacity!=='0'&&rect.width>0&&rect.height>0;}
+function clipping(value,limit){const text=String(value??'');return {text:text.slice(0,limit),total_characters:text.length,truncated:text.length>limit};}
+function guiSnapshot(){
+ const all=[...document.body.querySelectorAll('button,input,textarea,select,summary,[role],article,.card,header,h1,h2,h3,pre,.preview,.media')];
+ const visible=all.filter(visibleNode),hidden=all.length-visible.length;
+ const records=visible.map(node=>{
+  const id=nodeIdentity(node),selector=`[data-ensemble-snapshot-id="${id}"]`,tag=node.tagName.toLowerCase();
+  const state=[`visible=true`,`disabled=${node.matches(':disabled')||!!node.disabled}`];
+  if('checked'in node)state.push(`checked=${!!node.checked}`);
+  if('readOnly'in node)state.push(`readonly=${!!node.readOnly}`);
+  if('open'in node)state.push(`open=${!!node.open}`);
+  for(const key of ['aria-expanded','aria-selected','aria-pressed','aria-checked'])if(node.hasAttribute(key))state.push(`${key}=${JSON.stringify(node.getAttribute(key))}`);
+  const part=node.closest('[data-part-id]')?.dataset.partId;if(part)state.push(`part=${JSON.stringify(part)}`);
+  const agent=node.closest('[data-agent-id]')?.dataset.agentId;if(agent)state.push(`agent=${JSON.stringify(agent)}`);
+  // Read rendered text, not hidden DOM, URLs, blobs, or private replay data.
+  let text=String(node.innerText??node.getAttribute('aria-label')??'');
+  if(text.startsWith('[opaque'))text='[opaque content withheld]';
+  if(node.matches('input,textarea,select'))text=`value=${node.matches('input[type=password],input[type=file]')?'[withheld]':JSON.stringify(node.value)}; text=${text}`;
+  return {prefix:`- \`${selector}\` ${tag} ${state.join(' ')}; preview: `,points:[...text]};
+ });
+ const encoder=new TextEncoder(),bytes=text=>encoder.encode(text).length;
+ const total=records.reduce((n,r)=>n+r.points.length,0);let shown=0,characters=0;
+ let markdown=`# GUI snapshot\nObserved: ${new Date().toISOString()} · selected agent: ${JSON.stringify(selected)}\n`;
+ const footer=(count,chars)=>`\n_Elided visible preview characters: ${total-chars}; omitted artifacts: ${all.length-count}/${all.length} (${hidden} hidden, not read)._\n`;
+ for(const r of records){
+  // A preview cap keeps a long card from hiding every later control. Both this
+  // clipping and whole-record omissions are counted in the same byte budget.
+  let low=0,high=Math.min(r.points.length,240),fit=-1,line='';
+  while(low<=high){const n=Math.floor((low+high)/2),candidate=r.prefix+JSON.stringify(r.points.slice(0,n).join(''))+(n<r.points.length?' …':'')+'\n';
+   if(bytes(markdown+candidate+footer(shown+1,characters+n))<=4096){fit=n;line=candidate;low=n+1;}else high=n-1;
+  }
+  if(fit<0)continue;markdown+=line;shown++;characters+=fit;
+ }
+ return markdown+footer(shown,characters);
+}
+function ttsQueue(){
+ const describe=task=>task?{speech_id:task.id,agent_id:task.agent,reason:task.reason,state:task.speechState||'pending',text:clipping(task.text,2000)}:null;
+ return {observed_at:Date.now(),client_id:clientID,current:describe(speakingNow),pending:audio.slice(0,80).map(describe),delayed:[...delayed.values()].slice(0,80).map(x=>describe(x.task)),requests:[...requests.entries()].slice(0,80).map(([id,r])=>({id,agent_id:r.agent})),recent:speechRecent.map(item=>({...item,text:clipping(item.text,2000)})),native:{speaking:window.speechSynthesis?.speaking??null,pending:window.speechSynthesis?.pending??null,paused:window.speechSynthesis?.paused??null},omitted:{pending:Math.max(0,audio.length-80),delayed:Math.max(0,delayed.size-80),requests:Math.max(0,requests.size-80)},limits:{recent_events:40,text_characters:2000},note:'Browser-observed queue and callbacks only; native pending is aggregate, not proof of playback.'};
+}
+const browserTools=[
+ {name:'gui_snapshot',description:'Inspect current visible browser DOM, stable node/part identity, visibility and omission limits.',inputSchema:{type:'object',properties:{},additionalProperties:false}},
+ {name:'tts_queue',description:'Inspect actual browser speech queue and recent native speech callbacks on demand.',inputSchema:{type:'object',properties:{},additionalProperties:false}},
+ {name:'gui_click',description:'Click a currently visible element by CSS selector; inspect again to verify effects.',inputSchema:{type:'object',properties:{selector:{type:'string'}},required:['selector'],additionalProperties:false}},
+ {name:'gui_input',description:'Set a visible text input by CSS selector and dispatch input/change events.',inputSchema:{type:'object',properties:{selector:{type:'string'},text:{type:'string'}},required:['selector','text'],additionalProperties:false}}
+];
+function browserCall(name,args){
+ if(!args||typeof args!=='object'||Array.isArray(args))throw new Error('arguments must be an object');
+ const definition=browserTools.find(tool=>tool.name===name);if(!definition)throw new Error('unknown browser tool');
+ if(Object.keys(args).some(key=>!Object.hasOwn(definition.inputSchema.properties,key)))throw new Error('unknown tool argument');
+ if(name==='gui_snapshot')return guiSnapshot();if(name==='tts_queue')return ttsQueue();
+ if(typeof args.selector!=='string'||!args.selector)throw new Error('selector is required');
+ const matches=[...document.querySelectorAll(args.selector)].filter(visibleNode);if(matches.length!==1)throw new Error(`selector must match exactly one visible element; found ${matches.length}`);
+ const node=matches[0];if(node.disabled)throw new Error('element is disabled');
+ if(name==='gui_click')node.click();else{if(typeof args.text!=='string'||!node.matches('textarea,input:not([type=password]):not([type=file])')||node.readOnly)throw new Error('editable text input and text are required');node.value=args.text;node.dispatchEvent(new Event('input',{bubbles:true}));node.dispatchEvent(new Event('change',{bubbles:true}));}
+ return {node_id:nodeIdentity(node),action:name,status:'dispatched',note:'Inspect a fresh snapshot to verify the result.'};
+}
+function handleMCP(agent,message){
+ if(!message||message.jsonrpc!=='2.0'||typeof message.method!=='string')return;
+ const reply=result=>{if(Object.hasOwn(message,'id'))send('jsonrpc',{agent_id:agent,payload:{jsonrpc:'2.0',id:message.id,result}});};
+ const error=(code,text)=>{if(Object.hasOwn(message,'id'))send('jsonrpc',{agent_id:agent,payload:{jsonrpc:'2.0',id:message.id,error:{code,message:text}}});};
+ if(message.method==='initialize'){mcpAgents.add(agent);mcpReady.delete(agent);reply({protocolVersion:'2024-11-05',capabilities:{tools:{}},serverInfo:{name:'browser-debug',version:'edition-3-ch11'}});return;}
+ if(message.method==='notifications/initialized'){mcpReady.add(agent);return;}
+ if(!mcpReady.has(agent)){error(-32002,'not initialized');return;}
+ if(message.method==='tools/list'){reply({tools:browserTools});return;}
+ if(message.method==='ping'){reply({});return;}
+ if(message.method!=='tools/call'){error(-32601,'method not found');return;}
+ try{const result=browserCall(message.params?.name,message.params?.arguments??{});reply({content:[{type:'text',text:typeof result==='string'?result:JSON.stringify(result)}]});}catch(err){reply({content:[{type:'text',text:err.message}],isError:true});}
+}
+
+// The page and socket survive an external-skill unload. A later load opens a
+// new protocol session; initialization, not a stale declaration, marks it ready.
+function handleMCPFrame(frame){
+ if(frame.type==='jsonrpc'){handleMCP(frame.agent_id,frame.payload);return true;}
+ if(frame.type==='mcp_closed'){mcpAgents.delete(frame.agent_id);mcpReady.delete(frame.agent_id);return true;}
+ return false;
+}

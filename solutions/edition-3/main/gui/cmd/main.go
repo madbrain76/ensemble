@@ -24,10 +24,20 @@ func main() {
 	logMode := flag.String("log-mode", "", "archive retention: full or dialogue_only")
 	pause := flag.Bool("pause-on-start", false, "pause before the first model request")
 	speaking := flag.Bool("speaking", false, "enable Agent speech requests")
+	mcpPipe := flag.Bool("mcp-pipe", false, "serve MCP on stdin/stdout until EOF")
+	mcpSocket := flag.String("mcp-socket", "", "serve MCP on a dedicated TCP address")
 	flag.Parse()
+	protocolMode := *mcpPipe || *mcpSocket != ""
+	if (*mcpPipe && *mcpSocket != "") || flag.NArg() != 0 {
+		log.Print("usage: gui [--mcp-pipe | --mcp-socket ADDRESS]")
+		return
+	}
 	config, err := ensemble.ConfigFromEnv(os.Getenv)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if protocolMode && config.Model == "" {
+		config.Model = "offline-mcp"
 	}
 	if config.SavePath == "" {
 		config.SavePath = "save.json"
@@ -61,6 +71,22 @@ func main() {
 	agent, err := root.NewAgent(config)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if protocolMode {
+		ready = true
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		var err error
+		if *mcpPipe {
+			err = ensemble.ServeMCP(ctx, agent, ensemble.NewMCPStream(ensemble.SplitReadWriteCloser{Reader: os.Stdin, Writer: os.Stdout, CloseFunc: os.Stdin.Close}))
+		} else {
+			err = ensemble.ListenMCP(ctx, agent, *mcpSocket)
+		}
+		normalExit = err == nil
+		if err != nil && ctx.Err() == nil {
+			log.Print(err)
+		}
+		return
 	}
 	if r := agent.Recovery(); r.Path != "" {
 		log.Printf("loaded %s through sequence %d (backup=%t)", r.Path, r.AsOf, r.Backup)

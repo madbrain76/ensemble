@@ -3,6 +3,7 @@ package agent
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -29,6 +30,7 @@ type agent struct {
 	history       common.History
 	tools         common.ToolRegistry
 	skills        common.SkillRegistry
+	mcp           common.MCPManager
 	jobs          common.Jobs
 	box           mailbox
 	done          chan struct{}
@@ -103,6 +105,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 		// Never echo a malformed URL: it might contain embedded credentials.
 		return nil, errors.New("invalid ANTHROPIC_BASE_URL")
 	}
+	config.MCPServers = cloneMCPServers(config.MCPServers)
 	config.Skills = cloneSkillSpec(config.Skills)
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
@@ -151,6 +154,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if config.MaxToolRounds == 0 {
 		config.MaxToolRounds = common.DefaultMaxToolRounds
 	}
+	config.MCPServers = cloneMCPServers(config.MCPServers)
 	config.Skills = cloneSkillSpec(config.Skills)
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
@@ -195,6 +199,7 @@ func (a *agent) Config() common.Config {
 		c.DiagnosticMaxRecords = &n
 	}
 	c.MaxToolRounds = int(a.maxToolRounds.Load())
+	c.MCPServers = cloneMCPServers(c.MCPServers)
 	c.Skills = cloneSkillSpec(c.Skills)
 	if c.Tools != nil {
 		c.Tools = append([]string{}, c.Tools...)
@@ -370,4 +375,30 @@ func cloneSkillSpec(s *common.SkillSpec) *common.SkillSpec {
 		out.Variables[k] = v
 	}
 	return &out
+}
+
+func cloneMCPServers(in []common.MCPServer) []common.MCPServer {
+	out := append([]common.MCPServer(nil), in...)
+	for i := range out {
+		out[i].Args = append([]string(nil), out[i].Args...)
+	}
+	return out
+}
+
+func (a *agent) SetMCP(m common.MCPManager) {
+	if m == nil || a.mcp != nil {
+		panic("invalid MCP attachment")
+	}
+	a.mcp = m
+}
+func (a *agent) MCP() common.MCPManager { return a.mcp }
+
+func (a *agent) RegisterExternalTool(d common.ToolDefinition, h common.ToolHandler) error {
+	return a.tools.Register(d, h)
+}
+func (a *agent) AttachMCPConnection(name string, t common.MCPTransport) error {
+	return a.mcp.Attach(name, t)
+}
+func (a *agent) ServeMCPConnection(ctx context.Context, t common.MCPTransport) error {
+	return a.mcp.Serve(ctx, t)
 }

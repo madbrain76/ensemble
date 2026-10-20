@@ -1,6 +1,8 @@
 package skills
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"ensemble/internal/common"
 	"fmt"
@@ -82,6 +84,38 @@ func (r *registry) RegisterTool(t common.ToolSpec) error {
 	r.tools = append(r.tools, t)
 	return nil
 }
+
+// RegisterExternal publishes an explicit application's discovered catalogue as
+// one batch. Skill-configured Agents instead admit through load's grant check.
+func (r *registry) RegisterExternal(specs []common.ToolSpec) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.parent.Config().Skills != nil {
+		return fmt.Errorf("external capabilities require a skill grant")
+	}
+	names := map[string]bool{}
+	for _, t := range specs {
+		if t.Name == "" || t.Handler == nil || !json.Valid(t.Parameters) {
+			return fmt.Errorf("invalid external capability")
+		}
+		if names[t.Name] || r.toolIndex(t.Name) >= 0 {
+			return fmt.Errorf("tool already registered: %s", t.Name)
+		}
+		names[t.Name] = true
+	}
+	for _, t := range specs {
+		t.Enabled = r.parent.Config().Tools == nil
+		for _, name := range r.parent.Config().Tools {
+			if name == t.Name {
+				t.Enabled = true
+			}
+		}
+		t.Origin = "application"
+		r.tools = append(r.tools, t)
+	}
+	return nil
+}
+
 func (r *registry) toolIndex(name string) int {
 	for i, t := range r.tools {
 		if t.Name == name {
@@ -174,6 +208,9 @@ func (r *registry) LoadDynamic(name string, seq common.Seq) error {
 }
 func (r *registry) load(name, origin string, seq common.Seq) error {
 	callbacks, err := r.activate(name, origin, seq)
+	if r.parent.MCP() != nil {
+		r.parent.MCP().Reconcile(r.Snapshot())
+	}
 	for _, f := range callbacks {
 		f()
 	}
@@ -228,7 +265,7 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 			}
 		}
 		for _, tool := range s.info.Tools {
-			if r.toolIndex(tool) < 0 {
+			if r.toolIndex(tool) < 0 && len(s.info.MCPServers) == 0 {
 				return fmt.Errorf("skill %q requires missing tool %q", name, tool)
 			}
 		}
@@ -244,7 +281,19 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	for n, f := range r.vars {
 		vars[n] = f
 	}
+	planned := []common.Skill{}
+	for _, n := range order {
+		planned = append(planned, cloneSkill(r.skills[n].info).Skill)
+	}
 	r.mu.Unlock()
+	var remote []common.ToolSpec
+	if r.parent.MCP() != nil {
+		var err error
+		remote, err = r.parent.MCP().Discover(context.Background(), planned)
+		if err != nil {
+			return nil, err
+		}
+	}
 	// Graph identities are immutable and tool registration is append-only. Resolve
 	// application values outside every lock, then publish against the current set.
 	values := map[string]string{}
@@ -255,10 +304,55 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	// Stage the entire remote catalog before changing capability truth.
+	for _, t := range remote {
+		if i := r.toolIndex(t.Name); i >= 0 && (r.tools[i].Source != t.Source || r.tools[i].Ephemeral != t.Ephemeral || !bytes.Equal(r.tools[i].Parameters, t.Parameters)) {
+			return nil, fmt.Errorf("MCP tool collision or schema drift: %s", t.Name)
+		}
+	}
+	available := map[string]bool{}
+	for _, t := range r.tools {
+		available[t.Name] = true
+	}
+	for _, t := range remote {
+		available[t.Name] = true
+	}
+	for _, s := range planned {
+		for _, name := range s.Tools {
+			if !available[name] {
+				return nil, fmt.Errorf("skill %q requires missing tool %q", s.Name, name)
+			}
+			source := ""
+			if i := r.toolIndex(name); i >= 0 {
+				source = r.tools[i].Source
+			}
+			for _, t := range remote {
+				if t.Name == name {
+					source = t.Source
+				}
+			}
+			if strings.HasPrefix(source, "mcp:") {
+				declared := false
+				for _, d := range s.MCPServers {
+					if source == "mcp:"+d.Name {
+						declared = true
+					}
+				}
+				if !declared {
+					return nil, fmt.Errorf("skill %q has no server declaration for %q", s.Name, name)
+				}
+			}
+		}
+	}
+	for _, t := range remote {
+		if r.toolIndex(t.Name) < 0 {
+			r.tools = append(r.tools, t)
+		}
+	}
 	enabled := r.enabled()
 	toolSet := map[string]bool{}
 	for _, t := range r.tools {
-		if t.Enabled {
+		if t.Enabled && t.Ephemeral == "" {
 			toolSet[t.Name] = true
 		}
 	}
@@ -269,6 +363,9 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	for _, n := range order {
 		enabled[n] = true
 		for _, tool := range r.skills[n].info.Tools {
+			if i := r.toolIndex(tool); i >= 0 && r.tools[i].Ephemeral != "" {
+				continue
+			}
 			toolSet[tool] = true
 		}
 	}
@@ -317,6 +414,7 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 			t.EventSeq = seq
 		}
 	}
+	r.reconcileExternalLocked()
 	return r.callbacks(changed), nil
 }
 func (r *registry) UnloadSkill(name string) error {
@@ -328,8 +426,12 @@ func (r *registry) UnloadSkill(name string) error {
 	}
 	changed := !s.info.PendingUnload
 	s.info.PendingUnload = true
+	r.reconcileExternalLocked()
 	callbacks := r.callbacks(changed)
 	r.mu.Unlock()
+	if m := r.parent.MCP(); m != nil {
+		m.Reconcile(r.Snapshot())
+	}
 	for _, f := range callbacks {
 		f()
 	}
@@ -359,6 +461,10 @@ func cloneSkill(s common.SkillInfo) common.SkillInfo {
 	s.Tools = append([]string{}, s.Tools...)
 	s.Depends = append([]string{}, s.Depends...)
 	s.Offers = append([]string{}, s.Offers...)
+	s.MCPServers = append([]common.MCPServer(nil), s.MCPServers...)
+	for i := range s.MCPServers {
+		s.MCPServers[i].Args = append([]string(nil), s.MCPServers[i].Args...)
+	}
 	return s
 }
 func (r *registry) ListSkills() []common.SkillInfo { return r.Snapshot().Skills }
@@ -369,7 +475,7 @@ func (r *registry) Snapshot() common.CapabilitySnapshot {
 	for _, t := range r.tools {
 		t.Parameters = append(json.RawMessage(nil), t.Parameters...)
 		out.Tools = append(out.Tools, t)
-		if t.Enabled {
+		if t.Enabled && t.Ephemeral == "" {
 			out.Definitions = append(out.Definitions, t.ToolDefinition)
 		}
 	}
@@ -407,4 +513,40 @@ func expand(text string, values map[string]string) string {
 		i = end
 	}
 	return out.String()
+}
+
+// External capabilities have live transport ownership; pending text and compiled
+// functions remain as before, while no inactive skill keeps a process alive.
+func (r *registry) reconcileExternalLocked() {
+	for i := range r.tools {
+		t := &r.tools[i]
+		if !strings.HasPrefix(t.Source, "mcp:") {
+			continue
+		}
+		t.Enabled = false
+		for _, s := range r.skills {
+			if !s.info.Enabled || s.info.PendingUnload {
+				continue
+			}
+			for _, d := range s.info.MCPServers {
+				if t.Source != "mcp:"+d.Name {
+					continue
+				}
+				allowed := false
+				for _, name := range s.info.Tools {
+					if name == t.Name {
+						allowed = true
+					}
+				}
+				if allowed {
+					t.Enabled = true
+					if t.Origin == "" {
+						t.Origin = s.info.Origin
+						t.Skill = s.info.Name
+						t.EventSeq = s.info.EventSeq
+					}
+				}
+			}
+		}
+	}
 }

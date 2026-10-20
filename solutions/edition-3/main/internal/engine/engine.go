@@ -42,9 +42,16 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 	cfg.SystemPrompt += snapshot.Instructions
 	disclosure := anthropicDisclosure{}
 	if cfg.Vendor == common.Anthropic && cfg.Skills != nil && supportsToolReferences(cfg.Model) {
-		disclosure.catalog = snapshot.Tools
+		disclosure.catalog = make([]common.ToolSpec, 0, len(snapshot.Tools))
 		disclosure.references = map[string][]string{}
 		for _, t := range snapshot.Tools {
+			// Tools retains capability truth for admission and automatic gathering.
+			// Neither declarations nor enabling-call references may expose automatic
+			// tools. Ordinary dormant entries still belong in the deferred catalog.
+			if t.Ephemeral != "" {
+				continue
+			}
+			disclosure.catalog = append(disclosure.catalog, t)
 			if !t.Enabled || t.Origin != "tool" || t.EventSeq == 0 {
 				continue
 			}

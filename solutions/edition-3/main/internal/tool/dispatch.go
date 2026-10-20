@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -24,6 +25,7 @@ func (r *registry) Dispatch(ctx context.Context, name string, input json.RawMess
 }
 
 type operation struct {
+	automatic  bool
 	registry   *registry
 	call       common.Part
 	args       arguments
@@ -40,7 +42,7 @@ type operation struct {
 func (o *operation) SetEventSeq(seq common.Seq) { o.eventSeq = seq }
 func (o *operation) Dispatched() bool           { return o.dispatched.Load() }
 func (o *operation) Called() common.ToolData {
-	d := common.ToolData{DisplayID: o.call.DisplayID, CallPartID: o.call.DisplayID, Dispatched: o.Dispatched(), CallID: o.call.CallID, Name: o.call.Name, Args: o.call.Args}
+	d := common.ToolData{Automatic: o.automatic, DisplayID: o.call.DisplayID, CallPartID: o.call.DisplayID, Dispatched: o.Dispatched(), CallID: o.call.CallID, Name: o.call.Name, Args: o.call.Args}
 	if o.job != nil {
 		j := o.job.Data()
 		d.Job = &j
@@ -104,12 +106,18 @@ func (o *operation) Await(ctx context.Context) common.ToolData {
 			d.IsError = report.IsError
 		}
 	} else if err == nil {
-		report, reportErr := o.job.InitialReport(ctx, o.limits)
+		var report common.JobReport
+		var reportErr error
+		if o.automatic {
+			report, reportErr = o.job.Complete(ctx)
+		} else {
+			report, reportErr = o.job.InitialReport(ctx, o.limits)
+		}
 		err = reportErr
 		d.Job = &report.Job
 		d.IsError = report.IsError
 		text = report.Text
-		if report.Job.Status != common.JobDone || report.Job.Bytes > int64(o.limits.MaxOutputBytes) || report.Job.Cwd != "" {
+		if !o.automatic && (report.Job.Status != common.JobDone || report.Job.Bytes > int64(o.limits.MaxOutputBytes) || report.Job.Cwd != "") {
 			text = formatReport(report)
 		}
 	}
@@ -127,25 +135,41 @@ func (o *operation) Await(ctx context.Context) common.ToolData {
 	d.Parts = common.PartList{common.Text(text)}
 	return d
 }
+func (r *registry) Collect(ctx context.Context, name string) (common.PartList, error) {
+	d := r.prepare(ctx, common.Part{Name: name, Args: json.RawMessage(`{}`)}, "", 0, true).Await(ctx)
+	if d.IsError {
+		var text strings.Builder
+		for _, p := range d.Parts {
+			text.WriteString(p.Text)
+		}
+		return nil, errors.New(text.String())
+	}
+	return d.Parts, nil
+}
 func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string, turn uint64) common.ToolOperation {
+	return r.prepare(ctx, call, refusal, turn, false)
+}
+func (r *registry) prepare(ctx context.Context, call common.Part, refusal string, turn uint64, automatic bool) common.ToolOperation {
 	// Literal next means every position, including refusals and skipped setters.
 	r.mu.Lock()
-	o := &operation{registry: r, call: call, limits: common.DefaultToolLimits(), custom: r.next != nil}
+	o := &operation{registry: r, call: call, limits: common.DefaultToolLimits(), custom: !automatic && r.next != nil, automatic: automatic}
 	if o.custom {
 		o.limits = *r.next
 	}
-	r.next = nil
+	if !automatic {
+		r.next = nil
+	}
 	r.mu.Unlock()
 	var selected *common.ToolSpec
 	for _, t := range r.Snapshot().Tools {
-		if t.Enabled && t.Name == call.Name {
+		if t.Enabled && t.Name == call.Name && ((t.Ephemeral != "") == automatic) {
 			copy := t
 			selected = &copy
 			break
 		}
 	}
 	o.args, o.err = decode(call.Args)
-	if o.err == nil && (call.Name == "run_command" || call.Name == "wait_for_job" || call.Name == "send_input") {
+	if o.err == nil && (call.Name == "run_command" || call.Name == "wait_for_job" || call.Name == "send_input" || (selected != nil && strings.HasPrefix(selected.Source, "mcp:"))) {
 		o.limits, o.err = parseLimits(o.args, o.limits)
 	}
 	if selected == nil {
@@ -171,6 +195,16 @@ func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string
 	handler := func(ctx context.Context, owner common.ToolCall, raw json.RawMessage) error {
 		if call.Name == "load_skill" || call.Name == "unload_skill" {
 			return r.skillCall(owner, call.Name, o.args, o.eventSeq)
+		}
+		if strings.HasPrefix(selected.Source, "mcp:") {
+			var input map[string]json.RawMessage
+			if err := json.Unmarshal(raw, &input); err != nil {
+				return err
+			}
+			for _, name := range []string{"ai_callback_delay", "ai_callback_pattern", "max_output_bytes"} {
+				delete(input, name)
+			}
+			raw, _ = json.Marshal(input)
 		}
 		return selected.Handler(ctx, owner, raw)
 	}

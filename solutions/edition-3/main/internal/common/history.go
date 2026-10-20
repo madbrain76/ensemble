@@ -215,6 +215,7 @@ type ResponseData struct {
 	UsageMissing []string `json:"usage_missing,omitempty"`
 }
 type ToolData struct {
+	Automatic  bool            `json:"automatic,omitempty"`
 	DisplayID  uint64          `json:"display_id,omitempty"`
 	CallPartID uint64          `json:"call_part_id,omitempty"`
 	Dispatched bool            `json:"dispatched,omitempty"`

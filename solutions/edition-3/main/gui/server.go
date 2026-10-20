@@ -175,6 +175,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 }
 
 type command struct {
+	Payload   json.RawMessage   `json:"payload,omitempty"`
 	Name      string            `json:"name,omitempty"`
 	Type      string            `json:"type"`
 	Settings  json.RawMessage   `json:"settings"`
@@ -204,6 +205,9 @@ func (s *Server) command(c *client, m command) error {
 		return errors.New("unknown agent")
 	}
 	switch m.Type {
+	case "mcp_open", "jsonrpc":
+		m.AgentID = id
+		return s.mcp(c, m)
 	case "save":
 		return a.Save()
 	case "subscribe":
@@ -236,7 +240,17 @@ func (s *Server) command(c *client, m command) error {
 	case "interrupt":
 		return a.Post(ensemble.Interrupt{})
 	case "load_skill":
-		return a.Skills().LoadSkill(m.Name)
+		// Discovery may need replies on this same socket; never block its reader.
+		go func() {
+			if err := s.prepareBrowserSkill(c, a, m.Name); err != nil {
+				s.Hub.sendError(c, id, err)
+				return
+			}
+			if err := a.Skills().LoadSkill(m.Name); err != nil {
+				s.Hub.sendError(c, id, err)
+			}
+		}()
+		return nil
 	case "unload_skill":
 		return a.Skills().UnloadSkill(m.Name)
 	case "skill_state":

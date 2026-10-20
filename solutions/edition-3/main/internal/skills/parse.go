@@ -52,6 +52,38 @@ func parseSkill(path string) (common.Skill, error) {
 			continue
 		}
 		if strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t") {
+			if key == "mcp_servers" {
+				if strings.HasPrefix(trim, "- ") {
+					s.MCPServers = append(s.MCPServers, common.MCPServer{})
+					trim = strings.TrimSpace(trim[2:])
+				}
+				if len(s.MCPServers) == 0 {
+					return s, fmt.Errorf("%s: mcp_servers requires entries", path)
+				}
+				k, v, ok := strings.Cut(trim, ":")
+				if !ok {
+					return s, fmt.Errorf("%s: invalid MCP declaration", path)
+				}
+				d := &s.MCPServers[len(s.MCPServers)-1]
+				v = scalar(v)
+				switch k {
+				case "name":
+					d.Name = v
+				case "transport":
+					d.Transport = v
+				case "command":
+					d.Command = v
+				case "address":
+					d.Address = v
+				case "args":
+					if err := json.Unmarshal([]byte(strings.TrimSpace(strings.SplitN(trim, ":", 2)[1])), &d.Args); err != nil {
+						return s, fmt.Errorf("%s: MCP args must be a JSON string array", path)
+					}
+				default:
+					return s, fmt.Errorf("%s: unknown MCP field %q", path, k)
+				}
+				continue
+			}
 			if block != "" {
 				sep := "\n"
 				if block == ">" {
@@ -117,6 +149,11 @@ func parseSkill(path string) (common.Skill, error) {
 	}
 	if s.Type != "primary" && s.Type != "loadable" && s.Type != "dependency" {
 		return s, fmt.Errorf("%s: invalid skill type %q", path, s.Type)
+	}
+	for _, d := range s.MCPServers {
+		if d.Name == "" || d.Transport == "" {
+			return s, fmt.Errorf("%s: MCP declaration requires name and transport", path)
+		}
 	}
 	for _, list := range lists {
 		for _, v := range *list {

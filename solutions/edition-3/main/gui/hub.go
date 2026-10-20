@@ -38,6 +38,8 @@ type agentView struct {
 	turn               uint64
 }
 type client struct {
+	mcpMu sync.Mutex
+	mcp   map[string]*browserTransport
 	id    string
 	queue chan []byte
 	done  chan struct{}

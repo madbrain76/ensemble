@@ -17,6 +17,7 @@ import (
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
+	"ensemble/internal/mcp"
 	"ensemble/internal/skills"
 	"ensemble/internal/tool"
 )
@@ -145,6 +146,13 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		return nil, err
 	}
 	a.SetSkills(skillRegistry)
+	a.SetMCP(mcp.New(a))
+	installed := false
+	defer func() {
+		if !installed {
+			_ = a.MCP().Close()
+		}
+	}()
 	if err := skillRegistry.LoadInitial(); err != nil {
 		return nil, err
 	}
@@ -167,6 +175,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		}
 	}
 	a.Start()
+	installed = true
 	e.agents = append(e.agents, a)
 	return a, nil
 }
