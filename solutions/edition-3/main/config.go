@@ -58,5 +58,20 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		}
 		c.MaxToolRounds = n
 	}
+	disabled := get("EN_DISABLE_STREAMING")
+	if disabled == "" {
+		disabled = get("LLM_DISABLE_STREAMING")
+	}
+	if disabled != "" {
+		value, err := strconv.ParseBool(disabled)
+		if err != nil {
+			return Config{}, fmt.Errorf("EN_DISABLE_STREAMING must be a boolean")
+		}
+		c.DisableStreaming = value
+	}
+	c.StreamCapability = StreamCapability(get("LLM_STREAM_CAPABILITY"))
+	if c.StreamCapability != StreamUnknown && c.StreamCapability != StreamPlain && c.StreamCapability != StreamSSE {
+		return Config{}, fmt.Errorf("LLM_STREAM_CAPABILITY must be sse or plain")
+	}
 	return c, nil
 }

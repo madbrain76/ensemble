@@ -50,6 +50,9 @@ type JobReport struct {
 type Job interface {
 	Parent() Jobs
 	Data() JobData
+	// Start releases a reservation; Abort settles one without handler effects.
+	Start()
+	Abort(error)
 	InitialReport(context.Context, ToolLimits) (JobReport, error)
 	Wait(context.Context, ToolLimits) (JobReport, error)
 	SendInput(context.Context, string, ToolLimits) (JobReport, error)
@@ -61,6 +64,7 @@ type Job interface {
 type Jobs interface {
 	Parent() Agent
 	Start(ctx context.Context, handler ToolHandler, args []byte, cwd string, origin JobData) (Job, error)
+	Reserve(ctx context.Context, handler ToolHandler, args []byte, cwd string, origin JobData) (Job, error)
 	Get(int) (Job, error)
 	Shutdown() error
 }

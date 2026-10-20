@@ -24,8 +24,9 @@ Everything below follows from that one sentence.
 
 ### The seam
 
-The first-edition incidents and measurements below remain historical. The
-interfaces shown here follow the accepted Ensemble implementation.
+The first-edition incidents and measurements below remain historical. The API
+and capability sketches retain the reference design: they illustrate the
+contract rather than prescribe the restart's literal types and signatures.
 
 `Parse` changes signature. It gains no sibling.
 
@@ -37,16 +38,17 @@ type Parser interface {
 ```
 
 No `ParseStream`. Non-streaming is a stream of length one, so one method
-covers both modes. `Render` still renders the context through its owning
-Engine; configuration comes from the Agent parent. The accepted signature
-is `Render(*Context) ([]byte, error)`. Transport builds the URL and headers
-separately. Streaming changes those existing request decisions.
+covers both modes. The accepted restart uses
+`Parse(*http.Response, ParseCallbacks) ([]Event, error)` and
+`Render(Context) ([]byte, error)`. Rendering still belongs to Engine;
+configuration comes from the Agent parent. Transport builds the URL and
+headers separately. Streaming changes those existing request decisions.
 
 ### The notifications
 
-`StreamCallbacks` lives in `internal/common`, alongside `Parser`. These are
-response notifications, not copied configuration, sibling services or substitutes
-for parent interfaces. They run synchronously; their consumers queue slow work.
+In the reference, `StreamCallbacks` lives in `internal/common`, alongside
+`Parser`. These are response notifications, not copied configuration, sibling
+services or substitutes for parent interfaces. They run synchronously; their consumers queue slow work.
 The parser remains attached to its Engine and can reach its Agent and Ensemble.
 
 ```go
@@ -73,7 +75,7 @@ type StreamCallbacks struct {
 | `OnEvent` | Engine | finalized facts returned to the actor for recording |
 | `OnFrame` | Engine | sanitized root-owned API trace |
 
-A caller wanting request-scoped notifications can pass them to `AskWatching`;
+The reference offers `AskWatching` for request-scoped notifications;
 it uses the same actor as Ask. The accepted CLI attaches an ordinary observer
 and queues its display work. Neither path starts a second orchestration loop.
 
@@ -89,8 +91,8 @@ const (
 )
 ```
 
-An enum, not a string, because every consumer switches on every case: the
-terminal picks an ANSI colour, a GUI picks a CSS class. Constants start at
+The reference uses an enum because every consumer switches on every case:
+the terminal picks an ANSI colour, a GUI picks a CSS class. Constants start at
 `iota + 1` so the zero value is invalid, and `MarshalJSON` refuses an unset
 kind rather than emitting a plausible default. Serialized:
 
@@ -98,8 +100,8 @@ kind rather than emitting a plausible default. Serialized:
 {"observation":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
 ```
 
-`PartDelta` retains an optional `agent` label for clients combining streams.
-The actual Ensemble routing still supplies the source Agent in its observation
+The reference `PartDelta` retains an optional `agent` label for clients
+combining streams. The actual Ensemble routing still supplies the source Agent in its observation
 envelope. A display label does not replace that ownership relationship.
 
 ### The capability
@@ -116,9 +118,9 @@ const (
 const StreamAll = StreamText | StreamThinking | StreamToolArgs
 ```
 
-A bitmask on `ModelFeatures`, not a bool, because vendors ship this capability
-in pieces. `Config` gains one field, `DisableStreaming bool`. Effective
-behaviour is the AND of caller and table:
+The reference uses a bitmask on `ModelFeatures` to describe capabilities
+vendors ship in pieces. `Config` gains one field, `DisableStreaming bool`.
+Effective behaviour is the AND of caller and table:
 
 ```go
 func StreamingFor(cfg Config) Stream {
@@ -132,6 +134,11 @@ func StreamingFor(cfg Config) Stream {
 	return features.Stream
 }
 ```
+
+The accepted restart instead uses `ModelFeatures.Streaming` and a string-valued
+`StreamCapability`: SSE, plain, or unknown. Its native parsers determine the
+chunks each response can supply. Both designs let `DisableStreaming` force
+plain delivery.
 
 An unknown model gets no streaming, and that is **not** an error, which is the
 deliberate opposite of what the same table does for media. Section 6.7 is why.
@@ -150,6 +157,11 @@ keeps its smaller reader with translation in `internal/engine/sse.go`.
 | Anthropic | `"stream": true` in the body | dispatch on `content_block_delta`, then on `text_delta` / `thinking_delta` / `input_json_delta` |
 | OpenAI | `"stream": true` plus `"stream_options": {"include_usage": true}` | without `include_usage`, final usage is absent; absence is not measured zero |
 | Gemini | `:streamGenerateContent?alt=sse` endpoint | each frame is a whole response object with no block indices; continuation is inferred |
+
+Streaming still starts with a valid native request. The accepted OpenAI
+renderer uses `max_completion_tokens`; Anthropic keeps `max_tokens`, and
+Gemini `maxOutputTokens`. A rejected request parameter fails before the stream
+parser gets an answer to read.
 
 ### What does not change
 
@@ -303,7 +315,7 @@ somebody disables streaming to debug something and finds the framework behaves
 differently in the mode they picked to have fewer variables.
 
 One entry point keeps the modes together; shared final construction prevents
-the semantic drift:
+the semantic drift. In the reference sketch:
 
 ```go
 Parse(resp *http.Response, cb StreamCallbacks) error
@@ -311,9 +323,10 @@ Parse(resp *http.Response, cb StreamCallbacks) error
 
 On SSE, `Parse` reads frames and calls `OnDelta` per chunk. On a plain JSON
 body it reads the body whole and calls `OnDelta` once per part with that
-part's entire content. Both routes then run the same semantic decoder to
-build events and call `OnEvent` and `OnPartFinal`. The accepted stream readers
-accumulate provider messages before using that decoder, preserving one place
+part's entire content. Both routes run the same semantic decoder to build
+finalized facts; the reference reports them through `OnEvent` and
+`OnPartFinal`. The accepted stream readers accumulate provider messages before
+using that decoder, preserving one place
 for canonical arguments, provenance, opaque replay material and usage.
 
 The non-streaming route could skip `OnDelta` entirely, since nothing is
@@ -322,8 +335,8 @@ not only in prose. Were it silent, every observer would need a second
 rendering path fed from finalized events, and the seam would have bought
 nothing except a longer interface.
 
-The seam still has exactly two methods, `Render` and `Parse`, which is what
-the vendor-independence claim has rested on since Chapter 2. Adding a third to
+The reference parsing seam still has two methods, `Render` and `Parse`, which
+is what the vendor-independence claim has rested on since Chapter 2. Adding a third to
 ship a feature would concede that the seam was shaped around the features that
 existed when it was drawn, which is the thing a seam exists to deny.
 
@@ -390,12 +403,15 @@ assuming ids are unique across a turn.
 
 So a consumer keying widgets needs (response, part id). The current
 `state_changed` transition to `in_flight` lets the grader separate live
-responses. That transient boundary does not itself give a reconnecting GUI a
-persistent response identity. Keep that distinction in view when Chapter 7
-reaches for the seam.
+responses. The protocol CLI must forward that observation too, even when
+it also supplies explicit response IDs: consumers using the transition need
+to see it before the next response's deltas. That transient boundary does not
+itself give a reconnecting GUI a persistent response identity. Keep that
+distinction in view when Chapter 7 reaches for the seam.
 
-`OnPartFinal` exists for this. It looks redundant beside `OnEvent`, since
-finalized parts are inside the events, but the events do not carry the ids the
+The reference's `OnPartFinal` makes this mapping explicit. It looks redundant
+beside `OnEvent`, since finalized parts are inside the events, but the events
+do not carry the ids the
 deltas used, and reconstructing that mapping from outside is the same guess
 that fails on the wire.
 
@@ -419,6 +435,13 @@ Tool arguments need one additional distinction: the transient JSON fragments
 are displayed as received, while the complete tool part retains canonical
 JSON. Whitespace can differ without losing an argument. Compare the decoded
 complete argument value when testing that boundary, and never execute fragments.
+
+A tool-call display chunk carries the arriving name fragments too. A consumer
+appending only `kind` and `chunk` must see the name as well as the arguments;
+a supplemental name field cannot substitute for those bytes. Emit each new
+fragment, rather than repeating the accumulated name with every argument
+chunk. The plain-response path supplies the name and arguments once. The
+finalized tool part remains the authority for execution.
 
 ---
 
@@ -463,7 +486,7 @@ was never true.
 
 ## 6.6 When a capability table pays for itself
 
-Gemini's row has `StreamToolArgs` clear.
+The reference's Gemini row has `StreamToolArgs` clear.
 
 ```go
 "gemini-3.8-flash": {
@@ -472,14 +495,14 @@ Gemini's row has `StreamToolArgs` clear.
 },
 ```
 
-In the retained implementation and observations, function parameters arrive
+In the reference implementation and observations, function parameters arrive
 as complete objects there. The parser handles that dialect locally; the actor
 and terminal need no vendor-specific workaround. The table says the bit is off, `StreamingFor` returns a
 mask without it, and the parser emits the complete tool object as one
 display chunk. It does not manufacture fragments that the wire never sent. Behaviour degrades exactly as far as the
 capability is missing and stops there.
 
-The following are historical capability rows retained in this implementation,
+The following are historical capability rows retained from the reference,
 not a current provider-availability or crossover-readiness claim:
 
 | model family | text | thinking | tool arguments |
@@ -488,10 +511,13 @@ not a current provider-availability or crossover-readiness claim:
 | `gpt-6-astra`, `gpt-5.6-sol` | yes | no | yes |
 | `gemini-3.8-flash`, `gemini-3.1-pro-preview` | yes | yes | no |
 
-Three families, three combinations, no two the same shape. A single
-`Streaming bool` would force two of those rows to choose between losing text
-streaming and inventing tool-argument chunks that never arrived. The bitmask
-is the minimum structure the observed facts require.
+Three families, three combinations, no two the same shape. A delivery boolean
+alone cannot describe these per-kind distinctions. The reference bitmask can,
+but it is one representation rather than a minimum requirement. An SSE/plain
+capability plus a native parser can stream Gemini text while emitting complete
+tool objects as received, without manufacturing fragments. The accepted
+restart takes that route. Both designs must preserve incremental delivery,
+response-local identity, authoritative finals and plain-response parity.
 
 The table will go stale; vendors ship these bits on their own schedule. An
 updated row can enable a capability the translator already supports. A new
@@ -549,6 +575,14 @@ enforces it and the name does not.
 **The event log** is unchanged. Deltas fire at observers and are never
 recorded; a `ResponseEnded` event carries the full text as before, and
 `replay-is-live` still holds.
+
+A busy hint can enter History between an assistant's tool call and the tool's
+result. Those are chronological facts. OpenAI requires the paired tool results
+immediately after the assistant call message, so its renderer moves the
+complete result group ahead of the intervening hint in the disposable wire
+projection. History keeps the hint where it arrived. This rearrangement needs
+real, complete results; inventing a result or rewriting History to satisfy a
+provider would change the conversation rather than render it.
 
 **`api.log`** records wire payloads separately. In the first-edition story,
 the preceding engine logged the response JSON after

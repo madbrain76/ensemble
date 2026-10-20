@@ -69,6 +69,7 @@ type job struct {
 	failed       bool
 	setupError   string
 	shutting     bool
+	pending      func()
 }
 
 func (j *job) Parent() common.Jobs { return j.parent }
@@ -84,8 +85,18 @@ func (j *job) snapshot() common.JobData {
 func (j *job) Data() common.JobData { j.mu.Lock(); defer j.mu.Unlock(); return j.snapshot() }
 func (j *job) wake()                { close(j.changed); j.changed = make(chan struct{}) }
 
-// Start registers before executing or returning. A killed job cannot later start work.
+// Start retains the immediate-start API for direct job users.
 func (c *collection) Start(ctx context.Context, handler common.ToolHandler, args []byte, cwd string, origin common.JobData) (common.Job, error) {
+	j, err := c.Reserve(ctx, handler, args, cwd, origin)
+	if err == nil {
+		j.Start()
+	}
+	return j, err
+}
+
+// Reserve assigns the stable handle and output before the Agent records the call.
+// No handler is released until that record (and configured save) succeeds.
+func (c *collection) Reserve(ctx context.Context, handler common.ToolHandler, args []byte, cwd string, origin common.JobData) (common.Job, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.closed {
@@ -131,18 +142,42 @@ func (c *collection) Start(ctx context.Context, handler common.ToolHandler, args
 		cancel()
 		return j, err
 	}
-	j.mu.Unlock()
 	input := append([]byte(nil), args...)
-	go func() {
+	j.pending = func() {
 		if err := runCtx.Err(); err != nil {
 			j.finish(err)
 			return
 		}
 		err := handler(runCtx, &call{parent: c.parent, job: j}, input)
 		j.finish(err)
-	}()
+	}
+	j.mu.Unlock()
 	return j, nil
 }
+func (j *job) Start() {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	if j.pending != nil && j.data.Status == common.JobRunning && !j.shutting {
+		run := j.pending
+		j.pending = nil
+		go run()
+	}
+}
+func (j *job) abortLocked(err error) {
+	if j.pending == nil {
+		return
+	}
+	j.pending = nil
+	j.failed = true
+	j.data.Status = common.JobDone
+	j.data.Reason = "not started: " + err.Error()
+	j.setupError = j.data.Reason
+	j.cancel()
+	j.closeWriter()
+	j.wake()
+	close(j.settled)
+}
+func (j *job) Abort(err error) { j.mu.Lock(); defer j.mu.Unlock(); j.abortLocked(err) }
 
 // call carries its real Agent parent, not a copied sibling-service bag.
 type call struct {
@@ -245,6 +280,10 @@ func (j *job) Kill(reason string) error {
 	j.data.Status = common.JobKilledStatus
 	j.data.ExitCode = nil
 	j.data.Reason = reason
+	if j.pending != nil {
+		j.pending = nil
+		close(j.settled)
+	}
 	j.cancel()
 	stop := j.stop
 	j.closeWriter()
@@ -268,6 +307,7 @@ func (j *job) Kill(reason string) error {
 func (j *job) Shutdown() error {
 	j.mu.Lock()
 	j.shutting = true
+	j.abortLocked(errors.New("Agent shutdown before call admission"))
 	j.cancel()
 	process := j.stop != nil
 	j.mu.Unlock()

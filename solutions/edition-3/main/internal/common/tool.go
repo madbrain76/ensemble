@@ -21,6 +21,7 @@ type ToolRegistry interface {
 	Parent() Agent
 	Definitions() []ToolDefinition
 	Dispatch(context.Context, string, json.RawMessage) (PartList, bool)
+	// Prepare reserves an ordinary job; Await obtains actor admission if needed.
 	Prepare(context.Context, Part, string, uint64) ToolOperation
 	Register(ToolDefinition, ToolHandler) error
 }
@@ -40,5 +41,7 @@ type ToolHandler func(context.Context, ToolCall, json.RawMessage) error
 // Cancellation of Await releases observation, never execution.
 type ToolOperation interface {
 	Called() ToolData
+	Release()
+	Abort(error)
 	Await(context.Context) ToolData
 }

@@ -125,6 +125,7 @@ type Ref struct {
 // Part is a tagged union. Each variant keeps its own wire-neutral distinctions.
 // Raw JSON preserves arbitrary argument numbers and uninterpreted replay bytes.
 type Part struct {
+	ID      uint64          `json:"id,omitempty"`
 	Type    string          `json:"type"`
 	Text    string          `json:"text,omitempty"`
 	MIME    string          `json:"mime,omitempty"`
@@ -145,11 +146,12 @@ func (p Part) MarshalJSON() ([]byte, error) {
 	type plain Part
 	if p.Type == "text" {
 		return json.Marshal(struct {
+			ID     uint64          `json:"id,omitempty"`
 			Type   string          `json:"type"`
 			Text   string          `json:"text"`
 			From   *Provenance     `json:"from,omitempty"`
 			Opaque json.RawMessage `json:"opaque,omitempty"`
-		}{p.Type, p.Text, p.From, p.Opaque})
+		}{p.ID, p.Type, p.Text, p.From, p.Opaque})
 	}
 	return json.Marshal(plain(p))
 }

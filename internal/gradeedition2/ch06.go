@@ -141,9 +141,9 @@ func shapeExercise(c *grade.Check, core, dir, model string) {
 		fail(c, "stream exercise build: %v: %s", err, out)
 		return
 	}
-	// Both historical applications can run with no arguments. Sending the
-	// existing prompt envelope also serves a stdin-based consumer; the accepted
-	// shape-only app uses its own prompt and ignores stdin, as its source states.
+	// Supply the public positional prompt to the external application; retain
+	// the stdin envelope for consumers that use it. Aggregate reporting does
+	// not require the external application to implement the core CLI protocol.
 	on, off := driveStream(bin, model, false, true), driveStream(bin, model, true, true)
 	for label, run := range map[string]streamRun{"stream": on, "plain": off} {
 		if run.exec.ExitErr != "" {

@@ -56,6 +56,9 @@ func driveStream(bin, model string, plain, external bool) streamRun {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin)
+	if external {
+		cmd.Args = append(cmd.Args, "what does the configuration say?")
+	}
 	cmd.Dir = work
 	disable, exerciseDisable := "0", "0"
 	if plain {

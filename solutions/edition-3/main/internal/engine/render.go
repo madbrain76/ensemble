@@ -217,7 +217,8 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		System    string        `json:"system"`
 		Messages  []aMessage    `json:"messages"`
 		Tools     []aDefinition `json:"tools,omitempty"`
-	}{cfg.Model, 1024, sys, messages, anthropicDefinitions(defs)})
+		Stream    bool          `json:"stream,omitempty"`
+	}{cfg.Model, 1024, sys, messages, anthropicDefinitions(defs), cfg.Streaming()})
 }
 
 // OpenAI has its own tool authorship; it does not inherit Anthropic's grouping.
@@ -231,10 +232,12 @@ type oCall struct {
 	Function oFunction `json:"function"`
 }
 type oMessage struct {
-	Role       string  `json:"role"`
-	Content    any     `json:"content,omitempty"`
-	ToolCalls  []oCall `json:"tool_calls,omitempty"`
-	ToolCallID string  `json:"tool_call_id,omitempty"`
+	Role             string  `json:"role"`
+	Content          any     `json:"content,omitempty"`
+	ToolCalls        []oCall `json:"tool_calls,omitempty"`
+	ToolCallID       string  `json:"tool_call_id,omitempty"`
+	ReasoningContent *string `json:"reasoning_content,omitempty"`
+	Reasoning        *string `json:"reasoning,omitempty"`
 }
 
 func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
@@ -271,7 +274,24 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 				content = append(content, map[string]any{"type": "image_url", "image_url": map[string]any{"url": "data:" + p.MIME + ";base64," + mediaData(p)}})
 			case "opaque":
 				if matches(p.From, cfg) {
-					return nil, fmt.Errorf("unsupported OpenAI opaque replay material")
+					var fields map[string]json.RawMessage
+					if json.Unmarshal(p.Data, &fields) != nil || len(fields) == 0 {
+						return nil, fmt.Errorf("unsupported OpenAI opaque replay material")
+					}
+					for name, raw := range fields {
+						var text string
+						if json.Unmarshal(raw, &text) != nil {
+							return nil, fmt.Errorf("unsupported OpenAI opaque replay material")
+						}
+						switch name {
+						case "reasoning_content":
+							m.ReasoningContent = &text
+						case "reasoning":
+							m.Reasoning = &text
+						default:
+							return nil, fmt.Errorf("unsupported OpenAI opaque replay material")
+						}
+					}
 				}
 			case "tool_call":
 				args, err := canonical(p.Args)
@@ -296,7 +316,7 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		if hasMedia {
 			m.Content = content
 		}
-		if present || hasMedia || len(m.ToolCalls) > 0 {
+		if present || hasMedia || len(m.ToolCalls) > 0 || m.ReasoningContent != nil || m.Reasoning != nil {
 			messages = append(messages, m)
 		}
 		messages = append(messages, results...)
@@ -309,12 +329,63 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		messages = append(messages, oMessage{Role: "system", Content: &tail})
 	}
 
+	// Use OpenAI's documented replacement for max_tokens (rejected by GPT-5.4).
+	// Keep the same 1024 native cap, including reasoning and visible output.
 	return json.Marshal(struct {
-		Model     string        `json:"model"`
-		Messages  []oMessage    `json:"messages"`
-		MaxTokens int           `json:"max_tokens"`
-		Tools     []oDefinition `json:"tools,omitempty"`
-	}{cfg.Model, messages, 1024, openAIDefinitions(defs)})
+		Model               string        `json:"model"`
+		Messages            []oMessage    `json:"messages"`
+		MaxCompletionTokens int           `json:"max_completion_tokens"`
+		Tools               []oDefinition `json:"tools,omitempty"`
+		Stream              bool          `json:"stream,omitempty"`
+		StreamOptions       any           `json:"stream_options,omitempty"`
+	}{cfg.Model, adjacentOpenAIToolResults(messages), 1024, openAIDefinitions(defs), cfg.Streaming(), streamOptions(cfg)})
+}
+
+// OpenAI requires a call group's results immediately after its assistant
+// message. Move only complete real groups ahead of intervening user messages
+// in this disposable projection. History stays causal; neither result facts nor
+// within-group order change. Do not cross unrelated dialogue or invent a result.
+func adjacentOpenAIToolResults(messages []oMessage) []oMessage {
+	out := make([]oMessage, 0, len(messages))
+	for i := 0; i < len(messages); i++ {
+		m := messages[i]
+		out = append(out, m)
+		if len(m.ToolCalls) == 0 {
+			continue
+		}
+		pending := make(map[string]bool, len(m.ToolCalls))
+		for _, call := range m.ToolCalls {
+			pending[call.ID] = true
+		}
+		if len(pending) != len(m.ToolCalls) {
+			continue // Ambiguous IDs cannot identify a complete result group.
+		}
+		var results, hints []oMessage
+		end := i + 1
+	scan:
+		for end < len(messages) && len(pending) > 0 {
+			next := messages[end]
+			switch next.Role {
+			case "tool":
+				if !pending[next.ToolCallID] {
+					break scan
+				}
+				delete(pending, next.ToolCallID)
+				results = append(results, next)
+			case "user":
+				hints = append(hints, next)
+			default:
+				break scan
+			}
+			end++
+		}
+		if len(pending) == 0 {
+			out = append(out, results...)
+			out = append(out, hints...)
+			i = end - 1
+		}
+	}
+	return out
 }
 
 type gCall struct {
@@ -399,7 +470,16 @@ func renderGemini(c common.Context, cfg common.Config, defs []common.ToolDefinit
 				}
 				response := json.RawMessage(t)
 				var obj map[string]json.RawMessage
-				if json.Unmarshal(response, &obj) != nil || obj == nil {
+				object := json.Unmarshal(response, &obj) == nil && obj != nil
+				if object && (p.IsError || obj["is_error"] != nil) {
+					// Keep successful ordinary objects unchanged. On errors or
+					// collisions, the outer flag is authoritative and the exact
+					// original payload remains under result.
+					response = raw(struct {
+						Result  json.RawMessage `json:"result"`
+						IsError bool            `json:"is_error"`
+					}{response, p.IsError})
+				} else if !object {
 					response = raw(struct {
 						Result  string `json:"result"`
 						IsError bool   `json:"is_error,omitempty"`
@@ -486,4 +566,11 @@ func withCallIDs(c common.Context) (common.Context, error) {
 		}
 	}
 	return c, nil
+}
+
+func streamOptions(c common.Config) any {
+	if c.Streaming() {
+		return map[string]bool{"include_usage": true}
+	}
+	return nil
 }

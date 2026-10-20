@@ -2,8 +2,11 @@
 package agent
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -26,6 +29,7 @@ type agent struct {
 	workers      sync.WaitGroup
 	observersMu  sync.Mutex
 	observers    map[uint64]chan common.Observation
+	queues       map[*observationQueue]struct{}
 	nextObserver uint64
 	// The fields below are accessed only by the actor.
 	active   *turn
@@ -108,7 +112,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if config.MaxToolRounds == 0 {
 		config.MaxToolRounds = common.DefaultMaxToolRounds
 	}
-	return &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), state: common.Idle}, nil
+	return &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), queues: make(map[*observationQueue]struct{}), state: common.Idle}, nil
 }
 
 // SetEngine completes the root's one-time wiring; it cannot replace an owner.
@@ -159,7 +163,7 @@ func (a *agent) SetHistory(h common.History) {
 func (a *agent) Log() common.History     { return a.history }
 func (a *agent) Render() ([]byte, error) { return a.engine.Render(a.history.Context()) }
 func (a *agent) ParseResponse(status int, b []byte) ([]common.Event, error) {
-	return a.engine.Parse(status, b)
+	return a.engine.Parse(&http.Response{StatusCode: status, Header: make(http.Header), Body: io.NopCloser(bytes.NewReader(b))}, common.ParseCallbacks{})
 }
 
 // History preserves Chapter 1's completed-text view, derived from the log.

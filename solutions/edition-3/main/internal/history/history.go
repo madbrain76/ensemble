@@ -252,7 +252,11 @@ func Apply(c *common.Context, e common.Event) {
 	switch e.Type {
 	case common.MessageReceived, common.HintReceived:
 		if e.Message.Actor == common.System {
-			c.Ephemera = append(c.Ephemera, e.Message.Parts...)
+			// The event log is append-only; this pending projection is a replacement.
+			c.Ephemera = append(common.PartList(nil), e.Message.Parts...)
+			if len(c.Ephemera) == 1 && c.Ephemera[0].Type == "text" && c.Ephemera[0].Text == "" {
+				c.Ephemera = nil
+			}
 		} else {
 			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: e.Message.Actor, Parts: e.Message.Parts})
 		}

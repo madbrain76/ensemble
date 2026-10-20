@@ -9,6 +9,7 @@ import (
 	"math"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"ensemble/internal/common"
@@ -58,6 +59,7 @@ type operation struct {
 	control  bool
 	err      error
 	ready    *common.ToolData
+	released atomic.Bool
 }
 
 func (o *operation) Called() common.ToolData {
@@ -68,7 +70,36 @@ func (o *operation) Called() common.ToolData {
 	}
 	return d
 }
+func (o *operation) Release() {
+	o.released.Store(true)
+	if o.job != nil {
+		o.job.Start()
+	}
+}
+func (o *operation) Abort(err error) {
+	o.err = err
+	o.released.Store(true)
+	if o.job != nil {
+		o.job.Abort(err)
+	}
+}
 func (o *operation) Await(ctx context.Context) common.ToolData {
+	if o.job != nil && !o.released.Load() {
+		reply := make(chan common.ToolData, 1)
+		if err := o.registry.parent.Post(common.ToolAdmission{Context: ctx, Operation: o, Reply: reply}); err != nil {
+			o.Abort(err)
+		} else {
+			select {
+			case result := <-reply:
+				return result
+			case <-ctx.Done():
+				d := o.Called()
+				d.IsError = true
+				d.Parts = common.PartList{common.Text(ctx.Err().Error())}
+				return d
+			}
+		}
+	}
 	if o.ready != nil {
 		return *o.ready
 	}
@@ -164,7 +195,7 @@ func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string
 		}
 	}
 	origin := common.JobData{TurnID: turn, CallID: call.CallID, Name: call.Name, Args: append([]byte(nil), call.Args...)}
-	o.job, o.err = r.parent.Jobs().Start(ctx, handler, call.Args, cwd, origin)
+	o.job, o.err = r.parent.Jobs().Reserve(ctx, handler, call.Args, cwd, origin)
 	return o
 }
 func formatReport(r common.JobReport) string {

@@ -3,9 +3,11 @@ package ensemble
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"log"
+	"strings"
 	"sync"
 
 	"ensemble/internal/agent"
@@ -39,6 +41,7 @@ type Ensemble struct {
 	shutdownDone chan struct{}
 	shutdownErr  error
 	jobs         map[int]common.Job
+	trace        io.Writer
 	logger       *log.Logger
 	agents       []common.Agent
 }
@@ -64,6 +67,17 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	defer e.mu.Unlock()
 	if e.closed {
 		return nil, errors.New("Ensemble is shut down")
+	}
+	if config.StreamCapability == StreamUnknown {
+		model := config.ResolvedModel
+		if model == "" {
+			model = config.Model
+		}
+		features, _ := LookupModel(model)
+		config.StreamCapability = features.Streaming
+	}
+	if config.StreamCapability != StreamUnknown && config.StreamCapability != StreamPlain && config.StreamCapability != StreamSSE {
+		return nil, errors.New("invalid stream capability")
 	}
 	a, err := agent.New(e, config)
 	if err != nil {
@@ -198,6 +212,27 @@ type Observation = common.Observation
 type Observer = common.Observer
 type PartDelta = common.PartDelta
 type PartFinal = common.PartFinal
+type HintObserved = common.HintObserved
+type ObservationQueue = common.ObservationQueue
+type ParseCallbacks = common.ParseCallbacks
+type DeltaKind = common.DeltaKind
+type Frame = common.Frame
+
+const (
+	DeltaText     = common.DeltaText
+	DeltaThinking = common.DeltaThinking
+	DeltaToolCall = common.DeltaToolCall
+)
+
+type TraceRecord = common.TraceRecord
+type StreamCapability = common.StreamCapability
+
+const (
+	StreamUnknown = common.StreamUnknown
+	StreamPlain   = common.StreamPlain
+	StreamSSE     = common.StreamSSE
+)
+
 type StateChanged = common.StateChanged
 type ModelFeatures = common.ModelFeatures
 type Media = common.Media
@@ -258,5 +293,28 @@ func (e *Ensemble) WaitAny(ctx context.Context, predicate func(AgentObservation)
 		case <-e.shutdownDone:
 			return AgentObservation{}, ErrStopped
 		}
+	}
+}
+
+// SetTrace enables a sanitized process-local diagnostic stream, separate from
+// semantic observations and History. The caller owns the writer's lifetime.
+func (e *Ensemble) SetTrace(w io.Writer) { e.mu.Lock(); defer e.mu.Unlock(); e.trace = w }
+func (e *Ensemble) Trace(r TraceRecord) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.trace != nil {
+		b, err := json.Marshal(r)
+		if err != nil {
+			return
+		}
+		for _, a := range e.agents {
+			key := a.Config().APIKey
+			if key == "" {
+				continue
+			}
+			escaped, _ := json.Marshal(key)
+			b = []byte(strings.ReplaceAll(string(b), string(escaped[1:len(escaped)-1]), "[redacted]"))
+		}
+		_, _ = e.trace.Write(append(b, '\n'))
 	}
 }

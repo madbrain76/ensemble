@@ -39,8 +39,44 @@ func (e *engine) failure(message string) error {
 func (e *engine) Render(c common.Context) ([]byte, error) {
 	return render(c, e.parent.Config(), e.parent.Tools().Definitions())
 }
-func (e *engine) Parse(status int, b []byte) ([]common.Event, error) {
-	return parse(status, b, e.parent.Config())
+
+// Parse owns transport framing only. The caller owns resp.Body and callbacks;
+// no retained History, observation subscription, or reply channel lives here.
+func (e *engine) Parse(resp *http.Response, callbacks common.ParseCallbacks) (events []common.Event, err error) {
+	defer func() {
+		if callbacks.OnEvent != nil {
+			for _, event := range events {
+				callbacks.OnEvent(event)
+			}
+		}
+	}()
+	if resp == nil || resp.Body == nil {
+		return parseFailure("missing response body")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return parseFailure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
+	}
+	if strings.EqualFold(strings.TrimSpace(strings.Split(resp.Header.Get("Content-Type"), ";")[0]), "text/event-stream") {
+		events, err = parseSSE(resp.Body, e.parent.Config(), callbacks)
+	} else {
+		var raw []byte
+		raw, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return parseFailure("reading response failed")
+		}
+		if callbacks.OnFrame != nil {
+			callbacks.OnFrame(common.Frame{Data: string(raw)})
+		}
+		events, err = parse(resp.StatusCode, raw, e.parent.Config())
+		for _, event := range events {
+			if event.Type == common.ResponseEnded {
+				for _, p := range event.Response.Parts {
+					plainDelta(p, callbacks)
+				}
+			}
+		}
+	}
+	return events, err
 }
 func errorEvent(message string) common.Event {
 	return common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: message}}
@@ -58,7 +94,7 @@ func (e *engine) Exchange(ctx context.Context, c common.Context) ([]common.Event
 
 // ExchangeRequest sends the immutable bytes frozen by the actor before its
 // request_sent marker. The Engine performs exactly one exchange.
-func (e *engine) ExchangeRequest(ctx context.Context, b []byte) ([]common.Event, error) {
+func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...common.ParseCallbacks) ([]common.Event, error) {
 	var err error
 	config := e.parent.Config()
 	if strings.TrimSpace(config.APIKey) == "" {
@@ -79,13 +115,21 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte) ([]common.Event,
 		if !strings.HasSuffix(endpoint, "/v1beta") {
 			endpoint += "/v1beta"
 		}
-		endpoint += "/models/" + url.PathEscape(config.Model) + ":generateContent"
+		endpoint += "/models/" + url.PathEscape(config.Model)
+		if config.Streaming() {
+			endpoint += ":streamGenerateContent?alt=sse"
+		} else {
+			endpoint += ":generateContent"
+		}
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(b))
 	if err != nil {
 		return []common.Event{errorEvent("creating request failed")}, e.failure("creating request failed")
 	}
 	req.Header.Set("content-type", "application/json")
+	if config.Streaming() {
+		req.Header.Set("Accept", "text/event-stream")
+	}
 	switch config.Vendor {
 	case common.Anthropic:
 		req.Header.Set("x-api-key", config.APIKey)
@@ -95,6 +139,7 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte) ([]common.Event,
 	case common.Gemini:
 		req.Header.Set("x-goog-api-key", config.APIKey)
 	}
+	e.parent.Parent().Trace(common.TraceRecord{Stage: "request_body", Payload: string(b)})
 	resp, err := e.client.Do(req)
 	if err != nil {
 		err = e.failure("HTTP request failed")
@@ -108,15 +153,30 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte) ([]common.Event,
 		err = e.failure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
 		return []common.Event{errorEvent(err.Error())}, err
 	}
-	raw, err := io.ReadAll(resp.Body)
-	if err != nil {
-		err = e.failure("reading response failed")
-		if ctx.Err() != nil {
-			err = ctx.Err()
-		}
-		return []common.Event{errorEvent(err.Error())}, err
+	cb := common.ParseCallbacks{}
+	if len(callbacks) > 0 {
+		cb = callbacks[0]
 	}
-	events, err := e.Parse(resp.StatusCode, raw)
+	originalDelta := cb.OnDelta
+	cb.OnDelta = func(d common.PartDelta) {
+		e.parent.Parent().Trace(common.TraceRecord{Stage: "parse_delta", PartID: d.PartID, Kind: string(d.Kind), Bytes: len(d.Chunk)})
+		if originalDelta != nil {
+			originalDelta(d)
+		}
+	}
+	originalFrame := cb.OnFrame
+	cb.OnFrame = func(f common.Frame) {
+		e.parent.Parent().Trace(common.TraceRecord{Stage: "response_frame", Event: f.Event, Payload: f.Data})
+		if originalFrame != nil {
+			originalFrame(f)
+		}
+	}
+	e.parent.Parent().Trace(common.TraceRecord{Stage: "response_parse"})
+	events, err := e.Parse(resp, cb)
+	if ctx.Err() != nil {
+		err = ctx.Err()
+	}
+
 	// The same measured response facts feed two distinct owners: this process's
 	// HTTP bill here, and replay totals when Agent appends them to History.
 	e.mu.Lock()
@@ -179,4 +239,42 @@ func canonical(raw json.RawMessage) (json.RawMessage, error) {
 		return nil, errors.New("invalid JSON value")
 	}
 	return json.Marshal(v)
+}
+
+// Plain delivery uses exactly the same notification vocabulary, in one piece.
+func plainDelta(p common.Part, cb common.ParseCallbacks) {
+	if cb.OnDelta == nil {
+		return
+	}
+	d := common.PartDelta{PartID: p.ID}
+	switch p.Type {
+	case "text":
+		d.Kind = common.DeltaText
+		d.Chunk = p.Text
+	case "tool_call":
+		d.Kind = common.DeltaToolCall
+		d.Name = p.Name
+		d.Chunk = p.Name + string(p.Args)
+	case "opaque":
+		var fields map[string]json.RawMessage
+		if json.Unmarshal(p.Data, &fields) != nil {
+			return
+		}
+		switch {
+		case string(fields["type"]) == `"thinking"`:
+			d.Chunk = str(fields["thinking"])
+		case string(fields["thought"]) == "true":
+			d.Chunk = str(fields["text"])
+		case fields["reasoning_content"] != nil:
+			d.Chunk = str(fields["reasoning_content"])
+		case fields["reasoning"] != nil:
+			d.Chunk = str(fields["reasoning"])
+		default:
+			return
+		}
+		d.Kind = common.DeltaThinking
+	default:
+		return
+	}
+	cb.OnDelta(d)
 }

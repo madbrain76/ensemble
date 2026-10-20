@@ -20,7 +20,8 @@ type seamParent struct {
 	observations []common.Observation
 }
 
-func (p *seamParent) Logger() *log.Logger { return log.New(io.Discard, "", 0) }
+func (p *seamParent) Trace(common.TraceRecord) {}
+func (p *seamParent) Logger() *log.Logger      { return log.New(io.Discard, "", 0) }
 func (p *seamParent) Publish(_ common.Agent, o common.Observation) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -57,7 +58,7 @@ type seamEngine struct {
 
 func (e *seamEngine) Parent() common.Agent                  { return e.parent }
 func (e *seamEngine) Render(common.Context) ([]byte, error) { return []byte(`{}`), nil }
-func (e *seamEngine) ExchangeRequest(ctx context.Context, _ []byte) ([]common.Event, error) {
+func (e *seamEngine) ExchangeRequest(ctx context.Context, _ []byte, _ ...common.ParseCallbacks) ([]common.Event, error) {
 	e.started <- struct{}{}
 	<-ctx.Done()
 	return nil, ctx.Err()

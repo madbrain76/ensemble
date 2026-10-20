@@ -39,6 +39,9 @@ func parse(status int, b []byte, c common.Config) ([]common.Event, error) {
 	default:
 		return fail("unsupported vendor")
 	}
+	for i := range parts {
+		parts[i].ID = uint64(i)
+	}
 	// Even an unusable or partially parsed answer is an observed response. Its
 	// measured usage survives; missing fields are explicitly not measured zero.
 	events := []common.Event{{Type: common.ResponseStarted, Response: &common.ResponseData{From: from}}, {Type: common.ResponseEnded, Response: &common.ResponseData{Parts: parts, Usage: usage, UsageMissing: missing, From: from}}}
@@ -209,9 +212,11 @@ func parseOpenAI(b []byte, from common.Provenance) (common.PartList, error) {
 	var response struct {
 		Choices []struct {
 			Message struct {
-				Content   *string `json:"content"`
-				ToolCalls []oCall `json:"tool_calls"`
-				Refusal   *string `json:"refusal"`
+				Content          *string `json:"content"`
+				ToolCalls        []oCall `json:"tool_calls"`
+				Refusal          *string `json:"refusal"`
+				ReasoningContent *string `json:"reasoning_content"`
+				Reasoning        *string `json:"reasoning"`
 			} `json:"message"`
 		} `json:"choices"`
 	}
@@ -228,6 +233,16 @@ func parseOpenAI(b []byte, from common.Provenance) (common.PartList, error) {
 	}
 	if message.Refusal != nil && *message.Refusal != "" {
 		parts = append(parts, common.Text(*message.Refusal))
+	}
+	// Reasoning is provider replay material, not visible answer text.
+	for _, field := range []struct {
+		name string
+		text *string
+	}{{"reasoning_content", message.ReasoningContent}, {"reasoning", message.Reasoning}} {
+		if field.text != nil {
+			raw, _ := json.Marshal(map[string]string{field.name: *field.text})
+			parts = append(parts, common.Part{Type: "opaque", From: &from, Data: raw})
+		}
 	}
 	for _, call := range message.ToolCalls {
 		args, err := canonical(json.RawMessage(call.Function.Arguments))
@@ -267,14 +282,15 @@ func parseGemini(b []byte, from common.Provenance) (common.PartList, error) {
 		if json.Unmarshal(block, &p) != nil {
 			return parts, fmt.Errorf("invalid provider content")
 		}
-		if p.FunctionCall != nil {
+		if p.Thought {
+			parts = append(parts, common.Part{Type: "opaque", From: &from, Data: block})
+		} else if p.FunctionCall != nil {
 			args, err := canonical(p.FunctionCall.Args)
 			if err != nil {
 				return parts, fmt.Errorf("invalid tool arguments")
 			}
 			parts = append(parts, common.Part{Type: "tool_call", CallID: p.FunctionCall.ID, Name: p.FunctionCall.Name, Args: args, From: &from, Opaque: p.Signature})
-		} else if p.Thought {
-			parts = append(parts, common.Part{Type: "opaque", From: &from, Data: block})
+
 		} else if p.Text != nil {
 			part := common.Text(*p.Text)
 			if len(p.Signature) > 0 {
@@ -283,7 +299,7 @@ func parseGemini(b []byte, from common.Provenance) (common.PartList, error) {
 			}
 			parts = append(parts, part)
 		} else {
-			return parts, fmt.Errorf("unknown Gemini part")
+			parts = append(parts, common.Part{Type: "opaque", From: &from, Data: block})
 		}
 	}
 	return parts, nil

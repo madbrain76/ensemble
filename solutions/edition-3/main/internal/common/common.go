@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"net/http"
 )
 
 // Config belongs to one Agent. Model names must come from provider discovery.
@@ -29,6 +30,8 @@ type Config struct {
 	LogPath                string
 	MaxToolRounds          int
 	SystemPrompt           string
+	DisableStreaming       bool
+	StreamCapability       StreamCapability
 }
 
 // Message is a retained user or assistant turn, sent verbatim on later requests.
@@ -54,6 +57,7 @@ type Ensemble interface {
 	// Logger returns this application's diagnostic destination.
 	Logger() *log.Logger
 	Publish(Agent, Observation)
+	Trace(TraceRecord)
 	RegisterJob(Job) (int, error)
 	LookupJob(int) (Job, bool)
 	JobTable() []Job
@@ -78,6 +82,7 @@ type Agent interface {
 	// Joined callers receive the same reliable result and TurnID at completion.
 	SubmitLive(context.Context, string) <-chan Result
 	Subscribe(Observer)
+	Observe() ObservationQueue
 	Wait(context.Context, func(Observation) bool) (Observation, error)
 	ReportJob(JobReport)
 	InvokeTool(context.Context, Part, string) error
@@ -99,9 +104,9 @@ type Engine interface {
 	// Send makes one HTTP request, with cancellation controlled by the caller.
 	Send(context.Context, []Message) (string, error)
 	Exchange(context.Context, Context) ([]Event, error)
-	ExchangeRequest(context.Context, []byte) ([]Event, error)
+	ExchangeRequest(context.Context, []byte, ...ParseCallbacks) ([]Event, error)
 	Render(Context) ([]byte, error)
-	Parse(int, []byte) ([]Event, error)
+	Parse(*http.Response, ParseCallbacks) ([]Event, error)
 	// Usage returns cumulative measured totals, not estimates.
 	Usage() Usage
 }
@@ -114,4 +119,43 @@ type History interface {
 	Context() Context
 	Load(io.Reader) error
 	Dump(io.Writer) error
+}
+
+// Unknown capabilities intentionally use plain responses. Explicit declarations
+// support compatible endpoints without guessing from a routing alias.
+type StreamCapability string
+
+const (
+	StreamUnknown StreamCapability = ""
+	StreamPlain   StreamCapability = "plain"
+	StreamSSE     StreamCapability = "sse"
+)
+
+func (c Config) Streaming() bool { return !c.DisableStreaming && c.StreamCapability == StreamSSE }
+
+// Parse callbacks are synchronous transport notifications, not History writes.
+// A PartID of zero is valid. IDs are local to one response.
+type ParseCallbacks struct {
+	OnDelta func(PartDelta)
+	OnFrame func(Frame)
+	OnEvent func(Event)
+}
+
+// Frame carries a provider body or SSE payload, never request headers or URLs.
+type Frame struct {
+	Event string
+	Data  string
+}
+
+// TraceRecord is process-local diagnostics, not durable conversation. Only root
+// encodes it and redacts configured credentials; leaves never open trace files.
+type TraceRecord struct {
+	Stage      string `json:"stage"`
+	TurnID     uint64 `json:"turn_id,omitempty"`
+	ResponseID uint64 `json:"response_id,omitempty"`
+	PartID     uint64 `json:"part_id"`
+	Kind       string `json:"kind,omitempty"`
+	Bytes      int    `json:"bytes,omitempty"`
+	Payload    string `json:"payload,omitempty"`
+	Event      string `json:"event,omitempty"`
 }

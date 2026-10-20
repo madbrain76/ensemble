@@ -1,8 +1,25 @@
-# Chapter 1 — raw HTTP conversation
+# Edition 3 — Chapter 6
 
-This module starts from the current Edition 3 Chapter 1, not a previous solution.
-It uses only the Go standard library. No tools, retries, streaming, persistence,
-provider framework, or background conversation machinery are introduced.
+This module implements the current Chapter 6, retaining Chapters 1–5 contracts.
+It uses only the Go standard library; there is no provider SDK or framework.
+
+## Chapter 6 — streaming
+
+Engine has one `Parse(resp, callbacks)` path for JSON and SSE, using a shared SSE
+reader and provider-local assembly. Deltas carry response-local part IDs (zero
+is valid); complete parts retain native boundaries, usage, and source identity.
+Unknown streaming capabilities use JSON; `DisableStreaming` and
+`EN_DISABLE_STREAMING=1` opt out. The Agent alone records History and saves before
+publishing finals. Partial calls cannot execute. Jobs reserve their stable handle,
+then the Agent records/saves the actual call before releasing the handler.
+
+The CLI drains a lossless observation queue: answer text goes to stdout, thinking
+and tool progress to stderr, with no duplicate final answer. JSON `prompt` records
+can receive observation records; legacy `user` records retain their plain-mode
+contract. Root-owned `api.log` tracing omits headers/authenticated URLs and redacts
+configured keys. `ch07/` is a separate public-library streaming shape example.
+Ephemera updates replace the pending projection (empty clears it), and the next
+`RequestSent` consumes it even when the HTTP request fails.
 
 ## Ownership rationale
 
@@ -16,8 +33,8 @@ and measured usage, looking up configuration and diagnostics through its actual
 Agent parent (and that parent's Ensemble). A failed request never commits an
 unanswered user turn. Missing usage is not zero; measured usage from an empty
 answer is still counted. History and usage accessors return copies, not mutable
-internal state. Calls on a single Agent and creation within an Ensemble are
-synchronous; separate Agents have independent conversation and accounting.
+internal state. Each Agent serializes conversation state in its actor; HTTP and
+job work run outside that actor. Separate Agents have independent conversation and accounting.
 
 The HTTP client has no total response or header deadline. Standard transport
 connection/TLS protections remain, while the caller's context governs model
@@ -57,7 +74,7 @@ JSON input has no arbitrary physical-line size limit; a final unterminated line
 is processed at EOF. The default JSON mode does not print chat prompts.
 
 
-## Chapter 3 — synchronous tools
+## Retained tool contracts
 
 The same Agent now owns an independent six-tool registry. Root composition wires
 Agent, Engine, History, and Tools through `internal/common` interfaces; each
@@ -78,15 +95,15 @@ The selected model's explanation policy is explicit:
 a whole batch lacking nonblank ordinary assistant text before its first call is
 refused before effects. Each call gets a matching error result instructing a retry
 with an explanation. Hidden reasoning, opaque blocks, stop reasons, and usage do
-not satisfy this rule. Turn completion is based on returned calls. Up to sixteen
-batches run synchronously; a final request consumes batch sixteen's results. If
-that response asks for more tools, matching refusal results are retained and a
-local limit error ends the turn without additional effects.
+not satisfy this rule. Turn completion is based on returned calls. The default limit is 200 dispatched
+batches (`Config.MaxToolBatches`); refused/invalid batches do not spend that budget.
+A final request consumes the last dispatched batch's results before the limit
+rejects any additional effects.
 
 Tools use strict JSON argument types and reject unknown fields. Their schemas
 are sent with each enabled declaration. `read_file` has optional one-based
 inclusive `start_line`/`end_line` and a `max_bytes` cap. Omitted or zero start
-means line 1, end means EOF, and `max_bytes` means 32,768 bytes. Negative bounds
+means line 1, end means EOF, and `max_bytes` means no read cap. Negative bounds
 or caps and an end before the start are errors. The tool selects the requested
 line range first, then caps returned bytes; actual truncation adds an explicit
 `[truncated at max_bytes=N]` marker outside the cap. Exact-size results do not
@@ -121,5 +138,6 @@ it is not a general secret detector or sandbox.
 
 Relative paths and command `cwd` resolve against the registry's launch directory;
 absolute paths and `..` are allowed. This is not a sandbox. No command changes the
-process-wide directory. The synchronous runner returns actual completed output,
-not a job handle. These tools are for trusted local use.
+process-wide directory. Ordinary calls return stable job handles with observed
+output; callback limits do not kill jobs. Explicit kill and joined shutdown retain
+their distinct terminal semantics. These tools are for trusted local use.

@@ -55,10 +55,15 @@ type cancelRequest struct {
 	request *request
 	err     error
 }
+type streamNotice struct {
+	turn, response uint64
+	delta          common.PartDelta
+}
 type response struct {
-	turn   uint64
-	events []common.Event
-	err    error
+	turn     uint64
+	response uint64
+	events   []common.Event
+	err      error
 }
 type report struct {
 	turn uint64
@@ -89,22 +94,28 @@ func (a *agent) InvokeTool(ctx context.Context, call common.Part, refusal string
 	}
 }
 
+type admittedResult struct {
+	data  common.ToolData
+	reply chan common.ToolData
+}
 type stopped struct{ err error }
 type turn struct {
-	id            uint64
-	request       *request
-	followers     []*request
-	ctx           context.Context
-	cancel        context.CancelFunc
-	httpCancel    context.CancelFunc
-	observeCancel context.CancelFunc
-	calls         common.PartList
-	index         int
-	operation     common.ToolOperation
-	refusal       string
-	skip          bool
-	hinted        bool
-	rounds, limit int
+	id                                  uint64
+	response                            uint64
+	arrivalInvalid, toolSeen, explained bool
+	request                             *request
+	followers                           []*request
+	ctx                                 context.Context
+	cancel                              context.CancelFunc
+	httpCancel                          context.CancelFunc
+	observeCancel                       context.CancelFunc
+	calls                               common.PartList
+	index                               int
+	operation                           common.ToolOperation
+	refusal                             string
+	skip                                bool
+	hinted                              bool
+	rounds, limit                       int
 }
 
 // Start is called once by the composition root, after all child links exist.
@@ -261,8 +272,7 @@ func (a *agent) run() {
 					break
 				}
 				op := a.tools.Prepare(m.ctx, m.call, m.refusal, 0)
-				d := op.Called()
-				if _, err := a.record(common.Event{Type: common.ToolCalled, Tool: &d}); err != nil {
+				if err := a.admit(op, 0); err != nil {
 					m.reply <- err
 					break
 				}
@@ -270,6 +280,51 @@ func (a *agent) run() {
 				go func() { defer a.workers.Done(); _ = a.box.post(invoked{op.Await(m.ctx), m.reply}, false) }()
 			case invoked:
 				m.reply <- a.returned(0, m.data)
+			case common.ToolAdmission:
+				var err error
+				if a.stopping {
+					err = common.ErrStopped
+				} else {
+					err = m.Context.Err()
+				}
+				if err != nil {
+					m.Operation.Abort(err)
+				} else {
+					err = a.admit(m.Operation, 0)
+				}
+				if err != nil {
+					m.Reply <- m.Operation.Await(context.Background())
+					break
+				}
+				a.workers.Add(1)
+				go func() {
+					defer a.workers.Done()
+					_ = a.box.post(admittedResult{m.Operation.Await(m.Context), m.Reply}, false)
+				}()
+			case admittedResult:
+				if err := a.returned(0, m.data); err != nil {
+					m.data.IsError = true
+					m.data.Parts = common.PartList{common.Text(err.Error())}
+				}
+				m.reply <- m.data
+			case streamNotice:
+				t := a.active
+				if t == nil || t.id != m.turn || t.response != m.response || t.httpCancel == nil || t.ctx.Err() != nil {
+					a.parent.Trace(common.TraceRecord{Stage: "stale_discard", TurnID: m.turn, ResponseID: m.response, PartID: m.delta.PartID, Kind: string(m.delta.Kind)})
+					continue
+				}
+				if m.delta.Kind == common.DeltaText && !t.toolSeen && strings.TrimSpace(m.delta.Chunk) != "" {
+					t.explained = true
+				}
+				if m.delta.Kind == common.DeltaToolCall {
+					if !t.explained {
+						t.arrivalInvalid = true
+					}
+					t.toolSeen = true
+				}
+				m.delta.TurnID, m.delta.ResponseID = m.turn, m.response
+				a.publish(m.delta)
+				a.parent.Trace(common.TraceRecord{Stage: "delta_publish", TurnID: m.turn, ResponseID: m.response, PartID: m.delta.PartID, Kind: string(m.delta.Kind), Bytes: len(m.delta.Chunk)})
 			case response:
 				a.receive(m)
 			case report:
@@ -351,6 +406,11 @@ func (a *agent) hint(m common.MessageData) {
 		}
 		return
 	}
+	sender := m.Sender
+	if sender == "" {
+		sender = "human"
+	}
+	a.publish(common.HintObserved{TurnID: id, Sender: sender, Parts: m.Parts})
 	if a.active != nil {
 		a.active.hinted = true
 		if a.active.observeCancel != nil {
@@ -374,16 +434,28 @@ func (a *agent) send() {
 	a.transition(common.InFlight)
 	ctx, cancel := context.WithCancel(t.ctx)
 	t.httpCancel = cancel
+	t.response++
+	t.arrivalInvalid, t.toolSeen, t.explained = false, false, false
+	responseID := t.response
+	a.parent.Trace(common.TraceRecord{Stage: "request_sent", TurnID: t.id, ResponseID: responseID})
 	a.workers.Add(1)
 	go func() {
 		defer a.workers.Done()
 		defer cancel()
-		events, err := a.engine.ExchangeRequest(ctx, body)
-		_ = a.box.post(response{t.id, events, err}, false)
+		events, err := a.engine.ExchangeRequest(ctx, body, common.ParseCallbacks{OnDelta: func(d common.PartDelta) {
+			_ = a.box.post(streamNotice{t.id, responseID, d}, false)
+		}})
+		_ = a.box.post(response{turn: t.id, response: responseID, events: events, err: err}, false)
 	}()
 }
 func (a *agent) receive(r response) {
-	stale := a.active == nil || a.active.id != r.turn
+	if a.active != nil && a.active.id == r.turn && a.active.ctx.Err() != nil {
+		a.interrupt(a.active.ctx.Err())
+	}
+	stale := a.active == nil || a.active.id != r.turn || (r.response != 0 && a.active.response != r.response)
+	if stale {
+		a.parent.Trace(common.TraceRecord{Stage: "stale_discard", TurnID: r.turn, ResponseID: r.response})
+	}
 	if !stale {
 		a.active.httpCancel = nil
 	}
@@ -401,8 +473,11 @@ func (a *agent) receive(r response) {
 		}
 		if e.Type == common.ResponseEnded && !stale {
 			parts = e.Response.Parts
-			for _, p := range e.Response.Parts {
-				a.final(seq, p)
+			if r.err == nil && idErr == nil {
+				for _, p := range e.Response.Parts {
+					a.publish(common.PartFinal{Seq: uint64(seq), TurnID: r.turn, ResponseID: r.response, PartID: p.ID, Part: p})
+					a.parent.Trace(common.TraceRecord{Stage: "part_final", TurnID: r.turn, ResponseID: r.response, PartID: p.ID, Kind: p.Type})
+				}
 			}
 		}
 	}
@@ -444,7 +519,7 @@ func (a *agent) receive(r response) {
 		return
 	}
 	a.transition(common.ToolsPending)
-	if a.config.RequireToolExplanation && !explained {
+	if a.config.RequireToolExplanation && (!explained || t.arrivalInvalid) {
 		t.refusal = "No tools ran: provide nonblank ordinary assistant text explaining what will run and why before the first tool call, then retry."
 	}
 	// Input admitted during HTTP makes this entire batch undispatched.
@@ -471,8 +546,7 @@ func (a *agent) dispatch() {
 	}
 	call := t.calls[t.index]
 	op := a.tools.Prepare(t.ctx, call, t.refusal, t.id)
-	d := op.Called()
-	if _, err := a.record(common.Event{Type: common.ToolCalled, TurnID: t.id, Tool: &d}); err != nil {
+	if err := a.admit(op, t.id); err != nil {
 		a.finish("", err)
 		return
 	}
@@ -486,6 +560,24 @@ func (a *agent) dispatch() {
 		d := op.Await(ctx)
 		_ = a.box.post(report{t.id, d}, false)
 	}()
+}
+
+// History and its configured save are the release barrier for every ordinary
+// operation. Failed admission settles its reservation without running a handler.
+func (a *agent) admit(op common.ToolOperation, turn uint64) error {
+	d := op.Called()
+	seq, err := a.record(common.Event{Type: common.ToolCalled, TurnID: turn, Tool: &d})
+	if err != nil {
+		op.Abort(err)
+		// A save can fail after append. Pair that recorded call truthfully;
+		// an append failure has no call to pair and must not invent one.
+		if seq != 0 {
+			err = errors.Join(err, a.returned(turn, op.Await(context.Background())))
+		}
+		return err
+	}
+	op.Release()
+	return nil
 }
 func (a *agent) returned(turn uint64, d common.ToolData) error {
 	seq, err := a.record(common.Event{Type: common.ToolReturned, TurnID: turn, Tool: &d})
@@ -620,10 +712,11 @@ func (a *agent) transition(to common.TurnState) {
 }
 func (a *agent) final(seq common.Seq, p common.Part) {
 	a.partID++
-	if p.Type == "text" {
-		a.publish(common.PartDelta{PartID: a.partID, Chunk: p.Text})
+	turnID := uint64(0)
+	if a.active != nil {
+		turnID = a.active.id
 	}
-	a.publish(common.PartFinal{Seq: uint64(seq), PartID: a.partID, Part: p})
+	a.publish(common.PartFinal{Seq: uint64(seq), TurnID: turnID, PartID: a.partID, Part: p})
 }
 
 // Each observer gets a bounded queue. Neither a slow callback nor a slow Wait
@@ -646,6 +739,9 @@ func (a *agent) publish(o common.Observation) {
 	a.parent.Publish(a, o)
 	a.observersMu.Lock()
 	defer a.observersMu.Unlock()
+	for q := range a.queues {
+		q.push(o)
+	}
 	for _, ch := range a.observers {
 		select {
 		case ch <- o:
