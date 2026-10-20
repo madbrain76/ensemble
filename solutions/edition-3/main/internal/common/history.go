@@ -125,20 +125,21 @@ type Ref struct {
 // Part is a tagged union. Each variant keeps its own wire-neutral distinctions.
 // Raw JSON preserves arbitrary argument numbers and uninterpreted replay bytes.
 type Part struct {
-	ID      uint64          `json:"id,omitempty"`
-	Type    string          `json:"type"`
-	Text    string          `json:"text,omitempty"`
-	MIME    string          `json:"mime,omitempty"`
-	Ref     *Ref            `json:"ref,omitempty"`
-	From    *Provenance     `json:"from,omitempty"`
-	Data    json.RawMessage `json:"data,omitempty"`
-	CallID  string          `json:"call_id,omitempty"`
-	Name    string          `json:"name,omitempty"`
-	Args    json.RawMessage `json:"args,omitempty"`
-	Opaque  json.RawMessage `json:"opaque,omitempty"`
-	Parts   PartList        `json:"parts,omitempty"`
-	IsError bool            `json:"is_error,omitempty"`
-	Stub    string          `json:"stub,omitempty"`
+	ID        uint64          `json:"id,omitempty"`         // response-local parser identity
+	DisplayID uint64          `json:"display_id,omitempty"` // Agent-lifetime identity, never a provider ID
+	Type      string          `json:"type"`
+	Text      string          `json:"text,omitempty"`
+	MIME      string          `json:"mime,omitempty"`
+	Ref       *Ref            `json:"ref,omitempty"`
+	From      *Provenance     `json:"from,omitempty"`
+	Data      json.RawMessage `json:"data,omitempty"`
+	CallID    string          `json:"call_id,omitempty"`
+	Name      string          `json:"name,omitempty"`
+	Args      json.RawMessage `json:"args,omitempty"`
+	Opaque    json.RawMessage `json:"opaque,omitempty"`
+	Parts     PartList        `json:"parts,omitempty"`
+	IsError   bool            `json:"is_error,omitempty"`
+	Stub      string          `json:"stub,omitempty"`
 }
 
 // Text must be present even when empty; omission is not an empty reply.
@@ -146,12 +147,13 @@ func (p Part) MarshalJSON() ([]byte, error) {
 	type plain Part
 	if p.Type == "text" {
 		return json.Marshal(struct {
-			ID     uint64          `json:"id,omitempty"`
-			Type   string          `json:"type"`
-			Text   string          `json:"text"`
-			From   *Provenance     `json:"from,omitempty"`
-			Opaque json.RawMessage `json:"opaque,omitempty"`
-		}{p.ID, p.Type, p.Text, p.From, p.Opaque})
+			ID        uint64          `json:"id,omitempty"`
+			DisplayID uint64          `json:"display_id,omitempty"`
+			Type      string          `json:"type"`
+			Text      string          `json:"text"`
+			From      *Provenance     `json:"from,omitempty"`
+			Opaque    json.RawMessage `json:"opaque,omitempty"`
+		}{p.ID, p.DisplayID, p.Type, p.Text, p.From, p.Opaque})
 	}
 	return json.Marshal(plain(p))
 }
@@ -185,6 +187,7 @@ const (
 	ResponseStarted EventType = "response_started"
 	ResponseEnded   EventType = "response_ended"
 	ToolCalled      EventType = "tool_called"
+	ToolReleased    EventType = "tool_dispatched"
 	ToolReturned    EventType = "tool_returned"
 	Redacted        EventType = "redacted"
 	ErrorOccurred   EventType = "error_occurred"
@@ -212,12 +215,15 @@ type ResponseData struct {
 	UsageMissing []string `json:"usage_missing,omitempty"`
 }
 type ToolData struct {
-	Job     *JobData        `json:"job,omitempty"`
-	CallID  string          `json:"call_id"`
-	Name    string          `json:"name,omitempty"`
-	Args    json.RawMessage `json:"args,omitempty"`
-	Parts   PartList        `json:"parts,omitempty"`
-	IsError bool            `json:"is_error,omitempty"`
+	DisplayID  uint64          `json:"display_id,omitempty"`
+	CallPartID uint64          `json:"call_part_id,omitempty"`
+	Dispatched bool            `json:"dispatched,omitempty"`
+	Job        *JobData        `json:"job,omitempty"`
+	CallID     string          `json:"call_id"`
+	Name       string          `json:"name,omitempty"`
+	Args       json.RawMessage `json:"args,omitempty"`
+	Parts      PartList        `json:"parts,omitempty"`
+	IsError    bool            `json:"is_error,omitempty"`
 }
 type Redaction string
 

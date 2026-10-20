@@ -81,6 +81,9 @@ These are examples of individual envelopes, not one complete conversation:
 {"type":"turn_ended","text":"The file contains..."}
 ```
 
+An empty `part_delta` still carries `"chunk":""`; omitting the key changes the
+public schema.
+
 Client messages:
 
 ```json
@@ -345,7 +348,10 @@ A requested call is not yet an execution. The Edition 3 student GUI announced
 starts for a batch the core had refused, both live and on replay.
 `ToolDispatched` belongs only to calls admitted to run. Keep the requested calls
 and refusal results visible, but do not infer an execution from their presence
-in history. A result can explain why a tool never ran.
+in history. A result can explain why a tool never ran. Saving and publishing
+the dispatch fact belong inside the same admission boundary as releasing the
+handler. Cancellation after publication can stop admitted work; it must not
+turn that dispatch into a reservation that was never released.
 
 The names avoid a silent collision. The event log already has
 `tool_called` and `tool_returned` for replay. The mailbox has its
@@ -419,6 +425,8 @@ channel is full, the message is dropped for that client. The actor
 does not wait for network I/O.
 
 Each client has a write goroutine draining a buffered channel.
+WebSocket control replies go through that writer too: echo each Ping payload
+in a Pong control frame. A JSON message called `pong` cannot do that job.
 The observation callback iterates the set and does a non-blocking send on each.
 The hub is a broadcaster: the station does not wait for the
 radio.
@@ -497,7 +505,10 @@ and stores it on the final part. Replay names the card that received the live
 chunks. When persistence arrives in Chapter 10, restarting must not let a new
 response reuse an old card's identity. Provider call IDs and opaque signed
 content keep their original meanings; display identity does not authorize
-rewriting provider history.
+rewriting provider history. Several events can update the same card: dispatch
+status and job metadata may change while `(agent_id, part_id)` keeps identifying
+the same logical part. Reusing that identity for a different part would be a
+collision.
 
 When a final is captured, remove its partial before publishing it. Sort active
 partials by their assigned creation identities on replay; a Go map supplies no
@@ -520,7 +531,9 @@ the interval in which the two cleanup paths differed.
 
 For this chapter the window is fixed: include the last hour OR the last 100
 renderable events, whichever reaches farther back. An event with several
-rendered parts still counts as one event. A configurable policy is future work.
+rendered parts still counts as one event. Measure a replay batch by those
+entries, rather than by socket-envelope or unique-card counts. A configurable
+policy is future work.
 
 ---
 
@@ -619,6 +632,9 @@ Keep unfinished phrases by artifact identity. A final flushes the remainder;
 it must not read the whole answer again. Replayed history is silent until the
 reader clicks its speaker. Keep a reference to the active utterance, and ignore
 an old cancellation callback after a newer utterance has taken its place.
+
+When checking real speech, attach start, end and error listeners before
+playback begins; a fast start can otherwise escape observation.
 
 The native-browser test recorded a first utterance starting, a real
 `speechSynthesis.cancel()` interruption, then the second utterance starting and

@@ -18,17 +18,18 @@ const (
 
 // JobData is a snapshot, never the live runtime record.
 type JobData struct {
-	TurnID   uint64          `json:"turn_id,omitempty"`
-	CallID   string          `json:"call_id,omitempty"`
-	Name     string          `json:"name,omitempty"`
-	Args     json.RawMessage `json:"args,omitempty"`
-	Handle   int             `json:"handle"`
-	Status   JobStatus       `json:"status"`
-	Output   Ref             `json:"output"`
-	Bytes    int64           `json:"bytes"`
-	ExitCode *int            `json:"exit_code,omitempty"`
-	Cwd      string          `json:"cwd,omitempty"`
-	Reason   string          `json:"reason,omitempty"`
+	CallPartID uint64          `json:"call_part_id,omitempty"`
+	TurnID     uint64          `json:"turn_id,omitempty"`
+	CallID     string          `json:"call_id,omitempty"`
+	Name       string          `json:"name,omitempty"`
+	Args       json.RawMessage `json:"args,omitempty"`
+	Handle     int             `json:"handle"`
+	Status     JobStatus       `json:"status"`
+	Output     Ref             `json:"output"`
+	Bytes      int64           `json:"bytes"`
+	ExitCode   *int            `json:"exit_code,omitempty"`
+	Cwd        string          `json:"cwd,omitempty"`
+	Reason     string          `json:"reason,omitempty"`
 }
 
 type ToolLimits struct {
@@ -51,7 +52,9 @@ type Job interface {
 	Parent() Jobs
 	Data() JobData
 	// Start releases a reservation; Abort settles one without handler effects.
-	Start()
+	Start() bool
+	// StartAfter holds reservation admission through a save/publication boundary.
+	StartAfter(func() error) (bool, error)
 	Abort(error)
 	InitialReport(context.Context, ToolLimits) (JobReport, error)
 	Wait(context.Context, ToolLimits) (JobReport, error)

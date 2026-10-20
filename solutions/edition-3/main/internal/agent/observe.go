@@ -54,3 +54,67 @@ func (q *observationQueue) Close() {
 	q.pending = nil
 	q.mu.Unlock()
 }
+
+// View returns detached slice headers from an immutable actor checkpoint; no
+// History serialization, view callback, or I/O executes on this path.
+func (a *agent) View() common.ViewSnapshot {
+	v := a.viewValue.Load().(common.ViewSnapshot)
+	v.Partials = append([]common.PartDelta(nil), v.Partials...)
+	v.Speech.Parts = append(common.PartList(nil), v.Speech.Parts...)
+	return v
+}
+func (a *agent) updateView(o common.Observation) {
+	v := &a.viewState
+	switch x := o.(type) {
+	case common.PartDelta:
+		old := a.viewParts[x.PartID]
+		if x.Name == "" {
+			x.Name = old.Name
+		}
+		x.Chunk = old.Chunk + x.Chunk
+		a.viewParts[x.PartID] = x
+	case common.HistoryCommitted:
+		e := x.Event
+		if e.TurnID != 0 && e.TurnID != v.TurnID && e.Type == common.MessageReceived {
+			v.TurnID = e.TurnID
+			v.ControlEpoch++
+		}
+		if e.Type == common.TurnInterrupted {
+			v.ControlEpoch++
+		}
+		if e.Response != nil && e.Type == common.ResponseEnded {
+			for _, p := range e.Response.Parts {
+				delete(a.viewParts, p.DisplayID)
+			}
+		}
+		if e.Type == common.TurnEnded || e.Type == common.TurnInterrupted {
+			clear(a.viewParts)
+		}
+	case common.StateChanged:
+		v.State = common.TurnState(x.To)
+	case common.Paused:
+		v.Paused = x.Paused
+		v.Reason = x.Reason
+		if !x.Paused {
+			v.ControlEpoch++
+			v.ContinueEpoch++
+		}
+	case common.SpeakingChanged:
+		v.Speaking = x.Speaking
+		if !x.Speaking {
+			v.ControlEpoch++
+		}
+	case common.SpeechRequested:
+		v.SpeechID++
+		v.Speech = x
+		v.SpeechEpoch = v.ControlEpoch
+	case common.TurnEndedObservation:
+		clear(a.viewParts)
+	}
+	v.Revision++
+	v.Partials = make([]common.PartDelta, 0, len(a.viewParts))
+	for _, part := range a.viewParts {
+		v.Partials = append(v.Partials, part)
+	}
+	a.viewValue.Store(*v)
+}

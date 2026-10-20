@@ -12,11 +12,13 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"ensemble/internal/common"
 )
 
 type agent struct {
+	id           string
 	parent       common.Ensemble
 	config       common.Config
 	engine       common.Engine
@@ -26,18 +28,27 @@ type agent struct {
 	box          mailbox
 	done         chan struct{}
 	shutdownErr  error
+	jobParts     map[int]uint64
 	workers      sync.WaitGroup
 	observersMu  sync.Mutex
 	observers    map[uint64]chan common.Observation
 	queues       map[*observationQueue]struct{}
 	nextObserver uint64
+	gateMu       sync.Mutex
+	paused       bool
 	// The fields below are accessed only by the actor.
-	active   *turn
-	pending  []*request
-	nextTurn uint64
-	partID   uint64
-	state    common.TurnState
-	stopping bool
+	active     *turn
+	pending    []*request
+	nextTurn   uint64
+	partID     uint64
+	viewValue  atomic.Value
+	viewState  common.ViewSnapshot
+	viewParts  map[uint64]common.PartDelta
+	state      common.TurnState
+	stopping   bool
+	speaking   bool
+	gate       func()
+	gateReason string
 }
 
 // New validates configuration before any request and retains the actual owner.
@@ -112,7 +123,12 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if config.MaxToolRounds == 0 {
 		config.MaxToolRounds = common.DefaultMaxToolRounds
 	}
-	return &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), queues: make(map[*observationQueue]struct{}), state: common.Idle}, nil
+	a := &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), queues: make(map[*observationQueue]struct{}), state: common.Idle, paused: config.PauseOnStart, speaking: config.Speaking}
+	a.viewState = common.ViewSnapshot{State: common.Idle, Paused: config.PauseOnStart, Speaking: config.Speaking}
+	a.viewParts = make(map[uint64]common.PartDelta)
+	a.jobParts = make(map[int]uint64)
+	a.viewValue.Store(a.viewState)
+	return a, nil
 }
 
 // SetEngine completes the root's one-time wiring; it cannot replace an owner.
@@ -125,6 +141,15 @@ func (a *agent) SetEngine(engine common.Engine) {
 
 // Parent exposes the actual Ensemble rather than a copied service bundle.
 func (a *agent) Parent() common.Ensemble { return a.parent }
+func (a *agent) ID() string              { return a.id }
+
+// SetID is one-time root composition, before the actor starts.
+func (a *agent) SetID(id string) {
+	if a.id != "" || id == "" {
+		panic("invalid Agent identity")
+	}
+	a.id = id
+}
 
 // Config returns a value copy of the Agent-owned configuration.
 func (a *agent) Config() common.Config {

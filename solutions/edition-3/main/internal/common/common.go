@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 // Config belongs to one Agent. Model names must come from provider discovery.
@@ -31,6 +32,8 @@ type Config struct {
 	MaxToolRounds          int
 	SystemPrompt           string
 	DisableStreaming       bool
+	PauseOnStart           bool
+	Speaking               bool
 	StreamCapability       StreamCapability
 }
 
@@ -66,6 +69,10 @@ type Ensemble interface {
 
 // Agent owns one mailbox and one conversation actor.
 type Agent interface {
+	ID() string
+	View() ViewSnapshot
+	Pause() error
+	Unpause() error
 	// Parent returns the Ensemble which owns this conversation.
 	Parent() Ensemble
 	// Config returns a value copy, leaving configuration with its owner.
@@ -115,7 +122,14 @@ type Engine interface {
 type History interface {
 	Parent() Agent
 	Append(Event) error
+	// AppendSaved commits one fact only after the supplied atomic-file save succeeds.
+	AppendSaved(Event, func(func(io.Writer) error) error) error
 	Events() []Event
+	EventsSince(Seq) []Event
+	EventsRange(Seq, Seq) []Event
+	RecentThrough(Seq, time.Time, int, ...func(Event) bool) []Event
+	LastSeq() Seq
+	Recent(time.Time, int) []Event
 	Context() Context
 	Load(io.Reader) error
 	Dump(io.Writer) error
@@ -151,6 +165,8 @@ type Frame struct {
 // encodes it and redacts configured credentials; leaves never open trace files.
 type TraceRecord struct {
 	Stage      string `json:"stage"`
+	AgentID    string `json:"agent_id,omitempty"`
+	Detail     string `json:"detail,omitempty"`
 	TurnID     uint64 `json:"turn_id,omitempty"`
 	ResponseID uint64 `json:"response_id,omitempty"`
 	PartID     uint64 `json:"part_id"`

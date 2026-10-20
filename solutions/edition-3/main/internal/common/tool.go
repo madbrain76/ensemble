@@ -41,7 +41,9 @@ type ToolHandler func(context.Context, ToolCall, json.RawMessage) error
 // Cancellation of Await releases observation, never execution.
 type ToolOperation interface {
 	Called() ToolData
+	Dispatched() bool
 	Release()
+	ReleaseAfter(func() error) error
 	Abort(error)
 	Await(context.Context) ToolData
 }

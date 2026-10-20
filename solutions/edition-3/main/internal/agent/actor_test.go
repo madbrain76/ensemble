@@ -43,6 +43,14 @@ func (h *seamHistory) Append(e common.Event) error {
 	h.events = append(h.events, e)
 	return nil
 }
+func (h *seamHistory) LastSeq() common.Seq {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if len(h.events) == 0 {
+		return 0
+	}
+	return h.events[len(h.events)-1].Seq
+}
 func (h *seamHistory) Events() []common.Event {
 	h.mu.Lock()
 	defer h.mu.Unlock()

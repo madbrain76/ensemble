@@ -7,6 +7,7 @@ import (
 	"ensemble/internal/common"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -25,13 +26,63 @@ func New(parent common.Agent) common.History {
 func empty() common.Context {
 	return common.Context{Turn: common.Idle, Dialogue: []common.Entry{}, Ephemera: common.PartList{}}
 }
-func (h *history) Parent() common.Agent    { return h.parent }
-func clone[T any](v T) T                   { b, _ := json.Marshal(v); var c T; _ = json.Unmarshal(b, &c); return c }
-func (h *history) Events() []common.Event  { h.mu.Lock(); defer h.mu.Unlock(); return clone(h.events) }
-func (h *history) Context() common.Context { h.mu.Lock(); defer h.mu.Unlock(); return clone(h.context) }
-func (h *history) Append(e common.Event) error {
+func (h *history) Parent() common.Agent   { return h.parent }
+func clone[T any](v T) T                  { b, _ := json.Marshal(v); var c T; _ = json.Unmarshal(b, &c); return c }
+func (h *history) Events() []common.Event { return h.EventsRange(0, ^common.Seq(0)) }
+func (h *history) LastSeq() common.Seq {
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	if len(h.events) == 0 {
+		return 0
+	}
+	return h.events[len(h.events)-1].Seq
+}
+func (h *history) EventsSince(after common.Seq) []common.Event {
+	return h.EventsRange(after, ^common.Seq(0))
+}
+
+// Appended events are immutable. Capture the range under lock, then clone
+// outside it: a slow view must not block the actor's next append.
+func (h *history) EventsRange(after, through common.Seq) []common.Event {
+	h.mu.Lock()
+	i := sort.Search(len(h.events), func(i int) bool { return h.events[i].Seq > after })
+	j := sort.Search(len(h.events), func(i int) bool { return h.events[i].Seq > through })
+	if i > j {
+		i = j
+	}
+	events := h.events[i:j]
+	h.mu.Unlock()
+	return clone(events)
+}
+func (h *history) Recent(since time.Time, minimum int) []common.Event {
+	return h.RecentThrough(^common.Seq(0), since, minimum)
+}
+func (h *history) RecentThrough(through common.Seq, since time.Time, minimum int, eligible ...func(common.Event) bool) []common.Event {
+	h.mu.Lock()
+	end := sort.Search(len(h.events), func(i int) bool { return h.events[i].Seq > through })
+	events := h.events[:end]
+	h.mu.Unlock()
+	// The caller owns display eligibility; neither formatting nor scanning holds
+	// History's append lock. Events in this captured suffix are immutable.
+	include := func(common.Event) bool { return true }
+	if len(eligible) > 0 && eligible[0] != nil {
+		include = eligible[0]
+	}
+	start, count := end, 0
+	for start > 0 {
+		e := events[start-1]
+		if count >= minimum && e.Time.Before(since) {
+			break
+		}
+		start--
+		if include(e) {
+			count++
+		}
+	}
+	return clone(events[start:end])
+}
+func (h *history) Context() common.Context { h.mu.Lock(); defer h.mu.Unlock(); return clone(h.context) }
+func (h *history) prepare(e common.Event) (common.Event, error) {
 	next := common.Seq(1)
 	if len(h.events) > 0 {
 		next = h.events[len(h.events)-1].Seq + 1
@@ -40,17 +91,49 @@ func (h *history) Append(e common.Event) error {
 		e.Seq = next
 	}
 	if e.Seq < next {
-		return fmt.Errorf("sequence must increase")
+		return e, fmt.Errorf("sequence must increase")
 	}
 	if e.Time.IsZero() {
 		e.Time = time.Now().UTC()
 	}
 	if err := validate(e); err != nil {
-		return err
+		return e, err
 	}
-	e = clone(e)
+	return clone(e), nil
+}
+func (h *history) appendPrepared(e common.Event) {
 	h.events = append(h.events, e)
 	Apply(&h.context, e)
+}
+func (h *history) Append(e common.Event) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	e, err := h.prepare(e)
+	if err != nil {
+		return err
+	}
+	h.appendPrepared(e)
+	return nil
+}
+
+// Only the actor writes History. Stage the single admission fact without
+// publishing/mutating it; a failed atomic-file save leaves no false dispatch
+// fact for a later successful save to expose. Existing intent facts are kept.
+func (h *history) AppendSaved(e common.Event, save func(func(io.Writer) error) error) error {
+	h.mu.Lock()
+	e, err := h.prepare(e)
+	if err != nil {
+		h.mu.Unlock()
+		return err
+	}
+	events := append(h.events[:len(h.events):len(h.events)], e)
+	h.mu.Unlock()
+	if err := save(func(w io.Writer) error { return dumpEvents(w, events) }); err != nil {
+		return err
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.appendPrepared(e)
 	return nil
 }
 func (h *history) Load(r io.Reader) error {
@@ -100,14 +183,15 @@ func (h *history) Load(r io.Reader) error {
 	h.events, h.context = next.events, next.context
 	return nil
 }
-func (h *history) Dump(w io.Writer) error {
+func (h *history) Dump(w io.Writer) error { return dumpEvents(w, h.Events()) }
+func dumpEvents(w io.Writer, events []common.Event) error {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(struct {
 		Version int `json:"log_version"`
 	}{1}); err != nil {
 		return err
 	}
-	for _, e := range h.Events() {
+	for _, e := range events {
 		if err := enc.Encode(e); err != nil {
 			return err
 		}
@@ -205,7 +289,7 @@ func validate(e common.Event) error {
 		if e.Job != nil && e.Job.Handle > 0 && e.Job.Status == common.JobKilledStatus && (e.Job.Reason == "kill_job" || e.Job.Reason == "shutdown") {
 			return nil
 		}
-	case common.ToolCalled:
+	case common.ToolCalled, common.ToolReleased:
 		if e.Tool != nil {
 			return nil
 		}

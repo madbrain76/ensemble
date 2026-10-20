@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 )
 
@@ -19,6 +20,42 @@ type Ephemeral struct{ Text string }
 // Question preserves the application's addressing and correlation metadata.
 type Question struct{ Text, Sender, Recipient, RequestID, TurnID string }
 type Interrupt struct{}
+type Pause struct{}
+type Unpause struct{ TurnID uint64 }
+type SetSpeaking struct{ Enabled bool }
+type SpeakParts struct {
+	Parts  PartList
+	Reason string
+}
+
+func (Pause) inbound()       {}
+func (Unpause) inbound()     {}
+func (SetSpeaking) inbound() {}
+func (SpeakParts) inbound()  {}
+
+type Paused struct {
+	Paused bool   `json:"paused"`
+	Reason string `json:"reason,omitempty"`
+}
+type SpeakingChanged struct {
+	Speaking bool `json:"speaking"`
+}
+type SpeechRequested struct {
+	TurnID uint64
+	Parts  PartList
+	Reason string
+}
+
+// TurnEnded is already the durable event type name.
+type TurnEndedObservation struct {
+	TurnID uint64
+	Text   string
+}
+
+func (Paused) observation()               {}
+func (SpeakingChanged) observation()      {}
+func (SpeechRequested) observation()      {}
+func (TurnEndedObservation) observation() {}
 
 func (UserMessage) inbound() {}
 func (Hint) inbound()        {}
@@ -32,6 +69,32 @@ type Result struct {
 	Err    error
 }
 type Observation interface{ observation() }
+
+// ViewSnapshot is an immutable process-local publication checkpoint. Through
+// never includes a pending/failed Save; Partials contain complete active text.
+// Consumers may skip wakeups and recover from the latest checkpoint.
+type ViewSnapshot struct {
+	ContinueEpoch    uint64
+	TurnID           uint64
+	SpeechEpoch      uint64
+	Revision         uint64
+	Through          Seq
+	State            TurnState
+	Paused, Speaking bool
+	Reason           string
+	ControlEpoch     uint64
+	Partials         []PartDelta
+	SpeechID         uint64
+	Speech           SpeechRequested
+}
+type ViewChanged struct{}
+
+func (ViewChanged) observation() {}
+
+type HistoryCommitted struct{ Event Event }
+
+func (HistoryCommitted) observation() {}
+
 type DeltaKind string
 
 const (
@@ -50,6 +113,25 @@ type PartDelta struct {
 	PartID uint64 `json:"part_id"`
 	Chunk  string `json:"chunk"`
 }
+type ToolDispatched struct {
+	TurnID       uint64
+	PartID       uint64
+	CallID, Name string
+	Input        json.RawMessage
+}
+
+func (ToolDispatched) observation() {}
+
+type ToolFinished struct {
+	TurnID       uint64
+	PartID       uint64
+	CallID, Name string
+	Parts        PartList
+	IsError      bool
+}
+
+func (ToolFinished) observation() {}
+
 type PartFinal struct {
 	TurnID     uint64 `json:"turn_id"`
 	ResponseID uint64 `json:"response_id"`

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"strings"
@@ -38,6 +39,8 @@ type Ensemble struct {
 	nextHandle   int
 	watchers     map[uint64]chan AgentObservation
 	nextWatcher  uint64
+	identified   map[uint64]*identifiedSubscriber
+	traceQueue   chan traceWrite
 	shutdownDone chan struct{}
 	shutdownErr  error
 	jobs         map[int]common.Job
@@ -51,7 +54,9 @@ func New(logger *log.Logger) *Ensemble {
 	if logger == nil {
 		logger = log.New(io.Discard, "", 0)
 	}
-	return &Ensemble{logger: logger, jobs: make(map[int]common.Job), watchers: make(map[uint64]chan AgentObservation), shutdownDone: make(chan struct{})}
+	e := &Ensemble{traceQueue: make(chan traceWrite, 128), logger: logger, jobs: make(map[int]common.Job), watchers: make(map[uint64]chan AgentObservation), identified: make(map[uint64]*identifiedSubscriber), shutdownDone: make(chan struct{})}
+	go e.runTrace()
+	return e
 }
 
 // Logger supplies the application-owned logger to descendants through parents.
@@ -87,6 +92,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
+	a.SetID(fmt.Sprintf("agent-%d", len(e.agents)+1))
 	a.SetEngine(transport)
 	a.SetHistory(history.New(a))
 	a.SetJobs(jobs.New(a))
@@ -207,9 +213,22 @@ type Hint = common.Hint
 type Ephemeral = common.Ephemeral
 type Question = common.Question
 type Interrupt = common.Interrupt
+type Pause = common.Pause
+type Unpause = common.Unpause
+type SetSpeaking = common.SetSpeaking
+type SpeakParts = common.SpeakParts
+type Paused = common.Paused
+type SpeakingChanged = common.SpeakingChanged
+type SpeechRequested = common.SpeechRequested
+type TurnEndedObservation = common.TurnEndedObservation
+type ToolDispatched = common.ToolDispatched
+type ToolFinished = common.ToolFinished
+type Seq = common.Seq
 type Result = common.Result
 type Observation = common.Observation
 type Observer = common.Observer
+type ViewSnapshot = common.ViewSnapshot
+type TurnState = common.TurnState
 type PartDelta = common.PartDelta
 type PartFinal = common.PartFinal
 type HintObserved = common.HintObserved
@@ -258,18 +277,77 @@ var ErrToolRoundLimit = common.ErrToolRoundLimit
 
 func LookupModel(model string) (ModelFeatures, bool) { return common.LookupModel(model) }
 
+// Agents returns a registry snapshot; all mutation stays with the root.
+func (e *Ensemble) Agents() []Agent {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return append([]Agent(nil), e.agents...)
+}
+func (e *Ensemble) Agent(id string) (Agent, bool) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	for _, a := range e.agents {
+		if a.ID() == id {
+			return a, true
+		}
+	}
+	return nil, false
+}
+
 // Agent identity belongs to the parent envelope, not conversation events.
 type AgentObservation struct {
 	Agent       Agent
 	Observation Observation
 }
 
+type identifiedSubscriber struct {
+	wake chan struct{}
+	done chan struct{}
+}
+
+// A bounded wakeup tells the asynchronous subscriber to recover all Agents
+// from their latest immutable View. No subscriber code executes in an actor.
+func (e *Ensemble) SubscribeIdentified(fn func(AgentObservation)) func() {
+	e.mu.Lock()
+	e.nextWatcher++
+	id := e.nextWatcher
+	sub := &identifiedSubscriber{wake: make(chan struct{}, 1), done: make(chan struct{})}
+	e.identified[id] = sub
+	e.mu.Unlock()
+	go func() {
+		for {
+			select {
+			case <-sub.done:
+				return
+			case <-e.shutdownDone:
+				return
+			case <-sub.wake:
+				for _, a := range e.Agents() {
+					select {
+					case <-sub.done:
+						return
+					default:
+					}
+					fn(AgentObservation{a, common.ViewChanged{}})
+				}
+			}
+		}
+	}()
+	var once sync.Once
+	return func() { once.Do(func() { e.mu.Lock(); delete(e.identified, id); close(sub.done); e.mu.Unlock() }) }
+}
 func (e *Ensemble) Publish(a Agent, o Observation) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for _, ch := range e.watchers {
 		select {
 		case ch <- AgentObservation{a, o}:
+		default:
+		}
+	}
+	for _, sub := range e.identified {
+		select {
+		case sub.wake <- struct{}{}:
 		default:
 		}
 	}
@@ -299,22 +377,52 @@ func (e *Ensemble) WaitAny(ctx context.Context, predicate func(AgentObservation)
 // SetTrace enables a sanitized process-local diagnostic stream, separate from
 // semantic observations and History. The caller owns the writer's lifetime.
 func (e *Ensemble) SetTrace(w io.Writer) { e.mu.Lock(); defer e.mu.Unlock(); e.trace = w }
-func (e *Ensemble) Trace(r TraceRecord) {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	if e.trace != nil {
-		b, err := json.Marshal(r)
-		if err != nil {
+
+type traceWrite struct {
+	writer io.Writer
+	data   []byte
+}
+
+func (e *Ensemble) runTrace() {
+	for {
+		select {
+		case <-e.shutdownDone:
 			return
+		case item := <-e.traceQueue:
+			_, _ = item.writer.Write(item.data)
 		}
-		for _, a := range e.agents {
-			key := a.Config().APIKey
-			if key == "" {
-				continue
-			}
-			escaped, _ := json.Marshal(key)
-			b = []byte(strings.ReplaceAll(string(b), string(escaped[1:len(escaped)-1]), "[redacted]"))
-		}
-		_, _ = e.trace.Write(append(b, '\n'))
 	}
 }
+func (e *Ensemble) Trace(r TraceRecord) {
+	e.mu.Lock()
+	writer := e.trace
+	keys := make([]string, 0, len(e.agents))
+	for _, a := range e.agents {
+		keys = append(keys, a.Config().APIKey)
+	}
+	e.mu.Unlock()
+	if writer == nil {
+		return
+	}
+	body, err := json.Marshal(r)
+	if err != nil {
+		return
+	}
+	for _, key := range keys {
+		if key != "" {
+			escaped, _ := json.Marshal(key)
+			body = []byte(strings.ReplaceAll(string(body), string(escaped[1:len(escaped)-1]), "[redacted]"))
+		}
+	}
+	select {
+	case e.traceQueue <- traceWrite{writer, append(body, '\n')}:
+	default:
+	} // diagnostics cannot block progress
+}
+
+const (
+	Idle          = common.Idle
+	ResponseEnded = common.ResponseEnded
+	ToolReleased  = common.ToolReleased
+	ErrorOccurred = common.ErrorOccurred
+)

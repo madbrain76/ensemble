@@ -154,14 +154,29 @@ func (c *collection) Reserve(ctx context.Context, handler common.ToolHandler, ar
 	j.mu.Unlock()
 	return j, nil
 }
-func (j *job) Start() {
+func (j *job) Start() bool { started, _ := j.StartAfter(nil); return started }
+
+// The callback may save/queue facts but must not call back into this Job or
+// await job/actor work. Holding reservation admission excludes Kill/Abort races;
+// no worker or terminal-fact acknowledgement runs until the boundary succeeds.
+func (j *job) StartAfter(before func() error) (bool, error) {
 	j.mu.Lock()
-	defer j.mu.Unlock()
-	if j.pending != nil && j.data.Status == common.JobRunning && !j.shutting {
-		run := j.pending
-		j.pending = nil
-		go run()
+	if j.data.Status != common.JobRunning || j.pending == nil {
+		j.mu.Unlock()
+		return false, nil
 	}
+	if before != nil {
+		if err := before(); err != nil {
+			j.abortLocked(err)
+			j.mu.Unlock()
+			return false, err
+		}
+	}
+	run := j.pending
+	j.pending = nil
+	j.mu.Unlock()
+	go run()
+	return true, nil
 }
 func (j *job) abortLocked(err error) {
 	if j.pending == nil {

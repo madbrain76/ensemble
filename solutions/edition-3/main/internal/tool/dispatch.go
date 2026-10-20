@@ -50,31 +50,47 @@ func (r *registry) Dispatch(ctx context.Context, name string, input json.RawMess
 }
 
 type operation struct {
-	registry *registry
-	call     common.Part
-	args     arguments
-	limits   common.ToolLimits
-	custom   bool
-	job      common.Job
-	control  bool
-	err      error
-	ready    *common.ToolData
-	released atomic.Bool
+	registry   *registry
+	call       common.Part
+	args       arguments
+	limits     common.ToolLimits
+	custom     bool
+	job        common.Job
+	control    bool
+	err        error
+	released   atomic.Bool
+	dispatched atomic.Bool
 }
 
+func (o *operation) Dispatched() bool { return o.dispatched.Load() }
 func (o *operation) Called() common.ToolData {
-	d := common.ToolData{CallID: o.call.CallID, Name: o.call.Name, Args: o.call.Args}
+	d := common.ToolData{DisplayID: o.call.DisplayID, CallPartID: o.call.DisplayID, Dispatched: o.Dispatched(), CallID: o.call.CallID, Name: o.call.Name, Args: o.call.Args}
 	if o.job != nil {
 		j := o.job.Data()
 		d.Job = &j
 	}
 	return d
 }
-func (o *operation) Release() {
-	o.released.Store(true)
-	if o.job != nil {
-		o.job.Start()
+func (o *operation) Release() { _ = o.ReleaseAfter(nil) }
+func (o *operation) ReleaseAfter(before func() error) error {
+	if o.err != nil {
+		o.released.Store(true)
+		return nil
 	}
+	if o.job != nil {
+		started, err := o.job.StartAfter(before)
+		o.dispatched.Store(started)
+		o.released.Store(true)
+		return err
+	}
+	if before != nil {
+		if err := before(); err != nil {
+			return err
+		}
+	}
+	o.dispatched.Store(o.control)
+	o.released.Store(true)
+	return nil
 }
 func (o *operation) Abort(err error) {
 	o.err = err
@@ -84,7 +100,7 @@ func (o *operation) Abort(err error) {
 	}
 }
 func (o *operation) Await(ctx context.Context) common.ToolData {
-	if o.job != nil && !o.released.Load() {
+	if (o.job != nil || (o.control && o.err == nil)) && !o.released.Load() {
 		reply := make(chan common.ToolData, 1)
 		if err := o.registry.parent.Post(common.ToolAdmission{Context: ctx, Operation: o, Reply: reply}); err != nil {
 			o.Abort(err)
@@ -99,9 +115,6 @@ func (o *operation) Await(ctx context.Context) common.ToolData {
 				return d
 			}
 		}
-	}
-	if o.ready != nil {
-		return *o.ready
 	}
 	d := o.Called()
 	var text string
@@ -172,8 +185,10 @@ func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string
 	if selected.control {
 		o.control = true
 		if call.Name == "tool_limits" {
-			d := o.Await(ctx)
-			o.ready = &d
+			o.err = o.args.only("ai_callback_delay", "ai_callback_pattern", "max_output_bytes")
+			if o.err == nil {
+				_, o.err = parseLimits(o.args, common.DefaultToolLimits())
+			}
 		}
 		return o
 	}

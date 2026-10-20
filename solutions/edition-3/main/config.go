@@ -50,6 +50,18 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		}
 		c.RequireToolExplanation = enabled
 	}
+	for _, option := range []struct {
+		name string
+		dst  *bool
+	}{{"LLM_PAUSE_ON_START", &c.PauseOnStart}, {"LLM_SPEAKING", &c.Speaking}} {
+		if value := get(option.name); value != "" {
+			enabled, err := strconv.ParseBool(value)
+			if err != nil {
+				return Config{}, fmt.Errorf("%s must be a boolean", option.name)
+			}
+			*option.dst = enabled
+		}
+	}
 	c.LogPath = get("LLM_LOG_PATH")
 	if rounds := get("LLM_MAX_TOOL_ROUNDS"); rounds != "" {
 		n, err := strconv.Atoi(rounds)

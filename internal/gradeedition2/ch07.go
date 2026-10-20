@@ -42,6 +42,7 @@ func guiChecks(core, dir, model string) []grade.Check {
 	defer cleanup()
 	r.BuildOK = true
 	wire, replay, trace, err := driveGUI(bin, filepath.Join(dir, "web", "gui"), model)
+	replay = guiReplayFrames(replay)
 	r.Messages = oldMessages(wire)
 	r.ReplayMessages = oldMessages(replay)
 	r.GuiLogContent = trace
@@ -83,6 +84,28 @@ func guiChecks(core, dir, model string) []grade.Check {
 	}
 	checks[1].Details = append(checks[1].Details, "completed-content/identity replay checked; active partials, handoff and fixed window retain required source/integration proof")
 	return checks
+}
+
+// A reconnect may queue one complete replay batch instead of separate frames.
+// Inspect its real contents; do not invent missing state or completed artifacts.
+func guiReplayFrames(messages []map[string]any) []map[string]any {
+	var frames []map[string]any
+	for _, m := range messages {
+		if m["type"] != "replay" {
+			frames = append(frames, m)
+			continue
+		}
+		data := object(m["data"])
+		for _, key := range []string{"events", "partials"} {
+			items, _ := data[key].([]any)
+			for _, item := range items {
+				if frame, ok := item.(map[string]any); ok {
+					frames = append(frames, frame)
+				}
+			}
+		}
+	}
+	return frames
 }
 
 func oldMessages(messages []map[string]any) []grade.Ch8WsMsg {
@@ -143,11 +166,30 @@ func artifactID(m map[string]any) string {
 	return ""
 }
 
+func sameGUIFinal(a, b map[string]any) bool {
+	if !reflect.DeepEqual(guiPart(a), guiPart(b)) || !reflect.DeepEqual(a["call_id"], b["call_id"]) {
+		return false
+	}
+	for _, key := range []string{"agent_id", "turn_id"} {
+		if a[key] != nil && b[key] != nil && !reflect.DeepEqual(a[key], b[key]) {
+			return false
+		}
+	}
+	pa, pb := object(a["part"]), object(b["part"])
+	for _, key := range []string{"role", "call_id", "text"} {
+		if !reflect.DeepEqual(pa[key], pb[key]) {
+			return false
+		}
+	}
+	return true
+}
+
 func checkGUIWire(c *grade.Check, messages []map[string]any) {
 	// Type labels alone can hide empty tool errors or unrelated final content.
 	// Correlate the actual call and each text card against the provider fixture.
 	texts := map[string]string{}
 	finals := map[string]streamPart{}
+	finalFrames := map[string]map[string]any{}
 	dispatched, finished, ended, toolFinal := false, false, false, false
 	for _, m := range messages {
 		switch m["type"] {
@@ -167,9 +209,12 @@ func checkGUIWire(c *grade.Check, messages []map[string]any) {
 				fail(c, "final lacks artifact identity")
 				continue
 			}
-			if _, ok := finals[id]; ok {
-				fail(c, "final artifact identity reused: %s", id)
+			// A final may enrich the same card with job metadata. It must not
+			// reuse that identity for different content, role or tool call.
+			if prior, ok := finalFrames[id]; ok && !sameGUIFinal(prior, m) {
+				fail(c, "final artifact identity reused incompatibly: %s", id)
 			}
+			finalFrames[id] = m
 			finals[id] = guiPart(m)
 			p := finals[id]
 			if p.kind != "text" && p.kind != "opaque" && p.kind != "thinking" && p.kind != "tool_call" {

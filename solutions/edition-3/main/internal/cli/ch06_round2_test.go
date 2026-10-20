@@ -18,8 +18,8 @@ import (
 )
 
 // Exercise the public no-argument adapter, real Agent, and HTTP parser. Both
-// model responses start at part ID zero; only the queued state boundary can
-// distinguish them for a consumer using the chapter's observation envelope.
+// model responses retain native text part ID zero. Public display IDs are
+// lifetime identities; the actual in_flight boundaries must still precede them.
 func TestCh6R2ProtocolResponseBoundaries(t *testing.T) {
 	for _, tc := range []struct {
 		name, model, disabled string
@@ -102,7 +102,10 @@ func TestCh6R2ProtocolResponseBoundaries(t *testing.T) {
 			}
 			decoder := json.NewDecoder(&out)
 			boundaries, answers, modelFinals, toolResults := uint64(0), 0, 0, 0
-			zeroDeltas, zeroFinals := map[uint64]string{}, map[uint64]string{}
+			type textKey struct{ response, display uint64 }
+			textIDs := map[uint64]uint64{}
+			textDeltas, textFinals := map[textKey]string{}, map[textKey]string{}
+			seenFinals := map[textKey]bool{}
 			for {
 				var record struct {
 					Observation string             `json:"observation"`
@@ -135,40 +138,51 @@ func TestCh6R2ProtocolResponseBoundaries(t *testing.T) {
 						t.Fatalf("%s for response %d before matching in_flight boundary (seen %d)", record.Observation, record.ResponseID, boundaries)
 					}
 					if record.PartID == nil {
-						t.Fatal("missing part ID; zero is a valid ID")
+						t.Fatal("missing public display ID")
 					}
-					if record.Observation == "part_delta" && *record.PartID == 0 {
-						if record.Kind != ensemble.DeltaText {
-							t.Fatalf("part zero kind=%s", record.Kind)
+					key := textKey{record.ResponseID, *record.PartID}
+					if record.Observation == "part_delta" && record.Kind == ensemble.DeltaText {
+						if id, exists := textIDs[record.ResponseID]; exists && id != *record.PartID {
+							t.Fatal("text display ID changed within response")
 						}
-						zeroDeltas[record.ResponseID] += record.Chunk
+						textIDs[record.ResponseID] = *record.PartID
+						textDeltas[key] += record.Chunk
 					}
 					if record.Observation == "part_final" {
 						modelFinals++
-						if record.Part.ID != *record.PartID {
-							t.Fatal("final ID changed")
+						if record.Part.DisplayID != *record.PartID {
+							t.Fatal("final display ID changed")
 						}
-						if *record.PartID == 0 {
-							if _, exists := zeroFinals[record.ResponseID]; exists {
-								t.Fatal("duplicate final")
+						if seenFinals[key] {
+							t.Fatal("duplicate final")
+						}
+						seenFinals[key] = true
+						if record.Part.Type == "text" {
+							id, exists := textIDs[record.ResponseID]
+							if !exists || id != *record.PartID || record.Part.ID != 0 {
+								t.Fatal("final text lost display identity or native ID zero")
 							}
-							zeroFinals[record.ResponseID] = record.Part.Text
+							textFinals[key] = record.Part.Text
 						}
 					}
 				}
 				if record.Assistant != nil {
 					answers++
-					if *record.Assistant != "done answer" || zeroFinals[2] != "done answer" {
-						t.Fatalf("answer before matching final: %q, finals=%v", *record.Assistant, zeroFinals)
+					if *record.Assistant != "done answer" || textFinals[textKey{2, textIDs[2]}] != "done answer" {
+						t.Fatalf("answer before matching final: %q, finals=%v", *record.Assistant, textFinals)
 					}
 				}
 			}
 			if boundaries != 2 || answers != 1 || modelFinals != 3 || toolResults != 1 {
 				t.Fatalf("boundaries=%d answers=%d model finals=%d tool results=%d", boundaries, answers, modelFinals, toolResults)
 			}
+			if len(textIDs) != 2 || textIDs[1] == textIDs[2] {
+				t.Fatalf("response display IDs not distinct: %v", textIDs)
+			}
 			for response, text := range map[uint64]string{1: "Looking up.", 2: "done answer"} {
-				if zeroDeltas[response] != text || zeroFinals[response] != text {
-					t.Fatalf("response %d reused zero ID incorrectly: deltas=%q finals=%q", response, zeroDeltas[response], zeroFinals[response])
+				key := textKey{response, textIDs[response]}
+				if textDeltas[key] != text || textFinals[key] != text {
+					t.Fatalf("response %d display ID %d: deltas=%q finals=%q", response, key.display, textDeltas[key], textFinals[key])
 				}
 			}
 		})

@@ -69,9 +69,15 @@ func TestCompletionTokenLimitHTTP(t *testing.T) {
 					t.Fatalf("reply=%+v engine usage=%+v", result, a.Engine().Usage())
 				}
 				responseCount := 0
+				var savedTexts []ensemble.Part
 				for _, event := range a.Log().Events() {
 					if event.Type == "response_ended" && event.Response != nil {
 						responseCount++
+						for _, part := range event.Response.Parts {
+							if part.Type == "text" {
+								savedTexts = append(savedTexts, part)
+							}
+						}
 						if event.Response.Usage != wantUsage {
 							t.Errorf("saved response usage=%+v", event.Response.Usage)
 						}
@@ -114,16 +120,39 @@ func TestCompletionTokenLimitHTTP(t *testing.T) {
 					}
 				}
 				var text strings.Builder
+				var displayID uint64
+				sawText, finals := false, 0
 				for _, o := range q.Drain() {
-					if d, ok := o.(ensemble.PartDelta); ok && d.Kind == ensemble.DeltaText {
-						if d.PartID != 0 {
-							t.Errorf("text part ID=%d", d.PartID)
+					switch o := o.(type) {
+					case ensemble.PartDelta:
+						if o.Kind != ensemble.DeltaText {
+							continue
 						}
-						text.WriteString(d.Chunk)
+						if !sawText {
+							displayID, sawText = o.PartID, true
+						}
+						if o.PartID != displayID {
+							t.Errorf("text display ID changed: %d -> %d", displayID, o.PartID)
+						}
+						text.WriteString(o.Chunk)
+					case ensemble.PartFinal:
+						if o.Part.Type != "text" {
+							continue
+						}
+						finals++
+						if !sawText || o.PartID != displayID || o.Part.DisplayID != displayID || o.Part.ID != 0 || o.Part.Text != "hello" {
+							t.Errorf("final does not match text display ID %d/native ID zero: %+v", displayID, o)
+						}
 					}
 				}
-				if text.String() != "hello" {
-					t.Errorf("delta content=%q", text.String())
+				if !sawText || finals != 1 || text.String() != "hello" {
+					t.Errorf("text observed=%t finals=%d delta content=%q", sawText, finals, text.String())
+				}
+				if len(savedTexts) != 1 {
+					t.Fatalf("saved text parts=%d", len(savedTexts))
+				}
+				if part := savedTexts[0]; part.DisplayID != displayID || part.ID != 0 || part.Text != "hello" {
+					t.Errorf("saved text does not match display ID %d/native ID zero: %+v", displayID, part)
 				}
 			})
 		}

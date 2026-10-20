@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,13 +44,14 @@ func (b *mailbox) drain() []any {
 }
 
 type request struct {
-	live    bool
-	turnID  uint64
-	message *common.MessageData
-	ctx     context.Context
-	text    string
-	reply   chan common.Result
-	done    chan struct{}
+	live        bool
+	turnID      uint64
+	message     *common.MessageData
+	hintMessage bool
+	ctx         context.Context
+	text        string
+	reply       chan common.Result
+	done        chan struct{}
 }
 type cancelRequest struct {
 	request *request
@@ -99,6 +101,8 @@ type admittedResult struct {
 	reply chan common.ToolData
 }
 type stopped struct{ err error }
+type pauseChanged struct{}
+
 type turn struct {
 	id                                  uint64
 	response                            uint64
@@ -116,6 +120,8 @@ type turn struct {
 	skip                                bool
 	hinted                              bool
 	rounds, limit                       int
+	partIDs                             map[uint64]uint64
+	speechRequested                     bool
 }
 
 // Start is called once by the composition root, after all child links exist.
@@ -123,6 +129,14 @@ func (a *agent) Start() { go a.run() }
 func (a *agent) Post(input common.Inbound) error {
 	if input == nil {
 		return errors.New("nil input")
+	}
+	switch m := input.(type) {
+	case common.Pause:
+		return a.Pause()
+	case common.Unpause:
+		if m.TurnID == 0 {
+			return a.Unpause()
+		}
 	}
 	return a.box.post(input, true)
 }
@@ -190,6 +204,7 @@ func (a *agent) Shutdown() error {
 }
 
 func (a *agent) recordJob(r common.JobReport) error {
+	r.Job.CallPartID = a.jobParts[r.Job.Handle]
 	typ := common.JobReported
 	if r.Job.Status == common.JobKilledStatus {
 		typ = common.JobKilled
@@ -256,6 +271,29 @@ func (a *agent) run() {
 				if !a.stopping {
 					a.hint(common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text(m.Text)}, Sender: m.Sender, Recipient: m.Recipient, RequestID: m.RequestID, TurnID: m.TurnID})
 				}
+			case common.Unpause:
+				if m.TurnID != 0 && (a.active == nil || a.active.id != m.TurnID) {
+					continue
+				}
+				_ = a.Unpause()
+			case pauseChanged:
+				paused := a.isPaused()
+				a.publish(common.Paused{Paused: paused})
+				if !paused {
+					resume := a.gate
+					a.gate = nil
+					if resume != nil {
+						resume()
+					}
+				}
+			case common.SetSpeaking:
+				a.speaking = m.Enabled
+				a.publish(common.SpeakingChanged{Speaking: m.Enabled})
+				if a.gate != nil {
+					a.requestPauseSpeech()
+				}
+			case common.SpeakParts:
+				a.publish(common.SpeechRequested{Parts: m.Parts, Reason: m.Reason})
 			case common.Interrupt:
 				a.interrupt(common.ErrInterrupted)
 			case invoke:
@@ -271,6 +309,8 @@ func (a *agent) run() {
 					m.reply <- errors.New("direct Invoke requires an idle conversation")
 					break
 				}
+				a.partID++
+				m.call.DisplayID = a.partID
 				op := a.tools.Prepare(m.ctx, m.call, m.refusal, 0)
 				if err := a.admit(op, 0); err != nil {
 					m.reply <- err
@@ -323,6 +363,7 @@ func (a *agent) run() {
 					t.toolSeen = true
 				}
 				m.delta.TurnID, m.delta.ResponseID = m.turn, m.response
+				m.delta.PartID = a.displayID(t, m.delta.PartID)
 				a.publish(m.delta)
 				a.parent.Trace(common.TraceRecord{Stage: "delta_publish", TurnID: m.turn, ResponseID: m.response, PartID: m.delta.PartID, Kind: string(m.delta.Kind), Bytes: len(m.delta.Chunk)})
 			case response:
@@ -373,7 +414,9 @@ func (a *agent) startNext() {
 		r.turnID = a.active.id
 		event := common.Event{Type: common.MessageReceived, TurnID: a.active.id, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text(r.text)}}}
 		if r.message != nil {
-			event.Type = common.HintReceived
+			if r.hintMessage {
+				event.Type = common.HintReceived
+			}
 			event.Message = r.message
 		}
 		if _, err := a.record(event); err != nil {
@@ -396,7 +439,7 @@ func (a *agent) hint(m common.MessageData) {
 				text.WriteString(p.Text)
 			}
 		}
-		a.pending = append(a.pending, &request{ctx: context.Background(), text: text.String(), message: &m})
+		a.pending = append(a.pending, &request{ctx: context.Background(), text: text.String(), message: &m, hintMessage: true})
 		return
 	}
 	id := a.active.id
@@ -421,6 +464,9 @@ func (a *agent) hint(m common.MessageData) {
 }
 func (a *agent) send() {
 	t := a.active
+	if a.waitGate("Before next model request", a.send) {
+		return
+	}
 	body, err := a.engine.Render(a.history.Context())
 	if err != nil {
 		a.finish("", err)
@@ -435,6 +481,7 @@ func (a *agent) send() {
 	ctx, cancel := context.WithCancel(t.ctx)
 	t.httpCancel = cancel
 	t.response++
+	t.partIDs = make(map[uint64]uint64)
 	t.arrivalInvalid, t.toolSeen, t.explained = false, false, false
 	responseID := t.response
 	a.parent.Trace(common.TraceRecord{Stage: "request_sent", TurnID: t.id, ResponseID: responseID})
@@ -464,6 +511,17 @@ func (a *agent) receive(r response) {
 	for _, e := range r.events {
 		e.TurnID = r.turn
 		e.Stale = stale
+		if e.Response != nil {
+			for i := range e.Response.Parts {
+				p := &e.Response.Parts[i]
+				if !stale && len(a.active.partIDs) > 0 {
+					p.DisplayID = a.displayID(a.active, p.ID)
+				} else {
+					a.partID++
+					p.DisplayID = a.partID
+				}
+			}
+		}
 		seq, err := a.record(e)
 		if err != nil {
 			if !stale {
@@ -475,8 +533,8 @@ func (a *agent) receive(r response) {
 			parts = e.Response.Parts
 			if r.err == nil && idErr == nil {
 				for _, p := range e.Response.Parts {
-					a.publish(common.PartFinal{Seq: uint64(seq), TurnID: r.turn, ResponseID: r.response, PartID: p.ID, Part: p})
-					a.parent.Trace(common.TraceRecord{Stage: "part_final", TurnID: r.turn, ResponseID: r.response, PartID: p.ID, Kind: p.Type})
+					a.publish(common.PartFinal{Seq: uint64(seq), TurnID: r.turn, ResponseID: r.response, PartID: p.DisplayID, Part: p})
+					a.parent.Trace(common.TraceRecord{Stage: "part_final", TurnID: r.turn, ResponseID: r.response, PartID: p.DisplayID, Kind: p.Type})
 				}
 			}
 		}
@@ -544,6 +602,9 @@ func (a *agent) dispatch() {
 		a.send()
 		return
 	}
+	if a.waitGate("Before dispatching tool "+t.calls[t.index].Name, a.dispatch) {
+		return
+	}
 	call := t.calls[t.index]
 	op := a.tools.Prepare(t.ctx, call, t.refusal, t.id)
 	if err := a.admit(op, t.id); err != nil {
@@ -566,6 +627,16 @@ func (a *agent) dispatch() {
 // operation. Failed admission settles its reservation without running a handler.
 func (a *agent) admit(op common.ToolOperation, turn uint64) error {
 	d := op.Called()
+	d.Dispatched = false
+	if d.DisplayID == 0 {
+		a.partID++
+		d.DisplayID = a.partID
+		d.CallPartID = d.DisplayID
+	}
+	if d.Job != nil {
+		a.jobParts[d.Job.Handle] = d.DisplayID
+		d.Job.CallPartID = d.DisplayID
+	}
 	seq, err := a.record(common.Event{Type: common.ToolCalled, TurnID: turn, Tool: &d})
 	if err != nil {
 		op.Abort(err)
@@ -576,13 +647,34 @@ func (a *agent) admit(op common.ToolOperation, turn uint64) error {
 		}
 		return err
 	}
-	op.Release()
+	err = op.ReleaseAfter(func() error {
+		d.Dispatched = true
+		if _, err := a.recordSaved(common.Event{Type: common.ToolReleased, TurnID: turn, Tool: &d}); err != nil {
+			return err
+		}
+		a.publish(common.ToolDispatched{TurnID: turn, PartID: d.CallPartID, CallID: d.CallID, Name: d.Name, Input: append(json.RawMessage(nil), d.Args...)})
+		return nil
+	})
+	if err != nil {
+		op.Abort(err)
+		if recordErr := a.returned(turn, op.Await(context.Background())); recordErr != nil {
+			err = errors.Join(err, recordErr)
+		}
+		return err
+	}
 	return nil
 }
 func (a *agent) returned(turn uint64, d common.ToolData) error {
+	if d.Job != nil {
+		d.CallPartID = a.jobParts[d.Job.Handle]
+		d.Job.CallPartID = d.CallPartID
+	}
+	a.partID++
+	d.DisplayID = a.partID
 	seq, err := a.record(common.Event{Type: common.ToolReturned, TurnID: turn, Tool: &d})
 	if err == nil {
-		a.final(seq, common.Part{Type: "tool_result", CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
+		a.publish(common.ToolFinished{TurnID: turn, PartID: d.DisplayID, CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
+		a.final(seq, common.Part{DisplayID: d.DisplayID, Type: "tool_result", CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
 	}
 	return err
 }
@@ -660,9 +752,11 @@ func (a *agent) finish(text string, err error) {
 		_, recordErr := a.record(common.Event{Type: common.ErrorOccurred, TurnID: t.id, Error: &common.ErrorData{Message: err.Error()}})
 		err = errors.Join(err, recordErr)
 	}
-	_, recordErr := a.record(common.Event{Type: common.TurnEnded, TurnID: t.id, Message: &common.MessageData{Actor: common.Assistant, Parts: common.PartList{}}})
+	_, recordErr := a.record(common.Event{Type: common.TurnEnded, TurnID: t.id, Message: &common.MessageData{Actor: common.Assistant, Parts: common.PartList{common.Text(text)}}})
 	err = errors.Join(err, recordErr)
 	a.active = nil
+	a.gate = nil
+	a.publish(common.TurnEndedObservation{TurnID: t.id, Text: text})
 	a.transition(common.Idle)
 	a.reply(t.request, text, err)
 	for _, r := range t.followers {
@@ -676,15 +770,41 @@ func (a *agent) reply(r *request, text string, err error) {
 		close(r.done)
 	}
 }
-func (a *agent) record(e common.Event) (common.Seq, error) {
-	if err := a.history.Append(e); err != nil {
+func (a *agent) record(e common.Event) (common.Seq, error)      { return a.recordWithSave(e, false) }
+func (a *agent) recordSaved(e common.Event) (common.Seq, error) { return a.recordWithSave(e, true) }
+func (a *agent) recordWithSave(e common.Event, saveFirst bool) (common.Seq, error) {
+	if e.Message != nil {
+		for i := range e.Message.Parts {
+			if e.Message.Parts[i].DisplayID == 0 {
+				a.partID++
+				e.Message.Parts[i].DisplayID = a.partID
+			}
+		}
+	}
+	var err error
+	if saveFirst {
+		err = a.history.AppendSaved(e, a.saveDump)
+	} else {
+		err = a.history.Append(e)
+	}
+	if err != nil {
 		return 0, err
 	}
-	events := a.history.Events()
-	seq := events[len(events)-1].Seq
-	return seq, a.save()
+	seq := a.history.LastSeq()
+	// AppendSaved already persisted this exact event. A second save must not
+	// introduce a post-commit failure that aborts an admitted reservation.
+	if !saveFirst {
+		if err := a.save(); err != nil {
+			return seq, err
+		}
+	}
+	e.Seq = seq
+	a.viewState.Through = seq
+	a.publish(common.HistoryCommitted{Event: e})
+	return seq, nil
 }
-func (a *agent) save() error {
+func (a *agent) save() error { return a.saveDump(a.history.Dump) }
+func (a *agent) saveDump(dump func(io.Writer) error) error {
 	path := a.config.LogPath
 	if path == "" {
 		return nil
@@ -695,7 +815,7 @@ func (a *agent) save() error {
 	}
 	name := f.Name()
 	defer os.Remove(name)
-	err = a.history.Dump(f)
+	err = dump(f)
 	err = errors.Join(err, f.Close())
 	if err == nil {
 		err = os.Rename(name, path)
@@ -711,12 +831,15 @@ func (a *agent) transition(to common.TurnState) {
 	a.publish(common.StateChanged{From: string(from), To: string(to)})
 }
 func (a *agent) final(seq common.Seq, p common.Part) {
-	a.partID++
+	if p.DisplayID == 0 {
+		a.partID++
+		p.DisplayID = a.partID
+	}
 	turnID := uint64(0)
 	if a.active != nil {
 		turnID = a.active.id
 	}
-	a.publish(common.PartFinal{Seq: uint64(seq), TurnID: turnID, PartID: a.partID, Part: p})
+	a.publish(common.PartFinal{Seq: uint64(seq), TurnID: turnID, PartID: p.DisplayID, Part: p})
 }
 
 // Each observer gets a bounded queue. Neither a slow callback nor a slow Wait
@@ -736,6 +859,7 @@ func (a *agent) unsubscribe(id uint64) {
 	a.observersMu.Unlock()
 }
 func (a *agent) publish(o common.Observation) {
+	a.updateView(o)
 	a.parent.Publish(a, o)
 	a.observersMu.Lock()
 	defer a.observersMu.Unlock()
@@ -781,4 +905,48 @@ func (a *agent) Wait(ctx context.Context, predicate func(common.Observation) boo
 			return nil, common.ErrStopped
 		}
 	}
+}
+
+func (a *agent) isPaused() bool { a.gateMu.Lock(); defer a.gateMu.Unlock(); return a.paused }
+func (a *agent) Pause() error {
+	a.gateMu.Lock()
+	a.paused = true
+	a.gateMu.Unlock()
+	return a.box.post(pauseChanged{}, true)
+}
+func (a *agent) Unpause() error {
+	a.gateMu.Lock()
+	a.paused = false
+	a.gateMu.Unlock()
+	return a.box.post(pauseChanged{}, true)
+}
+
+// A pause stores a continuation, never waits inside the mailbox.
+func (a *agent) waitGate(reason string, resume func()) bool {
+	if !a.isPaused() {
+		return false
+	}
+	a.gate = resume
+	a.gateReason = reason
+	a.publish(common.Paused{Paused: true, Reason: reason})
+	a.requestPauseSpeech()
+	return true
+}
+func (a *agent) requestPauseSpeech() {
+	t := a.active
+	if a.speaking && t != nil && !t.speechRequested {
+		t.speechRequested = true
+		a.publish(common.SpeechRequested{TurnID: t.id, Parts: common.PartList{common.Text(a.gateReason)}, Reason: a.gateReason})
+	}
+}
+func (a *agent) displayID(t *turn, parserID uint64) uint64 {
+	if t.partIDs == nil {
+		t.partIDs = make(map[uint64]uint64)
+	}
+	if id := t.partIDs[parserID]; id != 0 {
+		return id
+	}
+	a.partID++
+	t.partIDs[parserID] = a.partID
+	return a.partID
 }
