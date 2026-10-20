@@ -26,6 +26,7 @@ func controlsOf(s ensemble.ViewSnapshot) controlState {
 }
 
 type agentView struct {
+	unsubscribeSkills  func()
 	agent              ensemble.Agent
 	cursor             ensemble.Seq
 	revision, speechID uint64
@@ -86,6 +87,11 @@ func (h *Hub) Close() {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.closed = true
+	for _, v := range h.agents {
+		if v.unsubscribeSkills != nil {
+			v.unsubscribeSkills()
+		}
+	}
 	h.speech.close()
 	for c := range h.clients {
 		c.stop()
@@ -105,6 +111,14 @@ func (h *Hub) view(a ensemble.Agent) *agentView {
 		cfg := a.Config()
 		v = &agentView{agent: a, state: controlState{Paused: cfg.PauseOnStart, Speaking: cfg.Speaking, Turn: ensemble.Idle}, partial: map[uint64]Card{}, spoken: map[uint64]int{}}
 		h.agents[a.ID()] = v
+		v.unsubscribeSkills = a.Skills().SubscribeSkills(func() {
+			h.mu.Lock()
+			defer h.mu.Unlock()
+			if h.closed {
+				return
+			}
+			h.broadcast(skillFrame(a))
+		})
 	}
 	return v
 }
@@ -313,6 +327,7 @@ func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
 		a.Config.Model = cfg.Model
 		a.Config.Surface = cfg.Surface
 		data.Agents = append(data.Agents, a)
+		data.Events = append(data.Events, skillFrame(v.agent))
 		data.Events = append(data.Events, Wire{Type: "state_changed", AgentID: id, Replay: true, From: s.State, To: s.State, State: &a.State})
 		for _, p := range s.Partials {
 			data.Partials = append(data.Partials, Wire{Type: "part_delta", AgentID: id, PartID: p.PartID, TurnID: p.TurnID, Kind: string(p.Kind), Name: p.Name, Chunk: p.Chunk, Replay: true})
@@ -357,4 +372,8 @@ func (h *Hub) sendSettingsError(c *client, err error) {
 	defer h.mu.Unlock()
 	raw, _ := json.Marshal(Wire{Type: "settings_error", Data: err.Error()})
 	h.enqueue(c, raw, "settings_error", "")
+}
+
+func skillFrame(a ensemble.Agent) Wire {
+	return Wire{Type: "skill_state", AgentID: a.ID(), Skills: a.Skills().ListSkills(), LoadableSkills: a.Skills().LoadableSkills()}
 }

@@ -62,6 +62,14 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 			*option.dst = enabled
 		}
 	}
+	directory, primary := get("EN_SKILLS_DIR"), get("EN_PRIMARY_SKILL")
+	if directory != "" || primary != "" {
+		if directory == "" || primary == "" {
+			return Config{}, fmt.Errorf("EN_SKILLS_DIR and EN_PRIMARY_SKILL must be supplied together")
+		}
+		custom := get("EN_CUSTOM_VAR")
+		c.Skills = &SkillSpec{Directory: directory, Primary: primary, Variables: map[string]func() string{"CUSTOM_VAR": func() string { return custom }}}
+	}
 	c.LogPath = get("LLM_LOG_PATH")
 	if rounds := get("LLM_MAX_TOOL_ROUNDS"); rounds != "" {
 		n, err := strconv.Atoi(rounds)

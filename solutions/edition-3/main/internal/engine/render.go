@@ -28,7 +28,11 @@ func textParts(ps common.PartList) (string, error) {
 	}
 	return b.String(), nil
 }
-func render(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
+func render(c common.Context, cfg common.Config, defs []common.ToolDefinition, disclosures ...anthropicDisclosure) ([]byte, error) {
+	var disclosure anthropicDisclosure
+	if len(disclosures) > 0 {
+		disclosure = disclosures[0]
+	}
 	var err error
 	c, err = prepareMedia(c, cfg)
 	if err != nil {
@@ -40,7 +44,7 @@ func render(c common.Context, cfg common.Config, defs []common.ToolDefinition) (
 	}
 	switch cfg.Vendor {
 	case common.Anthropic:
-		return renderAnthropic(c, cfg, defs)
+		return renderAnthropic(c, cfg, defs, disclosure)
 	case common.OpenAI:
 		return renderOpenAI(c, cfg, defs)
 	case common.Gemini:
@@ -106,11 +110,19 @@ func (m aMessage) MarshalJSON() ([]byte, error) {
 	return json.Marshal(plain(m))
 }
 func aText(s string) json.RawMessage { return raw(aBlock{Type: "text", Text: &s}) }
-func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefinition) ([]byte, error) {
+func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefinition, disclosures ...anthropicDisclosure) ([]byte, error) {
+	var disclosure anthropicDisclosure
+	if len(disclosures) > 0 {
+		disclosure = disclosures[0]
+	}
 	sys, err := system(c, cfg)
 	if err != nil {
 		return nil, err
 	}
+	// Only an actually emitted reference can keep an enabled schema deferred.
+	// Direct API loads and contexts missing the enabling pair use ordinary
+	// declarations, without changing first-enable provenance or History.
+	disclosed := map[string]bool{}
 	messages := []aMessage{}
 	// Pre-index real results so late arrivals supersede the missing-record bridge.
 	calls := map[string]bool{}
@@ -198,7 +210,18 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 					}
 					isError = result.IsError
 				}
-				bs = append(bs, raw(aBlock{Type: "tool_result", ToolUseID: call.CallID, Content: &text, IsError: isError}))
+				if names := disclosure.references[call.CallID]; len(names) > 0 && ok && !isError && call.Name == "load_skill" {
+					// Discovery results contain only references. The handler's status
+					// remains in canonical History, not this provider wire projection.
+					content := make([]json.RawMessage, 0, len(names))
+					for _, name := range names {
+						disclosed[name] = true
+						content = append(content, raw(map[string]string{"type": "tool_reference", "tool_name": name}))
+					}
+					bs = append(bs, raw(map[string]any{"type": "tool_result", "tool_use_id": call.CallID, "content": content, "is_error": isError}))
+				} else {
+					bs = append(bs, raw(aBlock{Type: "tool_result", ToolUseID: call.CallID, Content: &text, IsError: isError}))
+				}
 			}
 			appendMessage("user", bs)
 		}
@@ -211,6 +234,10 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		appendMessage("user", []json.RawMessage{aText(tail)})
 	}
 
+	tools := anthropicDefinitions(defs)
+	if disclosure.catalog != nil {
+		tools = anthropicCatalog(disclosure.catalog, disclosed)
+	}
 	return json.Marshal(struct {
 		Model     string        `json:"model"`
 		MaxTokens int           `json:"max_tokens"`
@@ -218,7 +245,7 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		Messages  []aMessage    `json:"messages"`
 		Tools     []aDefinition `json:"tools,omitempty"`
 		Stream    bool          `json:"stream,omitempty"`
-	}{cfg.Model, 1024, sys, messages, anthropicDefinitions(defs), cfg.Streaming()})
+	}{cfg.Model, 1024, sys, messages, tools, cfg.Streaming()})
 }
 
 // OpenAI has its own tool authorship; it does not inherit Anthropic's grouping.

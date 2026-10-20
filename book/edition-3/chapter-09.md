@@ -12,9 +12,9 @@ A skill is a named unit of capability: instructions, tools, and
 dependencies, in a single markdown file. Loading one changes what the
 agent can do; unloading one marks it for removal at the next
 compaction. This chapter records that pending state; compaction arrives later.
-The system prompt renders once from the primary skill at
-agent creation and stays fixed. Capabilities added after creation
-reach the agent through the event stream.
+The primary and preloaded skills form the initial system prompt. Their
+rendered bodies stay intact; instructions from later loads join them in
+the system prompt. Tool availability follows a separate, provider-aware path.
 
 Variable substitution lives here too. A skill body can contain
 `$TOOLS` or `$SKILLS` or any application-specific variable, and the
@@ -74,9 +74,11 @@ Available skills to load: $SKILLS
 - `loadable-skills`: skills this skill makes available for the agent
   to discover
 
-The primary skill defines the agent. Its body, together with its initial
-dependencies' instructions, becomes the system prompt, rendered once at
-creation. Its `tools` list and those dependencies determine startup capability;
+The primary skill defines the agent. Its body, together with the instructions
+of skills loaded at startup, forms the initial system prompt. Declare those
+skills' tools in the provider's usual tool section. Skills supply both
+instructions and tools; returning their text in a tool result is not a substitute
+for placing their instructions in the provider's instruction context.
 `load_skill` and `unload_skill` are always available when skills are configured.
 A minimal `base` skill can declare only `read_file`. A full `ensemble` skill
 declares the tools built so far:
@@ -116,20 +118,56 @@ The original example named `think` without teaching its behavior or arguments.
 An unknown name cannot create a handler. This list uses the existing
 `tool_limits` capability instead; do not advertise a tool that cannot execute.
 
+**Provider-aware skill delivery.** For Anthropic, the student must read the
+current official documentation and use its supported incremental message/content
+mechanisms for dynamically loaded skills, including incremental tool disclosure,
+rather than replacing the startup declarations on every load. Verify how skill
+instructions are carried: where no supported incremental instruction channel
+exists, compose them into the system prompt. Do not guess message types or treat
+ordinary tool-result prose as an instruction channel. Startup tools still belong
+in the usual tool section, not the dynamic disclosure path.
+
+For other vendors, this chapter uses the system prompt for loaded skill
+instructions, updating it and the usual tool declarations when skills load.
+Accept the resulting cache invalidation rather than keeping instructions in a
+weaker channel to preserve a prefix; changing tool declarations can invalidate
+that prefix too. Anthropic's incremental path is intended to avoid unnecessary
+prefix changes, not to guarantee a cache hit. This policy supersedes the earlier
+creation-only, permanently frozen system-prompt rule.
+
+In the accepted Anthropic path, the full catalog still travels in every request:
+startup tools use ordinary declarations and undisclosed tools have `defer_loading`.
+A successful model-called `load_skill` reveals tools through `tool_reference`
+blocks in its actual paired `tool_result`. That result's content contains only
+references, with no status prose mixed in. Canonical history keeps the textual
+load status; the provider renderer projects the discovery result. Loaded
+instructions join SYSTEM because the documented API supplies no separate
+mid-turn instruction channel. The [tool-search documentation](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
+describes this disclosure protocol; it is not an instruction role.
+
+Direct or manual loads, loads without a paired discovery result, and unsupported
+models use ordinary enabled tool definitions. Never fabricate a model call or
+an enabling event to obtain the incremental form.
+
 The exercise is:
 
 1. Discover the files and validate each skill's name and type. Accept both
    list forms shown below and preserve horizontal rules in the body.
-2. Load the selected primary and its dependencies at Agent creation. Render
-   the system text once; later skill loads leave it byte-for-byte unchanged.
+2. Load the selected primary and its dependencies at Agent creation. Build
+   the initial system prompt and normal tool declarations from the startup set.
 3. Implement `load_skill` and `unload_skill`, each taking a JSON object such
    as `{"name":"code-tools"}`. A successful load resolves dependencies,
-   enables tools, reveals the next available skills and returns rendered
-   instructions through the existing tool result. Reject unavailable names,
-   wrong types, missing dependencies and cycles without a partial activation.
+   enables tools, reveals the next available skills and delivers rendered
+   instructions through the provider-aware path above. The tool result reports
+   the load; it is not the sole instruction delivery mechanism. Reject unavailable
+   names, wrong types, missing dependencies and cycles without partial activation.
 4. Use the same enabled set for vendor declarations and dispatch. A guessed
-   hidden name must not execute. Mark unload pending while retaining its
-   instructions and tools; actual removal waits for the later compaction chapter.
+   hidden name must not execute. Research Anthropic's current unloading semantics
+   alongside its incremental loading mechanism; do not assume disclosed tools or
+   instructions can be retracted mid-conversation. Record supported behavior and
+   limitations before implementing removal. For now, mark unload pending while
+   retaining instructions and tools; actual removal remains deferred to the later
+   compaction chapter unless that contract is explicitly revised.
 5. Support `$TOOLS`, `$SKILLS` and application variables at point of use.
    Track each tool's first enabling source and event sequence. Keep registries
    independent between Agents and preserve earlier behavior without a skill spec.
@@ -185,7 +223,7 @@ browser and live-provider exercise below.
 | Check | Points | Observable behavior |
 | --- | ---: | --- |
 | Initial tools | 10 | Primary/dependency tools plus both lifecycle tools |
-| Primary body | 10 | Rendered initial instructions stay fixed across loads |
+| Primary body | 10 | Initial rendered bodies stay intact as loaded instructions join SYSTEM |
 | Full primary | 10 | All twelve installed tools in the example are declared |
 | Dynamic tools | 15 | Load adds instructions and executable tools; pending unload retains capability |
 | Progressive disclosure | 15 | A load reveals its offered skills in current `$SKILLS` |
@@ -292,7 +330,10 @@ This checks both sides of the boundary without replacing the tool with a mock.
 rewrite old instructions or disable the skill's tools in this exercise. An
 unloaded name returns an error. Compaction later provides the boundary where
 removal becomes effective; adding a compactor now would turn a lifecycle marker
-into another assignment.
+into another assignment. Anthropic's [context editing](https://platform.claude.com/docs/en/build-with-claude/context-editing)
+can clear selected tool results, but that is not semantic retraction of skill
+instructions or an application-level capability revoke. Pending unload retains
+both instructions and tools until the future compaction boundary.
 
 ## Progressive Disclosure
 
@@ -307,8 +348,8 @@ stays manageable.
 
 The original `$SKILLS` text in the system prompt does not change as this tree
 unfolds. The newly loaded body's `$SKILLS` is rendered after activation and
-arrives in the tool result, where it can name the next level. This is how the
-agent discovers `refactor-tools` without rebuilding its initial instructions.
+joins the system prompt, where it can name the next level. This is how the
+agent discovers `refactor-tools` while retaining its initial rendered bodies.
 
 ## Variable Substitution
 
@@ -330,7 +371,7 @@ agent, err := app.NewAgent(cfg)
 if err != nil {
     return err
 }
-// Future loads see the new renderer; the primary text is already frozen.
+// Future loads see the new renderer; the primary body is already rendered.
 agent.RegisterVar("CUSTOM_VAR", func() string { return "load-time value" })
 ```
 
@@ -370,19 +411,22 @@ names it must preserve its initial provenance. A newly enabled `write_file`
 records the sequence of the actual `load_skill` call that enabled it. Use the
 existing event identity rather than inventing a separate skill counter.
 
-Most renderers ignore this metadata at this stage. It gives a later renderer
-enough information to distinguish initial declarations from dynamic additions
-without knowing about skills. That matters when arranging a stable request
-prefix for caching. The metadata alone does not preserve a cache hit: this
-chapter still changes the tool declarations, and provider-specific placement,
+The Anthropic renderer uses this metadata to distinguish startup declarations
+from tools enabled by an actual `load_skill` call, without knowing about skills.
+It pairs references with that call's successful result. A manual load has no
+model call to cite and uses ordinary declarations instead.
+
+Keeping the catalog stable can help preserve a request prefix, but newly loaded
+instructions change SYSTEM and can invalidate the cache. Other providers also
+update ordinary tool declarations. None of these paths promises a cache hit;
 cache markers and measured grants belong to the caching work later in the book.
 
 ## The Constitution
 
-When `load_skill` runs, the skill's instructions arrive as the tool
-result. They flow through the message history, not the system prompt.
-Capabilities grow while the system prompt stays frozen at its
-creation-time content.
+When `load_skill` runs, its status is recorded in history and its rendered
+instructions join the system prompt. This applies to Anthropic too: tool
+references disclose tools, not instructions. The initial identity remains,
+but SYSTEM grows as the agent acquires new manuals.
 
 That separation matters for memory. Pre-loaded context (memories,
 user preferences, project notes) belongs in the message history as
@@ -445,10 +489,13 @@ EN_SKILLS_DIR=./skills EN_PRIMARY_SKILL=base EN_CUSTOM_VAR=SKILLS_OK /absolute/p
 
 Ask it to load `code-tools`, follow its instructions once, mark it for unload,
 and answer with the verified file content. Inspect `note.txt` as well as the
-answer. The load result should contain the helper's scratch-directory instruction
-and the substituted marker; the next request should declare `write_file` and
-`list_directory`. The system instructions should still be those rendered before
-the first turn. Keep credentials out of any retained request capture.
+answer. The next request's SYSTEM should retain the startup bodies and add the helper's
+scratch-directory instruction and the substituted marker. On a supported
+Anthropic model, inspect the actual load result for reference-only content
+naming `write_file` and `list_directory`; their deferred definitions remain in
+the catalog. Other providers and fallback paths use ordinary enabled declarations.
+The canonical load status remains text. Keep credentials out of any retained
+request capture.
 
 Historical [Claude](../../solutions/evidence/ch10/anthropic-live.json),
 [OpenAI](../../solutions/evidence/ch10/openai-live.json) and
@@ -456,9 +503,16 @@ Historical [Claude](../../solutions/evidence/ch10/anthropic-live.json),
 this small skill graph (the published examples add descriptions and wrap the
 body text), wrote and read its own marker, marked `code-tools` pending unload
 and answered with the file content. Each process exited normally, and captured
-requests retain identical system text within each session. The receipts retain
-the actual calls, results, file content and request bodies. Discover the models
-available to your account when repeating the exercise.
+requests retain identical system text within each session. Those receipts
+belong to the earlier frozen-system design, not the provider-aware protocol now
+taught here. They retain the actual calls, results, file content and request
+bodies. Discover the models available to your account when repeating the exercise.
+
+The accepted Edition 3 Anthropic exercise exposed a wire-format mistake: mixing
+status text with `tool_reference` blocks in the discovery result produced HTTP
+400. A corrected reference-only result was accepted, and the agent then used
+the loaded writer. This supports that specific protocol shape, not new coverage
+of every provider or a cache-hit claim.
 
 One successful run invited the wrong conclusion. The OpenAI session called
 `unload_skill` before its final `read_file`, and the read succeeded. That looked
@@ -481,6 +535,6 @@ retains the focused score and accepted exceptions. Edition 2's grader uses
 the implemented tool set and the proper clients, with its results recorded
 separately in the [grader report](../../docs/edition-2-notes/enhancement-09-code.md).
 
-The agent can now acquire a manual and its tools without rewriting its
-constitution. The next chapter gives the conversation a life beyond the
+The agent can now acquire a manual and its tools while retaining its
+initial identity. The next chapter gives the conversation a life beyond the
 process that created it.

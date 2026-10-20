@@ -9,6 +9,7 @@ import (
 	engineowner "ensemble/internal/engine"
 	historyowner "ensemble/internal/history"
 	jobsowner "ensemble/internal/jobs"
+	skillsowner "ensemble/internal/skills"
 	toolowner "ensemble/internal/tool"
 	"errors"
 	"fmt"
@@ -95,6 +96,15 @@ func TestCh6R1CallRecordBarrier(t *testing.T) {
 						t.Fatal(err)
 					}
 					a.SetTools(registry)
+					skillRegistry, err := skillsowner.New(a, registry.Catalog())
+					if err != nil {
+						t.Fatal(err)
+					}
+					a.SetSkills(skillRegistry)
+					if err := skillRegistry.LoadInitial(); err != nil {
+						t.Fatal(err)
+					}
+
 					a.Start()
 					defer a.Shutdown()
 					var effects atomic.Int32

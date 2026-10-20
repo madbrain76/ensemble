@@ -1,6 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let socket, clientID = '', selected = '', retry = 500, session = '';
+const skillsByAgent=new Map();
 const agents = new Map(), cards = new Map(), order = [];
 let audio = [], speakingNow = null;
 const typing = new Set(), delayed = new Map(), requests = new Map(), voiceAgents = new Set();
@@ -88,6 +89,16 @@ function renderCard(record) {
  const destination=$(['tool_call','tool_result'].includes(c.type)?'tool-cards':'conversation');
  if(node.parentElement!==destination){destination.querySelector('.empty-state')?.remove();destination.append(node);}
 }
+function skillView(){
+ const box=$('skills');if(!box)return;box.replaceChildren();const state=skillsByAgent.get(selected);if(!state){box.textContent='No skills configured.';return;}
+ const loadable=new Set((state.loadable_skills||[]).map(s=>s.name));
+ for(const s of state.skills||[]){
+  const row=document.createElement('div'),label=document.createElement('span'),button=document.createElement('button');
+  label.textContent=`${s.name} (${s.type}) — ${s.enabled?(s.pending_unload?'pending unload; still active':'enabled'):(loadable.has(s.name)?'loadable':'discovered')} ${s.description||''} `;
+  row.append(label);if(s.enabled&&!s.pending_unload){button.textContent='Mark pending unload';button.onclick=()=>send('unload_skill',{name:s.name});row.append(button);}else if(loadable.has(s.name)||s.pending_unload&&s.type==='loadable'){button.textContent=s.pending_unload?'Keep loaded':'Load';button.onclick=()=>send('load_skill',{name:s.name});row.append(button);}box.append(row);
+ }
+ if(!(state.skills||[]).length)box.textContent='No skills configured.';
+}
 function apply(frame) {
  if(['part_final','part_delta','tool_dispatched','tool_finished'].includes(frame.type)) {
   const key=`${frame.agent_id}/${frame.part_id}`;let record=cards.get(key);
@@ -110,6 +121,7 @@ function apply(frame) {
  } else if(frame.type==='turn_ended') {for(const [key,r] of cards) {if(r.frame.agent_id===frame.agent_id&&r.frame.part.partial){r.node.remove();cards.delete(key);}}}
  else if(frame.type==='continued'&&!frame.replay){
   if(frame.data.client!==clientID&&frame.data.epoch===agents.get(frame.agent_id)?.state.epoch)explicitContinue(frame.agent_id);
+ }else if(frame.type==='skill_state'){skillsByAgent.set(frame.agent_id,frame);skillView();
  }else if(frame.type==='current_settings'||frame.type==='settings_changed') applySettings(frame.settings);
  else if(frame.type==='settings_error') {$('settings-status').textContent=String(frame.data);preferenceControls();}
  else if(frame.type==='error') $('errors').textContent=String(frame.data);
@@ -136,10 +148,10 @@ function renderAgentTree(a){
  $('agent-name').textContent=`Agent ${a.id}`;$('agent-activity').textContent=label.charAt(0).toUpperCase()+label.slice(1);
  $('agent-cue').dataset.busy=String(state!=='idle');node.dataset.agentId=a.id;node.title=a.config.model;node.setAttribute('aria-selected',String(a.id===selected));
 }
-function controls(){const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
+function controls(){skillView();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
 function replay(data){
  const previousAgents=new Map(agents);
- cancelAudio(undefined,false);clientID=data.client;session=data.session;cards.clear();order.length=0;$('conversation').replaceChildren();$('tool-cards').replaceChildren();agents.clear();
+ cancelAudio(undefined,false);clientID=data.client;session=data.session;cards.clear();order.length=0;$('conversation').replaceChildren();$('tool-cards').replaceChildren();agents.clear();skillsByAgent.clear();
  for(const a of data.agents){if(!a.state.paused||a.state.continue_epoch!==previousAgents.get(a.id)?.state.continue_epoch)typing.delete(a.id);agents.set(a.id,a);}
  if(!agents.has(selected))selected=data.agents[0]?.id||'';
  for(const frame of data.events) apply(frame);for(const frame of data.partials) apply(frame);controls();

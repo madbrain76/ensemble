@@ -163,6 +163,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 }
 
 type command struct {
+	Name      string            `json:"name,omitempty"`
 	Type      string            `json:"type"`
 	Settings  json.RawMessage   `json:"settings"`
 	AgentID   string            `json:"agent_id"`
@@ -220,6 +221,15 @@ func (s *Server) command(c *client, m command) error {
 		return nil
 	case "interrupt":
 		return a.Post(ensemble.Interrupt{})
+	case "load_skill":
+		return a.Skills().LoadSkill(m.Name)
+	case "unload_skill":
+		return a.Skills().UnloadSkill(m.Name)
+	case "skill_state":
+		s.Hub.mu.Lock()
+		s.Hub.broadcast(skillFrame(a))
+		s.Hub.mu.Unlock()
+		return nil
 	case "speaking":
 		return a.Post(ensemble.SetSpeaking{Enabled: m.Enabled})
 	case "speak":

@@ -25,6 +25,7 @@ type agent struct {
 	engine        common.Engine
 	history       common.History
 	tools         common.ToolRegistry
+	skills        common.SkillRegistry
 	jobs          common.Jobs
 	box           mailbox
 	done          chan struct{}
@@ -99,6 +100,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 		// Never echo a malformed URL: it might contain embedded credentials.
 		return nil, errors.New("invalid ANTHROPIC_BASE_URL")
 	}
+	config.Skills = cloneSkillSpec(config.Skills)
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
 	}
@@ -123,6 +125,10 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	}
 	if config.MaxToolRounds == 0 {
 		config.MaxToolRounds = common.DefaultMaxToolRounds
+	}
+	config.Skills = cloneSkillSpec(config.Skills)
+	if config.Tools != nil {
+		config.Tools = append([]string{}, config.Tools...)
 	}
 	a := &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), queues: make(map[*observationQueue]struct{}), state: common.Idle, paused: config.PauseOnStart, speaking: config.Speaking}
 	a.maxToolRounds.Store(int64(config.MaxToolRounds))
@@ -157,6 +163,7 @@ func (a *agent) SetID(id string) {
 func (a *agent) Config() common.Config {
 	c := a.config
 	c.MaxToolRounds = int(a.maxToolRounds.Load())
+	c.Skills = cloneSkillSpec(c.Skills)
 	if c.Tools != nil {
 		c.Tools = append([]string{}, c.Tools...)
 	}
@@ -180,7 +187,15 @@ func (a *agent) SetTools(t common.ToolRegistry) {
 	}
 	a.tools = t
 }
-func (a *agent) Tools() common.ToolRegistry { return a.tools }
+func (a *agent) Skills() common.SkillRegistry { return a.skills }
+func (a *agent) SetSkills(s common.SkillRegistry) {
+	if s == nil || s.Parent() != a {
+		panic("invalid skill registry attachment")
+	}
+	a.skills = s
+}
+func (a *agent) RegisterVar(name string, f func() string) { a.skills.RegisterVar(name, f) }
+func (a *agent) Tools() common.ToolRegistry               { return a.tools }
 func (a *agent) SetJobs(j common.Jobs) {
 	if j == nil || a.jobs != nil || j.Parent() != a {
 		panic("invalid Agent/Jobs wiring")
@@ -304,4 +319,16 @@ func (a *agent) identifyCalls(events []common.Event) error {
 		}
 	}
 	return nil
+}
+
+func cloneSkillSpec(s *common.SkillSpec) *common.SkillSpec {
+	if s == nil {
+		return nil
+	}
+	out := *s
+	out.Variables = map[string]func() string{}
+	for k, v := range s.Variables {
+		out.Variables[k] = v
+	}
+	return &out
 }

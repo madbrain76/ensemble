@@ -658,6 +658,7 @@ func (a *agent) admit(op common.ToolOperation, turn uint64) error {
 		}
 		return err
 	}
+	op.SetEventSeq(seq)
 	err = op.ReleaseAfter(func() error {
 		d.Dispatched = true
 		if _, err := a.recordSaved(common.Event{Type: common.ToolReleased, TurnID: turn, Tool: &d}); err != nil {

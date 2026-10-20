@@ -19,6 +19,7 @@ import (
 	engineowner "ensemble/internal/engine"
 	historyowner "ensemble/internal/history"
 	jobsowner "ensemble/internal/jobs"
+	skillsowner "ensemble/internal/skills"
 	toolowner "ensemble/internal/tool"
 )
 
@@ -112,6 +113,15 @@ func TestCh7R3ActualAdmissionSave(t *testing.T) {
 				t.Fatal(err)
 			}
 			a.SetTools(tools)
+			skillRegistry, err := skillsowner.New(a, tools.Catalog())
+			if err != nil {
+				t.Fatal(err)
+			}
+			a.SetSkills(skillRegistry)
+			if err := skillRegistry.LoadInitial(); err != nil {
+				t.Fatal(err)
+			}
+
 			a.Start()
 			defer func() {
 				select {

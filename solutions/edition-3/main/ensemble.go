@@ -16,6 +16,7 @@ import (
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
 	"ensemble/internal/jobs"
+	"ensemble/internal/skills"
 	"ensemble/internal/tool"
 )
 
@@ -37,6 +38,7 @@ type Ensemble struct {
 	mu           sync.Mutex
 	closed       bool
 	nextHandle   int
+	nextAgent    uint64
 	watchers     map[uint64]chan AgentObservation
 	nextWatcher  uint64
 	identified   map[uint64]*identifiedSubscriber
@@ -69,10 +71,13 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		return nil, errors.New("Agent requires an Ensemble parent")
 	}
 	e.mu.Lock()
-	defer e.mu.Unlock()
 	if e.closed {
+		e.mu.Unlock()
 		return nil, errors.New("Ensemble is shut down")
 	}
+	e.nextAgent++
+	id := e.nextAgent
+	e.mu.Unlock()
 	if config.StreamCapability == StreamUnknown {
 		model := config.ResolvedModel
 		if model == "" {
@@ -92,7 +97,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.SetID(fmt.Sprintf("agent-%d", len(e.agents)+1))
+	a.SetID(fmt.Sprintf("agent-%d", id))
 	a.SetEngine(transport)
 	a.SetHistory(history.New(a))
 	a.SetJobs(jobs.New(a))
@@ -101,6 +106,19 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		return nil, err
 	}
 	a.SetTools(registry)
+	skillRegistry, err := skills.New(a, registry.Catalog())
+	if err != nil {
+		return nil, err
+	}
+	a.SetSkills(skillRegistry)
+	if err := skillRegistry.LoadInitial(); err != nil {
+		return nil, err
+	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.closed {
+		return nil, errors.New("Ensemble is shut down")
+	}
 	a.Start()
 	e.agents = append(e.agents, a)
 	return a, nil
@@ -131,6 +149,12 @@ const (
 // Tool contracts expose declarations and dispatch without implementation state.
 type ToolRegistry = common.ToolRegistry
 type ToolDefinition = common.ToolDefinition
+type Skill = common.Skill
+type ToolSpec = common.ToolSpec
+type SkillSpec = common.SkillSpec
+type SkillInfo = common.SkillInfo
+type SkillRegistry = common.SkillRegistry
+type CapabilitySnapshot = common.CapabilitySnapshot
 
 // RegisterJob atomically admits a job and allocates a process-local Ensemble handle.
 func (e *Ensemble) RegisterJob(j common.Job) (int, error) {

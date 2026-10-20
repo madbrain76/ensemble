@@ -24,7 +24,6 @@ type registry struct {
 	next      *common.ToolLimits
 	parent    common.Agent
 	directory string
-	entries   []entry
 }
 
 // Each registered entry joins the declaration and the function it advertises.
@@ -42,40 +41,35 @@ func New(parent common.Agent) (common.ToolRegistry, error) {
 	}
 	directory := parent.Config().BaseDir
 	r := &registry{parent: parent, directory: directory}
-	available := r.builtins()
-	selected := parent.Config().Tools
-	if selected == nil {
-		r.entries = available
-		return r, nil
-	}
-	for _, name := range selected {
-		for _, registered := range r.entries {
-			if registered.definition.Name == name {
-				return nil, fmt.Errorf("duplicate enabled tool %q", name)
-			}
-		}
-		found := false
-		for _, candidate := range available {
-			if candidate.definition.Name == name {
-				r.entries = append(r.entries, candidate)
-				found = true
-				break
-			}
-		}
-		if !found {
-			return nil, fmt.Errorf("unknown enabled tool %q", name)
-		}
-	}
+
 	return r, nil
 }
-func (r *registry) Parent() common.Agent { return r.parent }
-func (r *registry) Definitions() []common.ToolDefinition {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	out := make([]common.ToolDefinition, len(r.entries))
-	for i, registered := range r.entries {
-		out[i] = registered.definition
-		out[i].Parameters = append(json.RawMessage(nil), registered.definition.Parameters...)
+func (r *registry) Parent() common.Agent                 { return r.parent }
+func (r *registry) Definitions() []common.ToolDefinition { return r.Snapshot().Definitions }
+func (r *registry) Snapshot() common.CapabilitySnapshot  { return r.parent.Skills().Snapshot() }
+func (r *registry) Catalog() []common.ToolSpec {
+	out := []common.ToolSpec{}
+	for _, e := range append(r.builtins(), r.skillTools()...) {
+		e := e
+		handler := e.handler
+		if handler == nil {
+			handler = func(ctx context.Context, owner common.ToolCall, raw json.RawMessage) error {
+				if e.execute == nil {
+					return fmt.Errorf("tool requires Agent admission")
+				}
+				args, err := decode(raw)
+				if err != nil {
+					return err
+				}
+				text, err := e.execute(ctx, args)
+				if err != nil {
+					return err
+				}
+				_, err = io.WriteString(owner, text)
+				return err
+			}
+		}
+		out = append(out, common.ToolSpec{ToolDefinition: e.definition, Source: "builtin", Handler: handler})
 	}
 	return out
 }

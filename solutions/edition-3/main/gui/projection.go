@@ -10,26 +10,28 @@ import (
 
 // Wire is a display projection, never a serialization of replay-only Part data.
 type Wire struct {
-	Type     string             `json:"type"`
-	Settings *Settings          `json:"settings,omitempty"`
-	AgentID  string             `json:"agent_id"`
-	PartID   uint64             `json:"part_id,omitempty"`
-	TurnID   uint64             `json:"turn_id,omitempty"`
-	Kind     string             `json:"kind,omitempty"`
-	Chunk    string             `json:"chunk"` // Empty starts still carry the public chunk field.
-	Name     string             `json:"name,omitempty"`
-	Part     *Card              `json:"part,omitempty"`
-	From     ensemble.TurnState `json:"from,omitempty"`
-	To       ensemble.TurnState `json:"to,omitempty"`
-	State    *controlState      `json:"state,omitempty"`
-	CallID   string             `json:"call_id,omitempty"`
-	Input    json.RawMessage    `json:"input,omitempty"`
-	Result   string             `json:"result,omitempty"`
-	IsError  *bool              `json:"is_error,omitempty"`
-	Text     *string            `json:"text,omitempty"`
-	Seq      ensemble.Seq       `json:"-"`
-	Data     any                `json:"data,omitempty"` // replay/speech extensions, not the public part protocol
-	Replay   bool               `json:"replay,omitempty"`
+	Skills         []ensemble.SkillInfo `json:"skills,omitempty"`
+	LoadableSkills []ensemble.SkillInfo `json:"loadable_skills,omitempty"`
+	Type           string               `json:"type"`
+	Settings       *Settings            `json:"settings,omitempty"`
+	AgentID        string               `json:"agent_id"`
+	PartID         uint64               `json:"part_id,omitempty"`
+	TurnID         uint64               `json:"turn_id,omitempty"`
+	Kind           string               `json:"kind,omitempty"`
+	Chunk          string               `json:"chunk"` // Empty starts still carry the public chunk field.
+	Name           string               `json:"name,omitempty"`
+	Part           *Card                `json:"part,omitempty"`
+	From           ensemble.TurnState   `json:"from,omitempty"`
+	To             ensemble.TurnState   `json:"to,omitempty"`
+	State          *controlState        `json:"state,omitempty"`
+	CallID         string               `json:"call_id,omitempty"`
+	Input          json.RawMessage      `json:"input,omitempty"`
+	Result         string               `json:"result,omitempty"`
+	IsError        *bool                `json:"is_error,omitempty"`
+	Text           *string              `json:"text,omitempty"`
+	Seq            ensemble.Seq         `json:"-"`
+	Data           any                  `json:"data,omitempty"` // replay/speech extensions, not the public part protocol
+	Replay         bool                 `json:"replay,omitempty"`
 }
 type Card struct {
 	TurnID     uint64               `json:"turn_id,omitempty"`

@@ -36,7 +36,7 @@ func Chapter9(bin, core, gui, guiModel, consumer, workflow, exercise, streamMode
 func skillsChecks(dir, model string) []grade.Check {
 	checks := []grade.Check{
 		{ID: "initial-tools", Title: "Primary limits declarations and actual dispatch", Points: 10},
-		{ID: "system-prompt", Title: "Rendered primary instructions stay frozen", Points: 10},
+		{ID: "system-prompt", Title: "Loaded instructions reach system context", Points: 10},
 		{ID: "ensemble-tools", Title: "Full primary declares the installed core tools", Points: 10},
 		{ID: "load-skill", Title: "Loading enables instructions and tools; unload remains pending", Points: 15},
 		{ID: "progressive-disclosure", Title: "Loaded skills reveal exactly the next discovery level", Points: 15},
@@ -92,18 +92,28 @@ func skillsChecks(dir, model string) []grade.Check {
 		if !strings.Contains(primary, "PRIMARY_BODY") || !strings.Contains(primary, "BODY_AFTER_RULE") || strings.Contains(primary, "$TOOLS") || strings.Contains(primary, "$SKILLS") {
 			fail(&checks[1], "primary body/variables/horizontal rule not rendered: %q", primary)
 		}
-		for _, r := range requests[1:] {
-			if skillSystem(r) != primary {
-				fail(&checks[1], "system prompt changed after dynamic activity")
-				break
+		if strings.Contains(primary, "CODE_BODY") || strings.Contains(primary, "SEARCH_BODY") {
+			fail(&checks[1], "unloaded instructions present at startup")
+		}
+		for i, r := range requests {
+			system := skillSystem(r)
+			if !strings.Contains(system, "PRIMARY_BODY") || !strings.Contains(system, "BODY_AFTER_RULE") {
+				fail(&checks[1], "request %d lost primary instructions", i)
+			}
+			if i >= 2 && !strings.Contains(system, "CODE_BODY") {
+				fail(&checks[1], "request %d lacks loaded code instructions", i)
+			}
+			if i >= 4 && (!strings.Contains(system, "SEARCH_BODY") || !strings.Contains(system, "HELPER_BODY")) {
+				fail(&checks[1], "request %d lacks loaded search/dependency instructions", i)
 			}
 		}
 		// Results are read from the next provider request: a GUI acknowledgement or
 		// a scripted final answer cannot establish that the real handler succeeded.
 		skillDeclarations(&checks[3], requests[2], loaded)
-		body := skillResult(&checks[3], requests[2], "code", false)
-		if !strings.Contains(body, "CODE_BODY") {
-			fail(&checks[3], "loaded instructions absent from correlated result")
+		skillResult(&checks[3], requests[2], "code", false)
+		_, body, hasCode := strings.Cut(skillSystem(requests[2]), "CODE_BODY")
+		if !hasCode {
+			fail(&checks[3], "loaded instructions absent from system context")
 		}
 		skillResult(&checks[3], requests[3], "write", false)
 		skillResult(&checks[3], requests[5], "unload", false)
@@ -114,7 +124,12 @@ func skillsChecks(dir, model string) []grade.Check {
 				fail(&checks[3], "%s: want actual bytes %q, got %q", name, want, files[name])
 			}
 		}
-		search := skillResult(&checks[4], requests[4], "search", false)
+		skillResult(&checks[4], requests[4], "search", false)
+		searchSystem := skillSystem(requests[4])
+		_, search, hasSearch := strings.Cut(searchSystem, "SEARCH_BODY")
+		if !hasSearch {
+			fail(&checks[4], "search instructions absent from system context")
+		}
 		skillDeclarations(&checks[4], requests[4], all)
 		// Delimited text is authored by the fixture, not a required renderer format.
 		// Names/descriptions may be formatted freely inside each expansion.
@@ -122,10 +137,10 @@ func skillsChecks(dir, model string) []grade.Check {
 		skillExpansion(&checks[4], body, "SKILLS", []string{"search-tools"}, []string{"code-tools", "search-helpers", "blocked"})
 		skillExpansion(&checks[4], search, "SKILLS", nil, []string{"code-tools", "search-tools", "search-helpers", "blocked"})
 		skillDeclarations(&checks[5], requests[4], all)
-		if !strings.Contains(search, "HELPER_BODY") {
-			fail(&checks[5], "dependency instructions absent from load result")
+		if !strings.Contains(searchSystem, "HELPER_BODY") {
+			fail(&checks[5], "dependency instructions absent from system context")
 		}
-		if !strings.Contains(search, "SEARCH_BODY hello-from-grader") || strings.Contains(search, "$CUSTOM_VAR") || strings.Contains(body, "hello-from-grader") || strings.Contains(primary, "hello-from-grader") {
+		if !strings.Contains(searchSystem, "SEARCH_BODY hello-from-grader") || strings.Contains(search, "$CUSTOM_VAR") || strings.Contains(body, "hello-from-grader") || strings.Contains(primary, "hello-from-grader") {
 			fail(&checks[6], "custom variable missing/unrendered or appears before its skill loads")
 		}
 		skillExpansion(&checks[6], primary, "TOOLS", initial, []string{"write_file", "edit_file", "search_files", "list_directory"})
@@ -161,26 +176,125 @@ func skillCall(id, name, args string) fakevendor.Reply {
 // can contain the expected marker even when the target handler failed.
 func skillResult(c *grade.Check, r fakevendor.Recorded, id string, wantError bool) string {
 	text, bad, err := anthropicToolText(r.Body, id)
-	if err != nil || bad != wantError || strings.TrimSpace(text) == "" {
+	meaningful := strings.TrimSpace(text) != "" || (!wantError && skillReferenceResult(r, id))
+	if err != nil || bad != wantError || !meaningful {
 		fail(c, "result %s: error=%t want=%t text=%q decode=%v", id, bad, wantError, text, err)
 	}
 	return text
 }
 
-// Order is immaterial, but duplicates or extra declarations grant a different
-// capability set. Sorting copies also leaves the caller's expected set intact.
+// Anthropic expands references instead of ordinary text in successful discovery
+// results. This exception requires the actual preceding load call, not merely a
+// reference appearing somewhere in the conversation. Catalog validity is checked
+// separately by skillDeclarations.
+func skillReferenceResult(r fakevendor.Recorded, id string) bool {
+	paired := false
+	for _, rawMessage := range list(r.JSON()["messages"]) {
+		message := object(rawMessage)
+		for _, rawBlock := range list(message["content"]) {
+			block := object(rawBlock)
+			if message["role"] == "assistant" && block["type"] == "tool_use" && block["id"] == id {
+				paired = block["name"] == "load_skill"
+			}
+			if block["type"] != "tool_result" || block["tool_use_id"] != id {
+				continue
+			}
+			if !paired || message["role"] != "user" || block["is_error"] == true {
+				return false
+			}
+			content := list(block["content"])
+			if len(content) == 0 {
+				return false
+			}
+			for _, rawReference := range content {
+				reference := object(rawReference)
+				name, _ := reference["tool_name"].(string)
+				if reference["type"] != "tool_reference" || name == "" {
+					return false
+				}
+			}
+			return true
+		}
+	}
+	return false
+}
+
+// Deferred Anthropic definitions are a server-side catalog, not yet exposed
+// capabilities. A standard tool_result's tool_reference expands a catalog entry.
+// Repeated references in replay are harmless; duplicate definitions are not.
 func skillDeclarations(c *grade.Check, r fakevendor.Recorded, want []string) {
-	var names []string
-	tools, _ := r.JSON()["tools"].([]any)
+	body := r.JSON()
+	catalog := map[string]bool{}
+	exposed := map[string]bool{}
+	tools, _ := body["tools"].([]any)
 	for _, tool := range tools {
-		name, _ := object(tool)["name"].(string)
+		definition := object(tool)
+		name, _ := definition["name"].(string)
+		if name == "" || catalog[name] {
+			fail(c, "empty or duplicate tool definition %q", name)
+		}
+		catalog[name] = true
+		if deferred, _ := definition["defer_loading"].(bool); !deferred {
+			exposed[name] = true
+		}
+	}
+	messages, _ := body["messages"].([]any)
+	pending := map[string]bool{}
+	for _, message := range messages {
+		m := object(message)
+		blocks, _ := m["content"].([]any)
+		for _, block := range blocks {
+			result := object(block)
+			if m["role"] == "assistant" && result["type"] == "tool_use" {
+				if id, _ := result["id"].(string); id != "" {
+					pending[id] = true
+				}
+				continue
+			}
+			if result["type"] != "tool_result" {
+				continue
+			}
+			id, _ := result["tool_use_id"].(string)
+			paired := m["role"] == "user" && id != "" && pending[id]
+			if paired {
+				delete(pending, id)
+			}
+			content, _ := result["content"].([]any)
+			referenceCount := 0
+			for _, item := range content {
+				if object(item)["type"] == "tool_reference" {
+					referenceCount++
+				}
+			}
+			if referenceCount > 0 && referenceCount != len(content) {
+				fail(c, "tool references are mixed with other result content")
+			}
+			for _, item := range content {
+				reference := object(item)
+				if reference["type"] != "tool_reference" {
+					continue
+				}
+				if !paired {
+					fail(c, "tool reference is not in a paired user tool result")
+					continue
+				}
+				name, _ := reference["tool_name"].(string)
+				if !catalog[name] {
+					fail(c, "tool reference %q has no definition", name)
+				}
+				exposed[name] = true
+			}
+		}
+	}
+	var names []string
+	for name := range exposed {
 		names = append(names, name)
 	}
 	sort.Strings(names)
 	expected := append([]string{}, want...)
 	sort.Strings(expected)
 	if !reflect.DeepEqual(names, expected) {
-		fail(c, "declarations: want %v, got %v", expected, names)
+		fail(c, "exposed tools: want %v, got %v", expected, names)
 	}
 }
 

@@ -37,7 +37,26 @@ func (e *engine) failure(message string) error {
 	return errors.New(message)
 }
 func (e *engine) Render(c common.Context) ([]byte, error) {
-	return render(c, e.parent.Config(), e.parent.Tools().Definitions())
+	cfg := e.parent.Config()
+	snapshot := e.parent.Skills().Snapshot()
+	cfg.SystemPrompt += snapshot.Instructions
+	disclosure := anthropicDisclosure{}
+	if cfg.Vendor == common.Anthropic && cfg.Skills != nil && supportsToolReferences(cfg.Model) {
+		disclosure.catalog = snapshot.Tools
+		disclosure.references = map[string][]string{}
+		for _, t := range snapshot.Tools {
+			if !t.Enabled || t.Origin != "tool" || t.EventSeq == 0 {
+				continue
+			}
+			events := e.parent.Log().EventsRange(t.EventSeq-1, t.EventSeq)
+			if len(events) != 1 || events[0].Type != common.ToolCalled || events[0].Tool == nil || events[0].Tool.Name != "load_skill" {
+				return nil, fmt.Errorf("tool %q has no enabling load_skill event", t.Name)
+			}
+			id := events[0].Tool.CallID
+			disclosure.references[id] = append(disclosure.references[id], t.Name)
+		}
+	}
+	return render(c, cfg, snapshot.Definitions, disclosure)
 }
 
 // Parse owns transport framing only. The caller owns resp.Body and callbacks;

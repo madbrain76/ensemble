@@ -19,11 +19,14 @@ type ToolRegistry interface {
 	// Invoke is the compatibility recording path, admitted by the Agent actor.
 	Invoke(context.Context, Part, string) error
 	Parent() Agent
+	Catalog() []ToolSpec
+	Snapshot() CapabilitySnapshot
 	Definitions() []ToolDefinition
 	Dispatch(context.Context, string, json.RawMessage) (PartList, bool)
 	// Prepare reserves an ordinary job; Await obtains actor admission if needed.
 	Prepare(context.Context, Part, string, uint64) ToolOperation
 	Register(ToolDefinition, ToolHandler) error
+	RegisterTool(ToolSpec) error
 }
 
 // ToolCall retains the actual Agent and streams output into its ordinary Job.
@@ -41,6 +44,7 @@ type ToolHandler func(context.Context, ToolCall, json.RawMessage) error
 // Cancellation of Await releases observation, never execution.
 type ToolOperation interface {
 	Called() ToolData
+	SetEventSeq(Seq)
 	Dispatched() bool
 	Release()
 	ReleaseAfter(func() error) error

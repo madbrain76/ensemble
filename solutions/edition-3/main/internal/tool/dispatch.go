@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"regexp"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -17,33 +15,9 @@ import (
 
 // Register extends only this Agent's registry, using the same ordinary job path.
 func (r *registry) Register(d common.ToolDefinition, handler common.ToolHandler) error {
-	if strings.TrimSpace(d.Name) == "" || strings.TrimSpace(d.Description) == "" || handler == nil {
-		return errors.New("tool requires name, description, and handler")
-	}
-	schema, err := decode(d.Parameters)
-	if err != nil {
-		return fmt.Errorf("tool schema: %w", err)
-	}
-	kind, err := schema.text("type", true)
-	if err != nil || kind != "object" {
-		return errors.New("tool schema must have type object")
-	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	for _, e := range r.builtins() {
-		if e.definition.Name == d.Name {
-			return fmt.Errorf("reserved built-in name %q", d.Name)
-		}
-	}
-	for _, e := range r.entries {
-		if e.definition.Name == d.Name {
-			return fmt.Errorf("duplicate tool %q", d.Name)
-		}
-	}
-	d.Parameters = append(json.RawMessage(nil), d.Parameters...)
-	r.entries = append(r.entries, entry{definition: d, handler: handler})
-	return nil
+	return r.RegisterTool(common.ToolSpec{ToolDefinition: d, Handler: handler, Enabled: true, Source: "application", Origin: "manual"})
 }
+func (r *registry) RegisterTool(t common.ToolSpec) error { return r.parent.Skills().RegisterTool(t) }
 func (r *registry) Dispatch(ctx context.Context, name string, input json.RawMessage) (common.PartList, bool) {
 	result := r.Prepare(ctx, common.Part{Name: name, Args: input}, "", 0).Await(ctx)
 	return result.Parts, result.IsError
@@ -60,9 +34,11 @@ type operation struct {
 	err        error
 	released   atomic.Bool
 	dispatched atomic.Bool
+	eventSeq   common.Seq
 }
 
-func (o *operation) Dispatched() bool { return o.dispatched.Load() }
+func (o *operation) SetEventSeq(seq common.Seq) { o.eventSeq = seq }
+func (o *operation) Dispatched() bool           { return o.dispatched.Load() }
 func (o *operation) Called() common.ToolData {
 	d := common.ToolData{DisplayID: o.call.DisplayID, CallPartID: o.call.DisplayID, Dispatched: o.Dispatched(), CallID: o.call.CallID, Name: o.call.Name, Args: o.call.Args}
 	if o.job != nil {
@@ -159,15 +135,15 @@ func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string
 		o.limits = *r.next
 	}
 	r.next = nil
-	var selected *entry
-	for _, e := range r.entries {
-		if e.definition.Name == call.Name {
-			copy := e
+	r.mu.Unlock()
+	var selected *common.ToolSpec
+	for _, t := range r.Snapshot().Tools {
+		if t.Enabled && t.Name == call.Name {
+			copy := t
 			selected = &copy
 			break
 		}
 	}
-	r.mu.Unlock()
 	o.args, o.err = decode(call.Args)
 	if o.err == nil && (call.Name == "run_command" || call.Name == "wait_for_job" || call.Name == "send_input") {
 		o.limits, o.err = parseLimits(o.args, o.limits)
@@ -182,7 +158,7 @@ func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string
 	if o.err != nil {
 		return o
 	}
-	if selected.control {
+	if call.Name == "wait_for_job" || call.Name == "send_input" || call.Name == "kill_job" || call.Name == "tool_limits" {
 		o.control = true
 		if call.Name == "tool_limits" {
 			o.err = o.args.only("ai_callback_delay", "ai_callback_pattern", "max_output_bytes")
@@ -193,15 +169,10 @@ func (r *registry) Prepare(ctx context.Context, call common.Part, refusal string
 		return o
 	}
 	handler := func(ctx context.Context, owner common.ToolCall, raw json.RawMessage) error {
-		if selected.handler != nil {
-			return selected.handler(ctx, owner, raw)
+		if call.Name == "load_skill" || call.Name == "unload_skill" {
+			return r.skillCall(owner, call.Name, o.args, o.eventSeq)
 		}
-		text, err := selected.execute(ctx, o.args)
-		if err != nil {
-			return err
-		}
-		_, err = io.WriteString(owner, text)
-		return err
+		return selected.Handler(ctx, owner, raw)
 	}
 	cwd := ""
 	if call.Name == "run_command" {

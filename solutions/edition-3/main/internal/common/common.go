@@ -25,7 +25,8 @@ type Config struct {
 	// Model is required; there is deliberately no remembered model default.
 	Model string
 	// Tools selects enabled built-ins: nil enables all ten; non-nil empty disables all.
-	Tools []string
+	Tools  []string
+	Skills *SkillSpec // nil preserves inherited non-skill behavior
 	// RequireToolExplanation selects this model's before-effects explanation policy.
 	RequireToolExplanation bool
 	LogPath                string
@@ -84,6 +85,8 @@ type Agent interface {
 	Engine() Engine
 	// Tools is this Agent's independently owned synchronous registry.
 	Tools() ToolRegistry
+	Skills() SkillRegistry
+	RegisterVar(string, func() string)
 	Jobs() Jobs
 	Shutdown() error
 	Post(Inbound) error
