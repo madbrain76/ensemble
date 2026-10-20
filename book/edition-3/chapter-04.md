@@ -216,6 +216,15 @@ do not start the handler; still pair the provider's call with a returned error
 under its exact call id, and continue pairing the remaining calls in that
 response.
 
+The ordering in the sketch is intentional: reserve the job, record
+`tool_called`, then release the handler. A helper named `Prepare` or `Start`
+can hide a goroutine launch and reverse that order. Keep reservation separate
+from execution so a failed call-record append, or its configured save, cannot
+leave a file write or subprocess running without its causal record. Apply the
+same gate to registered handlers and direct invocation, not just built-ins.
+This is an ordering guarantee, not a transaction that can undo arbitrary tool
+effects after a crash.
+
 Three things follow from putting it there and nowhere else.
 
 The handle goes at the dispatch site, not in the tools. One funnel, which is

@@ -839,6 +839,12 @@ speak. OpenAI invents a role. Gemini splits the difference, a user turn with a
 part that names the function, and its `response` must be a JSON object; a bare
 string is a 400.
 
+A result that already contains valid JSON is still not necessarily a success.
+Preserve the neutral result's error flag when building that object, including
+when its payload is itself an object. A small envelope can keep the original
+payload and the error status together. Passing an object through unchanged
+while wrapping only strings silently loses errors on the object-valued path.
+
 The context is right and all three wire formats are compromises, in different
 directions. If your context stores `role: "user"` for a tool result because
 that is what Anthropic wanted, you will discover it in the copy-paste.
@@ -1155,6 +1161,13 @@ does not establish whether the instruction was delivered twice. Check the
 instruction's placement and lifecycle. There are no stdin commands to inject
 tool results, redact or dump: those events enter this exercise through supplied
 logs. Diagnostics go to stderr; stdout contains only the documented protocol.
+
+Pending ephemera is a replaceable slot, not another transcript. Two updates
+before a request mean that the second replaces the first; an empty update
+clears the slot. Keep both arrival events in the log, and let the reducer
+replace the pending projection. The next `request_sent` consumes that
+projection even if the HTTP request later fails. Neither replacement nor
+consumption changes the stable primary instructions.
 
 **Build the renderers in this order: Anthropic, then OpenAI, then Gemini.** The
 order is what makes §2.7's prediction a test rather than a flattering one. Note
