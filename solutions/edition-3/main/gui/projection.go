@@ -130,6 +130,9 @@ func eventVisible(e ensemble.Event) bool {
 	return false
 }
 func projectEvent(agent string, e ensemble.Event) []Wire {
+	if e.Type == ensemble.TurnInterrupted && !e.Stale {
+		return []Wire{{Type: "turn_interrupted", AgentID: agent, TurnID: e.TurnID, Seq: e.Seq}}
+	}
 	if e.Type == ensemble.TurnEnded && !e.Stale {
 		text := ""
 		if e.Message != nil {
@@ -184,7 +187,7 @@ func projectEvent(agent string, e ensemble.Event) []Wire {
 		c := Card{Kind: "tool_call", Role: "agent", Name: j.Name, CallID: j.CallID, Args: j.Args, Text: j.Name + "\n" + string(j.Args), TurnID: j.TurnID, CallPartID: j.CallPartID, Job: j}
 		frames = append(frames, Wire{Type: "job_update", AgentID: agent, PartID: j.CallPartID, TurnID: j.TurnID, Seq: e.Seq, Part: &c})
 	case ensemble.ErrorOccurred:
-		frames = append(frames, Wire{Type: "error", AgentID: agent, Seq: e.Seq, Data: e.Error.Message})
+		frames = append(frames, Wire{Type: "error", AgentID: agent, TurnID: e.TurnID, Seq: e.Seq, Data: e.Error.Message})
 	}
 	return frames
 }

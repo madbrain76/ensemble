@@ -34,7 +34,7 @@ type agentView struct {
 	revision, speechID uint64
 	state              controlState
 	partial            map[uint64]Card
-	spoken             map[uint64]int
+	spoken             map[uint64]*speechText
 	turn               uint64
 }
 type client struct {
@@ -111,10 +111,10 @@ func (h *Hub) view(a ensemble.Agent) *agentView {
 		if h.settingsApplied {
 			_ = a.SetMaxToolRounds(h.settings.MaxToolRounds)
 			_ = a.SetPersistencePolicy(h.settings.LogMode, h.settings.DiagnosticMaxRecords)
-			_ = a.Post(ensemble.SetSpeaking{Enabled: h.settings.TTSEnabled})
+			_ = a.Post(ensemble.SetSpeaking{Enabled: true})
 		}
 		cfg := a.Config()
-		v = &agentView{agent: a, state: controlState{Paused: cfg.PauseOnStart, Speaking: cfg.Speaking, Turn: ensemble.Idle}, partial: map[uint64]Card{}, spoken: map[uint64]int{}}
+		v = &agentView{agent: a, state: controlState{Paused: cfg.PauseOnStart, Speaking: cfg.Speaking, Turn: ensemble.Idle}, partial: map[uint64]Card{}, spoken: map[uint64]*speechText{}}
 		all := contextEvents(a)
 		v.ids = newDisplayIDs(all)
 		first := a.Log().LastSeq() + 1
@@ -177,17 +177,24 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 				}
 			}
 			if f.Type != "job_update" {
+				if v.state.Speaking && (f.Part != nil || f.Type == "error") {
+					h.flushBefore(v, f.PartID)
+				}
 				delete(v.partial, f.PartID)
 			}
 			h.broadcast(f)
 			if v.state.Speaking && f.Type != "job_update" {
 				if f.Part != nil {
 					h.narrate(v, f.PartID, *f.Part, true)
+				} else if f.Type == "error" {
+					if text, ok := f.Data.(string); ok {
+						h.speech.enqueue(id, spokenPart{Text: cleanSpeech(text), Source: "error"}, "automatic", e.TurnID)
+					}
 				}
 			}
 		}
 		if e.Type == ensemble.TurnEnded || e.Type == ensemble.TurnInterrupted {
-			v.spoken = map[uint64]int{}
+			v.spoken = map[uint64]*speechText{}
 		}
 	}
 	v.cursor = s.Through
@@ -202,14 +209,15 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 		ids = append(ids, id)
 	}
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	for _, part := range ids {
+	for index, part := range ids {
 		c := next[part]
 		old, ok := v.partial[part]
 		if !ok || old.Text != c.Text || old.Name != c.Name {
 			h.broadcast(Wire{Type: "part_delta", AgentID: id, PartID: part, TurnID: c.TurnID, Kind: c.Kind, Name: c.Name, Chunk: c.Text[len(old.Text):]})
-			if v.state.Speaking {
-				h.narrate(v, part, c, false)
-			}
+		}
+		// Arrival of a later part closes the previous source even if its bytes are unchanged.
+		if v.state.Speaking {
+			h.narrate(v, part, c, index < len(ids)-1)
 		}
 	}
 	v.partial = next
@@ -228,42 +236,54 @@ func (h *Hub) observe(p ensemble.AgentObservation) {
 		h.sync(h.view(p.Agent), p.Agent.View())
 	}
 }
-func (h *Hub) narrate(v *agentView, id uint64, c Card, final bool) {
-	if c.Kind == "tool_call" {
-		if final && v.spoken[id] == 0 {
-			v.spoken[id] = 1
-			h.speech.request(v.agent.ID(), ensemble.SpeechRequested{Parts: speechParts(c.Name + ": " + abbreviate(string(c.Args), 160)), Reason: "automatic"})
+
+// Flush older retained tails before an event changes source. The existing raw
+// cursor makes a later final publication idempotent; zero means an error boundary.
+func (h *Hub) flushBefore(v *agentView, next uint64) {
+	ids := make([]uint64, 0, len(v.partial))
+	for id := range v.partial {
+		if next == 0 || id < next {
+			ids = append(ids, id)
 		}
-		return
 	}
-	if c.Kind != "text" && c.Kind != "thinking" {
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	for _, id := range ids {
+		h.narrate(v, id, v.partial[id], true)
+	}
+}
+func (h *Hub) narrate(v *agentView, id uint64, c Card, final bool) {
+	// Provider failures already have a dedicated ErrorOccurred speech path.
+	if c.Kind == "error" && c.Role != "tool" {
 		return
 	}
 	if c.Text == "" || strings.HasPrefix(c.Text, "[opaque") {
 		return
 	}
-	reason := "automatic"
-	if c.Role == "human" {
-		reason = "prompt"
+	if c.Kind != "text" && c.Kind != "thinking" && c.Kind != "tool_call" && !(c.Kind == "tool_result" && c.IsError) {
+		return
 	}
-	n := v.spoken[id]
-	if n > len(c.Text) {
-		n = 0
+	if c.Role != "agent" && c.Role != "human" && !(c.Role == "tool" && c.IsError) {
+		return
 	}
-	end := len(c.Text)
-	if !final {
-		i := strings.LastIndexAny(c.Text[n:], ".!?\n")
-		if i < 0 {
-			return
+	if c.Kind == "tool_call" && (!final || !c.Dispatched) {
+		return
+	}
+	state := v.spoken[id]
+	if state == nil {
+		state = &speechText{}
+		v.spoken[id] = state
+	}
+	text := c.Text
+	// Dispatch is an announcement, never automatic narration of arguments/results.
+	if c.Kind == "tool_call" {
+		text = c.Name
+	}
+	if spoken := state.update(text, final); spoken != "" {
+		reason, source := "automatic", speechSource(c)
+		if c.Role == "human" {
+			reason, source = "prompt", "human"
 		}
-		end = n + i + 1
-	}
-	if end > n {
-		h.speech.request(v.agent.ID(), ensemble.SpeechRequested{Parts: speechParts(c.Text[n:end]), Reason: reason})
-		v.spoken[id] = end
-	}
-	if final {
-		delete(v.spoken, id)
+		h.speech.enqueue(v.agent.ID(), spokenPart{Text: spoken, Source: source, PartID: id, TurnID: c.TurnID}, reason, c.TurnID)
 	}
 }
 func abbreviate(s string, n int) string {

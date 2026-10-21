@@ -269,7 +269,14 @@ func (s *Server) command(c *client, m command) error {
 					if card := w.Part; card != nil && card.Text != "" && !strings.HasPrefix(card.Text, "[opaque") {
 						s.Hub.mu.Lock()
 						s.Hub.sync(s.Hub.view(a), a.View())
-						s.Hub.speech.request(id, ensemble.SpeechRequested{Parts: speechParts(card.Text), Reason: "on demand"})
+						source := speechSource(*card)
+						text := cleanSpeech(card.Text)
+						if card.Kind == "tool_call" || card.Kind == "tool_result" {
+							text = strings.TrimSpace(card.Text)
+						}
+						if text != "" {
+							s.Hub.speech.enqueue(id, spokenPart{Text: text, Source: source, PartID: m.PartID}, "on demand", card.TurnID)
+						}
 						s.Hub.mu.Unlock()
 						return nil
 					}

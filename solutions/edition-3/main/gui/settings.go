@@ -10,10 +10,11 @@ import (
 	"path/filepath"
 )
 
-// Settings is a complete GUI-local snapshot. False and zero stay on the wire;
-// only the tool-budget policy is applied through the public Agent boundary.
+// Settings is a complete GUI-local snapshot. False and zero stay on the wire.
+// Read Aloud controls playback, not capture; Agent Interrupt remains separate.
 type Settings struct {
 	Theme                string           `json:"theme"`
+	PauseWhileSpeaking   bool             `json:"pause_while_speaking"`
 	TTSEnabled           bool             `json:"tts_enabled"`
 	TTSSpeed             float64          `json:"tts_speed"`
 	FontSize             int              `json:"font_size"`
@@ -23,7 +24,7 @@ type Settings struct {
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16, LogMode: ensemble.LogFull, DiagnosticMaxRecords: 200}
+	return Settings{Theme: "dark", TTSEnabled: true, PauseWhileSpeaking: true, TTSSpeed: 1, FontSize: 16, LogMode: ensemble.LogFull, DiagnosticMaxRecords: 200}
 }
 
 // A sparse patch is decoded onto a copy, then validated as a whole. The same
@@ -42,6 +43,8 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 		switch key {
 		case "theme":
 			target = &next.Theme
+		case "pause_while_speaking":
+			target = &next.PauseWhileSpeaking
 		case "tts_enabled":
 			target = &next.TTSEnabled
 		case "tts_speed":
@@ -158,9 +161,6 @@ func (h *Hub) updateSettings(raw json.RawMessage) error {
 	for _, a := range h.en.Agents() {
 		_ = a.SetMaxToolRounds(next.MaxToolRounds)
 		_ = a.SetPersistencePolicy(next.LogMode, next.DiagnosticMaxRecords)
-		if next.TTSEnabled != h.settings.TTSEnabled {
-			_ = a.Post(ensemble.SetSpeaking{Enabled: next.TTSEnabled})
-		}
 	}
 	h.settings = next
 	h.settingsApplied = true

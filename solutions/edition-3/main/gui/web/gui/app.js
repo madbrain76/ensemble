@@ -7,9 +7,45 @@ const nodeIDs=new WeakMap();let nextNodeID=0;
 const agents = new Map(), cards = new Map(), order = [];
 let audio = [], speakingNow = null;
 const typing = new Set(), delayed = new Map(), requests = new Map(), voiceAgents = new Set();
-let inputOccupied=false;
-let settings={theme:'dark',tts_enabled:true,tts_speed:1,font_size:16,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200},settingsReady=false;
-const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','tts-speed':'tts_speed','font-size':'font_size','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records'};
+let inputOccupied=false,pageTurnRevision=0,pageTurnsEnded=0,inputRevision=0;
+const observedTurns=new Map(),speechStartedAt=Date.now();
+const speechTranscript=[],pauseRequested=new Set(),admittedSpeech=new Set();
+let speechMode=new URLSearchParams(location.search).get('speech')==='transcript'?'transcript':'native';
+// Full speech-channel records, separate from clipped GUI-debug diagnostics.
+window.speechChannel={
+ status(agent=selected){const state=agents.get(agent)?.state,turn=observedTurns.get(agent);return {ready:socket?.readyState===1&&settingsReady&&!!state,agent_id:agent,selected_agent_id:selected,turn:state?.turn,turn_id:turn?.id||0,outcome:turn?.terminal?turn.outcome:'pending',prompt:turn?.prompt||'',paused:state?.paused||false,busy:!!agent&&busy(agent),revision:pageTurnRevision,ended:pageTurnsEnded,input_revision:inputRevision,draft:agent===selected?$('input').value:'',human_typing:typing.has(agent)};},
+ releaseDraft(agent,revision,text){if(agent!==selected||revision!==inputRevision||$('input').value!==text)return false;$('input').value='';inputRevision++;inputOccupied=false;typing.delete(agent);updatePause(agent);return true;},
+ interruptOwned(agent,turn){if(observedTurns.get(agent)?.id!==turn||observedTurns.get(agent)?.terminal)return false;cancelAudio(agent,false);return send('interrupt',{agent_id:agent});},
+ read(after=0){
+  if(!Number.isSafeInteger(after)||after<0||after>speechTranscript.length)throw Error('invalid speech cursor');
+  return {cursor:speechTranscript.length,mode:speechMode,events:speechTranscript.slice(after)};
+ },
+ setMode(mode){
+  if(!['transcript','native'].includes(mode))throw Error('speech mode must be transcript or native');
+  if(speakingNow||audio.length||delayed.size||requests.size)throw Error('speech is busy');
+  speechMode=mode;return {mode};
+ }
+};
+function channelRecord(task,event,extra={}){
+ speechTranscript.push({ms:Date.now()-speechStartedAt,kind:event==='complete'?'status':event,seq:speechTranscript.length+1,causal_sequence:speechTranscript.length+1,at:Date.now(),event,mode:speechMode,agent_id:task.agent,speech_id:task.id,turn_id:task.turn_id||0,...extra});
+}
+function speechChunks(task){
+ const out=[];
+ for(const part of task.segments||[{text:task.text,source:'system'}]){
+  for(const paragraph of part.text.split(/\n\s*\n/)){
+   let rest=paragraph.trim();
+   while(Array.from(rest).length>1200){
+    const prefix=Array.from(rest).slice(0,1200).join('');
+    let cut=prefix.lastIndexOf(' ');if(cut<600)cut=prefix.length;
+    out.push({...part,text:rest.slice(0,cut)});rest=rest.slice(cut).trimStart();
+   }
+   if(rest)out.push({...part,text:rest});
+  }
+ }
+ return out;
+}
+let settings={theme:'dark',tts_enabled:true,pause_while_speaking:true,tts_speed:1,font_size:16,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200},settingsReady=false;
+const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','pause-while-speaking':'pause_while_speaking','tts-speed':'tts_speed','font-size':'font_size','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records'};
 const systemTheme=window.matchMedia?.('(prefers-color-scheme: dark)');
 function applyTheme(){document.documentElement.dataset.theme=settings.theme==='system'?(systemTheme?.matches?'dark':'light'):settings.theme;}
 if(systemTheme?.addEventListener)systemTheme.addEventListener('change',()=>{if(settings.theme==='system')applyTheme();});
@@ -27,14 +63,11 @@ function cancelAutomaticAudio(){
 }
 function applySettings(value){
  if(!value)return;
- const readAloudChanged=settingsReady&&settings.tts_enabled!==value.tts_enabled;
  settings=value;settingsReady=true;applyTheme();document.documentElement.style.setProperty('--font-size',`${settings.font_size}px`);preferenceControls();
- // A Read Aloud transition relinquishes the old draft pause, not the draft.
- // Fresh input may claim a new pause; owned speech still releases through idle
- // and the existing epoch checks, so stale callbacks cannot resume new work.
- if(readAloudChanged){typing.delete(selected);inputOccupied=false;}
+ // Speech and HUMAN input own independent holds. Disabling speech does not
+ // grant permission to resume through a draft the human is still composing.
  if(!settings.tts_enabled)cancelAutomaticAudio();
- if(readAloudChanged&&selected)maybeResume(selected);
+ for(const agent of agents.keys())updatePause(agent);
  $('settings-status').textContent='Saved · shared across your open tabs';
 }
 for(const [id,key] of Object.entries(preferenceFields))$(id).onchange=()=>{
@@ -102,7 +135,19 @@ function skillView(){
  }
  if(!(state.skills||[]).length)box.textContent='No skills configured.';
 }
+// Public GUI/History observations, scoped to each Agent and turn.
+function observeTurn(frame){
+ if(frame.stale||!frame.turn_id)return;
+ let turn=observedTurns.get(frame.agent_id);
+ if(turn&&frame.turn_id<turn.id)return;
+ if(!turn||frame.turn_id>turn.id){turn={id:frame.turn_id,outcome:'success',terminal:false,prompt:''};observedTurns.set(frame.agent_id,turn);}
+ if(frame.part?.role==='human')turn.prompt=frame.part.text||'';
+ if(frame.type==='error'&&turn.outcome!=='interrupted')turn.outcome='error';
+ if(frame.type==='turn_interrupted'){turn.outcome='interrupted';turn.terminal=true;}
+ if(frame.type==='turn_ended')turn.terminal=true;
+}
 function apply(frame) {
+ observeTurn(frame);
  if(['part_final','part_delta','tool_dispatched','tool_finished'].includes(frame.type)) {
   const key=`${frame.agent_id}/${frame.part_id}`;let record=cards.get(key);
   if(frame.type==='part_delta') {
@@ -116,12 +161,13 @@ function apply(frame) {
   const key=`${frame.agent_id}/${frame.part_id}`;let record=cards.get(key);if(!record){record={frame,node:element('article','card')};cards.set(key,record);}else record.frame.part.job=frame.part.job;renderCard(record);
  } else if(frame.type==='part_removed'){const key=`${frame.agent_id}/${frame.part_id}`,r=cards.get(key);if(r?.frame.part.partial){r.node.remove();cards.delete(key);}
  } else if(frame.type==='state'||frame.type==='state_changed') {
+  if(!frame.replay)pageTurnRevision++;
   const a=agents.get(frame.agent_id), next=frame.type==='state'?frame.data:frame.state, previous=a?.state;if(a) a.state=next;
   if(frame.agent_id===selected) controls();
   // A state acknowledgement may follow newer input. Only explicit Continue
   // authority (below), not an automatic continuation epoch, clears typing.
   if(!frame.replay&&next.epoch!==previous?.epoch)cancelAudio(frame.agent_id,false);
- } else if(frame.type==='turn_ended') {for(const [key,r] of cards) {if(r.frame.agent_id===frame.agent_id&&r.frame.part.partial){r.node.remove();cards.delete(key);}}}
+ } else if(frame.type==='turn_ended') {if(!frame.replay)pageTurnsEnded++;for(const [key,r] of cards) {if(r.frame.agent_id===frame.agent_id&&r.frame.part.partial){r.node.remove();cards.delete(key);}}}
  else if(frame.type==='continued'&&!frame.replay){
   if(frame.data.client!==clientID&&frame.data.epoch===agents.get(frame.agent_id)?.state.epoch)explicitContinue(frame.agent_id);
  }else if(frame.type==='skill_state'){skillsByAgent.set(frame.agent_id,frame);skillView();
@@ -135,8 +181,9 @@ function apply(frame) {
   $('audio-status').textContent='Browser speech requested';send('claim_speech',{agent_id:frame.agent_id,speech_id:frame.data.id});
  }else if(frame.type==='speech_claimed'&&!frame.replay){
   const request=requests.get(frame.data.id);requests.delete(frame.data.id);
-  if(frame.data.owner!==clientID||!request||request.epoch!==frame.data.epoch||frame.data.epoch!==agents.get(frame.agent_id)?.state.epoch)return;
-  const task={agent:frame.agent_id,...frame.data};const occupied=voiceAgents.has(task.agent);voiceAgents.add(task.agent);if(!occupied)send('pause',{agent_id:task.agent});
+  if(frame.data.owner!==clientID||admittedSpeech.has(frame.data.id)||(request?request.epoch!==frame.data.epoch:!voiceAgents.has(frame.agent_id))||frame.data.epoch!==agents.get(frame.agent_id)?.state.epoch)return;
+  admittedSpeech.add(frame.data.id);
+  const task={agent:frame.agent_id,...frame.data};voiceAgents.add(task.agent);updatePause(task.agent);
   if(task.reason==='prompt'&&$('mic').checked&&settings.tts_enabled){const timer=setTimeout(()=>{delayed.delete(task.id);enqueueAudio(task);},2000);delayed.set(task.id,{task,timer});}else enqueueAudio(task);
  }else if(frame.type==='speech_cancelled'){
   cancelAudio(frame.agent_id,false);
@@ -155,8 +202,8 @@ function renderAgentTree(a){
 function controls(){skillView();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
 function replay(data){
  mcpAgents.clear();mcpReady.clear();
- const previousAgents=new Map(agents);
- cancelAudio(undefined,false);clientID=data.client;session=data.session;cards.clear();order.length=0;$('conversation').replaceChildren();$('tool-cards').replaceChildren();agents.clear();skillsByAgent.clear();
+ const previousAgents=new Map(agents);if(session!==data.session)observedTurns.clear();
+ cancelAudio(undefined,false);admittedSpeech.clear();clientID=data.client;session=data.session;cards.clear();order.length=0;$('conversation').replaceChildren();$('tool-cards').replaceChildren();agents.clear();skillsByAgent.clear();
  for(const a of data.agents){if(!a.state.paused||a.state.continue_epoch!==previousAgents.get(a.id)?.state.continue_epoch)typing.delete(a.id);agents.set(a.id,a);}
  if(!agents.has(selected))selected=data.agents[0]?.id||'';
  for(const frame of data.events) apply(frame);for(const frame of data.partials) apply(frame);controls();
@@ -168,9 +215,17 @@ function connect(){socket=new WebSocket(`${location.protocol==='https:'?'wss':'w
  socket.onerror=()=>socket.close();
 }
 function busy(agent){return voiceAgents.has(agent)||[...requests.values()].some(r=>r.agent===agent)||speakingNow?.agent===agent||audio.some(t=>t.agent===agent)||[...delayed.values()].some(x=>x.task.agent===agent);}
-function maybeResume(agent){if(!busy(agent)&&!typing.has(agent))send('unpause',{agent_id:agent,automatic:true});}
-function explicitContinue(agent){typing.delete(agent);if(agent===selected)inputOccupied=false;cancelAudio(agent,false);}
-function speechRecord(task,state,extra={}){const record={speech_id:task.id,agent_id:task.agent,state,at:Date.now(),text:task.text,reason:task.reason,...extra};speechRecent.push(record);if(speechRecent.length>40)speechRecent.shift();task.speechState=state;}
+function updatePause(agent){
+ const want=typing.has(agent)||(!!settings.pause_while_speaking&&voiceAgents.has(agent));
+ if(want===pauseRequested.has(agent))return;
+ if(want)pauseRequested.add(agent);else pauseRequested.delete(agent);
+ const cause=typing.has(agent)?'typing':voiceAgents.has(agent)?'speech':'clear';
+ speechTranscript.push({ms:Date.now()-speechStartedAt,seq:speechTranscript.length+1,kind:want?'pause':'resume',at:Date.now(),event:want?'pause':'resume',cause,agent_id:agent});
+ send(want?'pause':'unpause',{agent_id:agent,automatic:true});
+}
+function maybeResume(agent){updatePause(agent);}
+function explicitContinue(agent){pauseRequested.delete(agent);typing.delete(agent);if(agent===selected)inputOccupied=false;cancelAudio(agent,false);}
+function speechRecord(task,state,extra={}){if(['done','cancelled','disabled','unsupported','failed'].includes(state))channelRecord(task,'complete',{status:state});const record={speech_id:task.id,agent_id:task.agent,state,at:Date.now(),text:task.text,reason:task.reason,...extra};speechRecent.push(record);if(speechRecent.length>40)speechRecent.shift();task.speechState=state;}
 function enqueueAudio(task){speechRecord(task,'queued');audio.push(task);speakNext();}
 function cancelAudio(agent,resume=false){
  for(const [id,r] of requests)if(!agent||r.agent===agent)requests.delete(id);
@@ -186,11 +241,25 @@ function speakNext(){
  if(speakingNow||!audio.length)return;
  const task=audio.shift();speakingNow=task;
  const complete=status=>{if(speakingNow!==task)return;speechRecord(task,status);speakingNow=null;send('speech_done',{agent_id:task.agent,speech_id:task.id,status});speakNext();};
- if(automaticSpeech(task)&&!settings.tts_enabled){complete('disabled');return;}
- if(!window.speechSynthesis||!window.SpeechSynthesisUtterance){complete('unsupported');return;}
- // Read every codepoint in order. No preview truncation or chunk dropping.
- const chunks=Array.from(task.text);let offset=0;
- const next=()=>{if(speakingNow!==task)return;if(offset>=chunks.length){complete('done');return;}const utterance=new SpeechSynthesisUtterance(chunks.slice(offset,offset+1200).join(''));offset+=1200;utterance.rate=Math.max(0.5,Math.min(3,settings.tts_speed));utterance.onstart=()=>{if(speakingNow===task)speechRecord(task,'speaking',{chunk_start:Math.max(0,offset-1200)});};utterance.onend=()=>{if(speakingNow===task)speechRecord(task,'chunk-ended',{chunk_end:Math.min(offset,chunks.length)});next();};utterance.onerror=event=>{if(speakingNow===task)speechRecord(task,'error',{error:event.error});complete('failed');};speechSynthesis.speak(utterance);};next();
+ const chunks=speechChunks(task);let index=0,activeUtterance=null;
+ const next=()=>{
+  if(speakingNow!==task)return;
+  if(index>=chunks.length){complete('done');return;}
+  const part=chunks[index++],token={};activeUtterance=token;
+  const text=(part.source==='thinking'?'Thinking: ':part.source==='error'?'Error: ':'')+part.text;
+  // Admit exactly this segment before deciding whether native playback is enabled.
+  // A queued or cancelled future segment is never reported as heard.
+  channelRecord(task,'utterance',{text,utterance:text,audio:true,source:part.source,part_id:part.part_id||0,turn_id:part.turn_id||task.turn_id||0,evidence:'speech-channel'});
+  const valid=()=>speakingNow===task&&activeUtterance===token;
+  const ended=()=>{if(!valid())return;activeUtterance=null;speechRecord(task,'chunk-ended',{chunk:index-1});next();};
+  if(speechMode==='transcript'||(automaticSpeech(task)&&!settings.tts_enabled)||!window.speechSynthesis||!window.SpeechSynthesisUtterance){setTimeout(ended,0);return;}
+  const utterance=new SpeechSynthesisUtterance(text);
+  utterance.rate=Math.max(0.5,Math.min(3,settings.tts_speed));
+  utterance.onstart=()=>{if(valid()){speechRecord(task,'native-start',{chunk:index-1});speechRecord(task,'speaking',{chunk:index-1});}};
+  utterance.onend=ended;
+  utterance.onerror=event=>{if(!valid())return;activeUtterance=null;speechRecord(task,'error',{error:event.error});complete('failed');};
+  try{speechSynthesis.speak(utterance);}catch(error){if(valid()){activeUtterance=null;speechRecord(task,'error',{error:String(error)});complete('failed');}}
+ };next();
 }
 $('agent-root').onclick=()=>{selected=$('agent-root').dataset.agentId;for(const r of cards.values())r.node.hidden=r.frame.agent_id!==selected;controls();};
 function showSidebar(open){$('sidebar').hidden=!open;$('sidebar-resizer').hidden=!open;$('menu-toggle').setAttribute('aria-expanded',String(open));}
@@ -210,10 +279,28 @@ for(const [id,pane,property,minimum,maximum,direction] of [['sidebar-resizer','s
  const stop=()=>{handle.onpointermove=null;document.body.classList.remove('resizing');};handle.onpointerup=stop;handle.onpointercancel=stop;handle.onlostpointercapture=stop;
 }
 $('pause').onclick=()=>send('pause');$('continue').onclick=()=>{explicitContinue(selected);send('unpause');};$('interrupt').onclick=()=>{cancelAudio(selected,false);send('interrupt');};
-$('cancel-audio').onclick=()=>{cancelAudio(selected);send('update_settings',{settings:{tts_enabled:false}});};
-function submit(type){const text=$('input').value;if(text.trim()&&send(type,{text})){$('input').value='';inputOccupied=false;typing.delete(selected);maybeResume(selected);$('errors').textContent='';}}
+$('cancel-audio').onclick=()=>cancelAudio(selected,true);
+addEventListener('keydown',event=>{if(event.key==='Escape')cancelAudio(selected,true);});
+function submit(type){
+ const text=$('input').value;if(!text.trim())return;
+ // Preserve the draft and its HUMAN hold when sending is unavailable.
+ if(socket?.readyState!==WebSocket.OPEN){send(type,{text});return;}
+ $('input').value='';inputRevision++;inputOccupied=false;typing.delete(selected);
+ // Automatic release advances the Agent epoch. Send it before new input can
+ // create prompt speech; an independent speech hold still prevents release.
+ maybeResume(selected);
+ if(send(type,{text}))$('errors').textContent='';
+}
 // Keep the cause: synthetic MCP events must not become human typing during speech.
-function draftChanged(event){const nonempty=event.isTrusted&&$('input').value.length>0;if(nonempty&&!inputOccupied){typing.add(selected);send('pause');}else if(!nonempty&&typing.delete(selected))maybeResume(selected);inputOccupied=nonempty;}
+function draftChanged(event){
+ inputRevision++;
+ // A human space counts as input. Scripted edits neither acquire nor release
+ // HUMAN intent. Submit, clearing the draft, or Continue can release it.
+ if(!event.isTrusted)return;
+ inputOccupied=$('input').value.length>0;
+ if(inputOccupied)typing.add(selected);else typing.delete(selected);
+ updatePause(selected);
+}
 $('input').oninput=draftChanged;
 $('composer').onsubmit=e=>{e.preventDefault();submit('input');};$('hint').onclick=()=>submit('hint');$('input').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();submit('input');}};
 addEventListener('pagehide',()=>cancelAudio(undefined,false));connect();

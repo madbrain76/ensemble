@@ -14,18 +14,18 @@ class Element {
  querySelectorAll(selector){const matches=e=>selector[0]==='.'?(e.className||'').split(' ').includes(selector.slice(1)):e.tagName===selector;return this.children.flatMap(c=>[...(matches(c)?[c]:[]),...c.querySelectorAll(selector)]);}
 }
 function fixture(){
- const nodes=new Map(),sent=[],utterances=[];let cancelled=0;
+ const nodes=new Map(),sent=[],utterances=[],timers=[];let cancelled=0;
  class WebSocket {static OPEN=1;constructor(){this.readyState=1;}send(raw){sent.push(JSON.parse(raw));}close(){this.readyState=3;}}
  class SpeechSynthesisUtterance{constructor(text){this.text=text;}}
  const speechSynthesis={speak:u=>utterances.push(u),cancel:()=>cancelled++};
- const context={console,URL,WebSocket,SpeechSynthesisUtterance,speechSynthesis,document:{getElementById:id=>{if(!nodes.has(id))nodes.set(id,new Element('div'));return nodes.get(id);},createElement:tag=>new Element(tag),documentElement:{scrollHeight:0,dataset:{},style:{setProperty(){}}}},location:{protocol:'http:',host:'local.test'},innerHeight:1000,scrollY:0,requestAnimationFrame:fn=>fn(),scrollTo:()=>{},addEventListener:()=>{},setTimeout:()=>1,clearTimeout:()=>{}};
+ const context={console,URL,URLSearchParams,WebSocket,SpeechSynthesisUtterance,speechSynthesis,document:{getElementById:id=>{if(!nodes.has(id))nodes.set(id,new Element('div'));return nodes.get(id);},createElement:tag=>new Element(tag),documentElement:{scrollHeight:0,dataset:{},style:{setProperty(){}}}},location:{protocol:'http:',host:'local.test'},innerHeight:1000,scrollY:0,requestAnimationFrame:fn=>fn(),scrollTo:()=>{},addEventListener:()=>{},setTimeout:(fn,ms)=>{const t={fn,ms,cancelled:false};timers.push(t);return t;},clearTimeout:t=>{if(t)t.cancelled=true;}};
  context.window=context;vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/web/gui/app.js','utf8'),context);
- const api=vm.runInContext('({apply,replay,$,maybeResume})',context);
+ const api=vm.runInContext('({apply,replay,$,maybeResume,enqueueAudio,cancelAudio,channel:window.speechChannel})',context);
  const state=(epoch=1,continued=0,speaking=true,paused=true)=>({turn:'idle',paused,speaking,epoch,continue_epoch:continued});
  function replay(s=state(),events=[]){api.replay({client:'owner',session:'test',agents:[{id:'agent',config:{vendor:'local',model:'test',surface:'chat'},state:s}],events,partials:[]});}
  function emit(type,data,extra={}){api.apply(type==='state_changed'?{type,agent_id:'agent',from:data.state.turn,to:data.state.turn,...data,...extra}:{type,agent_id:'agent',data,...extra});}
  function speak(id,text,epoch=1){emit('speech_requested',{id,epoch});emit('speech_claimed',{id,epoch,owner:'owner',reason:'automatic',text});}
- replay();return{...api,emit,speak,state,replay,sent,utterances,nodes,get cancelled(){return cancelled;}};
+ replay();return{...api,flush:()=>{const t=timers.find(t=>!t.cancelled&&t.ms===0);if(t){t.cancelled=true;t.fn();return true;}return false;},run:code=>vm.runInContext(code,context),emit,speak,state,replay,sent,utterances,nodes,get cancelled(){return cancelled;}};
 }
 module.exports=fixture;
 if(require.main===module&&process.argv[2]!=='chapter12'){

@@ -22,11 +22,11 @@ function page(){
  const speechSynthesis={speak(u){utterances.push(u);},cancel(){cancels++;}};
  const matchMedia=()=>({matches:false,addEventListener(){}});
  const document={getElementById:id=>ids.get(id)||null,createElement:t=>new Element(t),documentElement:new Element(),body:new Element()};
- const context=vm.createContext({console,document,WebSocket,SpeechSynthesisUtterance,speechSynthesis,window:{SpeechSynthesisUtterance,speechSynthesis,matchMedia},location:{protocol:'http:',host:'fixture.invalid'},addEventListener(){},requestAnimationFrame:f=>f(),setTimeout:f=>{timers.set(++timerID,f);return timerID;},clearTimeout:id=>timers.delete(id)});
+ const context=vm.createContext({console,URLSearchParams,document,WebSocket,SpeechSynthesisUtterance,speechSynthesis,window:{SpeechSynthesisUtterance,speechSynthesis,matchMedia},location:{protocol:'http:',host:'fixture.invalid'},addEventListener(){},requestAnimationFrame:f=>f(),setTimeout:(f,ms)=>{timers.set(++timerID,{f,ms});return timerID;},clearTimeout:id=>timers.delete(id)});
  vm.runInContext(source,context,{filename:'actual-app.js'});
  const frame=value=>sockets.at(-1).onmessage({data:JSON.stringify(value)});
  const state=(extra={})=>({turn:'idle',paused:false,speaking:true,epoch:1,continue_epoch:0,...extra});
- const preferences={theme:'dark',tts_enabled:true,tts_speed:1,font_size:16,max_tool_rounds:0};
+ const preferences={theme:'dark',tts_enabled:true,pause_while_speaking:true,tts_speed:1,font_size:16,max_tool_rounds:0};
  function settings(patch={},type='settings_changed'){Object.assign(preferences,patch);frame({type,settings:{...preferences}});}
  function replay(){frame({type:'replay',data:{session:'session',client:'owner',agents:[{id:'root-7',config:{model:'fixture-model',vendor:'anthropic',surface:'messages'},state:state()}],events:[],partials:[]}});settings({},'current_settings');}
  replay();
@@ -34,7 +34,7 @@ function page(){
   frame({type:'speech_requested',agent_id:'root-7',data:{id,text,reason,turn_id:7,epoch:1}});
   frame({type:'speech_claimed',agent_id:'root-7',data:{id,text,reason,owner:'owner',turn_id:7,epoch:1}});
  }
- return {ids,sent,utterances,frame,state,settings,replay,claim,cancels:()=>cancels};
+ return {ids,sent,utterances,frame,state,settings,replay,claim,channel:context.window.speechChannel,flushQuiet(){for(const [id,t] of timers){if(t.ms===0){timers.delete(id);t.f();return true;}}return false;},cancels:()=>cancels};
 }
 const tests={
  'R3 follow control reserves space and preserves Chat follow behavior'(){
@@ -61,7 +61,7 @@ const tests={
  },
  'fractional controls and reload'(){const p=page();p.settings({tts_speed:1.2345,font_size:18});assert.equal(p.ids.get('tts-speed').value,'1.2345');assert.equal(p.ids.get('font-size').value,'18');p.ids.get('tts-speed').onchange();assert.equal(p.sent.at(-1).settings.tts_speed,1.2345);p.replay();assert.equal(p.ids.get('tts-speed').value,'1.2345');assert.equal(p.ids.get('font-size').value,'18');assert.equal(p.ids.get('tts-speed-value').textContent,'1.2345×');},
  'native rate clamps each chunk but not saved preference'(){const p=page();p.settings({tts_speed:2.5});p.claim('long','x'.repeat(2500));assert.equal(p.utterances[0].rate,2.5);p.settings({tts_speed:5});p.utterances[0].onend();assert.equal(p.utterances[1].rate,3);assert.equal(p.ids.get('tts-speed').value,'5');p.settings({tts_speed:.5});p.utterances[1].onend();assert.equal(p.utterances[2].rate,.5);p.utterances[2].onend();assert.equal(p.sent.filter(x=>x.type==='speech_done'&&x.speech_id==='long').length,1);p.settings({tts_enabled:false,tts_speed:1.2345});p.claim('explicit','user selected speech','on demand');assert.equal(p.utterances.at(-1).text,'user selected speech');assert.equal(p.utterances.at(-1).rate,1.2345);},
- 'Read Aloud clears old draft pause and fresh editing rearms'(){const p=page(),input=p.ids.get('input');input.value='preserve this draft';input.oninput({isTrusted:true});p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});p.settings({tts_enabled:false});assert.equal(p.sent.filter(x=>x.type==='unpause').length,1,'off must release the old draft-owned pause');assert.equal(input.value,'preserve this draft');p.settings({tts_enabled:true});assert.equal(input.value,'preserve this draft');assert.equal(p.sent.filter(x=>x.type==='unpause').length,2,'on must also release the paused gate');p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:false})});const pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' edited';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1,'fresh editing must own a new pause');assert.equal(p.cancels(),0,'empty speech queues do not need artificial cancellation');},
+ 'Read Aloud preserves HUMAN hold until the draft is cleared'(){const p=page(),input=p.ids.get('input');input.value='preserve this draft';input.oninput({isTrusted:true});p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});const releases=p.sent.filter(x=>x.type==='unpause').length,pauses=p.sent.filter(x=>x.type==='pause').length;p.settings({tts_enabled:false});p.settings({tts_enabled:true});assert.equal(p.sent.filter(x=>x.type==='unpause').length,releases);assert.equal(input.value,'preserve this draft');input.value+=' edited';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses);input.value='';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='unpause').length,releases+1);assert.equal(p.cancels(),0);},
  'automatic cancellation rejects stale callbacks'(){const p=page();p.claim('old');const old=p.utterances.at(-1);p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});p.settings({tts_enabled:false});p.frame({type:'speech_idle',agent_id:'root-7',data:{owner:'owner',epoch:1}});p.settings({tts_enabled:true});p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true,epoch:2})});const commands=p.sent.length;old.onend();old.onerror();p.frame({type:'speech_idle',agent_id:'root-7',data:{owner:'owner',epoch:1}});assert.equal(p.sent.length,commands,'stale callbacks and idle cannot release a new epoch');assert.equal(p.utterances.length,1);assert.equal(p.sent.filter(x=>x.type==='speech_done'&&x.speech_id==='old').length,1);assert.ok(p.sent.some(x=>x.type==='unpause'));},
  'R2 delayed automatic acknowledgement preserves fresh typing'(){
   const p=page(),input=p.ids.get('input');input.value='old draft';input.oninput({isTrusted:true});
@@ -101,7 +101,7 @@ const tests={
   const p=page();p.settings({tts_enabled:false});p.claim('explicit-off','selected complete text','on demand');
   assert.equal(p.utterances.length,1,'production on demand must reach the native constructor');assert.equal(p.utterances[0].text,'selected complete text');
   p.claim('automatic-off','must not play','automatic');p.utterances[0].onend();
-  assert.equal(p.utterances.length,1);assert.ok(p.sent.some(x=>x.type==='speech_done'&&x.speech_id==='automatic-off'&&x.status==='disabled'));
+  assert.equal(p.utterances.length,1);assert.ok(p.channel.read().events.some(x=>x.event==='utterance'&&x.speech_id==='automatic-off'));assert.ok(p.flushQuiet());assert.ok(p.sent.some(x=>x.type==='speech_done'&&x.speech_id==='automatic-off'&&x.status==='done'));
   p.settings({tts_enabled:true});p.claim('automatic-on','cancel this','automatic');const old=p.utterances.at(-1);p.settings({tts_enabled:false});old.onend();old.onerror();
   assert.equal(p.sent.filter(x=>x.type==='speech_done'&&x.speech_id==='automatic-on').length,1);assert.equal(p.utterances.length,2);
  },
