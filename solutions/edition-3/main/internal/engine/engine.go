@@ -46,9 +46,10 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 		disclosure.references = map[string][]string{}
 		for _, t := range snapshot.Tools {
 			// Tools retains capability truth for admission and automatic gathering.
-			// Neither declarations nor enabling-call references may expose automatic
-			// tools. Ordinary dormant entries still belong in the deferred catalog.
-			if t.Ephemeral != "" {
+			// Automatic tools never enter declarations or enabling-call references.
+			// Dormant compiled tools remain deferred; external declarations require
+			// an enabled grant, even while their skill's instructions remain pending.
+			if t.Ephemeral != "" || (!t.Enabled && strings.HasPrefix(t.Source, "mcp:")) {
 				continue
 			}
 			disclosure.catalog = append(disclosure.catalog, t)

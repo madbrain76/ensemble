@@ -405,5 +405,19 @@ func (h *Hub) sendSettingsError(c *client, err error) {
 }
 
 func skillFrame(a ensemble.Agent) Wire {
-	return Wire{Type: "skill_state", AgentID: a.ID(), Skills: a.Skills().ListSkills(), LoadableSkills: a.Skills().LoadableSkills()}
+	frame := Wire{Type: "skill_state", AgentID: a.ID(), Skills: a.Skills().ListSkills(), LoadableSkills: a.Skills().LoadableSkills()}
+	// Publish only tunnel eligibility, not endpoint commands or addresses.
+	// Canonical skill declarations remain unchanged for display and admission.
+	for _, skill := range frame.Skills {
+		if skill.PendingUnload {
+			continue
+		}
+		for _, declaration := range skill.MCPServers {
+			if browserWebSocket(a, declaration) {
+				frame.BrowserMCP = true
+				return frame
+			}
+		}
+	}
+	return frame
 }

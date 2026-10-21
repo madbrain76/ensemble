@@ -49,9 +49,6 @@ func TestMCPBrowserReloadSameSocket(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = a.Skills().LoadSkill("browser"); err == nil {
-		t.Fatal("browser skill loaded without a connected browser")
-	}
 	server, err := NewServerWithSettings(en, "web/gui", filepath.Join(t.TempDir(), "settings.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +101,10 @@ func TestMCPBrowserReloadSameSocket(t *testing.T) {
 				result = map[string]any{"protocolVersion": "2024-11-05", "capabilities": map[string]any{"tools": map[string]any{}}}
 			case "tools/list":
 				result = map[string]any{"tools": []map[string]any{
-					{"name": "gui_snapshot", "description": "fixture DOM observation", "inputSchema": map[string]any{"type": "object"}},
+					{"name": "gui_snapshot", "description": "fixture DOM observation", "inputSchema": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}},
+					{"name": "tts_queue", "description": "fixture queue", "inputSchema": map[string]any{"type": "object", "properties": map[string]any{}, "additionalProperties": false}},
+					{"name": "gui_click", "description": "fixture click", "inputSchema": map[string]any{"type": "object", "properties": map[string]any{"selector": map[string]any{"type": "string"}}, "required": []string{"selector"}, "additionalProperties": false}},
+					{"name": "gui_input", "description": "fixture input", "inputSchema": map[string]any{"type": "object", "properties": map[string]any{"selector": map[string]any{"type": "string"}, "text": map[string]any{"type": "string"}}, "required": []string{"selector", "text"}, "additionalProperties": false}},
 					{"name": "ungranted_browser_auto", "description": "not granted", "ephemeral": "round", "inputSchema": map[string]any{"type": "object"}},
 				}}
 			case "tools/call":

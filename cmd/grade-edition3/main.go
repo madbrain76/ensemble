@@ -21,17 +21,17 @@ func main() {
 // Returning the status lets temporary build cleanup finish before os.Exit.
 func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
-	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10 or 11)")
+	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11 or 12)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
-	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11 core source module directory")
-	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11 external consumer module directory")
-	consumerCase := flags.String("consumer-case", "", "Chapter 4/5/6/7/8/9/10/11 JSON case file (default: shout example)")
-	workflow := flags.String("workflow", "", "Chapter 5/6/7/8/9/10/11 workflow module directory")
-	mediaModels := flags.String("media-models", "", "Chapter 5/6/7/8/9/10/11 media-model mapping JSON")
-	streamExercise := flags.String("stream-exercise", "", "Chapter 6/7/8/9/10/11 stream-shape module directory")
-	streamModel := flags.String("stream-model", "", "Chapter 6/7/8/9/10/11 declared known streaming model (required)")
-	gui := flags.String("gui", "", "Chapter 7/8/9/10/11 separate GUI module directory")
-	guiModel := flags.String("gui-model", "", "Chapter 7/8/9/10/11 declared GUI model (required)")
+	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12 core source module directory")
+	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12 external consumer module directory")
+	consumerCase := flags.String("consumer-case", "", "Chapter 4/5/6/7/8/9/10/11/12 JSON case file (default: shout example)")
+	workflow := flags.String("workflow", "", "Chapter 5/6/7/8/9/10/11/12 workflow module directory")
+	mediaModels := flags.String("media-models", "", "Chapter 5/6/7/8/9/10/11/12 media-model mapping JSON")
+	streamExercise := flags.String("stream-exercise", "", "Chapter 6/7/8/9/10/11/12 stream-shape module directory")
+	streamModel := flags.String("stream-model", "", "Chapter 6/7/8/9/10/11/12 declared known streaming model (required)")
+	gui := flags.String("gui", "", "Chapter 7/8/9/10/11/12 separate GUI module directory")
+	guiModel := flags.String("gui-model", "", "Chapter 7/8/9/10/11/12 declared GUI model (required)")
 	if err := flags.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			return 0
@@ -55,34 +55,34 @@ func run(args []string) int {
 		}
 	})
 	// No historical target defaults and no implicit source inference from a binary.
-	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && chapter7Flags) {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 1 [-json] target; or -ch 4|5|6|7|8|9|10|11 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
+	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && chapter7Flags) {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 1 [-json] target; or -ch 4|5|6|7|8|9|10|11|12 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
 		return 2
 	}
 	var example gradeedition2.ConsumerCase
-	if *chapter == 4 || *chapter == 5 || *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 {
+	if *chapter == 4 || *chapter == 5 || *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 || *chapter == 12 {
 		dirs := []string{*core, *consumer}
-		if *chapter == 5 || *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 {
+		if *chapter == 5 || *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 || *chapter == 12 {
 			dirs = append(dirs, *workflow)
 		}
-		if *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 {
+		if *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 || *chapter == 12 {
 			dirs = append(dirs, *streamExercise)
 			if strings.TrimSpace(*streamModel) == "" {
-				fmt.Fprintln(os.Stderr, "grader: explicit nonblank -stream-model is required for Chapters 6/7/8/9/10/11")
+				fmt.Fprintln(os.Stderr, "grader: explicit nonblank -stream-model is required for Chapters 6/7/8/9/10/11/12")
 				return 2
 			}
 		}
-		if *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 {
+		if *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 || *chapter == 12 {
 			dirs = append(dirs, *gui)
 			if strings.TrimSpace(*guiModel) == "" {
-				fmt.Fprintln(os.Stderr, "grader: explicit nonblank -gui-model is required for Chapters 7/8/9/10/11")
+				fmt.Fprintln(os.Stderr, "grader: explicit nonblank -gui-model is required for Chapters 7/8/9/10/11/12")
 				return 2
 			}
 		}
 		for _, dir := range dirs {
 			info, err := os.Stat(filepath.Join(dir, "go.mod"))
 			if dir == "" || err != nil || !info.Mode().IsRegular() {
-				fmt.Fprintln(os.Stderr, "grader: explicit core and consumer (plus workflow for Chapters 5/6/7/8/9/10/11, stream-exercise for Chapters 6/7/8/9/10/11, and gui for Chapters 7/8/9/10/11) module directories containing go.mod are required")
+				fmt.Fprintln(os.Stderr, "grader: explicit core and consumer (plus workflow for Chapters 5/6/7/8/9/10/11/12, stream-exercise for Chapters 6/7/8/9/10/11/12, and gui for Chapters 7/8/9/10/11/12) module directories containing go.mod are required")
 				return 2
 			}
 		}
@@ -94,7 +94,7 @@ func run(args []string) int {
 		}
 	}
 	var models map[string]string
-	if *chapter == 5 || *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 {
+	if *chapter == 5 || *chapter == 6 || *chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 10 || *chapter == 11 || *chapter == 12 {
 		var err error
 		models, err = gradeedition2.ReadMediaModels(*mediaModels)
 		if err != nil {
@@ -126,6 +126,8 @@ func run(args []string) int {
 		report, err = gradeedition2.Chapter10(bin, *core, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	} else if *chapter == 11 {
 		report, err = gradeedition2.Chapter11(bin, *core, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
+	} else if *chapter == 12 {
+		report, err = gradeedition2.Chapter12(bin, *core, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	} else {
 		report, err = gradeedition3.Chapter1(bin)
 	}

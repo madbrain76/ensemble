@@ -136,7 +136,18 @@ func (r *registry) RegisterVar(name string, f func() string) {
 func (r *registry) LoadInitial() error {
 	cfg := r.parent.Config()
 	if cfg.Skills != nil {
-		return r.load(cfg.Skills.Primary, "initial", 0)
+		if err := r.load(cfg.Skills.Primary, "initial", 0); err != nil {
+			return err
+		}
+		for _, name := range cfg.StartupSkills {
+			if err := r.load(name, "initial", 0); err != nil {
+				return fmt.Errorf("startup skill %q: %w", name, err)
+			}
+		}
+		return nil
+	}
+	if len(cfg.StartupSkills) != 0 {
+		return fmt.Errorf("startup skills require a skill directory and primary")
 	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -223,7 +234,7 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	if root == nil {
 		return fail(fmt.Errorf("unknown skill %q", name))
 	}
-	if origin == "initial" {
+	if origin == "initial" && name == r.parent.Config().Skills.Primary {
 		if root.info.Type != "primary" {
 			return fail(fmt.Errorf("initial skill %q is not primary", name))
 		}

@@ -17,6 +17,8 @@ import (
 )
 
 func main() {
+	guiDebug := flag.Bool("gui-debug", false, "load gui-debug at startup")
+	skillsDir := flag.String("skills-dir", "", "skill directory (default: ./skills when ensemble is present)")
 	port := flag.Int("port", 8088, "loopback HTTP port")
 	assets := flag.String("gui-dir", "web/gui", "GUI asset directory (absolute paths work outside cwd)")
 	settings := flag.String("settings", "", "GUI settings JSON path (default: cr/settings.json under the working directory)")
@@ -34,6 +36,9 @@ func main() {
 	}
 	config, err := ensemble.ConfigFromEnv(os.Getenv)
 	if err != nil {
+		log.Fatal(err)
+	}
+	if err := configureSkills(&config, *skillsDir, *guiDebug); err != nil {
 		log.Fatal(err)
 	}
 	if protocolMode && config.Model == "" {

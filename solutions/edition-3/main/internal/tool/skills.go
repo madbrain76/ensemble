@@ -11,7 +11,7 @@ func (r *registry) skillTools() []entry {
 	schema := json.RawMessage(`{"type":"object","properties":{"name":{"type":"string"}},"required":["name"],"additionalProperties":false}`)
 	return []entry{
 		{definition: common.ToolDefinition{Name: "load_skill", Description: "Enable a named skill and its dependencies atomically. Offers only advertise; tools and instructions become available after a successful load.", Parameters: schema}},
-		{definition: common.ToolDefinition{Name: "unload_skill", Description: "Mark an enabled skill pending unload. Its instructions and tools remain available until a future supported context-compaction boundary.", Parameters: schema}},
+		{definition: common.ToolDefinition{Name: "unload_skill", Description: "Mark an enabled skill pending unload. Instructions and compiled tool grants remain active while pending. External grants are removed immediately; peers with no remaining grants are closed.", Parameters: schema}},
 	}
 }
 func (r *registry) skillCall(owner common.ToolCall, tool string, args arguments, seq common.Seq) error {
@@ -26,7 +26,7 @@ func (r *registry) skillCall(owner common.ToolCall, tool string, args arguments,
 		if err = r.parent.Skills().UnloadSkill(name); err != nil {
 			return err
 		}
-		_, err = fmt.Fprintf(owner, "Skill %s is pending unload; its instructions and tools remain active.", name)
+		_, err = fmt.Fprintf(owner, "Skill %s is pending unload. Its instructions and compiled tool grants remain active; external grants are removed immediately, and peers with no remaining grants are closed.", name)
 		return err
 	}
 	if seq == 0 {

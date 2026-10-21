@@ -57,12 +57,27 @@ func (t *browserTransport) Close() error {
 	})
 	return nil
 }
+
+// The client may override a skill's browser declaration with a pipe or socket.
+// Only an effective WebSocket endpoint belongs to this GUI tunnel.
+func browserWebSocket(a ensemble.Agent, declaration ensemble.MCPServer) bool {
+	if declaration.Name != "browser-debug" {
+		return false
+	}
+	for _, endpoint := range a.Config().MCPServers {
+		if endpoint.Name == declaration.Name {
+			return endpoint.Transport == "websocket"
+		}
+	}
+	return declaration.Transport == "websocket"
+}
+
 func (s *Server) openMCP(c *client, a ensemble.Agent) (*browserTransport, error) {
 	// Browser-originated names never choose an endpoint or grant authority.
 	declared := false
 	for _, skill := range a.Skills().Snapshot().Skills {
 		for _, d := range skill.MCPServers {
-			if d.Name == "browser-debug" && d.Transport == "websocket" {
+			if browserWebSocket(a, d) {
 				declared = true
 			}
 		}
@@ -136,7 +151,7 @@ func (s *Server) prepareBrowserSkill(c *client, a ensemble.Agent, name string) e
 			continue
 		}
 		for _, d := range skill.MCPServers {
-			if d.Name != "browser-debug" || d.Transport != "websocket" {
+			if !browserWebSocket(a, d) {
 				continue
 			}
 			if skill.PendingUnload {

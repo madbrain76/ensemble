@@ -107,6 +107,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	}
 	config.MCPServers = cloneMCPServers(config.MCPServers)
 	config.Skills = cloneSkillSpec(config.Skills)
+	config.StartupSkills = append([]string(nil), config.StartupSkills...)
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
 	}
@@ -156,6 +157,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	}
 	config.MCPServers = cloneMCPServers(config.MCPServers)
 	config.Skills = cloneSkillSpec(config.Skills)
+	config.StartupSkills = append([]string(nil), config.StartupSkills...)
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
 	}
@@ -201,6 +203,7 @@ func (a *agent) Config() common.Config {
 	c.MaxToolRounds = int(a.maxToolRounds.Load())
 	c.MCPServers = cloneMCPServers(c.MCPServers)
 	c.Skills = cloneSkillSpec(c.Skills)
+	c.StartupSkills = append([]string(nil), c.StartupSkills...)
 	if c.Tools != nil {
 		c.Tools = append([]string{}, c.Tools...)
 	}

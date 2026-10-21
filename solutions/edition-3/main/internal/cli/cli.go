@@ -20,6 +20,8 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	flags.SetOutput(diagnostics)
 	mcpPipe := flags.Bool("mcp-pipe", false, "serve MCP on stdin/stdout until EOF")
 	mcpSocket := flags.String("mcp-socket", "", "serve MCP on a dedicated TCP address")
+	guiDebug := flags.Bool("gui-debug", false, "load gui-debug at startup")
+	skillsDir := flags.String("skills-dir", "", "skill directory (default: ./skills when ensemble is present)")
 	savePath := flags.String("save", "", "recovery archive (default: save.json)")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -33,10 +35,13 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	renderMode := len(args) == 2 && args[0] == "render"
 	dumpMode := len(args) == 1 && args[0] == "dump"
 	if len(args) != 0 && !chat && !renderMode && !dumpMode {
-		return errors.New("usage: ch01 [--save PATH] [chat | render LOG | dump]")
+		return errors.New("usage: ch01 [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | render LOG | dump]")
 	}
 	config, err := ensemble.ConfigFromEnv(os.Getenv)
 	if err != nil {
+		return err
+	}
+	if err := ConfigureSkills(&config, *skillsDir, *guiDebug); err != nil {
 		return err
 	}
 	flags.Visit(func(f *flag.Flag) {

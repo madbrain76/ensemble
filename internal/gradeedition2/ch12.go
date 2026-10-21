@@ -15,6 +15,7 @@ import (
 )
 
 // Chapter12 grades startup GUI skills and their real MCP lifecycle on both clients.
+// Observations are explicit model calls, not automatic request ephemera.
 // Native browser effects and speech/input provenance retain separate browser proof.
 func Chapter12(bin, core, gui, guiModel, consumer, workflow, exercise, streamModel string, example ConsumerCase, media map[string]string) (grade.Report, error) {
 	checks := guiDebugChecks(bin, gui, guiModel)
@@ -33,6 +34,9 @@ func Chapter12(bin, core, gui, guiModel, consumer, workflow, exercise, streamMod
 
 func guiDebugChecks(bin, gui, model string) []grade.Check {
 	checks := grade.Ch13Checks(grade.Ch13Result{SkillLoadsOK: true, EphemeralInjectedOK: true, SnapshotUpdatesOK: true, TTSVisibilityOK: true, GUIInteractionOK: true, SkillUnloadOK: true})[:6]
+	checks[1].Title = "Explicit snapshots without unsolicited browser context"
+	checks[2].Title = "Requested snapshots reflect interaction"
+	checks[3].Title = "Explicit TTS queue result preserves text and status"
 	// The two commands must actually use their startup flags. A passing core
 	// constructor does not prove the independently built GUI passes those inputs.
 	guiDebugClient(bin, model, nil, "core", checks)
@@ -58,6 +62,9 @@ func guiDebugChecks(bin, gui, model string) []grade.Check {
 // This stateful external peer is the original exercise's simulated browser.
 // Only the selected real method/arguments change its state. Unique output-only
 // counters distinguish new observations from call arguments or retained history.
+const guiDebugPrimaryManual = "PRIMARY_MANUAL_ONLY"
+const guiDebugStartupManual = "STARTUP_MANUAL_ONLY"
+
 const guiDebugPeer = `import json,os,sys
 open('browser.pid','w').write(str(os.getpid()))
 counts={};button='enabled';value='<empty>'
@@ -67,7 +74,7 @@ for line in sys.stdin:
  if 'id' not in m: continue
  if method=='initialize': result={'protocolVersion':'2024-11-05','capabilities':{'tools':{}}}
  elif method=='tools/list':
-  result={'tools':[{'name':name,'description':name,'inputSchema':{'type':'object','properties':{'selector':{'type':'string'},'text':{'type':'string'}}},'ephemeral':mode} for name,mode in [('gui_snapshot','round'),('tts_queue','round'),('gui_click',''),('gui_input','')]]}
+  result={'tools':[{'name':name,'description':name,'inputSchema':{'type':'object','properties':{'selector':{'type':'string'},'text':{'type':'string'}}}} for name in ['gui_snapshot','tts_queue','gui_click','gui_input']]}
  elif method=='tools/call':
   p=m['params'];name=p['name'];args=p.get('arguments',{});counts[name]=counts.get(name,0)+1;bad=False
   if name=='gui_snapshot': text='SNAPSHOT_ONLY_'+str(counts[name])+' button='+button+' input='+value
@@ -107,8 +114,8 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 	args, _ := json.Marshal([]string{"-u", script})
 	skills := filepath.Join(work, "skills")
 	for name, body := range map[string]string{
-		"ensemble":  "---\nname: ensemble\ndescription: GUI exercise primary\ntype: primary\nloadable-skills: gui-debug\n---\nPRIMARY_MANUAL_ONLY\n",
-		"gui-debug": "---\nname: gui-debug\ndescription: GUI observation exercise\ntype: loadable\ndepends: ensemble\ntools: gui_snapshot tts_queue gui_click gui_input\nmcp_servers:\n  - name: browser-debug\n    transport: stdio\n    command: " + python + "\n    args: " + string(args) + "\n---\nSTARTUP_MANUAL_ONLY\n",
+		"ensemble":  "---\nname: ensemble\ndescription: GUI exercise primary\ntype: primary\nloadable-skills: gui-debug\n---\n" + guiDebugPrimaryManual + "\n",
+		"gui-debug": "---\nname: gui-debug\ndescription: GUI observation exercise\ntype: loadable\ndepends: ensemble\ntools: gui_snapshot tts_queue gui_click gui_input\nmcp_servers:\n  - name: browser-debug\n    transport: stdio\n    command: " + python + "\n    args: " + string(args) + "\n---\n" + guiDebugStartupManual + "\n",
 	} {
 		dir := filepath.Join(skills, name)
 		if err = os.MkdirAll(dir, 0700); err == nil {
@@ -120,10 +127,15 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 		}
 	}
 	provider := fakevendor.New([]fakevendor.Reply{
+		skillCall("debug-snapshot-before", "gui_snapshot", `{}`),
+		skillCall("debug-queue-before", "tts_queue", `{}`),
 		skillCall("debug-click", "gui_click", `{"selector":"#button-A"}`),
 		skillCall("debug-input", "gui_input", `{"selector":"#search-box","text":"INPUT_ARGUMENT_ONLY"}`),
+		skillCall("debug-snapshot-after", "gui_snapshot", `{}`),
+		skillCall("debug-queue-after", "tts_queue", `{}`),
 		skillCall("debug-unload", "unload_skill", `{"name":"gui-debug"}`),
 		skillCall("debug-guessed", "gui_click", `{"selector":"#button-A"}`),
+		skillCall("debug-guessed-snapshot", "gui_snapshot", `{}`),
 		{Text: "GUI_DEBUG_DONE"},
 	})
 	defer provider.Close()
@@ -157,8 +169,8 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 		}
 	}
 	requests := provider.Requests()
-	if len(requests) != 5 {
-		badSetup(fmt.Errorf("want five actual requests, got %d", len(requests)))
+	if len(requests) != 10 {
+		badSetup(fmt.Errorf("want ten actual requests, got %d", len(requests)))
 		return
 	}
 	// Keep the parent command waiting on stdin while assessing unload. Otherwise
@@ -173,73 +185,7 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 	} else if err = syscall.Kill(pid, 0); err != syscall.ESRCH {
 		fail(&checks[5], "%s peer still present after unload: %v", label, err)
 	}
-	system := skillSystem(requests[0])
-	if !strings.Contains(fmt.Sprint(system), "PRIMARY_MANUAL_ONLY") || !strings.Contains(fmt.Sprint(system), "STARTUP_MANUAL_ONLY") {
-		fail(&checks[0], "%s startup instructions missing", label)
-	}
-	for i, r := range requests {
-		if skillSystem(r) != system {
-			fail(&checks[0], "%s request%d changed frozen startup instructions", label, i+1)
-		}
-		declared := []string{"load_skill", "unload_skill"}
-		target := &checks[5]
-		if i < 3 {
-			declared = append(declared, "gui_click", "gui_input")
-			target = &checks[0]
-		}
-		skillDeclarations(target, r, declared)
-		content := guiDebugText(r)
-		if i >= 3 && (strings.Contains(content, "SNAPSHOT_ONLY_") || strings.Contains(content, "TTS_ONLY_")) {
-			fail(&checks[5], "%s request%d contains automatic context after unload", label, i+1)
-		}
-		// Check each observation once, then its absence on every later request.
-		// The event log may retain it; retained dialogue and current context may not.
-		for n := 1; n <= 3; n++ {
-			want := 0
-			if i < 3 && n == i+1 {
-				want = 1
-			}
-			if strings.Count(content, fmt.Sprintf("SNAPSHOT_ONLY_%d", n)) != want {
-				target := &checks[1]
-				if i >= 3 {
-					target = &checks[5]
-				}
-				fail(target, "%s request%d stale/missing snapshot%d", label, i+1, n)
-			}
-			if strings.Count(content, fmt.Sprintf("TTS_ONLY_%d", n)) != want {
-				target := &checks[3]
-				if i >= 3 {
-					target = &checks[5]
-				}
-				fail(target, "%s request%d stale/missing TTS%d", label, i+1, n)
-			}
-		}
-		if i < 3 && !strings.Contains(content, `"status": "pending"`) {
-			fail(&checks[3], "%s request%d lost utterance status", label, i+1)
-		}
-		if i < 3 {
-			button, value := "disabled", "<empty>"
-			if i == 0 {
-				button = "enabled"
-			}
-			if i == 2 {
-				value = "INPUT_ARGUMENT_ONLY"
-			}
-			want := fmt.Sprintf("SNAPSHOT_ONLY_%d button=%s input=%s", i+1, button, value)
-			if !strings.Contains(content, want) {
-				fail(&checks[2], "%s request%d lacks changed peer state %q", label, i+1, want)
-			}
-		}
-	}
-	// Return-only sentinels cannot match the earlier model's selector or text.
-	if !strings.Contains(skillResult(&checks[4], requests[1], "debug-click", false), "CLICK_RESULT_ONLY") {
-		fail(&checks[4], "%s actual click result missing", label)
-	}
-	if !strings.Contains(skillResult(&checks[4], requests[2], "debug-input", false), "INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY") {
-		fail(&checks[4], "%s actual input result/arguments missing", label)
-	}
-	skillResult(&checks[5], requests[3], "debug-unload", false)
-	skillResult(&checks[5], requests[4], "debug-guessed", true)
+	guiDebugRequests(checks, label, requests)
 	// The peer log independently confirms startup and that no post-unload guessed
 	// call ran. The mere presence/absence of a model declaration is insufficient.
 	data, err := os.ReadFile(filepath.Join(work, "browser-rpc.jsonl"))
@@ -266,7 +212,7 @@ func guiDebugClient(bin, model string, clientArgs []string, label string, checks
 			fail(&checks[0], "%s %s count=%d", label, method, methods[method])
 		}
 	}
-	for name, want := range map[string]int{"gui_snapshot": 3, "tts_queue": 3, "gui_click": 1, "gui_input": 1} {
+	for name, want := range map[string]int{"gui_snapshot": 2, "tts_queue": 2, "gui_click": 1, "gui_input": 1} {
 		if calls[name] != want {
 			fail(&checks[5], "%s external %s calls=%d want%d", label, name, calls[name], want)
 		}
@@ -300,4 +246,62 @@ func guiDebugText(r fakevendor.Recorded) string {
 		}
 	}
 	return strings.Join(text, "\n")
+}
+
+// Browser observations belong to paired results, not unsolicited ephemera.
+// Old results remain legitimate history after unload; only new admission ends.
+func guiDebugRequests(checks []grade.Check, label string, requests []fakevendor.Recorded) {
+	if len(requests) != 10 {
+		fail(&checks[0], "%s request count=%d want10", label, len(requests))
+		return
+	}
+	for i, request := range requests {
+		system := skillSystem(request)
+		if !strings.Contains(system, guiDebugPrimaryManual) || !strings.Contains(system, guiDebugStartupManual) {
+			fail(&checks[0], "%s request%d lost primary or startup instructions", label, i+1)
+		}
+		declared := []string{"load_skill", "unload_skill"}
+		target := &checks[5]
+		if i < 7 {
+			declared = append(declared, "gui_snapshot", "tts_queue", "gui_click", "gui_input")
+			target = &checks[1]
+		}
+		skillDeclarations(target, request, declared)
+		text := system + guiDebugText(request)
+		if strings.Contains(text, "SNAPSHOT_ONLY_") || strings.Contains(text, "TTS_ONLY_") {
+			fail(&checks[1], "%s request%d has unsolicited browser observation outside a tool result", label, i+1)
+		}
+	}
+	before := skillResult(&checks[1], requests[1], "debug-snapshot-before", false)
+	if !strings.Contains(before, "SNAPSHOT_ONLY_1 button=enabled input=<empty>") {
+		fail(&checks[1], "%s initial snapshot result lacks actual peer state", label)
+	}
+	after := skillResult(&checks[2], requests[5], "debug-snapshot-after", false)
+	if !strings.Contains(after, "SNAPSHOT_ONLY_2 button=disabled input=INPUT_ARGUMENT_ONLY") {
+		fail(&checks[2], "%s requested snapshot lacks changed peer state", label)
+	}
+	for _, q := range []struct {
+		request    int
+		id, marker string
+	}{
+		{2, "debug-queue-before", "TTS_ONLY_1"}, {6, "debug-queue-after", "TTS_ONLY_2"},
+	} {
+		text := skillResult(&checks[3], requests[q.request], q.id, false)
+		var items []struct {
+			Text   string `json:"text"`
+			Status string `json:"status"`
+		}
+		if json.Unmarshal([]byte(text), &items) != nil || len(items) != 1 || items[0].Text != q.marker || items[0].Status != "pending" {
+			fail(&checks[3], "%s %s lost real queue text/status", label, q.id)
+		}
+	}
+	if !strings.Contains(skillResult(&checks[4], requests[3], "debug-click", false), "CLICK_RESULT_ONLY") {
+		fail(&checks[4], "%s actual click result missing", label)
+	}
+	if !strings.Contains(skillResult(&checks[4], requests[4], "debug-input", false), "INPUT_RESULT_ONLY:INPUT_ARGUMENT_ONLY") {
+		fail(&checks[4], "%s actual input result missing", label)
+	}
+	skillResult(&checks[5], requests[7], "debug-unload", false)
+	skillResult(&checks[5], requests[8], "debug-guessed", true)
+	skillResult(&checks[5], requests[9], "debug-guessed-snapshot", true)
 }

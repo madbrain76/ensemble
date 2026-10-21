@@ -125,7 +125,7 @@ function apply(frame) {
  else if(frame.type==='continued'&&!frame.replay){
   if(frame.data.client!==clientID&&frame.data.epoch===agents.get(frame.agent_id)?.state.epoch)explicitContinue(frame.agent_id);
  }else if(frame.type==='skill_state'){skillsByAgent.set(frame.agent_id,frame);skillView();
- if(frame.skills?.some(skill=>!skill.pending_unload&&skill.mcp_servers?.some(server=>server.name==='browser-debug'&&server.transport==='websocket'))&&!mcpAgents.has(frame.agent_id)){mcpAgents.add(frame.agent_id);send('mcp_open',{agent_id:frame.agent_id});}
+ if(frame.browser_mcp&&!mcpAgents.has(frame.agent_id)){mcpAgents.add(frame.agent_id);send('mcp_open',{agent_id:frame.agent_id});}
  }else if(frame.type==='current_settings'||frame.type==='settings_changed') applySettings(frame.settings);
  else if(frame.type==='settings_error') {$('settings-status').textContent=String(frame.data);preferenceControls();}
  else if(frame.type==='error') $('errors').textContent=String(frame.data);
@@ -212,7 +212,8 @@ for(const [id,pane,property,minimum,maximum,direction] of [['sidebar-resizer','s
 $('pause').onclick=()=>send('pause');$('continue').onclick=()=>{explicitContinue(selected);send('unpause');};$('interrupt').onclick=()=>{cancelAudio(selected,false);send('interrupt');};
 $('cancel-audio').onclick=()=>{cancelAudio(selected);send('update_settings',{settings:{tts_enabled:false}});};
 function submit(type){const text=$('input').value;if(text.trim()&&send(type,{text})){$('input').value='';inputOccupied=false;typing.delete(selected);maybeResume(selected);$('errors').textContent='';}}
-function draftChanged(){const nonempty=!!$('input').value.trim();if(nonempty&&!inputOccupied){typing.add(selected);send('pause');}else if(!nonempty&&typing.delete(selected))maybeResume(selected);inputOccupied=nonempty;}
+// Keep the cause: synthetic MCP events must not become human typing during speech.
+function draftChanged(event){const nonempty=event.isTrusted&&$('input').value.length>0;if(nonempty&&!inputOccupied){typing.add(selected);send('pause');}else if(!nonempty&&typing.delete(selected))maybeResume(selected);inputOccupied=nonempty;}
 $('input').oninput=draftChanged;
 $('composer').onsubmit=e=>{e.preventDefault();submit('input');};$('hint').onclick=()=>submit('hint');$('input').onkeydown=e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();submit('input');}};
 addEventListener('pagehide',()=>cancelAudio(undefined,false));connect();

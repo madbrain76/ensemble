@@ -8,7 +8,7 @@ The wiring is short and mostly mechanical. What follows it is less tidy: an obse
 
 Extend Chapter 11 with `--gui-debug` and `--skills-dir PATH` in both the headless command and the optional GUI application. The first selects the reachable `gui-debug` skill during Agent construction; the second overrides `EN_SKILLS_DIR`. With debug enabled and no directory selected, use `./skills`. When a directory is selected and `EN_PRIMARY_SKILL` is empty, these applications select `ensemble` as primary. Keep explicit skill kinds and tool grants.
 
-Startup uses the existing skill/MCP lifecycle. Assemble the primary and startup manuals before freezing the system prompt. Ordinary later `load_skill` calls still return instructions through history. Discover the peer's tools and admit only the skill's grants. Declare all four browser tools for on-demand calls; do not attach DOM or speech-queue observations automatically. A snapshot requested after a click or input must reflect its effect.
+Startup uses the existing skill/MCP lifecycle and Chapter 9’s instruction-delivery policy. Assemble the primary and startup manuals in initial SYSTEM. Later `load_skill` calls also add instructions to SYSTEM; their paired results report activation rather than serving as instruction authority. Provider-specific tool disclosure remains Chapter 9’s responsibility, with no cache-hit promise. Discover the peer's tools and admit only the skill's grants. Declare all four browser tools for on-demand calls; do not attach DOM or speech-queue observations automatically. A snapshot requested after a click or input must reflect its effect.
 
 Unloading `gui-debug` immediately removes its external tools and closes its peers. A guessed tool name cannot bypass removal. Compiled grants and instruction text remain pending removal under Chapter 9's existing rules; this chapter adds no compaction. Preserve human typing and speech pacing without treating programmatic input as a human pause cause. Explicit unpause in any tab still unpauses the whole Agent.
 
@@ -58,11 +58,28 @@ The browser entry uses the WebSocket tunnel from Chapter 11. For a deterministic
 
 Loading a skill with `mcp_servers` asks the Agent's MCP manager to start its peers. It opens the transport, initializes the client, discovers the tools, and retains the connections for cleanup. The manager exposes only admitted tools through the Agent's existing declarations and dispatcher. Jobs still own running calls and their output; a callback delay is no new server lifetime.
 
-This wiring already exists. The registry reaches `Agent.MCP()` through its actual parent interface. The composition root constructs and attaches the Agent's children before loading skills. The command selects configuration and calls that root; it does not become a collection of closures holding sibling services together. The optional GUI supplies its public transport without importing GUI code into the core.
+This wiring already exists. The registry reaches `Agent.MCP()` through its actual parent interface. The composition root constructs and attaches the Agent's children before loading skills. The command selects configuration and calls that root; it does not become a collection of closures holding sibling services together. The optional GUI supplies its public transport without importing GUI code into the core, and its executable imports the public core rather than private CLI wiring.
 
-At startup the application sets `AgentSpec.StartupSkills` to `[]string{"gui-debug"}`. The constructor loads the primary, activates the optional startup skill through the same admission path, and assembles both manuals before the prompt freezes. There is no model-authored call to answer yet, so inventing a `load_skill` result would invent conversation history. The accepted implementation records application-origin activation at sequence zero instead.
+At startup the application sets `Config.StartupSkills` to `[]string{"gui-debug"}`. With an Ensemble already created as `app`, the public configuration and construction look like this:
 
-Once construction finishes, the distinction matters: a later `load_skill` returns its manual as a tool result and leaves the system prompt alone. Likewise, unloading a startup skill cannot rewrite the frozen prompt. Describe the immediate effect accurately: its MCP tools disappear and its clients close. For stdio that includes terminating and reaping the peer while the Agent can continue. Instruction removal remains pending; an old manual is not evidence of a live connection.
+```go
+config, err := ensemble.ConfigFromEnv(os.Getenv)
+if err != nil {
+    return err
+}
+config.Skills = &ensemble.SkillSpec{Directory: "./skills", Primary: "ensemble"}
+config.StartupSkills = []string{"gui-debug"}
+agent, err := app.NewAgent(config)
+if err != nil {
+    return err
+}
+```
+
+The constructor loads the primary, activates the optional startup skill through the same admission path, and assembles both manuals in initial SYSTEM. There is no model-authored call to answer yet, so inventing a `load_skill` result would invent conversation history. The accepted implementation records application-origin activation at sequence zero instead.
+
+The bundled browser attaches after Agent construction. Until it connects, known metadata for its four tools allows startup admission, not execution. An already-connected peer supplies its actual catalog instead; the cold-start metadata must not replace discovery. Configured endpoint and transport overrides are honored. Real attachment validates admitted schemas and ordinary-versus-automatic identity, while the owning skill's explicit names determine the grants. Unknown required names fail admission rather than becoming guessed capabilities.
+
+Once construction finishes, a later `load_skill` adds its instructions through Chapter 9’s provider-aware SYSTEM path. Unloading a startup skill leaves its instructions pending until future compaction; it does not retract them immediately. Describe the immediate effect accurately: its external grants disappear, and peers with no remaining grants close. For stdio that includes terminating and reaping the peer while the Agent can continue. Withdrawn external declarations must disappear even from Anthropic's deferred catalog; ordinary dormant compiled tools retain Chapter 9's disclosure behavior. Instruction removal remains pending, so the unload result must not claim that everything stays active until compaction. An old manual is not evidence of a live connection.
 
 ### The four browser tools
 
@@ -86,7 +103,7 @@ Add the startup selection and directory override to both clients, reusing the ex
 From your core solution directory, build the headless executable:
 
 ```sh
-go build -o /tmp/ensemble-ch12 .
+go build -o /tmp/ensemble-ch12 ./cmd/ch01
 ```
 
 With a stdio peer declared in the selected skill directory and the existing `LLM_VENDOR`, `LLM_MODEL`, `LLM_BASE_URL` and `LLM_API_KEY` configured, its protocol invocation is:
@@ -101,27 +118,49 @@ Stdin uses the existing newline-delimited input; the flag supplies no implicit p
 {"kind":"prompt","text":"Inspect the browser state, click a visible control, and report the change from the next snapshot."}
 ```
 
-EOF drains the submitted work and ends the session. For human terminal conversation, append `chat`. A headless process can talk to an external stdio peer; to reach the actual browser, build and run the separate GUI as shown below.
+EOF drains the submitted work and ends the session. For human terminal conversation, append `chat` after the flags; CLI flags must precede that command. A headless process can talk to an external stdio peer; to reach the actual browser, build and run the separate GUI as shown below.
 
-The retained Edition 2 grader ran both actual clients with valid skills and a stateful external stdio peer. Its table below describes the old automatic-observation contract. Before Edition 3 execution, align that check with explicit snapshot and TTS calls, verify no unsolicited browser observations, and retain click/input, unload and peer-cleanup checks. Those revisions have not yet run. Real-browser evidence is still needed for native speech, semantic DOM state and the tunnel; a stdio fake cannot prove them.
+The Edition 3 entry alignment retains both actual clients and the stateful external stdio peer, but requests snapshots and speech queues explicitly. It checks correlated results, changed state, absence of unsolicited observations, and unload/refusal/peer cleanup. The table describes that corrected contract; a passing result still requires execution against the submitted implementation. Real-browser evidence is still needed for native speech, semantic DOM state and the tunnel; a stdio fake cannot prove them.
 
 | Check | Points |
 | --- | ---: |
 | Skill loads at startup | 15 |
-| Hidden automatic context is injected (Edition 2) | 20 |
-| Snapshot reflects interaction | 15 |
-| Speech queue is visible | 10 |
+| Explicit snapshot results, no unsolicited browser context | 20 |
+| Requested snapshot reflects interaction | 15 |
+| Explicit TTS queue results retain text and status | 10 |
 | GUI interaction has actual effects | 15 |
 | Skill unload removes external capability | 15 |
 | Corrected Chapter 11 parity | 10 |
 
-From the repository root:
+Build the GUI separately from the core solution directory:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 12
+(cd gui && go build -o /tmp/ensemble-ch12-gui ./cmd)
+/tmp/ensemble-ch12-gui --skills-dir "$PWD/skills" --gui-debug \
+  --gui-dir "$PWD/gui/web/gui"
 ```
 
-The default is `solutions/ch12`; supply your core solution directory as the positional argument and use the existing `-gui` option if its separate GUI module is elsewhere. The original grader remains historical: it returned 0/100 after an untyped fixture prevented startup, while its parity detector required particular method names. That run observed neither successful browser behavior nor the later real speech/input defect. Valid runtime obligations need their own evidence.
+Then, from the repository root, set `work` to the same core solution directory built above, shown here as the Edition 3 workspace. Use the actual inherited module paths if your layout differs:
+
+```sh
+work="$PWD/solutions/edition-3/main"
+go run ./cmd/grade-edition3 -ch 12 -json \
+  -core "$work" -consumer "$work/examples/ch04-consumer" \
+  -workflow "$work/ch06" \
+  -stream-exercise "$work/ch07" -stream-model claude-sonnet-4-6 \
+  -gui "$work/gui" -gui-model claude-sonnet-4-6 \
+  /tmp/ensemble-ch12
+```
+
+Only after Chapter 12 passes, run Chapter 1 against that same CLI without rebuilding:
+
+```sh
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ensemble-ch12
+```
+
+Let both real 62-second header/body waits finish; a short timeout is not a pass. Record each result honestly.
+
+The original grader remains historical: it returned 0/100 after an untyped fixture prevented startup, while its parity detector required particular method names. That run observed neither successful browser behavior nor the later real speech/input defect. Valid runtime obligations need their own evidence.
 
 ---
 
@@ -363,7 +402,7 @@ With your provider environment configured, run from that same core directory:
 
 Leave the terminal open and connect to `http://localhost:8088` before submitting a prompt. These assets still come from disk, so the explicit `--gui-dir` matters when launching outside the GUI module. The browser supplies the peer that the startup skill has selected. Use a scratch copy or a fresh selected `--save` path when you want an independent conversation; Chapter 10's default load still applies.
 
-Ask the agent to call `gui_snapshot`, open Settings, change the font size to 20, call `gui_snapshot` again to confirm it, then unload `gui-debug`. Tell it to use browser tools and avoid file or shell access. Observe the actual control and effective page font as well as its report. After unload, inspect the next provider request: browser declarations should be absent even though the startup manual remains in the frozen system text. Before unload, verify that browser observations occurred only when explicitly called.
+Ask the agent to call `gui_snapshot`, open Settings, change the font size to 20, call `gui_snapshot` again to confirm it, then unload `gui-debug`. Tell it to use browser tools and avoid file or shell access. Observe the actual control and effective page font as well as its report. After unload, inspect the next provider request: browser declarations should be absent even though the startup manual remains pending in SYSTEM. Before unload, verify that browser observations occurred only when explicitly called.
 
 The retained October 10, 2026 browser sessions used `claude-haiku-5-5`, `gpt-4o-mini` and `gemini-3.8-flash`. These are the models actually exercised, not a claim about today's catalog. The [live record](../../docs/edition-2-notes/ch13.md#student-implementation-and-initial-review-submission) links the captured requests and real Chrome observations.
 
@@ -373,7 +412,9 @@ Both GPT-4o mini attempts failed the full task. The first guessed `input[type='n
 
 The second attempt passed the script's GUI assertions. It remains a task failure. That distinction is especially useful here: working controls do not guarantee that a model will use them correctly or report their result faithfully. A guided selector is assistance, and a prompt restriction is weaker than the historical blind driver's actual absence of file tools.
 
-These live runs preceded the final native-speech correction and small manual/message corrections. They establish the recorded interaction and unload behavior on their captured source. The corrected speech path has its separate native-browser evidence; no final-source paid rerun is claimed. Likewise, a visibly effective font change is not a restart-persistence test. Chapter 8 supplies that separate check.
+Those Edition 2 live runs preceded the final native-speech correction and small manual/message corrections. They establish the recorded interaction and unload behavior on their captured source. The corrected speech path has its separate native-browser evidence; no final-source Edition 2 paid rerun is claimed. Likewise, a visibly effective font change is not a restart-persistence test. Chapter 8 supplies that separate check.
+
+The accepted Edition 3 run separately changed font size from 16 to 20 using selectors observed in snapshots. A fresh snapshot and computed styles confirmed the effect; this was not pixel evidence. After unload, the next provider request omitted all four browser declarations while retaining the skill manual. The GUI displayed the final response, then saved on normal EOF exit. This run did not repeat native speech testing.
 
 ### Checking the correction itself
 

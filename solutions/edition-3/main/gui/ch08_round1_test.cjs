@@ -61,34 +61,34 @@ const tests={
  },
  'fractional controls and reload'(){const p=page();p.settings({tts_speed:1.2345,font_size:18});assert.equal(p.ids.get('tts-speed').value,'1.2345');assert.equal(p.ids.get('font-size').value,'18');p.ids.get('tts-speed').onchange();assert.equal(p.sent.at(-1).settings.tts_speed,1.2345);p.replay();assert.equal(p.ids.get('tts-speed').value,'1.2345');assert.equal(p.ids.get('font-size').value,'18');assert.equal(p.ids.get('tts-speed-value').textContent,'1.2345×');},
  'native rate clamps each chunk but not saved preference'(){const p=page();p.settings({tts_speed:2.5});p.claim('long','x'.repeat(2500));assert.equal(p.utterances[0].rate,2.5);p.settings({tts_speed:5});p.utterances[0].onend();assert.equal(p.utterances[1].rate,3);assert.equal(p.ids.get('tts-speed').value,'5');p.settings({tts_speed:.5});p.utterances[1].onend();assert.equal(p.utterances[2].rate,.5);p.utterances[2].onend();assert.equal(p.sent.filter(x=>x.type==='speech_done'&&x.speech_id==='long').length,1);p.settings({tts_enabled:false,tts_speed:1.2345});p.claim('explicit','user selected speech','on demand');assert.equal(p.utterances.at(-1).text,'user selected speech');assert.equal(p.utterances.at(-1).rate,1.2345);},
- 'Read Aloud clears old draft pause and fresh editing rearms'(){const p=page(),input=p.ids.get('input');input.value='preserve this draft';input.oninput();p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});p.settings({tts_enabled:false});assert.equal(p.sent.filter(x=>x.type==='unpause').length,1,'off must release the old draft-owned pause');assert.equal(input.value,'preserve this draft');p.settings({tts_enabled:true});assert.equal(input.value,'preserve this draft');assert.equal(p.sent.filter(x=>x.type==='unpause').length,2,'on must also release the paused gate');p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:false})});const pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' edited';input.oninput();assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1,'fresh editing must own a new pause');assert.equal(p.cancels(),0,'empty speech queues do not need artificial cancellation');},
+ 'Read Aloud clears old draft pause and fresh editing rearms'(){const p=page(),input=p.ids.get('input');input.value='preserve this draft';input.oninput({isTrusted:true});p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});p.settings({tts_enabled:false});assert.equal(p.sent.filter(x=>x.type==='unpause').length,1,'off must release the old draft-owned pause');assert.equal(input.value,'preserve this draft');p.settings({tts_enabled:true});assert.equal(input.value,'preserve this draft');assert.equal(p.sent.filter(x=>x.type==='unpause').length,2,'on must also release the paused gate');p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:false})});const pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' edited';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1,'fresh editing must own a new pause');assert.equal(p.cancels(),0,'empty speech queues do not need artificial cancellation');},
  'automatic cancellation rejects stale callbacks'(){const p=page();p.claim('old');const old=p.utterances.at(-1);p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});p.settings({tts_enabled:false});p.frame({type:'speech_idle',agent_id:'root-7',data:{owner:'owner',epoch:1}});p.settings({tts_enabled:true});p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true,epoch:2})});const commands=p.sent.length;old.onend();old.onerror();p.frame({type:'speech_idle',agent_id:'root-7',data:{owner:'owner',epoch:1}});assert.equal(p.sent.length,commands,'stale callbacks and idle cannot release a new epoch');assert.equal(p.utterances.length,1);assert.equal(p.sent.filter(x=>x.type==='speech_done'&&x.speech_id==='old').length,1);assert.ok(p.sent.some(x=>x.type==='unpause'));},
  'R2 delayed automatic acknowledgement preserves fresh typing'(){
-  const p=page(),input=p.ids.get('input');input.value='old draft';input.oninput();
+  const p=page(),input=p.ids.get('input');input.value='old draft';input.oninput({isTrusted:true});
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});
   p.settings({tts_enabled:false});const releases=p.sent.filter(x=>x.type==='unpause').length;
   assert.ok(p.sent.filter(x=>x.type==='unpause').every(x=>x.automatic===true));
-  input.value='fresh edit before acknowledgement';input.oninput();
+  input.value='fresh edit before acknowledgement';input.oninput({isTrusted:true});
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:false,epoch:2,continue_epoch:1})});
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true,epoch:2,continue_epoch:1})});
   p.frame({type:'speech_idle',agent_id:'root-7',data:{owner:'owner',epoch:2}});
   assert.equal(p.sent.filter(x=>x.type==='unpause').length,releases,'older automatic ack and later idle must not release fresh typing');
   assert.equal(input.value,'fresh edit before acknowledgement');
-  input.value='';input.oninput();assert.equal(p.sent.filter(x=>x.type==='unpause').length,releases+1,'clearing the fresh draft still releases its pause');
-  const pauses=p.sent.filter(x=>x.type==='pause').length;input.value='future draft';input.oninput();assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1);
+  input.value='';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='unpause').length,releases+1,'clearing the fresh draft still releases its pause');
+  const pauses=p.sent.filter(x=>x.type==='pause').length;input.value='future draft';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1);
  },
  'R2 explicit Continue authority precedes its acknowledgement'(){
-  const p=page(),input=p.ids.get('input');input.value='draft kept';input.oninput();p.claim('speaking');const old=p.utterances[0];
+  const p=page(),input=p.ids.get('input');input.value='draft kept';input.oninput({isTrusted:true});p.claim('speaking');const old=p.utterances[0];
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true})});
   p.frame({type:'continued',agent_id:'root-7',data:{client:'another-tab',epoch:1}});
   assert.equal(p.cancels(),1,'another tab Continue immediately cancels owned speech');assert.equal(input.value,'draft kept');
-  let pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' fresh';input.oninput();assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1);
+  let pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' fresh';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1);
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:false,epoch:2,continue_epoch:1})});
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true,epoch:2,continue_epoch:1})});
   let releases=p.sent.filter(x=>x.type==='unpause').length;old.onend();old.onerror();p.frame({type:'speech_idle',agent_id:'root-7',data:{owner:'owner',epoch:2}});
   assert.equal(p.sent.filter(x=>x.type==='unpause').length,releases);assert.equal(p.sent.filter(x=>x.type==='speech_done'&&x.speech_id==='speaking').length,1);
   p.ids.get('continue').onclick();assert.notEqual(p.sent.at(-1).automatic,true,'explicit Continue must not be tagged automatic');
-  pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' after own Continue';input.oninput();assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1);
+  pauses=p.sent.filter(x=>x.type==='pause').length;input.value+=' after own Continue';input.oninput({isTrusted:true});assert.equal(p.sent.filter(x=>x.type==='pause').length,pauses+1);
   p.frame({type:'continued',agent_id:'root-7',data:{client:'owner',epoch:2}});
   p.frame({type:'state_changed',agent_id:'root-7',state:p.state({paused:true,epoch:3,continue_epoch:2})});
   p.frame({type:'continued',agent_id:'root-7',data:{client:'another-tab',epoch:1}});

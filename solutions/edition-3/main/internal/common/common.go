@@ -28,6 +28,8 @@ type Config struct {
 	Tools      []string
 	MCPServers []MCPServer
 	Skills     *SkillSpec // nil preserves inherited non-skill behavior
+	// StartupSkills are admitted after the primary, before the initial SYSTEM.
+	StartupSkills []string
 	// RequireToolExplanation selects this model's before-effects explanation policy.
 	RequireToolExplanation bool
 	LogPath                string

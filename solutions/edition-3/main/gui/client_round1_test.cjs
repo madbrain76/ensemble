@@ -2,7 +2,8 @@
 // Controlled DOM/native-callback regression: does not launch a browser or audio.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 class Element {
- constructor(tag){this.tagName=tag;this.children=[];this._text='';this.value='';this.checked=false;this.hidden=false;this.open=false;}
+ constructor(tag){this.tagName=tag;this.children=[];this._text='';this.value='';this.checked=false;this.hidden=false;this.open=false;this.dataset={};this.style={setProperty(){}};}
+ addEventListener(){}
  set textContent(v){this._text=String(v);this.children=[];}get textContent(){return this._text+this.children.map(c=>c.textContent).join('');}
  set innerHTML(_){throw Error('Runtime HTML injection is forbidden');}
  append(...children){for(const child of children){child.parent=this;this.children.push(child);}}
@@ -17,7 +18,7 @@ function fixture(){
  class WebSocket {static OPEN=1;constructor(){this.readyState=1;}send(raw){sent.push(JSON.parse(raw));}close(){this.readyState=3;}}
  class SpeechSynthesisUtterance{constructor(text){this.text=text;}}
  const speechSynthesis={speak:u=>utterances.push(u),cancel:()=>cancelled++};
- const context={console,URL,WebSocket,SpeechSynthesisUtterance,speechSynthesis,document:{getElementById:id=>{if(!nodes.has(id))nodes.set(id,new Element('div'));return nodes.get(id);},createElement:tag=>new Element(tag),documentElement:{scrollHeight:0}},location:{protocol:'http:',host:'local.test'},innerHeight:1000,scrollY:0,requestAnimationFrame:fn=>fn(),scrollTo:()=>{},addEventListener:()=>{},setTimeout:()=>1,clearTimeout:()=>{}};
+ const context={console,URL,WebSocket,SpeechSynthesisUtterance,speechSynthesis,document:{getElementById:id=>{if(!nodes.has(id))nodes.set(id,new Element('div'));return nodes.get(id);},createElement:tag=>new Element(tag),documentElement:{scrollHeight:0,dataset:{},style:{setProperty(){}}}},location:{protocol:'http:',host:'local.test'},innerHeight:1000,scrollY:0,requestAnimationFrame:fn=>fn(),scrollTo:()=>{},addEventListener:()=>{},setTimeout:()=>1,clearTimeout:()=>{}};
  context.window=context;vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/web/gui/app.js','utf8'),context);
  const api=vm.runInContext('({apply,replay,$,maybeResume})',context);
  const state=(epoch=1,continued=0,speaking=true,paused=true)=>({turn:'idle',paused,speaking,epoch,continue_epoch:continued});
@@ -26,6 +27,8 @@ function fixture(){
  function speak(id,text,epoch=1){emit('speech_requested',{id,epoch});emit('speech_claimed',{id,epoch,owner:'owner',reason:'automatic',text});}
  replay();return{...api,emit,speak,state,replay,sent,utterances,nodes,get cancelled(){return cancelled;}};
 }
+module.exports=fixture;
+if(require.main===module&&process.argv[2]!=='chapter12'){
 {
  const f=fixture(),unsafe='<img src=x onerror=attack()>',frames=[{type:'part_final',agent_id:'agent',part_id:1,replay:true,part:{type:'thinking',text:unsafe+' complete thinking'}},{type:'part_final',agent_id:'agent',part_id:2,replay:true,part:{type:'tool_call',name:'edit_file',text:'edit full',args:{path:'demo.go',old_text:'old <script>',new_text:'new <img>'}}}];
  f.replay(f.state(),frames);assert.equal(f.utterances.length,0,'replay must be silent');assert.equal(f.sent.length,0,'replay must not claim speech');
@@ -33,26 +36,26 @@ function fixture(){
  assert(cards[0].querySelector('details').textContent.includes(unsafe));assert(cards[1].querySelector('.deletion').textContent.includes('old <script>'));assert(cards[1].querySelector('.insertion').textContent.includes('new <img>'));assert.equal(cards[1].querySelectorAll('img').length,0);
 }
 {
- const f=fixture();f.$('input').value='draft';f.$('input').oninput();f.speak('cancelled','words before continue');const old=f.utterances[0];
+ const f=fixture();f.$('input').value='draft';f.$('input').oninput({isTrusted:true});f.speak('cancelled','words before continue');const old=f.utterances[0];
  f.emit('state_changed',{state:f.state(2,1,true,false)});const pauses=f.sent.filter(x=>x.type==='pause').length;
- old.onend();f.emit('speech_claimed',{id:'cancelled',owner:'owner',epoch:1,text:'stale must not run'});f.$('input').value='draft more';f.$('input').oninput();
+ old.onend();f.emit('speech_claimed',{id:'cancelled',owner:'owner',epoch:1,text:'stale must not run'});f.$('input').value='draft more';f.$('input').oninput({isTrusted:true});
  assert.equal(f.sent.filter(x=>x.type==='pause').length,pauses,'Continue cannot be vetoed by stale typing/claim/callback');assert.equal(f.utterances.length,1);
  f.speak('next','next fresh queue',2);f.utterances[1].onend();f.emit('speech_idle',{owner:'owner',epoch:2});assert(f.sent.some(x=>x.type==='unpause'),'cleared typing must not latch subsequent queue');
- f.$('input').value='';f.$('input').oninput();f.$('input').value='fresh typing';f.$('input').oninput();assert.equal(f.sent.filter(x=>x.type==='pause').length,pauses+2,'new queue and new typing edges still pause');
+ f.$('input').value='';f.$('input').oninput({isTrusted:true});f.$('input').value='fresh typing';f.$('input').oninput({isTrusted:true});assert.equal(f.sent.filter(x=>x.type==='pause').length,pauses+2,'new queue and new typing edges still pause');
 }
 {
  const f=fixture();f.speak('owned','read this');const old=f.utterances[0];f.emit('state_changed',{state:f.state(2,0,false,true)});f.emit('speech_cancelled',{id:'owned',owner:'owner',release:true,epoch:2});
  assert.equal(f.cancelled,1);assert.equal(f.sent.filter(x=>x.type==='unpause').length,1,'other-tab Speaking off releases empty owner queue');const before=f.sent.length;old.onend();assert.equal(f.sent.length,before,'cancelled native callback inert');
 }
 {
- const f=fixture();f.$('input').value='legitimate typing';f.$('input').oninput();f.speak('owned','read');f.emit('state_changed',{state:f.state(2,0,false,true)});f.emit('speech_cancelled',{id:'owned',owner:'owner',release:true,epoch:2});assert.equal(f.sent.filter(x=>x.type==='unpause').length,0,'speech release must respect current typing');f.$('input').value='';f.$('input').oninput();assert.equal(f.sent.filter(x=>x.type==='unpause').length,1);
+ const f=fixture();f.$('input').value='legitimate typing';f.$('input').oninput({isTrusted:true});f.speak('owned','read');f.emit('state_changed',{state:f.state(2,0,false,true)});f.emit('speech_cancelled',{id:'owned',owner:'owner',release:true,epoch:2});assert.equal(f.sent.filter(x=>x.type==='unpause').length,0,'speech release must respect current typing');f.$('input').value='';f.$('input').oninput({isTrusted:true});assert.equal(f.sent.filter(x=>x.type==='unpause').length,1);
 }
 {
  const f=fixture(),text='complete '.repeat(450)+'🙂 final';f.speak('long',text);let i=0;while(i<f.utterances.length)f.utterances[i++].onend();assert.equal(f.utterances.map(u=>u.text).join(''),text,'full readable content must reach native callbacks');assert.equal(f.sent.filter(x=>x.type==='speech_done').length,1);assert.equal(f.sent.filter(x=>x.type==='unpause').length,0,'no release between server-queued tasks');
  f.speak('follow-on','more accepted content');f.utterances[i].onend();assert.equal(f.sent.filter(x=>x.type==='pause').length,1,'same owner queue has one pause edge');f.emit('speech_idle',{owner:'owner',epoch:1});assert.equal(f.sent.filter(x=>x.type==='unpause').length,1);
 }
 {
- const f=fixture();f.$('input').value='offline draft';f.$('input').oninput();f.replay(f.state(2,1,true,false));f.speak('after-reconnect','fresh speech',2);f.utterances[0].onend();f.emit('speech_idle',{owner:'owner',epoch:2});assert(f.sent.some(x=>x.type==='unpause'),'replay applies missed Continue authority without speaking old content');
+ const f=fixture();f.$('input').value='offline draft';f.$('input').oninput({isTrusted:true});f.replay(f.state(2,1,true,false));f.speak('after-reconnect','fresh speech',2);f.utterances[0].onend();f.emit('speech_idle',{owner:'owner',epoch:2});assert(f.sent.some(x=>x.type==='unpause'),'replay applies missed Continue authority without speaking old content');
 }
 {
  const f=fixture();f.emit('part_delta',null,{part_id:41,kind:'text',chunk:'hel'});f.emit('part_delta',null,{part_id:41,kind:'text',chunk:'lo'});
@@ -61,3 +64,17 @@ function fixture(){
  assert.equal(f.$('conversation').children.length,1);assert.equal(f.$('conversation').children[0].querySelector('.body').textContent,'hello','public final fences later chunks');
 }
 console.log('Chapter 7 round 1+2 controlled DOM/callback regressions passed (no browser/audio).');
+
+}
+if(require.main===module){
+ const f=fixture(),input=f.$('input');input.value='programmatic';input.oninput({isTrusted:false});
+ assert.equal(f.sent.filter(x=>x.type==='pause').length,0,'synthetic input must not claim human pause');
+ f.speak('synthetic-draft','speech with a synthetic draft');f.utterances[0].onend();f.emit('speech_idle',{owner:'owner',epoch:1});
+ assert(f.sent.some(x=>x.type==='unpause'),'speech completion must not reclassify a synthetic draft as typing');
+ input.value=' ';input.oninput({isTrusted:true});
+ const releases=f.sent.filter(x=>x.type==='unpause').length;
+ f.speak('human-draft','speech with human whitespace');f.utterances[1].onend();f.emit('speech_idle',{owner:'owner',epoch:1});
+ assert.equal(f.sent.filter(x=>x.type==='unpause').length,releases,'human whitespace still owns its pause');
+ input.value='';input.oninput({isTrusted:true});
+ assert.equal(f.sent.filter(x=>x.type==='unpause').length,releases+1,'clearing human input releases typing pause');
+}

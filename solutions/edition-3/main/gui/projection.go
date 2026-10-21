@@ -10,6 +10,7 @@ import (
 
 // Wire is a display projection, never a serialization of replay-only Part data.
 type Wire struct {
+	BrowserMCP     bool                 `json:"browser_mcp,omitempty"`
 	Skills         []ensemble.SkillInfo `json:"skills,omitempty"`
 	LoadableSkills []ensemble.SkillInfo `json:"loadable_skills,omitempty"`
 	Payload        json.RawMessage      `json:"payload,omitempty"`

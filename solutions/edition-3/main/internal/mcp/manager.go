@@ -180,18 +180,28 @@ func (m *manager) Connect(ctx context.Context, name string, t common.MCPTranspor
 	c.peer = newPeer(t, m.localHandler(true), false)
 	err := m.initialize(ctx, c)
 	if err == nil {
-		catalog := map[string]json.RawMessage{}
+		catalog := map[string]remoteTool{}
 		for _, tool := range c.tools {
 			schema, e := normalizeSchema(tool.InputSchema)
 			if e != nil {
 				err = e
 				break
 			}
-			catalog[tool.Name] = schema
+			tool.InputSchema = schema
+			catalog[tool.Name] = tool
 		}
+		// Validate admitted expectations, including cold browser definitions,
+		// rather than imposing the bundled catalog on every declared peer.
 		for _, tool := range m.parent.Skills().Snapshot().Tools {
-			if tool.Source == "mcp:"+name && !bytes.Equal(tool.Parameters, catalog[tool.Name]) {
+			if tool.Source != "mcp:"+name {
+				continue
+			}
+			if !bytes.Equal(tool.Parameters, catalog[tool.Name].InputSchema) {
 				err = fmt.Errorf("MCP schema drift on reconnect: %s", tool.Name)
+				break
+			}
+			if catalog[tool.Name].Ephemeral != tool.Ephemeral {
+				err = fmt.Errorf("MCP automatic mode drift on reconnect: %s", tool.Name)
 				break
 			}
 		}
@@ -269,11 +279,21 @@ func (m *manager) Discover(ctx context.Context, skills []common.Skill) ([]common
 	owners := map[string]string{}
 	for _, name := range names {
 		a := declarations[name]
-		c, err := m.connect(ctx, a.config)
-		if err != nil {
-			return nil, fmt.Errorf("MCP %s: %w", name, err)
+		// A real attached peer owns its catalog. Only an unattached bundled
+		// browser uses cold definitions; unknown required names still fail
+		// normal skill admission, and endpoint overrides discover normally.
+		m.mu.Lock()
+		attached := m.connections[name] != nil
+		m.mu.Unlock()
+		tools := browserDefinitions(m.endpoint(a.config))
+		if attached || tools == nil {
+			c, err := m.connect(ctx, a.config)
+			if err != nil {
+				return nil, fmt.Errorf("MCP %s: %w", name, err)
+			}
+			tools = c.tools
 		}
-		for _, t := range c.tools {
+		for _, t := range tools {
 			if t.Ephemeral != "" && t.Ephemeral != "round" && t.Ephemeral != "turn" {
 				return nil, fmt.Errorf("invalid ephemeral mode %q", t.Ephemeral)
 			}
@@ -300,6 +320,9 @@ func (m *manager) toolSpec(server string, t remoteTool) (common.ToolSpec, error)
 	if t.Ephemeral != "" && t.Ephemeral != "round" && t.Ephemeral != "turn" {
 		return common.ToolSpec{}, fmt.Errorf("invalid ephemeral mode %q", t.Ephemeral)
 	}
+	if t.Ephemeral != "" && (t.Name == "gui_snapshot" || t.Name == "tts_queue") {
+		return common.ToolSpec{}, fmt.Errorf("MCP observation tool %s must not be automatic", t.Name)
+	}
 	schema, err := normalizeSchema(t.InputSchema)
 	if err != nil {
 		return common.ToolSpec{}, fmt.Errorf("MCP %s/%s: %w", server, t.Name, err)
@@ -314,6 +337,25 @@ func (m *manager) callTool(ctx context.Context, server, tool string, args json.R
 	_, enabled := m.active[server]
 	m.mu.Unlock()
 	if !enabled || c == nil {
+		return errors.New("MCP server is not active")
+	}
+	// Startup admission can precede the browser handshake. Never call through
+	// a partially initialized peer or a connection removed by pending unload.
+	select {
+	case <-c.ready:
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-m.ctx.Done():
+		return common.ErrStopped
+	}
+	if c.err != nil {
+		return c.err
+	}
+	m.mu.Lock()
+	_, enabled = m.active[server]
+	current := m.connections[server] == c
+	m.mu.Unlock()
+	if !enabled || !current {
 		return errors.New("MCP server is not active")
 	}
 	var result common.MCPCallResult
