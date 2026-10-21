@@ -37,6 +37,7 @@ const contextSmallTarget = 20000
 // Markers. Each is unique enough that a substring count in a request
 // body means exactly what the check says it means.
 const (
+	contextPrimaryMark = "PRIMARY-BODY-context-14"
 	contextManualMark  = "MANUAL-BODY-7f3a91"
 	contextHandoffText = "HANDOFF-NOTE-c41e: reads done, ladder fired, next step is the summary."
 )
@@ -85,9 +86,10 @@ func contextCreateSkills(dir string) error {
 name: base
 description: Base agent skill for the context-management checks
 type: primary
-tools: read_file keep_tool_results micro_handoff
+tools: read_file load_skill unload_skill keep_tool_results micro_handoff
 loadable-skills: manual mcp-tools
 ---
+` + contextPrimaryMark + `
 You are a helpful agent.
 `,
 		"manual": `---

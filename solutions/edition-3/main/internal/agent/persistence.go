@@ -32,7 +32,7 @@ func (a *agent) Save() error {
 	return a.history.SaveFile(cfg.SavePath, common.SavedConfig{
 		Vendor: cfg.Vendor, Surface: cfg.Surface, Model: cfg.Model,
 		ResolvedModel: cfg.ResolvedModel, SystemPrompt: prompt,
-		MaxToolRounds: limit, DisableStreaming: cfg.DisableStreaming,
+		ContextTarget: cfg.ContextTarget, MaxToolRounds: limit, DisableStreaming: cfg.DisableStreaming,
 		StreamCapability:       cfg.StreamCapability,
 		RequireToolExplanation: cfg.RequireToolExplanation,
 		Tools:                  declarations, Skills: capabilities.Skills,

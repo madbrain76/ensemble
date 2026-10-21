@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"ensemble"
@@ -34,6 +35,7 @@ func TestSettingsPersistenceAndFailedSave(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	baseline := agent.Log().Events()
 	store := settingsStore{path: filepath.Join(t.TempDir(), "preferences", "settings.json")}
 	h := NewHub(root)
 	h.store = store
@@ -79,8 +81,8 @@ func TestSettingsPersistenceAndFailedSave(t *testing.T) {
 	if len(frames) < 2 || frames[1].Type != "current_settings" || *frames[1].Settings != before {
 		t.Fatalf("connect settings: %+v", frames)
 	}
-	if len(agent.Log().Events()) != 0 {
-		t.Fatal("settings leaked into history")
+	if after := agent.Log().Events(); !reflect.DeepEqual(after, baseline) {
+		t.Fatalf("settings changed canonical history: before=%+v after=%+v", baseline, after)
 	}
 }
 

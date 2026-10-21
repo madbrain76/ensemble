@@ -39,6 +39,7 @@ type Config struct {
 	LogMode LogMode
 	// Nil selects 200; an explicit zero retains unlimited diagnostics.
 	DiagnosticMaxRecords *int
+	ContextTarget        int
 	MaxToolRounds        int
 	SystemPrompt         string
 	DisableStreaming     bool
@@ -90,6 +91,9 @@ type Agent interface {
 	// SetMaxToolRounds changes next-turn policy, not an active turn.
 	// Zero selects DefaultMaxToolRounds; negative values are rejected.
 	SetMaxToolRounds(int) error
+	RecordFact(Event) error
+	SetContextTarget(int) error
+	CompactContext(context.Context, string, string) (string, error)
 	// SetPersistencePolicy changes archive mode and diagnostic retention for future writes.
 	SetPersistencePolicy(LogMode, int) error
 	// Engine returns this Agent's transport and accounting owner.

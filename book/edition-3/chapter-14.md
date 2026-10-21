@@ -33,8 +33,9 @@ a kind that says which verb removes it. Tool bytes fall off a ladder of
 recorded redaction events. On a model configured for stubbing, each round
 trip's results are stubbed unless the model keeps them. The actor can
 checkpoint with `micro_handoff`. Loaded skills survive as entries instead
-of as tool results. The system prompt stays frozen. The log reaches disk
-as it grows, so a process crash can recover the journaled work.
+of as tool results. They still supply instructions through Chapter 9’s SYSTEM
+composition, not ordinary tool-result prose. The log reaches disk as it grows,
+so a process crash can recover the journaled work.
 
 The shared entry vocabulary gains four kinds. These definitions belong in
 `internal/common`; reduction belongs in History, not on common-package structs:
@@ -61,28 +62,34 @@ the existing skill body and redaction payloads. Add `micro_handoff` and
 `tools_changed` facts; the latter carries full `added` declarations and `removed`
 names. A `tool_decls` part holds that delta without becoming a call or result.
 
-1. **Frozen prefix.** The system prompt is byte-identical on every request
-   of a session. Only a refreshed Agent changes it. Startup tool declarations
-   stay frozen too on a model that can carry tool changes in the dialog;
-   other models re-declare when tools change, as rule 2 describes.
+1. **Stable base, explicit instruction changes.** Preserve the initial primary
+   instructions. Loaded skill entries contribute their recorded bodies to SYSTEM
+   on subsequent requests, including after restart and tool clearing. Loading a
+   skill changes SYSTEM and may invalidate its cache prefix; do not promise a
+   cache hit or clear history to disguise that change. Only the synthetic
+   `InlineTools` fixture freezes startup declarations, as rule 2 describes.
 2. **Tools arrive through the dialog.** A skill load, a skill unload,
    or an MCP connect mid-session emits `ToolsChanged`, and the reducer
    turns it into a `Tools` entry. On a model whose features row sets
    `InlineTools`, that entry carries the declarations in the dialog.
    The `tool_decls` part is neither a call nor a result, so rule 3 still
    holds. The renderer places inline declarations after the complete
-   user/tool-result/ephemeral turn. A model without `InlineTools` folds
-   every delta into the startup set and re-declares, changing the prefix.
+   user/tool-result/ephemeral turn. These inline blocks are a course-only
+   protocol. Real models retain Chapter 9’s supported disclosure paths: updated
+   declarations, or Anthropic’s full deferred catalogue and references in genuinely
+   paired successful load results. Preserve the reference-only result shape;
+   do not mix acknowledgement or manual prose into it.
 3. **Survivors carry no tool parts.** A `Handoff`, `Skill` or `Tools`
    entry never holds a tool call or a tool result, so no tool clearing
    can touch it.
 4. **Skills are entries.** The reducer turns `SkillLoaded` into a
-   `Skill` entry holding the rendered body. The `load_skill` tool result
-   is an acknowledgement only. Replay uses the recorded body, without
+   `Skill` entry holding the rendered body. The paired result is reference-only
+   on the supported Anthropic search path, otherwise an acknowledgement rather than
+   the instruction body. Replay uses the recorded body, without
    rereading the file. `unload_skill` removes grants no other active skill
    supplies and stops its servers, but leaves the `Skill` entry where it
-   is: deleting old bytes would change the prefix. A later chapter's verb
-   removes it.
+   is, still contributing instructions to SYSTEM. A later chapter's verb
+   removes it; ordinary tool clearing and this chapter’s handoff do not.
 5. **`micro_handoff` is three records:** the tool call, an ordinary
    result, then a `MicroHandoff` event. Its reducer waits until the
    batch's last result has arrived, so a call made alongside
@@ -111,25 +118,34 @@ names. A `tool_decls` part holds that delta without becoming a call or result.
    budget. Cut only completed batches the model has already seen. Each
    event stores `To` as a number, never as "the watermark", so a later
    settings change cannot rewrite the past.
-8. **The reducer is total over known events.** A save file that does not
-   parse is still refused (Chapter 10). A familiar event that parses but
-   cannot be applied, such as a malformed payload or a redaction naming
-   an entry already gone, is skipped with a diagnostic and loading
-   continues. Validate before mutation; unknown event types and invalid
-   sequence ordering remain errors.
-9. **Crash-safe.** Events reach the journal before publication, so a
-   process crash leaves a tail after Chapter 10's `as_of` anchor.
-   Recovery loads the snapshot, its tail and the journal. A normal
-   shutdown snapshots. Write the new snapshot before truncating the
-   journal, never truncate past the anchor, and keep one backup of the
-   previous snapshot. Power loss is out of scope; the log is never fsynced.
+8. **The reducer is total over known events.** JSON decoding, version,
+   anchor and sequence validation remain strict. Within a structurally valid
+   event stream, a recognized event whose payload cannot apply, such as a
+   `skill_loaded` with no body payload or a redaction naming absent entries, is
+   diagnosed and skipped before mutation; later valid events still apply. This
+   deliberately advances Chapter 10’s refusal of malformed known payloads, not
+   its whole-candidate validation. Unknown event types still refuse the candidate
+   atomically, without installing an Agent or overwriting either recovery file.
+9. **Backup-anchored recovery.** Complete events reach the independent
+   journal before publication or acknowledgement. Retain every journal event
+   after the validated **backup** snapshot boundary, not merely the new primary
+   boundary. Encode and validate first; preserve Chapter 10’s validated backup
+   rotation and atomic primary replacement before trimming. If no usable backup
+   boundary is established, do not discard the required recovery tail. Recovery
+   selects primary or backup independently, applies its embedded tail, then
+   applies only journal sequences beyond the state already covered, exactly once.
+   Serialize append, save/rotation and trimming at the actual event writer.
+   Process-crash recovery is required; universal power-loss durability is not.
 10. **One knob.** The Context Management settings tab sets
     `context_target`: T in bytes, 0 for the default of 400,000, clamped
     to at least 20,000. The stub threshold is T/100 and the bands are
-    rule 7's, so the default gives 4,000, 50,000 and 25,000. The tab's
-    other setting, `log_retention`, is the number of events kept in the
-    saved log, 0 for all. Store settings at the owning Agent's path and
-    preserve unsent browser edits when a settings snapshot arrives.
+    rule 7's, so the default gives 4,000, 50,000 and 25,000. Keep Chapter 10’s
+    `log_mode` archive choice and `diagnostic_max_records` separate from recovery:
+    no arbitrary last-N cap may discard the backup’s canonical tail. After a
+    successful `micro_handoff` recovery save, use the same diagnostic writer’s
+    retention operation used at startup and exit. Failed saves preserve recovery
+    and diagnostic bytes. Store settings at the owning Agent’s path and preserve
+    unsent browser edits when a settings snapshot arrives.
 
 The model-feature matrix is part of the exercise:
 
@@ -143,7 +159,7 @@ The course rows are deterministic fixtures. Keep both new flags false on
 existing real-model rows. Dialogue and survivors remain outside the tool
 budgets; this chapter does not yet bound the whole window.
 
-For live Anthropic use, choose an older supported model such as Sonnet-5.
+For live Anthropic use, choose a supported model such as `claude-sonnet-4-6`.
 Bill reports that 5.5 models do not work with ephemeral context and has
 excluded them from supported use. Historical 5.5 runs below retain their
 actual names; they are not reader model choices.
@@ -155,12 +171,19 @@ settings tab's appearance.
 the following command, run from the repository root, scores 100/100:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 14
+# From the evolving student root; GUI and CLI are different executables.
+go build -o /tmp/ch14-cli ./cmd/ch01
+(cd gui && go build -o /tmp/ch14-gui ./cmd)
+# From the book repository root; never rely on a historical default solution.
+go run ./cmd/grade-edition3 -ch 14 -json /tmp/ch14-gui
+go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch14-cli
 ```
 
-The default core is `solutions/ch14`; a positional core directory and
-existing `-gui` option select another implementation. Section 14.14 gives the
-actual launch, settings and eight-check contract.
+Chapter 14 takes the explicit GUI executable (or its buildable module directory),
+not the core CLI or the preceding chapters’ parity-artifact flags. Freeze both
+artifacts for the campaign. Require `passed: true` and exit zero from both grades;
+allow Chapter 1’s genuine 62-second header and body waits to finish. Section 14.14
+explains the launch, settings and eight-check contract.
 
 ## §14.1 In Plain Words
 
@@ -193,15 +216,15 @@ re-evaluated later. That is what keeps Chapter 10's promise:
 replaying the log reproduces the same window, byte for byte, even after
 the settings that chose the cuts have changed.
 
-Two laws decide where cuts may happen. The front of the request, the
-system prompt and, on an inline-capable model, the startup tools, is
-frozen so a prefix cache can keep serving it. Changing a byte near the
-front invalidates more of that prefix than changing one near the end.
-So cuts come in steps, not a trickle: one larger cut now and then
-invalidates that region less often than a small one every turn.
+Two laws explain the cost of cuts. Preserve stable material where its meaning
+has not changed, but deliver new instructions when skills change: Chapter 9’s
+SYSTEM composition takes priority over a cache prediction. Changing a byte near
+the front can invalidate more of a prefix than changing one near the end. So cuts
+come in steps, not a trickle: one larger cut now and then invalidates that region
+less often than a small one every turn.
 
-The redaction levels are Chapter 2's, the frozen prompt is Chapter 9's,
-the snapshot and replay are Chapter 10's. What was missing is the
+The redaction levels are Chapter 2’s, instruction delivery is Chapter 9’s,
+the snapshot and replay are Chapter 10’s. What was missing is the
 policy that decides when to use them, and kinds for the entries that
 must survive.
 
@@ -244,14 +267,14 @@ caching, everything after the first changed position loses its match.
 This describes reuse, not a bill: bytes are not tokens, and the provider
 must actually grant caching for the stable prefix to save money.
 
-**Law 1: the prefix is frozen.** The system prompt and, on an inline-capable
-model, the startup tool declarations are byte-identical on every request
-of a session. Chapter 9 already made the system prompt a constitution and put dynamic
-skills in the dialog. It left one leak: a skill that brings tools
-changed the tool list, and the tool list is the first thing in the
-request. Loading one skill could invalidate reuse from the tool array onward.
+**Law 1: keep unchanged material stable.** The primary instructions remain the
+Agent’s startup base. Dynamic skills add instructions to SYSTEM using Chapter 9’s
+provider-specific projection. That is an intentional change, not a cache defect;
+tool-result text alone is not an instruction channel. Do not claim that a stable
+tool prefix makes a changed SYSTEM free.
 
-The chapter closes the leak with an event. A skill load, a skill
+The course-only `InlineTools` rows explore a different declaration mechanism.
+Their startup tool list stays stable while declaration changes become events. A skill load, a skill
 unload, or an MCP server connecting mid-session emits `ToolsChanged`,
 a delta of declarations added and names removed. The reducer turns it
 into a `Tools` entry at the tail of the context, where it preserves the earlier declaration prefix. On a model whose features row sets
@@ -273,11 +296,14 @@ The course renderer sends the header `inline-tools-2026-09-15`. A removal
 uses a `tool_removal` block containing
 `{"type":"tool_reference","name":"gui_click"}` under `tool`. These dated
 wire shapes belong to the course fixture; the exercise does not enable
-them on live models. A model without the feature gets the old behaviour:
-the renderer folds every delta into the startup set and re-declares,
-changing the prefix.
+them on live models. Without this synthetic feature, the renderer uses the
+supported Chapter 9 path, including updated top-level declarations or deferred
+Anthropic definitions and genuinely paired references. Both paths must reflect
+actual grants; neither permits automatic tools to leak into the model’s menu.
+Match enabling calls and results in the current projection, not by hydrating the
+archive and reviving a pair that tool clearing removed.
 
-The declaration's position matters as much as its bytes. During the student run,
+The declaration’s position matters as much as its bytes. During the historical student run,
 a new MCP declaration followed a tool result, then automatic ephemera added
 another user message after it. The roles became:
 
@@ -299,9 +325,9 @@ The fix changes only the disposable wire view. The log keeps its chronology,
 and ephemera remain user content. Equal replay bytes are useful only after
 the request itself is valid.
 
-The prefix does change on purpose once in a while. New defining
-instructions require a refreshed Agent. Changing `context_target` leaves
-the instructions and already recorded cuts alone.
+The primary base changes with a refreshed Agent; skill instructions can change
+within its lifetime. Changing `context_target` leaves both the instructions and
+already recorded cuts alone.
 
 **Law 2: the cost of changing a byte grows with its distance from the
 end.** Everything after the changed position loses its prefix match.
@@ -325,8 +351,8 @@ breaks it once. The agent cuts in steps.
 
 ## §14.4 What Survives Is Never a Tool Call
 
-The Chapter 13 agent returns a loaded skill's manual as the result of
-the tool that loaded it. The first edition wrote it this way:
+A tool result is the wrong sole home for instructions that must survive tool
+clearing. The first edition wrote its load result this way:
 
 ```go
 result += "## Instructions\n\n" + body
@@ -353,7 +379,10 @@ Tool clearing only ever touches tool parts, and tool parts only ever
 live in `Dialogue` entries. The other three kinds hold none, so tool-part clearing cannot remove their contents. Survivors are safe by construction,
 without a list of exceptions for the ladder to consult. `load_skill`
 still returns a result, a one-line acknowledgement that the skill
-loaded; the body arrives through its own recorded `skill_loaded` fact.
+loaded on the ordinary fallback path; supported Anthropic tool search instead
+keeps the paired result reference-only. The body arrives through its recorded
+`skill_loaded` fact, and Engine composes it into SYSTEM. The survivor is durable
+instruction material, not a second ordinary message containing the same manual.
 
 One timing problem remains even though dispatch is serial. The model can return several calls together; after the first runs, others from the same reply are still outstanding. A `micro_handoff`
 issued beside a `read_file` clears every tool part in the context. If
@@ -385,6 +414,8 @@ The next recorded declaration delta makes the model's view agree with dispatch.
 Its instruction entry remains: removal of old instruction text is a different
 operation, deferred beyond this chapter. Lifecycle and checkpoint tools stay
 available, and a shared grant survives while another active skill owns it.
+Startup restores those shared grants before publishing declarations; construction
+must not record transient tool removals.
 
 This advances the pending-unload policy from Chapter 9: compiled grants
 now disappear too. A stale manual cannot make a removed tool callable;
@@ -395,18 +426,18 @@ guessed names still fail dispatch.
 With four kinds and two laws, the request has one shape:
 
 ```
-[ frozen prefix   ]  system prompt; startup tools on inline-capable rows
+[ instructions    ]  stable primary base + surviving skill bodies in SYSTEM
+[ declarations    ]  Chapter 9 provider path; synthetic inline rows freeze startup tools
 [ memory region   ]  empty until the agent has memories
 [ context         ]  dialogue and survivors, with recorded Seq identities
                      ^ oldest                  newest ^
                      cheap to keep            cheap to change
 ```
 
-The order runs from least volatile to most, which is also the order of
-meaning: who the agent is, then what it knows, then what it is doing.
-Two independent arguments, one about cache economics and one about
-reading order, give the same layout, which is a good sign that the
-layout is right.
+This is a semantic layout, not a promise of byte-stable SYSTEM: who the agent is
+and which instructions apply, then what it knows, then what it is doing. Skill
+survivors remain in the recorded context for replay, but the renderer projects
+their bodies as instructions rather than duplicating them as dialogue.
 
 A survivor keeps the sequence identity of its recorded fact. If a tool batch
 is incomplete, the reducer holds it and appends it only after the companion
@@ -510,7 +541,9 @@ previous batch, never the one it rides in, since those results do not
 exist yet when the actor decides. Its own result is never stubbed. The
 call survives either way, so the agent can see what it asked for and
 re-run it. The stub is an ordinary `RedactResult` event, so replay
-reproduces it without asking the model again.
+reproduces it without asking the model again. This keep-or-stub decision is
+once-only for the batch: later text-only responses or human turns do not repeat
+it. The pressure ladder can still remove kept results later.
 
 Law 2 prices this well. The stub replaces bytes that arrived one round
 trip ago, at the tail, which is the cheapest place in the window to
@@ -616,7 +649,11 @@ func (h *history) replay(e common.Event) {
 
 The skip is clean because validation checks an event before it mutates
 anything, so a rejected event leaves the context exactly as it was.
-Totality covers known event types. An event type the code has never
+This tolerance is for semantic application of recognized facts, including a
+missing known payload. It does not turn broken JSON, unknown versions, invalid
+anchors or sequence disorder into a usable save. Validate the whole candidate’s
+structure before installing it; a skipped fact advances the replay position but
+changes no context. Totality covers known event types. An event type the code has never
 heard of is still refused at load, loudly, because a log from a newer
 agent is a different problem than a bad record in a familiar one.
 
@@ -650,38 +687,55 @@ leave recovery to the tools that produced them.
 
 ## §14.12 Crash-Safe Persistence
 
-Chapter 10 saved at shutdown. A process that dies mid-session loses
-everything since the last save, including work whose results have already reached the model.
+Chapter 10 validates snapshots and preserves one good backup. This chapter adds
+an independent event journal so recovery can also retain completed work after the
+chosen snapshot. Keep that distinction: an archive, a recovery journal, and a
+diagnostic log serve different readers.
 
-The current Agent appends each accepted event to a journal beside the save file,
-`<save>.journal`, one JSON line per event, as the event happens.
-Recovery is Chapter 10's load with one more source: `Recover` reads
-the snapshot, applies the tail after its `as_of` anchor, then applies
-the journal. A normal shutdown writes a new snapshot and resets the
-journal. The grader's `crash-recovery` check runs a clean session,
-then runs a second for two turns and kills it with SIGKILL, restarts
-it, and checks that journaled work survives the restart.
+Append each complete accepted event before publishing or acknowledging it. Use
+one owner’s serialization for event append, save/rotation and journal trimming;
+a save-only mutex cannot protect an append racing the rewrite. While a save is
+staged, readers can still read the previous committed view; later writers wait.
+Normal shutdown and a successful `micro_handoff` save install a new snapshot using
+Chapter 10’s
+encode-before-write, validated-primary-to-backup and atomic-replacement ordering.
+A corrupt current primary must never overwrite a usable backup.
 
-Two orderings are load-bearing, and neither is commutative. The new
-snapshot is written before the log is truncated: in the other order, a
-crash between the two steps leaves neither the old events nor the new
-snapshot. And the log is never truncated past the snapshot's anchor,
-because the anchor is where replay starts. `log_retention` is a saved-history preference; the anchor is a correctness boundary, and the
-anchor wins. History installs its checkpoint in that order and keeps
-the previous save at `<save>.bak`, using the Agent's selected save path.
+The retention boundary is the validated **backup**, not the new primary. Suppose
+the backup represents sequence 100, the new primary 150, and the journal reaches
+160. Keep 101–160: if primary 150 is later corrupt or missing, backup 100 still
+needs the intervening events. Keep the complete required suffix when no usable
+backup boundary exists. Trim only after successful save and rotation, never after
+a failed load or save. This is a sequence boundary, not a count of “recent events.”
 
-Two things are out of scope. The journal is never fsynced, so power
-loss can take the last few events; "crash" means a process crash.
-And truncation deletes old `ToolReturned` events, which are the only
-on-disk copy of a redacted text result. The snapshot can still restore the current window, but retention may make older windows and raw results unavailable. Zero retention keeps the full saved log; it does not promise bounded disk growth.
+On recovery, try primary and backup independently as Chapter 10 requires. Load
+the chosen context, apply its embedded post-`as_of` tail, then apply journal events
+strictly beyond the resulting covered sequence. Overlap with already represented
+events is expected, not a second application. Continue sequence allocation beyond
+the recovered tail. Invalid candidates must not install an Agent or destroy the
+remaining recovery bytes. Replay from a null context still requires a complete
+canonical archive; a dialogue-only archive cannot reconstruct discarded history.
+
+After a successful handoff recovery save, invoke the existing diagnostic writer’s
+retention operation, with Chapter 10’s default 200 records, zero unlimited and
+negative values invalid. Preserve whole records and continued writes. Exercise
+successful save, failed save, concurrent append, restart, corrupt-primary and
+missing-primary fallback: the chosen backup and its journal suffix must reproduce
+the same state exactly once. Diagnostics are not substitutes for canonical events.
+
+These orderings establish process-crash recovery, not universal power-loss
+durability. State the interruption guarantees honestly; do not imply that an
+unfsynced journal survives loss of power. Archive policy may discard old raw
+results, so neither a checkpoint nor its tail promises arbitrary historical-window
+reconstruction after those sources are gone.
 
 ## §14.13 One Knob
 
 The tool budgets run off one setting. The Context Management tab in the
 settings panel writes `context_target`: T in bytes, 0 for the default
 of 400,000, clamped to at least 20,000. The original budget comment explains its floor: below it, "the stub threshold would fall under the size of a
-directory listing". The tab's other field, `log_retention`, is the
-number of events the saved log keeps, 0 for all.
+directory listing". The existing archive choice and diagnostic-record limit
+remain separate settings; there is no last-N canonical recovery-event setting.
 
 The GUI's file is `DataDir/settings.json`; the supplied application chooses
 `cr`, so use `cr/settings.json` from its launch directory. A file named
@@ -689,8 +743,9 @@ The GUI's file is `DataDir/settings.json`; the supplied application chooses
 public settings update reaches the owning Agent before subsequent policy work.
 
 A user changes the tool-traffic target, not a ceiling on every kind of context.
-Every threshold scales with T. `log_retention` separately controls saved history;
-changing either setting cannot rewrite already recorded cuts.
+Every threshold scales with T. `log_mode` controls the saved archive and
+`diagnostic_max_records` controls diagnostic records, not the backup’s recovery
+tail. Changing these settings cannot rewrite already recorded cuts.
 
 The settings browser also exposed an editing race: an acknowledgement for one
 field arrived while another number was typed but not yet committed by blur.
@@ -744,10 +799,24 @@ exits successfully; the crash scenario observes completed work before SIGKILL.
 | micro-handoff-shape | 15 | Call/result/event, one note, no orphan including a same-batch companion |
 | keep-or-stub | 10 | Previous-batch keep, next-batch distinction and non-stubbing model control |
 | ladder-is-recorded | 15 | Recorded numeric cuts survive restart under changed T |
-| frozen-prefix | 10 | Stable inline prefix, actual skill/MCP declarations and valid placement |
+| frozen-prefix | 10 | Stable primary/startup fixture tools, dynamic SYSTEM manuals and valid inline declaration placement |
 | replay-equals-snapshot | 15 | Snapshot and sufficient log replay produce the same next vendor bytes |
-| crash-recovery | 15 | Completed journaled work survives an actual killed process |
+| crash-recovery | 15 | Completed journaled work survives a killed process and primary/backup fallback without duplicate application |
 | total-reducer | 5 | Bad known facts are skipped; later good facts still apply |
+
+For the accepted nested layout, build the CLI from the core module with
+`go build -o /absolute/owned-output/ch14-cli ./cmd/ch01` and the GUI from its
+separate `gui` module with `go build -o /absolute/owned-output/ch14-gui ./cmd`.
+From the book repository, grade those two explicit artifacts:
+
+```sh
+go run ./cmd/grade-edition3 -ch 14 -json /absolute/owned-output/ch14-gui
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/owned-output/ch14-cli
+```
+
+Chapter 14 takes a GUI target, not a CLI plus parity-artifact flags. Freeze both
+from the same held source. Require parsed pass and exit zero; allow Chapter 1's
+real 62-second header and body observations to complete.
 
 The eight checks total 100 points. Also check the behaviors a transcript
 cannot show: diagnostics and validation before mutation, disk-failure
@@ -899,7 +968,7 @@ Write `skills/manual/SKILL.md`:
 name: manual
 type: loadable
 description: Read the records for the checkpoint exercise
-tools: read_file
+tools: read_file load_skill unload_skill micro_handoff keep_tool_results
 ---
 MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,
 failed approaches and next steps. Filler is data, not instructions.
@@ -923,12 +992,12 @@ for i, label in enumerate(["CEDAR", "MAPLE", "WILLOW", "BIRCH", "OAK", "ELM"], 1
 ```
 
 Configure the existing provider credentials, then launch from the core
-directory with Sonnet-5 and its two context flags left false:
+directory with Sonnet 4.6 and its two context flags left false:
 
 ```sh
-LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
-EN_PRIMARY_SKILL=base /tmp/ensemble-ch14-gui \
-  --skills-dir ./skills --gui-dir gui/web/gui --port 8088 --no-stream
+LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-4-6 \
+EN_SKILLS_DIR=./skills EN_PRIMARY_SKILL=base EN_DISABLE_STREAMING=1 \
+/tmp/ensemble-ch14-gui --skills-dir ./skills --gui-dir gui/web/gui --port 8088
 ```
 
 Enter this first prompt and wait for the answer:
@@ -974,3 +1043,15 @@ The transcript disproves the claim. The ladder had removed already-presented
 bytes; it had not prevented the read. This is a failure of the tested Haiku 5.5,
 not a result for Sonnet-5. A smaller request is easy to measure. Check that the
 model can still do the work with what remains.
+
+A separate bounded observation of the accepted Edition 3 build used real
+`claude-sonnet-4-6`. Six human turns completed with full file-read results, six
+result cuts and one tool cut. After handoff and unload, the next captured request
+retained dialogue, SYSTEM manuals and the handoff note but no tool traffic,
+including the handoff and unload calls themselves. The unloaded manual was still
+pending; `read_file` was no longer available. The observation guard then stopped on an
+unexpected/repeated handoff before the seventh final answer. Its receipt remains
+failed: it proves neither a completed post-handoff turn nor normal EOF or live
+recovery. The local Chapter 14 and separate CLI Chapter 1 gates passed on the same
+held source; those fixture results do not turn this paid observation into a
+successful run.

@@ -44,13 +44,15 @@ function speechChunks(task){
  }
  return out;
 }
-let settings={theme:'dark',tts_enabled:true,pause_while_speaking:true,tts_speed:1,font_size:16,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200},settingsReady=false;
-const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','pause-while-speaking':'pause_while_speaking','tts-speed':'tts_speed','font-size':'font_size','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records'};
+let settings={theme:'dark',tts_enabled:true,pause_while_speaking:true,tts_speed:1,font_size:16,context_target:0,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200},settingsReady=false;
+// A target draft is local; accepted shared settings stay authoritative.
+let contextTargetDraft=null,contextTargetPending=null;
+const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','pause-while-speaking':'pause_while_speaking','tts-speed':'tts_speed','font-size':'font_size','context-target':'context_target','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records'};
 const systemTheme=window.matchMedia?.('(prefers-color-scheme: dark)');
 function applyTheme(){document.documentElement.dataset.theme=settings.theme==='system'?(systemTheme?.matches?'dark':'light'):settings.theme;}
 if(systemTheme?.addEventListener)systemTheme.addEventListener('change',()=>{if(settings.theme==='system')applyTheme();});
 function preferenceControls(){
- for(const [id,key] of Object.entries(preferenceFields)){const control=$(id);if(control.type==='checkbox')control.checked=settings[key];else control.value=String(settings[key]);}
+ for(const [id,key] of Object.entries(preferenceFields)){const control=$(id);if(key==='context_target'&&contextTargetDraft!==null){control.value=contextTargetDraft;continue;}if(control.type==='checkbox')control.checked=settings[key];else control.value=String(key==='context_target'&&settings[key]===0?400000:settings[key]);}
  $('font-size-value').textContent=String(settings.font_size);$('tts-speed-value').textContent=`${settings.tts_speed}×`;$('preferences').disabled=!settingsReady;
 }
 function automaticSpeech(task){return !['on demand','user'].includes(task.reason);}
@@ -63,19 +65,35 @@ function cancelAutomaticAudio(){
 }
 function applySettings(value){
  if(!value)return;
- settings=value;settingsReady=true;applyTheme();document.documentElement.style.setProperty('--font-size',`${settings.font_size}px`);preferenceControls();
+ settings=value;settingsReady=true;
+ if(contextTargetPending&&settings.context_target===contextTargetPending.value){
+  contextTargetDraft=null;contextTargetPending=null;
+ }
+ applyTheme();document.documentElement.style.setProperty('--font-size',`${settings.font_size}px`);preferenceControls();
  // Speech and HUMAN input own independent holds. Disabling speech does not
  // grant permission to resume through a draft the human is still composing.
  if(!settings.tts_enabled)cancelAutomaticAudio();
  for(const agent of agents.keys())updatePause(agent);
- $('settings-status').textContent='Saved · shared across your open tabs';
+ $('settings-status').textContent=contextTargetDraft===null?'Saved · shared across your open tabs':contextTargetPending?'Saving context target…':'Context target edit not saved';
 }
+$('context-target').oninput=()=>{
+ contextTargetDraft=$('context-target').value;
+ $('settings-status').textContent='Context target edit not saved';
+ // New typing invalidates the earlier submission, even if its text is identical.
+ contextTargetPending=null;
+};
 for(const [id,key] of Object.entries(preferenceFields))$(id).onchange=()=>{
+ if(key==='context_target'){contextTargetDraft=$(id).value;contextTargetPending=null;}
  const control=$(id);let value=control.type==='checkbox'?control.checked:control.value;
- if(['font_size','tts_speed','max_tool_rounds','diagnostic_max_records'].includes(key))value=Number(value);
- if((typeof value==='number'&&!Number.isFinite(value))||(['max_tool_rounds','diagnostic_max_records'].includes(key)&&!Number.isSafeInteger(value))){$('settings-status').textContent='Enter a finite whole-number budget.';preferenceControls();return;}
- // A server-accepted snapshot owns rendering, never a speculative local edit.
- preferenceControls();if(send('update_settings',{settings:{[key]:value}}))$('settings-status').textContent='Saving…';
+ if(['font_size','tts_speed','context_target','max_tool_rounds','diagnostic_max_records'].includes(key))value=Number(value);
+ if((typeof value==='number'&&!Number.isFinite(value))||(['context_target','max_tool_rounds','diagnostic_max_records'].includes(key)&&!Number.isSafeInteger(value))){$('settings-status').textContent='Enter a finite whole-number budget.';preferenceControls();return;}
+ // The target draft stays visible while accepted settings remain unchanged.
+ preferenceControls();
+ if(send('update_settings',{settings:{[key]:value}})){
+  // A negative draft can only be refused; it must not converge to the floor.
+  if(key==='context_target'&&value>=0)contextTargetPending={value:value===0?0:Math.max(20000,value)};
+  $('settings-status').textContent='Saving…';
+ }
 };
 $('font-size').oninput=()=>{$('font-size-value').textContent=$('font-size').value;};
 $('tts-speed').oninput=()=>{$('tts-speed-value').textContent=`${$('tts-speed').value}×`;};
@@ -173,7 +191,7 @@ function apply(frame) {
  }else if(frame.type==='skill_state'){skillsByAgent.set(frame.agent_id,frame);skillView();
  if(frame.browser_mcp&&!mcpAgents.has(frame.agent_id)){mcpAgents.add(frame.agent_id);send('mcp_open',{agent_id:frame.agent_id});}
  }else if(frame.type==='current_settings'||frame.type==='settings_changed') applySettings(frame.settings);
- else if(frame.type==='settings_error') {$('settings-status').textContent=String(frame.data);preferenceControls();}
+ else if(frame.type==='settings_error') {contextTargetPending=null;$('settings-status').textContent=String(frame.data);preferenceControls();}
  else if(frame.type==='error') $('errors').textContent=String(frame.data);
  else if(frame.type==='speech_requested'&&!frame.replay){
   if(frame.data.epoch!==agents.get(frame.agent_id)?.state.epoch)return;
@@ -211,7 +229,7 @@ function replay(data){
 function connect(){socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws`);
  socket.onopen=()=>{$('connection').textContent='Connected · synchronizing';retry=500;};
  socket.onmessage=event=>{let frame;try{frame=JSON.parse(event.data);}catch{return;}if(handleMCPFrame(frame))return;const near=nearBottom(),toolNear=nearBottom($('tool-cards'));if(frame.type==='replay'){replay(frame.data);$('connection').textContent='Connected';}else apply(frame);follow(near);if(toolNear)requestAnimationFrame(()=>{$('tool-cards').scrollTop=$('tool-cards').scrollHeight;});};
- socket.onclose=()=>{$('connection').textContent='Disconnected · reconnecting';settingsReady=false;preferenceControls();cancelAudio(undefined,false);setTimeout(connect,retry);retry=Math.min(retry*2,8000);};
+ socket.onclose=()=>{contextTargetPending=null;$('connection').textContent='Disconnected · reconnecting';settingsReady=false;preferenceControls();cancelAudio(undefined,false);setTimeout(connect,retry);retry=Math.min(retry*2,8000);};
  socket.onerror=()=>socket.close();
 }
 function busy(agent){return voiceAgents.has(agent)||[...requests.values()].some(r=>r.agent===agent)||speakingNow?.agent===agent||audio.some(t=>t.agent===agent)||[...delayed.values()].some(x=>x.task.agent===agent);}

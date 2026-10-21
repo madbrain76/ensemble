@@ -16,7 +16,7 @@ import (
 func Chapter14(bin string) (grade.Report, error) {
 	r := contextChecks(bin)
 	checks := grade.Ch15Checks(grade.Ch15Result{Fatal: r.Fatal, Errs: r.Errs})
-	checks[4].Title = "Frozen startup prefix with actual inline MCP additions, invocation, ephemera placement and removal"
+	checks[4].Title = "Stable primary and fixture tools, dynamic SYSTEM skills, inline MCP invocation and removal"
 	return grade.NewTitledReport("Edition 2, Chapter 14 — Context Management", checks, ""), nil
 }
 
@@ -62,7 +62,10 @@ func contextChecks(bin string) contextResult {
 		return r
 	}
 	guiDir := filepath.Join(tmp, "gui")
-	os.MkdirAll(guiDir, 0o755)
+	if err := contextStaticFixture(guiDir); err != nil {
+		r.Fatal = fmt.Sprintf("prepare GUI static fixture: %v", err)
+		return r
+	}
 
 	run := func(o contextOpts) contextOut { return contextLaunch(bin, skillsDir, guiDir, o) }
 	newDir := func(name string) string {
@@ -92,7 +95,12 @@ func contextChecks(bin string) contextResult {
 	}
 	crash := contextCrash(run, newDir("C"), &r)
 	if crash != "" {
-		contextTotal(run, fork(crash, "T"), &r)
+		probe := newDir("T")
+		if err := contextCopyReducerInput(crash, probe); err != nil {
+			r.fail("total-reducer", "prepare isolated primary: %v", err)
+		} else {
+			contextTotal(run, probe, &r)
+		}
 	} else {
 		r.set("total-reducer", "the crash-recovery session it builds on did not complete")
 	}
@@ -134,7 +142,7 @@ func contextLadder(run func(contextOpts) contextOut, dir string, r *contextResul
 		return ""
 	}
 	// Every request after the load carries the manual exactly once,
-	// never inside a tool result and never in the system prompt.
+	// in SYSTEM, never duplicated in dialogue or a tool result.
 	for i := 1; i < want; i++ {
 		if msg := contextSkillOnce(out.reqs[i].Body); msg != "" {
 			r.fail(name, "request %d: %s", i+1, msg)
@@ -189,24 +197,30 @@ func contextLadder(run func(contextOpts) contextOut, dir string, r *contextResul
 	return dir
 }
 
-// contextSkillOnce says what is wrong with the manual's placement in one
-// request body, or "" if it appears once, outside tools and system.
+// contextSkillOnce checks durable instruction projection, not tool-result prose.
 func contextSkillOnce(body []byte) string {
 	req, err := contextParse(body)
 	if err != nil {
 		return "body is not JSON: " + err.Error()
 	}
-	if strings.Contains(string(req.System), contextManualMark) {
-		return "the skill body is in the system prompt; rule 1 freezes it"
+	return contextInstructions(req, true)
+}
+
+// The primary remains stable while a loaded skill intentionally changes SYSTEM.
+// Raw marker counts work for both Anthropic string and text-block SYSTEM forms.
+func contextInstructions(req contextReq, loaded bool) string {
+	if strings.Count(string(req.System), contextPrimaryMark) != 1 {
+		return "primary instructions must occur exactly once in SYSTEM"
 	}
-	n := strings.Count(contextMessagesText(req), contextManualMark)
-	if n != 1 {
-		return fmt.Sprintf("the skill body appears %d times in the messages, want exactly 1", n)
+	want := 0
+	if loaded {
+		want = 1
 	}
-	for _, b := range contextBlocks(req) {
-		if (b.Type == "tool_result" || b.Type == "tool_use") && strings.Contains(string(b.Raw), contextManualMark) {
-			return "the skill body rides inside a tool part; rule 4 makes it an entry"
-		}
+	if n := strings.Count(string(req.System), contextManualMark); n != want {
+		return fmt.Sprintf("skill body occurs %d times in SYSTEM, want %d", n, want)
+	}
+	if strings.Contains(contextMessagesText(req), contextManualMark) {
+		return "skill body duplicated into dialogue/tool content instead of instruction projection"
 	}
 	return ""
 }
@@ -407,30 +421,90 @@ func contextCrash(run func(contextOpts) contextOut, dir string, r *contextResult
 		r.fail(name, "session killed mid-way: %s", o2.fatal)
 		return ""
 	}
-	o3 := run(contextOpts{dir: dir, model: contextNoStubModel, prompts: []string{contextCrashLastPrompt},
-		expect: []int{1}, replies: []fakevendor.Reply{contextText("REPLY-FOUR")}})
-	if o3.fatal != "" || len(o3.reqs) == 0 {
-		r.fail(name, "restart after SIGKILL: %s (requests: %d)", o3.fatal, len(o3.reqs))
+	// Clone before any recovery save can rotate the files under comparison.
+	primary, err := os.ReadFile(filepath.Join(dir, "save.json"))
+	if err != nil {
+		r.fail(name, "primary before recovery: %v", err)
 		return ""
 	}
-	body := string(o3.reqs[0].Body)
-	for i, want := range append(append([]string{}, contextCrashPrompts...), "REPLY-ONE", "REPLY-TWO", "REPLY-THREE") {
-		if !strings.Contains(body, want) {
-			what := "turn"
-			if i >= len(contextCrashPrompts) {
-				what = "reply"
-			}
-			r.fail(name, "after SIGKILL and restart the %s %q is gone", what, want)
-			return dir
+	backup, err := os.ReadFile(filepath.Join(dir, "save.json.bak"))
+	if err != nil || string(primary) == string(backup) {
+		r.fail(name, "need a distinct prior backup before fallback recovery: %v", err)
+		return ""
+	}
+	for _, variant := range []string{"missing", "corrupt"} {
+		dst := dir + "-" + variant
+		if err := contextCopyDir(dir, dst); err != nil {
+			r.fail(name, "copy %s: %v", variant, err)
+			return ""
+		}
+		path := filepath.Join(dst, "save.json")
+		if variant == "missing" {
+			err = os.Remove(path)
+		} else {
+			err = os.WriteFile(path, []byte("{broken primary"), 0600)
+		}
+		if err != nil {
+			r.fail(name, "%s primary: %v", variant, err)
+			return ""
+		}
+	}
+	var expected string
+	for _, variant := range []string{"intact", "missing", "corrupt"} {
+		d := dir
+		if variant != "intact" {
+			d += "-" + variant
+		}
+		o3 := run(contextOpts{dir: d, model: contextNoStubModel, prompts: []string{contextCrashLastPrompt},
+			expect: []int{1}, replies: []fakevendor.Reply{contextText("REPLY-FOUR")}})
+		if o3.fatal != "" || len(o3.reqs) != 1 {
+			r.fail(name, "%s primary recovery: %s (requests %d)", variant, o3.fatal, len(o3.reqs))
+			return ""
+		}
+		body := string(o3.reqs[0].Body)
+		if msg := contextCrashContents(body); msg != "" {
+			r.fail(name, "%s primary: %s", variant, msg)
+			return ""
+		}
+		if variant == "intact" {
+			expected = body
+		} else if body != expected {
+			r.fail(name, "%s backup-tail replay differs: %s", variant, contextDiff("primary", expected, "backup", body))
+			return ""
 		}
 	}
 	r.set(name, "")
 	return dir
 }
 
+// Counting each turn exactly once rejects both lost and replayed-overlap dialogue.
+func contextCrashContents(body string) string {
+	for _, want := range append(append([]string{}, contextCrashPrompts...), "REPLY-ONE", "REPLY-TWO", "REPLY-THREE") {
+		if n := strings.Count(body, want); n != 1 {
+			return fmt.Sprintf("recovered %q %d times, want exactly once", want, n)
+		}
+	}
+	return ""
+}
+
 // ----------------------------------------------------------------
 // total-reducer (T) — rule 8
 // ----------------------------------------------------------------
+
+// Only the complete edited archive may supply this probe's history. A valid
+// backup and journal could otherwise hide refusal of the planted known events.
+func contextCopyReducerInput(src, dst string) error {
+	// The launch closure supplies shared skills; only the edited primary belongs
+	// here. Copying recovery side inputs could conceal a strict reducer refusal.
+	if err := os.MkdirAll(dst, 0o700); err != nil {
+		return err
+	}
+	data, err := os.ReadFile(filepath.Join(src, "save.json"))
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dst, "save.json"), data, 0600)
+}
 
 func contextTotal(run func(contextOpts) contextOut, dir string, r *contextResult) {
 	const name = "total-reducer"
@@ -491,8 +565,15 @@ func contextTotal(run func(contextOpts) contextOut, dir string, r *contextResult
 	log = append(log[:idx], append(bad, log[idx:]...)...)
 	top["log"], _ = json.Marshal(log)
 	top["context"] = json.RawMessage("null")
-	out, _ := json.Marshal(top)
-	os.WriteFile(path, out, 0o644)
+	out, err := json.Marshal(top)
+	if err != nil {
+		r.fail(name, "encode planted events: %v", err)
+		return
+	}
+	if err := os.WriteFile(path, out, 0o600); err != nil {
+		r.fail(name, "write planted events: %v", err)
+		return
+	}
 
 	o := run(contextOpts{dir: dir, model: contextNoStubModel, prompts: []string{"Are you still whole?"},
 		expect: []int{1}, replies: []fakevendor.Reply{contextText("Whole.")}})
@@ -636,8 +717,12 @@ func contextPrefix(run func(contextOpts) contextOut, dir string, r *contextResul
 	}
 	for i, q := range out.reqs {
 		req, e := contextParse(q.Body)
-		if e != nil || string(req.System) != string(first.System) || string(req.Tools) != string(first.Tools) {
-			r.fail(name, "request %d changed/malformed startup prefix: %v", i+1, e)
+		if e != nil || string(req.Tools) != string(first.Tools) {
+			r.fail(name, "request %d changed/malformed startup fixture tools: %v", i+1, e)
+			return
+		}
+		if msg := contextInstructions(req, i > 0); msg != "" {
+			r.fail(name, "request %d: %s", i+1, msg)
 			return
 		}
 		added, removed, e := contextInline(req)
@@ -665,22 +750,11 @@ func contextPrefix(run func(contextOpts) contextOut, dir string, r *contextResul
 				}
 			}
 		}
+		// Chapter 12's peer is on-demand. No unsolicited GUI observations
+		// belong in SYSTEM or plain messages merely because it was loaded.
 		text := guiDebugText(q)
-		for round := 1; round <= 2; round++ {
-			for _, prefix := range []string{"SNAPSHOT_ONLY_", "TTS_ONLY_"} {
-				count := strings.Count(text, fmt.Sprint(prefix, round))
-				want := 0
-				if i == round+1 {
-					want = 1
-				}
-				if count != want {
-					r.fail(name, "request %d actual content %s%d count %d, want %d", i+1, prefix, round, count, want)
-					return
-				}
-			}
-		}
-		if i == 4 && (strings.Contains(text, "SNAPSHOT_ONLY_") || strings.Contains(text, "TTS_ONLY_")) {
-			r.fail(name, "automatic MCP content survived unload")
+		if strings.Contains(text, "SNAPSHOT_ONLY_") || strings.Contains(text, "TTS_ONLY_") {
+			r.fail(name, "request %d contains an unrequested GUI observation", i+1)
 			return
 		}
 	}
@@ -690,4 +764,23 @@ func contextPrefix(run func(contextOpts) contextOut, dir string, r *contextResul
 		return
 	}
 	r.set(name, "")
+}
+
+// contextStaticFixture satisfies the GUI launch prerequisite only. These
+// checks use stdin and /ws; they neither fetch nor execute a page. Inert fixture
+// assets are not evidence about the student's browser UI or shipped assets.
+func contextStaticFixture(dir string) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	for _, f := range []struct{ name, body string }{
+		{"index.html", "<!doctype html><title>Context WebSocket fixture</title>\n"},
+		{"app.js", "// Inert: Chapter 14 uses the public WebSocket directly.\n"},
+		{"style.css", "/* Inert static launch fixture. */\n"},
+	} {
+		if err := os.WriteFile(filepath.Join(dir, f.name), []byte(f.body), 0o644); err != nil {
+			return err
+		}
+	}
+	return nil
 }

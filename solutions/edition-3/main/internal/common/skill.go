@@ -47,6 +47,8 @@ type SkillSpec struct {
 }
 
 type SkillRegistry interface {
+	RestoreContext(Context) error
+
 	Parent() Agent
 	Snapshot() CapabilitySnapshot
 	RegisterTool(ToolSpec) error
@@ -57,6 +59,6 @@ type SkillRegistry interface {
 	LoadableSkills() []SkillInfo
 	ListSkills() []SkillInfo
 	LoadSkill(string) error   // explicit application/manual activation, not a fabricated tool event
-	UnloadSkill(string) error // instructions/compiled tools pending; external servers stop now
+	UnloadSkill(string) error // instructions pending; compiled/external grants withdrawn now
 	SubscribeSkills(func()) func()
 }

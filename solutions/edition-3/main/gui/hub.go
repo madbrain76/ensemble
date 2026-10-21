@@ -109,6 +109,7 @@ func (h *Hub) view(a ensemble.Agent) *agentView {
 	v := h.agents[a.ID()]
 	if v == nil {
 		if h.settingsApplied {
+			_ = a.SetContextTarget(h.settings.ContextTarget)
 			_ = a.SetMaxToolRounds(h.settings.MaxToolRounds)
 			_ = a.SetPersistencePolicy(h.settings.LogMode, h.settings.DiagnosticMaxRecords)
 			_ = a.Post(ensemble.SetSpeaking{Enabled: true})

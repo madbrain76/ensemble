@@ -11,7 +11,7 @@ func (r *registry) skillTools() []entry {
 	schema := json.RawMessage(`{"type":"object","properties":{"name":{"type":"string"}},"required":["name"],"additionalProperties":false}`)
 	return []entry{
 		{definition: common.ToolDefinition{Name: "load_skill", Description: "Enable a named skill and its dependencies atomically. Offers only advertise; tools and instructions become available after a successful load.", Parameters: schema}},
-		{definition: common.ToolDefinition{Name: "unload_skill", Description: "Mark an enabled skill pending unload. Instructions and compiled tool grants remain active while pending. External grants are removed immediately; peers with no remaining grants are closed.", Parameters: schema}},
+		{definition: common.ToolDefinition{Name: "unload_skill", Description: "Mark an enabled skill pending unload. Instruction survivors remain. Compiled and external grants are removed immediately unless independently owned; peers with no remaining grants are closed.", Parameters: schema}},
 	}
 }
 func (r *registry) skillCall(owner common.ToolCall, tool string, args arguments, seq common.Seq) error {
@@ -26,7 +26,7 @@ func (r *registry) skillCall(owner common.ToolCall, tool string, args arguments,
 		if err = r.parent.Skills().UnloadSkill(name); err != nil {
 			return err
 		}
-		_, err = fmt.Fprintf(owner, "Skill %s is pending unload. Its instructions and compiled tool grants remain active; external grants are removed immediately, and peers with no remaining grants are closed.", name)
+		_, err = fmt.Fprintf(owner, "Skill %s is pending unload. Its instruction survivors remain; compiled and external grants are removed immediately unless independently owned, and peers with no remaining grants are closed.", name)
 		return err
 	}
 	if seq == 0 {
@@ -36,6 +36,6 @@ func (r *registry) skillCall(owner common.ToolCall, tool string, args arguments,
 	if err != nil {
 		return err
 	}
-	_, err = io.WriteString(owner, "Enabled skills: "+name+". Instructions are supplied through the provider system prompt; this result is status, not an instruction channel.")
+	_, err = io.WriteString(owner, "Enabled skills: "+name+". Instructions are supplied through projected context; this result is status, not an instruction channel.")
 	return err
 }

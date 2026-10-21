@@ -158,10 +158,16 @@ func TestChapter12UnloadAnthropicCatalog(t *testing.T) {
 				t.Error("ordinary initial declaration changed")
 			}
 			if compiled {
-				if spec := c9Tool(t, a, "write_file"); !spec.Enabled || spec.Origin != "tool" {
-					t.Errorf("pending compiled grant lost: %+v", spec)
+				// Chapter 14 withdraws the sole compiled grant, not its instruction survivor.
+				if spec := c9Tool(t, a, "write_file"); spec.Enabled || spec.Origin != "tool" {
+					t.Errorf("unloaded compiled grant/identity: %+v", spec)
 				}
-				c9CheckWire(t, after, true, "browser-load")
+				if _, ok := afterCatalog["write_file"]; ok {
+					t.Error("unloaded compiled declaration remains")
+				}
+				if _, failed := a.Tools().Dispatch(ctx, "write_file", json.RawMessage(`{}`)); !failed {
+					t.Error("unloaded compiled tool callable")
+				}
 			}
 			var last struct {
 				System string
@@ -223,7 +229,7 @@ func TestChapter12UnloadAnthropicCatalog(t *testing.T) {
 				}
 			}
 			loadContent := c12PairedResult(t, after, "browser-load", "load_skill")
-			if !compiled {
+			{
 				var status string
 				if err := json.Unmarshal(loadContent, &status); err != nil || status == "" || status != statuses["browser-load"] {
 					t.Errorf("external-only load lost canonical-status fallback: %s", loadContent)

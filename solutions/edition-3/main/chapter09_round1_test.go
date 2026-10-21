@@ -372,8 +372,9 @@ func TestChapter09EnablingEventAndRendering(t *testing.T) {
 				t.Fatal(err)
 			}
 			pending, err := a.Engine().Render(history)
+			// The still-active dependency dep independently grants write_file.
 			if err != nil || string(pending) != string(replay) {
-				t.Fatal("pending unload changed replay")
+				t.Fatal("pending unload changed independently granted replay")
 			}
 			if _, failed := a.Tools().Dispatch(ctx, "load_skill", json.RawMessage(`{"name":"writer"}`)); failed {
 				t.Fatal("reload failed")

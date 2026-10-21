@@ -153,8 +153,22 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 			_ = a.MCP().Close()
 		}
 	}()
-	if err := skillRegistry.LoadInitial(); err != nil {
+	projected := a.Log().Context()
+	if len(projected.ActiveSkills) != 0 || projected.BaseThrough != 0 {
+		if err := skillRegistry.RestoreContext(projected); err != nil {
+			return nil, err
+		}
+	} else if err := skillRegistry.LoadInitial(); err != nil {
 		return nil, err
+	}
+	if !a.Log().Context().ToolsInitialized {
+		delta := common.ToolsData{}
+		for _, d := range skillRegistry.Snapshot().Definitions {
+			delta.Added = append(delta.Added, common.ToolDeclaration{Name: d.Name, Description: d.Description, Schema: d.Parameters})
+		}
+		if err := a.RecordFact(common.Event{Type: common.ToolsChanged, Tools: &delta}); err != nil {
+			return nil, err
+		}
 	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
@@ -187,6 +201,10 @@ type History = common.History
 type Part = common.Part
 type PartList = common.PartList
 type MessageData = common.MessageData
+type SkillData = common.SkillData
+type ToolsData = common.ToolsData
+type ToolDeclaration = common.ToolDeclaration
+type HandoffData = common.HandoffData
 type Provenance = common.Provenance
 type Vendor = common.Vendor
 type Surface = common.Surface
@@ -503,6 +521,10 @@ func (e *Ensemble) Trace(r TraceRecord) {
 }
 
 const (
+	SkillLoaded   = common.SkillLoaded
+	SkillUnloaded = common.SkillUnloaded
+	ToolsChanged  = common.ToolsChanged
+	MicroHandoff  = common.MicroHandoff
 	Idle          = common.Idle
 	ResponseEnded = common.ResponseEnded
 	ToolReleased  = common.ToolReleased

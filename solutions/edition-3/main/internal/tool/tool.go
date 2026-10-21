@@ -49,7 +49,7 @@ func (r *registry) Definitions() []common.ToolDefinition { return r.Snapshot().D
 func (r *registry) Snapshot() common.CapabilitySnapshot  { return r.parent.Skills().Snapshot() }
 func (r *registry) Catalog() []common.ToolSpec {
 	out := []common.ToolSpec{}
-	for _, e := range append(r.builtins(), r.skillTools()...) {
+	for _, e := range append(append(r.builtins(), r.skillTools()...), r.contextTools()...) {
 		e := e
 		handler := e.handler
 		if handler == nil {

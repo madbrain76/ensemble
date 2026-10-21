@@ -20,6 +20,7 @@ type SavedConfig struct {
 	Model                  string            `json:"model"`
 	ResolvedModel          string            `json:"resolved_model,omitempty"`
 	SystemPrompt           string            `json:"system_prompt"`
+	ContextTarget          int               `json:"context_target,omitempty"`
 	MaxToolRounds          int               `json:"max_tool_rounds"`
 	DisableStreaming       bool              `json:"disable_streaming"`
 	StreamCapability       StreamCapability  `json:"stream_capability"`

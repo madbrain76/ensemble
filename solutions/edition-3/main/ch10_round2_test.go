@@ -101,6 +101,9 @@ func TestCh10R2BaseRelativeRecoveryIsolation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	initialEmptyTools := func(events []Event) bool {
+		return len(events) == 1 && events[0].Seq == 1 && events[0].Type == ToolsChanged && events[0].Tools != nil && len(events[0].Tools.Added) == 0 && len(events[0].Tools.Removed) == 0
+	}
 	configs := []Config{{Model: "fixture", BaseDir: t.TempDir(), DataDir: "cr", Tools: []string{}}, {Model: "fixture", BaseDir: relativeBase, DataDir: "cr", Tools: []string{}}}
 	for i, cfg := range configs {
 		root := New(nil)
@@ -116,7 +119,7 @@ func TestCh10R2BaseRelativeRecoveryIsolation(t *testing.T) {
 		if a.Config().SavePath != want {
 			t.Fatalf("default archive escaped Agent data ownership: got %q want %q", a.Config().SavePath, want)
 		}
-		if a.Config().DataDir != "cr" || len(a.Log().Events()) != 0 || a.Recovery().Path != "" {
+		if a.Config().DataDir != "cr" || !initialEmptyTools(a.Log().Events()) || a.Recovery().Path != "" || len(a.Log().Context().ActiveSkills) != 0 || a.Log().Context().Handoff != "" {
 			t.Fatal("fresh root inherited another root's state")
 		}
 		text := []string{"first owner", "second owner"}[i]
@@ -136,7 +139,7 @@ func TestCh10R2BaseRelativeRecoveryIsolation(t *testing.T) {
 		}
 		es := a.Log().Events()
 		want := []string{"first owner", "second owner"}[i]
-		if len(es) != 1 || es[0].Message == nil || es[0].Message.Parts[0].Text != want {
+		if len(es) != 2 || !initialEmptyTools(es[:1]) || es[1].Message == nil || es[1].Message.Actor != "human" || len(es[1].Message.Parts) != 1 || es[1].Message.Parts[0].Text != want || a.Recovery().Path != a.Config().SavePath {
 			t.Fatalf("cross-root recovery: %+v", es)
 		}
 		if err = root.Shutdown(); err != nil {

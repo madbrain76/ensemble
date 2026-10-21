@@ -35,8 +35,9 @@ func TestArchiveBackupRecovery(t *testing.T) {
 		t.Fatal(err)
 	}
 	recovered := New(nil)
+	// Chapter 14 retains and replays the tail needed by the validated backup.
 	r, err := recovered.LoadFile(path)
-	if err != nil || !r.Backup || r.AsOf != 1 || len(recovered.Context().Dialogue) != 1 {
+	if err != nil || !r.Backup || r.AsOf != 2 || len(recovered.Context().Dialogue) != 2 {
 		t.Fatalf("%+v %v", r, err)
 	}
 	// Saving from fallback must not rotate corrupt primary over valid backup.
@@ -217,11 +218,19 @@ func TestCh10R2DirectToolArchiveValidation(t *testing.T) {
 				t.Fatal(err)
 			}
 			next := New(nil)
-			if _, err = next.LoadFile(bad); err == nil {
-				t.Fatal("accepted malformed direct-tool archive")
-			}
-			if next.LastSeq() != 0 || len(next.Events()) != 0 {
-				t.Fatal("installed invalid archive")
+			_, err = next.LoadFile(bad)
+			if tc.name == "sequence-anchor" {
+				if err == nil || next.LastSeq() != 0 || len(next.Events()) != 0 {
+					t.Fatal("invalid envelope installed")
+				}
+			} else {
+				// Chapter 14 keeps recognized semantic junk as a canonical no-op.
+				if err != nil {
+					t.Fatal(err)
+				}
+				if next.LastSeq() != 1 || len(next.Events()) != 1 || len(next.Context().Dialogue) != 0 {
+					t.Fatal("semantic no-op changed projection or lost canonical fact")
+				}
 			}
 		})
 	}

@@ -39,7 +39,10 @@ func (e *engine) failure(message string) error {
 func (e *engine) Render(c common.Context) ([]byte, error) {
 	cfg := e.parent.Config()
 	snapshot := e.parent.Skills().Snapshot()
-	cfg.SystemPrompt += snapshot.Instructions
+	if len(c.ActiveSkills) == 0 {
+		cfg.SystemPrompt += snapshot.Instructions
+	}
+	cfg.SystemPrompt += offers(e.parent.Skills().LoadableSkills())
 	disclosure := anthropicDisclosure{}
 	if cfg.Vendor == common.Anthropic && cfg.Skills != nil && supportsToolReferences(cfg.Model) {
 		disclosure.catalog = make([]common.ToolSpec, 0, len(snapshot.Tools))
@@ -49,18 +52,41 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 			// Automatic tools never enter declarations or enabling-call references.
 			// Dormant compiled tools remain deferred; external declarations require
 			// an enabled grant, even while their skill's instructions remain pending.
-			if t.Ephemeral != "" || (!t.Enabled && strings.HasPrefix(t.Source, "mcp:")) {
+			if t.Ephemeral != "" || (!t.Enabled && (strings.HasPrefix(t.Source, "mcp:") || t.Skill != "")) {
 				continue
 			}
 			disclosure.catalog = append(disclosure.catalog, t)
 			if !t.Enabled || t.Origin != "tool" || t.EventSeq == 0 {
 				continue
 			}
-			events := e.parent.Log().EventsRange(t.EventSeq-1, t.EventSeq)
-			if len(events) != 1 || events[0].Type != common.ToolCalled || events[0].Tool == nil || events[0].Tool.Name != "load_skill" {
-				return nil, fmt.Errorf("tool %q has no enabling load_skill event", t.Name)
+			id := ""
+			// Only live projected provenance can supply a native reference.
+			// Never hydrate the lifetime archive during ordinary rendering.
+			for _, entry := range c.Dialogue {
+				if entry.Actor != common.Assistant {
+					continue
+				}
+				for _, part := range entry.Parts {
+					if part.Type == "tool_call" && part.Name == "load_skill" && part.AdmissionSeq == t.EventSeq && part.From != nil && part.From.Vendor == cfg.Vendor && part.From.Surface == cfg.Surface {
+						id = part.CallID
+					}
+				}
 			}
-			id := events[0].Tool.CallID
+			if id == "" {
+				continue
+			}
+			present := false
+			for _, entry := range c.Dialogue {
+				for _, part := range entry.Parts {
+					if entry.Seq > t.EventSeq && part.Type == "tool_result" && part.CallID == id && !part.IsError {
+						present = true
+					}
+				}
+			}
+			if !present {
+				continue
+			}
+
 			disclosure.references[id] = append(disclosure.references[id], t.Name)
 		}
 	}
@@ -70,7 +96,12 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 // EffectiveSystemPrompt uses the same system composition as all renderers.
 func (e *engine) EffectiveSystemPrompt(c common.Context) (string, error) {
 	cfg := e.parent.Config()
-	cfg.SystemPrompt += e.parent.Skills().Snapshot().Instructions
+	snapshot := e.parent.Skills().Snapshot()
+	if len(c.ActiveSkills) == 0 {
+		cfg.SystemPrompt += snapshot.Instructions
+	}
+	cfg.SystemPrompt += offers(e.parent.Skills().LoadableSkills())
+	c, cfg, _ = projectPrompt(c, cfg, snapshot.Definitions)
 	return system(c, cfg)
 }
 
@@ -168,6 +199,9 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 	case common.Anthropic:
 		req.Header.Set("x-api-key", config.APIKey)
 		req.Header.Set("anthropic-version", "2023-06-01")
+		if inlineFeatures(config) {
+			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
+		}
 	case common.OpenAI:
 		req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	case common.Gemini:

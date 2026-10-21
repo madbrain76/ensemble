@@ -14,24 +14,31 @@ import (
 	"ensemble/internal/common"
 )
 
-// SaveFile captures one boundary under History's lock. Encoding and validation
-// finish before touching either recovery candidate; filesystem work holds no
-// append lock. Agent serializes saves to this path.
+// SaveFile captures one committed boundary. The writer reservation orders it
+// against staged admission, append and repair; encoding/validation still finish
+// before touching either recovery candidate or rotating the backup-aware tail.
 func (h *history) SaveFile(path string, config common.SavedConfig, mode common.LogMode) error {
+	h.writers.Lock()
+	defer h.writers.Unlock()
 	if mode == "" {
 		mode = common.LogFull
 	}
 	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.journal = path + ".journal"
 	s := common.SaveFile{Config: config, LogMode: mode, AsOf: h.through, Context: &h.context}
 	s.Log = []common.Event{}
 	s.DialogueLog = append([]common.DialogueRecord(nil), h.dialogue...)
 	if mode == common.LogFull {
-		s.Log = h.events
+		all, err := h.canonicalLocked()
+		if err != nil {
+			return fmt.Errorf("reading archived prefix: %w", err)
+		}
+		s.Log = all
 	} else {
 		s.DialogueLog = dialogueArchive(s.DialogueLog, h.events)
 	}
 	data, err := json.MarshalIndent(s, "", "  ")
-	h.mu.Unlock()
 	if err != nil {
 		return fmt.Errorf("encoding save: %w", err)
 	}
@@ -59,6 +66,20 @@ func (h *history) SaveFile(path string, config common.SavedConfig, mode common.L
 	if err = replaceFile(path, append(data, '\n')); err != nil {
 		return fmt.Errorf("saving primary: %w", err)
 	}
+	var backupBoundary common.Seq
+	if backup, err := readSave(path + ".bak"); err == nil {
+		saved, _, _ := decodeSave(backup)
+		backupBoundary = saved.AsOf
+	}
+	if err = h.trimJournal(backupBoundary); err != nil {
+		return fmt.Errorf("rotating journal: %w", err)
+	}
+	if mode == common.LogDialogueOnly {
+		h.dialogue = s.DialogueLog
+
+	}
+	h.events = nil
+	h.archive = path
 	return nil
 }
 
@@ -94,6 +115,12 @@ func readSave(path string) ([]byte, error) {
 // LoadFile does not publish partial state. A backup is decoded independently,
 // and its own boundary is reported, never the lost primary's later boundary.
 func (h *history) LoadFile(path string) (common.Recovery, error) {
+	h.writers.Lock()
+	defer h.writers.Unlock()
+	journal, journalErr := readJournal(path + ".journal")
+	if journalErr != nil {
+		return common.Recovery{}, journalErr
+	}
 	var primaryErr error
 	for i, candidate := range []string{path, path + ".bak"} {
 		data, err := os.ReadFile(candidate)
@@ -107,16 +134,49 @@ func (h *history) LoadFile(path string) (common.Recovery, error) {
 			if len(s.Log) > 0 && s.Log[len(s.Log)-1].Seq > through {
 				through = s.Log[len(s.Log)-1].Seq
 			}
-			h.mu.Lock()
-			h.events, h.context, h.through, h.dialogue = s.Log, context, through, s.DialogueLog
-			h.mu.Unlock()
-			return common.Recovery{Path: candidate, AsOf: through, Backup: i == 1}, nil
+			tail, recovered, replayErr := replayJournal(journal, &context, through)
+			if replayErr != nil {
+				err = replayErr
+			} else {
+				if err := repairJournal(path+".journal", journal); err != nil {
+					return common.Recovery{}, err
+				}
+				through = recovered
+				s.Log = append(s.Log, tail...)
+				h.mu.Lock()
+				h.journal = path + ".journal"
+				h.diagnoseRecovery(s.Log, s.Context)
+				h.events, h.context, h.through, h.dialogue = nil, context, through, s.DialogueLog
+				for _, event := range s.Log {
+					if event.Seq > s.AsOf {
+						h.events = append(h.events, event)
+					}
+				}
+				h.archive = candidate
+				h.mu.Unlock()
+				return common.Recovery{Path: candidate, AsOf: through, Backup: i == 1}, nil
+			}
 		}
 		if i == 0 {
 			primaryErr = err
 			continue
 		}
 		if errors.Is(primaryErr, os.ErrNotExist) && errors.Is(err, os.ErrNotExist) {
+			context := empty()
+			tail, through, err := replayJournal(journal, &context, 0)
+			if err != nil {
+				return common.Recovery{}, err
+			}
+			if err := repairJournal(path+".journal", journal); err != nil {
+				return common.Recovery{}, err
+			}
+			h.mu.Lock()
+			h.diagnoseRecovery(tail, nil)
+			h.events, h.context, h.through, h.journal = tail, context, through, path+".journal"
+			h.mu.Unlock()
+			if through != 0 {
+				return common.Recovery{Path: path + ".journal", AsOf: through}, nil
+			}
 			return common.Recovery{}, nil
 		}
 		return common.Recovery{}, fmt.Errorf("cannot recover history: primary: %v; backup: %v", primaryErr, err)
@@ -199,8 +259,9 @@ func decodeSave(data []byte) (common.SaveFile, common.Context, error) {
 		if err := eventValid(e); err != nil {
 			return s, common.Context{}, fmt.Errorf("event %d: %w", e.Seq, err)
 		}
-		if e.Redact != nil && (e.Redact.From == 0 || e.Redact.From > e.Redact.To || e.Redact.To >= e.Seq) {
-			return s, common.Context{}, fmt.Errorf("invalid redaction boundary")
+
+		if e.Seq > s.AsOf && e.Seq != max(last, s.AsOf)+1 {
+			return s, common.Context{}, fmt.Errorf("gap after snapshot boundary")
 		}
 		if s.Context == nil && e.Seq != last+1 {
 			return s, common.Context{}, fmt.Errorf("incomplete canonical log cannot rebuild context")
@@ -232,7 +293,7 @@ func decodeSave(data []byte) (common.SaveFile, common.Context, error) {
 }
 
 func savedConfig(c common.SavedConfig) error {
-	if strings.TrimSpace(c.Model) == "" || c.MaxToolRounds < 0 {
+	if strings.TrimSpace(c.Model) == "" || c.MaxToolRounds < 0 || c.ContextTarget < 0 {
 		return fmt.Errorf("invalid saved configuration")
 	}
 	if c.Surface == 0 {
@@ -262,6 +323,22 @@ func savedConfig(c common.SavedConfig) error {
 }
 
 func contextValid(c common.Context, through common.Seq) error {
+	if c.AsOf != 0 && c.AsOf != through {
+		return fmt.Errorf("invalid context checkpoint")
+	}
+	if c.HandoffSeq > through || c.PendingHandoffSeq > through {
+		return fmt.Errorf("invalid handoff boundary")
+	}
+	for _, skill := range c.ActiveSkills {
+		if skill.Name == "" || skill.Body == "" || skill.ActiveSeq > through {
+			return fmt.Errorf("invalid skill survivor")
+		}
+	}
+	for _, t := range c.Tools {
+		if t.Name == "" || !objectJSON(t.Schema) {
+			return fmt.Errorf("invalid projected declaration")
+		}
+	}
 	switch c.Turn {
 	case common.Idle, common.Interrupted, common.InputPending, common.InFlight, common.ToolsPending:
 	default:
@@ -273,14 +350,25 @@ func contextValid(c common.Context, through common.Seq) error {
 	if c.Usage.Input < 0 || c.Usage.Output < 0 || c.Usage.CacheRead < 0 || c.Usage.CacheWrite < 0 {
 		return fmt.Errorf("negative usage")
 	}
-	var last common.Seq
-	for _, entry := range c.Dialogue {
-		if entry.Seq == 0 || entry.Seq < last || entry.Seq > through {
+	for _, entry := range append(append([]common.Entry(nil), c.Dialogue...), c.Held...) {
+		if entry.Seq == 0 || entry.Seq > through {
 			return fmt.Errorf("invalid dialogue boundary")
 		}
-		last = entry.Seq
 		if entry.Actor != common.Human && entry.Actor != common.Assistant && entry.Actor != common.System && entry.Actor != common.Tool {
 			return fmt.Errorf("invalid dialogue actor")
+		}
+		switch entry.Kind {
+		case "", common.KindDialogue, common.KindHandoff:
+		case common.KindSkill:
+			if entry.Skill == nil || entry.Skill.Name == "" || entry.Skill.Body == "" {
+				return fmt.Errorf("invalid skill entry")
+			}
+		case common.KindTools:
+			if entry.Tools == nil {
+				return fmt.Errorf("invalid tools entry")
+			}
+		default:
+			return fmt.Errorf("invalid entry kind")
 		}
 		if err := parts(entry.Parts); err != nil {
 			return err
@@ -332,6 +420,19 @@ func dialogueArchive(prior []common.DialogueRecord, events []common.Event) []com
 }
 
 func sameContext(a, b common.Context) bool {
+	if b.AsOf == 0 {
+		a.AsOf = 0
+		a.SentThrough = 0
+		a.PreviousSentThrough = 0
+		for i := range a.Dialogue {
+			for j := range a.Dialogue[i].Parts {
+				a.Dialogue[i].Parts[j].AdmissionSeq = 0
+				if a.Dialogue[i].Parts[j].Type == "tool_result" {
+					a.Dialogue[i].Parts[j].Name = ""
+				}
+			}
+		}
+	} // accepted pre-Chapter-14 snapshots have no projection cursor.
 	// Compare serialized values, not RawMessage whitespace/key order or slice
 	// allocation. The two required collection fields do not use omitempty;
 	// other empty collections normalize through their existing JSON tags.
@@ -384,31 +485,25 @@ func recoveryParts(ps common.PartList) error {
 	}
 	return nil
 }
-func eventValid(e common.Event) error {
-	if err := validate(e); err != nil {
-		return err
+func eventValid(e common.Event) error { return validate(e) }
+
+// Acceptance has already been decided from the envelope and total reducers.
+// Diagnostics do not veto a valid snapshot or re-evaluate compaction policy.
+func (h *history) diagnoseRecovery(events []common.Event, snapshot *common.Context) {
+	if h.parent == nil {
+		return
 	}
-	var ps common.PartList
-	if e.Message != nil {
-		ps = e.Message.Parts
+	c := empty()
+	if snapshot != nil && (len(events) == 0 || events[0].Seq != 1) {
+		c = clone(*snapshot)
 	}
-	if e.Response != nil {
-		ps = e.Response.Parts
-	}
-	if e.Tool != nil {
-		ps = e.Tool.Parts
-		// Direct public Dispatch operations belong to no model turn and have
-		// no native call ID. Preserve that fact; model-turn calls still require
-		// their supplied correlation ID, and all other validation remains.
-		if e.Tool.CallID == "" && e.TurnID != 0 {
-			return fmt.Errorf("missing tool call ID")
+	for _, event := range events {
+		if event.Seq <= c.AsOf {
+			continue
 		}
-		if len(e.Tool.Args) > 0 && !objectJSON(e.Tool.Args) {
-			return fmt.Errorf("invalid tool args")
+		if err := semantic(event, c); err != nil {
+			h.parent.Parent().Logger().Printf("history: skip %s at %d: %v", event.Type, event.Seq, err)
 		}
+		Apply(&c, event)
 	}
-	if e.Redact != nil {
-		ps = e.Redact.Replacement
-	}
-	return recoveryParts(ps)
 }

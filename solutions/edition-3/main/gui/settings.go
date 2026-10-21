@@ -20,6 +20,7 @@ type Settings struct {
 	FontSize             int              `json:"font_size"`
 	LogMode              ensemble.LogMode `json:"log_mode"`
 	DiagnosticMaxRecords int              `json:"diagnostic_max_records"`
+	ContextTarget        int              `json:"context_target"`
 	MaxToolRounds        int              `json:"max_tool_rounds"`
 }
 
@@ -55,6 +56,8 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 			target = &next.LogMode
 		case "diagnostic_max_records":
 			target = &next.DiagnosticMaxRecords
+		case "context_target":
+			target = &next.ContextTarget
 		case "max_tool_rounds":
 			target = &next.MaxToolRounds
 		default:
@@ -75,6 +78,12 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 	next.TTSSpeed = max(0.5, min(5, next.TTSSpeed))
 	next.FontSize = max(12, min(24, next.FontSize))
 	next.MaxToolRounds = max(0, next.MaxToolRounds)
+	if next.ContextTarget > 0 {
+		next.ContextTarget = max(20000, next.ContextTarget)
+	}
+	if next.ContextTarget < 0 {
+		return current, errors.New("context_target must be nonnegative")
+	}
 	if next.DiagnosticMaxRecords < 0 {
 		return current, errors.New("diagnostic_max_records must be nonnegative")
 	}
@@ -140,6 +149,7 @@ func (h *Hub) currentSettings() Settings {
 	value := h.settings
 	if agents := h.en.Agents(); len(agents) > 0 {
 		cfg := agents[0].Config()
+		value.ContextTarget = cfg.ContextTarget
 		value.MaxToolRounds = cfg.MaxToolRounds
 		value.LogMode = cfg.LogMode
 		value.DiagnosticMaxRecords = *cfg.DiagnosticMaxRecords
@@ -159,6 +169,7 @@ func (h *Hub) updateSettings(raw json.RawMessage) error {
 	// Validation guarantees a nonnegative policy; the synchronous setter publishes
 	// it before the success snapshot, while active turns keep their captured limit.
 	for _, a := range h.en.Agents() {
+		_ = a.SetContextTarget(next.ContextTarget)
 		_ = a.SetMaxToolRounds(next.MaxToolRounds)
 		_ = a.SetPersistencePolicy(next.LogMode, next.DiagnosticMaxRecords)
 	}

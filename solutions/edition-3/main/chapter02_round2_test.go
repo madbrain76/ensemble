@@ -170,8 +170,27 @@ func TestRound2EphemeraTailFailureAndReplay(t *testing.T) {
 			if len(ctx.Ephemera) != 0 || ctx.Turn != common.Idle {
 				t.Fatalf("not consumed on failure: %+v", ctx)
 			}
-			if len(ctx.Dialogue) != 3 || ctx.Dialogue[2].Parts[0].Text != "new question" {
-				t.Fatal("error removed causal dialogue")
+			var causal []common.Entry
+			for _, entry := range ctx.Dialogue {
+				switch entry.Kind {
+				case "", common.KindDialogue:
+					causal = append(causal, entry)
+				case common.KindSkill, common.KindTools, common.KindHandoff: // typed survivors are not causal dialogue
+				default:
+					t.Fatalf("unknown projected entry kind %q", entry.Kind)
+				}
+			}
+			if len(causal) != 3 {
+				t.Fatalf("causal dialogue count=%d, want 3", len(causal))
+			}
+			for i, want := range []string{"old", "old reply", "new question"} {
+				actor := common.Human
+				if i == 1 {
+					actor = common.Assistant
+				}
+				if causal[i].Actor != actor || len(causal[i].Parts) != 1 || causal[i].Parts[0].Text != want {
+					t.Fatalf("causal dialogue %d changed: %+v", i, causal[i])
+				}
 			}
 			r2Append(t, a, common.Event{Type: common.MessageReceived, Message: &common.MessageData{Actor: common.System, Parts: common.PartList{}}})
 			if bytes.Contains(r2Render(t, a), []byte("fresh-tail")) {

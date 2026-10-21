@@ -35,6 +35,7 @@ type agent struct {
 	box           mailbox
 	done          chan struct{}
 	shutdownErr   error
+	liveCalls     map[string]bool
 	jobParts      map[int]uint64
 	workers       sync.WaitGroup
 	observersMu   sync.Mutex
@@ -44,18 +45,21 @@ type agent struct {
 	gateMu        sync.Mutex
 	paused        bool
 	// The fields below are accessed only by the actor.
-	active     *turn
-	pending    []*request
-	nextTurn   uint64
-	partID     uint64
-	viewValue  atomic.Value
-	viewState  common.ViewSnapshot
-	viewParts  map[uint64]common.PartDelta
-	state      common.TurnState
-	stopping   bool
-	speaking   bool
-	gate       func()
-	gateReason string
+	started            atomic.Bool
+	handoffText        string
+	handoffSavePending bool
+	active             *turn
+	pending            []*request
+	nextTurn           uint64
+	partID             uint64
+	viewValue          atomic.Value
+	viewState          common.ViewSnapshot
+	viewParts          map[uint64]common.PartDelta
+	state              common.TurnState
+	stopping           bool
+	speaking           bool
+	gate               func()
+	gateReason         string
 }
 
 // New validates configuration before any request and retains the actual owner.
@@ -63,6 +67,12 @@ type agent struct {
 func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if parent == nil {
 		return nil, errors.New("Agent requires an Ensemble parent")
+	}
+	if config.ContextTarget > 0 {
+		config.ContextTarget = effectiveTarget(config.ContextTarget)
+	}
+	if config.ContextTarget < 0 {
+		return nil, fmt.Errorf("negative context_target")
 	}
 	if strings.TrimSpace(config.Model) == "" {
 		return nil, errors.New("ANTHROPIC_MODEL is not set; ask GET /v1/models which models exist")

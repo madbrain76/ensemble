@@ -21,7 +21,7 @@ func main() {
 // Returning the status lets temporary build cleanup finish before os.Exit.
 func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
-	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12 or 13)")
+	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 or 14)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
@@ -54,9 +54,14 @@ func run(args []string) int {
 			chapter7Flags = true
 		}
 	})
+	// Chapter 14 directly grades the GUI target; parity artifact flags do not apply.
+	if *chapter == 14 && (chapter4Flags || chapter5Flags || chapter6Flags || chapter7Flags) {
+		fmt.Fprintln(os.Stderr, "Chapter 14 takes only -ch 14 [-json] GUI_TARGET; omit CLI/parity artifact flags")
+		return 2
+	}
 	// No historical target defaults and no implicit source inference from a binary.
-	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter7Flags) {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 1 [-json] target; or -ch 4|5|6|7|8|9|10|11|12|13 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
+	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter7Flags) {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 14 [-json] GUI_TARGET; or -ch 1 [-json] CLI_TARGET; or -ch 4|5|6|7|8|9|10|11|12|13 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
 		return 2
 	}
 	var example gradeedition2.ConsumerCase
@@ -130,6 +135,8 @@ func run(args []string) int {
 		report, err = gradeedition2.Chapter12(bin, *core, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
 	} else if *chapter == 13 {
 		report, err = gradeedition2.Chapter13(bin, *core, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)
+	} else if *chapter == 14 {
+		report, err = gradeedition2.Chapter14(bin)
 	} else {
 		report, err = gradeedition3.Chapter1(bin)
 	}

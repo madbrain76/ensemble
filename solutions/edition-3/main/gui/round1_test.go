@@ -435,12 +435,22 @@ func TestCh7R1TerminalUnboundedInput(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	input := strings.Repeat("long input ", 110000)
-	s.Terminal(ctx, strings.NewReader(input+"\n"), io.Discard)
-	eventually(t, func() bool { return a.View().Through > 0 })
-	events := a.Log().EventsRange(0, a.View().Through)
-	if events[0].Message == nil || events[0].Message.Parts[0].Text != strings.TrimSpace(input) {
-		t.Fatal("unbounded terminal input lost")
+	want := strings.TrimSpace(input)
+	if len(want) <= 1<<20 {
+		t.Fatal("fixture input must exceed one MiB")
 	}
+	baseline := a.Log().LastSeq()
+	s.Terminal(ctx, strings.NewReader(input+"\n"), io.Discard)
+	// Startup facts are not an input acknowledgement. The paused/offline Agent
+	// need only admit this whole human line; no provider completion is required.
+	eventually(t, func() bool {
+		for _, event := range a.Log().EventsRange(baseline, a.View().Through) {
+			if event.Type == ensemble.MessageReceived && event.Message != nil && event.Message.Actor == "human" && len(event.Message.Parts) == 1 && event.Message.Parts[0].Type == "text" && event.Message.Parts[0].Text == want {
+				return true
+			}
+		}
+		return false
+	})
 }
 func TestCh7R1WebSocketControls(t *testing.T) {
 	app, a := idleAgent(t, false)

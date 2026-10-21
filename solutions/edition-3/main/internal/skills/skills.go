@@ -33,7 +33,7 @@ func New(parent common.Agent, tools []common.ToolSpec) (common.SkillRegistry, er
 	}
 	r := &registry{parent: parent, skills: map[string]*skillState{}, vars: map[string]func() string{}, listeners: map[uint64]func(){}}
 	for _, t := range tools {
-		if err := r.RegisterTool(t); err != nil {
+		if err := r.addTool(t); err != nil {
 			return nil, err
 		}
 	}
@@ -55,6 +55,18 @@ func New(parent common.Agent, tools []common.ToolSpec) (common.SkillRegistry, er
 }
 func (r *registry) Parent() common.Agent { return r.parent }
 func (r *registry) RegisterTool(t common.ToolSpec) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if err := r.addTool(t); err != nil {
+		return err
+	}
+	return r.publishDeclarationsLocked()
+}
+
+// Construction populates the catalogue before startup/recovered grants exist.
+// It must not publish live deltas against an already initialized History. Other
+// callers hold mu and publish only after their complete registration succeeds.
+func (r *registry) addTool(t common.ToolSpec) error {
 	if strings.TrimSpace(t.Name) == "" || strings.TrimSpace(t.Description) == "" || t.Handler == nil {
 		return fmt.Errorf("tool requires name, description and handler")
 	}
@@ -76,8 +88,6 @@ func (r *registry) RegisterTool(t common.ToolSpec) error {
 	if t.Enabled && t.Origin == "" {
 		t.Origin = "manual"
 	}
-	r.mu.Lock()
-	defer r.mu.Unlock()
 	if r.toolIndex(t.Name) >= 0 {
 		return fmt.Errorf("tool %q already registered", t.Name)
 	}
@@ -113,7 +123,7 @@ func (r *registry) RegisterExternal(specs []common.ToolSpec) error {
 		t.Origin = "application"
 		r.tools = append(r.tools, t)
 	}
-	return nil
+	return r.publishDeclarationsLocked()
 }
 
 func (r *registry) toolIndex(name string) int {
@@ -370,6 +380,7 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	if origin == "initial" {
 		toolSet["load_skill"] = true
 		toolSet["unload_skill"] = true
+		toolSet["compact_context"], toolSet["micro_handoff"], toolSet["keep_tool_results"] = true, true, true
 	}
 	for _, n := range order {
 		enabled[n] = true
@@ -393,7 +404,7 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	values["SKILLS"] = strings.Join(loadables, "\n")
 	changed := false
 	if origin == "initial" {
-		for _, n := range []string{"load_skill", "unload_skill"} {
+		for _, n := range []string{"load_skill", "unload_skill", "compact_context", "micro_handoff", "keep_tool_results"} {
 			t := &r.tools[r.toolIndex(n)]
 			t.Enabled = true
 			t.Origin = "initial"
@@ -402,16 +413,23 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	for _, n := range order {
 		s := r.skills[n]
 		if s.info.PendingUnload {
+			if err := r.parent.RecordFact(common.Event{Type: common.SkillLoaded, Skill: &common.SkillData{Name: n, Body: s.rendered, Origin: origin, ActiveSeq: seq}}); err != nil {
+				return nil, err
+			}
 			s.info.PendingUnload = false
 			changed = true
 		}
 		if s.info.Enabled {
 			continue
 		}
+		body := expand(s.info.Instructions, values)
+		if err := r.parent.RecordFact(common.Event{Type: common.SkillLoaded, Skill: &common.SkillData{Name: n, Body: body, Origin: origin, ActiveSeq: seq}}); err != nil {
+			return nil, err
+		}
 		s.info.Enabled = true
 		s.info.Origin = origin
 		s.info.EventSeq = seq
-		s.rendered = expand(s.info.Instructions, values)
+		s.rendered = body
 		r.active = append(r.active, n)
 		changed = true
 		for _, n := range s.info.Tools {
@@ -425,7 +443,10 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 			t.EventSeq = seq
 		}
 	}
-	r.reconcileExternalLocked()
+	r.reconcileGrantsLocked()
+	if err := r.publishDeclarationsLocked(); err != nil {
+		return nil, err
+	}
 	return r.callbacks(changed), nil
 }
 func (r *registry) UnloadSkill(name string) error {
@@ -436,8 +457,18 @@ func (r *registry) UnloadSkill(name string) error {
 		return fmt.Errorf("skill %q is not enabled", name)
 	}
 	changed := !s.info.PendingUnload
+	if changed {
+		if err := r.parent.RecordFact(common.Event{Type: common.SkillUnloaded, Skill: &common.SkillData{Name: name}}); err != nil {
+			r.mu.Unlock()
+			return err
+		}
+	}
 	s.info.PendingUnload = true
-	r.reconcileExternalLocked()
+	r.reconcileGrantsLocked()
+	if err := r.publishDeclarationsLocked(); err != nil {
+		r.mu.Unlock()
+		return err
+	}
 	callbacks := r.callbacks(changed)
 	r.mu.Unlock()
 	if m := r.parent.MCP(); m != nil {
@@ -526,17 +557,26 @@ func expand(text string, values map[string]string) string {
 	return out.String()
 }
 
-// External capabilities have live transport ownership; pending text and compiled
-// functions remain as before, while no inactive skill keeps a process alive.
-func (r *registry) reconcileExternalLocked() {
+// Instruction survival is separate from grants: pending unload withdraws its
+// compiled and external grants while independent live grants remain enabled.
+func (r *registry) reconcileGrantsLocked() {
 	for i := range r.tools {
 		t := &r.tools[i]
-		if !strings.HasPrefix(t.Source, "mcp:") {
+		external := strings.HasPrefix(t.Source, "mcp:")
+		if !external && t.Skill == "" {
 			continue
-		}
+		} // independent manual/startup grant
 		t.Enabled = false
 		for _, s := range r.skills {
 			if !s.info.Enabled || s.info.PendingUnload {
+				continue
+			}
+			if !external {
+				for _, name := range s.info.Tools {
+					if name == t.Name {
+						t.Enabled = true
+					}
+				}
 				continue
 			}
 			for _, d := range s.info.MCPServers {
@@ -560,4 +600,75 @@ func (r *registry) reconcileExternalLocked() {
 			}
 		}
 	}
+}
+
+func (r *registry) RestoreContext(c common.Context) error {
+	if r.parent.Config().Skills == nil {
+		return r.LoadInitial()
+	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, saved := range c.ActiveSkills {
+		if r.skills[saved.Name] == nil {
+			return fmt.Errorf("saved skill %q is unavailable", saved.Name)
+		}
+	}
+	for _, n := range []string{"load_skill", "unload_skill", "compact_context", "micro_handoff", "keep_tool_results"} {
+		if i := r.toolIndex(n); i >= 0 {
+			r.tools[i].Enabled = true
+			r.tools[i].Origin = "initial"
+		}
+	}
+	for _, saved := range c.ActiveSkills {
+		s := r.skills[saved.Name]
+		if s == nil {
+			return fmt.Errorf("saved skill %q is unavailable", saved.Name)
+		}
+		s.info.Enabled, s.info.PendingUnload = true, saved.PendingUnload
+		s.info.Origin, s.info.EventSeq, s.rendered = saved.Origin, saved.ActiveSeq, saved.Body
+		r.active = append(r.active, saved.Name)
+		for _, name := range s.info.Tools {
+			if i := r.toolIndex(name); i >= 0 && r.tools[i].Origin == "" {
+				t := &r.tools[i]
+				t.Skill, t.Origin, t.EventSeq = saved.Name, saved.Origin, saved.ActiveSeq
+			}
+		}
+	}
+	r.reconcileGrantsLocked()
+	return nil
+}
+
+// publishDeclarationsLocked is called after a successful grant mutation. It only
+// submits a fact; the actor does not call back into the locked registry.
+func (r *registry) publishDeclarationsLocked() error {
+	c := r.parent.Log().Context()
+	if !c.ToolsInitialized {
+		return nil
+	} // Root freezes the complete startup set.
+	before := map[string]common.ToolDeclaration{}
+	for _, d := range c.Tools {
+		before[d.Name] = d
+	}
+	current := map[string]bool{}
+	delta := common.ToolsData{}
+	for _, tool := range r.tools {
+		if !tool.Enabled || tool.Ephemeral != "" {
+			continue
+		}
+		d := common.ToolDeclaration{Name: tool.Name, Description: tool.Description, Schema: tool.Parameters}
+		current[d.Name] = true
+		old, ok := before[d.Name]
+		if !ok || old.Description != d.Description || !bytes.Equal(old.Schema, d.Schema) {
+			delta.Added = append(delta.Added, d)
+		}
+	}
+	for _, d := range c.Tools {
+		if !current[d.Name] {
+			delta.Removed = append(delta.Removed, d.Name)
+		}
+	}
+	if len(delta.Added) == 0 && len(delta.Removed) == 0 {
+		return nil
+	}
+	return r.parent.RecordFact(common.Event{Type: common.ToolsChanged, Tools: &delta})
 }

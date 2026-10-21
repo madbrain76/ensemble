@@ -125,21 +125,22 @@ type Ref struct {
 // Part is a tagged union. Each variant keeps its own wire-neutral distinctions.
 // Raw JSON preserves arbitrary argument numbers and uninterpreted replay bytes.
 type Part struct {
-	ID        uint64          `json:"id,omitempty"`         // response-local parser identity
-	DisplayID uint64          `json:"display_id,omitempty"` // Agent-lifetime identity, never a provider ID
-	Type      string          `json:"type"`
-	Text      string          `json:"text,omitempty"`
-	MIME      string          `json:"mime,omitempty"`
-	Ref       *Ref            `json:"ref,omitempty"`
-	From      *Provenance     `json:"from,omitempty"`
-	Data      json.RawMessage `json:"data,omitempty"`
-	CallID    string          `json:"call_id,omitempty"`
-	Name      string          `json:"name,omitempty"`
-	Args      json.RawMessage `json:"args,omitempty"`
-	Opaque    json.RawMessage `json:"opaque,omitempty"`
-	Parts     PartList        `json:"parts,omitempty"`
-	IsError   bool            `json:"is_error,omitempty"`
-	Stub      string          `json:"stub,omitempty"`
+	ID           uint64          `json:"id,omitempty"`         // response-local parser identity
+	DisplayID    uint64          `json:"display_id,omitempty"` // Agent-lifetime identity, never a provider ID
+	Type         string          `json:"type"`
+	Text         string          `json:"text,omitempty"`
+	MIME         string          `json:"mime,omitempty"`
+	Ref          *Ref            `json:"ref,omitempty"`
+	From         *Provenance     `json:"from,omitempty"`
+	Data         json.RawMessage `json:"data,omitempty"`
+	CallID       string          `json:"call_id,omitempty"`
+	AdmissionSeq Seq             `json:"admission_seq,omitempty"` // projected admission, retained only with the live exchange
+	Name         string          `json:"name,omitempty"`
+	Args         json.RawMessage `json:"args,omitempty"`
+	Opaque       json.RawMessage `json:"opaque,omitempty"`
+	Parts        PartList        `json:"parts,omitempty"`
+	IsError      bool            `json:"is_error,omitempty"`
+	Stub         string          `json:"stub,omitempty"`
 }
 
 // Text must be present even when empty; omission is not an empty reply.
@@ -162,18 +163,58 @@ type PartList []Part
 
 func Text(s string) Part { return Part{Type: "text", Text: s} }
 
+// EntryKind identifies material that survives tool clearing by construction.
+type EntryKind string
+
+const (
+	KindDialogue EntryKind = "dialogue"
+	KindHandoff  EntryKind = "handoff"
+	KindSkill    EntryKind = "skill"
+	KindTools    EntryKind = "tools"
+)
+
+type SkillData struct {
+	Name          string `json:"name"`
+	Body          string `json:"body"`
+	Origin        string `json:"origin,omitempty"`
+	ActiveSeq     Seq    `json:"active_seq,omitempty"`
+	PendingUnload bool   `json:"pending_unload,omitempty"`
+}
+type ToolsData struct {
+	Added   []ToolDeclaration `json:"added,omitempty"`
+	Removed []string          `json:"removed,omitempty"`
+}
 type Entry struct {
-	Seq   Seq      `json:"seq"`
-	Actor Actor    `json:"actor"`
-	Parts PartList `json:"parts"`
+	Kind    EntryKind    `json:"kind,omitempty"`
+	Skill   *SkillData   `json:"skill,omitempty"`
+	Tools   *ToolsData   `json:"tools,omitempty"`
+	Handoff *HandoffData `json:"handoff,omitempty"`
+	Seq     Seq          `json:"seq"`
+	Actor   Actor        `json:"actor"`
+	Parts   PartList     `json:"parts"`
 }
 type Context struct {
-	Turn     TurnState `json:"turn"`
-	Dialogue []Entry   `json:"dialogue"`
-	Ephemera PartList  `json:"ephemera"`
-	Usage    Usage     `json:"usage"`
-	// Pending is bounded by the current response, not lifetime dispatch history.
-	Pending []string `json:"pending,omitempty"`
+	Turn                TurnState         `json:"turn"`
+	Pending             []string          `json:"pending,omitempty"`
+	Usage               Usage             `json:"usage"`
+	PreviousSentThrough Seq               `json:"previous_sent_through,omitempty"`
+	SentThrough         Seq               `json:"sent_through,omitempty"`
+	KeptBatch           Seq               `json:"kept_batch,omitempty"`
+	KeepAt              Seq               `json:"keep_at,omitempty"`
+	Held                []Entry           `json:"held,omitempty"`
+	AsOf                Seq               `json:"as_of"`
+	System              string            `json:"system,omitempty"`
+	Handoff             string            `json:"handoff,omitempty"`
+	HandoffSeq          Seq               `json:"handoff_seq,omitempty"`
+	ActiveSkills        []SkillData       `json:"active_skills,omitempty"`
+	PendingHandoff      string            `json:"pending_handoff,omitempty"`
+	PendingHandoffSeq   Seq               `json:"pending_handoff_seq,omitempty"`
+	Tools               []ToolDeclaration `json:"tools,omitempty"`
+	BaseThrough         Seq               `json:"base_through,omitempty"`
+	BaseTools           []ToolDeclaration `json:"base_tools,omitempty"`
+	ToolsInitialized    bool              `json:"tools_initialized,omitempty"`
+	Dialogue            []Entry           `json:"dialogue"`
+	Ephemera            PartList          `json:"ephemera"`
 }
 type EventType string
 
@@ -192,6 +233,10 @@ const (
 	Redacted        EventType = "redacted"
 	ErrorOccurred   EventType = "error_occurred"
 	JobKilled       EventType = "job_killed"
+	SkillLoaded     EventType = "skill_loaded"
+	SkillUnloaded   EventType = "skill_unloaded"
+	ToolsChanged    EventType = "tools_changed"
+	MicroHandoff    EventType = "micro_handoff"
 )
 
 type MessageData struct {
@@ -236,6 +281,7 @@ const (
 )
 
 type RedactData struct {
+	Parts       []int     `json:"parts,omitempty"`
 	From        Seq       `json:"from"`
 	To          Seq       `json:"to"`
 	Level       Redaction `json:"level"`
@@ -252,6 +298,9 @@ type Event struct {
 	Stale    bool          `json:"stale,omitempty"`
 	TurnID   uint64        `json:"turn_id,omitempty"`
 	Job      *JobData      `json:"job,omitempty"`
+	Skill    *SkillData    `json:"skill,omitempty"`
+	Tools    *ToolsData    `json:"tools,omitempty"`
+	Handoff  *HandoffData  `json:"handoff,omitempty"`
 	Seq      Seq           `json:"seq"`
 	Type     EventType     `json:"type"`
 	Time     time.Time     `json:"time"`
@@ -261,4 +310,8 @@ type Event struct {
 	Tool     *ToolData     `json:"tool,omitempty"`
 	Redact   *RedactData   `json:"redact,omitempty"`
 	Error    *ErrorData    `json:"error,omitempty"`
+}
+
+type HandoffData struct {
+	Text string `json:"text"`
 }

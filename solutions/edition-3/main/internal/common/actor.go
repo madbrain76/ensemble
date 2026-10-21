@@ -160,13 +160,19 @@ const (
 )
 
 type ModelFeatures struct {
-	Media     Media
-	Streaming StreamCapability
+	InlineTools      bool
+	StubsToolResults bool
+	Media            Media
+	Streaming        StreamCapability
 }
 
 // Exact rows only. An absent row permits text, never guessed attachments.
 func LookupModel(model string) (ModelFeatures, bool) {
 	switch model {
+	case "claude-opus-5-course":
+		return ModelFeatures{InlineTools: true, StubsToolResults: true}, true
+	case "claude-sonnet-5-course":
+		return ModelFeatures{}, true
 	case "claude-3-haiku-20240307", "claude-haiku-5-5", "claude-sonnet-4-6", "claude-opus-4-6", "gpt-5.4-mini", "gpt-5.4":
 		return ModelFeatures{Media: MediaImage, Streaming: StreamSSE}, true
 	case "gemini-3.8-flash":

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -30,9 +31,10 @@ func TestCh10R1SnapshotPrefixTailWS(t *testing.T) {
 }
 func ch10PrefixTail(t *testing.T, mode string) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, "save.json")
+	path := filepath.Join(dir, "fixture.save")
+	seedPath := filepath.Join(t.TempDir(), "seed.save")
 	seed := ensemble.New(nil)
-	a, err := seed.NewAgent(ensemble.Config{Model: "fixture", Tools: []string{}, SavePath: path})
+	a, err := seed.NewAgent(ensemble.Config{Model: "fixture", Tools: []string{}, SavePath: seedPath})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,6 +42,7 @@ func ch10PrefixTail(t *testing.T, mode string) {
 		t.Fatal(err)
 	}
 	prefix := a.Log().Context()
+	prefixBoundary := prefix.AsOf
 	for _, raw := range []string{
 		`{"type":"tool_called","turn_id":9,"tool":{"call_id":"native-call","name":"echo","display_id":7,"call_part_id":7,"args":{}}}`,
 		`{"type":"tool_dispatched","turn_id":9,"tool":{"call_id":"native-call","name":"echo","display_id":7,"call_part_id":7,"args":{},"dispatched":true}}`,
@@ -52,7 +55,7 @@ func ch10PrefixTail(t *testing.T, mode string) {
 	if err = seed.Shutdown(); err != nil {
 		t.Fatal(err)
 	}
-	raw, err := os.ReadFile(path)
+	raw, err := os.ReadFile(seedPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,15 +63,36 @@ func ch10PrefixTail(t *testing.T, mode string) {
 	if err = json.Unmarshal(raw, &s); err != nil {
 		t.Fatal(err)
 	}
-	tail := append([]ensemble.Event(nil), s.Log[1:]...)
+	completeBoundary := s.AsOf
+	var tail []ensemble.Event
+	for _, event := range s.Log {
+		if event.Seq > prefixBoundary {
+			tail = append(tail, event)
+		}
+	}
+	if prefixBoundary == 0 || len(tail) != 3 || tail[0].Seq != prefixBoundary+1 || tail[2].Seq != completeBoundary {
+		t.Fatalf("bad seed boundary/tail: prefix=%d complete=%d tail=%+v", prefixBoundary, completeBoundary, tail)
+	}
 	if mode != "full_carry" {
-		s.AsOf = 1
+		s.AsOf = prefixBoundary
 		s.Context = &prefix
 		s.Log = tail
 	}
 	if mode == "context_only" {
 		s.Log = nil
 		s.LogMode = ensemble.LogDialogueOnly
+		// A context-only fixture must not smuggle its future tail in either
+		// the canonical log or the separate display archive.
+		prefixDisplay := s.DialogueLog[:0:0]
+		for _, entry := range s.DialogueLog {
+			if entry.SourceSeq <= prefixBoundary {
+				prefixDisplay = append(prefixDisplay, entry)
+			}
+		}
+		s.DialogueLog = prefixDisplay
+	}
+	if s.Context == nil || s.Context.AsOf != s.AsOf {
+		t.Fatalf("mismatched fixture checkpoint: as_of=%d context=%+v", s.AsOf, s.Context)
 	}
 	raw, err = json.Marshal(s)
 	if err != nil {
@@ -77,16 +101,42 @@ func ch10PrefixTail(t *testing.T, mode string) {
 	if err = os.WriteFile(path, raw, 0600); err != nil {
 		t.Fatal(err)
 	}
+	// Only this rewritten snapshot is supplied. The seed's journal/backup must
+	// not replay a tail before the context-only case appends it live.
+	for _, side := range []string{path + ".journal", path + ".bak"} {
+		if _, err := os.Stat(side); !os.IsNotExist(err) {
+			t.Fatalf("fixture has side input %s: %v", side, err)
+		}
+	}
 	peer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, `{"model":"fixture","content":[{"type":"text","text":"new-display"}],"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer peer.Close()
 	root := ensemble.New(nil)
 	defer root.Shutdown()
-	cfg := ensemble.Config{Vendor: ensemble.Anthropic, Model: "fixture", APIKey: "fake-local-only", BaseURL: peer.URL, DisableStreaming: true, Tools: []string{}, SavePath: path}
+	cfg := ensemble.Config{Vendor: ensemble.Anthropic, Model: "fixture", APIKey: "fake-local-only", BaseURL: peer.URL, DisableStreaming: true, Tools: []string{}, SavePath: path, LogMode: s.LogMode}
 	loaded, err := root.NewAgent(cfg)
 	if err != nil {
 		t.Fatal(err)
+	}
+	wantBoundary := completeBoundary
+	wantMode := ensemble.LogFull
+	if mode == "context_only" {
+		wantBoundary = prefixBoundary
+		wantMode = ensemble.LogDialogueOnly
+	}
+	recovery := loaded.Recovery()
+	if recovery.Path != path || recovery.Backup || recovery.AsOf != wantBoundary || loaded.Log().LastSeq() != wantBoundary || loaded.Log().Context().AsOf != wantBoundary || loaded.Config().LogMode != wantMode || s.LogMode != wantMode {
+		t.Fatalf("wrong loaded %s boundary/mode: recovery=%+v through=%d context=%d mode=%s", mode, recovery, loaded.Log().LastSeq(), loaded.Log().Context().AsOf, loaded.Config().LogMode)
+	}
+	loadedEvents := loaded.Log().Events()
+	if len(loadedEvents) != len(s.Log) {
+		t.Fatalf("%s loaded %d canonical events, want %d", mode, len(loadedEvents), len(s.Log))
+	}
+	for i := range s.Log {
+		if !reflect.DeepEqual(loadedEvents[i], s.Log[i]) {
+			t.Fatalf("%s canonical event %d changed during load", mode, i)
+		}
 	}
 	server, err := NewServerWithSettings(root, "web/gui", filepath.Join(dir, "settings.json"))
 	if err != nil {
@@ -128,6 +178,14 @@ func ch10PrefixTail(t *testing.T, mode string) {
 		t.Fatal("missing prefix card")
 	}
 	if mode == "context_only" {
+		if loaded.Log().LastSeq() != prefixBoundary || len(loaded.Log().Events()) != 0 {
+			t.Fatal("context-only tail replayed before live append")
+		}
+		for _, frame := range initial {
+			if frame.Part != nil && frame.Part.CallID == "native-call" && frame.Part.Kind == "tool_result" {
+				t.Fatal("context-only initial replay already contains its result")
+			}
+		}
 		for _, e := range tail {
 			e.Seq = 0
 			if err = loaded.Log().Append(e); err != nil {
@@ -212,8 +270,19 @@ func ch10PrefixTail(t *testing.T, mode string) {
 	again, replay := connect(web.URL)
 	_ = again.Close()
 	check(replay)
-	if loaded.Log().Context().Dialogue[0].Parts[0].DisplayID != 7 {
-		t.Fatal("canonical prefix ID rewritten")
+	nativeCalls := 0
+	for _, entry := range loaded.Log().Context().Dialogue {
+		for _, part := range entry.Parts {
+			if part.Type == "tool_call" && part.CallID == "native-call" {
+				nativeCalls++
+				if part.DisplayID != 7 {
+					t.Fatalf("canonical prefix ID rewritten: %d", part.DisplayID)
+				}
+			}
+		}
+	}
+	if nativeCalls != 1 {
+		t.Fatalf("canonical native-call count=%d, want 1", nativeCalls)
 	}
 	if err = loaded.Save(); err != nil {
 		t.Fatal(err)

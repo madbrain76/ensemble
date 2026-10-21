@@ -28,7 +28,7 @@ func TestInvalidInputsFailBeforeGrading(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := [][]string{
-		{}, {""}, {"-ch", "2", target}, {"-ch", "14", target}, {"-ch", "4"},
+		{}, {""}, {"-ch", "2", target}, {"-ch", "15", target}, {"-ch", "4"},
 		{"-ch", "1", "-core", module, target},
 		{"-ch", "1", "-consumer", "", target},
 		{"-ch", "1", "-consumer-case", "", target},
@@ -63,7 +63,7 @@ func TestHelpSucceedsWithoutLaunchingTarget(t *testing.T) {
 	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked >> "+strconv.Quote(marker)+"\nexit 1\n"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}, {"-ch", "7", "-h", target}, {"-ch", "8", "-h", target}, {"-ch", "9", "-h", target}, {"-ch", "10", "-h", target}, {"-ch", "11", "-h", target}, {"-ch", "12", "-h", target}, {"-ch", "13", "-h", target}} {
+	for _, args := range [][]string{{"-h"}, {"-help"}, {"-ch", "1", "-h", target}, {"-ch", "4", "-h", target}, {"-ch", "5", "-h", target}, {"-ch", "6", "-h", target}, {"-ch", "7", "-h", target}, {"-ch", "8", "-h", target}, {"-ch", "9", "-h", target}, {"-ch", "10", "-h", target}, {"-ch", "11", "-h", target}, {"-ch", "12", "-h", target}, {"-ch", "13", "-h", target}, {"-ch", "14", "-h", target}} {
 		if got := run(args); got != 0 {
 			t.Errorf("run(%q) = %d, want 0", args, got)
 		}
@@ -290,4 +290,29 @@ func TestChapter12ValidationBeforeLaunch(t *testing.T) {
 
 func TestChapter13ValidationBeforeLaunch(t *testing.T) {
 	testGUIChapterValidationBeforeLaunch(t, "13")
+}
+
+// Chapter 14 grades the GUI directly; none of the parity artifact flags apply.
+func TestChapter14ValidationBeforeLaunch(t *testing.T) {
+	dir := t.TempDir()
+	marker := filepath.Join(dir, "invoked")
+	target := filepath.Join(dir, "gui")
+	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf invoked > "+strconv.Quote(marker)+"\nexit 99\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	for _, flag := range []string{"core", "consumer", "workflow", "stream-exercise", "stream-model", "gui", "gui-model", "consumer-case", "media-models"} {
+		for _, value := range []string{"", "unused"} {
+			if code := run([]string{"-ch", "14", "-" + flag + "=" + value, target}); code != 2 {
+				t.Fatalf("%s=%q exit %d", flag, value, code)
+			}
+		}
+	}
+	for _, args := range [][]string{{"-ch", "14"}, {"-ch", "14", filepath.Join(dir, "missing")}, {"-ch", "14", target, target}} {
+		if code := run(args); code != 2 {
+			t.Fatalf("%q exit %d", args, code)
+		}
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatalf("invalid input launched target: %v", err)
+	}
 }

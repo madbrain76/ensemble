@@ -29,6 +29,7 @@ func textParts(ps common.PartList) (string, error) {
 	return b.String(), nil
 }
 func render(c common.Context, cfg common.Config, defs []common.ToolDefinition, disclosures ...anthropicDisclosure) ([]byte, error) {
+	c, cfg, defs = projectPrompt(c, cfg, defs)
 	var disclosure anthropicDisclosure
 	if len(disclosures) > 0 {
 		disclosure = disclosures[0]
@@ -67,7 +68,7 @@ func system(c common.Context, cfg common.Config) (string, error) {
 		s += " Before each tool batch, emit nonblank ordinary assistant text explaining what you will do and why, before the first tool call. Hidden reasoning is not an explanation. A batch without this explanation will be refused without effects."
 	}
 	for _, entry := range c.Dialogue {
-		if entry.Actor == common.System {
+		if entry.Actor == common.System && !(inlineFeatures(cfg) && entry.Kind == common.KindTools) {
 			t, err := textParts(entry.Parts)
 			if err != nil {
 				return "", err
@@ -165,10 +166,13 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		}
 	}
 	for _, e := range c.Dialogue {
-		if e.Actor == common.System {
+		if e.Actor == common.System && !(inlineFeatures(cfg) && e.Kind == common.KindTools) {
 			continue
 		}
 		role := "user"
+		if e.Actor == common.System {
+			role = "system"
+		}
 		if e.Actor == common.Assistant {
 			role = "assistant"
 		}
@@ -176,6 +180,20 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		batch := []common.Part{}
 		for _, p := range e.Parts {
 			switch p.Type {
+			case "tool_decls":
+				if !inlineFeatures(cfg) {
+					return nil, fmt.Errorf("inline declaration on unsupported model")
+				}
+				var delta common.ToolsData
+				if err := json.Unmarshal(p.Data, &delta); err != nil {
+					return nil, err
+				}
+				for _, d := range delta.Added {
+					blocks = append(blocks, raw(map[string]any{"type": "tool_addition", "tool": map[string]any{"type": "tool_definition", "definition": map[string]any{"name": d.Name, "description": d.Description, "input_schema": d.Schema}}}))
+				}
+				for _, name := range delta.Removed {
+					blocks = append(blocks, raw(map[string]any{"type": "tool_removal", "tool": map[string]any{"type": "tool_reference", "name": name}}))
+				}
 			case "text":
 				blocks = append(blocks, aText(p.Text))
 			case "redacted":

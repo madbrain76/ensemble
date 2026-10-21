@@ -132,7 +132,10 @@ type turn struct {
 }
 
 // Start is called once by the composition root, after all child links exist.
-func (a *agent) Start() { go a.run() }
+func (a *agent) Start() {
+	a.started.Store(true)
+	go a.run()
+}
 func (a *agent) Post(input common.Inbound) error {
 	if input == nil {
 		return errors.New("nil input")
@@ -211,6 +214,14 @@ func (a *agent) Shutdown() error {
 }
 
 func (a *agent) recordJob(r common.JobReport) error {
+	if a.liveCalls == nil {
+		a.liveCalls = map[string]bool{}
+	}
+	if r.Job.Status == common.JobRunning {
+		a.liveCalls[r.Job.CallID] = true
+	} else {
+		delete(a.liveCalls, r.Job.CallID)
+	}
 	r.Job.CallPartID = a.jobParts[r.Job.Handle]
 	typ := common.JobReported
 	if r.Job.Status == common.JobKilledStatus {
@@ -224,6 +235,11 @@ func (a *agent) run() {
 		<-a.box.wake
 		for _, message := range a.box.drain() {
 			switch m := message.(type) {
+			case factRequest:
+				_, err := a.record(m.event)
+				m.reply <- err
+			case contextRequest:
+				a.contextRequest(m)
 			case *request:
 				if a.stopping {
 					a.reply(m, "", common.ErrStopped)
@@ -536,7 +552,11 @@ func (a *agent) sendReady(automatic common.PartList) {
 	// The final consuming request gets a private stop instruction. Keep it in
 	// request-local ephemera: neither durable History nor signed assistant parts
 	// may be rewritten, and later ordinary turns must not inherit this policy.
-	requestContext := a.history.Context()
+	requestContext, err := a.prepareContext()
+	if err != nil {
+		a.finish("", err)
+		return
+	}
 	if t.limit > 0 && t.rounds >= t.limit {
 		requestContext.Ephemera = append(requestContext.Ephemera, common.Text("The tool-round limit has been reached for this turn. Do not call any more tools. Use the results already available to give your final response."))
 	}
@@ -754,6 +774,22 @@ func (a *agent) returned(turn uint64, d common.ToolData) error {
 	if err == nil && !d.Automatic {
 		a.publish(common.ToolFinished{TurnID: turn, PartID: d.DisplayID, CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
 		a.final(seq, common.Part{DisplayID: d.DisplayID, Type: "tool_result", CallID: d.CallID, Name: d.Name, Parts: d.Parts, IsError: d.IsError})
+	}
+	if err == nil && d.Name == "micro_handoff" && !d.IsError && a.handoffText != "" {
+		_, err = a.record(common.Event{Type: common.MicroHandoff, Handoff: &common.HandoffData{Text: a.handoffText}})
+		a.handoffText = ""
+		a.handoffSavePending = err == nil
+	}
+	if err == nil && a.handoffSavePending && a.history.Context().PendingHandoff == "" {
+		err = a.Save()
+		if err == nil {
+			a.handoffSavePending = false
+			if a.Config().SavePath != "" {
+				if writer, ok := a.parent.Logger().Writer().(interface{ Retain() error }); ok {
+					err = writer.Retain()
+				}
+			}
+		}
 	}
 	return err
 }

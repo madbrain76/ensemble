@@ -77,6 +77,13 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		}
 	}
 	c.LogPath = get("LLM_LOG_PATH")
+	if raw := get("LLM_CONTEXT_TARGET"); raw != "" {
+		n, err := strconv.Atoi(raw)
+		if err != nil || n < 0 {
+			return Config{}, fmt.Errorf("LLM_CONTEXT_TARGET must be nonnegative")
+		}
+		c.ContextTarget = n
+	}
 	if rounds := get("LLM_MAX_TOOL_ROUNDS"); rounds != "" {
 		n, err := strconv.Atoi(rounds)
 		if err != nil || n < 0 {

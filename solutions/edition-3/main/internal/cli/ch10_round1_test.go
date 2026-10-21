@@ -101,7 +101,7 @@ func TestCh10R1FailedExitSaveKeepsDiagnostics(t *testing.T) {
 	}
 	var out, errout bytes.Buffer
 	err := Run(context.Background(), nil, &ch10FailSaveInput{t: t, path: "save.json"}, &out, &errout)
-	if err == nil || !strings.Contains(err.Error(), "neither recovery candidate") {
+	if err == nil || (!strings.Contains(err.Error(), "neither recovery candidate") && !strings.Contains(err.Error(), "reading archived prefix")) {
 		t.Fatalf("expected save refusal: %v", err)
 	}
 	b, err := os.ReadFile("api.log")
@@ -110,6 +110,12 @@ func TestCh10R1FailedExitSaveKeepsDiagnostics(t *testing.T) {
 	}
 	if string(b) != strings.Repeat("old\n", 200)+strings.Repeat("after-startup\n", 10) {
 		t.Fatalf("failed save trimmed diagnostics: records=%d", strings.Count(string(b), "\n"))
+	}
+	for _, path := range []string{"save.json", "save.json.bak"} {
+		data, err := os.ReadFile(path)
+		if err != nil || string(data) != "corrupt" {
+			t.Fatalf("refused save changed %s: %q, %v", path, data, err)
+		}
 	}
 }
 
