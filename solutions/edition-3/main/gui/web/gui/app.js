@@ -165,6 +165,7 @@ function observeTurn(frame){
  if(frame.type==='turn_ended')turn.terminal=true;
 }
 function apply(frame) {
+ if(frame.type==='usage'){const a=agents.get(frame.agent_id);if(a){a.usage=frame;a.meter=frame.meter;}if(frame.agent_id===selected)renderMeter();return;}
  observeTurn(frame);
  if(['part_final','part_delta','tool_dispatched','tool_finished'].includes(frame.type)) {
   const key=`${frame.agent_id}/${frame.part_id}`;let record=cards.get(key);
@@ -217,7 +218,33 @@ function renderAgentTree(a){
  $('agent-name').textContent=`Agent ${a.id}`;$('agent-activity').textContent=label.charAt(0).toUpperCase()+label.slice(1);
  $('agent-cue').dataset.busy=String(state!=='idle');node.dataset.agentId=a.id;node.title=a.config.model;node.setAttribute('aria-selected',String(a.id===selected));
 }
-function controls(){skillView();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
+// All four values are process-local Engine measurements, never replay totals.
+function renderMeter(){
+ const node=$('cache-meter'),a=agents.get(selected),u=a?.usage,m=u?.meter;
+ const percent=n=>n==null?'unknown':`${(n*100).toFixed(1)}%`;
+ const count=n=>n==null||n<0?'unknown':n.toLocaleString();
+ if(!u||!m){node.textContent='$0.0000 · In 0 · Cache 0 · Hit 0.0%';node.title='No current-process response yet; initial zeroes are not provider measurements.';return;}
+ const allInput=[u.input,u.cache_read,u.cache_write].every(n=>n!=null&&n>=0)?u.input+u.cache_read+u.cache_write:-1;
+ const cost=u.priced&&u.cost_usd!=null?`$${u.cost_usd.toFixed(4)}`:`${m.cost.status} (known $${m.cost.usd.toFixed(4)})`;
+ node.textContent=`${cost} · In ${count(allInput)} · Cache ${count(u.cache_read)} · Hit ${percent(u.hit_rate)}`;
+ const usage=(label,v)=>`${label}: uncached input ${count(v.input)}, output ${count(v.output)}, cache write ${count(v.cache_write)}, cache read ${count(v.cache_read)}`;
+ const c=m.cache,comparison=c.comparison;
+ node.title=[
+  'Current process only; restored conversation usage is not included.',
+  m.requests===0?'No response yet: initial zeroes are not measured usage.':'In = latest uncached input + cache write + cache read, counted once. Cache = latest read tokens. Hit = session token-weighted ratio.',
+  usage('Last response',u),usage('Session',u.total),
+  `Cost: ${m.cost.status}; known subtotal $${m.cost.usd.toFixed(6)}. Unknown work is not priced as zero.`,
+  ...m.buckets.map(b=>`${b.vendor}/${b.surface}/${b.model||'unknown model'}: ${b.requests} responses; $${b.cost.usd.toFixed(6)} (${b.cost.status}); ${usage('tokens',b.usage)}`),
+  `Breakpoints: ${c.marker_count}. ${c.marker_reason||'No sent request yet.'}`,
+  `Marked blocks: ${c.current?.segments.filter(s=>s.marked).map(s=>s.path).join(', ')||'none'}`,
+  `Local request comparison (not provider cache hits): ${c.shared_bytes||0} shared prompt bytes; first difference: ${c.first_difference||'none'}.`,
+  ...(c.sections||[]).map(s=>`${s.name}: ${s.change} (${s.bytes} bytes)`),
+  `Non-prompt options: ${c.options_change||'no send yet'}. ${c.prediction?.reason||''}`,
+  ...(comparison?[`Response to request ${comparison.prediction.request_id}: predicted byte fraction ${percent(comparison.prediction.fraction)}; measured token cache-hit ratio ${percent(comparison.actual_hit_rate)}. Neither promises a future provider cache grant.`]:[]),
+  ...(c.diagnostic_error?[`Diagnostic file error: ${c.diagnostic_error}`]:[])
+ ].join('\n');
+}
+function controls(){skillView();renderMeter();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
 function replay(data){
  mcpAgents.clear();mcpReady.clear();
  const previousAgents=new Map(agents);if(session!==data.session)observedTurns.clear();

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -28,7 +29,7 @@ func TestInvalidInputsFailBeforeGrading(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := [][]string{
-		{}, {""}, {"-ch", "2", target}, {"-ch", "15", target}, {"-ch", "4"},
+		{}, {""}, {"-ch", "2", target}, {"-ch", "16", target}, {"-ch", "4"},
 		{"-ch", "1", "-core", module, target},
 		{"-ch", "1", "-consumer", "", target},
 		{"-ch", "1", "-consumer-case", "", target},
@@ -314,5 +315,68 @@ func TestChapter14ValidationBeforeLaunch(t *testing.T) {
 	}
 	if _, err := os.Stat(marker); !os.IsNotExist(err) {
 		t.Fatalf("invalid input launched target: %v", err)
+	}
+}
+
+func TestChapter15GuardsAndRoute(t *testing.T) {
+	dir := t.TempDir()
+	marker := filepath.Join(dir, "launched")
+	target := filepath.Join(dir, "target")
+	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf launched >> "+strconv.Quote(marker)+"\nexit 71\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	cases := [][]string{
+		{"-ch", "15", target},
+		{"-ch", "15", "-cache-prices", "", target},
+		{"-ch", "15", "-cache-prices", "1,2,3", target},
+		{"-ch", "15", "-cache-prices", "NaN,2,3,4", target},
+		{"-ch", "15", "-cache-prices", "1,2,3,4", "-cache-current", "", target},
+		{"-ch", "15", "-cache-prices", "1,2,3,4", "-cache-prior", " ", target},
+	}
+	for _, flag := range []string{"core", "consumer", "consumer-case", "workflow", "media-models", "stream-exercise", "stream-model", "gui", "gui-model"} {
+		cases = append(cases, []string{"-ch", "15", "-cache-prices", "1,2,3,4", "-" + flag, "", target})
+	}
+	for _, ch := range []string{"1", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"} {
+		for _, flag := range []string{"cache-current", "cache-prior", "cache-prices"} {
+			cases = append(cases, []string{"-ch", ch, "-" + flag, "", target})
+		}
+	}
+	for _, args := range cases {
+		if got := run(args); got != 2 {
+			t.Fatalf("%v status=%d", args, got)
+		}
+		if _, err := os.Stat(marker); !os.IsNotExist(err) {
+			t.Fatalf("invalid options launched target: %v", args)
+		}
+	}
+	// Capture the real route's deliberately failing report, not a substitute grader.
+	out, err := os.CreateTemp(dir, "report-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := os.Stdout
+	os.Stdout = out
+	status := run([]string{"-ch", "15", "-cache-prices", "2,2.5,.2,10", "-json", target})
+	os.Stdout = old
+	if err := out.Close(); err != nil {
+		t.Fatal(err)
+	}
+	body, err := os.ReadFile(out.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var report struct {
+		Title    string
+		MaxScore int `json:"max_score"`
+		Checks   []struct{ ID string }
+	}
+	if err := json.Unmarshal(body, &report); err != nil {
+		t.Fatalf("report: %v: %s", err, body)
+	}
+	if status != 1 || !strings.Contains(report.Title, "Chapter 15") || report.MaxScore != 100 || len(report.Checks) != 7 {
+		t.Fatalf("wrong route/status: %d %s", status, body)
+	}
+	if _, err := os.Stat(marker); err != nil {
+		t.Fatalf("route did not launch explicit target: %v", err)
 	}
 }

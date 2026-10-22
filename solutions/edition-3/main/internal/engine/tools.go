@@ -8,6 +8,7 @@ import (
 
 // Only Engine knows the three provider declaration envelopes.
 type aDefinition struct {
+	CacheControl *aCacheControl  `json:"cache_control,omitempty"`
 	DeferLoading bool            `json:"defer_loading,omitempty"`
 	Name         string          `json:"name"`
 	Description  string          `json:"description"`

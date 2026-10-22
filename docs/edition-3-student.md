@@ -176,7 +176,7 @@ For Chapter 11, extend accepted Chapter 10 and use the same command and separate
 
 For Chapter 12, extend accepted Chapter 11 and use the same explicit artifact/model flags above with `-ch 12`, followed by `-ch 1` on the **same frozen CLI**. The Chapter 12 route checks startup skill selection, explicitly requested snapshots and speech queues, real click/input effects, unload refusal/peer teardown, and Chapter 11 parity. Browser observations must not be injected automatically; legitimate tool-result history may remain after unload. The fake peer does not replace the bounded real-browser exercise. Preserve Chapter 9's dynamic SYSTEM instructions and provider-specific disclosure rules. Follow the phase authorization: a compiling hold and source review precede full gates and operational work.
 
-The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 and 14. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 and 15. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.
 
@@ -192,3 +192,22 @@ go run ./cmd/grade-edition3 -ch 1 -json /absolute/owned-output/ch14-cli
 ```
 
 For the accepted layout, build `ch14-cli` from `main` with `go build -o /absolute/owned-output/ch14-cli ./cmd/ch01`, and `ch14-gui` from `main/gui` with `go build -o /absolute/owned-output/ch14-gui ./cmd`. Chapter 14 rejects unrelated `-core`, consumer, workflow, stream, media and GUI/model flags; its fixture owns its models and assets. Require parsed pass and process exit zero for both reports, allowing the genuine Chapter 1 62-second header and body phases. Follow phase authorization: a compiling HOLD and architectural review come before these gates. The finite grade does not replace writer-ordering, failed-save/diagnostic preservation, backup-tail overlap, total-reducer, provider-disclosure and scoped operational evidence required by the public chapter. No numeric canonical-event retention cap replaces the validated-BACKUP boundary.
+
+Chapter 15 also grades the **GUI executable or GUI module** directly. Its cache
+artifact paths default to `cr/cache-current.txt` and `cr/cache-prior.txt` in the
+owned launch directory; override with `-cache-current`/`-cache-prior` only to
+match the implementation's actual path. Supply four independently checked
+per-million prices with `-cache-prices INPUT,WRITE,READ,OUTPUT`; the adapter
+requires them rather than deriving expected costs from student code. Other
+chapters reject these flags. For the dated local fixture tariff, from the book
+root after building held GUI/CLI artifacts in their own modules:
+
+```sh
+go run ./cmd/grade-edition3 -ch 15 -json -cache-prices 3,3.75,0.3,15 /absolute/output/ch15-gui
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/output/ch15-cli
+```
+
+Preserve all Chapter 14 instruction, recovery, and writer-boundary behavior.
+The Chapter 15 grade is finite fake-provider evidence, not a real cache grant,
+browser inspection, price verification, or architecture acceptance. Follow the
+current phase authorization before running it or paid exercises.

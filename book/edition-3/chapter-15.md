@@ -84,13 +84,17 @@ Use these four positions when the corresponding content exists, in cache order:
    only marker that survives a change to the system prompt.
 
 2. **System prompt.** One marker at the end of the system block. Stable
-   by construction.
+   while its instructions are unchanged; skill changes can invalidate it.
 
 3. **The compaction bound.** One marker at the newest surviving
    `micro_handoff`. Chapter 22 later adds the last surviving memory entry
    as the fallback when compression removes that handoff.
    Mark the projection that actually remains;
-   never resurrect old dialogue to manufacture a boundary.
+   never resurrect old dialogue to manufacture a boundary. The inherited
+   renderer places the surviving handoff before transient ephemera rather
+   than keeping a handoff dialogue message. Preserve that distinction when
+   choosing a legal content boundary; omit an unavailable slot rather than
+   marking transient content or moving the note into SYSTEM.
 
 4. **Stable end of history.** One rolling marker at the last eligible
    retained block before ephemera. It advances on each turn. Moving
@@ -145,10 +149,14 @@ prompt reporting zero reads has not established a caching defect. Warm-up and
 the amount granted are observations to measure with the actual growing
 conversation, not fixed numbers of cold turns to enforce.
 
-The provider contracts above were checked on October 11, 2026 against the
+The provider contracts were rechecked for this entry against the
 [Claude caching guide](https://platform.claude.com/docs/en/build-with-claude/prompt-caching),
-[OpenAI caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
-and [Gemini caching guide](https://ai.google.dev/gemini-api/docs/caching).
+[OpenAI caching guide](https://developers.openai.com/api/docs/guides/prompt-caching),
+[Chat Completions schema](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
+and [Gemini generateContent guide](https://ai.google.dev/gemini-api/docs/generate-content/caching).
+OpenAI's explicit fields are model- and API-specific; the Chat Completions
+request schema supports `30m` retention on GPT-5.6 and later. Gemini here stays
+on `generateContent`, not the separately documented Interactions API.
 A documented field and a well-formed request still need a real grant.
 
 ### The meter
@@ -194,14 +202,11 @@ files, as long as plain `diff` puts the cursor on the first broken byte.
 
 ### Exercise
 
-Extend `solutions/ch14`. Wire a `CacheLens` to the main send boundary,
-place supported breakpoints, build the meter, and verify stable prefixes and
-actual cache reads. The grader runs from the repository root, defaulting to
-`solutions/ch15` and its separate GUI:
-
-```
-go run ./cmd/grade-edition2 -ch 15 -json
-```
+Extend the accepted Chapter 14 source in `solutions/edition-3/main`. Wire a
+`CacheLens` to the main send boundary, place supported breakpoints, build the
+meter, and verify stable prefixes and actual cache reads. Use the explicit
+Chapter 15 GUI target and the separate held CLI regression command in §15.6;
+do not grade a historical answer directory by default.
 
 ### Grader checks
 
@@ -364,11 +369,13 @@ charge disappear.
 
 ## §15.3 Where the markers go
 
-The system marker is straightforward. The system prompt does not change
-between turns, so a marker at the end of the system block banks the
-startup instructions. Dynamically loaded skill bodies remain conversation
-data; moving them into the system prompt would undo Chapter 9. Chapter 22
-applies the same rule to mutable memory. One marker, one stable prefix.
+The system marker banks the instructions actually sent. Chapters 9 and 14
+require surviving skill manuals in SYSTEM, alongside the stable base prompt.
+Loading or unloading a skill can therefore change SYSTEM and invalidate part
+of its cache. Keep instruction delivery correct and report that real change;
+never move a manual into a tool result to manufacture a cache hit. With the
+same instructions, a marker at the end of the system block banks that prefix.
+Mutable memory remains a separate concern in Chapter 22.
 
 The message-history marker is harder, because the conversation grows.
 Everything before the current exchange is identical to the previous
@@ -403,7 +410,9 @@ is the one that matters under maintenance.
 ### The stable end
 
 One marker sits on the last eligible retained block before ephemera,
-even when the two share a wire message.
+even when the two share a wire message. Choose that endpoint after final
+tool-result adjacency in the disposable wire view, while preserving canonical
+history.
 It advances on each turn as the conversation grows. Because a marker is
 not part of the cache key, moving it does not invalidate the bytes it
 previously banked. The first-edition Anthropic run recorded a 21-token rise between its two warm
@@ -674,6 +683,9 @@ total already includes cached reads and writes; Gemini's prompt total includes
 cache reads, and its charged output includes reported thinking. Subtract the
 included cached buckets when forming ordinary input, then count each once.
 For streams, retain the final usage rather than summing cumulative updates.
+Within a valid usage object, an omitted optional cache bucket is zero. Missing
+usage or required input/output counts remain unknown, as do supplied invalid
+counts; do not turn those into free usage.
 
 The lens predicts a cacheable fraction from the request, measured in
 bytes. The provider reports a cache hit rate in the response, measured
@@ -686,7 +698,8 @@ reuse, but is not a tokenization identity or a billing audit. The original Anthr
 
 ## §15.6 Exercise, graded
 
-Extend `solutions/ch14`. Observe actual main sends with an
+Extend the accepted Chapter 14 source in `solutions/edition-3/main`. Observe
+actual main sends with an
 Engine-owned cache lens; exclude auxiliary requests from that comparison.
 Place supported markers at tools, system, the surviving compaction boundary
 and the stable end before ephemera. Build the four-number GUI meter from
@@ -694,21 +707,29 @@ process-scoped accounting. Keep model/tier identity with incurred usage,
 price unknowns honestly and preserve history across a restart that resets
 the current process's spend.
 
-Run from the repository root:
+Build the two held artifacts from their own modules, then grade from the
+book repository. Flags precede the explicit GUI or CLI target:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 15 -json
+(cd /absolute/student && go build -o /absolute/output/ch15-cli ./cmd/ch01)
+(cd /absolute/student/gui && go build -o /absolute/output/ch15-gui ./cmd)
+go run ./cmd/grade-edition3 -ch 15 -json \
+  -cache-prices 3,3.75,0.3,15 /absolute/output/ch15-gui
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/output/ch15-cli
 ```
 
-The grader builds `solutions/ch15/gui` separately from the core.
-`-gui` can select another GUI module; `-cache-current` and `-cache-prior`
-select its diagnostic artifact paths relative to the scratch launch directory.
-The defaults are `cr/cache-current.txt` and `cr/cache-prior.txt`.
-`-cache-prices` supplies the four per-million rates, in ordinary-input,
-cache-write, cache-read and output order; its Sonnet-5 default is
-`2,2.5,0.2,10`. A historical implementation with a different dated tariff
-can be checked against its own rates. These are grader options, not new
-application flags.
+Chapter 15 uses the GUI directly, without unrelated parity-module flags.
+`-cache-current` and `-cache-prior` select its actual diagnostic artifact paths
+relative to the owned scratch launch directory; defaults are
+`cr/cache-current.txt` and `cr/cache-prior.txt`. `-cache-prices` supplies four
+independently checked per-million rates in ordinary-input, cache-write,
+cache-read and output order. The executable fixture uses Sonnet 4.6 at its
+[published standard rates](https://platform.claude.com/docs/en/about-claude/pricing):
+$3 input, $3.75 five-minute write, $0.30 read and $15 output per million tokens.
+These are not universal prices. The earlier Sonnet-5 account remains historical.
+These are grader inputs, not new
+application flags. Require `passed:true` and exit zero on both grades, with
+Chapter 1's genuine 62-second header and body waits on the held source's CLI.
 
 The public GUI uses `--port`, `--gui-dir`, provider environment settings and
 a typed primary skill. Its WebSocket `/ws` accepts a `subscribe` message;
@@ -743,11 +764,11 @@ A fake's warm reply cannot establish a real cache grant.
 Use a fresh directory and a stable reference large enough to make caching
 eligible. The reference belongs in the primary here because it is fixed for
 the demonstration, not because arbitrary retrieved text belongs in instructions.
-From a scratch copy of `solutions/ch15`:
+From the accepted source after local gates, using an owned output directory:
 
 ```sh
 cache_source="$PWD"
-(cd gui && go build -o /tmp/ensemble-ch17-gui ./cmd)
+(cd gui && go build -o /tmp/ensemble-ch15-gui ./cmd)
 cache_demo=$(mktemp -d)
 cd "$cache_demo"
 mkdir -p skills/base
@@ -770,16 +791,21 @@ Path("skills/base/SKILL.md").write_text(header + records)
 PY
 ```
 
-With the provider key configured as in Chapter 0, start the GUI in that
+With the provider key configured as in Chapter 0, choose an unused nonzero
+loopback port for this owned GUI, not port 8088 or an existing service. Set
+`OWNED_GUI_PORT` only after checking it is available. Start the GUI in that
 terminal and leave stdin open while using the browser:
 
 ```sh
-LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-5 \
+: "${OWNED_GUI_PORT:?set an unused nonzero loopback port for this run}"
+LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-4-6 \
 EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
-/tmp/ensemble-ch17-gui --port 8088 --gui-dir "$cache_source/gui/web/gui"
+/tmp/ensemble-ch15-gui --port "$OWNED_GUI_PORT" --gui-dir "$cache_source/gui/web/gui"
 ```
 
-Open `http://localhost:8088` and send these in order, waiting for each reply:
+Open `http://127.0.0.1:$OWNED_GUI_PORT` for this process after successful startup,
+not another GUI's address. The current launcher does not report an assigned
+port when passed zero. Send these in order, waiting for each reply:
 
 ```text
 What is the archive project code? Reply in one short sentence.
@@ -793,6 +819,7 @@ and copper. Watch the header, then inspect its session tooltip. Compare the
 last response's usage in `api.log` with the `usage` frame in `gui.log`.
 `debug.log` records predicted and granted ratios; plain `diff` on the two
 `cr/cache-*.txt` files shows the retained prefix and appended conversation.
+Inspect those files before restarting: startup resets them.
 A good answer with zero cache reads is still a zero-cache result. Check the
 actual input size, eligible route and prefix before deciding why.
 
@@ -800,6 +827,11 @@ Stop with Ctrl-D in the launch terminal after the last turn. Restart the
 same command in the same directory. Conversation history should return while
 the new process's meter starts at zero; no new response has been charged yet.
 That is a separate check from seeing a warm second turn.
+
+The accepted October 22 Sonnet 4.6 run returned four correct answers. Provider
+usage gave an exact calculated cost of $0.0755091; the header displayed $0.0755
+and its tooltip $0.075509. Restart replayed the conversation
+with a zero process meter. This is one observed result, not a cache-hit guarantee.
 
 The retained October 11 browser sessions made four turns each on the earlier
 implementation `7436fcb`. All twelve answers matched the supplied reference.
@@ -814,7 +846,7 @@ Their raw provider usage and visible meters were independently compared:
 The dollar values use the dated model prices captured for those runs. The
 session percentages include the cold first request; they are not the last
 request's hit rate. Haiku 5.5 remains the historical identity, not a current
-choice: the executable example uses supported Sonnet-5. Those captures contain
+choice: the executable example uses supported Sonnet 4.6. Those captures contain
 no restarted process or handoff, and precede the lens-overlap correction.
 Restart and overlap have their separate real-runtime checks.
 

@@ -44,6 +44,9 @@ func main() {
 	if protocolMode && config.Model == "" {
 		config.Model = "offline-mcp"
 	}
+	if config.DataDir == "" {
+		config.DataDir = "cr"
+	}
 	if config.SavePath == "" {
 		config.SavePath = "save.json"
 	}

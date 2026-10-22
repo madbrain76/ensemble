@@ -347,7 +347,7 @@ func contextValid(c common.Context, through common.Seq) error {
 	if c.Dialogue == nil {
 		return fmt.Errorf("missing dialogue")
 	}
-	if c.Usage.Input < 0 || c.Usage.Output < 0 || c.Usage.CacheRead < 0 || c.Usage.CacheWrite < 0 {
+	if c.Usage.Input < -1 || c.Usage.Output < -1 || c.Usage.CacheRead < -1 || c.Usage.CacheWrite < -1 {
 		return fmt.Errorf("negative usage")
 	}
 	for _, entry := range append(append([]common.Entry(nil), c.Dialogue...), c.Held...) {

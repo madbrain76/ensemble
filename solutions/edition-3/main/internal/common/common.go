@@ -56,7 +56,8 @@ type Message struct {
 	Content string `json:"content"`
 }
 
-// Usage is measured cumulative token consumption, including unusable answers.
+// Usage is measured token consumption, including unusable answers.
+// -1 means unreported/unknown; zero is a reported zero. Input is uncached input.
 type Usage struct {
 	// Input counts input tokens reported by the provider.
 	Input int64 `json:"input"`
@@ -135,6 +136,8 @@ type Agent interface {
 
 // Engine exchanges messages; it never retains the conversation itself.
 type Engine interface {
+	Cache() Cache
+	Status() EngineStatus
 	// Parent returns the Agent which owns transport configuration.
 	Parent() Agent
 	// Send makes one HTTP request, with cancellation controlled by the caller.

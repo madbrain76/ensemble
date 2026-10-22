@@ -499,18 +499,6 @@ func TestChapter4Round1SetupFailureCorrelation(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(dir, "input"), []byte("readable\n"), 0600); err != nil {
 				t.Fatal(err)
 			}
-			switch mode {
-			case "mkdir":
-				if err := os.WriteFile(filepath.Join(dir, "cr"), []byte("not a directory"), 0600); err != nil {
-					t.Fatal(err)
-				}
-			case "open":
-				for _, n := range []string{"1", "2"} {
-					if err := os.MkdirAll(filepath.Join(dir, "cr", "io", n), 0700); err != nil {
-						t.Fatal(err)
-					}
-				}
-			}
 			var effects atomic.Int32
 			var requests atomic.Int32
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -568,6 +556,20 @@ func TestChapter4Round1SetupFailureCorrelation(t *testing.T) {
 				t.Fatal(err)
 			}
 			c4Register(t, a, "custom", func(context.Context, ensemble.ToolCall, json.RawMessage) error { effects.Add(1); return nil })
+			// Cache owns cr diagnostics; obstruct the tool-output boundary only
+			// after all constructor activity, without removing those diagnostics.
+			switch mode {
+			case "mkdir":
+				if err := os.WriteFile(filepath.Join(dir, "cr", "io"), []byte("not a directory"), 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "open":
+				for _, n := range []string{"1", "2"} {
+					if err := os.MkdirAll(filepath.Join(dir, "cr", "io", n), 0700); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
 			if mode == "admission" {
 				if err := a.Jobs().Shutdown(); err != nil {
 					t.Fatal(err)

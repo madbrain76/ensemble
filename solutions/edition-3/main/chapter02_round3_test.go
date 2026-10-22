@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"ensemble"
@@ -23,19 +24,19 @@ func TestRound3UsageDependencies(t *testing.T) {
 	// Each invalid operand leaves valid independent measured buckets intact.
 	for _, bad := range []struct{ name, value string }{{"malformed", `"bad"`}, {"null", `null`}, {"negative", `-1`}} {
 		cases = append(cases,
-			fixture{"openai/read-" + bad.name, common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":` + bad.value + `,"cache_write_tokens":2}}`, common.Usage{Output: 4, CacheWrite: 2}, []string{"cache_read", "input"}},
-			fixture{"openai/write-" + bad.name, common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3,"cache_write_tokens":` + bad.value + `}}`, common.Usage{Output: 4, CacheRead: 3}, []string{"cache_write", "input"}},
-			fixture{"openai/details-" + bad.name, common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":` + bad.value + `}`, common.Usage{Output: 4}, []string{"cache_read", "cache_write", "input"}},
-			fixture{"gemini/read-" + bad.name, common.Gemini, `"usageMetadata":{"promptTokenCount":15,"candidatesTokenCount":2,"thoughtsTokenCount":2,"cachedContentTokenCount":` + bad.value + `}`, common.Usage{Output: 4}, []string{"cache_read", "input"}},
+			fixture{"openai/read-" + bad.name, common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":` + bad.value + `,"cache_write_tokens":2}}`, common.Usage{Input: -1, Output: 4, CacheRead: -1}, []string{"cache_read", "input"}},
+			fixture{"openai/write-" + bad.name, common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3,"cache_write_tokens":` + bad.value + `}}`, common.Usage{Input: 12, Output: 4, CacheRead: 3}, nil},
+			fixture{"openai/details-" + bad.name, common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":` + bad.value + `}`, common.Usage{Input: -1, Output: 4, CacheRead: -1}, []string{"cache_read", "input"}},
+			fixture{"gemini/read-" + bad.name, common.Gemini, `"usageMetadata":{"promptTokenCount":15,"candidatesTokenCount":2,"thoughtsTokenCount":2,"cachedContentTokenCount":` + bad.value + `}`, common.Usage{Input: -1, Output: 4, CacheRead: -1}, []string{"cache_read", "input"}},
 		)
 	}
-	// Absence is different from a supplied invalid value: these documented
-	// optional zero defaults still permit a known derived input count.
+	// Omitted optional cache counts remain zero (Chapter 2); invalid facts do not.
+	// A generic OpenAI cache_write_tokens field is not a Chat Completions fact.
 	cases = append(cases,
 		fixture{"openai/omitted-details", common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4}`, common.Usage{Input: 15, Output: 4}, nil},
-		fixture{"openai/omitted-read", common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cache_write_tokens":2}}`, common.Usage{Input: 13, Output: 4, CacheWrite: 2}, nil},
+		fixture{"openai/omitted-read", common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cache_write_tokens":2}}`, common.Usage{Input: 15, Output: 4}, nil},
 		fixture{"openai/omitted-write", common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3}}`, common.Usage{Input: 12, Output: 4, CacheRead: 3}, nil},
-		fixture{"openai/measured-cache", common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3,"cache_write_tokens":2}}`, common.Usage{Input: 10, Output: 4, CacheRead: 3, CacheWrite: 2}, nil},
+		fixture{"openai/measured-cache", common.OpenAI, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3,"cache_write_tokens":2}}`, common.Usage{Input: 12, Output: 4, CacheRead: 3}, nil},
 		fixture{"gemini/omitted-cache", common.Gemini, `"usageMetadata":{"promptTokenCount":15,"candidatesTokenCount":2,"thoughtsTokenCount":2}`, common.Usage{Input: 15, Output: 4}, nil},
 		fixture{"gemini/measured-cache", common.Gemini, `"usageMetadata":{"promptTokenCount":15,"candidatesTokenCount":2,"thoughtsTokenCount":2,"cachedContentTokenCount":3}`, common.Usage{Input: 12, Output: 4, CacheRead: 3}, nil},
 	)
@@ -50,9 +51,10 @@ func TestRound3UsageDependencies(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++; _, _ = w.Write(body) }))
 			defer server.Close()
 			a := r2Agent(t, ensemble.Config{Vendor: f.vendor, BaseURL: server.URL, APIKey: "local-fixture"})
+			wantError := len(f.missing) > 0 && !strings.Contains(f.name, "omitted")
 			check := func(events []common.Event, err error) {
 				t.Helper()
-				if (err != nil) != (len(f.missing) > 0) {
+				if (err != nil) != wantError {
 					t.Fatalf("error=%v missing=%v", err, f.missing)
 				}
 				var response *common.ResponseData
@@ -87,7 +89,7 @@ func TestRound3UsageDependencies(t *testing.T) {
 			if calls != 1 || a.Usage() != f.want || a.Log().Context().Usage != f.want {
 				t.Fatalf("calls=%d live=%+v historical=%+v want=%+v", calls, a.Usage(), a.Log().Context().Usage, f.want)
 			}
-			if len(f.missing) > 0 && len(a.History()) != 0 {
+			if wantError && len(a.History()) != 0 {
 				t.Fatal("invalid accounting became a completed answer")
 			}
 			replay := r2Agent(t, ensemble.Config{Vendor: f.vendor})

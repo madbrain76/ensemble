@@ -255,8 +255,8 @@ type ResponseData struct {
 	Usage    Usage      `json:"usage"`
 	From     Provenance `json:"from"`
 	Thinking string     `json:"thinking,omitempty"`
-	// Missing identifies unmeasured or partially measured buckets. Usage adds
-	// only known charges; an absent count must not masquerade as measured zero.
+	// Missing identifies unmeasured buckets, whose Usage value is -1.
+	// An absent count must not masquerade as measured zero.
 	UsageMissing []string `json:"usage_missing,omitempty"`
 }
 type ToolData struct {

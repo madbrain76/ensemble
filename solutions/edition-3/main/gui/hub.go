@@ -26,6 +26,8 @@ func controlsOf(s ensemble.ViewSnapshot) controlState {
 }
 
 type agentView struct {
+	meterRequests      int
+	meterDigest        string
 	ids                *displayIDs
 	contextReplay      []ensemble.Event
 	unsubscribeSkills  func()
@@ -158,6 +160,15 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 		return
 	}
 	id := v.agent.ID()
+	meter := v.agent.Engine().Status()
+	digest := ""
+	if meter.Cache.Current != nil {
+		digest = meter.Cache.Current.Digest
+	}
+	if meter.Requests != v.meterRequests || digest != v.meterDigest {
+		h.broadcast(usageWire(id, meter))
+		v.meterRequests, v.meterDigest = meter.Requests, digest
+	}
 	old := v.state
 	v.state = controlsOf(s)
 	v.turn = s.TurnID
@@ -315,7 +326,8 @@ func (h *Hub) enqueue(c *client, raw []byte, kind, agent string) {
 }
 
 type replayAgent struct {
-	ID     string `json:"id"`
+	Meter  ensemble.EngineStatus `json:"meter"`
+	ID     string                `json:"id"`
 	Config struct {
 		Vendor  ensemble.Vendor  `json:"vendor"`
 		Model   string           `json:"model"`
@@ -373,12 +385,15 @@ func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
 			data.Events = append(data.Events, frames...)
 		}
 		cfg := v.agent.Config()
-		a := replayAgent{ID: id, State: controlsOf(s)}
+		a := replayAgent{ID: id, State: controlsOf(s), Meter: v.agent.Engine().Status()}
 		a.Config.Vendor = cfg.Vendor
 		a.Config.Model = cfg.Model
 		a.Config.Surface = cfg.Surface
 		data.Agents = append(data.Agents, a)
 		data.Events = append(data.Events, skillFrame(v.agent))
+		initialUsage := usageWire(id, a.Meter)
+		initialUsage.Replay = true
+		data.Events = append(data.Events, initialUsage)
 		data.Events = append(data.Events, Wire{Type: "state_changed", AgentID: id, Replay: true, From: s.State, To: s.State, State: &a.State})
 		for _, p := range s.Partials {
 			data.Partials = append(data.Partials, Wire{Type: "part_delta", AgentID: id, PartID: v.ids.partial(p.PartID), TurnID: p.TurnID, Kind: string(p.Kind), Name: p.Name, Chunk: p.Chunk, Replay: true})

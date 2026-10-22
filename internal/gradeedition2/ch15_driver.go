@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
@@ -40,14 +41,60 @@ func invoiceSnapshot(url string) (map[string]any, *guiPeer, error) {
 	if err = p.send("subscribe", ""); err != nil {
 		return nil, p, err
 	}
-	if _, err = readSettings(p, "current_settings"); err != nil {
-		return nil, p, err
-	}
-	messages, err := p.until(5*time.Second, messageKind("usage"))
+	meter, err := invoiceReadSnapshot(p)
+	return meter, p, err
+}
+
+// Retain usage arriving before settings, including the real event in a replay
+// batch. Do not substitute diagnostic meter state or manufacture initial counts.
+func invoiceReadSnapshot(p *guiPeer) (map[string]any, error) {
+	var seen invoiceSnapshotFrames
+	_, err := p.until(3*time.Second, func(m map[string]any) bool {
+		seen.observe(m)
+		return seen.settings || seen.err != nil
+	})
 	if err != nil {
-		return nil, p, err
+		return nil, err
 	}
-	return messages[len(messages)-1], p, nil
+	if seen.err != nil {
+		return nil, seen.err
+	}
+	if seen.usage == nil {
+		_, err = p.until(5*time.Second, func(m map[string]any) bool {
+			seen.observe(m)
+			return seen.usage != nil || seen.err != nil
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
+	return seen.usage, seen.err
+}
+
+type invoiceSnapshotFrames struct {
+	settings bool
+	usage    map[string]any
+	err      error
+}
+
+func (s *invoiceSnapshotFrames) observe(m map[string]any) {
+	switch m["type"] {
+	case "current_settings":
+		if object(m["settings"]) == nil {
+			s.err = fmt.Errorf("current_settings lacks a settings object")
+		} else {
+			s.settings = true
+		}
+	case "usage":
+		s.usage = m
+	case "replay":
+		events, _ := object(m["data"])["events"].([]any)
+		for _, event := range events {
+			if e := object(event); e != nil && e["type"] == "usage" {
+				s.usage = e
+			}
+		}
+	}
 }
 
 func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut) {
@@ -63,7 +110,7 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 	url := "ws://localhost:" + port + "/ws"
 	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
 	cmd.Dir = o.dir
-	cmd.Env = append(os.Environ(), "LLM_VENDOR="+o.vendor, "LLM_MODEL="+o.model, "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+srv.URL(), "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR="+skillsDir, "EN_PRIMARY_SKILL=base")
+	cmd.Env = invoiceEnv(os.Environ(), skillsDir, srv.URL(), o)
 	var stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
 	stdin, err := cmd.StdinPipe()
@@ -178,4 +225,29 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 // are explicit grader fixture inputs and never become application flags.
 func invoiceRead(dir, path string) ([]byte, error) {
 	return os.ReadFile(filepath.Join(dir, filepath.FromSlash(path)))
+}
+
+// Control application settings without changing PATH or offline build settings.
+// Restart scenarios reuse only their owned run directory.
+func invoiceEnv(base []string, skills, url string, o invoiceOpts) []string {
+	env := make([]string, 0, len(base)+24)
+	for _, item := range base {
+		key, _, _ := strings.Cut(item, "=")
+		if strings.HasPrefix(key, "LLM_") || strings.HasPrefix(key, "EN_") ||
+			strings.HasPrefix(key, "ENSEMBLE_") || strings.HasPrefix(key, "ANTHROPIC_") ||
+			strings.HasPrefix(key, "OPENAI_") || strings.HasPrefix(key, "GEMINI_") {
+			continue
+		}
+		env = append(env, item)
+	}
+	return append(env,
+		"ANTHROPIC_API_KEY=fake", "OPENAI_API_KEY=fake", "GEMINI_API_KEY=fake",
+		"ANTHROPIC_BASE_URL="+url, "OPENAI_BASE_URL="+url, "GEMINI_BASE_URL="+url,
+		"LLM_VENDOR="+o.vendor, "LLM_MODEL="+o.model, "LLM_RESOLVED_MODEL="+o.model,
+		"LLM_BASE_URL="+url, "LLM_API_KEY=fake", "LLM_TOOLS=default",
+		"ENSEMBLE_SAVE="+filepath.Join(o.dir, "save.json"), "ENSEMBLE_LOG_MODE=full",
+		"LLM_LOG_PATH="+filepath.Join(o.dir, "events.jsonl"),
+		"EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=base",
+		"LLM_PAUSE_ON_START=false", "LLM_SPEAKING=false",
+		"LLM_STREAM_CAPABILITY=plain", "EN_DISABLE_STREAMING=1")
 }

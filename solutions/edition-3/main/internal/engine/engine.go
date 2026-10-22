@@ -22,14 +22,25 @@ type engine struct {
 	parent    common.Agent
 	client    *http.Client
 	liveUsage common.Usage // Only Exchange charges this process; Parse and replay never do.
+	cache     common.Cache
+	last      common.Usage
+	requests  int
+	buckets   []common.UsageBucket
 }
 
-func New(parent common.Agent) (common.Engine, error) {
+func New(parent common.Agent) (*engine, error) {
 	if parent == nil {
 		return nil, errors.New("Engine requires an Agent parent")
 	}
-	return &engine{parent: parent, client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
+	return &engine{parent: parent, last: common.UnknownUsage(), client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}}, nil
 }
+func (e *engine) SetCache(c common.Cache) {
+	if c == nil || e.cache != nil || c.Parent() != e {
+		panic("invalid Engine/Cache wiring")
+	}
+	e.cache = c
+}
+func (e *engine) Cache() common.Cache  { return e.cache }
 func (e *engine) Parent() common.Agent { return e.parent }
 func (e *engine) Usage() common.Usage  { e.mu.Lock(); defer e.mu.Unlock(); return e.liveUsage }
 func (e *engine) failure(message string) error {
@@ -107,7 +118,10 @@ func (e *engine) EffectiveSystemPrompt(c common.Context) (string, error) {
 
 // Parse owns transport framing only. The caller owns resp.Body and callbacks;
 // no retained History, observation subscription, or reply channel lives here.
-func (e *engine) Parse(resp *http.Response, callbacks common.ParseCallbacks) (events []common.Event, err error) {
+func (e *engine) Parse(resp *http.Response, callbacks common.ParseCallbacks) ([]common.Event, error) {
+	return e.parseResponse(resp, callbacks, e.parent.Config())
+}
+func (e *engine) parseResponse(resp *http.Response, callbacks common.ParseCallbacks, cfg common.Config) (events []common.Event, err error) {
 	defer func() {
 		if callbacks.OnEvent != nil {
 			for _, event := range events {
@@ -122,7 +136,7 @@ func (e *engine) Parse(resp *http.Response, callbacks common.ParseCallbacks) (ev
 		return parseFailure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
 	}
 	if strings.EqualFold(strings.TrimSpace(strings.Split(resp.Header.Get("Content-Type"), ";")[0]), "text/event-stream") {
-		events, err = parseSSE(resp.Body, e.parent.Config(), callbacks)
+		events, err = parseSSE(resp.Body, cfg, callbacks)
 	} else {
 		var raw []byte
 		raw, err = io.ReadAll(resp.Body)
@@ -132,7 +146,7 @@ func (e *engine) Parse(resp *http.Response, callbacks common.ParseCallbacks) (ev
 		if callbacks.OnFrame != nil {
 			callbacks.OnFrame(common.Frame{Data: string(raw)})
 		}
-		events, err = parse(resp.StatusCode, raw, e.parent.Config())
+		events, err = parse(resp.StatusCode, raw, cfg)
 		for _, event := range events {
 			if event.Type == common.ResponseEnded {
 				for _, p := range event.Response.Parts {
@@ -208,6 +222,10 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 		req.Header.Set("x-goog-api-key", config.APIKey)
 	}
 	e.parent.Parent().Trace(common.TraceRecord{Stage: "request_body", Payload: string(b)})
+	var prediction common.CachePrediction
+	if e.cache != nil {
+		prediction = e.cache.Observe(config, b)
+	}
 	resp, err := e.client.Do(req)
 	if err != nil {
 		err = e.failure("HTTP request failed")
@@ -240,24 +258,30 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 		}
 	}
 	e.parent.Parent().Trace(common.TraceRecord{Stage: "response_parse"})
-	events, err := e.Parse(resp, cb)
+	events, err := e.parseResponse(resp, cb, config)
 	if ctx.Err() != nil {
 		err = ctx.Err()
 	}
 
 	// The same measured response facts feed two distinct owners: this process's
 	// HTTP bill here, and replay totals when Agent appends them to History.
-	e.mu.Lock()
+	accounted := false
 	for _, event := range events {
-		if event.Type == common.ResponseEnded {
-			u := event.Response.Usage
-			e.liveUsage.Input += u.Input
-			e.liveUsage.Output += u.Output
-			e.liveUsage.CacheRead += u.CacheRead
-			e.liveUsage.CacheWrite += u.CacheWrite
+		if event.Type == common.ResponseEnded && event.Response != nil {
+			e.account(config, event.Response)
+			if e.cache != nil {
+				e.cache.Report(prediction, event.Response.Usage)
+			}
+			accounted = true
 		}
 	}
-	e.mu.Unlock()
+	if !accounted {
+		// A successful HTTP response with unusable framing may still be billed.
+		e.account(config, &common.ResponseData{Usage: common.UnknownUsage()})
+		if e.cache != nil {
+			e.cache.Report(prediction, common.UnknownUsage())
+		}
+	}
 	if err != nil {
 		e.parent.Parent().Logger().Print(err.Error())
 	}

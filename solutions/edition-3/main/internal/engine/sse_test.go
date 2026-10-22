@@ -109,7 +109,7 @@ func TestInterruptedToolNotFinal(t *testing.T) {
 		}
 	}
 	response := ended(t, events)
-	if len(response.Parts) != 0 || response.Usage.Input != 7 {
+	if len(response.Parts) != 0 || response.Usage != (common.Usage{Input: 7, Output: 1}) {
 		t.Fatalf("partial executable or lost charge: %+v", response)
 	}
 }

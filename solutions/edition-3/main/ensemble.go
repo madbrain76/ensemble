@@ -50,6 +50,10 @@ type Message = common.Message
 
 // Usage contains cumulative input and output token counts.
 type Usage = common.Usage
+type EngineStatus = common.EngineStatus
+type CacheStatus = common.CacheStatus
+type UsageBucket = common.UsageBucket
+type Cost = common.Cost
 
 // Ensemble owns its Agents and logger; it has no invented parent of its own.
 // Construction wires children before the single conversation actor starts.
@@ -131,6 +135,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	}
 	a.SetID(fmt.Sprintf("agent-%d", id))
 	a.SetEngine(transport)
+	transport.SetCache(engine.NewCache(transport))
 	a.SetHistory(history.New(a))
 	if err := a.Load(); err != nil {
 		return nil, err

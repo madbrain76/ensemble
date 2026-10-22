@@ -26,7 +26,7 @@ func parse(status int, b []byte, c common.Config) ([]common.Event, error) {
 	} else {
 		_ = json.Unmarshal(envelope["model"], &from.Model)
 	}
-	usage, missing, usageErr := parseUsage(c.Vendor, envelope)
+	usage, missing, usageErr := parseUsage(c, envelope)
 	var parts common.PartList
 	var contentErr error
 	switch c.Vendor {
@@ -43,7 +43,7 @@ func parse(status int, b []byte, c common.Config) ([]common.Event, error) {
 		parts[i].ID = uint64(i)
 	}
 	// Even an unusable or partially parsed answer is an observed response. Its
-	// measured usage survives; missing fields are explicitly not measured zero.
+	// measured usage survives; missing required facts remain unknown.
 	events := []common.Event{{Type: common.ResponseStarted, Response: &common.ResponseData{From: from}}, {Type: common.ResponseEnded, Response: &common.ResponseData{Parts: parts, Usage: usage, UsageMissing: missing, From: from}}}
 	usable := len(parts) > 0
 	if c.Vendor == common.Anthropic {
@@ -68,109 +68,123 @@ func parse(status int, b []byte, c common.Config) ([]common.Event, error) {
 	return events, nil
 }
 
-// Usage is decoded before content and field-by-field: one missing or malformed
-// count cannot discard another measured charge. Optional cache/thought fields
-// have documented zero defaults; the vendors' base input/output counts do not.
-func parseUsage(v common.Vendor, envelope map[string]json.RawMessage) (common.Usage, []string, error) {
+// Decode counts independently. Within valid usage, omitted optional cache
+// fields mean zero; supplied invalid fields remain unknown/errors. Missing whole
+// usage is not a measured zero. Input excludes reported read/write cache tokens.
+func parseUsage(c common.Config, envelope map[string]json.RawMessage) (common.Usage, []string, error) {
 	key := "usage"
-	if v == common.Gemini {
+	if c.Vendor == common.Gemini {
 		key = "usageMetadata"
 	}
+	raw, exists := envelope[key]
+	unknown := []string{"input", "output", "cache_read", "cache_write"}
+	if !exists || strings.TrimSpace(string(raw)) == "null" {
+		return common.UnknownUsage(), unknown, fmt.Errorf("response missing usage")
+	}
 	var fields map[string]json.RawMessage
-	_ = json.Unmarshal(envelope[key], &fields)
+	if json.Unmarshal(raw, &fields) != nil || fields == nil {
+		return common.UnknownUsage(), unknown, fmt.Errorf("response contained invalid usage")
+	}
 	var firstErr error
 	missing := []string{}
 	mark := func(bucket, message string) {
-		found := false
-		for _, s := range missing {
-			if s == bucket {
-				found = true
+		for _, old := range missing {
+			if old == bucket {
+				return
 			}
 		}
-		if !found {
-			missing = append(missing, bucket)
-		}
-		if firstErr == nil {
+		missing = append(missing, bucket)
+		if message != "" && firstErr == nil {
 			firstErr = fmt.Errorf("%s", message)
 		}
 	}
-	read := func(m map[string]json.RawMessage, key, bucket string, required bool) (int64, bool) {
+	read := func(m map[string]json.RawMessage, key, bucket string, required bool) int64 {
 		b, exists := m[key]
 		if !exists {
-			if required {
-				mark(bucket, "response missing usage")
+			if !required {
+				return 0
 			}
-			return 0, !required
+			mark(bucket, "response missing usage")
+			return -1
 		}
 		var n *int64
 		if json.Unmarshal(b, &n) != nil || n == nil {
 			mark(bucket, "response contained invalid usage")
-			return 0, false
+			return -1
 		}
 		if *n < 0 {
 			mark(bucket, "response contained negative usage")
-			return 0, false
+			return -1
 		}
-		return *n, true
+		return *n
 	}
-	nested := func(key string) (map[string]json.RawMessage, bool) {
-		var m map[string]json.RawMessage
-		if b, ok := fields[key]; ok {
-			if json.Unmarshal(b, &m) != nil || m == nil {
-				return nil, false
+	u := common.UnknownUsage()
+	switch c.Vendor {
+	case common.Anthropic:
+		u.Input = read(fields, "input_tokens", "input", true)
+		u.Output = read(fields, "output_tokens", "output", true)
+		u.CacheRead = read(fields, "cache_read_input_tokens", "cache_read", false)
+		u.CacheWrite = read(fields, "cache_creation_input_tokens", "cache_write", false)
+	case common.OpenAI:
+		total := read(fields, "prompt_tokens", "input", true)
+		u.Output = read(fields, "completion_tokens", "output", true)
+		var details map[string]json.RawMessage
+		rawDetails, supplied := fields["prompt_tokens_details"]
+		invalidDetails := supplied && (json.Unmarshal(rawDetails, &details) != nil || details == nil)
+		qualifiedWrite := cacheEnabled(c) && c.Surface == common.ChatCompletions
+		u.CacheWrite = 0 // Older implicit routes do not have a write bucket.
+		if invalidDetails {
+			// An invalid container cannot be mistaken for omitted optionals.
+			mark("cache_read", "response contained invalid usage")
+			if qualifiedWrite {
+				u.CacheWrite = -1
+				mark("cache_write", "response contained invalid usage")
+			}
+		} else {
+			u.CacheRead = read(details, "cached_tokens", "cache_read", false)
+			if qualifiedWrite {
+				u.CacheWrite = read(details, "cache_write_input_tokens", "cache_write", false)
+			} else if _, present := details["cache_write_input_tokens"]; present {
+				// A supplied field on an unqualified model is not a guessed fact.
+				u.CacheWrite = -1
+				mark("cache_write", "")
 			}
 		}
-		return m, true // Omitted optional details retain their zero defaults.
-	}
-	var u common.Usage
-	switch v {
-	case common.Anthropic:
-		u.Input, _ = read(fields, "input_tokens", "input", true)
-		u.Output, _ = read(fields, "output_tokens", "output", true)
-		u.CacheRead, _ = read(fields, "cache_read_input_tokens", "cache_read", false)
-		u.CacheWrite, _ = read(fields, "cache_creation_input_tokens", "cache_write", false)
-	case common.OpenAI:
-		total, ok := read(fields, "prompt_tokens", "input", true)
-		u.Output, _ = read(fields, "completion_tokens", "output", true)
-		details, detailsOK := nested("prompt_tokens_details")
-		var readOK, writeOK bool
-		if detailsOK {
-			u.CacheRead, readOK = read(details, "cached_tokens", "cache_read", false)
-			u.CacheWrite, writeOK = read(details, "cache_write_tokens", "cache_write", false)
-		} else {
-			mark("cache_read", "response contained invalid usage")
-			mark("cache_write", "response contained invalid usage")
-		}
-		// Fresh input is derived, not an independent measured count. Unknown
-		// cache operands must not turn their numeric placeholders into charges.
-		if !readOK || !writeOK {
-			mark("input", "response contained incomplete input usage")
-		} else if ok {
-			if total < u.CacheRead+u.CacheWrite {
+		if total >= 0 && u.CacheRead >= 0 && u.CacheWrite >= 0 {
+			if total < u.CacheRead || total-u.CacheRead < u.CacheWrite {
 				mark("input", "response contained inconsistent usage")
 			} else {
 				u.Input = total - u.CacheRead - u.CacheWrite
 			}
+		} else {
+			mark("input", "")
 		}
 	case common.Gemini:
-		total, ok := read(fields, "promptTokenCount", "input", true)
-		var readOK bool
-		u.CacheRead, readOK = read(fields, "cachedContentTokenCount", "cache_read", false)
-		visible, _ := read(fields, "candidatesTokenCount", "output", true)
-		thoughts, _ := read(fields, "thoughtsTokenCount", "output", false)
-		u.Output = visible + thoughts
-		if !readOK {
-			mark("input", "response contained incomplete input usage")
-		} else if ok {
+		total := read(fields, "promptTokenCount", "input", true)
+		u.CacheRead = read(fields, "cachedContentTokenCount", "cache_read", false)
+		visible := read(fields, "candidatesTokenCount", "output", true)
+		thoughts := int64(0)
+		if _, ok := fields["thoughtsTokenCount"]; ok {
+			thoughts = read(fields, "thoughtsTokenCount", "output", false)
+		}
+		if visible >= 0 && thoughts >= 0 {
+			u.Output = visible + thoughts
+		}
+		// This implicit generateContent path does not create explicit caches.
+		u.CacheWrite = 0
+		if total >= 0 && u.CacheRead >= 0 {
 			if total < u.CacheRead {
 				mark("input", "response contained inconsistent usage")
 			} else {
 				u.Input = total - u.CacheRead
 			}
+		} else {
+			mark("input", "")
 		}
 	}
 	return u, missing, firstErr
 }
+
 func parseAnthropic(b []byte, from common.Provenance) (common.PartList, error) {
 	var response struct {
 		Content []json.RawMessage `json:"content"`

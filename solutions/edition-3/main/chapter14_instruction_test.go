@@ -21,9 +21,10 @@ import (
 )
 
 type c14InstructionWire struct {
-	System   string          `json:"system"`
-	Tools    json.RawMessage `json:"tools"`
-	Messages []struct {
+	System     string          `json:"-"`
+	SystemWire json.RawMessage `json:"system"`
+	Tools      json.RawMessage `json:"tools"`
+	Messages   []struct {
 		Role    string          `json:"role"`
 		Content json.RawMessage `json:"content"`
 	} `json:"messages"`
@@ -34,6 +35,19 @@ func c14InstructionRequest(t *testing.T, data []byte, loaded bool) c14Instructio
 	var wire c14InstructionWire
 	if err := json.Unmarshal(data, &wire); err != nil {
 		t.Fatal(err)
+	}
+	// Chapter 15 may legally carry SYSTEM as marked text blocks.
+	if json.Unmarshal(wire.SystemWire, &wire.System) != nil {
+		var blocks []struct{ Type, Text string }
+		if err := json.Unmarshal(wire.SystemWire, &blocks); err != nil {
+			t.Fatal(err)
+		}
+		for _, block := range blocks {
+			if block.Type != "text" {
+				t.Fatal("non-text SYSTEM block")
+			}
+			wire.System += block.Text
+		}
 	}
 	dialogue, _ := json.Marshal(wire.Messages)
 	for _, body := range []string{"PREAMBLE-R4", "PRIMARY-R4-MANUAL", "RUNTIME-R4-MANUAL"} {

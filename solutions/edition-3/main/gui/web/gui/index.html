@@ -27,7 +27,7 @@
  </aside>
  <div id="sidebar-resizer" class="resizer" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" aria-valuemin="220" aria-valuemax="420" aria-valuenow="280" tabindex="0"></div>
  <main class="conversation-pane pane">
-  <div class="pane-heading"><div><span class="eyebrow">CONVERSATION</span><h2>Make room for ideas.</h2></div><div class="state-block"><span id="state" role="status">Idle</span><span id="reason" class="muted"></span></div></div>
+  <div class="pane-heading"><div><span class="eyebrow">CONVERSATION</span><h2>Make room for ideas.</h2></div><div class="state-block"><span id="state" role="status">Idle</span><span id="reason" class="muted"></span><span id="cache-meter" tabindex="0" aria-label="Current process cache and usage">$0.0000 · In 0 · Cache 0 · Hit 0.0%</span></div></div>
   <div class="actions"><button id="save">Save</button><button id="pause">Pause</button><button id="continue">Continue</button><button id="interrupt" class="danger">Interrupt</button><button id="cancel-audio">Cancel audio</button></div><div id="errors" role="alert"></div>
   <section id="conversation" class="card-scroll" aria-label="Conversation"><p class="empty-state">Start a conversation.<br><span class="muted">Messages and thinking stay here. Tool work lives alongside.</span></p></section><button id="follow" hidden>Jump to latest ↓</button>
   <footer><form id="composer"><label class="sr-only" for="input">Message or hint</label><textarea id="input" rows="2" placeholder="Message Ensemble…"></textarea><div><button type="button" id="hint">Send hint</button><button type="submit" class="primary">Send ↗</button></div></form><p class="muted">Ctrl/⌘ + Enter to send · Human input pauses at the next safe boundary.</p></footer>

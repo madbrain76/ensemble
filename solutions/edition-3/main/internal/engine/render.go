@@ -81,27 +81,29 @@ func system(c common.Context, cfg common.Config) (string, error) {
 }
 
 type aBlock struct {
-	Type      string          `json:"type"`
-	Text      *string         `json:"text,omitempty"`
-	ID        string          `json:"id,omitempty"`
-	Name      string          `json:"name,omitempty"`
-	Input     json.RawMessage `json:"input,omitempty"`
-	ToolUseID string          `json:"tool_use_id,omitempty"`
-	Content   *string         `json:"content,omitempty"`
-	IsError   bool            `json:"is_error,omitempty"`
+	CacheControl *aCacheControl  `json:"cache_control,omitempty"`
+	Type         string          `json:"type"`
+	Text         *string         `json:"text,omitempty"`
+	ID           string          `json:"id,omitempty"`
+	Name         string          `json:"name,omitempty"`
+	Input        json.RawMessage `json:"input,omitempty"`
+	ToolUseID    string          `json:"tool_use_id,omitempty"`
+	Content      *string         `json:"content,omitempty"`
+	IsError      bool            `json:"is_error,omitempty"`
 }
 type aMessage struct {
-	Role    string            `json:"role"`
-	Content []json.RawMessage `json:"content"`
+	KeepBlocks bool              `json:"-"`
+	Role       string            `json:"role"`
+	Content    []json.RawMessage `json:"content"`
 }
 
 // Preserve the accepted text-only request shape; structured parts use blocks.
 func (m aMessage) MarshalJSON() ([]byte, error) {
 	var text strings.Builder
-	allText := len(m.Content) > 0
+	allText := len(m.Content) > 0 && !m.KeepBlocks
 	for _, b := range m.Content {
 		var p aBlock
-		if json.Unmarshal(b, &p) != nil || p.Type != "text" || p.Text == nil {
+		if json.Unmarshal(b, &p) != nil || p.Type != "text" || p.Text == nil || p.CacheControl != nil {
 			allText = false
 			break
 		}
@@ -162,7 +164,7 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		if len(messages) > 0 && messages[len(messages)-1].Role == role {
 			messages[len(messages)-1].Content = append(messages[len(messages)-1].Content, bs...)
 		} else {
-			messages = append(messages, aMessage{role, bs})
+			messages = append(messages, aMessage{Role: role, Content: bs, KeepBlocks: cacheEnabled(cfg)})
 		}
 	}
 	for _, e := range c.Dialogue {
@@ -250,26 +252,45 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 			appendMessage("user", bs)
 		}
 	}
+	conversationBreakpoints(cfg, messages)
 	if len(c.Ephemera) > 0 {
-		tail, err := textParts(c.Ephemera)
+		handoff, tail, err := projectedTail(c)
 		if err != nil {
 			return nil, err
 		}
-		appendMessage("user", []json.RawMessage{aText(tail)})
+		blocks := []json.RawMessage{}
+		if cacheEnabled(cfg) && handoff != "" {
+			blocks = append(blocks, raw(aBlock{Type: "text", Text: &handoff, CacheControl: ephemeralCache()}))
+		} else {
+			tail = handoff + tail
+		}
+		if tail != "" {
+			blocks = append(blocks, raw(aBlock{Type: "text", Text: &tail}))
+		}
+		appendMessage("user", blocks)
 	}
 
 	tools := anthropicDefinitions(defs)
 	if disclosure.catalog != nil {
 		tools = anthropicCatalog(disclosure.catalog, disclosed)
 	}
+	var systemValue any = sys
+	if enabled, _ := common.CacheBreakpoints(cfg); enabled {
+		if sys != "" {
+			systemValue = []aBlock{{Type: "text", Text: &sys, CacheControl: ephemeralCache()}}
+		}
+		if len(tools) > 0 {
+			tools[len(tools)-1].CacheControl = ephemeralCache()
+		}
+	}
 	return json.Marshal(struct {
 		Model     string        `json:"model"`
 		MaxTokens int           `json:"max_tokens"`
-		System    string        `json:"system"`
+		System    any           `json:"system"`
 		Messages  []aMessage    `json:"messages"`
 		Tools     []aDefinition `json:"tools,omitempty"`
 		Stream    bool          `json:"stream,omitempty"`
-	}{cfg.Model, 1024, sys, messages, tools, cfg.Streaming()})
+	}{cfg.Model, 1024, systemValue, messages, tools, cfg.Streaming()})
 }
 
 // OpenAI has its own tool authorship; it does not inherit Anthropic's grouping.
@@ -372,12 +393,51 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		}
 		messages = append(messages, results...)
 	}
+
+	// The final history boundary follows wire order, not causal History:
+	// complete tool-result groups can move ahead of interleaved user hints.
+	// Project before choosing markers and before adding transient ephemera.
+	messages = adjacentOpenAIToolResults(messages)
+	markers := 0
+	if cacheEnabled(cfg) {
+		for i := range messages {
+			if text, ok := messages[i].Content.(*string); ok && text != nil {
+				messages[i].Content = []any{map[string]any{"type": "text", "text": *text}}
+			}
+		}
+		if markOpenAIMessage(&messages[0]) {
+			markers++
+		}
+		for i := len(messages) - 1; i > 0; i-- {
+			if markOpenAIMessage(&messages[i]) {
+				markers++
+				break
+			}
+		}
+	}
 	if len(c.Ephemera) > 0 {
-		tail, err := textParts(c.Ephemera)
+		handoff, tail, err := projectedTail(c)
 		if err != nil {
 			return nil, err
 		}
-		messages = append(messages, oMessage{Role: "system", Content: &tail})
+		m := oMessage{Role: "system"}
+		if cacheEnabled(cfg) && handoff != "" {
+			m.Content = &handoff
+			if markOpenAIMessage(&m) {
+				markers++
+			}
+			if tail != "" {
+				m.Content = append(m.Content.([]any), map[string]any{"type": "text", "text": tail})
+			}
+		} else {
+			tail = handoff + tail
+			m.Content = &tail
+		}
+		messages = append(messages, m)
+	}
+	var cacheOptions any
+	if markers > 0 {
+		cacheOptions = map[string]string{"mode": "explicit"}
 	}
 
 	// Use OpenAI's documented replacement for max_tokens (rejected by GPT-5.4).
@@ -389,7 +449,8 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		Tools               []oDefinition `json:"tools,omitempty"`
 		Stream              bool          `json:"stream,omitempty"`
 		StreamOptions       any           `json:"stream_options,omitempty"`
-	}{cfg.Model, adjacentOpenAIToolResults(messages), 1024, openAIDefinitions(defs), cfg.Streaming(), streamOptions(cfg)})
+		CacheOptions        any           `json:"prompt_cache_options,omitempty"`
+	}{cfg.Model, messages, 1024, openAIDefinitions(defs), cfg.Streaming(), streamOptions(cfg), cacheOptions})
 }
 
 // OpenAI requires a call group's results immediately after its assistant

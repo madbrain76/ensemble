@@ -65,7 +65,7 @@ type streamAssembly struct {
 	parts       []*streamPart
 	indexes     map[string]int
 	model, stop string
-	usage       map[string]json.RawMessage
+	usage       json.RawMessage
 	done        bool
 	openAIDone  bool
 	blocks      map[string]bool
@@ -96,6 +96,25 @@ func rawMap(raw json.RawMessage) map[string]json.RawMessage {
 	_ = json.Unmarshal(raw, &m)
 	return m
 }
+
+// Frames may omit usage while counts are still arriving. Merge valid partial
+// objects, but retain supplied null/invalid whole usage for the shared parser.
+func (s *streamAssembly) mergeUsage(raw json.RawMessage) {
+	if len(raw) == 0 {
+		return
+	}
+	update := rawMap(raw)
+	if update == nil {
+		s.usage = raw
+		return
+	}
+	prior := rawMap(s.usage)
+	if prior == nil {
+		prior = map[string]json.RawMessage{}
+	}
+	merge(prior, update)
+	s.usage, _ = json.Marshal(prior)
+}
 func put(m map[string]json.RawMessage, k string, v any) { m[k], _ = json.Marshal(v) }
 func (s *streamAssembly) frame(f sseFrame) error {
 	if f.data == "[DONE]" {
@@ -123,9 +142,7 @@ func (s *streamAssembly) openai(m map[string]json.RawMessage) error {
 	if model := str(m["model"]); model != "" {
 		s.model = model
 	}
-	if u := rawMap(m["usage"]); u != nil {
-		merge(s.usage, u)
-	}
+	s.mergeUsage(m["usage"])
 	var choices []map[string]json.RawMessage
 	if raw := m["choices"]; raw != nil && json.Unmarshal(raw, &choices) != nil {
 		return errors.New("invalid stream choices")
@@ -211,7 +228,7 @@ func (s *streamAssembly) anthropic(m map[string]json.RawMessage) error {
 	case "message_start":
 		msg := rawMap(m["message"])
 		s.model = str(msg["model"])
-		merge(s.usage, rawMap(msg["usage"]))
+		s.mergeUsage(msg["usage"])
 	case "content_block_start":
 		key := string(m["index"])
 		_, exists := s.blocks[key]
@@ -273,7 +290,7 @@ func (s *streamAssembly) anthropic(m map[string]json.RawMessage) error {
 	case "message_delta":
 		d := rawMap(m["delta"])
 		s.stop = str(d["stop_reason"])
-		merge(s.usage, rawMap(m["usage"]))
+		s.mergeUsage(m["usage"])
 	case "message_stop":
 		s.done = true
 	}
@@ -283,7 +300,7 @@ func (s *streamAssembly) gemini(m map[string]json.RawMessage) error {
 	if model := str(m["modelVersion"]); model != "" {
 		s.model = model
 	}
-	merge(s.usage, rawMap(m["usageMetadata"]))
+	s.mergeUsage(m["usageMetadata"])
 	var candidates []map[string]json.RawMessage
 	if raw := m["candidates"]; raw != nil && json.Unmarshal(raw, &candidates) != nil {
 		return errors.New("invalid stream candidates")
@@ -461,7 +478,7 @@ func (s *streamAssembly) finish() ([]byte, []uint64, error) {
 
 func parseSSE(r io.Reader, c common.Config, cb common.ParseCallbacks) ([]common.Event, error) {
 	reader := sseReader{bufio.NewReader(r)}
-	s := streamAssembly{config: c, callbacks: cb, indexes: map[string]int{}, blocks: map[string]bool{}, extras: map[string]json.RawMessage{}, usage: map[string]json.RawMessage{}}
+	s := streamAssembly{config: c, callbacks: cb, indexes: map[string]int{}, blocks: map[string]bool{}, extras: map[string]json.RawMessage{}}
 	for {
 		frame, err := reader.next()
 		if err == io.EOF {
@@ -521,7 +538,7 @@ func (s *streamAssembly) failure(message string) ([]common.Event, error) {
 	if s.config.Vendor == common.Gemini {
 		key = "usageMetadata"
 	}
-	usage, missing, _ := parseUsage(s.config.Vendor, map[string]json.RawMessage{key: usageJSON})
+	usage, missing, _ := parseUsage(s.config, map[string]json.RawMessage{key: usageJSON})
 	from := common.Provenance{Vendor: s.config.Vendor, Surface: s.config.Surface, Model: s.model}
 	return []common.Event{
 		{Type: common.ResponseStarted, Response: &common.ResponseData{From: from}},

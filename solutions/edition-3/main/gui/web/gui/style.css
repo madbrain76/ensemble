@@ -16,3 +16,5 @@ footer{padding:14px 22px;background:var(--bg);border-top:1px solid var(--edge)}f
 .agent-root{white-space:normal;display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--control);border-color:var(--edge)}
 .tree-branch{color:var(--muted)}.tree-label{display:grid;gap:3px;min-width:0;flex:1}.tree-label strong{font-size:.82rem;overflow-wrap:anywhere}.tree-label small{font-size:.72rem;color:var(--muted)}
 .tree-cue{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:var(--muted)}.tree-cue[data-busy="true"]{background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+
+#cache-meter { margin-left: auto; font-variant-numeric: tabular-nums; cursor: help; white-space: nowrap; font-size: .85em; }

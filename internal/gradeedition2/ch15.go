@@ -58,15 +58,28 @@ func invoiceChecks(bin, current, prior string, rates [4]float64) contextResult {
 		r.Fatal = err.Error()
 		return r
 	}
-	os.MkdirAll(gui, 0755)
+	// These checks use stdin and WebSocket, not the shipped browser assets.
+	if err = contextStaticFixture(gui); err != nil {
+		r.Fatal = err.Error()
+		return r
+	}
 	run := func(name, vendor, model string, prompts []string, replies []fakevendor.Reply) invoiceOut {
 		cwd := filepath.Join(dir, name)
-		os.MkdirAll(cwd, 0755)
+		if err := os.MkdirAll(cwd, 0755); err != nil {
+			return invoiceOut{fatal: err.Error()}
+		}
+		if vendor == "anthropic" {
+			// The priced and unknown-model controls must return their own
+			// producer identity, not the shared fake's historical model name.
+			for i := range replies {
+				replies[i].JSONBody = invoiceAnthropicUsage(model, replies[i].Text, replies[i].Usage)
+			}
+		}
 		return invoiceLaunch(bin, skills, gui, invoiceOpts{dir: cwd, vendor: vendor, model: model, prompts: prompts, replies: replies})
 	}
 	cold := fakevendor.Canonical{Input: 1000, CacheWrite: 500, Output: 10}
 	warm := fakevendor.Canonical{Input: 100, CacheRead: 1400, Output: 20}
-	first := run("session", "anthropic", "claude-sonnet-5", []string{"Remember copper-orbit-713.", "Continue violet-invoice-924."}, []fakevendor.Reply{{Text: "Copper retained.", Usage: cold}, {Text: "Violet complete.", Usage: warm}})
+	first := run("session", "anthropic", "claude-sonnet-4-6", []string{"Remember copper-orbit-713.", "Continue violet-invoice-924."}, []fakevendor.Reply{{Text: "Copper retained.", Usage: cold}, {Text: "Violet complete.", Usage: warm}})
 	if first.fatal != "" {
 		r.Fatal = first.fatal
 		return r
@@ -88,7 +101,7 @@ func invoiceChecks(bin, current, prior string, rates [4]float64) contextResult {
 	// Restoring an empty conversation would also reset the meter; require both
 	// old dialogue on the next wire and zero session usage before new inference.
 	fresh := fakevendor.Canonical{Input: 7, Output: 3}
-	restart := run("session", "anthropic", "claude-sonnet-5", []string{"Continue amber-restart-381."}, []fakevendor.Reply{{Text: "Restart complete.", Usage: fresh}})
+	restart := run("session", "anthropic", "claude-sonnet-4-6", []string{"Continue amber-restart-381."}, []fakevendor.Reply{{Text: "Restart complete.", Usage: fresh}})
 	if restart.fatal != "" {
 		r.fail("usage-is-session-scoped", "restart: %s", restart.fatal)
 	} else if len(restart.reqs) != 1 || len(restart.meters) != 2 {
@@ -111,15 +124,45 @@ func invoiceChecks(bin, current, prior string, rates [4]float64) contextResult {
 	} else if priced, ok := unknown.meters[1]["priced"].(bool); !ok || priced || !invoiceCounts(unknown.meters[1], "", cold) {
 		r.fail("cost-is-computed-not-stored", "unknown tariff was priced or discarded its token counts")
 	}
-	for _, v := range []struct{ vendor, model string }{{"anthropic", "claude-sonnet-5"}, {"openai", "gpt-5.6-sol"}, {"gemini", "gemini-3.8-flash"}} {
+	for _, v := range []struct{ vendor, model string }{{"anthropic", "claude-sonnet-4-6"}, {"openai", "gpt-5.6"}, {"gemini", "gemini-3.8-flash"}} {
 		usage := fakevendor.Canonical{Input: 11, CacheWrite: 22, CacheRead: 33, Output: 44}
-		out := run(v.vendor, v.vendor, v.model, []string{"Usage parser control."}, []fakevendor.Reply{{Text: "Usage complete.", Usage: usage, GeminiThoughts: 13}})
+		reply := fakevendor.Reply{Text: "Usage complete.", Usage: usage, GeminiThoughts: 13}
+		if v.vendor == "openai" {
+			// This model/API reports cache_write_input_tokens; do not change
+			// the shared fake's historical cache_write_tokens packets.
+			reply.JSONBody = invoiceOpenAIUsage(v.model, usage)
+		}
+		out := run(v.vendor, v.vendor, v.model, []string{"Usage parser control."}, []fakevendor.Reply{reply})
 		if v.vendor == "gemini" {
 			usage.CacheWrite = 0
 		}
 		invoiceUsage(&r, "all-vendors-report-usage", out, []fakevendor.Canonical{usage}, rates, false)
 	}
 	return r
+}
+
+// Chapter-local text-only Messages replies preserve the controlled producer.
+// Other chapters keep the shared fake's intentionally distinct provenance.
+func invoiceAnthropicUsage(model, text string, u fakevendor.Canonical) string {
+	body, _ := json.Marshal(map[string]any{
+		"id": "msg_invoice", "type": "message", "role": "assistant", "model": model,
+		"content": []any{map[string]any{"type": "text", "text": text}}, "stop_reason": "end_turn",
+		"usage": map[string]any{"input_tokens": u.Input, "cache_creation_input_tokens": u.CacheWrite,
+			"cache_read_input_tokens": u.CacheRead, "output_tokens": u.Output},
+	})
+	return string(body)
+}
+
+// A plain Chat Completions response for this one usage-only control. Counts
+// stay disjoint in the fixture; prompt_tokens contains all three input buckets.
+func invoiceOpenAIUsage(model string, u fakevendor.Canonical) string {
+	body, _ := json.Marshal(map[string]any{
+		"id": "chatcmpl_invoice", "object": "chat.completion", "model": model,
+		"choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "Usage complete."}, "finish_reason": "stop"}},
+		"usage": map[string]any{"prompt_tokens": u.Input + u.CacheWrite + u.CacheRead, "completion_tokens": u.Output, "total_tokens": u.Input + u.CacheWrite + u.CacheRead + u.Output,
+			"prompt_tokens_details": map[string]any{"cached_tokens": u.CacheRead, "cache_write_input_tokens": u.CacheWrite}},
+	})
+	return string(body)
 }
 
 func invoiceNear(value any, want float64) bool {

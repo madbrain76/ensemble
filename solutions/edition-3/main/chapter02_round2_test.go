@@ -72,7 +72,7 @@ func TestRound2LiveAccountingIsNotReplay(t *testing.T) {
 	calls := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls++
-		fmt.Fprint(w, `{"model":"actual-model","content":[{"type":"text","text":"paid answer"}],"usage":{"input_tokens":4,"output_tokens":2}}`)
+		fmt.Fprint(w, `{"model":"actual-model","content":[{"type":"text","text":"paid answer"}],"usage":{"input_tokens":4,"output_tokens":2,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}`)
 	}))
 	defer server.Close()
 	c := ensemble.Config{Model: "routing-alias", BaseURL: server.URL, APIKey: "local-fixture"}
@@ -373,18 +373,18 @@ func TestRound2KnownChargesSurviveResponseErrors(t *testing.T) {
 		paid                                  common.Usage
 	}
 	for _, f := range []fixture{
-		{common.Anthropic, `"content":[{"type":"text","text":"answer"}]`, `"content":[{"type":"text","text":"before"},{"type":"text"}]`, `"usage":{"input_tokens":10,"output_tokens":4,"cache_read_input_tokens":3,"cache_creation_input_tokens":2}`, `"usage":{"input_tokens":9}`, `"usage":{"input_tokens":0,"output_tokens":0}`, common.Usage{Input: 10, Output: 4, CacheRead: 3, CacheWrite: 2}},
-		{common.OpenAI, `"choices":[{"message":{"content":"answer"}}]`, `"choices":[{"message":{"content":"before","tool_calls":[{"id":"bad","type":"function","function":{"name":"same","arguments":"{"}}]}}]`, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3,"cache_write_tokens":2}}`, `"usage":{"prompt_tokens":9}`, `"usage":{"prompt_tokens":0,"completion_tokens":0}`, common.Usage{Input: 10, Output: 4, CacheRead: 3, CacheWrite: 2}},
-		{common.Gemini, `"candidates":[{"content":{"parts":[{"text":"answer"}]}}]`, `"candidates":[{"content":{"parts":[{"text":"before"},{"text":123}]}}]`, `"usageMetadata":{"promptTokenCount":13,"candidatesTokenCount":2,"thoughtsTokenCount":2,"cachedContentTokenCount":3}`, `"usageMetadata":{"promptTokenCount":9}`, `"usageMetadata":{"promptTokenCount":0,"candidatesTokenCount":0}`, common.Usage{Input: 10, Output: 4, CacheRead: 3}},
+		{common.Anthropic, `"content":[{"type":"text","text":"answer"}]`, `"content":[{"type":"text","text":"before"},{"type":"text"}]`, `"usage":{"input_tokens":10,"output_tokens":4,"cache_read_input_tokens":3,"cache_creation_input_tokens":2}`, `"usage":{"input_tokens":9}`, `"usage":{"input_tokens":0,"output_tokens":0,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}`, common.Usage{Input: 10, Output: 4, CacheRead: 3, CacheWrite: 2}},
+		{common.OpenAI, `"choices":[{"message":{"content":"answer"}}]`, `"choices":[{"message":{"content":"before","tool_calls":[{"id":"bad","type":"function","function":{"name":"same","arguments":"{"}}]}}]`, `"usage":{"prompt_tokens":15,"completion_tokens":4,"prompt_tokens_details":{"cached_tokens":3,"cache_write_tokens":2}}`, `"usage":{"prompt_tokens":9}`, `"usage":{"prompt_tokens":0,"completion_tokens":0,"prompt_tokens_details":{"cached_tokens":0}}`, common.Usage{Input: 12, Output: 4, CacheRead: 3}},
+		{common.Gemini, `"candidates":[{"content":{"parts":[{"text":"answer"}]}}]`, `"candidates":[{"content":{"parts":[{"text":"before"},{"text":123}]}}]`, `"usageMetadata":{"promptTokenCount":13,"candidatesTokenCount":2,"thoughtsTokenCount":2,"cachedContentTokenCount":3}`, `"usageMetadata":{"promptTokenCount":9}`, `"usageMetadata":{"promptTokenCount":0,"candidatesTokenCount":0,"cachedContentTokenCount":0}`, common.Usage{Input: 10, Output: 4, CacheRead: 3}},
 	} {
 		for _, scenario := range []string{"missing", "partial", "content-error", "measured-zero"} {
 			t.Run(f.vendor.String()+"/"+scenario, func(t *testing.T) {
-				content, usage, want := f.content, "", common.Usage{}
+				content, usage, want := f.content, "", common.UnknownUsage()
 				wantError := true
 				switch scenario {
 				case "partial":
 					usage = f.partial
-					want.Input = 9
+					want = common.Usage{Input: 9, Output: -1}
 				case "content-error":
 					content = f.broken
 					usage = f.usage
@@ -392,6 +392,7 @@ func TestRound2KnownChargesSurviveResponseErrors(t *testing.T) {
 				case "measured-zero":
 					usage = f.zero
 					wantError = false
+					want = common.Usage{}
 				}
 				body := "{" + content
 				if usage != "" {

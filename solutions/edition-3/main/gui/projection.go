@@ -10,30 +10,32 @@ import (
 
 // Wire is a display projection, never a serialization of replay-only Part data.
 type Wire struct {
-	BrowserMCP     bool                 `json:"browser_mcp,omitempty"`
-	Skills         []ensemble.SkillInfo `json:"skills,omitempty"`
-	LoadableSkills []ensemble.SkillInfo `json:"loadable_skills,omitempty"`
-	Payload        json.RawMessage      `json:"payload,omitempty"`
-	Type           string               `json:"type"`
-	Settings       *Settings            `json:"settings,omitempty"`
-	AgentID        string               `json:"agent_id"`
-	PartID         uint64               `json:"part_id,omitempty"`
-	TurnID         uint64               `json:"turn_id,omitempty"`
-	Kind           string               `json:"kind,omitempty"`
-	Chunk          string               `json:"chunk"` // Empty starts still carry the public chunk field.
-	Name           string               `json:"name,omitempty"`
-	Part           *Card                `json:"part,omitempty"`
-	From           ensemble.TurnState   `json:"from,omitempty"`
-	To             ensemble.TurnState   `json:"to,omitempty"`
-	State          *controlState        `json:"state,omitempty"`
-	CallID         string               `json:"call_id,omitempty"`
-	Input          json.RawMessage      `json:"input,omitempty"`
-	Result         string               `json:"result,omitempty"`
-	IsError        *bool                `json:"is_error,omitempty"`
-	Text           *string              `json:"text,omitempty"`
-	Seq            ensemble.Seq         `json:"-"`
-	Data           any                  `json:"data,omitempty"` // replay/speech extensions, not the public part protocol
-	Replay         bool                 `json:"replay,omitempty"`
+	Usage          *UsageFrame            `json:"-"`
+	Meter          *ensemble.EngineStatus `json:"meter,omitempty"`
+	BrowserMCP     bool                   `json:"browser_mcp,omitempty"`
+	Skills         []ensemble.SkillInfo   `json:"skills,omitempty"`
+	LoadableSkills []ensemble.SkillInfo   `json:"loadable_skills,omitempty"`
+	Payload        json.RawMessage        `json:"payload,omitempty"`
+	Type           string                 `json:"type"`
+	Settings       *Settings              `json:"settings,omitempty"`
+	AgentID        string                 `json:"agent_id"`
+	PartID         uint64                 `json:"part_id,omitempty"`
+	TurnID         uint64                 `json:"turn_id,omitempty"`
+	Kind           string                 `json:"kind,omitempty"`
+	Chunk          string                 `json:"chunk"` // Empty starts still carry the public chunk field.
+	Name           string                 `json:"name,omitempty"`
+	Part           *Card                  `json:"part,omitempty"`
+	From           ensemble.TurnState     `json:"from,omitempty"`
+	To             ensemble.TurnState     `json:"to,omitempty"`
+	State          *controlState          `json:"state,omitempty"`
+	CallID         string                 `json:"call_id,omitempty"`
+	Input          json.RawMessage        `json:"input,omitempty"`
+	Result         string                 `json:"result,omitempty"`
+	IsError        *bool                  `json:"is_error,omitempty"`
+	Text           *string                `json:"text,omitempty"`
+	Seq            ensemble.Seq           `json:"-"`
+	Data           any                    `json:"data,omitempty"` // replay/speech extensions, not the public part protocol
+	Replay         bool                   `json:"replay,omitempty"`
 }
 type Card struct {
 	TurnID     uint64               `json:"turn_id,omitempty"`
@@ -192,3 +194,47 @@ func projectEvent(agent string, e ensemble.Event) []Wire {
 	return frames
 }
 func cardKey(agent string, part uint64) string { return fmt.Sprintf("%s/%d", agent, part) }
+
+// UsageFrame is a projection of one Engine snapshot, not GUI-owned accounting.
+// Latest disjoint counts are flat; total holds the process-session counts.
+// Tool-call Wire.Input remains untouched.
+type UsageFrame struct {
+	Input      int64          `json:"input"`
+	Output     int64          `json:"output"`
+	CacheRead  int64          `json:"cache_read"`
+	CacheWrite int64          `json:"cache_write"`
+	Total      ensemble.Usage `json:"total"`
+	HitRate    *float64       `json:"hit_rate"`
+	CostUSD    *float64       `json:"cost_usd"`
+	Priced     bool           `json:"priced"`
+}
+
+func usageWire(id string, s ensemble.EngineStatus) Wire {
+	last := s.Last
+	rate := s.SessionHitRate
+	// Before any response these are initial UI zeroes, not fabricated measurements.
+	if s.Requests == 0 {
+		last = ensemble.Usage{}
+		zero := 0.0
+		rate = &zero
+	}
+	u := &UsageFrame{Input: last.Input, Output: last.Output, CacheRead: last.CacheRead, CacheWrite: last.CacheWrite, Total: s.Session, HitRate: rate, Priced: s.Cost.Status == "known"}
+	if u.Priced {
+		cost := s.Cost.USD
+		u.CostUSD = &cost
+	}
+	return Wire{Type: "usage", AgentID: id, Usage: u, Meter: &s}
+}
+func (w Wire) MarshalJSON() ([]byte, error) {
+	type plain Wire
+	if w.Type != "usage" {
+		return json.Marshal(plain(w))
+	}
+	return json.Marshal(struct {
+		Type    string `json:"type"`
+		AgentID string `json:"agent_id"`
+		Replay  bool   `json:"replay,omitempty"`
+		*UsageFrame
+		Meter *ensemble.EngineStatus `json:"meter"`
+	}{w.Type, w.AgentID, w.Replay, w.Usage, w.Meter})
+}

@@ -363,7 +363,7 @@ func payloadValid(e common.Event) error {
 				return err
 			}
 			u := e.Response.Usage
-			if u.Input < 0 || u.Output < 0 || u.CacheRead < 0 || u.CacheWrite < 0 {
+			if u.Input < -1 || u.Output < -1 || u.CacheRead < -1 || u.CacheWrite < -1 {
 				return fmt.Errorf("negative usage")
 			}
 			return parts(e.Response.Parts)
@@ -412,12 +412,7 @@ func payloadValid(e common.Event) error {
 	}
 	return fmt.Errorf("invalid %s payload", e.Type)
 }
-func add(a *common.Usage, b common.Usage) {
-	a.Input += b.Input
-	a.Output += b.Output
-	a.CacheRead += b.CacheRead
-	a.CacheWrite += b.CacheWrite
-}
+func add(a *common.Usage, b common.Usage) { a.Add(b) }
 
 // Apply is total for known events. Dialogue changes and turn transitions are
 // separate: a known event can add a fact without changing this turn's state.

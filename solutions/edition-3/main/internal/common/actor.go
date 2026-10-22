@@ -173,7 +173,7 @@ func LookupModel(model string) (ModelFeatures, bool) {
 		return ModelFeatures{InlineTools: true, StubsToolResults: true}, true
 	case "claude-sonnet-5-course":
 		return ModelFeatures{}, true
-	case "claude-3-haiku-20240307", "claude-haiku-5-5", "claude-sonnet-4-6", "claude-opus-4-6", "gpt-5.4-mini", "gpt-5.4":
+	case "claude-3-haiku-20240307", "claude-haiku-5-5", "claude-sonnet-4-6", "claude-opus-4-6", "gpt-5.4-mini", "gpt-5.4", "gpt-5.6":
 		return ModelFeatures{Media: MediaImage, Streaming: StreamSSE}, true
 	case "gemini-3.8-flash":
 		return ModelFeatures{Media: MediaImage | MediaAudio | MediaVideo, Streaming: StreamSSE}, true

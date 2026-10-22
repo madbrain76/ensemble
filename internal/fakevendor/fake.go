@@ -96,6 +96,10 @@ type Reply struct {
 	// Status and ErrBody override a normal reply to exercise error parsing.
 	Status  int
 	ErrBody string
+
+	// JSONBody, when nonempty, supplies an exact successful JSON fixture.
+	// Empty preserves the historical vendor packets, including streaming.
+	JSONBody string
 }
 
 // calls normalizes the two ways a reply can request tools into one list.
@@ -290,6 +294,13 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(reply.Status)
 		io.WriteString(w, reply.ErrBody)
+		return
+	}
+
+	if reply.JSONBody != "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, reply.JSONBody)
 		return
 	}
 

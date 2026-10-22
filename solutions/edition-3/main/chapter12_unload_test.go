@@ -170,13 +170,26 @@ func TestChapter12UnloadAnthropicCatalog(t *testing.T) {
 				}
 			}
 			var last struct {
-				System string
+				System json.RawMessage
 				Tools  []struct{ Name, Description string }
 			}
 			if err := json.Unmarshal(after, &last); err != nil {
 				t.Fatal(err)
 			}
-			if !strings.Contains(last.System, "PENDING BROWSER MANUAL") {
+			var system string
+			if json.Unmarshal(last.System, &system) != nil {
+				var blocks []struct{ Type, Text string }
+				if err := json.Unmarshal(last.System, &blocks); err != nil {
+					t.Fatal(err)
+				}
+				for _, block := range blocks {
+					if block.Type != "text" {
+						t.Fatalf("non-text SYSTEM block: %+v", block)
+					}
+					system += block.Text
+				}
+			}
+			if !strings.Contains(system, "PENDING BROWSER MANUAL") {
 				t.Error("pending manual removed from actual next request")
 			}
 			pending := false

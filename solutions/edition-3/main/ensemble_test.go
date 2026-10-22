@@ -159,13 +159,13 @@ func TestResponseErrorsAndUsage(t *testing.T) {
 		usage                 ensemble.Usage
 	}{
 		{"status", "remote-secret fake-key", "HTTP status 429", 429, ensemble.Usage{}},
-		{"malformed", "remote-secret fake-key", "decoding response failed", 200, ensemble.Usage{}},
-		{"missing usage", `{"content":[{"type":"text","text":"answer"}]}`, "missing usage", 200, ensemble.Usage{}},
-		{"null usage", `{"usage":null}`, "missing usage", 200, ensemble.Usage{}},
-		{"partial usage", `{"usage":{"input_tokens":1}}`, "missing usage", 200, ensemble.Usage{Input: 1}},
-		{"negative usage", `{"usage":{"input_tokens":-1,"output_tokens":2}}`, "negative usage", 200, ensemble.Usage{Output: 2}},
+		{"malformed", "remote-secret fake-key", "decoding response failed", 200, ensemble.Usage{Input: -1, Output: -1, CacheRead: -1, CacheWrite: -1}},
+		{"missing usage", `{"content":[{"type":"text","text":"answer"}]}`, "missing usage", 200, ensemble.Usage{Input: -1, Output: -1, CacheRead: -1, CacheWrite: -1}},
+		{"null usage", `{"usage":null}`, "missing usage", 200, ensemble.Usage{Input: -1, Output: -1, CacheRead: -1, CacheWrite: -1}},
+		{"partial usage", `{"usage":{"input_tokens":1}}`, "missing usage", 200, ensemble.Usage{Input: 1, Output: -1}},
+		{"negative usage", `{"usage":{"input_tokens":-1,"output_tokens":2}}`, "negative usage", 200, ensemble.Usage{Input: -1, Output: 2}},
 		{"empty text", `{"content":[{"type":"text","text":"  "}],"usage":{"input_tokens":5,"output_tokens":2}}`, "no usable text", 200, ensemble.Usage{Input: 5, Output: 2}},
-		{"measured zero", `{"content":[{"type":"text","text":"zero"}],"usage":{"input_tokens":0,"output_tokens":0}}`, "", 200, ensemble.Usage{}},
+		{"measured zero", `{"content":[{"type":"text","text":"zero"}],"usage":{"input_tokens":0,"output_tokens":0,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}`, "", 200, ensemble.Usage{}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var calls atomic.Int32
@@ -316,12 +316,14 @@ func TestTransportErrors(t *testing.T) {
 			}
 			var diagnostics bytes.Buffer
 			a := newAgent(t, ensemble.New(log.New(&diagnostics, "", 0)), server.URL, "fake-key", "fake-model")
-			_, err := a.Ask(context.Background(), "question")
+			answer, err := a.Ask(context.Background(), "question")
 			want := "reading response failed"
+			wantUsage := ensemble.Usage{Input: -1, Output: -1, CacheRead: -1, CacheWrite: -1}
 			if unreachable {
 				want = "HTTP request failed"
+				wantUsage = ensemble.Usage{}
 			}
-			if err == nil || err.Error() != want || diagnostics.String() != want+"\n" || len(a.History()) != 0 || a.Usage() != (ensemble.Usage{}) {
+			if answer != "" || err == nil || err.Error() != want || diagnostics.String() != want+"\n" || len(a.History()) != 0 || a.Usage() != wantUsage {
 				t.Fatalf("err=%v diagnostics=%q history=%v usage=%+v", err, diagnostics.String(), a.History(), a.Usage())
 			}
 		})
