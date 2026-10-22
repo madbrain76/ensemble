@@ -60,12 +60,12 @@ func TestChapter3Round1Registry(t *testing.T) {
 		}
 		names[d.Name] = true
 	}
-	for _, name := range []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "tool_limits", "wait_for_job", "send_input", "kill_job", "compact_context", "micro_handoff", "keep_tool_results"} {
+	for _, name := range []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "tool_limits", "wait_for_job", "send_input", "kill_job", "compact_context", "micro_handoff", "keep_tool_results", "agent_status"} {
 		if !names[name] {
 			t.Fatalf("missing %s", name)
 		}
 	}
-	if len(names) != 13 {
+	if len(names) != 14 {
 		t.Fatalf("definitions: %v", names)
 	}
 	for _, vendor := range []ensemble.Vendor{ensemble.Anthropic, ensemble.OpenAI, ensemble.Gemini} {
@@ -110,7 +110,7 @@ func TestChapter3Round1Registry(t *testing.T) {
 	if text, failed := c3Call(t, b, "read_file", map[string]any{"path": target}); failed || text != "owned bytes" {
 		t.Fatalf("selected entry not dispatchable: %q failed=%t", text, failed)
 	}
-	if len(a.Tools().Definitions()) != 13 {
+	if len(a.Tools().Definitions()) != 14 {
 		t.Fatal("another Agent changed defaults")
 	}
 	for _, selected := range [][]string{{"read_file", "read_file"}, {"unknown"}} {

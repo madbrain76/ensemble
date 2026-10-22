@@ -21,7 +21,7 @@ func main() {
 // Returning the status lets temporary build cleanup finish before os.Exit.
 func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
-	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 or 16)")
+	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 or 18)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
@@ -35,6 +35,8 @@ func run(args []string) int {
 	cacheCurrent := flags.String("cache-current", "cr/cache-current.txt", "Chapter 15 current request artifact path in scratch launch directory")
 	cachePrior := flags.String("cache-prior", "cr/cache-prior.txt", "Chapter 15 previous request artifact path in scratch launch directory")
 	cachePrices := flags.String("cache-prices", "", "Chapter 15 required input,write,read,output rates per million tokens")
+	statusPrices := flags.String("status-prices", "", "Chapter 18 required Sonnet 4.6 input,write,read,output rates per million")
+	statusSecond := flags.String("status-second-prices", "", "Chapter 18 optional Opus 4.6 rates; absent selects an unpriced course model")
 	if err := flags.Parse(args); err != nil {
 		if err == flag.ErrHelp {
 			return 0
@@ -46,7 +48,10 @@ func run(args []string) int {
 	chapter6Flags := false
 	chapter7Flags := false
 	chapter15Flags := false
+	chapter18Flags := false
+	set := map[string]bool{}
 	flags.Visit(func(f *flag.Flag) {
+		set[f.Name] = true
 		switch f.Name {
 		case "core", "consumer", "consumer-case":
 			chapter4Flags = true
@@ -58,6 +63,8 @@ func run(args []string) int {
 			chapter7Flags = true
 		case "cache-current", "cache-prior", "cache-prices":
 			chapter15Flags = true
+		case "status-prices", "status-second-prices":
+			chapter18Flags = true
 		}
 	})
 	// Chapters 14-16 directly grade the GUI target; parity artifact flags do not apply.
@@ -78,9 +85,49 @@ func run(args []string) int {
 			return 2
 		}
 	}
+	var statusRates [4]float64
+	var secondRates *[4]float64
+	if chapter18Flags && *chapter != 18 {
+		fmt.Fprintln(os.Stderr, "status price flags apply only to Chapter 18")
+		return 2
+	}
+	if *chapter == 18 {
+		for _, name := range []string{"consumer", "consumer-case", "workflow", "media-models", "stream-exercise", "stream-model", "gui-model"} {
+			if set[name] {
+				fmt.Fprintln(os.Stderr, "Chapter 18 does not use -"+name)
+				return 2
+			}
+		}
+		info, err := os.Stat(filepath.Join(*core, "go.mod"))
+		if strings.TrimSpace(*core) == "" || err != nil || !info.Mode().IsRegular() {
+			fmt.Fprintln(os.Stderr, "Chapter 18 requires -core with an importable module")
+			return 2
+		}
+		if strings.TrimSpace(*gui) == "" {
+			fmt.Fprintln(os.Stderr, "Chapter 18 requires -gui GUI_TARGET")
+			return 2
+		}
+		if _, err := os.Stat(*gui); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 2
+		}
+		statusRates, err = gradeedition2.ParseCachePrices(*statusPrices)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "-status-prices:", err)
+			return 2
+		}
+		if set["status-second-prices"] {
+			second, err := gradeedition2.ParseCachePrices(*statusSecond)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "-status-second-prices:", err)
+				return 2
+			}
+			secondRates = &second
+		}
+	}
 	// No historical target defaults and no implicit source inference from a binary.
-	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter7Flags) {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 15 -cache-prices I,W,R,O [-cache-current PATH] [-cache-prior PATH] [-json] GUI_TARGET; or -ch 14|16 [-json] GUI_TARGET; or -ch 1 [-json] CLI_TARGET; or -ch 4|5|6|7|8|9|10|11|12|13 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
+	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 18 && chapter7Flags) {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 18 -core DIR -gui GUI_TARGET -status-prices I,W,R,O [-status-second-prices I,W,R,O] [-json] CLI_TARGET; or -ch 15 -cache-prices I,W,R,O [-cache-current PATH] [-cache-prior PATH] [-json] GUI_TARGET; or -ch 14|16 [-json] GUI_TARGET; or -ch 1 [-json] CLI_TARGET; or -ch 4|5|6|7|8|9|10|11|12|13 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
 		return 2
 	}
 	var example gradeedition2.ConsumerCase
@@ -160,6 +207,14 @@ func run(args []string) int {
 		report, err = gradeedition2.Chapter15(bin, *cacheCurrent, *cachePrior, prices)
 	} else if *chapter == 16 {
 		report, err = gradeedition2.Chapter16(bin)
+	} else if *chapter == 18 {
+		var guiBin string
+		var cleanupGUI func()
+		guiBin, cleanupGUI, err = grade.Build(*gui)
+		if err == nil {
+			defer cleanupGUI()
+			report, err = gradeedition2.Chapter18Targets(bin, guiBin, *core, statusRates, secondRates)
+		}
 	} else {
 		report, err = gradeedition3.Chapter1(bin)
 	}

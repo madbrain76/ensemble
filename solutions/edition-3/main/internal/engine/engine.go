@@ -24,6 +24,7 @@ type engine struct {
 	client    *http.Client
 	liveUsage common.Usage // Only Exchange charges this process; Parse and replay never do.
 	cache     common.Cache
+	lastModel string
 	last      common.Usage
 	requests  int
 	buckets   []common.UsageBucket

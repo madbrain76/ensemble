@@ -42,7 +42,7 @@ func (r *registry) run(ctx context.Context, owner common.ToolCall, raw json.RawM
 	}
 	cmd := exec.Command("/bin/sh", "-c", command)
 	cmd.Dir = r.path(cwd)
-	cmd.Env = common.ProcessEnvironment()
+	cmd.Env = common.ProcessEnvironment(r.parent)
 	var terminal *os.File
 	var waitErr, errorRead error
 	reaped := make(chan struct{})

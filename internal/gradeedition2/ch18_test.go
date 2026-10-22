@@ -7,16 +7,21 @@ import (
 )
 
 // TestChapter18Combined drives both shipped clients against actual HTTP peers.
-// It exercises current allowed models; historical two-priced-model evidence is
-// retained separately rather than selecting the frozen unsupported 5.5 row.
+// It targets the accepted restart snapshot and independently supplied Sonnet 4.6
+// rates; the middle-model control remains deliberately unpriced.
 func TestChapter18Combined(t *testing.T) {
-	core := "../../solutions/ch18"
-	bin, clean, err := grade.Build(core + "/gui")
+	core := "../../solutions/edition-3/ch18"
+	cli, cleanCLI, err := grade.Build(core + "/cmd/ch01")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer clean()
-	report, err := Chapter18(bin, core, [4]float64{2, 2.5, .2, 10}, nil)
+	defer cleanCLI()
+	gui, cleanGUI, err := grade.Build(core + "/gui")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cleanGUI()
+	report, err := Chapter18Targets(cli, gui, core, [4]float64{3, 3.75, .3, 15}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

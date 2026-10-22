@@ -71,6 +71,10 @@ func parseSkill(path string) (common.Skill, error) {
 					d.Name = v
 				case "transport":
 					d.Transport = v
+				case "url":
+					d.URL = v
+				case "auth-env":
+					d.AuthEnv = v
 				case "command":
 					d.Command = v
 				case "address":
@@ -151,6 +155,11 @@ func parseSkill(path string) (common.Skill, error) {
 		return s, fmt.Errorf("%s: invalid skill type %q", path, s.Type)
 	}
 	for _, d := range s.MCPServers {
+		if d.Transport == "url" {
+			if err := common.ValidateMCPURL(d.URL); err != nil {
+				return s, err
+			}
+		}
 		if d.Name == "" || d.Transport == "" {
 			return s, fmt.Errorf("%s: MCP declaration requires name and transport", path)
 		}

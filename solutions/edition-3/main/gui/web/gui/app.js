@@ -212,15 +212,19 @@ function apply(frame) {
  }else if(frame.type==='speech_done'){requests.delete(frame.data.id);$('audio-status').textContent=`Speech: ${frame.data.status}`;}
 
 }
+function selectedModel(a){return a?.meter?.selected_model||a?.config?.model||'';}
 function renderAgentTree(a){
  const node=$('agent-root');node.disabled=!a;if(!a)return;
  const state=a.state.paused?'paused':a.state.turn,label=state.replaceAll('_',' ');
  $('agent-name').textContent=`Agent ${a.id}`;$('agent-activity').textContent=label.charAt(0).toUpperCase()+label.slice(1);
- $('agent-cue').dataset.busy=String(state!=='idle');node.dataset.agentId=a.id;node.title=a.config.model;node.setAttribute('aria-selected',String(a.id===selected));
+ $('agent-cue').dataset.busy=String(state!=='idle');node.dataset.agentId=a.id;node.title=selectedModel(a);node.setAttribute('aria-selected',String(a.id===selected));
 }
 // All four values are process-local Engine measurements, never replay totals.
 function renderMeter(){
  const node=$('cache-meter'),a=agents.get(selected),u=a?.usage,m=u?.meter;
+ if(document.activeElement!==$('model-name'))$('model-name').value=selectedModel(a);
+ $('model').textContent=selectedModel(a);
+ renderAgentTree(a);
  const percent=n=>n==null?'unknown':`${(n*100).toFixed(1)}%`;
  const count=n=>n==null||n<0?'unknown':n.toLocaleString();
  if(!u||!m){node.textContent='$0.0000 · In 0 · Cache 0 · Hit 0.0%';node.title='No current-process response yet; initial zeroes are not provider measurements.';return;}
@@ -231,6 +235,7 @@ function renderMeter(){
  const c=m.cache,comparison=c.comparison;
  node.title=[
   'Current process only; restored conversation usage is not included.',
+  `Selected model: ${m.selected_model||'unknown'}; last producing model: ${m.last_model||'unknown'}.`,
   m.requests===0?'No response yet: initial zeroes are not measured usage.':'In = latest uncached input + cache write + cache read, counted once. Cache = latest read tokens. Hit = session token-weighted ratio.',
   usage('Last response',u),usage('Session',u.total),
   `Cost: ${m.cost.status}; known subtotal $${m.cost.usd.toFixed(6)}. Unknown work is not priced as zero.`,
@@ -244,7 +249,7 @@ function renderMeter(){
   ...(c.diagnostic_error?[`Diagnostic file error: ${c.diagnostic_error}`]:[])
  ].join('\n');
 }
-function controls(){skillView();renderMeter();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface+(a.config.billing_mode?' · '+a.config.billing_mode+' funding':'');$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
+function controls(){skillView();renderMeter();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=selectedModel(a);$('surface').textContent=a.config.surface+(a.config.billing_mode?' · '+a.config.billing_mode+' funding':'');$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
 function replay(data){
  mcpAgents.clear();mcpReady.clear();
  const previousAgents=new Map(agents);if(session!==data.session)observedTurns.clear();
@@ -433,3 +438,6 @@ function handleMCPFrame(frame){
  if(frame.type==='mcp_closed'){mcpAgents.delete(frame.agent_id);mcpReady.delete(frame.agent_id);return true;}
  return false;
 }
+
+$('set-model').addEventListener('click',()=>send('set_model',{text:$('model-name').value.trim()}));
+$('agent-status').addEventListener('click',()=>send('agent_status'));

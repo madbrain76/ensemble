@@ -35,7 +35,8 @@ func webLaunch(bin, work, skills, token string, replies []fakevendor.Reply, obse
 		return nil
 	}})
 	defer provider.Close()
-	p, err := startMCPCommand(bin, work, []string{"chat"}, []string{"LLM_MODEL=claude-sonnet-5", "LLM_BASE_URL=" + provider.URL(), "EN_SKILLS_DIR=" + skills, "EN_PRIMARY_SKILL=base", "EDITION2_WEB_TOKEN=" + token})
+	env := append(webStatusEnv(os.Environ(), work, skills, provider.URL(), "claude-sonnet-4-6", "base"), "EDITION2_WEB_TOKEN="+token)
+	p, err := startMCPCommandEnv(bin, work, []string{"chat"}, env)
 	if err != nil {
 		return nil, "", err
 	}
@@ -81,12 +82,16 @@ var statusUsage = []fakevendor.Canonical{
 }
 
 // Exercise the shipped primary, not a fabricated status-only skill that could
-// conceal a dead shipped feature. The settings acknowledgment orders selection;
+// conceal a dead shipped feature. The control acknowledgment orders selection;
 // the next captured provider model independently verifies its effect.
-func statusLaunch(bin, core string) (out statusRun) {
+func statusLaunch(bin, core string) statusRun {
+	return statusLaunchModels(bin, core, statusModels, false)
+}
+
+func statusLaunchModels(bin, core string, models []string, liveModelControl bool) (out statusRun) {
 	var replies []fakevendor.Reply
 	for i, usage := range statusUsage {
-		replies = append(replies, fakevendor.Reply{ToolID: fmt.Sprintf("status-%d", i), ToolName: "agent_status", ToolArgs: `{}`, Usage: usage}, fakevendor.Reply{Text: fmt.Sprintf("STATUS_TURN_%d_COMPLETE", i)})
+		replies = append(replies, statusReply(models[i], i, usage), fakevendor.Reply{JSONBody: invoiceAnthropicUsage(models[i], fmt.Sprintf("STATUS_TURN_%d_COMPLETE", i), fakevendor.Canonical{})})
 	}
 	provider := fakevendor.New(replies)
 	defer provider.Close()
@@ -104,11 +109,18 @@ func statusLaunch(bin, core string) (out statusRun) {
 	port := fmt.Sprint(listener.Addr().(*net.TCPAddr).Port)
 	listener.Close()
 	assets := filepath.Join(work, "web")
-	os.MkdirAll(assets, 0755)
-	skills, _ := filepath.Abs(filepath.Join(core, "skills"))
+	if err = contextStaticFixture(assets); err != nil {
+		out.fatal = err.Error()
+		return
+	}
+	skills, err := filepath.Abs(filepath.Join(core, "skills"))
+	if err != nil {
+		out.fatal = err.Error()
+		return
+	}
 	cmd := exec.Command(bin, "--port", port, "--gui-dir", assets)
 	cmd.Dir = work
-	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL="+statusModels[0], "LLM_RESOLVED_MODEL=", "LLM_API_KEY=fake-key", "LLM_BASE_URL="+provider.URL(), "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=ensemble")
+	cmd.Env = webStatusEnv(os.Environ(), work, skills, provider.URL(), models[0], "ensemble")
 	var stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
 	stdin, err := cmd.StdinPipe()
@@ -170,15 +182,11 @@ func statusLaunch(bin, core string) (out statusRun) {
 	}
 	// Keep observation connections alive until the child exits; subscriber
 	// disconnect races have separate historical proof and are not meter fixtures.
-	for i, model := range statusModels {
+	for i, model := range models {
 		if i > 0 {
-			err = peer.conn.WriteJSON(map[string]any{"type": "update_settings", "settings": map[string]string{"model": model}})
-			var settings map[string]any
-			if err == nil {
-				settings, err = readSettings(peer, "settings_changed")
-			}
-			if err != nil || settings["model"] != model {
-				out.fatal = fmt.Sprintf("model selection %s: %v %v", model, settings, err)
+			agentID, _ := out.after[i-1]["agent_id"].(string)
+			if err = selectStatusModel(peer, agentID, model, liveModelControl); err != nil {
+				out.fatal = fmt.Sprintf("model selection %s: %v", model, err)
 				return
 			}
 		}
@@ -191,7 +199,7 @@ func statusLaunch(bin, core string) (out statusRun) {
 			return
 		}
 		out.before = append(out.before, before)
-		if err = json.NewEncoder(stdin).Encode(map[string]string{"kind": "prompt", "text": fmt.Sprintf("Report status turn %d.", i)}); err != nil {
+		if _, err = fmt.Fprintf(stdin, "Report status turn %d.\n", i); err != nil {
 			out.fatal = err.Error()
 			return
 		}
@@ -229,4 +237,75 @@ func statusLaunch(bin, core string) (out statusRun) {
 		out.fatal = "GUI did not exit after EOF"
 	}
 	return
+}
+
+// The web/status launches use only owned settings and logs. These three legacy
+// entrypoint variables are outside invoiceEnv's provider/settings prefixes.
+func webStatusEnv(base []string, work, skills, endpoint, model, primary string) []string {
+	clean := make([]string, 0, len(base))
+	for _, item := range base {
+		key, _, _ := strings.Cut(item, "=")
+		if key != "CH07_AGENT_LOG" && key != "CH02_LOG" && key != "E3_TRACE" && key != "EDITION2_WEB_TOKEN" {
+			clean = append(clean, item)
+		}
+	}
+	env := invoiceEnv(clean, skills, endpoint, invoiceOpts{dir: work, vendor: "anthropic", model: model})
+	for i, item := range env {
+		if strings.HasPrefix(item, "LLM_RESOLVED_MODEL=") {
+			env[i] = "LLM_RESOLVED_MODEL="
+		}
+		if strings.HasPrefix(item, "EN_PRIMARY_SKILL=") {
+			env[i] = "EN_PRIMARY_SKILL=" + primary
+		}
+	}
+	return env
+}
+
+// Both replies identify the controlled producer; a priced request name alone
+// cannot make an unrelated response model's work priced.
+func statusReply(model string, i int, usage fakevendor.Canonical) fakevendor.Reply {
+	body, _ := json.Marshal(map[string]any{
+		"id": fmt.Sprintf("msg_status_%d", i), "type": "message", "role": "assistant", "model": model,
+		"content": []any{map[string]any{"type": "tool_use", "id": fmt.Sprintf("status-%d", i), "name": "agent_status", "input": map[string]any{}}}, "stop_reason": "tool_use",
+		"usage": map[string]any{"input_tokens": usage.Input, "output_tokens": usage.Output, "cache_creation_input_tokens": usage.CacheWrite, "cache_read_input_tokens": usage.CacheRead},
+	})
+	return fakevendor.Reply{JSONBody: string(body)}
+}
+
+// Edition 3 selects the live Agent independently of saved preferences. Keep the
+// original settings protocol for historical callers; neither branch fabricates
+// usage or replaces the later captured-provider-model/accounting assertions.
+func selectStatusModel(peer *guiPeer, agentID, model string, live bool) error {
+	if !live {
+		if err := peer.conn.WriteJSON(map[string]any{"type": "update_settings", "settings": map[string]string{"model": model}}); err != nil {
+			return err
+		}
+		settings, err := readSettings(peer, "settings_changed")
+		if err != nil {
+			return err
+		}
+		if settings["model"] != model {
+			return fmt.Errorf("settings model mismatch: %v", settings)
+		}
+		return nil
+	}
+	if agentID == "" {
+		return fmt.Errorf("prior usage lacks target Agent ID")
+	}
+	if err := peer.conn.WriteJSON(map[string]string{"type": "set_model", "agent_id": agentID, "text": model}); err != nil {
+		return err
+	}
+	var refusal error
+	_, err := peer.until(3*time.Second, func(m map[string]any) bool {
+		id, _ := m["agent_id"].(string)
+		if m["type"] == "error" && (id == "" || id == agentID) {
+			refusal = fmt.Errorf("model control refused: %v", m)
+			return true
+		}
+		return m["type"] == "usage" && id == agentID && object(m["meter"])["selected_model"] == model
+	})
+	if err != nil {
+		return err
+	}
+	return refusal
 }

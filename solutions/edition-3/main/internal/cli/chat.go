@@ -3,6 +3,7 @@ package cli
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -151,7 +152,17 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 			if strings.TrimSpace(text) == "" {
 				continue
 			}
-			if text == "/save" {
+			if text == "/status" {
+				_ = json.NewEncoder(out).Encode(a.Engine().Status())
+			} else if text == "/model" {
+				fmt.Fprintln(diagnostics, "model:", a.Config().Model)
+			} else if strings.HasPrefix(text, "/model ") {
+				if err := a.SetModel(strings.TrimSpace(strings.TrimPrefix(text, "/model "))); err != nil {
+					fmt.Fprintln(diagnostics, "model:", err)
+				} else {
+					fmt.Fprintln(diagnostics, "model:", a.Config().Model)
+				}
+			} else if text == "/save" {
 				if err := a.Save(); err != nil {
 					fmt.Fprintln(diagnostics, "save:", err)
 				} else {

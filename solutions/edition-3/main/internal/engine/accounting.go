@@ -48,6 +48,7 @@ func (e *engine) account(cfg common.Config, r *common.ResponseData) {
 	cost := responseCost(r.Usage, prices, ok)
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	e.lastModel = model
 	e.last = r.Usage
 	e.requests++
 	e.liveUsage.Add(r.Usage)
@@ -69,7 +70,7 @@ func (e *engine) account(cfg common.Config, r *common.ResponseData) {
 }
 func (e *engine) Status() common.EngineStatus {
 	e.mu.Lock()
-	s := common.EngineStatus{Last: e.last, Session: e.liveUsage, Requests: e.requests, Buckets: append([]common.UsageBucket{}, e.buckets...)}
+	s := common.EngineStatus{LastModel: e.lastModel, Last: e.last, Session: e.liveUsage, Requests: e.requests, Buckets: append([]common.UsageBucket{}, e.buckets...)}
 	for _, b := range e.buckets {
 		s.Cost = addCost(s.Cost, b.Cost)
 	}
@@ -77,6 +78,7 @@ func (e *engine) Status() common.EngineStatus {
 		s.Cost.Status = "known"
 	}
 	e.mu.Unlock()
+	s.SelectedModel = e.parent.Config().Model
 	s.LastHitRate = common.CacheHitRate(s.Last)
 	s.SessionHitRate = common.CacheHitRate(s.Session)
 	if e.cache != nil {

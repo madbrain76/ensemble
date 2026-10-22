@@ -2,6 +2,14 @@
 
 Read this with the shared [execution procedure](edition-3-execution.md), the complete mandatory `.agents/skills/ensemble-coding/SKILL.md`, and the assigned chapter before starting and after compaction. These current paths/phases replace historical edition instructions. Architecture, KISS, testing, documentation and review obligations remain.
 
+## Current boundary
+
+Chapters 1–18 of the lean restart are closed; Chapter 17 was prose-only.
+`main` matches accepted `ch18` (226 source/support files). Chapter 19 is next,
+but its assignment, entry review and execution gates have not yet been released.
+Earlier chapter invocation sections below remain historical/public guidance,
+not authority to replay completed work or reuse live-operation permissions.
+
 ## Permitted inputs
 
 - The assigned `book/edition-3/chapter-NN.md`, Chapter 00 for orientation, and earlier chapters as needed.
@@ -176,7 +184,7 @@ For Chapter 11, extend accepted Chapter 10 and use the same command and separate
 
 For Chapter 12, extend accepted Chapter 11 and use the same explicit artifact/model flags above with `-ch 12`, followed by `-ch 1` on the **same frozen CLI**. The Chapter 12 route checks startup skill selection, explicitly requested snapshots and speech queues, real click/input effects, unload refusal/peer teardown, and Chapter 11 parity. Browser observations must not be injected automatically; legitimate tool-result history may remain after unload. The fake peer does not replace the bounded real-browser exercise. Preserve Chapter 9's dynamic SYSTEM instructions and provider-specific disclosure rules. Follow the phase authorization: a compiling hold and source review precede full gates and operational work.
 
-The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 and 16. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 and 18. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.
 
@@ -232,3 +240,32 @@ real 62-second header and body checks. Keep capability routing conservative;
 provider labels alone do not prove Responses, summary or cache support.
 The fake OAuth/Responses grade is not personal-account authorization, proof
 of live entitlement, native speech, or complete security coverage.
+
+
+## Chapter 18 restart invocation
+
+Chapter 17 is a field report, so extend accepted Chapter 16 in `main`;
+`../ch16` is the permitted predecessor. Build the actual nested CLI and
+separate GUI, without changing the public library layout:
+
+```sh
+(cd solutions/edition-3/main && go build -o /private/tmp/ensemble-ch18 ./cmd/ch01)
+(cd solutions/edition-3/main/gui && go build -o /private/tmp/ensemble-ch18-gui ./cmd)
+go run ./cmd/grade-edition3 -ch 18 -json \
+  -core "$PWD/solutions/edition-3/main" -gui /private/tmp/ensemble-ch18-gui \
+  -status-prices 3,3.75,0.3,15 /private/tmp/ensemble-ch18
+go run ./cmd/grade-edition3 -ch 1 -json /private/tmp/ensemble-ch18
+```
+
+All flags precede the explicit CLI target. Supply the four independent
+input/write/read/output rates per million tokens. The chapter documents
+these dated Sonnet 4.6 fixture rates and the optional Opus 4.6 tariff
+`-status-second-prices 5,6.25,0.5,25`; omitting the latter selects the
+unpriced middle-model control. Both reports must have `passed:true` and
+exit zero. Allow at least 360 seconds for Chapter 1. The coordinator
+releases these gates only after the coherent compiling HOLD and review.
+Source review still follows real owners and every shipped composition
+root; numerical grading alone is insufficient. Existing `ToolCall`,
+`Parent`, and `Status` seams are valid without aliases for reference names.
+Live account consent, provider requests, and hosted web operations require
+their own explicit authorization; historical examples do not supply it.

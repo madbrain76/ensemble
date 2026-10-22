@@ -342,6 +342,7 @@ type Observation = common.Observation
 type Observer = common.Observer
 type ViewSnapshot = common.ViewSnapshot
 type TurnState = common.TurnState
+type ModelChanged = common.ModelChanged
 type BillingSelected = common.BillingSelected
 type PartDelta = common.PartDelta
 type PartFinal = common.PartFinal

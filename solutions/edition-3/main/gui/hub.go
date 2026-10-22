@@ -26,6 +26,7 @@ func controlsOf(s ensemble.ViewSnapshot) controlState {
 }
 
 type agentView struct {
+	meterModel         string
 	meterRequests      int
 	meterDigest        string
 	ids                *displayIDs
@@ -156,18 +157,18 @@ func partialCards(s ensemble.ViewSnapshot, ids ...*displayIDs) map[uint64]Card {
 // sync consumes exactly one immutable saved checkpoint. No view callback runs
 // on the actor, and a dropped/coalesced wakeup cannot lose content or a final.
 func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
-	if s.Revision == v.revision {
-		return
-	}
 	id := v.agent.ID()
 	meter := v.agent.Engine().Status()
 	digest := ""
 	if meter.Cache.Current != nil {
 		digest = meter.Cache.Current.Digest
 	}
-	if meter.Requests != v.meterRequests || digest != v.meterDigest {
+	if meter.Requests != v.meterRequests || digest != v.meterDigest || meter.SelectedModel != v.meterModel {
 		h.broadcast(usageWire(id, meter))
-		v.meterRequests, v.meterDigest = meter.Requests, digest
+		v.meterRequests, v.meterDigest, v.meterModel = meter.Requests, digest, meter.SelectedModel
+	}
+	if s.Revision == v.revision {
+		return
 	}
 	old := v.state
 	v.state = controlsOf(s)
@@ -458,4 +459,12 @@ func skillFrame(a ensemble.Agent) Wire {
 		}
 	}
 	return frame
+}
+
+func (h *Hub) refreshStatus(a ensemble.Agent) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if !h.closed {
+		h.broadcast(usageWire(a.ID(), a.Engine().Status()))
+	}
 }

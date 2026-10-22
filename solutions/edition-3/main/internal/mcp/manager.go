@@ -54,11 +54,16 @@ func (m *manager) initialize(ctx context.Context, c *connection) error {
 		ProtocolVersion string                     `json:"protocolVersion"`
 		Capabilities    map[string]json.RawMessage `json:"capabilities"`
 	}
-	if err := c.peer.call(ctx, "initialize", map[string]any{"protocolVersion": "2024-11-05", "capabilities": map[string]any{}, "clientInfo": map[string]string{"name": "ensemble", "version": "edition-3-ch11"}}, &init); err != nil {
+	if err := c.peer.call(ctx, "initialize", map[string]any{"protocolVersion": "2025-03-26", "capabilities": map[string]any{}, "clientInfo": map[string]string{"name": "ensemble", "version": "edition-3-ch18"}}, &init); err != nil {
 		return err
 	}
-	if init.ProtocolVersion != "2024-11-05" {
-		return fmt.Errorf("MCP unsupported protocol version %q", init.ProtocolVersion)
+	switch init.ProtocolVersion {
+	case "2024-11-05", "2025-03-26", "2025-06-18":
+	default:
+		return errors.New("MCP unsupported protocol version")
+	}
+	if t, ok := c.peer.transport.(*httpTransport); ok {
+		t.setProtocol(init.ProtocolVersion)
 	}
 	if err := c.peer.notify(ctx, "notifications/initialized", map[string]any{}); err != nil {
 		return err
@@ -116,7 +121,7 @@ func (m *manager) connect(ctx context.Context, d common.MCPServer) (*connection,
 	c := &connection{config: m.endpoint(d), ready: make(chan struct{})}
 	m.connections[d.Name] = c
 	m.mu.Unlock()
-	t, err := dial(ctx, c.config, m.parent.Config().BaseDir, m.parent.Parent().Logger().Writer())
+	t, err := dial(ctx, c.config, m.parent.Config().BaseDir, m.parent.Parent().Logger().Writer(), common.ProcessEnvironment(m.parent)...)
 	if err == nil {
 		c.peer = newPeer(t, m.localHandler(true), false)
 		err = m.initialize(ctx, c)

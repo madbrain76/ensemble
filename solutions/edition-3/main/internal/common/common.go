@@ -99,6 +99,8 @@ type Agent interface {
 	SetMaxToolRounds(int) error
 	RecordFact(Event) error
 	SetContextTarget(int) error
+	// SetModel selects a same-provider model only while the actor is idle.
+	SetModel(string) error
 	CompactContext(context.Context, string, string) (string, error)
 	// SetPersistencePolicy changes archive mode and diagnostic retention for future writes.
 	SetPersistencePolicy(LogMode, int) error

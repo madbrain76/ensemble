@@ -3,13 +3,17 @@ package common
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
+	"net/url"
 )
 
 // MCPServer is an application endpoint. A connection alone grants no tools.
 type MCPServer struct {
 	Name      string   `json:"name"`
 	Transport string   `json:"transport"`
+	URL       string   `json:"url,omitempty"`
+	AuthEnv   string   `json:"auth_env,omitempty"`
 	Command   string   `json:"command,omitempty"`
 	Args      []string `json:"args,omitempty"`
 	Address   string   `json:"address,omitempty"`
@@ -58,6 +62,15 @@ func (s SplitReadWriteCloser) Write(p []byte) (int, error) { return s.Writer.Wri
 func (s SplitReadWriteCloser) Close() error {
 	if s.CloseFunc != nil {
 		return s.CloseFunc()
+	}
+	return nil
+}
+
+// ValidateMCPURL rejects ambiguous endpoints without echoing URL secrets.
+func ValidateMCPURL(raw string) error {
+	u, err := url.Parse(raw)
+	if err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Hostname() == "" || u.User != nil || u.Fragment != "" {
+		return errors.New("MCP requires an absolute HTTP(S) URL without userinfo or fragment")
 	}
 	return nil
 }

@@ -205,6 +205,15 @@ func (s *Server) command(c *client, m command) error {
 		return errors.New("unknown agent")
 	}
 	switch m.Type {
+	case "set_model":
+		if err := a.SetModel(m.Text); err != nil {
+			return err
+		}
+		s.Hub.refreshStatus(a)
+		return nil
+	case "agent_status":
+		s.Hub.refreshStatus(a)
+		return nil
 	case "mcp_open", "jsonrpc":
 		m.AgentID = id
 		return s.mcp(c, m)

@@ -70,7 +70,7 @@ func TestChapter3GeminiParameterProjection(t *testing.T) {
 	if err := json.Unmarshal(wire, &request); err != nil {
 		t.Fatal(err)
 	}
-	if len(request.Tools) != 1 || len(request.Tools[0].Functions) != 13 || len(before) != 13 {
+	if len(request.Tools) != 1 || len(request.Tools[0].Functions) != 14 || len(before) != 14 {
 		t.Fatalf("wrong Gemini declaration shape: %s", wire)
 	}
 	for i, d := range before {

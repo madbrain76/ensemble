@@ -35,11 +35,12 @@ func main() {
 	logMode := flag.String("log-mode", "", "archive retention: full or dialogue_only")
 	pause := flag.Bool("pause-on-start", false, "pause before the first model request")
 	speaking := flag.Bool("speaking", false, "enable Agent speech requests")
+	mcpListen := flag.String("mcp-listen", "", "serve a sibling MCP listener on loopback while the GUI runs")
 	mcpPipe := flag.Bool("mcp-pipe", false, "serve MCP on stdin/stdout until EOF")
 	mcpSocket := flag.String("mcp-socket", "", "serve MCP on a dedicated TCP address")
 	flag.Parse()
 	protocolMode := *mcpPipe || *mcpSocket != ""
-	if (*mcpPipe && *mcpSocket != "") || flag.NArg() != 0 {
+	if (*mcpPipe && *mcpSocket != "") || (protocolMode && *mcpListen != "") || flag.NArg() != 0 {
 		log.Print("usage: gui [--mcp-pipe | --mcp-socket ADDRESS]")
 		return
 	}
@@ -139,6 +140,14 @@ func main() {
 	addr := fmt.Sprintf("127.0.0.1:%d", *port)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if *mcpListen != "" {
+		listener, err := ensemble.StartMCPListener(ctx, agent, *mcpListen)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		defer listener.Close()
+	}
 	terminalDone := app.Terminal(ctx, os.Stdin, os.Stdout)
 	server := &http.Server{Addr: addr, Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	drained := make(chan bool, 1)

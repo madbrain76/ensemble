@@ -70,6 +70,8 @@ type UsageBucket struct {
 	Cost     Cost    `json:"cost"`
 }
 type EngineStatus struct {
+	SelectedModel  string        `json:"selected_model"`
+	LastModel      string        `json:"last_model,omitempty"`
 	Last           Usage         `json:"last"`
 	Session        Usage         `json:"session"`
 	Requests       int           `json:"requests"`

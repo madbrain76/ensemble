@@ -4,8 +4,11 @@ const source=fs.readFileSync(__dirname+'/web/gui/app.js','utf8');
 // a browser/native speech test and not a replacement production observer.
 function fixture(nodes){
  const sent=[];
+ // The evaluated tail also registers page controls; their behavior is covered
+ // by full-page tests. Keep them separate from the observed MCP snapshot DOM.
+ const pageControls={'set-model':{addEventListener(){}},'agent-status':{addEventListener(){}}};
  const document={body:{querySelectorAll:()=>nodes},querySelectorAll:selector=>nodes.filter(n=>selector===`[data-ensemble-snapshot-id="${n.attrs['data-ensemble-snapshot-id']}"]`)};
- const context=vm.createContext({document,TextEncoder,Date,console,selected:'fixture-agent',nodeIDs:new WeakMap(),nextNodeID:0,mcpAgents:new Set(),mcpReady:new Set(),send:(type,data)=>sent.push({type,...data}),getComputedStyle:n=>({display:n.hidden?'none':'block',visibility:'visible',opacity:'1'}),Event:class{constructor(type){this.type=type;}}});
+ const context=vm.createContext({document,$:id=>pageControls[id],TextEncoder,Date,console,selected:'fixture-agent',nodeIDs:new WeakMap(),nextNodeID:0,mcpAgents:new Set(),mcpReady:new Set(),send:(type,data)=>sent.push({type,...data}),getComputedStyle:n=>({display:n.hidden?'none':'block',visibility:'visible',opacity:'1'}),Event:class{constructor(type){this.type=type;}}});
  vm.runInContext(source.slice(source.indexOf('// Historical browser MCP tools:')),context);
  return {context,sent,run:code=>vm.runInContext(code,context),snapshot:()=>vm.runInContext('guiSnapshot()',context),document};
 }

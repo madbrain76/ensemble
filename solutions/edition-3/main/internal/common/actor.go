@@ -87,6 +87,12 @@ type ViewSnapshot struct {
 	SpeechID         uint64
 	Speech           SpeechRequested
 }
+type ModelChanged struct {
+	Model string `json:"model"`
+}
+
+func (ModelChanged) observation() {}
+
 type BillingSelected struct {
 	Mode AuthMode `json:"mode"`
 }

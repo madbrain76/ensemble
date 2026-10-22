@@ -21,6 +21,7 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	}
 	flags := flag.NewFlagSet("ch01", flag.ContinueOnError)
 	flags.SetOutput(diagnostics)
+	mcpListen := flags.String("mcp-listen", "", "serve a sibling MCP listener on loopback while the CLI runs")
 	mcpPipe := flags.Bool("mcp-pipe", false, "serve MCP on stdin/stdout until EOF")
 	mcpSocket := flags.String("mcp-socket", "", "serve MCP on a dedicated TCP address")
 	guiDebug := flags.Bool("gui-debug", false, "load gui-debug at startup")
@@ -31,6 +32,9 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	}
 	args = flags.Args()
 	protocolMode := *mcpPipe || *mcpSocket != ""
+	if protocolMode && *mcpListen != "" {
+		return errors.New("embedded and dedicated MCP modes are mutually exclusive")
+	}
 	if (*mcpPipe && *mcpSocket != "") || (protocolMode && len(args) > 0) {
 		return errors.New("MCP modes are mutually exclusive and take no chat/render arguments")
 	}
@@ -116,6 +120,13 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	if err != nil {
 		return err
 	}
+	if *mcpListen != "" && !renderMode && !dumpMode {
+		listener, err := ensemble.StartMCPListener(ctx, a, *mcpListen)
+		if err != nil {
+			return err
+		}
+		defer listener.Close()
+	}
 	if protocolMode {
 		ready = true
 		if *mcpPipe {
@@ -191,6 +202,20 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		}
 		if err := json.Unmarshal([]byte(line), &input); err != nil {
 			return errors.New("invalid input JSON")
+		}
+		if input.Kind == "status" || input.Kind == "model" {
+			if input.Kind == "model" {
+				if err := a.SetModel(input.Text); err != nil {
+					if err := encoder.Encode(map[string]string{"error": err.Error()}); err != nil {
+						return err
+					}
+					continue
+				}
+			}
+			if err := encoder.Encode(a.Engine().Status()); err != nil {
+				return err
+			}
+			continue
 		}
 		if input.Kind == "save" {
 			if err := a.Save(); err != nil {

@@ -187,8 +187,8 @@ func c3CheckDeclarations(t *testing.T, v ensemble.Vendor, request map[string]any
 	if len(names) != want {
 		t.Errorf("declarations=%v want count %d", names, want)
 	}
-	for _, name := range []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "tool_limits", "wait_for_job", "send_input", "kill_job", "compact_context", "micro_handoff", "keep_tool_results"} {
-		if want == 13 && !names[name] {
+	for _, name := range []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "tool_limits", "wait_for_job", "send_input", "kill_job", "compact_context", "micro_handoff", "keep_tool_results", "agent_status"} {
+		if want == 14 && !names[name] {
 			t.Errorf("missing default declaration %s", name)
 		}
 	}
@@ -241,7 +241,7 @@ func TestChapter3LoopOrderedBatchProviders(t *testing.T) {
 		t.Run(fmt.Sprint(v), func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "file")
 			url, count := c3Peer(t, func(n int, request map[string]any) any {
-				c3CheckDeclarations(t, v, request, 13)
+				c3CheckDeclarations(t, v, request, 14)
 				if n == 1 {
 					return c3Reply(v, common.Text("I will create a fixture, try the disabled name, append, then read to check the final bytes."),
 						c3ToolPart("write", "write_file", map[string]any{"path": path, "content": "A"}),
@@ -261,7 +261,7 @@ func TestChapter3LoopOrderedBatchProviders(t *testing.T) {
 							t.Errorf("result order/ID=%v", results)
 						}
 					}
-					if !strings.Contains(results[1].text, "unknown or disabled tool") || !strings.Contains(results[3].text, "AB") {
+					if !strings.Contains(results[1].text, "unknown tool") || !strings.Contains(results[3].text, "AB") {
 						t.Errorf("wrong actual outputs: %v", results)
 					}
 				}
@@ -302,7 +302,7 @@ func TestChapter3LoopEmptyRegistryProviders(t *testing.T) {
 					t.Errorf("unexpected request %d", n)
 				}
 				results := c3Results(request)
-				if len(results) != 1 || results[0].id != "disabled" || !strings.Contains(results[0].text, "unknown or disabled tool") {
+				if len(results) != 1 || results[0].id != "disabled" || !strings.Contains(results[0].text, "unknown tool") {
 					t.Errorf("missing disabled-call result: %v", results)
 				}
 				if _, err := os.Stat(path); !os.IsNotExist(err) {

@@ -34,3 +34,21 @@ The previous copied FINAL reference was retired, not reused as starting code. It
 - `ch15`: accepted cache placement, exact-wire diagnostic lens, request-local predictions, honest provider accounting and process meter after four production rounds. Final Chapter 15/1 gates and one four-turn Sonnet 4.6 browser exercise/restart passed with earlier failures and DOM-only visual qualification preserved. The 196-file snapshot matches main. One formal text review required a cost-display precision correction; the sole author response was directly verified by root.
 
 - `ch16`: transport-owned OAuth/Responses, model-qualified reasoning policy, incremental public summaries, continuation and tool pairing accepted after three production correction rounds plus separately classified test-only timing fixes. Root/GUI race/vet and final Chapter 16/1 grades passed; earlier failures and inherited coverage limits remain recorded. Bill explicitly deferred live OAuth, so local fake-issuer results do not establish live account/provider compatibility; no fresh native/browser/hearing claim. The 216-file snapshot matches main. One formal text PASS, zero author revisions; code and editorial contexts are joined and closed.
+
+### Chapter 18
+
+`ch18/` is the accepted 226-file source/support snapshot of `main/`, verified
+byte-for-byte and in executable modes. Four production correction rounds
+preserved owner-local HTTP MCP, Engine status/accounting and actor-boundary
+model selection; R4 corrected Anthropic tool-cache eligibility without changing
+deferred catalogue or paired references. Final same-artifact grades passed
+155/155 and 100/100, including Chapter 1's genuine header/body lifetime waits.
+
+The required 2026-10-22 API-key CLI exercise completed with Sonnet 4.6 → Opus
+4.6, one keyless Firecrawl search/scrape, eight successful model requests and
+normal EOF. Status values matched recorded usage; $0.23440875 is dated model
+tariff arithmetic, excluding Firecrawl and failed attempts, not an invoice.
+Earlier failures and truncation qualifications remain in the restart notes.
+No optional live GUI/native/authenticated-MCP result is claimed. One fresh
+text review passed without revision. `main/` continues from this snapshot;
+Chapter 19 is next, with independent entry review and permissions still needed.

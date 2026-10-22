@@ -90,11 +90,16 @@ variable; it never contains its value. Queue representation and
 SSE parser internals are yours. Do not require callers to supply
 copied logging callbacks in place of the actual parent.
 
-A tool receives `common.ToolContext`. Its `Engine()` reaches the
-owning Engine; `Engine.Agent()` reaches configuration and the
-Ensemble parent. `Engine.Meter()` returns a disposable snapshot,
-with last-response counts, session totals, hit rate and priced or
-unknown cost. Public applications construct through `ensemble.New`
+A tool reaches the real owning Engine through its existing invocation
+context. The reference calls that context `common.ToolContext` and uses
+`Engine.Agent()` and `Engine.Meter()`. The accepted restarted core instead
+uses `common.ToolCall.Parent()` to reach the Agent, `Agent.Engine()` to
+reach its Engine, and `Engine.Parent()` and `Engine.Status()` for the owner
+link and disposable accounting snapshot. Preserve that owner chain and
+snapshot behavior, including last-response counts, session totals, hit
+rate and priced or unknown cost. Do not add aliases, duplicate meters or
+extra backpointers merely to reproduce the reference names. The registry
+may be named `internal/tool` or `internal/tools`; the boundary is the same. Public applications construct through `ensemble.New`
 and that root's `NewAgent`, including the separate GUI executable.
 Check those real callers, not an unused compliant example.
 
@@ -119,24 +124,56 @@ requested the tool, before the later answer adds more usage.
 
 ### Combined exercise
 
-Extend Chapter 17 with the URL transport and loadable web skill,
-`agent_status`, and the human model-selection control. Verify the
-existing owner chain, per-model accounting and observer lifetime
-instead of rebuilding historical architectural defects. Run the
-combined grader from the repository root; its external peers are
+Extend the accepted Chapter 16 working tree with the URL transport and
+loadable web skill, `agent_status`, and the human model-selection control.
+Chapter 17 is a historical field report, not another implementation
+snapshot. Verify the existing owner chain, per-model accounting and
+observer lifetime instead of rebuilding historical architectural defects.
+
+Build the distinct CLI and GUI executables from the working tree:
+
+```sh
+(cd solutions/edition-3/main && go build -o /private/tmp/ensemble-ch18 ./cmd/ch01)
+(cd solutions/edition-3/main/gui && go build -o /private/tmp/ensemble-ch18-gui ./cmd)
+```
+
+Run the combined grader from the repository root; its external peers are
 local:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 18 solutions/ch18
+go run ./cmd/grade-edition3 -ch 18 -json \
+  -core "$PWD/solutions/edition-3/main" \
+  -gui /private/tmp/ensemble-ch18-gui \
+  -status-prices 3,3.75,0.3,15 \
+  /private/tmp/ensemble-ch18
+
+go run ./cmd/grade-edition3 -ch 1 -json /private/tmp/ensemble-ch18
 ```
 
-Substitute your core module directory for the final argument.
-The GUI defaults to its `gui` subdirectory; `-gui DIR` selects a
-separate one. The checks and their source-review limits appear
-under “Exercise, graded.” Then perform a bounded real search and page fetch, ask for
-status, switch to another available model on the same provider,
-and ask again. The build, skills, launch and exact actions appear
-in “Taking it for a spin” below.
+Use your actual build paths. The first command keeps the importable
+library, CLI, and GUI separate. The second retains Chapter 1's genuine
+header/body lifetime checks; allow at least 360 seconds for it.
+
+The first tariff is independently supplied for the local Sonnet 4.6
+fixture, in input, cache-write, cache-read, output dollars per million
+tokens order. The October 22, 2026
+[provider pricing table](https://platform.claude.com/docs/en/about-claude/pricing)
+lists $3 input and $15 output, with five-minute writes at 1.25 times input
+and reads at 0.1 times input. These are dated fixture inputs, not universal
+model prices, and must not be read from the implementation under test.
+
+The default middle turn uses an explicitly unpriced course model, so
+complete session cost must become unknown without losing known charges.
+To exercise a fully priced Sonnet → Opus 4.6 → Sonnet path instead, add
+`-status-second-prices 5,6.25,0.5,25` before the positional executable.
+The same table gives Opus 4.6 $5 input and $25 output. Omitted middle rates
+select the unpriced control; explicitly blank or invalid rates are errors.
+
+The checks and their source-review limits appear under “Exercise,
+graded.” Then perform a bounded real search and page fetch, ask for
+status, switch to another authorized available model on the same provider,
+and ask again. The build, skills, launch and exact actions appear in
+“Taking it for a spin” below.
 
 ---
 
@@ -429,6 +466,22 @@ behavior. The web skill here remains loadable so web access starts
 only when it is selected and ends when it is unloaded. MCP tools
 are removed immediately; retained instruction text and compiled
 tools retain the earlier pending-unload rules.
+
+### Deferred definitions and cache markers
+
+Anthropic still receives deferred tool definitions in the request's
+catalogue. The paired `load_skill` result's inline `tool_reference`
+discloses a definition to the model; it is content, not a cache marker.
+The October 22, 2026 live exercise exposed the distinction: the provider
+rejected a request with HTTP 400 because a definition carried both
+`defer_loading: true` and `cache_control`.
+
+Anthropic's [tool-search documentation](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
+forbids that combination. Put the tool-cache breakpoint on the last
+non-deferred definition, or omit that breakpoint when none qualifies.
+The correction leaves the catalogue, its order and defer flags, paired
+references, and system/history markers intact. Cache eligibility does
+not change which tools the agent may call.
 
 
 ## A web page cannot authorize a command
@@ -988,17 +1041,14 @@ successful setup so an early connection failure cannot masquerade
 as every later refusal.
 
 Status runs through the actual GUI client and its installed
-primary, with turns completed before model changes. The default
-fixture selects supported older Anthropic models, Sonnet-5,
-Opus 4.6, then Sonnet-5 again. The accepted table prices Sonnet
-and leaves this Opus row unknown. This checks a known estimate
-followed by honest uncertainty, including after returning to the
-priced model. The existing source checks separately exercise the
-sum of two known model prices. `-status-prices` and
-`-status-second-prices` select the four dated fixture rates
-(fresh input, cache write, cache read, output, dollars per million)
-when grading another supported table. They do not alter application
-prices or make an unpriced model free.
+primary, with turns completed before model changes. The restarted fixture
+selects Sonnet 4.6, an unpriced course model, then Sonnet 4.6 again. This
+checks a known estimate followed by honest uncertainty, including after
+returning to the priced model. Supplying the optional second tariff selects
+Opus 4.6 instead and checks the sum of two known model prices. Both tariff
+flags supply independent expected rates; neither changes application
+prices or makes an unpriced model free. Earlier Sonnet-5 examples describe
+the historical implementation, not the current fixture identity.
 
 The numeric import check cannot prove ownership. Independent
 source review must follow the actual dispatched tool to its
@@ -1051,16 +1101,28 @@ page, a saved job output and the portion shown to the model are
 three different artifacts. The answer depended on bytes the model
 actually received, not merely on the existence of the larger file.
 
+On October 22, 2026, the restarted CLI completed the task with an
+Anthropic API key, switching from Sonnet 4.6 to Opus 4.6. Keyless
+Firecrawl supplied one search and one scrape; all eight model POSTs
+succeeded, and the CLI reached normal EOF with exit 0. The fetched page
+supported Go 1.27.3 and `go1.27.3.linux-amd64.tar.gz`, with a citation
+and disclosed truncation, not a claim about every omitted region.
+Five CLI status snapshots and both `agent_status` results matched
+their recorded response prefixes. The model-tariff estimate was
+$0.23440875, excluding Firecrawl and earlier attempts. That is price
+arithmetic, not an invoice. This run used neither Codex nor OAuth and
+did not exercise the optional GUI.
+
 ### Reproduce the task
 
 Use a fresh scratch directory so the exercise has its own save
-and logs. From your implementation's core module, build the
-executable outside the source tree:
+and logs. From the repository root, build the nested CLI outside
+the source tree:
 
 ```sh
-go build -o /tmp/ensemble-ch20 .
-ensemble_ch20_run=$(mktemp -d)
-cd "$ensemble_ch20_run"
+(cd solutions/edition-3/main && go build -o /private/tmp/ensemble-ch18 ./cmd/ch01)
+ensemble_ch18_run=$(mktemp -d /private/tmp/ensemble-ch18-run.XXXXXX)
+cd "$ensemble_ch18_run"
 mkdir -p skills/ensemble skills/web-search
 ```
 
@@ -1085,17 +1147,22 @@ Available skills: $SKILLS.
 
 Set `FIRECRAWL_API_KEY` in the environment through your normal
 credential setup. Do not put it in the skill or the conversation.
-Use the existing Chapter 16 authenticated profile: `EN_HOME`
-selects that profile if it lives outside the default location.
-Check the account's available models before choosing the pair.
-The demonstrated pair is `gpt-6-astra` and `gpt-6.1-sol`, using
-subscription billing. This launch uses the first:
+The launch below describes the historical subscription route and model
+pair, not a newly verified login or supported-model claim for this restart.
+Use it only with a supported model and your explicitly authorized
+Chapter 16 profile; `EN_HOME` selects that profile outside the default
+location. The restart's live OAuth exercise was deferred, not completed,
+and another client's credentials are not a substitute. A separately
+authorized API-key route with two supported same-provider models can
+exercise the web/status behavior without claiming OAuth validation.
+Check the account's available models before choosing the pair. The
+historically demonstrated pair was `gpt-6-astra` and `gpt-6.1-sol`.
 
 ```sh
 LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
 OPENAI_REASONING_EFFORT=high OPENAI_REASONING_SUMMARY=detailed \
-OPENAI_BILLING_MODE=chatgpt EN_PRIMARY_SKILL=ensemble \
-/tmp/ensemble-ch20 --skills-dir "$PWD/skills" chat
+OPENAI_BILLING_MODE=chatgpt \
+/private/tmp/ensemble-ch18 --skills-dir "$PWD/skills" chat
 ```
 
 Enter this request and wait for the completed answer:
@@ -1130,7 +1197,11 @@ provider request. A changed label alone is insufficient. The web
 tools should be absent after unload, and a guessed call should be
 refused. Finish with EOF for the normal save and shutdown path.
 The optional GUI exercises the same operation through its model
-field; wait for the current turn to complete before changing it.
+field; wait for the current turn to complete before changing it. Use the
+separate GUI binary and its real `--gui-dir` directory. Choose an explicitly
+checked, unused nonzero `OWNED_GUI_PORT` and pass it with `--port`; never
+use the live 8088 service. Connect to that matching loopback URL. Port
+zero is not a usable printed address in this launcher.
 
 ### The status that told the truth
 

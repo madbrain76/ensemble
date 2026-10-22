@@ -80,6 +80,12 @@ func (p *peer) send(ctx context.Context, m message) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	// HTTP cancellation belongs to one request, not the whole connection.
+	if t, ok := p.transport.(interface {
+		SendContext(context.Context, json.RawMessage) error
+	}); ok {
+		return t.SendContext(ctx, b)
+	}
 	// Once writing has started, Close is the transport contract's unblock path.
 	stop := context.AfterFunc(ctx, func() { p.close(ctx.Err()) })
 	defer stop()

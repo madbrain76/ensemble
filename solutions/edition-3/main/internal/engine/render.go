@@ -282,8 +282,13 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 		if sys != "" {
 			systemValue = []aBlock{{Type: "text", Text: &sys, CacheControl: ephemeralCache()}}
 		}
-		if len(tools) > 0 {
-			tools[len(tools)-1].CacheControl = ephemeralCache()
+		// Deferred definitions cannot carry cache_control. Preserve catalog
+		// order and place the breakpoint on the last eligible declaration.
+		for i := len(tools) - 1; i >= 0; i-- {
+			if !tools[i].DeferLoading {
+				tools[i].CacheControl = ephemeralCache()
+				break
+			}
 		}
 	}
 	return json.Marshal(struct {

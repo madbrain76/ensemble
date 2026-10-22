@@ -65,14 +65,18 @@ type mcpCommand struct {
 }
 
 func startMCPCommand(bin, work string, args, env []string) (*mcpCommand, error) {
+	base := append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL=fake-model", "LLM_API_KEY=fake-mcp-key", "LLM_BASE_URL=http://127.0.0.1:1/unused", "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR=", "EN_PRIMARY_SKILL=", "CH02_LOG="+filepath.Join(work, "events.jsonl"))
+	return startMCPCommandEnv(bin, work, args, append(base, env...))
+}
+
+// Explicit environments let newer fixtures isolate settings without changing
+// the defaults of historical callers.
+func startMCPCommandEnv(bin, work string, args, env []string) (*mcpCommand, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	p := &mcpCommand{lines: make(chan string, 128), done: make(chan error, 1), cancel: cancel}
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = work
-	// Every process gets its own workspace/save. Explicitly empty skill inputs
-	// avoid accidentally inheriting the grader operator's deployed primary.
-	cmd.Env = append(os.Environ(), "LLM_VENDOR=anthropic", "LLM_MODEL=fake-model", "LLM_API_KEY=fake-mcp-key", "LLM_BASE_URL=http://127.0.0.1:1/unused", "EN_DISABLE_STREAMING=1", "EN_SKILLS_DIR=", "EN_PRIMARY_SKILL=", "CH02_LOG="+filepath.Join(work, "events.jsonl"))
-	cmd.Env = append(cmd.Env, env...)
+	cmd.Env = env
 	cmd.Stderr = &p.stderr
 	var err error
 	p.stdin, err = cmd.StdinPipe()

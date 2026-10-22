@@ -25,9 +25,23 @@ func Chapter18(guiBin, core string, rates [4]float64, second *[4]float64) (grade
 		return grade.Report{}, err
 	}
 	defer cleanup()
+	return chapter18Targets(bin, guiBin, core, rates, second, statusModels, false)
+}
+
+// Chapter18Targets accepts distinct artifacts for the restarted library/CLI/GUI
+// layout. Nil second rates deliberately select an unpriced synthetic model.
+func Chapter18Targets(cli, gui, core string, rates [4]float64, second *[4]float64) (grade.Report, error) {
+	models := []string{"claude-sonnet-4-6", "claude-course-unpriced", "claude-sonnet-4-6"}
+	if second != nil {
+		models[1] = "claude-opus-4-6"
+	}
+	return chapter18Targets(cli, gui, core, rates, second, models, true)
+}
+
+func chapter18Targets(bin, guiBin, core string, rates [4]float64, second *[4]float64, models []string, liveModelControl bool) (grade.Report, error) {
 	checks := webChecks(bin)
 	checks = append(checks, grade.Check{ID: "agent-builds", Title: "Actual core and GUI commands build", Points: 5, Earned: 5, Passed: true})
-	checks = append(checks, statusChecks(guiBin, core, rates, second)...)
+	checks = append(checks, statusChecks(guiBin, core, rates, second, models, liveModelControl)...)
 	checks = append(checks, statusImports(core))
 	return grade.NewTitledReport("Edition 2, Chapter 18 — Giving the Agent the Web, and a Status Line", checks, ""), nil
 }
@@ -188,7 +202,10 @@ func webChecks(bin string) []grade.Check {
 	// An absent credential must degrade to an unauthenticated connection, not
 	// prevent all discovery. This separate fresh Agent is the positive control.
 	missing := filepath.Join(work, "missing-auth")
-	os.MkdirAll(missing, 0755)
+	if e := os.MkdirAll(missing, 0755); e != nil {
+		fail(transport, "missing-auth directory: %v", e)
+		return checks
+	}
 	p2 := newWebPeer()
 	defer p2.server.Close()
 	skills2, e := webSkills(missing, p2.server.URL)
@@ -229,10 +246,10 @@ var statusCountPattern = regexp.MustCompile(`(?i)(\d+)\s*in\D+(\d+)\s*out\D+(\d+
 var statusRatePattern = regexp.MustCompile(`(?i)cache hit rate[^:\n]*:\s*([0-9.]+)\s*%`)
 var statusCostPattern = regexp.MustCompile(`(?i)cost[^:\n]*:\s*~?\$\s*([0-9.]+)`)
 
-func statusChecks(bin, core string, rates [4]float64, second *[4]float64) []grade.Check {
+func statusChecks(bin, core string, rates [4]float64, second *[4]float64, models []string, liveModelControl bool) []grade.Check {
 	checks := []grade.Check{{ID: "agent-status-tool", Title: "Shipped agent_status: actual model, four last/session counts and cache hit rate", Points: 20, Earned: 20, Passed: true}, {ID: "per-model-cost", Title: "Priced work and honest mixed-model accounting across turn-boundary switches", Points: 15, Earned: 15, Passed: true}}
 	status, cost := &checks[0], &checks[1]
-	o := statusLaunch(bin, core)
+	o := statusLaunchModels(bin, core, models, liveModelControl)
 	if o.fatal != "" {
 		fail(status, "status session: %s", o.fatal)
 		fail(cost, "status session: %s", o.fatal)
@@ -259,7 +276,7 @@ func statusChecks(bin, core string, rates [4]float64, second *[4]float64) []grad
 			dollars += (float64(u.Input)*price[0] + float64(u.CacheWrite)*price[1] + float64(u.CacheRead)*price[2] + float64(u.Output)*price[3]) / 1e6
 		}
 		for _, r := range o.reqs[2*i : 2*i+2] {
-			if r.JSON()["model"] != statusModels[i] {
+			if r.JSON()["model"] != models[i] {
 				fail(status, "turn %d model switch did not reach provider", i+1)
 				fail(cost, "wrong model on measured request")
 			}
@@ -274,7 +291,7 @@ func statusChecks(bin, core string, rates [4]float64, second *[4]float64) []grad
 			fail(status, "shipped primary did not declare agent_status")
 		}
 		text := skillResult(status, o.reqs[2*i+1], fmt.Sprintf("status-%d", i), false)
-		statusReport(status, text, statusModels[i], u, total)
+		statusReport(status, text, models[i], u, total)
 		statusCost(cost, text, dollars, known)
 		if i > 0 {
 			// Merely selecting another model must not reset prior counts or
@@ -297,6 +314,32 @@ func statusChecks(bin, core string, rates [4]float64, second *[4]float64) []grad
 }
 
 func statusReport(c *grade.Check, text, model string, last, total fakevendor.Canonical) {
+	if m, structured := statusJSON(c, text); structured {
+		if m == nil {
+			return
+		}
+		if m["selected_model"] != model {
+			fail(c, "status selected model got %v want %s", m["selected_model"], model)
+		}
+		for _, row := range []struct {
+			key  string
+			want fakevendor.Canonical
+		}{{"last", last}, {"session", total}} {
+			counts := object(m[row.key])
+			for key, want := range map[string]int{"input": row.want.Input, "output": row.want.Output, "cache_read": row.want.CacheRead, "cache_write": row.want.CacheWrite} {
+				got, ok := counts[key].(float64)
+				if !ok || got != float64(want) {
+					fail(c, "%s.%s got %v want %d", row.key, key, counts[key], want)
+				}
+			}
+		}
+		rate, ok := m["session_hit_rate"].(float64)
+		want := float64(total.CacheRead) / float64(total.Input+total.CacheRead+total.CacheWrite)
+		if !ok || math.IsNaN(rate) || math.IsInf(rate, 0) || rate < 0 || rate > 1 || math.Abs(rate-want) > .0015 {
+			fail(c, "session cache hit rate got %v want %.6f including writes", m["session_hit_rate"], want)
+		}
+		return
+	}
 	modelPattern := regexp.MustCompile(`(?im)^model:\s*` + regexp.QuoteMeta(model) + `\s*$`)
 	if !modelPattern.MatchString(text) {
 		fail(c, "status does not report current model %s", model)
@@ -337,6 +380,24 @@ func statusReport(c *grade.Check, text, model string, last, total fakevendor.Can
 }
 
 func statusCost(c *grade.Check, text string, want float64, known bool) {
+	if m, structured := statusJSON(c, text); structured {
+		if m == nil {
+			return
+		}
+		cost := object(m["cost"])
+		state, _ := cost["status"].(string)
+		if known && state != "known" || !known && state != "partial" && state != "unknown" {
+			fail(c, "cost status %q incompatible with priced=%t", state, known)
+		}
+		value, present := cost["usd"]
+		if known || state == "partial" || present {
+			got, ok := value.(float64)
+			if !ok || math.IsNaN(got) || math.IsInf(got, 0) || got < 0 || math.Abs(got-want) > .000051 {
+				fail(c, "session cost/subtotal got %v want independently priced %.6f", value, want)
+			}
+		}
+		return
+	}
 	m := statusCostPattern.FindStringSubmatch(text)
 	lower := strings.ToLower(text)
 	uncertain := strings.Contains(lower, "unknown") || strings.Contains(lower, "unavailable") || strings.Contains(lower, "no price") || strings.Contains(lower, "or more")
@@ -356,6 +417,20 @@ func statusCost(c *grade.Check, text string, want float64, known bool) {
 	}
 }
 
+// Interpret the correlated status tool's structured snapshot directly. Keep
+// historical prose support, but never manufacture prose to satisfy its regexes.
+func statusJSON(c *grade.Check, text string) (map[string]any, bool) {
+	if !strings.HasPrefix(strings.TrimSpace(text), "{") {
+		return nil, false
+	}
+	var m map[string]any
+	if err := json.Unmarshal([]byte(text), &m); err != nil {
+		fail(c, "invalid structured status: %v", err)
+		return nil, true
+	}
+	return m, true
+}
+
 func statusImports(core string) grade.Check {
 	c := grade.Check{ID: "reaches-through-the-chain", Title: "Resolved tools/common import boundary; ownership requires source review", Points: 15, Earned: 15, Passed: true}
 	pkgs, err := listPackages(core, "./...")
@@ -363,22 +438,26 @@ func statusImports(core string) grade.Check {
 		fail(&c, "%v", err)
 		return c
 	}
-	base := grade.DiscoverBase(core)
+	return statusImportBoundary(pkgs, grade.DiscoverBase(core))
+}
+
+func statusImportBoundary(pkgs []listedPackage, base string) grade.Check {
+	c := grade.Check{ID: "reaches-through-the-chain", Title: "Resolved tools/common import boundary; ownership requires source review", Points: 15, Earned: 15, Passed: true}
 	hub := base + "/internal/common"
-	tools := base + "/internal/tools"
+	isTools := func(path string) bool { return path == base+"/internal/tool" || path == base+"/internal/tools" }
 	foundHub, foundTools, edge := false, false, false
 	for _, p := range pkgs {
 		if p.ImportPath == hub {
 			foundHub = true
 		}
-		if p.ImportPath == tools {
+		if isTools(p.ImportPath) {
 			foundTools = true
 		}
-		if p.ImportPath != hub && p.ImportPath != tools {
+		if p.ImportPath != hub && !isTools(p.ImportPath) {
 			continue
 		}
 		for _, imp := range p.Imports {
-			if p.ImportPath == tools && imp == hub {
+			if isTools(p.ImportPath) && imp == hub {
 				edge = true
 				continue
 			}

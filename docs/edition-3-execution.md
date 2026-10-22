@@ -4,6 +4,10 @@ Bill's instructions of October 16, 2026, as amended by his later simplicity and 
 
 ## Current run
 
+**Current boundary (2026-10-22): Chapters 1–18 are closed for the lean restart.** Chapter 17 is prose-only; accepted main matches the 226-file Chapter 18 snapshot. Chapter 18 used four of ten production correction rounds, accepted local and required CLI live evidence, and one formal text PASS with no author revision. Chapter 19 is next: its entry review and chapter-specific execution authority are not yet established. The closure section below records scope and qualifications.
+
+### Earlier boundary records (superseded by the current boundary above)
+
 Restart from Chapter 1 in an empty `solutions/edition-3/main`; keep the improved manuscript and save accepted snapshots as `solutions/edition-3/chNN`. This user-authorized restart supersedes the previous external-workspace and immutable-FINAL-path policy. Use the lean workflow and direct-comparison gate below.
 
 Chapters 1–12 of the restarted run are complete, with accepted snapshots in `solutions/edition-3/ch01` through `ch12`; the evolving `main` workspace matches the 146-file Chapter 12 snapshot at closure. Chapter 12 used three of ten production-correction rounds. Root and retained independent review accepted startup skill composition, actual-peer admission, causal browser input handling, and immediate external-tool withdrawal from provider disclosure. Final same-CLI Chapter 12 and Chapter 1 grades passed, including genuine 62-second header/body observations. Scoped local/native/input observations and the seven-request real-model GUI font-change/unload/EOF exercise are accepted with earlier failures and limits preserved: no direct pixel, fresh R3 native, human-hearing or voice-locality claim. Live use was seven POSTs, one discovery GET and one memory-only key read; all remaining execution authority is expired. One formal text review required a two-path correction, fulfilled by the same author's sole response and directly verified by root—not a second formal PASS. All Chapter 12 workers are closed. Chapter 13's current contract and original reference have been read; the thin adapter route and no-launch validation are independently accepted with historical speech checks unchanged. The student has completed five production-correction rounds, with actual held-source review by root and the retained reviewer. Changed-input local gates and the same frozen CLI's Chapter 13 and Chapter 1 grades pass, including genuine 62-second header/body observations; unchanged gates carry with their recorded limits. The scoped native-channel exercise passed, including actual cancellation and recovery; Bill reported hearing its reply ending, not the entire sequence. Earlier controller failures remain failed. The first quiet-listener attempt stopped at a missing positional prompt before any model POST. The corrected exercise completed two target and seven listener POSTs, preserved a faithful five-tool report, and cleaned up; its outer controller still failed a wrong report-directory predicate. Root and retained review verified the actual report and channel correspondence without replaying paid calls. Code and scoped operations are accepted; all operational authority is exhausted. The 165-file Chapter 13 snapshot matches main. A minimal post-student author pass received one formal text PASS with zero author revisions; all code and text workers are joined and closed. Chapter 13 code, scoped operations and prose are complete. Chapter 14 entry alignment is accepted by root and the retained independent reviewer: dynamic SYSTEM instruction survivors, synthetic-only inline fixture rows, validated-BACKUP journal suffix, separate diagnostic retention and explicit known-event semantic tolerance. The thin GUI-direct adapter and focused fixture controls pass. Review caught and closed a fallback false-positive in the total-reducer probe by isolating its edited complete primary from backup/journal sources. Eight checks/100 points remain; focused grader tests are not student acceptance. The fresh student extended the byte-identical 165-file Chapter 13 predecessor to a coherent compiling HOLD. Root and the retained independent reviewer inspected the actual source and original ownership patterns before broad validation. The owner split is retained. After two production correction rounds, source was released for validation. Focused writer-boundary checks passed, but the first full root race suite failed and timed out on a staged-save reader deadlock. Root and the retained reviewer identified that production lock regression plus false capability-removal facts during recovery construction, separately from bounded inherited fixture-count/representation updates. Production round 3 of ten closed both blockers through narrow existing-owner fixes, preserved admission/reopen assertions, focused writer and menu regressions, and retained independent delta review. Renewed R3 root race/vet passed. Validation then stopped at GUI race failures caused by independently reviewed stale snapshot-anchor, positional-history and zero-history fixture assumptions, including seed-journal contamination of the context-only case. The narrow fixture-only repair passed its selected checks and root diff review; production remains held and the round count stays three. All remaining local gates passed, with the legacy JS default invocation failure preserved and only current explicit selections credited. The first Chapter 14 grade failed before model requests because the grader supplied an empty static directory. The renewed grade reached six passing checks but stopped at 85/false/exit1: the synthetic inline-model path misplaced dynamic manuals outside SYSTEM, and the isolated total-reducer setup wrongly assumed session-local skills. Root independently classified both with the retained reviewer. Production round 4 corrected instruction placement in the existing Engine owner; root and retained review accepted its field-aware actual-path checks and compact delta for validation. The separate primary-only grader fixture repair is independently reviewed and accepted. R4 core/GUI race and vet passed; fresh frozen GUI and CLI grades passed Chapter 14 at 100/true/exit0 and the first Chapter 1 gate at 100/true/exit0 with genuine 62-second header/body phases and complete usage. Root and retained review accepted code/validation after four production rounds. Unchanged module and JS results carry with their limits; all earlier failures remain preserved. The scoped real Sonnet 4.6 observation established six full reads, cuts, instruction survival, handoff and unload; its seventh task stopped at the repeated-handoff guard, and the failed receipt remains failed without normal final EOF or complete usage. No product defect or paid retry was inferred. Root accepted the required observation with those limits, joined/closed code workers, and created the identical 181-file `ch14` snapshot. The minimal author pass received one formal text PASS with zero revisions; all workers are joined and closed. Chapter 14 code and prose are complete locally. Chapter 15 code and required operational exercise are accepted after four of ten production correction rounds. R4 local gates and final Chapter 15/Chapter 1 grades passed (same frozen artifacts, genuine 62+62-second lifetime checks); prior product, fixture and controller failures remain qualified in the concise notes. One real four-turn Sonnet 4.6 browser exercise and same-directory restart passed: four POSTs, one discovery GET, one memory-only key read, $0.0755091 observed cost, actual meter/usage agreement and restart zero. No more operations are authorized. Both saved code finals were read and idle contexts closed; stale resolved root-question bookkeeping prevented join acknowledgment, not work completion. The 196-file accepted snapshot matches main. Minimal author pass and the single formal text review are complete: REQUIRED_REVISION was satisfied by the author’s sole response and direct root verification, not a second PASS. All saved worker finals were read and contexts closed. Chapter 15 closed at `eb068a3bf78d8aeca9fe67aba8d7b32001b9fd26` through the normal hook with 251 scoped paths. Chapter16 is accepted for closure after three production rounds, final local Chapter16/1 gates, and Bill's explicit live-OAuth deferral. One formal text PASS, zero author revisions; all worker finals are saved/read/JOINed and contexts closed. The 216-file accepted snapshot matches held main. Chapter16 is closed at 5110e28ae0d8d53d41ee84280dcd87e5a33c9ec6 through the normal hook (276 exactly scoped paths, unpushed). Chapter17 entry is now read: a historical field report, explicitly no new graded implementation. Main remains the accepted 216-file Chapter16 source. Root verified its cited historical archive links and original Chapter20/Edition2 Chapter19 review provenance; the new restart does not claim a repeat live crossover, new model support, or memory migration. The minimal author pass is complete (+17/-7 chapter lines); the sole formal text review passed with no author response. Root verified the diff, historical qualifications and saved lint results; both editorial finals were read, JOINed and contexts closed. Chapter17 is accepted for editorial closure, with no coder, grade, code snapshot, paid or native exercise invented for the narrative chapter. Chapter18 entry is next and has not yet been read.
@@ -110,3 +114,106 @@ Baseline copy, full-book/crossover reading, sourced carryover and light manuscri
 ## High-growth chapter review follow-up
 
 The comparative review and bounded edits to Chapters 6, 7, 8, 9, 10, 16, 22 and 26 are complete; Chapter 16 was left unchanged. Results, exact revisions and checks are recorded in `edition-3-notes/growth-review.md` and its linked JSON. Bill explicitly added a qualitative GUI design goal: attempt beauty, strong contrast and intentional tabs without a prescribed template or automated beauty score. All reviewers are closed. This does not change the remaining execution prerequisites or claim grader/live-GUI acceptance.
+
+
+### Chapter 18 restart entry alignment — 2026-10-22
+
+Chapter 17 is closed at `7417b3179bc6703598493efddfdea4d6dbc1f248`.
+Chapter 18 extends the accepted Chapter 16 source, not a Chapter 17
+snapshot; all 216 source/support files and executable modes still match.
+The root read the full public chapter, current carryover, actual grader and
+launch helpers, accepted ownership/configuration paths and original
+transport/status owners. The original is a simplicity comparison only.
+
+The thin adapter now accepts Chapter 18 with distinct CLI, GUI and source
+module identities and independently supplied status tariffs. Eleven
+checks/155 points and their assertions remain. The historical entry point
+is retained. Controlled replies identify their producer; the optional
+middle tariff selects priced Opus 4.6, otherwise a genuinely unpriced
+course model. The owned launches reuse invoice environment isolation and
+checked inert WS assets; legacy trace/log variables are removed. The
+resolved-import check admits either singular or plural registry package
+names without permitting implementation imports. Public instructions use
+the actual nested CLI, GUI flag and existing owner seams, not alias APIs.
+
+Focused entry evidence: `/private/tmp/ch18-entry-checks.HgxI4R`.
+`fixture.log`, `adapter.log` (full adapter suite), and `graph.log` each
+passed with saved exit zero. The valid-target sentinel deliberately exits
+71 and produces a failed eleven-check report: route identity, not passing
+student evidence. Baseline/final same-basename prose lint passed hard
+checks (`lint-baseline-v2`, `lint-final-v3`); contrast/person-gap warnings
+were preserved, including their small clarification-related increase.
+The later removal of a redundant launch environment assignment changes no
+lint prose. No original positive grade, student grade, live request, or
+account credential access occurred. Main remains unchanged.
+
+Root setup errors remain distinct from product failures: an early adapter
+anchor failed before writes (a trailing wrapper command masked its shell
+status); the fixed-packet helper initially lacked a closing brace; two
+prose scripts failed before writing due to quoting/incorrect anchors;
+`cmd/prose-lint` was a wrong path, corrected to `cmd/lintprose`. Root
+withdrew an unnecessary proposed runtime status probe after reading the
+actual current grader, and corrected mistaken `cmd/ensemble`, `--assets`,
+and redundant primary-variable examples before student release. The CLI
+accepts the existing JSON wrapper; plain GUI stdin is fixture clarity,
+not a diagnosed CLI failure. Documentation fetches returned HTTP 200 with
+cached metadata for the primary Anthropic pricing table; no inference call.
+
+Root accepted ENTRY after reading the corrected retained-reviewer final
+and JOIN. Its initial final had incorrect source symbol/path references;
+the explicit erratum and fresh source reread corrected them without
+changing the passing controls. The initial compiling HOLD was saved, read
+and JOINed. Root and the same retained reviewer completed whole-code review;
+three local public blockers remain: logged anonymous fallback, useful
+bearer-redacted transport errors, and stale live GUI selected-model views.
+R1 closed the anonymous fallback and GUI-view blockers; R2 closed the remaining
+long-JSON escaped-credential diagnostic leak with a minimal conservative guard.
+Root and retained reviewer read the held delta and saved regressions; R2 PASS
+FOR VALIDATION is saved/read/JOINed. The first root race gate stopped on inherited
+declaration-count/ownerless accounting fixtures; verified test-only repairs
+preserved assertions, then root/GUI race-vet and auxiliary gates passed. The
+standalone MCP DOM fixture needed its missing page-control seam; all JS checks
+then passed. First Chapter18 grade failed105/155: public unknown-only refusal
+wording required narrow production R3, while root repaired a stale model-control
+driver independently. R3 and the model-control fixture were accepted. The next grade failed120/155
+because the root status reader only understood historical prose; a separately
+reviewed strict JSON interpretation preserved all substantive checks. Grade18-v3
+passed155/155 and Chapter1-v1 passed100/100 with both62-second phases. Local
+code acceptance was saved/read/JOINed. Bill then authorized live tests/API keys.
+The first finite attempt failed because root reconstructed the wrong primary
+and prompts; the current book was correct. The corrected exact-book attempt
+completed real anonymous MCP setup, then Anthropic rejected a deferred tool
+carrying a cache marker. Source and primary documentation establish an inherited
+Engine marker-legality defect. R4/10 is released to the SAME student, with the
+SAME retained reviewer. A connection-reset model interruption resumed that
+context without replaying completed checks. No new live attempt is released
+until the held fix is reviewed and locally validated. Chapter18 remains open.
+
+### Chapter 18 code/operations acceptance and editorial release
+
+Root read the final retained review, JOINed, and closed both code contexts. R4 source and required exact-book CLI live exercise accepted, with first setup failure, provider400 and all local failures preserved; no optional GUI/browser/native/install claim. Fresh same-source Chapter18-v4/Chapter1-v2 passed155/155 and100/100, true/exit0; other unchanged evidence carried explicitly. On2026-10-22 the successful attempt used8 modelPOSTs (sixSonnet4.6/twoOpus4.6), one real search/scrape, exact status and human switch, normalEOF; model tariff calculation$0.23440875 excludes Firecrawl/priorattempts and is not invoice proof. Root verified all five CLI snapshots/two pairedtoolreports and fetched release/filename, including honest truncation qualification. Copied and byte/executable-mode verified226source/support files into `solutions/edition-3/ch18`, excluding scratch/private/settings/binaries. Main remains held; fresh minimal author then ONE textreview, root verification and scoped normalhook commit remain.
+
+### Chapter 18 closure — 2026-10-22
+
+Root read and agreed with the fresh author delta, saved lint receipts and single
+independent text PASS; no author revision was needed. Both editorial workers
+submitted, were JOINed, and were closed. The chapter preserves the preface,
+history and correct primary recipe; additions explain deferred-tool marker
+eligibility and the dated, qualified successful CLI observation. Baseline/final
+lint exited 0 with the same two soft-warning categories. Earlier setup failures,
+HTTP 400, local failures and their corrections remain in the ordinary notes.
+
+The existing `ch18` snapshot still matches all 226 accepted main source/support
+files byte-for-byte and in executable modes. The historical integration test now
+targets that snapshot's distinct nested CLI/GUI with independent Sonnet 4.6
+rates; `/private/tmp/ch18-closure-compile.pCHRwK` records compile-only exit 0,
+not another grade. Final acceptance remains R4 grade18-v4 155/155 and grade1-v2
+100/100, both true/exit 0, plus the accepted bounded CLI exercise; unchanged
+checks retain their earlier qualifications. No optional GUI/native/authenticated
+MCP result, invoice proof, installation, restart or publication is claimed.
+
+Closure uses an explicit path list through the normal credential hook. Runtime
+handoff work, Chapter 14 prose, concurrent papers, credentials and scratch stay
+outside that commit. Chapter 19 follows only after this local closure; start
+with its full current contract, carryover and grading-route entry review, not
+with inherited operational permissions or replayed Chapter 18 gates.

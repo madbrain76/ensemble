@@ -6,7 +6,6 @@ import (
 	"ensemble/internal/mcp"
 	"io"
 	"net"
-	"sync"
 )
 
 type MCPServer = common.MCPServer
@@ -40,29 +39,10 @@ func ServeMCP(ctx context.Context, a Agent, t MCPTransport) error {
 // ListenMCP serves dedicated TCP sessions until cancellation. It does not start
 // the GUI HTTP server or consume conversational stdin.
 func ListenMCP(ctx context.Context, a Agent, address string) error {
-	listener, err := net.Listen("tcp", address)
+	listener, err := StartMCPListener(ctx, a, address)
 	if err != nil {
 		return err
 	}
 	defer listener.Close()
-	stop := context.AfterFunc(ctx, func() { _ = listener.Close() })
-	defer stop()
-	var workers sync.WaitGroup
-	defer workers.Wait()
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			if ctx.Err() != nil {
-				return nil
-			}
-			return err
-		}
-		workers.Add(1)
-		go func() {
-			defer workers.Done()
-			if err := ServeMCP(ctx, a, NewMCPStream(conn)); err != nil && ctx.Err() == nil {
-				a.Parent().Logger().Printf("MCP connection: %v", err)
-			}
-		}()
-	}
+	return listener.Wait()
 }

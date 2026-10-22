@@ -60,15 +60,20 @@ func (p *processPipe) Close() error {
 	<-p.done
 	return nil
 }
-func dial(ctx context.Context, c common.MCPServer, base string, diagnostics io.Writer) (common.MCPTransport, error) {
+func dial(ctx context.Context, c common.MCPServer, base string, diagnostics io.Writer, environment ...string) (common.MCPTransport, error) {
 	switch c.Transport {
+	case "url":
+		return newHTTPTransport(c, diagnostics)
 	case "stdio":
 		if c.Command == "" {
 			return nil, errors.New("MCP stdio requires command")
 		}
 		cmd := exec.Command(c.Command, c.Args...)
 		cmd.Dir = base
-		cmd.Env = common.ProcessEnvironment()
+		cmd.Env = environment
+		if cmd.Env == nil {
+			cmd.Env = common.ProcessEnvironment()
+		}
 		cmd.Stderr = diagnostics
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		in, err := cmd.StdinPipe()

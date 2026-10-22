@@ -238,6 +238,8 @@ func (a *agent) run() {
 			case factRequest:
 				_, err := a.record(m.event)
 				m.reply <- err
+			case modelRequest:
+				m.reply <- a.changeModel(m.model)
 			case contextRequest:
 				a.contextRequest(m)
 			case *request:

@@ -102,6 +102,42 @@ func TestChapter11AutomaticAnthropicProjection(t *testing.T) {
 					}
 					ch5Reply(w, ch5Call("projection-load", "load_skill", map[string]string{"name": "writer"}))
 				} else {
+					// Validate the actual provider request after the real load
+					// result disclosed the deferred catalog entries.
+					var request struct {
+						Tools []struct {
+							Name         string          `json:"name"`
+							Deferred     bool            `json:"defer_loading"`
+							CacheControl json.RawMessage `json:"cache_control"`
+						}
+					}
+					if err := json.Unmarshal(raw, &request); err != nil {
+						t.Error(err)
+					}
+					lastEligible, marked, toolMarkers := -1, -1, 0
+					for i, tool := range request.Tools {
+						if !tool.Deferred {
+							lastEligible = i
+						}
+						if len(tool.CacheControl) > 0 {
+							marked = i
+							toolMarkers++
+							if tool.Deferred {
+								t.Errorf("illegal provider request: %s has defer_loading and cache_control", tool.Name)
+							}
+						}
+					}
+					count := strings.Count(string(raw), `"cache_control"`)
+					if supported {
+						if lastEligible < 0 || marked != lastEligible || toolMarkers != 1 {
+							t.Errorf("tool breakpoint: eligible=%d marked=%d count=%d", lastEligible, marked, toolMarkers)
+						}
+						if count < 2 || count > 4 {
+							t.Errorf("cache marker budget=%d", count)
+						}
+					} else if count != 0 {
+						t.Errorf("unsupported model gained cache markers: %s", raw)
+					}
 					ch5Reply(w, map[string]string{"type": "text", "text": "done"})
 				}
 			}))
@@ -140,6 +176,18 @@ func TestChapter11AutomaticAnthropicProjection(t *testing.T) {
 				t.Fatalf("requests=%d", requests.Load())
 			}
 			before, after := <-captured, <-captured
+			if supported {
+				var initialWire, disclosedWire struct{ Tools []c11ProjectionDefinition }
+				if err := json.Unmarshal(before, &initialWire); err != nil {
+					t.Fatal(err)
+				}
+				if err := json.Unmarshal(after, &disclosedWire); err != nil {
+					t.Fatal(err)
+				}
+				if !reflect.DeepEqual(initialWire.Tools, disclosedWire.Tools) {
+					t.Fatal("disclosure changed catalog order, schemas or defer flags")
+				}
+			}
 			firstCatalog := c11ProjectionCatalog(t, before)
 			secondCatalog := c11ProjectionCatalog(t, after)
 			if d, ok := firstCatalog["write_file"]; supported {

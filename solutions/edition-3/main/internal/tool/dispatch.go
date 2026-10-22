@@ -173,7 +173,7 @@ func (r *registry) prepare(ctx context.Context, call common.Part, refusal string
 		o.limits, o.err = parseLimits(o.args, o.limits)
 	}
 	if selected == nil {
-		o.err = fmt.Errorf("unknown or disabled tool %q", call.Name)
+		o.err = fmt.Errorf("unknown tool %q", call.Name)
 	}
 	if refusal != "" {
 		o.err = errors.New(refusal)

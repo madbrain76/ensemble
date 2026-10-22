@@ -146,8 +146,11 @@ func TestChapter15LegalMarkersPreserveContent(t *testing.T) {
 }
 
 func TestChapter15CostsKeepCapturedIdentity(t *testing.T) {
-	e := &engine{last: common.UnknownUsage()}
 	cfg := common.Config{Vendor: common.Anthropic, Surface: common.Messages, Model: "route"}
+	e, err := New(parseAgent{config: cfg})
+	if err != nil {
+		t.Fatal(err)
+	}
 	first := common.ResponseData{From: common.Provenance{Model: "claude-sonnet-4-6"}, Usage: common.Usage{Input: 100, Output: 10, CacheRead: 80, CacheWrite: 20}}
 	e.account(cfg, &first)
 	s := e.Status()
@@ -168,8 +171,11 @@ func TestChapter15CostsKeepCapturedIdentity(t *testing.T) {
 }
 
 func TestChapter15WeightedRatesAndUnknownPrices(t *testing.T) {
-	e := &engine{last: common.UnknownUsage()}
 	cfg := common.Config{Vendor: common.Anthropic, Surface: common.Messages, Model: "claude-sonnet-4-6"}
+	e, err := New(parseAgent{config: cfg})
+	if err != nil {
+		t.Fatal(err)
+	}
 	e.account(cfg, &common.ResponseData{Usage: common.Usage{Input: 20, CacheRead: 80}})
 	e.account(cfg, &common.ResponseData{Usage: common.Usage{Input: 300}})
 	s := e.Status()
@@ -179,9 +185,70 @@ func TestChapter15WeightedRatesAndUnknownPrices(t *testing.T) {
 	if _, ok := common.LookupPrices(common.Anthropic, common.ChatCompletions, cfg.Model); ok {
 		t.Fatal("price crossed API surface")
 	}
-	unknown := &engine{last: common.UnknownUsage()}
-	unknown.account(common.Config{Vendor: common.OpenAI, Surface: common.ChatCompletions, Model: "unpriced"}, &common.ResponseData{Usage: common.Usage{Input: 10, Output: 2}})
+	unknownCfg := common.Config{Vendor: common.OpenAI, Surface: common.ChatCompletions, Model: "unpriced"}
+	unknown, err := New(parseAgent{config: unknownCfg})
+	if err != nil {
+		t.Fatal(err)
+	}
+	unknown.account(unknownCfg, &common.ResponseData{Usage: common.Usage{Input: 10, Output: 2}})
 	if unknown.Status().Cost.Status != "unknown" {
 		t.Fatal("invented price")
+	}
+}
+
+func TestChapter18ToolCacheBreakpointEligibility(t *testing.T) {
+	cfg := common.Config{Vendor: common.Anthropic, Surface: common.Messages, Model: "claude-sonnet-4-6"}
+	c := common.Context{System: "stable system", Dialogue: []common.Entry{{Actor: common.Human, Parts: common.PartList{common.Text("question")}}}}
+	for _, tc := range []struct {
+		name    string
+		enabled []bool
+		want    int
+	}{
+		{"last eligible before deferred tail", []bool{true, true, false}, 1},
+		{"eligible final entry", []bool{true, false, true}, 2},
+		{"all deferred", []bool{false, false}, -1},
+		{"empty catalog", []bool{}, -1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			catalog := []common.ToolSpec{}
+			for i, enabled := range tc.enabled {
+				catalog = append(catalog, common.ToolSpec{ToolDefinition: common.ToolDefinition{Name: []string{"first", "second", "third"}[i], Description: "unchanged", Parameters: json.RawMessage(`{"type":"object","properties":{}}`)}, Enabled: enabled})
+			}
+			before, _ := json.Marshal(catalog)
+			body, err := render(c, cfg, nil, anthropicDisclosure{catalog: catalog})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var wire struct{ Tools []aDefinition }
+			if err := json.Unmarshal(body, &wire); err != nil {
+				t.Fatal(err)
+			}
+			if len(wire.Tools) != len(catalog) {
+				t.Fatalf("catalog length changed: %s", body)
+			}
+			markers := 0
+			for i, tool := range wire.Tools {
+				if tool.Name != catalog[i].Name || tool.Description != catalog[i].Description || string(tool.InputSchema) != string(catalog[i].Parameters) || tool.DeferLoading == tc.enabled[i] {
+					t.Fatalf("catalog changed: %s", body)
+				}
+				if tool.CacheControl != nil {
+					markers++
+					if i != tc.want || tool.DeferLoading {
+						t.Fatalf("illegal or misplaced tool marker: %s", body)
+					}
+				}
+			}
+			wantMarkers := 0
+			if tc.want >= 0 {
+				wantMarkers = 1
+			}
+			if markers != wantMarkers || strings.Count(string(body), `"cache_control"`) != 2+wantMarkers {
+				t.Fatalf("system/history/tool marker budget changed: %s", body)
+			}
+			after, _ := json.Marshal(catalog)
+			if string(after) != string(before) {
+				t.Fatal("render mutated catalog")
+			}
+		})
 	}
 }
