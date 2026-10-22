@@ -59,6 +59,12 @@ failures, editing a file and passing the unchanged tests. That is a
 concrete step toward replacing a daily driver; it is not the same
 as having written the next edition with it.
 
+**Edition 3 restart scope.** The accepted Chapter 16 implementation
+remains the code predecessor. This chapter adds no implementation
+task, grader, or code snapshot. The October 11 run below is historical
+evidence; no new live crossover or private-memory migration has been
+performed for this restart.
+
 ---
 
 ## 17.1 What Breaks on Day One
@@ -685,10 +691,14 @@ summary. This was one bounded coding task, without a steering or
 GUI demonstration. It establishes more than a configuration change
 and less than general project reliability or authorship of Edition 3.
 
-### Try the same task
+### Try the same task: historical reproduction
 
-There is no grader for this chapter. To try the recorded task,
-start in the repository root and build the accepted Chapter 17 CLI:
+There is no grader for this chapter. The commands below describe a
+reproduction of the recorded task using the historical second-edition
+reference in `solutions/ch17/`. They are not a new Edition 3 student
+assignment or proof that restarted main supports this route. Any fresh
+live run needs separate account authorization. For that reproduction,
+start in the repository root:
 
 ```sh
 chapter19_repo=$PWD
@@ -712,10 +722,10 @@ EOF
 
 This reproduction uses an explicit primary skill; the recorded live
 run used the default registered tools. Keep `EN_HOME` set to your
-own dedicated Ensemble profile from Chapter 16, and use `auth status`
-and `auth models` to check sign-in and the account's available model.
-If needed, sign in through the same Chapter 16 flow. Do not borrow
-another application's credential files.
+own dedicated Ensemble profile for that historical implementation,
+and use `auth status` and `auth models` to check sign-in and the
+account's available model. If needed, use its Chapter 16 sign-in flow.
+Do not borrow another application's credential files.
 
 ```sh
 /tmp/ensemble-ch19 auth status
