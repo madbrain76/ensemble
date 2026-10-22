@@ -78,6 +78,9 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 		return nil, errors.New("ANTHROPIC_MODEL is not set; ask GET /v1/models which models exist")
 	}
 
+	if err := common.NormalizeOpenAI(&config); err != nil {
+		return nil, err
+	}
 	if config.Vendor == 0 {
 		config.Vendor = common.Anthropic
 	}
@@ -106,7 +109,7 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	default:
 		return nil, errors.New("unknown vendor")
 	}
-	if (config.Vendor == common.Anthropic && config.Surface != common.Messages) || (config.Vendor == common.OpenAI && config.Surface != common.ChatCompletions) || (config.Vendor == common.Gemini && config.Surface != common.GenerateContent) {
+	if (config.Vendor == common.Anthropic && config.Surface != common.Messages) || (config.Vendor == common.OpenAI && config.Surface != common.ChatCompletions && config.Surface != common.Responses) || (config.Vendor == common.Gemini && config.Surface != common.GenerateContent) {
 		return nil, errors.New("unsupported vendor surface")
 	}
 	config.BaseURL = strings.TrimRight(config.BaseURL, "/")

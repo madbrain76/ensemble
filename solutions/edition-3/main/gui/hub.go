@@ -180,12 +180,12 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 	}
 	for _, e := range v.agent.Log().EventsRange(v.cursor, s.Through) {
 		for _, f := range v.ids.project(id, e) {
-			if f.Type == "part_final" && f.Part != nil && f.Part.Role == "agent" && f.Part.Kind == "text" {
+			if f.Type == "part_final" && f.Part != nil && f.Part.Role == "agent" && (f.Part.Kind == "text" || f.Part.Kind == "reasoning_summary") {
 				// A coalesced checkpoint may already contain the final and no
 				// partial. Deliver its unseen suffix first under the same ID.
 				seen := v.partial[f.PartID].Text
 				if strings.HasPrefix(f.Part.Text, seen) && len(f.Part.Text) > len(seen) {
-					h.broadcast(Wire{Type: "part_delta", AgentID: id, PartID: f.PartID, TurnID: f.Part.TurnID, Kind: "text", Chunk: f.Part.Text[len(seen):]})
+					h.broadcast(Wire{Type: "part_delta", AgentID: id, PartID: f.PartID, TurnID: f.Part.TurnID, Kind: f.Part.Kind, Chunk: f.Part.Text[len(seen):]})
 				}
 			}
 			if f.Type != "job_update" {
@@ -271,7 +271,7 @@ func (h *Hub) narrate(v *agentView, id uint64, c Card, final bool) {
 	if c.Text == "" || strings.HasPrefix(c.Text, "[opaque") {
 		return
 	}
-	if c.Kind != "text" && c.Kind != "thinking" && c.Kind != "tool_call" && !(c.Kind == "tool_result" && c.IsError) {
+	if c.Kind != "text" && c.Kind != "thinking" && c.Kind != "reasoning_summary" && c.Kind != "tool_call" && !(c.Kind == "tool_result" && c.IsError) {
 		return
 	}
 	if c.Role != "agent" && c.Role != "human" && !(c.Role == "tool" && c.IsError) {
@@ -329,9 +329,10 @@ type replayAgent struct {
 	Meter  ensemble.EngineStatus `json:"meter"`
 	ID     string                `json:"id"`
 	Config struct {
-		Vendor  ensemble.Vendor  `json:"vendor"`
-		Model   string           `json:"model"`
-		Surface ensemble.Surface `json:"surface"`
+		Vendor      ensemble.Vendor   `json:"vendor"`
+		Model       string            `json:"model"`
+		Surface     ensemble.Surface  `json:"surface"`
+		BillingMode ensemble.AuthMode `json:"billing_mode,omitempty"`
 	} `json:"config"`
 	State controlState `json:"state"`
 }
@@ -389,6 +390,7 @@ func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
 		a.Config.Vendor = cfg.Vendor
 		a.Config.Model = cfg.Model
 		a.Config.Surface = cfg.Surface
+		a.Config.BillingMode = cfg.AuthMode
 		data.Agents = append(data.Agents, a)
 		data.Events = append(data.Events, skillFrame(v.agent))
 		initialUsage := usageWire(id, a.Meter)

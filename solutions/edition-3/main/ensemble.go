@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"ensemble/internal/agent"
+	"ensemble/internal/auth"
 	"ensemble/internal/common"
 	"ensemble/internal/engine"
 	"ensemble/internal/history"
@@ -58,6 +59,7 @@ type Cost = common.Cost
 // Ensemble owns its Agents and logger; it has no invented parent of its own.
 // Construction wires children before the single conversation actor starts.
 type Ensemble struct {
+	auth         common.Auth
 	mu           sync.Mutex
 	closed       bool
 	nextHandle   int
@@ -79,7 +81,7 @@ func New(logger *log.Logger) *Ensemble {
 	if logger == nil {
 		logger = log.New(io.Discard, "", 0)
 	}
-	e := &Ensemble{traceQueue: make(chan traceWrite, 128), logger: logger, jobs: make(map[int]common.Job), watchers: make(map[uint64]chan AgentObservation), identified: make(map[uint64]*identifiedSubscriber), shutdownDone: make(chan struct{})}
+	e := &Ensemble{auth: auth.New(auth.Options{}), traceQueue: make(chan traceWrite, 128), logger: logger, jobs: make(map[int]common.Job), watchers: make(map[uint64]chan AgentObservation), identified: make(map[uint64]*identifiedSubscriber), shutdownDone: make(chan struct{})}
 	go e.runTrace()
 	return e
 }
@@ -124,6 +126,13 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 			return nil, err
 		}
 		config.SavePath = filepath.Join(dataDir, fmt.Sprintf("agent-%d", id), "save.json")
+	}
+	if config.Vendor == common.OpenAI && config.AuthMode == "" {
+		mode, err := e.Auth().Mode(context.Background())
+		if err != nil {
+			return nil, err
+		}
+		config.AuthMode = mode
 	}
 	a, err := agent.New(e, config)
 	if err != nil {
@@ -220,6 +229,7 @@ const (
 	Gemini          = common.Gemini
 	Messages        = common.Messages
 	ChatCompletions = common.ChatCompletions
+	Responses       = common.Responses
 	GenerateContent = common.GenerateContent
 	MessageReceived = common.MessageReceived
 	System          = common.System
@@ -332,6 +342,7 @@ type Observation = common.Observation
 type Observer = common.Observer
 type ViewSnapshot = common.ViewSnapshot
 type TurnState = common.TurnState
+type BillingSelected = common.BillingSelected
 type PartDelta = common.PartDelta
 type PartFinal = common.PartFinal
 type HintObserved = common.HintObserved
@@ -341,9 +352,10 @@ type DeltaKind = common.DeltaKind
 type Frame = common.Frame
 
 const (
-	DeltaText     = common.DeltaText
-	DeltaThinking = common.DeltaThinking
-	DeltaToolCall = common.DeltaToolCall
+	DeltaText             = common.DeltaText
+	DeltaThinking         = common.DeltaThinking
+	DeltaReasoningSummary = common.DeltaReasoningSummary
+	DeltaToolCall         = common.DeltaToolCall
 )
 
 type TraceRecord = common.TraceRecord

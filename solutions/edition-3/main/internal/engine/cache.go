@@ -164,6 +164,9 @@ func (c *cache) Observe(cfg common.Config, body []byte) common.CachePrediction {
 			}
 		}
 	}
+	if cfg.Surface == common.Responses {
+		prediction.Reason += "; private continuation redacted from local comparison"
+	}
 	status.Prediction = prediction
 	c.previous, c.current = c.current, append([]byte(nil), body...)
 	// Retain only routing metadata, never a Config copy containing credentials.

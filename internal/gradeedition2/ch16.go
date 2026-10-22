@@ -46,10 +46,15 @@ func subscriptionChecks(bin string) contextResult {
 		r.Fatal = err.Error()
 		return r
 	}
-	os.MkdirAll(gui, 0755)
+	if err := contextStaticFixture(gui); err != nil {
+		r.Fatal = err.Error()
+		return r
+	}
 	run := func(name string, o subscriptionOpts) subscriptionOut {
 		cwd := filepath.Join(dir, name)
-		os.MkdirAll(cwd, 0755)
+		if err := os.MkdirAll(cwd, 0755); err != nil {
+			return subscriptionOut{fatal: err.Error()}
+		}
 		return subscriptionLaunch(bin, skills, gui, cwd, o)
 	}
 	a := run("plan", subscriptionOpts{prompts: []string{"Explain the migration.", "Now read a file."}, gate: true, responses: grade.Edition2ResponsesOptions{Scenarios: []string{"summary_then_text", "summary_around_toolcall", "text"}, InputTokens: 1100, CachedTokens: 200, CacheWriteTokens: 100, OutputTokens: 50, ReasoningTokens: 17}})

@@ -118,18 +118,18 @@ function renderCard(record) {
  node.dataset.agentId=frame.agent_id;node.dataset.partId=String(frame.part_id);node.id=`part-${frame.agent_id}-${frame.part_id}`;
  node.replaceChildren();node.className=`card ${c.type} ${c.role==='human'?'human':''} ${c.partial?'partial':''} ${c.is_error?'error':''}`;
  const heading=element('div','card-title');
- const names={text:c.role==='human'?'You':c.role==='system'?'System':'Assistant',thinking:'Thinking',tool_call:`Tool request · ${c.name||'pending'}`,tool_result:`Tool result · ${c.name||c.call_id||''}`,image:'Image',audio:'Audio',video:'Video',file:'File'};
+ const names={text:c.role==='human'?'You':c.role==='system'?'System':'Assistant',thinking:'Thinking',reasoning_summary:'Reasoning summary',continuation:'Private continuation',tool_call:`Tool request · ${c.name||'pending'}`,tool_result:`Tool result · ${c.name||c.call_id||''}`,image:'Image',audio:'Audio',video:'Video',file:'File'};
  heading.append(element('span','',names[c.type]||c.type));
  if(c.partial) heading.append(element('span','','Streaming…'));
  if(c.type==='tool_call'&&frame.type!=='job_update') heading.append(element('span',c.dispatched?'badge':'',c.dispatched?'Dispatched':'Requested · not dispatched'));
  if(c.is_error) heading.append(element('span','','Error'));
  if(c.from) heading.append(element('span','muted',`${c.from.vendor} / ${c.from.model}`));
- if(!c.partial && c.text && ['text','thinking','tool_call','tool_result'].includes(c.type) && !c.text.startsWith('[opaque')) {
+ if(!c.partial && c.text && ['text','thinking','reasoning_summary','tool_call','tool_result'].includes(c.type) && !c.text.startsWith('[opaque')) {
   const speak=element('button','','Speak');speak.title='Speak the complete readable part';speak.onclick=()=>send('speak',{agent_id:frame.agent_id,part_id:frame.part_id});heading.append(speak);
  }
  node.append(heading);
  if(c.type==='tool_call') {if(c.partial)node.append(toolContent(c));else {node.append(element('div','preview',`${c.name} · ${JSON.stringify(c.args??{}).slice(0,160)}`));node.append(fullDetails('Full request / edit diff',toolContent(c),wasOpen));}if(c.call_id)node.append(element('div','muted',`Provider call: ${c.call_id}`));}
- else if(c.type==='thinking'&&!c.partial){node.append(element('div','preview',(c.text||'').slice(0,180)));node.append(fullDetails('Full thinking',element('div','body',c.text||''),wasOpen));}
+ else if(['thinking','reasoning_summary'].includes(c.type)&&!c.partial){node.append(element('div','preview',(c.text||'').slice(0,180)));node.append(fullDetails(c.type==='reasoning_summary'?'Full reasoning summary':'Full thinking',element('div','body',c.text||''),wasOpen));}
  else if(c.type==='tool_result') {
   const text=c.text||'',preview=element('div','body preview',text.length>400?text.slice(0,400)+'…':text);node.append(preview);
   const details=element('details');details.open=!!wasOpen;details.append(element('summary','',`Full result · ${text.length.toLocaleString()} characters`),element('pre','body',text));node.append(details);
@@ -244,7 +244,7 @@ function renderMeter(){
   ...(c.diagnostic_error?[`Diagnostic file error: ${c.diagnostic_error}`]:[])
  ].join('\n');
 }
-function controls(){skillView();renderMeter();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface;$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
+function controls(){skillView();renderMeter();const a=agents.get(selected);renderAgentTree(a);if(!a)return;const s=a.state;$('vendor').textContent=a.config.vendor;$('model').textContent=a.config.model;$('surface').textContent=a.config.surface+(a.config.billing_mode?' · '+a.config.billing_mode+' funding':'');$('state').textContent=s.paused?'Paused':s.turn.replaceAll('_',' ');$('reason').textContent=s.reason||'';$('pause').disabled=s.paused;$('continue').disabled=!s.paused;$('audio-status').textContent=s.speaking?'Speech enabled':'Speech disabled';}
 function replay(data){
  mcpAgents.clear();mcpReady.clear();
  const previousAgents=new Map(agents);if(session!==data.session)observedTurns.clear();

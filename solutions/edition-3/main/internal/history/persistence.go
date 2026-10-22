@@ -306,7 +306,7 @@ func savedConfig(c common.SavedConfig) error {
 			c.Surface = common.GenerateContent
 		}
 	}
-	if !((c.Vendor == common.Anthropic && c.Surface == common.Messages) || (c.Vendor == common.OpenAI && c.Surface == common.ChatCompletions) || (c.Vendor == common.Gemini && c.Surface == common.GenerateContent)) {
+	if !((c.Vendor == common.Anthropic && c.Surface == common.Messages) || (c.Vendor == common.OpenAI && (c.Surface == common.ChatCompletions || c.Surface == common.Responses)) || (c.Vendor == common.Gemini && c.Surface == common.GenerateContent)) {
 		return fmt.Errorf("invalid saved provider surface")
 	}
 	switch c.StreamCapability {

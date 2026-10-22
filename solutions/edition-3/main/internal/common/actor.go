@@ -87,6 +87,12 @@ type ViewSnapshot struct {
 	SpeechID         uint64
 	Speech           SpeechRequested
 }
+type BillingSelected struct {
+	Mode AuthMode `json:"mode"`
+}
+
+func (BillingSelected) observation() {}
+
 type ViewChanged struct{}
 
 func (ViewChanged) observation() {}
@@ -98,9 +104,10 @@ func (HistoryCommitted) observation() {}
 type DeltaKind string
 
 const (
-	DeltaText     DeltaKind = "text"
-	DeltaThinking DeltaKind = "thinking"
-	DeltaToolCall DeltaKind = "tool_call"
+	DeltaText             DeltaKind = "text"
+	DeltaThinking         DeltaKind = "thinking"
+	DeltaReasoningSummary DeltaKind = "reasoning_summary"
+	DeltaToolCall         DeltaKind = "tool_call"
 )
 
 type PartDelta struct {
@@ -159,16 +166,29 @@ const (
 	MediaDocument
 )
 
+// ResponsesFeatures describes only the Responses contract for an exact model.
+// It does not grant the same capabilities to that model on another API.
+type ResponsesFeatures struct {
+	DefaultEffort          string
+	Summary                bool
+	RequireToolExplanation bool
+}
+
 type ModelFeatures struct {
 	InlineTools      bool
 	StubsToolResults bool
 	Media            Media
 	Streaming        StreamCapability
+	Responses        *ResponsesFeatures
 }
 
 // Exact rows only. An absent row permits text, never guessed attachments.
 func LookupModel(model string) (ModelFeatures, bool) {
 	switch model {
+	case "gpt-ch19-course", "gpt-6.1-sol", "gpt-5.6-sol":
+		// These rows do not require an ordinary-text tool prelude. Public
+		// reasoning summaries remain separate facts, not evidence for that gate.
+		return ModelFeatures{Streaming: StreamSSE, Responses: &ResponsesFeatures{DefaultEffort: "medium", Summary: true}}, true
 	case "claude-opus-5-course":
 		return ModelFeatures{InlineTools: true, StubsToolResults: true}, true
 	case "claude-sonnet-5-course":

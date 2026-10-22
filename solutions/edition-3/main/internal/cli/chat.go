@@ -68,6 +68,8 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 	drain := func() error {
 		for _, observation := range progress.Drain() {
 			switch v := observation.(type) {
+			case ensemble.BillingSelected:
+				fmt.Fprintf(diagnostics, "\nfunding> %s\n", v.Mode)
 			case ensemble.PartDelta:
 				key := partKey{v.TurnID, v.ResponseID, v.PartID}
 				firstDelta := !streamed[key]
@@ -82,7 +84,7 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 						fmt.Fprint(diagnostics, "\ntool> ")
 					}
 					fmt.Fprint(diagnostics, v.Chunk)
-				case "thinking":
+				case "thinking", "reasoning_summary":
 					if !thinking {
 						fmt.Fprint(diagnostics, "\nthinking> ")
 						thinking = true
@@ -99,7 +101,7 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 							return err
 						}
 					}
-				case "thinking":
+				case "thinking", "reasoning_summary":
 					if !streamed[key] {
 						fmt.Fprintln(diagnostics, "\nthinking> "+v.Part.Text)
 					}

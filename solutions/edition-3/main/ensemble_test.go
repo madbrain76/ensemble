@@ -263,7 +263,9 @@ func TestCancellationWhileWaiting(t *testing.T) {
 				}
 			}))
 			defer func() { close(release); server.Close() }()
-			a := newAgent(t, ensemble.New(nil), server.URL, "fake-key", "fake-model")
+			app := ensemble.New(nil)
+			defer app.Shutdown()
+			a := newAgent(t, app, server.URL, "fake-key", "fake-model")
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			done := make(chan error, 1)
@@ -276,11 +278,52 @@ func TestCancellationWhileWaiting(t *testing.T) {
 			cancel()
 			select {
 			case err := <-done:
-				if !errors.Is(err, context.Canceled) || len(a.History()) != 0 || a.Usage() != (ensemble.Usage{}) {
-					t.Fatalf("cancellation result: %v", err)
+				if !errors.Is(err, context.Canceled) {
+					t.Fatalf("caller error=%v, want context.Canceled", err)
+				}
+				if completed := a.History(); len(completed) != 0 {
+					t.Fatalf("completed-text history after cancellation=%+v", completed)
 				}
 			case <-time.After(5 * time.Second):
 				t.Fatal("caller cancellation did not release HTTP wait")
+			}
+			// Ask interruption can precede Engine completion. Join the actual
+			// worker, then use its stale canonical receipt (not the completed-
+			// text History view or the actor's own interruption error) to choose
+			// the one truthful accounting outcome for this request.
+			stopped := make(chan error, 1)
+			go func() { stopped <- app.Shutdown() }()
+			select {
+			case err := <-stopped:
+				if err != nil {
+					t.Fatalf("shutdown join: %v", err)
+				}
+			case <-time.After(5 * time.Second):
+				t.Fatal("canceled worker did not settle")
+			}
+			var receipts []string
+			for _, event := range a.Log().Events() {
+				if event.Type == ensemble.ErrorOccurred && event.Stale && event.Error != nil {
+					receipts = append(receipts, event.Error.Message)
+				}
+			}
+			if len(receipts) != 1 {
+				t.Fatalf("settled worker receipts=%q usage=%+v canonical_events=%+v", receipts, a.Usage(), a.Log().Events())
+			}
+			wantUsage := ensemble.Usage{}
+			switch receipts[0] {
+			case context.Canceled.Error(): // Do did not return response headers.
+			case "reading response failed", "decoding response failed":
+				if !bodyPhase {
+					t.Fatalf("unexpected HTTP-200 parse receipt before headers: %q", receipts)
+				}
+				wantUsage = ensemble.Usage{Input: -1, Output: -1, CacheRead: -1, CacheWrite: -1}
+			default:
+				t.Fatalf("unexpected settled worker receipt=%q usage=%+v", receipts, a.Usage())
+			}
+			completed, usage := a.History(), a.Usage()
+			if len(completed) != 0 || usage != wantUsage {
+				t.Fatalf("settled cancellation: completed_text_history=%+v usage=%+v want_usage=%+v worker_receipts=%q", completed, usage, wantUsage, receipts)
 			}
 		})
 	}

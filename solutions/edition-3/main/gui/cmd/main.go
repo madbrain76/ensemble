@@ -17,6 +17,15 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "auth" {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+		if err := ensemble.RunAuthCommand(ctx, ensemble.NewAuth(ensemble.AuthOptionsFromEnv(os.Getenv)), os.Args[2:], os.Stdout, nil); err != nil {
+			log.Print(err)
+			os.Exit(1)
+		}
+		return
+	}
 	guiDebug := flag.Bool("gui-debug", false, "load gui-debug at startup")
 	skillsDir := flag.String("skills-dir", "", "skill directory (default: ./skills when ensemble is present)")
 	port := flag.Int("port", 8088, "loopback HTTP port")
@@ -63,6 +72,9 @@ func main() {
 		}
 	})
 	root := ensemble.New(log.Default())
+	if err := root.SetAuth(ensemble.NewAuth(ensemble.AuthOptionsFromEnv(os.Getenv))); err != nil {
+		log.Fatal(err)
+	}
 	var trace *ensemble.DiagnosticLog
 	ready, normalExit := false, false
 	defer func() {

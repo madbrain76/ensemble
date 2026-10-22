@@ -176,7 +176,7 @@ For Chapter 11, extend accepted Chapter 10 and use the same command and separate
 
 For Chapter 12, extend accepted Chapter 11 and use the same explicit artifact/model flags above with `-ch 12`, followed by `-ch 1` on the **same frozen CLI**. The Chapter 12 route checks startup skill selection, explicitly requested snapshots and speech queues, real click/input effects, unload refusal/peer teardown, and Chapter 11 parity. Browser observations must not be injected automatically; legitimate tool-result history may remain after unload. The fake peer does not replace the bounded real-browser exercise. Preserve Chapter 9's dynamic SYSTEM instructions and provider-specific disclosure rules. Follow the phase authorization: a compiling hold and source review precede full gates and operational work.
 
-The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 and 15. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
+The Edition 3 command requires an explicit target and currently supports Chapters 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 and 16. Its Chapter 1 mode preserves the inherited conversation checks and adds delayed-header/body lifetime gates. Check the report's `passed` field and exit status, not score alone: required zero-point checks can fail a 100/100 score. Those real delayed probes take about two minutes, so a 90-second suite timeout is invalid. Omitting the path from the older Edition 2 command silently targets an old solution and is not a valid student result. A grader result does not replace required live exercises, test-sensitivity evidence or independent acceptance. Credentials remain in the authorized provider loader/test process, never prompts, command arguments, evidence or commits.
 
 Submit one concise chapter review identifying the chapter/code/grader revisions, what you built, actual tests and live observations, failures, ambiguity, assistance and useful teaching clarifications. You may explain a suspected grader defect; you may not silently redefine success or edit the grader. The orchestrator supplies any missing public contract without old answer code. Follow the shared bounded review loop.
 
@@ -211,3 +211,24 @@ Preserve all Chapter 14 instruction, recovery, and writer-boundary behavior.
 The Chapter 15 grade is finite fake-provider evidence, not a real cache grant,
 browser inspection, price verification, or architecture acceptance. Follow the
 current phase authorization before running it or paid exercises.
+
+Chapter 16 grades the **GUI executable or GUI module** directly; it takes no
+core/parity/model/media/cache flags. From the book repository root, after the
+held source is reviewed and the validation phase is released:
+
+```sh
+go run ./cmd/grade-edition3 -ch 16 -json /absolute/output/ch16-gui
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/output/ch16-cli
+```
+
+Build the CLI from accepted `main` with `go build -o /absolute/output/ch16-cli
+./cmd/ch01`, and the separate GUI from `main/gui` with `go build -o
+/absolute/output/ch16-gui ./cmd`. Both command entrypoints delegate auth commands
+to the same owner; the offline GUI-direct exercise invokes `auth login
+--print-url` on its supplied executable. The public chapter declares the
+synthetic capability row and local override names. Require parsed pass and
+exit zero for both reports, with at least 360 seconds allowed for Chapter 1's
+real 62-second header and body checks. Keep capability routing conservative;
+provider labels alone do not prove Responses, summary or cache support.
+The fake OAuth/Responses grade is not personal-account authorization, proof
+of live entitlement, native speech, or complete security coverage.

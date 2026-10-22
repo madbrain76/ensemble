@@ -33,7 +33,11 @@ func parse(status int, b []byte, c common.Config) ([]common.Event, error) {
 	case common.Anthropic:
 		parts, contentErr = parseAnthropic(b, from)
 	case common.OpenAI:
-		parts, contentErr = parseOpenAI(b, from)
+		if c.Surface == common.Responses {
+			parts, contentErr = parseResponses(b, from)
+		} else {
+			parts, contentErr = parseOpenAI(b, from)
+		}
 	case common.Gemini:
 		parts, contentErr = parseGemini(b, from)
 	default:
@@ -126,12 +130,16 @@ func parseUsage(c common.Config, envelope map[string]json.RawMessage) (common.Us
 		u.CacheRead = read(fields, "cache_read_input_tokens", "cache_read", false)
 		u.CacheWrite = read(fields, "cache_creation_input_tokens", "cache_write", false)
 	case common.OpenAI:
-		total := read(fields, "prompt_tokens", "input", true)
-		u.Output = read(fields, "completion_tokens", "output", true)
+		inputKey, outputKey, detailsKey := "prompt_tokens", "completion_tokens", "prompt_tokens_details"
+		if c.Surface == common.Responses {
+			inputKey, outputKey, detailsKey = "input_tokens", "output_tokens", "input_tokens_details"
+		}
+		total := read(fields, inputKey, "input", true)
+		u.Output = read(fields, outputKey, "output", true)
 		var details map[string]json.RawMessage
-		rawDetails, supplied := fields["prompt_tokens_details"]
+		rawDetails, supplied := fields[detailsKey]
 		invalidDetails := supplied && (json.Unmarshal(rawDetails, &details) != nil || details == nil)
-		qualifiedWrite := cacheEnabled(c) && c.Surface == common.ChatCompletions
+		qualifiedWrite := cacheEnabled(c) && (c.Surface == common.ChatCompletions || c.Surface == common.Responses)
 		u.CacheWrite = 0 // Older implicit routes do not have a write bucket.
 		if invalidDetails {
 			// An invalid container cannot be mistaken for omitted optionals.

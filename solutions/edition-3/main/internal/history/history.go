@@ -256,7 +256,7 @@ func provenance(p common.Provenance) error {
 func parts(ps common.PartList) error {
 	for _, p := range ps {
 		switch p.Type {
-		case "text":
+		case "text", "reasoning_summary":
 		case "tool_decls":
 			var delta common.ToolsData
 			if err := json.Unmarshal(p.Data, &delta); err != nil {

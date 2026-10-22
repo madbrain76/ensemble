@@ -2,6 +2,7 @@ package ensemble
 
 import (
 	"encoding/json"
+	"ensemble/internal/common"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,8 +12,28 @@ import (
 // process environment or default log filename. Empty generic values fall back.
 func ConfigFromEnv(get func(string) string) (Config, error) {
 	c := Config{SavePath: strings.TrimSpace(get("ENSEMBLE_SAVE")), LogMode: LogMode(strings.TrimSpace(get("ENSEMBLE_LOG_MODE")))}
+	c.AuthMode = AuthMode(strings.ToLower(strings.TrimSpace(get("OPENAI_BILLING_MODE"))))
+	c.ReasoningEffort = get("OPENAI_REASONING_EFFORT")
+	c.ReasoningSummary = get("OPENAI_REASONING_SUMMARY")
+	switch get("LLM_SURFACE") {
+	case "":
+	case "responses":
+		c.Surface = Responses
+	case "chat_completions":
+		c.Surface = ChatCompletions
+	case "messages":
+		c.Surface = Messages
+	case "generate_content":
+		c.Surface = GenerateContent
+	default:
+		return c, fmt.Errorf("unknown LLM_SURFACE")
+	}
 	prefix := "ANTHROPIC"
-	switch strings.ToLower(get("LLM_VENDOR")) {
+	vendor := strings.ToLower(get("LLM_VENDOR"))
+	if vendor == "" && c.AuthMode == AuthChatGPT {
+		vendor = "openai"
+	}
+	switch vendor {
 	case "", "anthropic":
 		c.Vendor = Anthropic
 	case "openai":
@@ -103,8 +124,14 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 		c.DisableStreaming = value
 	}
 	c.StreamCapability = StreamCapability(get("LLM_STREAM_CAPABILITY"))
+	if c.StreamCapability == "off" {
+		c.StreamCapability = StreamPlain
+	}
 	if c.StreamCapability != StreamUnknown && c.StreamCapability != StreamPlain && c.StreamCapability != StreamSSE {
-		return Config{}, fmt.Errorf("LLM_STREAM_CAPABILITY must be sse or plain")
+		return Config{}, fmt.Errorf("LLM_STREAM_CAPABILITY must be sse, plain, or off")
+	}
+	if err := common.NormalizeOpenAI(&c); err != nil {
+		return c, err
 	}
 	return c, nil
 }

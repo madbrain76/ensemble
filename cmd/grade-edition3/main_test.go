@@ -29,7 +29,7 @@ func TestInvalidInputsFailBeforeGrading(t *testing.T) {
 		t.Fatal(err)
 	}
 	cases := [][]string{
-		{}, {""}, {"-ch", "2", target}, {"-ch", "16", target}, {"-ch", "4"},
+		{}, {""}, {"-ch", "2", target}, {"-ch", "17", target}, {"-ch", "4"},
 		{"-ch", "1", "-core", module, target},
 		{"-ch", "1", "-consumer", "", target},
 		{"-ch", "1", "-consumer-case", "", target},
@@ -378,5 +378,63 @@ func TestChapter15GuardsAndRoute(t *testing.T) {
 	}
 	if _, err := os.Stat(marker); err != nil {
 		t.Fatalf("route did not launch explicit target: %v", err)
+	}
+}
+
+func TestChapter16GuardsAndRoute(t *testing.T) {
+	dir := t.TempDir()
+	marker := filepath.Join(dir, "launched")
+	target := filepath.Join(dir, "gui")
+	if err := os.WriteFile(target, []byte("#!/bin/sh\nprintf launched >> "+strconv.Quote(marker)+"\nexit 71\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	cases := [][]string{{"-ch", "16"}, {"-ch", "16", ""}, {"-ch", "16", filepath.Join(dir, "missing")}, {"-ch", "17", target}, {"-ch", "16", target, target}}
+	for _, flag := range []string{"core", "consumer", "consumer-case", "workflow", "media-models", "stream-exercise", "stream-model", "gui", "gui-model", "cache-current", "cache-prior", "cache-prices"} {
+		for _, value := range []string{"", "unused"} {
+			cases = append(cases, []string{"-ch", "16", "-" + flag + "=" + value, target})
+		}
+	}
+	for _, args := range cases {
+		if got := run(args); got != 2 {
+			t.Fatalf("%q exit %d", args, got)
+		}
+		if _, err := os.Stat(marker); !os.IsNotExist(err) {
+			t.Fatalf("invalid invocation launched target: %q (%v)", args, err)
+		}
+	}
+	out, err := os.CreateTemp(dir, "report-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := os.Stdout
+	os.Stdout = out
+	status := run([]string{"-ch", "16", "-json", target})
+	os.Stdout = old
+	if err := out.Close(); err != nil {
+		t.Fatal(err)
+	}
+	body, err := os.ReadFile(out.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var report struct {
+		Title    string
+		MaxScore int `json:"max_score"`
+		Checks   []struct{ ID string }
+	}
+	if err := json.Unmarshal(body, &report); err != nil {
+		t.Fatalf("%v: %s", err, body)
+	}
+	want := []string{"credential-provider", "oauth-flow", "token-refresh", "responses-format", "cache-breakpoints", "reasoning-summaries", "billing-mode"}
+	if status != 1 || !strings.Contains(report.Title, "Chapter 16") || report.MaxScore != 100 || len(report.Checks) != len(want) {
+		t.Fatalf("wrong route: %d %s", status, body)
+	}
+	for i, id := range want {
+		if report.Checks[i].ID != id {
+			t.Fatalf("check %d: %s != %s", i, report.Checks[i].ID, id)
+		}
+	}
+	if _, err := os.Stat(marker); err != nil {
+		t.Fatalf("explicit GUI never launched: %v", err)
 	}
 }

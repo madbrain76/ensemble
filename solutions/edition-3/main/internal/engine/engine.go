@@ -2,6 +2,7 @@
 package engine
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -135,15 +136,28 @@ func (e *engine) parseResponse(resp *http.Response, callbacks common.ParseCallba
 	if resp.StatusCode != http.StatusOK {
 		return parseFailure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
 	}
-	if strings.EqualFold(strings.TrimSpace(strings.Split(resp.Header.Get("Content-Type"), ";")[0]), "text/event-stream") {
-		events, err = parseSSE(resp.Body, cfg, callbacks)
+	body := io.Reader(resp.Body)
+	stream := strings.EqualFold(strings.TrimSpace(strings.Split(resp.Header.Get("Content-Type"), ";")[0]), "text/event-stream")
+	if cfg.Surface == common.Responses && !stream {
+		// Some Responses peers omit or mislabel the media type. Detect framing
+		// from a small prefix, before any whole-body read can delay deltas.
+		reader := bufio.NewReader(body)
+		stream = sniffResponsesSSE(reader)
+		body = reader
+	}
+	if stream {
+		if cfg.Surface == common.Responses {
+			events, err = parseResponsesSSE(body, cfg, callbacks)
+		} else {
+			events, err = parseSSE(body, cfg, callbacks)
+		}
 	} else {
 		var raw []byte
-		raw, err = io.ReadAll(resp.Body)
+		raw, err = io.ReadAll(body)
 		if err != nil {
 			return parseFailure("reading response failed")
 		}
-		if callbacks.OnFrame != nil {
+		if callbacks.OnFrame != nil && cfg.Surface != common.Responses {
 			callbacks.OnFrame(common.Frame{Data: string(raw)})
 		}
 		events, err = parse(resp.StatusCode, raw, cfg)
@@ -176,7 +190,14 @@ func (e *engine) Exchange(ctx context.Context, c common.Context) ([]common.Event
 func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...common.ParseCallbacks) ([]common.Event, error) {
 	var err error
 	config := e.parent.Config()
-	if strings.TrimSpace(config.APIKey) == "" {
+	credential := common.Credential{Mode: common.AuthAPI, Token: config.APIKey}
+	if config.Vendor == common.OpenAI {
+		credential, err = e.parent.Parent().Auth().Resolve(ctx, config)
+		if err != nil {
+			return []common.Event{errorEvent(err.Error())}, e.failure(err.Error())
+		}
+	}
+	if strings.TrimSpace(credential.Token) == "" {
 		err = e.failure("API key is not set")
 		return []common.Event{errorEvent(err.Error())}, err
 	}
@@ -185,7 +206,9 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 	case common.Anthropic:
 		endpoint += "/v1/messages"
 	case common.OpenAI:
-		if strings.HasSuffix(endpoint, "/v1") {
+		if config.Surface == common.Responses {
+			endpoint = responsesEndpoint(endpoint, credential.Mode)
+		} else if strings.HasSuffix(endpoint, "/v1") {
 			endpoint += "/chat/completions"
 		} else {
 			endpoint += "/v1/chat/completions"
@@ -217,14 +240,23 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 			req.Header.Set("anthropic-beta", "inline-tools-2026-09-15")
 		}
 	case common.OpenAI:
-		req.Header.Set("Authorization", "Bearer "+config.APIKey)
+		req.Header.Set("Authorization", "Bearer "+credential.Token)
+
 	case common.Gemini:
 		req.Header.Set("x-goog-api-key", config.APIKey)
 	}
-	e.parent.Parent().Trace(common.TraceRecord{Stage: "request_body", Payload: string(b)})
+	diagnosticBody := b
+	if config.Surface == common.Responses {
+		diagnosticBody = responsesDiagnostic(b)
+	}
+	e.parent.Parent().Trace(common.TraceRecord{Stage: "request_body", Payload: string(diagnosticBody)})
 	var prediction common.CachePrediction
 	if e.cache != nil {
-		prediction = e.cache.Observe(config, b)
+		prediction = e.cache.Observe(config, diagnosticBody)
+	}
+	if config.Vendor == common.OpenAI {
+		e.parent.Parent().Publish(e.parent, common.BillingSelected{Mode: credential.Mode})
+		e.parent.Parent().Logger().Printf("OpenAI request funding: %s", credential.Mode)
 	}
 	resp, err := e.client.Do(req)
 	if err != nil {
@@ -234,7 +266,26 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 		}
 		return []common.Event{errorEvent(err.Error())}, err
 	}
+	if credential.Mode == common.AuthChatGPT && resp.StatusCode == http.StatusUnauthorized {
+		_ = resp.Body.Close()
+		if err = e.parent.Parent().Auth().Reject(ctx, credential); err == nil {
+			credential, err = e.parent.Parent().Auth().Resolve(ctx, config)
+		}
+		if err != nil {
+			return []common.Event{errorEvent(err.Error())}, e.failure(err.Error())
+		}
+		req.Body = io.NopCloser(bytes.NewReader(b))
+		req.Header.Set("Authorization", "Bearer "+credential.Token)
+		resp, err = e.client.Do(req)
+		if err != nil {
+			return []common.Event{errorEvent("HTTP renewal retry failed")}, e.failure("HTTP renewal retry failed")
+		}
+	}
 	defer resp.Body.Close()
+	if credential.Mode == common.AuthChatGPT && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden) {
+		err = e.failure("ChatGPT request rejected; API fallback refused")
+		return []common.Event{errorEvent(err.Error())}, err
+	}
 	if resp.StatusCode != http.StatusOK {
 		err = e.failure(fmt.Sprintf("HTTP status %d", resp.StatusCode))
 		return []common.Event{errorEvent(err.Error())}, err
@@ -342,6 +393,9 @@ func plainDelta(p common.Part, cb common.ParseCallbacks) {
 	switch p.Type {
 	case "text":
 		d.Kind = common.DeltaText
+		d.Chunk = p.Text
+	case "reasoning_summary":
+		d.Kind = common.DeltaReasoningSummary
 		d.Chunk = p.Text
 	case "tool_call":
 		d.Kind = common.DeltaToolCall

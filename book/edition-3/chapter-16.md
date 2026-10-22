@@ -209,13 +209,17 @@ const (
 ### Exercise
 
 ```sh
-go run ./cmd/grade-edition2 -ch 16
+go run ./cmd/grade-edition3 -ch 16 -json /absolute/owned-output/ch16-gui
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/owned-output/ch16-cli
 ```
 
-Extend Chapter 15; the accepted result is `solutions/ch16`.
-Run the command from the repository root. It builds the core and
-its separate GUI; an explicit core path and `-gui DIR` select other
-submissions. The grader provides a fake OAuth
+Extend the accepted Chapter 15 working source in
+`solutions/edition-3/main`. Build the CLI there with `go build -o
+/absolute/owned-output/ch16-cli ./cmd/ch01`, and the separate GUI from
+`main/gui` with `go build -o /absolute/owned-output/ch16-gui ./cmd`.
+Run the two commands above from the book repository root. Chapter 16
+takes the GUI target directly; Chapter 1 uses the CLI from the same
+held source. The grader provides a fake OAuth
 server and a fake Responses API server. Complete the OAuth flow,
 perform inference through the Responses API, refresh tokens
 proactively, and stream reasoning summaries as separate events.
@@ -525,8 +529,8 @@ a later reusable prefix can include earlier instructions. This
 renderer uses a developer-role content block for the constitution
 so the supported API-key route can place an explicit boundary there.
 
-The first subscription attempt exposed a route difference that the
-original chapter had missed. It returned HTTP 400 with
+The earlier student run's first subscription attempt exposed a route
+difference that the original chapter had missed. It returned HTTP 400 with
 `invalid_parameter`, naming `prompt_cache_options`. The same explicit
 mode had worked on the API-key route. The accepted plan profile
 therefore omits both that option and its associated breakpoint
@@ -626,7 +630,7 @@ is the accessibility payoff for the entire migration.
 > Measure with a prompt that makes the model think.
 
 That October 2 report is evidence of those probes, not a promise
-about every response. In the later student run, the API-key session
+about every response. In the earlier student run, the API-key session
 produced 90 public-summary deltas. The subscription session requested
 `detailed` and used 165 reasoning tokens on its final response, yet
 returned no public summary at all. More reasoning is not a guarantee
@@ -642,6 +646,12 @@ every event in stream order. The existing part identities keep the streams assoc
 finals. The GUI can feed summary phrases to the speech queue while
 the response continues, without merging them into the answer or
 speaking the encrypted item that accompanies them.
+
+The Edition 3 restart exposed a narrower failure: final summary cards
+survived, but the live-delta path missed text supplied only by the final
+summary. Catching up the unseen suffix through the existing public-summary
+path makes that text available to display and speech without repeating the
+prefix. A complete final card alone does not establish incremental delivery.
 
 
 ## The billing state machine
@@ -705,11 +715,15 @@ endpoint. ([Account-specific model discovery](https://developers.openai.com/siwc
 ## Exercise, graded
 
 ```sh
-go run ./cmd/grade-edition2 -ch 16
+go run ./cmd/grade-edition3 -ch 16 -json /absolute/owned-output/ch16-gui
+go run ./cmd/grade-edition3 -ch 1 -json /absolute/owned-output/ch16-cli
 ```
 
-Run from the repository root, optionally supplying the core path and
-`-gui DIR` for its separate GUI. Keep the seven original weights:
+Run from the book repository root with the explicitly built GUI and CLI
+from the same held source. Both reports must have `passed: true` and exit
+zero. Chapter 1 includes separate 62-second header and body checks; allow
+at least 360 seconds for the outer command. Chapter 16 rejects unrelated
+core, GUI/model, media and cache flags. Keep the seven original weights:
 
 | Check | Points | Observable behavior |
 |---|---|---|
@@ -730,6 +744,23 @@ without accessing a personal account. A login that never reaches
 inference cannot prove a billing rule; a copied error code cannot
 prove that the Agent treated the turn as failed.
 
+The offline exercise declares `gpt-ch19-course` as a synthetic text/tool
+model with Responses, SSE, public summaries, encrypted continuation, and
+API-key explicit-cache support. It is not a live model or a reason to infer
+capabilities from an OpenAI name prefix. The fixture requests
+`OPENAI_REASONING_EFFORT=medium` and `OPENAI_REASONING_SUMMARY=detailed`;
+include encrypted reasoning for the graded multi-turn continuation.
+Its local issuer and inference base are selected with
+`OPENAI_OIDC_ISSUER` and `LLM_BASE_URL`, and its private profile root with
+`EN_HOME`. `EN_BROWSER_CMD=true` suppresses a real browser during fake login;
+`auth login --print-url` still prints the authorization URL for the local
+client. The GUI executable supplied to the grader must expose the same
+`auth login --print-url` command as the core CLI; delegate both entrypoints
+to the same auth owner rather than implementing a second login flow.
+These loopback-only exercises use explicit `chatgpt` or `api` billing,
+not automatic fallback. Real accounts retain the production
+endpoints and protected browser-based consent flow described above.
+
 The numeric run is a bounded sample of the contract. Review the
 actual owner relationships, the full identity-validation cases,
 cross-process refresh coordination and atomic replacement separately.
@@ -738,11 +769,11 @@ visible WebSocket events alone do not prove native speech delivery.
 Neither a fake summary nor a passing score guarantees that a live
 model will provide one.
 
-For a human run, build the core from your implementation directory.
-The matching reader snapshot is `solutions/ch16`:
+For a human run, build the core CLI from your implementation directory.
+The Edition 3 working root is a library with a nested executable:
 
 ```sh
-go build -o /tmp/ensemble-ch18 .
+go build -o /tmp/ensemble-ch16 ./cmd/ch01
 ```
 
 Use a fresh workspace and a dedicated profile. This keeps the
@@ -751,11 +782,11 @@ credentials. The profile directory contains secrets; the ordinary
 conversation save does not.
 
 ```sh
-chapter18_work=$(mktemp -d)
-cd "$chapter18_work"
+chapter16_work=$(mktemp -d)
+cd "$chapter16_work"
 mkdir -p skills/base profile
 chmod 700 profile
-export EN_HOME="$chapter18_work/profile"
+export EN_HOME="$chapter16_work/profile"
 export EN_PRIMARY_SKILL=base
 cat > skills/base/SKILL.md <<'EOF'
 ---
@@ -785,9 +816,9 @@ Sign in through your browser, inspect the safe status and discover
 models available to that account:
 
 ```sh
-/tmp/ensemble-ch18 auth login
-/tmp/ensemble-ch18 auth status
-/tmp/ensemble-ch18 auth models
+/tmp/ensemble-ch16 auth login
+/tmp/ensemble-ch16 auth status
+/tmp/ensemble-ch16 auth models
 ```
 
 `auth login --print-url` also prints the authorization URL while
@@ -805,7 +836,7 @@ account, start the supported Responses route explicitly:
 LLM_VENDOR=openai LLM_MODEL=gpt-6.1-sol \
 OPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \
 OPENAI_REASONING_SUMMARY=detailed \
-/tmp/ensemble-ch18 --skills-dir skills chat
+/tmp/ensemble-ch16 --skills-dir skills chat
 ```
 
 Enter this prompt and wait for the completed answer:
@@ -831,7 +862,7 @@ Chapter 0. That is an explicit change of funding source.
 When finished with the dedicated profile:
 
 ```sh
-/tmp/ensemble-ch18 auth logout
+/tmp/ensemble-ch16 auth logout
 ```
 
 Logout attempts remote revocation, removes local tokens and keeps
@@ -840,9 +871,9 @@ be confirmed, the client reports that fact. It does not turn
 subscription billing into API billing on your behalf.
 
 
-## Taking it for a spin
+## Taking it for a spin: the earlier student run
 
-The actual student API-key run used the scheduling task above with
+The earlier student API-key run used the scheduling task above with
 GPT-6.1 Sol, high reasoning and detailed summaries. It read the
 file and produced a valid schedule with makespan 13. The three
 requests included one prompt and a hint-triggered continuation;
@@ -888,3 +919,15 @@ parsing changed. The migration required a Responses renderer; the
 claim that no renderer changed would erase the very work the
 chapter teaches. Its payoff is smaller and more useful: changing
 provider and funding source did not require rebuilding the Agent.
+
+## Edition 3 restart: October 22, 2026
+
+The restarted implementation passed the local Chapter 16 grader on its third
+attempt at 100/100; the earlier 15/100 and 85/100 results remain failed attempts.
+Its first Chapter 1 regression grade also passed at 100/100.
+
+Bill deferred the live OAuth exercise: "Ok. Please defer the live oauth test and
+continue". These local passes do not demonstrate live account or provider
+compatibility. No fresh native GUI, browser, or listening observation accompanies
+these results. The paid runs above remain historical evidence, not a repeat of
+those operations in the restart.

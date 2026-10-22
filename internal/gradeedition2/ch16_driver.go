@@ -208,8 +208,16 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 		gate.mu.Unlock()
 	}()
 	home := filepath.Join(dir, "profile")
-	os.MkdirAll(home, 0700)
-	env := append(os.Environ(), "HOME="+home, "EN_HOME="+home, "OPENAI_OIDC_ISSUER="+auth.URL(), "LLM_BASE_URL="+endpoint, "LLM_VENDOR=openai", "LLM_MODEL=gpt-ch19-course", "LLM_RESOLVED_MODEL=", "LLM_API_KEY="+grade.Edition2APIKey, "EN_BROWSER_CMD=true", "EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=base", "EN_DISABLE_STREAMING=", "CH02_LOG="+filepath.Join(dir, "events.jsonl"))
+	if err := os.MkdirAll(home, 0700); err != nil {
+		out.fatal = err.Error()
+		return
+	}
+	env := subscriptionEnv(os.Environ(), home, dir, skills, auth.URL(), endpoint)
+	if o.skipLogin {
+		env = append(env, "OPENAI_BILLING_MODE=api")
+	} else {
+		env = append(env, "OPENAI_BILLING_MODE=chatgpt")
+	}
 	if !o.skipLogin {
 		var err error
 		out.loginOutput, err = subscriptionLogin(bin, dir, env)
@@ -306,7 +314,7 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 		return
 	}
 	for i, prompt := range o.prompts {
-		if err = json.NewEncoder(stdin).Encode(map[string]string{"kind": "prompt", "text": prompt}); err != nil {
+		if _, err = fmt.Fprintln(stdin, prompt); err != nil {
 			out.fatal = err.Error()
 			return
 		}
@@ -321,8 +329,7 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 			out.fatal = fmt.Sprintf("turn %d: %v", i+1, e)
 			return
 		}
-		problem, _ := messages[len(messages)-1]["error"].(string)
-		out.errors = append(out.errors, problem)
+		out.errors = append(out.errors, subscriptionTurnError(messages))
 	}
 	// Keep the subscriber connected until the child exits: unrelated legacy
 	// disconnect races must not determine these credential/transport observations.
@@ -377,4 +384,43 @@ func (b *subscriptionBuffer) String() string {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	return b.text.String()
+}
+
+// Use only the fixture's selected issuer, transport and process-local state.
+// Host provider/config overrides and credentials must not change an offline run.
+func subscriptionEnv(base []string, home, dir, skills, issuer, endpoint string) []string {
+	out := make([]string, 0, len(base)+24)
+	for _, value := range base {
+		key, _, _ := strings.Cut(value, "=")
+		if key == "HOME" || key == "CH02_LOG" || strings.HasPrefix(key, "LLM_") || strings.HasPrefix(key, "EN_") || strings.HasPrefix(key, "ENSEMBLE_") || strings.HasPrefix(key, "ANTHROPIC_") || strings.HasPrefix(key, "OPENAI_") || strings.HasPrefix(key, "GEMINI_") || strings.HasPrefix(key, "GOOGLE_") {
+			continue
+		}
+		out = append(out, value)
+	}
+	return append(out, "HOME="+home, "EN_HOME="+home,
+		"OPENAI_OIDC_ISSUER="+issuer, "LLM_BASE_URL="+endpoint, "LLM_VENDOR=openai",
+		"LLM_MODEL=gpt-ch19-course", "LLM_RESOLVED_MODEL=gpt-ch19-course", "LLM_API_KEY="+grade.Edition2APIKey,
+		"LLM_STREAM_CAPABILITY=sse", "OPENAI_REASONING_EFFORT=medium", "OPENAI_REASONING_SUMMARY=detailed",
+		"EN_BROWSER_CMD=true", "EN_SKILLS_DIR="+skills, "EN_PRIMARY_SKILL=base", "EN_DISABLE_STREAMING=0",
+		"LLM_DATA_DIR="+filepath.Join(dir, "cr"), "LLM_SAVE_PATH="+filepath.Join(dir, "save.json"),
+		"LLM_LOG_PATH="+filepath.Join(dir, "events.jsonl"), "LLM_LOG_MODE=full", "CH02_LOG="+filepath.Join(dir, "events.jsonl"),
+		"LLM_TOOLS=default", "LLM_PAUSE_ON_START=0", "LLM_SPEAKING=0")
+}
+
+// ErrorOccurred is published before TurnEnded by the accepted GUI. Retain
+// that actual error card, rather than requiring an extra terminal error field.
+func subscriptionTurnError(messages []map[string]any) string {
+	for _, m := range messages {
+		if m["type"] == "error" {
+			if text, ok := m["data"].(string); ok && text != "" {
+				return text
+			}
+		}
+		if m["type"] == "turn_ended" {
+			if text, ok := m["error"].(string); ok {
+				return text
+			}
+		}
+	}
+	return ""
 }

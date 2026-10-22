@@ -21,7 +21,11 @@ type Config struct {
 	Surface       Surface
 	ResolvedModel string
 	// APIKey authenticates requests and must never appear in diagnostics.
-	APIKey string
+	APIKey           string
+	AuthMode         AuthMode
+	Account          string // optional stable account selector, never a token
+	ReasoningEffort  string
+	ReasoningSummary string
 	// Model is required; there is deliberately no remembered model default.
 	Model string
 	// Tools selects enabled built-ins: nil enables all ten; non-nil empty disables all.
@@ -71,6 +75,7 @@ type Usage struct {
 type Ensemble interface {
 	// Logger returns this application's diagnostic destination.
 	Logger() *log.Logger
+	Auth() Auth
 	Publish(Agent, Observation)
 	Trace(TraceRecord)
 	RegisterJob(Job) (int, error)

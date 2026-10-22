@@ -16,6 +16,9 @@ import (
 )
 
 func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.Writer) (result error) {
+	if len(args) > 0 && args[0] == "auth" {
+		return ensemble.RunAuthCommand(ctx, ensemble.NewAuth(ensemble.AuthOptionsFromEnv(os.Getenv)), args[1:], out, nil)
+	}
 	flags := flag.NewFlagSet("ch01", flag.ContinueOnError)
 	flags.SetOutput(diagnostics)
 	mcpPipe := flags.Bool("mcp-pipe", false, "serve MCP on stdin/stdout until EOF")
@@ -79,6 +82,9 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		config.SavePath = dir + "/save.json"
 	}
 	app := ensemble.New(log.New(diagnostics, "", log.LstdFlags))
+	if err := app.SetAuth(ensemble.NewAuth(ensemble.AuthOptionsFromEnv(os.Getenv))); err != nil {
+		return err
+	}
 	tracePath := os.Getenv("E3_TRACE")
 	if tracePath == "" && !renderMode && !dumpMode {
 		tracePath = "api.log"
@@ -239,6 +245,11 @@ func protocolTurn(ctx context.Context, a ensemble.Agent, text string, q ensemble
 			}
 			var record any
 			switch v := o.(type) {
+			case ensemble.BillingSelected:
+				record = struct {
+					Observation string `json:"observation"`
+					ensemble.BillingSelected
+				}{"billing_selected", v}
 			case ensemble.StateChanged:
 				record = struct {
 					Observation string `json:"observation"`

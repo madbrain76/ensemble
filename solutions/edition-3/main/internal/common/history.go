@@ -21,11 +21,12 @@ const (
 	Messages Surface = iota + 1
 	ChatCompletions
 	GenerateContent
+	Responses
 )
 
 func (v Vendor) String() string { return enumName(int(v), []string{"anthropic", "openai", "gemini"}) }
 func (v Surface) String() string {
-	return enumName(int(v), []string{"messages", "chat_completions", "generate_content"})
+	return enumName(int(v), []string{"messages", "chat_completions", "generate_content", "responses"})
 }
 func enumName(n int, names []string) string {
 	if n < 1 || n > len(names) {
@@ -66,7 +67,7 @@ func (v *Surface) UnmarshalJSON(b []byte) error {
 	if s == "generatecontent" {
 		s = "generate_content"
 	}
-	for _, x := range []Surface{Messages, ChatCompletions, GenerateContent} {
+	for _, x := range []Surface{Messages, ChatCompletions, GenerateContent, Responses} {
 		if s == x.String() {
 			*v = x
 			return nil
@@ -136,6 +137,7 @@ type Part struct {
 	CallID       string          `json:"call_id,omitempty"`
 	AdmissionSeq Seq             `json:"admission_seq,omitempty"` // projected admission, retained only with the live exchange
 	Name         string          `json:"name,omitempty"`
+	Namespace    string          `json:"namespace,omitempty"`
 	Args         json.RawMessage `json:"args,omitempty"`
 	Opaque       json.RawMessage `json:"opaque,omitempty"`
 	Parts        PartList        `json:"parts,omitempty"`

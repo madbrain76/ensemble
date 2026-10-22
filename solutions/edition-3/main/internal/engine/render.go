@@ -18,7 +18,7 @@ func textParts(ps common.PartList) (string, error) {
 	var b strings.Builder
 	for _, p := range ps {
 		switch p.Type {
-		case "text":
+		case "text", "reasoning_summary":
 			b.WriteString(p.Text)
 		case "redacted":
 			b.WriteString(p.Stub)
@@ -47,6 +47,9 @@ func render(c common.Context, cfg common.Config, defs []common.ToolDefinition, d
 	case common.Anthropic:
 		return renderAnthropic(c, cfg, defs, disclosure)
 	case common.OpenAI:
+		if cfg.Surface == common.Responses {
+			return renderResponses(c, cfg, defs)
+		}
 		return renderOpenAI(c, cfg, defs)
 	case common.Gemini:
 		return renderGemini(c, cfg, defs)
@@ -196,7 +199,7 @@ func renderAnthropic(c common.Context, cfg common.Config, defs []common.ToolDefi
 				for _, name := range delta.Removed {
 					blocks = append(blocks, raw(map[string]any{"type": "tool_removal", "tool": map[string]any{"type": "tool_reference", "name": name}}))
 				}
-			case "text":
+			case "text", "reasoning_summary":
 				blocks = append(blocks, aText(p.Text))
 			case "redacted":
 				blocks = append(blocks, aText(p.Stub))
@@ -333,7 +336,7 @@ func renderOpenAI(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		results := []oMessage{}
 		for _, p := range e.Parts {
 			switch p.Type {
-			case "text":
+			case "text", "reasoning_summary":
 				present = true
 				text.WriteString(p.Text)
 				content = append(content, map[string]any{"type": "text", "text": p.Text})
@@ -545,7 +548,7 @@ func renderGemini(c common.Context, cfg common.Config, defs []common.ToolDefinit
 		}
 		for _, p := range e.Parts {
 			switch p.Type {
-			case "text":
+			case "text", "reasoning_summary":
 				t := p.Text
 				part := gPart{Text: &t}
 				if matches(p.From, cfg) {

@@ -105,6 +105,13 @@ func CacheBreakpoints(c Config) (bool, string) {
 		model = c.Model
 	}
 	switch {
+	case c.Vendor == OpenAI && c.Surface == Responses:
+		if c.AuthMode == AuthChatGPT {
+			return false, "ChatGPT plan inference omits explicit cache markers"
+		}
+		if model == "gpt-ch19-course" {
+			return true, "explicit Responses content boundaries: system instructions and retained input; tool and opaque items are not cache markers"
+		}
 	case c.Vendor == Anthropic && c.Surface == Messages:
 		if model == "claude-sonnet-4-6" || model == "claude-opus-4-6" {
 			return true, "up to four legal boundaries: last tool, SYSTEM, retained history end, surviving handoff; unavailable or protected boundaries are omitted"

@@ -155,6 +155,19 @@ func markerMembers(cfg common.Config, root wireNode, b []byte) ([]byteSpan, map[
 				}
 			}
 		}
+	case cfg.Vendor == common.OpenAI && cfg.Surface == common.Responses:
+		for _, m := range root.field("input").items {
+			for _, n := range m.field("content").items {
+				kind := wireText(b, n.field("type"))
+				if kind == "input_text" || kind == "output_text" {
+					add(n, "prompt_cache_breakpoint")
+				}
+				if marked[n.start] {
+					marked[m.start] = true
+				}
+			}
+		}
+		add(root, "prompt_cache_options")
 	case cfg.Vendor == common.OpenAI && cfg.Surface == common.ChatCompletions:
 		for _, m := range root.field("messages").items {
 			for _, n := range m.field("content").items {
@@ -203,7 +216,7 @@ func promptSections(b []byte) []promptSection {
 		return nil
 	}
 	var out []promptSection
-	for _, key := range []string{"tools", "system", "systemInstruction", "messages", "contents"} {
+	for _, key := range []string{"tools", "system", "systemInstruction", "instructions", "messages", "contents", "input"} {
 		n := root.field(key)
 		if n.end <= n.start {
 			continue
@@ -220,9 +233,9 @@ func promptSections(b []byte) []promptSection {
 		} else {
 			name := key
 			switch key {
-			case "systemInstruction":
+			case "systemInstruction", "instructions":
 				name = "system"
-			case "contents":
+			case "contents", "input":
 				name = "messages"
 			}
 			out = append(out, promptSection{source: key, name: name, raw: b[n.start:n.end], node: n})
@@ -245,7 +258,7 @@ func optionBytes(b []byte) []byte {
 	var spans []byteSpan
 	for i, f := range root.fields {
 		switch f.name {
-		case "tools", "system", "systemInstruction", "messages", "contents":
+		case "tools", "system", "systemInstruction", "instructions", "messages", "contents", "input":
 			spans = append(spans, memberSpans(root, i)...)
 		}
 	}

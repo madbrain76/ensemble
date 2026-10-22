@@ -158,8 +158,15 @@ func TestChapter4Round1KilledMetadata(t *testing.T) {
 					t.Fatal("shutdown did not join released handler")
 				}
 				wake := c4Result(t, blocked)
-				if wake.Job.Status != ensemble.JobDone || wake.Job.ExitCode == nil || *wake.Job.ExitCode != 99 || wake.Job.Reason != "" {
-					t.Fatalf("shutdown lost real outcome: %+v", wake)
+				if !strings.Contains(wake.Text, "FORBIDDEN LATE OUTPUT") {
+					t.Fatalf("shutdown lost real output wake: %+v", wake)
+				}
+				// Wait may wake on output while the handler is still running.
+				// Shutdown has now joined it; inspect fresh terminal data rather
+				// than requiring the earlier report to update itself.
+				data := job.Data()
+				if data.Status != ensemble.JobDone || data.ExitCode == nil || *data.ExitCode != 99 || data.Reason != "" {
+					t.Fatalf("shutdown lost real outcome: data=%+v earlier_wake=%+v", data, wake)
 				}
 				disk, err := os.ReadFile(filepath.Join(dir, "cr", "io", "1"))
 				if err != nil || string(disk) != "before killFORBIDDEN LATE OUTPUT" {

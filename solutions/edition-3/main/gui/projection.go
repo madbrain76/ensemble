@@ -59,7 +59,7 @@ func readable(parts ensemble.PartList) string {
 	var out []string
 	for _, p := range parts {
 		c := project(p)
-		if c.Kind == "text" || c.Kind == "thinking" || c.Kind == "tool_result" {
+		if c.Kind == "text" || c.Kind == "thinking" || c.Kind == "reasoning_summary" || c.Kind == "tool_result" {
 			if c.Text != "" && !strings.HasPrefix(c.Text, "[opaque") {
 				out = append(out, c.Text)
 			}
@@ -70,7 +70,7 @@ func readable(parts ensemble.PartList) string {
 func project(p ensemble.Part) Card {
 	c := Card{Kind: p.Type, Text: p.Text, Name: p.Name, CallID: p.CallID, MIME: p.MIME, IsError: p.IsError, From: p.From}
 	switch p.Type {
-	case "text", "thinking":
+	case "text", "thinking", "reasoning_summary":
 	case "tool_call":
 		c.Text = p.Name + "\n" + string(p.Args)
 		c.Args = append(json.RawMessage(nil), p.Args...)
@@ -82,6 +82,11 @@ func project(p ensemble.Part) Card {
 		}
 		c.Text = p.Stub
 	case "opaque":
+		if p.From != nil && p.From.Surface == ensemble.Responses {
+			c.Kind = "continuation"
+			c.Text = "[private continuation retained]"
+			break
+		}
 		// Only known readable reasoning fields cross the presentation boundary.
 		var v struct {
 			Type      string `json:"type"`

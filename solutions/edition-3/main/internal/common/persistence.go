@@ -15,6 +15,9 @@ const (
 // SavedConfig describes the effective Agent at save time. It is never restored
 // over caller configuration and deliberately has no credential or endpoint field.
 type SavedConfig struct {
+	AuthMode               AuthMode          `json:"auth_mode,omitempty"`
+	ReasoningEffort        string            `json:"reasoning_effort,omitempty"`
+	ReasoningSummary       string            `json:"reasoning_summary,omitempty"`
 	Vendor                 Vendor            `json:"vendor"`
 	Surface                Surface           `json:"surface"`
 	Model                  string            `json:"model"`
