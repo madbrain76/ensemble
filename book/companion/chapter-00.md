@@ -16,6 +16,20 @@ A future technical lead needs access to that reasoning without having to repeat 
 
 Ensemble is the coding agent built around those concerns. This companion follows the judgment behind it. The corresponding instructional book turns that knowledge into a construction experiment; the human reader needs to understand what the experiment is trying to preserve.
 
+## What survives the session
+
+Bill's explanation of the failed handoff starts with an asymmetry in how experience accumulates. A model can bring a breadth of knowledge no individual developer could match and still lack the particular experience that makes a decision clear to the person who built the system. General expertise does not automatically supply the history of this project. Working alongside its developer does not automatically make that history a durable part of the model either.
+
+Humans continue consolidating memories after an experience, with sleep playing an important role. That does not make human memory complete or reliable, but what someone learns can change how they approach the next day's work without having to reread an account of the previous day. An ordinary LLM session works differently: inference uses the model's trained weights without updating them. The model can adapt to an explanation in context, apply a newly supplied distinction, and reason from a failure it has just observed. Those are useful capabilities. They do not, by themselves, alter the underlying trained parameters for the next session.
+
+A summary saved and reloaded later carries experience forward as notes. External memory and retrieval can make those notes useful across many sessions; they need not be disposable or shallow. But the system still depends on what was recorded and what it supplies when the knowledge is needed. Retrieval cannot recover a reason that was never recorded. Fine-tuning or online training can change a model's weights, but those are additional processes, not something that happens merely because an ordinary coding conversation went well. The sleep comparison concerns the persistence of experience, not a claim that a sleeping brain and a model training run work the same way.
+
+This makes the opening failure less mysterious. The repository supplied the surviving design, not all the experience behind it. A more capable model might infer some missing reasons correctly. It might also offer an excellent general solution to a problem whose local constraints it was never told. The human lead remains responsible for carrying hard-won judgments forward, including the conditions that made them useful. That responsibility includes preserving them for the next human, rather than relying on either the model or the original developer to remain available indefinitely.
+
+Bill calls the instructional book an agentic codebook: knowledge organized so an agent can act on it, construct the system, and check the result. That is a strong form of preservation for execution. It is not, by itself, an ideal education for a human successor. A lead needs to understand why a contract exists, which tradeoffs it accepts, and when changed circumstances justify departing from it. Faithfully rebuilding a boundary and knowing when to move it are different accomplishments.
+
+Bill intends this companion as a first example of that translation: taking knowledge encoded for an agent to execute and making it available for the next technical lead to understand. The aim is not to reserve judgment permanently for humans. It is to stop treating the transfer of judgment as something collaboration will take care of on its own.
+
 ## An expert who stays in the loop
 
 Ensemble's starting point is an expert who steers.
@@ -44,7 +58,7 @@ The technical lead inherits responsibility for preserving this kind of legibilit
 
 ## When the teaching becomes the bug
 
-The instructional book is an attempt to make the knowledge transferable in a stronger sense than readable prose. It describes how to construct Ensemble in stages, with checks on the resulting behavior. Bill calls this an agentic codebook. Its ambition is that another model can learn enough from the book to build a usable agent, and that later attempts can improve both the implementation and the teaching.
+The instructional book is an attempt to make the knowledge transferable in a stronger sense than readable prose. It describes how to construct Ensemble in stages, with checks on the resulting behavior. Its ambition is that another model can learn enough from the book to build a usable agent, and that later attempts can improve both the implementation and the teaching.
 
 The tempting version of that idea is to write an increasingly complete specification and let implementation catch up. The instructional book records a failed attempt in exactly that direction. In an author-led pass, expanded contracts were written before the implementer had learned from the original exercises. Small tasks became larger ones. Review approved the expansion. The attempt was stopped.
 
