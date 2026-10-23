@@ -1,4 +1,4 @@
-# Chapter 7: A View You Can Steer From
+# Chapter 7: Everything Is an Artifact
 
 Chapter 6 gets the words onto the terminal before the answer is finished. That is a considerable improvement over staring at nothing. It is less helpful when the thing worth noticing has already scrolled away, the tool arguments wrap across six lines, and the human is trying to compose a correction while the next tool starts.
 

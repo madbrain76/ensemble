@@ -1,4 +1,4 @@
-# Chapter 8: Preferences That Reach the Work
+# Chapter 8: Build Your Dream GUI
 
 The settings server saved a speech rate of 1.75. After a restart, the label still said 1.75. The native speech API received approximately 1.8.
 

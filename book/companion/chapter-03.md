@@ -1,4 +1,4 @@
-# Chapter 3: Six Tools and the Meaning of Success
+# Chapter 3: Six Tools, Ninety-Two Percent of an AI Coding Agent
 
 Bill counted the tools after months of using them.
 

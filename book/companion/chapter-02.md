@@ -1,4 +1,4 @@
-# Chapter 2: The History Is Not the Request
+# Chapter 2: One Log, Three Vendors
 
 The second vendor was supposed to be the easy one.
 

@@ -1,4 +1,4 @@
-# Chapter 6: The Same Answer, Sooner
+# Chapter 6: Streaming, or the Same Answer in Pieces
 
 The Agent can listen while busy now. It can accept a hint, interrupt an observation without killing the job, and tell an application what happened. Ask it a difficult question, though, and the terminal still goes quiet until the entire model response arrives.
 

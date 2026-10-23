@@ -1,4 +1,4 @@
-# Chapter 11: A Tool on the Other Side
+# Chapter 11: MCP: The Extension Protocol
 
 Chapter 10 lets a conversation survive its process. It does not bring the old process’s capabilities back to life. A saved tool result is still a fact about past work, not a connection to the program that did it.
 

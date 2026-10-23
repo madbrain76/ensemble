@@ -10,3 +10,5 @@ Accepted frontier: **Chapter 11**. Next: **Chapter 12**, with a fresh author and
 - Each next author/reviewer must fully read voice, current corresponding Edition 3 source, preceding accepted companion chapter and author carryover; reviewers also read the current manuscript and author note. The smaller approved set replaces linked legacy process documents. Continue sequentially through Chapter 27.
 - Parent confirmed Chapter 27's updated source supersedes obsolete proposal-only guidance: attribute its implementation and local synthetic/browser observations to the source, never to deployment, live-provider verification, or our own runtime testing.
 - Parent owns Chapter 00, voice, RESUME, preface, epilogue, and navigation. Body editor owns only Chapters 01–27, their author/review notes, and this checkpoint; publish accepted units with exact paths and preserve unrelated work.
+
+- Mandatory title mapping: every companion chapter main H1 must exactly match the current corresponding Edition 3 main H1. Chapters 01–12 verified; 01–11 corrected title-only, with accepted body prose and reviews unchanged. Fresh authors/reviewers must enforce this for Chapters 13–27.

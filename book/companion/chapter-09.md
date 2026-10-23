@@ -1,4 +1,4 @@
-# Chapter 9: Acquiring a Manual and Its Tools
+# Chapter 9: Skills
 
 Chapter 8 follows a preference from its saved value to the behavior it actually controls. Skills pose a similar question at a larger scale: when an Agent says it has learned a capability, what has changed?
 

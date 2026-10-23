@@ -1,4 +1,4 @@
-# Chapter 10: A Conversation Outlives Its Process
+# Chapter 10: Persistence
 
 Chapter 9 gives an Agent new instructions and tools without replacing its identity. None of that helps when the process exits. A useful afternoon of work can still end with the next launch meeting a stranger.
 

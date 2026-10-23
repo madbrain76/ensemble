@@ -1,4 +1,4 @@
-# Chapter 4: Waiting Is Not Killing
+# Chapter 4: Jobs, or Why a Tool Call Is a Process You Supervise
 
 The screenshot tool was supposed to grab the framebuffer and return.
 

@@ -1,4 +1,4 @@
-# Chapter 5: Let the Loop Listen
+# Chapter 5: Two Seams and a Loop
 
 The test is still running. You type, “Wait, wrong directory.” The application accepts the line. Nothing happens.
 

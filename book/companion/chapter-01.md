@@ -1,4 +1,4 @@
-# Chapter 1: One Loop, Clear Owners
+# Chapter 1: One Loop, Sixty Billion Dollars
 
 ## The logger that arrived late
 
