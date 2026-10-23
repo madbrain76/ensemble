@@ -4,7 +4,7 @@
 
 **The manuscript is complete:** approved preface, Chapters 0–27 and epilogue, all accepted with saved independent reviews. No chapter, review correction or writing assignment remains open. The [reader contents](README.md) links the complete book in order.
 
-Chapters 1–27 were published through `068a0050c5240003b1fce38f885e3ba9afe5a241`; Chapter 0's accepted concise revision is `739cffaa`. The epilogue, complete contents and this record are ready for the final scoped publication. Final push verification is pending in this record until that operation succeeds.
+Chapters 1–27 were published through `068a0050c5240003b1fce38f885e3ba9afe5a241`; Chapter 0's accepted concise revision is `739cffaa`. **The complete manuscript, including the accepted epilogue and full reader contents, was successfully pushed to `origin/main` in `bfe4cfda67e8b753881cd6d2ac0ffff37039f3f2`.** The post-push check returned that same hash for `HEAD` and `origin/main`, and companion/notes paths had no uncommitted changes. This final status update changes no manuscript.
 
 ## Editorial completion
 
@@ -30,4 +30,4 @@ Use [voice.md](voice.md) for any authorized revision: exact source titles; expla
 
 Publication authority was limited to exact companion and notes paths on `origin/main`, preserving unrelated staged and unstaged work. No broad staging, reset or force push. Do not infer a clean repository from clean companion paths. Set `GIT_PAGER=cat PAGER=cat` for Git commands.
 
-The parent goal file is `/Users/bill/projects/cadence-memories/session/agents/Companion guide/goal.md`. Disable completion reminders after confirming the final publication; do not restart writing from older frontier notes.
+The parent goal file is `/Users/bill/projects/cadence-memories/session/agents/Companion guide/goal.md`. Completion reminders are disabled after successful publication. All retained children were joined once more at closure. Do not restart writing from older frontier notes; no authorized unfinished work remains.
