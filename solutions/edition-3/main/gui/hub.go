@@ -52,6 +52,7 @@ type client struct {
 func (c *client) stop() { c.once.Do(func() { close(c.done) }) }
 
 type Hub struct {
+	settingsMu      sync.Mutex // Serialize policy changes without holding mu across callbacks.
 	mu              sync.Mutex
 	en              *ensemble.Ensemble
 	agents          map[string]*agentView
@@ -112,6 +113,7 @@ func (h *Hub) view(a ensemble.Agent) *agentView {
 	v := h.agents[a.ID()]
 	if v == nil {
 		if h.settingsApplied {
+			a.SetSecurityPolicy(h.settings.SafeMode, h.settings.EnableWebSearch)
 			_ = a.SetContextTarget(h.settings.ContextTarget)
 			_ = a.SetMaxToolRounds(h.settings.MaxToolRounds)
 			_ = a.SetPersistencePolicy(h.settings.LogMode, h.settings.DiagnosticMaxRecords)

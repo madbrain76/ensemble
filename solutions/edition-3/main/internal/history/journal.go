@@ -18,14 +18,14 @@ func (h *history) appendJournal(e common.Event) error {
 	if h.journal == "" {
 		return nil
 	}
-	if err := os.MkdirAll(filepath.Dir(h.journal), 0700); err != nil {
+	if err := h.parent.Sandbox().MkdirAll(filepath.Dir(h.journal), 0700); err != nil {
 		return err
 	}
 	data, err := json.Marshal(e)
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(h.journal, os.O_CREATE|os.O_RDWR, 0600)
+	f, err := h.parent.Sandbox().OpenFile(h.journal, os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return err
 	}
@@ -42,8 +42,12 @@ func (h *history) appendJournal(e common.Event) error {
 	return errors.Join(err, f.Close())
 }
 
-func readJournal(path string) ([]common.Event, error) {
-	data, err := os.ReadFile(path)
+func readJournal(path string, owners ...common.Sandbox) ([]common.Event, error) {
+	readFile := os.ReadFile
+	if len(owners) > 0 && owners[0] != nil {
+		readFile = owners[0].ReadFile
+	}
+	data, err := readFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, nil
 	}
@@ -90,7 +94,7 @@ func replayJournal(events []common.Event, c *common.Context, through common.Seq)
 	return tail, through, nil
 }
 func (h *history) trimJournal(boundary common.Seq) error {
-	events, err := readJournal(h.journal)
+	events, err := readJournal(h.journal, h.parent.Sandbox())
 	if err != nil {
 		return err
 	}
@@ -103,11 +107,15 @@ func (h *history) trimJournal(boundary common.Seq) error {
 			}
 		}
 	}
-	return replaceFile(h.journal, out.Bytes())
+	return replaceFile(h.journal, out.Bytes(), h.parent.Sandbox())
 }
 
-func repairJournal(path string, events []common.Event) error {
-	data, err := os.ReadFile(path)
+func repairJournal(path string, events []common.Event, owners ...common.Sandbox) error {
+	readFile := os.ReadFile
+	if len(owners) > 0 && owners[0] != nil {
+		readFile = owners[0].ReadFile
+	}
+	data, err := readFile(path)
 	if errors.Is(err, os.ErrNotExist) || (err == nil && (len(data) == 0 || data[len(data)-1] == '\n')) {
 		return nil
 	}
@@ -120,5 +128,5 @@ func repairJournal(path string, events []common.Event) error {
 			return err
 		}
 	}
-	return replaceFile(path, out.Bytes())
+	return replaceFile(path, out.Bytes(), owners...)
 }

@@ -41,8 +41,18 @@ func (r *registry) run(ctx context.Context, owner common.ToolCall, raw json.RawM
 		return fmt.Errorf("cwd must not be empty")
 	}
 	cmd := exec.Command("/bin/sh", "-c", command)
-	cmd.Dir = r.path(cwd)
-	cmd.Env = common.ProcessEnvironment(r.parent)
+	// Confined preparation needs the supplied name for refusals. Unconfined
+	// commands retain their existing cwd expansion and absolute-path semantics.
+	cmd.Dir = cwd
+	if r.parent.Config().SandboxRoot == "" {
+		cmd.Dir = r.path(cwd)
+	}
+	if err := r.parent.Sandbox().ValidateCommand(command); err != nil {
+		return err
+	}
+	if err := r.parent.Sandbox().PrepareCommand(cmd); err != nil {
+		return err
+	}
 	var terminal *os.File
 	var waitErr, errorRead error
 	reaped := make(chan struct{})

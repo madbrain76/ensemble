@@ -22,7 +22,7 @@ func appendText(t *testing.T, h common.History, text string) {
 }
 func TestArchiveBackupRecovery(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
-	h := New(nil)
+	h := diskHistory(t, path)
 	appendText(t, h, "one")
 	if err := h.SaveFile(path, archiveConfig(), common.LogFull); err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestArchiveBackupRecovery(t *testing.T) {
 	if err := os.WriteFile(path, []byte("broken"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	recovered := New(nil)
+	recovered := diskHistory(t, path)
 	// Chapter 14 retains and replays the tail needed by the validated backup.
 	r, err := recovered.LoadFile(path)
 	if err != nil || !r.Backup || r.AsOf != 2 || len(recovered.Context().Dialogue) != 2 {
@@ -80,7 +80,7 @@ func TestArchiveReplayTailAndNullContext(t *testing.T) {
 }
 func TestDialogueArchiveRetainsRecoveryContext(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
-	h := New(nil)
+	h := diskHistory(t, path)
 	appendText(t, h, "visible")
 	if err := h.SaveFile(path, archiveConfig(), common.LogDialogueOnly); err != nil {
 		t.Fatal(err)
@@ -96,7 +96,7 @@ func TestDialogueArchiveRetainsRecoveryContext(t *testing.T) {
 	if len(s.Log) != 0 || len(s.DialogueLog) != 1 || s.DialogueLog[0].Role != "user" || s.Context == nil {
 		t.Fatalf("%s", raw)
 	}
-	restored := New(nil)
+	restored := diskHistory(t, path)
 	if _, err = restored.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func TestDialogueArchiveRetainsRecoveryContext(t *testing.T) {
 }
 func TestBadArchiveDoesNotInstallOrOverwrite(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "save.json")
-	h := New(nil)
+	h := diskHistory(t, path)
 	appendText(t, h, "kept")
 	if err := os.WriteFile(path, []byte("{bad"), 0600); err != nil {
 		t.Fatal(err)
@@ -129,7 +129,7 @@ func TestBadArchiveDoesNotInstallOrOverwrite(t *testing.T) {
 		t.Fatal(string(raw))
 	}
 	if err := h.Append(common.Event{Type: common.MessageReceived, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{{Type: "opaque", From: &common.Provenance{Vendor: common.Anthropic, Surface: common.Messages, Model: "fixture"}, Data: json.RawMessage("bad")}}}}); err == nil {
-		if err = h.SaveFile(filepath.Join(t.TempDir(), "save.json"), archiveConfig(), common.LogFull); err == nil {
+		if err = h.SaveFile(filepath.Join(filepath.Dir(path), "malformed.json"), archiveConfig(), common.LogFull); err == nil {
 			t.Fatal("accepted malformed raw JSON")
 		}
 	}
@@ -139,14 +139,14 @@ func TestBadArchiveDoesNotInstallOrOverwrite(t *testing.T) {
 }
 
 func TestCh10R1PublicEnvelopeAndHints(t *testing.T) {
-	h := New(nil)
+	path := filepath.Join(t.TempDir(), "save.json")
+	h := diskHistory(t, path)
 	appendText(t, h, "prompt")
 	for _, actor := range []common.Actor{common.Human, common.System} {
 		if err := h.Append(common.Event{Type: common.HintReceived, Message: &common.MessageData{Actor: actor, Parts: common.PartList{common.Text(string(actor) + " hint")}}}); err != nil {
 			t.Fatal(err)
 		}
 	}
-	path := filepath.Join(t.TempDir(), "save.json")
 	for i := 0; i < 2; i++ {
 		if err := h.SaveFile(path, archiveConfig(), common.LogDialogueOnly); err != nil {
 			t.Fatal(err)
@@ -173,7 +173,7 @@ func TestCh10R1PublicEnvelopeAndHints(t *testing.T) {
 		if len(s.DialogueLog) != 2 || s.DialogueLog[1].SourceSeq != 2 || s.DialogueLog[1].Role != "user" || s.DialogueLog[1].Text != "human hint" {
 			t.Errorf("visible hint archive: %+v", s.DialogueLog)
 		}
-		restored := New(nil)
+		restored := diskHistory(t, path)
 		if _, err = restored.LoadFile(path); err != nil {
 			t.Fatal(err)
 		}
@@ -182,11 +182,11 @@ func TestCh10R1PublicEnvelopeAndHints(t *testing.T) {
 }
 
 func TestCh10R2DirectToolArchiveValidation(t *testing.T) {
-	h := New(nil)
+	path := filepath.Join(t.TempDir(), "save.json")
+	h := diskHistory(t, path)
 	if err := h.Append(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{Name: "read_file", Args: json.RawMessage(`{"path":"input"}`)}}); err != nil {
 		t.Fatal(err)
 	}
-	path := filepath.Join(t.TempDir(), "save.json")
 	if err := h.SaveFile(path, archiveConfig(), common.LogFull); err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func TestCh10R2DirectToolArchiveValidation(t *testing.T) {
 			if err = os.WriteFile(bad, raw, 0600); err != nil {
 				t.Fatal(err)
 			}
-			next := New(nil)
+			next := diskHistory(t, bad)
 			_, err = next.LoadFile(bad)
 			if tc.name == "sequence-anchor" {
 				if err == nil || next.LastSeq() != 0 || len(next.Events()) != 0 {

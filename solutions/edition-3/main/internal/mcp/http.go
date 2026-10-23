@@ -252,49 +252,7 @@ func (t *httpTransport) exchange(ctx context.Context, req *http.Request, sent me
 
 // Errors may be text or structured JSON. Preserve number precision and content
 // structure while replacing credential occurrences in decoded string values.
-func redactHTTPError(raw []byte, token string) []byte {
-	if token == "" {
-		return raw
-	}
-	decoder := json.NewDecoder(bytes.NewReader(raw))
-	decoder.UseNumber()
-	var value any
-	if decoder.Decode(&value) == nil {
-		var trailing any
-		if decoder.Decode(&trailing) == io.EOF {
-			var redact func(any) any
-			redact = func(v any) any {
-				switch v := v.(type) {
-				case string:
-					return strings.ReplaceAll(v, token, "[REDACTED]")
-				case []any:
-					for i, item := range v {
-						v[i] = redact(item)
-					}
-				case map[string]any:
-					for key, item := range v {
-						v[key] = redact(item)
-					}
-				}
-				return v
-			}
-			clean, err := json.Marshal(redact(value))
-			if err == nil {
-				return clean
-			}
-		}
-	}
-	// A bounded HTTP body may end mid-JSON. Remove known spellings, but do
-	// not surface undecodable escape sequences: alternate Unicode/slash
-	// encodings could still contain the bearer. The caller retains HTTP status.
-	encoded, _ := json.Marshal(token)
-	text := strings.ReplaceAll(string(raw), string(encoded[1:len(encoded)-1]), "[REDACTED]")
-	text = strings.ReplaceAll(text, token, "[REDACTED]")
-	if strings.Contains(text, `\`) {
-		return nil
-	}
-	return []byte(text)
-}
+func redactHTTPError(raw []byte, token string) []byte { return common.RedactDiagnostic(raw, token) }
 
 // SSE dispatches on a blank line, joining data fields exactly as the protocol
 // specifies. Comments, event names and keepalives never reach the JSON peer.

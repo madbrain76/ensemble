@@ -15,7 +15,7 @@ import (
 
 func TestChapter14ConcurrentAppendSaveMissingPrimary(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "session.save")
-	h := New(nil)
+	h := diskHistory(t, path)
 	if _, err := h.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestChapter14ConcurrentAppendSaveMissingPrimary(t *testing.T) {
 			t.Fatalf("restart differs: seq=%d dialogue=%d want seq=51 dialogue=%d", restored.LastSeq(), len(restored.Context().Dialogue), len(want.Dialogue))
 		}
 	}
-	primary := New(nil)
+	primary := diskHistory(t, path)
 	if r, err := primary.LoadFile(path); err != nil || r.Backup {
 		t.Fatalf("primary restart: %+v %v", r, err)
 	}
@@ -128,7 +128,7 @@ func TestChapter14ConcurrentAppendSaveMissingPrimary(t *testing.T) {
 	if err := os.Rename(path, path+".held-primary"); err != nil {
 		t.Fatal(err)
 	}
-	fallback := New(nil)
+	fallback := diskHistory(t, path)
 	if r, err := fallback.LoadFile(path); err != nil || !r.Backup {
 		t.Fatalf("missing-primary fallback: %+v %v", r, err)
 	}
@@ -136,7 +136,7 @@ func TestChapter14ConcurrentAppendSaveMissingPrimary(t *testing.T) {
 	if err := fallback.Append(common.Event{Type: common.MessageReceived, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text("after-restart")}}}); err != nil {
 		t.Fatal(err)
 	}
-	again := New(nil)
+	again := diskHistory(t, path)
 	if _, err := again.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}

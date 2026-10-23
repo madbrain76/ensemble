@@ -16,6 +16,7 @@ import (
 // Only the current/prior actual sends are retained. Files and predictions are
 // local diagnostics, never provider cache keys or durable conversation state.
 type cache struct {
+	files             common.Sandbox
 	parent            common.Engine
 	mu                sync.Mutex
 	current, previous []byte
@@ -31,6 +32,7 @@ const noSentRequest = "No main HTTP request has been sent in this Engine process
 func NewCache(parent common.Engine) common.Cache {
 	c := &cache{parent: parent}
 	if parent != nil {
+		c.files = parent.Parent().Sandbox()
 		cfg := parent.Parent().Config()
 		c.dir = cfg.DataDir
 		if !filepath.IsAbs(c.dir) {
@@ -229,13 +231,30 @@ func (c *cache) write(name string, b []byte) {
 	if c.dir == "" {
 		return
 	}
-	err := os.MkdirAll(c.dir, 0700)
+	mkdir, rename := os.MkdirAll, os.Rename
+	if c.files != nil {
+		mkdir = c.files.MkdirAll
+		rename = c.files.Rename
+	}
+	err := mkdir(c.dir, 0700)
 	if err == nil {
 		path := filepath.Join(c.dir, name)
 		tmp := path + ".tmp"
-		err = os.WriteFile(tmp, b, 0600)
+		if c.files == nil {
+			err = os.WriteFile(tmp, b, 0600)
+		} else {
+			var f *os.File
+			f, err = c.files.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+			if err == nil {
+				_, err = f.Write(b)
+				closeErr := f.Close()
+				if err == nil {
+					err = closeErr
+				}
+			}
+		}
 		if err == nil {
-			err = os.Rename(tmp, path)
+			err = rename(tmp, path)
 		}
 	}
 	if err != nil {

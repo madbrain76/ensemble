@@ -48,6 +48,7 @@ type SkillSpec struct {
 
 type SkillRegistry interface {
 	RestoreContext(Context) error
+	RefreshPolicy() error
 
 	Parent() Agent
 	Snapshot() CapabilitySnapshot
@@ -58,6 +59,8 @@ type SkillRegistry interface {
 	LoadDynamic(string, Seq) error
 	LoadableSkills() []SkillInfo
 	ListSkills() []SkillInfo
+	// Known credential names include declarations hidden from capability views.
+	MCPAuthEnvNames() []string
 	LoadSkill(string) error   // explicit application/manual activation, not a fabricated tool event
 	UnloadSkill(string) error // instructions pending; compiled/external grants withdrawn now
 	SubscribeSkills(func()) func()

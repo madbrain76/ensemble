@@ -11,7 +11,7 @@ import (
 // ConfigFromEnv is shared by live and offline adapters; the core owns no
 // process environment or default log filename. Empty generic values fall back.
 func ConfigFromEnv(get func(string) string) (Config, error) {
-	c := Config{SavePath: strings.TrimSpace(get("ENSEMBLE_SAVE")), LogMode: LogMode(strings.TrimSpace(get("ENSEMBLE_LOG_MODE")))}
+	c := Config{EnableWebSearch: true, SandboxRoot: get("EN_SANDBOX_ROOT"), SavePath: strings.TrimSpace(get("ENSEMBLE_SAVE")), LogMode: LogMode(strings.TrimSpace(get("ENSEMBLE_LOG_MODE")))}
 	c.AuthMode = AuthMode(strings.ToLower(strings.TrimSpace(get("OPENAI_BILLING_MODE"))))
 	c.ReasoningEffort = get("OPENAI_REASONING_EFFORT")
 	c.ReasoningSummary = get("OPENAI_REASONING_SUMMARY")
@@ -75,7 +75,7 @@ func ConfigFromEnv(get func(string) string) (Config, error) {
 	for _, option := range []struct {
 		name string
 		dst  *bool
-	}{{"LLM_PAUSE_ON_START", &c.PauseOnStart}, {"LLM_SPEAKING", &c.Speaking}} {
+	}{{"LLM_PAUSE_ON_START", &c.PauseOnStart}, {"LLM_SPEAKING", &c.Speaking}, {"EN_SAFE_MODE", &c.SafeMode}, {"EN_WEB_SEARCH", &c.EnableWebSearch}} {
 		if value := get(option.name); value != "" {
 			enabled, err := strconv.ParseBool(value)
 			if err != nil {

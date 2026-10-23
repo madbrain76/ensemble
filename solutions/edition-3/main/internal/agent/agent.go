@@ -16,6 +16,7 @@ import (
 	"sync/atomic"
 
 	"ensemble/internal/common"
+	"ensemble/internal/sandbox"
 )
 
 type agent struct {
@@ -32,6 +33,7 @@ type agent struct {
 	skills        common.SkillRegistry
 	mcp           common.MCPManager
 	jobs          common.Jobs
+	sandbox       common.Sandbox
 	box           mailbox
 	done          chan struct{}
 	shutdownErr   error
@@ -124,6 +126,9 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	if config.Tools != nil {
 		config.Tools = append([]string{}, config.Tools...)
 	}
+	if config.BaseDir == "" && config.SandboxRoot != "" {
+		config.BaseDir = config.SandboxRoot
+	}
 	if config.BaseDir == "" {
 		config.BaseDir, err = os.Getwd()
 		if err != nil {
@@ -133,15 +138,6 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 	config.BaseDir, err = filepath.Abs(config.BaseDir)
 	if err != nil {
 		return nil, err
-	}
-	if config.DataDir == "" {
-		config.DataDir, err = os.MkdirTemp("", "ensemble-agent-")
-		if err != nil {
-			return nil, err
-		}
-	}
-	if config.SavePath == "" {
-		config.SavePath = filepath.Join(config.DataDir, "save.json")
 	}
 	if config.DiagnosticMaxRecords == nil {
 		n := 200
@@ -175,11 +171,72 @@ func New(parent common.Ensemble, config common.Config) (*agent, error) {
 		config.Tools = append([]string{}, config.Tools...)
 	}
 	a := &agent{parent: parent, config: config, box: mailbox{wake: make(chan struct{}, 1)}, done: make(chan struct{}), observers: make(map[uint64]chan common.Observation), queues: make(map[*observationQueue]struct{}), state: common.Idle, paused: config.PauseOnStart, speaking: config.Speaking}
+	constructed := false
+	defer func() {
+		if !constructed && a.sandbox != nil {
+			_ = a.sandbox.Close()
+		}
+	}()
+	a.sandbox, err = sandbox.New(a)
+	if err != nil {
+		return nil, err
+	}
+	fail := func(err error) (*agent, error) { return nil, err }
+	if a.sandbox.Root() != "" {
+		config.SandboxRoot = a.sandbox.Root()
+		config.BaseDir, err = a.sandbox.ValidatePath(config.BaseDir)
+		if err != nil {
+			return fail(fmt.Errorf("base directory: %w", err))
+		}
+	}
+	a.config = config
+	if config.DataDir == "" {
+		if config.SandboxRoot != "" {
+			config.DataDir = filepath.Join(config.SandboxRoot, ".ensemble")
+		} else {
+			config.DataDir, err = os.MkdirTemp("", "ensemble-agent-")
+			if err != nil {
+				return fail(err)
+			}
+		}
+	}
+	config.DataDir, err = a.sandbox.ValidatePath(config.DataDir)
+	if err != nil {
+		return fail(fmt.Errorf("agent data directory: %w", err))
+	}
+	if err = a.sandbox.MkdirAll(config.DataDir, 0700); err != nil {
+		return fail(err)
+	}
+	if config.SavePath == "" {
+		config.SavePath = filepath.Join(config.DataDir, "save.json")
+	} else {
+		// Explicit recovery paths belong to the caller's cwd, unlike relative
+		// DataDir defaults. Resolve that choice before rooted validation: an
+		// outside caller-selected path must be refused, never moved into BaseDir.
+		var err error
+		config.SavePath, err = filepath.Abs(config.SavePath)
+		if err != nil {
+			return nil, err
+		}
+	}
+	for _, p := range []*string{&config.SavePath, &config.LogPath} {
+		if *p != "" {
+			*p, err = a.sandbox.ValidatePath(*p)
+			if err != nil {
+				return fail(fmt.Errorf("agent state path: %w", err))
+			}
+		}
+	}
+	if config.SavePath == config.LogPath {
+		return fail(errors.New("save and legacy log paths must differ"))
+	}
+	a.config = config
 	a.maxToolRounds.Store(int64(config.MaxToolRounds))
 	a.viewState = common.ViewSnapshot{State: common.Idle, Paused: config.PauseOnStart, Speaking: config.Speaking}
 	a.viewParts = make(map[uint64]common.PartDelta)
 	a.jobParts = make(map[int]uint64)
 	a.viewValue.Store(a.viewState)
+	constructed = true
 	return a, nil
 }
 
@@ -418,3 +475,5 @@ func (a *agent) AttachMCPConnection(name string, t common.MCPTransport) error {
 func (a *agent) ServeMCPConnection(ctx context.Context, t common.MCPTransport) error {
 	return a.mcp.Serve(ctx, t)
 }
+
+func (a *agent) Sandbox() common.Sandbox { return a.sandbox }

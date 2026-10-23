@@ -29,13 +29,16 @@ func textParts(ps common.PartList) (string, error) {
 	return b.String(), nil
 }
 func render(c common.Context, cfg common.Config, defs []common.ToolDefinition, disclosures ...anthropicDisclosure) ([]byte, error) {
+	return renderWithFiles(c, cfg, defs, nil, disclosures...)
+}
+func renderWithFiles(c common.Context, cfg common.Config, defs []common.ToolDefinition, files common.Sandbox, disclosures ...anthropicDisclosure) ([]byte, error) {
 	c, cfg, defs = projectPrompt(c, cfg, defs)
 	var disclosure anthropicDisclosure
 	if len(disclosures) > 0 {
 		disclosure = disclosures[0]
 	}
 	var err error
-	c, err = prepareMedia(c, cfg)
+	c, err = prepareMedia(c, cfg, files)
 	if err != nil {
 		return nil, err
 	}

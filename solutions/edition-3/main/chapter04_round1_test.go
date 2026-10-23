@@ -469,7 +469,11 @@ func TestChapter4Round1FileStreaming(t *testing.T) {
 			t.Fatal(err)
 		}
 		data := job.Data()
-		raw, err := os.ReadFile(filepath.Join(dir, filepath.FromSlash(data.Output.Locator)))
+		outputPath := filepath.FromSlash(data.Output.Locator)
+		if !filepath.IsAbs(outputPath) {
+			outputPath = filepath.Join(dir, outputPath)
+		}
+		raw, err := os.ReadFile(outputPath)
 		if err != nil || string(raw) != tc.want || data.Bytes != int64(len(tc.want)) {
 			t.Fatalf("%s full disk/order/context: bytes=%d want=%d err=%v", tc.name, len(raw), len(tc.want), err)
 		}

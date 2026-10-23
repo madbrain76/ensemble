@@ -320,6 +320,21 @@ func TestChapter3Round1WriteRefusalAndRegisteredHandlers(t *testing.T) {
 
 func TestChapter3EditDiagnostics(t *testing.T) {
 	a := c3Agent(t, ensemble.Config{})
+	diagnosticBody := func(text, path, anchor, content string) (string, error) {
+		// Only the required leading identifier is exempt from content checks. Never
+		// remove path occurrences elsewhere: an echoed path in the body may leak aa.
+		body, ok := strings.CutPrefix(text, fmt.Sprintf("file %q:", path))
+		if !ok {
+			return "", fmt.Errorf("refusal did not start with the requested file identifier: %q", text)
+		}
+		if strings.Contains(body, anchor) {
+			return "", fmt.Errorf("diagnostic body leaked an anchor: %q", body)
+		}
+		if excerpt := strings.TrimSpace(content); excerpt != "" && strings.Contains(body, excerpt) {
+			return "", fmt.Errorf("diagnostic body leaked a file excerpt: %q", body)
+		}
+		return body, nil
+	}
 	cases := []struct {
 		name, content, anchor string
 		count                 int
@@ -337,7 +352,8 @@ func TestChapter3EditDiagnostics(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), "file")
+			// Keep the path/anchor collision deterministic, independent of TMPDIR.
+			path := filepath.Join(t.TempDir(), "aa-file")
 			c3Write(t, path, tc.content)
 			text, failed := c3Call(t, a, "edit_file", map[string]any{"path": path, "old_text": tc.anchor, "new_text": "must-not-appear"})
 			if !failed {
@@ -346,25 +362,34 @@ func TestChapter3EditDiagnostics(t *testing.T) {
 			if c3Contents(t, path) != tc.content {
 				t.Fatal("refusal changed file bytes")
 			}
-			if !strings.Contains(text, fmt.Sprintf("file %q:", path)) {
-				t.Fatalf("refusal did not identify requested file: %q", text)
+			body, err := diagnosticBody(text, path, tc.anchor, tc.content)
+			if err != nil {
+				t.Fatal(err)
 			}
-			if !strings.Contains(text, fmt.Sprintf("%d matches", tc.count)) || !strings.Contains(text, "file unchanged") || !strings.Contains(text, "reread the file") {
+			if !strings.Contains(body, fmt.Sprintf("%d matches", tc.count)) || !strings.Contains(body, "file unchanged") || !strings.Contains(body, "reread the file") {
 				t.Fatalf("incomplete refusal: %q", text)
 			}
-			if tc.count > 1 && (!strings.Contains(text, "match-start lines: "+tc.locations) || !strings.Contains(text, "larger exact anchor")) {
+			if tc.count > 1 && (!strings.Contains(body, "match-start lines: "+tc.locations) || !strings.Contains(body, "larger exact anchor")) {
 				t.Fatalf("wrong ambiguity locations/guidance: %q", text)
 			}
 			if tc.omitted > 0 {
-				if !strings.Contains(text, fmt.Sprintf("location list truncated: %d more match locations omitted", tc.omitted)) {
+				if !strings.Contains(body, fmt.Sprintf("location list truncated: %d more match locations omitted", tc.omitted)) {
 					t.Fatalf("missing truncation/count: %q", text)
 				}
-			} else if strings.Contains(text, "truncated") || strings.Contains(text, "omitted") {
+			} else if strings.Contains(body, "truncated") || strings.Contains(body, "omitted") {
 				t.Fatalf("untruncated locations reported as truncated: %q", text)
 			}
-			// Diagnostics identify locations, never echo file snippets or the anchor.
-			if strings.Contains(text, tc.anchor) {
-				t.Fatalf("diagnostic leaked an anchor excerpt: %q", text)
+			// The same checker must detect real body leaks, not merely accept
+			// the legitimate collision in the required leading identifier.
+			for _, leak := range []string{tc.anchor, tc.content} {
+				if _, err := diagnosticBody(text+"; leaked: "+leak, path, tc.anchor, tc.content); err == nil {
+					t.Fatal("diagnostic checker accepted a body anchor/excerpt")
+				}
+			}
+			if tc.anchor == "aa" {
+				if _, err := diagnosticBody(text+"; repeated: "+fmt.Sprintf("file %q:", path), path, tc.anchor, tc.content); err == nil {
+					t.Fatal("diagnostic checker removed a path occurrence from the body")
+				}
 			}
 		})
 	}

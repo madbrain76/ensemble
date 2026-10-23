@@ -49,8 +49,12 @@ operations. Spawned commands run under the operating system's
 sandbox, because a shell never calls our Go path checker.
 Credentials belong to the transport, outside the conversation.
 
+The restarted implementation already exposes `Config`; extend that existing
+owner rather than introducing a second authoritative specification. The earlier
+implementation called its public type `AgentSpec`.
+
 1. Add `SandboxRoot`, `SafeMode` and `EnableWebSearch` to the public
-   `AgentSpec`. A nonempty root selects confinement. Sandbox retains
+   `Config`. A nonempty root selects confinement. Sandbox retains
    its required Agent parent and obtains policy through that owner.
 2. Canonicalize the root and candidate, including existing ancestors
    of a new file. Check directory containment, not a naive string
@@ -64,7 +68,7 @@ Credentials belong to the transport, outside the conversation.
    before logs, errors or echoed responses become model-visible.
    Keep state writes, media reads and saved job-output reads behind
    the same file boundary. Do not put credentials in the workspace.
-5. `AgentSpec.Child(dataDir)` derives inherited restrictions and
+5. `Config.Child(dataDir)` derives inherited restrictions and
    clears parent-specific log/save paths. `Clamp(parent)` returns a
    narrowed specification even when it also reports a widening
    attempt. The wall and the alarm are separate things.
@@ -79,9 +83,10 @@ The application supports `--sandbox ROOT`, `--safe-mode` and
 `--no-web-search`. The corresponding environment inputs are
 `EN_SANDBOX_ROOT`, `EN_SAFE_MODE=1` and `EN_WEB_SEARCH=0`.
 `SandboxRoot` is independent of safe mode: removing shell tools
-alone does not confine file tools. An omitted application spec
-retains full access and enables web search; an explicitly supplied
-spec's zero `EnableWebSearch` disables that capability.
+alone does not confine file tools. CLI and GUI application defaults
+enable web search. An explicitly supplied
+`Config` is authoritative: its zero `EnableWebSearch` disables that
+capability. No optional-spec constructor is required.
 
 The child methods prepare a narrow-only policy for later spawning;
 this exercise adds no fleet. Nor does it add a `send_secret` tool:
@@ -91,10 +96,12 @@ credential-store assignment.
 From the repository root:
 
 ```sh
-go run ./cmd/grade-edition2 -ch 19 solutions/ch19
+go run ./cmd/grade-edition3 -ch 19 -core solutions/edition-3/main \
+  solutions/edition-3/main/cmd/ch01
 ```
 
-Substitute your core module directory for the final argument. The
+Substitute your importable module for `-core` and its CLI source target
+or executable for the final argument. Flags precede that target. The
 seven checks total 100 points, with both refused escapes and useful
 allowed work. Exact examples and coverage limits follow below.
 
@@ -152,6 +159,13 @@ credentials out of it closes that direct disclosure path. But a
 model can also ask a command to copy bytes it never sees, so keeping
 them out of context is not the whole boundary. File and process
 confinement must prevent those tool operations too.
+
+The application-selected trusted corpus can live outside the workspace;
+that does not authorize file tools to read it. File tools use the
+in-process rooted API. Arbitrary commands and their descendants receive
+the OS profile, including the deliberate system-runtime exceptions
+below. This is not `chroot`: `/` still names the host root, not the
+workspace.
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -352,6 +366,16 @@ opens narrow allowances:
 - The workspace itself, read and write.
 - `(deny network*)`.
 
+Apple's `/var` alias produced a concrete restart failure. Python and Git
+could not inspect `/var/select/developer_dir`, despite physical-ancestor
+allowances under `/private/var`. Adding metadata literals for `/var`,
+`/private/var/select` and `/private/var/select/developer_dir` restored both
+commands. This tested combination was sufficient on that host; it did
+not prove every literal necessary. The correction stayed with the
+demonstrated metadata access rather than opening a selection subtree or
+global metadata access. Shell-selection warnings remained even though
+the commands succeeded.
+
 The Xcode shim cache deserves a closer look. Developer-tool entries such as
 `git`, `python3` and `clang` can go through Xcode shims that read
 and write a cache in the Darwin per-user temp directory. The obvious
@@ -373,7 +397,7 @@ The filename looked right; its location was wrong.
 ### SBPL matches physical paths
 
 This is the same bug class as the uncanonicalized root in section
-21.3, and it cost real debugging time. `getconf DARWIN_USER_TEMP_DIR`
+19.3, and it cost real debugging time. `getconf DARWIN_USER_TEMP_DIR`
 returns the `/var/folders/.../T` form. `/var` is a symlink to
 `/private/var`. A rule written with the `/var` form never matches,
 because SBPL compares against physical paths.
@@ -429,11 +453,12 @@ can direct where it goes. The rule is simple: credentials do not
 enter the conversation, ever.
 
 **API keys and OAuth tokens.** The binary holds these in memory and
-adds them to the HTTP request at the transport layer. Chapter 16's
-`CredentialProvider` returns the token; `Engine.sendRequest` adds the
-`Authorization` header. The model's conversation contains the request
-it asked for and the response it received, with no authentication
-headers.
+adds them to the HTTP request at the transport layer. For OpenAI,
+the auth owner supplies the transport credential. The Engine sets
+provider-specific headers: `x-api-key` for Anthropic, `Authorization`
+for OpenAI and `x-goog-api-key` for Gemini. The model's conversation
+contains the request it asked for and the response it received, with
+no authentication headers.
 
 **OAuth refresh.** When an access token expires mid-session,
 the binary's credential provider uses the refresh token to obtain a
@@ -442,10 +467,10 @@ and the HTTP call, invisibly. The model does not know the token
 expired, does not see the new token, and does not participate in the
 refresh protocol.
 
-**Error messages.** Chapter 1's `requestFailure` already wraps
-transport errors to prevent credential-bearing URLs from reaching the
-conversation. The same rule extends to every log file written inside
-the workspace:
+**Error messages.** At the Engine's HTTP boundary, a transport failure
+returns a generic safe error or the context's cancellation error,
+keeping credential-bearing transport details out of the conversation.
+The same rule extends to every log file written inside the workspace:
 
 Known credentials are redacted before writing. The root logger
 scrubs configured API keys; the transport also scrubs current and
@@ -523,11 +548,11 @@ that a compromised child cannot influence its parent through text.
 
 ### Deriving, not constructing
 
-`AgentSpec.Child` copies the parent's spec and overrides the data
+`Config.Child` copies the parent's spec and overrides the data
 directory:
 
 ```go
-func (s AgentSpec) Child(dataDir string) AgentSpec {
+func (s Config) Child(dataDir string) Config {
 	s.DataDir, s.LogPath, s.SavePath = dataDir, "", ""
 	return s
 }
@@ -553,7 +578,7 @@ then entirely sufficient.
 what it narrowed:
 
 ```go
-func (s AgentSpec) Clamp(parent AgentSpec) (AgentSpec, error) {
+func (s Config) Clamp(parent Config) (Config, error) {
 	var widened []string
 	// SafeMode is a restriction (OR); web search is a capability (AND).
 	if parent.SafeMode && !s.SafeMode {
@@ -714,7 +739,7 @@ type sandbox struct {
 ```
 
 `Agent()` exposes that relationship. Resolution obtains
-`parent.Spec().SandboxRoot`; policy is owned by the Agent rather
+`parent.Config().SandboxRoot`; policy is owned by the Agent rather
 than duplicated in the file or tool package. The root is
 canonicalized again at use, and the file operation opens its own
 `os.Root`. No shared memo or extra policy service is necessary.
@@ -739,11 +764,17 @@ of escape tests certifies arbitrary hostile native programs.
 
 ## 19.11 Taking it for a spin
 
-Run this exercise on macOS. Build the core from your implementation
-module, or from `solutions/ch19` to try the accepted version:
+Run this exercise on macOS after its host-level operations and provider use have
+been authorized. The restart's Chapter 16 live OAuth exercise remains deferred;
+the subscription recipe below requires its own account consent and valid grant,
+not borrowed credentials. Local fake-provider results do not establish that grant.
+
+Build the CLI from your implementation module. The root stays an importable
+library; its executable is the nested `cmd/ch01` package. The historical session
+account below concerns the earlier implementation, not a new restart result:
 
 ```sh
-go build -o /tmp/ensemble-ch21 .
+go build -o /tmp/ensemble-ch19 ./cmd/ch01
 ```
 
 Use a fresh directory and synthetic outside data. An escape test
@@ -752,11 +783,11 @@ file cannot demonstrate confinement. Keep real credentials out of
 the test corpus. In the same terminal:
 
 ```sh
-ensemble_ch21_demo=$(mktemp -d)
-mkdir -p "$ensemble_ch21_demo/work" "$ensemble_ch21_demo/skills/base"
-printf 'OUTSIDE_FIXTURE_ONLY\n' > "$ensemble_ch21_demo/outside.txt"
-ln -s ../outside.txt "$ensemble_ch21_demo/work/escape"
-cat > "$ensemble_ch21_demo/skills/base/SKILL.md" <<'SKILL'
+ensemble_ch19_demo=$(mktemp -d)
+mkdir -p "$ensemble_ch19_demo/work" "$ensemble_ch19_demo/skills/base"
+printf 'OUTSIDE_FIXTURE_ONLY\n' > "$ensemble_ch19_demo/outside.txt"
+ln -s ../outside.txt "$ensemble_ch19_demo/work/escape"
+cat > "$ensemble_ch19_demo/skills/base/SKILL.md" <<'SKILL'
 ---
 name: base
 type: primary
@@ -767,7 +798,7 @@ Use the dedicated file tools for file operations. Use run_command for
 local programs. Report a refused operation as refused; do not invent
 its result. If a command is still running, wait for its actual result.
 SKILL
-export EN_SKILLS_DIR="$ensemble_ch21_demo/skills"
+export EN_SKILLS_DIR="$ensemble_ch19_demo/skills"
 export EN_PRIMARY_SKILL=base
 export LLM_VENDOR=openai
 export LLM_MODEL=gpt-6-astra
@@ -775,8 +806,8 @@ export OPENAI_REASONING_EFFORT=high
 export OPENAI_REASONING_SUMMARY=detailed
 export OPENAI_BILLING_MODE=chatgpt
 export SANDBOX_FAKE_TEST_TOKEN=sandbox-fixture-only
-cd "$ensemble_ch21_demo/work"
-/tmp/ensemble-ch21 chat --sandbox "$ensemble_ch21_demo/work" --no-web-search
+cd "$ensemble_ch19_demo/work"
+/tmp/ensemble-ch19 --sandbox "$ensemble_ch19_demo/work" --no-web-search chat
 ```
 
 The subscription launch uses the sign-in from Chapter 16. Its profile
@@ -808,7 +839,7 @@ individual result and file effect, not only the last exit status.
 Start a second Agent with its own narrower root:
 
 ```sh
-/tmp/ensemble-ch21 chat --sandbox "$ensemble_ch21_demo/work/sub" --safe-mode --no-web-search
+/tmp/ensemble-ch19 --sandbox "$ensemble_ch19_demo/work/sub" --safe-mode --no-web-search chat
 ```
 
 ```text
@@ -845,10 +876,23 @@ credential marker was absent from the retained output.
 Those sessions preceded the review's nested toolchain-cache and cwd
 refusal corrections. The corrected source passed their direct
 regressions while keeping allowed Git, Python and file operations;
-no additional paid session was run. The useful lesson is the paired
+no additional paid session was run for those second-edition corrections.
+The useful lesson is the paired
 observation: a refused escape beside work that still finishes. Neither
 a model's compliance nor a small collection of denied paths proves
 that every possible escape has been excluded.
+
+The October 22, 2026 restart exercises used Sonnet 4.6 through the
+API-key CLI. Paired tool results and artifacts showed useful file work,
+Python and Git alongside traversal, symlink and outside-write refusals.
+An explicit Python subprocess-to-shell-to-`cat` chain also failed to read
+outside. A known synthetic token was filtered from returned output and
+absent from retained logs; a confined network attempt added no request
+to a reachable local peer. A narrower safe-mode session completed file
+work and refused a parent read, with command and job tools absent from
+declarations. The completed sessions exited normally at EOF. These
+observations did not exercise the deferred OAuth/browser flow or
+establish universal isolation.
 
 ## 19.12 Checks
 

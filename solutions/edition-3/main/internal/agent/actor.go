@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -423,7 +422,7 @@ func (a *agent) run() {
 					_ = a.box.post(stopped{err}, false)
 				}()
 			case stopped:
-				a.shutdownErr = errors.Join(m.err, a.save(), a.Save())
+				a.shutdownErr = errors.Join(m.err, a.save(), a.Save(), a.Sandbox().Close())
 				close(a.done)
 				return
 			}
@@ -926,16 +925,16 @@ func (a *agent) saveDump(dump func(io.Writer) error) error {
 	if path == "" {
 		return nil
 	}
-	f, err := os.CreateTemp(filepath.Dir(path), ".ensemble-log-*")
+	f, err := a.Sandbox().CreateTemp(filepath.Dir(path), ".ensemble-log-")
 	if err != nil {
 		return fmt.Errorf("saving log: %w", err)
 	}
 	name := f.Name()
-	defer os.Remove(name)
+	defer a.Sandbox().Remove(name)
 	err = dump(f)
 	err = errors.Join(err, f.Close())
 	if err == nil {
-		err = os.Rename(name, path)
+		err = a.Sandbox().Rename(name, path)
 	}
 	return err
 }

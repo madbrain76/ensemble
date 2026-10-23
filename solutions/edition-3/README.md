@@ -51,4 +51,30 @@ tariff arithmetic, excluding Firecrawl and failed attempts, not an invoice.
 Earlier failures and truncation qualifications remain in the restart notes.
 No optional live GUI/native/authenticated-MCP result is claimed. One fresh
 text review passed without revision. `main/` continues from this snapshot;
-Chapter 19 is next, with independent entry review and permissions still needed.
+This records the Chapter 18 boundary; Chapter 19 acceptance is recorded below.
+
+## Accepted Chapter 19 snapshot
+
+`ch19/` preserves 255 source/support files, matching the accepted main tree's
+bytes and executable modes after ten production correction rounds. Scratch,
+settings, credentials, binaries and private operational payloads are excluded.
+The separate runtime handoff amendment and earlier accepted snapshots are untouched.
+
+Acceptance includes the reviewed local gates, all seven native Chapter 19 checks
+(100/100, true, exit zero), and the same-binary Chapter 1 lifetime gate with both
+real 62-second phases. Unchanged evidence is carried with its stated limits.
+Root fixture corrections are separate from production corrections.
+
+Required API-key CLI behavior was verified from paired tool results and effects:
+useful file/Python/Git work, workspace and descendant refusals, filtered synthetic
+tokens, network denial against a reachable owned peer, and narrower safe-mode
+behavior. Two controller receipts remain failed; the detailed records explain
+why the observed behavior supports acceptance without relabelling those wrappers.
+This does not establish live OAuth, optional GUI/browser behavior or universal
+confinement. No running environment was installed or restarted.
+
+The minimal author pass had one formal REQUIRED_REVISION and one bounded response,
+verified directly by root; there was no second formal text-review PASS. Records:
+`docs/edition-3-notes/ch19-restart-{student,code-review,author,text-review}.md` and
+the execution guide. All Chapter 19 workers are closed. Chapter 20 entry is next
+and has not begun.

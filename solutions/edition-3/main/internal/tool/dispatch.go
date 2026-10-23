@@ -132,6 +132,7 @@ func (o *operation) Await(ctx context.Context) common.ToolData {
 		}
 		text = fmt.Sprintf("[tool_limits consumed by this %s call: ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d]\n", o.call.Name, o.limits.Delay, pattern, o.limits.MaxOutputBytes) + text
 	}
+	text = common.Redact(text, common.CredentialValues(o.registry.parent.Config())...)
 	d.Parts = common.PartList{common.Text(text)}
 	return d
 }
@@ -178,6 +179,9 @@ func (r *registry) prepare(ctx context.Context, call common.Part, refusal string
 	if refusal != "" {
 		o.err = errors.New(refusal)
 	}
+	if err := common.ToolPolicy(r.parent.Config(), call.Name); err != nil {
+		o.err = err
+	}
 	// Rejection is a tool result, never execution or job allocation.
 	if o.err != nil {
 		return o
@@ -210,7 +214,22 @@ func (r *registry) prepare(ctx context.Context, call common.Part, refusal string
 	}
 	cwd := ""
 	if call.Name == "run_command" {
-		if override, err := o.args.text("cwd", false); err == nil && override != "" {
+		override, err := o.args.text("cwd", false)
+		if err != nil {
+			o.err = err
+			return o
+		}
+		if _, present := o.args["cwd"]; present && override == "" {
+			o.err = fmt.Errorf("cwd must not be empty")
+			return o
+		}
+		// A refused cwd is not a job. Do not publish an expanded host cwd or
+		// reserve an output locator/handle; preparation rechecks before launch.
+		if _, err := r.parent.Sandbox().ValidatePath(override); err != nil {
+			o.err = fmt.Errorf("cwd: %w", err)
+			return o
+		}
+		if override != "" {
 			cwd = r.path(override)
 		}
 	}

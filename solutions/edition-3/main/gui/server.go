@@ -31,31 +31,92 @@ func NewServer(root *ensemble.Ensemble, assets string) (*Server, error) {
 	return NewServerWithSettings(root, assets, filepath.Join("cr", "settings.json"))
 }
 
-// NewServerWithSettings accepts the settings path selected by the launcher.
-func NewServerWithSettings(root *ensemble.Ensemble, assets, path string) (*Server, error) {
+// NewServerFromConfig applies saved GUI policy before ordinary Agent recovery
+// and capability initialization, not merely to its eventual view.
+func NewServerFromConfig(root *ensemble.Ensemble, config ensemble.Config, assets, path string) (*Server, ensemble.Agent, error) {
+	absoluteAssets, err := serverAssets(assets)
+	if err != nil {
+		return nil, nil, err
+	}
 	if path == "" {
 		path = filepath.Join("cr", "settings.json")
 	}
-	path, err := filepath.Abs(path)
+	file, err := root.ReadStartupFile(config, path)
 	if err != nil {
-		return nil, err
+		return nil, nil, fmt.Errorf("load GUI settings: %w", err)
 	}
-	abs, err := filepath.Abs(assets)
-	if err != nil {
-		return nil, err
-	}
-	for _, name := range []string{"index.html", "app.js", "style.css"} {
-		if info, err := os.Stat(filepath.Join(abs, name)); err != nil || info.IsDir() {
-			return nil, fmt.Errorf("GUI asset missing: %s", filepath.Join(abs, name))
+	settings := settingsForLaunch(config)
+	if file.Exists {
+		settings, err = patchSettings(settings, file.Data)
+		if err != nil {
+			return nil, nil, fmt.Errorf("load GUI settings: %w", err)
 		}
 	}
-	store := settingsStore{path: path}
-	settings, loadErr := store.load()
-	if loadErr != nil {
-		return nil, fmt.Errorf("load GUI settings: %w", loadErr)
+	// Carry only construction path choices, not the bootstrap's normalized
+	// authentication/model/runtime configuration. Keep the same parsed snapshot.
+	config.DataDir, config.SavePath = file.DataDir, file.SavePath
+	config.SafeMode, config.EnableWebSearch = settings.SafeMode, settings.EnableWebSearch
+	owner, err := root.NewAgent(config)
+	if err != nil {
+		return nil, nil, err
 	}
-	return &Server{Root: root, Hub: newHub(root, settings, store), Assets: abs}, nil
+	store := settingsStore{path: file.Path, agent: owner}
+	return &Server{Root: root, Hub: newHub(root, settings, store), Assets: absoluteAssets, DefaultAgent: owner.ID()}, owner, nil
 }
+
+func settingsStoreFor(owner ensemble.Agent, path string) (settingsStore, error) {
+	if path == "" {
+		path = filepath.Join("cr", "settings.json")
+	}
+	if owner != nil && !filepath.IsAbs(path) {
+		path = filepath.Join(owner.Config().BaseDir, path)
+	}
+	absolute, err := filepath.Abs(path)
+	if err != nil {
+		return settingsStore{}, err
+	}
+	if owner != nil {
+		if _, err = owner.Sandbox().ValidatePath(absolute); err != nil {
+			return settingsStore{}, err
+		}
+	}
+	return settingsStore{path: absolute, agent: owner}, nil
+}
+func serverAssets(assets string) (string, error) {
+	absolute, err := filepath.Abs(assets)
+	if err != nil {
+		return "", err
+	}
+	for _, name := range []string{"index.html", "app.js", "style.css"} {
+		if info, err := os.Stat(filepath.Join(absolute, name)); err != nil || info.IsDir() {
+			return "", fmt.Errorf("GUI asset missing: %s", filepath.Join(absolute, name))
+		}
+	}
+	return absolute, nil
+}
+
+// NewServerWithSettings attaches to already constructed Agents. The launcher
+// uses NewServerFromConfig so saved policy also governs their construction.
+func NewServerWithSettings(root *ensemble.Ensemble, assets, path string) (*Server, error) {
+	absoluteAssets, err := serverAssets(assets)
+	if err != nil {
+		return nil, err
+	}
+	var owner ensemble.Agent
+	if agents := root.Agents(); len(agents) > 0 {
+		owner = agents[0]
+	}
+	store, err := settingsStoreFor(owner, path)
+	if err != nil {
+		return nil, err
+	}
+	settings, err := store.load()
+	if err != nil {
+		return nil, fmt.Errorf("load GUI settings: %w", err)
+	}
+	return &Server{Root: root, Hub: newHub(root, settings, store), Assets: absoluteAssets}, nil
+}
+
 func (s *Server) wireTrace(direction string, raw []byte) {
 	if s.Trace == nil {
 		return
@@ -68,9 +129,14 @@ func (s *Server) wireTrace(direction string, raw []byte) {
 		quoted, _ := json.Marshal(string(raw))
 		payload.Write(quoted)
 	}
+	configs := []ensemble.Config{}
+	for _, a := range s.Root.Agents() {
+		configs = append(configs, a.Config())
+	}
+	sanitized := ensemble.RedactCredentials(payload.String(), configs...)
 	s.traceMu.Lock()
 	defer s.traceMu.Unlock()
-	if _, err := fmt.Fprintf(s.Trace, "%s %s %s\n", time.Now().Format(time.RFC3339Nano), direction, payload.Bytes()); err != nil {
+	if _, err := fmt.Fprintf(s.Trace, "%s %s %s\n", time.Now().Format(time.RFC3339Nano), direction, sanitized); err != nil {
 		s.Hub.en.Logger().Printf("GUI diagnostic write: %v", err)
 	}
 }

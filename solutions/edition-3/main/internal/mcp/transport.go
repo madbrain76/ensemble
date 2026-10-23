@@ -61,6 +61,9 @@ func (p *processPipe) Close() error {
 	return nil
 }
 func dial(ctx context.Context, c common.MCPServer, base string, diagnostics io.Writer, environment ...string) (common.MCPTransport, error) {
+	return dialPrepared(ctx, c, base, diagnostics, nil, environment...)
+}
+func dialPrepared(ctx context.Context, c common.MCPServer, base string, diagnostics io.Writer, prepare func(*exec.Cmd) error, environment ...string) (common.MCPTransport, error) {
 	switch c.Transport {
 	case "url":
 		return newHTTPTransport(c, diagnostics)
@@ -73,6 +76,11 @@ func dial(ctx context.Context, c common.MCPServer, base string, diagnostics io.W
 		cmd.Env = environment
 		if cmd.Env == nil {
 			cmd.Env = common.ProcessEnvironment()
+		}
+		if prepare != nil {
+			if err := prepare(cmd); err != nil {
+				return nil, err
+			}
 		}
 		cmd.Stderr = diagnostics
 		cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}

@@ -44,10 +44,10 @@ function speechChunks(task){
  }
  return out;
 }
-let settings={theme:'dark',tts_enabled:true,pause_while_speaking:true,tts_speed:1,font_size:16,context_target:0,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200},settingsReady=false;
+let settings={theme:'dark',tts_enabled:true,pause_while_speaking:true,tts_speed:1,font_size:16,context_target:0,max_tool_rounds:0,log_mode:'full',diagnostic_max_records:200,safe_mode:false,enable_web_search:true},settingsReady=false;
 // A target draft is local; accepted shared settings stay authoritative.
 let contextTargetDraft=null,contextTargetPending=null;
-const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','pause-while-speaking':'pause_while_speaking','tts-speed':'tts_speed','font-size':'font_size','context-target':'context_target','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records'};
+const preferenceFields={'theme':'theme','tts-enabled':'tts_enabled','pause-while-speaking':'pause_while_speaking','tts-speed':'tts_speed','font-size':'font_size','context-target':'context_target','max-tool-rounds':'max_tool_rounds','log-mode':'log_mode','diagnostic-max-records':'diagnostic_max_records','safe-mode':'safe_mode','enable-web-search':'enable_web_search'};
 const systemTheme=window.matchMedia?.('(prefers-color-scheme: dark)');
 function applyTheme(){document.documentElement.dataset.theme=settings.theme==='system'?(systemTheme?.matches?'dark':'light'):settings.theme;}
 if(systemTheme?.addEventListener)systemTheme.addEventListener('change',()=>{if(settings.theme==='system')applyTheme();});

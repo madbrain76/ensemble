@@ -232,7 +232,10 @@ func TestChapter4Round2AgentWireAndKilledObservation(t *testing.T) {
 		t.Fatal(err)
 	}
 	c4Killed(t, a, killed, "kill_job")
-	killedPath := filepath.Join(a.Config().BaseDir, killed.Data().Output.Locator)
+	killedPath := killed.Data().Output.Locator
+	if !filepath.IsAbs(killedPath) {
+		killedPath = filepath.Join(a.Config().BaseDir, killedPath)
+	}
 	killedBytes, readErr := os.ReadFile(killedPath)
 	if readErr != nil || string(killedBytes) != "HOLD_READY\n" || killed.Data().Bytes != int64(len(killedBytes)) {
 		t.Fatalf("killed output/footer/bytes: %q %+v %v", killedBytes, killed.Data(), readErr)

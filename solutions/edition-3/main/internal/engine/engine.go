@@ -61,6 +61,9 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 		disclosure.catalog = make([]common.ToolSpec, 0, len(snapshot.Tools))
 		disclosure.references = map[string][]string{}
 		for _, t := range snapshot.Tools {
+			if common.ToolPolicy(cfg, t.Name) != nil || (t.Skill == "web-search" && !cfg.EnableWebSearch) {
+				continue
+			}
 			// Tools retains capability truth for admission and automatic gathering.
 			// Automatic tools never enter declarations or enabling-call references.
 			// Dormant compiled tools remain deferred; external declarations require
@@ -103,7 +106,7 @@ func (e *engine) Render(c common.Context) ([]byte, error) {
 			disclosure.references[id] = append(disclosure.references[id], t.Name)
 		}
 	}
-	return render(c, cfg, snapshot.Definitions, disclosure)
+	return renderWithFiles(c, cfg, snapshot.Definitions, e.parent.Sandbox(), disclosure)
 }
 
 // EffectiveSystemPrompt uses the same system composition as all renderers.
@@ -202,6 +205,8 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 		err = e.failure("API key is not set")
 		return []common.Event{errorEvent(err.Error())}, err
 	}
+	secrets := append(common.CredentialValues(config), credential.Token)
+	transportTokens := []string{credential.Token}
 	endpoint := config.BaseURL
 	switch config.Vendor {
 	case common.Anthropic:
@@ -273,8 +278,11 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 			credential, err = e.parent.Parent().Auth().Resolve(ctx, config)
 		}
 		if err != nil {
-			return []common.Event{errorEvent(err.Error())}, e.failure(err.Error())
+			message := credentialReplacer(credentialSpellings(transportTokens)).Replace(err.Error())
+			return []common.Event{errorEvent(message)}, e.failure(message)
 		}
+		secrets = append(secrets, credential.Token)
+		transportTokens = append(transportTokens, credential.Token)
 		req.Body = io.NopCloser(bytes.NewReader(b))
 		req.Header.Set("Authorization", "Bearer "+credential.Token)
 		resp, err = e.client.Do(req)
@@ -304,13 +312,34 @@ func (e *engine) ExchangeRequest(ctx context.Context, b []byte, callbacks ...com
 	}
 	originalFrame := cb.OnFrame
 	cb.OnFrame = func(f common.Frame) {
+		f.Data = string(common.RedactDiagnostic([]byte(f.Data), secrets...))
 		e.parent.Parent().Trace(common.TraceRecord{Stage: "response_frame", Event: f.Event, Payload: f.Data})
 		if originalFrame != nil {
 			originalFrame(f)
 		}
 	}
 	e.parent.Parent().Trace(common.TraceRecord{Stage: "response_parse"})
+	// Final parser callbacks precede its return. Publish only after removing
+	// exact transport echoes from the same events returned to the Agent.
+	originalEvent := cb.OnEvent
+	cb.OnEvent = nil
+	deltas := newCredentialDeltas(transportTokens, cb.OnDelta)
+	cb.OnDelta = deltas.push
 	events, err := e.parseResponse(resp, cb, config)
+	deltas.flush()
+	// Error diagnostics retain their existing additional known values, but
+	// use the same normalized one-pass policy before callbacks, never a second
+	// scrub of already-redacted event text.
+	errorReplacer := credentialReplacer(credentialSpellings(secrets))
+	redactCredentialEvents(events, deltas.replacer, errorReplacer)
+	if originalEvent != nil {
+		for _, event := range events {
+			originalEvent(event)
+		}
+	}
+	if err != nil {
+		err = errors.New(errorReplacer.Replace(err.Error()))
+	}
 	if ctx.Err() != nil {
 		err = ctx.Err()
 	}

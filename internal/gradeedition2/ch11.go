@@ -72,7 +72,11 @@ func startMCPCommand(bin, work string, args, env []string) (*mcpCommand, error) 
 // Explicit environments let newer fixtures isolate settings without changing
 // the defaults of historical callers.
 func startMCPCommandEnv(bin, work string, args, env []string) (*mcpCommand, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	return startMCPCommandEnvTimeout(bin, work, args, env, 15*time.Second)
+}
+
+func startMCPCommandEnvTimeout(bin, work string, args, env []string, lifetime time.Duration) (*mcpCommand, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), lifetime)
 	p := &mcpCommand{lines: make(chan string, 128), done: make(chan error, 1), cancel: cancel}
 	cmd := exec.CommandContext(ctx, bin, args...)
 	cmd.Dir = work
@@ -112,13 +116,17 @@ func startMCPCommandEnv(bin, work string, args, env []string) (*mcpCommand, erro
 }
 func (p *mcpCommand) close() { p.stdin.Close(); p.cancel(); <-p.done }
 func (p *mcpCommand) read() (string, error) {
+	return p.readWithin(5 * time.Second)
+}
+
+func (p *mcpCommand) readWithin(budget time.Duration) (string, error) {
 	select {
 	case line, ok := <-p.lines:
 		if !ok {
 			return "", fmt.Errorf("command stdout closed: %s: %w", strings.TrimSpace(p.stderr.String()), io.EOF)
 		}
 		return line, nil
-	case <-time.After(5 * time.Second):
+	case <-time.After(budget):
 		return "", fmt.Errorf("command output deadline")
 	}
 }

@@ -30,6 +30,9 @@ func main() {
 	skillsDir := flag.String("skills-dir", "", "skill directory (default: ./skills when ensemble is present)")
 	port := flag.Int("port", 8088, "loopback HTTP port")
 	assets := flag.String("gui-dir", "web/gui", "GUI asset directory (absolute paths work outside cwd)")
+	safe := flag.Bool("safe-mode", false, "disable command and job tools")
+	web := flag.Bool("no-web-search", false, "disable web-search skill")
+	sandboxRoot := flag.String("sandbox", "", "confine Agent files and commands to this directory")
 	settings := flag.String("settings", "", "GUI settings JSON path (default: cr/settings.json under the working directory)")
 	save := flag.String("save", "", "recovery archive (default: save.json)")
 	logMode := flag.String("log-mode", "", "archive retention: full or dialogue_only")
@@ -62,6 +65,12 @@ func main() {
 	}
 	flag.Visit(func(f *flag.Flag) {
 		switch f.Name {
+		case "safe-mode":
+			config.SafeMode = *safe
+		case "no-web-search":
+			config.EnableWebSearch = !*web
+		case "sandbox":
+			config.SandboxRoot = *sandboxRoot
 		case "save":
 			config.SavePath = *save
 		case "log-mode":
@@ -72,6 +81,9 @@ func main() {
 			config.Speaking = *speaking
 		}
 	})
+	if config.SandboxRoot != "" {
+		config.BaseDir = config.SandboxRoot
+	}
 	root := ensemble.New(log.Default())
 	if err := root.SetAuth(ensemble.NewAuth(ensemble.AuthOptionsFromEnv(os.Getenv))); err != nil {
 		log.Fatal(err)
@@ -79,6 +91,9 @@ func main() {
 	var trace *ensemble.DiagnosticLog
 	ready, normalExit := false, false
 	defer func() {
+		if trace != nil {
+			defer trace.Close()
+		}
 		if err := root.Shutdown(); err != nil {
 			log.Printf("shutdown/save: %v", err)
 			return
@@ -89,7 +104,13 @@ func main() {
 			}
 		}
 	}()
-	agent, err := root.NewAgent(config)
+	var agent ensemble.Agent
+	var app *gui.Server
+	if protocolMode {
+		agent, err = root.NewAgent(config)
+	} else {
+		app, agent, err = gui.NewServerFromConfig(root, config, *assets, *settings)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -112,19 +133,14 @@ func main() {
 	if r := agent.Recovery(); r.Path != "" {
 		log.Printf("loaded %s through sequence %d (backup=%t)", r.Path, r.AsOf, r.Backup)
 	}
-	app, err := gui.NewServerWithSettings(root, *assets, *settings)
-	if err != nil {
-		log.Print(err)
-		return
-	}
 	defer app.Close()
 	app.DefaultAgent = agent.ID()
-	trace, err = ensemble.OpenDiagnosticLog("gui.log", func() int { return *agent.Config().DiagnosticMaxRecords })
+	trace, err = ensemble.OpenAgentDiagnosticLog(agent, "gui.log", func() int { return *agent.Config().DiagnosticMaxRecords })
 	if err != nil {
 		log.Print(err)
 		return
 	}
-	defer trace.Close()
+
 	app.Trace = trace
 	if agent.Recovery().Path == "" {
 		if err = agent.Save(); err != nil {

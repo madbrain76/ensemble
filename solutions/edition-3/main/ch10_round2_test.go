@@ -119,7 +119,11 @@ func TestCh10R2BaseRelativeRecoveryIsolation(t *testing.T) {
 		if a.Config().SavePath != want {
 			t.Fatalf("default archive escaped Agent data ownership: got %q want %q", a.Config().SavePath, want)
 		}
-		if a.Config().DataDir != "cr" || !initialEmptyTools(a.Log().Events()) || a.Recovery().Path != "" || len(a.Log().Context().ActiveSkills) != 0 || a.Log().Context().Handoff != "" {
+		wantDataDir, err := filepath.Abs(filepath.Join(cfg.BaseDir, "cr"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if a.Config().DataDir != wantDataDir || !initialEmptyTools(a.Log().Events()) || a.Recovery().Path != "" || len(a.Log().Context().ActiveSkills) != 0 || a.Log().Context().Handoff != "" {
 			t.Fatal("fresh root inherited another root's state")
 		}
 		text := []string{"first owner", "second owner"}[i]
@@ -161,8 +165,8 @@ func TestCh10R2ExplicitRecoveryPathAndOverlap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if a.Config().SavePath != "explicit.json" {
-		t.Fatal("rewrote explicit path")
+	if a.Config().SavePath != filepath.Join(launch, "explicit.json") {
+		t.Fatal("relocated caller-selected explicit path")
 	}
 	if err = a.Save(); err != nil {
 		t.Fatal(err)

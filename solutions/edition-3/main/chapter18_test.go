@@ -133,7 +133,7 @@ func TestChapter18PublicWebSkill(t *testing.T) {
 	}
 	app := ensemble.New(nil)
 	defer app.Shutdown()
-	a, err := app.NewAgent(ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-5.4", APIKey: "different-provider-key", BaseURL: "http://127.0.0.1:1", BaseDir: t.TempDir(), DataDir: t.TempDir(), Skills: &ensemble.SkillSpec{Directory: skills, Primary: "ensemble"}, MCPServers: []ensemble.MCPServer{{Name: "firecrawl", Transport: "url", URL: server.URL, AuthEnv: "CH18_WEB_SECRET"}}})
+	a, err := app.NewAgent(ensemble.Config{EnableWebSearch: true, Vendor: ensemble.OpenAI, Model: "gpt-5.4", APIKey: "different-provider-key", BaseURL: "http://127.0.0.1:1", BaseDir: t.TempDir(), DataDir: t.TempDir(), Skills: &ensemble.SkillSpec{Directory: skills, Primary: "ensemble"}, MCPServers: []ensemble.MCPServer{{Name: "firecrawl", Transport: "url", URL: server.URL, AuthEnv: "CH18_WEB_SECRET"}}})
 	if err != nil {
 		t.Fatal(err)
 	}

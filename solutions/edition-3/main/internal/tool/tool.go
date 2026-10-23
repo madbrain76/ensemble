@@ -1,5 +1,5 @@
 // Package tool owns one Agent's registry and built-in handlers. Paths resolve
-// from that Agent's base directory; this is not a sandbox or a filesystem confinement claim.
+// from that Agent's base directory; all file operations use its Sandbox owner.
 package tool
 
 import (
@@ -195,7 +195,7 @@ func (r *registry) read(ctx context.Context, owner common.ToolCall, raw json.Raw
 	if end != 0 && end < start {
 		return fmt.Errorf("end_line must be zero (EOF) or >= start_line")
 	}
-	file, err := os.Open(r.path(path))
+	file, err := r.parent.Sandbox().OpenFile(path, os.O_RDONLY, 0)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func (r *registry) read(ctx context.Context, owner common.ToolCall, raw json.Raw
 			break
 		}
 		if readErr != nil && readErr != bufio.ErrBufferFull {
-			return readErr
+			return fileError(path, readErr)
 		}
 	}
 	return nil
@@ -245,7 +245,7 @@ func (r *registry) list(ctx context.Context, owner common.ToolCall, raw json.Raw
 	if err != nil {
 		return err
 	}
-	entries, err := os.ReadDir(r.path(path))
+	entries, err := r.parent.Sandbox().ReadDir(path)
 	if err != nil {
 		return err
 	}
@@ -291,8 +291,8 @@ func (r *registry) search(ctx context.Context, owner common.ToolCall, raw json.R
 		return fmt.Errorf("invalid regular expression: %w", err)
 	}
 	wroteGroup := false
-	root := r.path(path)
-	err = filepath.WalkDir(root, func(file string, d fs.DirEntry, walkErr error) error {
+	root := path
+	err = r.walk(root, func(file string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -303,7 +303,7 @@ func (r *registry) search(ctx context.Context, owner common.ToolCall, raw json.R
 		if !d.Type().IsRegular() {
 			return nil
 		}
-		data, err := os.ReadFile(file)
+		data, err := r.parent.Sandbox().ReadFile(file)
 		if err != nil {
 			return err
 		}
@@ -334,11 +334,7 @@ func (r *registry) search(ctx context.Context, owner common.ToolCall, raw json.R
 		}
 		display := file
 		if !filepath.IsAbs(path) {
-			rel, err := filepath.Rel(r.directory, file)
-			if err != nil {
-				return err
-			}
-			display = rel
+			display = filepath.Clean(file)
 		}
 		for _, span := range spans {
 			if contextLines > 0 && wroteGroup {
@@ -387,7 +383,12 @@ func (r *registry) write(a arguments) (string, error) {
 	if appendMode && overwrite {
 		return "", fmt.Errorf("append and overwrite cannot both be true")
 	}
-	target := r.path(path)
+	// Check the full supplied name before creating parents, so a refusal
+	// identifies the requested file, not a derived parent directory.
+	if _, err := r.parent.Sandbox().ValidatePath(path); err != nil {
+		return "", err
+	}
+	target := path
 	// Default creation is exclusive, so a racing creator cannot be truncated.
 	flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
 	if overwrite {
@@ -396,13 +397,13 @@ func (r *registry) write(a arguments) (string, error) {
 	if appendMode {
 		flags = os.O_WRONLY | os.O_CREATE | os.O_APPEND
 	}
-	if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-		return "", err
+	if err := r.parent.Sandbox().MkdirAll(filepath.Dir(target), 0755); err != nil {
+		return "", fmt.Errorf("write %q: %w", path, err)
 	}
-	file, err := os.OpenFile(target, flags, 0644)
+	file, err := r.parent.Sandbox().OpenFile(target, flags, 0644)
 	if err != nil {
 		if !overwrite && !appendMode && os.IsExist(err) {
-			info, statErr := os.Stat(target)
+			info, statErr := r.parent.Sandbox().Stat(target)
 			if statErr != nil {
 				return "", fmt.Errorf("%s exists; size unavailable (%v); file unchanged; use overwrite:true to replace or append:true to append", path, statErr)
 			}
@@ -413,10 +414,10 @@ func (r *registry) write(a arguments) (string, error) {
 	_, writeErr := file.WriteString(content)
 	closeErr := file.Close()
 	if writeErr != nil {
-		return "", writeErr
+		return "", fileError(path, writeErr)
 	}
 	if closeErr != nil {
-		return "", closeErr
+		return "", fileError(path, closeErr)
 	}
 	return fmt.Sprintf("wrote %d bytes to %s", len(content), path), nil
 }
@@ -439,8 +440,8 @@ func (r *registry) edit(a arguments) (string, error) {
 	if old == "" {
 		return "", fmt.Errorf("old_text must not be empty")
 	}
-	target := r.path(path)
-	data, err := os.ReadFile(target)
+	target := path
+	data, err := r.parent.Sandbox().ReadFile(target)
 	if err != nil {
 		return "", err
 	}
@@ -482,7 +483,7 @@ func (r *registry) edit(a arguments) (string, error) {
 	next = append(next, data[:index]...)
 	next = append(next, replacement...)
 	next = append(next, data[index+len(old):]...)
-	if err := os.WriteFile(target, next, 0644); err != nil {
+	if err := r.writeBytes(target, next); err != nil {
 		return "", err
 	}
 	return "replaced one exact occurrence in " + path, nil

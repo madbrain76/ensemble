@@ -138,6 +138,12 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
+	constructed := false
+	defer func() {
+		if !constructed {
+			_ = a.Sandbox().Close()
+		}
+	}()
 	transport, err := engine.New(a)
 	if err != nil {
 		return nil, err
@@ -205,6 +211,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	a.Start()
 	installed = true
 	e.agents = append(e.agents, a)
+	constructed = true
 	return a, nil
 }
 
@@ -514,9 +521,9 @@ func (e *Ensemble) runTrace() {
 func (e *Ensemble) Trace(r TraceRecord) {
 	e.mu.Lock()
 	writer := e.trace
-	keys := make([]string, 0, len(e.agents))
+	keys := common.CredentialValues()
 	for _, a := range e.agents {
-		keys = append(keys, a.Config().APIKey)
+		keys = append(keys, common.CredentialValues(a.Config())...)
 	}
 	e.mu.Unlock()
 	if writer == nil {

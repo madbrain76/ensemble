@@ -116,3 +116,16 @@ func (a *agent) SetPersistencePolicy(mode common.LogMode, records int) error {
 	a.config.LogMode, a.config.DiagnosticMaxRecords = mode, &records
 	return nil
 }
+
+// SetSecurityPolicy changes capability gates, never the root of an open Sandbox.
+func (a *agent) SetSecurityPolicy(safe, web bool) {
+	a.configMu.Lock()
+	changed := a.config.SafeMode != safe || a.config.EnableWebSearch != web
+	a.config.SafeMode, a.config.EnableWebSearch = safe, web
+	a.configMu.Unlock()
+	if changed && a.skills != nil {
+		if err := a.skills.RefreshPolicy(); err != nil {
+			a.parent.Logger().Print("security policy: " + common.Redact(err.Error(), append(common.CredentialValues(), a.Config().APIKey)...))
+		}
+	}
+}

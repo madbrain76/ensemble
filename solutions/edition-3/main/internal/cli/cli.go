@@ -26,6 +26,9 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	mcpSocket := flags.String("mcp-socket", "", "serve MCP on a dedicated TCP address")
 	guiDebug := flags.Bool("gui-debug", false, "load gui-debug at startup")
 	skillsDir := flags.String("skills-dir", "", "skill directory (default: ./skills when ensemble is present)")
+	safe := flags.Bool("safe-mode", false, "disable command and job tools")
+	web := flags.Bool("no-web-search", false, "disable web-search skill")
+	root := flags.String("sandbox", "", "confine Agent files and commands to this directory")
 	savePath := flags.String("save", "", "recovery archive (default: save.json)")
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -42,7 +45,7 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 	renderMode := len(args) == 2 && args[0] == "render"
 	dumpMode := len(args) == 1 && args[0] == "dump"
 	if len(args) != 0 && !chat && !renderMode && !dumpMode {
-		return errors.New("usage: ch01 [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | render LOG | dump]")
+		return errors.New("usage: ch01 [--safe-mode] [--no-web-search] [--sandbox PATH] [--save PATH] [--gui-debug] [--skills-dir PATH] [chat | render LOG | dump]")
 	}
 	config, err := ensemble.ConfigFromEnv(os.Getenv)
 	if err != nil {
@@ -52,8 +55,15 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		return err
 	}
 	flags.Visit(func(f *flag.Flag) {
-		if f.Name == "save" {
+		switch f.Name {
+		case "save":
 			config.SavePath = *savePath
+		case "safe-mode":
+			config.SafeMode = *safe
+		case "no-web-search":
+			config.EnableWebSearch = !*web
+		case "sandbox":
+			config.SandboxRoot = *root
 		}
 	})
 	if protocolMode && config.Model == "" {
@@ -73,12 +83,19 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		config.LogPath = path
 	}
 	config.DataDir = "cr"
+	if config.SandboxRoot != "" {
+		config.BaseDir = config.SandboxRoot
+	}
 	if config.SavePath == "" {
 		config.SavePath = "save.json"
 	}
 	// Offline log tools must not load or overwrite the conversational save.
 	if renderMode || dumpMode {
-		dir, err := os.MkdirTemp("", "ensemble-log-tool-")
+		parent := ""
+		if config.SandboxRoot != "" {
+			parent = config.SandboxRoot
+		}
+		dir, err := os.MkdirTemp(parent, "ensemble-log-tool-")
 		if err != nil {
 			return err
 		}
@@ -94,8 +111,23 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		tracePath = "api.log"
 	}
 	var trace *ensemble.DiagnosticLog
+	ready := false
+	defer func() {
+		shutdownErr := app.Shutdown()
+		if result == nil && shutdownErr == nil && ready && trace != nil {
+			result = trace.Retain()
+		}
+		if trace != nil {
+			result = errors.Join(result, trace.Close())
+		}
+		result = errors.Join(result, shutdownErr)
+	}()
+	a, err := app.NewAgent(config)
+	if err != nil {
+		return err
+	}
 	if path := tracePath; path != "" {
-		trace, err = ensemble.OpenDiagnosticLog(path, func() int {
+		trace, err = ensemble.OpenAgentDiagnosticLog(a, path, func() int {
 			agents := app.Agents()
 			if len(agents) > 0 {
 				return *agents[0].Config().DiagnosticMaxRecords
@@ -105,21 +137,10 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		if err != nil {
 			return errors.New("opening trace failed")
 		}
-		defer trace.Close()
+
 		app.SetTrace(trace)
 	}
-	ready := false
-	defer func() {
-		shutdownErr := app.Shutdown()
-		if result == nil && shutdownErr == nil && ready && trace != nil {
-			result = trace.Retain()
-		}
-		result = errors.Join(result, shutdownErr)
-	}()
-	a, err := app.NewAgent(config)
-	if err != nil {
-		return err
-	}
+
 	if *mcpListen != "" && !renderMode && !dumpMode {
 		listener, err := ensemble.StartMCPListener(ctx, a, *mcpListen)
 		if err != nil {
@@ -146,7 +167,7 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		if renderMode {
 			path = args[1]
 		}
-		f, err := os.Open(path)
+		f, err := a.Sandbox().OpenFile(path, os.O_RDONLY, 0)
 		if err != nil {
 			return errors.New("opening history failed")
 		}

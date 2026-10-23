@@ -176,6 +176,9 @@ func parseSkill(path string) (common.Skill, error) {
 
 // Discovery grants no capabilities. Identity is explicit in frontmatter, not
 // inferred from a directory name; duplicates are errors.
+// The application-selected corpus is a separate trusted input, not workspace
+// data. Host reads here must not become a runtime file-access bypass: later
+// loads resolve only these retained declarations by name, never caller paths.
 func (r *registry) discover(root string) error {
 	if !filepath.IsAbs(root) {
 		root = filepath.Join(r.parent.Config().BaseDir, root)

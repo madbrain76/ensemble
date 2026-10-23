@@ -13,8 +13,11 @@ import (
 type Config struct {
 	// BaseDir resolves relative tool paths; DataDir retains job output.
 	// Empty BaseDir uses the launch directory; empty DataDir creates an Agent-local directory.
-	BaseDir string
-	DataDir string
+	BaseDir         string
+	DataDir         string
+	SandboxRoot     string
+	SafeMode        bool
+	EnableWebSearch bool
 	// BaseURL selects the provider or a local HTTP peer; empty means Anthropic.
 	BaseURL       string
 	Vendor        Vendor
@@ -103,6 +106,7 @@ type Agent interface {
 	SetModel(string) error
 	CompactContext(context.Context, string, string) (string, error)
 	// SetPersistencePolicy changes archive mode and diagnostic retention for future writes.
+	SetSecurityPolicy(bool, bool)
 	SetPersistencePolicy(LogMode, int) error
 	// Engine returns this Agent's transport and accounting owner.
 	Engine() Engine
@@ -114,6 +118,7 @@ type Agent interface {
 	AttachMCPConnection(string, MCPTransport) error
 	ServeMCPConnection(context.Context, MCPTransport) error
 	RegisterVar(string, func() string)
+	Sandbox() Sandbox
 	Jobs() Jobs
 	Shutdown() error
 	// Save writes a coherent archive without stopping this Agent.

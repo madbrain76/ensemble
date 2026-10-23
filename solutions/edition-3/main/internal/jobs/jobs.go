@@ -121,8 +121,8 @@ func (c *collection) Reserve(ctx context.Context, handler common.ToolHandler, ar
 		path = filepath.Join(config.BaseDir, path)
 	}
 	j.data.Output = common.Ref{Kind: common.RefHandle, Locator: filepath.ToSlash(locator)}
-	if err = os.MkdirAll(filepath.Dir(path), 0700); err == nil {
-		j.file, err = os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600)
+	if err = c.parent.Sandbox().MkdirAll(filepath.Dir(path), 0700); err == nil {
+		j.file, err = c.parent.Sandbox().OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600)
 	}
 	if err != nil {
 		j.setupError = "preparing job output: " + err.Error()
@@ -369,7 +369,7 @@ func (j *job) observeLocked(l common.ToolLimits) (report common.JobReport, err e
 	if count == 0 {
 		return report, nil
 	}
-	f, err := os.Open(j.outputPath())
+	f, err := j.parent.parent.Sandbox().OpenFile(j.outputPath(), os.O_RDONLY, 0)
 	if err != nil {
 		return report, err
 	}
@@ -430,7 +430,7 @@ func (j *job) wait(ctx context.Context, l common.ToolLimits, outputWake bool) (c
 			if pattern == nil {
 				ready = outputWake
 			} else {
-				f, e := os.Open(j.outputPath())
+				f, e := j.parent.parent.Sandbox().OpenFile(j.outputPath(), os.O_RDONLY, 0)
 				if e != nil {
 					j.mu.Unlock()
 					return common.JobReport{}, e
@@ -494,7 +494,7 @@ func (j *job) Complete(ctx context.Context) (common.JobReport, error) {
 		report.Text = j.setupError
 		return report, nil
 	}
-	data, err := os.ReadFile(j.outputPath())
+	data, err := j.parent.parent.Sandbox().ReadFile(j.outputPath())
 	report.Text = string(data)
 	return report, err
 }

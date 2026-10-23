@@ -15,24 +15,24 @@ import (
 
 // Prepare a private request copy. History retains references, never base64
 // inflation, and the exact request bytes are frozen before HTTP begins.
-func prepareMedia(c common.Context, cfg common.Config) (common.Context, error) {
+func prepareMedia(c common.Context, cfg common.Config, owners ...common.Sandbox) (common.Context, error) {
 	c.Dialogue = append([]common.Entry(nil), c.Dialogue...)
 	for i := range c.Dialogue {
-		parts, err := loadMedia(c.Dialogue[i].Parts, cfg)
+		parts, err := loadMedia(c.Dialogue[i].Parts, cfg, owners...)
 		if err != nil {
 			return common.Context{}, err
 		}
 		c.Dialogue[i].Parts = parts
 	}
 	var err error
-	c.Ephemera, err = loadMedia(c.Ephemera, cfg)
+	c.Ephemera, err = loadMedia(c.Ephemera, cfg, owners...)
 	return c, err
 }
-func loadMedia(parts common.PartList, cfg common.Config) (common.PartList, error) {
+func loadMedia(parts common.PartList, cfg common.Config, owners ...common.Sandbox) (common.PartList, error) {
 	out := append(common.PartList(nil), parts...)
 	for i, p := range out {
 		if len(p.Parts) > 0 {
-			nested, err := loadMedia(p.Parts, cfg)
+			nested, err := loadMedia(p.Parts, cfg, owners...)
 			if err != nil {
 				return nil, err
 			}
@@ -81,7 +81,13 @@ func loadMedia(parts common.PartList, cfg common.Config) (common.PartList, error
 			if !filepath.IsAbs(locator) {
 				locator = filepath.Join(cfg.BaseDir, locator)
 			}
-			data, err := os.ReadFile(locator)
+			readFile := os.ReadFile
+			if len(owners) > 0 && owners[0] != nil {
+				readFile = owners[0].ReadFile
+			} else if cfg.SandboxRoot != "" {
+				return nil, fmt.Errorf("media requires its owning sandbox")
+			}
+			data, err := readFile(locator)
 			if err != nil {
 				return nil, fmt.Errorf("model %q: reading %s media: %w", cfg.Model, kind, err)
 			}

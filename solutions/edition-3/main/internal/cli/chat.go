@@ -152,7 +152,11 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 			if strings.TrimSpace(text) == "" {
 				continue
 			}
-			if text == "/status" {
+			if text == "/help" {
+				fmt.Fprintln(out, "/status /model [name] /save /interrupt /help. Launch flags (before chat): --safe-mode --no-web-search --sandbox PATH.")
+			} else if text == "/status" {
+				cfg := a.Config()
+				fmt.Fprintf(out, "safe=%t web-search=%t sandbox-root=%q\n", cfg.SafeMode, cfg.EnableWebSearch, cfg.SandboxRoot)
 				_ = json.NewEncoder(out).Encode(a.Engine().Status())
 			} else if text == "/model" {
 				fmt.Fprintln(diagnostics, "model:", a.Config().Model)

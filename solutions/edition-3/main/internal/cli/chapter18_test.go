@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -31,10 +32,23 @@ func TestChapter18HumanModelAndStatus(t *testing.T) {
 	if err = runChat(context.Background(), a, strings.NewReader(input), &out, &diag); err != nil {
 		t.Fatal(err)
 	}
-	decoder := json.NewDecoder(&out)
+	reader := bufio.NewReader(&out)
 	var first, changed, failed ensemble.EngineStatus
 	for _, status := range []*ensemble.EngineStatus{&first, &changed, &failed} {
-		if err = decoder.Decode(status); err != nil {
+		prefix, readErr := reader.ReadString('\n')
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		cfg := a.Config()
+		want := fmt.Sprintf("safe=%t web-search=%t sandbox-root=%q\n", cfg.SafeMode, cfg.EnableWebSearch, cfg.SandboxRoot)
+		if prefix != want {
+			t.Fatalf("status policy prefix: %q want %q", prefix, want)
+		}
+		raw, readErr := reader.ReadBytes('\n')
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		if err = json.Unmarshal(raw, status); err != nil {
 			t.Fatal(err)
 		}
 	}

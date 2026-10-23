@@ -121,7 +121,7 @@ func (m *manager) connect(ctx context.Context, d common.MCPServer) (*connection,
 	c := &connection{config: m.endpoint(d), ready: make(chan struct{})}
 	m.connections[d.Name] = c
 	m.mu.Unlock()
-	t, err := dial(ctx, c.config, m.parent.Config().BaseDir, m.parent.Parent().Logger().Writer(), common.ProcessEnvironment(m.parent)...)
+	t, err := dialPrepared(ctx, c.config, m.parent.Config().BaseDir, m.parent.Parent().Logger().Writer(), m.parent.Sandbox().PrepareCommand)
 	if err == nil {
 		c.peer = newPeer(t, m.localHandler(true), false)
 		err = m.initialize(ctx, c)

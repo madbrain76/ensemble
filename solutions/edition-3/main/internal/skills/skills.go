@@ -197,6 +197,9 @@ func (r *registry) loadable(enabled map[string]bool) []common.SkillInfo {
 	}
 	names := []string{}
 	for name := range offered {
+		if name == "web-search" && !r.parent.Config().EnableWebSearch {
+			continue
+		}
 		if s := r.skills[name]; s != nil && s.info.Type == "loadable" && !enabled[name] {
 			names = append(names, name)
 		}
@@ -269,6 +272,9 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	visited := map[string]bool{}
 	var visit func(string) error
 	visit = func(name string) error {
+		if name == "web-search" && !r.parent.Config().EnableWebSearch {
+			return fmt.Errorf("web search is disabled")
+		}
 		s := r.skills[name]
 		if s == nil {
 			return fmt.Errorf("missing dependency %q", name)
@@ -373,7 +379,7 @@ func (r *registry) activate(name, origin string, seq common.Seq) ([]func(), erro
 	enabled := r.enabled()
 	toolSet := map[string]bool{}
 	for _, t := range r.tools {
-		if t.Enabled && t.Ephemeral == "" {
+		if t.Enabled && t.Ephemeral == "" && common.ToolPolicy(r.parent.Config(), t.Name) == nil {
 			toolSet[t.Name] = true
 		}
 	}
@@ -479,6 +485,33 @@ func (r *registry) UnloadSkill(name string) error {
 	}
 	return nil
 }
+
+// RefreshPolicy withdraws web grants using the existing pending-unload state.
+// Re-enabling exposes the declaration for an explicit reload, not a silent dial.
+func (r *registry) RefreshPolicy() error {
+	r.mu.Lock()
+	web := r.skills["web-search"]
+	unload := !r.parent.Config().EnableWebSearch && web != nil && web.info.Enabled && !web.info.PendingUnload
+	r.mu.Unlock()
+	var err error
+	if unload {
+		err = r.UnloadSkill("web-search")
+	}
+	r.mu.Lock()
+	if err == nil {
+		err = r.publishDeclarationsLocked()
+	}
+	callbacks := r.callbacks(true)
+	r.mu.Unlock()
+	if m := r.parent.MCP(); m != nil {
+		m.Reconcile(r.Snapshot())
+	}
+	for _, f := range callbacks {
+		f()
+	}
+	return err
+}
+
 func (r *registry) callbacks(changed bool) []func() {
 	var out []func()
 	if changed {
@@ -509,6 +542,29 @@ func cloneSkill(s common.SkillInfo) common.SkillInfo {
 	}
 	return s
 }
+
+// MCPAuthEnvNames reads known declarations, not capability visibility. Disabling
+// a skill cannot make its already-known credentials ordinary subprocess inputs.
+// Return names only; this does not grant or advertise a skill or tool.
+func (r *registry) MCPAuthEnvNames() []string {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	known := map[string]bool{}
+	for _, skill := range r.skills {
+		for _, server := range skill.info.MCPServers {
+			if server.AuthEnv != "" {
+				known[server.AuthEnv] = true
+			}
+		}
+	}
+	names := make([]string, 0, len(known))
+	for name := range known {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
 func (r *registry) ListSkills() []common.SkillInfo { return r.Snapshot().Skills }
 func (r *registry) Snapshot() common.CapabilitySnapshot {
 	r.mu.Lock()
@@ -516,8 +572,11 @@ func (r *registry) Snapshot() common.CapabilitySnapshot {
 	out := common.CapabilitySnapshot{Definitions: []common.ToolDefinition{}, Tools: []common.ToolSpec{}, Skills: []common.SkillInfo{}}
 	for _, t := range r.tools {
 		t.Parameters = append(json.RawMessage(nil), t.Parameters...)
+		if common.ToolPolicy(r.parent.Config(), t.Name) != nil || (t.Skill == "web-search" && !r.parent.Config().EnableWebSearch) {
+			t.Enabled = false
+		}
 		out.Tools = append(out.Tools, t)
-		if t.Enabled && t.Ephemeral == "" {
+		if t.Enabled && t.Ephemeral == "" && common.ToolPolicy(r.parent.Config(), t.Name) == nil {
 			out.Definitions = append(out.Definitions, t.ToolDefinition)
 		}
 	}
@@ -527,10 +586,14 @@ func (r *registry) Snapshot() common.CapabilitySnapshot {
 	}
 	sort.Strings(names)
 	for _, n := range names {
-		out.Skills = append(out.Skills, cloneSkill(r.skills[n].info))
+		if n != "web-search" || r.parent.Config().EnableWebSearch {
+			out.Skills = append(out.Skills, cloneSkill(r.skills[n].info))
+		}
 	}
 	for _, n := range r.active {
-		out.Instructions += "\n\n" + r.skills[n].rendered
+		if n != "web-search" || r.parent.Config().EnableWebSearch {
+			out.Instructions += "\n\n" + r.skills[n].rendered
+		}
 	}
 	return out
 }
@@ -609,6 +672,9 @@ func (r *registry) RestoreContext(c common.Context) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for _, saved := range c.ActiveSkills {
+		if saved.Name == "web-search" && !r.parent.Config().EnableWebSearch {
+			return fmt.Errorf("saved web-search skill is disabled")
+		}
 		if r.skills[saved.Name] == nil {
 			return fmt.Errorf("saved skill %q is unavailable", saved.Name)
 		}
@@ -620,6 +686,9 @@ func (r *registry) RestoreContext(c common.Context) error {
 		}
 	}
 	for _, saved := range c.ActiveSkills {
+		if saved.Name == "web-search" && !r.parent.Config().EnableWebSearch {
+			return fmt.Errorf("saved web-search skill is disabled")
+		}
 		s := r.skills[saved.Name]
 		if s == nil {
 			return fmt.Errorf("saved skill %q is unavailable", saved.Name)
@@ -652,7 +721,7 @@ func (r *registry) publishDeclarationsLocked() error {
 	current := map[string]bool{}
 	delta := common.ToolsData{}
 	for _, tool := range r.tools {
-		if !tool.Enabled || tool.Ephemeral != "" {
+		if !tool.Enabled || tool.Ephemeral != "" || common.ToolPolicy(r.parent.Config(), tool.Name) != nil || (tool.Skill == "web-search" && !r.parent.Config().EnableWebSearch) {
 			continue
 		}
 		d := common.ToolDeclaration{Name: tool.Name, Description: tool.Description, Schema: tool.Parameters}

@@ -7,7 +7,6 @@ import (
 	"ensemble/internal/common"
 	"fmt"
 	"io"
-	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -648,7 +647,7 @@ func (h *history) canonicalLocked() ([]common.Event, error) {
 	if h.archive == "" {
 		return h.events, nil
 	}
-	data, err := os.ReadFile(h.archive)
+	data, err := h.parent.Sandbox().ReadFile(h.archive)
 	if err != nil {
 		return nil, err
 	}

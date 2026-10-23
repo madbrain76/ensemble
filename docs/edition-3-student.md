@@ -4,9 +4,7 @@ Read this with the shared [execution procedure](edition-3-execution.md), the com
 
 ## Current boundary
 
-Chapters 1–18 of the lean restart are closed; Chapter 17 was prose-only.
-`main` matches accepted `ch18` (226 source/support files). Chapter 19 is next,
-but its assignment, entry review and execution gates have not yet been released.
+Chapters 1–19 are accepted. Chapter 19 main and its 255-file snapshot are held after code, local/native validation, the bounded required CLI behavior and minimal editorial acceptance. All Chapter 19 workers are closed. Its existing workspace-confinement architecture remains; it is not a chroot redesign. Root fixture repairs did not add student production rounds. Earlier failed results remain preserved and qualified. Chapter 20 is next, but its contract, prerequisites and grading route have not yet been assessed and no Chapter 20 student is launched. Bill authorizes live tests for the remaining book without routine permission requests; root still owns bounded operational plans, and account consent, installation/restart, devices and publication remain separate boundaries. Do not replay completed Chapter 19 work or treat these permissions as permission for a student to operate outside its assigned scope.
 Earlier chapter invocation sections below remain historical/public guidance,
 not authority to replay completed work or reuse live-operation permissions.
 
@@ -269,3 +267,29 @@ root; numerical grading alone is insufficient. Existing `ToolCall`,
 `Parent`, and `Status` seams are valid without aliases for reference names.
 Live account consent, provider requests, and hosted web operations require
 their own explicit authorization; historical examples do not supply it.
+
+
+## Restarted Chapter 19 public entry brief
+
+Start from accepted Chapter 18 in `solutions/edition-3/main` after root release.
+Read the complete current Chapter 19 and required public prerequisites. Extend
+existing Config/common.Config with policy and Child/Clamp; preserve the root
+library and nested CLI/GUI owners. Sandbox retains its required Agent parent.
+Read actual file, process, job-output, state, media, transport and render owners
+rather than add a second security or credential framework around them.
+
+Implement public confinement, safe mode, the web-skill gate, environment and
+redaction behavior with positive useful-work cases as well as refusals. Share
+CLI/GUI policy composition. Public commands use `./cmd/ch01` and flags before
+`chat`. Account consent and host/provider demonstrations need separate release;
+historical prose is not new operational evidence.
+
+First stop at an early compiling HOLD, not acceptance. Authorized work upon
+root release is implementation, focused pure/local tests and affected-module
+compilation, sequential/offline with owned HOME/TMP and existing caches. No
+full suites, race/vet, grades, Seatbelt/host scenarios, browser/native/provider
+or live OAuth work yet. Save actual changed owners, commands/exits, setup
+failures and unfinished work concisely. Root and the retained reviewer inspect
+held source before broader gates. Initial implementation is round zero; up to
+ten production correction rounds are available. Originals, private graders and
+reviews, runtime and root context remain outside student inputs.

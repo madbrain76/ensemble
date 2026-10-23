@@ -77,7 +77,7 @@ func TestChapter14PairedAndSparseRedaction(t *testing.T) {
 
 func TestChapter14SnapshotBackupJournal(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "session.json")
-	h := New(nil)
+	h := diskHistory(t, path)
 	if _, err := h.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestChapter14SnapshotBackupJournal(t *testing.T) {
 	if err = f.Close(); err != nil {
 		t.Fatal(err)
 	}
-	recovered := New(nil)
+	recovered := diskHistory(t, path)
 	r, err := recovered.LoadFile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -128,7 +128,7 @@ func TestChapter14SnapshotBackupJournal(t *testing.T) {
 	if err = recovered.Append(common.Event{Type: common.TurnEnded}); err != nil {
 		t.Fatal(err)
 	}
-	again := New(nil)
+	again := diskHistory(t, path)
 	if _, err = again.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}
@@ -153,6 +153,8 @@ type diagnosticParent struct {
 	logger *log.Logger
 }
 
+func (p diagnosticParent) Sandbox() common.Sandbox { return p.Agent.Sandbox() }
+
 func (p diagnosticParent) Parent() common.Ensemble { return diagnosticEnsemble{logger: p.logger} }
 
 type diagnosticEnsemble struct {
@@ -163,7 +165,7 @@ type diagnosticEnsemble struct {
 func (p diagnosticEnsemble) Logger() *log.Logger { return p.logger }
 func TestChapter14RecoveredSemanticDiagnostics(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "history.save")
-	h := New(nil)
+	h := diskHistory(t, path)
 	if err := h.Append(common.Event{Type: common.MessageReceived}); err != nil {
 		t.Fatal(err)
 	}
@@ -174,7 +176,7 @@ func TestChapter14RecoveredSemanticDiagnostics(t *testing.T) {
 		t.Fatal(err)
 	}
 	var output bytes.Buffer
-	restored := New(diagnosticParent{logger: log.New(&output, "", 0)})
+	restored := New(diagnosticParent{Agent: diskHistoryOwner(t, path), logger: log.New(&output, "", 0)})
 	if _, err := restored.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}
@@ -210,17 +212,17 @@ func TestChapter14LiveAdmissionProvenanceReplays(t *testing.T) {
 	if c.Dialogue[0].Parts[0].AdmissionSeq != 2 || response.Response.Parts[0].AdmissionSeq != 0 {
 		t.Fatal("projection admission missing or canonical response rewritten")
 	}
-	h := New(nil)
+	path := filepath.Join(t.TempDir(), "history.save")
+	h := diskHistory(t, path)
 	for _, event := range []common.Event{response, admission, {Type: common.ToolReturned, Tool: &common.ToolData{CallID: "load", Name: "load_skill", Parts: common.PartList{common.Text("loaded")}}}, {Type: common.RequestSent, Request: &common.RequestData{To: p}}, {Type: common.RequestSent, Request: &common.RequestData{To: p}}} {
 		if err := h.Append(event); err != nil {
 			t.Fatal(err)
 		}
 	}
-	path := filepath.Join(t.TempDir(), "history.save")
 	if err := h.SaveFile(path, archiveConfig(), common.LogFull); err != nil {
 		t.Fatal(err)
 	}
-	restored := New(nil)
+	restored := diskHistory(t, path)
 	if _, err := restored.LoadFile(path); err != nil {
 		t.Fatal(err)
 	}

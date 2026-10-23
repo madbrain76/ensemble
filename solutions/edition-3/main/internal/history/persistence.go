@@ -46,28 +46,28 @@ func (h *history) SaveFile(path string, config common.SavedConfig, mode common.L
 		return fmt.Errorf("validating save: %w", err)
 	}
 
-	prior, primaryErr := readSave(path)
+	prior, primaryErr := readSave(path, h.parent.Sandbox())
 	if primaryErr == nil {
 		// Never rotate an unvalidated primary over a good backup.
-		if err = replaceFile(path+".bak", prior); err != nil {
+		if err = replaceFile(path+".bak", prior, h.parent.Sandbox()); err != nil {
 			return fmt.Errorf("saving backup: %w", err)
 		}
 	} else {
-		_, backupErr := readSave(path + ".bak")
+		_, backupErr := readSave(path+".bak", h.parent.Sandbox())
 		if !(errors.Is(primaryErr, os.ErrNotExist) && errors.Is(backupErr, os.ErrNotExist)) && backupErr != nil {
 			return fmt.Errorf("refusing save: neither recovery candidate is valid (primary: %v; backup: %v)", primaryErr, backupErr)
 		}
 	}
 	// The archive has been encoded/validated and recovery candidates checked.
 	// Only now establish a caller-selected or isolated default directory.
-	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+	if err = h.parent.Sandbox().MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
-	if err = replaceFile(path, append(data, '\n')); err != nil {
+	if err = replaceFile(path, append(data, '\n'), h.parent.Sandbox()); err != nil {
 		return fmt.Errorf("saving primary: %w", err)
 	}
 	var backupBoundary common.Seq
-	if backup, err := readSave(path + ".bak"); err == nil {
+	if backup, err := readSave(path+".bak", h.parent.Sandbox()); err == nil {
 		saved, _, _ := decodeSave(backup)
 		backupBoundary = saved.AsOf
 	}
@@ -86,25 +86,35 @@ func (h *history) SaveFile(path string, config common.SavedConfig, mode common.L
 // replaceFile leaves the old destination untouched until a complete, closed
 // sibling is ready. Sync improves ordinary durability; this is not a promise
 // about every filesystem or power-loss ordering of directory entries.
-func replaceFile(path string, data []byte) (err error) {
-	f, err := os.CreateTemp(filepath.Dir(path), ".ensemble-save-*")
+func replaceFile(path string, data []byte, owners ...common.Sandbox) (err error) {
+	createTemp, remove, rename := os.CreateTemp, os.Remove, os.Rename
+	if len(owners) > 0 && owners[0] != nil {
+		createTemp = owners[0].CreateTemp
+		remove = owners[0].Remove
+		rename = owners[0].Rename
+	}
+	f, err := createTemp(filepath.Dir(path), ".ensemble-save-")
 	if err != nil {
 		return err
 	}
-	defer os.Remove(f.Name())
+	defer remove(f.Name())
 	_, err = f.Write(data)
 	if err == nil {
 		err = f.Sync()
 	}
 	err = errors.Join(err, f.Close())
 	if err == nil {
-		err = os.Rename(f.Name(), path)
+		err = rename(f.Name(), path)
 	}
 	return err
 }
 
-func readSave(path string) ([]byte, error) {
-	data, err := os.ReadFile(path)
+func readSave(path string, owners ...common.Sandbox) ([]byte, error) {
+	readFile := os.ReadFile
+	if len(owners) > 0 && owners[0] != nil {
+		readFile = owners[0].ReadFile
+	}
+	data, err := readFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -117,13 +127,13 @@ func readSave(path string) ([]byte, error) {
 func (h *history) LoadFile(path string) (common.Recovery, error) {
 	h.writers.Lock()
 	defer h.writers.Unlock()
-	journal, journalErr := readJournal(path + ".journal")
+	journal, journalErr := readJournal(path+".journal", h.parent.Sandbox())
 	if journalErr != nil {
 		return common.Recovery{}, journalErr
 	}
 	var primaryErr error
 	for i, candidate := range []string{path, path + ".bak"} {
-		data, err := os.ReadFile(candidate)
+		data, err := h.parent.Sandbox().ReadFile(candidate)
 		var s common.SaveFile
 		var context common.Context
 		if err == nil {
@@ -138,7 +148,7 @@ func (h *history) LoadFile(path string) (common.Recovery, error) {
 			if replayErr != nil {
 				err = replayErr
 			} else {
-				if err := repairJournal(path+".journal", journal); err != nil {
+				if err := repairJournal(path+".journal", journal, h.parent.Sandbox()); err != nil {
 					return common.Recovery{}, err
 				}
 				through = recovered
@@ -167,7 +177,7 @@ func (h *history) LoadFile(path string) (common.Recovery, error) {
 			if err != nil {
 				return common.Recovery{}, err
 			}
-			if err := repairJournal(path+".journal", journal); err != nil {
+			if err := repairJournal(path+".journal", journal, h.parent.Sandbox()); err != nil {
 				return common.Recovery{}, err
 			}
 			h.mu.Lock()

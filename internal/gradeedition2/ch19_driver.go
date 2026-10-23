@@ -15,7 +15,7 @@ import (
 
 // Observe a real completed terminal answer before EOF. The read deadline and
 // process deadline bound broken fixtures; neither is substituted for completion.
-func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProbe) ([]fakevendor.Recorded, error) {
+func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProbe, current bool) ([]fakevendor.Recorded, map[string]sandboxObservation, error) {
 	replies := make([]fakevendor.Reply, 0, len(probes)+1)
 	for _, p := range probes {
 		replies = append(replies, p.reply())
@@ -26,21 +26,50 @@ func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProb
 	replies[0].Text = "CREDENTIAL_ECHO_" + f.nonce + " " + f.credential
 	final := "SANDBOX_COMPLETE_" + f.nonce
 	replies = append(replies, fakevendor.Reply{Text: final})
-	provider := fakevendor.New(replies)
+	var script *sandboxScript
+	var provider *fakevendor.Server
+	if current && !safe {
+		script = &sandboxScript{probes: probes, firstText: replies[0].Text, final: final, observed: map[string]sandboxObservation{}}
+		provider = fakevendor.NewWithOptions(nil, fakevendor.Options{Route: script.route})
+	} else {
+		provider = fakevendor.New(replies)
+	}
 	defer provider.Close()
+	// A whole-session budget must exceed a legitimate command observation.
+	// Historical and short safe-mode callers retain their original deadlines.
+	deadline := time.Now().Add(90 * time.Second)
 	args := []string{"chat", "--sandbox", f.root}
 	if safe {
 		args = append(args, "--safe-mode")
 	}
-	p, err := startMCPCommand(bin, f.root, args, []string{"LLM_MODEL=claude-sonnet-5", "LLM_API_KEY=" + f.credential, "OPENAI_API_KEY=" + f.credential, "ANTHROPIC_API_KEY=" + f.credential, "SERVICE_TOKEN=" + f.credential, "LLM_BASE_URL=" + provider.URL(), "EN_SKILLS_DIR=" + f.skills, "EN_PRIMARY_SKILL=base"})
+	var p *mcpCommand
+	var err error
+	if current {
+		args = []string{"--sandbox", f.root}
+		if safe {
+			args = append(args, "--safe-mode")
+		}
+		args = append(args, "chat")
+		if script != nil {
+			p, err = startMCPCommandEnvTimeout(bin, f.root, args, sandboxEnv(os.Environ(), f, provider.URL()), time.Until(deadline))
+		} else {
+			p, err = startMCPCommandEnv(bin, f.root, args, sandboxEnv(os.Environ(), f, provider.URL()))
+		}
+	} else {
+		p, err = startMCPCommand(bin, f.root, args, []string{"LLM_MODEL=claude-sonnet-5", "LLM_API_KEY=" + f.credential, "OPENAI_API_KEY=" + f.credential, "ANTHROPIC_API_KEY=" + f.credential, "SERVICE_TOKEN=" + f.credential, "LLM_BASE_URL=" + provider.URL(), "EN_SKILLS_DIR=" + f.skills, "EN_PRIMARY_SKILL=base"})
+	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer p.close()
 	if _, err = fmt.Fprintln(p.stdin, "Exercise the local sandbox."); err == nil {
 		for {
 			var line string
-			line, err = p.read()
+			if script != nil {
+				line, err = p.readWithin(time.Until(deadline))
+			} else {
+				line, err = p.read()
+			}
 			if err != nil || strings.Contains(line, final) {
 				break
 			}
@@ -61,20 +90,59 @@ func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProb
 			err = fmt.Errorf("CLI failed to exit after completed turn and EOF")
 		}
 	}
+	// Quiesce routed handlers before reading their session-owned state, including
+	// when the CLI timed out or abandoned an HTTP request.
+	provider.Close()
 	reqs := provider.Requests()
-	if err == nil && len(reqs) != len(replies) {
-		err = fmt.Errorf("got %d requests for %d scripted replies", len(reqs), len(replies))
+	observed := map[string]sandboxObservation{}
+	expected := len(replies)
+	if script != nil {
+		observed = script.observed
+		expected += script.totalWaits
+		if err == nil {
+			err = script.err
+		}
+		if err == nil && (!script.finished || script.next != len(probes)) {
+			err = fmt.Errorf("script did not finish all probes")
+		}
+	} else if len(reqs) == expected {
+		for i, probe := range probes {
+			observed[probe.id] = sandboxObservation{{reqs[i+1], probe.id}}
+		}
+	}
+	if err == nil && len(reqs) != expected {
+		err = fmt.Errorf("got %d requests for %d scripted replies including waits", len(reqs), expected)
 	}
 	if err != nil {
 		err = fmt.Errorf("%w; stderr: %s", err, p.stderr.String())
 	}
-	return reqs, err
+	return reqs, observed, err
+}
+
+// Keep the seeded credential in trusted configuration so the existing child
+// environment and readable-trace assertions still exercise real redaction.
+func sandboxEnv(base []string, f sandboxFixture, endpoint string) []string {
+	clean := make([]string, 0, len(base))
+	for _, item := range base {
+		if key, _, _ := strings.Cut(item, "="); key != "SERVICE_TOKEN" && key != "HOME" && key != "TMPDIR" {
+			clean = append(clean, item)
+		}
+	}
+	env := webStatusEnv(clean, f.root, f.skills, endpoint, "claude-sonnet-4-6", "base")
+	for i, item := range env {
+		key, _, _ := strings.Cut(item, "=")
+		switch key {
+		case "LLM_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY":
+			env[i] = key + "=" + f.credential
+		}
+	}
+	return append(env, "SERVICE_TOKEN="+f.credential, "HOME="+f.root, "TMPDIR="+f.root)
 }
 
 // Child specifications have no spawned-agent path yet. Compile a small external
 // consumer of the public contract, with explicit import selection rather than
 // planting code in a frozen submission or guessing its package identifier.
-func sandboxChild(core, library string, c *grade.Check) {
+func sandboxChild(core, library string, c *grade.Check, current bool) {
 	module := grade.DiscoverBase(core)
 	if module == "" {
 		fail(c, "submitted module not found")
@@ -101,6 +169,10 @@ func sandboxChild(core, library string, c *grade.Check) {
 		return
 	}
 	source := strings.Replace(sandboxChildSource, "PUBLIC_PACKAGE", strconv.Quote(pkg), 1)
+	if current {
+		// The restart retains its existing public Config owner.
+		source = strings.ReplaceAll(source, "api.AgentSpec", "api.Config")
+	}
 	if err = os.WriteFile(filepath.Join(work, "main.go"), []byte(source), 0600); err != nil {
 		fail(c, "%v", err)
 		return
@@ -150,3 +222,12 @@ func main(){
  if err!=nil&&within(root,got.SandboxRoot){fmt.Println("CHILD_SYMLINK_REFUSED")}
 }
 `
+
+// The current CLI uses a PTY; the unattended fixture must not open a pager.
+func sandboxGitCommand(current bool) string {
+	log := "git log -1 --format=%s"
+	if current {
+		log = "git --no-pager log -1 --format=%s"
+	}
+	return "git init -q repo && cd repo && printf git-control > note && git add note && git commit -qm git-control && " + log
+}

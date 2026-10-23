@@ -13,6 +13,8 @@ import (
 // Settings is a complete GUI-local snapshot. False and zero stay on the wire.
 // Read Aloud controls playback, not capture; Agent Interrupt remains separate.
 type Settings struct {
+	SafeMode             bool             `json:"safe_mode"`
+	EnableWebSearch      bool             `json:"enable_web_search"`
 	Theme                string           `json:"theme"`
 	PauseWhileSpeaking   bool             `json:"pause_while_speaking"`
 	TTSEnabled           bool             `json:"tts_enabled"`
@@ -25,7 +27,7 @@ type Settings struct {
 }
 
 func DefaultSettings() Settings {
-	return Settings{Theme: "dark", TTSEnabled: true, PauseWhileSpeaking: true, TTSSpeed: 1, FontSize: 16, LogMode: ensemble.LogFull, DiagnosticMaxRecords: 200}
+	return Settings{EnableWebSearch: true, Theme: "dark", TTSEnabled: true, PauseWhileSpeaking: true, TTSSpeed: 1, FontSize: 16, LogMode: ensemble.LogFull, DiagnosticMaxRecords: 200}
 }
 
 // A sparse patch is decoded onto a copy, then validated as a whole. The same
@@ -42,6 +44,10 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 		}
 		var target any
 		switch key {
+		case "safe_mode":
+			target = &next.SafeMode
+		case "enable_web_search":
+			target = &next.EnableWebSearch
 		case "theme":
 			target = &next.Theme
 		case "pause_while_speaking":
@@ -95,14 +101,33 @@ func patchSettings(current Settings, raw json.RawMessage) (Settings, error) {
 
 // The hub mutex serializes save, runtime application and publication. This is
 // atomic replacement of one file, not a claim of power-loss durability.
-type settingsStore struct{ path string }
+type settingsStore struct {
+	path  string
+	agent ensemble.Agent
+}
+
+// Only absent settings fields inherit launch policy. Both startup preload and
+// already-attached stores use this default and the same patchSettings parser.
+func settingsForLaunch(config ensemble.Config) Settings {
+	defaults := DefaultSettings()
+	defaults.SafeMode, defaults.EnableWebSearch = config.SafeMode, config.EnableWebSearch
+	return defaults
+}
 
 func (s settingsStore) load() (Settings, error) {
 	defaults := DefaultSettings()
+	// Only missing fields inherit launch policy; explicit persisted choices win.
+	if s.agent != nil {
+		defaults = settingsForLaunch(s.agent.Config())
+	}
 	if s.path == "" {
 		return defaults, nil
 	}
-	raw, err := os.ReadFile(s.path)
+	readFile := os.ReadFile
+	if s.agent != nil {
+		readFile = s.agent.Sandbox().ReadFile
+	}
+	raw, err := readFile(s.path)
 	if errors.Is(err, os.ErrNotExist) {
 		return defaults, nil
 	}
@@ -119,16 +144,24 @@ func (s settingsStore) save(value Settings) error {
 	if err != nil {
 		return err
 	}
+	mkdir, createTemp, remove, rename := os.MkdirAll, os.CreateTemp, os.Remove, os.Rename
+	if s.agent != nil {
+		files := s.agent.Sandbox()
+		mkdir = files.MkdirAll
+		createTemp = files.CreateTemp
+		remove = files.Remove
+		rename = files.Rename
+	}
 	dir := filepath.Dir(s.path)
-	if err = os.MkdirAll(dir, 0700); err != nil {
+	if err = mkdir(dir, 0700); err != nil {
 		return err
 	}
-	file, err := os.CreateTemp(dir, ".settings-*")
+	file, err := createTemp(dir, ".settings-")
 	if err != nil {
 		return err
 	}
 	name := file.Name()
-	defer os.Remove(name)
+	defer remove(name)
 	if _, err = file.Write(append(data, '\n')); err != nil {
 		file.Close()
 		return err
@@ -140,7 +173,7 @@ func (s settingsStore) save(value Settings) error {
 	if err = file.Close(); err != nil {
 		return err
 	}
-	return os.Rename(name, s.path)
+	return rename(name, s.path)
 }
 
 // Read budget policy back from its owner, not a second GUI runtime budget.
@@ -149,6 +182,7 @@ func (h *Hub) currentSettings() Settings {
 	value := h.settings
 	if agents := h.en.Agents(); len(agents) > 0 {
 		cfg := agents[0].Config()
+		value.SafeMode, value.EnableWebSearch = cfg.SafeMode, cfg.EnableWebSearch
 		value.ContextTarget = cfg.ContextTarget
 		value.MaxToolRounds = cfg.MaxToolRounds
 		value.LogMode = cfg.LogMode
@@ -157,24 +191,32 @@ func (h *Hub) currentSettings() Settings {
 	return value
 }
 func (h *Hub) updateSettings(raw json.RawMessage) error {
+	h.settingsMu.Lock()
+	defer h.settingsMu.Unlock()
 	h.mu.Lock()
-	defer h.mu.Unlock()
 	next, err := patchSettings(h.currentSettings(), raw)
 	if err != nil {
+		h.mu.Unlock()
 		return err
 	}
 	if err = h.store.save(next); err != nil {
+		h.mu.Unlock()
 		return fmt.Errorf("could not save settings: %w", err)
 	}
-	// Validation guarantees a nonnegative policy; the synchronous setter publishes
-	// it before the success snapshot, while active turns keep their captured limit.
-	for _, a := range h.en.Agents() {
+	h.settings = next
+	h.settingsApplied = true
+	agents := h.en.Agents()
+	h.mu.Unlock()
+	// Capability notifications re-enter Hub.mu. Keep policy setters outside that
+	// lock while settingsMu preserves save/apply/publication ordering.
+	for _, a := range agents {
+		a.SetSecurityPolicy(next.SafeMode, next.EnableWebSearch)
 		_ = a.SetContextTarget(next.ContextTarget)
 		_ = a.SetMaxToolRounds(next.MaxToolRounds)
 		_ = a.SetPersistencePolicy(next.LogMode, next.DiagnosticMaxRecords)
 	}
-	h.settings = next
-	h.settingsApplied = true
+	h.mu.Lock()
+	defer h.mu.Unlock()
 	settings := h.currentSettings()
 	h.broadcast(Wire{Type: "settings_changed", Settings: &settings})
 	return nil

@@ -22,6 +22,16 @@ import (
 // actual OS enforce the boundaries; the only fake is the external model peer.
 // library is the public package path relative to the submitted module root.
 func Chapter19(bin, core, library string) (grade.Report, error) {
+	return chapter19(bin, core, library, false)
+}
+
+// Chapter19CLI uses the restarted root library and isolated CLI fixture while
+// preserving all seven checks and the historical entry point above.
+func Chapter19CLI(bin, core string) (grade.Report, error) {
+	return chapter19(bin, core, ".", true)
+}
+
+func chapter19(bin, core, library string, current bool) (grade.Report, error) {
 	checks := grade.Ch23Checks(grade.Ch23Result{})
 	for i := range checks {
 		checks[i].Passed = true
@@ -34,9 +44,9 @@ func Chapter19(bin, core, library string) (grade.Report, error) {
 		}
 		return grade.NewTitledReport("Edition 2, Chapter 19 — The Sandbox", checks, ""), nil
 	}
-	sandboxChecks(bin, checks)
-	sandboxSafe(bin, &checks[5])
-	sandboxChild(core, library, &checks[4])
+	sandboxChecks(bin, checks, current)
+	sandboxSafe(bin, &checks[5], current)
+	sandboxChild(core, library, &checks[4], current)
 	return grade.NewTitledReport("Edition 2, Chapter 19 — The Sandbox", checks, ""), nil
 }
 
@@ -84,13 +94,18 @@ var sandboxExit = regexp.MustCompile(`(?i)exit_code[: ]+(-?\d+)`)
 
 // Command failure is normally a completed job with a nonzero exit, not a failed
 // tool invocation. Require a correlated completed observation in either form.
-func sandboxCommand(c *grade.Check, r fakevendor.Recorded, id string, success bool) string {
-	text, isError, err := anthropicToolText(r.Body, id)
+func sandboxCommand(c *grade.Check, observation sandboxObservation, id string, success bool) string {
+	text, isError, err := observation.result()
 	if err != nil || text == "" {
 		fail(c, "command %s has no correlated result: %v", id, err)
 		return text
 	}
-	m := sandboxExit.FindStringSubmatch(text)
+	terminal := text
+	if len(observation) != 0 {
+		last := observation[len(observation)-1]
+		terminal, _, _ = anthropicToolText(last.request.Body, last.id)
+	}
+	m := sandboxExit.FindStringSubmatch(terminal)
 	if len(m) == 2 {
 		code, _ := strconv.Atoi(m[1])
 		if (code == 0) != success {
@@ -105,7 +120,7 @@ func sandboxCommand(c *grade.Check, r fakevendor.Recorded, id string, success bo
 	return text
 }
 
-func sandboxChecks(bin string, checks []grade.Check) {
+func sandboxChecks(bin string, checks []grade.Check, current bool) {
 	path, kernel, network, credentials, leak := &checks[0], &checks[1], &checks[2], &checks[3], &checks[6]
 	failed := func(err error) {
 		for _, c := range []*grade.Check{path, kernel, network, credentials, leak} {
@@ -153,37 +168,33 @@ func sandboxChecks(bin string, checks []grade.Check) {
 		{"write-escape", "write_file", map[string]any{"path": "escape/file.txt", "content": "BAD", "overwrite": true}},
 		{"command", "run_command", map[string]any{"command": "printf COMMAND_OK > command.txt && cat command.txt", "ai_callback_delay": 5}},
 		{"python", "run_command", map[string]any{"command": "/usr/bin/python3 -c 'print(open(\"command.txt\").read())'", "ai_callback_delay": 5}},
-		{"git", "run_command", map[string]any{"command": "git init -q repo && cd repo && printf git-control > note && git add note && git commit -qm git-control && git log -1 --format=%s", "ai_callback_delay": 5}},
+		{"git", "run_command", map[string]any{"command": sandboxGitCommand(current), "ai_callback_delay": 5}},
 		{"command-escape", "run_command", map[string]any{"command": "cat " + q(filepath.Join(f.outside, "command.txt")), "ai_callback_delay": 5}},
 		{"descendant", "run_command", map[string]any{"command": "sh -c " + q("sh -c "+q("cat "+q(filepath.Join(f.outside, "command.txt")))), "ai_callback_delay": 5}},
 		{"command-write", "run_command", map[string]any{"command": "printf BAD > " + q(filepath.Join(f.outside, "created.txt")), "ai_callback_delay": 5}},
 		{"network", "run_command", map[string]any{"command": "curl -sS --max-time 2 " + q(target.URL), "ai_callback_delay": 5}},
 		{"environment", "run_command", map[string]any{"command": "env", "ai_callback_delay": 5}},
 		{"cwd", "run_command", map[string]any{"command": "true", "cwd": "escape", "ai_callback_delay": 5}},
-		{"log", "read_file", map[string]any{"path": "api.log", "max_bytes": 65536, "max_output_bytes": 65536}},
 	}
-	reqs, err := sandboxLaunch(bin, f, false, probes)
+	probes = append(probes, sandboxLogProbes(current)...)
+	reqs, result, err := sandboxLaunch(bin, f, false, probes, current)
 	if err != nil {
 		failed(err)
 		return
 	}
-	result := map[string]fakevendor.Recorded{}
-	for i, p := range probes {
-		result[p.id] = reqs[i+1]
-	}
 	for id, want := range map[string]string{"read": "INSIDE_" + f.nonce, "edited": "EDITED_" + f.nonce, "search": "EDITED_" + f.nonce, "list": "local.txt"} {
-		if !strings.Contains(skillResult(path, result[id], id, false), want) {
+		if !strings.Contains(result[id].skill(path, id, false), want) {
 			fail(path, "allowed %s lost actual content", id)
 		}
 	}
 	for _, id := range []string{"write", "edit"} {
-		skillResult(path, result[id], id, false)
+		result[id].skill(path, id, false)
 	}
 	if b, e := os.ReadFile(filepath.Join(f.root, "local.txt")); e != nil || string(b) != "EDITED_"+f.nonce {
 		fail(path, "actual allowed edit not present: %q %v", b, e)
 	}
 	for _, id := range []string{"relative", "absolute", "symlink", "write-escape"} {
-		skillResult(path, result[id], id, true)
+		result[id].skill(path, id, true)
 	}
 	if b, e := os.ReadFile(filepath.Join(f.outside, "file.txt")); e != nil || string(b) != "FILE_SECRET_"+f.nonce {
 		fail(path, "outside file changed: %q %v", b, e)
@@ -207,7 +218,10 @@ func sandboxChecks(bin string, checks []grade.Check) {
 	if !strings.Contains(env, "HOME=") {
 		fail(credentials, "environment positive observation absent")
 	}
-	log := skillResult(credentials, result["log"], "log", false)
+	if current {
+		result["log-limit"].skill(credentials, "log-limit", false)
+	}
+	log := result["log"].skill(credentials, "log", false)
 	if !strings.Contains(log, "CREDENTIAL_ECHO_") {
 		fail(credentials, "actual readable API trace did not contain earlier response")
 	}
@@ -227,7 +241,7 @@ func sandboxChecks(bin string, checks []grade.Check) {
 		fail(credentials, "credential reached successful readable API-log result")
 	}
 	for id, asked := range map[string]string{"relative": "../vault/file.txt", "symlink": "escape/file.txt", "cwd": "escape"} {
-		text := skillResult(leak, result[id], id, true)
+		text := result[id].skill(leak, id, true)
 		if !strings.Contains(text, asked) {
 			fail(leak, "refusal %s lost caller-supplied path %q", id, asked)
 		}
@@ -237,7 +251,7 @@ func sandboxChecks(bin string, checks []grade.Check) {
 	}
 }
 
-func sandboxSafe(bin string, c *grade.Check) {
+func sandboxSafe(bin string, c *grade.Check, current bool) {
 	f, err := newSandboxFixture()
 	if f.base != "" {
 		defer os.RemoveAll(f.base)
@@ -253,7 +267,7 @@ func sandboxSafe(bin string, c *grade.Check) {
 	for _, name := range banned {
 		probes = append(probes, sandboxProbe{name, name, map[string]any{"command": "printf BAD > escaped.txt", "handle": 1}})
 	}
-	reqs, err := sandboxLaunch(bin, f, true, probes)
+	reqs, _, err := sandboxLaunch(bin, f, true, probes, current)
 	if err != nil {
 		fail(c, "safe session: %v", err)
 		return
@@ -277,12 +291,36 @@ func sandboxSafe(bin string, c *grade.Check) {
 		fail(c, "safe file result absent")
 	}
 	for i, name := range banned {
-		webUnknown(c, reqs[i+3], name)
+		sandboxSafeRefusal(c, reqs[i+3], name, current)
 	}
 	if b, e := os.ReadFile(filepath.Join(f.root, "safe.txt")); e != nil || string(b) != "SAFE_"+f.nonce {
 		fail(c, "actual safe write missing")
 	}
 	if _, e := os.Stat(filepath.Join(f.root, "escaped.txt")); !os.IsNotExist(e) {
 		fail(c, "guessed disabled command executed")
+	}
+}
+
+// The restarted file schema separates file bytes from one-shot observation limits.
+// Keep the historical direct-argument fixture unchanged for its original caller.
+func sandboxLogProbes(current bool) []sandboxProbe {
+	if current {
+		return []sandboxProbe{
+			{"log-limit", "tool_limits", map[string]any{"max_output_bytes": 65536}},
+			{"log", "read_file", map[string]any{"path": "api.log", "max_bytes": 65536}},
+		}
+	}
+	return []sandboxProbe{{"log", "read_file", map[string]any{"path": "api.log", "max_bytes": 65536, "max_output_bytes": 65536}}}
+}
+
+func sandboxSafeRefusal(c *grade.Check, r fakevendor.Recorded, id string, current bool) {
+	if !current {
+		webUnknown(c, r, id)
+		return
+	}
+	// Chapter 19 requires absence, refusal and nonexecution, not Chapter 18's
+	// unknown-tool wording. The surrounding check verifies the other two facts.
+	if strings.TrimSpace(skillResult(c, r, id, true)) == "" {
+		fail(c, "%s has no safe-mode refusal explanation", id)
 	}
 }

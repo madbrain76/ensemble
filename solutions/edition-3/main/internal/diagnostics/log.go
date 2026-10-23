@@ -3,6 +3,7 @@ package diagnostics
 
 import (
 	"bytes"
+	"ensemble/internal/common"
 	"errors"
 	"io"
 	"os"
@@ -14,22 +15,39 @@ import (
 // Its limit is read at each retention boundary, so settings apply without reopening it.
 // This diagnostic policy is deliberately unrelated to recovery archives.
 type Log struct {
+	files common.Sandbox
 	mu    sync.Mutex
 	path  string
 	limit func() int
 }
 
-func Open(path string, limit func() int) (*Log, error) {
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+func Open(path string, limit func() int, owners ...common.Sandbox) (*Log, error) {
+	var files common.Sandbox
+	open := os.OpenFile
+	if len(owners) > 0 && owners[0] != nil {
+		files = owners[0]
+		open = files.OpenFile
+		var err error
+		path, err = files.ValidatePath(path)
+		if err != nil {
+			return nil, err
+		}
+	}
+	f, err := open(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return nil, err
 	}
 	if err = f.Close(); err != nil {
 		return nil, err
 	}
-	return &Log{path: path, limit: limit}, nil
+	return &Log{path: path, limit: limit, files: files}, nil
 }
-func (d *Log) Close() error { return nil }
+func (d *Log) Close() error {
+	if d.files != nil {
+		return d.files.Close()
+	}
+	return nil
+}
 func (d *Log) Write(data []byte) (int, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -39,7 +57,11 @@ func (d *Log) Write(data []byte) (int, error) {
 	if data[len(data)-1] != '\n' {
 		return 0, errors.New("diagnostic record must end with newline")
 	}
-	f, err := os.OpenFile(d.path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	open := os.OpenFile
+	if d.files != nil {
+		open = d.files.OpenFile
+	}
+	f, err := open(d.path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return 0, err
 	}
@@ -63,7 +85,14 @@ func (d *Log) Retain() error {
 	if limit == 0 {
 		return nil
 	}
-	old, err := os.ReadFile(d.path)
+	readFile, createTemp, remove, rename := os.ReadFile, os.CreateTemp, os.Remove, os.Rename
+	if d.files != nil {
+		readFile = d.files.ReadFile
+		createTemp = d.files.CreateTemp
+		remove = d.files.Remove
+		rename = d.files.Rename
+	}
+	old, err := readFile(d.path)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
@@ -83,18 +112,18 @@ func (d *Log) Retain() error {
 			}
 		}
 	}
-	f, err := os.CreateTemp(filepath.Dir(d.path), ".diagnostic-*")
+	f, err := createTemp(filepath.Dir(d.path), ".diagnostic-")
 	if err != nil {
 		return err
 	}
-	defer os.Remove(f.Name())
+	defer remove(f.Name())
 	n, err := f.Write(records[start:])
 	if err == nil && n != len(records[start:]) {
 		err = io.ErrShortWrite
 	}
 	err = errors.Join(err, f.Close())
 	if err == nil {
-		err = os.Rename(f.Name(), d.path)
+		err = rename(f.Name(), d.path)
 	}
 	if err != nil {
 		return err
