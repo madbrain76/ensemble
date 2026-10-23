@@ -31,3 +31,14 @@ Use [voice.md](voice.md) for any authorized revision: exact source titles; expla
 Publication authority was limited to exact companion and notes paths on `origin/main`, preserving unrelated staged and unstaged work. No broad staging, reset or force push. Do not infer a clean repository from clean companion paths. Set `GIT_PAGER=cat PAGER=cat` for Git commands.
 
 The parent goal file is `/Users/bill/projects/cadence-memories/session/agents/Companion guide/goal.md`. Completion reminders are disabled after successful publication. All retained children were joined once more at closure. Do not restart writing from older frontier notes; no authorized unfinished work remains.
+
+## KDP publication workflow
+
+Subsequent authorized work added `build-publication.py` and `PUBLISHING.md` without
+changing the accepted manuscript. It builds a Kindle EPUB and a **6 × 9-inch**,
+no-bleed print interior for **The Singularity as it Happened — Book 6**. The current
+PDF is 304 pages; the EPUB and PDF are included in the publication commit as Bill
+requested. Five companion regressions and seven existing print regressions pass;
+the actual artifacts passed navigation, pagination, font, and trim checks. New
+companion cover artwork is still pending from Bill. KDP preview, full-wrap cover
+assembly, upload, and publishing remain human steps; nothing was uploaded to KDP.

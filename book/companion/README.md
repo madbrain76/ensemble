@@ -38,3 +38,9 @@ What the systems are, why they work this way, and the experience behind the desi
 The preface, all 28 chapters, and the epilogue are complete and have passed independent review.
 
 Editorial records and completion status live in [RESUME.md](RESUME.md); they are not part of the reading sequence.
+
+## Publication files
+
+[Build and KDP instructions](PUBLISHING.md) cover the Kindle EPUB and **6 × 9-inch**
+print interior for **The Singularity as it Happened — Book 6**. The generated
+[PDF and EPUB](build/) are committed; the new cover artwork is still pending.

@@ -120,14 +120,16 @@ def build_map(pdf: Path, titles: list[str]) -> dict[str, int]:
     return found
 
 
-def margins(index: int) -> tuple[float, float]:
+def margins(index: int, page_width: float = 504) -> tuple[float, float]:
     """Physical page parity, never the reset printed counter, owns the gutter."""
-    return (63, 468) if index % 2 == 0 else (36, 441)
+    return (63, page_width - 36) if index % 2 == 0 else (36, page_width - 63)
 
 
 def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
-                      mapping: dict[str, int]) -> tuple[int, list]:
+                      mapping: dict[str, int],
+                      page_size: tuple[float, float] = (504, 720)) -> tuple[int, list]:
     """Stamp the reserved TOC column and footers; do not reflow any content."""
+    page_width, page_height = page_size
     first = mapping.get("Preface")
     if first is None or entries[0][0] != "preface":
         sys.exit("FATAL: Preface must be the first numbered contents entry")
@@ -139,9 +141,10 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
     stamped = []
     pending = pdf.with_suffix(".numbered.pdf")
     with pymupdf.open(pdf) as doc:
-        if any(abs(page.rect.width - 504) > 0.01 or
-               abs(page.rect.height - 720) > 0.01 for page in doc):
-            sys.exit("FATAL: pagination geometry requires 7 × 10 inch pages")
+        if any(abs(page.rect.width - page_width) > 0.01 or
+               abs(page.rect.height - page_height) > 0.01 for page in doc):
+            sys.exit(f"FATAL: pagination geometry requires "
+                     f"{page_width / 72:g} × {page_height / 72:g} inch pages")
         for href, raw in entries:
             title = strip_tags(raw)
             target = mapping[title] - 1
@@ -171,7 +174,7 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
                 sys.exit(f"FATAL: cannot locate TOC text baseline for {title}")
             baseline = max(span["origin"][1] for span in spans)
             number = str(mapping[title] - first + 1)
-            right = margins(i)[1]
+            right = margins(i, page_width)[1]
             width = font.text_length(number, fontsize=10.5)
             if max(span["bbox"][2] for span in spans) > right - width - 8:
                 sys.exit(f"FATAL: insufficient reserved TOC number space for {title}")
@@ -183,10 +186,10 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
         for i in range(first - 1, len(doc)):
             page = doc[i]
             number = str(i - first + 2)
-            left, right = margins(i)
+            left, right = margins(i, page_width)
             width = font.text_length(number, fontsize=10)
             page.insert_font(fontname="PrintGeorgia", fontfile=str(GEORGIA))
-            page.insert_text(((left + right - width) / 2, 696), number,
+            page.insert_text(((left + right - width) / 2, page_height - 24), number,
                              fontname="PrintGeorgia", fontsize=10, color=(0, 0, 0))
         doc.set_page_labels([
             {"startpage": 0, "prefix": "", "style": ""},
@@ -197,10 +200,12 @@ def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
     return first, stamped
 
 
-def check_pagination(pdf: Path, first: int, stamped: list) -> None:
+def check_pagination(pdf: Path, first: int, stamped: list,
+                     page_size: tuple[float, float] = (504, 720)) -> None:
+    page_width, page_height = page_size
     with pymupdf.open(pdf) as doc:
         for i, page in enumerate(doc):
-            footer = page.get_text(clip=pymupdf.Rect(0, 675, 504, 720)).strip()
+            footer = page.get_text(clip=pymupdf.Rect(0, page_height - 45, page_width, page_height)).strip()
             expected = "" if i < first - 1 else str(i - first + 2)
             if footer != expected or page.get_label() != expected:
                 sys.exit(f"FATAL: footer/page label mismatch on physical page {i + 1}")
