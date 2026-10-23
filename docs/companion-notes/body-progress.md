@@ -1,9 +1,12 @@
 # Companion body progress
 
-Accepted frontier: **Chapter 03**. Next: **Chapter 04**.
+Accepted frontier: **Chapter 04**. Next: **Chapter 05**.
 
-- Chapter 01: fresh author/reviewer submitted and joined; editor read source, manuscript, and review. No material findings. Targeted author lint/check reused. Published `1be2221e`.
-- Chapter 02: fresh author/reviewer submitted and joined; editor read full source, final manuscript, and review. Corrected Claude-shaped interface and incomplete historical migration; clarified empty ephemera clearing and evidence boundaries. Reviewer accepted. Targeted author lint/check reused. Published `47dc65b7`.
-- Chapter 03: fresh author/reviewer submitted and joined; editor read full source/manuscript/review. No manuscript revision needed. Editor caught review's mistaken transactional-refusal claim and inaccurate quotations; reviewer corrected and rechecked against actual source/manuscript. Author's targeted lint/check passed and reused. Publication follows this checkpoint.
+- 01: fresh author/reviewer completed and joined; editor read source, manuscript, carryover and review. Accepted; pushed `1be2221e`.
+- 02: fresh author/reviewer completed and joined; editor corrected the Claude-shaped opening and retained incomplete migration, ephemera clearing and evidence boundaries. Accepted; pushed `47dc65b7`.
+- 03: fresh author/reviewer completed and joined. Editor corrected review-note atomicity/quotation errors; manuscript required no changes. Accepted; pushed `6d45f553`.
+- 04: fresh author/reviewer completed and joined, including final correction turns. Editor read full source/manuscript/notes and revised passages. Corrected one-shot limits, Agent job ownership, wait wake rules, cwd and shell-reader lifetime; replaced unsupported screenshot/debugger/lifecycle histories and score chronology with source-backed accounts. Reviewer rechecked; editor also corrected inaccurate review summaries and withdrew a consumer-story objection after direct source confirmation. No unresolved material findings. Publication follows this checkpoint.
 
-Continue sequentially with fresh author and fresh independent reviewer for each chapter through 27. Each reads full companion voice, complete corresponding Edition 3 source, preceding accepted chapter and preceding author carryover. Editor reads actual draft and review, resolves material findings, collects submissions and joins before advancing. Approved small reading set replaces legacy process documents. Preserve concurrent source work and parent-owned front/back matter. No runtime reproduction is implied by editorial acceptance.
+Continuity: jobs make work observable, but the foreground input loop remains deaf during its wait. Chapter 05 must solve that separate problem. Historical evidence is source-checked, not rerun; no implementation/runtime verification is claimed. Chapter 04's unchanged initial structural check is retained; no lint/build/grader or new audit campaign was run.
+
+Every remaining chapter requires a new author and new independent reviewer, each reading the complete approved context. Continue sequentially through 27. Parent owns Chapter 00, voice, RESUME, preface/epilogue and navigation; body work must not edit those or concurrent Edition 3 work. Publication uses exact accepted chapter/note/checkpoint paths only.
