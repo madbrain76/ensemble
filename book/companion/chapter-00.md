@@ -1,4 +1,4 @@
-# Chapter 0: Inheriting the Judgment
+# Chapter 0: The Perpetual Machine
 
 ## The repository wasn't enough
 

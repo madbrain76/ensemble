@@ -14,9 +14,13 @@ The reader should come away able to explain why a design exists, recognize the p
 
 ## 2. The reading experience
 
-**Fun, light, and quick to read; technically substantial throughout.**
+**Explain what it is and why it is that way. Make it pleasant to read and significantly shorter than the original book.**
 
-Lightness comes from clear explanations, concrete situations, natural rhythm, and pleasure in understanding how something works. It does not come from removing the difficult part. Quick means low friction and high understanding per unit of attention, not a word-count target.
+Bill’s latest direction is explicit: every sentence must either carry knowledge directly or earn its place through cohesion, readability, or pleasure in reading. He wants understanding, not a lot of prose. Remove repeated conclusions, decorative setup, generic reflections on autonomy or responsibility, and philosophical discussions of how an agent ought to operate. Concrete explanations of actual mechanisms, failures, and design choices remain essential.
+
+Use the source’s cold opening to establish the problem when useful, and its “In Plain English” section as an explanatory anchor where present. Extend those with the technical details needed to understand what exists and why; do not expand them into a general essay. A documented story earns its space by explaining a decision or failure. Do not invent an opening or force a story into every chapter.
+
+Lightness comes from clear explanations, concrete situations, natural rhythm, and pleasure in understanding how something works. It does not come from removing the difficult part. Quick means low friction and high understanding per unit of attention. The companion as a whole must be significantly shorter than Edition 3; compare actual manuscript lengths rather than assuming that deleting exercises achieves this. Do not impose an invented per-chapter quota or cut a necessary explanation to meet one.
 
 A documented failure can make a subtle distinction memorable. A well-chosen sequence can explain interacting rules more efficiently than a checklist. A short connective paragraph can save the reader from reconstructing an unstated causal step. Keep those paragraphs.
 
@@ -30,11 +34,11 @@ When preferences compete, use this order:
 
 1. Truth, technical accuracy, privacy, and publication guardrails.
 2. The reader's understanding and ability to exercise judgment.
-3. Coherent explanation, useful organization, and narrative continuity.
-4. Personality, rhythm, brevity, and stylistic preferences.
+3. Direct, concise explanation, useful organization, and continuity.
+4. Personality, rhythm, and stylistic preferences.
 5. Lint as a diagnostic, never the definition of good prose.
 
-Never alter evidence, omit a consequential exception, or obscure a distinction to improve a stylistic count. There is no minimum or maximum chapter length and no target reduction percentage.
+Never alter evidence, omit a consequential exception, or obscure a distinction to improve a stylistic count. There is no minimum chapter length or prescribed reduction percentage. Significant overall reduction is an explicit requirement, achieved by selecting and explaining the knowledge efficiently, not by hiding consequential detail.
 
 ## 4. Who is speaking
 
@@ -80,7 +84,7 @@ Explain a current design coherently. Do not leave an obsolete instruction follow
 
 ## 7. Prose, organization, and exclusions
 
-The reader-facing book consists of stories and technical knowledge in prose, organized with useful headings. Headings should name a problem, question, or mechanism rather than supply decorative suspense.
+The reader-facing book consists of stories and technical knowledge in prose, organized with useful headings. Every chapter’s main heading must exactly match the corresponding Edition 3 chapter number and title; the contents page uses those same titles. Do not invent more literary replacement titles. Subheadings should name a problem, question, or mechanism rather than supply decorative suspense.
 
 There are no TL;DRs, exercises, quizzes, assignments, grading recipes, student deliverables, or bot operating instructions. Do not disguise them as “try this,” “next steps,” or end-of-chapter checklists. Do not add repetitive summaries simply because the source edition has them.
 
@@ -131,6 +135,9 @@ Review complete passages, not only isolated sentences. Check whether the chapter
 - Explains the mechanism before requiring the reader to juggle exceptions.
 - Retains distinctions needed to lead, extend, and question the design.
 - Reads enjoyably without forced humor, manufactured rhythm, or superficial brevity.
+- Makes every sentence earn its place through knowledge, cohesion, readability, or pleasure; avoids philosophical padding and repeated conclusions.
+- Contributes to a companion significantly shorter than the original; records a simple source/companion length comparison, not a quota or a separate audit project.
+- Keeps the exact Edition 3 chapter title.
 - Contains only supportable stories and claims, with inherited guardrails intact.
 - Stands as prose rather than a stripped or disguised exercise manual.
 - Connects naturally to the preceding chapter without repeating its lesson.

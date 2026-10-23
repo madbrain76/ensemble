@@ -6,7 +6,7 @@ Bill requests autonomous completion of the entire human-first companion to *The 
 
 Use a fresh author and separate fresh independent reviewer for every chapter. Both read the complete companion voice guide, corresponding Edition 3 source, previous accepted companion chapter, and previous author carryover. Review the actual prose and source, resolve material findings, collect saved submissions and join workers before acceptance. Bill explicitly replaced the legacy four-large-document reading requirement with this companion-specific set; do not reinstate that blocker. This does not waive accuracy, privacy, or independent review. No student/grader pipeline or product build is required for prose.
 
-Bill approved the preface as excellent: leave it unchanged. He permits the parent to author the epilogue; independently review it. Continue without routine approval loops, preserving unrelated concurrent work. Source Chapter 27 describes a proposed goals design; do not turn it into a claim of implemented or observed behavior.
+Bill approved the preface as excellent: leave it unchanged. He permits the parent to author the epilogue; independently review it. Continue without routine approval loops, preserving unrelated concurrent work. Source Chapter 27 was initially a proposal but has since been updated by its owner to report implementation and local testing. Use the current source at authorship: preserve its bounded, source-attributed observations and distinguish them from deployment, student execution, live-provider tests, or verification by this writing team.
 
 ## Current ownership and state
 
@@ -38,3 +38,9 @@ Inspect actual manuscript, body-progress, scoped Git status, and active children
 ## Goal reminder
 
 At Bill’s request, the parent loaded the goals skill and enabled an eight-minute idle reminder using its Agent-owned `goal.md`. It prompts a state check, not duplicate work or cancellation. Completion still requires all reviews, final navigation and epilogue, successful publication, and child collection. Disable reminders at completion or a genuine human blocker. On another application restart, check whether the local configuration and children survived before restoring them.
+
+## Latest reader direction
+
+Keep the exact Edition 3 main chapter titles and use them in the contents page. Explain what each thing is and why it works that way, motivated where useful by source cold openings and “In Plain English” sections. No philosophical discussion of how agents ought to operate. Every sentence must carry knowledge or earn its place through cohesion, readability, or pleasure. The companion must be significantly shorter than the original book; compare actual lengths without inventing a fixed quota. Approved preface remains unchanged. Body editor is applying this to new work and assessing earlier chapters for concrete, bounded cuts rather than indiscriminate rewriting.
+
+Current frontier at this update: Chapters 0–12 accepted and published; body-progress remains authoritative for later progress. Titles 01–11 were corrected in `7fd23663`; Chapter 12 published in `37736bab`. Parent title00/navigation/voice correction follows.
