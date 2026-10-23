@@ -1,12 +1,11 @@
 # Companion body progress
 
-Accepted frontier: **Chapter 04**. Next: **Chapter 05**.
+Accepted frontier: **Chapter 05**. Next: **Chapter 06** with a fresh author and fresh independent reviewer.
 
-- 01: fresh author/reviewer completed and joined; editor read source, manuscript, carryover and review. Accepted; pushed `1be2221e`.
-- 02: fresh author/reviewer completed and joined; editor corrected the Claude-shaped opening and retained incomplete migration, ephemera clearing and evidence boundaries. Accepted; pushed `47dc65b7`.
-- 03: fresh author/reviewer completed and joined. Editor corrected review-note atomicity/quotation errors; manuscript required no changes. Accepted; pushed `6d45f553`.
-- 04: fresh author/reviewer completed and joined, including final correction turns. Editor read full source/manuscript/notes and revised passages. Corrected one-shot limits, Agent job ownership, wait wake rules, cwd and shell-reader lifetime; replaced unsupported screenshot/debugger/lifecycle histories and score chronology with source-backed accounts. Reviewer rechecked; editor also corrected inaccurate review summaries and withdrew a consumer-story objection after direct source confirmation. No unresolved material findings. Publication follows this checkpoint.
+Chapters 01–05 have each had a fresh author, a fresh independent reviewer, and managing-editor manuscript/review inspection. Their manuscripts and per-chapter author/review notes are the durable handoffs. All completed author/reviewer turns through Chapter 05 were collected and joined, including the final reference-only correction to Chapter 05's review note.
 
-Continuity: jobs make work observable, but the foreground input loop remains deaf during its wait. Chapter 05 must solve that separate problem. Historical evidence is source-checked, not rerun; no implementation/runtime verification is claimed. Chapter 04's unchanged initial structural check is retained; no lint/build/grader or new audit campaign was run.
+Chapter 05 corrections: replaced an unsupported stdin/narrator anecdote with the actual parked-conversation-loop cause; removed an erroneous sequence field from `StateChanged`; removed a persisted-history part-ID seeding requirement not established by its source. Editor verified the source and revised passages; independent reviewer rechecked and accepted. Wider reviewer allegations were withdrawn after direct source comparison confirmed the retained historical stories and round-limit policy. No material manuscript finding remains open. Checks were textual source/continuity reads, not runtime tests, graders, or live-provider verification; no lint invoked.
 
-Every remaining chapter requires a new author and new independent reviewer, each reading the complete approved context. Continue sequentially through 27. Parent owns Chapter 00, voice, RESUME, preface/epilogue and navigation; body work must not edit those or concurrent Edition 3 work. Publication uses exact accepted chapter/note/checkpoint paths only.
+Publication: accepted Chapter 01 pushed as `1be2221e`; Chapter 02 as `47dc65b7`; Chapter 03 as `6d45f553`; Chapter 04 as `1e6448c1`. Chapter 05 publication follows this checkpoint; record its hash at the next accepted frontier.
+
+Scope remains body chapters and their notes only. Parent owns Chapter 00, voice, RESUME, preface/epilogue, and navigation. Exact-path accepted-chapter commits/pushes are authorized by parent after the initial snapshot; unrelated work remains untouched.
