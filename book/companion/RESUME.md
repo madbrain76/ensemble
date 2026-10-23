@@ -37,8 +37,18 @@ The parent goal file is `/Users/bill/projects/cadence-memories/session/agents/Co
 Subsequent authorized work added `build-publication.py` and `PUBLISHING.md` without
 changing the accepted manuscript. It builds a Kindle EPUB and a **6 × 9-inch**,
 no-bleed print interior for **The Singularity as it Happened — Book 6**. The current
-PDF is 304 pages; the EPUB and PDF are included in the publication commit as Bill
+PDF was initially 304 pages; the EPUB and PDF are included in the publication commit as Bill
 requested. Five companion regressions and seven existing print regressions pass;
 the actual artifacts passed navigation, pagination, font, and trim checks. New
 companion cover artwork is still pending from Bill. KDP preview, full-wrap cover
 assembly, upload, and publishing remain human steps; nothing was uploaded to KDP.
+
+### Updated print interior
+
+At Bill's request, the print interior now dedicates the book to Caitlin Cox in
+12-point type and uses 11.5-point body/inline-code type. The regenerated 6 × 9 PDF
+is 357 pages, with dedication on physical page 3 and Preface on physical page 7
+(printed page 1). All 30 contents destinations, font sizes, page labels, and trim
+bounds passed. Seven companion and seven existing print regressions pass. This
+replaces the 304-page PDF; recalculate the cover from KDP's processed page count.
+The EPUB and accepted manuscript prose were not changed by this print-only update.

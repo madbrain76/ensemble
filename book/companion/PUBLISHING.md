@@ -43,10 +43,10 @@ it does **not** produce a paperback wrap or change the interior PDF.
 - **Print manuscript:** `build/The Art of Building AI Coding Agents - A Human Companion - Print Interior.pdf`
 - **Reading/debug copy:** `build/companion.md` (not a KDP upload).
 
-The PDF is a **6 × 9-inch, no-bleed, black-text interior**, currently **304 pages**.
-It has a title page, copyright page, numbered contents references, and unnumbered
-front matter. The Preface starts on physical page 5 and printed page 1. Body type
-is 10.5-point Georgia; inline code is 10-point Menlo. Inside margins are 0.875 in,
+The PDF is a **6 × 9-inch, no-bleed, black-text interior**, currently **357 pages**.
+It has a title page, copyright page, a 12-point dedication to Caitlin Cox,
+numbered contents references, and unnumbered front matter. The Preface starts on physical page 7 and printed page 1. Body type
+is 11.5-point Georgia; inline code is 11.5-point Menlo. Inside margins are 0.875 in,
 outer margins 0.5 in, and top/bottom margins 0.75 in.
 
 The EPUB is reflowable. Its navigation contains the 30 manuscript sections without
@@ -64,7 +64,8 @@ Rebuild and commit the binaries together with any publication-source changes.
 1. Enter the title, author, and **Book 6** series details consistently in KDP.
 2. Upload the PDF as a **6 × 9, no-bleed** interior. Select the desired paper type.
 3. Use KDP's cover calculator/template with the **actual final PDF page count**
-   and selected paper type to assemble the full back/spine/front cover. A front-cover
+   and selected paper type to assemble the full back/spine/front cover. KDP may
+   append a blank page to an odd-length interior; use its processed page count. A front-cover
    PNG alone is not the paperback cover upload. Leave barcode placement to the
    KDP template; do not invent an ISBN or spine width.
 4. Inspect the PDF in KDP's Print Previewer and the EPUB in Kindle Previewer,

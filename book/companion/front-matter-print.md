@@ -10,3 +10,8 @@
 <p><em>The Art of Building AI Coding Agents: A Human Companion</em></p>
 <p>The Singularity as it Happened — Book 6</p>
 </div>
+
+<div class="dedication">
+<p>To Caitlin Cox,</p>
+<p>the sweetest, the cutest, and the smartest daughter.</p>
+</div>

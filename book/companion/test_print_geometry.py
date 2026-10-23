@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 import pymupdf
 
 spec = importlib.util.spec_from_file_location('print_build', Path(__file__).resolve().parents[1] / 'build-print.py')
@@ -11,6 +12,22 @@ spec.loader.exec_module(build)
 
 
 class PrintGeometryTests(unittest.TestCase):
+    def test_requested_type_size_and_original_default(self):
+        page = Mock()
+        spans = [{"font": "Georgia", "size": 11.5, "text": "Body prose"},
+                 {"font": "Menlo-Regular", "size": 11.5, "text": "code"}]
+        page.get_text.return_value = {"blocks": [{"lines": [{"spans": spans}]}]}
+        with patch.object(build.pymupdf, "open") as opened:
+            opened.return_value.__enter__.return_value = [page]
+            build.check_type_size(Path("fixture"), expected_body=11.5, expected_code=11.5)
+            with self.assertRaises(SystemExit):
+                build.check_type_size(Path("fixture"))
+            spans[0]["size"] = 10.5
+            with self.assertRaises(SystemExit):
+                build.check_type_size(Path("fixture"), expected_body=11.5, expected_code=11.5)
+            spans[1]["size"] = 10
+            build.check_type_size(Path("fixture"))
+
     @unittest.skipUnless(build.GEORGIA.is_file(), 'requires macOS Georgia font')
     def test_six_by_nine_stamping_and_size_guard(self):
         self.assertEqual(build.margins(0, 432), (63, 396))

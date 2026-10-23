@@ -33,7 +33,7 @@ def page_texts(pdf: Path) -> list[str]:
     return out.split("\f")
 
 
-def check_type_size(pdf: Path) -> None:
+def check_type_size(pdf: Path, expected_body: float = 10.5, expected_code: float = 10) -> None:
     """Check printed type, since correct CSS does not prevent Chrome shrinking it.
 
     Count characters rather than spans so short headings and page numbers
@@ -58,9 +58,9 @@ def check_type_size(pdf: Path) -> None:
         sys.exit("FATAL: could not measure the expected body and code fonts")
     body_size = body.most_common(1)[0][0]
     code_size = min(code_sizes)
-    if abs(body_size - 10.5) > 0.1 or code_size < 9.9:
+    if abs(body_size - expected_body) > 0.1 or code_size < expected_code - 0.1:
         sys.exit(f"FATAL: printed type is {body_size}pt body / {code_size}pt code; "
-                 "expected 10.5pt / 10pt. Check overflowing code and tables.")
+                 f"expected {expected_body}pt / {expected_code}pt. Check overflowing code and tables.")
     print(f"  printed type: {body_size}pt body, minimum {code_size}pt code")
 
 

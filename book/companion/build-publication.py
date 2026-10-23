@@ -107,6 +107,24 @@ def build_epub(body, output, work, titles, cover):
     check_epub(output, titles, cover is not None)
 
 
+def check_dedication(pdf):
+    import pymupdf
+    with pymupdf.open(pdf) as document:
+        pages = [page for page in document if "To Caitlin Cox," in page.get_text()]
+        if len(pages) != 1:
+            raise ValueError("Expected exactly one dedication page for Caitlin Cox")
+        page = pages[0]
+        expected = "To Caitlin Cox, the sweetest, the cutest, and the smartest daughter."
+        if " ".join(page.get_text().split()) != expected:
+            raise ValueError("Dedication wording differs from the requested text")
+        spans = [span for block in page.get_text("dict")["blocks"]
+                 for line in block.get("lines", []) for span in line["spans"]
+                 if span["text"].strip()]
+        if not spans or any(abs(span["size"] - 12) > 0.1 for span in spans):
+            raise ValueError("Dedication is not printed at 12 points")
+        print(f"Dedication verified: physical page {page.number + 1}, 12-point type")
+
+
 def build_print(source, output, titles):
     # Reuse the maintained renderer/stamper, not Edition 3's older copied script.
     spec = importlib.util.spec_from_file_location("print_build", ROOT / "book/build-print.py")
@@ -133,7 +151,8 @@ def build_print(source, output, titles):
     if [printing.strip_tags(t) for _, t in entries] != titles:
         raise ValueError("Print contents differ from manuscript reading order")
     printing.render(html_path, output)
-    printing.check_type_size(output)
+    printing.check_type_size(output, expected_body=11.5, expected_code=11.5)
+    check_dedication(output)
     mapping = printing.build_map(output, titles)
     if set(mapping) != set(titles):
         raise ValueError(f"Missing print headings: {set(titles) - set(mapping)}")

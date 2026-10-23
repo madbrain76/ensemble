@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import pymupdf
 from zipfile import ZipFile
 
 spec = importlib.util.spec_from_file_location('publication', Path(__file__).with_name('build-publication.py'))
@@ -14,6 +15,21 @@ spec.loader.exec_module(build)
 
 
 class AssemblyTests(unittest.TestCase):
+    def test_dedication_wording_and_size(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            pdf = Path(tmp) / 'dedication.pdf'
+            for size, name in [(12, 'Caitlin Cox'), (11.5, 'Caitlin Cox'), (12, 'Someone Else')]:
+                with pymupdf.open() as doc:
+                    page = doc.new_page(width=432, height=648)
+                    page.insert_text((63, 200), f'To {name},', fontsize=size)
+                    page.insert_text((63, 225), 'the sweetest, the cutest, and the smartest daughter.', fontsize=size)
+                    doc.save(pdf)
+                if size == 12 and name == 'Caitlin Cox':
+                    build.check_dedication(pdf)
+                else:
+                    with self.assertRaises(ValueError):
+                        build.check_dedication(pdf)
+
     def test_complete_manuscript_order(self):
         body, titles = build.assemble()
         self.assertEqual(len(titles), 30)
