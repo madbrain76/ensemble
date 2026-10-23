@@ -11,8 +11,8 @@ Bill approved the preface as excellent: leave it unchanged. He permits the paren
 ## Current ownership and state
 
 - Preface: accepted after fresh independent review and explicitly approved by Bill; published.
-- Chapter 0, including Bill’s requested learning/knowledge-preservation section: accepted after fresh independent review. The revision is included in this publication unit.
-- Body Chapters 1–27: managed sequentially by `companion-body-editor`. **Read `docs/companion-notes/body-progress.md` for the current accepted frontier**, then inspect actual files/reviews. At this update Chapter 1 is accepted and pushed (`1be2221e`), Chapter 2 is in progress. Do not start a duplicate author while the editor is active.
+- Chapter 0, including Bill’s requested learning/knowledge-preservation section: accepted after fresh independent review and pushed as `ea5025fb`.
+- Body Chapters 1–27: managed sequentially by `companion-body-editor`. **Read `docs/companion-notes/body-progress.md` for the current accepted frontier**, then inspect actual files/reviews. At this update Chapters 1–7 are accepted and pushed (Chapter 7: `25d12781`). Chapter 8 has a saved draft and author note, published as a draft snapshot; fresh independent review is next. The application restart left no active children, so the body editor is being restarted at this frontier. Do not start a duplicate author while the editor is active.
 - Parent owns Chapter 0, preface, epilogue, reader navigation, and this file. Editor owns Chapters 1–27 and their author/review notes plus body-progress.
 - Epilogue and final reader navigation: not yet written; finish after the body so the closing reflects the actual book.
 - Working notes are in `docs/companion-notes/`, outside the reader-facing manuscript. Historical notes describe their own stage, not necessarily the latest status.
@@ -34,3 +34,7 @@ Stage only owned exact paths; preserve all unrelated staged and unstaged work. U
 ## Resume and finish
 
 Inspect actual manuscript, body-progress, scoped Git status, and active children before resuming. Do not duplicate an active writer or repeat accepted work without a concrete correctness issue. Let the body editor complete all 27 chapters, inspect accepted text and saved reviews in batches, and preserve the full fresh-pair sequence. Finish and independently review the epilogue, add a reader-facing contents page linking the preface, Chapters 0–27, and epilogue, check final structure and links, and publish remaining owned files. Collect final saved results and join all children before reporting completion. Do not end the autonomous run merely because one chapter or a checkpoint is complete.
+
+## Goal reminder
+
+At Bill’s request, the parent loaded the goals skill and enabled an eight-minute idle reminder using its Agent-owned `goal.md`. It prompts a state check, not duplicate work or cancellation. Completion still requires all reviews, final navigation and epilogue, successful publication, and child collection. Disable reminders at completion or a genuine human blocker. On another application restart, check whether the local configuration and children survived before restoring them.
