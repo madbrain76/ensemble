@@ -18,9 +18,17 @@ What the systems are, why they work this way, and the experience behind the desi
 - [10: Persistence](chapter-10.md)
 - [11: MCP: The Extension Protocol](chapter-11.md)
 - [12: The Agent Sees Itself](chapter-12.md)
+- [13: The Channel Nobody Tested](chapter-13.md)
+- [14: The World's Best Context Engineering, Before Breakfast](chapter-14.md)
+- [15: The Invisible Invoice](chapter-15.md)
+- [16: Leaving Anthropic for OpenAI](chapter-16.md)
+- [17: The Crossover](chapter-17.md)
+- [18: Giving the Agent the Web, and a Status Line](chapter-18.md)
+- [19: The Sandbox](chapter-19.md)
+- [20: The Ensemble](chapter-20.md)
 
 ## Being written
 
-The preface and Chapters 0–12 above have passed independent review. Chapters 13–27 and the epilogue will be added as they are completed.
+The preface and Chapters 0–20 above have passed independent review. Chapters 21–27 and the epilogue will be added as they are completed.
 
 Editorial progress and restart instructions live in [RESUME.md](RESUME.md); they are not part of the reading sequence.
