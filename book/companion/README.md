@@ -26,9 +26,15 @@ What the systems are, why they work this way, and the experience behind the desi
 - [18: Giving the Agent the Web, and a Status Line](chapter-18.md)
 - [19: The Sandbox](chapter-19.md)
 - [20: The Ensemble](chapter-20.md)
+- [21: Managing the Swarm](chapter-21.md)
+- [22: Forgetting on Purpose](chapter-22.md)
+- [23: Auto-Recall](chapter-23.md)
+- [24: While the Cache Is Broken](chapter-24.md)
+- [25: Crossing Over to Ensemble](chapter-25.md)
+- [26: Gateway](chapter-26.md)
+- [27: Goals](chapter-27.md)
+- [Epilogue: What the student changed](epilogue.md)
 
-## Being written
+The preface, all 28 chapters, and the epilogue are complete and have passed independent review.
 
-The preface and Chapters 0–20 above have passed independent review. Chapters 21–27 and the epilogue will be added as they are completed.
-
-Editorial progress and restart instructions live in [RESUME.md](RESUME.md); they are not part of the reading sequence.
+Editorial records and completion status live in [RESUME.md](RESUME.md); they are not part of the reading sequence.

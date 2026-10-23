@@ -1,29 +1,33 @@
-# Companion restart record
+# Companion completion record
 
-## Goal and current state
+## Status
 
-Complete the human-first companion to Edition 3: approved preface, Chapters 0–27, and epilogue. Bill authorized autonomous writing, independent review, and exact-path companion/notes commits and pushes to `origin/main`.
+**The manuscript is complete:** approved preface, Chapters 0–27 and epilogue, all accepted with saved independent reviews. No chapter, review correction or writing assignment remains open. The [reader contents](README.md) links the complete book in order.
 
-The **preface and Chapters 0–20 are accepted and published**. Body publication through Chapter 20 is `58e8ec72`. Chapter 0's independently reviewed concise revision is `739cffaa` (1,641 words). The approved preface must remain unchanged. Chapters 21–27 and the epilogue remain unfinished. The reader contents now covers accepted Chapters 0–20.
+Chapters 1–27 were published through `068a0050c5240003b1fce38f885e3ba9afe5a241`; Chapter 0's accepted concise revision is `739cffaa`. The epilogue, complete contents and this record are ready for the final scoped publication. Final push verification is pending in this record until that operation succeeds.
 
-Read [body-progress.md](../../docs/companion-notes/body-progress.md) and inspect active agents before resuming: it is the authoritative moving body frontier. Healthy `companion-body-editor` owns Chapters 1–27 and corresponding notes, and is continuing with Chapter 21. Do not duplicate or cancel healthy work. Parent owns Chapter 0, preface, epilogue, voice, navigation and this record. If a restart removes active agents, recover saved author/review work rather than rewriting accepted units.
+## Editorial completion
 
-## Writing and acceptance
+- The approved preface is byte-for-byte unchanged from `32f50d36`.
+- Chapter titles exactly match the current Edition 3 source for all 28 chapters.
+- Fresh authors and separate fresh independent reviewers handled each chapter using companion voice, current source, previous accepted chapter and carryover. Earlier valid completed work survived restarts. Bill waived the oversized legacy reading requirement for this companion only.
+- The parent authored the epilogue under explicit permission. A fresh independent reviewer accepted it without required changes. Its 625 words preserve the original epilogue's causal corrections while reconciling its older pending-crossover statement with the later second-edition history in Chapter 25.
+- Saved author/review records are in `docs/companion-notes/`; [body-progress.md](../../docs/companion-notes/body-progress.md) records acceptance through Chapter 27 and the resolved findings. Chapter 0's latest acceptance is `chapter-00-concise-review.md`; the learning and original review records remain historical. Epilogue acceptance is `epilogue-review.md`.
+- Actual manuscript and changes were inspected, not accepted solely from worker status. The body editor read every body manuscript and source, and the parent inspected substantive passages and corrections across the book. The bounded earlier-chapter tightening removed repetition without pretending that earlier reviews covered later edits.
+- All retained children have submitted; author/reviewer turns were joined and final results collected. The body editor reports no unresolved material finding or active chapter. No healthy work remains to restart.
 
-Use the exact Edition 3 chapter titles. Follow [voice.md](voice.md): explain what each mechanism is and why it works this way, anchored where useful in source cold openings and In Plain English sections. Preserve causal stories and knowledge hidden in exercises, but no TL;DRs, exercises, assignments or bot-contract dumps. Every sentence must carry knowledge or aid cohesion, readability or pleasure. No philosophical padding. The complete companion must be significantly shorter than the source; compare actual lengths without inventing a quota.
+## Final checks
 
-Each chapter gets a fresh author and a separate fresh independent reviewer. Each reads the full companion voice, current corresponding source chapter including exercises/end, preceding accepted companion chapter and author carryover. Reviewer additionally reads the stable manuscript and author note. Bill waived the legacy oversized four-document reading requirement for this companion only. Saved author/review notes live in `docs/companion-notes/`; material findings must be resolved before acceptance.
+The same Python whitespace-delimited word count over preface, all 28 chapters and epilogue gives **86,824 companion words versus 178,580 source words: 51.38% shorter**. This is an actual whole-manuscript comparison, including original code and exercise text, not a prose-only count or an invented quota. Voice guides and editorial records are excluded.
 
-Chapter 0's learning section preserves Bill's human-consolidation analogy while distinguishing ordinary inference with fixed weights from training and deliberately recorded/retrieved experience. Its chronology distinguishes the original bounded demonstration from the later second-edition crossover in Chapter 25; neither proves recurring autonomous self-improvement. Concise revision notes are `chapter-00-concise-author.md` and `chapter-00-concise-review.md`.
+All 30 manuscript units exist, each with one H1. No TL;DR/exercise/assignment headings or fenced code blocks were found. All 76 relative inline links in the manuscript and reader contents resolve; Markdown heading fragments were checked as well. Saved author/review records exist for every unit. Scoped whitespace checks passed. The approved-preface byte comparison and all 28 source-title comparisons passed.
 
-Current Chapter 27 source supersedes older proposal-only instructions: it reports implementation and bounded local synthetic/browser checks. Read the actual current source. Attribute those observations to the source, not to deployment, live-provider testing or checks performed by this writing team. Preserve historical/current/proposed distinctions throughout. The original epilogue's globally pending-crossover statement is outdated relative to Chapter 25.
+These are editorial, structural and source-fidelity checks, not new implementation tests. Historical grader/provider/browser/acoustic results remain attributed to their sources. Current Chapter 27 reports implementation and bounded local tests; it does not establish deployment or reliable real-model continuation. No builds, installation, deployment or service restarts were performed for this writing work.
 
-The parent may author the epilogue, then obtain fresh independent review against voice, original epilogue, accepted Chapter 27 and carryover. Shape it around the completed companion rather than repeat chapter summaries or offer a victory speech.
+## Preservation and later changes
 
-## Publication and completion
+Use [voice.md](voice.md) for any authorized revision: exact source titles; explain what mechanisms are and why; causal stories rather than decoration; no philosophical padding, TL;DRs, exercises or assignments. Every sentence must carry knowledge or aid cohesion/readability/pleasure. Keep the approved preface unchanged unless Bill expressly reopens it.
 
-Use exact paths with scoped staging/commits; preserve all unrelated staged and unstaged work. Coordinate brief Git write windows with the body editor. Set `GIT_PAGER=cat PAGER=cat`; no broad staging, reset, force push, deployment, installation or service restarts. Publish accepted units as completed. Draft snapshots are authorized only with honest draft labels.
+Publication authority was limited to exact companion and notes paths on `origin/main`, preserving unrelated staged and unstaged work. No broad staging, reset or force push. Do not infer a clean repository from clean companion paths. Set `GIT_PAGER=cat PAGER=cat` for Git commands.
 
-Done means every unit accepted with saved review, actual manuscript changes inspected, exact titles and relative links/structure checked, final source/companion word counts recorded, reader contents complete, children collected and joined, and all completed companion work committed and successfully pushed to `origin/main`. Record final status here and report it to Bill.
-
-The parent goal reminder is configured at `/Users/bill/projects/cadence-memories/session/agents/Companion guide/goal.md`. Reminders prompt state checks, not repeated work or cancellation. Keep enabled until completion or a genuine human blocker, then disable. Root finishes with normal chat, not `submit`.
+The parent goal file is `/Users/bill/projects/cadence-memories/session/agents/Companion guide/goal.md`. Disable completion reminders after confirming the final publication; do not restart writing from older frontier notes.
