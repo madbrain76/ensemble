@@ -11,7 +11,7 @@ Bill approved the preface as excellent: leave it unchanged. He permits the paren
 ## Current ownership and state
 
 - Preface: accepted after fresh independent review and explicitly approved by Bill; published.
-- Chapter 0, including Bill’s requested learning/knowledge-preservation section: accepted after fresh independent review and pushed as `ea5025fb`.
+- Chapter 0, including Bill’s requested learning/knowledge-preservation section: initial revision pushed as `ea5025fb`; subsequently tightened under the latest voice brief by a fresh author and independent reviewer. Final accepted text is 1,641 words (previous 2,745; source 2,777). Final review: `docs/companion-notes/chapter-00-concise-review.md`, no unresolved findings; distinguishes original Chapter 0's earlier bounded demonstration from Chapter 25's later second-edition crossover. The tightened revision is included in this publication unit.
 - Body Chapters 1–27: managed sequentially by `companion-body-editor`. **Read `docs/companion-notes/body-progress.md` for the current accepted frontier**, then inspect actual files/reviews. At this update Chapters 1–7 are accepted and pushed (Chapter 7: `25d12781`). Chapter 8 has a saved draft and author note, published as a draft snapshot; fresh independent review is next. The application restart left no active children, so the body editor is being restarted at this frontier. Do not start a duplicate author while the editor is active.
 - Parent owns Chapter 0, preface, epilogue, reader navigation, and this file. Editor owns Chapters 1–27 and their author/review notes plus body-progress.
 - Epilogue and final reader navigation: not yet written; finish after the body so the closing reflects the actual book.
