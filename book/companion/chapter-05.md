@@ -6,8 +6,6 @@ Chapter 4 made the work survivable: the tool has a job handle, its output is ret
 
 The [source chapter](../edition-3/chapter-05.md) pinpoints the blockage: the tool already runs on its own goroutine, but the conversation loop parks in a `select` awaiting its report. That same loop must drain inbound events. Hints can reach the channel and still sit unread because the drainer is parked.
 
-This is a rather good imitation of a colleague wearing headphones: technically present, apparently productive, unavailable for the one sentence that would save the afternoon.
-
 The repair is not a shorter timeout. It is a change of ownership. The Agent owns a conversation loop that stays available for incoming facts. HTTP and job observations happen elsewhere and return through the same entrance as human input. The application can watch that conversation without borrowing its steering wheel.
 
 ## One Owner, Several Messengers
@@ -187,5 +185,3 @@ That also explains what convincing concurrency evidence must distinguish. A long
 These are questions about ownership and causal order, not reasons to let an hour elapse or to commission another broad live campaign. The source’s historical provider demonstrations exercised different feature slices; they were not every feature on every provider. Their value is in the particular boundary each makes visible.
 
 Chapter 4 gave work a lifetime independent of an individual wait. Chapter 5 gives the conversation an owner independent of the work it observes. The human can speak while tools run; the model can hear without killing them; an application can watch without driving; and a synchronous caller can get its own answer without owning the loop.
-
-The Agent has not learned to assemble a team. It has learned something more basic and, during a long test run, more immediately welcome: how to listen while busy.

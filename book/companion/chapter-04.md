@@ -229,5 +229,3 @@ Four control tools and one ordinary-job path are enough for this stage. There is
 That last omission is something a user can feel. Start the long test, then type “Stop, wrong directory.” The work no longer holds the agent forever, but the foreground loop can still be parked in its current wait. The input may not be noticed until the wake returns. A handle makes the work addressable; it does not make the human’s message arrive sooner.
 
 Chapter 5 changes that foreground shape: prompts, interruptions, and job completions need a way into a loop that does not block on a tool. It is a separate problem, not a reason to bolt more meanings onto a wait timer here.
-
-The stalled screenshot showed why an agent must stop treating a slow operation as the owner of the conversation. This chapter gives ownership back to the application. The next one gives the human a way to use it while the application is busy.

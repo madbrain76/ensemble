@@ -8,7 +8,7 @@ The next implementation was a copy of the first, edited until it worked. OpenAI 
 
 Delivery supplied the qualification. The redesign shipped as a big-bang rewrite. At the point recorded in the source, capabilities still existed only in the old clients, and an audit found audio attachments broken across the new vendor paths. A cleaner seam had not completed the migration. The technical lead inherits both the better design and the obligation to account for what the replacement still cannot do.
 
-An interface can hide a dependency without removing its assumptions. A little curtain is not a wall.
+An interface can hide a dependency without removing its assumptions.
 
 Chapter 1 left a deliberate weakness in place. One owner kept a simple history, and one exchange established a reliable path from human input to assistant output. That settled who could change the conversation. It did not settle what a conversation was. A slice of role-and-text messages still lets the first API supply the answer.
 
@@ -189,5 +189,3 @@ Offline fixtures are valuable precisely because these cases are awkward to provo
 The payoff is not universal compatibility. New APIs will have new limitations, and some histories cannot safely cross a particular wire. The payoff is a place to put that difficulty without spreading it through the agent.
 
 The durable log remembers what happened. The reducer decides what those facts mean now. The renderer translates that state for a particular listener and refuses what it cannot represent honestly. Once those jobs are separate, the next capability can arrive without asking a vendor’s message struct for permission.
-
-The first loop established an owner. This chapter gives that owner something worth owning.

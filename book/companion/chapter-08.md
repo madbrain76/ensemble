@@ -4,11 +4,9 @@ The settings server saved a speech rate of 1.75. After a restart, the label stil
 
 In the [source chapter’s account](../edition-3/chapter-08.md#the-saved-number-that-speech-never-used), an independent reviewer followed the value past the successful WebSocket echo. The browser’s range input had a step of 0.1, so Chrome rounded the saved value to a legal slider position. The label read the settings object. The speech queue read the slider. Each had a plausible source of truth, and the person using the application got the difference.
 
-This is a useful introduction to preferences. They look like small UI work until a perfectly preserved number controls the wrong behavior.
-
 Chapter 7 established a view from which a human can watch and steer one Agent. This chapter makes that view somewhere a human might choose to work: separate chat and action panes, a sidebar, adjustable widths, coherent themes, and preferences that survive a process restart. The additional server machinery is small. The judgment lies in deciding which state belongs where, when a change takes effect, and what evidence shows that it reached its destination.
 
-For Bill, speech is central to using the agent, not an ornamental accessibility checkbox. The broader goal is to start doing useful coding inside the new system early enough that daily use exposes its missing features. A settings panel that faithfully remembers an ignored preference is an unusually polite way to postpone that discovery.
+For Bill, speech is central to using the agent, not an ornamental accessibility checkbox. The broader goal is to start doing useful coding inside the new system early enough that daily use exposes its missing features.
 
 ## Two Views of the Same Work
 
@@ -18,11 +16,11 @@ Chapter 7’s `ArtifactScroll` now has two instances. User messages, readable th
 
 The routing must recognize both a part’s kind and the messages that later update it. A tool’s arguments can arrive before its dispatch observation. Preserving artifact and call identity lets dispatch update the card already showing those arguments; it must not create a second, apparently unrelated execution. The same rule applies to replay. Moving content to a different pane does not change what event it represents.
 
-Both panes retain the same streaming protocol, renderer lifecycle, and styling vocabulary. Routing is a filter over one component, not permission to build a second tool renderer. This is where the earlier abstraction earns its keep: if the actions pane needs a separate implementation of accumulation, finalization, and identity, the component boundary has not survived actual reuse.
+Both panes retain the same streaming protocol, renderer lifecycle, and styling vocabulary. Routing is a filter over one component, not permission to build a second tool renderer.
 
-Each pane scrolls independently. Following a long tool result should not drag the human away from a reply being read in Chat, and the follow control needs its own space rather than covering transcript text. The separation buys attention control, not merely a more impressive screenshot.
+Each pane scrolls independently. Following a long tool result should not drag the human away from a reply being read in Chat, and the follow control needs its own space rather than covering transcript text.
 
-The dividers are similarly modest. A drag changes a width, with a minimum preventing a pane from collapsing into uselessness. The accepted page described by the source uses pointer capture so a gesture continues after the pointer leaves the narrow divider. Releasing the gesture ends its tracking. Focused dividers also accept arrow keys and expose their current value through separator attributes. These are alternate ways to operate the same width change, not reasons for another layout framework.
+The dividers are similarly modest. A drag changes a width, with a minimum preventing a pane from collapsing into uselessness. The accepted page described by the source uses pointer capture so a gesture continues after the pointer leaves the narrow divider. Releasing the gesture ends its tracking. Focused dividers also accept arrow keys and expose their current value through separator attributes.
 
 There is no prescribed visual style. There is a requirement for judgment: strong contrast, readable text, clear grouping, and tabs whose selected state is unmistakable. A row of generic buttons may switch panels correctly while failing to communicate that the panels belong to one workspace. Browser measurements can establish geometry and control behavior. They cannot decide whether this is a place Bill wants to spend the afternoon.
 
@@ -70,11 +68,7 @@ Using the existing WebSocket keeps settings on the same ordered connection as ob
 
 This does not upgrade the socket into a reliable-message service. Chapter 7’s slow-client progress limits remain. Broadcasting a successful change to connected clients and supplying the accepted snapshot on subscription are the intended synchronization paths; they are not a promise that every overloaded tab sees every intermediate update.
 
-The behavior worth distinguishing is straightforward. A malformed patch must not partially mutate state. A filesystem failure must not advertise success. A fresh subscriber must receive the accepted snapshot, including false and zero. A genuinely new process in the same directory must load the saved value. Asking the old process for its state, or launching a new one in an empty directory, answers a different question.
-
 ## A Budget Belongs to a Turn
-
-The most consequential saved preference is the one without a visible slider.
 
 The source records that `max_tool_rounds` once persisted correctly while two orchestration loops ignored it and used a hard-coded limit of 16. The GUI could faithfully save 200 while execution stopped at sixteen. This defect survived longer than the early settings audit because all the storage behavior looked healthy.
 
@@ -88,8 +82,6 @@ The source describes an entry-point test that connects these pieces rather than 
 
 Only the external provider was fake in that test. The actor, tools, terminal input, WebSocket, and settings file remained real. Restoring the live-read defect made the active turn execute eighteen batches instead of two. That is evidence about when the policy takes effect, not evidence of a live provider’s capabilities.
 
-The small and large cases expose different mistakes. A small saved limit demonstrates that the setting can stop work. A limit above the old constant demonstrates that the execution path no longer silently caps it there. Restart connects both to persistence. A correct echo proves none of those things on its own.
-
 ## Controls Must Describe Their State
 
 Theming is mostly a useful exercise in keeping presentation centralized. Semantic CSS custom properties provide colors for surfaces, text, borders, controls, code, errors, and tool cards. Changing the active theme changes those values without reconstructing the transcript. Dark is the source’s default because this workbench was built around Bill’s speech-oriented use; that is a design choice, not a universal accessibility rule.
@@ -102,7 +94,7 @@ The agent tree supplies a small but memorable example of false agreement. In the
 
 The corrected check inspected the active node’s computed animation using actual Agent state. Restoring the old selectors broke it. An attribute that a test wrote itself was not evidence that production events reached the rendering rule.
 
-The sidebar’s data model is a tree, and its renderer walks children recursively, but there is currently one node. Its indicator becomes active for working states and dims when idle. An empty children array leaves room for later display growth; it creates no child Agents, assigns no ownership, and establishes no sub-agent lifetime or protocol. A recursive renderer is not an orchestration system with an unusually small demo.
+The sidebar’s data model is a tree, and its renderer walks children recursively, but there is currently one node. Its indicator becomes active for working states and dims when idle. An empty children array leaves room for later display growth; it creates no child Agents, assigns no ownership, and establishes no sub-agent lifetime or protocol.
 
 ## Speech Has Several Consumers
 
@@ -130,8 +122,4 @@ The source retains browser work covering two-tab settings changes, system-theme 
 
 It also records a historical live OpenAI turn: saved controls restored after restart, real shell output appeared in Actions, the answer remained in Chat, and a terminal hint reached the same Agent. The answer’s speaker produced native callbacks. Unchanged provider coverage was reused from Chapter 7 instead of paying for a fresh matrix merely because settings had changed. These are results from a specific historical run, not present provider-availability claims.
 
-The useful lesson is the separation of evidence. Server checks establish patching, snapshots, broadcast, and reload. An execution-path test establishes the saved budget’s effect. Browser checks establish rendering and control behavior. Human use supplies judgment about contrast, attention, comfort, and listening. None becomes a substitute for the others just because it is easier to automate.
-
 Bill’s stated destination in the source is to run GPT-6 Astra at high reasoning in the new Ensemble and use that agent, rather than Codex, to build Edition 3. That is a target, not a report that access, reasoning configuration, or the coding crossover has been verified. A usable workbench brings the target closer by making ordinary work possible; it does not certify that the switch has happened.
-
-This chapter leaves one working Agent, two artifact panes, and preferences whose path from acceptance to consumption can be explained. The next work can build on a place worth using without pretending that a one-node tree already supplies delegation, or that remembering preferences supplies conversation restoration. The point of moving into the workbench early is to encounter the next real limitation, not to declare the remaining ones solved.

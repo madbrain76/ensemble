@@ -6,8 +6,6 @@ Chapter 5 prepared `PartDelta`; it did not make the provider stream. Its whole-p
 
 The central bargain is small: change delivery without changing the answer’s durable meaning. A reply can arrive in one piece or many. History still records completed facts, tools still execute complete calls, and replay still reconstructs the same conversation. The human gets to see work sooner without making unfinished work authoritative.
 
-That last condition does most of the engineering.
-
 ## Let the Response Stay Open
 
 An HTTP body is already a stream. Reading it all before parsing is a decision to hide that property. Streaming moves the parser onto the open response: the HTTP worker hands it the response, the parser recognizes arriving fragments, and those fragments travel through the Agent’s mailbox to observers. Worker messages carry the turn identity, so late progress from an interrupted request cannot decorate a newer turn.
@@ -165,5 +163,3 @@ Historical grading failures also need their causes kept separate. One fixture se
 The terminal now exposes reasoning, reply text, and half-written arguments across two file descriptors. It appends rather than redrawing completed parts. That is useful development tooling, and not much of a layout engine.
 
 The next interface can do better without changing who owns the conversation. It has kinds for routing, response-local part IDs for grouping, and finalizers that replace approximations with stored facts. It still needs durable widget identity across reconnection, connection lifetime, and a sensible arrangement of the content. Those are GUI problems, not reasons to pull display policy into the parser.
-
-Chapter 5 made the Agent available while work continued. Chapter 6 makes that work visible while the response is still arriving. The answer remains a completed fact; the human no longer has to wait for completion to see that something is happening.

@@ -8,8 +8,6 @@ That is evidence about Bill’s recorded workload, not a minimum viable agent es
 
 The more revealing result was what happened *within* those ordinary operations. Targeted edits outnumbered whole-file writes about seven to one. Yet the frequently used edit tool had a defect Bill discovered while writing the chapter: when an anchor appeared more than once, it changed the first occurrence and reported success. The zero-match case refused correctly. The many-match case guessed quietly.
 
-Thousands of successful calls had not made success trustworthy. They had made it familiar.
-
 Chapter 2 gave the agent a durable account of conversation, a reducer, and vendor-specific request boundaries. It could preserve a request to run a tool without running anything. This chapter connects that recorded intention to effects: files read, bytes changed, commands executed. The difficult part is less the filesystem API than making “requested,” “ran,” “failed,” and “finished” mean different things all the way around the loop.
 
 ## A Tool Call Is the Middle of a Turn

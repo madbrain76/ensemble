@@ -4,7 +4,7 @@ Chapter 10 lets a conversation survive its process. It does not bring the old pr
 
 MCP, the Model Context Protocol, introduces that connection as a separate responsibility. An Agent can discover tools in an external process or browser, admit them under a skill, and call them through its existing jobs. The peer can also call back into the Agent. What looks like a convenient way to avoid recompiling tools is therefore a new trust boundary and a new lifecycle to own.
 
-The [source chapter](../edition-3/chapter-11.md) develops a client for the historical wire version `2024-11-05`, using JSON-RPC 2.0. Its reverse `tools/call`, `ephemeral` field, and `$/cancelRequest` notification are course extensions, not claims about what every current MCP server supports. The design is worth understanding independently of that wire version: discovery must not become permission, a callback must not become cancellation, and an observation must not become context before it exists.
+The [source chapter](../edition-3/chapter-11.md) develops a client for the historical wire version `2024-11-05`, using JSON-RPC 2.0. Its reverse `tools/call`, `ephemeral` field, and `$/cancelRequest` notification are course extensions, not claims about what every current MCP server supports.
 
 ## Discovery Is an Offer
 
@@ -18,19 +18,19 @@ The public embedding path follows the same rule. `Agent.MCP().Connect(ctx, name,
 
 That admission has a second consequence. The channel is bidirectional: a server can send its own `tools/call` request and reach enabled ordinary Agent tools such as `read_file` or `run_command`. The client dispatches through the Agent and returns a reply bearing the server’s request ID. Unknown, disabled, and hidden automatic tools remain unavailable even if the peer guesses their names.
 
-A server’s offered-tool filter limits what it exports. It does not confine what the server can do through reverse calls. Connecting a peer means trusting it with the Agent capabilities enabled at that boundary; a grant for a remote search tool is not a filesystem sandbox for the process offering it. Confinement is later work. This is the point at which the technical lead has to evaluate the peer as executable code, not just admire its schema.
+A server’s offered-tool filter limits what it exports. It does not confine what the server can do through reverse calls. Connecting a peer means trusting it with the Agent capabilities enabled at that boundary; a grant for a remote search tool is not a filesystem sandbox for the process offering it. Confinement is later work.
 
 ## One Channel, Several Owners
 
 The transport carries complete JSON-RPC messages. An in-process pipe pair exercises the real client and codec without a subprocess. Stdio connects to a child process; a raw adapter wraps supplied streams; a WebSocket transport carries the same messages through the GUI to a browser.
 
-Those variants share a small boundary: send one complete message, receive one complete message, and close. One receiver consumes the stream while concurrent senders may produce requests and reverse replies. Whole-message serialization matters because those sends can overlap. Two individually valid JSON objects interleaved on the wire are not a useful compromise.
+Those variants share a small boundary: send one complete message, receive one complete message, and close. One receiver consumes the stream while concurrent senders may produce requests and reverse replies. Whole-message serialization matters because those sends can overlap.
 
 The common transport interface and its public alias let external clients connect without importing the GUI. Raw streams, pipes, and subprocess behavior belong to the MCP package. WebSocket framing belongs to the separate GUI module. A headless application should not acquire browser machinery to call a tool in a Python process.
 
 Ownership follows the runtime rather than a new collection of sibling service pointers. The Agent owns the MCP manager, which owns its clients. A client reaches admission, jobs, and diagnostics through manager, Agent, and Ensemble. A GUI transport retains its actual server parent. The composition root establishes those relationships; a reader and writer are boundary resources, not reasons to invent another domain object.
 
-Within a client, one owner can hold the transport, incrementing integer request IDs, pending-reply map, and reader. Replies are matched by ID and delivered to the appropriate waiting caller. The source’s accepted design keeps correlation there rather than exporting a separate codec with no other user. The useful abstraction is the message boundary, not an additional object around a map.
+Within a client, one owner can hold the transport, incrementing integer request IDs, pending-reply map, and reader. Replies are matched by ID and delivered to the appropriate waiting caller. The source’s accepted design keeps correlation there rather than exporting a separate codec with no other user.
 
 Reverse requests make the reader’s job particularly important. It must arrange execution without becoming the executor. A reverse tool can itself call the peer; if the handler occupies the sole reader, its nested call waits for a response that nobody is free to read. The peer can have answered perfectly and both sides can still wait forever. Keeping the reader available also permits out-of-order replies, which must reach their original callers rather than whichever goroutine happens to be waiting first.
 
@@ -100,4 +100,4 @@ A separate bridge test initially accepted deliberately broken argument forwardin
 
 The browser evidence has its own boundary. The source’s historical receipt used real Chrome, the Go tunnel, and the Agent with a local provider fake. It observed control changes, native speech start, and disclosed snapshot truncation, but exercised the old automatic observations rather than the revised on-demand path. Applied font state did not prove persistence, and native speech start did not prove intelligible audio. It was not a live-provider browser demonstration.
 
-The source also records earlier checks that credited tool calls and ephemeral behavior without executing them, and a WebSocket check that searched fixed filenames instead of running a tunnel. Later reports do not retroactively make those checks adequate or establish Edition 3 acceptance. The same principle applies to the design itself: a discovered schema does not establish permission, a sent cancellation does not establish remote termination, and an open channel does not establish a working tool. The useful boundary is the one where the claimed effect can actually be observed.
+The source also records earlier checks that credited tool calls and ephemeral behavior without executing them, and a WebSocket check that searched fixed filenames instead of running a tunnel. Later reports do not retroactively make those checks adequate or establish Edition 3 acceptance.
