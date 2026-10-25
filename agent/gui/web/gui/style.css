@@ -172,3 +172,11 @@ a {
 #agent-tree button { text-align:left; margin: 3px 0; }
 #create-agent { display:grid; gap:6px; margin-top:1rem; }
 #create-agent input { width:100%; box-sizing:border-box; }
+
+.artifact header .artifact__timing {
+  /* Timestamp and duration join the speaker at the right edge of the header. */
+  margin-left: auto;
+  font: 0.72rem ui-monospace, monospace;
+  opacity: 0.6;
+  white-space: nowrap;
+}

@@ -28,12 +28,15 @@ export class ArtifactScroll {
     const speaker = document.createElement("button");
     speaker.textContent = "🔊";
     speaker.setAttribute("aria-label", "Read artifact aloud");
+    const timing = document.createElement("span");
+    timing.className = "artifact__timing";
+    timing.hidden = true;
     const content = document.createElement("div");
     content.className = "content";
-    header.append(label, speaker);
+    header.append(label, timing, speaker);
     element.append(header, content);
     this.element.append(element);
-    const card = { element, label, content, text: "", kind, streamed: false };
+    const card = { element, label, timing, content, text: "", kind, streamed: false, at: null, ms: 0 };
     speaker.hidden = !this.speech;
     speaker.addEventListener("click", () => this.speech?.enqueue(card.text));
     this.cards.set(id, card);
@@ -84,6 +87,19 @@ export class ArtifactScroll {
     }
     if (nearEnd) this.element.scrollTo(0, this.element.scrollHeight);
   }
+  // Show only server measurements: missing legacy timestamps are not arrival time.
+  paint(card) {
+    const bits = [];
+    if (card.at) bits.push(clock(card.at));
+    if (card.ms) bits.push(elapsed(card.ms));
+    card.timing.textContent = bits.join(" \u00b7 ");
+    card.timing.title = card.at && card.ms
+      ? `${card.at.toISOString()}, ${elapsed(card.ms)} to produce`
+      : card.at
+        ? card.at.toISOString()
+        : "";
+    card.timing.hidden = bits.length === 0;
+  }
   // History replay is silent. Finals reconcile display text, while already
   // streamed speech is never re-enqueued just because a final arrives.
   receive(message) {
@@ -109,7 +125,11 @@ export class ArtifactScroll {
       const card = this.card(id, kind);
       card.kind = kind;
       card.text = partText(part);
+      card.at = stamp(message.at);
+      // This is the part's own observed span, not latency since the prompt.
+      card.ms = Number.isFinite(part.elapsed) && part.elapsed >= 1 ? part.elapsed : 0;
       this.render(card);
+      this.paint(card);
       if (part.type === "tool_call") this.calls.set(part.call_id, card);
       if (!message.replay && ["text", "thinking", "reasoning_summary"].includes(kind))
         this.speech?.chunk(id, card.streamed ? "" : card.text, true, kind);
@@ -137,4 +157,23 @@ export class ArtifactScroll {
       this.render(card);
     }
   }
+}
+
+function stamp(value) {
+  if (typeof value !== "string" || !value || value === "0001-01-01T00:00:00Z") return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function clock(date) {
+  return date.toLocaleTimeString([], { hour12: false });
+}
+
+function elapsed(ms) {
+  if (!Number.isFinite(ms) || ms < 1) return "";
+  if (ms < 1000) return `${ms}ms`;
+  const seconds = ms / 1000;
+  if (seconds < 60) return `${seconds.toFixed(1)}s`;
+  const rounded = Math.round(seconds);
+  return `${Math.floor(rounded / 60)}m ${String(rounded % 60).padStart(2, "0")}s`;
 }

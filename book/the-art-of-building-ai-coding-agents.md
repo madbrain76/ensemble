@@ -7528,6 +7528,34 @@ abstraction that Chapter 7 promised holds up under reuse. If it had
 not, you would know it here, because the right pane would need its own
 rendering logic.
 
+### Optional: timestamps and observed duration
+
+**TL;DR:** The current application shows recorded event times on human and
+finalized response-part cards, with a duration only when a part has a measured
+streaming span. Reopening a conversation should not make old work look new.
+
+The GUI carries `Event.Time` as `at` on `user_message` and `part_final` messages.
+This is the server-recorded human-message or response-event time; parts from
+one response can share it. The card shows local clock time and exposes the full
+ISO timestamp in its tooltip. Missing or invalid timestamps stay absent rather
+than becoming the time the browser happened to receive the replay. The separate
+tool-dispatch and tool-result messages do not gain timestamps through this path.
+
+For streamed parts, the actor records the first and last nonempty fragments it
+observes. Their positive difference becomes `elapsed`, in milliseconds, saved
+with the part before history is appended. This measures observed streamed
+delivery at the actor, not model-internal generation time, prompt-to-answer
+latency or network delivery to the browser. A single-burst or unstreamed part
+has no measured span to display. Neither the next part's arrival nor the end
+of the whole response supplies a guessed endpoint.
+
+Replay and reload retain those recorded values; they do not time the replay.
+The timing metadata stays out of provider requests. An optional browser check
+can compare a finalized card before and after reload, then confirm that a
+buffered reply shows its timestamp without an invented duration. This is a
+current-application convenience, not an addition to the historical exercise
+or its grader.
+
 ## Settings over the wire
 
 The server needs four things: a place to put settings, a way to

@@ -177,14 +177,15 @@ func eventWire(e ensemble.Event) []map[string]any {
 		// Hints are visible because classification must not hide the user input.
 		if e.Message.Actor == ensemble.Human {
 			for i, p := range e.Message.Parts {
-				out = append(out, map[string]any{"type": "user_message", "part_id": fmt.Sprintf("user-%d-%d", e.Seq, i), "part": p})
+				out = append(out, map[string]any{"type": "user_message", "part_id": fmt.Sprintf("user-%d-%d", e.Seq, i), "part": p, "at": e.Time})
 			}
 		}
 	case "response_ended":
 		// Artifact IDs were captured by the actor before storage. Replay and live
 		// finals therefore address exactly the cards created by streamed deltas.
 		for _, p := range e.Response.Parts {
-			out = append(out, map[string]any{"type": "part_final", "part_id": p.ArtifactID, "part": p})
+			// Replay keeps the server's capture time, not the browser's arrival time.
+			out = append(out, map[string]any{"type": "part_final", "part_id": p.ArtifactID, "part": p, "at": e.Time})
 		}
 	case "tool_called":
 		out = append(out, map[string]any{"type": "tool_dispatched", "call_id": e.Tool.CallID, "name": e.Tool.Name, "input": e.Tool.Args})

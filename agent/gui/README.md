@@ -79,6 +79,13 @@ history, from which the GUI rebuilds its view.
 Every incoming and outgoing WebSocket message is timestamped in `gui.log`.
 The other logs are `event.log`, `api.log`, and `debug.log`.
 
+Artifact headers show the server's event capture time in local wall-clock format;
+the tooltip retains the full ISO timestamp. Streamed parts also show their own
+first-to-last observed fragment span, not prompt latency or model compute time.
+Single-burst and non-streamed parts have no measured duration. Saved history
+retains these measurements for replay; missing or malformed legacy timestamps
+stay blank rather than appearing newly authored when a tab reloads.
+
 Settings contains theme (dark/light/system), Read aloud, approximate speech speed
 (0.5–5, calibrated for Eloquence), and font size (12–24 pixels). Changes apply across
 tabs and persist in the application's `gui` section in file mode, or in

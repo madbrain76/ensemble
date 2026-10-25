@@ -154,6 +154,12 @@ type Part struct {
 	Added []ToolDeclaration `json:"added,omitempty"`
 	// Removed identifies declarations withdrawn at this position in the dialogue.
 	Removed []string `json:"removed,omitempty"`
+	// Started is the first observed fragment's Unix timestamp in milliseconds,
+	// recorded only when the part has a measurable production span.
+	Started int64 `json:"started,omitempty"`
+	// Elapsed is the first-to-last observed fragment span in milliseconds, not
+	// model compute time. Single-burst parts have zero: no measured span.
+	Elapsed int64 `json:"elapsed,omitempty"`
 }
 
 // The arrival site reports the speaker and parts. Only the reducer decides

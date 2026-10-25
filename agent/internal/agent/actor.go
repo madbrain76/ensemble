@@ -62,6 +62,10 @@ type turn struct {
 	afterTool     bool
 	// A hint ends only the undispatched tail of the current response batch.
 	hintedBatch bool
+	// Stream windows belong to the actor, not the HTTP callback goroutine.
+	// Parser-local IDs reset after each response; a single fragment has no span.
+	seen map[uint64]int64
+	last map[uint64]int64
 	// Per-response stream order is separate from parser-normalized part order.
 	sawStreamCall           bool
 	visibleBeforeStreamCall bool
@@ -385,7 +389,7 @@ func (r *runtime) begin(q request) {
 	}
 	r.owner.fleet.Begin()
 	ctx, cancel := context.WithCancel(q.ctx)
-	r.active = &turn{request: q, cancel: cancel}
+	r.active = &turn{request: q, cancel: cancel, seen: map[uint64]int64{}, last: map[uint64]int64{}}
 	r.active.request.ctx = ctx
 	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
 		r.finish("", err)
@@ -470,9 +474,20 @@ func (r *runtime) receive(m response) {
 	var answer strings.Builder
 	for _, event := range m.events {
 		if event.Response != nil {
+			// Stamp before append so saved history and live finals agree. Only a
+			// part's own fragments bound its span, not the next part or response end.
 			for i := range event.Response.Parts {
-				event.Response.Parts[i].ArtifactID = r.displayID(m.turn, m.partIDs[i])
+				part := &event.Response.Parts[i]
+				part.ArtifactID = r.displayID(m.turn, m.partIDs[i])
+				if started, known := m.turn.seen[m.partIDs[i]]; known && started > 0 {
+					if end := m.turn.last[m.partIDs[i]]; end > started {
+						part.Started = started
+						part.Elapsed = end - started
+					}
+				}
 			}
+			m.turn.seen = map[uint64]int64{}
+			m.turn.last = map[uint64]int64{}
 		}
 		if err := r.append(event); err != nil {
 			r.finish("", err)
@@ -594,6 +609,13 @@ func (r *runtime) run() {
 						}
 					case common.DeltaToolCall:
 						m.turn.sawStreamCall = true
+					}
+					if m.delta.Chunk != "" && m.turn.seen != nil {
+						now := time.Now().UnixMilli()
+						if _, known := m.turn.seen[m.delta.PartID]; !known {
+							m.turn.seen[m.delta.PartID] = now
+						}
+						m.turn.last[m.delta.PartID] = now
 					}
 					delta := m.delta
 					delta.PartID = r.displayID(m.turn, delta.PartID)
