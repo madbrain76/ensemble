@@ -535,7 +535,7 @@ const (
 	DeltaToolCall = common.DeltaToolCall
 )
 
-// StreamingFor returns effective model capabilities after the caller's opt-out.
+// StreamingFor applies explicit delivery policy or the registry default.
 func StreamingFor(cfg Config) Stream { return engine.StreamingFor(cfg) }
 
 // AgentObserver receives identified progress through the composition root.

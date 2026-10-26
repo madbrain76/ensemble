@@ -7549,6 +7549,14 @@ latency or network delivery to the browser. A single-burst or unstreamed part
 has no measured span to display. Neither the next part's arrival nor the end
 of the whole response supplies a guessed endpoint.
 
+Models absent from the registry default to buffered delivery. For a local server
+that supports streaming, opt in with `EN_STREAMING=all` in an environment-based
+launch or GUI `--stream all` in environment/flag mode; `--no-stream` still wins.
+Library callers can set `Config.Streaming` to `ensemble.StreamAll`; zero uses the
+registry default. The opt-in affects new responses; it cannot reconstruct missing
+durations in saved history, and a positive span still requires multiple nonempty
+fragments observed at different times.
+
 Replay and reload retain those recorded values; they do not time the replay.
 The timing metadata stays out of provider requests. An optional browser check
 can compare a finalized card before and after reload, then confirm that a

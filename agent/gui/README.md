@@ -86,6 +86,14 @@ Single-burst and non-streamed parts have no measured duration. Saved history
 retains these measurements for replay; missing or malformed legacy timestamps
 stay blank rather than appearing newly authored when a tab reloads.
 
+Models absent from the registry default to buffered delivery. For a local server
+that supports streaming, opt in with `EN_STREAMING=all` in an environment-based
+launch or GUI `--stream all` in environment/flag mode; `--no-stream` still wins.
+Library callers can set `Config.Streaming` to `ensemble.StreamAll`; zero uses the
+registry default. The opt-in affects new responses; it cannot reconstruct missing
+durations in saved history, and a positive span still requires multiple nonempty
+fragments observed at different times.
+
 Settings contains theme (dark/light/system), Read aloud, approximate speech speed
 (0.5–5, calibrated for Eloquence), and font size (12–24 pixels). Changes apply across
 tabs and persist in the application's `gui` section in file mode, or in

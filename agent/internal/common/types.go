@@ -52,6 +52,9 @@ type Config struct {
 	Recall RecallSettings
 	// DisableStreaming selects length-one delivery even for known streaming models.
 	DisableStreaming bool
+	// Streaming opts in to incremental delivery; nonzero enables the transport,
+	// without filtering provider output. Zero uses the registry; DisableStreaming wins.
+	Streaming Stream
 }
 
 // These categories are disjoint after parsing. Cache counts are not extra
