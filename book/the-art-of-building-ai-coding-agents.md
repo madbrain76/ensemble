@@ -7528,11 +7528,12 @@ abstraction that Chapter 7 promised holds up under reuse. If it had
 not, you would know it here, because the right pane would need its own
 rendering logic.
 
-### Optional: timestamps and observed duration
+### Optional: timestamps, observed duration and turn timing
 
 **TL;DR:** The current application shows recorded event times on human and
 finalized response-part cards, with a duration only when a part has a measured
-streaming span. Reopening a conversation should not make old work look new.
+streaming span. A separate turn row shows total, model, tool and other time.
+Reopening a conversation should not make old work look new.
 
 The GUI carries `Event.Time` as `at` on `user_message` and `part_final` messages.
 This is the server-recorded human-message or response-event time; parts from
@@ -7548,6 +7549,26 @@ delivery at the actor, not model-internal generation time, prompt-to-answer
 latency or network delivery to the browser. A single-burst or unstreamed part
 has no measured span to display. Neither the next part's arrival nor the end
 of the whole response supplies a guessed endpoint.
+
+The turn row answers a broader question: where did the waiting time go? Total
+runs from server admission, before mailbox and turn queueing, to logical
+completion before final saving and notification. Model covers actual HTTP
+attempts through parsing or failure, including retries and recall judgment.
+Tools covers blocking waits from dispatch to the worker's report, before mailbox
+delivery. A background invocation counts once; a later explicit wait counts
+again. The job's continued execution adds no time to either wait. Automatic
+ephemeral tools count; unrelated external invocations do not.
+
+Model takes priority during overlap. Other contains the remaining time,
+including queueing, pauses, local preparation and a parent's context-limit wait
+for background compaction. The compaction child's lifetime is not charged to
+the parent. Recorded milliseconds satisfy `total = model + tools + other`.
+The actor saves the breakdown with final text and error in `turn_ended`; one GUI
+projection uses that event's sequence to identify the row live and after replay,
+restart or Agent selection. Counts let measured zero waits display as `0ms`;
+categories with no attempts are hidden. Legacy turns without timing have no row.
+Per-card spans remain separate; session totals and time-to-first-token are outside
+this feature.
 
 Models absent from the registry default to buffered delivery. For a local server
 that supports streaming, opt in with `EN_STREAMING=all` in an environment-based

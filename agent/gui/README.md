@@ -86,6 +86,30 @@ Single-burst and non-streamed parts have no measured duration. Saved history
 retains these measurements for replay; missing or malformed legacy timestamps
 stay blank rather than appearing newly authored when a tab reloads.
 
+Each completed turn also has a timing row: **Total**, **Model**, **Tools** with
+the call count, and **Other**. Total runs from server admission, before mailbox
+and queued-turn waits, to logical completion before final saving and notification.
+Model measures actual provider HTTP attempts through response parsing or failure,
+including retries and recall judgment. Tools measures blocking waits from dispatch
+until the report worker has its result, before mailbox delivery. A background
+invocation counts once; a later explicit wait is another call. Continued background
+execution and a late job finish add neither runtime nor calls to the closed turn.
+Automatic ephemeral tool calls count; unrelated external invocations do not.
+
+Model takes priority if waits overlap. Other includes queueing, pauses, speech
+pacing, rendering, authentication renewal and provider preparation outside
+those waits. Background compaction's lifetime is excluded; a parent held at its
+context limit records that waiting time as Other. The three categories sum to
+Total in recorded milliseconds. Request/call counts distinguish an observed wait
+rounded to `0ms` from a category with no attempts, which is hidden.
+
+The server saves the breakdown with the turn's final text and error in its
+`turn_ended` event. Live delivery, reconnect, process restart and Agent selection
+use the same projection, keyed by that closing event's sequence. Interrupted or
+failed turns are labeled; legacy turns without timing have no row. These rows
+leave per-card fragment spans unchanged and add no session timing totals or
+time-to-first-token measurement.
+
 Models absent from the registry default to buffered delivery. For a local server
 that supports streaming, opt in with `EN_STREAMING=all` in an environment-based
 launch or GUI `--stream all` in environment/flag mode; `--no-stream` still wins.

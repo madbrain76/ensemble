@@ -4,6 +4,7 @@ import { markdown, ansi, partText } from "./renderers.js";
 export class ArtifactScroll {
   cards = new Map();
   calls = new Map();
+  turns = new Map();
   constructor(element, speech = null) {
     // Speech is optional: a component consumer need not construct the chat shell.
     this.speech = speech;
@@ -12,6 +13,7 @@ export class ArtifactScroll {
   reset() {
     this.cards.clear();
     this.calls.clear();
+    this.turns.clear();
     this.element.replaceChildren();
   }
   // One card shape serves every kind. The speaker closure reads current text,
@@ -100,11 +102,66 @@ export class ArtifactScroll {
         : "";
     card.timing.hidden = bits.length === 0;
   }
+  turnTiming(message) {
+    const started = stamp(message.started);
+    if (!Number.isSafeInteger(message.turn_seq) || message.turn_seq < 1 ||
+        !started || started.getTime() === Date.parse("0001-01-01T00:00:00Z") ||
+        typeof message.interrupted !== "boolean") return;
+    for (const field of ["total_ms", "model_ms", "tool_ms", "other_ms", "calls", "requests"]) {
+      if (!Number.isSafeInteger(message[field]) || message[field] < 0) return;
+    }
+    if (message.model_ms > message.total_ms || message.tool_ms > message.total_ms - message.model_ms ||
+        message.other_ms !== message.total_ms - message.model_ms - message.tool_ms ||
+        (message.requests === 0 && message.model_ms !== 0) ||
+        (message.calls === 0 && message.tool_ms !== 0)) return;
+    const nearEnd =
+      this.element.clientHeight + this.element.scrollTop >= this.element.scrollHeight - 180;
+    const key = String(message.turn_seq);
+    let row = this.turns.get(key);
+    if (!row) {
+      row = document.createElement("div");
+      row.className = "turn-timing";
+      row.dataset.turnSeq = key;
+      row.setAttribute("role", "group");
+      row.setAttribute("aria-label", "Turn timing");
+      this.turns.set(key, row);
+      this.element.append(row);
+    }
+    row.replaceChildren();
+    const add = (category, label, milliseconds, title) => {
+      const span = document.createElement("span");
+      span.className = `turn-timing__${category}`;
+      span.textContent = `${label} ${milliseconds === 0 ? "0ms" : elapsed(milliseconds)}`;
+      span.title = title;
+      row.append(span);
+    };
+    add("total", "Total", message.total_ms,
+      `Wall time from server admission through finish; started ${started.toISOString()}`);
+    if (message.requests > 0)
+      add("model", "Model", message.model_ms, `Summed model wait across ${message.requests} request${message.requests === 1 ? "" : "s"}`);
+    if (message.calls > 0)
+      add("tools", `Tools (${message.calls})`, message.tool_ms,
+        "Blocking tool wait with no model active; background execution excluded; all actual dispatches counted");
+    const status = [];
+    if (message.interrupted) status.push("Interrupted");
+    if (message.error) status.push(`Error: ${message.error}`);
+    add("other", "Other", message.other_ms, ["Remaining turn wall time", ...status].join("; "));
+    if (status.length) {
+      const outcome = document.createElement("span");
+      outcome.className = "turn-timing__outcome";
+      outcome.textContent = message.interrupted ? "Interrupted" : "Error";
+      outcome.title = status.join("; ");
+      row.append(outcome);
+    }
+    if (nearEnd) this.element.scrollTo(0, this.element.scrollHeight);
+  }
   // History replay is silent. Finals reconcile display text, while already
   // streamed speech is never re-enqueued just because a final arrives.
   receive(message) {
     const id = message.part_id;
-    if (message.type === "part_delta") {
+    if (message.type === "turn_timing") {
+      this.turnTiming(message);
+    } else if (message.type === "part_delta") {
       const card = this.card(id, message.kind);
       card.text += message.chunk;
       card.streamed = true;

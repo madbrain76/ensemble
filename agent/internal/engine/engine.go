@@ -249,11 +249,14 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		copy.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 		client = &copy
 	}
+	endWait := modelWait(ctx)
+	defer func() { endWait() }()
 	resp, err := client.Do(req)
 	// Retry authentication once using the same billing source. A 401 alone does
 	// not delete credentials; only the token endpoint can reject their renewal.
 	if err == nil && resp.StatusCode == http.StatusUnauthorized && cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialChatGPT {
 		resp.Body.Close()
+		endWait()
 		store, ok := cfg.Credentials.(common.AuthStore)
 		if !ok {
 			return nil, errors.New("ChatGPT credential cannot renew")
@@ -271,6 +274,7 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 			return nil, err
 		}
 		req.Header.Set("Authorization", "Bearer "+cfg.APIKey)
+		endWait = modelWait(ctx)
 		resp, err = e.client.Do(req)
 	}
 	if err != nil {
@@ -338,6 +342,13 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		err = e.parse(resp, cb, cfg)
 	}
 	return events, err
+}
+
+func modelWait(ctx context.Context) func() {
+	if timing, ok := ctx.Value(common.WaitTimingKey{}).(common.WaitObserver); ok {
+		return timing.ModelStarted()
+	}
+	return func() {}
 }
 
 // Pending ephemera follows retained dialogue in the renderer input; Anthropic

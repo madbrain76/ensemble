@@ -172,6 +172,17 @@ func (s *agentView) capture() {
 func eventWire(e ensemble.Event) []map[string]any {
 	var out []map[string]any
 	switch e.Type {
+	case "turn_ended":
+		if e.Seq > 0 && e.Seq <= 1<<53-1 && e.Turn != nil && validTurnTiming(e.Turn.Timing) {
+			timing := e.Turn.Timing
+			out = append(out, map[string]any{
+				"type": "turn_timing", "turn_seq": e.Seq, "started": timing.Started,
+				"total_ms": timing.TotalMS, "model_ms": timing.ModelMS,
+				"tool_ms": timing.ToolMS, "other_ms": timing.OtherMS,
+				"calls": timing.Calls, "requests": timing.Requests,
+				"interrupted": timing.Interrupted, "error": e.Turn.Error,
+			})
+		}
 	case "message_received", "hint_received":
 		// System ephemera are instructions to the model, not human chat cards.
 		// Hints are visible because classification must not hide the user input.
@@ -199,6 +210,20 @@ func eventWire(e ensemble.Event) []map[string]any {
 		out = append(out, map[string]any{"type": "tool_finished", "call_id": e.Tool.CallID, "result": text.String(), "is_error": e.Tool.IsError})
 	}
 	return out
+}
+
+func validTurnTiming(timing *ensemble.TurnTiming) bool {
+	if timing == nil || timing.Started.IsZero() {
+		return false
+	}
+	for _, value := range []int64{timing.TotalMS, timing.ModelMS, timing.ToolMS, timing.OtherMS, int64(timing.Calls), int64(timing.Requests)} {
+		if value < 0 || value > 1<<53-1 {
+			return false
+		}
+	}
+	return timing.ModelMS <= timing.TotalMS && timing.ToolMS <= timing.TotalMS-timing.ModelMS &&
+		timing.OtherMS == timing.TotalMS-timing.ModelMS-timing.ToolMS &&
+		(timing.Requests > 0 || timing.ModelMS == 0) && (timing.Calls > 0 || timing.ToolMS == 0)
 }
 
 // Only callers holding mu may enumerate receivers. Subscription and teardown

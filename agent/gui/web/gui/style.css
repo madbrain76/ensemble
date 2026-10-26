@@ -180,3 +180,15 @@ a {
   opacity: 0.6;
   white-space: nowrap;
 }
+
+.turn-timing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0.35rem 0.75rem;
+  border-top: 1px solid var(--border, #666);
+  font: 0.75rem ui-monospace, monospace;
+  color: var(--fg, inherit);
+}
+.turn-timing__outcome { font-weight: 600; }

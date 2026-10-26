@@ -19,6 +19,12 @@ type request struct {
 	text  string
 	reply chan common.Result
 	watch common.StreamCallbacks
+	at    time.Time
+}
+
+type liveInput struct {
+	text string
+	at   time.Time
 }
 type response struct {
 	turn    *turn
@@ -52,6 +58,8 @@ type workerDone struct {
 }
 type turn struct {
 	request       request
+	timing        *turnClock
+	interrupted   bool
 	cancel        context.CancelFunc
 	calls         []common.Part
 	ids           map[uint64]uint64
@@ -121,7 +129,16 @@ func (a *agent) post(message any) error {
 }
 
 // Post accepts live input without waiting for execution or dropping its message.
-func (a *agent) Post(message common.Inbound) error { return a.post(message) }
+func (a *agent) Post(message common.Inbound) error {
+	switch input := message.(type) {
+	case common.UserMessage:
+		return a.post(liveInput{text: input.Text, at: time.Now()})
+	case common.Hint:
+		return a.post(liveInput{text: input.Text, at: time.Now()})
+	default:
+		return a.post(message)
+	}
+}
 
 // Submit queues a separate human turn. Post is the deliberately different API
 // for live input that may become a hint when a turn is already active.
@@ -134,7 +151,7 @@ func (a *agent) submit(ctx context.Context, text string, watch common.StreamCall
 		reply <- common.Result{Err: errors.New("user message is empty")}
 		return reply
 	}
-	if err := a.post(request{ctx: ctx, text: text, reply: reply, watch: watch}); err != nil {
+	if err := a.post(request{ctx: ctx, text: text, reply: reply, watch: watch, at: time.Now()}); err != nil {
 		reply <- common.Result{Err: err}
 	}
 	return reply
@@ -346,12 +363,17 @@ func (r *runtime) finish(text string, err error) {
 			err = errors.Join(err, r.owner.fleet.Escalate(escalation))
 		}
 	}
+	interrupted := t.interrupted || t.request.ctx.Err() != nil || errors.Is(err, common.ErrInterrupted) || errors.Is(err, common.ErrStopped)
+	ended := common.TurnEnded{Text: text, Timing: t.timing.finish(interrupted)}
+	if err != nil {
+		ended.Error = err.Error()
+	}
+	err = errors.Join(err, r.append(common.Event{Type: "turn_ended", Turn: &ended}))
 	t.cancel()
 	if r.compactionWaiting == t {
 		r.compactionWaiting = nil
 	}
 	r.active = nil
-	ended := common.TurnEnded{Text: text}
 	if err != nil {
 		ended.Error = err.Error()
 	}
@@ -388,9 +410,13 @@ func (r *runtime) begin(q request) {
 		return
 	}
 	r.owner.fleet.Begin()
+	if q.at.IsZero() {
+		q.at = time.Now()
+	}
+	clock := &turnClock{started: q.at, last: q.at}
 	ctx, cancel := context.WithCancel(q.ctx)
-	r.active = &turn{request: q, cancel: cancel, seen: map[uint64]int64{}, last: map[uint64]int64{}}
-	r.active.request.ctx = ctx
+	r.active = &turn{request: q, timing: clock, cancel: cancel, seen: map[uint64]int64{}, last: map[uint64]int64{}}
+	r.active.request.ctx = context.WithValue(ctx, common.WaitTimingKey{}, common.WaitObserver(clock))
 	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
 		r.finish("", err)
 		return
@@ -553,6 +579,7 @@ func (r *runtime) interrupt(reason error) {
 	if t == nil {
 		return
 	}
+	t.interrupted = true
 	// Satisfy provider call/result pairing without claiming a continuing job was
 	// killed. The later report is still a recorded fact, but not a duplicate result.
 	if t.current != nil {
@@ -588,10 +615,8 @@ func (r *runtime) run() {
 						r.pending = append(r.pending, m)
 					}
 				}
-			case common.UserMessage:
-				r.input(m.Text)
-			case common.Hint:
-				r.input(m.Text)
+			case liveInput:
+				r.input(m.text, m.at)
 			case common.Interrupt:
 				if m.AfterTool && r.active != nil {
 					r.active.afterTool = true
@@ -763,12 +788,12 @@ func (r *runtime) run() {
 		}
 	}
 }
-func (r *runtime) input(text string) {
+func (r *runtime) input(text string, at time.Time) {
 	if r.stopping {
 		return
 	}
 	if r.active == nil {
-		r.begin(request{ctx: context.Background(), text: text})
+		r.begin(request{ctx: context.Background(), text: text, at: at})
 		return
 	}
 	// Reducer uses active turn state to preserve a hint as pending context.

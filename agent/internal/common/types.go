@@ -257,6 +257,8 @@ type Event struct {
 	Redact *RedactData `json:"redact,omitempty"`
 	// Error records a failed exchange or an explicit turn ending.
 	Error *ErrorData `json:"error,omitempty"`
+	// Turn retains final text, failure and measured timing at logical completion.
+	Turn *TurnEnded `json:"turn,omitempty"`
 	// Job records an explicit job kill and its reason.
 	Job *JobKilledData `json:"job,omitempty"`
 	// Skill retains instructions independently of the loading tool result.

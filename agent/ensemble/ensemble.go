@@ -557,6 +557,9 @@ type ToolFinished = common.ToolFinished
 // TurnEnded reports turn completion as display progress.
 type TurnEnded = common.TurnEnded
 
+// TurnTiming is the persisted wall-clock breakdown of one completed turn.
+type TurnTiming = common.TurnTiming
+
 // AgentSpec supplies identity and confinement separately from provider request settings.
 type AgentSpec common.AgentSpec
 

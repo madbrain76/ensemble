@@ -96,6 +96,10 @@ func (r *runtime) invoke(q invocation) {
 		return
 	}
 	call.seq = r.owner.history.LastSeq()
+	endWait := func() {}
+	if timing, ok := q.ctx.Value(common.WaitTimingKey{}).(common.WaitObserver); q.automatic && ok {
+		endWait = timing.ToolStarted()
+	}
 	// These are real jobs, with the same one-shot limits and completion ownership
 	// as model dispatch. Interrupting a turn still cannot kill another caller's job.
 	completed := make(chan common.Result, 1)
@@ -136,6 +140,7 @@ func (r *runtime) invoke(q invocation) {
 			snapshot := call.job.Data()
 			result.Job = &snapshot
 		}
+		endWait()
 		if recordErr := r.owner.Record(common.Event{Type: "job_report", Tool: result}); recordErr != nil && err == nil {
 			err = recordErr
 		}
