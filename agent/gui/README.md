@@ -103,6 +103,22 @@ context limit records that waiting time as Other. The three categories sum to
 Total in recorded milliseconds. Request/call counts distinguish an observed wait
 rounded to `0ms` from a category with no attempts, which is hidden.
 
+Expand **Other breakdown** in a completed turn's row to see its named phases in
+milliseconds, largest first. Measurement is always active for new turns; use the
+normal launch and submit a prompt. No extra startup option or shutdown is needed.
+Phases cover context copying, event recording, context preparation, request
+rendering, memory synchronization, recall, tool dispatch/results, credentials,
+provider preparation, pauses and context-limit compaction waits.
+
+These are exclusive wall-time measurements: model waits take priority, then tool
+waits, then the most recently entered phase still active. Nested or overlapping
+scopes never charge the same interval twice. `unattributed` includes uninstrumented
+gaps and millisecond rounding; all phases sum to Other. The saved
+`turn_ended.turn.timing.other_phases_ms` values appear live and survive reconnect,
+Agent selection and process restart. Older rows without phase data keep their
+totals without an **Other breakdown**. Final saving and notification remain
+outside Total.
+
 The server saves the breakdown with the turn's final text and error in its
 `turn_ended` event. Live delivery, reconnect, process restart and Agent selection
 use the same projection, keyed by that closing event's sequence. Interrupted or

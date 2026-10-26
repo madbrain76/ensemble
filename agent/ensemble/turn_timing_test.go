@@ -80,6 +80,19 @@ func timingSummary(t *testing.T, agent ensemble.Agent, index, count, calls, requ
 	if timing.TotalMS > event.Time.Sub(timing.Started).Milliseconds()+3 {
 		t.Errorf("timing extends beyond durable ending: %+v", timing)
 	}
+	var phaseMS int64
+	for name, milliseconds := range timing.OtherPhasesMS {
+		if name == "" || milliseconds < 0 {
+			t.Errorf("invalid phase %q=%d", name, milliseconds)
+		}
+		phaseMS += milliseconds
+	}
+	if timing.OtherPhasesMS == nil || phaseMS != timing.OtherMS {
+		t.Errorf("phase durations do not partition Other: %+v", timing)
+	}
+	if _, measured := timing.OtherPhasesMS["context_copy"]; !measured {
+		t.Error("actor context snapshots were not profiled")
+	}
 	return timing
 }
 
@@ -146,6 +159,9 @@ func TestTurnTimingQueuedAdmission(t *testing.T) {
 	if timing.OtherMS < held-3 || timing.TotalMS < held-3 || timing.ModelMS > timing.TotalMS-held+3 || timing.ToolMS != 0 {
 		t.Errorf("queue wait %dms was lost or charged to work: %+v", held, timing)
 	}
+	if timing.OtherPhasesMS["admission_queue"] < held-3 {
+		t.Errorf("queued admission not identified: %+v", timing)
+	}
 }
 
 func TestTurnTimingPauseBeforeDispatchIsOther(t *testing.T) {
@@ -190,6 +206,9 @@ func TestTurnTimingPauseBeforeDispatchIsOther(t *testing.T) {
 	timing := timingSummary(t, agent, 0, 1, 1, 2, false)
 	if timing.OtherMS < held-3 || timing.ModelMS+timing.ToolMS > timing.TotalMS-held+3 {
 		t.Errorf("post-generation pause %dms was charged to model/tools: %+v", held, timing)
+	}
+	if timing.OtherPhasesMS["pause"] < held-3 {
+		t.Errorf("pause not identified: %+v", timing)
 	}
 }
 
@@ -713,6 +732,9 @@ func TestTurnTimingOAuthRenewalIsOther(t *testing.T) {
 	timing := timingSummary(t, agent, 0, 1, 0, 2, false)
 	if timing.ModelMS < modelHeld-4 || timing.OtherMS < refreshHeld-3 || timing.ModelMS > timing.TotalMS-refreshHeld+3 || timing.ToolMS != 0 {
 		t.Errorf("401/renewal attribution: model waits=%dms renewal=%dms summary=%+v", modelHeld, refreshHeld, timing)
+	}
+	if timing.OtherPhasesMS["credential_refresh"] < refreshHeld-3 {
+		t.Errorf("renewal not identified: %+v", timing)
 	}
 	oauth.mu.Lock()
 	rotations, tokenCalls := oauth.rotations, oauth.tokenCalls

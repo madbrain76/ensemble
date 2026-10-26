@@ -9,6 +9,7 @@ import (
 // have a defined order. Handler execution and its report are separate workers,
 // so a callback can return a handle before even a Go-only handler finishes.
 func (r *runtime) dispatch() {
+	defer r.phase("tool_dispatch")()
 	t := r.active
 	if t.hintedBatch {
 		// The current report is already retained. Settle the remaining call IDs
@@ -48,7 +49,7 @@ func (r *runtime) dispatch() {
 		if t.checkpoint {
 			t.checkpoint = false
 			r.owner.forceHandoff.Store(false)
-			r.forcingChecked = r.owner.history.Context().SentThrough
+			r.forcingChecked = r.contextSnapshot().SentThrough
 			r.checkpoint(true)
 			return
 		}
@@ -58,12 +59,14 @@ func (r *runtime) dispatch() {
 	// Serial dispatch gives pause a boundary between tools. Wait outside the
 	// owner: its mailbox must keep accepting hints, interrupts and real job results.
 	if resume := r.owner.pauseChannel(); resume != nil {
+		endPause := t.timing.PhaseStarted("pause")
 		r.workers++
 		go func() {
 			select {
 			case <-resume:
 			case <-t.request.ctx.Done():
 			}
+			endPause()
 			r.owner.box.Post(gateReady{t})
 		}()
 		return

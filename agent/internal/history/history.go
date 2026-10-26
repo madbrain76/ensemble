@@ -282,6 +282,18 @@ func validate(e common.Event) error {
 			if timing.ModelMS > timing.TotalMS || timing.ToolMS > timing.TotalMS-timing.ModelMS || timing.OtherMS != timing.TotalMS-timing.ModelMS-timing.ToolMS {
 				return errors.New("turn timing does not reconcile")
 			}
+			if timing.OtherPhasesMS != nil {
+				remaining := timing.OtherMS
+				for name, milliseconds := range timing.OtherPhasesMS {
+					if name == "" || milliseconds < 0 || milliseconds > remaining {
+						return errors.New("invalid turn timing phase")
+					}
+					remaining -= milliseconds
+				}
+				if remaining != 0 {
+					return errors.New("turn timing phases do not reconcile")
+				}
+			}
 		}
 	case "error_occurred", "turn_interrupted":
 		if e.Error == nil {

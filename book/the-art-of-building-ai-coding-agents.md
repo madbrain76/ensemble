@@ -7570,6 +7570,28 @@ categories with no attempts are hidden. Legacy turns without timing have no row.
 Per-card spans remain separate; session totals and time-to-first-token are outside
 this feature.
 
+Expand **Other breakdown** on a completed turn to see where its remaining time
+went. Phase measurement is always on. Context copying, event recording,
+request preparation and rendering, memory synchronization, recall, tool
+dispatch/results, credentials, provider preparation, pauses and context-limit
+compaction waits have named scopes. These measure elapsed wall time, including
+time blocked inside a scope; they do not measure CPU consumption.
+
+Each interval belongs to exactly one category. Model waits take priority, then
+tool waits, then the most recently entered phase that is still active. For
+example, a context copy inside request preparation receives its own time;
+preparation resumes accumulating time when that inner scope ends. Overlapping
+scopes follow the same rule, so their totals cannot count the same interval
+twice. Uninstrumented gaps and the remainder from millisecond rounding go to
+`unattributed`. The phase values sum to Other, without assigning unknown time to
+a suspected operation.
+
+The actor stores these values in `turn_ended.turn.timing.other_phases_ms`. Live
+display, replay and process restart use that saved breakdown. Older rows without
+phase measurements retain their original totals; reopening them cannot recover
+the missing detail. The logical completion boundary still excludes final saving
+and notification.
+
 Models absent from the registry default to buffered delivery. For a local server
 that supports streaming, opt in with `EN_STREAMING=all` in an environment-based
 launch or GUI `--stream all` in environment/flag mode; `--no-stream` still wins.

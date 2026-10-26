@@ -192,3 +192,6 @@ a {
   color: var(--fg, inherit);
 }
 .turn-timing__outcome { font-weight: 600; }
+.turn-timing__phases { flex-basis: 100%; }
+.turn-timing__phases summary { cursor: pointer; }
+.turn-timing__phases pre { margin: 0.4rem 0; white-space: pre-wrap; }

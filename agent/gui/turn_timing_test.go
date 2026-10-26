@@ -17,6 +17,7 @@ func TestTurnTimingProjection(t *testing.T) {
 		`{"started":"2026-10-25T12:00:00Z","total_ms":800,"model_ms":500,"tool_ms":200,"other_ms":100,"calls":3,"requests":2,"interrupted":true}`,
 		`{"started":"2026-10-25T12:00:00Z","total_ms":0,"model_ms":0,"tool_ms":0,"other_ms":0,"calls":1,"requests":1,"interrupted":false}`,
 		`{"started":"2026-10-25T12:00:00Z","total_ms":17,"model_ms":0,"tool_ms":0,"other_ms":17,"calls":0,"requests":0,"interrupted":false}`,
+		`{"started":"2026-10-25T12:00:00Z","total_ms":17,"model_ms":0,"tool_ms":0,"other_ms":17,"other_phases_ms":{"context_copy":12,"unattributed":5},"calls":0,"requests":0,"interrupted":false}`,
 	} {
 		t.Run(timing, func(t *testing.T) {
 			var event ensemble.Event
@@ -69,6 +70,10 @@ func TestTurnTimingLoadedMalformedHistory(t *testing.T) {
 		{"unsafe calls", `"calls":1`, `"calls":9007199254740992`},
 		{"unsafe requests", `"requests":1`, `"requests":9007199254740992`},
 		{"unsafe duration", `"total_ms":10,"model_ms":4,"tool_ms":3,"other_ms":3`, `"total_ms":9007199254740992,"model_ms":0,"tool_ms":0,"other_ms":9007199254740992`},
+		{"phase sum differs", `"other_ms":3`, `"other_ms":3,"other_phases_ms":{"context_copy":2}`},
+		{"negative phase", `"other_ms":3`, `"other_ms":3,"other_phases_ms":{"context_copy":-1,"unattributed":4}`},
+		{"empty phase name", `"other_ms":3`, `"other_ms":3,"other_phases_ms":{"":3}`},
+		{"phase exceeds other", `"other_ms":3`, `"other_ms":3,"other_phases_ms":{"context_copy":9007199254740992}`},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			timing := strings.Replace(valid, test.old, test.replacement, 1)

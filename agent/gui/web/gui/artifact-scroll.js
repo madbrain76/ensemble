@@ -114,6 +114,16 @@ export class ArtifactScroll {
         message.other_ms !== message.total_ms - message.model_ms - message.tool_ms ||
         (message.requests === 0 && message.model_ms !== 0) ||
         (message.calls === 0 && message.tool_ms !== 0)) return;
+    const phases = message.other_phases_ms;
+    if (phases !== undefined) {
+      if (!phases || typeof phases !== "object" || Array.isArray(phases)) return;
+      let remaining = message.other_ms;
+      for (const [name, milliseconds] of Object.entries(phases)) {
+        if (!name || !Number.isSafeInteger(milliseconds) || milliseconds < 0 || milliseconds > remaining) return;
+        remaining -= milliseconds;
+      }
+      if (remaining !== 0) return;
+    }
     const nearEnd =
       this.element.clientHeight + this.element.scrollTop >= this.element.scrollHeight - 180;
     const key = String(message.turn_seq);
@@ -146,6 +156,18 @@ export class ArtifactScroll {
     if (message.interrupted) status.push("Interrupted");
     if (message.error) status.push(`Error: ${message.error}`);
     add("other", "Other", message.other_ms, ["Remaining turn wall time", ...status].join("; "));
+    if (phases) {
+      const details = document.createElement("details");
+      details.className = "turn-timing__phases";
+      const summary = document.createElement("summary");
+      summary.textContent = "Other breakdown";
+      const content = document.createElement("pre");
+      content.textContent = Object.entries(phases)
+        .sort(([left, leftMS], [right, rightMS]) => rightMS - leftMS || left.localeCompare(right))
+        .map(([name, milliseconds]) => `${name.replaceAll("_", " ")}: ${milliseconds}ms`).join("\n");
+      details.append(summary, content);
+      row.append(details);
+    }
     if (status.length) {
       const outcome = document.createElement("span");
       outcome.className = "turn-timing__outcome";

@@ -57,17 +57,18 @@ type workerDone struct {
 	err error
 }
 type turn struct {
-	request       request
-	timing        *turnClock
-	interrupted   bool
-	cancel        context.CancelFunc
-	calls         []common.Part
-	ids           map[uint64]uint64
-	current       *report
-	ephemeralTurn bool
-	presented     []common.Entry
-	checkpoint    bool
-	afterTool     bool
+	request           request
+	timing            *turnClock
+	interrupted       bool
+	cancel            context.CancelFunc
+	calls             []common.Part
+	ids               map[uint64]uint64
+	current           *report
+	ephemeralTurn     bool
+	presented         []common.Entry
+	checkpoint        bool
+	afterTool         bool
+	endCompactionWait func()
 	// A hint ends only the undispatched tail of the current response batch.
 	hintedBatch bool
 	// Stream windows belong to the actor, not the HTTP callback goroutine.
@@ -84,6 +85,7 @@ type turn struct {
 type runtime struct {
 	owner             *agent
 	active            *turn
+	admitting         *turnClock
 	pending           []request
 	barriers          []chan error
 	workers           int
@@ -288,15 +290,16 @@ func (a *agent) notify(observation common.Observation) {
 // Publication follows successful reduction. Observers see the state and part
 // identity actually stored, including IDs assigned to calls by History.
 func (r *runtime) append(event common.Event) error {
+	defer r.phase("event_recording")()
 	h := r.owner.history
-	before := h.Context().Turn
+	before := r.contextSnapshot().Turn
 	if err := h.Append(event); err != nil {
 		return err
 	}
 	if r.active != nil && r.active.request.watch.OnEvent != nil {
 		r.active.request.watch.OnEvent(event)
 	}
-	after := h.Context()
+	after := r.contextSnapshot()
 	if before != after.Turn {
 		r.owner.notify(common.StateChanged{From: before, To: after.Turn})
 	}
@@ -340,6 +343,7 @@ func (r *runtime) save() error {
 // The request is complete only after its facts are saved. A buffered reply
 // tolerates callers that stopped waiting; a failed save cannot become success.
 func (r *runtime) finish(text string, err error) {
+	defer r.phase("turn_completion")()
 	if r.active == nil {
 		return
 	}
@@ -388,6 +392,11 @@ func (r *runtime) finish(text string, err error) {
 
 // Each request gets its own cancellation context, never the previous turn's state.
 func (r *runtime) begin(q request) {
+	beginAt := time.Now()
+	if q.at.IsZero() {
+		q.at = beginAt
+	}
+	clock := &turnClock{started: q.at, last: beginAt, phaseTimes: map[string]time.Duration{"admission_queue": beginAt.Sub(q.at)}}
 	if r.owner.spec.Compaction {
 		if r.compactionStarted {
 			if q.reply != nil {
@@ -397,7 +406,10 @@ func (r *runtime) begin(q request) {
 		}
 		r.compactionStarted = true
 	}
-	if err := r.syncMemory(); err != nil {
+	r.admitting = clock
+	memoryErr := r.syncMemory()
+	r.admitting = nil
+	if err := memoryErr; err != nil {
 		if q.reply != nil {
 			q.reply <- common.Result{Err: err}
 		}
@@ -410,10 +422,6 @@ func (r *runtime) begin(q request) {
 		return
 	}
 	r.owner.fleet.Begin()
-	if q.at.IsZero() {
-		q.at = time.Now()
-	}
-	clock := &turnClock{started: q.at, last: q.at}
 	ctx, cancel := context.WithCancel(q.ctx)
 	r.active = &turn{request: q, timing: clock, cancel: cancel, seen: map[uint64]int64{}, last: map[uint64]int64{}}
 	r.active.request.ctx = context.WithValue(ctx, common.WaitTimingKey{}, common.WaitObserver(clock))
@@ -425,6 +433,7 @@ func (r *runtime) begin(q request) {
 }
 func (r *runtime) send() { r.ephemera() }
 func (r *runtime) sendRequest() {
+	defer r.phase("request_preparation")()
 	limited := r.compaction != nil && r.atContextLimit()
 	if err := r.settleCompaction(); err != nil {
 		r.compressionWarning(err)
@@ -436,10 +445,17 @@ func (r *runtime) sendRequest() {
 	}
 	if r.compaction != nil && r.atContextLimit() {
 		r.compactionWaiting = r.active
+		if r.active.endCompactionWait == nil {
+			r.active.endCompactionWait = r.phase("compaction_wait")
+		}
 		r.owner.setActivity(common.ActivityWaiting, "", "waiting for memory compaction")
 		return
 	}
 	r.compactionWaiting = nil
+	if r.active.endCompactionWait != nil {
+		r.active.endCompactionWait()
+		r.active.endCompactionWait = nil
+	}
 	r.owner.setActivity(common.ActivityThinking, "", "")
 	t := r.active
 	t.ids = make(map[uint64]uint64)
@@ -448,14 +464,17 @@ func (r *runtime) sendRequest() {
 		r.finish("", err)
 		return
 	}
-	before := r.owner.history.Context()
+	before := r.contextSnapshot()
 	t.presented = nil
 	for _, entry := range before.Dialogue {
 		if entry.Seq > before.SentThrough {
 			t.presented = append(t.presented, entry)
 		}
 	}
-	body, err := r.owner.engine.Render(r.owner.history.Context())
+	snapshot := r.contextSnapshot()
+	endRender := r.phase("request_render")
+	body, err := r.owner.engine.Render(snapshot)
+	endRender()
 	if err != nil {
 		r.append(common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		r.finish("", err)
@@ -497,6 +516,7 @@ func (r *runtime) receive(m response) {
 	if m.turn != r.active {
 		return
 	} // cancelled HTTP cannot finish a newer human turn.
+	defer r.phase("response_processing")()
 	var answer strings.Builder
 	for _, event := range m.events {
 		if event.Response != nil {
@@ -522,7 +542,7 @@ func (r *runtime) receive(m response) {
 		if event.Response != nil {
 			// History may assign missing call identities. Publish the stored parts,
 			// retaining the parser's mapping instead of guessing IDs from positions.
-			c := r.owner.history.Context()
+			c := r.contextSnapshot()
 			entry := c.Dialogue[len(c.Dialogue)-1]
 			for i, p := range entry.Parts {
 				r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: p.ArtifactID, Part: p})
@@ -546,7 +566,7 @@ func (r *runtime) receive(m response) {
 			return
 		}
 	}
-	if m.err == nil && !r.owner.spec.Compaction && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
+	if m.err == nil && !r.owner.spec.Compaction && len(m.turn.calls) == 0 && len(r.contextSnapshot().Ephemera) > 0 {
 		r.send()
 		return
 	}
@@ -686,6 +706,7 @@ func (r *runtime) run() {
 			case response:
 				r.receive(m)
 			case report:
+				endPhase := r.phase("tool_result")
 				// A turn may have ended while this wait was still outstanding. Retain
 				// its real report without inserting a second vendor result for one call.
 				r.workers--
@@ -716,6 +737,7 @@ func (r *runtime) run() {
 						r.dispatch()
 					}
 				}
+				endPhase()
 			case workerDone:
 				// Execution lifetime is distinct from the report deadline. Joining both
 				// prevents shutdown from abandoning a handler after a callback returned.

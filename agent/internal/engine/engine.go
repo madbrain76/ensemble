@@ -103,6 +103,7 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 // Send performs one HTTP exchange from already rendered bytes and returns facts
 // without changing conversation.
 func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallbacks) (events []common.Event, err error) {
+	defer profilePhase(ctx, "provider_preparation")()
 	cfg := e.parent.Config()
 	// Keep the prediction with this exchange: an interrupted worker may report
 	// its usage after the next turn has already observed another request.
@@ -134,6 +135,7 @@ func (e *engine) Send(ctx context.Context, body []byte, cb common.StreamCallback
 // send accepts one request-local route, allowing the judge to choose a model
 // without mutating the Agent or constructing a second Engine.
 func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallbacks, cfg common.Config) (events []common.Event, err error) {
+	defer profilePhase(ctx, "provider_preparation")()
 	// Error bodies and URLs may echo credentials. Preserve useful status/error
 	// identity but never return remote error prose or log authentication headers.
 	defer func() {
@@ -159,7 +161,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		if !ok {
 			return nil, errors.New("Codex credentials require a paired account reader")
 		}
+		endCredentials := profilePhase(ctx, "credentials")
 		cfg.APIKey, account, err = provider.Read(ctx)
+		endCredentials()
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +172,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 	// Resolve a request-local bearer. Rendered bytes and saved configuration never
 	// receive rotating OAuth tokens, including auxiliary judge/compressor calls.
 	if cfg.Credentials != nil && !isCodex {
+		endCredentials := profilePhase(ctx, "credentials")
 		cfg.APIKey, err = cfg.Credentials.GetBearerToken(ctx)
+		endCredentials()
 		if err != nil {
 			return nil, err
 		}
@@ -261,10 +267,15 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		if !ok {
 			return nil, errors.New("ChatGPT credential cannot renew")
 		}
-		if err := store.Refresh(ctx, cfg.APIKey); err != nil {
+		endRefresh := profilePhase(ctx, "credential_refresh")
+		refreshErr := store.Refresh(ctx, cfg.APIKey)
+		endRefresh()
+		if err := refreshErr; err != nil {
 			return nil, err
 		}
+		endCredentials := profilePhase(ctx, "credentials")
 		cfg.APIKey, err = store.GetBearerToken(ctx)
+		endCredentials()
 		if err != nil {
 			return nil, err
 		}
@@ -342,6 +353,13 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 		err = e.parse(resp, cb, cfg)
 	}
 	return events, err
+}
+
+func profilePhase(ctx context.Context, name string) func() {
+	if timing, ok := ctx.Value(common.WaitTimingKey{}).(common.PhaseObserver); ok {
+		return timing.PhaseStarted(name)
+	}
+	return func() {}
 }
 
 func modelWait(ctx context.Context) func() {

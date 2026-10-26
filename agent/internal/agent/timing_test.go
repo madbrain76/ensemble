@@ -1,9 +1,82 @@
 package agent
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
+
+func TestTurnClockExclusiveOtherPhases(t *testing.T) {
+	started := time.Now()
+	at := func(seconds int) time.Time { return started.Add(time.Duration(seconds) * time.Second) }
+	clock := &turnClock{started: started, last: started}
+	preparation := clock.startPhase(at(1), "request_preparation")
+	copying := clock.startPhase(at(2), "context_copy")
+	clock.start(at(3), true)
+	clock.end(at(5), true)
+	clock.start(at(5), false)
+	clock.end(at(6), false)
+	clock.endPhase(at(7), copying)
+	clock.endPhase(at(8), preparation)
+	clock.endPhase(at(9), preparation)
+	timing := clock.snapshot(at(10), false)
+	want := map[string]int64{"request_preparation": 2000, "context_copy": 2000, "unattributed": 3000}
+	if timing.ModelMS != 2000 || timing.ToolMS != 1000 || timing.OtherMS != 7000 || !reflect.DeepEqual(timing.OtherPhasesMS, want) {
+		t.Fatalf("nested phases double-counted waits or each other: %+v", timing)
+	}
+}
+
+func TestTurnClockConcurrentPhaseCompletion(t *testing.T) {
+	started := time.Now()
+	at := func(seconds int) time.Time { return started.Add(time.Duration(seconds) * time.Second) }
+	clock := &turnClock{started: started, last: started}
+	first := clock.startPhase(at(0), "recall")
+	second := clock.startPhase(at(1), "event_recording")
+	clock.endPhase(at(2), first)
+	clock.endPhase(at(3), second)
+	timing := clock.snapshot(at(4), false)
+	want := map[string]int64{"recall": 1000, "event_recording": 2000, "unattributed": 1000}
+	if !reflect.DeepEqual(timing.OtherPhasesMS, want) {
+		t.Fatalf("out-of-order completion corrupted phases: %v", timing.OtherPhasesMS)
+	}
+}
+
+func TestTurnClockPhaseRoundingAndLateCompletion(t *testing.T) {
+	started := time.Now()
+	clock := &turnClock{started: started, last: started}
+	first := clock.startPhase(started, "context_copy")
+	clock.endPhase(started.Add(600*time.Microsecond), first)
+	clock.startPhase(started.Add(600*time.Microsecond), "event_recording")
+	timing := clock.snapshot(started.Add(1200*time.Microsecond), true)
+	want := map[string]int64{"context_copy": 0, "event_recording": 0, "unattributed": 1}
+	if timing.OtherMS != 1 || !reflect.DeepEqual(timing.OtherPhasesMS, want) {
+		t.Fatalf("rounded phases do not reconcile: %+v", timing)
+	}
+	clock.PhaseStarted("late")()
+	if !reflect.DeepEqual(timing.OtherPhasesMS, want) || len(clock.phases) != 1 {
+		t.Fatal("late worker changed sealed phases")
+	}
+}
+
+func TestTurnClockAdmissionProfiling(t *testing.T) {
+	started := time.Now()
+	clock := &turnClock{started: started, last: started}
+	runtime := &runtime{admitting: clock}
+	endCopy := runtime.phase("context_copy")
+	if len(clock.phases) != 1 || clock.phases[0].name != "context_copy" {
+		t.Fatal("startup snapshot copying was not profiled before the turn became active")
+	}
+	endCopy()
+	endCopy()
+	if len(clock.phases) != 0 {
+		t.Fatal("phase completion was not idempotent")
+	}
+	runtime.admitting = nil
+	runtime.phase("idle")()
+	if len(clock.phases) != 0 {
+		t.Fatal("idle work was charged to the admitted turn")
+	}
+}
 
 func TestTurnClockPartitionsWaits(t *testing.T) {
 	started := time.Date(2026, 10, 25, 12, 0, 0, 0, time.UTC)

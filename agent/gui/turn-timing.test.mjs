@@ -88,12 +88,19 @@ test("turn timing component distinguishes known zero, absent categories and lega
         malformed.push(missing);
       }
       malformed.push({ ...valid, interrupted: "false" });
+      for (const phases of [null, [], "invalid", {}, { context_copy: -1, unattributed: 4 }, { context_copy: 2 }, { context_copy: 4 }, { "": 3 }, { context_copy: 3.1 }, { context_copy: "3" }])
+        malformed.push({ ...valid, other_phases_ms: phases });
       const rejected = malformed.map((message, index) => {
         scroll.receive(message);
         if (message.turn_seq === 10) scroll.receive({ ...message, turn_seq: 9, replay: true });
         return { index, count: element.querySelectorAll(".turn-timing").length, text: element.textContent };
       });
-      return { legacyRows, cardSpans, knownZero, palettes, resetEmpty, absent, updated, rejected, finalRows: element.querySelectorAll(".turn-timing").length };
+      scroll.receive({ ...summary, total_ms: 5, model_ms: 0, tool_ms: 0, other_ms: 5, calls: 0, requests: 0, interrupted: false, error: "", other_phases_ms: { context_copy: 3, "<script>unsafe</script>": 1, unattributed: 1 } });
+      const detail = element.querySelector(".turn-timing__phases");
+      if (!detail) throw new Error("Missing Other breakdown");
+      detail.querySelector("summary").click();
+      const phases = { open: detail.open, text: detail.textContent, scripts: element.querySelectorAll("script").length };
+      return { legacyRows, cardSpans, knownZero, palettes, resetEmpty, absent, updated, rejected, phases, finalRows: element.querySelectorAll(".turn-timing").length };
     });
     assert.equal(result.legacyRows, 0);
     assert.deepEqual(result.knownZero.cardSpans, result.cardSpans);
@@ -116,6 +123,10 @@ test("turn timing component distinguishes known zero, absent categories and lega
       assert.equal(rejected.text, result.updated.text, `malformed frame ${rejected.index} changed a valid row`);
     }
     assert.equal(result.finalRows, 1);
+    assert.equal(result.phases.open, true);
+    assert.match(result.phases.text, /context copy: 3ms/);
+    assert.match(result.phases.text, /<script>unsafe<\/script>: 1ms/);
+    assert.equal(result.phases.scripts, 0);
   } finally {
     await browser?.close();
     server.closeAllConnections();
@@ -203,6 +214,11 @@ test("turn timing survives real tool roundtrips, background work, agent selectio
     assert.ok(first.tool_ms >= 190, JSON.stringify(first));
     assert.ok(first.total_ms >= first.model_ms + first.tool_ms, JSON.stringify(first));
     assert.equal(first.total_ms, first.model_ms + first.tool_ms + first.other_ms);
+    assert.equal(Object.values(first.other_phases_ms).reduce((sum, value) => sum + value, 0), first.other_ms);
+    assert.ok(Object.hasOwn(first.other_phases_ms, "context_copy"));
+    await page.locator(".turn-timing__phases summary").click();
+    await page.locator(".turn-timing__phases[open] pre").waitFor();
+    assert.match(await page.locator(".turn-timing__phases pre").textContent(), /context copy: \d+ms/);
     assert.ok(Date.parse(first.started) >= before - 10);
     assert.ok(first.total_ms <= Date.now() - before);
     assert.ok(requests[1].messages.some(message => message.role === "tool" && message.content.includes("ROUNDTRIP_RESULT")));

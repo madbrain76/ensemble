@@ -182,6 +182,9 @@ func eventWire(e ensemble.Event) []map[string]any {
 				"calls": timing.Calls, "requests": timing.Requests,
 				"interrupted": timing.Interrupted, "error": e.Turn.Error,
 			})
+			if timing.OtherPhasesMS != nil {
+				out[len(out)-1]["other_phases_ms"] = timing.OtherPhasesMS
+			}
 		}
 	case "message_received", "hint_received":
 		// System ephemera are instructions to the model, not human chat cards.
@@ -218,6 +221,18 @@ func validTurnTiming(timing *ensemble.TurnTiming) bool {
 	}
 	for _, value := range []int64{timing.TotalMS, timing.ModelMS, timing.ToolMS, timing.OtherMS, int64(timing.Calls), int64(timing.Requests)} {
 		if value < 0 || value > 1<<53-1 {
+			return false
+		}
+	}
+	if timing.OtherPhasesMS != nil {
+		remaining := timing.OtherMS
+		for name, milliseconds := range timing.OtherPhasesMS {
+			if name == "" || milliseconds < 0 || milliseconds > remaining {
+				return false
+			}
+			remaining -= milliseconds
+		}
+		if remaining != 0 {
 			return false
 		}
 	}
