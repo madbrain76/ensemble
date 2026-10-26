@@ -151,6 +151,8 @@ func (s *agentView) loadDisplayName() error {
 		return err
 	}
 	var saved struct {
+		// DisplayName loads only GUI metadata so listing an unselected Agent does
+		// not apply its saved execution settings or wait for actor acknowledgment.
 		DisplayName string `json:"display_name"`
 	}
 	if err := json.Unmarshal(data, &saved); err != nil {

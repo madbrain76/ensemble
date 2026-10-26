@@ -60,6 +60,8 @@ func (v *agentView) broadcast(message map[string]any) {
 }
 
 type agentTree struct {
+	// AgentNode preserves the core's identity and activity snapshot; GUI labels
+	// decorate that snapshot without changing the Agent's routing or ownership.
 	ensemble.AgentNode
 	// DisplayName is a GUI preference; the embedded ID and Key retain routing identity.
 	DisplayName string `json:"display_name,omitempty"`
