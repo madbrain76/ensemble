@@ -24,7 +24,7 @@ internal static partial class ActorTests
         var app = new Application(TextWriter.Null);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         string output = Path.Combine(temp, "interrupt-ownership");
-        string skills = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "Skills"));
+        string skills = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "skills"));
         var config = new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1");
         var root = new Agent(app, config, outputDirectory: output, skillSpec: new SkillSpec(skills, "ensemble"));
         var peer = new Agent(app, config, outputDirectory: output, name: "peer");

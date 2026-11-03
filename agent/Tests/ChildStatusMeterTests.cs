@@ -12,7 +12,7 @@ internal static partial class MeterTests
         var app = new Application(TextWriter.Null);
         var config = new Configuration(Vendor.Anthropic, "selected-alias", listener.Prefixes.Single());
         string output = Path.Combine(directory, "child-status-meter");
-        string skills = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "Skills"));
+        string skills = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "skills"));
         var root = new Agent(app, config, outputDirectory: output, skillSpec: new SkillSpec(skills, "ensemble"));
         var peer = new Agent(app, config, outputDirectory: output, name: "peer");
         var child = new Agent(app, root, "worker", config, outputDirectory: output);

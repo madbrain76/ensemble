@@ -7,6 +7,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../Gui/Ensemble.Gui.csproj" />
+    <ProjectReference Include="../gui/Ensemble.Gui.csproj" />
   </ItemGroup>
 </Project>

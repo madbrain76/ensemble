@@ -20,7 +20,7 @@ internal static partial class MeterTests
         Directory.CreateDirectory(Path.Combine(directory, "goals"));
         File.WriteAllText(Path.Combine(directory, "base", "SKILL.md"),
             "---\nname: base\ntype: primary\ndescription: Goal fixture\ntools: read_file micro_handoff\nloadable-skills: goals\n---\nInspect before acting.\n$TOOLS\n$SKILLS");
-        string source = Path.Combine(Directory.GetCurrentDirectory(), "agent/Skills/goals/SKILL.md");
+        string source = Path.Combine(Directory.GetCurrentDirectory(), "agent/skills/goals/SKILL.md");
         File.Copy(source, Path.Combine(directory, "goals", "SKILL.md"));
         return directory;
     }

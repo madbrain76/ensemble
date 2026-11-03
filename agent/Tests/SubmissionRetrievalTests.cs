@@ -139,7 +139,7 @@ internal static class SubmissionRetrievalTests
         try
         {
             Agent parent = Parent(app, Path.Combine(directory, "retrieval-tool"), "owner");
-            string skillDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "Skills"));
+            string skillDirectory = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "skills"));
             _ = new Skills(parent, new SkillSpec(skillDirectory, "ensemble"));
             await parent.SkillManager()!.InitializeAsync(deadline.Token);
             Check(parent.ToolEnabled("get_submission")

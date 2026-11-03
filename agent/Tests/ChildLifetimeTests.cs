@@ -135,7 +135,7 @@ internal static partial class ActorTests
         var app = new Application(TextWriter.Null);
         try
         {
-            string skills = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "Skills"));
+            string skills = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFile)!, "..", "skills"));
             var config = new Configuration(Vendor.Anthropic, "fixture",
                 "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port);
             var parent = new Agent(app, config, dataDirectory: Path.Combine(temp, "kill-lifetime"),

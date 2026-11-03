@@ -46,7 +46,7 @@ static class GoalControlsTests
         Directory.CreateDirectory(Path.Combine(skills, "goals"));
         File.WriteAllText(Path.Combine(skills, "base", "SKILL.md"),
             "---\nname: base\ntype: primary\ndescription: Goal GUI fixture\ntools: read_file\nloadable-skills: goals\n---\n$TOOLS\n$SKILLS");
-        File.Copy(Path.Combine(Directory.GetCurrentDirectory(), "agent/Skills/goals/SKILL.md"),
+        File.Copy(Path.Combine(Directory.GetCurrentDirectory(), "agent/skills/goals/SKILL.md"),
             Path.Combine(skills, "goals", "SKILL.md"));
         string file = Path.Combine(directory, "GOAL.md");
         const string secret = "GOAL_BODY_NOT_STATUS";

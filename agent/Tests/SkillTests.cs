@@ -96,7 +96,7 @@ internal static class SkillTests
     public static async Task NativeCodingGuidance()
     {
         string repository = Directory.GetCurrentDirectory();
-        string skillsRoot = Path.Combine(repository, "agent", "Skills");
+        string skillsRoot = Path.Combine(repository, "agent", "skills");
         string nativePath = Path.Combine(skillsRoot, "ensemble-coding", "SKILL.md");
         string repositoryPath = Path.Combine(repository, ".agents", "skills", "ensemble-coding", "SKILL.md");
         var native = Skills.Parse(File.ReadAllText(nativePath), nativePath);
