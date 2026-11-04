@@ -99,6 +99,15 @@ public static partial class Gui
         agent.SetMaxToolRounds(loaded.Budget);
         agent.SetContextByteBudget(loaded.ContextTarget);
         host.UseWebSockets();
+        // Authentication guards assets, controls and the WebSocket upgrade alike, so
+        // it is installed before any route exists. The caller decides whether a
+        // listener is guarded: a mount without a credential path stays open.
+        if (options.AuthPath is { Length: > 0 } requestedAuth)
+        {
+            string authPath = agent.Sandbox().Resolve(requestedAuth);
+            CheckDigestPath(authPath, [settingsPath]);
+            UseDigestAuth(host, authPath);
+        }
         var routes = host.MapGroup(basePath);
 
         // Operation-scoped I/O state. The Agent remains owned by its Ensemble.

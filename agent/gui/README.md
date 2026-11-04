@@ -270,3 +270,17 @@ edits. Root and mounted paths retain the same relative URL behavior.
 Previously cached proxy responses may need one initial purge. Proxy rules that
 ignore origin cache headers must be corrected separately. No application change
 can retroactively alter HTML already held in a proxy or an open browser tab.
+
+## LAN authentication
+
+The GUI listens on loopback and is open to any local process. To require a login
+from anywhere on the LAN, create a private verifier once:
+
+    ./ensemble auth-init [--file path] [--username ensemble] [--data-dir path]
+
+The command prints the generated password exactly once and stores only
+`SHA-256(username:realm:password)`, never the password itself. Authentication
+turns on automatically when that file exists; delete it, or run `auth-reset` to
+replace the credential. Pass `--gui-auth-file` to keep the verifier somewhere
+other than `<data-dir>/gui-auth.json`. Repeated failures from one address back
+off exponentially, and accepted nonces are replay-protected for five minutes.
