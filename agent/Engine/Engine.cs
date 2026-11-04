@@ -85,7 +85,54 @@ public sealed partial class Engine
         Configuration config = owner.BeginEngineSend();
         try
         {
-            return await SendCoreAsync(config, requestBody, cancellation, onChunk);
+            // A degraded endpoint can flood the stream with one repeated character or
+            // phrase. Abandon that attempt while it is still cheap: the bytes are
+            // dropped rather than kept as the answer, and one retry is allowed,
+            // because sampling differs per request. Tool arguments are exempt.
+            var guard = new RunawayGuard();
+            bool collapsed = false;
+            using var attempt = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            Action<Chunk>? watched = WatchRunaway(onChunk, guard, () =>
+            {
+                collapsed = true;
+                attempt.Cancel();
+            });
+            ParsedResponse response;
+            try
+            {
+                response = await SendCoreAsync(config, requestBody, attempt.Token, watched);
+            }
+            catch (OperationCanceledException) when (collapsed
+                && !cancellation.IsCancellationRequested)
+            {
+                // Our own abandonment, not the operator's interrupt.
+                response = new ParsedResponse([], []);
+            }
+            if (!collapsed)
+            {
+                return response;
+            }
+            Parent().Parent().Log("reply repeated itself until the stream was stopped; "
+                + "discarding it and trying once more");
+            var second = new RunawayGuard();
+            bool again = false;
+            using var next = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            Action<Chunk>? retried = WatchRunaway(onChunk, second, () =>
+            {
+                again = true;
+                next.Cancel();
+            });
+            try
+            {
+                return await SendCoreAsync(config, requestBody, next.Token, retried);
+            }
+            catch (OperationCanceledException) when (again
+                && !cancellation.IsCancellationRequested)
+            {
+                // Two collapses in a row is a real fault to report, not a loop to run.
+                return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                    error: "reply repeated the same text until the stream was stopped")], []);
+            }
         }
         finally
         {
