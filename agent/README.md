@@ -1112,3 +1112,13 @@ messages (JSON and SSE), preserving ordinary result content. The failing baselin
 corrected focused tests, clean host builds and repeated 135/135 executable result
 are recorded in the chapter progress entry. A scalar SSE regression confirmed the
 existing malformed-envelope refusal; it required no product change.
+
+## Waking a sleeping provider
+
+A local model server on a powered-down machine can be woken by the first request
+instead of failing it. Pass `--wake-on-lan aa:bb:cc:dd:ee:ff` (or set
+`EN_WAKE_ON_LAN`) with that provider's base URL. Ensemble probes the provider's
+TCP port and answers to ping first, so an awake host is never disturbed; only a
+host that answers neither receives a magic packet, after which the listener is
+awaited for up to 90 seconds. The MAC is validated at launch and never reaches
+provider input, History or logs.

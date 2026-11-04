@@ -28,7 +28,8 @@ public sealed partial class Configuration
         string reasoningSummary,
         bool safeMode,
         bool enableWebSearch,
-        string sandboxRoot)
+        string sandboxRoot,
+        string wakeOnLanMac)
     {
         if (!Enum.IsDefined(vendor))
         {
@@ -66,6 +67,14 @@ public sealed partial class Configuration
         EnableWebSearch = enableWebSearch;
         ArgumentNullException.ThrowIfNull(sandboxRoot);
         SandboxRoot = sandboxRoot;
+        ArgumentNullException.ThrowIfNull(wakeOnLanMac);
+        // Validate the address now: a typo must stop the launch instead of turning
+        // every request into a wake that silently never reaches a sleeping host.
+        if (wakeOnLanMac.Trim().Length != 0 && !Engine.TryWakeMac(wakeOnLanMac, out _))
+        {
+            throw new ArgumentException(WakeOnLanGuidance);
+        }
+        WakeOnLanMac = wakeOnLanMac.Trim();
         Vendor = vendor;
         Model = model;
         ArgumentNullException.ThrowIfNull(account);
@@ -167,6 +176,9 @@ public sealed partial class Configuration
         SafeMode = safeMode;
         EnableWebSearch = enableWebSearch;
         SandboxRoot = sandboxRoot;
+        // The wake address belongs to the provider host, not the model, so a model
+        // switch or a security narrowing must never lose it.
+        WakeOnLanMac = source.WakeOnLanMac;
     }
 
     public partial Configuration WithModel(string model)
@@ -181,7 +193,8 @@ public sealed partial class Configuration
             deferredTools: DeferredTools, stubsToolResults: StubsToolResults,
             cacheBreakpoints: CacheBreakpoints, promptCacheKey: PromptCacheKey,
             surface: Surface, billing: Billing, account: Account,
-            safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot);
+            safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot,
+            wakeOnLanMac: WakeOnLanMac);
     }
 
     internal partial bool AllowsTool(string name)

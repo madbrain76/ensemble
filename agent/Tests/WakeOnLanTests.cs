@@ -1,0 +1,209 @@
+using System.Diagnostics;
+using Ensemble;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+
+
+// Waking a sleeping local provider: the address the operator supplies, the
+// packet that wakes it, and the rule that an awake host is never woken twice.
+internal static class WakeOnLanTests
+{
+    static void Check(bool value, string message)
+    {
+        if (!value)
+        {
+            throw new Exception(message);
+        }
+    }
+
+    static byte[] Mac() => [0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff];
+
+    public static async Task Run(string temp)
+    {
+        // Accepted MAC spellings.
+        foreach (string spelling in new[] { "aa:bb:cc:dd:ee:ff", "AA:BB:CC:DD:EE:FF",
+            "aa-bb-cc-dd-ee-ff", "aabbccddeeff", "  aa:bb:cc:dd:ee:ff  " })
+        {
+            Check(Engine.TryWakeMac(spelling, out byte[]? parsed)
+                && parsed!.SequenceEqual(Mac()), "rejected the MAC spelling " + spelling);
+        }
+        foreach (string bad in new[] { "", "   ", "aa:bb:cc:dd:ee", "aa:bb:cc:dd:ee:ff:00",
+            "zz:bb:cc:dd:ee:ff", "aabbccddeef", "aa:bb:cc:dd:ee:gg", "10.0.0.5" })
+        {
+            Check(!Engine.TryWakeMac(bad, out byte[]? rejected) && rejected is null,
+                "accepted the MAC " + bad);
+        }
+
+        // The magic packet is 6 broadcast bytes then the MAC sixteen times.
+        byte[] packet = Engine.WakePacket(Mac());
+        Check(packet.Length == 102, "magic packet is " + packet.Length + " bytes, not 102");
+        Check(packet.AsSpan(0, 6).ToArray().All(value => value == 0xff),
+            "the magic packet has no broadcast preamble");
+        for (int copy = 0; copy < 16; copy++)
+        {
+            Check(packet.AsSpan(6 + copy * 6, 6).SequenceEqual(Mac()),
+                "the MAC is missing at repetition " + copy);
+        }
+
+        // Endpoint derivation follows the URL, never a guess.
+        foreach ((string url, string host, int port) in new[]
+                 {
+                     ("http://llm:8110/v1", "llm", 8110), ("https://api.example.com/v1", "api.example.com", 443),
+                     ("http://127.0.0.1", "127.0.0.1", 80), ("https://loopback.test:8443", "loopback.test", 8443)
+                 })
+        {
+            Check(Engine.TryProviderEndpoint(url, out ProviderEndpoint? found)
+                && found!.Host == host && found.Port == port,
+                "derived the wrong endpoint from " + url);
+        }
+        foreach (string bad in new[] { "", "not a url", "ftp://llm:8110", "/relative/path" })
+        {
+            Check(!Engine.TryProviderEndpoint(bad, out _), "accepted " + bad);
+        }
+
+        // Configuration validates the MAC at the boundary and keeps it across a
+        // model switch, because the address belongs to the machine, not the model.
+        var configured = new Configuration(Vendor.OpenAI, "gpt-4o", "http://127.0.0.1:8110/v1",
+            wakeOnLanMac: "aa:bb:cc:dd:ee:ff");
+        Check(configured.WakeOnLanMac == "aa:bb:cc:dd:ee:ff", "the configured MAC was lost");
+        Check(configured.WithModel("gpt-4o-mini").WakeOnLanMac == "aa:bb:cc:dd:ee:ff",
+            "a model switch dropped the wake address");
+        try
+        {
+            _ = new Configuration(Vendor.OpenAI, "gpt-4o", "http://127.0.0.1:8110/v1",
+                wakeOnLanMac: "not-a-mac");
+            Check(false, "an invalid wake MAC was accepted");
+        }
+        catch (ArgumentException)
+        {
+        }
+
+        // A listening port is already awake; a closed one is not.
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        int open = ((IPEndPoint)listener.LocalEndpoint).Port;
+        Check(await Engine.TcpReachableAsync(new ProviderEndpoint("127.0.0.1", open),
+                CancellationToken.None), "a listening port was reported unreachable");
+        listener.Stop();
+        Check(!await Engine.TcpReachableAsync(new ProviderEndpoint("127.0.0.1", FreeTcpPort()),
+            CancellationToken.None), "a closed port was reported reachable");
+
+        // The packet really leaves the process.
+        using (var receiver = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0)))
+        {
+            int wakePort = ((IPEndPoint)receiver.Client.LocalEndPoint!).Port;
+            Check(Engine.SendWakePacket("127.0.0.1", Mac(), wakePort, CancellationToken.None),
+                "the magic packet was not delivered");
+            receiver.Client.ReceiveTimeout = 3000;
+            IPEndPoint? sender = null;
+            byte[] arrived = receiver.Receive(ref sender);
+            Check(arrived.SequenceEqual(packet), "the delivered packet is not the magic packet");
+        }
+
+        // ICMP is a hint, not a requirement: it is only asserted where ping exists.
+        if (PingAvailable())
+        {
+            Check(await Engine.IcmpReachableAsync("127.0.0.1", CancellationToken.None),
+                "loopback was not reachable by ping");
+            Check(!await Engine.IcmpReachableAsync("no-such-host.invalid", CancellationToken.None),
+                "an unresolvable host answered ping");
+        }
+
+        // No MAC means no probing at all: the ordinary provider pays nothing.
+        var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(temp, "wake-off"));
+        var agent = new Agent(root, new Configuration(Vendor.OpenAI, "gpt-4o",
+            "http://127.0.0.1:1/v1"), name: "wake-off");
+        var started = Stopwatch.GetTimestamp();
+        await Engine.WakeUnavailableProviderAsync(agent, agent.Configuration(),
+            CancellationToken.None);
+        Check(Stopwatch.GetElapsedTime(started) < TimeSpan.FromSeconds(1),
+            "an unconfigured provider was probed anyway");
+
+        // An awake endpoint is never woken: an open port answers before any probe,
+        // so the operator's machine is not disturbed and nothing is logged.
+        var awake = new TcpListener(IPAddress.Loopback, 0);
+        awake.Start();
+        int awakePort = ((IPEndPoint)awake.LocalEndpoint).Port;
+        var awakeLog = new StringWriter();
+        var awakeRoot = new Ensemble.Ensemble(awakeLog,
+            dataDirectory: Path.Combine(temp, "wake-awake"));
+        var awakeAgent = new Agent(awakeRoot, new Configuration(Vendor.OpenAI, "gpt-4o",
+            $"http://127.0.0.1:{awakePort}/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+            name: "wake-awake");
+        await Engine.WakeUnavailableProviderAsync(awakeAgent, awakeAgent.Configuration(),
+            CancellationToken.None, TimeSpan.FromSeconds(2));
+        awake.Stop();
+        Check(!awakeLog.ToString().Contains("Wake-on-LAN"),
+            "a provider with an open port was woken anyway");
+
+        // A host that answers neither probe is woken, and the wait never claims the
+        // model is ready: if the listener stays closed, that is reported honestly.
+        // 192.0.2.1 is TEST-NET-1: unroutable by reservation, so both probes fail.
+        var asleepLog = new StringWriter();
+        var asleepRoot = new Ensemble.Ensemble(asleepLog,
+            dataDirectory: Path.Combine(temp, "wake-asleep"));
+        var asleepAgent = new Agent(asleepRoot, new Configuration(Vendor.OpenAI, "gpt-4o",
+            "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+            name: "wake-asleep");
+        string failure = "";
+        try
+        {
+            await Engine.WakeUnavailableProviderAsync(asleepAgent,
+                asleepAgent.Configuration(), CancellationToken.None, TimeSpan.FromSeconds(2));
+        }
+        catch (InvalidOperationException error)
+        {
+            failure = error.Message;
+        }
+        string logged = asleepLog.ToString();
+        bool attempted = logged.Contains("Wake-on-LAN", StringComparison.Ordinal);
+        Check(attempted || failure.Contains("no local broadcast route", StringComparison.Ordinal),
+            "a silent provider was neither woken nor reported unreachable: " + failure);
+        if (attempted)
+        {
+            Check(failure.Contains("unreachable after Wake-on-LAN", StringComparison.Ordinal),
+                "a sent wake did not report the listener staying closed: " + failure);
+        }
+
+        // Cancellation must not be swallowed by the wake path.
+        using var cancelled = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+        bool observed = false;
+        try
+        {
+            await Engine.WakeUnavailableProviderAsync(asleepAgent,
+                asleepAgent.Configuration(), cancelled.Token, TimeSpan.FromSeconds(30));
+        }
+        catch (OperationCanceledException)
+        {
+            observed = true;
+        }
+        Check(observed, "the wake path ignored cancellation");
+        Check(!Engine.TryProviderEndpoint("ftp://llm:8110", out _), "a non-HTTP scheme resolved");
+    }
+
+    static int FreeTcpPort()
+    {
+        var probe = new TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+        int port = ((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        return port;
+    }
+
+    static bool PingAvailable()
+    {
+        try
+        {
+            using var process = Process.Start(new ProcessStartInfo(
+                OperatingSystem.IsWindows() ? "ping" : "/bin/ping",
+                OperatingSystem.IsWindows() ? "-n 0" : "-c 0")
+            { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false });
+            return process is not null && process.WaitForExit(3000);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+}
