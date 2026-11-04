@@ -1,12 +1,12 @@
 // Full-page capture-to-draft checks. Requires an isolated --crossover-host.
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base = process.env.GUI_URL || 'http://127.0.0.1:18202/assistant/';
 const url = new URL(base);
 assert.equal(url.hostname, '127.0.0.1');
 assert.ok(!['8088', '8089'].includes(url.port), 'Never exercise live hosts');
 (async () => {
-  const browser = await chromium.launch({ headless:true, channel:'chrome', args:['--autoplay-policy=no-user-gesture-required'] });
+  const browser = await launchBrowser({ headless:true, channel:'chrome', args:['--autoplay-policy=no-user-gesture-required'] });
   const page = await browser.newPage();
   page.setDefaultTimeout(15000);
   const errors=[];

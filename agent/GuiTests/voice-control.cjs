@@ -1,4 +1,4 @@
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -14,7 +14,7 @@ const server = http.createServer((req, res) => {
   let browser;
   try {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-    browser = await chromium.launch({ headless: true, channel: 'chrome' });
+    browser = await launchBrowser({ headless: true, channel: 'chrome' });
     for (const mode of ['funding', 'untrusted', 'pointer', 'keyboard', 'draft', 'selection', 'blur', 'uncertain', 'failed']) {
       const page = await browser.newPage(); const errors = [];
       page.on('pageerror', error => errors.push(error.message));

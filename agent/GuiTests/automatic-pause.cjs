@@ -1,5 +1,5 @@
 // Real isolated GUI, actor and sockets; only native speech is simulated.
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base = 'http://127.0.0.1:18202/assistant/';
 async function nativeSpeech() {
@@ -20,7 +20,7 @@ async function nativeSpeech() {
     window.testSpeech = engine;
 }
 (async () => {
-    const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+    const browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
     const context = await browser.newContext();
     context.setDefaultTimeout(8000);
     await context.addInitScript(nativeSpeech);

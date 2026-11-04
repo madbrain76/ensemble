@@ -1,6 +1,6 @@
 // Run from an isolated fixture workspace after starting --crossover-host. This is a
 // real-browser consumer of the mounted, embedded GUI, not a fake WebSocket UI.
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
@@ -10,7 +10,7 @@ const evidence = path.join(root, '.crossover/evidence');
 const base = 'http://127.0.0.1:18202/assistant/';
 const check = (condition, message) => { assert.ok(condition, message); console.log('PASS '+message); };
 (async () => {
- const context = await chromium.launchPersistentContext(path.join(root,'.crossover/profile-browser'), {
+ const context = await launchPersistentProfile(path.join(root,'.crossover/profile-browser'), {
   executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless:true,
   viewport:{width:1600,height:1000},
   args:['--no-first-run','--disable-background-networking']

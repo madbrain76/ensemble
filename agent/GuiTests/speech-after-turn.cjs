@@ -2,7 +2,7 @@
 // Start GuiTests.dll --crossover-host in an isolated working directory first.
 // DISPOSABLE HOST ONLY: setup explicitly resumes its captain/worker fixtures.
 // PLAYWRIGHT_MODULE may identify an existing installation; no download is done.
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base = process.env.GUI_FIXTURE_URL || 'http://127.0.0.1:18202/assistant/';
 const target = new URL(base);
@@ -28,7 +28,7 @@ async function nativeSpeech() {
 }
 // Real streamed turn, real actor status, controlled native speech only.
 (async () => {
-    const browser = await chromium.launch({
+    const browser = await launchBrowser({
         executablePath: process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         headless: true
     });

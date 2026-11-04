@@ -1,7 +1,7 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const asset = path.resolve(__dirname, '../gui/wwwroot/page-capture.js');
 function source() {
   let text = fs.readFileSync(asset, 'utf8');
@@ -30,7 +30,7 @@ const server = http.createServer((req, res) => {
   let browser;
   try {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-    browser = await chromium.launch({headless: true, channel: 'chrome', args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio']});
+    browser = await launchBrowser({headless: true, channel: 'chrome', args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio']});
     const page = await browser.newPage();
     page.setDefaultTimeout(10000);
     const errors = [];

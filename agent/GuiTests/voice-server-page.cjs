@@ -1,10 +1,10 @@
 // Real page, PCM recorder, WebSocket, lease, transcription client and Agent.
 // VoiceBrowserFixture supplies only bounded fake HTTP providers.
-const {chromium} = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base = 'http://127.0.0.1:18202/assistant/';
 (async () => {
-  const browser = await chromium.launch({headless:true, channel:'chrome'});
+  const browser = await launchBrowser({headless:true, channel:'chrome'});
   const page = await browser.newPage(); page.setDefaultTimeout(15000);
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   try {

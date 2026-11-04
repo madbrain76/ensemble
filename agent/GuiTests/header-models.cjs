@@ -1,5 +1,5 @@
 // Static DOM checks only: no Agent, socket, credential, or model request.
-const {chromium}=require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const fs=require('node:fs'), http=require('node:http'), path=require('node:path'), assert=require('node:assert/strict'), os=require('node:os');
 const root=path.resolve(__dirname,'../gui/wwwroot');
 const artifacts=process.env.GUI_ARTIFACT_DIR || fs.mkdtempSync(path.join(require('node:os').tmpdir(),'ensemble-header-'));
@@ -10,7 +10,7 @@ const current=fs.readFileSync(path.join(root,'style.css'),'utf8');
  const server=http.createServer((req,res)=>{const name=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const p=path.join(root,name==='/'?'index.html':name);if(!p.startsWith(root+'/')){res.writeHead(403).end();return;}try{const data=fs.readFileSync(p);res.setHeader('Content-Type',p.endsWith('.css')?'text/css':p.endsWith('.svg')?'image/svg+xml':p.endsWith('.html')?'text/html':p.endsWith('.png')?'image/png':'application/octet-stream');res.end(p.endsWith('/style.css')?old:data);}catch{res.writeHead(404).end();}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
- browser=await chromium.launch({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});const page=await browser.newPage();
+ browser=await launchBrowser({executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});const page=await browser.newPage();
  await page.route('**/*.js',r=>r.abort()); // Static layout only: no app connection or model requests.
 
  const renderSource=fs.readFileSync(path.join(root,'app.js'),'utf8');

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const title = 'Owned Ensemble Native Capture Fixture';
 const html = `<!doctype html><title>${title}</title><style>html,body{margin:0;width:100%;height:100%;background:linear-gradient(to right,#f00 50%,#00f 50%)}button{position:absolute;top:8px;left:8px}</style><button id="capture">Capture this fixture</button><script type="module">
 import {PageCapture} from './page-capture.js';
@@ -27,7 +27,7 @@ const server = http.createServer((req,res) => {
  let browser;
  try {
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  browser=await chromium.launch({headless:true,channel:'chrome',args:['--auto-accept-this-tab-capture','--autoplay-policy=no-user-gesture-required','--mute-audio']});
+  browser=await launchBrowser({headless:true,channel:'chrome',args:['--auto-accept-this-tab-capture','--autoplay-policy=no-user-gesture-required','--mute-audio']});
   const page=await browser.newPage({viewport:{width:640,height:360}});
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   await page.click('#capture');

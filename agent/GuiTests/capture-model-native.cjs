@@ -1,10 +1,10 @@
 // Native capture -> real Agent tool result -> loopback model -> History replay.
-const {chromium}=require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
 const home=process.env.CAPTURE_FIXTURE_DIR;assert.ok(home,'CAPTURE_FIXTURE_DIR required');
 const base='http://127.0.0.1:18202/assistant/';
 (async()=>{
-  const browser=await chromium.launch({headless:true,channel:'chrome',args:['--auto-accept-this-tab-capture','--autoplay-policy=no-user-gesture-required','--mute-audio']});
+  const browser=await launchBrowser({headless:true,channel:'chrome',args:['--auto-accept-this-tab-capture','--autoplay-policy=no-user-gesture-required','--mute-audio']});
   const page=await browser.newPage({viewport:{width:960,height:640}});page.setDefaultTimeout(15000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   const status=()=>JSON.parse(fs.readFileSync(path.join(home,'status.json'),'utf8'));

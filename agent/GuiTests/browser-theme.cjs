@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const script = fs.readFileSync(path.join(__dirname, '../gui/wwwroot/theme.js'));
 const html = '<button id="theme-toggle"><svg><use></use></svg></button><select id="theme"><option>system</option><option>dark</option><option>light</option></select><script src="/theme.js"></script>';
 const server = http.createServer((req, res) => {
@@ -14,7 +14,7 @@ const server = http.createServer((req, res) => {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     let browser;
     try {
-        browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+        browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
         const context = await browser.newContext({ colorScheme: 'light' });
         const url = `http://127.0.0.1:${server.address().port}`;
         const first = await context.newPage(); await first.goto(url);

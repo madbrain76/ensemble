@@ -1,12 +1,12 @@
 // Native this-tab capture through the real GUI, on an owned synthetic host only.
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base=process.env.GUI_URL || 'http://127.0.0.1:18202/assistant/';
 const url=new URL(base);
 assert.equal(url.hostname,'127.0.0.1');
 assert.ok(!['8088','8089'].includes(url.port),'Never capture a live host');
 (async()=>{
-  const browser=await chromium.launch({headless:true,channel:'chrome',args:['--auto-accept-this-tab-capture','--autoplay-policy=no-user-gesture-required','--mute-audio']});
+  const browser=await launchBrowser({headless:true,channel:'chrome',args:['--auto-accept-this-tab-capture','--autoplay-policy=no-user-gesture-required','--mute-audio']});
   const page=await browser.newPage({viewport:{width:960,height:640}});
   page.setDefaultTimeout(15000);
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
