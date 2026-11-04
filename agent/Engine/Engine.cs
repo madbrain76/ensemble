@@ -99,6 +99,20 @@ public sealed partial class Engine
         // immutable value prepared before this worker starts; hints arriving
         // during HTTP cannot change the bytes of the request already admitted.
         cancellation.ThrowIfCancellationRequested();
+        // An operator who does not want to watch a channel should not have to see it
+        // arrive. Filtered chunks are still published in full by the settled result,
+        // so the selection can never hide part of the answer.
+        if (config.Streams != StreamChannel.All && onChunk is not null)
+        {
+            Action<Chunk> accepted = onChunk;
+            onChunk = chunk =>
+            {
+                if (StreamSelected(config.Streams, chunk.Kind))
+                {
+                    accepted(chunk);
+                }
+            };
+        }
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint(config));
         request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

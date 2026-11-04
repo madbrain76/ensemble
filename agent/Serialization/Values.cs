@@ -17,6 +17,7 @@ public sealed partial class Configuration
         int toolRoundLimit,
         string primaryInstructions,
         bool disableStreaming,
+        string stream,
         bool deferredTools,
         bool stubsToolResults,
         bool cacheBreakpoints,
@@ -139,6 +140,7 @@ public sealed partial class Configuration
         ToolRoundLimit = toolRoundLimit == 0 ? 200 : toolRoundLimit;
         RequireToolExplanation = requireToolExplanation || features.RequireToolExplanation;
         DisableStreaming = disableStreaming;
+        Streams = Engine.ParseStream(stream);
         ResolvedModel = string.IsNullOrEmpty(resolvedModel) ? model : resolvedModel;
     }
 
@@ -167,6 +169,8 @@ public sealed partial class Configuration
         SafeMode = safeMode;
         EnableWebSearch = enableWebSearch;
         SandboxRoot = sandboxRoot;
+        // Delivery selection belongs to the launch, not the model.
+        Streams = source.Streams;
     }
 
     public partial Configuration WithModel(string model)
@@ -181,7 +185,8 @@ public sealed partial class Configuration
             deferredTools: DeferredTools, stubsToolResults: StubsToolResults,
             cacheBreakpoints: CacheBreakpoints, promptCacheKey: PromptCacheKey,
             surface: Surface, billing: Billing, account: Account,
-            safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot);
+            safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot,
+            stream: Engine.StreamName(Streams));
     }
 
     internal partial bool AllowsTool(string name)
