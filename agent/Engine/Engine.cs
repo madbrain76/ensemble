@@ -93,7 +93,7 @@ public sealed partial class Engine
         }
     }
 
-    private partial async Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody, CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary)
+    private partial async Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody, CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary, int toolRetries)
     {
         // Configuration remains authoritative on the parent. The body is an
         // immutable value prepared before this worker starts; hints arriving
@@ -198,6 +198,22 @@ public sealed partial class Engine
             // Meter completed transport even when its text cannot authorize a
             // memory write or recall verdict. Incomplete specialized replies do
             // not reach their caller as success; ordinary acceptance is unchanged.
+            if (toolRetries < 1 && parsed.ToolCallCapped
+                && LargerOutputBudget(requestBody, out string wider))
+            {
+                // A tool call cut off by the cap is complete at a larger one, and its
+                // partial arguments are never dispatched: the retry replaces the whole
+                // attempt rather than finishing a call the model never got to write.
+                Parent().Parent().Log("tool call reached its output limit; retrying once "
+                    + "with a larger budget");
+                return await SendCoreAsync(config, wider, cancellation, onChunk, auxiliary,
+                    toolRetries: 1);
+            }
+            if (parsed.ToolCallCapped)
+            {
+                return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                    error: "tool call reached its output limit before it could finish")], []);
+            }
             if (parsed.IncompleteOutput)
             {
                 return new ParsedResponse([new Event(EventKind.ErrorOccurred,

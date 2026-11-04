@@ -10,7 +10,7 @@ public sealed record Chunk(int PartID, ChunkKind Kind, string Text = "",
     string ToolName = "", string ArgsText = "");
 public sealed record ParsedResponse(ImmutableArray<Event> Events,
     ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null,
-    bool IncompleteOutput = false);
+    bool IncompleteOutput = false, bool ToolCallCapped = false);
 
 public sealed partial class Engine
 {

@@ -216,8 +216,11 @@ public sealed partial class Engine
     public partial Task<ParsedResponse> SendAsync(string requestBody, CancellationToken cancellation = default,
         Action<Chunk>? onChunk = null);
 
+    // toolRetries bounds the one larger-budget retry a truncated tool call earns,
+    // so a reply that stays capped cannot recurse through the ceiling.
     private partial Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody,
-        CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary = false);
+        CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary = false,
+        int toolRetries = 0);
 
     // Keep credential failures token-free on initial acquisition and 401 renewal.
     private partial Task<string> PlanBearerAsync(string? rejectedBearer, CancellationToken cancellation);

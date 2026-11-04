@@ -61,7 +61,8 @@ public sealed partial class Engine
                 }
             }
             return new ParsedResponse(events, ids.ToImmutable(), earlyTool, billing,
-                requireComplete && IncompleteOutput(config, body));
+                requireComplete && IncompleteOutput(config, body),
+                ToolCallCapped(config, body, events));
         }
 
         if (config.Surface == Surface.Responses)
@@ -167,8 +168,10 @@ public sealed partial class Engine
             {
                 throw new FormatException("Final part identity mismatch");
             }
+            string settled = completed.ToJsonString();
             return new ParsedResponse(events, state.Order.ToImmutableArray(), state.ToolBeforeText, billing,
-                requireComplete && IncompleteOutput(config, completed.ToJsonString()));
+                requireComplete && IncompleteOutput(config, settled),
+                ToolCallCapped(config, settled, events));
         }
         catch (Exception error) when (error is JsonException or FormatException or InvalidOperationException
             or ArgumentException or KeyNotFoundException or OverflowException)
