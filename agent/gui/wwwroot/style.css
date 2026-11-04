@@ -342,3 +342,6 @@ body.compact #transcript { padding: .3rem; }
 
 /* Explicitly preserve hidden-card semantics if card layout styles change. */
 #transcript .part[hidden] { display: none; }
+
+/* One split per exchange: total wall time with the model/tool/other breakdown. */
+.turn-timing { font-size: 0.78rem; opacity: 0.7; margin: 0.35rem 0 0.6rem; font-variant-numeric: tabular-nums; }
