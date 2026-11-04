@@ -342,3 +342,6 @@ body.compact #transcript { padding: .3rem; }
 
 /* Explicitly preserve hidden-card semantics if card layout styles change. */
 #transcript .part[hidden] { display: none; }
+
+/* When each artifact began and how long production took; host-authored, never model markup. */
+.card-timing { font-size: 0.75rem; opacity: 0.65; margin: 0 0 0.25rem; }
