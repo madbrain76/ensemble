@@ -312,6 +312,32 @@ function cardFor(id) {
     cards.set(id, card);
     return card;
 }
+// A work product the Agent offered becomes one labelled link. The descriptor is
+// published by the tool; the browser never composes a path of its own.
+function downloadOffer(card) {
+    for (const part of card.parts || []) {
+        const text = part?.text || "";
+        if (!text.startsWith("{\"download\":")) continue;
+        let offer;
+        try { offer = JSON.parse(text).download; } catch (error) { return null; }
+        if (!offer?.name || !offer?.path) return null;
+        const link = document.createElement("a");
+        link.className = "btn btn-quiet btn-sm download-offer";
+        link.href = `download?agent=${encodeURIComponent(agentID || "")}`
+            + `&path=${encodeURIComponent(offer.path)}&download=1`;
+        link.download = offer.name;
+        let size = "";
+        if (typeof offer.size === "number" && offer.size > 0) {
+            size = offer.size < 1048576
+                ? ` (${Math.max(1, Math.round(offer.size / 1024))} KiB)`
+                : ` (${(offer.size / 1048576).toFixed(1)} MiB)`;
+        }
+        link.textContent = `Download ${offer.name}${size}`;
+        return link;
+    }
+    return null;
+}
+
 function media(parent, part, card) {
     if (part.type === "tool_result") {
         for (const child of part.parts || []) media(parent, child, card);
@@ -516,6 +542,8 @@ function render(card) {
         card.node.append(details);
     }
     for (const part of card.parts || []) media(card.node, part, card);
+    const offer = downloadOffer(card);
+    if (offer && !card.node.querySelector(":scope > .download-offer")) card.node.append(offer);
     fullOutputLinks(card);
     pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
 }

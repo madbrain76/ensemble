@@ -342,3 +342,6 @@ body.compact #transcript { padding: .3rem; }
 
 /* Explicitly preserve hidden-card semantics if card layout styles change. */
 #transcript .part[hidden] { display: none; }
+
+/* One link per offered work product; the label carries the name and size. */
+.download-offer { margin: 0.35rem 0 0.5rem; align-self: flex-start; }
