@@ -35,4 +35,8 @@ public sealed partial class Engine
     // keeps its established behavior; transport is metered before refusing an
     // incomplete auxiliary result, even when its text looks syntactically valid.
     private static partial bool IncompleteOutput(Configuration config, string body);
+    // True only when the provider said the reply ran out of output tokens. Absence
+    // of an answer is not the same claim: a model may legitimately answer empty, and
+    // retrying that would double every such exchange for nothing.
+    private static partial bool OutputCapped(Configuration config, string body);
 }
