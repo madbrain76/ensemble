@@ -72,7 +72,7 @@ public sealed partial class Configuration
         ArgumentNullException.ThrowIfNull(apiKey);
         ArgumentNullException.ThrowIfNull(reasoningEffort);
         ArgumentNullException.ThrowIfNull(reasoningSummary);
-        Engine.LookupModel(vendor, model, out var features);
+        bool listed = Engine.LookupModel(vendor, model, out var features);
         Surface = surface ?? (features.ResponsesOnly ? Surface.Responses : vendor switch
         {
             Vendor.Anthropic => Surface.Messages,
@@ -90,14 +90,22 @@ public sealed partial class Configuration
         {
             throw new ArgumentException("Selected model requires Responses for function tools");
         }
-        // A model row permits options; a vendor name or an observed summary does not.
-        bool supportsReasoning = Surface == Surface.Responses
+        // A model row permits options; a vendor name or an observed summary does
+        // not. A model the table does not name at all is a different case: the
+        // table is silent about it rather than negative, so the endpoint is asked
+        // and answers for itself. Only the effort is delegated, because that is
+        // the one field the provider check probes; a summary stays table-gated.
+        bool supportsReasoning = listed && Surface == Surface.Responses
             && !features.ReasoningEfforts.IsDefaultOrEmpty;
-        if (!supportsReasoning && (reasoningEffort.Length != 0 || reasoningSummary.Length != 0))
+        bool endpointDecides = !listed && vendor == Vendor.OpenAI
+            && reasoningEffort.Length != 0 && reasoningSummary.Length == 0;
+        if (!supportsReasoning && !endpointDecides
+            && (reasoningEffort.Length != 0 || reasoningSummary.Length != 0))
         {
             throw new ArgumentException("Reasoning options are not verified for this selected model and surface");
         }
-        string effort = supportsReasoning ? (reasoningEffort.Length == 0 ? "medium" : reasoningEffort) : "";
+        string effort = supportsReasoning ? (reasoningEffort.Length == 0 ? "medium" : reasoningEffort)
+            : endpointDecides ? reasoningEffort : "";
         string summary = supportsReasoning ? (reasoningSummary.Length == 0 ? "auto" : reasoningSummary) : "";
         if (supportsReasoning && !features.ReasoningEfforts.Contains(effort))
         {

@@ -220,6 +220,21 @@ try
     agent.History().StartLog(log);
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
+    // Ask the endpoint before the first turn whether it will honour the requested
+    // reasoning effort. A refusal is a launch mistake, so it stops here rather than
+    // advertising a capability the provider denied. The refusal is the provider's
+    // own words about a field the operator chose, so it is printed deliberately:
+    // the handler below keeps unrecognized exception text private on purpose, and
+    // without this line the operator would only ever see a type name.
+    try
+    {
+        await agent.Engine().ValidateReasoningEffortAsync(CancellationToken.None);
+    }
+    catch (InvalidOperationException refusal)
+    {
+        Console.Error.WriteLine(refusal.Message);
+        throw;
+    }
     var guiOptions = new GuiOptions(
         Port: hostFlags.TryGetValue("--port", out var portText)
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,

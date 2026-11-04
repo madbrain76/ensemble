@@ -587,9 +587,21 @@ internal static class ResponsesTests
                     "another Agent inherited reasoning policy");
                 other.Destroy();
                 Refuses(() => new Configuration(Vendor.OpenAI, model, "http://127.0.0.1:1",
-                    surface: Surface.Responses, reasoningEffort: "medium"));
-                Refuses(() => new Configuration(Vendor.OpenAI, model, "http://127.0.0.1:1",
                     surface: Surface.Responses, reasoningSummary: "auto"));
+            }
+            // A row is a real negative: gpt-4o-mini is known and lists no verified
+            // reasoning, so it keeps refusing an effort. A model the table does not
+            // name at all is silence rather than refusal, so the requested value is
+            // passed through for the endpoint to accept or reject.
+            Refuses(() => new Configuration(Vendor.OpenAI, "gpt-4o-mini", "http://127.0.0.1:1",
+                surface: Surface.Responses, reasoningEffort: "medium"));
+            foreach (string unlisted in new[] { "unknown-reasoning-model", "gpt-6-astra-other" })
+            {
+                var delegated = new Agent(app, new Configuration(Vendor.OpenAI, unlisted,
+                    "http://127.0.0.1:1", surface: Surface.Responses, reasoningEffort: "medium"));
+                Check(delegated.Configuration().ReasoningEffort == "medium",
+                    "unlisted model could not request a reasoning effort");
+                delegated.Destroy();
             }
             Refuses(() => new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", reasoningEffort: "none"));
             Refuses(() => new Configuration(Vendor.OpenAI, "gpt-6-astra", "http://127.0.0.1:1", reasoningSummary: "detailed"));
