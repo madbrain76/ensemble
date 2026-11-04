@@ -10,6 +10,30 @@ const collapsedAgents = new Set();
 let socket;
 let agentID = null; // Display identity changes only on admitted replay.
 let agentRows = []; // Bounded server tree projection, not a client Agent registry.
+// Sibling order is this browser's arrangement only: the parent relationship stays
+// the server's, and a drop anywhere but among its own siblings is refused.
+const agentOrderKey = "ensemble.agentOrder.v1";
+let agentOrder = {};
+try { agentOrder = JSON.parse(localStorage.getItem(agentOrderKey) || "{}") || {}; }
+catch (error) { agentOrder = {}; }
+function siblings(parent) {
+    const wanted = parent ?? null;
+    const order = agentOrder[wanted ?? ""] || [];
+    return agentRows.filter(row => (row.parent ?? null) === wanted)
+        .slice()
+        .sort((left, right) => {
+            const a = order.indexOf(left.key), b = order.indexOf(right.key);
+            if (a === b) return 0;
+            if (a < 0) return 1;
+            if (b < 0) return -1;
+            return a - b;
+        });
+}
+function rememberOrder(parent, keys) {
+    agentOrder[parent ?? ""] = keys;
+    try { localStorage.setItem(agentOrderKey, JSON.stringify(agentOrder)); }
+    catch (error) { /* Session-only arrangement when storage is blocked. */ }
+}
 let reconnectTimer;
 let replaying = false;
 let activeSpeech = null;
@@ -1148,7 +1172,7 @@ function renderAgentTree() {
     const focused = tree.contains(document.activeElement) ? document.activeElement.dataset.agent : null;
     tree.replaceChildren();
     function add(row, group, level = 1) {
-        const children = row.key == null ? [] : agentRows.filter(child => child.parent === row.key);
+        const children = row.key == null ? [] : siblings(row.key);
         const item = document.createElement("li");
         item.setAttribute("role", "treeitem");
         item.setAttribute("aria-level", String(level));
@@ -1219,15 +1243,35 @@ function renderAgentTree() {
             visible[next].focus();
         };
         line.append(choose);
-        if (row.can_delete) {
-            const remove = document.createElement("button");
-            remove.type = "button";
-            remove.className = "btn tree-delete icon-button";
-            remove.dataset.deleteAgent = row.key;
-            remove.setAttribute("aria-label", `Delete ${row.id}`);
-            remove.title = `Delete ${row.key}; saved files will remain`;
-            remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg>';
-            line.append(remove);
+        if (row.key != null) {
+            line.draggable = true;
+            line.dataset.dragAgent = row.key;
+            line.dataset.dragParent = row.parent ?? "";
+            line.ondragstart = event => {
+                event.dataTransfer.setData("text/ensemble-agent", row.key);
+                event.dataTransfer.effectAllowed = "move";
+            };
+            line.ondragover = event => {
+                if (!sameParentDrop(event, line)) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = "move";
+                line.classList.add("tree-drop");
+            };
+            line.ondragleave = () => line.classList.remove("tree-drop");
+            line.ondrop = event => {
+                line.classList.remove("tree-drop");
+                const moved = event.dataTransfer.getData("text/ensemble-agent");
+                if (!moved || moved === row.key || moved === row.parent) return;
+                const group = siblings(row.parent);
+                const from = group.findIndex(entry => entry.key === moved);
+                if (from < 0) return; // Not a sibling: refuse to move it here.
+                event.preventDefault();
+                const [dragged] = group.splice(from, 1);
+                const target = group.findIndex(entry => entry.key === row.key);
+                group.splice(target < 0 ? group.length : target, 0, dragged);
+                rememberOrder(row.parent, group.map(entry => entry.key));
+                renderAgentTree();
+            };
         }
         item.append(line);
         if (children.length) {
@@ -1239,10 +1283,70 @@ function renderAgentTree() {
         }
         group.append(item);
     }
-    for (const row of agentRows.filter(row => row.parent == null)) add(row, tree);
+    for (const row of siblings(null)) add(row, tree);
+    updateAgentActions();
     if (!tree.querySelector('[tabindex="0"]')) tree.querySelector(".tree-select:not(:disabled)")?.setAttribute("tabindex", "0");
     if (focused != null) tree.querySelector(`[data-agent="${CSS.escape(focused)}"]`)?.focus();
 }
+
+function sameParentDrop(event, line) {
+    // The payload is often unreadable during dragover, so accept the hover and
+    // verify the real parent on drop rather than blocking the gesture outright.
+    return line.dataset.dragAgent !== undefined;
+}
+
+function selectedRow() {
+    return agentRows.find(row => row.key === agentID) || null;
+}
+
+// One set of controls, applied to whichever Agent is selected, instead of a copy of
+// the same button on every row.
+function updateAgentActions() {
+    const bar = document.querySelector("#agent-actions");
+    if (!bar) return;
+    const row = selectedRow();
+    const remove = bar.querySelector("button[data-delete-agent]");
+    if (row && row.can_delete) {
+        remove.dataset.deleteAgent = row.key;
+        remove.disabled = false;
+        remove.title = `Delete ${row.key}; saved files will remain`;
+    } else {
+        delete remove.dataset.deleteAgent;
+        remove.disabled = true;
+        remove.title = "Select a deletable Agent first";
+    }
+}
+
+// Alt+Shift+Arrow walks the tree. Plain arrows stay with the rows, Alt+Arrow belongs
+// to Firefox history and Ctrl+Shift+Arrow to word selection, and an editable target
+// keeps its keys, so a typing operator never loses an edit to navigation.
+document.addEventListener("keydown", event => {
+    if (!event.altKey || !event.shiftKey || event.ctrlKey || event.metaKey) return;
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    const target = event.target;
+    if (target && (target.isContentEditable
+        || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+    const visible = [...document.querySelectorAll("#agent-tree .tree-select:not(:disabled)")];
+    if (visible.length < 2) return;
+    event.preventDefault();
+    // Continue from wherever the operator is looking, not from the selected row:
+    // pressing the shortcut twice should move two rows, even while a selection
+    // change is still in flight.
+    const active = document.activeElement;
+    let index = visible.indexOf(active);
+    if (index < 0) index = visible.findIndex(button => button.dataset.agent === agentID);
+    if (index < 0) index = 0;
+    index = event.key === "ArrowDown"
+        ? Math.min(index + 1, visible.length - 1)
+        : Math.max(index - 1, 0);
+    const next = visible[index].dataset.agent;
+    if (next && next !== agentID) selectAgent(next);
+    // Selecting may re-render the tree, which would leave a node captured before the
+    // call detached and unfocusable, so resolve the row again afterwards.
+    const focusTarget = document.querySelector(`#agent-tree [data-agent="${CSS.escape(next)}"]`)
+        || visible[index];
+    focusTarget?.focus();
+});
 
 connect();
 

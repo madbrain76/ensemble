@@ -234,7 +234,9 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(Math.abs(treeGeometry.root.left-treeGeometry.peer.left)<1,'leaf and branch roots align');
   check(treeGeometry.child.left-treeGeometry.root.left>=18&&treeGeometry.grandchild.left-treeGeometry.child.left>=18,'child and grandchild have clear indentation');
   check(treeGeometry.child.level===2&&treeGeometry.grandchild.level===3,'tree exposes nesting levels');
-  check(await page.locator('[data-delete-agent="captain"]').count()===0,'mounted root has no trash action');
+  check(await page.locator('#agent-tree [data-delete-agent]').count()===0,'one action set replaces the per-row trash buttons');
+  check(await page.locator('#agent-actions button[data-delete-agent]').count()===0,'mounted root has no trash action');
+  check(await page.locator('#agent-actions button[aria-label="Delete selected Agent"]').isDisabled(),'the shared delete control is inert for the mounted root');
   check(await page.locator('#peer-delete,#peer-delete-confirm').count()===0,'standalone delete controls removed');
   check(await page.locator('#agent-choice').isHidden(),'tree is the only visible conversation selector');
   check((await page.locator('[data-agent="captain/retained"] .tree-state').innerText()).includes('submitted'),'submitted child remains visible with result status');
@@ -253,13 +255,18 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(await page.locator('[data-agent="captain/worker/nested"]').isVisible(),'branch re-expands');
   await page.locator('[data-agent="captain/retained"]').click();
   await page.waitForFunction(()=>document.querySelector('#agent-choice').value==='captain/retained'&&!document.querySelector('#send').disabled);
-  page.once('dialog',dialog=>dialog.dismiss());await page.locator('[data-delete-agent="captain/retained"]').click();
+  // The shared control targets whichever Agent is selected, and still confirms.
+  const trash=()=>page.locator('#agent-actions button[data-delete-agent]');
+  await page.waitForFunction(()=>document.querySelector('#agent-actions button[data-delete-agent="captain/retained"]'));
+  page.once('dialog',dialog=>dialog.dismiss());await trash().click();
   check(await page.locator('[data-agent="captain/retained"]').count()===1,'canceling deletion preserves child');
-  page.once('dialog',dialog=>dialog.accept());await page.locator('[data-delete-agent="captain/retained"]').click();
+  page.once('dialog',dialog=>dialog.accept());await trash().click();
   await page.waitForFunction(()=>!document.querySelector('[data-agent="captain/retained"]')&&document.querySelector('#agent-choice').value==='captain');
   check((await page.locator('#peer-notice').innerText()).includes('saved files retained'),'child deletion acknowledges retained files');
   check(fs.existsSync(JSON.parse(fs.readFileSync(path.join(root,'.crossover/runtime/fixture.json'),'utf8')).retainedArtifact),'child deletion actually retains submit.md');
-  page.once('dialog',dialog=>dialog.accept());await page.locator('[data-delete-agent="tree-created"]').click();
+  await page.locator('[data-agent="tree-created"]').click();
+  await page.waitForFunction(()=>document.querySelector('#agent-actions button[data-delete-agent="tree-created"]'));
+  page.once('dialog',dialog=>dialog.accept());await page.locator('#agent-actions button[data-delete-agent="tree-created"]').click();
   await page.waitForFunction(()=>!document.querySelector('[data-agent="tree-created"]'));
   console.log('PASS real tree hierarchy, collapse persistence, retained submission, creation dialog, and guarded row deletion');
   await page.locator('#left-splitter').focus(); const before=await page.locator('#left-splitter').getAttribute('aria-valuenow');

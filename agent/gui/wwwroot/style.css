@@ -342,3 +342,8 @@ body.compact #transcript { padding: .3rem; }
 
 /* Explicitly preserve hidden-card semantics if card layout styles change. */
 #transcript .part[hidden] { display: none; }
+
+/* One action toolbar for the selected Agent, and the drop target while arranging siblings. */
+.agent-actions { display: flex; gap: 0.25rem; padding: 0.25rem 0.5rem; }
+.tree-row[draggable="true"] { cursor: grab; }
+.tree-row.tree-drop { outline: 2px dashed currentColor; outline-offset: -2px; }
