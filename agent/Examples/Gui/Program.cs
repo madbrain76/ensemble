@@ -52,14 +52,14 @@ try
         }
         if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host") || i + 1 >= args.Length)
         {
-            throw new ArgumentException("Unknown or incomplete GUI flag");
+            throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
         string value = args[++i];
         if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
-                throw new ArgumentException("Missing route/account option value");
+                throw new LaunchFlagException("Missing route/account option value for " + flag);
             }
         }
         if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings" or "--gui-auth-file" or "--host")
@@ -312,15 +312,26 @@ static void ReportFailure(string prefix, Exception error)
     var causes = new Stack<Exception>();
     causes.Push(error);
     bool addressInUse = false;
-    // Composition joins the serving and fleet-restore tasks, so the guidance can
-    // arrive wrapped rather than outermost: a refused bind inside an
-    // AggregateException must still be readable.
-    string? bindGuidance = null;
+    // Composition joins the serving and fleet-restore tasks, so a wrapper alone
+    // identifies nothing. Type names carry no private text, so the whole chain is
+    // always safe to print, and operator guidance can arrive wrapped rather than
+    // outermost.
+    var chain = new List<string>();
+    string? guidance = null;
     while (causes.TryPop(out var cause))
     {
-        if (cause is GuiBindRefusalException refused)
+        string name = cause.GetType().Name;
+        if (!chain.Contains(name))
         {
-            bindGuidance = refused.Message;
+            chain.Add(name);
+        }
+        if (guidance is null && cause is LaunchFlagException rejected)
+        {
+            guidance = rejected.Message;
+        }
+        if (guidance is null && cause is GuiBindRefusalException refused)
+        {
+            guidance = refused.Message;
         }
         if (cause is System.Net.Sockets.SocketException socket
             && socket.SocketErrorCode == System.Net.Sockets.SocketError.AddressAlreadyInUse)
@@ -341,15 +352,10 @@ static void ReportFailure(string prefix, Exception error)
     }
     string advice = addressInUse
         ? "Loopback port is already in use. Choose an unused --port; do not stop its owner."
-        : (object?)bindGuidance is string shown
-            // Fixed operator guidance, not provider or filesystem text: this is
-            // the one message the privacy-preserving handler must still show, or
-            // the refused bind reads like an unexplained crash.
-            ? shown
-            : error is ArgumentException or FormatException or OverflowException
-                ? "Invalid launch configuration. Check supported flags and value formats."
-                : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
-    Console.Error.WriteLine($"{prefix}: {error.GetType().Name}. {advice}");
+        : guidance ?? (error is ArgumentException or FormatException or OverflowException
+            ? "Invalid launch configuration. Check supported flags and value formats."
+            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.");
+    Console.Error.WriteLine($"{prefix}: {string.Join(" -> ", chain)}. {advice}");
 }
 
 
@@ -389,4 +395,15 @@ static string ReadTranscriptionKey(string path)
         || string.IsNullOrWhiteSpace(value.GetString()))
         throw new InvalidDataException("Transcription key file has no OpenAI API key");
     return value.GetString()!;
+}
+
+
+// A rejected flag is the operator's own input, so its text is safe to show even
+// though the handler above hides every other exception message. It carries the
+// flag name only, never the value that followed it.
+public sealed class LaunchFlagException : ArgumentException
+{
+    public LaunchFlagException(string message) : base(message)
+    {
+    }
 }

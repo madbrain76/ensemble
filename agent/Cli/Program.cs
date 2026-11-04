@@ -115,7 +115,7 @@ static async Task<int> Run(string[] args)
                 string flag = args[index];
                 if (++index == args.Length || string.IsNullOrWhiteSpace(args[index]) || args[index].StartsWith("--"))
                 {
-                    throw new ArgumentException("Missing route/account option value");
+                    throw new ArgumentException("Missing route/account option value for " + flag);
                 }
                 switch (flag)
                 {
@@ -132,7 +132,7 @@ static async Task<int> Run(string[] args)
             {
                 if (++index == args.Length || args[index].StartsWith("--"))
                 {
-                    throw new ArgumentException("Missing sandbox root");
+                    throw new ArgumentException("Missing sandbox root for --sandbox");
                 }
                 sandboxRoot = args[index];
             }
@@ -141,7 +141,7 @@ static async Task<int> Run(string[] args)
                 string flag = args[index];
                 if (++index == args.Length || args[index].StartsWith("--") || string.IsNullOrWhiteSpace(args[index]))
                 {
-                    throw new ArgumentException("Missing actor storage option value");
+                    throw new ArgumentException("Missing actor storage option value for " + flag);
                 }
                 if (flag == "--data-dir")
                 {
