@@ -130,7 +130,14 @@ public sealed partial class Job
                 }
                 catch (Exception ex) when (ex is ArgumentException or IOException
                     or InvalidDataException or UnauthorizedAccessException
-                    or System.Text.Json.JsonException or System.ComponentModel.Win32Exception)
+                    or System.Text.Json.JsonException or System.ComponentModel.Win32Exception
+                    // A command this platform cannot launch is an ordinary tool
+                    // failure, not a defect to propagate: the macOS-only PTY
+                    // endpoint refuses off macOS, and an unrecorded exception here
+                    // would leave the worker task faulted. Teardown then rethrows it
+                    // as "Job shutdown could not record or close every resource" and
+                    // aborts Ensemble.Destroy for the whole application.
+                    or PlatformNotSupportedException)
                 {
                     AppendOutput("Tool failed: " + ex.Message);
                     lock (gate)
