@@ -190,7 +190,7 @@ public static partial class Gui
         {
             return null; // Local use stays open; presence of the file is the opt-in.
         }
-        throw new InvalidOperationException(
+        throw new GuiBindRefusalException(
             "GUI authentication required; run auth-init --file \"" + path + "\" before starting this listener");
     }
 
@@ -206,6 +206,36 @@ public static partial class Gui
             }
         });
     }
+
+    internal static partial IPAddress ResolveBindAddress(string host)
+    {
+        string text = (host ?? "").Trim();
+        if (text.Length == 0)
+        {
+            throw new ArgumentException("GUI host must be an address, not empty");
+        }
+        if (text.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+        {
+            return IPAddress.Loopback;
+        }
+        if (text.IndexOfAny([':', '/', '%']) < 0 && text.Any(character =>
+                character is >= 'a' and <= 'z' or >= 'A' and <= 'Z'))
+        {
+            // A hostname would make the listener's reach depend on a resolver and
+            // its hosts file, so only literal addresses may widen it.
+            throw new ArgumentException("GUI host must be an IP address or localhost, not a name");
+        }
+        if (!IPAddress.TryParse(text, out IPAddress? address) || address.AddressFamily
+            is not System.Net.Sockets.AddressFamily.InterNetwork
+            and not System.Net.Sockets.AddressFamily.InterNetworkV6)
+        {
+            throw new ArgumentException("GUI host must be a valid IPv4 or IPv6 address");
+        }
+        return address;
+    }
+
+    public static partial bool IsLoopbackHost(string host) =>
+        IPAddress.IsLoopback(ResolveBindAddress(host));
 
     public static partial int RunAuthCommand(string[] args, TextWriter output)
     {

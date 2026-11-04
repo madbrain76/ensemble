@@ -284,3 +284,15 @@ turns on automatically when that file exists; delete it, or run `auth-reset` to
 replace the credential. Pass `--gui-auth-file` to keep the verifier somewhere
 other than `<data-dir>/gui-auth.json`. Repeated failures from one address back
 off exponentially, and accepted nonces are replay-protected for five minutes.
+
+## Listening beyond this machine
+
+By default the GUI binds `127.0.0.1`. `--host` chooses the bind address: a
+specific IPv4/IPv6 literal or `0.0.0.0`/`::` for every interface. Hostnames are
+refused so the listener's reach never depends on a resolver. Binding beyond
+loopback requires Digest credentials, so start it as:
+
+    ./ensemble auth-init
+    ./ensemble --host 0.0.0.0 --port 8090
+
+An unauthenticated LAN bind refuses to start rather than opening the GUI.
