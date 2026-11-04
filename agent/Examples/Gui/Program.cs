@@ -37,14 +37,14 @@ try
         }
         if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
-            throw new ArgumentException("Unknown or incomplete GUI flag");
+            throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
         string value = args[++i];
         if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
-                throw new ArgumentException("Missing route/account option value");
+                throw new LaunchFlagException("Missing route/account option value for " + flag);
             }
         }
         if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings")
@@ -293,8 +293,22 @@ static void ReportFailure(string prefix, Exception error)
     var causes = new Stack<Exception>();
     causes.Push(error);
     bool addressInUse = false;
+    // Composition can join several failures into one AggregateException, and an
+    // outer wrapper says nothing about which part died. The chain of type names
+    // carries no private text, so it is always safe to print.
+    var chain = new List<string>();
+    string? guidance = null;
     while (causes.TryPop(out var cause))
     {
+        string name = cause.GetType().Name;
+        if (!chain.Contains(name))
+        {
+            chain.Add(name);
+        }
+        if (cause is LaunchFlagException rejected)
+        {
+            guidance = rejected.Message;
+        }
         if (cause is System.Net.Sockets.SocketException socket
             && socket.SocketErrorCode == System.Net.Sockets.SocketError.AddressAlreadyInUse)
         {
@@ -314,10 +328,12 @@ static void ReportFailure(string prefix, Exception error)
     }
     string advice = addressInUse
         ? "Loopback port is already in use. Choose an unused --port; do not stop its owner."
-        : error is ArgumentException or FormatException or OverflowException
+        : guidance ?? (error is ArgumentException or FormatException or OverflowException
             ? "Invalid launch configuration. Check supported flags and value formats."
-            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
-    Console.Error.WriteLine($"{prefix}: {error.GetType().Name}. {advice}");
+            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.");
+    // Naming the whole chain turns "AggregateException" into something an operator
+    // can act on, because the wrapper alone identifies nothing.
+    Console.Error.WriteLine($"{prefix}: {string.Join(" -> ", chain)}. {advice}");
 }
 
 
@@ -357,4 +373,15 @@ static string ReadTranscriptionKey(string path)
         || string.IsNullOrWhiteSpace(value.GetString()))
         throw new InvalidDataException("Transcription key file has no OpenAI API key");
     return value.GetString()!;
+}
+
+
+// A rejected flag is the operator's own input, so its text is safe to show even
+// though the handler above hides every other exception message. It carries the
+// flag name only, never the value that followed it.
+public sealed class LaunchFlagException : ArgumentException
+{
+    public LaunchFlagException(string message) : base(message)
+    {
+    }
 }
