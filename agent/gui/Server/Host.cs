@@ -17,7 +17,15 @@ public static partial class Gui
         cancellation.ThrowIfCancellationRequested();
         var builder = WebApplication.CreateBuilder(Array.Empty<string>());
         builder.Logging.ClearProviders();
-        builder.WebHost.ConfigureKestrel(server => server.Listen(IPAddress.Loopback, options.Port));
+        // The bind address is decided here, before anything listens. Beyond loopback
+        // the listener is reachable from the LAN, so it may not start unauthenticated.
+        IPAddress bind = ResolveBindAddress(options.Host);
+        if (!IPAddress.IsLoopback(bind) && string.IsNullOrWhiteSpace(options.AuthPath))
+        {
+            throw new GuiBindRefusalException(
+                "GUI authentication is required to bind beyond loopback; run auth-init first");
+        }
+        builder.WebHost.ConfigureKestrel(server => server.Listen(bind, options.Port));
         await using var host = builder.Build();
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         using var registration = cancellation.Register(host.Lifetime.StopApplication);

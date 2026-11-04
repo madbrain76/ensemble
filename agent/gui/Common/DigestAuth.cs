@@ -42,6 +42,14 @@ public static partial class Gui
     public static partial string? DigestPath(string? dataDirectory, string? requested,
         bool requestedExplicitly, bool loopback);
 
+    // Translate a bind address. Loopback spellings stay local; any other literal
+    // address is returned as-is so the caller can require credentials for it.
+    internal static partial System.Net.IPAddress ResolveBindAddress(string host);
+
+    // Whether a bind address keeps the listener on this machine. The composition
+    // root uses it to decide whether credentials are required.
+    public static partial bool IsLoopbackHost(string host);
+
     // Guard every route, including the WebSocket upgrade, before any handler runs.
     // Diagnostics receives one short sentence per rejected attempt so an operator can
     // tell a wrong password from a drifted realm; it stays null for embedded hosts and

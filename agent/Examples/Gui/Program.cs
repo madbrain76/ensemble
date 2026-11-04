@@ -50,7 +50,7 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
@@ -62,7 +62,7 @@ try
                 throw new ArgumentException("Missing route/account option value");
             }
         }
-        if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings" or "--gui-auth-file")
+        if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings" or "--gui-auth-file" or "--host")
         {
             hostFlags[flag] = value;
         }
@@ -235,6 +235,7 @@ try
     agent.History().StartLog(log);
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
+    string bindHost = hostFlags.GetValueOrDefault("--host", "127.0.0.1");
     var guiOptions = new GuiOptions(
         Port: hostFlags.TryGetValue("--port", out var portText)
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
@@ -242,7 +243,8 @@ try
         SettingsPath: settingsPath,
         PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"),
         AuthPath: Gui.DigestPath(container, hostFlags.GetValueOrDefault("--gui-auth-file"),
-            hostFlags.ContainsKey("--gui-auth-file"), loopback: true),
+            hostFlags.ContainsKey("--gui-auth-file"), loopback: Gui.IsLoopbackHost(bindHost)),
+        Host: bindHost,
         // A refused credential attempt is operator feedback, not application state, so
         // it goes to the terminal's error stream where the launcher already reports
         // launch problems. Without it, a wrong password and a wrong file are identical.
@@ -314,8 +316,16 @@ static void ReportFailure(string prefix, Exception error)
     var causes = new Stack<Exception>();
     causes.Push(error);
     bool addressInUse = false;
+    // Composition joins the serving and fleet-restore tasks, so the guidance can
+    // arrive wrapped rather than outermost: a refused bind inside an
+    // AggregateException must still be readable.
+    string? bindGuidance = null;
     while (causes.TryPop(out var cause))
     {
+        if (cause is GuiBindRefusalException refused)
+        {
+            bindGuidance = refused.Message;
+        }
         if (cause is System.Net.Sockets.SocketException socket
             && socket.SocketErrorCode == System.Net.Sockets.SocketError.AddressAlreadyInUse)
         {
@@ -335,9 +345,14 @@ static void ReportFailure(string prefix, Exception error)
     }
     string advice = addressInUse
         ? "Loopback port is already in use. Choose an unused --port; do not stop its owner."
-        : error is ArgumentException or FormatException or OverflowException
-            ? "Invalid launch configuration. Check supported flags and value formats."
-            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
+        : (object?)bindGuidance is string shown
+            // Fixed operator guidance, not provider or filesystem text: this is
+            // the one message the privacy-preserving handler must still show, or
+            // the refused bind reads like an unexplained crash.
+            ? shown
+            : error is ArgumentException or FormatException or OverflowException
+                ? "Invalid launch configuration. Check supported flags and value formats."
+                : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
     Console.Error.WriteLine($"{prefix}: {error.GetType().Name}. {advice}");
 }
 
