@@ -99,6 +99,9 @@ public sealed partial class Engine
         // immutable value prepared before this worker starts; hints arriving
         // during HTTP cannot change the bytes of the request already admitted.
         cancellation.ThrowIfCancellationRequested();
+        // A configured MAC turns the first request to a sleeping machine into a wake
+        // plus a wait for its listener. Without one this returns immediately.
+        await WakeUnavailableProviderAsync(parent!, config, cancellation);
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint(config));
         request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

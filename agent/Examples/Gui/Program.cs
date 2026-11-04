@@ -35,12 +35,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
+        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -149,7 +149,10 @@ try
         reasoningSummary: Selected("--reasoning-summary", "OPENAI_REASONING_SUMMARY"),
         safeMode: PolicyBoolean(Selected("--safe-mode", "EN_SAFE_MODE"), false),
         enableWebSearch: PolicyBoolean(Selected("--enable-web-search", "EN_ENABLE_WEB_SEARCH"), true),
-        sandboxRoot: sandboxRoot);
+        sandboxRoot: sandboxRoot,
+        // Without this the flag parses and is silently dropped, so a sleeping
+        // provider would still cost the first turn its full connect timeout.
+        wakeOnLanMac: Selected("--wake-on-lan", "EN_WAKE_ON_LAN"));
     if (billing == BillingMode.ChatGptPlan && string.IsNullOrWhiteSpace(credentialsDirectory))
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
@@ -263,6 +266,13 @@ try
     }
     await agent.ShutdownAsync();
     exitCode = 0;
+}
+catch (ArgumentException rejected) when (rejected.Message == Configuration.WakeOnLanGuidance)
+{
+    // Fixed guidance about the operator's own value, so it is shown rather than
+    // reduced to a type name by the handler below. The validator owns the text.
+    Console.Error.WriteLine(rejected.Message);
+    exitCode = 1;
 }
 catch (Exception error)
 {

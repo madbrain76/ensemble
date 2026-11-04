@@ -90,6 +90,13 @@ public sealed partial class Configuration
     public readonly string ReasoningSummary;
     // Delivery override; canonical response content must not depend on it.
     public readonly bool DisableStreaming;
+    // Six-byte provider host address as text, or empty to leave Wake-on-LAN off.
+    // A local transport hint only: it is never provider input or History content.
+    public readonly string WakeOnLanMac;
+    // The one wording for a malformed wake address, published so an application
+    // that must show it cannot drift from the validator that throws it.
+    public const string WakeOnLanGuidance =
+        "Wake-on-LAN MAC must be six hex bytes, such as aa:bb:cc:dd:ee:ff";
     // Zero selects 200; a positive value caps tool batches; negative is unlimited.
     public readonly int ToolRoundLimit;
     public partial Configuration(
@@ -113,7 +120,8 @@ public sealed partial class Configuration
         string reasoningSummary = "",
         bool safeMode = false,
         bool enableWebSearch = false,
-        string sandboxRoot = "");
+        string sandboxRoot = "",
+        string wakeOnLanMac = "");
     // A fresh value for the same route. Resolve the new identity and reasoning
     // defaults afresh; never borrow opaque provenance from the old selection.
     public partial Configuration WithModel(string model);
