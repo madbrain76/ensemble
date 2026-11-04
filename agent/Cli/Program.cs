@@ -422,6 +422,16 @@ static async Task<int> Run(string[] args)
         {
             throw new ArgumentException("Unknown command");
         }
+        if (command != "--mcp-pipe")
+        {
+            // Ask the endpoint before the first turn whether it will honour the
+            // requested reasoning effort, so a refusal stops the run instead of the
+            // operator silently believing they are getting extended thinking. render
+            // and dump returned above, the pipe never infers, and an unconfigured
+            // effort sends nothing. The shared handler below already prints this
+            // refusal verbatim, so it is not repeated here.
+            await agent.Engine().ValidateReasoningEffortAsync(CancellationToken.None);
+        }
 
         if (args.Length > 1)
         {

@@ -595,12 +595,22 @@ public sealed partial class Engine
             }
             messages.Add(message);
         }
-        return new JsonObject
+        var request = new JsonObject
         {
             ["model"] = config.Model,
             ["max_completion_tokens"] = 1024,
             ["messages"] = messages
         };
+        // This dialect takes the level at the top level, not inside a reasoning
+        // object. Sending what the provider already accepted is the whole point:
+        // dropping the field here would reproduce the invisible failure that the
+        // provider check exists to catch.
+        if (config.ReasoningEffort.Length != 0)
+        {
+            request["reasoning_effort"] = config.ReasoningEffort;
+        }
+
+        return request;
     }
 
     // Preserve an object result structurally. Failure wraps rather than edits
