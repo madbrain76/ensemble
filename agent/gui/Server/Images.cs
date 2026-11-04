@@ -7,7 +7,8 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
-    private static partial (AgentInput Input, ImmutableArray<PreparedImage> Images) PrepareImageInput(Agent selected, JsonElement command, CancellationToken cancellation)
+    private static partial async Task<(AgentInput Input, ImmutableArray<PreparedImage> Images)> PrepareImageInput(
+        Agent selected, JsonElement command, CancellationToken cancellation)
     {
         string text = command.TryGetProperty("text", out var textValue) ? textValue.GetString() ?? "" : "";
         if (Encoding.UTF8.GetByteCount(text) > 32 * 1024)
@@ -41,6 +42,10 @@ public static partial class Gui
             sources.Add(data);
             parts.Add(new BlobPart(mime, new BlobRef(RefKind.Uri, $"data:{mime};base64,{data}")));
         }
+        // A model the curated table does not name proves itself here, once, on
+        // this async boundary rather than inside rendering. Refusing bytes the
+        // endpoint would have accepted is the failure this prevents.
+        await selected.Engine().ProbeImagesAsync(cancellation);
         // Refuse provider capabilities before raster decoding. The same
         // renderer validator remains authoritative for admitted image parts.
         selected.Engine().ValidateMedia(parts, Actor.Human);

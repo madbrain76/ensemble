@@ -714,6 +714,9 @@ try
         await AsyncCase("Interactive image messages and busy hints", ActorTests.ImageInputs);
         await AsyncCase("Model-issued image inspection and retained History", () => ActorTests.ImageToolTurns(temp));
         CheckCase("Gemini image function responses and refusals", () => GeminiImageTests.FunctionResponses(temp));
+        await AsyncCase("Unlisted endpoint earns image capability by probe", MediaProbeTests.UnlistedEndpointEarnsImages);
+        await AsyncCase("Unproven endpoints stay refused", MediaProbeTests.UnprovenEndpointsStayRefused);
+        await AsyncCase("Curated table stays authoritative over probing", MediaProbeTests.CuratedTableStaysAuthoritative);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");
