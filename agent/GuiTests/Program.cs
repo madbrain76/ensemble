@@ -102,6 +102,12 @@ if (args is ["--capture-model-host"])
     return;
 }
 
+if (args is ["--host-binding-tests"])
+{
+    await HostBindingTests.RunAsync();
+    return;
+}
+
 if (args is ["--digest-tests"])
 {
     await DigestAuthTests.RunAsync();
@@ -511,4 +517,5 @@ await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();
 await PublicOriginTests.RunAsync();
 await DigestAuthTests.RunAsync();
+await HostBindingTests.RunAsync();
 Console.WriteLine("PASS external GUI consumer: embedded assets, disk override, full caller-owned mount, WebSocket controls, two hosting lifetimes, Agent survival");
