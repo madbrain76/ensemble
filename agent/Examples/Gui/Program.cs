@@ -4,6 +4,21 @@ using Application = Ensemble.Ensemble;
 
 // Composition owns the core graph and optional server operation. No hosted
 // Agent, provider credential, browser profile, or public interface is borrowed.
+// Credential management is a separate, offline action: it never composes an
+// Agent, opens a port or reads provider credentials.
+if (args.Length > 0 && (args[0] == "auth-init" || args[0] == "auth-reset"))
+{
+    try
+    {
+        return Gui.RunAuthCommand(args, Console.Out);
+    }
+    catch (Exception failure) when (failure is ArgumentException or IOException
+        or InvalidDataException or InvalidOperationException or UnauthorizedAccessException)
+    {
+        Console.Error.WriteLine($"auth: {failure.Message}");
+        return 1;
+    }
+}
 Application? app = null;
 int exitCode = 0;
 try
@@ -35,7 +50,7 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
@@ -47,7 +62,7 @@ try
                 throw new ArgumentException("Missing route/account option value");
             }
         }
-        if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings")
+        if (flag is "--port" or "--public-origin" or "--gui-dir" or "--settings" or "--gui-auth-file")
         {
             hostFlags[flag] = value;
         }
@@ -225,7 +240,9 @@ try
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
         SettingsPath: settingsPath,
-        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"));
+        PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"),
+        AuthPath: Gui.DigestPath(container, hostFlags.GetValueOrDefault("--gui-auth-file"),
+            hostFlags.ContainsKey("--gui-auth-file"), loopback: true));
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.
     // A browser-dependent peer cannot finish startup before its own relay can
