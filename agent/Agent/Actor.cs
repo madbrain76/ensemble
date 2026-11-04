@@ -834,6 +834,18 @@ public sealed partial class Agent
             {
                 if (!hintPending)
                 {
+                    if (promissoryReplies < PromissoryLimit
+                        && PromisesAction(LastAgentAnswer()))
+                    {
+                        // The reply promised work and issued no call. Correct it once
+                        // per promise instead of letting the turn end mid-task.
+                        promissoryReplies++;
+                        Record(new Event(EventKind.MessageReceived, actor: Actor.System,
+                            parts: [new TextPart(PromissoryCorrection)]));
+                        requests.Enqueue(new Mail(MailKind.Submit));
+                        return;
+                    }
+                    promissoryReplies = 0;
                     Finish();
                 }
             }
