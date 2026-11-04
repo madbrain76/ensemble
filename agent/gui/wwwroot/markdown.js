@@ -46,4 +46,59 @@ function markdown(parent, text) {
         details.append(summary, pre);
         details.ontoggle = () => { preview.hidden = details.open; };
     }
+    // A fenced block is content the operator was meant to take away, so it becomes
+    // a copyable box. The payload lives in a read-only field and stays literal, so
+    // a copy carries what the model wrote, including lines a long block collapsed.
+    for (const pre of [...parent.querySelectorAll("pre")]) {
+        if (!pre.querySelector("code")) continue;
+        // Anchor on the collapsible wrapper when there is one: the copy control has
+        // to stay visible even while the block itself is folded away.
+        const anchor = pre.closest("details") || pre;
+        if (anchor.closest(".clipboard-block")) continue;
+        // A fence contributes one trailing newline; the copy must be what the model
+        // wrote, not what the markup added, and a collapsed preview shows "…".
+        const payload = pre.textContent.replace(/\n…$/, "").replace(/\n$/, "");
+        if (!payload.trim()) continue;
+        const block = document.createElement("div");
+        block.className = "clipboard-block";
+        const field = document.createElement("textarea");
+        field.readOnly = true;
+        field.className = "clipboard-payload";
+        field.tabIndex = -1;
+        field.setAttribute("aria-label", "Copyable text");
+        field.value = payload;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "btn btn-quiet btn-sm clipboard-copy";
+        button.textContent = "Copy text";
+        button.onclick = async () => {
+            const reset = () => { button.textContent = "Copy text"; };
+            let copied = false;
+            try {
+                if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(payload);
+                    copied = true;
+                }
+            } catch (error) { copied = false; }
+            if (!copied) {
+                // Clipboard write needs a transient selection; keep it invisible and
+                // restore the scroll so the visible block never jumps.
+                const top = field.scrollTop;
+                field.select();
+                field.setSelectionRange(0, payload.length);
+                field.scrollTop = top;
+                try { copied = document.execCommand("copy"); } catch (error) { copied = false; }
+            }
+            // Say what happened, then hand focus back to the control that answered.
+            button.textContent = copied ? "Copied" : "Select the text and press Ctrl+C";
+            button.focus();
+            clearTimeout(block.timer);
+            block.timer = setTimeout(reset, copied ? 1600 : 6000);
+        };
+        const actions = document.createElement("div");
+        actions.className = "clipboard-actions";
+        actions.append(button);
+        anchor.before(block);
+        block.append(field, actions, anchor);
+    }
 }

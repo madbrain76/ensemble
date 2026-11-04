@@ -342,3 +342,10 @@ body.compact #transcript { padding: .3rem; }
 
 /* Explicitly preserve hidden-card semantics if card layout styles change. */
 #transcript .part[hidden] { display: none; }
+
+/* Copyable snippets: the payload is real text for selection and assistive tech,
+   kept out of the visual layout so the block itself stays the readable copy. */
+.clipboard-block { position: relative; }
+.clipboard-payload { position: absolute; width: 1px; height: 1px; opacity: 0;
+  overflow: hidden; white-space: pre; margin: 0; border: 0; padding: 0; }
+.clipboard-actions { display: flex; gap: 0.4rem; margin: 0.25rem 0 0.5rem; }
