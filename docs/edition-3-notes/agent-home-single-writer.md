@@ -55,3 +55,27 @@ close it before starting this one.
 `agent/Agent/Storage.cs` cannot reach the sandbox through `Parent()`: an
 `Agent`'s parent is the `Ensemble` container, which has no `Sandbox()`. The
 agent owns it directly. Caught by the compiler on the first build.
+
+## Correction: a guard written on a false premise
+
+An earlier revision of this branch carried an explicit
+`catch (UnauthorizedAccessException) { throw; }` before the `catch (IOException)`
+that reports a competing writer, justified by the belief that
+`UnauthorizedAccessException` derives from `IOException` and would therefore be
+misreported as "another Ensemble is already using actor home".
+
+It does not derive from `IOException`. The compiler said so directly when a test
+tried the type pattern: `CS0184: The given expression is never of the provided
+('IOException') type`. The catch was unreachable code justified by a comment that
+was simply untrue, so it is gone.
+
+The companion test for it was also dropped. It passed identically with and
+without the guard, which is the point of a mutation check: a test that survives
+deleting the code it claims to cover documents nothing. What remains verified is
+the real behaviour -- a permission failure surfaces as `UnauthorizedAccessException`
+because nothing catches it -- observed between two live processes:
+
+```
+GUI failed: UnauthorizedAccessException. ...
+GUI failed: Another Ensemble is already using actor home .../agents/root; ...
+```
