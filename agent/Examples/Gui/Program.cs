@@ -20,6 +20,9 @@ if (args.Length > 0 && (args[0] == "auth-init" || args[0] == "auth-reset"))
     }
 }
 Application? app = null;
+// Named in the failure message so an operator can open it before launching
+// again: the host log belongs to the newest launch, so a relaunch erases it.
+string? hostLog = null;
 int exitCode = 0;
 try
 {
@@ -88,6 +91,15 @@ try
     string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
     string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
     app = new Application(Console.Error, dataDirectory: container, agentDiagnostics: true);
+    try
+    {
+        hostLog = Path.Combine(app.DataDirectory(), "ensemble.log");
+    }
+    catch (Exception)
+    {
+        // No host log to name is not a reason to hide the failure itself.
+        hostLog = null;
+    }
     app.StartDiagnostics();
     if (transcription == "openai-api-key")
     {
@@ -331,7 +343,7 @@ catch (Exception error)
     // Report while the owning graph and its redaction policy still exist.
     // Console diagnostics contain only fixed guidance and type names; unknown
     // exception text may contain credentials, URLs or private filesystem paths.
-    ReportFailure("GUI failed", error);
+    ReportFailure("GUI failed", error, hostLog);
     exitCode = 1;
 }
 finally
@@ -350,7 +362,7 @@ finally
 }
 return exitCode;
 
-static void ReportFailure(string prefix, Exception error)
+static void ReportFailure(string prefix, Exception error, string? diagnosticsPath = null)
 {
     var causes = new Stack<Exception>();
     causes.Push(error);
@@ -401,7 +413,11 @@ static void ReportFailure(string prefix, Exception error)
         ? "Loopback port is already in use. Choose an unused --port; do not stop its owner."
         : guidance ?? (error is ArgumentException or FormatException or OverflowException
             ? "Invalid launch configuration. Check supported flags and value formats."
-            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.");
+            : diagnosticsPath is null
+                ? "Check private diagnostics and workspace/data permissions; no private error text is printed here."
+                : "Check " + diagnosticsPath + " and workspace/data permissions; no private error text"
+                    + " is printed here. Read it before launching again: the log belongs to the newest"
+                    + " launch.");
     // Guidance is written to be read on its own, so the exception names that
     // carried it are dropped: "GUI failed: GuiBindRefusalException. GUI
     // authentication required..." tells an operator less than the sentence does.
