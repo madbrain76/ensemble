@@ -643,7 +643,83 @@ function showAgents() {
     input.setAttribute("aria-label", `Message to ${name}`);
     renderAgentTree();
 }
+// Per-turn wall-clock split, measured in the page from the frames it already
+// receives: total from prompt to idle, model wait while the Agent is inflight,
+// tool wait while it is toolspending, and the remainder (queueing, local work,
+// pauses). The server keeps the durable record; this is the reading the operator
+// wants beside the answer, and it needs no new wire contract.
+const turn = { started: 0, ended: 0, model: 0, tools: 0, calls: 0,
+    segment: "", segmentStart: 0, active: false };
+
+function seconds(value) {
+    // One decimal below a minute, because that is where the difference between a
+    // quick answer and a stalled one lives; minutes beyond it.
+    if (value < 60000) return `${(value / 1000).toFixed(1)}s`;
+    const minutes = Math.floor(value / 60000);
+    const rest = Math.round((value % 60000) / 1000);
+    return `${minutes}m ${String(rest).padStart(2, "0")}s`;
+}
+
+function turnTimingText(state) {
+    if (!state.ended || !state.started) return "";
+    // No "Other" column: from the page, every span is either a model wait or a
+    // tool wait, so an always-zero bucket would only invite the question of what it
+    // measures. The durable breakdown belongs to server-side phase instrumentation.
+    return `Total ${seconds(state.ended - state.started)} · Model ${seconds(state.model)}`
+        + ` · Tools (${state.calls}) ${seconds(state.tools)}`;
+}
+
+function renderTurnTiming() {
+    const line = document.createElement("div");
+    line.className = "turn-timing";
+    line.textContent = turnTimingText(turn);
+    const cardsList = [...cards.values()];
+    const host = (cardsList.length && cardsList[cardsList.length - 1].node.parentElement)
+        || document.querySelector("#conversation") || document.body;
+    host.appendChild(line);
+}
+
+function accountTurn(now) {
+    // Advancing the start makes this idempotent: a state frame and the close that
+    // follows it in the same instant must not charge the span twice.
+    const elapsed = Math.max(0, now - turn.segmentStart);
+    if (turn.segment === "model") turn.model += elapsed;
+    else if (turn.segment === "tools") turn.tools += elapsed;
+    turn.segmentStart = Math.max(turn.segmentStart, now);
+}
+
+function beginTurn() {
+    const now = Date.now();
+    turn.started = now; turn.ended = 0; turn.model = 0; turn.tools = 0;
+    turn.calls = 0; turn.segment = "model"; turn.segmentStart = now;
+    turn.active = true;
+    // A second prompt replaces the previous summary rather than stacking one per
+    // turn, so the panel keeps a single reading for the exchange in view.
+    for (const stale of document.querySelectorAll(".turn-timing")) stale.remove();
+}
+
+function closeTurn() {
+    if (!turn.active) return;
+    const now = Date.now();
+    accountTurn(now);
+    turn.ended = now; turn.active = false; turn.segment = "";
+    renderTurnTiming();
+}
+
+function recordTurnTiming(frame) {
+    if (!turn.active) return;
+    if (frame.type === "tool_dispatched") turn.calls += 1;
+    if (frame.type !== "agent_state" && frame.type !== "state_changed") return;
+    const state = frame.state || frame.to;
+    const now = Date.now();
+    accountTurn(now);
+    if (state === "inflight") { turn.segment = "model"; turn.segmentStart = now; }
+    else if (state === "toolspending") { turn.segment = "tools"; turn.segmentStart = now; }
+    else closeTurn();
+}
+
 function handle(frame) {
+    recordTurnTiming(frame);
     if (frame.type === "agent_tree") {
         agentRows = frame.agents || [];
         showAgents();
@@ -849,6 +925,7 @@ function send(type, text = "") {
         return false;
     }
     socket.send(JSON.stringify({ type, text, ...(agentID ? { agent_id: agentID } : {}) }));
+    if (type === "prompt") beginTurn(); // The clock starts at submission, not first chunk.
     notice("");
     return true;
 }
