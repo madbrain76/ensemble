@@ -28,253 +28,248 @@ public sealed partial class Ensemble
     // reused across restarts, so attaching a file to a part would be a guess that
     // could put another turn's words into an Agent's mouth. Such parts import as
     // empty and are counted in the report.
-    public static partial int RunGoImportCommand(string[] args, TextWriter output, TextWriter error)
+    // This runs at every launch, silently, and does nothing once the history is
+    // in place: the Go version kept its state in whichever directory it was started
+    // from, so the conversations Bill had been resuming for weeks were simply not
+    // where the C# launcher looked. Discovering them there is the equivalent of
+    // starting the old launcher in the old directory, with none of the ceremony.
+    //
+    // Restoring is deliberately conservative. The source is only ever read; a save
+    // this build cannot load is left where it is and reported; an Agent whose home
+    // already holds history is never overwritten; and a failure here can never stop
+    // the GUI, because losing a conversation is bad but losing the application is
+    // worse. A marker records that the restore ran, so deleting one imported Agent
+    // does not resurrect it under the same name on the next start.
+    private const string Marker = ".go-history-restored";
+    private const string ArchiveName = "Go archive";
+
+    public static partial string? RestoreGoHistory(string destination, TextWriter diagnostics)
     {
         try
         {
-            return Import(args, output, error);
+            return Restore(destination, diagnostics);
         }
         catch (Exception fault)
         {
-            // Operator commands report; they do not hand the operator a stack trace.
-            error.WriteLine("import-go: " + fault.Message);
-            return 1;
+            // Discovery is a convenience at the edge of composition. Whatever it
+            // could not work out belongs in the log, never in the operator's way.
+            diagnostics.WriteLine($"go history: not restored ({fault.GetType().Name}: {fault.Message})");
+            return null;
         }
     }
 
-    private static int Import(string[] args, TextWriter output, TextWriter error)
+    private static string? Restore(string destination, TextWriter diagnostics)
     {
-        int position = -1;
-        string Next(string flag)
-        {
-            position++;
-            if (position >= args.Length) throw new ArgumentException($"import-go: {flag} needs a value");
-            return args[position];
-        }
+        string wanted = Path.GetFullPath(destination);
+        if (File.Exists(Path.Combine(wanted, Marker))) return null;
 
-        string source = "";
-        string destination = "";
-        string primaryName = "root";
-        bool replace = false;
-        bool dryRun = false;
-        List<string> only = [];
-        while (position < args.Length - 1)
-        {
-            position++;
-            switch (args[position])
-            {
-                case "--from": source = Next("--from"); break;
-                case "--data-dir": destination = Next("--data-dir"); break;
-                case "--agent": only.Add(Next("--agent")); break;
-                case "--as": primaryName = Next("--as"); break;
-                case "--replace": replace = true; break;
-                case "--dry-run": dryRun = true; break;
-                default:
-                    error.WriteLine($"import-go: unknown flag {args[position]}");
-                    return 2;
-            }
-        }
+        string? source = FindGoTree(wanted, diagnostics);
+        if (source is null) return null;
 
-        string Env(string name) => Environment.GetEnvironmentVariable(name) ?? "";
-        string origin;
-        if (destination.Length == 0)
-        {
-            destination = Env("EN_DATA_DIR");
-            origin = destination.Length == 0 ? "the current directory" : "EN_DATA_DIR";
-        }
-        else
-        {
-            origin = "--data-dir";
-        }
-        if (destination.Length == 0)
-        {
-            destination = Directory.GetCurrentDirectory();
-        }
-        if (source.Length == 0)
-        {
-            error.WriteLine("import-go: --from <directory> is required; it is the directory the Go version kept its state in.");
-            return 2;
-        }
-        output.WriteLine($"import-go: destination {destination} (from {origin})");
-        if (!Directory.Exists(source))
-        {
-            error.WriteLine($"import-go: no such source directory: {source}");
-            return 2;
-        }
-        if (Path.GetFullPath(source) == Path.GetFullPath(destination))
-        {
-            error.WriteLine("import-go: the source and destination are the same directory.");
-            return 2;
-        }
-
-        // Validate names and resolve homes through the same rule the running
-        // application uses, so an import can never install a home the Agent could
-        // not later open.
+        // A container that owns no Agent: it is here only to resolve and validate
+        // homes through the same rule the running application uses.
         var container = new Ensemble(TextWriter.Null, dataDirectory: destination);
+        var installed = new List<(string Name, int Events, int Characters, int NoText,
+            Dictionary<string, int> Dropped, Dictionary<string, int> Translated)>();
+        var notes = new List<string>();
 
-        var planned = new List<Adapted>();
-        var problems = new List<string>();
-
+        // The primary Agent kept its save at the data directory itself; the Go GUI
+        // opened it as the Agent it was serving. It becomes this build's primary
+        // home when that home holds nothing worth keeping, and a named peer when it
+        // holds a conversation, so a restore can never bury work already done here.
         string primarySource = Path.Combine(source, "save.json");
-        if (File.Exists(primarySource))
+        string? primaryTarget = File.Exists(primarySource) ? PrimaryTarget(container, destination) : null;
+        if (primaryTarget is not null)
         {
-            Plan(primaryName, primarySource);
+            // The home's directory names the Agent; the file inside it is always
+            // save.json, so the name has to come from the directory above it.
+            bool adopted = string.Equals(Path.GetFileName(Path.GetDirectoryName(primaryTarget)),
+                "root", StringComparison.Ordinal);
+            Plan(container, source, primarySource, adopted ? "root" : ArchiveName,
+                installed, notes, diagnostics, adoptQuietHome: adopted);
         }
 
         string registryPath = Path.Combine(source, "ensemble.json");
         if (File.Exists(registryPath))
         {
-            JsonArray registry;
             try
             {
                 using var document = JsonDocument.Parse(File.ReadAllBytes(registryPath));
-                if (document.RootElement.ValueKind != JsonValueKind.Array) throw new FormatException();
-                registry = JsonNode.Parse(document.RootElement.GetRawText())!.AsArray();
-            }
-            catch (Exception fault) when (fault is JsonException or FormatException)
-            {
-                problems.Add($"{registryPath}: the peer registry must be a JSON array of name, model, skill and created.");
-                registry = [];
-            }
-            foreach (var row in registry)
-            {
-                if (row is not JsonObject entry)
+                if (document.RootElement.ValueKind == JsonValueKind.Array)
                 {
-                    problems.Add($"{registryPath}: a peer registry entry must be an object.");
-                    continue;
+                    foreach (var row in document.RootElement.EnumerateArray())
+                    {
+                        if (row.ValueKind != JsonValueKind.Object
+                            || !row.TryGetProperty("name", out var key) || key.ValueKind != JsonValueKind.String)
+                        {
+                            continue;
+                        }
+                        string name = key.GetString()!;
+                        if (name.Length == 0) continue;
+                        Plan(container, source, Path.Combine(source, "agents", name, "save.json"), name,
+                            installed, notes, diagnostics);
+                    }
                 }
-                string? name = entry["name"]?.GetValueKind() == JsonValueKind.String ? entry["name"]!.GetValue<string>() : null;
-                if (name is null || name.Length == 0)
+                else
                 {
-                    problems.Add($"{registryPath}: a peer registry entry has no name.");
-                    continue;
+                    notes.Add("the peer registry is not a JSON array; only the primary conversation was restored");
                 }
-                if (only.Count > 0 && !only.Contains(name, StringComparer.Ordinal)) continue;
-                Plan(name, Path.Combine(source, "agents", name, "save.json"));
-            }
-        }
-        else if (only.Count > 0)
-        {
-            problems.Add($"{registryPath}: no peer registry to resolve the requested --agent names against.");
-        }
-
-        if (only.Count > 0)
-        {
-            foreach (string wanted in only)
-            {
-                if (!planned.Any(item => item.Name == wanted) && !problems.Any(text => text.Contains(wanted, StringComparison.Ordinal)))
-                {
-                    problems.Add($"--agent {wanted}: no such peer in {registryPath}.");
-                }
-            }
-        }
-
-        void Plan(string name, string sourcePath)
-        {
-            string? home;
-            try
-            {
-                home = container.AgentDirectory(name);
-            }
-            catch (ArgumentException fault)
-            {
-                problems.Add($"{name}: {fault.Message}");
-                return;
-            }
-            if (home is null)
-            {
-                problems.Add($"{name}: the destination cannot host a named Agent.");
-                return;
-            }
-            if (!File.Exists(sourcePath))
-            {
-                problems.Add($"{name}: no saved history at {sourcePath}.");
-                return;
-            }
-            string destinationPath = Path.Combine(home, "save.json");
-            if (File.Exists(destinationPath) && !replace)
-            {
-                problems.Add($"{name}: {destinationPath} already holds history; pass --replace to overwrite it (a copy is kept).");
-                return;
-            }
-            JsonNode root;
-            try
-            {
-                root = JsonNode.Parse(File.ReadAllText(sourcePath))!;
             }
             catch (Exception fault) when (fault is JsonException or IOException or UnauthorizedAccessException)
             {
-                problems.Add($"{name}: {sourcePath} could not be read as JSON: {fault.Message}");
-                return;
+                notes.Add($"the peer registry could not be read ({fault.GetType().Name})");
             }
+        }
+
+        if (installed.Count == 0)
+        {
+            // Nothing to install is a normal steady state, not a failure: report it
+            // once in the log and leave the terminal alone.
+            File.WriteAllText(Path.Combine(wanted, Marker),
+                $"restored at {DateTime.UtcNow:O}; source {source}; nothing new to install\n");
+            foreach (string note in notes) diagnostics.WriteLine("go history: " + note);
+            return null;
+        }
+
+        foreach (var item in installed)
+        {
+            diagnostics.WriteLine($"go history: restored \"{item.Name}\" from {source} - {item.Events} events, "
+                + $"{item.Characters} characters of text"
+                + (item.NoText == 0 ? ""
+                    : $", {item.NoText} {(item.NoText == 1 ? "part" : "parts")} had no body in the Go files")
+                + (item.Translated.Count == 0 ? ""
+                    : ", translated " + string.Join(", ", item.Translated.OrderBy(entry => entry.Key)
+                        .Select(entry => $"{entry.Value} {entry.Key}")))
+                + (item.Dropped.Count == 0 ? ""
+                    : ", skipped " + string.Join(", ", item.Dropped.OrderBy(entry => entry.Key)
+                        .Select(entry => $"{entry.Value} {entry.Key}"))));
+        }
+        MergeRegistry(source, destination, diagnostics, notes);
+        foreach (string note in notes) diagnostics.WriteLine("go history: " + note);
+        File.WriteAllText(Path.Combine(wanted, Marker),
+            $"restored at {DateTime.UtcNow:O}; source {source}; {installed.Count} Agent(s): "
+            + string.Join(", ", installed.Select(item => item.Name)) + "\n");
+        int events = installed.Sum(item => item.Events);
+        return installed.Count == 1
+            ? $"restored 1 Agent from the Go history in {source} ({events} events)"
+            : $"restored {installed.Count} Agents from the Go history in {source} ({events} events)";
+    }
+
+    // Where the Go primary conversation should land. A home with no conversation of
+    // its own adopts it; one with a conversation becomes a peer instead.
+    private static string? PrimaryTarget(Ensemble container, string destination)
+    {
+        string? home = container.AgentDirectory("root");
+        if (home is null) return null;
+        string path = Path.Combine(home, "save.json");
+        if (!File.Exists(path)) return path;
+        try
+        {
+            var existing = JsonCodec.ReadSave(File.ReadAllText(path));
+            bool talks = existing.Events.Any(event_ => event_.Parts.Any(part =>
+                (part is TextPart body && body.Text.Length > 0) || part is ToolCallPart));
+            // Nothing said here yet: the Go primary is the conversation this operator
+            // was resuming, so it becomes the primary rather than a stranger in the
+            // tree. A home that has said something keeps it, and arrives as a peer.
+            return talks ? Archive(container) : path;
+        }
+        catch (Exception fault) when (fault is FormatException or InvalidDataException
+            or IOException or UnauthorizedAccessException or JsonException)
+        {
+            // An unreadable existing home is not a reason to discard it, nor to
+            // overwrite it: the Go primary arrives as a peer and the log says so.
+            return Archive(container);
+        }
+    }
+
+    private static string? Archive(Ensemble container)
+    {
+        string? home = container.AgentDirectory(ArchiveName);
+        return home is null ? null : Path.Combine(home, "save.json");
+    }
+
+    // Validate before installing, and never install beside a history that already
+    // exists: the two would otherwise be indistinguishable in the tree.
+    private static void Plan(Ensemble container, string source, string sourcePath, string name,
+        List<(string Name, int Events, int Characters, int NoText,
+            Dictionary<string, int> Dropped, Dictionary<string, int> Translated)> installed,
+        List<string> notes, TextWriter diagnostics, bool adoptQuietHome = false)
+    {
+        string? home = container.AgentDirectory(name);
+        if (home is null)
+        {
+            notes.Add($"{name}: this data directory cannot host a named Agent");
+            return;
+        }
+        string destinationPath = Path.Combine(home, "save.json");
+        bool exists = File.Exists(destinationPath);
+        // An Agent that already has history here is left alone, unless this is the
+        // Go primary arriving in a home that has never said anything.
+        if (exists && !adoptQuietHome) return;
+        if (!File.Exists(sourcePath))
+        {
+            notes.Add($"{name}: no saved history at {sourcePath}");
+            return;
+        }
+        JsonNode? root;
+        try
+        {
+            root = JsonNode.Parse(File.ReadAllText(sourcePath));
+        }
+        catch (Exception fault) when (fault is JsonException or IOException or UnauthorizedAccessException)
+        {
+            notes.Add($"{name}: {sourcePath} could not be read as JSON");
+            return;
+        }
+        if (root is null)
+        {
+            notes.Add($"{name}: {sourcePath} is empty");
+            return;
+        }
+        try
+        {
+            Adapted adapted = Adapt(name, sourcePath, destinationPath, root.AsObject());
+            Directory.CreateDirectory(Path.GetDirectoryName(adapted.DestinationPath)!);
+            if (exists)
+            {
+                // Adoption is still a replacement of bytes that were here first. The
+                // quiet save is kept beside the new one rather than discarded, so a
+                // restore can be undone by whoever notices it should not have run.
+                string kept = adapted.DestinationPath + ".before-go-restore";
+                File.Copy(adapted.DestinationPath, kept, overwrite: true);
+                diagnostics.WriteLine($"go history: the quiet home at {adapted.DestinationPath} was kept at {kept}");
+            }
+            string temporary = adapted.DestinationPath + ".restoring";
+            File.WriteAllText(temporary, adapted.Json);
+            File.Move(temporary, adapted.DestinationPath, overwrite: exists);
+            installed.Add((name, adapted.Events, adapted.Characters, adapted.NoText, adapted.Dropped,
+                adapted.Translated));
+        }
+        catch (Exception fault) when (fault is FormatException or InvalidDataException
+            or IOException or UnauthorizedAccessException)
+        {
+            notes.Add($"{name}: its Go history is not readable by this build ({fault.Message})");
+        }
+    }
+
+    // The Go registry is the list of peers; merging keeps whatever this data
+    // directory already had, and a damaged registry is left alone rather than
+    // replaced by an import that would look like it had always been there.
+    private static void MergeRegistry(string source, string destination, TextWriter diagnostics, List<string> notes)
+    {
+        string sourceRegistry = Path.Combine(source, "ensemble.json");
+        if (!File.Exists(sourceRegistry)) return;
+        string destinationRegistry = Path.Combine(destination, "ensemble.json");
+        var rows = new JsonArray();
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        if (File.Exists(destinationRegistry))
+        {
             try
             {
-                planned.Add(Adapt(name, sourcePath, destinationPath, root.AsObject()));
-            }
-            catch (Exception fault) when (fault is FormatException or InvalidDataException)
-            {
-                problems.Add($"{name}: {sourcePath} is still unreadable after adaptation: "
-                    + (fault.InnerException?.Message is { Length: >0 } inner ? inner + " / " : "") + fault.Message);
-            }
-        }
-
-        if (problems.Count > 0)
-        {
-            // Nothing is written until the whole fleet validates, so a half-imported
-            // peer set cannot be mistaken for the restored one.
-            foreach (string problem in problems) error.WriteLine("import-go: " + problem);
-            return 1;
-        }
-        if (planned.Count == 0)
-        {
-            error.WriteLine($"import-go: {source} holds no Go history this command recognises.");
-            return 1;
-        }
-
-        foreach (var item in planned)
-        {
-            output.WriteLine($"imported \"{item.Name}\": {item.Events} events, {item.Characters} characters of text"
-                + (item.Dropped.Count == 0 ? "" : ", dropped " + string.Join(", ", item.Dropped.OrderBy(entry => entry.Key).Select(entry => $"{entry.Value} {entry.Key}")))
-                + (item.Translated.Count == 0 ? "" : ", translated " + string.Join(", ", item.Translated.OrderBy(entry => entry.Key).Select(entry => $"{entry.Value} {entry.Key}")))
-                + (item.NoText == 0 ? "" : $", {item.NoText} text parts carried no body in the Go files"));
-        }
-        if (dryRun)
-        {
-            output.WriteLine($"import-go: dry run; nothing was written. {planned.Count} Agent(s) ready to install in {destination}.");
-            return 0;
-        }
-
-        foreach (var item in planned)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(item.DestinationPath)!);
-            if (replace && File.Exists(item.DestinationPath))
-            {
-                string kept = $"{item.DestinationPath}.pre-import-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
-                File.Copy(item.DestinationPath, kept, overwrite: true);
-                output.WriteLine($"imported \"{item.Name}\": previous history kept at {kept}");
-            }
-            string temporary = item.DestinationPath + ".importing";
-            File.WriteAllText(temporary, item.Json);
-            File.Move(temporary, item.DestinationPath, overwrite: true);
-        }
-
-        MergeRegistry(registryPath);
-        output.WriteLine($"import-go: installed {planned.Count} Agent(s). Start Ensemble with --data-dir {destination} to resume them.");
-        return 0;
-
-        void MergeRegistry(string sourceRegistry)
-        {
-            if (!File.Exists(sourceRegistry)) return;
-            string destinationRegistry = Path.Combine(destination, "ensemble.json");
-            var rows = new JsonArray();
-            var names = new HashSet<string>(StringComparer.Ordinal);
-            if (File.Exists(destinationRegistry))
-            {
-                // A damaged registry is never replaced by an import.
                 using var existing = JsonDocument.Parse(File.ReadAllBytes(destinationRegistry));
                 if (existing.RootElement.ValueKind != JsonValueKind.Array)
                 {
-                    error.WriteLine($"import-go: {destinationRegistry} is not a JSON array; peers were not merged.");
+                    notes.Add($"{destinationRegistry} is not a JSON array; peers were not merged");
                     return;
                 }
                 foreach (var row in existing.RootElement.EnumerateArray())
@@ -287,8 +282,17 @@ public sealed partial class Ensemble
                     }
                 }
             }
-            using var sourceRegistryDocument = JsonDocument.Parse(File.ReadAllBytes(sourceRegistry));
-            foreach (var row in sourceRegistryDocument.RootElement.EnumerateArray())
+            catch (Exception fault) when (fault is JsonException or IOException or UnauthorizedAccessException)
+            {
+                notes.Add($"{destinationRegistry} could not be read; peers were not merged");
+                return;
+            }
+        }
+        try
+        {
+            using var incoming = JsonDocument.Parse(File.ReadAllBytes(sourceRegistry));
+            if (incoming.RootElement.ValueKind != JsonValueKind.Array) return;
+            foreach (var row in incoming.RootElement.EnumerateArray())
             {
                 if (row.ValueKind != JsonValueKind.Object
                     || !row.TryGetProperty("name", out var key) || key.ValueKind != JsonValueKind.String)
@@ -297,9 +301,75 @@ public sealed partial class Ensemble
                 }
                 if (names.Add(key.GetString()!)) rows.Add(JsonNode.Parse(row.GetRawText()));
             }
-            string temporary = destinationRegistry + ".importing";
-            File.WriteAllText(temporary, rows.ToJsonString());
-            File.Move(temporary, destinationRegistry, overwrite: true);
+        }
+        catch (Exception fault) when (fault is JsonException or IOException or UnauthorizedAccessException)
+        {
+            notes.Add("the Go peer registry could not be read; existing peers were kept");
+            return;
+        }
+        string temporary = destinationRegistry + ".merging";
+        File.WriteAllText(temporary, rows.ToJsonString());
+        File.Move(temporary, destinationRegistry, overwrite: true);
+    }
+
+    // The places the Go version was ever started from. The working directory first,
+    // because that is where it kept its state when it was the daily driver; then the
+    // XDG location a later Go build used. Nothing here searches the filesystem.
+    private static string? FindGoTree(string wantedDestination, TextWriter diagnostics)
+    {
+        var candidates = new List<string>();
+        string configured = Environment.GetEnvironmentVariable("EN_GO_DATA_DIR") ?? "";
+        if (configured.Length > 0) candidates.Add(configured);
+        candidates.Add(Directory.GetCurrentDirectory());
+        string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (home.Length > 0) candidates.Add(Path.Combine(home, ".config", "ensemble"));
+
+        foreach (string candidate in candidates.Distinct(StringComparer.Ordinal))
+        {
+            if (string.Equals(Path.GetFullPath(candidate), wantedDestination, StringComparison.Ordinal)) continue;
+            if (LooksLikeGoState(candidate)) return candidate;
+            diagnostics.WriteLine($"go history: {candidate} holds no Go history");
+        }
+        return null;
+    }
+
+    // Go's save documents carry snapshot fields this codec never writes, which makes
+    // them recognisable without probing a directory that merely happens to contain a
+    // save.json. A registry of peers counts on its own.
+    private static bool LooksLikeGoState(string directory)
+    {
+        try
+        {
+            string registry = Path.Combine(directory, "ensemble.json");
+            if (File.Exists(registry))
+            {
+                using var document = JsonDocument.Parse(File.ReadAllBytes(registry));
+                if (document.RootElement.ValueKind == JsonValueKind.Array
+                    && document.RootElement.GetArrayLength() > 0) return true;
+            }
+            string save = Path.Combine(directory, "save.json");
+            if (!File.Exists(save)) return false;
+            using var head = JsonDocument.Parse(File.ReadAllText(save));
+            if (head.RootElement.ValueKind != JsonValueKind.Object
+                || !head.RootElement.TryGetProperty("log", out var log)
+                || log.ValueKind != JsonValueKind.Array)
+            {
+                return false;
+            }
+            if (!head.RootElement.TryGetProperty("context", out var context)
+                || context.ValueKind != JsonValueKind.Object)
+            {
+                return false;
+            }
+            foreach (string key in new[] { "disabled_bands", "sent_through", "startup_tools", "ephemera", "turn" })
+            {
+                if (context.TryGetProperty(key, out _)) return true;
+            }
+            return false;
+        }
+        catch (Exception fault) when (fault is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return false;
         }
     }
 
