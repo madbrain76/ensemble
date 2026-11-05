@@ -394,7 +394,14 @@ static void ReportFailure(string prefix, Exception error)
         : guidance ?? (error is ArgumentException or FormatException or OverflowException
             ? "Invalid launch configuration. Check supported flags and value formats."
             : "Check private diagnostics and workspace/data permissions; no private error text is printed here.");
-    Console.Error.WriteLine($"{prefix}: {string.Join(" -> ", chain)}. {advice}");
+    // Guidance is written to be read on its own, so the exception names that
+    // carried it are dropped: "GUI failed: GuiBindRefusalException. GUI
+    // authentication required..." tells an operator less than the sentence does.
+    // Anything else keeps the type chain, which is the only clue available.
+    string report = guidance is not null
+        ? $"{prefix}: {advice}"
+        : $"{prefix}: {string.Join(" -> ", chain)}. {advice}";
+    Console.Error.WriteLine(report);
 }
 
 
