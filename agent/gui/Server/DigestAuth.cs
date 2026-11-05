@@ -194,10 +194,12 @@ public static partial class Gui
             "GUI authentication required; run auth-init --file \"" + path + "\" before starting this listener");
     }
 
-    public static partial void UseDigestAuth(WebApplication host, string path)
+    public static partial void UseDigestAuth(WebApplication host, string path,
+        TextWriter? diagnostics)
     {
         var credentials = LoadDigestCredentials(path);
-        var guard = new DigestGuard(credentials, RandomNumberGenerator.GetBytes(32));
+        var guard = new DigestGuard(credentials, RandomNumberGenerator.GetBytes(32), path,
+            diagnostics);
         host.Use(async (context, next) =>
         {
             if (await guard.AdmitAsync(context))
@@ -207,7 +209,8 @@ public static partial class Gui
         });
     }
 
-    public static partial int RunAuthCommand(string[] args, TextWriter output)
+    public static partial int RunAuthCommand(string[] args, TextWriter output,
+        TextWriter? diagnostics)
     {
         bool replace = args[0] == "auth-reset";
         string? file = null;
@@ -240,12 +243,28 @@ public static partial class Gui
                         "usage: auth-init|auth-reset [--file path] [--username ensemble] [--data-dir path]");
             }
         }
+        // The listener reads <data directory>/gui-auth.json, so the subcommand looks in
+        // the same place by default instead of the current directory. Without this, a
+        // forgotten --data-dir wrote a second verifier that nothing ever consulted, and
+        // the printed password simply failed to work.
         string path = string.IsNullOrWhiteSpace(file)
-            ? Path.Combine(Path.GetFullPath(dataDirectory ?? Directory.GetCurrentDirectory()),
-                "gui-auth.json")
+            ? Path.Combine(Path.GetFullPath(dataDirectory
+                ?? Environment.GetEnvironmentVariable("EN_DATA_DIR")
+                ?? Directory.GetCurrentDirectory()), "gui-auth.json")
             : Path.GetFullPath(file!);
         string password = CreateDigestCredentials(path, username, replace);
         output.WriteLine(password);
+        if (diagnostics is not null)
+        {
+            diagnostics.WriteLine("auth: verifier written to " + path);
+            string stray = Path.Combine(Directory.GetCurrentDirectory(), "gui-auth.json");
+            if (!string.Equals(Path.GetFullPath(stray), path, StringComparison.Ordinal)
+                && File.Exists(stray))
+            {
+                diagnostics.WriteLine("auth: warning \"" + stray + "\" also exists and is not "
+                    + "the file this listener reads; delete it to avoid an unused password");
+            }
+        }
         return 0;
     }
 
@@ -362,49 +381,104 @@ public static partial class Gui
     }
 
     internal static partial bool DigestResponseMatches(GuiDigestCredentials credentials,
+        string method, string uri, Dictionary<string, string> fields) =>
+        DigestRejection(credentials, method, uri, fields) is null;
+
+    // Client-chosen text reaches the operator's log, so it is stripped of control
+    // characters and shortened before quoting. A log line must not become a channel
+    // for forged terminal output or an unbounded attacker string.
+    private static string Quoted(string value)
+    {
+        string visible = new(value.Where(character => !char.IsControl(character)).ToArray());
+        return "\"" + (visible.Length > 48 ? visible[..48] + "..." : visible) + "\"";
+    }
+
+    // Every rule the Digest answer must satisfy, in one place, reporting the first it
+    // fails. The constant-time comparison stays last so no earlier check depends on it.
+    // Naming the failing rule in the operator's log distinguishes a mistyped password
+    // from a stale realm or a browser reusing a nonce, which a bare bool made
+    // undiagnosable. The client still receives one uniform 401 for every reason, so
+    // nothing here helps an attacker tell a good username from a bad one.
+    internal static partial string? DigestRejection(GuiDigestCredentials credentials,
         string method, string uri, Dictionary<string, string> fields)
     {
-        if (fields.ContainsKey("username*") || !fields.TryGetValue("nc", out string? nc)
-            || !fields.TryGetValue("cnonce", out string? cnonce)
-            || !fields.TryGetValue("nonce", out string? nonce)
-            || !fields.TryGetValue("qop", out string? qop)
-            || !fields.TryGetValue("algorithm", out string? algorithm)
-            || !fields.TryGetValue("realm", out string? realm)
-            || !fields.TryGetValue("uri", out string? requested)
-            || !fields.TryGetValue("username", out string? username))
+        if (fields.ContainsKey("username*"))
         {
-            return false;
+            return "the username* extension is not accepted";
         }
+        foreach (string field in new[] { "nc", "cnonce", "nonce", "qop", "algorithm",
+            "realm", "uri", "username", "response" })
+        {
+            if (!fields.ContainsKey(field))
+            {
+                return "the Authorization header omits " + field;
+            }
+        }
+        string nc = fields["nc"], cnonce = fields["cnonce"], nonce = fields["nonce"],
+            qop = fields["qop"], algorithm = fields["algorithm"], realm = fields["realm"],
+            requested = fields["uri"], username = fields["username"];
         // The counter is hex, exactly eight digits, and starts at one: nc=0 would
         // let a client reuse the zero key in the replay table indefinitely.
         if (nc.Length != 8 || !IsHex(nc)
-            || uint.Parse(nc, NumberStyles.HexNumber, CultureInfo.InvariantCulture) == 0
-            || qop != "auth"
-            || !string.Equals(algorithm, "SHA-256", StringComparison.OrdinalIgnoreCase)
-            || realm != credentials.Realm || requested != uri || username != credentials.Username
-            || cnonce.Length == 0 || cnonce.Length > 256 || nonce.Length == 0
-            || (fields.TryGetValue("userhash", out string? userhash) && userhash != "false"))
+            || uint.Parse(nc, NumberStyles.HexNumber, CultureInfo.InvariantCulture) == 0)
         {
-            return false;
+            return "the replay counter is not eight hex digits above zero";
+        }
+        if (qop != "auth")
+        {
+            return "qop must be auth, not " + Quoted(qop);
+        }
+        if (!string.Equals(algorithm, "SHA-256", StringComparison.OrdinalIgnoreCase))
+        {
+            return "algorithm must be SHA-256, not " + Quoted(algorithm);
+        }
+        if (realm != credentials.Realm)
+        {
+            return "realm " + Quoted(realm) + " does not match the verifier's "
+                + Quoted(credentials.Realm);
+        }
+        if (requested != uri)
+        {
+            return "uri " + Quoted(requested) + " does not match the request target "
+                + Quoted(uri);
+        }
+        if (username != credentials.Username)
+        {
+            return "username " + Quoted(username) + " is not the configured user "
+                + Quoted(credentials.Username);
+        }
+        if (cnonce.Length == 0 || cnonce.Length > 256)
+        {
+            return "cnonce is empty or longer than 256 characters";
+        }
+        if (nonce.Length == 0)
+        {
+            return "nonce is empty";
+        }
+        if (fields.TryGetValue("userhash", out string? userhash) && userhash != "false")
+        {
+            return "userhash must be absent or false";
         }
         byte[] response;
         try
         {
-            response = Convert.FromHexString(fields.GetValueOrDefault("response", ""));
+            response = Convert.FromHexString(fields["response"]);
         }
         catch (FormatException)
         {
-            return false;
+            return "response is not hexadecimal";
         }
         if (response.Length != 32)
         {
-            return false;
+            return "response is not 32 bytes";
         }
         string requestHash = Convert.ToHexStringLower(SHA256.HashData(
             Encoding.UTF8.GetBytes(method + ":" + requested)));
         byte[] expected = SHA256.HashData(Encoding.UTF8.GetBytes(credentials.Ha1 + ":" + nonce
             + ":" + nc + ":" + cnonce + ":auth:" + requestHash));
-        return CryptographicOperations.FixedTimeEquals(expected, response);
+        return CryptographicOperations.FixedTimeEquals(expected, response)
+            ? null
+            : "the password does not match the verifier";
     }
 
     internal static partial string DigestNonce(byte[] key, DateTimeOffset issued)
@@ -452,14 +526,43 @@ public static partial class Gui
         private readonly object gate = new();
         private readonly Dictionary<string, DateTimeOffset> replays = [];
         private readonly Dictionary<string, (int Count, DateTimeOffset Until, DateTimeOffset Updated)> failures = [];
+        private readonly string? verifierPath;
+        private readonly TextWriter? diagnostics;
+        private bool verifierAnnounced;
 
-        internal DigestGuard(GuiDigestCredentials credentials, byte[] key)
+        internal DigestGuard(GuiDigestCredentials credentials, byte[] key,
+            string? verifierPath = null, TextWriter? diagnostics = null)
         {
             this.credentials = credentials;
             this.key = key;
+            this.verifierPath = verifierPath;
+            this.diagnostics = diagnostics;
         }
 
-        // True admits the request; false has already answered it.
+        // One line per refused attempt, naming the rule that refused it. The verifier
+        // path is stated on the first refusal because a password generated for one
+        // file silently cannot unlock a listener reading another, and that mismatch is
+        // otherwise invisible: both files look correct on disk.
+        private void Explain(string source, string reason)
+        {
+            if (diagnostics is not null)
+            {
+                bool announce;
+                lock (gate)
+                {
+                    announce = !verifierAnnounced;
+                    verifierAnnounced = true;
+                }
+                // Written outside the gate: it also guards the replay and slowdown
+                // tables, and no request should wait on somebody's terminal.
+                diagnostics.WriteLine(announce
+                    ? $"auth: rejected {reason} from {source}; verifier "
+                        + (verifierPath is null ? "is held by the embedding host"
+                            : "file " + verifierPath)
+                    : $"auth: rejected {reason} from {source}");
+            }
+        }
+
         // True admits the request; false has already answered it.
         internal async ValueTask<bool> AdmitAsync(HttpContext context)
         {
@@ -488,6 +591,7 @@ public static partial class Gui
             }
             if (schemes.Count != 1)
             {
+                Explain(source, "more than one Authorization header was sent");
                 Failed(source, now);
                 await ChallengeAsync(context, now, false);
                 return false;
@@ -497,9 +601,17 @@ public static partial class Gui
             string uri = (context.Request.Path.Value ?? "")
                 + (context.Request.QueryString.HasValue ? context.Request.QueryString.Value! : "");
             var fields = ParseDigestFields(schemes[0]);
-            if (fields is null
-                || !DigestResponseMatches(credentials, context.Request.Method, uri, fields))
+            if (fields is null)
             {
+                Explain(source, "the Authorization header is not parseable Digest syntax");
+                Failed(source, now);
+                await ChallengeAsync(context, now, false);
+                return false;
+            }
+            string? rejection = DigestRejection(credentials, context.Request.Method, uri, fields);
+            if (rejection is not null)
+            {
+                Explain(source, rejection);
                 Failed(source, now);
                 await ChallengeAsync(context, now, false);
                 return false;
@@ -507,6 +619,10 @@ public static partial class Gui
             DateTimeOffset? expiry = DigestNonceExpiry(key, fields["nonce"], now);
             if (expiry is null)
             {
+                // The nonce is self-certifying, so this means the challenge did not come
+                // from this listener: the usual cause is a restart between prompt and
+                // retry, and a fresh challenge resolves it.
+                Explain(source, "the nonce was not issued by this listener");
                 Failed(source, now);
                 await ChallengeAsync(context, now, false);
                 return false;
@@ -543,6 +659,7 @@ public static partial class Gui
             }
             if (replay)
             {
+                Explain(source, "that nonce, cnonce and counter were already used");
                 Failed(source, now);
                 await ChallengeAsync(context, now, false);
                 return false;

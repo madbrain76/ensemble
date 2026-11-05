@@ -106,7 +106,7 @@ public static partial class Gui
         {
             string authPath = agent.Sandbox().Resolve(requestedAuth);
             CheckDigestPath(authPath, [settingsPath]);
-            UseDigestAuth(host, authPath);
+            UseDigestAuth(host, authPath, options.DiagnosticsOutput);
         }
         var routes = host.MapGroup(basePath);
 

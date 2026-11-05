@@ -21,6 +21,9 @@ namespace EnsembleGui;
 // authentication on, and its absence leaves the listener open as before.
 // Null TracePath uses Agent-owned diagnostics. An explicit path is a fresh,
 // operation-owned aggregate trace for embedding/tests, not the normal host mode.
+// DiagnosticsOutput is the operator's error stream, distinct from any projection or
+// trace file: it carries short, actionable sentences such as why an authentication
+// attempt was refused. Embedded hosts and fixtures leave it null and stay silent.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
-    string? PublicOrigin = null, string? AuthPath = null);
+    string? PublicOrigin = null, string? AuthPath = null, TextWriter? DiagnosticsOutput = null);

@@ -79,6 +79,8 @@ static class DigestAuthTests
             Credentials(work);
             Parser();
             Verification();
+            RejectionReasons();
+            GuardDiagnostics();
             Nonce();
             Staleness();
             PathPolicy(work);
@@ -244,6 +246,109 @@ static class DigestAuthTests
             Check(!Gui.DigestResponseMatches(credentials, "GET", "/x", mutated),
                 "a malformed response digest was accepted");
         }
+    }
+
+    // Naming the rule a request failed is what makes a LAN authentication failure
+    // debuggable, so each rule reports itself rather than sharing one blunt "no".
+    static void RejectionReasons()
+    {
+        var credentials = new GuiDigestCredentials(1, "ensemble", "Ensemble",
+            Hex(SHA256.HashData(Encoding.UTF8.GetBytes("ensemble:Ensemble:s3cret"))));
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields()) is null,
+            "a correct answer reported a reason");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields(password: "guess"))
+            == "the password does not match the verifier", "a wrong password was not named");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields(username: "root"))!
+            .StartsWith("username \"root\" is not the configured user", StringComparison.Ordinal),
+            "a wrong username was not named");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields(realm: "Elsewhere"))!
+            .StartsWith("realm ", StringComparison.Ordinal), "a wrong realm was not named");
+        Check(Gui.DigestRejection(credentials, "GET", "/y", Fields())!
+            .StartsWith("uri ", StringComparison.Ordinal), "a mismatched uri was not named");
+        // The method is inside the hash, not a separate field, so it surfaces as a
+        // digest mismatch rather than a named field.
+        Check(Gui.DigestRejection(credentials, "POST", "/x", Fields())
+            == "the password does not match the verifier",
+            "a changed method did not surface as a digest mismatch");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields(nc: "0000000g"))!
+            .Contains("replay counter", StringComparison.Ordinal), "a bad nc was not named");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields(qop: "auth-int"))!
+            .StartsWith("qop must be auth", StringComparison.Ordinal), "a bad qop was not named");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", Fields(algorithm: "MD5"))!
+            .StartsWith("algorithm must be SHA-256", StringComparison.Ordinal),
+            "a bad algorithm was not named");
+        var missing = Fields();
+        missing.Remove("nonce");
+        Check(Gui.DigestRejection(credentials, "GET", "/x", missing)
+            == "the Authorization header omits nonce", "a missing field was not named");
+        var extension = Fields();
+        extension["username*"] = "escapes";
+        Check(Gui.DigestRejection(credentials, "GET", "/x", extension)
+            == "the username* extension is not accepted", "username* was not named");
+        // The bool view and the stated reason share one implementation and must agree.
+        foreach (var probe in new[] { Fields(), Fields(password: "guess"),
+            Fields(username: "root"), Fields(qop: "auth-int") })
+        {
+            Check(Gui.DigestResponseMatches(credentials, "GET", "/x", probe)
+                == (Gui.DigestRejection(credentials, "GET", "/x", probe) is null),
+                "the bool answer and the stated reason disagree");
+        }
+        // Client-chosen text reaches the operator's log, so it is stripped of control
+        // characters and bounded: no forged terminal output and no unbounded string.
+        var sneaky = Fields(username: "a\u001b]0;pwned\u0007" + new string('x', 200));
+        string reason = Gui.DigestRejection(credentials, "GET", "/x", sneaky)!;
+        Check(!reason.Any(character => char.IsControl(character)) && reason.Length < 160,
+            "client-chosen text reached the log unsanitized");
+    }
+
+    // A terminal that says only "Unauthorized" cannot tell a wrong password from a
+    // verifier file the listener never read, which is exactly the failure that cost
+    // an operator an afternoon. The reason and the file must both be said.
+    static void GuardDiagnostics()
+    {
+        var credentials = new GuiDigestCredentials(1, "ensemble", "Ensemble",
+            Hex(SHA256.HashData(Encoding.UTF8.GetBytes("ensemble:Ensemble:s3cret"))));
+        byte[] key = RandomNumberGenerator.GetBytes(32);
+        var log = new StringWriter();
+        var guard = new Gui.DigestGuard(credentials, key, "/var/lib/ensemble/gui-auth.json", log);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        void Refuse(string authorization)
+        {
+            var context = new DefaultHttpContext();
+            context.Connection.RemoteIpAddress = IPAddress.Loopback;
+            context.Request.Method = "GET";
+            context.Request.Path = "/x";
+            context.Request.Headers["Authorization"] = authorization;
+            Check(!guard.AdmitAsync(context).GetAwaiter().GetResult(),
+                "the guard admitted a request it should refuse");
+            Check(context.Response.StatusCode == 401,
+                "a refusal was not the uniform 401 challenge");
+        }
+        Refuse(Answer("ensemble", "Ensemble", "not-the-secret", "GET", "/x",
+            Gui.DigestNonce(key, now)));
+        Refuse(Answer("root", "Ensemble", "s3cret", "GET", "/x", Gui.DigestNonce(key, now)));
+        string text = log.ToString();
+        Check(text.Contains("the password does not match the verifier"),
+            "a wrong password was not explained to the operator");
+        Check(text.Contains("username \"root\" is not the configured user"),
+            "a wrong username was not explained to the operator");
+        Check(text.Contains("/var/lib/ensemble/gui-auth.json"),
+            "the verifier file was never named");
+        Check(text.Split("verifier file").Length - 1 == 1,
+            "the verifier path was repeated instead of stated once");
+        Check(text.Split("auth: rejected").Length - 1 == 2,
+            "each refusal was not logged exactly once");
+        // Secrets stay out of the log: neither password, and no digest material.
+        Check(!text.Contains("s3cret") && !text.Contains("not-the-secret"),
+            "a password reached the operator log");
+        // Silent hosts, such as fixtures, write nothing at all.
+        var quiet = new Gui.DigestGuard(credentials, key);
+        var anonymous = new DefaultHttpContext();
+        anonymous.Connection.RemoteIpAddress = IPAddress.Loopback;
+        anonymous.Request.Method = "GET";
+        anonymous.Request.Path = "/x";
+        Check(!quiet.AdmitAsync(anonymous).GetAwaiter().GetResult(),
+            "a request that should be refused was admitted");
     }
 
     static void Nonce()

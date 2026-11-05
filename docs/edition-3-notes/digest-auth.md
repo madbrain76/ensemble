@@ -53,3 +53,45 @@ port (feature 18).
 - The credential mode check is Unix-only, matching where the concept exists;
   `.NET` exposes no portable uid read, so ownership is not re-verified beyond
   the 0600 requirement.
+
+## A refusal that could not be diagnosed
+
+Reported after the port was in daily use: a browser prompt rejected the correct
+username and the operator could not tell why. Two separate files were the cause —
+`auth-reset` had been run without `--data-dir`, so it wrote
+`~/projects/ensemble/gui-auth.json` while the listener read
+`~/.local/share/ensemble-csharp/gui-auth.json`. The printed password was genuine
+and simply belonged to a file nothing consulted. Nothing on either side said so.
+
+- Every rejection was one bool. `DigestResponseMatches` returned `false` for a
+  wrong password, a wrong username, a drifted realm, a malformed counter and a
+  browser that reused a nonce identically, and `AdmitAsync` recorded only the
+  address for the slowdown. The uniform 401 is correct as a *wire* behaviour; as
+  operator feedback it left nothing to act on.
+- `DigestRejection` is now the single implementation and names the first rule the
+  answer failed; `DigestResponseMatches` is `DigestRejection(...) is null`, so the
+  reason can never drift from the rule that produced it. The constant-time
+  comparison stays last.
+- The client still receives one uniform 401 whatever the reason. Naming the failed
+  rule is a terminal-only privilege: it distinguishes a good username from a bad
+  one for whoever can read the log, which on a LAN is the operator, not a scanner.
+- Reasons name fields and fixed guidance; client-chosen text is passed through
+  `Quoted`, which strips control characters and truncates, so a hostile header
+  cannot forge terminal output or bloat the log. No password, digest or verifier
+  material is ever written.
+- `DigestGuard` takes the verifier path and prints it on the first refusal only.
+  One statement of the path is enough to expose a split-brain file, and repeating
+  it on every failed attempt would turn a brute-force attempt into log spam.
+  `Explain` decides inside the gate and writes outside it: the same lock guards the
+  replay and slowdown tables, and no request should wait on a terminal.
+- `auth-init`/`auth-reset` now default to `$EN_DATA_DIR` like the launcher
+  (`Selected("--data-dir", "EN_DATA_DIR")`) instead of silently using the current
+  directory, print the verifier path they wrote, and warn when some other
+  `gui-auth.json` exists in the current directory. Verified: with the stray file
+  present the warning names it, and the run printed
+  `auth: verifier written to <dir>/gui-auth.json`.
+- Tests: `RejectionReasons` pins a distinct reason per rule, agrees the bool and
+  the reason cannot disagree, and checks sanitization of client text;
+  `GuardDiagnostics` drives the real guard and asserts the two reasons, the single
+  path statement, and that no password appears. Both proven live by mutating the
+  reason strings and the path sentence.
