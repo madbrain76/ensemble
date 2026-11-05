@@ -298,6 +298,9 @@ static class ReasoningEffortTests
         }
         Check(busyNotes.ToString().Contains("sent unverified"),
             "a busy provider was not reported as unverified: " + busyNotes);
+        // The two silences need different follow-ups, so the note must not blur them.
+        Check(busyNotes.ToString().Contains("did not answer within"),
+            "a timeout was not distinguished from an uninformative answer: " + busyNotes);
 
         var deadNotes = new StringWriter();
         var deadRoot = new Ensemble.Ensemble(deadNotes, dataDirectory: Root(temp, "dead"));

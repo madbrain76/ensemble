@@ -28,8 +28,8 @@ public sealed partial class Engine
                 + "covers the OpenAI API-key surfaces only");
             return;
         }
-        (string? modelList, string? refusal) = await ProbeAsync(config, effort, cancellation,
-            probeTimeout ?? EffortProbeTimeout);
+        (string? modelList, string? refusal, string? silence) = await ProbeAsync(config, effort,
+            cancellation, probeTimeout ?? EffortProbeTimeout);
         if (refusal is not null)
         {
             // The server rejected this exact parameter with its own words. Silently
@@ -43,18 +43,21 @@ public sealed partial class Engine
         }
         else if (refusal is null)
         {
-            // modelList null and refusal null means the endpoint said nothing about
-            // effort levels. That is not evidence of denial, so the launch proceeds,
-            // but it proceeds honestly: the operator can read why in the log.
-            parent!.Parent().Log($"reasoning effort \"{effort}\" sent unverified: the endpoint "
-                + "gave no answer about it");
+            // Nothing denied the value, so the launch proceeds. It proceeds
+            // honestly too: the two silences mean different things to an operator
+            // diagnosing a launch, so the log says which one happened.
+            string detail = silence ?? "the endpoint answered the request without naming "
+                + "the effort levels it supports";
+            parent!.Parent().Log($"reasoning effort \"{effort}\" sent unverified: {detail}");
         }
     }
 
     // Returns the listing document that confirmed the value, or the server's own
-    // refusal message. Both null means the endpoint gave no usable answer.
-    private async Task<(string? Advertised, string? Refusal)> ProbeAsync(Configuration config,
-        string effort, CancellationToken cancellation, TimeSpan budget)
+    // refusal message. Both null means the endpoint gave no usable answer; silence
+    // then explains which kind, because a busy provider and an uninformative one
+    // need different follow-ups.
+    private async Task<(string? Advertised, string? Refusal, string? Silence)> ProbeAsync(
+        Configuration config, string effort, CancellationToken cancellation, TimeSpan budget)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         timeout.CancelAfter(budget);
@@ -65,9 +68,9 @@ public sealed partial class Engine
             // subset of what it accepts, so a missing name must still get to answer.
             if (advertised is not null)
             {
-                return (advertised, null);
+                return (advertised, null, null);
             }
-            return (null, await AcceptsAsync(config, effort, timeout.Token));
+            return (null, await AcceptsAsync(config, effort, timeout.Token), null);
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
         {
@@ -76,7 +79,8 @@ public sealed partial class Engine
             // answered nothing. Aborting here turned a slow LAN server into a GUI
             // that never started, with an OperationCanceledException as its only
             // trace.
-            return (null, null);
+            return (null, null, $"the endpoint did not answer within "
+                + $"{budget.TotalSeconds:0.##} seconds");
         }
     }
 
