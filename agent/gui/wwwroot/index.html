@@ -3,6 +3,21 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ensemble</title>
 <link rel="icon" type="image/svg+xml" sizes="any" href="./artwork/music-note.svg">
+<script>
+// Paint the confirmed theme before the stylesheet arrives. Every other script is
+// deferred, so a light-profile first frame used to be dark and then flipped. Only
+// a stored, valid value is trusted here; anything else keeps the markup default
+// until theme.js resolves it, because guessing wrong is itself a flash.
+(function () {
+    try {
+        var value = localStorage.getItem("ensemble.theme.v1");
+        if (value !== "dark" && value !== "light" && value !== "system") return;
+        document.documentElement.dataset.bsTheme = value === "system"
+            && !matchMedia("(prefers-color-scheme: dark)").matches ? "light"
+            : value === "system" ? "dark" : value;
+    } catch (error) { /* Blocked storage: theme.js decides after load. */ }
+})();
+</script>
 <link rel="stylesheet" href="./vendor/bootstrap-5.3.8.min.css">
 <link rel="stylesheet" href="./style.css">
 <script src="./vendor/bootstrap-5.3.8.bundle.min.js" defer></script>
