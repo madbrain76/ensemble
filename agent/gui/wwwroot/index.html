@@ -5,17 +5,22 @@
 <link rel="icon" type="image/svg+xml" sizes="any" href="./artwork/music-note.svg">
 <script>
 // Paint the confirmed theme before the stylesheet arrives. Every other script is
-// deferred, so a light-profile first frame used to be dark and then flipped. Only
-// a stored, valid value is trusted here; anything else keeps the markup default
-// until theme.js resolves it, because guessing wrong is itself a flash.
+// deferred, so a light-profile first frame used to be dark and then flipped.
+// An explicit stored choice wins; a missing, unreadable or unrecognised value
+// follows the operating system, which is exactly what theme.js resolves it to
+// later. Leaving the markup default there was not caution: for an OS-light
+// visitor it guaranteed a dark first frame that was then always corrected.
 (function () {
+    var dark;
     try {
         var value = localStorage.getItem("ensemble.theme.v1");
-        if (value !== "dark" && value !== "light" && value !== "system") return;
-        document.documentElement.dataset.bsTheme = value === "system"
-            && !matchMedia("(prefers-color-scheme: dark)").matches ? "light"
-            : value === "system" ? "dark" : value;
-    } catch (error) { /* Blocked storage: theme.js decides after load. */ }
+        dark = value === "dark" ? true
+            : value === "light" ? false
+            : matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch (error) { /* Blocked storage: fall through to the operating system. */
+        dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    document.documentElement.dataset.bsTheme = dark ? "dark" : "light";
 })();
 </script>
 <link rel="stylesheet" href="./vendor/bootstrap-5.3.8.min.css">
@@ -162,7 +167,7 @@
 </section>
 <section class="tab-pane" id="settings-display-panel" role="tabpanel" aria-labelledby="settings-display-tab" tabindex="0">
 <section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">This browser: Speech &amp; Display</h2><p>Saved in this browser profile for this site. Tabs share preferences; other profiles and devices do not. If storage is blocked, changes last for this page only.</p>
- <label>Theme (this browser) <select class="form-select" id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark" selected>Dark</option></select></label>
+ <label>Theme (this browser) <select class="form-select" id="theme"><option value="system" selected>System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
  <label>Font size (this browser) <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
  <label>Speech speed (this browser) <input class="form-control" id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
  <label><input class="form-check-input" id="pause-speaking" type="checkbox" checked> Pause Agent while this browser speaks</label>
