@@ -28,10 +28,13 @@ namespace EnsembleGui;
 // DiagnosticsOutput is the operator's error stream, distinct from any projection or
 // trace file: it carries short, actionable sentences such as why an authentication
 // attempt was refused. Embedded hosts and fixtures leave it null and stay silent.
+// AllowedHosts names the extra values a client may put in Host, such as the DNS
+// name a router gives this box. They are never looked up: resolving a name the
+// client chose is exactly the DNS rebinding hole this check exists to close.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
     string? PublicOrigin = null, string? AuthPath = null, string Host = "127.0.0.1",
-    TextWriter? DiagnosticsOutput = null);
+    TextWriter? DiagnosticsOutput = null, IReadOnlyList<string>? AllowedHosts = null);
 
 // A refused bind address is a launch decision carrying fixed operator guidance,
 // not provider, credential or filesystem text. The host reports unknown

@@ -67,6 +67,27 @@ static class HostBindingTests
                 "a literal address did not resolve");
             Check(Gui.IsLoopbackHost("localhost") && !Gui.IsLoopbackHost("0.0.0.0"),
                 "the loopback decision is wrong");
+            // Declared client names are normalized once and never carry a transport.
+            Check(Gui.NormalizeAllowedHosts(["Dev.Example.", " dev2 ", "Dev.Example."])
+                .SequenceEqual(new[] { "dev.example", "dev2" }),
+                "declared client names were not normalized and deduplicated");
+            Check(Gui.NormalizeAllowedHosts(null).Count == 0
+                && Gui.NormalizeAllowedHosts(["", "  "]).Count == 0,
+                "an empty declaration did not normalize to no names");
+            foreach (string bad in new[] { "dev:8080", "http://dev", "dev/path",
+                "de v", "user@dev", "*.example" })
+            {
+                bool refusedName = false;
+                try
+                {
+                    Gui.NormalizeAllowedHosts([bad]);
+                }
+                catch (ArgumentException)
+                {
+                    refusedName = true;
+                }
+                Check(refusedName, "a declared client name accepted \"" + bad + "\"");
+            }
             // Refused spellings: a name, a port, a URL, or nonsense must not bind.
             foreach (string bad in new[] { "", "   ", "example.com", "localhost:8090",
                 "127.0.0.1:8090", "http://127.0.0.1", "127.0.0.256", "not-an-address", "::gg" })
@@ -127,9 +148,14 @@ static class HostBindingTests
             int lanPort = FreePort();
             string? lan = LanAddress();
             using var lanDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            // A bare 400 in a browser is undiagnosable, so the operator's stream must
+            // name the refused Host exactly once however often the page retries it.
+            var lanDiagnostics = new StringWriter();
             Task serving = Gui.RunAsync(LocalAgent(work, "lan-guarded"),
                 new GuiOptions(lanPort, Host: "0.0.0.0", AuthPath: file,
-                    SettingsPath: Path.Combine(work, "lan-settings.json")), lanDeadline.Token);
+                    SettingsPath: Path.Combine(work, "lan-settings.json"),
+                    DiagnosticsOutput: lanDiagnostics,
+                    AllowedHosts: ["declared.example"]), lanDeadline.Token);
             await Task.WhenAny(serving, Task.Delay(3000));
             await RequireRunning(serving, "the authenticated LAN listener");
             using (var http = new HttpClient(new HttpClientHandler { UseProxy = false }))
@@ -188,11 +214,42 @@ static class HostBindingTests
                         "correct credentials were refused from an off-loopback client:"
                         + " a listener bound for the LAN must actually serve the LAN");
                     // Rebinding: the client dials this address but names another host.
+                    // A name is acceptable only because this host or its operator
+                    // supplied it, never because a resolver agreed with the client.
                     Check(await Authenticate(lan, "rebinding.example") != HttpStatusCode.OK,
                         "a Host header that is not the arrival address was admitted");
+                    string machine = Dns.GetHostName();
+                    Check(machine.Length > 0, "this test host reports no machine name");
+                    Check(await Authenticate(lan, machine + ":" + lanPort) == HttpStatusCode.OK,
+                        "a LAN client naming this machine by its own hostname was refused");
+                    Check(await Authenticate(lan, machine.ToUpperInvariant() + ":" + lanPort)
+                        == HttpStatusCode.OK,
+                        "this machine's own name was refused for differing only in case");
+                    Check(await Authenticate(lan, "declared.example:" + lanPort) == HttpStatusCode.OK,
+                        "an operator-declared client name was refused off-loopback");
+                    // Twice: the second call also proves the operator line is not repeated.
+                    Check(await Authenticate(lan, "undeclared.example:" + lanPort) != HttpStatusCode.OK,
+                        "a name neither declared nor known to this host was admitted");
+                    Check(await Authenticate(lan, "undeclared.example:" + lanPort) != HttpStatusCode.OK,
+                        "a name neither declared nor known to this host was admitted");
                 }
                 Check(await Authenticate("127.0.0.1", "rebinding.example") != HttpStatusCode.OK,
                     "a Host header that is not local or the public origin was admitted");
+                Check(await Authenticate("127.0.0.1", Dns.GetHostName() + ":" + lanPort)
+                    == HttpStatusCode.OK,
+                    "a loopback client naming this machine by its own hostname was refused");
+                Check(await Authenticate("127.0.0.1", "declared.example:" + lanPort)
+                    == HttpStatusCode.OK,
+                    "an operator-declared client name was refused from loopback");
+                if (lan is not null)
+                {
+                    int reported = lanDiagnostics.ToString().Split('\n').Count(line =>
+                        line.StartsWith("gui: refused Host \"undeclared.example:",
+                            StringComparison.Ordinal));
+                    Check(reported == 1,
+                        "the same refused Host reached the operator " + reported
+                        + " times instead of once");
+                }
             }
             lanDeadline.Cancel();
             try
