@@ -85,7 +85,39 @@ public sealed partial class Engine
         Configuration config = owner.BeginEngineSend();
         try
         {
-            return await SendCoreAsync(config, requestBody, cancellation, onChunk);
+            ParsedResponse response = await SendCoreAsync(config, requestBody, cancellation,
+                onChunk);
+            if (!EndsBeforeAnswer(response))
+            {
+                return response;
+            }
+            // Nothing visible arrived. Each recovery is a fresh transport attempt, so
+            // the published-output decision is re-evaluated as it streams; the loop is
+            // bounded by RecoveryBodies, which returns nothing once anything is shown.
+            bool published = false;
+            Action<Chunk>? watched = onChunk is null ? null
+                : chunk =>
+                {
+                    if (chunk.Kind is not (ChunkKind.Thinking or ChunkKind.ReasoningSummary)
+                        && !string.IsNullOrWhiteSpace(chunk.Text))
+                    {
+                        published = true;
+                    }
+                    onChunk(chunk);
+                };
+            foreach (string attempt in RecoveryBodies(requestBody, published,
+                         cancellation.IsCancellationRequested))
+            {
+                Parent().Parent().Log("reply ended before a visible answer; retrying once with a "
+                    + "larger budget or an explicit answer request");
+                response = await SendCoreAsync(config, attempt, cancellation, watched);
+                if (!EndsBeforeAnswer(response))
+                {
+                    return response;
+                }
+            }
+            return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                error: "response reached its output limit before a visible answer")], []);
         }
         finally
         {
