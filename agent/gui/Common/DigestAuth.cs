@@ -51,11 +51,18 @@ public static partial class Gui
     public static partial bool IsLoopbackHost(string host);
 
     // Guard every route, including the WebSocket upgrade, before any handler runs.
-    public static partial void UseDigestAuth(WebApplication host, string path);
+    // Diagnostics receives one short sentence per rejected attempt so an operator can
+    // tell a wrong password from a drifted realm; it stays null for embedded hosts and
+    // fixtures, which have no terminal to read.
+    public static partial void UseDigestAuth(WebApplication host, string path,
+        TextWriter? diagnostics = null);
 
     // "auth-init" and "auth-reset" entry point. Returns the process exit code and
-    // writes only the one-time password to output.
-    public static partial int RunAuthCommand(string[] args, TextWriter output);
+    // writes only the one-time password to output. Diagnostics, when given, receives
+    // the verifier path so the command that prints a password also says which file it
+    // belongs to: a password generated for one file can never unlock another.
+    public static partial int RunAuthCommand(string[] args, TextWriter output,
+        TextWriter? diagnostics = null);
 
     // Reject a credential path that collides with application state, so a
     // misconfigured --gui-auth-file cannot truncate a save, log or settings file.
@@ -68,6 +75,12 @@ public static partial class Gui
 
     // Verify response = SHA-256(HA1:nonce:nc:cnonce:qop:SHA-256(method:uri)).
     internal static partial bool DigestResponseMatches(GuiDigestCredentials credentials,
+        string method, string uri, Dictionary<string, string> fields);
+
+    // The check behind DigestResponseMatches, naming the first failed condition or
+    // null when the answer is correct. One implementation serves both, so the reason
+    // an attempt was refused can never drift from the rule that refused it.
+    internal static partial string? DigestRejection(GuiDigestCredentials credentials,
         string method, string uri, Dictionary<string, string> fields);
 
     // Issue and validate the self-certifying nonce.

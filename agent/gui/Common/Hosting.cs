@@ -28,10 +28,13 @@ namespace EnsembleGui;
 // ReadyOutput receives the addresses once RunAsync is actually listening, so an
 // operator can tell a serving GUI from a launch that is stuck. Null keeps
 // embedded hosts and tests quiet: only the standalone launcher announces itself.
+// DiagnosticsOutput is the operator's error stream, distinct from any projection or
+// trace file: it carries short, actionable sentences such as why an authentication
+// attempt was refused. Embedded hosts and fixtures leave both null and stay silent.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
     string? PublicOrigin = null, string? AuthPath = null, string Host = "127.0.0.1",
-    TextWriter? ReadyOutput = null);
+    TextWriter? ReadyOutput = null, TextWriter? DiagnosticsOutput = null);
 
 // A refused bind address is a launch decision carrying fixed operator guidance,
 // not provider, credential or filesystem text. The host reports unknown

@@ -10,7 +10,7 @@ if (args.Length > 0 && (args[0] == "auth-init" || args[0] == "auth-reset"))
 {
     try
     {
-        return Gui.RunAuthCommand(args, Console.Out);
+        return Gui.RunAuthCommand(args, Console.Out, Console.Error);
     }
     catch (Exception failure) when (failure is ArgumentException or IOException
         or InvalidDataException or InvalidOperationException or UnauthorizedAccessException)
@@ -276,7 +276,11 @@ try
         Host: bindHost,
         // The standalone launcher is the only host whose operator sees a
         // terminal, so it is the only one that announces the listening address.
-        ReadyOutput: Console.Out);
+        ReadyOutput: Console.Out,
+        // A refused credential attempt is operator feedback, not application state, so
+        // it goes to the terminal's error stream where the launcher already reports
+        // launch problems. Without it, a wrong password and a wrong file are identical.
+        DiagnosticsOutput: Console.Error);
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.
     // A browser-dependent peer cannot finish startup before its own relay can
