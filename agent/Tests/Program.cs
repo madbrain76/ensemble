@@ -433,8 +433,9 @@ try
     {
         await AsyncCase("Chapter 21 named actor homes and restoration", () => StorageTests.NamedHomes(temp));
         CheckCase("Chapter 21 storage admission and independent save paths", () => StorageTests.Admission(temp));
-        CheckCase("Go history import adapts and resumes", () => GoImportTests.Run(temp));
-        CheckCase("Go history import refuses unreadable state", () => GoImportTests.Refusals(temp));
+        CheckCase("Go history is found and resumed", () => GoImportTests.Run(temp));
+        CheckCase("Go history adoption protects the live primary", () => GoImportTests.Adoption(temp));
+        CheckCase("Go history discovery stays out of the way", () => GoImportTests.Graceful(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");

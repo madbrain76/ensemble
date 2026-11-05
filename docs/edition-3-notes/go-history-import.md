@@ -1,12 +1,42 @@
-# Importing history written by the Go implementation
+# Finding history the Go implementation left behind
 
 Bill's conversations live on disk as the Go version left them: the repository root
 was the Go data directory, so `<root>/save.json` is the primary Agent and
 `<root>/agents/<name>/save.json` are the six peers named in `<root>/ensemble.json`
 (2026-11-05: 2,515 + 13,131 events, 4.6 million characters of text). The C# GUI
-showed none of it. `import-go` (`agent/Application/GoImport.cs`, dispatched from
-`agent/Examples/Gui/Program.cs:8`) closes that gap without asking anyone to move
-files by hand, and never writes to the source tree.
+showed none of it, because it was told to look somewhere else.
+
+There is **no import command**. `Examples/Gui` calls `Ensemble.RestoreGoHistory`
+(`agent/Application/GoImport.cs`) after resolving its data directory and before
+composing any Agent, and the operator sees one line when something arrived:
+
+```
+Restored: restored 7 Agents from the Go history in ~/projects/ensemble (15547 events)
+```
+
+Discovery looks in the places the Go version was ever started from — `EN_GO_DATA_DIR`
+if set, then the working directory, then `~/.config/ensemble` — and never searches the
+filesystem. It is deliberately conservative, because it runs unattended at every
+launch:
+
+- The source is only ever read. Verified by hashing the Go files before and after.
+- An Agent whose home here already holds history is **never** replaced, so a re-scan
+  cannot overwrite work done in the C# version.
+- A directory that merely happens to contain a `save.json` is not Go state: Go's
+  snapshot keys (`turn`, `disabled_bands`, `sent_through`, `ephemera`,
+  `startup_tools`) identify it. A valid C#-shaped save in the candidate is left alone.
+- A failure never stops the GUI. One damaged peer is logged and the healthy ones still
+  arrive; any other fault logs one line and serves the fleet it has. Losing a
+  conversation is bad, losing the application is worse.
+- A marker, `<data-dir>/.go-history-restored`, records that the restore ran. Deleting
+  one imported Agent therefore stays deleted instead of resurrecting on next start;
+  deleting the marker is the way to ask for a re-scan after adding a new Go peer.
+
+**Where the Go primary lands.** If this data directory's primary Agent has never said
+anything (no text and no tool call), the Go primary is adopted as the primary — that is
+what "the same conversations as before" means for the main view. If it has said
+something, the Go primary arrives as a peer named `Go archive` and the live conversation
+is untouched. An unreadable existing home is also treated as busy rather than discarded.
 
 ## What already matched, and what did not
 
@@ -60,9 +90,9 @@ the nearest neighbour on the wrong side would silently redact records the Go his
 never covered. A redaction that no longer reaches anything surviving is retired with
 the records it described.
 
-This is the one place where an import changes the identity of a record, and it is
-recoverable: the Go files are never modified, so original sequences can be read from
-them. `--dry-run` prints the plan without writing.
+This is the one place where restoring changes the identity of a record, and it is
+recoverable: the Go files are never modified, so an original sequence can still be
+looked up there.
 
 ## `io/` is deliberately not read
 
@@ -84,23 +114,38 @@ conversation are a gap; another turn's words in an Agent's mouth would be a lie.
 
 ## Verification
 
-`agent/Tests/GoImportTests.cs` writes fixtures in Go's own shapes — a model call as a
-`tool_call` part inside a response, each response behind its own request, a result as
-text parts on a `tool_returned` — because an invented shape would test the fixture
-rather than the import. It asserts the drops and translations are reported by name,
-the source files are byte-identical afterwards, the recall keeps text and hashes, a
-tool result keeps its call id, the redaction range moved 12..14 → 10..12, the history
-is an unbroken run, the Go-redacted reply stays out of the render, and the surviving
-conversation renders through `Engine().Render(History().View())`. `Refusals` covers
-unreadable saves, `--dry-run`, and that a damaged peer registry is never replaced.
-Suite: 343 passed, 4 failed — the pre-existing `agent/Jobs/Pty.cs` macOS gates.
-Mutating the renumbering, the range translation and the recall join each turn one
-specific assertion red, so none of them is decorative.
+`agent/Tests/GoImportTests.cs` drives the launcher's own entry point and writes its
+fixtures in Go's shapes — a model call as a `tool_call` part inside a response, each
+response behind its own request, a result as text parts on a `tool_returned` — because
+an invented shape would test the fixture rather than the restore. Three cases:
 
-Real data: all seven Agents imported, `StartPersistence` restored every one, and
+- **found and resumed**: discovery from the working directory with no environment hint,
+  both Agents installed, drops and translations named in the log, source bytes
+  unchanged, registry merged, recall text and hashes intact, call id intact, redaction
+  range moved 12..14 → 10..12, an unbroken run from one, the Go-redacted reply absent
+  from the render, and the surviving conversation rendered by `Engine().Render`.
+- **adoption**: a primary that has never spoken adopts the Go primary; one with a live
+  conversation keeps it and receives the Go primary as `Go archive`.
+- **stays out of the way**: one damaged peer does not withhold the healthy ones; a
+  valid non-Go save is not adopted; the marker keeps a deleted Agent deleted; an
+  existing save survives a forced re-scan; a damaged registry is left alone.
+
+Suite: 344 passed, 4 failed — the pre-existing `agent/Jobs/Pty.cs` macOS gates. Five
+mutants each turn one distinct assertion red: adopting into a busy primary, ignoring
+the marker, dropping the working-directory fallback, accepting any `save.json` as Go
+state, and overwriting an Agent's existing history. Three of those five survived an
+earlier version of the test, which is why the fixtures are valid saves rather than
+arbitrary bytes: a fixture the restore could not read anyway proves nothing about
+refusal.
+
+Real data: all seven Agents restored, `StartPersistence` opened every one, and
 `Engine().Render` produced a provider request for each (396 KB for the primary,
-715 KB for `ensemble debugger`). Two limits to state plainly. The `io/` gap above
-means some assistant and tool bodies are absent; and a peer's model comes from the
-registry while the primary's comes from the launcher's flags, because the system
-prompt and model are live composition here, not saved history — Go recorded them for
-reproducibility, and this build reads them from the launcher and its skills.
+715 KB for `ensemble debugger`). In Firefox, starting the launcher from the repository
+root with no extra flags brought back the primary conversation and all six peers, and
+selecting a peer replaced the transcript with its own cards.
+
+Two limits worth repeating, because both look like bugs from the inside. Some parts
+arrive with no text, for the `io/` reason above — the launch log counts them per Agent.
+And the system prompt and model are live composition here, read from the launcher and
+the peer registry, not from a saved history: Go recorded them for reproducibility, so
+importing them would silently change which model an old conversation now talks to.

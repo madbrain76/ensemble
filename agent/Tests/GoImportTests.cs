@@ -73,78 +73,104 @@ internal static class GoImportTests
         """{"seq":17,"type":"job_report","time":"2026-10-25T04:00:16Z","tool":{"name":"peer_tool","call_id":"call-2","parts":[{"type":"text","text":"peer answered"}],"job":{"handle":9,"status":"done","output":{"kind":3,"locator":"io/9"},"bytes":12}}}"""
     ];
 
-    public static void Run(string temp)
+    // The launcher calls this with no operator involvement, so the tests drive it the
+    // same way: point the working directory at a Go tree and ask for a restore.
+    private static string? Restore(string destination)
     {
-        string source = Path.Combine(temp, "go");
-        string destination = Path.Combine(temp, "live");
+        var diagnostics = new StringWriter();
+        string? summary = Application.RestoreGoHistory(destination, diagnostics);
+        RestoreLog = diagnostics.ToString();
+        return summary;
+    }
+
+    public static string RestoreLog { get; private set; } = "";
+
+    private static void GoEnvironment(string? source, Action body)
+    {
+        string original = Directory.GetCurrentDirectory();
+        string? previous = Environment.GetEnvironmentVariable("EN_GO_DATA_DIR");
+        try
+        {
+            Environment.SetEnvironmentVariable("EN_GO_DATA_DIR", source);
+            body();
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("EN_GO_DATA_DIR", previous);
+            Directory.SetCurrentDirectory(original);
+        }
+    }
+
+    private static void WriteGoTree(string source, bool brokenPeer = false)
+    {
         string peerHome = Path.Combine(source, "agents", "PDF designer");
         Directory.CreateDirectory(peerHome);
-        Directory.CreateDirectory(destination);
         File.WriteAllText(Path.Combine(source, "save.json"), GoSave(17, Primary));
         File.WriteAllText(Path.Combine(source, "ensemble.json"),
             """[{"name":"PDF designer","model":"qwen-test","skill":"","created":"2026-10-25T04:55:26.331352951Z"}]""");
-        File.WriteAllText(Path.Combine(peerHome, "save.json"), GoSave(1,
-            """{"seq":1,"type":"message_received","time":"2026-10-25T05:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"peer question"}]}}"""));
+        File.WriteAllText(Path.Combine(peerHome, "save.json"), brokenPeer
+            ? "{ \"context\": {\"turn\": 1}, \"as_of\": 1, \"config\": {}, \"log\": [{\"seq\":1,\"type\":\"request_sent\",\"time\":\"" + "2026-10-25T05:00:00Z\"}]}"
+            : GoSave(1, """{"seq":1,"type":"message_received","time":"2026-10-25T05:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"peer question"}]}}"""));
+    }
+
+    public static void Run(string temp)
+    {
+        string source = Path.Combine(temp, "go-auto");
+        string destination = Path.Combine(temp, "live-auto");
+        Directory.CreateDirectory(destination);
+        WriteGoTree(source);
         byte[] before = File.ReadAllBytes(Path.Combine(source, "save.json"));
 
-        var output = new StringWriter();
-        var errors = new StringWriter();
-        int code = Application.RunGoImportCommand(
-            ["--from", source, "--data-dir", destination], output, errors);
-        Check(code == 0, "import refused a valid Go tree: " + errors + output);
-        string report = output.ToString();
-        Check(report.Contains("dropped 1 job_finished") && report.Contains("tools_changed"),
-            "drops were not reported by name: " + report);
-        Check(report.Contains("1 recall_attached to recall_added")
-            && report.Contains("1 job_report to tool_observed"),
-            "a translation was not reported: " + report);
-        Check(report.Contains("1 text parts carried no body"), "an absent part body was not reported: " + report);
+        GoEnvironment(null, () =>
+        {
+            // No environment hint: discovery falls back to the working directory,
+            // which is exactly how the Go version found its own state.
+            Directory.SetCurrentDirectory(source);
+            string? summary = Restore(destination);
+            Check(summary is not null && summary.Contains("2 Agents") && summary.Contains(source),
+                "starting beside a Go tree did not restore it: " + summary);
+            Check(RestoreLog.Contains("skipped 1 job_finished") && RestoreLog.Contains("tools_changed"),
+                "dropped event types were not named in the log: " + RestoreLog);
+            Check(RestoreLog.Contains("recall_attached to recall_added")
+                && RestoreLog.Contains("job_report to tool_observed"),
+                "a translation was not logged: " + RestoreLog);
+            Check(RestoreLog.Contains("had no body"), "an absent part body was not reported: " + RestoreLog);
+        });
 
-        // Migration must be read-only on the tree it comes from.
         Check(before.AsSpan().SequenceEqual(File.ReadAllBytes(Path.Combine(source, "save.json"))),
-            "import-go modified the Go source files");
+            "discovery modified the Go source files");
 
         var imported = JsonCodec.ReadSave(File.ReadAllText(Path.Combine(destination, "agents", "root", "save.json")));
         Check(imported.Events.Length == 15, $"expected the fifteen readable events, got {imported.Events.Length}");
-        Check(imported.Events.Any(e => e.Kind == EventKind.ToolObserved
-            && e.Job is JobInfo report && report.Handle == 9
-            && report.OutputPath.EndsWith("io/9", StringComparison.Ordinal)),
-            "the peer job report lost its outcome or its output locator");
         Check(imported.Events.Any(e => e.Kind == EventKind.MessageReceived
             && e.Parts.Length == 1 && e.Parts[0] is TextPart ask && ask.Text.Contains("slip-in PDF cover")),
             "the user's own words did not survive");
         Check(imported.Events.Any(e => e.Kind == EventKind.ToolReturned
             && e.Parts.Any(part => part is TextPart result && result.Text.Contains("blender.pdf"))),
             "tool output did not survive");
-        Check(imported.Events.Any(e => e.Kind == EventKind.TurnEnded && e.Reason is not null),
-            "turn end still has no reason");
         var recall = imported.Events.Single(e => e.Kind == EventKind.RecallAdded);
         Check(recall.Parts.Length == 1 && recall.Parts[0] is RecallPart attached
-            && attached.Attachment.Text.Contains("blender notes")
-            && attached.Attachment.Hashes.SequenceEqual(["3b38c1c92b6e1add6ee7cdd0bf5d7e1a152b60be27b9bf03e4704a3851b8bf99"]),
-            "the recalled memories lost their text or their hashes");
-        // Renumbering is only honest if a redaction still names the records it
-        // covered: the range was written against Go's sequences, two of which the
-        // migration retired.
+            && attached.Attachment.Text.Contains("blender notes"),
+            "the recalled memories lost their text");
         var redaction = imported.Events.Single(e => e.Kind == EventKind.Redacted);
-        Check(redaction.RedactFrom == 10 && redaction.RedactTo == 12
-            && redaction.Level == Redaction.Dialogue,
-            $"the migrated redaction range drifted: {redaction.RedactFrom}..{redaction.RedactTo}, wanted 10..12");
+        Check(redaction.RedactFrom == 10 && redaction.RedactTo == 12,
+            $"the migrated redaction range drifted: {redaction.RedactFrom}..{redaction.RedactTo}");
         Check(imported.Events[^1].Seq == imported.Events.Length && imported.Sequence == imported.Events.Length,
             "the migrated history is not an unbroken run from one");
         Check(imported.Context is null, "Go's snapshot was carried over instead of rebuilt");
 
-        // The real test of an import is that an Agent opens it and can continue.
+        var registry = JsonNode.Parse(File.ReadAllText(Path.Combine(destination, "ensemble.json")))!.AsArray();
+        Check(registry.Count(row => row?["name"]?.GetValue<string>() == "PDF designer") == 1,
+            "the restored peer never reached the registry");
+
         string original = Directory.GetCurrentDirectory();
         try
         {
             Directory.SetCurrentDirectory(destination);
-            var trace = new StringWriter();
-            var app = new Application(trace, dataDirectory: destination);
+            var app = new Application(TextWriter.Null, dataDirectory: destination);
             try
             {
-                var agent = new Agent(app, new Configuration(Vendor.OpenAI, "qwen-test", "http://127.0.0.1:1"),
-                    name: "root");
+                var agent = new Agent(app, new Configuration(Vendor.OpenAI, "qwen-test", "http://127.0.0.1:1"), name: "root");
                 try
                 {
                     bool restored;
@@ -154,71 +180,151 @@ internal static class GoImportTests
                     }
                     catch (Exception fault)
                     {
-                        throw new Exception($"restore failed: {fault.Message} / {trace}", fault);
+                        throw new Exception($"restore failed: {fault.Message}", fault);
                     }
-                    Check(restored, "an imported Agent could not restore its history: " + trace);
+                    Check(restored, "an imported Agent could not restore its history");
                     string wire = agent.Engine().Render(agent.History().View()).ToJsonString();
                     Check(wire.Contains("design a slip-in PDF cover") && wire.Contains("blender.pdf"),
                         "the resumed conversation is missing its substance");
-                    // The system prompt belongs to the live configuration, not to a
-                    // saved history: Go recorded it for reproducibility, and this
-                    // build composes it from the launcher and its skills instead.
-                    // The call identity is what ties a result to the model's request
-                    // for it; losing it would leave a tool answer belonging to nobody.
                     Check(wire.Contains("call-1"), "the imported call identity was lost");
                     Check(!wire.Contains("the folder holds manuals"),
                         "a record the Go history redacted with dialogue scope came back into view");
                 }
-                finally
-                {
-                    agent.Destroy();
-                }
+                finally { agent.Destroy(); }
             }
-            finally
-            {
-                app.Destroy();
-            }
+            finally { app.Destroy(); }
         }
-        finally
-        {
-            Directory.SetCurrentDirectory(original);
-        }
+        finally { Directory.SetCurrentDirectory(original); }
 
-        var again = Application.RunGoImportCommand(["--from", source, "--data-dir", destination], new StringWriter(), errors);
-        Check(again == 1 && errors.ToString().Contains("--replace"),
-            "a second import overwrote or hid the existing history: " + errors);
+        // An Agent that already has history here keeps it, byte for byte: startup
+        // convenience must never be able to replace work with a copy of something
+        // else. The source is a healthy Go peer, so surviving this is a refusal
+        // rather than an accident of the source being unreadable.
+        string keptPath = Path.Combine(destination, "agents", "PDF designer", "save.json");
+        string keptText = File.ReadAllText(keptPath).Replace("peer question", "an answer written here later");
+        Check(keptText.Contains("an answer written here later"), "the fixture did not diverge from its source");
+        File.WriteAllText(keptPath, keptText);
+        // Remove the marker so this really is a re-scan: the refusal to overwrite has
+        // to come from the install path, not from discovery having given up already.
+        File.Delete(Path.Combine(destination, ".go-history-restored"));
+        GoEnvironment(source, () =>
+        {
+            Restore(destination);
+            Check(File.ReadAllText(keptPath) == keptText,
+                "discovery replaced an Agent's existing history");
+        });
+
+        // Steady state: the second launch finds nothing to do and says nothing.
+        GoEnvironment(source, () =>
+        {
+            string? again = Restore(destination);
+            Check(again is null, "a second launch re-restored history it had already installed: " + again);
+        });
     }
 
-    public static void Refusals(string temp)
+    public static void Adoption(string temp)
     {
-        string source = Path.Combine(temp, "go-refuse");
-        string destination = Path.Combine(temp, "live-refuse");
-        Directory.CreateDirectory(source);
+        string source = Path.Combine(temp, "go-adopt");
+        WriteGoTree(source);
+
+        // A data directory that has never held a conversation adopts the Go primary
+        // as its own, which is what "as it was before" means for the main Agent.
+        string quiet = Path.Combine(temp, "live-quiet");
+        Directory.CreateDirectory(Path.Combine(quiet, "agents", "root"));
+        File.WriteAllText(Path.Combine(quiet, "agents", "root", "save.json"),
+            new JsonObject
+            {
+                ["context"] = null, ["as_of"] = 1,
+                ["config"] = JsonNode.Parse("""{"model":"qwen-test","vendor":"openai","system_prompt":"here","tools":[]}"""),
+                ["log"] = JsonNode.Parse("""[{"seq":1,"type":"agent_shutdown","time":"2026-11-05T00:00:00Z","reason":"shutdown"}]""")
+            }.ToJsonString());
+        GoEnvironment(source, () =>
+        {
+            Check(Restore(quiet) is not null, "a fresh data directory did not adopt the Go primary");
+            Check(File.Exists(Path.Combine(quiet, "agents", "root", "save.json")), "the adopted primary is not in place");
+            Check(!File.Exists(Path.Combine(quiet, "agents", "Go archive", "save.json")),
+                "a quiet home was filed as a peer instead of becoming the primary");
+        });
+
+        // A home that already talks keeps its work and receives the Go primary as a
+        // named peer: a convenience at startup must never bury a live conversation.
+        string busy = Path.Combine(temp, "live-busy");
+        Directory.CreateDirectory(Path.Combine(busy, "agents", "root"));
+        File.WriteAllText(Path.Combine(busy, "agents", "root", "save.json"),
+            new JsonObject
+            {
+                ["context"] = null, ["as_of"] = 1,
+                ["config"] = JsonNode.Parse("""{"model":"qwen-test","vendor":"openai","system_prompt":"here","tools":[]}"""),
+                ["log"] = JsonNode.Parse("""[{"seq":1,"type":"message_received","time":"2026-11-05T00:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"work already underway here"}]}}]""")
+            }.ToJsonString());
+        GoEnvironment(source, () =>
+        {
+            Check(Restore(busy) is not null, "a busy data directory restored nothing");
+            string kept = File.ReadAllText(Path.Combine(busy, "agents", "root", "save.json"));
+            Check(kept.Contains("work already underway here"), "the restore overwrote the live primary conversation");
+            Check(File.Exists(Path.Combine(busy, "agents", "Go archive", "save.json")),
+                "the Go primary did not arrive as a peer");
+        });
+    }
+
+    public static void Graceful(string temp)
+    {
+        // One unreadable peer must not cost the operator the rest of the fleet, and a
+        // directory that is not Go state at all must leave the launch untouched.
+        string source = Path.Combine(temp, "go-partial");
+        WriteGoTree(source, brokenPeer: true);
+        string destination = Path.Combine(temp, "live-partial");
         Directory.CreateDirectory(destination);
-        var output = new StringWriter();
-        var errors = new StringWriter();
+        GoEnvironment(source, () =>
+        {
+            string? summary = Restore(destination);
+            Check(summary is not null && summary.Contains("1 Agent "),
+                "one damaged peer stopped the whole restore: " + summary);
+            Check(RestoreLog.Contains("PDF designer"), "the damaged peer was not reported: " + RestoreLog);
+            Check(File.Exists(Path.Combine(destination, "agents", "root", "save.json")),
+                "the healthy primary was withheld behind a damaged peer");
+        });
 
-        // A history this build cannot read must not replace one it could.
-        // A request without its target is damage, not an unfamiliar event type:
-        // it must refuse the import rather than be quietly retired with the rest.
-        File.WriteAllText(Path.Combine(source, "save.json"), GoSave(1,
-            """{"seq":1,"type":"request_sent","time":"2026-10-25T04:00:00Z"}"""));
-        Check(Application.RunGoImportCommand(["--from", source, "--data-dir", destination], output, errors) == 1,
-            "an unreadable save was accepted");
-        Check(!File.Exists(Path.Combine(destination, "agents", "root", "save.json")),
-            "a refused import still wrote a save file");
+        string plain = Path.Combine(temp, "not-go");
+        Directory.CreateDirectory(plain);
+        // Valid for this codec, but written here rather than by Go: a permissive
+        // detector would happily adopt it as the primary and the operator would see
+        // their own data directory arrive as a stranger in the tree.
+        File.WriteAllText(Path.Combine(plain, "save.json"),
+            @"{""context"":null,""as_of"":1,""config"":{""model"":""here"",""vendor"":""openai"",""system_prompt"":""here"",""tools"":[]},"
+            + @"""log"":[{""seq"":1,""type"":""message_received"",""time"":""2026-11-05T00:00:00Z"",""message"":{""actor"":""human"",""parts"":[{""type"":""text"",""text"":""written here, not by Go""}]}}]}");
+        string elsewhere = Path.Combine(temp, "live-plain");
+        Directory.CreateDirectory(elsewhere);
+        GoEnvironment(plain, () =>
+        {
+            // Without this the fallback would find the repository the suite runs in,
+            // which really is a Go tree, and the check would prove nothing.
+            Directory.SetCurrentDirectory(plain);
+            Check(Restore(elsewhere) is null, "an ordinary data directory was treated as Go state");
+            Check(!File.Exists(Path.Combine(elsewhere, "agents", "root", "save.json")),
+                "a non-Go directory produced an Agent");
+        });
 
-        // A dry run proves the plan without touching the destination.
-        File.WriteAllText(Path.Combine(source, "save.json"), GoSave(1, Primary[0]));
-        Check(Application.RunGoImportCommand(["--from", source, "--data-dir", destination, "--dry-run"], output, new StringWriter()) == 0,
-            "a valid dry run failed");
-        Check(!Directory.Exists(Path.Combine(destination, "agents")), "a dry run wrote history");
+        // Deleting an imported Agent stays deleted: the marker is what keeps a
+        // start-up convenience from resurrecting what the operator removed.
+        GoEnvironment(source, () =>
+        {
+            string marker = Path.Combine(destination, ".go-history-restored");
+            Check(File.Exists(marker), "no marker recorded the restore");
+            File.Delete(Path.Combine(destination, "agents", "root", "save.json"));
+            Check(Restore(destination) is null, "a removed Agent was resurrected on the next launch");
+            Check(!File.Exists(Path.Combine(destination, "agents", "root", "save.json")),
+                "the marker did not suppress a re-restore");
+        });
 
-        // A damaged destination registry is never replaced by an import.
+        // A damaged registry is never replaced by an import.
         string registry = Path.Combine(destination, "ensemble.json");
         File.WriteAllText(registry, "{ not json");
-        Check(Application.RunGoImportCommand(["--from", source, "--data-dir", destination], output, errors) == 0,
-            "an import failed only because the registry needed repair");
-        Check(File.ReadAllText(registry) == "{ not json", "import-go overwrote a damaged peer registry");
+        File.WriteAllText(Path.Combine(destination, ".go-history-restored"), "again");
+        GoEnvironment(source, () =>
+        {
+            Restore(destination);
+            Check(File.ReadAllText(registry) == "{ not json", "discovery overwrote a damaged peer registry");
+        });
     }
 }

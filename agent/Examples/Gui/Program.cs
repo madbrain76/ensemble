@@ -2,14 +2,6 @@ using Ensemble;
 using EnsembleGui;
 using Application = Ensemble.Ensemble;
 
-// Operator migration for state the Go implementation wrote. It is dispatched
-// before any provider, sandbox or listener is composed: restoring history needs
-// none of them, and a machine with no credentials yet can still recover its past.
-if (args.Length > 0 && args[0] == "import-go")
-{
-    return Application.RunGoImportCommand(args[1..], Console.Out, Console.Error);
-}
-
 // Composition owns the core graph and optional server operation. No hosted
 // Agent, provider credential, browser profile, or public interface is borrowed.
 Application? app = null;
@@ -80,6 +72,14 @@ try
     string agentName = Selected("--agent-name", "EN_AGENT_NAME");
     string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
     string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
+    // Compose the fleet from wherever it already exists before any Agent is built,
+    // so a machine that was running the Go version finds the conversations it had
+    // been resuming rather than opening an empty tree. Silent once done, and a
+    // failure here is a log line: losing a conversation is bad, losing the GUI is
+    // worse, and nothing about discovery is required to serve the ones we have.
+    string? restored = Application.RestoreGoHistory(container, Console.Error);
+    if (restored is not null) Console.Out.WriteLine("Restored: " + restored);
+    Console.Out.Flush();
     app = new Application(Console.Error, dataDirectory: container, agentDiagnostics: true);
     app.StartDiagnostics();
     if (transcription == "openai-api-key")
