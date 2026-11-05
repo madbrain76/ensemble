@@ -84,7 +84,9 @@ static class DigestAuthTests
             Nonce();
             Staleness();
             PathPolicy(work);
+            CommandPaths(work);
             await Listener(work);
+            await ReloadAndFault(work);
         }
         finally
         {
@@ -435,6 +437,177 @@ static class DigestAuthTests
         Check(guard.AdmitAsync(fresh).GetAwaiter().GetResult(),
             "stale nonces were counted as failures and slowed the address down");
     }
+
+    // The verifier is read once when the listener starts, so a reset that lands while
+    // the listener runs used to be refused forever and reported as a wrong password.
+    // This drives the real listener: replace the file, then prove the new password is
+    // accepted without a restart, that a credential minted before the swap no longer
+    // works, and that a verifier which disappears denies access instead of trusting
+    // the last known good copy.
+    static async Task ReloadAndFault(string work)
+    {
+        string file = Path.Combine(work, "reloaded-auth.json");
+        string first = Gui.CreateDigestCredentials(file, "ensemble", false);
+        var root = new Ensemble.Ensemble(TextWriter.Null,
+            dataDirectory: Path.Combine(work, "reload-fleet"));
+        var agent = new Agent(root, new Configuration(Vendor.OpenAI, "offline",
+            "http://127.0.0.1:1"), name: "reloading");
+        var probe = new TcpListener(IPAddress.Loopback, 0);
+        probe.Start();
+        int port = ((IPEndPoint)probe.LocalEndpoint).Port;
+        probe.Stop();
+        string url = "http://127.0.0.1:" + port;
+        var builder = WebApplication.CreateBuilder();
+        builder.Logging.ClearProviders();
+        builder.WebHost.UseUrls(url);
+        await using var host = builder.Build();
+        var report = new StringWriter();
+        using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+        Task serving = Gui.ServeAsync(host, agent, new GuiOptions(port,
+            SettingsPath: Path.Combine(work, "reload-settings.json"), AuthPath: file,
+            DiagnosticsOutput: report), stop.Token);
+        if (serving.IsCompleted)
+        {
+            await serving;
+        }
+        await host.StartAsync();
+        using var http = new HttpClient(new HttpClientHandler { UseProxy = false });
+        async Task<(HttpStatusCode Status, string Challenge)> Ask(
+            string? authorization = null)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, url + "/");
+            if (authorization is not null)
+            {
+                request.Headers.TryAddWithoutValidation("Authorization", authorization);
+            }
+            using var reply = await http.SendAsync(request,
+                HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
+            return (reply.StatusCode, reply.Headers.WwwAuthenticate.FirstOrDefault()?.ToString() ?? "");
+        }
+        string Nonce(string challenge)
+        {
+            int start = challenge.IndexOf("nonce=\"", StringComparison.Ordinal) + 7;
+            int end = challenge.IndexOf('"', start);
+            Check(start > 6 && end > start, "the challenge carried no nonce: " + challenge);
+            return challenge[start..end];
+        }
+        var opening = await Ask();
+        Check(opening.Status == HttpStatusCode.Unauthorized, "the reload test started open");
+        string staleNonce = Nonce(opening.Challenge);
+        var known = await Ask(Answer("ensemble", "Ensemble", first, "GET", "/", staleNonce));
+        Check(known.Status == HttpStatusCode.OK, "the original password was refused");
+        string second = Gui.CreateDigestCredentials(file, "ensemble", true);
+        await Task.Delay(1300);
+        var beforeSwap = await Ask();
+        var stale = await Ask(Answer("ensemble", "Ensemble", second, "GET", "/",
+            staleNonce));
+        Check(stale.Status == HttpStatusCode.Unauthorized,
+            "a nonce issued before the verifier swap was still honoured");
+        var old = await Ask(Answer("ensemble", "Ensemble", first, "GET", "/",
+            Nonce(beforeSwap.Challenge)));
+        Check(old.Status == HttpStatusCode.Unauthorized,
+            "the retired password still opened the listener");
+        var next = await Ask();
+        var renewed = await Ask(Answer("ensemble", "Ensemble", second, "GET", "/",
+            Nonce(next.Challenge)));
+        Check(renewed.Status == HttpStatusCode.OK,
+            "the reset password was refused without restarting the listener: "
+                + renewed.Status + " " + renewed.Challenge);
+        File.Delete(file);
+        await Task.Delay(1300);
+        // A faulted verifier answers before any Digest parsing, so no challenge is
+        // offered: the point is that even a well-formed answer cannot get through.
+        var missing = await Ask(Answer("ensemble", "Ensemble", second, "GET", "/",
+            staleNonce));
+        Check(missing.Status == HttpStatusCode.ServiceUnavailable,
+            "a deleted verifier left the listener serving on its last known good copy: "
+                + missing.Status);
+        // Recreated with init, not reset: a reset refuses to invent a verifier it
+        // cannot first read, which is the same fail-closed rule as the guard above.
+        string third = Gui.CreateDigestCredentials(file, "ensemble", false);
+        await Task.Delay(1300);
+        var restored = await Ask(Answer("ensemble", "Ensemble", third, "GET", "/",
+            Nonce((await Ask()).Challenge)));
+        Check(restored.Status == HttpStatusCode.OK,
+            "the listener stayed locked out after the verifier came back: "
+                + restored.Status);
+        string log = report.ToString();
+        Check(log.Contains("verifier reloaded from " + file),
+            "the verifier swap was silent: " + log);
+        stop.Cancel();
+        await host.StopAsync();
+        try
+        {
+            await serving;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    // A password printed beside the wrong file simply does not work, and the old report
+    // said only where it had written, never how it chose that place. The source is now
+    // named, and a fallback to the current directory is called out because that is the
+    // case where a listener started with --data-dir reads somewhere else entirely.
+    static void CommandPaths(string work)
+    {
+        string original = Directory.GetCurrentDirectory();
+        string fromFlag = Path.Combine(work, "cmd-flag");
+        string fromEnv = Path.Combine(work, "cmd-env");
+        string fallback = Path.Combine(work, "cmd-cwd");
+        Directory.CreateDirectory(fromFlag);
+        Directory.CreateDirectory(fromEnv);
+        Directory.CreateDirectory(fallback);
+        string saved = Environment.GetEnvironmentVariable("EN_DATA_DIR") ?? "";
+        try
+        {
+            var stdout = new StringWriter();
+            var log = new StringWriter();
+            Gui.RunAuthCommand(["auth-init", "--data-dir", fromFlag], stdout, log);
+            Check(File.Exists(Path.Combine(fromFlag, "gui-auth.json")),
+                "--data-dir did not place the verifier beside the data directory");
+            Check(log.ToString().Contains("resolved from --data-dir"),
+                "the report did not name --data-dir as the source");
+            string printed = stdout.ToString();
+            Check(printed.Trim().Length > 8 && !printed.Contains("auth:")
+                && printed.Split('\n').Length == 2,
+                "stdout must carry the password alone, for $(ensemble auth-init): " + printed);
+
+            Environment.SetEnvironmentVariable("EN_DATA_DIR", fromEnv);
+            log = new StringWriter();
+            Gui.RunAuthCommand(["auth-init"], TextWriter.Null, log);
+            Check(File.Exists(Path.Combine(fromEnv, "gui-auth.json")),
+                "EN_DATA_DIR was ignored");
+            Check(log.ToString().Contains("resolved from EN_DATA_DIR"),
+                "the report did not name EN_DATA_DIR as the source");
+
+            Environment.SetEnvironmentVariable("EN_DATA_DIR", null);
+            Directory.SetCurrentDirectory(fallback);
+            log = new StringWriter();
+            Gui.RunAuthCommand(["auth-init"], TextWriter.Null, log);
+            Check(File.Exists(Path.Combine(fallback, "gui-auth.json")),
+                "the current directory fallback did not write the verifier");
+            string text = log.ToString();
+            Check(text.Contains("resolved from the current directory")
+                && text.Contains("reads a different file"),
+                "the silent current-directory fallback was not called out: " + text);
+
+            // The other direction: writing to the real data directory while an unread
+            // verifier sits beside the operator must still be reported.
+            log = new StringWriter();
+            Gui.RunAuthCommand(["auth-reset", "--data-dir", fromFlag], TextWriter.Null, log);
+            Check(log.ToString().Contains(Path.Combine(fallback, "gui-auth.json"))
+                && log.ToString().Contains("also exists"),
+                "an unused verifier in the current directory was not warned about: " + log);
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(original);
+            Environment.SetEnvironmentVariable("EN_DATA_DIR",
+                string.IsNullOrEmpty(saved) ? null : saved);
+        }
+    }
+
 
     static void PathPolicy(string work)
     {
