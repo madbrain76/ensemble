@@ -10,7 +10,8 @@ public sealed partial class Engine
     // parameter value, so it needs no content and the smallest completion.
     private const string EffortProbePrompt = "ok";
 
-    public partial async Task ValidateReasoningEffortAsync(CancellationToken cancellation)
+    public partial async Task ValidateReasoningEffortAsync(CancellationToken cancellation,
+        TimeSpan? probeTimeout)
     {
         Configuration config = parent!.Configuration();
         string effort = config.ReasoningEffort.Trim();
@@ -27,7 +28,8 @@ public sealed partial class Engine
                 + "covers the OpenAI API-key surfaces only");
             return;
         }
-        (string? modelList, string? refusal) = await ProbeAsync(config, effort, cancellation);
+        (string? modelList, string? refusal, string? silence) = await ProbeAsync(config, effort,
+            cancellation, probeTimeout ?? EffortProbeTimeout);
         if (refusal is not null)
         {
             // The server rejected this exact parameter with its own words. Silently
@@ -39,25 +41,47 @@ public sealed partial class Engine
         {
             parent!.Parent().Log($"reasoning effort \"{effort}\" accepted by the provider");
         }
-        // modelList null and refusal null means the endpoint said nothing about
-        // effort levels. That is not evidence of denial, so the launch proceeds.
+        else if (refusal is null)
+        {
+            // Nothing denied the value, so the launch proceeds. It proceeds
+            // honestly too: the two silences mean different things to an operator
+            // diagnosing a launch, so the log says which one happened.
+            string detail = silence ?? "the endpoint answered the request without naming "
+                + "the effort levels it supports";
+            parent!.Parent().Log($"reasoning effort \"{effort}\" sent unverified: {detail}");
+        }
     }
 
     // Returns the listing document that confirmed the value, or the server's own
-    // refusal message. Both null means the endpoint gave no usable answer.
-    private async Task<(string? Advertised, string? Refusal)> ProbeAsync(Configuration config,
-        string effort, CancellationToken cancellation)
+    // refusal message. Both null means the endpoint gave no usable answer; silence
+    // then explains which kind, because a busy provider and an uninformative one
+    // need different follow-ups.
+    private async Task<(string? Advertised, string? Refusal, string? Silence)> ProbeAsync(
+        Configuration config, string effort, CancellationToken cancellation, TimeSpan budget)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
-        timeout.CancelAfter(EffortProbeTimeout);
-        string? advertised = await AdvertiseAsync(config, effort, timeout.Token);
-        // An advertisement is only a hint: at least one server publishes a strict
-        // subset of what it accepts, so a missing name must still get to answer.
-        if (advertised is not null)
+        timeout.CancelAfter(budget);
+        try
         {
-            return (advertised, null);
+            string? advertised = await AdvertiseAsync(config, effort, timeout.Token);
+            // An advertisement is only a hint: at least one server publishes a strict
+            // subset of what it accepts, so a missing name must still get to answer.
+            if (advertised is not null)
+            {
+                return (advertised, null, null);
+            }
+            return (null, await AcceptsAsync(config, effort, timeout.Token), null);
         }
-        return (null, await AcceptsAsync(config, effort, timeout.Token));
+        catch (OperationCanceledException) when (!cancellation.IsCancellationRequested)
+        {
+            // Our own deadline, not a shutdown. A provider that is busy has not
+            // refused anything, so this must read exactly like an endpoint that
+            // answered nothing. Aborting here turned a slow LAN server into a GUI
+            // that never started, with an OperationCanceledException as its only
+            // trace.
+            return (null, null, $"the endpoint did not answer within "
+                + $"{budget.TotalSeconds:0.##} seconds");
+        }
     }
 
     private async Task<string?> AdvertiseAsync(Configuration config, string effort,
