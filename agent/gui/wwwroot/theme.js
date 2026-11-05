@@ -2,10 +2,19 @@
 // Appearance belongs to this origin/browser profile, not to the selected Agent.
 class BrowserTheme {
     constructor() {
-        this.key = "ensemble.theme.v1";
+        // v2: v1 was written by the seed path below while the server default was
+        // "dark", so every profile that ever loaded the page recorded a choice it
+        // never made and could no longer leave. A stored v1 value cannot be told
+        // apart from a deliberate pick, so it is dropped rather than trusted.
+        this.key = "ensemble.theme.v2";
+        this.legacyKey = "ensemble.theme.v1";
         this.preference = null;
+        this.seeded = null;
         this.system = matchMedia("(prefers-color-scheme: dark)");
-        try { this.preference = this.valid(localStorage.getItem(this.key)); } catch { /* Session-only when storage is blocked. */ }
+        try {
+            this.preference = this.valid(localStorage.getItem(this.key));
+            localStorage.removeItem(this.legacyKey);
+        } catch { /* Session-only when storage is blocked. */ }
         this.system.addEventListener("change", () => this.render());
         window.addEventListener("storage", event => {
             // sessionStorage also emits storage events; it is not our preference.
@@ -21,9 +30,14 @@ class BrowserTheme {
         this.render();
     }
     valid(value) { return ["dark", "light", "system"].includes(value) ? value : null; }
+    // The browser owns appearance; the server field is a legacy default that no
+    // current client can even patch (Settings.cs: "current controls use browser
+    // storage"). Applying it for this frame is kind; recording it as the user's
+    // choice is not, because it then outranks the operating system forever.
     seed(legacyTheme) {
         if (this.preference !== null) return;
-        this.select(this.valid(legacyTheme) || "system");
+        this.seeded = this.valid(legacyTheme);
+        this.render();
     }
     select(value) {
         if (!this.valid(value)) return;
@@ -32,7 +46,7 @@ class BrowserTheme {
         this.render();
     }
     render() {
-        const preference = this.preference || "system";
+        const preference = this.preference || this.seeded || "system";
         const dark = preference === "dark" || (preference === "system" && this.system.matches);
         document.documentElement.dataset.theme = preference;
         document.documentElement.dataset.bsTheme = dark ? "dark" : "light";

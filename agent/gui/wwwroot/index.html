@@ -13,7 +13,9 @@
 (function () {
     var dark;
     try {
-        var value = localStorage.getItem("ensemble.theme.v1");
+        var value = localStorage.getItem("ensemble.theme.v2");
+        // Discard the value the old seed path recorded; see theme.js.
+        localStorage.removeItem("ensemble.theme.v1");
         dark = value === "dark" ? true
             : value === "light" ? false
             : matchMedia("(prefers-color-scheme: dark)").matches;

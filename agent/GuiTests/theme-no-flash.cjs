@@ -28,7 +28,7 @@ try {
     await new Promise((done) => server.listen(0, '127.0.0.1', done));
     const base = `http://127.0.0.1:${server.address().port}/`;
     const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-    const painted = html.indexOf('ensemble.theme.v1');
+    const painted = html.indexOf('ensemble.theme.v2');
     const stylesheet = html.indexOf('<link rel="stylesheet"');
     check(painted >= 0 && painted < stylesheet,
         'the theme is painted before the stylesheet is requested');
@@ -48,11 +48,10 @@ try {
             await route.continue();
         });
         await page.goto(base, { waitUntil: 'domcontentloaded' });
-        if (stored !== null) {
-            await page.evaluate((value) => localStorage.setItem('ensemble.theme.v1', value), stored);
-        } else {
-            await page.evaluate(() => localStorage.removeItem('ensemble.theme.v1'));
-        }
+        await page.evaluate((value) => {
+            localStorage.clear();
+            if (value !== null) localStorage.setItem('ensemble.theme.v2', value);
+        }, stored);
         await page.reload({ waitUntil: 'commit' });
         const pending = await page.evaluate(() => new Promise((done) => setTimeout(
             () => done({ theme: document.documentElement.dataset.bsTheme,
@@ -93,6 +92,22 @@ try {
     const firstRunDark = await probe(null, 'dark');
     check(firstRunDark.pending.theme === 'dark' && firstRunDark.settled.theme === 'dark',
         `a first visit on an OS-dark profile paints dark: ${JSON.stringify(firstRunDark)}`);
+
+    // Bill's profile: the old seed path recorded "dark" under v1 while the server
+    // default was dark, so a real OS-light user was locked to dark. The stored v1
+    // value must neither paint dark nor survive the visit.
+    const poisoned = await browser.newContext({ colorScheme: 'light' });
+    const poisonedPage = await poisoned.newPage();
+    await poisonedPage.goto(base, { waitUntil: 'domcontentloaded' });
+    await poisonedPage.evaluate(() => localStorage.setItem('ensemble.theme.v1', 'dark'));
+    await poisonedPage.reload({ waitUntil: 'commit' });
+    const poisonedPaint = await poisonedPage.evaluate(() => new Promise((done) => setTimeout(
+        () => done({ theme: document.documentElement.dataset.bsTheme,
+            v1: localStorage.getItem('ensemble.theme.v1'),
+            v2: localStorage.getItem('ensemble.theme.v2') }), 200)));
+    await poisoned.close();
+    check(poisonedPaint.theme === 'light' && poisonedPaint.v1 === null && poisonedPaint.v2 === null,
+        `a profile poisoned by the old dark seed follows the operating system and loses v1: ${JSON.stringify(poisonedPaint)}`);
 } finally {
     await browser.close();
     server.close();

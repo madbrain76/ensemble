@@ -18,7 +18,10 @@ assert(!['8088', '8089'].includes(new URL(base).port));
         }
         await page.goto(base); await ready(page);
         const legacy = await page.evaluate(() => settings.theme);
-        assert.equal(await page.evaluate(() => localStorage.getItem('ensemble.theme.v1')), legacy);
+        // The server default must not be written into the profile: that is what
+        // locked earlier builds onto dark regardless of the operating system.
+        assert.equal(await page.evaluate(() => localStorage.getItem('ensemble.theme.v2')), null);
+        assert.equal(await page.evaluate(() => browserTheme.preference), null);
         await page.click('#theme-toggle');
         const selected = await page.locator('html').getAttribute('data-bs-theme');
         await page.evaluate(() => { window.previousThemeSettings = settings; send('get_settings'); });
@@ -40,14 +43,23 @@ assert(!['8088', '8089'].includes(new URL(base).port));
         await second.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
         // An unrelated storage area must not override the saved local preference.
         await page.evaluate(() => window.dispatchEvent(new StorageEvent('storage', {
-            key: 'ensemble.theme.v1', newValue: 'light', storageArea: sessionStorage
+            key: 'ensemble.theme.v2', newValue: 'light', storageArea: sessionStorage
         })));
         assert.equal(await page.locator('html').getAttribute('data-bs-theme'), 'dark');
         const other = await browser.newContext({ colorScheme: 'light' });
         const third = await other.newPage(); await third.goto(base); await ready(third);
-        assert.equal(await third.evaluate(() => localStorage.getItem('ensemble.theme.v1')), legacy);
+        // A fresh profile follows the operating system and records nothing, even
+        // while another profile is dark and the server still advertises its default.
+        assert.equal(await third.evaluate(() => localStorage.getItem('ensemble.theme.v2')), null);
+        assert.equal(await third.locator('html').getAttribute('data-bs-theme'), 'light');
         await page.click('#theme-toggle');
-        assert.equal(await third.evaluate(() => localStorage.getItem('ensemble.theme.v1')), legacy);
+        assert.equal(await third.evaluate(() => localStorage.getItem('ensemble.theme.v2')), null);
+        assert.equal(await third.locator('html').getAttribute('data-bs-theme'), 'light');
+        // A poisoned v1 value from the old seed path is discarded, not honoured.
+        await third.evaluate(() => localStorage.setItem('ensemble.theme.v1', 'dark'));
+        await third.reload(); await ready(third);
+        assert.equal(await third.evaluate(() => localStorage.getItem('ensemble.theme.v1')), null);
+        assert.equal(await third.locator('html').getAttribute('data-bs-theme'), 'light');
         // Offline changes are local; no server acknowledgement is necessary.
         await context.setOffline(true);
         await page.evaluate(() => socket.close());
