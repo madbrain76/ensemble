@@ -27,6 +27,12 @@ public sealed partial class Jobs
     private readonly List<Job> children = [];
     private JobLimits? nextLimits;
     public readonly string OutputDirectory;
+    // True only when the constructor invented the name: an unconfined Agent with no
+    // caller-supplied directory. That path is this instance's own scratch and no
+    // later object can name it, so Destroy removes it. A supplied directory, or one
+    // beneath a confined Agent's root, is retained output somebody chose and is left
+    // alone.
+    private readonly bool temporaryOutput;
 
     // Create output through the owning Agent's Sandbox, then register both ends.
     // Confined defaults live under its root; explicit outside paths refuse.
