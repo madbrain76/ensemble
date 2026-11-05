@@ -199,7 +199,7 @@ public static partial class Gui
     {
         var credentials = LoadDigestCredentials(path);
         var guard = new DigestGuard(credentials, RandomNumberGenerator.GetBytes(32), path,
-            diagnostics);
+            diagnostics, watchVerifier: true);
         host.Use(async (context, next) =>
         {
             if (await guard.AdmitAsync(context))
@@ -244,19 +244,48 @@ public static partial class Gui
             }
         }
         // The listener reads <data directory>/gui-auth.json, so the subcommand looks in
-        // the same place by default instead of the current directory. Without this, a
-        // forgotten --data-dir wrote a second verifier that nothing ever consulted, and
-        // the printed password simply failed to work.
-        string path = string.IsNullOrWhiteSpace(file)
-            ? Path.Combine(Path.GetFullPath(dataDirectory
-                ?? Environment.GetEnvironmentVariable("EN_DATA_DIR")
-                ?? Directory.GetCurrentDirectory()), "gui-auth.json")
-            : Path.GetFullPath(file!);
+        // the same place by default instead of the current directory. The last resort is
+        // still the current directory, which is correct for an embedded host and wrong
+        // for a launcher started with --data-dir: a password printed beside the file
+        // nobody reads simply fails to work. Both facts are now stated, because the
+        // silent version cost two debugging sessions.
+        string environment = Environment.GetEnvironmentVariable("EN_DATA_DIR") ?? "";
+        string resolved;
+        string directory;
+        if (!string.IsNullOrWhiteSpace(file))
+        {
+            resolved = "--file";
+            directory = Path.GetDirectoryName(Path.GetFullPath(file!))
+                ?? Directory.GetCurrentDirectory();
+        }
+        else if (!string.IsNullOrWhiteSpace(dataDirectory))
+        {
+            resolved = "--data-dir";
+            directory = Path.GetFullPath(dataDirectory!);
+        }
+        else if (!string.IsNullOrWhiteSpace(environment))
+        {
+            resolved = "EN_DATA_DIR";
+            directory = Path.GetFullPath(environment);
+        }
+        else
+        {
+            resolved = "the current directory";
+            directory = Path.GetFullPath(Directory.GetCurrentDirectory());
+        }
+        string path = Path.Combine(directory, "gui-auth.json");
         string password = CreateDigestCredentials(path, username, replace);
         output.WriteLine(password);
         if (diagnostics is not null)
         {
-            diagnostics.WriteLine("auth: verifier written to " + path);
+            diagnostics.WriteLine("auth: verifier written to " + path + " (resolved from "
+                + resolved + ")");
+            if (resolved == "the current directory")
+            {
+                diagnostics.WriteLine("auth: no --data-dir or EN_DATA_DIR was given, so a "
+                    + "listener started with one of those reads a different file; pass "
+                    + "--data-dir to match it, or run the launcher's auth subcommand");
+            }
             string stray = Path.Combine(Directory.GetCurrentDirectory(), "gui-auth.json");
             if (!string.Equals(Path.GetFullPath(stray), path, StringComparison.Ordinal)
                 && File.Exists(stray))
@@ -521,8 +550,12 @@ public static partial class Gui
     // the listener's nonce key is deliberately unreachable from outside.
     internal sealed class DigestGuard
     {
-        private readonly GuiDigestCredentials credentials;
-        private readonly byte[] key;
+        private GuiDigestCredentials credentials;
+        private byte[] key;
+        private byte[] verifierBytes;
+        private readonly bool watched;
+        private DateTimeOffset verifierSampled;
+        private string? verifierFault;
         private readonly object gate = new();
         private readonly Dictionary<string, DateTimeOffset> replays = [];
         private readonly Dictionary<string, (int Count, DateTimeOffset Until, DateTimeOffset Updated)> failures = [];
@@ -530,13 +563,35 @@ public static partial class Gui
         private readonly TextWriter? diagnostics;
         private bool verifierAnnounced;
 
+        // watchVerifier is set only when the file is the guard's authority: UseDigestAuth
+        // loaded the credentials from it, so a later reset must take effect. An embedding
+        // host that supplies its own credentials names a path purely so refusals can say
+        // where they came from, and that file must not be able to revoke them.
         internal DigestGuard(GuiDigestCredentials credentials, byte[] key,
-            string? verifierPath = null, TextWriter? diagnostics = null)
+            string? verifierPath = null, TextWriter? diagnostics = null,
+            bool watchVerifier = false)
         {
             this.credentials = credentials;
             this.key = key;
             this.verifierPath = verifierPath;
             this.diagnostics = diagnostics;
+            this.verifierBytes = Array.Empty<byte>();
+            this.watched = verifierPath is not null && watchVerifier;
+            if (this.watched)
+            {
+                // The startup load already succeeded, so a sample taken here is the
+                // baseline a later reset has to differ from.
+                try
+                {
+                    // watched implies the path, checked where the field is assigned.
+                    this.verifierBytes = File.ReadAllBytes(verifierPath!);
+                }
+                catch (Exception)
+                {
+                    // A file that vanishes between load and sample is reported by the
+                    // next refresh, which fails the request closed.
+                }
+            }
         }
 
         // One line per refused attempt, naming the rule that refused it. The verifier
@@ -563,11 +618,104 @@ public static partial class Gui
             }
         }
 
+        // A reset while this listener is running is otherwise refused forever: the
+        // verifier is loaded once at startup, so a freshly generated password is
+        // rejected as wrong by a file it was never written to, and the operator is
+        // told their password does not match. The file is 128 bytes, so its contents
+        // are sampled at most once a second and reloaded when they differ. Reloading
+        // rotates the nonce key, which is what forces a browser holding the previous
+        // password to take a fresh challenge instead of silently replaying the old
+        // credential; the refusal Bill saw twice came from that replay. A verifier that
+        // becomes unreadable fails closed, because replacing the file is also how a
+        // credential is revoked, and a half-written file must not keep the old access.
+        private void RefreshVerifier(DateTimeOffset now)
+        {
+            if (!watched)
+            {
+                return;
+            }
+            lock (gate)
+            {
+                if (verifierFault is null && now - verifierSampled < TimeSpan.FromSeconds(1))
+                {
+                    return;
+                }
+                verifierSampled = now;
+            }
+            string watchedPath = verifierPath!;
+            byte[] sample;
+            try
+            {
+                sample = File.ReadAllBytes(watchedPath);
+            }
+            catch (Exception failure) when (failure is IOException
+                or UnauthorizedAccessException or NotSupportedException)
+            {
+                lock (gate)
+                {
+                    verifierFault = "could not be read: " + failure.Message;
+                }
+                return;
+            }
+            bool changed;
+            lock (gate)
+            {
+                changed = verifierFault is not null
+                    || !CryptographicOperations.FixedTimeEquals(verifierBytes, sample);
+            }
+            if (!changed)
+            {
+                return;
+            }
+            GuiDigestCredentials reloaded;
+            try
+            {
+                reloaded = Gui.LoadDigestCredentials(watchedPath);
+            }
+            catch (Exception failure) when (failure is IOException or InvalidDataException
+                or UnauthorizedAccessException or InvalidOperationException
+                or NotSupportedException or FormatException)
+            {
+                lock (gate)
+                {
+                    verifierFault = "could not be loaded: " + failure.Message;
+                }
+                return;
+            }
+            lock (gate)
+            {
+                credentials = reloaded;
+                key = RandomNumberGenerator.GetBytes(32);
+                replays.Clear();
+                verifierBytes = sample;
+                verifierFault = null;
+                verifierAnnounced = false;
+            }
+            diagnostics?.WriteLine("auth: verifier reloaded from " + verifierPath
+                + "; clients holding the previous password will be challenged again");
+        }
+
+        private string? Fault()
+        {
+            lock (gate)
+            {
+                return verifierFault;
+            }
+        }
+
         // True admits the request; false has already answered it.
         internal async ValueTask<bool> AdmitAsync(HttpContext context)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             string source = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            RefreshVerifier(now);
+            string? fault = Fault();
+            if (fault is not null)
+            {
+                Explain(source, "the verifier " + fault);
+                await DenyAsync(context, 503, "GUI authentication is unavailable", 0);
+                return false;
+            }
             bool blocked = false;
             int retry = 0;
             lock (gate)
