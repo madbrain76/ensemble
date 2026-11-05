@@ -66,6 +66,9 @@
  <h2 class="agents-heading" id="agents-tab">Agents</h2>
  <div class="agents-content"><section id="agents-panel" aria-labelledby="agents-tab" tabindex="0">
  <ul id="agent-tree" role="tree" aria-label="Agent hierarchy"></ul>
+ <div id="agent-actions" class="agent-actions" role="toolbar" aria-label="Selected Agent actions">
+  <button class="btn btn-quiet icon-button" type="button" data-delete-agent="" disabled aria-label="Delete selected Agent" title="Select a deletable Agent first"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
+ </div>
  <select id="agent-choice" hidden aria-hidden="true" tabindex="-1"></select>
  <div class="agent-toolbar"><button class="btn btn-secondary" id="peer-open" type="button">Create Agent</button>
  <a id="relay-link" class="btn icon-button" target="_blank" rel="noopener noreferrer" aria-label="Open selected Agent in a separate relay tab" title="Open selected Agent in a separate relay tab" hidden>↗</a>
