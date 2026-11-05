@@ -376,6 +376,10 @@ static void ReportFailure(string prefix, Exception error)
         {
             guidance = refused.Message;
         }
+        if (guidance is null && cause is WriterConflictException occupied)
+        {
+            guidance = occupied.Message;
+        }
         if (cause is System.Net.Sockets.SocketException socket
             && socket.SocketErrorCode == System.Net.Sockets.SocketError.AddressAlreadyInUse)
         {
