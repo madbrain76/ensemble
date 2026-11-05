@@ -92,6 +92,9 @@ public sealed partial class Agent
     private partial void StageHandoff(ToolCallPart call, ToolResultPart result);
     private partial void ApplyHandoff();
     private int batches;
+    // Bounded per-turn allowance for correcting a reply that promised a tool call
+    // it never emitted. Reset when a turn is allowed to finish.
+    private int promissoryReplies;
     // Configuration seeds the policy; this field alone owns runtime updates.
     // The actor captures it once per turn, so a settings change cannot move an
     // in-flight turn's boundary. Negative constructor seeds retain Chapter 5's
