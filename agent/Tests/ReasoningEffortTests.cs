@@ -29,6 +29,9 @@ static class ReasoningEffortTests
         public Func<string, bool> Accept = _ => true;
         public string Refusal = "reasoning_effort must be one of none, minimal, low, medium, high, xhigh, max, off; got '{0}'";
         public bool ServeModels = true;
+        // Stands in for a provider that is alive but busy, which is the case the
+        // probe must not mistake for a refusal.
+        public TimeSpan Delay = TimeSpan.Zero;
 
         public Provider(string model)
         {
@@ -73,6 +76,10 @@ static class ReasoningEffortTests
                 {
                     Paths.Add(path);
                     Bodies.Add(body);
+                }
+                if (Delay > TimeSpan.Zero)
+                {
+                    await Task.Delay(Delay);
                 }
                 int status = 200;
                 string payload;
@@ -272,6 +279,26 @@ static class ReasoningEffortTests
             var agent = Agent(root, silent.Prefix, "xhigh", "silent");
             await agent.Engine().ValidateReasoningEffortAsync(CancellationToken.None);
         }
+        // A provider that is merely busy has refused nothing. When the probe's own
+        // deadline escaped as an OperationCanceledException, a slow LAN server kept
+        // the GUI from starting at all: the launch died on a message about
+        // cancellation while the provider was simply still thinking.
+        var busyNotes = new StringWriter();
+        using (var busy = new Provider(Listed))
+        {
+            busy.Delay = TimeSpan.FromSeconds(1);
+            var root = new Ensemble.Ensemble(busyNotes, dataDirectory: Root(temp, "busy"));
+            var agent = Agent(root, busy.Prefix, "xhigh", "busy");
+            await agent.Engine().ValidateReasoningEffortAsync(CancellationToken.None,
+                TimeSpan.FromMilliseconds(200));
+            // Let the delayed handler finish its write before the listener closes;
+            // the fake writes unguarded, and a torn-down socket here would be the
+            // test's fault rather than the code's.
+            await Task.Delay(TimeSpan.FromSeconds(1.5));
+        }
+        Check(busyNotes.ToString().Contains("sent unverified"),
+            "a busy provider was not reported as unverified: " + busyNotes);
+
         var deadNotes = new StringWriter();
         var deadRoot = new Ensemble.Ensemble(deadNotes, dataDirectory: Root(temp, "dead"));
         var deadAgent = Agent(deadRoot, "http://127.0.0.1:1/v1", "high", "dead");

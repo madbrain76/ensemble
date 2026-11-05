@@ -14,5 +14,8 @@ public sealed partial class Engine
     // fixtures free of extra probes. Anything short of an explicit refusal of
     // this parameter launches with a note, because ensemble already starts
     // against an offline provider.
-    public partial Task ValidateReasoningEffortAsync(CancellationToken cancellation);
+    // probeTimeout exists so a test can wait a fraction of a second for the case
+    // that matters most here: a provider that is merely slow.
+    public partial Task ValidateReasoningEffortAsync(CancellationToken cancellation,
+        TimeSpan? probeTimeout = null);
 }
