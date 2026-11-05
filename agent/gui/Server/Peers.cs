@@ -16,7 +16,7 @@ public static partial class Gui
         return true;
     }
 
-    private static partial void MapPeers(IEndpointRouteBuilder routes, Agent source, int port, string? publicOrigin, IReadOnlyList<string> allowedHosts, CancellationToken stopping)
+    private static partial void MapPeers(IEndpointRouteBuilder routes, Agent source, int port, string? publicOrigin, CancellationToken stopping)
     {
         // Trusted host UI authority, not a model tool. The mounted Agent is an
         // explicit source of launch defaults, not a retained defaults owner.
@@ -27,7 +27,7 @@ public static partial class Gui
             context.Response.Headers.CacheControl = "no-store";
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
             var request = context.Request;
-            string? expected = RequestOrigin(context, port, publicOrigin, allowedHosts);
+            string? expected = RequestOrigin(context, port, publicOrigin);
             return expected is not null && MatchesOrigin(request, expected, required: expected == publicOrigin)
                 && request.Headers["X-Ensemble-Peers"] == "1";
         }

@@ -6,7 +6,7 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
-    private static partial void MapJobOutput(IEndpointRouteBuilder routes, Agent source, int port, string? publicOrigin, IReadOnlyList<string> allowedHosts, CancellationToken stopping)
+    private static partial void MapJobOutput(IEndpointRouteBuilder routes, Agent source, int port, string? publicOrigin, CancellationToken stopping)
     {
         routes.MapGet("/jobs/output", async (HttpContext context) =>
         {
@@ -14,7 +14,7 @@ public static partial class Gui
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
             context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; sandbox";
             var request = context.Request;
-            string? expectedOrigin = RequestOrigin(context, port, publicOrigin, allowedHosts);
+            string? expectedOrigin = RequestOrigin(context, port, publicOrigin);
             bool origin = expectedOrigin is not null
                 && MatchesOrigin(request, expectedOrigin);
             // Preserve custom-header and same-site requirements through the proxy.

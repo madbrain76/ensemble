@@ -98,74 +98,82 @@ unauthenticated requests were refused, authenticated ones were rejected too.
   `agent/Tests` stays at 341 passed / 4 pre-existing macOS PTY failures, so the
   shared origin rule regressed nothing.
 
-## Follow-up defect: a correct password, then a bare 400
+This transport-trust rule was itself removed later, for the reason recorded in the
+next section. Read it before treating any Host-name rule here as current.
 
-Reported by Bill after the fix above: authentication succeeded and the browser
-then showed `HTTP 400 Bad Request`. Cause: this listener admits a client only
-when `Host` equals the bind address, so any client that dials by **name** is
-refused *after* passing Digest. The order is real, not incidental - the guard is
-installed before the routes (`Server/Host.cs`), so the credential prompt is
-answered first and the origin gate refuses afterwards, which is exactly the
-symptom. On this host `/etc/hosts` maps `dev` and `devbox.localdomain` to
-`127.0.1.1`, so even a local browser typing `http://dev:8090/` was refused.
+## Removed: Host header verification
 
-My earlier claim that "a LAN bind actually serves the LAN" was therefore only
-true for literal addresses. It is corrected below.
+Bill reported the arrival-address rule as broken and useless and directed its
+removal. He was right, and the transcript of his own session is the evidence:
 
-- **Machine names are admitted.** `Host` may now name this machine by any name
-  the *local operating system* knows for itself - `Dns.GetHostName()`,
-  `Environment.MachineName`, and the `IPGlobalProperties` host and fully
-  qualified name - read once at startup and compared case-insensitively with any
-  trailing dot removed. These come from the host, never from the request, so a
-  rebinding page cannot borrow one: it can only send the name its own operator
-  registered, and a victim who types that name is already talking to us.
-- **`--allowed-host` (and `EN_ALLOWED_HOST`) declares the rest.** A LAN is free
-  to know this box by a name nothing on the box predicts - a router's DNS name.
-  The tempting shortcut, resolving the incoming `Host` and requiring it to answer
-  with this address, is precisely the DNS rebinding attack the `Host` check exists
-  to refuse, because the attacker controls that zone. So extra names are an
-  explicit launch decision, validated at the origin (`agent/gui/Server/Origin.cs`
-  `NormalizeAllowedHosts`): bare names only, no scheme, port, path, credential or
-  wildcard, normalized once for the mount and compared without allocating.
-- **The 400 now explains itself.** A refusal writes one operator line naming the
-  rejected `Host`, the address to open instead, and the flag that would admit the
-  name. The client still receives the same content-free refusal, so a scanner
-  learns nothing about which rule failed, and a page retrying the same name is
-  reported once (`Server/Host.cs`, deduplicated under the mount's existing gate
-  and written outside the lock).
-- Tests cover the machine name in both branches, case folding, a declared name,
-  an undeclared name, and the single-report rule. Four mutants were killed by
-  distinct assertions: dropping the machine-name clause, dropping the
-  allowlist clause, accepting every `Host`, and removing the deduplication.
-  `agent/GuiTests` passes and `agent/Tests` stays at 341 passed / 4 pre-existing
-  macOS PTY failures.
+```
+./run.sh                                        -> refused Host "devbox.localdomain:8090"
+./run.sh --allowed-host devbox.localdomain         -> refused Host "devbox.localdomain:8090"
+./run.sh --allowed-host devbox.localdomain:8090    -> refused: not a bare name
+```
+
+The flag I invented to rescue the rule could not work: the advice line told him to
+strip the port (`pass --allowed-host devbox.localdomain`) while the comparison still
+ran against `request.Host.Host` including `:8090`. So the operator was told the
+correct fix and the fix was then refused for being correct. A third attempt at
+matching this rule is not worth the cost when the rule's own benefit is this thin:
+
+- The listener it guarded is reachable only on a deliberately non-loopback bind,
+  and this branch refuses to open such a socket without Digest credentials. An
+  attacker who can produce a `Host` for it is already on the LAN and can dial the
+  address directly.
+- DNS rebinding was the threat the rule addressed. Under Digest that requires the
+  victim to type their password into a prompt for the attacker's hostname, and the
+  remaining same-origin protection is `MatchesOrigin`, which compares the page's
+  `Origin` to the request's own origin and still refuses a cross-origin page.
+- Every legitimate client is served by removing it, and no client I can name is
+  protected by keeping it.
+
+Removed outright rather than left dormant: `RequestOrigin`'s non-loopback Host
+comparison, `MachineNames`/`LocalMachineNames`/`NamesThisMachine`,
+`NamesAsPermitted`, `NormalizeAllowedHosts`, `RefusedOriginMessage`, the
+`--allowed-host` and `EN_ALLOWED_HOST` inputs, and the `AllowedHosts` field threaded
+through `GuiOptions` and four map functions. Net **-203 lines**. The loopback rule
+is back to upstream's exactly as it was: `localhost`, `127.0.0.1`, `::1`, or the
+`--public-origin` proxy. A non-loopback peer is admitted over http on the right
+port and its `Host` becomes the request's origin, which is what the origin check
+needs in order to work at all.
+
+What still guards a LAN bind, in order: the bind itself refuses without credentials
+(`GuiBindRefusalException`), every request requires a valid Digest answer, and
+state-changing requests must carry a matching `Origin`.
+
+`HostBindingTests` now asserts the opposite of what it did: an off-loopback client
+naming itself `any-name.example` must be **served**, and an anonymous request with
+that same `Host` must still get `401`, so removing the rule cannot become an
+authentication bypass. Killing the fix (reinstating the arrival-address
+comparison) fails that test with "a LAN client naming itself something other than
+the arrival address was refused", so the assertion is live.
 
 ## Verified in real Firefox
 
-Headless Firefox (the Playwright build in `agent/gui/node_modules`) against the
-standalone `Examples/Gui` launcher, Digest credentials in a scratch data
-directory, and a local fake provider: no traffic left the machine and no
-`--wake-on-lan` was passed. 18 checks pass.
+Headless Firefox against the standalone `Examples/Gui` launcher, `--host 0.0.0.0`,
+Digest credentials in a scratch data directory, and a local fake provider. No
+`--wake-on-lan`, so nothing could reach the LAN. **12 of 12 checks pass.**
 
-- Admitted and **fully rendered** - document, `app.js` global and stylesheets -
-  for `localhost`, for the arrival address from an off-loopback peer, and for an
-  `--allowed-host` name from an off-loopback peer.
-- Refused with `400` for an undeclared name from both a loopback and an
-  off-loopback peer, while an anonymous peer gets `401` and a wrong password
-  gets `401`: the origin rule never becomes an authentication bypass, and
-  authentication is never a substitute for the origin rule.
-- A prompt typed into the composer really ran: one WebSocket, one provider
-  request, and the reply rendered into the page.
-- Each refused name produced exactly one operator line, and that line names the
-  flag that would admit it - e.g. `pass --allowed-host devbox.localdomain`.
+- `auth-init` through `run.sh` printed a password and named the file it wrote.
+- An anonymous request carrying a chosen `Host` gets `401`: the credential rule
+  survives the removal.
+- Page loads over the LAN address **and** when the client dials a name that is
+  neither the arrival address nor any name this host knows - the case that returned
+  400 - with `#prompt`/`#send` present and scripts loaded.
+- A prompt typed into the composer ran for real: send button armed after the
+  WebSocket connected, one provider request, reply rendered. Zero page errors.
+- Reinstating the arrival-address comparison turns the named case red in the
+  browser (`NS_ERROR_NET_EMPTY_RESPONSE`), so this harness would have caught the
+  bug Bill hit.
 
-Two limits of that harness, stated so the evidence is not over-read. Firefox
-applies its "local host" rules to a dot-less hostname and bypasses the
-configured proxy for it, so the bare `dev` case could not be driven through the
-proxy in a browser; it is proven by `curl` against the listener (200 where the
-old rule gave 400) and by `HostBindingTests` in both branches, each killed by a
-mutation. Firefox also refuses to tunnel `ws://` through that proxy - the proxy
-observed zero upgrade requests - so the interactive turn was driven on the
-direct address origin, which is the path a real user takes anyway. Separately,
-a misconfigured credential attempt in an earlier harness produced `429`: that is
-the port 17 repeated-failure slowdown working as designed, not a defect.
+`agent/Tests` is unchanged at 341 passed / 4 pre-existing macOS PTY failures and
+`agent/GuiTests` passes, so the shared origin rule regressed nothing else.
+
+One limit worth naming: a browser on the listener's own machine typing
+`http://dev:8090/` still gets refused, because upstream's loopback rule admits only
+`localhost`/`127.0.0.1`/`::1`. That is upstream's pre-existing rule, not the feature
+Bill asked me to delete, and the ready line prints the address to open. Restoring
+local browsing by name would mean widening that upstream rule, so it is his call
+rather than mine.
