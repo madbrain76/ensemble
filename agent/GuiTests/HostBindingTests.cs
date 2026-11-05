@@ -86,12 +86,14 @@ static class HostBindingTests
             // Beyond loopback without a credential, the listener must refuse to start.
             bool started = false;
             string refusal = "";
+            var refusedReady = new StringWriter();
             try
             {
                 using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
                 await Gui.RunAsync(LocalAgent(work, "lan-open"),
                     new GuiOptions(FreePort(), Host: "0.0.0.0",
-                        SettingsPath: Path.Combine(work, "open-settings.json")),
+                        SettingsPath: Path.Combine(work, "open-settings.json"),
+                        ReadyOutput: refusedReady),
                     deadline.Token);
                 started = true;
             }
@@ -102,15 +104,25 @@ static class HostBindingTests
             Check(!started, "an unauthenticated listener bound beyond loopback");
             Check(refusal.Contains("authentication", StringComparison.OrdinalIgnoreCase),
                 "the LAN bind was refused for an unrelated reason: " + refusal);
+            // An address printed before the socket listens would be a lie, so a
+            // refused launch must stay silent.
+            Check(refusedReady.ToString().Length == 0,
+                "a refused bind still announced a URL: " + refusedReady);
             // Loopback without a credential still starts: LAN protection is opt-in.
             int openPort = FreePort();
             using (var loopbackDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(20)))
             {
+                var ready = new StringWriter();
                 Task local = Gui.RunAsync(LocalAgent(work, "local-open"),
-                    new GuiOptions(openPort, SettingsPath: Path.Combine(work, "local-settings.json")),
+                    new GuiOptions(openPort, SettingsPath: Path.Combine(work, "local-settings.json"),
+                        ReadyOutput: ready),
                     loopbackDeadline.Token);
                 await Task.WhenAny(local, Task.Delay(3000));
                 await RequireRunning(local, "the default loopback listener");
+                // Without this line a serving GUI is indistinguishable from a
+                // hung launch, which is how the operator reads a silent terminal.
+                Check(ready.ToString().Contains("http://127.0.0.1:" + openPort.ToString()),
+                    "the loopback listener never reported its URL: " + ready);
                 loopbackDeadline.Cancel();
                 try
                 {
@@ -127,11 +139,23 @@ static class HostBindingTests
             int lanPort = FreePort();
             string? lan = LanAddress();
             using var lanDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var lanReady = new StringWriter();
             Task serving = Gui.RunAsync(LocalAgent(work, "lan-guarded"),
                 new GuiOptions(lanPort, Host: "0.0.0.0", AuthPath: file,
-                    SettingsPath: Path.Combine(work, "lan-settings.json")), lanDeadline.Token);
+                    SettingsPath: Path.Combine(work, "lan-settings.json"),
+                    ReadyOutput: lanReady), lanDeadline.Token);
             await Task.WhenAny(serving, Task.Delay(3000));
             await RequireRunning(serving, "the authenticated LAN listener");
+            string announced = lanReady.ToString();
+            Check(!announced.Contains("0.0.0.0"),
+                "a wildcard listener advertised an unopenable URL: " + announced);
+            Check(announced.Contains("Digest authentication", StringComparison.OrdinalIgnoreCase),
+                "an authenticated listener did not say so: " + announced);
+            if (lan is not null)
+            {
+                Check(announced.Contains(lan + ":" + lanPort.ToString()),
+                    "the wildcard listener never named its LAN address: " + announced);
+            }
             using (var http = new HttpClient(new HttpClientHandler { UseProxy = false }))
             {
                 var targets = new List<string> { "127.0.0.1" };

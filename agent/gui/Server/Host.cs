@@ -1,6 +1,8 @@
 using Ensemble;
 using System.Collections.Immutable;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
@@ -43,6 +45,7 @@ public static partial class Gui
             }
             await host.StartAsync(cancellation);
             started = true;
+            ReportReady(host, options);
             await Task.WhenAny(serving, stopped.Task);
             if (serving.IsCompleted)
             {
@@ -76,6 +79,74 @@ public static partial class Gui
                 }
             }
         }
+    }
+
+    // A launch that prints nothing is indistinguishable from one that hung, and
+    // the wait for a busy provider can last minutes. Announce the listener only
+    // after Kestrel is actually bound: a printed address for a socket that then
+    // failed to listen would be worse than silence.
+    private static void ReportReady(WebApplication host, GuiOptions options)
+    {
+        if (options.ReadyOutput is not { } output)
+        {
+            return;
+        }
+        foreach (string url in AdvertisableUrls(host.Urls))
+        {
+            output.WriteLine($"Serving {url}");
+        }
+        if (options.AuthPath is not null)
+        {
+            output.WriteLine("Digest authentication is required for every request.");
+        }
+        output.Flush();
+    }
+
+    // Replace a wildcard bind with the addresses an operator can actually open:
+    // a URL ending in 0.0.0.0 names no host. Family is preserved, so a v4
+    // listener never advertises v6 URLs, and loopback stays first.
+    private static IEnumerable<string> AdvertisableUrls(IEnumerable<string> bound)
+    {
+        foreach (string url in bound)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? template)
+                || !IPAddress.TryParse(template.Host, out IPAddress? address)
+                || !address.Equals(address.AddressFamily == AddressFamily.InterNetworkV6
+                    ? IPAddress.IPv6Any : IPAddress.Any))
+            {
+                yield return url;
+                continue;
+            }
+            foreach (IPAddress concrete in AdvertisableAddresses(address.AddressFamily))
+            {
+                yield return new UriBuilder(template.Scheme, concrete.ToString(),
+                    template.Port).Uri.ToString().TrimEnd('/');
+            }
+        }
+    }
+
+    private static IEnumerable<IPAddress> AdvertisableAddresses(AddressFamily family)
+    {
+        var addresses = new List<IPAddress>
+        {
+            family == AddressFamily.InterNetworkV6 ? IPAddress.IPv6Loopback : IPAddress.Loopback,
+        };
+        foreach (NetworkInterface adapter in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (adapter.OperationalStatus != OperationalStatus.Up)
+            {
+                continue;
+            }
+            foreach (UnicastIPAddressInformation unicast in adapter.GetIPProperties().UnicastAddresses)
+            {
+                if (unicast.Address.AddressFamily == family && !IPAddress.IsLoopback(unicast.Address)
+                    && !addresses.Contains(unicast.Address))
+                {
+                    addresses.Add(unicast.Address);
+                }
+            }
+        }
+        return addresses;
     }
 
     public static partial async Task ServeAsync(WebApplication host, Agent agent, GuiOptions options,

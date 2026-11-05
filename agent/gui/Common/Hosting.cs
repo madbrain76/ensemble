@@ -25,9 +25,13 @@ namespace EnsembleGui;
 // authentication on, and its absence leaves the listener open as before.
 // Null TracePath uses Agent-owned diagnostics. An explicit path is a fresh,
 // operation-owned aggregate trace for embedding/tests, not the normal host mode.
+// ReadyOutput receives the addresses once RunAsync is actually listening, so an
+// operator can tell a serving GUI from a launch that is stuck. Null keeps
+// embedded hosts and tests quiet: only the standalone launcher announces itself.
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
-    string? PublicOrigin = null, string? AuthPath = null, string Host = "127.0.0.1");
+    string? PublicOrigin = null, string? AuthPath = null, string Host = "127.0.0.1",
+    TextWriter? ReadyOutput = null);
 
 // A refused bind address is a launch decision carrying fixed operator guidance,
 // not provider, credential or filesystem text. The host reports unknown

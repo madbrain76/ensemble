@@ -152,6 +152,17 @@ try
     }
     // Selecting either plan route excludes ambient API keys.
     string key = billing == BillingMode.ApiKey ? Env("LLM_API_KEY") : "";
+    // Building the Configuration can wait on the provider: a model the curated
+    // table does not name is asked to answer for its own options, and a sleeping
+    // provider is woken before its first request. Neither is visible on a quiet
+    // terminal, so say what the launch is doing before it can block. Offline
+    // render and dump modes keep stdout for their own output.
+    if (Selected("--render", "EN_RENDER_PATH").Length == 0
+        && Selected("--dump", "EN_DUMP_PATH").Length == 0)
+    {
+        Console.Out.WriteLine($"Starting: model {Selected("--model", "LLM_MODEL")} at {endpoint}");
+        Console.Out.Flush();
+    }
     var config = new Configuration(vendor, Selected("--model", "LLM_MODEL"), endpoint, key,
         requireToolExplanation: Env("LLM_REQUIRE_TOOL_EXPLANATION") == "true",
         disableStreaming: flags.ContainsKey("--no-stream") || Env("EN_DISABLE_STREAMING") == "1",
@@ -262,7 +273,10 @@ try
         PublicOrigin: hostFlags.GetValueOrDefault("--public-origin"),
         AuthPath: Gui.DigestPath(container, hostFlags.GetValueOrDefault("--gui-auth-file"),
             hostFlags.ContainsKey("--gui-auth-file"), loopback: Gui.IsLoopbackHost(bindHost)),
-        Host: bindHost);
+        Host: bindHost,
+        // The standalone launcher is the only host whose operator sees a
+        // terminal, so it is the only one that announces the listening address.
+        ReadyOutput: Console.Out);
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.
     // A browser-dependent peer cannot finish startup before its own relay can
