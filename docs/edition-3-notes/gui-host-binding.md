@@ -139,3 +139,33 @@ true for literal addresses. It is corrected below.
   allowlist clause, accepting every `Host`, and removing the deduplication.
   `agent/GuiTests` passes and `agent/Tests` stays at 341 passed / 4 pre-existing
   macOS PTY failures.
+
+## Verified in real Firefox
+
+Headless Firefox (the Playwright build in `agent/gui/node_modules`) against the
+standalone `Examples/Gui` launcher, Digest credentials in a scratch data
+directory, and a local fake provider: no traffic left the machine and no
+`--wake-on-lan` was passed. 18 checks pass.
+
+- Admitted and **fully rendered** - document, `app.js` global and stylesheets -
+  for `localhost`, for the arrival address from an off-loopback peer, and for an
+  `--allowed-host` name from an off-loopback peer.
+- Refused with `400` for an undeclared name from both a loopback and an
+  off-loopback peer, while an anonymous peer gets `401` and a wrong password
+  gets `401`: the origin rule never becomes an authentication bypass, and
+  authentication is never a substitute for the origin rule.
+- A prompt typed into the composer really ran: one WebSocket, one provider
+  request, and the reply rendered into the page.
+- Each refused name produced exactly one operator line, and that line names the
+  flag that would admit it - e.g. `pass --allowed-host devbox.localdomain`.
+
+Two limits of that harness, stated so the evidence is not over-read. Firefox
+applies its "local host" rules to a dot-less hostname and bypasses the
+configured proxy for it, so the bare `dev` case could not be driven through the
+proxy in a browser; it is proven by `curl` against the listener (200 where the
+old rule gave 400) and by `HostBindingTests` in both branches, each killed by a
+mutation. Firefox also refuses to tunnel `ws://` through that proxy - the proxy
+observed zero upgrade requests - so the interactive turn was driven on the
+direct address origin, which is the path a real user takes anyway. Separately,
+a misconfigured credential attempt in an earlier harness produced `429`: that is
+the port 17 repeated-failure slowdown working as designed, not a defect.
