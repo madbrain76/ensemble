@@ -33,6 +33,9 @@ try {
     check(painted >= 0 && painted < stylesheet,
         'the theme is painted before the stylesheet is requested');
     check(html.indexOf('<script>') < stylesheet, 'the early paint is not deferred');
+    check(/<option value="system" selected>/.test(html)
+        && !/<option value="dark" selected>/.test(html),
+        'the theme select preselects System, matching the resolved default');
 
     // The flash window is the gap between the first frame and the stylesheet
     // arriving. Holding the stylesheet back makes that window observable: whatever
@@ -75,8 +78,21 @@ try {
     check(system.pending.theme === 'light' && system.settled.theme === 'light',
         `system follows the browser's own preference: ${JSON.stringify(system)}`);
     const junk = await probe('translucent-sepia', 'light');
-    check(junk.pending.theme === 'dark',
-        `an unrecognised stored value must not be trusted by the early paint: ${JSON.stringify(junk)}`);
+    // An unrecognised value is not trusted as a choice, but it is also not a reason
+    // to paint dark: theme.js resolves the same value to system, so matching it here
+    // is what removes the flash rather than hiding it.
+    check(junk.pending.theme === 'light' && junk.settled.theme === 'light',
+        `an unrecognised stored value follows the operating system: ${JSON.stringify(junk)}`);
+
+    // The first visit on a browser profile: nothing stored at all. This is the case
+    // that shipped dark for OS-light users.
+    const firstRun = await probe(null, 'light');
+    check(firstRun.pending.theme === 'light' && firstRun.pending.sheets < 2
+        && firstRun.settled.theme === 'light' && firstRun.settled.sheets >= 2,
+        `a first visit on an OS-light profile must not paint dark: ${JSON.stringify(firstRun)}`);
+    const firstRunDark = await probe(null, 'dark');
+    check(firstRunDark.pending.theme === 'dark' && firstRunDark.settled.theme === 'dark',
+        `a first visit on an OS-dark profile paints dark: ${JSON.stringify(firstRunDark)}`);
 } finally {
     await browser.close();
     server.close();

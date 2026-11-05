@@ -6,7 +6,9 @@ namespace EnsembleGui;
 
 // Value-like GUI preferences and user information, not an owner or an Agent service. The
 // tool budget deliberately does not live here: the Agent owns that live fact.
-public sealed record Preferences(string Theme = "dark", bool TtsEnabled = false,
+// Theme defaults to system: appearance follows the operating system unless the
+// browser profile says otherwise, matching the select's System option.
+public sealed record Preferences(string Theme = "system", bool TtsEnabled = false,
     double TtsSpeed = 1, int FontSize = 18, bool PauseWhileSpeaking = true,
     string HumanName = "", string HumanDescription = "", string VoiceShortcut = "AltRight");
 

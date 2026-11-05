@@ -89,6 +89,12 @@ if (args is ["--memory-settings-tests"])
     return;
 }
 
+if (args is ["--theme-default-tests"])
+{
+    await ThemeDefaultTests.RunAsync();
+    return;
+}
+
 if (args is ["--capture-tunnel-tests"])
 {
     await BrowserCaptureTests.RunAsync();
@@ -199,7 +205,9 @@ try
                 Check(saved.GetProperty("human_name").GetString() == "Taylor", "User name not acknowledged");
                 var fromDisk = Gui.ReadPreferences(agent, "settings.json");
                 Check(fromDisk.HumanName == "Taylor" && fromDisk.HumanDescription == "Writes $TOOLS <examples>", "User fields not saved together");
-                Check(saved.GetProperty("theme").GetString() == "dark", "User save changed appearance");
+                // The saved theme must still be whatever it was before this patch, and
+                // before any user touched it that is the system default, not a choice.
+                Check(saved.GetProperty("theme").GetString() == "system", "User save changed appearance");
                 await socket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"update_settings","settings":{"voice_shortcut":"F8"}}"""), WebSocketMessageType.Text, true, cancellation);
                 Check((await Frame(socket, "settings_updated", cancellation)).GetProperty("settings").GetProperty("voice_shortcut").GetString() == "F8"
                     && Gui.ReadPreferences(agent, "settings.json").VoiceShortcut == "F8", "Voice shortcut did not save before acknowledgement");
@@ -504,4 +512,5 @@ finally
 await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();
 await PublicOriginTests.RunAsync();
+await ThemeDefaultTests.RunAsync();
 Console.WriteLine("PASS external GUI consumer: embedded assets, disk override, full caller-owned mount, WebSocket controls, two hosting lifetimes, Agent survival");
