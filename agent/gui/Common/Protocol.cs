@@ -17,7 +17,12 @@ public static partial class Gui
     // These operations share the mount's explicit origin policy. Null means
     // refusal, not permission to infer authority from forwarding headers.
     private static partial string? ValidatePublicOrigin(string? origin);
-    private static partial string? RequestOrigin(HttpContext context, int port, string? publicOrigin);
+    // Names the operator declared for this listener, already normalized. A client
+    // may name the listener by one of these even when no resolver on this host
+    // knows the name: only the operator's launch decides what is acceptable.
+    public static partial IReadOnlyList<string> NormalizeAllowedHosts(IEnumerable<string>? hosts);
+    private static partial string? RequestOrigin(HttpContext context, int port, string? publicOrigin,
+        IReadOnlyList<string> allowedHosts);
     private static partial bool MatchesOrigin(HttpRequest request, string expected, bool required = false);
 
     // The operation borrows the Agent. Cancellation joins HTTP, sockets and the
@@ -44,11 +49,13 @@ public static partial class Gui
     // never enters the conversation, WebSocket projection, or GUI trace.
     private static partial void MapAuth(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Microsoft.AspNetCore.Routing.IEndpointRouteBuilder? callbackRoutes,
-        Agent agent, int port, string? publicOrigin, CancellationToken stopping);
+        Agent agent, int port, string? publicOrigin, IReadOnlyList<string> allowedHosts,
+        CancellationToken stopping);
     // Trusted mounted peer controls use HTTP so browser-dependent construction
     // cannot block the WebSocket carrying that peer's initialization replies.
     private static partial void MapPeers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
-        Agent source, int port, string? publicOrigin, CancellationToken stopping);
+        Agent source, int port, string? publicOrigin, IReadOnlyList<string> allowedHosts,
+        CancellationToken stopping);
     // The mounted Agent and its owning ancestors must outlive this borrowed GUI.
     // Share this eligibility rule between tree projection and HTTP enforcement.
     private static partial bool CanDeleteAgent(Agent source, Agent target);
@@ -56,7 +63,8 @@ public static partial class Gui
     // No caller path is accepted. Completed output is guarded and bounded; the
     // response copy observes both mount shutdown and request cancellation.
     private static partial void MapJobOutput(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
-        Agent source, int port, string? publicOrigin, CancellationToken stopping);
+        Agent source, int port, string? publicOrigin, IReadOnlyList<string> allowedHosts,
+        CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     // Replay and live durable delivery use this exact same projection.

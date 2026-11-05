@@ -155,6 +155,9 @@ public static partial class Gui
         cancellation.ThrowIfCancellationRequested();
         int port = options.Port;
         string? publicOrigin = ValidatePublicOrigin(options.PublicOrigin);
+        // Normalized once for the mount, never per request, and never by resolving
+        // a name that the client chose to send.
+        IReadOnlyList<string> allowedHosts = NormalizeAllowedHosts(options.AllowedHosts);
         if (port is < 1 or > 65535)
         {
             throw new ArgumentException("Port must be between 1 and 65535");
@@ -215,6 +218,10 @@ public static partial class Gui
         // never makes two readers compete for the Agent's lossy observation queue.
         var previews = new Dictionary<Agent, Dictionary<string, JsonObject>>();
         var observers = new Dictionary<Agent, Task>();
+        // Each wrong Host is reported to the operator once. A page that retries the
+        // same name on every asset must not fill the terminal, and the client still
+        // only ever sees the same uniform refusal.
+        var refusedHosts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         JsonObject? latestTree = null;
         using var stopping = CancellationTokenSource.CreateLinkedTokenSource(
             cancellation, host.Lifetime.ApplicationStopping);
@@ -240,9 +247,26 @@ public static partial class Gui
                 }
                 try
                 {
-                    if (RequestOrigin(context, port, publicOrigin) is null)
+                    if (RequestOrigin(context, port, publicOrigin, allowedHosts) is null)
                     {
                         context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        if (options.DiagnosticsOutput is { } refusedTo)
+                        {
+                            string refused = context.Request.Host.HasValue
+                                ? context.Request.Host.Value : "(no Host header)";
+                            bool firstRefusal;
+                            lock (gate)
+                            {
+                                firstRefusal = refusedHosts.Add(refused);
+                            }
+                            if (firstRefusal)
+                            {
+                                // Written outside the lock: a slow terminal must not
+                                // serialize other requests behind this one.
+                                refusedTo.WriteLine(RefusedOriginMessage(context, port));
+                                refusedTo.Flush();
+                            }
+                        }
                         return;
                     }
                     await handler(context);
@@ -266,9 +290,9 @@ public static partial class Gui
         {
             ((IEndpointConventionBuilder)callbackRoutes).Add(GuardEndpoint);
         }
-        MapAuth(routes, callbackRoutes, agent, port, publicOrigin, stopping.Token);
-        MapPeers(routes, agent, port, publicOrigin, stopping.Token);
-        MapJobOutput(routes, agent, port, publicOrigin, stopping.Token);
+        MapAuth(routes, callbackRoutes, agent, port, publicOrigin, allowedHosts, stopping.Token);
+        MapPeers(routes, agent, port, publicOrigin, allowedHosts, stopping.Token);
+        MapJobOutput(routes, agent, port, publicOrigin, allowedHosts, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
         var initialMcp = agent.EnsureMcp();
 
@@ -568,7 +592,7 @@ public static partial class Gui
         {
             // Loopback is not an origin check. A hostile web page must not gain
             // local tool authority merely by opening this WebSocket endpoint.
-            string? origin = RequestOrigin(http, port, publicOrigin);
+            string? origin = RequestOrigin(http, port, publicOrigin, allowedHosts);
             bool publicRequest = origin is not null && origin == publicOrigin;
             if (!http.WebSockets.IsWebSocketRequest || origin is null
                 || !MatchesOrigin(http.Request, origin, required: publicRequest))

@@ -92,7 +92,50 @@ unauthenticated requests were refused, authenticated ones were rejected too.
   behaviour is byte-for-byte the same, and a loopback-bound listener can never
   take the new branch because its local address is loopback.
 - Tests now authenticate over the LAN address itself, and assert refusal for a
-  `Host` that is not the arrival address both off-loopback and from loopback.
-  Proven live: reinstating the loopback-only gate fails with "correct credentials
-  were refused from an off-loopback client". `agent/Tests` stays at 341 passed /
-  4 pre-existing macOS PTY failures, so the shared origin rule regressed nothing.
+  `Host` that names neither this machine nor the arrival address, both
+  off-loopback and from loopback. Proven live: reinstating the loopback-only gate
+  fails with "correct credentials were refused from an off-loopback client".
+  `agent/Tests` stays at 341 passed / 4 pre-existing macOS PTY failures, so the
+  shared origin rule regressed nothing.
+
+## Follow-up defect: a correct password, then a bare 400
+
+Reported by Bill after the fix above: authentication succeeded and the browser
+then showed `HTTP 400 Bad Request`. Cause: this listener admits a client only
+when `Host` equals the bind address, so any client that dials by **name** is
+refused *after* passing Digest. The order is real, not incidental - the guard is
+installed before the routes (`Server/Host.cs`), so the credential prompt is
+answered first and the origin gate refuses afterwards, which is exactly the
+symptom. On this host `/etc/hosts` maps `dev` and `devbox.localdomain` to
+`127.0.1.1`, so even a local browser typing `http://dev:8090/` was refused.
+
+My earlier claim that "a LAN bind actually serves the LAN" was therefore only
+true for literal addresses. It is corrected below.
+
+- **Machine names are admitted.** `Host` may now name this machine by any name
+  the *local operating system* knows for itself - `Dns.GetHostName()`,
+  `Environment.MachineName`, and the `IPGlobalProperties` host and fully
+  qualified name - read once at startup and compared case-insensitively with any
+  trailing dot removed. These come from the host, never from the request, so a
+  rebinding page cannot borrow one: it can only send the name its own operator
+  registered, and a victim who types that name is already talking to us.
+- **`--allowed-host` (and `EN_ALLOWED_HOST`) declares the rest.** A LAN is free
+  to know this box by a name nothing on the box predicts - a router's DNS name.
+  The tempting shortcut, resolving the incoming `Host` and requiring it to answer
+  with this address, is precisely the DNS rebinding attack the `Host` check exists
+  to refuse, because the attacker controls that zone. So extra names are an
+  explicit launch decision, validated at the origin (`agent/gui/Server/Origin.cs`
+  `NormalizeAllowedHosts`): bare names only, no scheme, port, path, credential or
+  wildcard, normalized once for the mount and compared without allocating.
+- **The 400 now explains itself.** A refusal writes one operator line naming the
+  rejected `Host`, the address to open instead, and the flag that would admit the
+  name. The client still receives the same content-free refusal, so a scanner
+  learns nothing about which rule failed, and a page retrying the same name is
+  reported once (`Server/Host.cs`, deduplicated under the mount's existing gate
+  and written outside the lock).
+- Tests cover the machine name in both branches, case folding, a declared name,
+  an undeclared name, and the single-report rule. Four mutants were killed by
+  distinct assertions: dropping the machine-name clause, dropping the
+  allowlist clause, accepting every `Host`, and removing the deduplication.
+  `agent/GuiTests` passes and `agent/Tests` stays at 341 passed / 4 pre-existing
+  macOS PTY failures.
