@@ -47,7 +47,24 @@ public sealed partial class History
                     throw new InvalidOperationException("Load before opening History writers");
                 }
             }
-            var journal = ReadJournal(path + ".journal.jsonl");
+            // A journal the app itself cannot trust used to abort the launch from
+            // outside the candidate loop below: nothing was logged, and no backup
+            // was tried, so the actor could never start again. A duplicate or
+            // out-of-order record is damage to the recovery tail, not to the saved
+            // snapshot, so keep the snapshot, preserve the bytes for inspection,
+            // and say plainly which file was rejected and why.
+            string journalFile = path + ".journal.jsonl";
+            InvalidDataException? journalFault = null;
+            ImmutableArray<Event> journal;
+            try
+            {
+                journal = ReadJournal(journalFile);
+            }
+            catch (InvalidDataException error)
+            {
+                journalFault = error;
+                journal = ReadJournal(journalFile, strict: false);
+            }
             SaveDocument? loaded = null;
             Context restored = new();
             long sequence = 0;
@@ -83,6 +100,17 @@ public sealed partial class History
             }
             if (loaded is null)
             {
+                if (journalFault is not null)
+                {
+                    // With no usable snapshot the journal is the only surviving
+                    // record. Quarantining it would destroy that record, so refuse
+                    // and leave every file exactly as found.
+                    Parent().Parent().Log($"persistence: {journalFile} rejected "
+                        + $"({journalFault.GetType().Name}: {journalFault.Message}); no saved "
+                        + "snapshot remains to continue from; files left untouched");
+                    throw journalFault;
+                }
+
                 if (found)
                 {
                     Parent().Parent().Log($"persistence: no valid save candidate under {path}; "
@@ -97,6 +125,32 @@ public sealed partial class History
                 // journal prefix beginning at one can recover that first session.
                 (restored, sequence) = ReplayJournal(new Context(), 0, journal);
             }
+            if (journalFault is not null)
+            {
+                // Continuing requires that the unusable journal stop being the
+                // active one: StartJournal rewrites the active file, so the rejected
+                // records are moved aside whole under a distinct name first. A failed
+                // move must not silently fall through to that rewrite.
+                string preserved = $"{journalFile}.rejected-"
+                    + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss");
+                try
+                {
+                    Parent().Sandbox().MoveFile(journalFile, preserved);
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                {
+                    Parent().Parent().Log($"persistence: {journalFile} rejected "
+                        + $"({journalFault.GetType().Name}: {journalFault.Message}) and could not be "
+                        + $"preserved as {preserved}; files left untouched");
+                    throw journalFault;
+                }
+
+                Parent().Parent().Log($"persistence: {journalFile} rejected "
+                    + $"({journalFault.GetType().Name}: {journalFault.Message}); preserved as "
+                    + $"{preserved}; continued from the saved snapshot at sequence {sequence}"
+                    + $" with {journal.Length} journal record(s) before the damage");
+            }
+
             var retained = (loaded?.Events ?? [])
                 .AddRange(journal.Where(fact => fact.Seq > snapshotSequence));
             lock (gate)

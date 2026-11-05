@@ -35,7 +35,13 @@ public sealed partial class History
         }
     }
 
-    private partial ImmutableArray<Event> ReadJournal(string path)
+    private partial ImmutableArray<Event> ReadJournal(string path) => ReadJournal(path, strict: true);
+
+    // A second writer over one actor home numbers its events from the sequence it
+    // restored, so the journal can gain a duplicate or out-of-order record at its
+    // end. The records before that point are still contiguous and still durable, so
+    // recovery keeps them; only strict readers refuse the file outright.
+    private ImmutableArray<Event> ReadJournal(string path, bool strict)
     {
         byte[] bytes;
         try
@@ -69,6 +75,11 @@ public sealed partial class History
         }
         catch (DecoderFallbackException error)
         {
+            if (!strict)
+            {
+                return [];
+            }
+
             throw new InvalidDataException("Journal contains invalid UTF-8", error);
         }
         var facts = ImmutableArray.CreateBuilder<Event>();
@@ -85,10 +96,20 @@ public sealed partial class History
             catch (Exception error) when (error is System.Text.Json.JsonException or FormatException
                 or ArgumentException or InvalidOperationException or KeyNotFoundException)
             {
+                if (!strict)
+                {
+                    break;
+                }
+
                 throw new InvalidDataException("Journal contains an invalid complete record", error);
             }
             if (fact.Seq <= 0 || (last != 0 && fact.Seq != last + 1))
             {
+                if (!strict)
+                {
+                    break;
+                }
+
                 throw new InvalidDataException("Journal sequence is not contiguous");
             }
             facts.Add(fact);

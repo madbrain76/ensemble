@@ -660,6 +660,8 @@ try
             CheckCase("Persistence recovery compatibility", PersistenceTests.Recovery);
             await AsyncCase("Persistence lifecycle compatibility", PersistenceTests.Runtime);
             CheckCase("Actor home single writer", WriterLockTests.SingleWriter);
+            CheckCase("Journal rejected tail recovery", JournalRecoveryTests.RejectedTail);
+            CheckCase("Journal refusal without snapshot", JournalRecoveryTests.RefusesWithoutSnapshot);
             CheckCase("Journal recovery compatibility", JournalTests.Recovery);
             CheckCase("Journal torn-tail compatibility", JournalTests.TornAndInvalid);
             CheckCase("Journal failed append compatibility", JournalTests.FailedAppend);
@@ -928,6 +930,8 @@ CheckCase("Chapter 14 handoff snapshot-only replay", HandoffTests.Replay);
 await AsyncCase("Chapter 14 interrupted handoff pairs tail and preserves Job", ActorTests.InterruptedHandoff);
 await AsyncCase("Chapter 14 manual clear waits for outcomes and preserves context/Jobs", ActorTests.ManualToolClear);
 CheckCase("Actor home single writer", WriterLockTests.SingleWriter);
+CheckCase("Chapter 14 journal rejected tail recovery", JournalRecoveryTests.RejectedTail);
+CheckCase("Chapter 14 journal refusal without snapshot", JournalRecoveryTests.RefusesWithoutSnapshot);
 CheckCase("Chapter 14 journal primary and backup recovery", JournalTests.Recovery);
 CheckCase("Chapter 14 first-session journal and torn-tail recovery", JournalTests.TornAndInvalid);
 CheckCase("Chapter 14 failed append never publishes", JournalTests.FailedAppend);
