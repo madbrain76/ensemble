@@ -84,14 +84,68 @@ and simply belonged to a file nothing consulted. Nothing on either side said so.
   it on every failed attempt would turn a brute-force attempt into log spam.
   `Explain` decides inside the gate and writes outside it: the same lock guards the
   replay and slowdown tables, and no request should wait on a terminal.
-- `auth-init`/`auth-reset` now default to `$EN_DATA_DIR` like the launcher
-  (`Selected("--data-dir", "EN_DATA_DIR")`) instead of silently using the current
-  directory, print the verifier path they wrote, and warn when some other
-  `gui-auth.json` exists in the current directory. Verified: with the stray file
-  present the warning names it, and the run printed
-  `auth: verifier written to <dir>/gui-auth.json`.
+- `auth-init`/`auth-reset` now follow `$EN_DATA_DIR` like the launcher, print the
+  verifier path they wrote, and warn when some other `gui-auth.json` sits in the
+  current directory.
+  - CORRECTION (November 5): an earlier version of this note claimed a forgotten
+    `--data-dir` "can no longer write a second gui-auth.json that nothing reads".
+    That was false and cost another session. The subcommand still falls back to the
+    current directory when neither `--data-dir` nor `EN_DATA_DIR` is set, and
+    `run.sh` exported the variable only into the process it launches — so a bare
+    `./ensemble auth-reset` in a login shell wrote `~/projects/ensemble/gui-auth.json`
+    while the listener read `~/.local/share/ensemble-csharp/gui-auth.json`. Both files
+    were well formed, both used username and realm `ensemble`, and the printed password
+    simply did not work. The stray check was also one-directional: it looked for a file
+    in the current directory only when writing somewhere else, so the exact failure that
+    happened was the one case it never reported. Now the report names the source
+    (`--file`, `--data-dir`, `EN_DATA_DIR` or the current directory) and calls the last
+    one out as a guess, and `run.sh` forwards the subcommands so the launcher's data
+    directory is used by construction. `agent/start` was deliberately left alone: it
+    documents that it keeps the caller's working directory.
 - Tests: `RejectionReasons` pins a distinct reason per rule, agrees the bool and
   the reason cannot disagree, and checks sanitization of client text;
   `GuardDiagnostics` drives the real guard and asserts the two reasons, the single
   path statement, and that no password appears. Both proven live by mutating the
   reason strings and the path sentence.
+
+## A reset could not take effect until the listener restarted (November 5)
+
+The verifier was loaded once by `UseDigestAuth` and held in a `readonly` field, so
+`auth-reset` against a running GUI was refused forever and the operator was told
+`the password does not match the verifier` — accurate about the arithmetic, useless
+about the situation, because the process answering was holding a copy of a file the
+reset had never touched. This is the same class of failure as the split-brain file
+above, and it produces the identical message, which is why it was worth fixing rather
+than documenting.
+
+- `DigestGuard` samples the 128-byte verifier at most once a second and reloads when
+  the bytes differ. Contents, not `mtime`, because an atomic replace can land inside
+  the filesystem's timestamp granularity and the file is small enough to read.
+- Reloading rotates the nonce key and clears the replay table. A self-certifying nonce
+  minted before the swap can no longer verify, which is what forces a browser that
+  cached the previous credential to take a fresh challenge instead of silently
+  replaying a dead password. Rotating the key, rather than only swapping credentials,
+  is the part that makes `auth-reset` reliable from the browser.
+- A verifier that disappears or stops parsing answers 503 and admits nothing. The
+  alternative — keep serving on the last known good copy — would let a half-written
+  or deliberately removed file leave old access alive, and replacing the file is also
+  how a credential is revoked.
+- Watching is opt-in (`watchVerifier`). `UseDigestAuth` sets it because the file is its
+  authority. Inferring it from `verifierPath` was wrong and the suite said so:
+  `GuardDiagnostics` builds a guard with in-memory credentials and names a path only so
+  refusals can cite it, and that unrelated file then revoked the guard's own access.
+  An embedding host supplies its own credentials; a file it never loaded must not be
+  able to lock it out.
+- Verified end to end through the real launcher and `run.sh` forwarding, no restart:
+  anonymous 401, original password 200, `auth-reset`, retired password 401, new password
+  **200**, with `auth: verifier reloaded from <path>; clients holding the previous
+  password will be challenged again` in the operator log. `ReloadAndFault` covers the
+  same ground plus the 503 and the recovery; each assertion is killed by its own
+  mutation (retired password, stale nonce, ignored fault, EN_DATA_DIR source, the
+  fallback sentence).
+
+The one-second sample window means a delete can be unnoticed briefly; it is bounded,
+single-file, and one read per second against a 128-byte file, so it was preferred to
+a `FileSystemWatcher` and its own failure modes. The 503 body carries no
+`WWW-Authenticate`, which is correct — nothing can be answered while the verifier is
+unavailable — and the next successful request re-challenges normally.
