@@ -172,29 +172,51 @@ static class HostBindingTests
                         value.Scheme == "Digest" && (value.Parameter ?? "").Contains("SHA-256")),
                         "the LAN bind did not issue a SHA-256 Digest challenge");
                 }
-                string? parameter;
-                using (var unauthenticated = await http.GetAsync($"http://127.0.0.1:{lanPort}/"))
+                // Answering only over loopback would leave the case that matters
+                // unproven: a real LAN client arrives off-loopback and must still be
+                // admitted once its credentials are right.
+                async Task<HttpStatusCode> Authenticate(string target, string? hostileHost)
                 {
-                    parameter = unauthenticated.Headers.WwwAuthenticate.First().Parameter;
+                    using var challengeResponse = await http.GetAsync($"http://{target}:{lanPort}/");
+                    string? parameter = challengeResponse.Headers.WwwAuthenticate.First().Parameter;
+                    Check(parameter is not null, "the challenge from " + target + " had no parameters");
+                    string challenge = parameter!;
+                    int begin = challenge.IndexOf("nonce=\"", StringComparison.Ordinal) + 7;
+                    string nonce = challenge[begin..challenge.IndexOf('"', begin)];
+                    string ha1 = Hex(SHA256.HashData(Encoding.UTF8.GetBytes(
+                        "ensemble:Ensemble:" + password)));
+                    // The Digest uri covers the request target, not the Host header, so a
+                    // forged Host stays a pure origin test.
+                    string requestHash = Hex(SHA256.HashData(Encoding.UTF8.GetBytes("GET:/")));
+                    string cnonce = Guid.NewGuid().ToString("N");
+                    string response = Hex(SHA256.HashData(Encoding.UTF8.GetBytes(
+                        ha1 + ":" + nonce + ":00000001:" + cnonce + ":auth:" + requestHash)));
+                    using var request = new HttpRequestMessage(HttpMethod.Get,
+                        $"http://{target}:{lanPort}/");
+                    request.Headers.TryAddWithoutValidation("Authorization",
+                        $"Digest realm=\"Ensemble\", nonce=\"{nonce}\", uri=\"/\","
+                        + " qop=\"auth\", algorithm=SHA-256, username=\"ensemble\","
+                        + $" nc=00000001, cnonce=\"{cnonce}\", response=\"{response}\"");
+                    if (hostileHost is not null)
+                    {
+                        request.Headers.Host = hostileHost;
+                    }
+                    using var admitted = await http.SendAsync(request);
+                    return admitted.StatusCode;
                 }
-                Check(parameter is not null, "the LAN challenge carried no parameters");
-                string challenge = parameter!;
-                int begin = challenge.IndexOf("nonce=\"", StringComparison.Ordinal) + 7;
-                string nonce = challenge[begin..challenge.IndexOf('"', begin)];
-                string ha1 = Hex(SHA256.HashData(Encoding.UTF8.GetBytes("ensemble:Ensemble:" + password)));
-                string uri = "/";
-                string requestHash = Hex(SHA256.HashData(Encoding.UTF8.GetBytes("GET:" + uri)));
-                string cnonce = Guid.NewGuid().ToString("N");
-                string response = Hex(SHA256.HashData(Encoding.UTF8.GetBytes(
-                    ha1 + ":" + nonce + ":00000001:" + cnonce + ":auth:" + requestHash)));
-                using var request = new HttpRequestMessage(HttpMethod.Get, $"http://127.0.0.1:{lanPort}/");
-                request.Headers.TryAddWithoutValidation("Authorization",
-                    "Digest realm=\"Ensemble\", nonce=\"" + nonce + "\", uri=\"" + uri
-                    + "\", qop=\"auth\", algorithm=SHA-256, username=\"ensemble\", nc=00000001"
-                    + ", cnonce=\"" + cnonce + "\", response=\"" + response + "\"");
-                using var admitted = await http.SendAsync(request);
-                Check(admitted.StatusCode == HttpStatusCode.OK,
-                    "correct credentials were refused on a LAN bind: " + admitted.StatusCode);
+                Check(await Authenticate("127.0.0.1", null) == HttpStatusCode.OK,
+                    "correct credentials were refused from loopback on a LAN bind");
+                if (lan is not null)
+                {
+                    Check(await Authenticate(lan, null) == HttpStatusCode.OK,
+                        "correct credentials were refused from an off-loopback client:"
+                        + " a listener bound for the LAN must actually serve the LAN");
+                    // Rebinding: the client dials this address but names another host.
+                    Check(await Authenticate(lan, "rebinding.example") != HttpStatusCode.OK,
+                        "a Host header that is not the arrival address was admitted");
+                }
+                Check(await Authenticate("127.0.0.1", "rebinding.example") != HttpStatusCode.OK,
+                    "a Host header that is not local or the public origin was admitted");
             }
             lanDeadline.Cancel();
             try
