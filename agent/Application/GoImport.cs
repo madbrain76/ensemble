@@ -83,9 +83,10 @@ public sealed partial class Ensemble
         {
             // The home's directory names the Agent; the file inside it is always
             // save.json, so the name has to come from the directory above it.
-            string primaryName = string.Equals(Path.GetFileName(Path.GetDirectoryName(primaryTarget)),
-                "root", StringComparison.Ordinal) ? "root" : ArchiveName;
-            Plan(container, source, primarySource, primaryName, installed, notes, diagnostics);
+            bool adopted = string.Equals(Path.GetFileName(Path.GetDirectoryName(primaryTarget)),
+                "root", StringComparison.Ordinal);
+            Plan(container, source, primarySource, adopted ? "root" : ArchiveName,
+                installed, notes, diagnostics, adoptQuietHome: adopted);
         }
 
         string registryPath = Path.Combine(source, "ensemble.json");
@@ -192,7 +193,7 @@ public sealed partial class Ensemble
     private static void Plan(Ensemble container, string source, string sourcePath, string name,
         List<(string Name, int Events, int Characters, int NoText,
             Dictionary<string, int> Dropped, Dictionary<string, int> Translated)> installed,
-        List<string> notes, TextWriter diagnostics)
+        List<string> notes, TextWriter diagnostics, bool adoptQuietHome = false)
     {
         string? home = container.AgentDirectory(name);
         if (home is null)
@@ -201,7 +202,10 @@ public sealed partial class Ensemble
             return;
         }
         string destinationPath = Path.Combine(home, "save.json");
-        if (File.Exists(destinationPath)) return;
+        bool exists = File.Exists(destinationPath);
+        // An Agent that already has history here is left alone, unless this is the
+        // Go primary arriving in a home that has never said anything.
+        if (exists && !adoptQuietHome) return;
         if (!File.Exists(sourcePath))
         {
             notes.Add($"{name}: no saved history at {sourcePath}");
@@ -226,9 +230,18 @@ public sealed partial class Ensemble
         {
             Adapted adapted = Adapt(name, sourcePath, destinationPath, root.AsObject());
             Directory.CreateDirectory(Path.GetDirectoryName(adapted.DestinationPath)!);
+            if (exists)
+            {
+                // Adoption is still a replacement of bytes that were here first. The
+                // quiet save is kept beside the new one rather than discarded, so a
+                // restore can be undone by whoever notices it should not have run.
+                string kept = adapted.DestinationPath + ".before-go-restore";
+                File.Copy(adapted.DestinationPath, kept, overwrite: true);
+                diagnostics.WriteLine($"go history: the quiet home at {adapted.DestinationPath} was kept at {kept}");
+            }
             string temporary = adapted.DestinationPath + ".restoring";
             File.WriteAllText(temporary, adapted.Json);
-            File.Move(temporary, adapted.DestinationPath, overwrite: false);
+            File.Move(temporary, adapted.DestinationPath, overwrite: exists);
             installed.Add((name, adapted.Events, adapted.Characters, adapted.NoText, adapted.Dropped,
                 adapted.Translated));
         }

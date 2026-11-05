@@ -241,7 +241,15 @@ internal static class GoImportTests
         GoEnvironment(source, () =>
         {
             Check(Restore(quiet) is not null, "a fresh data directory did not adopt the Go primary");
-            Check(File.Exists(Path.Combine(quiet, "agents", "root", "save.json")), "the adopted primary is not in place");
+            // Existence proves nothing here: the placeholder was already a file. The
+            // adopted history has to have arrived in it, and the quiet save it
+            // replaced has to have been kept rather than discarded.
+            string adopted = File.ReadAllText(Path.Combine(quiet, "agents", "root", "save.json"));
+            Check(adopted.Contains("slip-in PDF cover"),
+                "the quiet primary was not adopted; its save still holds the placeholder");
+            Check(!adopted.Contains("shutdown"), "the placeholder history survived the adoption");
+            Check(File.Exists(Path.Combine(quiet, "agents", "root", "save.json.before-go-restore")),
+                "the replaced quiet save was discarded rather than kept");
             Check(!File.Exists(Path.Combine(quiet, "agents", "Go archive", "save.json")),
                 "a quiet home was filed as a peer instead of becoming the primary");
         });
