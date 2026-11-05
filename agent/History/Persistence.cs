@@ -77,13 +77,16 @@ public sealed partial class History
                 catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or FormatException)
                 {
                     found = true;
-                    Parent().Parent().Log("persistence: invalid save candidate; trying backup");
+                    Parent().Parent().Log($"persistence: {candidate} rejected "
+                        + $"({error.GetType().Name}: {error.Message}); trying backup");
                 }
             }
             if (loaded is null)
             {
                 if (found)
                 {
+                    Parent().Parent().Log($"persistence: no valid save candidate under {path}; "
+                        + "files left untouched");
                     throw new InvalidDataException("No valid save candidate; files left untouched");
                 }
                 if (journal.IsEmpty)

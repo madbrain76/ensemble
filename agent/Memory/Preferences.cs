@@ -12,10 +12,19 @@ public sealed partial class Memory
         {
             // Only absence means defaults. Corruption, confinement refusal and
             // unreadable files must not silently enable a disabled band or recall.
+            string settingsPath = HomePath("settings.json");
+            // The launch handler reports failures by exception type only, so a
+            // rejected document must name its own file in the diagnostics log or
+            // "check private diagnostics" leaves the operator nowhere to look.
+            InvalidDataException Reject(string reason)
+            {
+                Parent().Log($"Agent settings rejected at {settingsPath}: {reason}");
+                return new InvalidDataException(reason);
+            }
             Stream stream;
             try
             {
-                stream = Parent().Sandbox().OpenFile(HomePath("settings.json"), FileMode.Open, FileAccess.Read);
+                stream = Parent().Sandbox().OpenFile(settingsPath, FileMode.Open, FileAccess.Read);
             }
             catch (FileNotFoundException)
             {
@@ -31,13 +40,13 @@ public sealed partial class Memory
                 int length = stream.ReadAtLeast(bytes, bytes.Length, throwOnEndOfStream: false);
                 if (length == bytes.Length)
                 {
-                    throw new InvalidDataException("Agent settings exceed 16 KiB");
+                    throw Reject("Agent settings exceed 16 KiB");
                 }
                 using var document = JsonDocument.Parse(bytes.AsMemory(0, length));
                 var root = document.RootElement;
                 if (root.ValueKind != JsonValueKind.Object)
                 {
-                    throw new InvalidDataException("Invalid Agent settings document");
+                    throw Reject("Invalid Agent settings document");
                 }
                 var names = root.EnumerateObject().Select(field => field.Name).Order(StringComparer.Ordinal).ToArray();
                 // Chapter 22's complete memory-only document remains readable.
@@ -46,7 +55,7 @@ public sealed partial class Memory
                 bool complete = names.SequenceEqual(new[] { "memory", "recall", "version" });
                 if ((!legacy && !complete) || root.GetProperty("version").GetInt32() != 1)
                 {
-                    throw new InvalidDataException("Invalid Agent settings document");
+                    throw Reject("Invalid Agent settings document");
                 }
                 var memory = JsonCodec.ReadMemorySettings(root.GetProperty("memory"));
                 var recall = legacy ? new RecallSettings()
