@@ -308,10 +308,38 @@ function cardFor(id) {
     if (cards.has(id)) return cards.get(id);
     const node = document.createElement("article");
     node.dataset.partId = id;
-    const card = { id, agent: agentID, node, text: "", kind: "text", role: "assistant", status: "", final: false };
+    // first/last are arrival instants for this one artifact, measured here rather
+    // than reconstructed later: the operator reads how long the model spent
+    // producing this box, and when it began. clock is the server's own time when a
+    // frame carries one, so a replay shows the original moment.
+    const card = { id, agent: agentID, node, text: "", kind: "text", role: "assistant",
+        status: "", final: false, first: 0, last: 0, clock: null };
     cards.set(id, card);
     return card;
 }
+function cardTimingText(card) {
+    // One line per artifact: the clock time it began, then how long production
+    // took. An unfinished part shows an ellipsis instead of a fake duration, and a
+    // part with no arrival at all shows nothing rather than a misleading zero.
+    if (!card.first) return "";
+    const moment = new Date(card.clock || card.first);
+    const pad = (value) => String(value).padStart(2, "0");
+    const clock = `${pad(moment.getHours())}:${pad(moment.getMinutes())}:${pad(moment.getSeconds())}`;
+    if (!card.final || card.last <= card.first) return `${clock} · …`;
+    const seconds = (card.last - card.first) / 1000;
+    const shown = seconds < 10 ? seconds.toFixed(1) : Math.round(seconds).toString();
+    return `${clock} · ${shown}s`;
+}
+
+function renderTiming(card) {
+    const line = document.createElement("div");
+    line.className = "card-timing";
+    line.textContent = cardTimingText(card);
+    const existing = card.node.querySelector(":scope > .card-timing");
+    if (existing) existing.replaceWith(line);
+    else card.node.prepend(line);
+}
+
 function media(parent, part, card) {
     if (part.type === "tool_result") {
         for (const child of part.parts || []) media(parent, child, card);
@@ -715,6 +743,9 @@ function handle(frame) {
     const card = cardFor(frame.part_id);
     if (frame.type === "part_delta") {
         if (card.final) return;
+        const arrived = Date.now();
+        if (!card.first) { card.first = arrived; card.clock = frame.time || null; }
+        card.last = arrived;
         card.kind = frame.kind;
         card.text += frame.chunk; // An empty chunk is a valid part opening.
         if (frame.tool_name) card.name = (card.name || "") + frame.tool_name;
@@ -724,10 +755,13 @@ function handle(frame) {
         card.kind = part.type;
         card.role = part.role || "assistant";
         card.text = readable(part);
+        card.last = Date.now();
+        if (!card.first) { card.first = card.last; card.clock = frame.time || null; }
         card.name = part.name || card.name;
         card.input = part.args || card.input;
         card.final = true;
         if (card.kind === "tool_call" && !card.status) card.status = "planned";
+        renderTiming(card);
     } else if (frame.type === "tool_dispatched") {
         card.kind = "tool_call";
         card.name = frame.name;
