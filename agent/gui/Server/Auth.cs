@@ -7,8 +7,7 @@ public static partial class Gui
 {
     private static partial void MapAuth(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Microsoft.AspNetCore.Routing.IEndpointRouteBuilder? callbackRoutes,
-        Agent agent, int port, string? publicOrigin, IReadOnlyList<string> allowedHosts,
-        CancellationToken stopping)
+        Agent agent, int port, string? publicOrigin, CancellationToken stopping)
     {
         routes.Map("/auth/{operation}", Handle);
         // Keep the credential owner's fixed callback path across launches.
@@ -27,7 +26,7 @@ public static partial class Gui
             string operation = (string?)request.RouteValues["operation"] ?? "callback";
             bool callback = operation == "callback";
 
-            string? origin = RequestOrigin(context, port, publicOrigin, allowedHosts);
+            string? origin = RequestOrigin(context, port, publicOrigin);
             // The issuer callback keeps its registered local redirect URI. The
             // public origin does not rewrite account protocol or credential paths.
             bool localCallback = origin is not null && origin.StartsWith("http://", StringComparison.Ordinal);

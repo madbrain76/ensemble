@@ -37,7 +37,6 @@ try
 
     var flags = new Dictionary<string, string>(StringComparer.Ordinal);
     var hostFlags = new Dictionary<string, string>(StringComparer.Ordinal);
-    var allowedHostNames = new List<string>();
     for (int i = 0; i < args.Length; i++)
     {
         string flag = args[i];
@@ -51,7 +50,7 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host" or "--allowed-host") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
@@ -67,29 +66,12 @@ try
         {
             hostFlags[flag] = value;
         }
-        else if (flag == "--allowed-host")
-        {
-            // Repeatable and comma-separated: a LAN listener is often reached by the
-            // DNS name its router gave it, which no entry on this host predicts.
-            foreach (string name in value.Split(',', StringSplitOptions.RemoveEmptyEntries
-                | StringSplitOptions.TrimEntries))
-            {
-                allowedHostNames.Add(name);
-            }
-        }
         else
         {
             flags[flag] = value;
         }
     }
     string Selected(string flag, string environment) => flags.GetValueOrDefault(flag, Env(environment));
-    // The same names work from the environment, so a container image can declare its
-    // LAN identity without editing the command line.
-    foreach (string name in Env("EN_ALLOWED_HOST").Split(',', StringSplitOptions.RemoveEmptyEntries
-        | StringSplitOptions.TrimEntries))
-    {
-        allowedHostNames.Add(name);
-    }
     if (flags.TryGetValue("--workspace", out var workspace))
     {
         Directory.SetCurrentDirectory(Path.GetFullPath(workspace));
@@ -263,7 +245,6 @@ try
         AuthPath: Gui.DigestPath(container, hostFlags.GetValueOrDefault("--gui-auth-file"),
             hostFlags.ContainsKey("--gui-auth-file"), loopback: Gui.IsLoopbackHost(bindHost)),
         Host: bindHost,
-        AllowedHosts: allowedHostNames,
         // A refused credential attempt is operator feedback, not application state, so
         // it goes to the terminal's error stream where the launcher already reports
         // launch problems. Without it, a wrong password and a wrong file are identical.
