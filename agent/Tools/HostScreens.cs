@@ -48,6 +48,10 @@ public sealed partial class Tool
                 return new ToolResultPart(call.CallID, [new TextPart(report)]);
             }
             int display = ParseScreenRequest(call.Args);
+            // A screenshot is only worth capturing if the selected model can
+            // receive it. An unlisted endpoint proves that here, on this async
+            // boundary and once per route, rather than being refused by name.
+            await Parent().Engine().ProbeImagesAsync(cancellation).ConfigureAwait(false);
             // This validates placement/capability only; it never opens a file.
             // No enumeration, permission check or capture precedes this guard.
             var probe = new BlobPart("image/png", new BlobRef(RefKind.Path, "host-screen-capability-probe"));

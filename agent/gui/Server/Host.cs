@@ -901,7 +901,7 @@ public static partial class Gui
                                 }
                                 break;
                             case "image_prompt":
-                                var imageAdmission = PrepareImageInput(selected, command, lifetime.Token);
+                                var imageAdmission = await PrepareImageInput(selected, command, lifetime.Token);
                                 await selected.PostAsync(imageAdmission.Input);
                                 lock (gate)
                                 {

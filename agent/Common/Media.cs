@@ -105,6 +105,14 @@ public sealed partial class Engine
     // Exact selected-model lookup. There is no default media row; a miss still
     // permits text. Vendor is part of the key, so names cannot cross dialects.
     public static partial bool LookupModel(Vendor vendor, string model, out ModelFeatures features);
+
+    // A model the table does not name earns image capability from its live
+    // endpoint. Table rows are never overridden in either direction, so this is
+    // the only route by which an unlisted model admits images.
+    public partial Task<bool> ProbeImagesAsync(CancellationToken cancellation = default);
+    // Admission question, answered only from the curated table or a completed
+    // probe. It never performs I/O, so rendering stays pure.
+    internal static partial bool ProvenImages(Configuration config);
 }
 
 public sealed partial class BlobRef
