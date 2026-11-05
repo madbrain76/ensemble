@@ -16,6 +16,7 @@ public sealed partial class Jobs
         // Preserve the ordinary temporary default for full access. A confined
         // Agent instead keeps its retained output beneath its own root. Explicit
         // outside paths refuse; silently relocating them would conceal bad setup.
+        temporaryOutput = outputDirectory is null && files.Root().Length == 0;
         OutputDirectory = files.Resolve(selected);
         files.CreateDirectory(OutputDirectory);
         parent.AddJobs(this);
@@ -443,6 +444,31 @@ public sealed partial class Jobs
             }
         }
         parent?.RemoveJobs(this);
+        if (temporaryOutput)
+        {
+            // The name came from this constructor, so no later Agent can resolve it:
+            // OutputDirectory is readonly and the next Jobs draws a fresh GUID beside
+            // it. Untouched, every Agent ever built leaves one directory here, and on
+            // a machine that runs the agent continuously that reached 27,000 entries
+            // in /tmp. Removal failures are not fatal: this is operating-system
+            // scratch, and its own sweeper may be racing us. A directory the caller
+            // named, or one under a confined Agent's root, is retained output and is
+            // never deleted from here.
+            try
+            {
+                if ((File.GetAttributes(OutputDirectory) & FileAttributes.ReparsePoint)
+                    == 0)
+                {
+                    Directory.Delete(OutputDirectory, recursive: true);
+                }
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
         if (failures.Count != 0)
         {
             throw new AggregateException("Job shutdown could not record or close every resource", failures);

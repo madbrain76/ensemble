@@ -957,6 +957,12 @@ CheckCase("A reply that promises work is nudged, not trusted", PromissoryTests.R
     await AsyncCase("Chapter 5 local media projection and refusal", ActorTests.MediaProjection);
     await AsyncCase("Chapter 19 rooted media projection", ActorTests.RootedMedia);
     await AsyncCase("Chapter 19 rooted Job output", ActorTests.RootedJobFiles);
+    CheckCase("Chapter 19 temporary Job scratch is reclaimed at destroy",
+        JobScratchTests.TemporaryScratchIsReclaimed);
+    CheckCase("Chapter 19 supplied Job output directory survives destroy",
+        JobScratchTests.SuppliedDirectoryIsRetained);
+    CheckCase("Chapter 19 confined Job output under its root survives destroy",
+        JobScratchTests.ConfinedScratchIsRetained);
     await AsyncCase("Chapter 5 named Agents and caller roles", ActorTests.NamedAgents);
     await AsyncCase("Chapter 8 captured runtime tool budget", ActorTests.RuntimeBudget);
     await AsyncCase("Chapter 7 atomic snapshots and durable display identity", GuiCoreTests.SnapshotsAndIdentity);
