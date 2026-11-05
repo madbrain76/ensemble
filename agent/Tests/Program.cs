@@ -433,6 +433,8 @@ try
     {
         await AsyncCase("Chapter 21 named actor homes and restoration", () => StorageTests.NamedHomes(temp));
         CheckCase("Chapter 21 storage admission and independent save paths", () => StorageTests.Admission(temp));
+        CheckCase("Go history import adapts and resumes", () => GoImportTests.Run(temp));
+        CheckCase("Go history import refuses unreadable state", () => GoImportTests.Refusals(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");

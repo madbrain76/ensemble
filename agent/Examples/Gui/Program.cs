@@ -2,6 +2,14 @@ using Ensemble;
 using EnsembleGui;
 using Application = Ensemble.Ensemble;
 
+// Operator migration for state the Go implementation wrote. It is dispatched
+// before any provider, sandbox or listener is composed: restoring history needs
+// none of them, and a machine with no credentials yet can still recover its past.
+if (args.Length > 0 && args[0] == "import-go")
+{
+    return Application.RunGoImportCommand(args[1..], Console.Out, Console.Error);
+}
+
 // Composition owns the core graph and optional server operation. No hosted
 // Agent, provider credential, browser profile, or public interface is borrowed.
 Application? app = null;

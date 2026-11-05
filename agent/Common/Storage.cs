@@ -10,6 +10,10 @@ public sealed partial class Ensemble
     // No filesystem effects or second Agent registry: derive a named home from
     // this parent's configured container. Unnamed transient Agents get no home.
     internal partial string? AgentDirectory(string? name);
+    /// <summary>One-shot operator migration for state written by the Go
+    /// implementation: reads a Go data directory, adapts its history documents to
+    /// this codec and installs them here. Returns the process exit code.</summary>
+    public static partial int RunGoImportCommand(string[] args, TextWriter output, TextWriter error);
 }
 
 public sealed partial class Agent
