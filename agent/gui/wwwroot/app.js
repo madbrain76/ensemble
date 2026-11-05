@@ -1416,7 +1416,12 @@ function updateAgentActions() {
     const bar = document.querySelector("#agent-actions");
     if (!bar) return;
     const row = selectedRow();
-    const remove = bar.querySelector("button[data-delete-agent]");
+    // Looked up by a marker this function never touches: the attribute below is
+    // the selected Agent's identity, and it is deleted when nothing is selected,
+    // so selecting by it loses the button after the first non-deletable selection
+    // and every later update then dereferences null.
+    const remove = bar.querySelector("button[data-agent-delete]");
+    if (!remove) return;
     if (row && row.can_delete) {
         remove.dataset.deleteAgent = row.key;
         remove.disabled = false;

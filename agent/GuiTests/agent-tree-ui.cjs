@@ -148,6 +148,26 @@ const server = http.createServer((request, response) => {
             && keys.twoSteps === visibleOrder[1],
             `Alt+Shift+Arrow walks the visible rows: ${JSON.stringify(keys)}`);
         check(keys.stillTyping, 'typing in the prompt keeps its arrow keys');
+        // The action set must survive being disarmed. Selecting a non-deletable row
+        // strips the selected-Agent attribute, and looking the button up by that same
+        // attribute then finds nothing: re-arming for a deletable row silently did
+        // nothing, leaving the operator with a dead toolbar and no message.
+        const rearmed = await page.evaluate(async () => {
+            agentID = null;
+            renderAgentTree();
+            const disarmed = document.querySelector('#agent-actions button');
+            const stripped = disarmed ? !('deleteAgent' in disarmed.dataset) : null;
+            agentID = 'a2';
+            renderAgentTree();
+            await new Promise((done) => setTimeout(done, 40));
+            const again = document.querySelector('#agent-actions button[data-delete-agent]');
+            return { stripped, key: again ? again.dataset.deleteAgent : null,
+                enabled: again ? !again.disabled : null };
+        });
+        check(rearmed.stripped === true, 'a non-deletable selection disarms the trash action');
+        check(rearmed.key === 'a2' && rearmed.enabled === true,
+            `the trash action re-arms for the next deletable Agent: ${JSON.stringify(rearmed)}`);
+
         check(errors.length === 0, 'the tree script stayed error-free: ' + errors.join('; '));
     } finally {
         await browser.close();
