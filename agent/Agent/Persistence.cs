@@ -15,6 +15,7 @@ public sealed partial class Agent
                 throw new InvalidOperationException("Configure persistence once before starting the Agent");
             }
             var normalized = History().NormalizePersistence(options);
+            AcquireWriterLock(System.IO.Path.GetDirectoryName(normalized.Path)!);
             var currentSkills = History().View().Dialogue.SelectMany(entry => entry.Parts)
                 .OfType<SkillPart>().ToImmutableArray();
             bool loaded = History().LoadSave(normalized.Path);

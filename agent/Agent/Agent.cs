@@ -200,6 +200,10 @@ public sealed partial class Agent
             }
             Attempt(() => engine?.Destroy());
             Attempt(() => history?.Destroy());
+            // Release writer authority only after History has joined its own
+            // writes, so a replacement launcher can never observe a directory
+            // that this process is still appending to.
+            Attempt(ReleaseWriterLock);
             // Jobs and History finish with rooted files before the shared root
             // handle is closed. Only then remove both strong-parent memberships.
             Attempt(() => recaller?.Destroy());

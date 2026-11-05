@@ -293,8 +293,14 @@ static void ReportFailure(string prefix, Exception error)
     var causes = new Stack<Exception>();
     causes.Push(error);
     bool addressInUse = false;
+    string? writerConflict = null;
     while (causes.TryPop(out var cause))
     {
+        if (writerConflict is null && cause is WriterConflictException occupied)
+        {
+            // The text is fixed guidance naming a directory the operator chose.
+            writerConflict = occupied.Message;
+        }
         if (cause is System.Net.Sockets.SocketException socket
             && socket.SocketErrorCode == System.Net.Sockets.SocketError.AddressAlreadyInUse)
         {
@@ -314,9 +320,9 @@ static void ReportFailure(string prefix, Exception error)
     }
     string advice = addressInUse
         ? "Loopback port is already in use. Choose an unused --port; do not stop its owner."
-        : error is ArgumentException or FormatException or OverflowException
+        : writerConflict ?? (error is ArgumentException or FormatException or OverflowException
             ? "Invalid launch configuration. Check supported flags and value formats."
-            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.";
+            : "Check private diagnostics and workspace/data permissions; no private error text is printed here.");
     Console.Error.WriteLine($"{prefix}: {error.GetType().Name}. {advice}");
 }
 
