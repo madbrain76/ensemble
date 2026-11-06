@@ -22,6 +22,7 @@ public enum ToolKind
     UnloadSkill,
     MicroHandoff,
     KeepToolResults,
+    OfferDownload,
     Custom,
     Remote,
     AgentStatus,
@@ -111,4 +112,12 @@ public sealed partial class Agent
     public partial void RemoveTool(Tool tool);
     public partial void InstallTools();
     public partial Task<ToolResultPart> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default);
+}
+
+public sealed partial class Tool
+{
+    // The single whitelist shared by the tool and the browser route, so a file type
+    // can never be offered by one and refused by the other, or served with a mime the
+    // browser would sniff.
+    public static partial string DownloadMime(string name);
 }

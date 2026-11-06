@@ -357,3 +357,5 @@ body.compact #transcript { padding: .3rem; }
 .agent-actions { display: flex; gap: 0.25rem; padding: 0.25rem 0.5rem; }
 .tree-row[draggable="true"] { cursor: grab; }
 .tree-row.tree-drop { outline: 2px dashed currentColor; outline-offset: -2px; }
+/* One link per offered work product; the label carries the name and size. */
+.download-offer { margin: 0.35rem 0 0.5rem; align-self: flex-start; }

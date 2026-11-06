@@ -66,6 +66,68 @@ public sealed partial class Tool
         return Encoding.UTF8.GetString(bytes, 0, boundary) + "\n[truncated]\n";
     }
 
+    // A work product the user asked for becomes downloadable: the tool only
+    // publishes a descriptor, and the browser route re-opens the file through the
+    // same sandbox, so a name here is never a path the client may choose.
+    private string OfferDownload(JsonElement args)
+    {
+        var path = String(args, "path", "");
+        if (path.Trim().Length == 0)
+        {
+            throw new ArgumentException("Missing argument: path");
+        }
+        var sandbox = Parent().Sandbox();
+        using (var probe = sandbox.OpenRegularRead(path))
+        {
+            if (probe.Length == 0)
+            {
+                throw new IOException("Work product is empty: " + path);
+            }
+            string name = Path.GetFileName(path.TrimEnd('/', '\\'));
+            if (name.Length == 0)
+            {
+                throw new ArgumentException("Work product must be a file path: " + path);
+            }
+            long bytes = probe.Length;
+            return JsonSerializer.Serialize(new
+            {
+                download = new
+                {
+                    name,
+                    path,
+                    mime = DownloadMime(name),
+                    size = bytes
+                }
+            });
+        }
+    }
+
+    // Only types a browser accepts as a file download without sniffing. An
+    // executable or HTML deliverable stays a workspace file: the operator can
+    // still read it, and the GUI never becomes a distribution point.
+    public static partial string DownloadMime(string name) => Path.GetExtension(name).ToLowerInvariant() switch
+    {
+        ".pdf" => "application/pdf",
+        ".txt" or ".log" or ".md" => "text/plain; charset=utf-8",
+        ".csv" => "text/csv",
+        ".json" => "application/json",
+        ".zip" => "application/zip",
+        ".tar" => "application/x-tar",
+        ".gz" => "application/gzip",
+        ".png" => "image/png",
+        ".jpg" or ".jpeg" => "image/jpeg",
+        ".gif" => "image/gif",
+        ".webp" => "image/webp",
+        ".svg" => "image/svg+xml",
+        ".mp3" => "audio/mpeg",
+        ".wav" => "audio/wav",
+        ".ogg" => "audio/ogg",
+        ".mp4" => "video/mp4",
+        ".webm" => "video/webm",
+        _ => throw new ArgumentException(
+            "Work product type is not offered for download: " + Path.GetExtension(name))
+    };
+
     private string ListDirectory(JsonElement args)
     {
         var directory = String(args, "path", ".");

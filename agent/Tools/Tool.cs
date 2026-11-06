@@ -273,6 +273,11 @@ public sealed partial class Tool
                 name = "keep_tool_results";
                 description = "Keep the previous tool batch whole instead of once-only result stubbing. Call in the consuming response; takes no arguments. Later budget/explicit clearing still applies.";
                 break;
+            case ToolKind.OfferDownload:
+                name = "offer_download";
+                description = "Offer one completed workspace file for download in the browser. Call it after producing a deliverable the user asked for (a PDF, archive, report); the file must already exist in the workspace. Takes no action on disk and never exposes files outside the workspace.";
+                Field("path", "string", "Workspace-relative file path of the finished work product.", true);
+                break;
             case ToolKind.MicroHandoff:
                 name = "micro_handoff";
                 description = "Record a continuation checkpoint and clear tool traffic after this batch finishes. Retains earlier checkpoints until a matching memory replacement commits; preserves dialogue and skill instructions.";
@@ -505,6 +510,7 @@ public sealed partial class Tool
                 ToolKind.Custom => await handler!(job, call.Args, cancellation),
                 ToolKind.WriteFile => WriteFile(call.Args),
                 ToolKind.EditFile => EditFile(call.Args),
+                ToolKind.OfferDownload => OfferDownload(call.Args),
                 _ => throw new InvalidOperationException("Unknown tool kind")
             };
             return new ToolResultPart(call.CallID, [new TextPart(text)]);

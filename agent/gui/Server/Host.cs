@@ -269,6 +269,7 @@ public static partial class Gui
         MapAuth(routes, callbackRoutes, agent, port, publicOrigin, stopping.Token);
         MapPeers(routes, agent, port, publicOrigin, stopping.Token);
         MapJobOutput(routes, agent, port, publicOrigin, stopping.Token);
+        MapDownload(routes, agent, port, publicOrigin, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
         var initialMcp = agent.EnsureMcp();
 
