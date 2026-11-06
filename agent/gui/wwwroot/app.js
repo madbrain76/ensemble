@@ -595,7 +595,11 @@ function showAgents() {
         if (row.key != null) option.value = row.key;
         option.disabled = row.key == null;
         const activity = [row.phase, row.tool, row.detail].filter(Boolean).join(" — ");
-        const label = row.key === "" ? "Original unnamed conversation" : row.key ?? row.id;
+        // The display name is row.id. row.key is the address the wire carries, so
+        // a name with a space arrives percent-encoded and used to be shown that
+        // way -- in this picker and in the capture consent dialog that reads its
+        // selected text. Null keys are header rows, which have only an id.
+        const label = row.key === "" ? "Original unnamed conversation" : row.id || row.key;
         option.textContent = `${label} — ${row.paused ? "paused" : row.state}${activity ? " — " + activity : ""}`;
         picker.append(option);
     }
