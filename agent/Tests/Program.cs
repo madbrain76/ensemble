@@ -945,6 +945,7 @@ await AsyncCase("Reasoning effort is answered by the provider", () => ReasoningE
 CheckCase("An output limit is recovered, not repeated forever", OutputLimitTests.Run);
 CheckCase("A reply that promises work is nudged, not trusted", PromissoryTests.Run);
 CheckCase("A truncated tool call is retried, never dispatched", TruncatedToolCallTests.Run);
+    await AsyncCase("A promised reply is corrected a bounded number of times", () => PromissoryLoopTests.Run(temp));
     await AsyncCase("Chapter 4 jobs and PTY", () => JobTests.Run(temp));
     await AsyncCase("Chapter 13 atomic custom completion and shutdown", ChannelToolTests.Run);
     await AsyncCase("Chapter 5 transport isolation", ActorTests.TransportIsolation);
