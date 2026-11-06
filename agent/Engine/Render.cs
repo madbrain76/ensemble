@@ -507,6 +507,14 @@ public sealed partial class Engine
         };
     }
 
+    // Deliberation is billed against the same budget as the answer, so an ordinary
+    // request needs room to think before it can emit anything at all. This number is
+    // not a style choice: measured against a reasoning endpoint at a high effort, a
+    // 1024-token budget returned finish_reason "length" with the tool call truncated
+    // mid-arguments, which an interface can only report as an agent that idles
+    // without acting. The same request at 4096 finished with two complete calls.
+    private const int OrdinaryOutputBudget = 4096;
+
     // Chat Completions uses a separate tool role and JSON arguments encoded as
     // a string. Canonical preserves number tokens before that string is produced.
     private JsonObject RenderOpenAI(List<Entry> entries, Configuration config, ImageRequestBudget budget)
@@ -596,7 +604,7 @@ public sealed partial class Engine
         var request = new JsonObject
         {
             ["model"] = config.Model,
-            ["max_completion_tokens"] = 1024,
+            ["max_completion_tokens"] = OrdinaryOutputBudget,
             ["messages"] = messages
         };
         // This dialect takes the level at the top level, not inside a reasoning
