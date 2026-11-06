@@ -93,3 +93,19 @@ t+32.2s idle              the process exited
   dedicated query on Agent would be the cleaner seam if this grows.
 - The vocabulary is still internal jargon in the header (`inflight`, `toolspending`).
   Humanising it is a separate display decision, deliberately not mixed into this fix.
+
+## Extended to a provider wake
+
+The same reasoning covers a sleeping model host: `Engine` waits up to
+`WakeBootTimeout` for it to boot, and during that window the header read
+`inflight` — indistinguishable from a stalled request, which is precisely the
+complaint this branch opened with. The header now shows `Waking <host>` whenever
+the selected row reports `WorkPhase.WakingProvider`, ahead of both the state word
+and the Job count, because neither a Job nor the turn can advance until the host
+answers.
+
+`WakingProvider` is a phase rather than `Waiting` with a distinguishing sentence so
+that this branch branches on a wire value. Three cases cover it, including the
+precedence over a Job count; dropping the clause fails the first with `a booting
+provider host is named instead of a bare inflight`. The producing side and its
+reasoning live on `port/22-wake-on-lan`.
