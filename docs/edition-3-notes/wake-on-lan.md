@@ -126,3 +126,15 @@ and the mutant proves the branch executes rather than being skipped.
 Still unverified here: waking Bill's actual hardware. Both fixes are measured at the
 socket and at `/proc/net/snmp`, which is the last point this side of the network
 card, and a real wake needs `llm` powered down.
+
+**The first version was not visible either.** Publishing a `WorkActivity` is not the
+same as showing one: the agent tree renders `phase/tool/detail` only into the row's
+`title` attribute, so the wake appeared on hover and nowhere else. Firefox measured
+`#state=root busy` with the new activity set — the assertion passed at the data layer
+while the operator still saw nothing. `WorkPhase.WakingProvider` is now a phase in
+its own right instead of `Waiting` carrying prose, because the header has to branch
+on it and string matching is how a reworded detail would silently blank it, and
+`Examples/Gui` shows `Waking <host>` in `#state` ahead of both the state word and the
+job count. Measured in Firefox against the real launcher with a TEST-NET provider and
+a dummy MAC: `#state=Waking 192.0.2.1`, no page errors, and the ten job-status
+assertions still pass unchanged.
