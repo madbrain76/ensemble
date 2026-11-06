@@ -708,6 +708,10 @@ public sealed partial class Agent
                                 parts: input.Parts()));
                             // The fact is already recorded. This empty request
                             // merely triggers work once scheduling is allowed.
+                            // A human spoke, so the correction budget starts fresh: the
+                            // limit exists to stop the agent nagging itself, not to
+                            // refuse correction for the rest of the session.
+                            promissoryReplies = 0;
                             replyWithTurn = input.Kind == InputKind.Chat;
                             requests.Enqueue(new Mail(MailKind.Submit,
                                 Reply: replyWithTurn ? message.Reply : null,
@@ -845,12 +849,21 @@ public sealed partial class Agent
                         requests.Enqueue(new Mail(MailKind.Submit));
                         return;
                     }
-                    promissoryReplies = 0;
+                    // Deliberately not cleared here. This path already refused to
+                    // correct the reply, so clearing would hand the next queued turn a
+                    // fresh budget: each correction enqueues another request, and the
+                    // queue was observed growing without bound while the model kept
+                    // promising the same work. The count is cleared when the model
+                    // actually acts, and when a human starts a new turn.
                     Finish();
                 }
             }
             else
             {
+                // The reply acted, so the promise is kept: a later pause for thought
+                // in this same exchange deserves its own correction rather than
+                // spending what an earlier stretch of the task already used.
+                promissoryReplies = 0;
                 batches++;
                 int limit = capturedToolLimit;
                 if (limit > 0 && batches > limit)
