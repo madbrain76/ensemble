@@ -93,6 +93,13 @@ public sealed partial class Configuration
     // Six-byte provider host address as text, or empty to leave Wake-on-LAN off.
     // A local transport hint only: it is never provider input or History content.
     public readonly string WakeOnLanMac;
+    // How long to wait for a woken provider's listener before giving up. The card
+    // answers long before the inference port exists, so the right value depends on
+    // the machine: thirty seconds for a desktop boot, minutes for a box that loads
+    // a model first. Only the operator knows which one this is.
+    public const int DefaultWakeTimeoutSeconds = 90;
+    public const int MaximumWakeTimeoutSeconds = 600;
+    public readonly int WakeTimeoutSeconds;
     // The one wording for a malformed wake address, published so an application
     // that must show it cannot drift from the validator that throws it.
     public const string WakeOnLanGuidance =
@@ -125,7 +132,8 @@ public sealed partial class Configuration
         bool safeMode = false,
         bool enableWebSearch = false,
         string sandboxRoot = "",
-        string wakeOnLanMac = "");
+        string wakeOnLanMac = "",
+        int wakeTimeoutSeconds = DefaultWakeTimeoutSeconds);
     // A fresh value for the same route. Resolve the new identity and reasoning
     // defaults afresh; never borrow opaque provenance from the old selection.
     public partial Configuration WithModel(string model);

@@ -30,7 +30,8 @@ public sealed partial class Configuration
         bool safeMode,
         bool enableWebSearch,
         string sandboxRoot,
-        string wakeOnLanMac)
+        string wakeOnLanMac,
+        int wakeTimeoutSeconds)
     {
         if (!Enum.IsDefined(vendor))
         {
@@ -76,6 +77,12 @@ public sealed partial class Configuration
             throw new ArgumentException(WakeOnLanGuidance);
         }
         WakeOnLanMac = wakeOnLanMac.Trim();
+        // A zero or negative window would give up before the card has even had a
+        // chance to answer, and an unbounded one could hold a turn forever.
+        ArgumentOutOfRangeException.ThrowIfLessThan(wakeTimeoutSeconds, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(wakeTimeoutSeconds,
+            MaximumWakeTimeoutSeconds);
+        WakeTimeoutSeconds = wakeTimeoutSeconds;
         Vendor = vendor;
         Model = model;
         ArgumentNullException.ThrowIfNull(account);
@@ -189,6 +196,7 @@ public sealed partial class Configuration
         // The wake address belongs to the provider host, not the model, so a model
         // switch or a security narrowing must never lose it.
         WakeOnLanMac = source.WakeOnLanMac;
+        WakeTimeoutSeconds = source.WakeTimeoutSeconds;
         // Delivery selection belongs to the launch, not the model.
         Streams = source.Streams;
     }
@@ -207,6 +215,7 @@ public sealed partial class Configuration
             surface: Surface, billing: Billing, account: Account,
             safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot,
             wakeOnLanMac: WakeOnLanMac,
+            wakeTimeoutSeconds: WakeTimeoutSeconds,
             stream: Engine.StreamName(Streams));
     }
 

@@ -53,12 +53,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host" or "--wake-on-lan" or "--stream") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host" or "--wake-on-lan" or "--wake-timeout" or "--stream") || i + 1 >= args.Length)
         {
             throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan" or "--stream")
+        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan" or "--wake-timeout" or "--stream")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -75,6 +75,21 @@ try
         }
     }
     string Selected(string flag, string environment) => flags.GetValueOrDefault(flag, Env(environment));
+    static int ParseWakeTimeout(string value)
+    {
+        if (value.Trim().Length == 0)
+        {
+            return Configuration.DefaultWakeTimeoutSeconds;
+        }
+        if (!int.TryParse(value.Trim(), out int seconds)
+            || seconds < Configuration.DefaultWakeTimeoutSeconds / 90
+            || seconds > Configuration.MaximumWakeTimeoutSeconds)
+        {
+            throw new LaunchFlagException("--wake-timeout must be a whole number of "
+                + "seconds between 1 and " + Configuration.MaximumWakeTimeoutSeconds);
+        }
+        return seconds;
+    }
     if (flags.TryGetValue("--workspace", out var workspace))
     {
         Directory.SetCurrentDirectory(Path.GetFullPath(workspace));
@@ -203,7 +218,10 @@ try
         sandboxRoot: sandboxRoot,
         // Without this the flag parses and is silently dropped, so a sleeping
         // provider would still cost the first turn its full connect timeout.
-        wakeOnLanMac: Selected("--wake-on-lan", "EN_WAKE_ON_LAN"));
+        wakeOnLanMac: Selected("--wake-on-lan", "EN_WAKE_ON_LAN"),
+        // How long a woken provider gets to open its port. Only the operator knows
+        // whether this is a thirty-second desktop or a box that loads a model first.
+        wakeTimeoutSeconds: ParseWakeTimeout(Selected("--wake-timeout", "EN_WAKE_TIMEOUT")));
     if (billing == BillingMode.ChatGptPlan && string.IsNullOrWhiteSpace(credentialsDirectory))
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");

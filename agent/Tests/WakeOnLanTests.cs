@@ -303,6 +303,45 @@ internal static class WakeOnLanTests
         Check(!loopPoints.Contains("255.255.255.255"),
             "a loopback test put a broadcast on the LAN: " + string.Join(", ", loopPoints));
 
+        // How long to wait belongs to the operator: Bill's box answers in about
+        // thirty seconds, while one that loads a model first needs longer. A value
+        // that is accepted but ignored would leave every cold start sitting in the
+        // fallback, so the configured window has to be the one that ends the wait.
+        var windowAgent = new Agent(new Ensemble.Ensemble(TextWriter.Null,
+            dataDirectory: Path.Combine(temp, "wake-window")), new Configuration(Vendor.OpenAI,
+            "gpt-4o", "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff",
+            wakeTimeoutSeconds: 2), name: "wake-window");
+        var windowStarted = Stopwatch.GetTimestamp();
+        string windowError = "";
+        try
+        {
+            await Engine.WakeUnavailableProviderAsync(windowAgent,
+                windowAgent.Configuration(), CancellationToken.None);
+        }
+        catch (InvalidOperationException error)
+        {
+            windowError = error.Message;
+        }
+        TimeSpan window = Stopwatch.GetElapsedTime(windowStarted);
+        Check(windowError.Contains("unreachable after Wake-on-LAN", StringComparison.Ordinal),
+            "a configured window did not end the wait with its own report: " + windowError);
+        Check(window < TimeSpan.FromSeconds(30),
+            "the two second window was ignored and the fallback waited: "
+                + Math.Round(window.TotalSeconds) + "s");
+
+        // A window that cannot mean anything is a launch error, not a silent default.
+        bool refused = false;
+        try
+        {
+            _ = new Configuration(Vendor.OpenAI, "gpt-4o", "http://127.0.0.1:1/v1",
+                wakeTimeoutSeconds: 0);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            refused = true;
+        }
+        Check(refused, "a zero second wake window was accepted");
+
         // One datagram to a barely-powered card is not a reliable request. While the
         // listener stays closed the packet goes out again, so a lost first attempt
         // does not cost the operator the whole boot window.

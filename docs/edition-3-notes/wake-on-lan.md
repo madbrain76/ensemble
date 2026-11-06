@@ -220,3 +220,29 @@ launcher runs, and a GUI that wakes a machine nobody asked anything of is a mach
 that came up for nothing. `Examples/Gui` no longer calls it; the turn path still
 performs the patient wait, still repeats the packet every thirty seconds, and still
 reports every decision it makes.
+
+## The window is the operator's to set
+
+Four minutes was an overcorrection. Bill's box answers in about thirty seconds, so a
+wait that long only delays reporting a provider that is never coming; the reference
+implementation used ninety seconds and that is the fallback again. What was actually
+missing was a way to say otherwise, because the right window depends entirely on what
+is behind the port: a desktop boot, or an inference server that has to load a model
+and capture CUDA graphs before anything listens.
+
+`Configuration.WakeTimeoutSeconds` carries it, validated at construction between one
+second and `MaximumWakeTimeoutSeconds` so a mistyped value is a launch error rather
+than a silent default, and preserved across `WithModel` like the wake address because
+it describes the machine rather than the model. `--wake-timeout 120` and
+`EN_WAKE_TIMEOUT` are the two spellings, in both launchers.
+
+A suite case sets two seconds against an unreachable endpoint and requires the wait to
+end in its own report well inside the fallback, which is what fails if the configured
+value is accepted and then ignored; another requires a zero window to be refused. From
+the built launcher, `--wake-timeout 3` starts, `bogus` and `99999` are refused with
+`--wake-timeout must be a whole number of seconds between 1 and 600`.
+
+This work sits on `local/daily`. It belongs on `port/22-wake-on-lan` for the
+upstream pull request and needs a cherry-pick there before submission: the changes
+touch `Configuration` and both launchers, which have drifted on the integration
+branch, so the move is not a clean fast-forward.

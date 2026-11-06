@@ -27,7 +27,8 @@ static Configuration Configuration(bool disableStreaming = false, bool stubsTool
     bool cacheBreakpoints = false, string promptCacheKey = "",
     Surface? surface = null, BillingMode billing = BillingMode.ApiKey, string account = "",
     string reasoningEffort = "", string reasoningSummary = "", bool safeMode = false, bool enableWebSearch = true, string sandboxRoot = "",
-    string wakeOnLanMac = "")
+    string wakeOnLanMac = "",
+    int wakeTimeoutSeconds = Ensemble.Configuration.DefaultWakeTimeoutSeconds)
 {
     var vendor = Env("LLM_VENDOR") switch
     {
@@ -72,7 +73,8 @@ static Configuration Configuration(bool disableStreaming = false, bool stubsTool
         surface: surface, billing: billing, account: account,
         reasoningEffort: reasoningEffort, reasoningSummary: reasoningSummary,
         safeMode: safeMode, enableWebSearch: enableWebSearch, sandboxRoot: sandboxRoot,
-        wakeOnLanMac: wakeOnLanMac);
+        wakeOnLanMac: wakeOnLanMac,
+        wakeTimeoutSeconds: wakeTimeoutSeconds);
 }
 static void Print(JsonObject value)
 {
@@ -108,6 +110,7 @@ static async Task<int> Run(string[] args)
         bool persistenceEnabled = Env("EN_DISABLE_SAVE") != "1";
         string sandboxRoot = Env("EN_SANDBOX_ROOT");
         string wakeOnLanMac = Env("EN_WAKE_ON_LAN");
+        int wakeTimeoutSeconds = Ensemble.Configuration.DefaultWakeTimeoutSeconds;
         string safeSelection = Env("EN_SAFE_MODE");
         string webSelection = Env("EN_ENABLE_WEB_SEARCH");
         var remaining = new List<string>();
@@ -138,6 +141,14 @@ static async Task<int> Run(string[] args)
                     throw new ArgumentException("Missing MAC address for --wake-on-lan");
                 }
                 wakeOnLanMac = args[index];
+            }
+            else if (args[index] == "--wake-timeout")
+            {
+                if (index + 1 >= args.Length || !int.TryParse(args[++index], out wakeTimeoutSeconds))
+                {
+                    throw new ArgumentException(
+                        "--wake-timeout wants a whole number of seconds");
+                }
             }
             else if (args[index] == "--sandbox")
             {
@@ -350,7 +361,7 @@ static async Task<int> Run(string[] args)
         var config = Configuration(disableStreaming, stubResults, cacheBreakpoints, promptCacheKey,
             surface, billing, account, reasoningEffort, reasoningSummary,
             PolicyBoolean(safeSelection, false), PolicyBoolean(webSelection, true), sandboxRoot,
-            wakeOnLanMac);
+            wakeOnLanMac, wakeTimeoutSeconds);
         if (billing == BillingMode.ChatGptPlan)
         {
             if (string.IsNullOrWhiteSpace(credentialsDirectory))

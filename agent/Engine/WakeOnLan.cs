@@ -253,7 +253,8 @@ public sealed partial class Engine
             // Only the listener is awaited here. Loading and testing a model remains
             // the HTTP request that follows, so a booting host is never declared ready.
             TimeSpan every = retransmit ?? WakeRetransmit;
-            DateTimeOffset deadline = DateTimeOffset.UtcNow + (bootTimeout ?? WakeBootTimeout);
+            TimeSpan window = bootTimeout ?? TimeSpan.FromSeconds(Math.Max(1, config.WakeTimeoutSeconds));
+            DateTimeOffset deadline = DateTimeOffset.UtcNow + window;
             DateTimeOffset nextSend = DateTimeOffset.UtcNow + every;
             while (DateTimeOffset.UtcNow < deadline)
             {
