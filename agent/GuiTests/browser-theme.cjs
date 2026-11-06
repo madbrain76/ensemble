@@ -20,6 +20,9 @@ const server = http.createServer((req, res) => {
         const first = await context.newPage(); await first.goto(url);
         await first.evaluate(() => browserTheme.seed('dark'));
         assert.equal(await first.locator('html').getAttribute('data-bs-theme'), 'dark');
+        // A legacy seed paints this frame but must never become a stored choice.
+        assert.equal(await first.evaluate(() => localStorage.getItem('ensemble.theme.v2')), null);
+        assert.equal(await first.evaluate(() => localStorage.getItem('ensemble.theme.v1')), null);
         await first.selectOption('#theme', 'light');
         await first.evaluate(() => browserTheme.seed('dark'));
         assert.equal(await first.locator('html').getAttribute('data-bs-theme'), 'light');
@@ -46,7 +49,7 @@ const server = http.createServer((req, res) => {
         await fourth.evaluate(() => browserTheme.seed('dark'));
         assert.equal(await fourth.locator('html').getAttribute('data-bs-theme'), 'light');
         assert.equal(await fourth.locator('#theme-toggle').isEnabled(), true);
-        console.log('PASS legacy seed, local precedence, reload, cross-tab sync, profile isolation, OS changes, clear, blocked storage');
+        console.log('PASS legacy seed unpersisted, local precedence, reload, cross-tab sync, profile isolation, OS changes, clear, blocked storage');
     } finally {
         if (browser) await browser.close();
         await new Promise(resolve => server.close(resolve));
