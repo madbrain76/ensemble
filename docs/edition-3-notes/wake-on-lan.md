@@ -138,3 +138,32 @@ on it and string matching is how a reworded detail would silently blank it, and
 job count. Measured in Firefox against the real launcher with a TEST-NET provider and
 a dummy MAC: `#state=Waking 192.0.2.1`, no page errors, and the ten job-status
 assertions still pass unchanged.
+
+## Ping was suppressing the wake (found 2026-11-06, Bill's second report)
+
+After the broadcast fix Bill powered `llm` down again and still got nothing, with
+only `Connection unavailable; work may still be running.` in the browser and no
+wake line anywhere in the log. The remaining defect was the decision itself:
+
+```csharp
+if (await TcpReachableAsync(...) || await IcmpReachableAsync(...)) return; // "already awake"
+```
+
+A sleeping machine's network card commonly answers a ping -- that is the normal
+state of a host waiting for a magic packet, not evidence that it is up. Any NIC or
+switch that replies to ICMP while the machine is suspended therefore suppressed the
+wake completely, silently, and the operator had no way to distinguish "no wake
+needed" from "wake never sent", because the branch logged nothing at all. The Go
+reference carries the same rule, so this was faithful to a wrong design.
+
+Only the provider's own port may excuse a wake now. ICMP still runs, but for the
+report rather than the decision, because `the host answers ping but the port is
+closed` and `the endpoint is silent` are different faults even though both need the
+same packet. Every path now says which one it took, including the listening case, so
+this question is answerable from the log instead of by experiment.
+
+The regression case is `127.0.0.1` with a closed port: loopback always answers ping,
+so it reproduces a powered-down desktop exactly, and it is the first version of this
+feature that a test actually exercised -- the earlier loopback case used an *open*
+port, which is genuinely the awake case. Reinstating the ping branch fails it with
+`a host that only answers ping suppressed the wake instead of receiving it`.
