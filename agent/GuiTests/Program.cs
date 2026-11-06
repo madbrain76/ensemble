@@ -83,6 +83,12 @@ if (args is ["--goal-tests"])
     return;
 }
 
+if (args is ["--job-status-tests"])
+{
+    await JobStatusTests.RunAsync();
+    return;
+}
+
 if (args is ["--memory-settings-tests"])
 {
     await MemorySettingsTests.RunAsync();
@@ -527,4 +533,5 @@ await PublicOriginTests.RunAsync();
 await DigestAuthTests.RunAsync();
 await HostBindingTests.RunAsync();
 await ThemeDefaultTests.RunAsync();
+await JobStatusTests.RunAsync();
 Console.WriteLine("PASS external GUI consumer: embedded assets, disk override, full caller-owned mount, WebSocket controls, two hosting lifetimes, Agent survival");
