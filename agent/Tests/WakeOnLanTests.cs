@@ -186,10 +186,10 @@ internal static class WakeOnLanTests
             "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"), name: "wake-visible");
         visibleAgent.BeginEngineSend();
         visibleAgent.BeginProviderWake("llm");
-        string wakingDetail = (await visibleAgent.WorkStatusAsync()).Work?.Detail ?? "";
-        Check(wakingDetail == "Waking llm",
+        WorkActivity? waking = (await visibleAgent.WorkStatusAsync()).Work;
+        Check(waking?.Phase == WorkPhase.WakingProvider && waking?.Detail == "llm",
             "a waking provider was not reported to the browser, or was hidden behind the "
-                + "model branch: got '" + wakingDetail + "'");
+                + "model branch: got '" + waking?.Phase + "/" + waking?.Detail + "'");
         visibleAgent.EndProviderWake();
         string modelDetail = (await visibleAgent.WorkStatusAsync()).Work?.Detail ?? "";
         Check(modelDetail.Contains("model", StringComparison.OrdinalIgnoreCase),
@@ -213,8 +213,8 @@ internal static class WakeOnLanTests
             // Expected: the listener stays closed. What matters is what it left behind.
         }
         AgentWorkStatus settled = await clearedAgent.WorkStatusAsync();
-        Check(!(settled.Work?.Detail ?? "").Contains("Waking", StringComparison.Ordinal),
-            "the wake indicator outlived the wait: " + settled.Work?.Detail);
+        Check(settled.Work?.Phase != WorkPhase.WakingProvider,
+            "the wake indicator outlived the wait: " + settled.Work?.Phase);
         // The positive half, observed on a real wake rather than a synthetic flag:
         // where this machine has a route, the packet is sent and the wait is long,
         // so the indicator must be visible for its duration. Where there is no
@@ -231,8 +231,9 @@ internal static class WakeOnLanTests
         DateTimeOffset watchUntil = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(4);
         while (DateTimeOffset.UtcNow < watchUntil && !wake.IsCompleted)
         {
-            liveDetail = (await liveAgent.WorkStatusAsync()).Work?.Detail ?? "";
-            if (liveDetail.Contains("Waking", StringComparison.Ordinal))
+            WorkActivity? live = (await liveAgent.WorkStatusAsync()).Work;
+            liveDetail = live?.Phase + "/" + live?.Detail;
+            if (live?.Phase == WorkPhase.WakingProvider)
             {
                 break;
             }
@@ -247,7 +248,7 @@ internal static class WakeOnLanTests
             // The listener never opens; the assertion below is about visibility.
         }
         bool sent = liveLog.ToString().Contains("Wake-on-LAN", StringComparison.Ordinal);
-        Check(!sent || liveDetail.Contains("Waking 192.0.2.1", StringComparison.Ordinal),
+        Check(!sent || liveDetail.Contains("WakingProvider/192.0.2.1", StringComparison.Ordinal),
             "a wake was sent but never reported to the browser while it waited: got '"
                 + liveDetail + "'");
 

@@ -13,7 +13,7 @@ public sealed partial class Agent
             // reporting it that way is indistinguishable from a hung request.
             if (providerWakes != 0)
             {
-                return new WorkActivity(WorkPhase.Waiting, Detail: providerWakeDetail);
+                return new WorkActivity(WorkPhase.WakingProvider, Detail: providerWakeDetail);
             }
             if (transportPending || engineSends != 0)
             {
@@ -99,7 +99,7 @@ public sealed partial class Agent
         lock (ingress)
         {
             providerWakes++;
-            providerWakeDetail = "Waking " + host;
+            providerWakeDetail = host;
         }
     }
 

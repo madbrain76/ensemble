@@ -9,7 +9,10 @@ public sealed record AgentWorkStatus(AgentActivity Activity, bool Paused, bool S
 
 // Value-like progress, independent of lifecycle, submission and History's
 // request frontier. Waiting is an executing observation, not completed work.
-public enum WorkPhase { Idle, Thinking, ToolCall, Waiting }
+// WakingProvider is its own phase rather than Waiting with a detail string:
+// the browser shows it in place of the state word, and matching on prose is
+// how a rename would silently hide a sleeping machine again.
+public enum WorkPhase { Idle, Thinking, ToolCall, Waiting, WakingProvider }
 public sealed record WorkActivity(WorkPhase Phase, string Tool = "", string Detail = "");
 
 public sealed partial class Agent
