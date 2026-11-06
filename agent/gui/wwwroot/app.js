@@ -527,8 +527,15 @@ function renderControls() {
         || imageComposer.hasImages || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy);
     const busy = ["inflight", "toolspending"].includes(acknowledgedState);
     const paused = acknowledgedState === "paused";
+    // A Job outlives the turn that started it, so an idle actor is not an idle
+    // Agent: a build can run for half an hour while the turn says idle. Report the
+    // server's own polled count instead of a browser-side guess.
+    const work = acknowledgedState || "unknown";
+    const running = (agentRows.find(row => row.key === agentID) || {}).jobs || 0;
+    const inTurn = ["inputpending", "inflight", "toolspending"].includes(work);
+    const jobLabel = running === 1 ? "1 job running" : running + " jobs running";
     document.querySelector("#state").textContent = !connected ? "disconnected"
-        : selectionPending ? "selecting" : acknowledgedState || "unknown";
+        : selectionPending ? "selecting" : running > 0 && !inTurn ? jobLabel : work;
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
     document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
@@ -620,6 +627,8 @@ function handle(frame) {
         agentRows = frame.agents || [];
         showAgents();
         showGoal(agentRows.find(row => row.key === agentID)?.goal);
+        // The tree poll is what carries live Job counts, so the header follows it.
+        renderControls();
         return;
     }
     if (frame.type !== "replay" && frame.agent_id != null && frame.agent_id !== agentID) return;

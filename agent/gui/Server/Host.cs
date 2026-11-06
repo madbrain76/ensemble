@@ -416,6 +416,22 @@ public static partial class Gui
 
         async Task RefreshTree()
         {
+            // A background Job outlives the turn that started it, so the actor can
+            // be honestly idle while a build still runs. The header needs that count
+            // to answer "is it finished?" without inventing a browser-side counter.
+            int RunningJobs(Agent target)
+            {
+                try
+                {
+                    return target.Jobs().Children().Count(job => job.Snapshot().Status == "running");
+                }
+                catch (ObjectDisposedException)
+                {
+                    // An Agent that never ran a command owns no Jobs instance. That
+                    // is zero running work, not a row to drop from the tree.
+                    return 0;
+                }
+            }
             while (!stopping.IsCancellationRequested)
             {
                 var rows = new JsonArray();
@@ -441,7 +457,8 @@ public static partial class Gui
                             ["goal"] = GoalValue(goal),
                             ["phase"] = status.Work?.Phase.ToString().ToLowerInvariant() ?? "idle",
                             ["tool"] = status.Work?.Tool ?? "",
-                            ["detail"] = status.Work?.Detail ?? ""
+                            ["detail"] = status.Work?.Detail ?? "",
+                            ["jobs"] = RunningJobs(node.Agent)
                         });
                     }
                     catch (ObjectDisposedException) { return; }
