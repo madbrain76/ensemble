@@ -67,3 +67,62 @@ value and starts normally for a valid one. A wake is deliberately not attempted
 against `127.0.0.1`, because a refused port there with a pingable host means the
 machine is already up — proving the packet path needs an actually powered-down
 host, which is Bill's `llm` and remains unverified here.
+
+## The wake never left the machine (found 2026-11-06, by Bill)
+
+Bill reported that after shutting `llm` down the server simply never came up. It
+could not have: `SendWakePacket` opened a plain `UdpClient`, and the kernel refuses
+to deliver a broadcast on a socket that did not ask for `SO_BROADCAST`. Measured
+against his configured provider, with the destination computed from the routing
+interface `10.0.4.30/255.255.248.0`:
+
+```
+SEND 10.0.7.255:9 -> SocketException: Permission denied   <- the only packet a powered-off card hears
+SEND 10.0.5.20:9  -> wrote 102                             <- unicast, dropped at ARP
+SHIPPED SendWakePacket(llm) -> True                              <- "sent Wake-on-LAN packet"
+```
+
+So the one destination that can wake a sleeping host was refused, the destination
+that cannot was counted as delivery, and the operator was told a packet had been
+sent. `EnableBroadcast = true` fixes it; the same call then reports `wrote 102` for
+both destinations and `/proc/net/snmp` `OutDatagrams` rises by two, so the packets
+genuinely leave the host. Go never showed this because its `net` package sets
+`SO_BROADCAST` for a broadcast destination itself; the port inherited the semantics
+without the option.
+
+**Why the suite was green.** Two independent holes. The delivery assertion sent to
+`127.0.0.1`, where `DirectedBroadcast` yields the loopback broadcast — before the
+accounting change the refused broadcast was ignored and the successful loopback
+unicast counted, so the check passed with the feature dead. And the wake-flow
+assertion accepted `attempted || failure contains "no local broadcast route"`, so a
+run that emitted nothing at all satisfied it. `SendWakePacket` now reports a
+delivered wake only when the broadcast it needed was delivered — a successful
+unicast alone is never a wake, since a powered-off card has no live ARP entry and
+the kernel drops the frame with no error visible to the caller. That single change
+made the existing loopback assertion live: without the socket option it now returns
+false and the test fails. `Engine.WakeSocket()` exists so a test can read the option
+back without putting a magic packet on the wire.
+
+## Nothing said the provider was being woken (Bill's UI expectation)
+
+Bill expected the packet to go out when he typed into an agent, and it does: the
+wake sits on the transport path inside `SendCoreAsync`. What he could not see was
+any of it. The wait runs up to `WakeBootTimeout`, ninety seconds, during which the
+tree reported `Waiting for the model response` — because `engineSends != 0` and
+`ReadWorkActivity` asks that before anything else. A booting desktop and a hung
+request rendered identically, which is how a feature that sends nothing at all got
+read as a slow server.
+
+`Agent.BeginProviderWake`/`EndProviderWake` now publish a `WorkActivity` in the
+existing live-status seam, checked ahead of the model branch and released from a
+`finally`, so the row reads `Waking llm` for as long as the machine is coming up.
+Two mutants, each caught by its own assertion: dropping the `BeginProviderWake` call
+fails the observation of a real wake in flight (`got ''`), and moving the check
+behind the model branch fails with `got 'Waiting for the model response'`, the exact
+symptom reported. The positive assertion is conditional on a packet having been
+sent, so a sandbox with no route cannot fail it; on this machine the route exists
+and the mutant proves the branch executes rather than being skipped.
+
+Still unverified here: waking Bill's actual hardware. Both fixes are measured at the
+socket and at `/proc/net/snmp`, which is the last point this side of the network
+card, and a real wake needs `llm` powered down.

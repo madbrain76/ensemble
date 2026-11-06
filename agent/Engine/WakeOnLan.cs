@@ -147,6 +147,16 @@ public sealed partial class Engine
         }
     }
 
+    internal static partial UdpClient WakeSocket()
+    {
+        UdpClient client = new(AddressFamily.InterNetwork);
+        // Without this the kernel rejects every broadcast with EACCES, the directed
+        // broadcast is silently skipped, and the unicast that follows cannot reach a
+        // powered-off card. The feature then reports success and wakes nothing.
+        client.EnableBroadcast = true;
+        return client;
+    }
+
     internal static partial bool SendWakePacket(string host, byte[] mac, int port,
         CancellationToken cancellation)
     {
@@ -159,7 +169,7 @@ public sealed partial class Engine
         {
             return false;
         }
-        var destinations = new List<IPEndPoint>();
+        var destinations = new List<(IPEndPoint Point, bool Broadcast)>();
         foreach (IPAddress address in addresses.Where(value =>
                      value.AddressFamily == AddressFamily.InterNetwork))
         {
@@ -171,24 +181,42 @@ public sealed partial class Engine
                          .Where(value => value is not null).Select(value => value!)
                          .Distinct())
             {
-                destinations.Add(new IPEndPoint(candidate, port));
+                destinations.Add((new IPEndPoint(candidate, port),
+                    candidate.Equals(broadcast)));
             }
         }
-        bool delivered = false;
-        using var client = new UdpClient(AddressFamily.InterNetwork);
-        foreach (IPEndPoint destination in destinations)
+        bool unicastDelivered = false;
+        bool broadcastDelivered = false;
+        bool broadcastTried = false;
+        using UdpClient client = WakeSocket();
+        foreach ((IPEndPoint destination, bool isBroadcast) in destinations)
         {
             cancellation.ThrowIfCancellationRequested();
+            broadcastTried |= isBroadcast;
             try
             {
-                delivered |= client.Send(WakePacket(mac), destination) > 0;
+                if (client.Send(WakePacket(mac), destination) > 0)
+                {
+                    if (isBroadcast)
+                    {
+                        broadcastDelivered = true;
+                    }
+                    else
+                    {
+                        unicastDelivered = true;
+                    }
+                }
             }
             catch (SocketException)
             {
                 // This route is unusable; another interface may still reach the host.
             }
         }
-        return delivered;
+        // Only the broadcast can reach a powered-off network card, so a successful
+        // unicast alone is never a delivered wake: an asleep host has no live ARP
+        // entry, and the kernel drops the frame without the caller learning. Where a
+        // broadcast route existed, its failure is the answer.
+        return broadcastTried ? broadcastDelivered : unicastDelivered;
     }
 
     internal static partial async Task WakeUnavailableProviderAsync(Agent parent,
@@ -213,25 +241,36 @@ public sealed partial class Engine
         {
             throw new InvalidOperationException("invalid Wake-on-LAN MAC");
         }
-        if (!SendWakePacket(endpoint!.Host, mac!, WakePort, cancellation))
+        // From here the wait belongs to a machine rather than a model, and a
+        // booting desktop can hold the turn for the whole boot timeout. Reported
+        // before the send so a refused broadcast is also covered by the release.
+        parent.BeginProviderWake(endpoint!.Host);
+        try
         {
-            throw new InvalidOperationException("no local broadcast route to provider");
-        }
-        parent.Parent().Log("provider endpoint unavailable; sent Wake-on-LAN packet");
-        // Only the listener is awaited here. Loading and testing a model remains
-        // the HTTP request that follows, so a booting host is never declared ready.
-        DateTimeOffset deadline = DateTimeOffset.UtcNow + (bootTimeout ?? WakeBootTimeout);
-        while (DateTimeOffset.UtcNow < deadline)
-        {
-            cancellation.ThrowIfCancellationRequested();
-            if (await TcpReachableAsync(endpoint!, cancellation))
+            if (!SendWakePacket(endpoint!.Host, mac!, WakePort, cancellation))
             {
-                return;
+                throw new InvalidOperationException("no local broadcast route to provider");
             }
-            await Task.Delay(WakeProbeTimeout, cancellation);
+            parent.Parent().Log("provider endpoint unavailable; sent Wake-on-LAN packet");
+            // Only the listener is awaited here. Loading and testing a model remains
+            // the HTTP request that follows, so a booting host is never declared ready.
+            DateTimeOffset deadline = DateTimeOffset.UtcNow + (bootTimeout ?? WakeBootTimeout);
+            while (DateTimeOffset.UtcNow < deadline)
+            {
+                cancellation.ThrowIfCancellationRequested();
+                if (await TcpReachableAsync(endpoint!, cancellation))
+                {
+                    return;
+                }
+                await Task.Delay(WakeProbeTimeout, cancellation);
+            }
+            throw new InvalidOperationException(
+                "provider remained unreachable after Wake-on-LAN");
         }
-        throw new InvalidOperationException(
-            "provider remained unreachable after Wake-on-LAN");
+        finally
+        {
+            parent.EndProviderWake();
+        }
     }
 
     private static IPAddress? DirectedBroadcast(IPAddress destination)

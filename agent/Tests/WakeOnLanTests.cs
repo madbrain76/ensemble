@@ -89,6 +89,17 @@ internal static class WakeOnLanTests
         Check(!await Engine.TcpReachableAsync(new ProviderEndpoint("127.0.0.1", FreeTcpPort()),
             CancellationToken.None), "a closed port was reported reachable");
 
+        // A sleeping network card hears nothing but a broadcast, and the kernel
+        // refuses to deliver one unless the socket says so. Read the option back
+        // rather than infer it: without it the send below still appears to succeed
+        // on unicast while no wake can ever arrive.
+        using (UdpClient wakeSocket = Engine.WakeSocket())
+        {
+            Check(wakeSocket.Client.EnableBroadcast,
+                "the wake socket cannot send broadcasts, so the magic packet never "
+                    + "leaves this machine");
+        }
+
         // The packet really leaves the process.
         using (var receiver = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0)))
         {
@@ -165,6 +176,80 @@ internal static class WakeOnLanTests
             Check(failure.Contains("unreachable after Wake-on-LAN", StringComparison.Ordinal),
                 "a sent wake did not report the listener staying closed: " + failure);
         }
+
+        // A host that takes 90 seconds to boot must not look like a stalled model
+        // request. The indicator is checked against the model branch on purpose:
+        // both are true during a wake, and the wake is the more specific answer.
+        var visibleRoot = new Ensemble.Ensemble(TextWriter.Null,
+            dataDirectory: Path.Combine(temp, "wake-visible"));
+        var visibleAgent = new Agent(visibleRoot, new Configuration(Vendor.OpenAI, "gpt-4o",
+            "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"), name: "wake-visible");
+        visibleAgent.BeginEngineSend();
+        visibleAgent.BeginProviderWake("llm");
+        string wakingDetail = (await visibleAgent.WorkStatusAsync()).Work?.Detail ?? "";
+        Check(wakingDetail == "Waking llm",
+            "a waking provider was not reported to the browser, or was hidden behind the "
+                + "model branch: got '" + wakingDetail + "'");
+        visibleAgent.EndProviderWake();
+        string modelDetail = (await visibleAgent.WorkStatusAsync()).Work?.Detail ?? "";
+        Check(modelDetail.Contains("model", StringComparison.OrdinalIgnoreCase),
+            "releasing the wake did not restore the model wait: got '" + modelDetail + "'");
+        visibleAgent.EndEngineSend();
+
+        // The release must happen on every exit, including the give-up path: an
+        // indicator left set would claim a wake forever.
+        var clearedLog = new StringWriter();
+        var clearedAgent = new Agent(new Ensemble.Ensemble(clearedLog,
+            dataDirectory: Path.Combine(temp, "wake-cleared")), new Configuration(Vendor.OpenAI,
+            "gpt-4o", "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+            name: "wake-cleared");
+        try
+        {
+            await Engine.WakeUnavailableProviderAsync(clearedAgent, clearedAgent.Configuration(),
+                CancellationToken.None, TimeSpan.FromSeconds(2));
+        }
+        catch (InvalidOperationException)
+        {
+            // Expected: the listener stays closed. What matters is what it left behind.
+        }
+        AgentWorkStatus settled = await clearedAgent.WorkStatusAsync();
+        Check(!(settled.Work?.Detail ?? "").Contains("Waking", StringComparison.Ordinal),
+            "the wake indicator outlived the wait: " + settled.Work?.Detail);
+        // The positive half, observed on a real wake rather than a synthetic flag:
+        // where this machine has a route, the packet is sent and the wait is long,
+        // so the indicator must be visible for its duration. Where there is no
+        // route the send is refused before any wait, which the send test above
+        // already pins; asserting here anyway would only test the sandbox.
+        var liveLog = new StringWriter();
+        var liveAgent = new Agent(new Ensemble.Ensemble(liveLog,
+            dataDirectory: Path.Combine(temp, "wake-live")), new Configuration(Vendor.OpenAI,
+            "gpt-4o", "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+            name: "wake-live");
+        Task wake = Engine.WakeUnavailableProviderAsync(liveAgent, liveAgent.Configuration(),
+            CancellationToken.None, TimeSpan.FromSeconds(6));
+        string liveDetail = "";
+        DateTimeOffset watchUntil = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(4);
+        while (DateTimeOffset.UtcNow < watchUntil && !wake.IsCompleted)
+        {
+            liveDetail = (await liveAgent.WorkStatusAsync()).Work?.Detail ?? "";
+            if (liveDetail.Contains("Waking", StringComparison.Ordinal))
+            {
+                break;
+            }
+            await Task.Delay(50);
+        }
+        try
+        {
+            await wake;
+        }
+        catch (InvalidOperationException)
+        {
+            // The listener never opens; the assertion below is about visibility.
+        }
+        bool sent = liveLog.ToString().Contains("Wake-on-LAN", StringComparison.Ordinal);
+        Check(!sent || liveDetail.Contains("Waking 192.0.2.1", StringComparison.Ordinal),
+            "a wake was sent but never reported to the browser while it waited: got '"
+                + liveDetail + "'");
 
         // Cancellation must not be swallowed by the wake path.
         using var cancelled = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
