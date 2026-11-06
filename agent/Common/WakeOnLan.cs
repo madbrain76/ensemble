@@ -1,4 +1,5 @@
 using System.Net;
+using System.Collections.Generic;
 using System.Net.Sockets;
 
 namespace Ensemble;
@@ -61,6 +62,13 @@ public sealed partial class Engine
 
     // Send one magic packet toward the provider's subnet. Delivery to any of the
     // candidate destinations counts; none reachable is a transport failure.
+    // Every address a wake is aimed at, in the order it should be tried. Separate
+    // from the send so the destinations can be asserted without putting a broadcast
+    // on the wire: which address is used is the entire difference between a machine
+    // that powers on and one that stays down.
+    internal static partial IReadOnlyList<(System.Net.IPEndPoint Point, bool Broadcast)>
+        WakeDestinations(string host, int port);
+
     internal static partial bool SendWakePacket(string host, byte[] mac, int port,
         CancellationToken cancellation);
 
@@ -76,9 +84,4 @@ public sealed partial class Engine
         Configuration config, CancellationToken cancellation,
         TimeSpan? bootTimeout = null, TimeSpan? retransmit = null);
 
-    // Send the packet without waiting for the listener, so a launcher can start a
-    // suspended provider coming up while the operator is still typing rather than
-    // only noticing the machine is down on the first request.
-    public static partial Task WakeProviderAtStartupAsync(Agent parent,
-        Configuration config, CancellationToken cancellation);
 }

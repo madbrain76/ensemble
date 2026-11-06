@@ -194,3 +194,29 @@ cases: startup returns in well under the boot window and logs the send, and a th
 second wait against an unreachable endpoint records more than one send. Removing the
 retransmission fails the second with `the magic packet was sent once and never repeated
 across a 3s wait: 1`.
+
+## Aimed at the address that actually arrives, and only on the operator's prompt
+
+Bill's Home Assistant wakes `llm` with **no** broadcast address configured, which
+means it sends to the limited broadcast `255.255.255.255:9`, and it works. The port
+sent only the directed broadcast computed from the interface mask -- on this network
+`10.0.7.255` -- plus a unicast that cannot reach a powered-off card. A directed
+broadcast is an ordinary unicast destination as far as most switches are concerned and
+is dropped rather than flooded, so the packet left this host, the log said it was
+sent, and the machine stayed down. The Go version's `broadcastAddress` resolves the
+outgoing interface through the routing table and returns that interface's own
+broadcast, which on a host whose segment really is the /21 is the same address; the
+reliable destination was simply never in the list. `WakeDestinations` now puts
+`255.255.255.255` first, then the directed broadcast, then the address itself.
+
+Loopback deliberately gets no limited broadcast, so the suite cannot put a wake on
+the LAN. The order is asserted as well as the membership, because trying the address
+that the switch drops before the one it floods is the difference between working and
+occasionally working.
+
+The startup wake added for the suspend-launch-type sequence has been removed at
+Bill's direction: the packet belongs to the moment he types, not to the moment the
+launcher runs, and a GUI that wakes a machine nobody asked anything of is a machine
+that came up for nothing. `Examples/Gui` no longer calls it; the turn path still
+performs the patient wait, still repeats the packet every thirty seconds, and still
+reports every decision it makes.

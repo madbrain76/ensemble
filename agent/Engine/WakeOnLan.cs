@@ -157,17 +157,17 @@ public sealed partial class Engine
         return client;
     }
 
-    internal static partial bool SendWakePacket(string host, byte[] mac, int port,
-        CancellationToken cancellation)
+    internal static partial IReadOnlyList<(IPEndPoint Point, bool Broadcast)> WakeDestinations(
+        string host, int port)
     {
         IPAddress[] addresses;
         try
         {
             addresses = Dns.GetHostAddresses(host);
         }
-        catch (Exception) when (!cancellation.IsCancellationRequested)
+        catch (Exception)
         {
-            return false;
+            return [];
         }
         var destinations = new List<(IPEndPoint Point, bool Broadcast)>();
         foreach (IPAddress address in addresses.Where(value =>
@@ -177,19 +177,38 @@ public sealed partial class Engine
             // directed broadcast; the address itself is also tried, because many
             // switches and NICs accept unicast wake, and it keeps the path testable.
             IPAddress? broadcast = DirectedBroadcast(address);
-            foreach (IPAddress candidate in new[] { broadcast, address }
-                         .Where(value => value is not null).Select(value => value!)
-                         .Distinct())
+            // The limited broadcast first, and deliberately before the directed one.
+            // A directed broadcast such as 10.0.7.255 is an ordinary unicast
+            // destination to most switches, which drop it rather than flood it, while
+            // 255.255.255.255 reaches the link layer as ff:ff:ff:ff:ff:ff and every
+            // port sees it. That is the difference between a wake that works and one
+            // the log swears it sent.
+            var candidates = new List<IPAddress>();
+            if (!IPAddress.IsLoopback(address))
             {
-                destinations.Add((new IPEndPoint(candidate, port),
-                    candidate.Equals(broadcast)));
+                candidates.Add(IPAddress.Broadcast);
+            }
+            if (broadcast is not null)
+            {
+                candidates.Add(broadcast);
+            }
+            candidates.Add(address);
+            foreach (IPAddress candidate in candidates.Distinct())
+            {
+                destinations.Add((new IPEndPoint(candidate, port), !candidate.Equals(address)));
             }
         }
+        return destinations;
+    }
+
+    internal static partial bool SendWakePacket(string host, byte[] mac, int port,
+        CancellationToken cancellation)
+    {
         bool unicastDelivered = false;
         bool broadcastDelivered = false;
         bool broadcastTried = false;
         using UdpClient client = WakeSocket();
-        foreach ((IPEndPoint destination, bool isBroadcast) in destinations)
+        foreach ((IPEndPoint destination, bool isBroadcast) in WakeDestinations(host, port))
         {
             cancellation.ThrowIfCancellationRequested();
             broadcastTried |= isBroadcast;
@@ -212,10 +231,8 @@ public sealed partial class Engine
                 // This route is unusable; another interface may still reach the host.
             }
         }
-        // Only the broadcast can reach a powered-off network card, so a successful
-        // unicast alone is never a delivered wake: an asleep host has no live ARP
-        // entry, and the kernel drops the frame without the caller learning. Where a
-        // broadcast route existed, its failure is the answer.
+        // Only a broadcast can reach a powered-off network card, so a successful
+        // unicast alone is never a delivered wake.
         return broadcastTried ? broadcastDelivered : unicastDelivered;
     }
 
@@ -264,14 +281,6 @@ public sealed partial class Engine
         {
             parent.EndProviderWake();
         }
-    }
-
-    public static partial async Task WakeProviderAtStartupAsync(Agent parent,
-        Configuration config, CancellationToken cancellation)
-    {
-        // Deliberately no wait: the launcher must reach the browser immediately, and
-        // the first turn still performs the patient wait itself.
-        await SendWakeIfNeededAsync(parent, config, cancellation);
     }
 
     private static byte[] WakeMacOf(Configuration config)
