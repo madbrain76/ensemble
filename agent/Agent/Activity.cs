@@ -8,6 +8,13 @@ public sealed partial class Agent
         // Closing admission does not by itself finish in-flight work.
         lock (ingress)
         {
+            // Ahead of the model branch on purpose: an engine send that is waiting
+            // for a sleeping host to boot is not waiting for a model response, and
+            // reporting it that way is indistinguishable from a hung request.
+            if (providerWakes != 0)
+            {
+                return new WorkActivity(WorkPhase.Waiting, Detail: providerWakeDetail);
+            }
             if (transportPending || engineSends != 0)
             {
                 return new WorkActivity(WorkPhase.Thinking, Detail: "Waiting for the model response");
@@ -84,5 +91,29 @@ public sealed partial class Agent
             lastEmittedActivity = current;
         }
         Publish(new Observation(ObservationKind.ActivityChanged, Activity: current));
+    }
+
+    internal partial void BeginProviderWake(string host)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(host);
+        lock (ingress)
+        {
+            providerWakes++;
+            providerWakeDetail = "Waking " + host;
+        }
+    }
+
+    internal partial void EndProviderWake()
+    {
+        lock (ingress)
+        {
+            // Called from a finally, so no probe failure, refused send or
+            // cancellation may leave the Agent claiming a wake forever.
+            providerWakes--;
+            if (providerWakes == 0)
+            {
+                providerWakeDetail = "";
+            }
+        }
     }
 }
