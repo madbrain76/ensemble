@@ -285,6 +285,44 @@ internal static class WakeOnLanTests
             pingOnlyRoot.Destroy();
         }
 
+        // The launcher asks the provider to come up before the operator types, but
+        // it must not wait for the boot: that would hold the browser off for minutes.
+        var startupLog = new StringWriter();
+        var startupAgent = new Agent(new Ensemble.Ensemble(startupLog,
+            dataDirectory: Path.Combine(temp, "wake-startup")), new Configuration(Vendor.OpenAI,
+            "gpt-4o", "http://127.0.0.1:1/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+            name: "wake-startup");
+        var startupStarted = Stopwatch.GetTimestamp();
+        await Engine.WakeProviderAtStartupAsync(startupAgent, startupAgent.Configuration(),
+            CancellationToken.None);
+        TimeSpan startupElapsed = Stopwatch.GetElapsedTime(startupStarted);
+        Check(startupElapsed < TimeSpan.FromSeconds(10),
+            "the launcher waited for a boot it was told not to await: " + startupElapsed.TotalSeconds);
+        Check(startupLog.ToString().Contains("sent Wake-on-LAN packet", StringComparison.Ordinal),
+            "starting the GUI did not ask a suspended provider to come up");
+
+        // One datagram to a barely-powered card is not a reliable request. While the
+        // listener stays closed the packet goes out again, so a lost first attempt
+        // does not cost the operator the whole boot window.
+        var repeatLog = new StringWriter();
+        var repeatAgent = new Agent(new Ensemble.Ensemble(repeatLog,
+            dataDirectory: Path.Combine(temp, "wake-repeat")), new Configuration(Vendor.OpenAI,
+            "gpt-4o", "http://192.0.2.1:8110/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+            name: "wake-repeat");
+        try
+        {
+            await Engine.WakeUnavailableProviderAsync(repeatAgent, repeatAgent.Configuration(),
+                CancellationToken.None, TimeSpan.FromSeconds(3), TimeSpan.FromMilliseconds(500));
+        }
+        catch (InvalidOperationException)
+        {
+            // Expected: nothing answers TEST-NET-1.
+        }
+        int sends = repeatLog.ToString().Split("Wake-on-LAN packet",
+            StringSplitOptions.None).Length - 1;
+        Check(sends >= 2,
+            "the magic packet was sent once and never repeated across a 3s wait: " + sends);
+
         // Cancellation must not be swallowed by the wake path.
         using var cancelled = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
         bool observed = false;

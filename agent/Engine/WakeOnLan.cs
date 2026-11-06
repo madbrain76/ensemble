@@ -220,57 +220,40 @@ public sealed partial class Engine
     }
 
     internal static partial async Task WakeUnavailableProviderAsync(Agent parent,
-        Configuration config, CancellationToken cancellation, TimeSpan? bootTimeout)
+        Configuration config, CancellationToken cancellation, TimeSpan? bootTimeout,
+        TimeSpan? retransmit)
     {
-        if (config.WakeOnLanMac.Length == 0)
+        ProviderEndpoint? waiting = await SendWakeIfNeededAsync(parent, config, cancellation);
+        if (waiting is null)
         {
             return;
         }
-        cancellation.ThrowIfCancellationRequested();
-        if (!TryProviderEndpoint(config.BaseUrl, out ProviderEndpoint? endpoint))
-        {
-            throw new InvalidOperationException(
-                "Wake-on-LAN requires an absolute http(s) provider base URL");
-        }
-        // Only the provider's own port proves the service is listening. A sleeping
-        // machine's network card commonly still answers a ping -- that is precisely
-        // the state this feature exists for -- so letting ICMP suppress the wake
-        // made the feature do nothing on a real powered-down host, while every test
-        // stayed green because loopback never reproduces it. Ping is kept for the
-        // operator's sentence: "host up, service down" and "host silent" are
-        // different faults even though both need the same packet.
-        if (await TcpReachableAsync(endpoint!, cancellation))
-        {
-            parent.Parent().Log("provider " + endpoint!.Address + " is listening; no wake needed");
-            return;
-        }
-        bool answersPing = await IcmpReachableAsync(endpoint!.Host, cancellation);
-        if (!TryWakeMac(config.WakeOnLanMac, out byte[]? mac))
-        {
-            throw new InvalidOperationException("invalid Wake-on-LAN MAC");
-        }
-        // From here the wait belongs to a machine rather than a model, and a
-        // booting desktop can hold the turn for the whole boot timeout. Reported
-        // before the send so a refused broadcast is also covered by the release.
-        parent.BeginProviderWake(endpoint!.Host);
+        ProviderEndpoint endpoint = waiting;
+        byte[] mac = WakeMacOf(config);
+        parent.BeginProviderWake(endpoint.Host);
         try
         {
-            if (!SendWakePacket(endpoint!.Host, mac!, WakePort, cancellation))
-            {
-                throw new InvalidOperationException("no local broadcast route to provider");
-            }
-            parent.Parent().Log(answersPing
-                ? "provider port is closed but the host answers ping; sent Wake-on-LAN packet"
-                : "provider endpoint is silent; sent Wake-on-LAN packet");
             // Only the listener is awaited here. Loading and testing a model remains
             // the HTTP request that follows, so a booting host is never declared ready.
+            TimeSpan every = retransmit ?? WakeRetransmit;
             DateTimeOffset deadline = DateTimeOffset.UtcNow + (bootTimeout ?? WakeBootTimeout);
+            DateTimeOffset nextSend = DateTimeOffset.UtcNow + every;
             while (DateTimeOffset.UtcNow < deadline)
             {
                 cancellation.ThrowIfCancellationRequested();
-                if (await TcpReachableAsync(endpoint!, cancellation))
+                if (await TcpReachableAsync(endpoint, cancellation))
                 {
                     return;
+                }
+                if (DateTimeOffset.UtcNow >= nextSend)
+                {
+                    // The first datagram may never have arrived; asking again is how
+                    // a lost packet stops being a reason to sit until the timeout.
+                    if (SendWakePacket(endpoint.Host, mac, WakePort, cancellation))
+                    {
+                        parent.Parent().Log("provider listener still closed; re-sent Wake-on-LAN packet");
+                    }
+                    nextSend = DateTimeOffset.UtcNow + every;
                 }
                 await Task.Delay(WakeProbeTimeout, cancellation);
             }
@@ -281,6 +264,60 @@ public sealed partial class Engine
         {
             parent.EndProviderWake();
         }
+    }
+
+    public static partial async Task WakeProviderAtStartupAsync(Agent parent,
+        Configuration config, CancellationToken cancellation)
+    {
+        // Deliberately no wait: the launcher must reach the browser immediately, and
+        // the first turn still performs the patient wait itself.
+        await SendWakeIfNeededAsync(parent, config, cancellation);
+    }
+
+    private static byte[] WakeMacOf(Configuration config)
+    {
+        if (!TryWakeMac(config.WakeOnLanMac, out byte[]? mac) || mac is null)
+        {
+            throw new InvalidOperationException("invalid Wake-on-LAN MAC");
+        }
+        return mac;
+    }
+
+    // Returns the endpoint whose boot is now worth waiting for, or null when there
+    // is nothing to do: no MAC configured, or the provider is already listening.
+    private static async Task<ProviderEndpoint?> SendWakeIfNeededAsync(Agent parent,
+        Configuration config, CancellationToken cancellation)
+    {
+        if (config.WakeOnLanMac.Length == 0)
+        {
+            return null;
+        }
+        cancellation.ThrowIfCancellationRequested();
+        if (!TryProviderEndpoint(config.BaseUrl, out ProviderEndpoint? endpoint))
+        {
+            throw new InvalidOperationException(
+                "Wake-on-LAN requires an absolute http(s) provider base URL");
+        }
+        // Only the provider's own port proves the service is listening. A sleeping
+        // machine's card commonly still answers a ping, which is exactly the state
+        // this feature exists for, so ICMP cannot suppress a wake -- it only chooses
+        // the sentence, because a live host with a dead service and a silent host
+        // are different faults that need the same packet.
+        if (await TcpReachableAsync(endpoint!, cancellation))
+        {
+            parent.Parent().Log("provider " + endpoint!.Address + " is listening; no wake needed");
+            return null;
+        }
+        bool answersPing = await IcmpReachableAsync(endpoint!.Host, cancellation);
+        byte[] mac = WakeMacOf(config);
+        if (!SendWakePacket(endpoint!.Host, mac, WakePort, cancellation))
+        {
+            throw new InvalidOperationException("no local broadcast route to provider");
+        }
+        parent.Parent().Log(answersPing
+            ? "provider port is closed but the host answers ping; sent Wake-on-LAN packet"
+            : "provider endpoint is silent; sent Wake-on-LAN packet");
+        return endpoint;
     }
 
     private static IPAddress? DirectedBroadcast(IPAddress destination)

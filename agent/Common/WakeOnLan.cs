@@ -30,7 +30,13 @@ public sealed partial class Engine
 {
     public const int WakePort = 9;
     public static readonly TimeSpan WakeProbeTimeout = TimeSpan.FromSeconds(1);
-    public static readonly TimeSpan WakeBootTimeout = TimeSpan.FromSeconds(90);
+    // A GPU desktop has to boot an OS, load a driver and capture CUDA graphs before
+    // the inference port exists, so ninety seconds routinely ends before the
+    // listener does. The wait is patient because the operator is already waiting.
+    public static readonly TimeSpan WakeBootTimeout = TimeSpan.FromMinutes(4);
+    // A single datagram can be lost on the way to a card that is only barely
+    // powered, and nothing else will ask again until the next prompt.
+    public static readonly TimeSpan WakeRetransmit = TimeSpan.FromSeconds(30);
 
     // Parse the six-byte address the magic packet must carry. Only the usual
     // colon/dash/hex-string spellings are accepted, so a typo is a start-up
@@ -68,5 +74,11 @@ public sealed partial class Engine
     // nothing at all, so ordinary providers pay nothing for this feature.
     internal static partial Task WakeUnavailableProviderAsync(Agent parent,
         Configuration config, CancellationToken cancellation,
-        TimeSpan? bootTimeout = null);
+        TimeSpan? bootTimeout = null, TimeSpan? retransmit = null);
+
+    // Send the packet without waiting for the listener, so a launcher can start a
+    // suspended provider coming up while the operator is still typing rather than
+    // only noticing the machine is down on the first request.
+    public static partial Task WakeProviderAtStartupAsync(Agent parent,
+        Configuration config, CancellationToken cancellation);
 }

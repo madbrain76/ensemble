@@ -167,3 +167,30 @@ so it reproduces a powered-down desktop exactly, and it is the first version of 
 feature that a test actually exercised -- the earlier loopback case used an *open*
 port, which is genuinely the awake case. Reinstating the ping branch fails it with
 `a host that only answers ping suppressed the wake instead of receiving it`.
+
+## The sequence Bill actually runs
+
+Suspend llm, start `run.sh`, type into an agent. Nothing in the code supported that
+order: the packet was sent only from inside a turn, so step 2 did nothing at all and
+step 3 began the wake then, making the first prompt wait out the whole boot. The GUI
+now asks the provider to come up while composing the root Agent, before it binds, and
+deliberately does not wait -- a suspended desktop must not keep the browser from
+opening. The first turn still performs the patient wait itself.
+
+Two constants were wrong for a GPU box. `WakeBootTimeout` was ninety seconds, but the
+inference port exists only after the OS boots, the driver loads and CUDA graphs are
+captured, which is routinely longer; a wait that expires while the machine is still
+coming up reports the provider as unreachable when the truth is that it is slow. It is
+now four minutes. And one datagram was the entire request: a broadcast lost on the way
+to a barely-powered card left the operator staring at a wait nothing would end early,
+until the next prompt happened to ask again. The packet is now repeated every thirty
+seconds while the listener stays closed, each repeat logged, so `sent once at boot and
+never heard from` is no longer a possible outcome.
+
+`WakeProviderAtStartupAsync` is public because `Examples/Gui` is a separate assembly;
+its failure is caught and printed rather than allowed to stop the launch, since a
+provider that cannot be woken should still leave a readable transcript. Covered by two
+cases: startup returns in well under the boot window and logs the send, and a three
+second wait against an unreachable endpoint records more than one send. Removing the
+retransmission fails the second with `the magic packet was sent once and never repeated
+across a 3s wait: 1`.
