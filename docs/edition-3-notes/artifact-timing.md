@@ -40,3 +40,35 @@ driving the shipped `handle`: an in-flight part shows the clock with an honest
 ellipsis, the same part carries a measured duration once the turn closes. Each
 fails on its own when the corresponding call is removed. Measured in Firefox on the
 real launcher: `03:51:03 · 1.4s` and `03:51:03 · 0.7s` on a streamed reply.
+
+## Replaying a large history froze the page
+
+Selecting `ensemble debugger` (3,624 cards, 3.36M characters) blocked the main
+thread for **57.98 seconds** in a single task, which is what made Firefox offer to
+stop the page. `render()` read `pane.scrollTop`, `pane.scrollHeight` and
+`pane.clientHeight` before appending each card, so every insertion forced a fresh
+layout of an ever-growing subtree: quadratic, measured at ~15 ms per card, and all
+of it inside `render` (57.0 s self time out of the 57.98 s task; every callee
+together accounted for under 0.4 s).
+
+Cards now accumulate in a detached fragment per pane while `replaying` is set, and
+the scroll position is decided once. That alone took the task from 58.0 s to 1.87 s.
+The remaining second was attaching all 3,624 nodes at once, so only the most recent
+150 are attached before the pane is usable and the rest arrive in animation-frame
+slices that grow the transcript outward from what the operator is reading, each
+slice re-pinning the scroll position so the view does not drag backward. A card
+re-rendered by a live frame while its slice is still pending is dropped from the
+backfill and attached in place, and a newer Agent selection bumps a generation
+counter so an in-flight backfill cannot interleave two transcripts.
+
+Real history, same click: **0.92 s** worst task, down from 57.98 s. Synthetic 1,200
+parts in `agent/GuiTests/replay-performance.cjs`: 127 ms synchronous replay, 147 ms
+worst task, complete in arrival order with no duplicates.
+
+Two things worth keeping from this. The order of a backfill slice was wrong until
+the test checked it — `pending.pop()` yields newest-first, and prepending that into
+a fragment reverses the chunk, so history would have read scrambled. And the
+first version of the perf test passed against the unfixed code, because an interval
+watchdog records no samples at all while the thread is blocked: `Math.max(...[])`
+is zero, so "no task longer than 1000 ms" was satisfied by the worst case. The test
+now requires evidence that the watchdog ran before it is allowed to report it.

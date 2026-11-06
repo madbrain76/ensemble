@@ -507,14 +507,89 @@ document.addEventListener("selectionchange", () => {
     if (pendingCardRenders.size && cardRenderTimer === null)
         cardRenderTimer = setTimeout(flushCardRenders, 50);
 });
+// Replaying an Agent's history renders every stored part at once, and the
+// hundreds of thousands of elements in a large conversation are built without
+// the browser having to lay any of them out: while `replaying` is set, cards go
+// into a detached fragment per pane and the scroll position is decided once at
+// the end. Reading scrollHeight per card against an ever-growing subtree forced a
+// synchronous layout for each of them, which is quadratic and held the main
+// thread long enough for Firefox to offer to stop the page.
+const replayBatches = new Map();
+let replayGeneration = 0;
+// Only this many of the most recent parts are attached before the pane is usable;
+// the rest arrive in animation-frame slices. Attaching 3,600 cards in one task kept
+// the main thread busy long enough for Firefox to offer to stop the page, and the
+// operator was waiting on a transcript they could not yet read.
+const replayVisible = 150;
+const replayChunk = 150;
+function replayBatch(pane) {
+    let batch = replayBatches.get(pane);
+    if (!batch) {
+        replayBatches.set(pane, batch = {
+            fragment: document.createDocumentFragment(), nodes: new Set(), backfill: new Set() });
+    }
+    return batch;
+}
+function flushReplayBatches() {
+    // A newer selection supersedes any backfill still in flight, so switching
+    // Agents quickly cannot interleave two transcripts.
+    const generation = ++replayGeneration;
+    for (const [pane, batch] of replayBatches) {
+        const nodes = [...batch.nodes];
+        if (!nodes.length) continue;
+        const visible = nodes.slice(-replayVisible);
+        for (const node of visible) pane.append(node);
+        pane.scrollTop = pane.scrollHeight;
+        const pending = nodes.slice(0, Math.max(0, nodes.length - replayVisible));
+        batch.backfill = new Set(pending);
+        const attachEarlier = () => {
+            if (generation !== replayGeneration) return;
+            const slice = [];
+            while (slice.length < replayChunk && pending.length) {
+                // Nearest the visible tail first, so the transcript grows outward
+                // from what the operator is reading. A card re-rendered by a live
+                // frame drops out here and is attached in place instead.
+                const node = pending.pop();
+                if (batch.backfill.has(node)) slice.push(node);
+            }
+            if (!slice.length) return;
+            for (const node of slice) batch.backfill.delete(node);
+            // pending.pop() yields newest-first, so reverse once and append: the
+            // chunk must enter in arrival order or the transcript reads scrambled.
+            const fragment = document.createDocumentFragment();
+            for (const node of slice.reverse()) fragment.append(node);
+            const before = pane.scrollHeight;
+            pane.prepend(fragment);
+            // Inserting above the viewport would otherwise drag the reading
+            // position backward as history fills in.
+            pane.scrollTop += pane.scrollHeight - before;
+            if (pending.length) requestAnimationFrame(attachEarlier);
+        };
+        if (pending.length) requestAnimationFrame(attachEarlier);
+    }
+}
+
 function render(card) {
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
     const artifact = ["tool_call", "tool_result", "blob"].includes(card.kind);
     const pane = artifact ? toolTranscript : transcript;
-    const savedScrollTop = pane.scrollTop;
-    const nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
-    if (card.node.parentElement !== pane) pane.append(card.node);
+    let savedScrollTop = 0;
+    let nearBottom = false;
+    if (replaying) {
+        const batch = replayBatch(pane);
+        if (!batch.nodes.has(card.node)) {
+            batch.nodes.add(card.node);
+            batch.fragment.append(card.node);
+        }
+    } else {
+        savedScrollTop = pane.scrollTop;
+        nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
+        if (card.node.parentElement !== pane) {
+            for (const batch of replayBatches.values()) batch.backfill.delete(card.node);
+            pane.append(card.node);
+        }
+    }
     const oldDetails = card.node.querySelector("details");
     const wasOpen = oldDetails ? oldDetails.open : false;
     const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
@@ -604,7 +679,8 @@ function render(card) {
     const offer = downloadOffer(card);
     if (offer && !card.node.querySelector(":scope > .download-offer")) card.node.append(offer);
     fullOutputLinks(card);
-    pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
+    // Only the non-batched path has read layout, so only it may write it back.
+    if (!replaying) pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
 }
 // State is acknowledged, not inferred from transcript content or tool activity.
 function renderControls() {
@@ -860,6 +936,7 @@ function handle(frame) {
         }
         showAgents();
         replaying = true;
+        replayBatches.clear();
         clearTimeout(cardRenderTimer);
         cardRenderTimer = null;
         pendingCardRenders.clear();
@@ -869,6 +946,7 @@ function handle(frame) {
         for (const event of frame.data.events || []) handle(event);
         for (const part of frame.data.partials || []) handle(part);
         for (const agent of frame.data.agents || []) handle(agent);
+        flushReplayBatches();
         replaying = false;
         updatePauseCause();
         return;
