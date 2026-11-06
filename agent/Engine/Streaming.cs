@@ -62,7 +62,8 @@ public sealed partial class Engine
             }
             bool capped = OutputCapped(config, body);
             return new ParsedResponse(events, ids.ToImmutable(), earlyTool, billing,
-                requireComplete && IncompleteOutput(config, body), capped);
+                requireComplete && IncompleteOutput(config, body), capped,
+                ToolCallCapped(config, body, events));
         }
 
         if (config.Surface == Surface.Responses)
@@ -170,7 +171,8 @@ public sealed partial class Engine
             }
             string settled = completed.ToJsonString();
             return new ParsedResponse(events, state.Order.ToImmutableArray(), state.ToolBeforeText, billing,
-                requireComplete && IncompleteOutput(config, settled), OutputCapped(config, settled));
+                requireComplete && IncompleteOutput(config, settled), OutputCapped(config, settled),
+                ToolCallCapped(config, settled, events));
         }
         catch (Exception error) when (error is JsonException or FormatException or InvalidOperationException
             or ArgumentException or KeyNotFoundException or OverflowException)
