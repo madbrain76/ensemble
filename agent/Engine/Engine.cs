@@ -85,8 +85,28 @@ public sealed partial class Engine
         Configuration config = owner.BeginEngineSend();
         try
         {
-            ParsedResponse response = await SendCoreAsync(config, requestBody, cancellation,
-                onChunk);
+            // Both recovery signals watch the same attempt. The runaway guard
+            // abandons a stream that has started repeating itself; the published flag
+            // lets the output-limit ladder refuse to retry over text the operator has
+            // already seen. Neither is inferred from the other, because a collapsed
+            // reply can also report an output limit and the two need different fixes.
+            GuardedAttempt first = await SendGuardedAsync(config, requestBody, onChunk,
+                cancellation);
+            if (first.Collapsed)
+            {
+                Parent().Parent().Log("reply repeated itself until the stream was stopped; "
+                    + "discarding it and trying once more");
+                GuardedAttempt retry = await SendGuardedAsync(config, requestBody, onChunk,
+                    cancellation);
+                if (retry.Collapsed)
+                {
+                    // Two collapses in a row is a real fault to report, not a loop to run.
+                    return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                        error: "reply repeated the same text until the stream was stopped")], []);
+                }
+                return retry.Response;
+            }
+            ParsedResponse response = first.Response;
             if (!EndsBeforeAnswer(response))
             {
                 return response;
@@ -94,26 +114,20 @@ public sealed partial class Engine
             // Nothing visible arrived. Each recovery is a fresh transport attempt, so
             // the published-output decision is re-evaluated as it streams; the loop is
             // bounded by RecoveryBodies, which returns nothing once anything is shown.
-            bool published = false;
-            Action<Chunk>? watched = onChunk is null ? null
-                : chunk =>
-                {
-                    if (chunk.Kind is not (ChunkKind.Thinking or ChunkKind.ReasoningSummary)
-                        && !string.IsNullOrWhiteSpace(chunk.Text))
-                    {
-                        published = true;
-                    }
-                    onChunk(chunk);
-                };
-            foreach (string attempt in RecoveryBodies(requestBody, published,
+            foreach (string attempt in RecoveryBodies(requestBody, first.Published,
                          cancellation.IsCancellationRequested))
             {
                 Parent().Parent().Log("reply ended before a visible answer; retrying once with a "
                     + "larger budget or an explicit answer request");
-                response = await SendCoreAsync(config, attempt, cancellation, watched);
-                if (!EndsBeforeAnswer(response))
+                GuardedAttempt next = await SendGuardedAsync(config, attempt, onChunk,
+                    cancellation);
+                if (next.Collapsed)
                 {
-                    return response;
+                    continue;
+                }
+                if (!EndsBeforeAnswer(next.Response))
+                {
+                    return next.Response;
                 }
             }
             return new ParsedResponse([new Event(EventKind.ErrorOccurred,
@@ -123,6 +137,47 @@ public sealed partial class Engine
         {
             owner.EndEngineSend();
         }
+    }
+
+    // One transport attempt observed by both recovery signals. The guard is left
+    // inert when the caller has no sink, matching how each feature behaved alone:
+    // inventing a sink here would change streaming for every auxiliary request.
+    private sealed record GuardedAttempt(ParsedResponse Response, bool Collapsed,
+        bool Published);
+
+    private async Task<GuardedAttempt> SendGuardedAsync(Configuration config,
+        string requestBody, Action<Chunk>? onChunk, CancellationToken cancellation)
+    {
+        RunawayGuard guard = new();
+        bool collapsed = false;
+        bool published = false;
+        using CancellationTokenSource attempt =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+        Action<Chunk>? watched = onChunk is null ? null : WatchRunaway(chunk =>
+        {
+            if (chunk.Kind is not (ChunkKind.Thinking or ChunkKind.ReasoningSummary)
+                && !string.IsNullOrWhiteSpace(chunk.Text))
+            {
+                published = true;
+            }
+            onChunk(chunk);
+        }, guard, () =>
+        {
+            collapsed = true;
+            attempt.Cancel();
+        });
+        ParsedResponse result;
+        try
+        {
+            result = await SendCoreAsync(config, requestBody, attempt.Token, watched);
+        }
+        catch (OperationCanceledException) when (collapsed
+            && !cancellation.IsCancellationRequested)
+        {
+            // Our own abandonment, not the operator's interrupt.
+            result = new ParsedResponse([], []);
+        }
+        return new GuardedAttempt(result, collapsed, published);
     }
 
     private partial async Task<ParsedResponse> SendCoreAsync(Configuration config, string requestBody, CancellationToken cancellation, Action<Chunk>? onChunk, bool auxiliary, int toolRetries)
