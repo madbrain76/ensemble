@@ -20,3 +20,23 @@ rebuilding it on every delta would mean a DOM node per chunk on a long answer.
 `app.js` and pins: no arrival shows nothing, streaming shows the ellipsis, a
 zero-span final never claims `0.0s`, sub-ten-second values keep one decimal,
 longer values round to whole seconds, and a replayed part keeps the server clock.
+
+## Correction 2026-11-06: the line never appeared on a live turn
+
+Everything above describes what the formatter produces, which is how this note came
+to read as a feature that worked. It did not: `renderTiming` was called only from
+the `part_final` branch, and `part_final` is emitted only by the replay projection,
+so during a running turn no clock line was drawn at all — it appeared only after a
+reload. Two further breaks sat behind that one: `render()` rebuilds a card with
+`replaceChildren()`, wiping the line just prepended, so a reply delivered in a
+single chunk never showed a duration even after the turn closed; and nothing in the
+live stream marks a part finished, so the duration would have stayed an ellipsis
+forever. The frame handler now renders on `part_delta`, `render()` keeps the timing
+line across a rebuild, and `closeTurn()` finalises the cards that are still open,
+because at that moment production genuinely has ended.
+
+`agent/GuiTests/timing-live.cjs` covers the path the formatter suites could not,
+driving the shipped `handle`: an in-flight part shows the clock with an honest
+ellipsis, the same part carries a measured duration once the turn closes. Each
+fails on its own when the corresponding call is removed. Measured in Firefox on the
+real launcher: `03:51:03 · 1.4s` and `03:51:03 · 0.7s` on a streamed reply.
