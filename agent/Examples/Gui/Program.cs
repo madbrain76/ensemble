@@ -48,7 +48,7 @@ try
             flags["--safe-mode"] = "1";
             continue;
         }
-        if (flag is "--stream" or "--no-stream" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
+        if (flag is "--no-stream" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
         {
             flags[flag] = "1";
             continue;
@@ -186,7 +186,11 @@ try
     var config = new Configuration(vendor, Selected("--model", "LLM_MODEL"), endpoint, key,
         requireToolExplanation: Env("LLM_REQUIRE_TOOL_EXPLANATION") == "true",
         disableStreaming: flags.ContainsKey("--no-stream") || Env("EN_DISABLE_STREAMING") == "1",
-        stream: Selected("--stream", "EN_STREAM"),
+        // An absent flag keeps the Configuration default. Only a value the operator
+        // actually typed is forwarded, so "--stream " still reaches the validator and
+        // is refused in its own words rather than quietly becoming "all".
+        stream: flags.TryGetValue("--stream", out string? streamFlag) ? streamFlag
+            : Env("EN_STREAM") is { Length: > 0 } streamEnvironment ? streamEnvironment : "all",
         deferredTools: Env("EN_DEFERRED_TOOLS") == "1",
         stubsToolResults: Selected("--stub-tool-results", "EN_STUB_TOOL_RESULTS") == "1",
         cacheBreakpoints: Selected("--cache-breakpoints", "EN_CACHE_BREAKPOINTS") == "1",
