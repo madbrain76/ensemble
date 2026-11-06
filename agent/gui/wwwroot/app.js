@@ -519,7 +519,14 @@ function render(card) {
     const wasOpen = oldDetails ? oldDetails.open : false;
     const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
     const keepBody = prose && card.node.querySelector(":scope > .message");
-    if (!keepBody) card.node.replaceChildren();
+    if (!keepBody) {
+        // The timing line is host-authored furniture, not body content, so it must
+        // survive a rebuild. A one-chunk reply rendered exactly once, and without
+        // this its measured duration was wiped as soon as the card was inserted.
+        const timing = card.node.querySelector(":scope > .card-timing");
+        card.node.replaceChildren();
+        if (timing) card.node.prepend(timing);
+    }
     card.node.className = "part";
     card.node.dataset.role = card.role;
     card.node.dataset.kind = card.kind;
@@ -718,7 +725,7 @@ function showAgents() {
 // pauses). The server keeps the durable record; this is the reading the operator
 // wants beside the answer, and it needs no new wire contract.
 const turn = { started: 0, ended: 0, model: 0, tools: 0, calls: 0,
-    segment: "", segmentStart: 0, active: false };
+    segment: "", segmentStart: 0, active: false, running: false, progress: false };
 
 function seconds(value) {
     // One decimal below a minute, because that is where the difference between a
@@ -761,7 +768,7 @@ function beginTurn() {
     const now = Date.now();
     turn.started = now; turn.ended = 0; turn.model = 0; turn.tools = 0;
     turn.calls = 0; turn.segment = "model"; turn.segmentStart = now;
-    turn.active = true;
+    turn.active = true; turn.running = false; turn.progress = false;
     // A second prompt replaces the previous summary rather than stacking one per
     // turn, so the panel keeps a single reading for the exchange in view.
     for (const stale of document.querySelectorAll(".turn-timing")) stale.remove();
@@ -772,19 +779,38 @@ function closeTurn() {
     const now = Date.now();
     accountTurn(now);
     turn.ended = now; turn.active = false; turn.segment = "";
+    // A live part is never told it finished, because the stream sends no final
+    // frame for it. Once the turn is over, production has ended: close the cards
+    // so their duration is a measurement rather than a permanent ellipsis.
+    for (const card of cards.values()) {
+        if (card.final || !card.first) continue;
+        card.final = true;
+        card.last = now;
+        renderTiming(card);
+    }
     renderTurnTiming();
 }
 
 function recordTurnTiming(frame) {
     if (!turn.active) return;
+    // This runs before handle() drops frames belonging to another Agent, so a
+    // sibling's idle frame would otherwise close this turn at zero elapsed and
+    // the summary would read as a turn that did nothing.
+    if (frame.agent_id && frame.agent_id !== agentID) return;
     if (frame.type === "tool_dispatched") turn.calls += 1;
     if (frame.type !== "agent_state" && frame.type !== "state_changed") return;
     const state = frame.state || frame.to;
     const now = Date.now();
     accountTurn(now);
-    if (state === "inflight") { turn.segment = "model"; turn.segmentStart = now; }
-    else if (state === "toolspending") { turn.segment = "tools"; turn.segmentStart = now; }
-    else closeTurn();
+    if (state === "inflight") { turn.segment = "model"; turn.segmentStart = now; turn.running = true; }
+    else if (state === "toolspending") { turn.segment = "tools"; turn.segmentStart = now; turn.running = true; }
+    else if (turn.running || turn.progress) {
+        // The poll samples every 200 ms, so an idle frame can legitimately arrive
+        // before any inflight one: the prompt is admitted and the actor has not yet
+        // reached the send. Closing on that first sample reported a finished turn
+        // that had not started, which is how the summary read all zeros.
+        closeTurn();
+    }
 }
 
 function handle(frame) {
@@ -887,6 +913,13 @@ function handle(frame) {
         return;
     }
     if (!frame.part_id) return;
+    // Only live model or tool output counts as progress. The submitted prompt
+    // itself arrives as a final part before the actor reaches the send, and
+    // counting it closed the turn at the moment it began.
+    if (turn.active && (frame.type === "part_delta" || frame.type === "tool_dispatched"
+        || frame.type === "tool_finished")) {
+        turn.progress = true;
+    }
     const card = cardFor(frame.part_id);
     if (frame.type === "part_delta") {
         if (card.final) return;
@@ -896,6 +929,9 @@ function handle(frame) {
         card.kind = frame.kind;
         card.text += frame.chunk; // An empty chunk is a valid part opening.
         if (frame.tool_name) card.name = (card.name || "") + frame.tool_name;
+        // The live stream only ever sends deltas: part_final belongs to the replay
+        // projection, so without this the clock line appears only after a reload.
+        renderTiming(card);
     } else if (frame.type === "part_final") {
         const part = frame.part;
         card.parts = part.type === "tool_result" ? part.parts : [part];
