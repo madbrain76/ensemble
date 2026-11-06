@@ -543,9 +543,11 @@ public sealed partial class Engine
                 calls.Add(value);
             }
             var text = JsonCodec.Text(entry.Parts.Where(p => p is not ToolResultPart));
-            var opaque = entry.Parts.OfType<OpaquePart>().Where(p => p.From.Matches(target)).ToArray();
             bool hasMedia = entry.Parts.Any(p => p is BlobPart);
-            if (text.Length == 0 && calls.Count == 0 && opaque.Length == 0 && !hasMedia && !entry.Parts.Any(p => p is TextPart))
+            // Chat Completions has no opaque replay field on this surface: a
+            // provider-native block is neither re-sent nor counted as content, so
+            // an entry holding only one is omitted exactly as a bare entry would be.
+            if (text.Length == 0 && calls.Count == 0 && !hasMedia && !entry.Parts.Any(p => p is TextPart))
             {
                 continue;
             }
@@ -559,8 +561,8 @@ public sealed partial class Engine
             {
                 message["tool_calls"] = calls;
             }
-            // Non-text content blocks retain their original shape only on their source model.
-            if (opaque.Length > 0 || hasMedia)
+            // Only media forces the part array here; opaque data has no place in it.
+            if (hasMedia)
             {
                 var content = new JsonArray();
                 foreach (var p in entry.Parts)
@@ -584,10 +586,6 @@ public sealed partial class Engine
                     else if (p is BlobPart blob)
                     {
                         content.Add(OpenAIBlob(blob, budget));
-                    }
-                    else if (p is OpaquePart o && o.From.Matches(target))
-                    {
-                        content.Add(JsonCodec.Canonical(o.Data));
                     }
                 }
 

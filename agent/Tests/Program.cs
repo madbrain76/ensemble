@@ -1227,6 +1227,7 @@ CheckCase("A reply that promises work is nudged, not trusted", PromissoryTests.R
         }
         finally { app.Destroy(); }
     });
+    CheckCase("reasoning blocks stay out of chat-completions replay", ReasoningReplayTests.Run);
     CheckCase("empty assistant text is retained, not null or absent", () =>
     {
         var view = new Context([new Entry(1, Actor.Human, [new TextPart("question")]), new Entry(2, Actor.Agent, [new TextPart("")])]);
