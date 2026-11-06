@@ -7,9 +7,14 @@ public sealed partial class Job
 {
     internal partial async Task<string> RunCommandAsync(JsonElement args, CancellationToken cancellation)
     {
-        if (!OperatingSystem.IsMacOS())
+        bool mac = OperatingSystem.IsMacOS();
+        if (!mac && !OperatingSystem.IsLinux())
         {
-            throw new PlatformNotSupportedException("This chapter endpoint uses the macOS system PTY launcher");
+            // A PTY is a platform facility, not a detail this code may fake with
+            // pipes: send_input needs a controlling terminal and kill_job needs the
+            // fresh process group one. An untested launcher is refused, not guessed.
+            throw new PlatformNotSupportedException(
+                "No tested PTY launcher is installed for this operating system");
         }
         var command = args.GetProperty("command").GetString()!;
         string? directory = args.TryGetProperty("cwd", out var cwd) ? cwd.GetString() : null;
@@ -20,14 +25,34 @@ public sealed partial class Job
         // script creates the session, controlling terminal and foreground group.
         // Its trusted bootstrap publishes the group before user code or public
         // stdin can run. No writable filesystem entry is a signal target.
-        start.ArgumentList.Add("-c");
-        start.ArgumentList.Add("printf 'ENSEMBLE_PGID=%s\\n' \"$$\"; stty rows 50 cols 200; exec /bin/sh -c \"$1\"");
-        start.ArgumentList.Add("ensemble-pty");
-        start.ArgumentList.Add(command);
-        start.ArgumentList.Insert(0, start.FileName);
-        start.ArgumentList.Insert(0, "/dev/null");
-        start.ArgumentList.Insert(0, "-F");
-        start.ArgumentList.Insert(0, "-q");
+        const string bootstrap = "printf 'ENSEMBLE_PGID=%s\\n' \"$$\"; stty rows 50 cols 200; ";
+        if (mac)
+        {
+            // macOS script takes the type file then the command as argv, so the
+            // command can ride in as a positional parameter and never be re-quoted.
+            start.ArgumentList.Add("-c");
+            start.ArgumentList.Add(bootstrap + "exec /bin/sh -c \"$1\"");
+            start.ArgumentList.Add("ensemble-pty");
+            start.ArgumentList.Add(command);
+            start.ArgumentList.Insert(0, start.FileName);
+            start.ArgumentList.Insert(0, "/dev/null");
+            start.ArgumentList.Insert(0, "-F");
+            start.ArgumentList.Insert(0, "-q");
+        }
+        else
+        {
+            // util-linux script spells the same thing differently: the bootstrap is
+            // -c and the type file trails it. It takes no positional parameters, so
+            // the command crosses in the environment and is expanded by the bootstrap
+            // shell. -e is required: without it script reports success for a failed
+            // command, which would hand the model a lie instead of an exit code.
+            start.ArgumentList.Add("-q");
+            start.ArgumentList.Add("-e");
+            start.ArgumentList.Add("-c");
+            start.ArgumentList.Add(bootstrap + "exec /bin/sh -c \"$ENSEMBLE_COMMAND\"");
+            start.ArgumentList.Add("/dev/null");
+            start.Environment["ENSEMBLE_COMMAND"] = command;
+        }
         start.FileName = "/usr/bin/script";
         using var child = new Process { StartInfo = start };
         cancellation.ThrowIfCancellationRequested();

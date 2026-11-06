@@ -86,6 +86,23 @@ internal static class JobTests
             var input = await Call("send_input", new { handle = pty.Job!.Handle, input = "hello", ai_callback_pattern = "answer:hello", ai_callback_delay = 2 });
             Check(Text(input).Contains("answer:hello") && !Text(input).Contains("PROMPT>"), "input pattern starts at new bytes");
 
+            // The launcher must report the command's own status. A PTY wrapper that
+            // swallows it hands the model "exit_code: 0" for a failed build, which is
+            // a lie with a number in it, and every ordinary checker stays green.
+            var failing = await Call("run_command", new { command = "printf 'halfway\n'; exit 7" });
+            Check(failing.Job?.Status == "done" && failing.Job?.ExitCode == 7,
+                "a failing command must report its own exit code, not the launcher's: " + Text(failing));
+            Check(Text(failing).Contains("exit_code: 7"),
+                "the job report omits the exit code the command returned: " + Text(failing));
+            // The command reaches the child shell as written: $X is expanded there,
+            // after its own assignment, not by the bootstrap that starts the PTY.
+            var expanded = await Call("run_command", new { command = "X=hi; printf 'GOT[%s]\n' \"$X\"" });
+            Check(Text(expanded).Contains("GOT[hi]"),
+                "the command was re-quoted or expanded too early: " + Text(expanded));
+            var quotes = await Call("run_command", new { command = "printf '%s|%s\n' 'two words' 'quote\"inside'" });
+            Check(quotes.Job?.ExitCode == 0 && Text(quotes).Contains("two words|quote\"inside"),
+                "quoting did not survive the launcher intact: " + Text(quotes));
+
             var many = await Call("run_command", new { command = "printf HEAD; i=0; while [ $i -lt 10000 ]; do printf x; i=$((i+1)); done; printf TAIL", max_output_bytes = 128 });
             Check(many.Job?.Status == "done" && many.Job.Truncated && Text(many).Contains("HEAD") && Text(many).Contains("TAIL"), "head/tail inline cap");
             Check(new FileInfo(many.Job!.OutputPath).Length > 10000, "inline cap never caps job output");

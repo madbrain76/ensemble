@@ -97,10 +97,24 @@ public sealed partial class Job
     public readonly int Handle;
     public readonly string OutputPath;
 
-    // Native libc entry point has no managed body. Only Job uses it to signal
-    // the process group created by the system PTY launcher.
+    // Native libc entry points have no managed body. Only Job uses them to signal
+    // the process group created by the system PTY launcher. Each platform names
+    // its own library, so the chooser below must stay the only caller: a miss
+    // here surfaces as DllNotFoundException only when a job is actually killed.
     [System.Runtime.InteropServices.DllImport("libSystem.B.dylib", EntryPoint = "kill")]
-    private static extern int Signal(int pid, int signal);
+    private static extern int SignalDarwin(int pid, int signal);
+
+    [System.Runtime.InteropServices.DllImport("libc.so.6", EntryPoint = "kill")]
+    private static extern int SignalGlibc(int pid, int signal);
+
+    private static int Signal(int pid, int signal)
+    {
+        if (OperatingSystem.IsMacOS())
+        {
+            return SignalDarwin(pid, signal);
+        }
+        return SignalGlibc(pid, signal);
+    }
 
     internal partial Job(Jobs parent, int handle, ToolCallPart call);
     public partial Jobs Parent();
