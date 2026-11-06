@@ -169,20 +169,6 @@ try
     // immutable Configuration. No implicit credential location is searched.
     var agent = new Agent(app, config, name: agentName.Length == 0 ? "root" : agentName);
     string actorHome = agent.DataDirectory();
-    // A suspended provider starts coming up now, while the operator is still
-    // reaching for the browser, instead of only when the first request discovers the
-    // machine is down. Nothing is waited for here: the launcher has to serve
-    // promptly, and the first turn performs the patient wait itself.
-    try
-    {
-        await Engine.WakeProviderAtStartupAsync(agent, config, CancellationToken.None);
-    }
-    catch (Exception startup) when (startup is InvalidOperationException or ArgumentException)
-    {
-        // Fixed guidance from this feature. A provider that cannot be woken must not
-        // stop the GUI starting, because the operator may still have work to read.
-        Console.Error.WriteLine("wake: " + startup.Message);
-    }
     string cacheLensDirectory = Selected("--cache-lens", "EN_CACHE_LENS_DIR");
     if (cacheLensDirectory.Length != 0)
     {

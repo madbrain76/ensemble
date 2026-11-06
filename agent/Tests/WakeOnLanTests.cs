@@ -285,21 +285,23 @@ internal static class WakeOnLanTests
             pingOnlyRoot.Destroy();
         }
 
-        // The launcher asks the provider to come up before the operator types, but
-        // it must not wait for the boot: that would hold the browser off for minutes.
-        var startupLog = new StringWriter();
-        var startupAgent = new Agent(new Ensemble.Ensemble(startupLog,
-            dataDirectory: Path.Combine(temp, "wake-startup")), new Configuration(Vendor.OpenAI,
-            "gpt-4o", "http://127.0.0.1:1/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
-            name: "wake-startup");
-        var startupStarted = Stopwatch.GetTimestamp();
-        await Engine.WakeProviderAtStartupAsync(startupAgent, startupAgent.Configuration(),
-            CancellationToken.None);
-        TimeSpan startupElapsed = Stopwatch.GetElapsedTime(startupStarted);
-        Check(startupElapsed < TimeSpan.FromSeconds(10),
-            "the launcher waited for a boot it was told not to await: " + startupElapsed.TotalSeconds);
-        Check(startupLog.ToString().Contains("sent Wake-on-LAN packet", StringComparison.Ordinal),
-            "starting the GUI did not ask a suspended provider to come up");
+        // Which address is aimed at is the whole difference between a machine that
+        // powers on and one that stays down, and it is invisible in the logs: a
+        // directed broadcast is an ordinary unicast to most switches, which drop it
+        // instead of flooding it, while the limited broadcast reaches the link layer
+        // and every port. The reference Go version relied on that behaviour.
+        var lanPoints = Engine.WakeDestinations("192.0.2.1", Engine.WakePort)
+            .Select(entry => entry.Point.Address.ToString()).ToList();
+        Check(lanPoints.Contains("255.255.255.255"),
+            "no wake is ever aimed at the limited broadcast, so a switch that drops "
+                + "directed broadcasts never delivers it: " + string.Join(", ", lanPoints));
+        Check(lanPoints.IndexOf("255.255.255.255") < lanPoints.IndexOf("192.0.2.1"),
+            "the unreliable destination is tried before the one that works: "
+                + string.Join(", ", lanPoints));
+        var loopPoints = Engine.WakeDestinations("127.0.0.1", Engine.WakePort)
+            .Select(entry => entry.Point.Address.ToString()).ToList();
+        Check(!loopPoints.Contains("255.255.255.255"),
+            "a loopback test put a broadcast on the LAN: " + string.Join(", ", loopPoints));
 
         // One datagram to a barely-powered card is not a reliable request. While the
         // listener stays closed the packet goes out again, so a lost first attempt
