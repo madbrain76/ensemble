@@ -65,6 +65,20 @@ const server = http.createServer((request, response) => {
         check(await label({ key: 'build%20agent', rows: [], state: 'idle' }) === 'idle',
             'a missing tree row is no work, not an error');
 
+        // A provider host that is booting holds the turn for up to the whole boot
+        // timeout, and a bare inflight reads exactly like a stalled request. The
+        // phase is a wire value, so these rows are what the Agent really reports.
+        const wakeRow = (detail) => ({ ...row(0), phase: 'wakingprovider', detail });
+        check(await label({ key: 'build%20agent', rows: [wakeRow('llm')], state: 'inflight' })
+            === 'Waking llm',
+            'a booting provider host is named instead of a bare inflight');
+        check(await label({ key: 'build%20agent', rows: [{ ...wakeRow('llm'), jobs: 2 }],
+            state: 'idle' }) === 'Waking llm',
+            'the wake outranks a Job count, because nothing proceeds until the host answers');
+        check(await label({ key: 'build%20agent', rows: [wakeRow('')], state: 'inflight' })
+            === 'Waking provider',
+            'a wake with no host name still says what is being waited on');
+
         // The tree poll is the only thing that carries the count, so the frame
         // handler must repaint the header; without it the label freezes.
         const viaFrame = await page.evaluate((input) => {

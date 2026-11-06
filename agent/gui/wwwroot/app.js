@@ -583,11 +583,17 @@ function renderControls() {
     // Agent: a build can run for half an hour while the turn says idle. Report the
     // server's own polled count instead of a browser-side guess.
     const work = acknowledgedState || "unknown";
-    const running = (agentRows.find(row => row.key === agentID) || {}).jobs || 0;
+    const selected = agentRows.find(row => row.key === agentID) || {};
+    const running = selected.jobs || 0;
     const inTurn = ["inputpending", "inflight", "toolspending"].includes(work);
     const jobLabel = running === 1 ? "1 job running" : running + " jobs running";
+    // A provider host that has to boot holds the turn for up to the whole boot
+    // timeout. The ordinary inflight word cannot tell that from a hung request, so
+    // the wait the operator can act on wins over both the state word and the count.
+    const wakingLabel = selected.phase === "wakingprovider"
+        ? "Waking " + (selected.detail || "provider") : "";
     document.querySelector("#state").textContent = !connected ? "disconnected"
-        : selectionPending ? "selecting" : running > 0 && !inTurn ? jobLabel : work;
+        : selectionPending ? "selecting" : wakingLabel || (running > 0 && !inTurn ? jobLabel : work);
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
     document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
