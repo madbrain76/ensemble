@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assets = path.resolve(__dirname, '../gui/wwwroot');
 const markup = `<dialog id="consent"><h2>Share this page with <span data-capture-requester></span>?</h2><p data-capture-status></p><button id="share" data-capture-share>Share this page</button><button id="decline" data-capture-cancel>Cancel</button></dialog>`;
 (async () => {
@@ -18,7 +18,7 @@ const markup = `<dialog id="consent"><h2>Share this page with <span data-capture
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     let browser;
     try {
-        browser = await chromium.launch({ channel: 'chrome', headless: true });
+        browser = await launchBrowser({ channel: 'chrome', headless: true });
         const page = await browser.newPage(); page.setDefaultTimeout(8000);
         await page.goto(`http://127.0.0.1:${server.address().port}/`);
         await page.evaluate(async () => {

@@ -5,8 +5,10 @@ const os = require('node:os');
 const path = require('node:path');
 const http = require('node:http');
 const { spawn } = require('node:child_process');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
-const sdk = '/Users/bill/.local/share/ensemble-dotnet10';
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
+// The author's machine had the SDK at a fixed path; resolve the operator's
+// instead, so this suite is not tied to one person's home directory.
+const sdk = process.env.DOTNET_ROOT || '';
 const binary = process.env.GUI_TEST_BINARY || '/private/tmp/cadence-v3-promotion/artifacts/bin/Gui/debug/Gui.dll';
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function bounded(promise, name) {
@@ -26,7 +28,7 @@ async function bounded(promise, name) {
   const provider = http.createServer((request, response) => { providerCalls++; response.writeHead(500); response.end(); });
   await new Promise(resolve => provider.listen(0, '127.0.0.1', resolve));
   const providerUrl = `http://127.0.0.1:${provider.address().port}`;
-  const browser = await chromium.launch({ headless: true, channel: 'chrome' });
+  const browser = await launchBrowser({ headless: true, channel: 'chrome' });
   try {
     const keyFiles = new Map();
     function keyFile(name, text) {
@@ -61,12 +63,12 @@ async function bounded(promise, name) {
       const port = reservation.address().port;
       await new Promise(resolve => reservation.close(resolve));
       let output = '';
-      const child = spawn(path.join(sdk, 'dotnet'), [binary, '--port', String(port), '--vendor', 'openai',
+      const child = spawn(process.env.DOTNET || (sdk ? path.join(sdk, 'dotnet') : 'dotnet'), [binary, '--port', String(port), '--vendor', 'openai',
         '--model', 'gpt-6-astra', '--base-url', providerUrl, '--surface', 'responses', '--no-save',
         '--data-dir', path.join(home, 'data'), '--agent-name', 'Fixture', '--skills-dir', skills,
         '--primary-skill', 'fixture', '--workspace', home, ...(test.args || [])], {
-        cwd: home, env: { HOME: home, TMPDIR: home, DOTNET_ROOT: sdk, DOTNET_NOLOGO: '1',
-          PATH: `${sdk}:/usr/bin:/bin`, LLM_API_KEY: 'synthetic-model-key', ...test.env }
+        cwd: home, env: { HOME: home, TMPDIR: home, DOTNET_ROOT: sdk || process.env.DOTNET_ROOT || '', DOTNET_NOLOGO: '1',
+          PATH: `${sdk}:${process.env.PATH}`, LLM_API_KEY: 'synthetic-model-key', ...test.env }
       });
       child.stdout.on('data', data => output += data); child.stderr.on('data', data => output += data);
       const exited = new Promise((resolve, reject) => { child.once('exit', (code, signal) => resolve({ code, signal })); child.once('error', reject); });

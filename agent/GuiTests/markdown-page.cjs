@@ -2,12 +2,12 @@
 // Real embedded page; Markdown frames injected into its production handler.
 // Existing speech-after-turn covers the separate real provider/WebSocket path.
 const assert = require('node:assert/strict');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const base = process.env.GUI_FIXTURE_URL || 'http://127.0.0.1:18202/assistant/';
 assert.equal(new URL(base).hostname, '127.0.0.1');
 assert(!['8088','8089'].includes(new URL(base).port));
 (async () => {
- const browser = await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+ const browser = await launchBrowser({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
  try {
   const page = await browser.newPage({viewport:{width:390,height:844}});
   const errors = [], remote = [];

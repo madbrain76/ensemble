@@ -1,8 +1,8 @@
 // Real embedded GUI and sockets, isolated browser profiles; no microphone use.
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 (async () => {
- const browser = await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+ const browser = await launchBrowser({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
  try {
   const context = await browser.newContext();
   // Negative control supplies the old app only inside this disposable browser.

@@ -2,12 +2,12 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const root = path.resolve(__dirname, '../gui/wwwroot');
 const source = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
 const render = source.slice(source.indexOf('// Coalesce streamed chunks'), source.indexOf('// State is acknowledged,', source.indexOf('// Coalesce streamed chunks')));
 (async () => {
- const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+ const browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
  try {
   const page = await browser.newPage();
   await page.setContent('<main id="transcript"></main><aside id="tools"></aside>');

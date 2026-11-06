@@ -1,5 +1,5 @@
 // Owns a loopback server and isolated Chrome. Never requests a microphone.
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -37,7 +37,7 @@ const server = http.createServer((request, response) => {
   assert.ok(![8088, 8089].includes(port));
   let browser;
   try {
-    browser = await chromium.launch({ headless: true, channel: 'chrome',
+    browser = await launchBrowser({ headless: true, channel: 'chrome',
       args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio'] });
     const page = await browser.newPage(); page.setDefaultTimeout(10000);
     const errors = []; page.on('pageerror', error => errors.push(error.message));

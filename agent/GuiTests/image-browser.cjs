@@ -1,12 +1,12 @@
 // Start --crossover-host in an isolated directory first. No system clipboard access.
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || '../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base = process.env.GUI_URL || 'http://127.0.0.1:18202/assistant/';
 const target = new URL(base);
 assert.equal(target.hostname, '127.0.0.1', 'Use a disposable loopback fixture');
 assert.ok(!['8088', '8089'].includes(target.port), 'Never target working hosts');
 (async () => {
-  const browser = await chromium.launch({ headless: true, channel: "chrome" });
+  const browser = await launchBrowser({ headless: true, channel: "chrome" });
   const page = await browser.newPage();
   page.setDefaultTimeout(15000);
   const errors = [];

@@ -1,9 +1,9 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const bands = ['conversation', 'soul', 'memory', 'archive64', 'archive8', 'session'];
 (async () => {
-    const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+    const browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
     try {
         const page = await browser.newPage();
         const errors = [];

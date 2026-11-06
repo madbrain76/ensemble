@@ -1,14 +1,14 @@
 'use strict';
 // Synthetic real-browser component tests: no clipboard, microphone or provider.
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 (async () => {
-  const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+  const browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 393, height: 851 } });
     await page.setContent('<textarea id="text"></textarea><div id="previews"></div><p id="status"></p><button id="discard"></button><input id="files" type="file" multiple>');
-    await page.addScriptTag({ path: path.resolve(__dirname, '../Gui/wwwroot/images.js') });
+    await page.addScriptTag({ path: path.resolve(__dirname, '../gui/wwwroot/images.js') });
     await page.evaluate(() => {
       window.notices = []; window.frames = [];
       window.connection = { send: text => frames.push(JSON.parse(text)) };

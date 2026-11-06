@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const base = process.env.GUI_FIXTURE_URL || 'http://127.0.0.1:18202/assistant/';
 const address = new URL(base);
 assert.equal(address.hostname, '127.0.0.1');
@@ -12,7 +12,7 @@ const output = process.env.GUI_ARTIFACT_DIR || '/private/tmp/cadence-settings-di
 fs.mkdirSync(output, { recursive: true });
 
 (async () => {
-    const browser = await chromium.launch({
+    const browser = await launchBrowser({
         executablePath: process.env.CHROME_BIN || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         headless: true
     });

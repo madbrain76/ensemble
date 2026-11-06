@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
 const root = path.resolve(__dirname, '../gui/wwwroot');
 const server = http.createServer((req, res) => {
     const name = new URL(req.url, 'http://localhost').pathname;
@@ -21,7 +21,7 @@ const server = http.createServer((req, res) => {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     let browser;
     try {
-        browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+        browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
         const page = await browser.newPage();
         let groups = 0;
         for (const theme of ['dark', 'light']) for (const width of [1920, 1440, 390, 320]) for (const font of [18, 28]) for (const extra of [false, true]) {

@@ -2,8 +2,8 @@
 // Real CSS, isolated DOM: no application startup, network provider, or capture.
 const assert = require('node:assert/strict');
 const path = require('node:path');
-const { chromium } = require('../../edition-2/agent/gui/node_modules/playwright');
-const root = path.resolve(__dirname, '../Gui/wwwroot');
+const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
+const root = path.resolve(__dirname, '../gui/wwwroot');
 function luminance(rgb) {
     const channels = rgb.match(/[\d.]+/g).slice(0, 3).map(Number).map(value => {
         value /= 255;
@@ -16,7 +16,7 @@ function contrast(a, b) {
     return (values[0] + .05) / (values[1] + .05);
 }
 (async () => {
-    const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
+    const browser = await launchBrowser({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless: true });
     try {
         const page = await browser.newPage();
         await page.setContent('<main id="transcript">' + ['human', 'assistant'].map((role, i) =>
