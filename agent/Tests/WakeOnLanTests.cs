@@ -252,6 +252,39 @@ internal static class WakeOnLanTests
             "a wake was sent but never reported to the browser while it waited: got '"
                 + liveDetail + "'");
 
+        // The case a powered-down desktop actually presents: the network card still
+        // answers a ping while the model server is not running. Treating any ping as
+        // "awake" suppressed the wake here and the feature silently did nothing, so
+        // this asserts the packet is sent even though the host is reachable by ICMP.
+        if (PingAvailable())
+        {
+            var pingOnlyLog = new StringWriter();
+            var pingOnlyRoot = new Ensemble.Ensemble(pingOnlyLog,
+                dataDirectory: Path.Combine(temp, "wake-ping-only"));
+            var pingOnlyAgent = new Agent(pingOnlyRoot, new Configuration(Vendor.OpenAI, "gpt-4o",
+                "http://127.0.0.1:1/v1", wakeOnLanMac: "aa:bb:cc:dd:ee:ff"),
+                name: "wake-ping-only");
+            Check(await Engine.IcmpReachableAsync("127.0.0.1", CancellationToken.None),
+                "loopback should answer ping for this case to mean anything");
+            Check(!await Engine.TcpReachableAsync(new ProviderEndpoint("127.0.0.1", 1),
+                CancellationToken.None), "a closed port must not read as a live provider");
+            try
+            {
+                await Engine.WakeUnavailableProviderAsync(pingOnlyAgent,
+                    pingOnlyAgent.Configuration(), CancellationToken.None, TimeSpan.FromSeconds(2));
+            }
+            catch (InvalidOperationException)
+            {
+                // Expected: nothing wakes on loopback, so the listener stays closed.
+            }
+            string pingOnlyText = pingOnlyLog.ToString();
+            Check(pingOnlyText.Contains("Wake-on-LAN", StringComparison.Ordinal),
+                "a host that only answers ping suppressed the wake instead of receiving it");
+            Check(pingOnlyText.Contains("answers ping", StringComparison.Ordinal),
+                "the report did not distinguish a live host with a dead service: " + pingOnlyText);
+            pingOnlyRoot.Destroy();
+        }
+
         // Cancellation must not be swallowed by the wake path.
         using var cancelled = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
         bool observed = false;

@@ -232,11 +232,19 @@ public sealed partial class Engine
             throw new InvalidOperationException(
                 "Wake-on-LAN requires an absolute http(s) provider base URL");
         }
-        if (await TcpReachableAsync(endpoint!, cancellation)
-            || await IcmpReachableAsync(endpoint!.Host, cancellation))
+        // Only the provider's own port proves the service is listening. A sleeping
+        // machine's network card commonly still answers a ping -- that is precisely
+        // the state this feature exists for -- so letting ICMP suppress the wake
+        // made the feature do nothing on a real powered-down host, while every test
+        // stayed green because loopback never reproduces it. Ping is kept for the
+        // operator's sentence: "host up, service down" and "host silent" are
+        // different faults even though both need the same packet.
+        if (await TcpReachableAsync(endpoint!, cancellation))
         {
-            return; // Already awake: no packet, no wait.
+            parent.Parent().Log("provider " + endpoint!.Address + " is listening; no wake needed");
+            return;
         }
+        bool answersPing = await IcmpReachableAsync(endpoint!.Host, cancellation);
         if (!TryWakeMac(config.WakeOnLanMac, out byte[]? mac))
         {
             throw new InvalidOperationException("invalid Wake-on-LAN MAC");
@@ -251,7 +259,9 @@ public sealed partial class Engine
             {
                 throw new InvalidOperationException("no local broadcast route to provider");
             }
-            parent.Parent().Log("provider endpoint unavailable; sent Wake-on-LAN packet");
+            parent.Parent().Log(answersPing
+                ? "provider port is closed but the host answers ping; sent Wake-on-LAN packet"
+                : "provider endpoint is silent; sent Wake-on-LAN packet");
             // Only the listener is awaited here. Loading and testing a model remains
             // the HTTP request that follows, so a booting host is never declared ready.
             DateTimeOffset deadline = DateTimeOffset.UtcNow + (bootTimeout ?? WakeBootTimeout);
