@@ -189,6 +189,20 @@ public sealed partial class Engine
         // A configured MAC turns the first request to a sleeping machine into a wake
         // plus a wait for its listener. Without one this returns immediately.
         await WakeUnavailableProviderAsync(parent!, config, cancellation);
+        // An operator who does not want to watch a channel should not have to see it
+        // arrive. Filtered chunks are still published in full by the settled result,
+        // so the selection can never hide part of the answer.
+        if (config.Streams != StreamChannel.All && onChunk is not null)
+        {
+            Action<Chunk> accepted = onChunk;
+            onChunk = chunk =>
+            {
+                if (StreamSelected(config.Streams, chunk.Kind))
+                {
+                    accepted(chunk);
+                }
+            };
+        }
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint(config));
         request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

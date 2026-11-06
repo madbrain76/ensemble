@@ -17,6 +17,7 @@ public sealed partial class Configuration
         int toolRoundLimit,
         string primaryInstructions,
         bool disableStreaming,
+        string stream,
         bool deferredTools,
         bool stubsToolResults,
         bool cacheBreakpoints,
@@ -156,6 +157,7 @@ public sealed partial class Configuration
         ToolRoundLimit = toolRoundLimit == 0 ? 200 : toolRoundLimit;
         RequireToolExplanation = requireToolExplanation || features.RequireToolExplanation;
         DisableStreaming = disableStreaming;
+        Streams = Engine.ParseStream(stream);
         ResolvedModel = string.IsNullOrEmpty(resolvedModel) ? model : resolvedModel;
     }
 
@@ -187,6 +189,8 @@ public sealed partial class Configuration
         // The wake address belongs to the provider host, not the model, so a model
         // switch or a security narrowing must never lose it.
         WakeOnLanMac = source.WakeOnLanMac;
+        // Delivery selection belongs to the launch, not the model.
+        Streams = source.Streams;
     }
 
     public partial Configuration WithModel(string model)
@@ -202,7 +206,8 @@ public sealed partial class Configuration
             cacheBreakpoints: CacheBreakpoints, promptCacheKey: PromptCacheKey,
             surface: Surface, billing: Billing, account: Account,
             safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot,
-            wakeOnLanMac: WakeOnLanMac);
+            wakeOnLanMac: WakeOnLanMac,
+            stream: Engine.StreamName(Streams));
     }
 
     internal partial bool AllowsTool(string name)

@@ -48,17 +48,17 @@ try
             flags["--safe-mode"] = "1";
             continue;
         }
-        if (flag is "--no-stream" or "--no-save" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
+        if (flag is "--stream" or "--no-stream" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
         {
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host" or "--wake-on-lan") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host" or "--wake-on-lan" or "--stream") || i + 1 >= args.Length)
         {
             throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan")
+        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan" or "--stream")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -186,6 +186,7 @@ try
     var config = new Configuration(vendor, Selected("--model", "LLM_MODEL"), endpoint, key,
         requireToolExplanation: Env("LLM_REQUIRE_TOOL_EXPLANATION") == "true",
         disableStreaming: flags.ContainsKey("--no-stream") || Env("EN_DISABLE_STREAMING") == "1",
+        stream: Selected("--stream", "EN_STREAM"),
         deferredTools: Env("EN_DEFERRED_TOOLS") == "1",
         stubsToolResults: Selected("--stub-tool-results", "EN_STUB_TOOL_RESULTS") == "1",
         cacheBreakpoints: Selected("--cache-breakpoints", "EN_CACHE_BREAKPOINTS") == "1",

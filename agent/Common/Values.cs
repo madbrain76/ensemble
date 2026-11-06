@@ -97,6 +97,9 @@ public sealed partial class Configuration
     // that must show it cannot drift from the validator that throws it.
     public const string WakeOnLanGuidance =
         "Wake-on-LAN MAC must be six hex bytes, such as aa:bb:cc:dd:ee:ff";
+    // Which channels arrive live. Unselected content is still delivered complete
+    // when the response settles, so this changes watching, never the answer.
+    public readonly StreamChannel Streams;
     // Zero selects 200; a positive value caps tool batches; negative is unlimited.
     public readonly int ToolRoundLimit;
     public partial Configuration(
@@ -109,6 +112,7 @@ public sealed partial class Configuration
         int toolRoundLimit = 200,
         string primaryInstructions = "You are a helpful assistant.",
         bool disableStreaming = false,
+        string stream = "all",
         bool deferredTools = false,
         bool stubsToolResults = false,
         bool cacheBreakpoints = false,
