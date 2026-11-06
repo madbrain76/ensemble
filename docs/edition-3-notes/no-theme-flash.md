@@ -51,3 +51,27 @@ stored, OS light, must not paint dark — plus the matching OS-dark case, and it
 nonsense-stored expectation now follows the OS. Reinstating the returned-without-
 deciding early paint turns the unrecognised-value assertion red, and hard-coding
 `Theme` back to `"dark"` turns the C# checks red, so both layers are live.
+
+## Second pass: the stored browser copy, not the default, was the real lock (2026-11-05)
+
+Bill relaunched after the default fix and was still dark. The default was only half
+of it. `theme.js` seeded the server value through `select()`, which writes
+`localStorage`, so while `Preferences.Theme` was `"dark"` every profile that ever
+opened the page **recorded dark as its own choice**. A stored value outranks the
+operating system permanently, and `seed()` returned early once anything was stored,
+so no later server-side change could reach those profiles. Fixing the default could
+not help anyone who had already loaded the page -- which is everyone.
+
+The browser owns appearance: the client never patches `theme`, and `Settings.cs`
+already labels the field legacy. So `seed()` now applies the value for the frame
+without persisting it, and only a real click or select is recorded. The key moves to
+`ensemble.theme.v2`; a stored v1 cannot be told apart from a deliberate pick, so it
+is dropped rather than trusted and removed on sight. The cost is one click for
+anyone who did genuinely choose dark since the bug shipped.
+
+Both theme tests had been *pinning* the defect: `browser-theme.cjs` and
+`theme-page.cjs` asserted the seeded value lands in localStorage, so the poisoning
+had green tests behind it. They now assert the opposite. `theme-no-flash.cjs` gained
+Bill's exact profile -- v1 dark, OS light, nothing stored under v2 -- which must
+paint light and lose v1; the ten cases pass in headless Firefox, and reverting the
+early paint turns the new case red, so it is live rather than decorative.

@@ -177,3 +177,27 @@ One limit worth naming: a browser on the listener's own machine typing
 Bill asked me to delete, and the ready line prints the address to open. Restoring
 local browsing by name would mean widening that upstream rule, so it is his call
 rather than mine.
+
+## Bill's verdict: removed, and verified served (2026-11-05)
+
+Bill tried the rescue flag three ways -- `--allowed-host devbox.localdomain` ignored
+because the incoming `Host` carries `:8090`, then `devbox.localdomain:8090` refused as
+"not a bare name" -- and called the feature "broken and useless. remove it." He was
+right that it could not be operated: the message told him the correct fix and then
+rejected the fix for being correct. What remains is upstream's rule plus Digest
+authentication, and `--allowed-host` is gone (the launcher now refuses it by name).
+
+Verified over a genuine non-loopback socket (listener and client both on the machine's
+LAN address, so `RemoteIpAddress` is not loopback), with a throwaway verifier rather
+than his credential: anonymous over the LAN 401, anonymous dialed by name 401,
+authenticated `Host: devbox.localdomain:PORT` **200**, authenticated `Host:
+anything.example:PORT` **200**, authenticated by address 200, and a wrong password by
+any name 401. Eight of eight. An earlier run of that matrix reported 429s because my
+own failed attempts tripped the repeated-failure slowdown; the wrong-password case now
+gets a fresh listener, and `qop="auth"` has to be unquoted before hashing.
+
+The loopback limitation below still stands and is still his call: a browser on the
+listener's own machine typing `http://dev:8090/` is refused, because upstream admits
+only literal loopback names there. Removing that would let any website holding a
+domain that resolves to 127.0.0.1 drive a credential-free local GUI, so it is kept
+and named rather than deleted quietly.
