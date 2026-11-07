@@ -468,6 +468,7 @@ try
     {
         await AsyncCase("Chapter 21 activity model/tool cycle", () => ActorTests.ActivityModelCycle(temp));
         await AsyncCase("Chapter 21 control wait activity", () => ActorTests.ActivityControlWait(temp));
+        await AsyncCase("Chapter 21 queued work is never idle", () => ActorTests.ActivityQueuedSubmissionIsNeverIdle(temp));
         await AsyncCase("Chapter 21 activity interrupt/failure", () => ActorTests.ActivityInterruptAndFailure(temp));
         await AsyncCase("Chapter 21 activity transport endings", ActorTests.ActivityTransportEnds);
         if (args.Length != 0)
@@ -946,6 +947,7 @@ CheckCase("An output limit is recovered, not repeated forever", OutputLimitTests
 CheckCase("A reply that promises work is nudged, not trusted", PromissoryTests.Run);
 CheckCase("A truncated tool call is retried, never dispatched", TruncatedToolCallTests.Run);
 await AsyncCase("A promised reply is corrected a bounded number of times", () => PromissoryLoopTests.Run(temp));
+await AsyncCase("An empty reply is corrected, then reported", () => SilentReplyTests.Run(temp + "-silent"));
 CheckCase("A collapsed stream is abandoned, not answered", RunawayGuardTests.Run);
 CheckCase("Per-channel streaming selects and refuses", StreamChannelTests.Run);
 await AsyncCase("A work product is offered only when it is real and safe to serve", () => DownloadOfferTests.Run(temp));

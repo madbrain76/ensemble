@@ -12,7 +12,9 @@ public sealed record AgentWorkStatus(AgentActivity Activity, bool Paused, bool S
 // WakingProvider is its own phase rather than Waiting with a detail string:
 // the browser shows it in place of the state word, and matching on prose is
 // how a rename would silently hide a sleeping machine again.
-public enum WorkPhase { Idle, Thinking, ToolCall, Waiting, WakingProvider }
+// Queued means admitted and waiting for the actor's own turn: no transport is in
+// flight and no tool is running, but the Agent is not free either.
+public enum WorkPhase { Idle, Queued, Thinking, ToolCall, Waiting, WakingProvider }
 public sealed record WorkActivity(WorkPhase Phase, string Tool = "", string Detail = "");
 
 public sealed partial class Agent

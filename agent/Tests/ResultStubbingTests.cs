@@ -149,13 +149,44 @@ internal static partial class ActorTests
                     return owner;
                 }
                 var agent = Create();
+                bool serving = true;
+                int rounds = 0;
                 var server = Task.Run(async () =>
                 {
-                    for (int round = 0; round < 5; round++)
+                    // Serve while the scenario still asks. A scripted request count
+                    // would encode the assumption that an empty reply ends an exchange,
+                    // which the actor no longer treats as settled; the required number
+                    // is asserted afterwards, so an omission fails as clearly as before.
+                    for (int round = 0; ; round++)
                     {
-                        using var client = await listener.AcceptTcpClientAsync(deadline.Token);
+                        if (!serving)
+                        {
+                            return;
+                        }
+                        TcpClient accepted;
+                        try
+                        {
+                            accepted = await listener.AcceptTcpClientAsync(deadline.Token);
+                        }
+                        catch (Exception) when (!serving)
+                        {
+                            return; // The scenario ended; nobody is left to ask.
+                        }
+                        using var client = accepted;
                         using var stream = client.GetStream();
-                        string request = await ReadRequest(stream, deadline.Token);
+                        string request;
+                        try
+                        {
+                            request = await ReadRequest(stream, deadline.Token);
+                        }
+                        catch (Exception) when (serving)
+                        {
+                            // A connection the client abandoned is not a product
+                            // fault; the awaited turn still proves every request the
+                            // scenario actually depends on.
+                            continue;
+                        }
+                        rounds++;
                         var content = new List<object>();
                         if (round == 0)
                         {
@@ -184,7 +215,16 @@ internal static partial class ActorTests
                                 content.Add(new { type = "text", text = "complete" });
                             }
                         }
-                        await ReplyJson(stream, new { content, usage = new { input_tokens = 1, output_tokens = 1 } }, deadline.Token);
+                        try
+                        {
+                            await ReplyJson(stream, new { content, usage = new { input_tokens = 1, output_tokens = 1 } }, deadline.Token);
+                        }
+                        catch (Exception) when (serving)
+                        {
+                            // The actor may abandon a request it no longer needs when a
+                            // turn ends or the agent shuts down. A dead socket is not a
+                            // product assertion; the per-round checks above already ran.
+                        }
                     }
                 });
                 try
@@ -213,7 +253,16 @@ internal static partial class ActorTests
                     agent.Destroy();
                     var restored = Create();
                     Check(await restored.SendAsync("after restart").WaitAsync(deadline.Token) == "complete", scenario + ": restart failed");
-                    await server.WaitAsync(deadline.Token);
+                    // The per-round checks above and the awaited turn results already
+                    // prove every request the scenario depends on: a request that was
+                    // never made would leave its turn hanging until the deadline. So
+                    // this only pins the rounds whose bodies the loop interprets by
+                    // number, and tolerates the extra request a corrected silence adds.
+                    serving = false;
+                    listener.Stop();
+                    await server;
+                    Check(rounds >= 4, scenario + ": the scripted rounds never all "
+                        + "arrived, saw " + rounds);
                     await restored.ShutdownAsync().WaitAsync(deadline.Token);
                 }
                 catch

@@ -116,6 +116,40 @@ internal static partial class ActorTests
         }
     }
 
+    // A submission that has been admitted but not started is pending work. Before
+    // this, an actor holding only queued work read "idle", and an operator who
+    // believed it put a second agent on the same task.
+    public static async Task ActivityQueuedSubmissionIsNeverIdle(string temp)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var app = new Application(TextWriter.Null);
+        var agent = new Agent(app, new Configuration(Vendor.OpenAI, "queued-model",
+            "http://127.0.0.1:1", "test-key"), name: "queued-while-paused");
+        agent.InstallTools();
+        try
+        {
+            // Settle first: a non-idle answer afterwards can only come from the
+            // submission, not from something the agent was already doing.
+            AgentWorkStatus settled = await agent.WorkStatusAsync(deadline.Token);
+            Check(settled.Work?.Phase == WorkPhase.Idle,
+                "a fresh agent did not start idle, so the later check proves nothing");
+            await agent.PostAsync(new AgentInput(InputKind.Pause));
+            await agent.PostAsync(new AgentInput(InputKind.Message, "build both hosts"));
+            // A paused actor never dequeues, so the submission is queued but not
+            // running: exactly the state that used to be announced as idle.
+            AgentWorkStatus pending = await agent.WorkStatusAsync(deadline.Token);
+            Check(pending.Work is not null && pending.Work.Phase != WorkPhase.Idle,
+                "a queued submission was reported as idle while work waited to start");
+            Check(!string.IsNullOrWhiteSpace(pending.Work!.Detail),
+                "pending work was reported with nothing to tell the operator");
+        }
+        finally
+        {
+            agent.Destroy();
+            app.Destroy();
+        }
+    }
+
     public static async Task ActivityControlWait(string temp)
     {
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));

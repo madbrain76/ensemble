@@ -838,16 +838,31 @@ public sealed partial class Agent
             {
                 if (!hintPending)
                 {
+                    // An empty reply is the more serious case of the same failure: the
+                    // provider reported success, the classifier sees no promise in ""
+                    // because "" promises nothing, and the turn would otherwise close
+                    // showing the user absolutely nothing. Neither half of an answer
+                    // arrived, so neither a promise check nor the cap ladder covers it.
+                    bool silent = responseText.Trim().Length == 0;
                     if (promissoryReplies < PromissoryLimit
-                        && PromisesAction(LastAgentAnswer()))
+                        && (silent || PromisesAction(LastAgentAnswer())))
                     {
-                        // The reply promised work and issued no call. Correct it once
-                        // per promise instead of letting the turn end mid-task.
+                        // The reply promised work, or said nothing at all, and issued no
+                        // call. Correct it within the budget instead of ending mid-task.
                         promissoryReplies++;
                         Record(new Event(EventKind.MessageReceived, actor: Actor.System,
-                            parts: [new TextPart(PromissoryCorrection)]));
+                            parts: [new TextPart(silent
+                                ? SilentCorrection : PromissoryCorrection)]));
                         requests.Enqueue(new Mail(MailKind.Submit));
                         return;
+                    }
+                    if (silent)
+                    {
+                        // Recorded as a durable lifecycle fact so the browser shows a
+                        // reason. The turn itself still closes normally: the model, not
+                        // the actor, produced nothing, and faulting the reply would make
+                        // an empty answer look like a transport breakdown.
+                        Record(new Event(EventKind.ErrorOccurred, error: SilentStopNotice));
                     }
                     // Deliberately not cleared here. This path already refused to
                     // correct the reply, so clearing would hand the next queued turn a

@@ -703,8 +703,19 @@ function renderControls() {
     // the wait the operator can act on wins over both the state word and the count.
     const wakingLabel = selected.phase === "wakingprovider"
         ? "Waking " + (selected.detail || "provider") : "";
+    // "idle" has to mean nothing is pending anywhere. The turn-level word comes
+    // from History and can settle before a queued submission starts or a tool
+    // phase is reached, and an operator who believes a false idle may put a second
+    // agent on the same task. The server's own live phase is the authority when the
+    // turn says idle, and its detail is the sentence written for this display.
+    const livePhase = selected.phase || "idle";
+    let status = work;
+    if (!inTurn) {
+        if (running > 0) status = jobLabel;
+        else if (livePhase !== "idle") status = selected.detail || livePhase;
+    }
     document.querySelector("#state").textContent = !connected ? "disconnected"
-        : selectionPending ? "selecting" : wakingLabel || (running > 0 && !inTurn ? jobLabel : work);
+        : selectionPending ? "selecting" : wakingLabel || status;
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
     document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;

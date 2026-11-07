@@ -51,6 +51,14 @@ public sealed partial class Agent
         {
             return new WorkActivity(WorkPhase.ToolCall, Detail: "Initializing skills");
         }
+        // Work that has been admitted but not yet started is still pending. Only
+        // submissions enter this queue, so a non-empty queue is always real work:
+        // the operator who reads "idle" here may start a second agent on the same
+        // task, which has already cost them a collided pair of runs.
+        if (active is not null || requests.Count != 0)
+        {
+            return new WorkActivity(WorkPhase.Queued, Detail: "Queued work is waiting to start");
+        }
         return new WorkActivity(WorkPhase.Idle);
     }
 

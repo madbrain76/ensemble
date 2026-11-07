@@ -97,6 +97,29 @@ const server = http.createServer((request, response) => {
         check(viaFrame.before === 'idle' && viaFrame.after === '2 jobs running',
             `an agent_tree frame repaints the header: ${JSON.stringify(viaFrame)}`);
 
+        // Pending work must never be announced as idle. The turn-level word can
+        // settle while the actor still holds a queued submission or a live tool
+        // phase, and an operator who believes a false idle starts a second agent
+        // on the same task.
+        const pendingRow = (phase, detail) => ({ ...row(0), phase, detail });
+        check(await label({ key: 'build%20agent',
+            rows: [pendingRow('queued', 'Queued work is waiting to start')],
+            state: 'idle' }) === 'Queued work is waiting to start',
+            `queued work is shown instead of idle: ${await label({ key: 'build%20agent',
+                rows: [pendingRow('queued', 'Queued work is waiting to start')],
+                state: 'idle' })}`);
+        check(await label({ key: 'build%20agent',
+            rows: [pendingRow('toolcall', 'Executing a tool')], state: 'idle' })
+            === 'Executing a tool',
+            'a live tool phase is shown instead of idle');
+        check(await label({ key: 'build%20agent',
+            rows: [pendingRow('queued', '')], state: 'idle' }) === 'queued',
+            'a pending phase with no sentence still refuses to say idle');
+        check(await label({ key: 'other%20agent',
+            rows: [pendingRow('queued', 'Queued work is waiting to start')],
+            state: 'idle' }) === 'idle',
+            "another agent's pending work is not borrowed by the selected agent");
+
         check(errors.length === 0, `no page errors: ${JSON.stringify(errors.slice(0, 3))}`);
         console.log('JOB STATUS SUITE PASSED');
     } finally {
