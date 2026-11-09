@@ -24,8 +24,15 @@ conversation and effects cannot.
 - Deltas enter the mailbox, then the bounded observation queues. They are not
   recorded in History. Final events are appended **before** their parts are
   published to observers.
-- A declared model streams by default unless `Configuration.DisableStreaming`
-  is true. Unknown models use plain delivery. Plain delivery publishes finals
+- A declared model streams according to its `ModelFeatures.Stream` permission
+  unless `Configuration.DisableStreaming` is true. An unlisted model is nobody's
+  knowledge but the endpoint's: it is asked once, and what the endpoint did with
+  that request is remembered, so a route observed buffering is not asked again and
+  a route observed streaming keeps being asked. An unlisted route that has not
+  been observed yet is asked, because the cost of never asking is that the
+  operator waits for the whole answer before reading a word and each artifact
+  loses the fragment arrivals its production span is measured from.
+  `DisableStreaming` outranks all of it. Plain delivery publishes finals
   but no synthetic deltas.
 - Partial arguments are display-only. Missing terminators, malformed frames,
   provider errors, and interrupted requests cannot authorize tool effects.

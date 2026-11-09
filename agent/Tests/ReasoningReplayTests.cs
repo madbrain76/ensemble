@@ -50,7 +50,22 @@ internal static class ReasoningReplayTests
         var agent = new Agent(app, chat);
         var request = agent.Engine().Render(context);
         var wire = request.ToJsonString();
+        // Streaming is a request property, not a client preference: an endpoint that
+        // is never asked streams nothing, so no fragment ever reached the page and an
+        // artifact had no arrivals to measure a span from.
+        Check(request["stream"]?.GetValue<bool>() == true,
+            "a chat-completions turn did not ask the endpoint to stream: " + wire);
+        Check(request["stream_options"]?["include_usage"]?.GetValue<bool>() == true,
+            "a streamed reply was not asked to carry usage, so counts would be lost: " + wire);
         agent.Destroy();
+
+        // The operator's opt-out is honoured in the same place it is expressed.
+        var buffered = new Agent(app, new Configuration(Vendor.OpenAI, chat.Model, "http://127.0.0.1:1",
+            stream: "thinking"));
+        var quiet = buffered.Engine().Render(context);
+        buffered.Destroy();
+        Check(quiet["stream"]?.GetValue<bool>() == true,
+            "a channel selection that still streams something stopped asking for a stream");
 
         Check(!wire.Contains("PRIVATE RETURNED THOUGHT") && !wire.Contains("PRIVATE RECORDED THOUGHT"),
             "provider-only reasoning was replayed to the endpoint: " + wire);

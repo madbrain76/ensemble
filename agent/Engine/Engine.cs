@@ -203,6 +203,11 @@ public sealed partial class Engine
                 }
             };
         }
+        // Whether this exchange asked for a stream: the answer the endpoint gives is
+        // the only evidence used to decide whether to keep asking an unlisted model.
+        // Caller input goes to the boundary exactly as given, malformed included, so
+        // this reads the flag without ever rejecting the body it is only observing.
+        bool askedStream = requestBody.Contains("\"stream\":true", StringComparison.Ordinal);
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint(config));
         request.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -284,6 +289,12 @@ public sealed partial class Engine
                 }
                 // A second public-plan 401 reaches the normal safe error parser. No loop,
                 // payment transition, or successful fact from the first attempt.
+                if (askedStream)
+                {
+                    RecordStream(config, string.Equals(
+                        response.Content.Headers.ContentType?.MediaType, "text/event-stream",
+                        StringComparison.OrdinalIgnoreCase));
+                }
                 parsed = await ParseCoreAsync(config, response, traceSecrets, onChunk, cancellation, auxiliary || Parent().IsMemoryCompressor());
             }
             finally

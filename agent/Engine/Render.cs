@@ -607,6 +607,17 @@ public sealed partial class Engine
             ["max_completion_tokens"] = OrdinaryOutputBudget,
             ["messages"] = messages
         };
+        // Ask for the reply as a stream. Without this the endpoint returns one
+        // buffered body: no text appears until the answer is finished, and an
+        // artifact has no fragment arrivals to measure a production span from.
+        // The channel selection is the operator's opt-out and always wins.
+        if (MayStream(config))
+        {
+            request["stream"] = true;
+            // Usage arrives only on request once the reply is chunked, and the
+            // settled result needs those counts for billing and the cache lens.
+            request["stream_options"] = new JsonObject { ["include_usage"] = true };
+        }
         // This dialect takes the level at the top level, not inside a reasoning
         // object. Sending what the provider already accepted is the whole point:
         // dropping the field here would reproduce the invisible failure that the

@@ -67,9 +67,34 @@ internal static partial class ActorTests
                 "http://127.0.0.1", disableStreaming: true));
             Check(!disabled.Engine().Render(disabled.History().View()).ContainsKey("stream"),
                 "Explicit no-stream override ignored.");
-            var unknown = new Agent(app, new Configuration(Vendor.OpenAI, "unknown", "http://127.0.0.1"));
-            Check(!unknown.Engine().Render(unknown.History().View()).ContainsKey("stream"),
-                "Unknown model assumed streaming support.");
+            // An unlisted model is nobody's knowledge but the endpoint's, so it is
+            // asked once and the answer is remembered. Buffering forever costs the
+            // operator every token before the first readable word and leaves each
+            // artifact with no fragment arrivals to measure a production span from.
+            var unknownConfig = new Configuration(Vendor.OpenAI, "unknown", "http://127.0.0.1/first-look");
+            var unknown = new Agent(app, unknownConfig);
+            Check(unknown.Engine().Render(unknown.History().View()).ContainsKey("stream"),
+                "An unlisted model was never offered streaming at all.");
+            unknown.Destroy();
+            // Observed to buffer: stop asking, so an endpoint that ignores the flag is
+            // not asked again on every turn.
+            Engine.RecordStream(unknownConfig, false);
+            var refused = new Agent(app, unknownConfig);
+            Check(!refused.Engine().Render(refused.History().View()).ContainsKey("stream"),
+                "An endpoint observed buffering was asked to stream again.");
+            refused.Destroy();
+            // Observed to stream: the answer is kept, and the operator's veto still
+            // outranks it.
+            Engine.RecordStream(unknownConfig, true);
+            var earned = new Agent(app, unknownConfig);
+            Check(earned.Engine().Render(earned.History().View()).ContainsKey("stream"),
+                "An endpoint observed streaming was not asked again.");
+            earned.Destroy();
+            var vetoed = new Agent(app, new Configuration(Vendor.OpenAI, "unknown", "http://127.0.0.1/first-look",
+                disableStreaming: true));
+            Check(!vetoed.Engine().Render(vetoed.History().View()).ContainsKey("stream"),
+                "Explicit no-stream override lost to an observed capability.");
+            vetoed.Destroy();
         }
         finally
         {
