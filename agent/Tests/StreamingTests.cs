@@ -143,6 +143,30 @@ internal static class StreamingTests
         using var incomplete = Response(stream.Replace(Frame("[DONE]"), ""));
         Check((await agent.Engine().ParseAsync(incomplete)).Events.Single().Kind == EventKind.ErrorOccurred,
             "OpenAI EOF accepted without terminator.");
+
+        // A serving fork emits its own token-counter frames with no choices member
+        // at all. One of them ended a minute of prefill with an unusable answer.
+        string framed = Frame("""{"choices":[{"index":0,"delta":{"content":"wake"}}]}""")
+            + Frame("""{"freetoken_completion_tokens_delta":1}""")
+            + Frame("""{"choices":[{"index":0,"delta":{"content":" answer"},"finish_reason":"stop"}]}""")
+            + Frame("""{"freetoken_completion_tokens_delta":2}""")
+            + Frame("""{"choices":null}""")
+            + Frame("[DONE]");
+        using var telemetry = Response(framed);
+        var settled = (await agent.Engine().ParseAsync(telemetry, null, cancellation))
+            .Events.Single(e => e.Kind == EventKind.ResponseEnded);
+        Check(settled.Parts.OfType<TextPart>().Select(part => part.Text).SequenceEqual(new[] { "wake answer" }),
+            "A telemetry frame without choices aborted a streamed answer.");
+
+        // The operator has to be able to act on a refusal, so the rule that fired
+        // is named; runtime exception text stays reduced to its type name.
+        using var unterminated = Response(Frame("""{"choices":[{"index":0,"delta":{"content":"x"}}]}""")
+            + Frame("[DONE]"));
+        string rule = (await agent.Engine().ParseAsync(unterminated)).Events.Single().Error ?? "";
+        Check(rule.Contains("Unexpected stream terminator"), "Stream refusal did not name its rule: " + rule);
+        using var wrongType = Response(Frame("""{"choices":"not-an-array"}""") + Frame("[DONE]"));
+        string reduced = (await agent.Engine().ParseAsync(wrongType)).Events.Single().Error ?? "";
+        Check(reduced.EndsWith("InvalidOperationException"), "Runtime exception text leaked: " + reduced);
     }
 
     private static async Task Gemini(Application app, CancellationToken cancellation)

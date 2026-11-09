@@ -178,9 +178,13 @@ public sealed partial class Engine
             or ArgumentException or KeyNotFoundException or OverflowException)
         {
             // A malformed stream can have displayed chunks, but cannot authorize
-            // a final response or a partially assembled tool call.
+            // a final response or a partially assembled tool call. Every
+            // FormatException in this file is a fixed literal naming the rule the
+            // stream broke, so the operator can act on it; other exception types
+            // carry runtime text and stay reduced to their type name.
+            string reason = error is FormatException ? error.Message : error.GetType().Name;
             return new ParsedResponse([new Event(EventKind.ErrorOccurred,
-                error: "Invalid provider stream: " + error.GetType().Name)], []);
+                error: "Invalid provider stream: " + reason)], []);
         }
     }
 
@@ -357,7 +361,18 @@ public sealed partial class Engine
         {
             state.Root["usage"] = usage.DeepClone();
         }
-        foreach (var value in Required(frame, "choices").AsArray())
+        // Servers append informational frames that carry no content: usage
+        // summaries and fork-specific telemetry such as a token counter, and some
+        // send the member as an explicit null. Anthropic and Gemini already ignore
+        // the equivalent bookkeeping, and refusing here threw away a fully
+        // streamed answer because a fork added one field. A member of the wrong
+        // type is a different claim and stays fatal below, so a stream that
+        // promises content it does not deliver remains an error.
+        if (!frame.TryGetPropertyValue("choices", out JsonNode? members) || members is null)
+        {
+            return;
+        }
+        foreach (var value in members.AsArray())
         {
             var choice = (value?.AsObject() ?? throw new FormatException("Missing choice"));
             if (choice["index"]?.GetValue<int>() is int choiceIndex && choiceIndex != 0)

@@ -105,11 +105,16 @@ const server = http.createServer((request, response) => {
             Date.now = () => realNow() + 400 * 24 * 3600 * 1000;
             const closed = new Date(realNow() - 3 * 3600 * 1000 - 90 * 1000);
             const iso = closed.toISOString();
-            const began = closed.getTime() - 500;
+            // Whole-second offsets: a half-second straddle made this suite fail at
+            // random, because the expected clock was formatted from a timestamp
+            // that could round to either side.
+            const began = closed.getTime() - 2000;
             handle({ type: 'part_final', agent_id: 'root', part_id: 'rec-reply', time: iso,
                 part: { type: 'text', role: 'assistant', text: 'recorded reply',
                     started: began, elapsed: 4200 } });
-            const ran = began + 1000;
+            // The recorded instant of a tool result is its frame time; the span is
+            // the measured dispatch-to-return. Both must come from the frame.
+            const ran = closed.getTime();
             handle({ type: 'tool_finished', agent_id: 'root', part_id: 'rec-result', time: iso,
                 started: ran, elapsed: 1234, is_error: false,
                 parts: [{ type: 'text', text: 'tool output' }] });

@@ -54,7 +54,47 @@ thinking card that grows in its own box. Before this fix a buffered reply could 
 ever produce one state. `agent/Tests` 368 passed / 2 failed, the same two macOS Seatbelt
 confined cases; GuiTests clean; ten browser suites green.
 
-Against the real endpoint: `stream: true` on the wire, `text/event-stream` back, and a
-peer's turn rendering progressively. One reply did arrive in a single frame, which is
-the endpoint's choice; that is what the negative observation is for, and nothing in the
-client collapses chunks that really arrive.
+Against the real endpoint: `stream: true` on the wire and `text/event-stream` back.
+One reply did arrive in a single frame, which is the endpoint's choice; that is what the
+negative observation is for, and nothing in the client collapses chunks that really
+arrive.
+
+## CORRECTION, same evening: enabling streaming broke chat, and my verification missed it
+
+The paragraph above checked that a turn **rendered progressively** and never that it
+**completed**. That is precisely the hole this endpoint fell into. `llm` is a freetoken
+fork that appends its own informational frames, and `AccumulateOpenAI` required
+`choices` on every frame, so `{"freetoken_completion_tokens_delta":1}` aborted the
+exchange: a minute of prefill, then `Invalid provider stream`. One request after the
+change, one failure -- effectively all chat, not intermittent.
+
+The defect was not the streaming gate. Buffered answers go through `ParseResponse`,
+which reads the keys it wants and ignores the rest, so these frames were always
+harmless until streaming existed for an unlisted model. Two of the three dialects
+already tolerated the equivalent bookkeeping -- Anthropic returns on unknown frame
+types ("ping and other non-content protocol bookkeeping") and Gemini returns when
+`candidates` is absent or empty -- so OpenAI's strictness was an inconsistency inside
+one file, not a policy.
+
+Fixed in `AccumulateOpenAI`: an absent or explicitly null `choices` is bookkeeping and
+is ignored, mirroring both siblings. A member of the **wrong type** still fails, so a
+stream that promises content and withholds it remains an error rather than becoming
+silently empty. `usage` merging happens before the guard, so billing survives.
+
+The refusal also said only `FormatException`, discarding `Missing choices` -- the two
+words that named the fix. `agent/Engine/Streaming.cs` now reports a `FormatException`'s
+message, which is always a fixed literal this file writes, while other exception types
+keep only their type name because their text is runtime-supplied. Same rule as the
+launch diagnostics: our own strings are safe to show, arbitrary exception text is not.
+
+Coverage that did not exist before: a streamed answer through a telemetry frame and a
+null `choices`; a refusal that names its rule; and a wrong-typed member that must stay
+an error. Installed the old strict behaviour and the Chapter 6 case fails with
+`Sequence contains no elements` -- 367 passed, 3 failed -- so the assertions are live
+rather than decorative. Restoring the fix returns 368/2, the two macOS Seatbelt
+confined cases.
+
+**The lesson this note should carry:** verifying that output *appears* is not verifying
+that a turn *finishes*. A streamed reply renders right up to the frame that destroys
+it, so a progressive-rendering assertion can be fully green while the answer is
+discarded. Any streaming claim has to assert the settled result.
