@@ -399,7 +399,8 @@ public sealed partial class Event
         string error, long redactFrom, long redactTo, Redaction? level, string reason, JobInfo? job,
         long responseID, IEnumerable<int>? partIDs, IEnumerable<string>? toolReferences,
         MemoryEntry? memory, MemoryRetirement? retirement, string taskID,
-        CompressionLaunch? compression, CompressionOutcome? outcome)
+        CompressionLaunch? compression, CompressionOutcome? outcome,
+        IEnumerable<PartSpan>? partSpans)
     {
         if (!Enum.IsDefined(kind) || (actor.HasValue && !Enum.IsDefined(actor.Value)))
         {
@@ -455,6 +456,7 @@ public sealed partial class Event
         Job = job;
         ResponseID = responseID;
         PartIDs = partIDs?.ToImmutableArray() ?? [];
+        PartSpans = partSpans?.ToImmutableArray() ?? [];
         ToolReferences = (toolReferences ?? []).Distinct(StringComparer.Ordinal).ToImmutableArray();
         if (!ToolReferences.IsEmpty && (kind is not (EventKind.ToolReturned or EventKind.ToolObserved)
             || isError || ToolReferences.Any(string.IsNullOrWhiteSpace)))
@@ -487,11 +489,13 @@ public sealed partial class Event
         }
     }
 
-    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome);
+    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, PartSpans);
 
-    public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs) =>
+    public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs,
+        IEnumerable<PartSpan>? partSpans) =>
         new(Kind, Seq, Time, Actor, Parts, From, Usage, CallID, Name, Args,
-            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome);
+            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome,
+            partSpans ?? PartSpans);
 }
 public sealed partial class Entry
 {

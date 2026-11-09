@@ -337,20 +337,36 @@ function cardFor(id) {
     // producing this box, and when it began. clock is the server's own time when a
     // frame carries one, so a replay shows the original moment.
     const card = { id, agent: agentID, node, text: "", kind: "text", role: "assistant",
-        status: "", final: false, first: 0, last: 0, clock: null };
+        status: "", final: false, first: 0, last: 0, clock: null, started: 0, elapsed: null };
     cards.set(id, card);
     return card;
 }
+function Clock(value) {
+    // Server-recorded instants arrive as ISO text; normalize to epoch millis so
+    // the display never mixes a string clock with a numeric one.
+    if (!value) return 0;
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
 function cardTimingText(card) {
     // One line per artifact: the clock time it began, then how long production
-    // took. An unfinished part shows an ellipsis instead of a fake duration, and a
-    // part with no arrival at all shows nothing rather than a misleading zero.
+    // took. Both come from the recorded event whenever the server has them, so a
+    // reload repeats the original moment instead of reporting page-load time. An
+    // in-flight part shows an ellipsis rather than a fake duration; a finalized
+    // part that was never timed (a prompt, or a reply that did not stream) shows
+    // its clock alone, because "no measurement" is not "no time taken".
     if (!card.first) return "";
-    const moment = new Date(card.clock || card.first);
+    const moment = new Date(card.started || card.clock || card.first);
     const pad = (value) => String(value).padStart(2, "0");
     const clock = `${pad(moment.getHours())}:${pad(moment.getMinutes())}:${pad(moment.getSeconds())}`;
-    if (!card.final || card.last <= card.first) return `${clock} · …`;
-    const seconds = (card.last - card.first) / 1000;
+    if (!card.final) return `${clock} · …`;
+    // A recorded span always wins. Without one, a part observed live in this tab
+    // still has its own first-to-last arrival span, which is the measurement the
+    // operator watched; only a part with neither shows a clock alone.
+    const span = Number.isFinite(card.elapsed) ? card.elapsed
+        : (card.last > card.first ? card.last - card.first : null);
+    if (span === null) return clock;
+    const seconds = span / 1000;
     const shown = seconds < 10 ? seconds.toFixed(1) : Math.round(seconds).toString();
     return `${clock} · ${shown}s`;
 }
@@ -1013,7 +1029,7 @@ function handle(frame) {
     if (frame.type === "part_delta") {
         if (card.final) return;
         const arrived = Date.now();
-        if (!card.first) { card.first = arrived; card.clock = frame.time || null; }
+        if (!card.first) { card.first = arrived; card.clock = Clock(frame.time); }
         card.last = arrived;
         card.kind = frame.kind;
         card.text += frame.chunk; // An empty chunk is a valid part opening.
@@ -1028,7 +1044,12 @@ function handle(frame) {
         card.role = part.role || "assistant";
         card.text = readable(part);
         card.last = Date.now();
-        if (!card.first) { card.first = card.last; card.clock = frame.time || null; }
+        if (!card.first) { card.first = card.last; card.clock = Clock(frame.time); }
+        // Recorded production data outranks anything measured in this tab: the
+        // browser clock is a fallback for a part the server never timed.
+        card.clock = Clock(frame.time) || card.clock;
+        card.started = Number(part.started) || 0;
+        card.elapsed = Number.isFinite(part.elapsed) ? part.elapsed : null;
         card.name = part.name || card.name;
         card.input = part.args || card.input;
         card.final = true;
@@ -1050,6 +1071,15 @@ function handle(frame) {
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))
             .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
         card.final = true;
+        // The result card carries its own instant: dispatch to return is the tool's
+        // production time, and it must come from the record, not from this tab.
+        // Only a finalized result can show a duration, so this follows card.final.
+        if (!card.first) card.first = Date.now();
+        card.last = Date.now();
+        card.clock = Clock(frame.time) || card.clock;
+        card.started = Clock(frame.started) || card.started;
+        card.elapsed = Number.isFinite(frame.elapsed) ? frame.elapsed : null;
+        renderTiming(card);
         if (frame.tool_part_id && cards.has(frame.tool_part_id)) {
             const call = cards.get(frame.tool_part_id);
             call.status = frame.is_error ? "error" : "finished";

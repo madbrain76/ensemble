@@ -11,7 +11,8 @@ public static partial class Gui
         return $"{agentID}:r{responseID}:p{partID}";
     }
 
-    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role, long sequence)
+    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role,
+        long sequence, DateTimeOffset? time, PartSpan? span)
     {
         var wire = JsonCodec.WritePart(part);
         wire["role"] = role == Actor.Agent ? "assistant" : role.ToString().ToLowerInvariant();
@@ -55,10 +56,18 @@ public static partial class Gui
             }
             wire["text"] = text;
         }
+        if (span is not null && span.Started > 0)
+        {
+            // A recorded span survives reload intact. A part that never streamed
+            // carries neither key, so the view shows a clock without a duration
+            // rather than a production time of zero.
+            wire["started"] = JsonValue.Create(span.Started);
+            wire["elapsed"] = JsonValue.Create(span.Elapsed);
+        }
         return new JsonObject
         {
             ["type"] = "part_final", ["agent_id"] = agentID, ["part_id"] = id,
-            ["seq"] = sequence, ["part"] = wire
+            ["seq"] = sequence, ["time"] = time?.ToString("O"), ["part"] = wire
         };
     }
 
@@ -66,6 +75,14 @@ public static partial class Gui
     {
         // Context, not the diagnostic tail, owns the finalized transcript. This
         // works equally after snapshot-only load and after a later redaction.
+        // The transcript is authoritative for content only. Its entries carry no
+        // clock, so each one recovers the wall time recorded under the same
+        // sequence: without this a reload stamps every card with page-load time.
+        var recorded = snapshot.Events
+            .Where(fact => fact.Time.HasValue && fact.Seq > 0)
+            .GroupBy(fact => fact.Seq)
+            .ToDictionary(group => group.Key, group => group.First().Time);
+        DateTimeOffset? At(long seq) => recorded.TryGetValue(seq, out DateTimeOffset? when) ? when : null;
         var facts = snapshot.Events.Where(fact => fact.Kind is not
             (EventKind.MessageReceived or EventKind.HintReceived or EventKind.ResponseEnded or EventKind.ToolReturned))
             .ToList();
@@ -77,18 +94,21 @@ public static partial class Gui
             }
             if (entry.Parts is [ToolResultPart result])
             {
-                facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, parts: result.Parts,
-                    callID: result.CallID, isError: result.IsError, job: result.Job,
-                    toolReferences: result.ToolReferences));
+                facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, time: At(entry.Seq),
+                    parts: result.Parts, callID: result.CallID, isError: result.IsError,
+                    job: result.Job, toolReferences: result.ToolReferences));
             }
             else if (entry.Actor == Actor.Agent)
             {
-                facts.Add(new Event(EventKind.ResponseEnded, seq: entry.Seq, parts: entry.Parts,
-                    responseID: entry.ResponseID, partIDs: entry.PartIDs));
+                facts.Add(new Event(EventKind.ResponseEnded, seq: entry.Seq, time: At(entry.Seq),
+                    parts: entry.Parts, responseID: entry.ResponseID, partIDs: entry.PartIDs,
+                    partSpans: entry.ResponseID == 0 ? null
+                        : snapshot.Events.FirstOrDefault(fact => fact.Seq == entry.Seq)?.PartSpans));
             }
             else
             {
-                facts.Add(new Event(EventKind.MessageReceived, seq: entry.Seq, actor: entry.Actor, parts: entry.Parts));
+                facts.Add(new Event(EventKind.MessageReceived, seq: entry.Seq, time: At(entry.Seq),
+                    actor: entry.Actor, parts: entry.Parts));
             }
         }
         return facts.OrderBy(fact => fact.Seq).ToImmutableArray();
@@ -99,6 +119,7 @@ public static partial class Gui
         var frames = ImmutableArray.CreateBuilder<JsonObject>();
         var ids = ImmutableHashSet.CreateBuilder<string>();
         var calls = new Dictionary<string, string>(StringComparer.Ordinal);
+        var dispatch = new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal);
         string state = "idle";
         string lastAnswer = "";
         bool paused = false;
@@ -107,6 +128,12 @@ public static partial class Gui
         foreach (var fact in DisplayFacts(snapshot))
         {
             context = History.Reduce(context, fact);
+            if (fact.Kind is EventKind.ToolCalled or EventKind.ToolStarted && fact.Time.HasValue
+                && fact.CallID.Length > 0)
+            {
+                // Dispatch time, not the model's request, bounds how long a tool ran.
+                dispatch[fact.CallID] = fact.Time.Value;
+            }
             if (fact.Kind == EventKind.RuntimeConfigured)
             {
                 paused = false;
@@ -149,7 +176,19 @@ public static partial class Gui
                         ? $"{agentID}:e{fact.Seq}:p{i}"
                         : PartID(agentID, fact.ResponseID, fact.PartIDs[i]);
                     var role = fact.Kind == EventKind.ResponseEnded ? Actor.Agent : fact.Actor ?? Actor.Human;
-                    frames.Add(PartFrame(agentID, id, fact.Parts[i], role, fact.Seq));
+                    PartSpan? span = null;
+                    if (fact.Kind == EventKind.ResponseEnded && !fact.PartSpans.IsDefaultOrEmpty
+                        && i < fact.PartSpans.Length)
+                    {
+                        span = fact.PartSpans[i];
+                    }
+                    else if (fact.Kind == EventKind.ToolReturned && fact.Time.HasValue
+                        && dispatch.TryGetValue(fact.CallID, out DateTimeOffset began))
+                    {
+                        long elapsed = (long)(fact.Time.Value - began).TotalMilliseconds;
+                        span = new PartSpan(began.ToUnixTimeMilliseconds(), Math.Max(0, elapsed));
+                    }
+                    frames.Add(PartFrame(agentID, id, fact.Parts[i], role, fact.Seq, fact.Time, span));
                     ids.Add(id);
                     if (fact.Parts[i] is ToolCallPart call)
                     {
@@ -176,9 +215,25 @@ public static partial class Gui
             else if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
             {
                 string id = $"{agentID}:e{fact.Seq}:result";
+                // A result card measures dispatch to return: how long the tool
+                // actually ran. Without an instant the card would show no clock
+                // line at all, which reads as missing history.
+                long? started = null;
+                long? ran = null;
+                if (dispatch.TryGetValue(fact.CallID, out DateTimeOffset began))
+                {
+                    started = began.ToUnixTimeMilliseconds();
+                    if (fact.Time.HasValue)
+                    {
+                        ran = Math.Max(0, (long)(fact.Time.Value - began).TotalMilliseconds);
+                    }
+                }
                 frames.Add(new JsonObject
                 {
                     ["type"] = "tool_finished", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                    ["time"] = fact.Time?.ToString("O"),
+                    ["started"] = started,
+                    ["elapsed"] = ran,
                     ["part_id"] = id, ["tool_part_id"] = calls.GetValueOrDefault(fact.CallID),
                     ["call_id"] = fact.CallID, ["result"] = JsonCodec.Text(fact.Parts),
                     ["parts"] = new JsonArray(fact.Parts.Select(p => (JsonNode)JsonCodec.WritePart(p)).ToArray()),

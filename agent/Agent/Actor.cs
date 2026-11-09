@@ -166,12 +166,13 @@ public sealed partial class Agent
         }
     }
 
-    private partial void Record(Event fact, ImmutableArray<int> partIDs)
+    private partial void Record(Event fact, ImmutableArray<int> partIDs,
+        ImmutableArray<PartSpan> spans)
     {
         var before = History().View().Phase;
         if (fact.Kind == EventKind.ResponseEnded && !partIDs.IsDefault)
         {
-            fact = fact.WithDisplay(responseID, partIDs);
+            fact = fact.WithDisplay(responseID, partIDs, spans.IsDefault ? null : spans);
         }
         var saved = History().Append(fact);
         var after = History().View().Phase;
@@ -795,7 +796,8 @@ public sealed partial class Agent
                 : [];
             foreach (var fact in parsed.Events)
             {
-                Record(fact, fact.Kind == EventKind.ResponseEnded ? parsed.PartIDs : default);
+                Record(fact, fact.Kind == EventKind.ResponseEnded ? parsed.PartIDs : default,
+                    fact.Kind == EventKind.ResponseEnded ? parsed.Spans : default);
             }
             var failure = parsed.Events.FirstOrDefault(e => e.Kind == EventKind.ErrorOccurred);
             if (failure is not null)
@@ -1168,9 +1170,31 @@ public sealed partial class Agent
         Mail completion;
         try
         {
-            var parsed = await Engine().SendAsync(body, cancellation,
-                chunk => mailbox.Writer.TryWrite(new Mail(MailKind.Delta, Chunk: chunk)));
-            completion = new Mail(MailKind.HttpDone, Parsed: parsed);
+            // Fragments are timed at the same observation point the browser uses
+            // live, so a reload repeats the span the operator watched instead of
+            // measuring one from page load. A reply that never streamed yields no
+            // spans at all rather than a production time of zero.
+            var arrivals = new Dictionary<int, (long First, long Last)>();
+            var parsed = await Engine().SendAsync(body, cancellation, chunk =>
+            {
+                long arrived = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                arrivals[chunk.PartID] = arrivals.TryGetValue(chunk.PartID, out var seen)
+                    ? (seen.First, arrived)
+                    : (arrived, arrived);
+                mailbox.Writer.TryWrite(new Mail(MailKind.Delta, Chunk: chunk));
+            });
+            ImmutableArray<PartSpan> spans = default;
+            if (!parsed.PartIDs.IsDefaultOrEmpty)
+            {
+                var measured = parsed.PartIDs.Select(id => arrivals.TryGetValue(id, out var arrival)
+                    ? new PartSpan(arrival.First, Math.Max(0, arrival.Last - arrival.First))
+                    : new PartSpan(0, 0)).ToImmutableArray();
+                if (measured.Any(span => span.Started != 0))
+                {
+                    spans = measured;
+                }
+            }
+            completion = new Mail(MailKind.HttpDone, Parsed: parsed with { Spans = spans });
         }
         catch (Exception error)
         {

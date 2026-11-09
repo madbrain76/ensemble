@@ -250,6 +250,17 @@ public static partial class JsonCodec
                     response["response_id"] = value.ResponseID;
                     response["part_ids"] = new JsonArray(value.PartIDs.Select(id => (JsonNode?)JsonValue.Create(id)).ToArray());
                 }
+                if (!value.PartSpans.IsDefaultOrEmpty)
+                {
+                    // Only measured spans are written, so a record that never streamed
+                    // keeps no key rather than a fabricated zero-length production.
+                    response["part_spans"] = new JsonArray(value.PartSpans.Select(span =>
+                        (JsonNode?)new JsonObject
+                        {
+                            ["started"] = JsonValue.Create(span.Started),
+                            ["elapsed"] = JsonValue.Create(span.Elapsed)
+                        }).ToArray());
+                }
                 o["response"] = response;
                 break;
             case EventKind.ToolCalled:
@@ -386,7 +397,10 @@ public static partial class JsonCodec
                     usage: response.TryGetProperty("usage", out var u) ? ReadUsage(u) : null,
                     responseID: response.TryGetProperty("response_id", out var rid) ? rid.GetInt64() : 0,
                     partIDs: response.TryGetProperty("part_ids", out var ids)
-                        ? ids.EnumerateArray().Select(id => id.GetInt32()) : null);
+                        ? ids.EnumerateArray().Select(id => id.GetInt32()) : null,
+                    partSpans: response.TryGetProperty("part_spans", out var spans)
+                        ? spans.EnumerateArray().Select(span => new PartSpan(
+                            span.GetProperty("started").GetInt64(), span.GetProperty("elapsed").GetInt64())) : null);
             case EventKind.ToolCalled:
             case EventKind.ToolStarted:
             case EventKind.ToolReturned:

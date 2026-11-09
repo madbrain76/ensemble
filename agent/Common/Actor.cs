@@ -172,7 +172,8 @@ public sealed partial class Agent
         CancellationToken cancellation);
     private partial void ReceiveAutomatic(Mail message);
     private partial void Finish(Exception? error = null);
-    private partial void Record(Event fact, ImmutableArray<int> partIDs = default);
+    private partial void Record(Event fact, ImmutableArray<int> partIDs = default,
+        ImmutableArray<PartSpan> spans = default);
     internal partial void Publish(Observation value);
     private partial Task TransportWorker(string body, CancellationToken cancellation);
     private partial Task ToolWorker(Task<ToolResultPart> work);

@@ -18,8 +18,21 @@ const quick = cardTimingText({ first: clock, last: clock + 3000, final: true, cl
 check(/^\d\d:\d\d:\d\d · 3\.0s$/.test(quick), 'a three-second part shows its duration: ' + quick);
 check(/· …$/.test(cardTimingText({ first: clock, last: clock, final: false, clock })),
     'a still-streaming part shows an ellipsis, not a duration');
-check(/· …$/.test(cardTimingText({ first: clock, last: clock, final: true, clock })),
-    'a part with no measurable span does not claim 0.0s');
+// "…" means still producing, which is untrue for a settled part; a finalized part
+// that was never timed shows its clock alone rather than a fabricated duration.
+check(cardTimingText({ first: clock, last: clock, final: true, clock })
+        === cardTimingText({ first: clock, last: clock, final: true, clock }).split(' · ')[0]
+    && !cardTimingText({ first: clock, last: clock, final: true, clock }).includes('·'),
+    'a settled part with no measurable span shows its clock alone, never 0.0s or an ellipsis');
+// Recorded production data is authoritative over anything the tab could measure.
+const recordedSpan = cardTimingText({ first: 1, last: 1, final: true, started: clock - 500, elapsed: 4200 });
+check(/· 4\.2s$/.test(recordedSpan),
+    'a recorded span is shown even when the tab measured nothing: ' + recordedSpan);
+const recordedClock = cardTimingText({ first: Date.now(), last: Date.now(), final: true,
+    started: clock, elapsed: 250 });
+check(recordedClock.startsWith(cardTimingText({ first: 0, last: 0, final: true, clock }) || '')
+    && /· 0\.3s$/.test(recordedClock),
+    'a recorded span also fixes the clock, not just the duration: ' + recordedClock);
 const long = cardTimingText({ first: clock, last: clock + 7500, final: true, clock });
 check(long.endsWith('7.5s'), 'sub-ten-second durations keep one decimal: ' + long);
 const slow = cardTimingText({ first: clock, last: clock + 95400, final: true, clock });

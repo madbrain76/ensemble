@@ -284,6 +284,9 @@ public sealed partial class Event
     // including zero. Empty metadata means a historical/non-response event.
     public readonly long ResponseID;
     public readonly ImmutableArray<int> PartIDs;
+    // Measured production span parallel to Parts. Empty means nothing was timed:
+    // either the reply never streamed or the record predates measurement.
+    public readonly ImmutableArray<PartSpan> PartSpans;
     // Captured data, never re-read from disk during pure reduction.
     public readonly MemoryEntry? Memory;
     public readonly MemoryRetirement? Retirement;
@@ -299,9 +302,11 @@ public sealed partial class Event
         Redaction? level = null, string reason = "", JobInfo? job = null,
         long responseID = 0, IEnumerable<int>? partIDs = null, IEnumerable<string>? toolReferences = null,
         MemoryEntry? memory = null, MemoryRetirement? retirement = null, string taskID = "",
-        CompressionLaunch? compression = null, CompressionOutcome? outcome = null);
+        CompressionLaunch? compression = null, CompressionOutcome? outcome = null,
+        IEnumerable<PartSpan>? partSpans = null);
     // Attach finalized parser identities without altering canonical parts.
-    public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs);
+    public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs,
+        IEnumerable<PartSpan>? partSpans = null);
     // Copy with History-assigned ordering; the original value is unchanged.
     public partial Event Numbered(long seq, DateTimeOffset time);
 }

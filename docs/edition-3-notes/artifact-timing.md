@@ -72,3 +72,45 @@ first version of the perf test passed against the unfixed code, because an inter
 watchdog records no samples at all while the thread is blocked: `Math.max(...[])`
 is zero, so "no task longer than 1000 ms" was satisfied by the worst case. The test
 now requires evidence that the watchdog ran before it is allowed to report it.
+
+## Correction: the clock itself was the browser's, not the record's (November 8)
+
+Bill reported that every timestamp equalled the moment the browser opened. That was
+true, and the earlier "fixed" status here was wrong: the client had always read
+`frame.time`, but no server path ever sent it, so the display fell back to
+`Date.now()` taken while replaying. Reading History made the mechanism plain —
+`History.cs:91` stamps every event with `DateTimeOffset.UtcNow`, the save keeps it,
+and `DisplayFacts` then rebuilt synthetic events from `Context.Dialogue` and dropped
+the clock on the floor. Content came from Context; time came from nowhere.
+
+Three layers now carry measurement, each pinned by its own mutation:
+
+- **Recorded instant.** `DisplayFacts` indexes the durable log by sequence and hands
+  each dialogue entry back its own `time`; `PartFrame` and the tool-result frame emit
+  it. A dialogue entry with no matching event keeps no clock rather than a false one.
+- **Recorded span.** C# had never ported Go's `Part.Started`/`Part.Elapsed`, so no
+  per-part production time existed to replay. `PartSpan` is recorded in
+  `Actor.TransportWorker` where fragments arrive — the same observation the browser
+  makes live, which is why replay now repeats what the operator watched instead of
+  contradicting it — persists on `ResponseEnded`, and reaches the part as
+  `started`/`elapsed`. A reply that never streamed records nothing, per Go's own
+  contract that a non-streamed part has neither field.
+- **Tool results.** Measured dispatch to return, from the two recorded events, since
+  a result's production is the tool running. The `tool_finished` branch had never set
+  an arrival at all, leaving 203 of Bill's 1,190 Yolink cards with no timing line.
+
+Display rule, settled in `cardTimingText`: in flight shows `clock · …`; a recorded
+span wins; otherwise a live part keeps its own first-to-last arrival; a settled part
+with neither shows the clock alone. `artifact-timing.cjs` had pinned the old
+"settled but unmeasured shows …" rule, which told the reader a finished part was
+still arriving; that expectation was corrected rather than the code bent to it.
+
+Verification. `TimingPersistenceTests` drives a genuinely streamed turn through
+History, the save codec and the projection, and each of the three layers fails its
+own assertion when removed (capture, `time`, codec). `timing-live.cjs` forces the
+tab's `Date.now` 400 days away and still renders the recorded clock and span; the
+two client preferences are separately mutation-checked. Against a copy of Bill's
+real history in Firefox: 1,190/1,190 cards timed, zero in-flight ellipses in settled
+history, 230/233 tool results measured (three had their dispatch cut from Context and
+correctly show a clock alone), and every displayed clock present in the saved log.
+`agent/Tests` 368 passed / 2 failed, the same two macOS Seatbelt confined cases.

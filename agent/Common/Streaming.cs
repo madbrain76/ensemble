@@ -8,9 +8,14 @@ namespace Ensemble;
 public enum ChunkKind { Reply, Thinking, ToolCall, ReasoningSummary }
 public sealed record Chunk(int PartID, ChunkKind Kind, string Text = "",
     string ToolName = "", string ArgsText = "");
+// One part's production span, measured where fragments arrive. Started is Unix
+// milliseconds so a reload shows the original clock time; Elapsed is the span from
+// the first fragment to the last. A part that never streamed has no span at all.
+public sealed record PartSpan(long Started, long Elapsed);
 public sealed record ParsedResponse(ImmutableArray<Event> Events,
     ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null,
-    bool IncompleteOutput = false, bool OutputCapped = false, bool ToolCallCapped = false);
+    bool IncompleteOutput = false, bool OutputCapped = false, bool ToolCallCapped = false,
+    ImmutableArray<PartSpan> Spans = default);
 
 public sealed partial class Engine
 {

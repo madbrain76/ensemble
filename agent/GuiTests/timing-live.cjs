@@ -92,6 +92,50 @@ const server = http.createServer((request, response) => {
         check(early.active === true,
             'a turn that never produced output is not reported as finished at zero');
 
+        // The complaint this closes: a replayed transcript stamped itself with the
+        // moment the tab opened. Every clock the page could read for itself is
+        // pushed 400 days away here, so a correct line can only have come from the
+        // frame the server sent.
+        const recorded = await page.evaluate(() => {
+            agentID = 'root';
+            cards.clear();
+            document.querySelectorAll('.card-timing').forEach((node) => node.remove());
+            document.querySelectorAll('article[data-part-id]').forEach((node) => node.remove());
+            const realNow = Date.now;
+            Date.now = () => realNow() + 400 * 24 * 3600 * 1000;
+            const closed = new Date(realNow() - 3 * 3600 * 1000 - 90 * 1000);
+            const iso = closed.toISOString();
+            const began = closed.getTime() - 500;
+            handle({ type: 'part_final', agent_id: 'root', part_id: 'rec-reply', time: iso,
+                part: { type: 'text', role: 'assistant', text: 'recorded reply',
+                    started: began, elapsed: 4200 } });
+            const ran = began + 1000;
+            handle({ type: 'tool_finished', agent_id: 'root', part_id: 'rec-result', time: iso,
+                started: ran, elapsed: 1234, is_error: false,
+                parts: [{ type: 'text', text: 'tool output' }] });
+            // A finalized part with no measured span must show its clock alone: an
+            // invented 0.0s would be as false as a page-open timestamp.
+            handle({ type: 'part_final', agent_id: 'root', part_id: 'rec-plain', time: iso,
+                part: { type: 'text', role: 'assistant', text: 'never streamed' } });
+            const pad = (value) => String(value).padStart(2, '0');
+            const want = (when) => `${pad(when.getHours())}:${pad(when.getMinutes())}:${pad(when.getSeconds())}`;
+            const line = (id) => {
+                const node = document.querySelector(`article[data-part-id="${id}"] .card-timing`);
+                return node ? node.textContent.trim() : '';
+            };
+            const out = { reply: line('rec-reply'), result: line('rec-result'), plain: line('rec-plain'),
+                wantReply: want(new Date(began)), wantResult: want(new Date(ran)), wantPlain: want(closed) };
+            Date.now = realNow;
+            return out;
+        });
+        check(recorded.reply === `${recorded.wantReply} · 4.2s`,
+            `a replayed reply keeps its recorded clock and measured span, not the tab's: `
+            + `'${recorded.reply}' want '${recorded.wantReply} · 4.2s'`);
+        check(recorded.result === `${recorded.wantResult} · 1.2s`,
+            `a tool result is timed dispatch to return: '${recorded.result}'`);
+        check(recorded.plain === recorded.wantPlain,
+            `an unmeasured finalized part shows a clock alone: '${recorded.plain}'`);
+
         check(errors.length === 0, 'no page errors: ' + (errors.join('; ') || 'none'));
     } finally {
         await browser.close();
