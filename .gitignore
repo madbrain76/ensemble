@@ -99,3 +99,29 @@ prior_request.json
 
 # .NET intermediate output in active and archived source trees.
 **/obj/
+
+# State the application writes into whatever directory is its data directory.
+# The Go GUI was habitually started from the repository root, so it left its
+# peer registry, one actor home per agent, and the files it received from the
+# browser here. None of it is source: `agents/` is 39 MB of conversation history
+# and job output, and `.ensemble-attachments/` still holds images and a PDF
+# pasted into those sessions. Every one of these is one stray `git add -A` away
+# from being published. The C# launcher keeps its state under
+# ~/.local/share/ensemble-csharp, so they should stop reappearing -- but the
+# launcher falls back to the working directory when no data directory is given,
+# and the Go importer reads a registry from the directory it is pointed at, so
+# the rules stay. Root-anchored: the archived trees under edition-1/ and
+# edition-2/ track their own evidence copies of these names.
+/agents/
+/ensemble.json
+/.ensemble-attachments/
+
+# Output from the browser tier. CrossoverFixture writes .crossover/runtime, and
+# the crossover and startup suites write .crossover/evidence and
+# .crossover/startup next to a 22 MB Firefox profile. Regenerated every run.
+/.crossover/
+
+# A live agent journal (log_version, message_received, ...) left by a run whose
+# working directory was agent/. Same class as save.json and request.json above.
+# The tracked ch02.jsonl files are evidence snapshots under edition-2/.
+/agent/ch02.jsonl
