@@ -1,0 +1,135 @@
+"""Bounded renderer HTTP contract checks against the no-inference GUI fixture.
+Usage: python3 renderer-http-check.py DOTNET GUITESTS_DLL
+"""
+import json
+import hashlib
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.request
+
+
+def main():
+    with tempfile.TemporaryDirectory(prefix="ensemble-renderer-http-") as folder:
+        home = Path(folder)
+        with (home / "host.log").open("wb") as log:
+            process = subprocess.Popen([sys.argv[1], sys.argv[2], "--artifact-renderer-fixture", folder], stdout=log, stderr=subprocess.STDOUT)
+            try:
+                deadline = time.monotonic() + 30
+                while not (home / "url").exists():
+                    if process.poll() is not None or time.monotonic() > deadline:
+                        raise RuntimeError("Fixture failed readiness: " + (home / "host.log").read_text())
+                    time.sleep(.05)
+                base = (home / "url").read_text().strip()
+                origin = base.rstrip("/")
+
+                def request(path, body=None, expected=200, origin_value=origin, header=True):
+                    headers = {}
+                    if origin_value is not None:
+                        headers["Origin"] = origin_value
+                    if header:
+                        headers["X-Ensemble-Renderer"] = "1"
+                    if body is not None:
+                        headers["Content-Type"] = "application/json"
+                    data = body.encode() if isinstance(body, str) else None if body is None else json.dumps(body).encode()
+                    req = urllib.request.Request(base + "renderers/" + path, data=data, headers=headers)
+                    try:
+                        response = urllib.request.urlopen(req, timeout=10)
+                    except urllib.error.HTTPError as error:
+                        response = error
+                    with response:
+                        raw = response.read()
+                        assert response.status == expected, (path, response.status, expected, raw[:200])
+                        return raw
+
+                def selection():
+                    return json.loads(request("selection"))["selection"]
+
+                assert selection() == {"accepted": None, "previous": None}
+                shipped = json.loads(request("shipped"))
+                assert shipped["entry"] == "renderers/list-directory.js"
+                source = Path(__file__).resolve().parents[1] / "skills/file-reading/renderers/list-directory.js"
+                assert shipped["files"] == {shipped["entry"]: source.read_text()}
+                assert selection() == {"accepted": None, "previous": None}, "Source discovery changed selection"
+                for tool in ["read_file", "search_files", "write_file", "edit_file", "tool_default", "prose", "command"]:
+                    query = "?renderer=" + tool
+                    bundled = json.loads(request("shipped" + query))
+                    expected_count = 2 if tool == "command" else 1 if tool in ("search_files", "tool_default") else 3
+                    assert len(bundled["files"]) == expected_count
+                    for name, code in bundled["files"].items():
+                        assert code == (source.parents[2] / name).read_text(), name
+                    staged = json.loads(request("stage" + query, bundled))["version"]
+                    request("accept", {"version": staged, "expected": None}, expected=400)
+                    request(f"packages/{staged}", expected=404)
+                    assert json.loads(request(f"packages/{staged}" + query))["renderer"] == tool
+                    request("accept" + query, {"version": staged, "expected": None})
+                    assert json.loads(request("selection" + query))["selection"]["accepted"] == staged
+                    assert selection()["accepted"] is None
+                    request("rollback" + query, {"expected": staged})
+                    assert json.loads(request("selection" + query))["selection"]["accepted"] is None
+                discovered = json.loads(request("tools"))["tools"]
+                names = {row["name"]: row["renderer"] for row in discovered}
+                for name in ["remote_weather", "command"]:
+                    assert names[name] == "tool-" + hashlib.sha256(name.encode()).hexdigest()
+                assert "peer_only" in names, "Discovery missed another owned Agent"
+                assert sum(row["name"] == "remote_weather" for row in discovered) == 1, "Duplicated shared tool identity"
+                key = names["remote_weather"]
+                query = "?renderer=" + key
+                request("shipped" + query, expected=404)
+                custom = {"entry": "main.js", "files": {"main.js": "export default (doc,text) => {const p=doc.createElement('pre');p.textContent=text;return p;}"}}
+                version = json.loads(request("stage" + query, custom))["version"]
+                assert json.loads(request("selection" + query))["selection"]["accepted"] is None
+                request("accept?renderer=" + names["command"], {"version": version, "expected": None}, expected=400)
+                request("accept?renderer=command", {"version": version, "expected": None}, expected=400)
+                request("accept" + query, {"version": version, "expected": None})
+                assert request(f"modules/{version}/main.js").decode() == custom["files"]["main.js"]
+                request("rollback" + query, {"expected": version})
+                request("tools", expected=403, origin_value="https://untrusted.invalid")
+                request("selection?renderer=tool-" + "0" * 64, expected=400)
+                request("selection?renderer=unknown", expected=400)
+                request("selection?renderer=read_file&renderer=edit_file", expected=400)
+                package = {"entry": "main.js", "files": {"main.js": "import './helper.js'; export default () => document.createElement('pre');", "helper.js": "export const marker = 'one';"}}
+                version = json.loads(request("stage", package))["version"]
+                assert selection()["accepted"] is None, "Staging activated a candidate"
+                assert request(f"modules/{version}/helper.js").decode() == package["files"]["helper.js"]
+                request(f"modules/{version}/absent.js", expected=404)
+                request("accept", {"version": version, "expected": None}, expected=403, origin_value=None)
+                request("accept", {"version": version, "expected": None}, expected=403, origin_value="https://untrusted.invalid")
+                request("accept", {"version": version, "expected": None}, expected=403, header=False)
+                assert selection()["accepted"] is None
+                request("stage", '{"entry":"main.js","entry":"other.js","files":{}}', expected=400)
+                request("stage", {"entry": "../outside.js", "files": {"../outside.js": ""}}, expected=400)
+                request("stage", {"entry": "main.js", "files": {"main.js": "x" * (1024 * 1024)}}, expected=413)
+                request("accept", {"version": version, "expected": None})
+                assert selection()["accepted"] == version
+                package["files"]["helper.js"] = "export const marker = 'two';"
+                second = json.loads(request("stage", package))["version"]
+                assert second != version and selection()["accepted"] == version
+                request("accept", {"version": second, "expected": None}, expected=400)
+                request("accept", {"version": second, "expected": version})
+                assert selection() == {"accepted": second, "previous": version}
+                request("rollback", {"expected": second})
+                assert selection() == {"accepted": version, "previous": second}
+                snapshot = home / "renderers" / "versions" / (second + ".json")
+                snapshot.write_bytes(snapshot.read_bytes() + b" ")
+                request(f"modules/{second}/main.js", expected=400)
+                request("accept", {"version": second, "expected": version}, expected=400)
+                assert selection()["accepted"] == version
+                print("PASS renderer HTTP: inert stage, exact modules, origin/header guards, bounded/strict parsing, stale refusal, acceptance, rollback, tamper refusal")
+            finally:
+                (home / "stop").touch()
+                try:
+                    code = process.wait(timeout=20)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                    raise RuntimeError("Fixture required forced cleanup")
+                assert code == 0, ("Fixture failed", code, (home / "host.log").read_text())
+                print("PASS fixture host joined")
+
+
+if __name__ == "__main__":
+    main()

@@ -15,9 +15,13 @@ const render = source.slice(source.indexOf('// Coalesce streamed chunks'), sourc
   await page.addStyleTag({path:path.join(root,'style.css')});
   await page.addScriptTag({content:`const transcript=document.querySelector('#transcript'), toolTranscript=document.querySelector('#tools');
    const settings={human_name:'Bill'}, agentRows=[{key:'agent',id:'Cadence'}], speech=true, transcriptSpeech=false;
+   // This page is not replaying a durable history; render() asks for that fact.
+   let replaying=false; const cards=new Map(), agentID='agent';
    function actionButton(label,handler){const b=document.createElement('button');b.className='btn icon-button';b.onclick=handler;return b;}
    function setButtonIcon(b){b.textContent='▶';} function speak(card){window.spoken=card.text;}
-   function markdown(body,text){const p=document.createElement('p');p.textContent=text;body.append(p);}
+   // render() takes prose through the shipped renderer chain. Without it every
+   // card would silently measure the literal text fallback, not the layout here.
+   window.EnsembleArtifactRenderers={prose:(body,text)=>{const p=document.createElement('p');p.textContent=text;body.append(p);}};
    function fullOutputLinks(){} ${render}
    window.draw=(role)=>{transcript.replaceChildren();window.card={node:document.createElement('article'),role,kind:'text',agent:'agent',text:'Short message',status:''};render(card);};`});
   for(const width of [320,1200]) for(const size of [18,28]) for(const role of ['human','assistant']) {

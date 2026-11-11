@@ -29,14 +29,15 @@
 <link rel="stylesheet" href="./style.css">
 <script src="./vendor/bootstrap-5.3.8.bundle.min.js" defer></script>
 <script src="./speech.js" defer></script><script src="./mcp.js" defer></script>
-<script src="./vendor/markdown-it-14.1.0.min.js" defer></script>
-<script src="./markdown.js" defer></script>
 <script src="./images.js" defer></script><script src="./theme.js" defer></script><script src="./speech-preferences.js" defer></script><script src="./device-preferences.js" defer></script><script src="./app.js" defer></script><script src="./layout.js" defer></script>
 <script src="./auth.js" defer></script><script src="./peers.js" defer></script>
 <script src="./settings.js" defer></script>
+<script src="./renderers.js" defer></script>
 </head><body>
 <!-- Local decorative symbols. Interactive controls own their accessible names. -->
 <svg class="icon-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false"><defs>
+ <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+ <symbol id="icon-pair" viewBox="0 0 24 24"><path d="M9 4 3 10l6 6M3 10h11a6 6 0 0 1 6 6v4"/></symbol>
  <symbol id="icon-speaker" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4Z"/><path d="M15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol>
  <symbol id="icon-speaker-off" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4ZM16 9l5 6m0-6-5 6"/></symbol>
  <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M20.9 13.1A9 9 0 0 1 10.9 3.1 9 9 0 1 0 20.9 13.1Z"/></symbol>
@@ -81,11 +82,14 @@
  <a id="relay-link" class="btn icon-button" target="_blank" rel="noopener noreferrer" aria-label="Open selected Agent in a separate relay tab" title="Open selected Agent in a separate relay tab" hidden>↗</a>
  <button class="btn btn-quiet" id="peer-cancel" type="button" hidden>Cancel creation</button></div>
  <div id="peer-notice" class="notice" role="status"></div>
+ <section id="saved-peers" hidden aria-label="Saved agents awaiting recovery"><h3>Saved agents not running</h3>
+ <p>Choose a model and retry. Conversations are retained.</p><div id="saved-peer-list"></div></section>
  <dialog id="peer-dialog" class="peer-dialog" aria-labelledby="peer-dialog-title">
  <form id="peer-form"><h2 id="peer-dialog-title">Create Agent</h2>
  <label class="form-label" for="peer-name">Name</label><input class="form-control" id="peer-name" required pattern=".*\S.*" title="Enter an Agent name." autocomplete="off">
- <label class="form-label" for="peer-model">Model (optional)</label><input class="form-control" id="peer-model" autocomplete="off">
- <label class="form-label" for="peer-skill">Primary skill (optional)</label><input class="form-control" id="peer-skill" autocomplete="off">
+ <label class="form-label" for="peer-model">Model</label><select class="form-select" id="peer-model"><option value="">Inherit mounted Agent’s model</option></select>
+ <label class="form-label" for="peer-skill">Primary skill</label><select class="form-select" id="peer-skill"><option value="">Inherit mounted Agent’s primary skill</option></select>
+ <p id="peer-choice-status" role="status"></p>
  <div class="dialog-actions"><button class="btn btn-quiet" id="peer-close" type="button">Cancel</button><button class="btn btn-primary" id="peer-create" type="submit">Create</button></div>
  </form></dialog>
 </section></div>
@@ -134,9 +138,19 @@
  </nav>
  <div class="tab-content settings-body" id="settings-panel">
 <section class="tab-pane active show" id="settings-ai-panel" role="tabpanel" aria-labelledby="settings-ai-tab" tabindex="0">
-<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">Selected Agent’s AI settings</h2><p id="model-help">The header selects a same-provider session model between turns. Capabilities do not prove entitlement. Funding is fixed; launch configuration wins on restart.</p>
+<section class="settings-section" aria-labelledby="ai-heading"><h2 id="ai-heading">Selected Agent’s AI settings</h2><p id="model-help">The header selects a model between turns. Its saved selection survives restart. Choose default funding below; changing a default does not retarget running Agents. Select the model again to apply the new default.</p>
+ <fieldset><legend>Default model funding</legend><p>Each model appears once. Choose which configured funding source to use for future model selections. Changes save automatically.</p>
+ <div id="funding-choices"></div><p id="funding-status" role="status"></p>
+ <button class="btn btn-quiet" id="funding-refresh" type="button">Refresh funding</button></fieldset>
  <label>Tool batches per turn <input class="form-control" id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
- <label>Context target <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
+ <label>Tool-result stubbing budget <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
+<fieldset id="working-context-settings"><legend>Per-model working context</legend>
+<p id="working-context-model"></p>
+<label>Working limit <input class="form-control" id="working-context-tokens" type="number" min="1" step="1"> input tokens</label>
+<label>Capacity ceiling <input class="form-control" id="context-capacity-tokens" type="number" min="1" step="1" placeholder="Unknown"> input tokens (blank = unknown)</label>
+<p>80%: one reminder. 90%: reminder on every model request. 100%: automatic completed handoff. Raise the working limit before a deliberate large review. These percentages use the last reported request, not a prediction; a capacity ceiling validates the setting but cannot guarantee the next request fits.</p>
+<button type="button" id="save-working-context">Save model limits</button>
+</fieldset>
 <details id="usage-details"><summary>Usage totals and estimate limits</summary>
   <p id="usage-totals">Waiting for the current process meter.</p>
   <p>Cost is an estimate for verified model and service-tier prices, not an invoice. ? means unknown, not zero. Failed or cancelled requests may incur charges not observed here. Restored conversation does not restore these process totals.</p>
@@ -168,6 +182,35 @@
 </section>
 </section>
 <section class="tab-pane" id="settings-display-panel" role="tabpanel" aria-labelledby="settings-display-tab" tabindex="0">
+<section class="settings-section" aria-labelledby="renderer-heading">
+<h2 id="renderer-heading">Artifact renderers</h2>
+<p>Custom JavaScript runs with this page’s authority, not in a sandbox. Review the entry and helpers before trying it. An unaccepted trial ends on reload.</p>
+<label for="renderer-tool">Output renderer</label>
+<select id="renderer-tool" class="form-select">
+<option value="list_directory">Directory listing</option><option value="read_file">Read file</option>
+<option value="search_files">Search files</option><option value="write_file">Write file</option>
+<option value="edit_file">Edit file</option>
+<option value="command">Continuing command output</option>
+<option value="prose">Chat and readable thinking</option>
+<option value="tool_default">Default tool output</option>
+</select>
+<label for="renderer-package">Candidate package (JSON, at most 1 MiB)</label>
+<p><a id="renderer-download" href="./renderers/shipped" download="list-directory-renderer.json">Download embedded build renderer source package</a>. This is source data, not permission to execute it; disk asset overrides are not included.</p>
+<input class="form-control" id="renderer-package" type="file" accept=".json,application/json">
+<label for="renderer-version">Candidate version</label>
+<input class="form-control" id="renderer-version" type="text" maxlength="64" autocomplete="off" spellcheck="false">
+<div class="controls">
+<button type="button" id="renderer-review">Review candidate</button>
+<button type="button" id="renderer-try" disabled>Try live</button>
+<button type="button" id="renderer-keep" disabled>Keep this version</button>
+<button type="button" id="renderer-revert">Revert trial by reloading</button>
+<button type="button" id="renderer-rollback" disabled>Restore prior accepted version</button>
+</div>
+<p id="renderer-status" role="status">Loading renderer selection…</p>
+<details><summary>Candidate source and dependencies</summary><pre id="renderer-source"></pre></details>
+<p><a id="renderer-safe" href="?renderers=shipped">Reload with shipped renderers only</a></p>
+</section>
+
 <section class="settings-section" aria-labelledby="accessibility-heading"><h2 id="accessibility-heading">This browser: Speech &amp; Display</h2><p>Saved in this browser profile for this site. Tabs share preferences; other profiles and devices do not. If storage is blocked, changes last for this page only.</p>
  <label>Theme (this browser) <select class="form-select" id="theme"><option value="system" selected>System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
  <label>Font size (this browser) <input class="form-control" id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
@@ -193,9 +236,10 @@
 <p>Session only. Load the goals skill first. Off retains the goal instructions; Clear removes them. Neither means completed.</p>
 <form id="goal-form">
 <label>Goal file <input class="form-control" id="goal-file" type="text" autocomplete="off"></label>
-<label>Idle delay (seconds) <input class="form-control" id="goal-delay" type="number" min="0.001" max="4294967.294" step="any" value="480"></label>
-<label><input class="form-check-input" id="goal-enabled" type="checkbox">Enable idle reminders</label>
+<p>Continue when the Agent returns to idle. Failed model turns retry after 1, 10, 100, then 1,000 seconds; success resets the backoff. Retries inspect recorded work, not blindly repeat effects.</p>
+<label><input class="form-check-input" id="goal-enabled" type="checkbox">Enable continuation on idle</label>
 <button class="btn btn-outline-primary" id="goal-apply" type="submit">Apply goal</button>
+<button class="btn btn-outline-primary" id="goal-retry" type="button">Retry now</button>
 <button class="btn btn-outline-primary" id="goal-off" type="button">Reminders off</button>
 <button class="btn btn-outline-primary" id="goal-clear" type="button">Clear goal</button>
 <button class="btn btn-outline-primary" id="goal-reload" type="button">Reload acknowledged goal</button>

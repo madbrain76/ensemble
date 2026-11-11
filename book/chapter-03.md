@@ -185,12 +185,27 @@ method. An ordered list is sufficient. There is no mutable global registry,
 service interface, or delegate field linking these partial declarations to their
 bodies. The C# compiler does that linking.
 
+`Tool.ExecuteAsync(call)` is receiver-bound. Compare the call name with that
+Tool's name using ordinal equality before executing or dispatching it. A mismatch
+returns an `IsError` result with the original call ID and no effects; do not
+invoke a different registered Tool. `Agent.DispatchAsync(call)` is the distinct
+name-based selector. Keeping that distinction matters when Jobs arrive next.
+
 Declaration is a projection, not another authoritative schema. Anthropic uses
 `input_schema`, OpenAI uses `function.parameters`, and Gemini uses
 `functionDeclarations[].parameters`. Build a fresh tree for each request.
 Recursively project Gemini's schema vocabulary, including nested `properties`
 and `items`; never mutate the stored JSON Schema or assume copying it verbatim
-will satisfy every provider. Test unsupported-key removal and repeat rendering
+will satisfy every provider. Gemini's `parameters` field is its `Schema` form:
+its documented type enum uses names such as `OBJECT`, `STRING`, and `ARRAY`.
+This differs from `parametersJsonSchema`, the mutually exclusive JSON Schema
+form, whose type strings stay lowercase (`"object"`, `"string"`, `"array"`).
+Do not uppercase a JSON Schema document or send both parameter fields. The
+public grader accepts documented `OBJECT` for Gemini `parameters`, retaining
+lowercase `object` there for historical compatibility; that compatibility is
+not a claim that every casing is valid on the live API. See Google's
+[FunctionDeclaration and Schema reference](https://ai.google.dev/api/caching#FunctionDeclaration).
+Test unsupported-key removal and repeat rendering
 for another vendor to catch accidental mutation.
 
 The loop itself:
@@ -273,6 +288,75 @@ unanswered. Removing the shortcut also required its inherited Chapter 2 fake
 to finish the new protocol with a final reply. Extend the fake's conversation;
 keep its existing provenance and replay assertions.
 
+### Preserve typed result metadata
+
+A tool result can carry more than readable text. Keep immutable delivery metadata
+separate from its prose, and preserve it through the Agent's recorded event and
+result projections. Chapter 26 uses this seam for work-product offers: an opaque
+ID, display filename and size when offered accompany a successful result. A path
+or URL-looking string in ordinary prose cannot create that metadata or authorize
+a download. Error results cannot advertise a successful offer.
+
+At this chapter's synchronous boundary, preserve typed result metadata when
+recording a returned result and projecting it into retained Context. Do not add
+Jobs or background observation to satisfy this section. Chapter 4 extends the
+same preservation rule to completed structured Job results and one-shot
+observation notices; a running report has no completed offer yet.
+
+Provider rendering consumes the ordinary description, not the opaque download
+identifier. Retained metadata is a description, not restored live authority.
+Chapter 26 constructs the owning Agent's live offer collection, the offer tool
+and download integration after the Sandbox and browser boundaries exist. None of
+those live download capabilities is part of this chapter's six-tool exercise.
+
+### The early metadata contract
+
+Add an immutable `WorkProductInfo` value with readonly `ID` and `Name` strings
+and readonly `OfferedBytes` (`long`). Its constructor is
+`WorkProductInfo(string id, string name, long offeredBytes)`. An ID contains
+exactly 32 ASCII hexadecimal characters. A name is a nonblank basename: reject
+control characters, `/`, `\`, `.` and `..`. Offered bytes must be between zero
+and 64 MiB inclusive (64 × 1024 × 1024). These checks validate a description;
+they neither check for a file nor create permission to read one.
+
+Extend `ToolResultPart` and `Event` with a readonly nullable `WorkProduct` field
+and an optional named constructor argument `workProduct`, defaulting to null.
+Keep existing constructor calls valid. In this chapter, only a successful
+`ToolReturned` event may carry that event-level metadata. An error result or
+error event carrying an offer must refuse construction. The six built-in tools
+continue to return null metadata; use synthetic values to test this seam.
+
+Expose single-part conversion on the public `JsonCodec` partial alongside the
+existing event and array codecs. Declare these methods in Common and implement
+them in the matching serialization partial:
+
+```csharp
+public static partial JsonObject WritePart(Part part);
+public static partial Part ReadPart(JsonElement value);
+```
+
+`JsonObject` comes from `System.Text.Json.Nodes`; `JsonElement` comes from
+`System.Text.Json`. If the prerequisite only exposes array codecs, factor their
+single-part behavior into these methods and reuse it from the array methods.
+Keep existing array and event callers valid; do not create two competing part
+codecs. The outside-assembly supplement calls these public methods directly.
+
+The public JSON vocabulary adds `work_product` to a tool-result part and to the
+`tool` object of a returned event. Its value is an object with `id`, `name`, and
+`offered_bytes`. Missing or null metadata reads as null for older logs. Preserve
+all three fields through part/event codecs, `Event.Numbered`, and reduction of
+a returned event into its `ToolResultPart`. A round-trip must not turn a
+pathname in ordinary text into metadata. Result redaction removes the offer
+description with the payload, without mutating the original Context.
+
+Render otherwise identical Contexts with and without this metadata through the
+three Chapter 2 provider routes. Their complete requests must be equal, while
+the ordinary call and result text must still be present. This is retained
+inspection data, not another provider part. Do not add an offer tool, live offer
+collection, Job API, or file-opening operation to implement this value contract.
+The historical CLI grader cannot inspect this library-only seam; its score is
+not evidence that these additional obligations passed.
+
 ## 3.3 Six tools, and three named
 
 | tool | share of corpus | shape |
@@ -305,6 +389,32 @@ file floods the context window, and you pay for those tokens on every
 subsequent turn of the conversation, because Chapter 2 sends the whole
 history every time. The tool that reads is also the tool that decides how
 much of the window to spend.
+
+Return actual one-based file line numbers in the model-facing text, not only in
+a future GUI gutter. Prefix each source line with its decimal number and `: `.
+For a read of lines 20–22, the result might be:
+
+```text
+20:     if (ready)
+21:
+22:         Run();
+```
+
+The blank line still has a number. Preserve indentation and original line
+terminators after the prefix; do not invent a final empty line after a trailing
+newline. An empty file or a range beyond EOF returns no source lines. These
+prefixes are presentation, not file bytes: `edit_file` still takes exact unique
+text anchors, without the number or separator. Line numbers help the model
+navigate and explain an edit; matching the original text makes the edit apply
+only where that text still exists.
+
+Apply `max_bytes` to the selected source's UTF-8 bytes before adding prefixes.
+Back up to a complete UTF-8 character when clipping, and append an unnumbered
+`[truncated]` notice rather than implying the last shown line is complete.
+Number prefixes and that notice are additional presentation bytes. Chapter 4's
+Job observation cap separately bounds the overall report. Any structured source
+evidence for a later renderer retains the unnumbered captured text and its actual
+starting line, so the GUI does not number the same source twice.
 
 `search_files` earns its ten percent because an agent that cannot grep cannot
 find what to read; it is what makes `read_file` usable on a codebase bigger
@@ -349,9 +459,9 @@ while a missing field or `null` is not one.
 | tool | required fields | optional fields and behavior |
 | --- | --- | --- |
 | `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately; optional `cwd` string applies only to that call |
-| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps returned text and reports truncation |
+| `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps selected source bytes before `N: ` line prefixes and reports truncation |
 | `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
-| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
+| `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; optional `exclude` glob array (see below); matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
 | `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
 | `list_directory` | `path` string | list the immediate entries, rather than recursively filling the response |
 
@@ -365,6 +475,35 @@ Keep these choices visible in the tool descriptions so the model can use them.
 matches, or multiple matches (including overlapping sites), with no write.
 Name the path and tell the model to read and choose an exact unique anchor.
 Refusal is not a miniature automatic patcher.
+
+Search scope should be explicit. Add an optional `exclude` array, for example:
+
+```json
+{"path":".","pattern":"TODO","exclude":[".git/","node_modules/","*.min.js"]}
+```
+
+Omitting the array or passing `[]` preserves inclusive recursive search, including
+dotfiles. Do not silently read `.gitignore`. Patterns without slashes match entry
+names at any depth; patterns containing slashes match paths relative to the
+requested root. A trailing `/` matches directories only and prunes their entire
+subtree. An explicitly requested file remains searchable despite exclusions.
+
+Keep the glob language small: `*` matches zero or more characters within a path
+component, `?` matches one, and a whole-component `**` matches zero or more
+components. Use `/` separators and case-sensitive matching on every platform.
+For example, `src/generated/` prunes that particular subtree, while
+`**/generated/` prunes generated directories at any depth. These are globs for
+file selection; `pattern` remains the regex for file contents.
+
+Validate the complete list before traversal: at most 64 strings, each 1–256
+characters. Refuse absolute paths, empty or dot/dot-dot components, backslashes,
+control characters, bracket/brace classes, negation and embedded double-stars.
+Compile the supported patterns once into non-backtracking matchers; do not
+implement Git's ignore precedence or add another configuration system. Apply
+exclusions to discovered entries before descending or opening their contents.
+Sandbox checks still own filesystem authority. Exclusions control search scope,
+not security. Test omitted and empty lists, dotfiles, nested directory pruning,
+relative paths, wildcard names, direct-file override and malformed patterns.
 
 Some Gemini replies attach opaque signatures to visible text as well as calls.
 Keep each signature attached to its original part, serialize it with provenance,
@@ -740,6 +879,32 @@ library tests and source-review obligations; a CLI-only grader cannot inspect
 an unexposed library configuration. The original student's result remains
 90/100 FAIL, accepted with the inherited media-scope exception and all nine
 new checks passing. Correcting the grader does not rewrite that result.
+
+### Numbered-read supplemental acceptance
+
+Run the same outside-assembly consumer described below with `read-lines`.
+Require its `chapter3-read-lines-v1` receipt, exit zero, and every named check.
+It executes the public tool against disposable files without a provider. The
+checks cover actual range offsets, blank lines, indentation, CRLF, Unicode
+clipping, empty selections, trailing newline handling, and default versus explicit
+source caps. The historical `readtools` score does not establish this newer
+numbered-output contract; this supplement adds no historical points.
+
+### Retained-metadata supplemental acceptance
+
+Run the [outside-assembly metadata consumer](../internal/gradeedition3/testdata/ch03-metadata-consumer/README.md)
+against your candidate `Ensemble.dll`, using the existing offline .NET SDK and
+fresh owned output directories. It checks the early contract above without
+requiring Jobs, Sandbox, GUI, or live offers. Its separate `library` mode checks
+empty-registry omission, independent Agent ownership, fresh declaration trees,
+and destruction through the public Tool API. Run those modes, then `log-write`
+and `log-read` as separate processes in the same fresh workspace. The reader must
+load the completed writer's actual files, preserving the description through
+canonical events, restored Context, and a subsequent dump. Keep all named
+receipts separately from the historical 100-point report. Add focused tests and
+source review that show synchronous result recording preserves the optional
+metadata; the consumer alone does not execute your tool loop. No points are added
+to the historical grader by this supplement.
 
 ### What would still pass if I deleted this?
 

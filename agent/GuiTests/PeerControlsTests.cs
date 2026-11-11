@@ -42,10 +42,19 @@ static class PeerControlsTests
         Directory.CreateDirectory(work);
         Console.WriteLine("Peer controls workspace: " + work);
         string skills = Path.Combine(work, "skills");
-        foreach (string skill in new[] { "plain", "browser" }) Directory.CreateDirectory(Path.Combine(skills, skill));
+        foreach (string skill in new[] { "plain", "browser", "extra" }) Directory.CreateDirectory(Path.Combine(skills, skill));
         File.WriteAllText(Path.Combine(skills, "plain", "SKILL.md"), "---\nname: plain\ndescription: Plain\ntype: primary\n---\nPlain\n");
         File.WriteAllText(Path.Combine(skills, "browser", "SKILL.md"), "---\nname: browser\ndescription: Browser\ntype: primary\ntools: page_echo\nmcp_servers:\n  - name: page\n    transport: websocket\n---\nBrowser\n");
+        File.WriteAllText(Path.Combine(skills, "extra", "SKILL.md"), "---\nname: extra\ndescription: Loadable only\ntype: loadable\n---\nExtra\n");
         var root = new Ensemble.Ensemble(TextWriter.Null, dataDirectory: Path.Combine(work, "fleet"));
+        string globalPath = Path.Combine(work, "global.json");
+        var globalSettings = new GlobalSettings(root, globalPath);
+        var localAuth = new ModelAuthentication(root, "local");
+        var localVendor = new ModelVendor(root, "ollama", "Ollama");
+        var localEndpoint = new ModelEndpoint(localVendor, "test", "http://127.0.0.1:2",
+            Surface.ChatCompletions, localAuth);
+        var localModel = new Model(localEndpoint, "mimo", "fixture-mimo", "MiMo fixture",
+            new ModelFeatures(Media.None), servingContextTokens: 4096);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(50));
         var token = deadline.Token;
         var source = new Agent(root, new Configuration(Vendor.OpenAI, "offline", "http://127.0.0.1:1"),
@@ -86,6 +95,25 @@ static class PeerControlsTests
         try
         {
             await host.StartAsync(token);
+            using (var denied = await http.GetAsync(url + "/assistant/peers/choices", token))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Unguarded choices request was accepted");
+            using (var request = new HttpRequestMessage(HttpMethod.Get, url + "/assistant/peers/choices"))
+            {
+                request.Headers.Add("X-Ensemble-Peers", "1");
+                request.Headers.Add("Origin", url);
+                using var response = await http.SendAsync(request, token);
+                Check(response.StatusCode == HttpStatusCode.OK && response.Headers.CacheControl?.NoStore == true,
+                    "Choices were unavailable or cacheable");
+                using var choices = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
+                var offered = choices.RootElement.GetProperty("configured_models").EnumerateArray().Single();
+                Check(offered.GetProperty("vendor").GetString() == "Ollama"
+                    && offered.GetProperty("enabled").GetBoolean()
+                    && JsonCodec.ReadModelIdentity(offered.GetProperty("offering")) == localModel.Identity(),
+                    "Choices lost the configured vendor or offering identity");
+                Check(choices.RootElement.GetProperty("primary_skills").EnumerateArray()
+                    .Select(value => value.GetProperty("name").GetString()).SequenceEqual(new[] { "browser", "plain" }),
+                    "Primary choices must exclude loadable templates");
+            }
             await Expect("create", "{\"name\":\"bad\"}", HttpStatusCode.Forbidden, header: null);
             await Expect("create", "{\"name\":\"bad\"}", HttpStatusCode.Forbidden, origin: "http://foreign.example");
             await Expect("create", "{\"name\":\"bad\"}", HttpStatusCode.BadRequest, hostHeader: "foreign.example:" + port);
@@ -102,6 +130,75 @@ static class PeerControlsTests
             using (var get = await http.GetAsync(url + "/assistant/peers/create", token))
                 Check(get.StatusCode == HttpStatusCode.MethodNotAllowed, "Mutation accepted GET");
 
+            string offeringJson = JsonCodec.WriteModelIdentity(localModel.Identity()).ToJsonString();
+            await Expect("create", "{\"name\":\"local-peer\",\"offering\":" + offeringJson
+                + ",\"skill\":\"plain\"}", HttpStatusCode.OK, origin: url);
+            var local = root.FindAgent("local-peer")!;
+            Check(ReferenceEquals(local.SelectedModel(), localModel)
+                && local.Configuration().Billing == BillingMode.None && source.Configuration().Model == "offline",
+                "Qualified creation did not select the complete local route independently");
+            await Expect("delete", "{\"name\":\"local-peer\"}", HttpStatusCode.OK);
+            Check(globalSettings.FundingDefaults().IsEmpty, "Creating an Agent changed global funding.");
+            async Task<HttpResponseMessage> Funding(string body, string? origin = null, bool header = true)
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, url + "/assistant/models/funding");
+                request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+                if (header) request.Headers.Add("X-Ensemble-Peers", "1");
+                if (origin is not null) request.Headers.Add("Origin", origin);
+                return await http.SendAsync(request, token);
+            }
+            string fundingBody = "{\"offering\":" + offeringJson + "}";
+            using (var denied = await Funding(fundingBody, header: false))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Funding change lacked guard.");
+            using (var denied = await Funding(fundingBody, origin: "https://foreign.example"))
+                Check(denied.StatusCode == HttpStatusCode.Forbidden, "Cross-origin funding change accepted.");
+            using (var saved = await Funding(fundingBody, origin: url))
+                Check(saved.StatusCode == HttpStatusCode.OK, "Funding settings save failed.");
+            Check(globalSettings.FundingDefaults()["ollama"] == "local" && source.SelectedModel() is null,
+                "Funding save did not persist independently of the active model.");
+            byte[] savedFunding = File.ReadAllBytes(globalPath);
+            using (var held = new FileStream(globalPath + ".lock", FileMode.OpenOrCreate,
+                FileAccess.ReadWrite, FileShare.None))
+            using (var refused = await Funding(fundingBody))
+            {
+                Check(refused.StatusCode == HttpStatusCode.Conflict, "Locked funding write was accepted.");
+                Check(File.ReadAllBytes(globalPath).SequenceEqual(savedFunding), "Refused funding save changed defaults.");
+            }
+            // Existing legacy peers can be repaired independently while this GUI stays live.
+            var stoppedPeer = await root.CreatePeerAsync(source, "recover-me", cancellation: token);
+            stoppedPeer.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+                parts: [new TextPart("Recovered conversation")]));
+            await stoppedPeer.ShutdownAsync();
+            stoppedPeer.Destroy();
+            using (var request = new HttpRequestMessage(HttpMethod.Get, url + "/assistant/peers/saved"))
+            {
+                request.Headers.Add("X-Ensemble-Peers", "1");
+                using var response = await http.SendAsync(request, token);
+                string listed = await response.Content.ReadAsStringAsync(token);
+                Check(response.IsSuccessStatusCode && listed.Contains("recover-me"), "Stopped peer missing from recovery UI.");
+            }
+            await Expect("restore", "{\"name\":\"recover-me\",\"offering\":" + offeringJson + "}", HttpStatusCode.OK);
+            Check(ReferenceEquals(root.FindAgent("recover-me")!.SelectedModel(), localModel), "HTTP recovery lost explicit route.");
+            Check(JsonCodec.Text(root.FindAgent("recover-me")!.History().View().Dialogue.SelectMany(entry => entry.Parts))
+                .Contains("Recovered conversation"), "HTTP recovery lost conversation.");
+            await Expect("restore", "{\"name\":\"recover-me\"}", HttpStatusCode.Conflict);
+            await Expect("delete", "{\"name\":\"recover-me\"}", HttpStatusCode.OK);
+            const string preferenceJson = "{\"vendor\":\"ollama\",\"model\":\"fixture-mimo\"}";
+            await Expect("create", "{\"name\":\"preferred-peer\",\"preference\":" + preferenceJson
+                + ",\"skill\":\"plain\"}", HttpStatusCode.OK);
+            Check(ReferenceEquals(root.FindAgent("preferred-peer")!.SelectedModel(), localModel)
+                && source.SelectedModel() is null, "Remembered funding did not create an independent configured peer");
+            await Expect("delete", "{\"name\":\"preferred-peer\"}", HttpStatusCode.OK);
+            File.WriteAllText(globalPath, "{\"model_funding_defaults\":{\"ollama\":\"missing\"}}");
+            await Expect("create", "{\"name\":\"missing-funding\",\"preference\":" + preferenceJson + "}",
+                HttpStatusCode.Conflict);
+            Check(root.FindAgent("missing-funding") is null, "Unavailable funding created a peer through fallback");
+            await Expect("create", "{\"name\":\"mixed-choice\",\"preference\":" + preferenceJson
+                + ",\"offering\":" + offeringJson + "}", HttpStatusCode.BadRequest);
+            globalSettings.RememberFunding(localModel);
+            await Expect("create", "{\"name\":\"conflict\",\"model\":\"offline\",\"offering\":"
+                + offeringJson + "}", HttpStatusCode.BadRequest);
+            await Expect("create", "{\"name\":\"bad-offering\",\"offering\":null}", HttpStatusCode.BadRequest);
             await Expect("create", "{\"name\":\"plain-peer\",\"model\":\"chosen-model\"}", HttpStatusCode.OK, origin: url);
             var plain = root.FindAgent("plain-peer")!;
             Check(plain.Configuration().Model == "chosen-model" && File.Exists(Path.Combine(plain.DataDirectory(), "save.json")), "Creation acknowledged before durable startup");

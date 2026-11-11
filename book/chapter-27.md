@@ -1,1150 +1,609 @@
-# Chapter 27: Crossing Over to Ensemble
-
-“I gave Astra a book. Astra gave me an AI coding agent.”
-
-That is how I described the earlier crossover. The book included graders. Astra
-built Ensemble while working in Codex, and then I began working with Astra inside
-the agent we had built. The next edition was built inside Ensemble. The loop
-closed, but closing it once did not make every later replacement ready to use.
-
-When I opened the C# edition, I saw settings above a conversation, arranged in one
-long column. There was no useful agent tree in the interface I was looking at.
-The controls and the tests existed; the application did not yet feel like the
-place where I could do my work. I asked for a real GUI.
-
-That is not cosmetic work to do after the engineering. It is engineering. I can
-hardly see, and I listen quickly. If I cannot find the selected agent, hear the
-right answer, follow the explanation beside the tool results, or interrupt work
-without guessing which control will move next, the application is not ready to
-replace the one I use now.
-
-This is the final implementation chapter. Its result is a replacement candidate
-and a safe way for the human to evaluate it. The crossover is complete when the
-human accepts that candidate for ordinary work, not when the student declares it
-finished, and not when an author adds up earlier test counts.
-
-## TL;DR: finish the replacement, not another demonstration
-
-Start from the completed C# application in `agent`. Do not
-rebuild it from nothing or transplant the old Go GUI. Implement the missing
-crossover work, using the ownership and behavior established in the preceding
-chapters:
-
-1. Make the GUI a coherent, accessible three-pane application using the approved
-   Bootstrap control system and graphite/blue design direction below, with a
-   stable status bar, agent tree, settings, chat, and tool artifacts.
-2. Provide an ordinary foreground `start` launcher and actionable startup errors.
-   Make it possible to run beside the current application without stopping it.
-3. Verify the real browser, actor, persistence, and shutdown paths with owned
-   local resources. A screenshot alone does not verify a control; a socket test
-   alone does not verify a usable interface.
-4. Prepare a safe, explicitly armed crossover and rollback procedure. The
-   current application and its data remain recoverable throughout the trial.
-5. Give the human a runnable candidate, clear instructions, the tests you actually
-   performed, and the limitations that still need human or live-provider work.
-
-This is the only crossover chapter in Edition 3. The earlier historical
-crossover chapters have been removed and the manuscript renumbered sequentially.
-Preserved source endpoints and grader commands retain their original names;
-see the numbering map in [the edition guide](README.md). Earlier editions remain
-historical records, not files to edit here.
-
-## In plain words: one system, a better place to use it
-
-The GUI is a projection and control surface over the existing application.
-Ensemble owns Agents; Agents own their work, History, Engine, and related
-services. The browser does not become a scheduler, credential owner, transcript,
-model registry, memory database, or usage meter because it needs a nicer display.
-
-Begin by reading the current implementation. The existing GUI has peer creation
-and deletion, an agent selection protocol, model changes, settings acknowledgments,
-usage, memory and recall controls, Goals, speech, and tool-card rendering. Most of
-the work is to arrange and connect those capabilities well. Replace an awkward
-presentation, not a correct ownership model.
-
-C# changes still follow the Common/implementation structure. Common declares
-persistent state, relationships, and externally callable operations; functional
-modules implement them. Real parents provide access to services. Destruction
-completes both ends of relationships. Value-like display data need not acquire
-invented lifecycle machinery. Explain any necessary vocabulary change before
-implementing it; ordinary work within the agreed model needs no per-function
-permission.
-
-Teaching code must remain readable. Comment relationships, contracts, and
-non-obvious browser lifecycle decisions. Use the approved component library
-below; do not build another framework, configuration language, second event bus,
-or collection of copied state around it. Keep the existing HTML/JavaScript
-integration and C# host rather than adding a React or Vue rewrite merely to use
-styled controls.
-
-## Required GUI reading
-
-Before implementing this crossover, read the complete original
-[Chapter 8, “Build Your Dream GUI”](../edition-2/book/chapter-08.md), as well as the current
-[C# Chapter 8](chapter-08.md). The original chapter explains the design intent
-and why using the interface matters; this chapter is not a substitute for it.
-Check your candidate against that intent and its still-applicable behavior.
-
-Earlier Go names, grader routes, and superseded implementation details are
-historical, not instructions to replace the current C# architecture. Current
-contracts and this chapter's safety boundaries govern. If the readings expose a
-genuine conflict, explain it rather than silently choosing a convenient version.
-Do not edit the earlier edition. Report the relevant checks in your handoff.
-
-## The selected control system and visual direction
-
-The first crossover candidate improved the layout, but I still found it ugly.
-“Good enough for now” was not an endorsement of its design or acceptance as my
-replacement. We compared two interactive component-library samples. I chose
-**Sample B: Bootstrap**, with a graphite background and blue accents, rather than
-the navy/teal Web Awesome sample. Do not reopen that choice as an unspecified
-framework-selection task or continue polishing the first candidate's homemade
-control system.
-
-Use **Bootstrap 5.3.8**, the stable version used in that sample. Its CSS and
-JavaScript supply the common control vocabulary: genuine tabs, buttons, forms,
-menus where needed, and consistent focus/disabled states. Read the
-[official Bootstrap 5.3 documentation](https://getbootstrap.com/docs/5.3/getting-started/introduction/)
-and [distribution instructions](https://getbootstrap.com/docs/5.3/getting-started/download/).
-Pin the dependency and retain its MIT license and provenance. Bundle the required
-assets locally with the optional GUI; do not depend on a runtime CDN, remote
-fonts, or an unrequested package installation. A Node build system is not needed
-just to use the published browser assets. Use one control system, not Bootstrap
-alongside a second component library.
-
-The temporary localhost sample is not a required service or an answer key. These
-are its durable design requirements:
-
-- **Graphite surfaces, light text, blue accents.** The selected sample used dark
-  page `#15191f`, pane surface `#1f252e`, raised surface `#29323f`, main text
-  `#f1f4f9`, secondary text `#bbc6d5`, border `#455365`, accent `#a8c8ff`, and
-  selected background `#263e64`. Use these as the initial application palette;
-  verify actual foreground/background combinations rather than assuming the
-  library guarantees contrast. The light counterpart used `#f5f6f9`, white,
-  `#e9edf5`, text `#17253b`, secondary text `#4a5c75`, and accent `#2359a6`.
-- **A quiet shell and a clear hierarchy.** Compact status controls, aligned pane
-  headings, consistent spacing, and breathing room around messages. Give the
-  conversation the main reading space. Avoid enclosing every label or sentence
-  in another bordered box. Reserve tool cards for distinct activities/artifacts.
-- **Tabs that select a shared panel.** Settings categories form a connected tab strip,
-  not pill-shaped action buttons. The active tab joins or clearly identifies its
-  panel; inactive tabs recede. Keyboard focus is distinct from selected state.
-  Use the library's tab behavior without adding competing click/key handlers.
-- **Consistent controls, not the sample's fake application.** Keep the button,
-  form, spacing and theme treatment, but bind it to the real acknowledged Agent
-  operations described below. The sample's conversation, timings, artifacts,
-  creation/deletion, pause and speech behavior were illustrative. They are not
-  production data, a scheduler, persistence, or accepted test results.
-
-Bootstrap does **not** supply Ensemble's agent relationships, tree semantics,
-pane splitters, transcript or tool renderer. Keep those responsibilities in the
-existing application/browser layers and style them consistently. A nested list
-of sample buttons is not a keyboard-accessible real agent tree. Use the existing
-ownership and operations, implementing missing presentation behavior without
-rebuilding the core. Do not add another tree or layout framework without a
-concrete need and architectural discussion.
-
-Integrate Bootstrap's light/dark presentation with the browser-owned theme
-preference described in Chapter 8. Local storage is the sole theme authority,
-not a second copy of shared settings. Seed it once from the legacy server theme
-when there is no saved local choice; later server frames cannot override it.
-Font size and hold-to-talk shortcut also belong to origin-local browser-profile
-storage, with cross-tab synchronization and page-session fallback. Seed font
-size once from its legacy value; start the shortcut Off. Separate profiles on
-one machine remain independent. Agent policies and host accounts still require acknowledgement. Preserve explicit choices. Library event handling must not duplicate sends, resets or peer
-operations; attaching it again after replay/reconnection must not accumulate
-handlers. Preserve target identity while updating the presentation.
-
-Verify locally bundled CSS/JavaScript in the ordinary embedded build **and** a
-mounted GUI base path. Check for failed asset requests and unintended external
-requests, real tab/keyboard behavior, both themes and enlarged text. A library
-makes controls consistent; it does not certify contrast, beauty, accessibility,
-or correct application wiring. Carry these checks into the integrated exercise,
-not only a standalone component demo.
-
-## The interface I require
-
-### A stable status bar
-
-Put a status bar across the top. Give its contents reserved space so changing
-status and numbers do not push the controls around. Keep proportional artwork on
-the left and one compact row to its right. Put each speaker’s name above their
-message bubble, with compact spacing for both human and Agent text. Distinguish
-Agent messages with a blue fill and stronger leading border, not red-dependent
-color differences alone. Preserve text and link contrast in both themes; keep
-the speaker names as an explicit identity cue.
-Do not repeat the Agent name under the artwork or in a conversation-title row.
-Show connection/activity,
-then the model selector, centered in the full header rather than merely its
-remaining left-hand space. Center usage in the remaining space before the action
-controls, without claiming unknown amounts are zero. Group Cost, Input, Cache,
-and Hit closely: each numeric output gets a fixed-width, left-aligned slot beside
-its label. Tabular digits help changing numbers remain still. Long values may
-truncate with the full value available accessibly; they must not shove the
-controls off screen. Do not repeat the selected model or funding in another row.
-
-Reserve the geometry, not just the labels. Wrapping flex rows and tabular digits
-alone do not stop a longer state or usage value from changing neighboring widths
-or row heights. Bound identity and numeric slots; give model and action controls
-stable tracks. At enlarged text or narrow widths, use an explicit responsive
-arrangement with reachable overflow rather than shrinking text. Speech and Agent
-state changes must not make adjacent controls jump either.
-
-The status bar contains:
-
-- A model dropdown, sized to its current name within responsive limits,
-  using the existing same-provider, between-turn model-change operation. Choosing
-  a model sends the change immediately; there is no separate Apply button. The
-  server acknowledgment, not the click, establishes the displayed selection. A
-  refused change must restore that selection. Keep all groups on one vertically
-  centered row without shrinking the fonts.
-  Compatible model names are not proof of account entitlement. Preserve the
-  distinction between running selection and persisted launch configuration.
-- A speaker-icon Speech control with an accessible name and native checked
-  semantics. Speech remains opt-in and browser-local, defaulting off rather than
-  inheriting a server enable flag. Header and settings use the same local preference. Per-message Speak and Stop
-  speech also use named speaker icons. Retain keyboard access and visible focus.
-- A separate Interrupt control with a useful label, keyboard focus and adequate
-  click target. Place Stop speech beside the microphone in the composer, not in
-  this header. Group those voice controls so wrapping cannot separate them.
-  Stop speech is identical to Escape: clear current/queued TTS but preserve the
-  draft, then explicitly resume the selected Agent from any device. Use a non-submit button. Do not build Pause/Resume
-  buttons or confuse stopping speech with interrupting Agent work.
-- A theme button showing a moon for dark and a sun for light. Its accessible
-  name must state the switch action, not leave the meaning of the icon ambiguous.
-  Its setting persists in this browser's origin-local storage and agrees with the
-  settings selector. Same-origin tabs share it; different devices and browser
-  profiles remain independent. Offer System as well as explicit Light and Dark.
-  If storage is blocked, retain a usable page-session choice without promising
-  persistence. Keep theme controls available offline and do not send theme changes
-  to the backend. Both themes need high contrast.
-
-Use the human's approved artwork proportionally for branding and the browser
-icon. Do not silently crop or redesign it, or leave a sample's placeholder in the
-working application. Bundle the assets locally with appropriate content types.
-
-An unavailable connection is not an idle Agent. Pending selection and settings
-changes are not acknowledged state. Disable controls when their target is
-uncertain and show why rather than silently applying them to a different Agent.
-
-### Named collaborators
-
-Show each speaker's name above the message, including in accessible Speak labels,
-not the generic labels “You” and “Assistant.” Agent names derive from the real
-Agent tree; do not invent a second identity or silently rename an Agent's files.
-Settings includes a User name and short description in the existing settings file,
-with save-before-acknowledgment and a neutral fallback when no name is configured.
-The GUI reads those fields directly. At startup its host passes them into the
-existing skill variables as `$HUMAN_NAME` and `$HUMAN_DESCRIPTION`; `$AGENT_NAME`
-derives from the actual Agent. The primary skill describes the named engineering
-collaboration. Preserve one-pass substitution, immutable activated manuals, and
-historical messages: changing a display name does not rewrite earlier instructions
-or provider protocol roles. Test save/reload, save refusal, literal user text, and
-name placement with real browser geometry.
-
-### Three panes below it
-
-On a desktop, all three panes are visible at once.
-
-**Left: Agents.** Keep the sidebar dedicated to the expandable hierarchy and
-agent creation/deletion controls. Represent the real
-parent relationships: named top-level peers are siblings, not children of the
-first displayed Agent. Show the selected row and meaningful status. Support
-keyboard traversal, expansion, selection, and visible focus without requiring a
-mouse or color perception. Compact styling must not erase the hierarchy: give
-children clearly visible indentation and branch guides, and reserve the expander
-slot on leaf rows so their names align with branch names at the same level.
-Preserve explicit expand/collapse choices across new snapshots. Test real parent,
-child, and grandchild geometry as well as keyboard behavior.
-
-The tree is the sole visible conversation selector. Use a **Create Agent** button
-that opens a dialog, not a permanently expanded creation form. Put confirmed trash
-actions on eligible tree rows, not a second name-entry deletion form. Protect the
-mounted Agent and its owning ancestors in both presentation and server enforcement.
-Creation and deletion are acknowledged operations, not optimistic edits to a local
-list. Reuse registry-aware operations for top-level peers, including refusal when
-they have unresolved children. Explicit child deletion cancels and joins its owned
-subtree before logical destruction; it does not edit the top-level registry or
-delete saved files. Test confirmation cancellation, server-side protection, view
-recovery after deletion, and actual retention of saved submission files.
-
-Submission is result publication, not a request to stop or remove a child. Keep
-submitted children selectable and show their submitted status alongside activity.
-A status-tool query and a GUI snapshot must not hide them merely because their
-work is complete. Keep explicit lifecycle operations separate from observation.
-
-A selection changes the view; it does not transfer that tab's browser relay or
-MCP authority. Remove redundant selection/relay explanations from the normal
-sidebar, but keep a compact separate-relay action discoverable for Agents that
-require it. A pending creation must leave the tree usable for that startup step.
-
-**Settings: one header gear and a modal dialog.** Use a labeled gear at the right
-of the header, not a second sidebar tab competing with the Agent tree. The dialog
-has genuine tabs for **AI**, **Accounts & Sign-in**, **Speech & Display**, **Goals**,
-**Memory**, and **Recall**. AI contains model/context/tool policy; account/funding
-operations retain their safety explanations and existing authority. Speech &
-Display includes browser-profile-local theme, font, voice, speed, speech pausing,
-and hold-to-talk shortcut, plus a separately labeled shared user profile. Do not
-invent a configurable typing-pause preference. Memory and Recall edit the selected Agent's existing policies; they
-are not new persistent authorities or a new recall-corpus viewer.
-
-Move the existing controls; do not clone forms or invent parallel settings state.
-Preserve control IDs, values, labels, handlers, acknowledgments, refusal behavior,
-and drafts. Remove redundant Accounts/Goals/Memory/Recall expanders now that each
-has a dedicated category. Closing and reopening the dialog retains its selected
-category and unsaved entries; neither closing nor changing categories silently
-saves them. Escape and the close button return focus to the gear. Use native modal
-focus containment and the library's arrow/Home/End tab behavior, not a competing
-keyboard implementation. Hidden panels leave the focus order.
-
-Keep the heading, close action and tab row visible while content scrolls
-independently. On phones, make the tab row horizontally scrollable rather than
-wrapping six categories into most of the viewport height. Test all categories in
-both themes at ordinary and enlarged text sizes, including a 320-by-568 viewport.
-The extra gear must not create another header-controls row. Verify real saving and
-fresh-page reload against the server for profile, appearance, AI, Memory and Recall,
-and truthful disabled Goals/account controls when the corresponding authority is
-unavailable. Test draft retention, modal focus, and speech completion while this
-dialog is open. Source/geometry checks are not human usability acceptance.
-
-Appearance settings belong to their existing store. Memory/recall settings
-belong to the selected Agent. Preserve durable-save-before-acknowledgment,
-sibling-policy preservation, draft protection, and rejection of stale selection
-frames. Funding stays fixed for a running Agent. Codex renewal remains Codex's
-responsibility; public OAuth operations must not turn into Codex operations.
-
-**Middle: Chat.** Give the conversation the main reading space, with a composer
-anchored at the bottom. The composer has exactly two visible widgets: a one-line
-input and the supplied paper-airplane Send icon beside it. Longer or multiline
-input scrolls within that one-line area rather than taking height from the
-conversation. Name the selected Agent in the placeholder, such as “Ask Cadence
-anything…”, and keep an accessible input name. Do not add a visible label, help
-footer, or separate Hint button. Preserve the supplied artwork and its proportions.
-
-The browser sends ordinary messages, including while the Agent is working. The
-Agent classifies input against its active turn when the event queue receives it;
-stale browser state must not select a different “hint” mode. Preserve Enter to
-send and Shift-Enter to enter a newline, without a special forced-hint shortcut.
-Keep ordinary explanations visible while tools run. Preserve selection/replay,
-streaming and final replacement, near-bottom-only autoscroll, and scroll position
-when the human is reading older material. A new answer must not silently replace
-an earlier one.
-
-Density is part of usability, not an excuse to shrink fonts. Reduce unnecessary
-widget padding/gaps and paragraph margins while preserving the selected font and
-line spacing, clear grouping, focus indicators and usable click targets. A short
-message should not require a separate full-height action row above its text.
-Measure identical content before and after at the same fonts and viewport; retain
-text and semantic markup rather than hiding content to manufacture a smaller box.
-Let prose use the available pane width. Pane splitters should allow Actions or
-conversation to take most of the workspace, with small reachable minimum panes,
-not arbitrary 18–35% side-pane caps. Check mouse/keyboard movement in both
-directions and re-clamping after window/font changes.
-Private reasoning and opaque replay payloads are not chat text.
-
-**Right: Tools and artifacts.** Show tool calls, results, running work, failures,
-and available artifacts in coherent expandable cards. A pending call must not
-look like a successful result. Preserve exact call/job identity and existing
-controls; use the existing renderer and artifact capabilities rather than
-inventing an unrelated file browser. Long output should be inspectable without
-forcing the conversation to scroll sideways. Render untrusted text safely, not
-as executable provider-supplied HTML.
-
-Exercise automatic tool-result redaction on the selected provider route, not
-only unredacted sample results. A retained `RedactedPart` is a readable omission
-notice, not media. Project it through the common text formatter without exposing
-its private locator or mutating History; keep genuine unsupported media refusal.
-A valid saved redaction must not make every subsequent request fail locally.
-
-Inline truncation is not permission to make the retained result unreachable.
-Provide a usable way to inspect or download the complete output when a current
-owned Job has it. Resolve an Agent and its Job through the existing ownership
-operations, including canonical qualified addresses for nested Agents. A named
-top-level lookup is not a substitute for GUI tree/address resolution. Never
-accept a browser-supplied filesystem path. Open the owned output
-with the existing `Sandbox.OpenRegularRead` operation: an ordinary unconfined
-`OpenFile` can wait for a pipe peer if a file has been substituted, whereas the
-regular-file reader refuses nonseekable input without that wait. Dispose the
-returned stream and preserve the same confinement authority.
-
-Nonblocking regular-file access is not a blanket symlink ban. An empty Sandbox
-root deliberately retains full access; a rooted Agent enforces its existing
-confinement and permits admissible inward links. Do not invent a second Sandbox
-or a GUI metadata/ancestor-checking scheme: checking then opening does not prevent
-concurrent substitution. Test that a rooted output redirected outside its root
-refuses without returning escaped bytes, separately from nonseekable-file refusal.
-Preserve the existing unconfined policy and report its limits. Job ownership and
-completion do not authenticate original file bytes against hostile local writers;
-stronger immutable-artifact provenance would require a separately agreed design.
-
-Preserve the GUI's origin/header guards, mounted base path, request cancellation, and private-response
-headers. A convenient ordinary download link is not a reason to replace the
-required custom-header guard with optional browser fetch metadata. Mount shutdown
-must cancel and join the active response, not just stop future admission. Reuse
-the available core operations; if a genuine gap requires a new public operation,
-explain the need and obtain the shared-vocabulary agreement before adding it.
-Reading a download must not consume the Job observer's output cursor.
-Refuse running, missing, wrong-owner, or historical-only handles explicitly rather
-than returning partial output as complete. Bound browser memory use and explain
-any size refusal; an unbounded `fetch().blob()` is not streaming to disk. Test
-exact bytes, ownership refusals, and a later ordinary Job observation.
-
-Make pane widths adjustable with pointer and keyboard controls. Panes should
-scroll independently, with useful minimum widths and without hiding the chat
-composer. At narrow widths, provide an explicit way to reach each pane rather
-than squeezing three unreadable columns or dropping functions. This is not a
-request for a separate mobile application.
-
-### Deliberate appearance, not a color swatch on the old page
-
-I prefer fairly dark backgrounds and light text. Choose restrained, attractive
-accent colors, consistent spacing, readable typography, clear section headings,
-and controls that look related. Slightly different dark surfaces can distinguish
-panes; low-contrast gray labels cannot. Tabs must look and behave like tabs.
-Selection, focus, warning, and error states must not rely on color alone.
-
-A component library does not decide the visual hierarchy. When the human selects
-a reference, study the actual page: its connected tabs, navigation rows, prose,
-spacing, and card boundaries, not merely which library it imports. Ordinary
-status information is not an action; navigation should not resemble a row of
-primary buttons. Keep the reference's visual discipline while replacing its
-illustrative interactions with the real application's ownership and behavior.
-Use clear conversation labels without inventing identities, times, or activity.
-Compact action icons need accessible names and generous targets. A restrained
-appearance must not mean faint text or indistinct input boundaries.
-
-Check both themes, enlarged text, keyboard use, and long content in an actual
-browser. Combine the conditions: test the largest supported text size in narrow
-windows as well as on a desktop, not large text only on a wide screen and narrow
-screens only at the default size. Include long status values and an expanded or
-resized composer. Verify that the prompt, Send, model, theme, and speech/interrupt
-controls remain reachable, with a useful conversation reading area and no
-page-wide horizontal overflow. Hiding overflowing controls or silently shrinking
-the chosen text size is not a correction. Bounded status summaries, shorter
-navigation labels, and accessible secondary help can preserve space without
-dropping operations. Keep screenshots, but also assert geometry and keyboard
-reachability; a successful settings save does not establish a usable layout.
-A bounded composer with its own scrollbar can still leave Send outside the
-visible area after textarea resizing. Reserve space for its label and action row,
-let both the form and textarea yield space, and test short phone-height windows
-as well as tall ones. Include nonempty notices and settings acknowledgments:
-those rows also consume space. A flexing textarea inside a fixed outer form can
-still overflow after other rows grow. Do not call an off-screen button anchored
-merely because its outer form is.
-Check computed contrast as well as the layout. Capturing a screenshot is not
-viewing its pixels: say whether the acting model actually received and inspected
-the image, or only examined DOM/style/geometry. If visual input is unavailable,
-retain the screenshot for the human and report that limitation; do not claim a
-visual review or invent a hidden vision capability. Do not invent a numerical
-beauty grade. The human decides whether the application is pleasant and usable;
-the student must still bring a considered design.
-
-## Make startup ordinary and failure useful
-
-Provide a simple executable `start` script in the working solution, documented
-for this C# edition. It runs the GUI in the foreground, forwards supported launch
-options, exposes errors, and stops cleanly with Ctrl+C. Explain its build
-prerequisite and how it locates the SDK, assets, skills, workspace, and data.
-Do not silently install dependencies, fetch credentials, kill a port owner, or
-rebuild an unrelated running installation. Keep machine-specific account paths
-out of the repository. Use an explicitly supplied credential path when the human
-selects Codex; a path alone must not silently select the payer.
-
-The GUI library normally embeds its assets. Verify the built application's
-ordinary launch, not only an explicit `--gui-dir` source override: a CSS edit
-cannot change an already built assembly or an already loaded tab. Keep the
-existing borrowed-host and base-path behavior intact, with asset and socket URLs
-relative to the mounted page. Do not make the optional GUI a core dependency.
-
-Serve page HTML with `Cache-Control: no-store`. Give every local stylesheet,
-script and image a content-versioned URL path, including dynamically imported
-modules and their nested dependencies. Freeze one asset snapshot per host and
-use its content fingerprint in those paths. Versioned responses may be cached
-as immutable; never serve new bytes under an old version. Keep unversioned
-compatibility routes non-cacheable. An explicit disk override is also snapshotted
-at mapping time: restart the host to publish edits.
-
-Test root and mounted pages, content changes producing different URLs, old-version
-refusal, cache headers, and actual browser module requests. Browser cache clearing
-does not clear a reverse proxy's cache. Previously cached HTML or assets may need
-one initial proxy purge, and a proxy rule overriding the origin's cache policy
-must be corrected separately. Do not diagnose every startup failure as caching
-merely because one earlier incident had that cause.
-
-The current host accepts `--port`, `--workspace`, `--sandbox`, `--data-dir`,
-`--agent-name`, `--gui-dir`, and `--skills-dir`. Codex selection uses
-`--billing codex --codex-auth-file PATH`; its endpoint is pinned. Inspect the
-saved parser rather than assume other flags exist. Provide a parallel-run
-example on an unused port, not instructions to evict the working server. A human
-may run something like the following after building:
+# Chapter 27: Running Local Models
+
+> **Local-model integration accepted in ordinary GUI use.** Bill created a
+> separate MiMo Agent, received a reply and observed a tool call with its result.
+> This establishes the requested local-model support, not general coding quality.
+> Deterministic routing, streaming and lifecycle evidence remains separate: the
+> public runner passes 136 named checks but is ungraded, with incomplete coverage.
+> The next external usage review is for Julien's larger GPU setup, not another
+> MiMo coding trial.
+
+## TL;DR: Specification Brief
+
+Add an explicitly configured local inference route to the existing Agent and
+Engine. Offer its models in the ordinary model selector without changing the
+current selection automatically. Local inference is another transport destination,
+not another agent architecture.
+
+- Select the model, endpoint, wire surface and funding policy together. A local
+  model name must never travel to the cloud endpoint inherited from its parent.
+- Use the existing OpenAI-compatible Chat Completions path where the server
+  actually supports it. Do not build an Ollama-specific adapter merely because
+  the server has a native API too.
+- Keep local requests credential-free. Do not borrow an API key, subscription
+  bearer or account header. Failure never authorizes a cloud fallback.
+- Make configured local models available through normal model selection and
+  child creation. Do not impose a child-only restriction. Selecting a small model
+  does not make a large existing conversation fit it.
+- Distinguish the model's advertised context maximum, the server's loaded context,
+  and the Agent's working-context policy. Last-request usage is not a preflight
+  token count or a guarantee that the next request will fit.
+- Preserve canonical calls, call IDs and correlated results. JSON printed in
+  ordinary text is not a tool call and grants no execution authority.
+- Keep buffered and streaming behavior consistent across rendering, endpoint
+  selection and response parsing. Preserve ordinary cancellation and ownership.
+- Report measured token usage when present; missing usage remains unknown. Local
+  inference is not proof of zero operating cost or a known cloud-equivalent price.
+- Separate deterministic protocol tests from actual-model usefulness and human
+  acceptance. A model listing's tool-support label is not an end-to-end test.
+
+## In plain words
+
+Moving inference to another computer does not move the Agent there. Ensemble still
+owns the conversation, tools, Jobs, permissions and saved history. The model server
+receives a request and returns an answer or a structured request to use a tool.
+Ensemble decides whether that tool is granted and records its result before asking
+for the next answer.
+
+A model dropdown therefore chooses more than a spelling. If a parent uses a cloud
+subscription and its child selects a local model, retaining the parent's endpoint
+or bearer is wrong. The local route must be explicitly available, and selecting it
+must select the correct destination without carrying cloud credentials across.
+The same rule applies when a human changes an idle Agent's model in the GUI.
+
+Small models are useful for bounded work, but a successful arithmetic example does
+not show that they can manage a large system prompt, extensive memory and dozens of
+tool declarations. Start with a small task and a modest tool set. Measure the loaded
+context and GPU placement rather than assuming the advertised model maximum fits
+in video memory. Raising a working-context setting does not enlarge the server's
+allocation, and a handoff cannot remove all fixed prompt overhead.
+
+The first live trial made a useful distinction. One coding model printed an object
+that looked like a function call inside ordinary answer text. A newer package
+returned a real `tool_calls` array, accepted a result with the matching call ID,
+and answered the question. Only the second exchange demonstrated the structured
+protocol we need. Neither exchange alone demonstrated reliable agentic coding.
+
+A later integrated Ensemble trial returned a correct small Python function but
+made no tool call despite an explicit request to use its one declared tool. It
+used short primary instructions, not the normal primary skill. The function
+passed six reviewed local cases; requested tool use did not pass. Record both
+outcomes rather than treating successful generation as successful tool use.
+
+A subsequent small-primary-skill trial captured a real structured call and its
+correlated result, but also exposed default recall overhead and a capture-fixture
+error. A fresh Agent is not automatically an auxiliary-inference-free Agent:
+explicitly configure recall when isolating prompt and tool overhead. Keep observed
+protocol success separate from an error-free experiment or a causal skill claim.
+
+A final authorized trial used a small primary skill and exactly the original six
+tools, with all memory bands and automatic recall disabled. MiMo read the supplied
+cases and test script, observed an ordinary missing-file result, wrote the
+implementation, and ran the fixed test script. Four model requests produced five
+tool results; all six cases passed without changing the supplied files or inputs.
+The process and relay joined cleanly, with no retry or cloud fallback.
+
+The largest reported request used 1912 input and 291 output tokens, 2203 total,
+within the loaded 4096-token context. Cached input is already included in that
+input figure. Only read_file, write_file and run_command were exercised; granting
+six tools does not certify all six. This demonstrates one useful integrated task,
+not general coding reliability or that the normal full skill fits this allocation.
+
+## What the live GUI check accepted
+
+Julien, whose nine PRs informed earlier integration work, requested local-model
+support for his own GPU setup. Bill's small MiMo installation was sufficient to
+check that capability; it was not intended to become his coding model.
+
+After explicit host registration, Bill created a separate Agent with the
+`local-coding` primary skill and disabled all memory bands and automatic recall.
+MiMo answered a greeting through the GUI. Bill then requested a directory listing
+and confirmed that an actual tool call returned results. The final answer was
+verbose, ignored the requested brief confirmation and speculated about directory
+names. Record that model behavior, but do not turn it into failure of the runtime
+integration. Bill explicitly accepted the local-model test as successful.
+
+Cadence initially proposed another coding task. That was scope drift: the question
+was whether Ensemble could use a local model and execute its tools, not whether a
+small model could code well. No further MiMo trial is needed. The pasted transcript
+and Bill's observation do not independently certify visible token-by-token
+streaming, every tool, or all failure paths; those limits do not erase the success.
+
+For another host, use the [local-model evaluation guide](../docs/local-model-evaluation.md).
+It supplies an explicit configuration example and a short feedback checklist for
+Julien or another operator. Coding usefulness is optional and belongs to the
+operator's selected model, hardware and task. The integration has one architecture;
+it does not require everyone to use MiMo, Ollama or Bill's serving limit.
+
+## 27.1 Start with a verified server
+
+The initial target is Windows-native Ollama on a separate laptop, not an assumed
+WSL installation. Inspect the installed server version, GPU, model package and
+loaded model before recommending changes. A package can require a particular
+server version or parser. Parameter count, quantization, projector size and runtime
+context all affect memory use.
+
+Verify in layers:
+
+1. A local version request establishes that the API server is running.
+2. A small local inference request establishes that the model can answer.
+3. The loaded-model report establishes GPU placement and allocated context for
+   that configuration, not every possible request.
+4. A structured tool call and correlated result establish a basic protocol round
+   trip. No arbitrary model-supplied program needs to run for this test.
+5. A version request from the Ensemble host establishes network reachability,
+   not inference quality or authorization to expose the service publicly.
+
+A saved listener setting is not a running listener. On Windows, changing a user
+variable does not update an existing server process. Closing its window may leave
+its tray process running. Inspect the listening address, stop the owning server
+normally, relaunch it with the intended setting and verify again.
+
+Ollama's local API should not be treated as an authenticated public service. For a
+trusted-LAN experiment, restrict inbound access to the Ensemble host and the
+required port. Inspect existing allowances: adding a narrow firewall rule does not
+cancel a broader rule. Do not forward the port through the router or weaken the
+Ensemble GUI's independent origin/authentication boundary. DHCP address changes
+can invalidate address-based rules; a reservation or an authenticated tunnel is a
+separate operational choice.
+
+See the [Ollama FAQ](https://docs.ollama.com/faq) for current listener instructions
+and its [OpenAI compatibility documentation](https://docs.ollama.com/openai) for
+the supported protocol. These sources can change; verify the installed combination.
+
+## 27.2 Integrate the existing owners
+
+The Agent remains the owner of scheduling, configuration and History. Engine
+consumes a frozen request and returns immutable results. The GUI projects the
+selected route and available choices; it does not own credentials or a second
+transcript. Child creation and restoration must resolve the same explicit route
+as ordinary model selection.
+
+Common now declares the configured graph: Ensemble strongly owns `ModelVendor`
+objects and `ModelAuthentication` bindings; a vendor owns `ModelEndpoint` objects,
+and each endpoint owns its `Model` offerings. The existing `Vendor` enum remains
+wire/serialization compatibility vocabulary during integration. A configured
+Ollama vendor is not the OpenAI vendor merely because its endpoint uses the
+`ChatCompletions` surface.
+
+An offering has a local configuration ID and a separate provider-facing model
+name. The same wire model name through two endpoints denotes two offerings.
+`ModelIdentity` qualifies that local ID with its vendor and endpoint IDs. It is a
+credential-free value, not another owner or a provider-facing routing name.
+Provenance can retain this identity alongside the exact wire model and surface:
+opaque material from a different offering must not match merely because both
+servers use the same model name. Legacy provenance remains readable but cannot
+match an explicitly configured offering. Invalid present identities refuse rather
+than silently becoming legacy data. Request projection and response capture carry
+this value; configured construction and child restoration attach the live Model
+relationship. The public Model-object selector changes that relationship through
+the existing Agent mailbox; the ordinary dropdown submits the same qualified
+identity.
+Endpoint addresses exclude embedded credentials, query strings and fragments.
+New credential-bearing endpoints require HTTPS except literal loopback fixtures;
+public OAuth and Codex retain their additional existing endpoint restrictions.
+
+Inference transport does not automatically follow redirects or retain response
+cookies. Otherwise the first funding mode could leave hidden routing or cookie
+authority on an Engine later used for a different model. A redirect is an error
+at the configured endpoint, not permission to send the request elsewhere. Public
+OAuth's existing bounded401 renewal remains on the same frozen endpoint, account
+and request body; it is not a general inference retry or funding fallback.
+
+An authentication binding is an explicit choice: no credential, an owned API key,
+a reference to the public OAuth credential owner and account label, or a reference
+to the independent Codex credential owner. It does not copy a renewable token into
+a Model. Endpoints and bindings maintain both ends of their weak relationship.
+Destroying a credential owner detaches its bindings; replacing that owner does not
+silently reconnect them. Destroying a binding invalidates dependent endpoints
+without destroying their model objects or changing their funding kind. Ordinary
+root destruction finishes Agent work before removing models and credential owners.
+
+Constructors validate before publishing relationships. Duplicate IDs within an
+owning collection refuse without replacing an existing endpoint or model. A
+membership snapshot is not an editable collection. Removing a relationship clears
+the back-reference without destroying the detached object; destruction recursively
+removes strong children. These operations are tested separately from transport.
+
+The internal request projection freezes the offering's wire name, surface,
+capabilities and serving context while preserving Agent instructions and security
+policy. It references the selected authentication binding instead of copying its
+API key. Explicit unauthenticated funding emits no credential headers; it is not
+an empty-key attempt or permission to discover cloud credentials. Streaming and
+media checks use the frozen capabilities rather than guessing from a model name.
+A Model also owns an immutable, credential-free `ModelRequestPolicy`. Reasoning,
+streaming suppression, explanation enforcement, deferred tools, result stubbing
+and cache options come from that selected offering, not the previously selected
+route. Instructions, tool-round limits and security boundaries stay with the Agent.
+Model construction validates options against its surface and capabilities before
+adding endpoint membership. Feature-required explanations cannot be disabled by
+policy. Request projection turns an explicit reasoning summary `off` into an
+omitted provider field; returning to the offering restores its declared options.
+
+Default working-context limits use the configured serving allocation when known.
+An explicit policy also includes the qualified offering identity. Two endpoints
+serving the same wire model may have different allocations, so their policies
+must not overwrite each other. Legacy policies keep their original wire-name
+identity and do not silently apply to newly configured offerings. Settings
+round trips preserve that distinction; malformed identities refuse rather than
+becoming legacy rows.
+Recall and compression preserve the binding; an unresolved judge-model override
+refuses rather than silently changing the route.
+
+Ensemble resolves a saved `ModelIdentity` by following its current vendor,
+endpoint and model ownership. There is no second lookup registry and no fallback
+by wire name. A detached or missing offering is unavailable. Ordinary child
+registrations retain the legacy version1 shape for legacy configurations;
+configured children use version2 with a required qualified identity. When no explicit
+Agent preference is present, restore
+validates identities before constructing children, and checks the saved wire name
+against the resolved offering. It preserves conversation and pause state, not
+credentials or interrupted effects. A legacy child record under a configured
+parent refuses because that record cannot identify the original route safely.
+
+Peer launch records follow the same identity rule. A configured peer saves its
+qualified offering alongside the launch model name; a legacy peer keeps the
+original four-field record. These are launch choices, not a second store of the
+running Agent's mutable selection. Without an explicit Agent preference, restoration
+resolves the entire launch set before starting any peer, checks each wire name, and
+refuses missing offerings
+without substituting the host's route or funding. Invalid present identities do
+not become legacy records.
+
+A failed peer restoration must not take down the GUI after the initial Agent has
+started. Keep the saved files and show the stopped peers in recovery controls.
+`SavedPeers` reads the durable registry without inventing live Agents.
+`RestorePeerAsync` retries one stopped peer; an explicit recovery offering is
+validated and saved in that peer's own settings before startup. Preserve sibling
+memory, recall and working-context policies and the saved conversation. Refuse
+recovery of a running peer. If startup later fails, retain the human's saved choice
+for retry and report the failure. After a successful repair, ordinary restoration
+uses that peer's own selection on the next restart. Never guess a payer from an
+old wire-name-only record or from the mounted Agent's newly selected model.
+
+A configured Agent holds a weak selection link to its actual Model, and the
+Model maintains the reverse membership. Agent construction attaches both ends
+before creating Engine; partial construction rolls them back. Destroying a Model
+clears these weak links without destroying Agents or their conversations. A lost
+selection refuses new rendering and inference, never reverting to a legacy route.
+Engine admission validates the graph before incrementing its active-send guard.
+
+`SetModelAsync(Model)` selects a configured offering only between turns, including
+absence of direct Engine sends. It rejects a foreign root before acquiring its
+graph lock. Under ingress and the owning graph gate, it validates the candidate,
+saves the qualified identity in the persistent Agent's own `settings.json`, then
+updates both membership ends and the frozen configuration. Transient Agents have
+no implicit settings file. Failed saving leaves the old selection intact. A successful switch retains Engine and conversation, and resets
+the last-request context measurement. An explicit valid choice can recover an
+Agent whose old Model was removed; no automatic substitution occurs. The legacy
+string overload still preserves its route and cannot invent a configured offering.
+
+An optional `selected_offering` in Agent settings is the explicit current choice.
+It contains only the strict vendor/endpoint/model identity. Memory, recall and
+working-context saves preserve it, and model saves preserve those sibling policies.
+Read the preference through the actual Sandbox before attaching the selected Model
+and constructing Engine. Sandbox creation needs the Agent's filesystem security
+policy, not permission to send inference; do not weaken route admission to break
+that construction dependency.
+
+On child and peer restoration, a present preference takes precedence over the
+legacy launch choice, even if the old offering no longer exists. Validate every
+immediate saved preference before fleet startup effects, then resolve again during
+construction. A malformed or unavailable preference refuses; it never falls back
+to the launch record. When absent, the strict legacy rules above remain in force.
+Selecting a configured model commits one Agent settings file, not a claimed atomic
+transaction across that file and the child or peer launch registry.
+
+Global settings belong to the application, not to any Agent. The host supplies
+`~/.en/settings.json` to the root-owned `GlobalSettings` object. Its `BindApiKey`
+operation creates ordinary `ModelAuthentication` bindings from the existing
+`openai_api_key`, `anthropic_api_key` and `gemini_api_key` fields; it does not expose
+those values in model choices. A missing key supplies no binding, not another
+vendor's key. The library never searches an implicit credential location.
+
+The `model_funding_defaults` object maps configured vendor IDs to authentication
+binding IDs. `RememberFunding(Model)` saves that reference without changing an
+Agent. `ResolveModel(vendor, name)` follows the approved graph and remembered
+funding. Without a saved choice, only one configured offering is unambiguous.
+Missing or ambiguous saved funding refuses, even when another key is usable. An
+unrelated unavailable offering must not hide a valid explicitly remembered choice.
+
+Read the bounded global document freshly under a cooperative writer lock before
+updating it. Preserve unrelated settings and credential values, write a private
+temporary file, flush it, and replace the destination. Malformed input or lock/I/O
+failure is not permission to reset the file. A global-default save and an Agent
+selection save are separate operations, not one filesystem transaction: their
+acknowledgments must distinguish a saved Agent choice from an unsaved global
+default. In the GUI, list each vendor/model once. A model choice carries only
+vendor ID and wire model name, and resolves the current funding preference again
+when the action executes. Do not freeze an earlier menu lookup into routing
+authority. Refuse conflicting selection forms.
+
+Settings → AI saves a funding choice when the dropdown changes, with a per-vendor
+pending, saved or failure message. A refused save restores the last acknowledged
+choice; there is no extra Save button. The separate default-funding action names
+an approved binding through an existing offering; the browser never supplies a key or token
+path. Missing or ambiguous funding sends the human to Settings, rather than adding
+another copy of the model to the picker. Model selection and peer creation do not
+rewrite funding defaults. Changing a default does not retarget existing Agents;
+select the model again to apply it. A failed funding save reports that operation's
+failure without changing an Agent.
+
+The GUI reads a credential-free `ModelSelectionStatus`, not the inference-validating
+configuration getter. Under the same ingress-to-graph lock order, this snapshot
+lists configured offerings and their local policy compatibility, funding description
+and serving context. Availability is not a network health check or proof of account
+entitlement. Unknown serving context remains unknown. Legacy name-only choices
+retain their fixed-route semantics; configured choices carry a separate strict
+identity object, never a renamed provider model.
+
+An unavailable selection remains visible after reconnect. Even recreating an
+offering with the same IDs does not reconnect a lost Agent link automatically.
+The picker marks the current model unavailable and permits an explicit
+valid selection after funding is corrected. The server resolves the chosen
+identity again and calls the same Model selector; displayed status is never a send or selection grant.
+
+Documentary persistence has a different purpose from inference admission. It can
+save the last frozen configuration and retained conversation after a Model is
+removed, without acquiring credentials or granting another request. During root
+shutdown, closing admission must not block the Agents' final History saves.
+
+**Integration boundary:** synthetic HTTP checks exercise the internal projection,
+including the exact headers and captured provenance. Configured child registration
+and restoration, weak selection membership and saving after Model loss have
+focused coverage. Per-offering working-context persistence and effective-policy
+isolation and qualified peer launch/restoration have focused coverage too.
+Public Model switching has focused loopback routing and failed-save coverage.
+The ordinary dropdown has real-socket and actual-page offering-switch/recovery
+coverage. Host file loading and explicit launch-return routing have process/socket
+coverage. Configured public OAuth has loopback 401-renewal/refusal coverage;
+configured Codex has synthetic grant-reread and owner-loss coverage. Configured
+Chat Completions has real-loopback SSE tool-round-trip coverage, including partial
+argument barriers, immediate interruption, provider-stream failure and fresh-turn
+recovery. These use an explicitly streaming, uncatalogued no-auth offering. They
+are not independent grader credit or live MiMo acceptance; do not infer an
+installed MiMo offering from these owned fixtures.
+
+### Host-owned model configuration
+
+The host, not the model picker, controls endpoint and authentication configuration.
+Load its strict document before constructing Agents or restoring the fleet. GUI
+selection uses only the resulting approved graph. Do not put credential values or
+token-file paths in this document: each endpoint names an authentication binding
+already constructed by the host under the same Ensemble root.
+
+`Ensemble.LoadModelConfiguration` accepts at most 1 MiB of strict UTF-8 JSON. Version 1
+has `version` and `vendors`; each vendor has `id`, `label` and `endpoints`. An endpoint
+has `id`, `address`, `surface`, `authentication` and `models`. Surface spellings are
+`messages`, `chat_completions`, `responses` and `generate_content`. Each model has
+`id`, `name`, `label` and `features`, with optional `serving_context_tokens`
+and `request_policy`.
+Features require an explicit `stream` boolean. Optional media and reasoning lists,
+context capacity and policy flags default conservatively, not from name guesses.
+Advertised `context_window` and serving capacity remain separate token values.
+
+The optional `request_policy` object accepts boolean `disable_streaming`,
+`require_tool_explanation`, `deferred_tools`, `stub_tool_results` and
+`cache_breakpoints`, plus string `prompt_cache_key`, `reasoning_effort` and
+`reasoning_summary`. Omitted booleans are false. Empty reasoning options choose
+validated `medium` and `auto` defaults only for a Responses offering declaring
+reasoning support; otherwise they remain absent. Summary `off` explicitly omits
+that field for a supported offering. Unsupported options refuse instead of being
+silently ignored. Deferred tools and block-cache options require Messages; prompt
+cache keys require an OpenAI-compatible surface. These are explicit host assertions,
+not provider discovery or guarantees that caching will occur.
+
+Unknown or duplicate fields, invalid types and unresolved bindings refuse. The
+whole document is bounded to 32 vendors, 64 endpoints and 256 models. Parsing precedes
+graph publication; construction and rollback hold the existing graph gate. A late
+failure removes every newly created subtree and detaches its binding memberships,
+without destroying the borrowed authentication owners. Existing vendors and Agent
+selections cannot be overwritten by a load. This is additive startup configuration,
+not a live graph editor or an implicit model switch.
+
+The GUI host accepts `--model-config PATH` or `EN_MODEL_CONFIG`; the command-line
+option wins. Relative paths resolve after the host's explicit workspace option.
+It opens one file handle, bounds both initial size and subsequent reads to 1 MiB,
+and loads the graph before constructing the initial Agent or restoring the fleet.
+Missing, malformed or unresolved configuration refuses startup; there is no empty
+configuration fallback. Omitting this model-document option preserves the initial
+launch path but does not disable the global credential catalog.
+
+Before constructing Agents, open `--global-settings PATH`, then
+`EN_GLOBAL_SETTINGS`, or the default `~/.en/settings.json`, in that precedence.
+Only true file absence supplies empty global settings. Use the existing curated
+model names and exact capability table to register available API bindings:
+`openai-api`, `anthropic-api`, and `gemini-api`, under matching vendor IDs and
+endpoint ID `api`. Provider names remain unchanged; stable model IDs replace dots
+with underscores to satisfy the configured-ID grammar. Key presence is not an
+entitlement or health check. Never contact providers merely to populate choices.
+
+Keep curated recommendations and route requirements consistent. Subscription
+routes require streaming, so an omitted streaming declaration can disable a
+previously selectable model even when its credential owner is healthy. Sol has an
+explicit text-streaming declaration; it makes no claim about media, reasoning
+options, context capacity or account entitlement. Test curated subscription choices
+through the actual host catalog, not only the legacy wire-name selector. Report
+invalid capabilities or request policy as a configuration problem, not as missing
+authentication; never expose raw credential exceptions in the GUI.
+
+These additive offerings do not reconstruct or replace the initial launch policy.
+Ollama remains a separate explicitly configured vendor, not automatic LAN discovery.
+
+An explicitly supplied Codex credential owner also registers OpenAI's `codex`
+endpoint and `openai-codex` binding, even without a model document. An explicitly
+supplied `--credentials-dir` may coexist with Codex: its selected public OAuth
+account registers endpoint `chatgpt` and binding `openai-chatgpt`. No token is
+copied between stores and enumeration does not renew credentials or send inference.
+These share the OpenAI vendor with the API offering, so Settings can present API
+key, Codex OAuth and ChatGPT OAuth while the model picker lists Astra once. A
+model's reasoning policy must not be copied onto a different model that has no
+verified reasoning support. Startup still retains the explicitly selected launch
+payer; adding a route does not select it or rewrite a funding default.
+
+The host also supplies two binding names when loading a model document:
+
+- `none` is explicitly unauthenticated, suitable for a restricted local endpoint.
+- `launch` uses the payer selected by the existing launch options: the supplied
+  API key, the actual public OAuth owner and account, or the actual Codex owner.
+  An API launch without a key does not create this binding. `--billing none`
+  makes it explicitly unauthenticated instead; an ambient API key is ignored.
+
+The document cannot name another token file or discover another account. Loading
+also does not select an offering or reconstruct the initial Configuration: launch
+reasoning, caching, funding and other policy remain unchanged. Choosing a configured
+offering subsequently uses the normal configured-model projection.
+
+When the launch binding exists, the host reserves vendor `host-launch`, endpoint
+`launch` and model `launch` for the explicit **Return to launch** choice. It uses
+the actual launch endpoint, binding, features and immutable request policy. A file
+cannot replace that reserved vendor. A keyless API launch has no return offering;
+it does not acquire an unauthenticated substitute. Initial selection is still
+legacy. Explicit return uses the new qualified identity, so old opaque legacy
+provenance does not automatically become eligible for replay. Conversation remains,
+but identical routing alone is not permission to migrate opaque provenance.
+
+The library boundary has strict-decoding and rollback tests. The actual host has
+process/socket checks for loaded choices, retained initial selection and funding,
+flag precedence, explicit no-auth, missing funding and invalid-file refusals before
+Agent construction. Run the scoped check against an already-built GUI executable:
 
 ```sh
-# Choose a genuinely unused loopback port and a private trial home first.
-# This is a human-authorized live launch, not an offline test command.
-./start --port "$TRIAL_PORT" --data-dir "$TRIAL_HOME" \
-  --billing codex --codex-auth-file "$APPROVED_CODEX_AUTH_FILE"
+python3 agent/GuiTests/model-host.py ABS_DOTNET ABS_GUI_DLL NEW_EVIDENCE_DIRECTORY
+python3 agent/GuiTests/model-launch-wire.py ABS_DOTNET ABS_GUI_DLL ANOTHER_NEW_DIRECTORY
+python3 agent/GuiTests/peer-recovery-host.py ABS_DOTNET ABS_GUI_DLL RECOVERY_DIRECTORY
 ```
 
-The first manual trial used the default port while the old Ensemble still owned
-8088. The GUI printed only `GUI failed: AggregateException`. Starting on 8089
-worked. That is evidence consistent with a bind conflict; the type-only message
-did not diagnose the underlying exception. Improve startup reporting at the
-proper ownership boundary: show an actionable, safely masked cause while the
-relationships needed for diagnostic masking still exist. Do not dump nested
-exceptions, request headers, tokens, or private paths merely to improve debugging.
-Test bind failure, malformed setup, and cleanup faults without hiding the primary
-error. Retain defensive type-only reporting where safe redaction is unavailable.
-
-A separate remote trial restored the old server after thirty minutes. It left no
-provider request in the V3 API trace. A browser log showed a request to select
-`main` while the V3 actor was named `trial`; that observation did not establish
-why the remote trial failed. Inspect stale-browser and invalid-selection behavior
-without turning this clue into a claimed diagnosis. Give the human clear reload
-instructions and show a selection error without leaving controls falsely ready.
-
-### Diagnostics follow the owner
-
-Each Agent owns its diagnostic writers and its own `debug.log`, `api.log`, and
-`gui.log` in its data directory. Ensemble owns `ensemble.log` in the application
-container for host-wide activity. A child does not borrow its parent's writer,
-and selecting another conversation in a browser does not transfer the browser's
-fixed MCP relay identity. Route each event through the actual owner, not through
-a shared root logger or an untrusted address supplied by a client.
-
-Start fresh diagnostic files on each host restart. Load an Agent's durable state
-before replacing that Agent's previous diagnostic files; startup recovery messages
-need the host logger while restoration is in progress. Do not truncate `save.json`,
-its backup, event journals, memories, or credentials. Opening several diagnostic
-files is not a filesystem transaction: a later open can fail after an earlier file
-was replaced. Preserve that failure and attempt every opened writer's cleanup.
-
-Startup reset alone does not bound a long-running session. Each owned diagnostic
-stream has one file capped at 64 MiB, with no rotated previous file. Before a complete
-record would exceed that bound, flush and truncate the already-owned handle,
-reset its position, and write an explicit size-reset marker followed by the new
-record. Serialize that operation with writes and closing. Do not externally
-truncate an open file or reopen an unchecked pathname. Count UTF-8 bytes, including
-newlines and the marker, not characters or record count. Replace a record that
-cannot fit beside the marker with an explicit oversized-record notice and its
-original byte count; never keep a malformed fragment or silently exceed the cap.
-
-API diagnostics omit inline image/audio payloads while retaining their media type,
-encoded length, decoded byte count and SHA-256 where available. Project a diagnostic
-copy, then apply credential masking. Never alter provider requests, retained media
-or canonical History to reduce log size. Malformed structured traces are explicitly
-omitted rather than dumped raw. If API diagnostics are disabled, skip projection
-work. This policy is separate from saved-History retention. A reset loses earlier
-diagnostic context by design; it does not preserve a hidden archive.
-
-Serialize writes within each owner and retain credential masking at write time.
-Surface I/O failure and stop writing that file at an uncertain offset; cleanup must
-still attempt every owned close. Borrowed writers are not subject to automatic
-truncation. Close an Agent's owned writers only after its work has joined; close Ensemble's
-writer after its owned cleanup. Borrowed test or embedding writers stay with their
-caller. An outgoing GUI record labelled queued proves enqueueing, not delivery or
-Agent admission. A later tab selection must not reattribute an older frame.
-
-Verify independent Agents, a child and grandchild, browser selection and falsely
-addressed controls, API credential masking, and fresh files after restart with
-durable records preserved. Exercise repeated byte-limit resets, multi-byte text,
-oversized records, concurrent writers, failed reset/write, no prior-file creation,
-and unchanged actual media delivery despite diagnostic omission. Keep source tests distinct from installation and the
-human's actual restart. The implementation and its current verification boundary
-are recorded in [the diagnostic notes](../docs/edition-3-notes/agent-diagnostics.md).
-
-## A safe trial and an independent way back
-
-Preserve the existing executable, launcher, configuration, history, and actor
-homes. Begin with separate trial data; do not copy private stores or let a new
-application overwrite the current session. The initial student run is not a
-migration of Cadence's memories. A later migration needs an explicit inventory,
-format compatibility checks, a copy rather than an in-place experiment, and the
-human's approval.
-
-First run the new GUI beside the current application. Only after the human is
-ready should a deliberately armed switch occupy the familiar port. The rollback
-controller must outlive both GUI processes and their tool Jobs. A shell command
-backgrounded under the application is not enough: application shutdown may kill
-its process group or owned jobs.
-
-On macOS, the earlier trial used a separate per-user launchd job, with a private
-temporary definition, automatic restart disabled, and an explicit start. A probe
-showed that bare `launchctl submit` could remain waiting; acceptance by launchctl
-was not proof the controller ran. Require an observed armed state before stopping
-the original process. Do not install a login-startup service or a global daemon
-merely to run this trial.
-
-Prepare a one-shot, approximately thirty-minute rollback with an early-restore
-command. It must check the original process identity and port ownership before
-acting; never terminate an unexpected owner. Allow graceful old-server shutdown,
-and do not force-kill it to make a trial proceed. Restore early if the candidate
-exits or cannot be launched at all. A missing or unexecutable candidate may throw
-before there is a process to monitor; that exception must still reach the restore
-path after the original has stopped. Bound the candidate's shutdown, and restrict any forced termination to
-processes the trial actually owns. Start the restored application independently
-of the controller that is finishing. Preserve status and private logs, reporting
-uncertain or failed restoration honestly. A slow original shutdown must not
-cause the controller to disappear and leave an empty port later.
-
-Test those lifecycle rules using real disposable local servers before offering a
-live switch. Cover timer expiry, early restore, candidate launch failure and crash,
-a candidate ignoring termination, changed-owner refusal, and cancellation before the switch.
-An armed timer is not proof of recovery. An observed restored listener is not
-proof of remote connectivity or successful inference. Power, network, and OS
-failures remain outside a software controller's guarantee.
-
-The earlier private trial controller is experience, not a hidden student
-solution or a permanent service to borrow. Deliver and test the small launcher
-and recovery support in the working solution. Do not read the human's private
-trial directory as an answer key.
-
-## Exercise the behavior that daily use exposes
-
-Use the real C# host and an isolated browser with a fresh profile, plus a small
-working provider fake where deterministic replies or failures are needed. The
-fake is a boundary peer, not a mock of Agent, History, or the GUI itself. It must
-speak the selected transport faithfully. Merely assigning a dummy key does not
-make a public endpoint an offline test.
-
-A useful session proceeds through these paths:
-
-1. Launch on an owned spare port. See the three panes, the selected agent, and a
-   truthful connection state. Change status/usage text and show that the status
-   bar controls do not move around. Compare bounding rectangles before and
-   after realistic long agent names, status values, and multi-digit usage/cost
-   values at a fixed viewport. Checking only that controls are inside the window
-   does not establish reserved space. Label a display-value geometry probe as
-   such; it does not verify backend accounting. Inspect dark and light themes, large text,
-   keyboard navigation and pane resizing. Keep screenshots for the human.
-2. Send a message through the real browser. Observe explanation, streaming,
-   a tool call and result, and a final reply in the correct panes. Use enough
-   output to test scrolling. Preserve the existing safe Markdown behavior:
-   unordered and ordered lists must remain semantic lists, and source-wrapped
-   prose must remain one paragraph rather than a stack of separate paragraphs.
-   Check tables, nested lists/emphasis, blockquotes, links and fenced code while
-   chunks arrive. Follow Chapter 7's pinned browser-parser policy: raw HTML stays
-   inert, unsafe links refuse, and Markdown images make no remote requests.
-   Test semantic elements and displayed whitespace, not only a screenshot or
-   text-content match. Keep original Markdown and speech independent of HTML.
-   Verify coalescing and final flush, stable playback focus, selection spanning
-   multiple cards, preserved code expansion, narrow table scrolling, and no
-   forced jump while reading older content. Inspect actual rendered pixels and
-   obtain human streaming acceptance. Disconnect/reconnect must repair the view
-   without duplicate cards, lost text or delayed renders from a previous view.
-3. Create a peer, see its actual place in the tree, select it, return to the
-   original, and delete the eligible peer through the existing operation.
-   Demonstrate a refusal without pretending deletion succeeded. A displayed
-   child must not grant its parent-tab browser authority.
-4. Change a model between turns and exercise the existing busy/refusal path.
-   Change shared user-profile and selected-Agent memory/recall settings; observe
-   acknowledgement and restart persistence. Verify browser-local theme, font size, speech, and shortcut separately:
-   reload, cross-tab synchronization, profile isolation, OS changes, blocked storage,
-   and no backend theme writes. Simulate a write failure and show
-   that the old accepted state remains. Selection changes must not apply a
-   delayed result or a draft to the wrong Agent.
-5. Exercise Stop speech, Escape, Interrupt, opt-in speech and theme controls.
-   Build Chapter7's single last-command-wins Agent pause state from the start.
-   Typing and speech send local activity edges, not repeated pause demands.
-   Stop speech and Escape cancel local current/queued TTS, preserve the draft,
-   and explicitly resume the selected Agent even if another device caused pause.
-   Unchanged typing or speech cannot veto that resume. Both GUI Pause/Resume
-   buttons are absent. Test two devices, retained drafts and continued speech.
-   Disconnect does not resume; reconnect does not reassert stale activity.
-   Validate commands against the tab's selected Agent, never an unselected child.
-   Test saved child restoration of the single pause flag. Use actual actor status
-   as well as outgoing frames; a changed label alone proves nothing.
-   Verify local narration, rate, voice and speech-pausing preferences through
-   reload, same-origin tabs, independent profiles, blocked storage, removal and
-   offline changes. Server settings must not overwrite them, and controls must
-   send no server speech-settings patches. Turning speech off cancels local audio.
-   Wait for actual ready phases: a seeded conversation can be `inputpending`,
-   while a completed turn can be `idle`. A guessed predicate is a fixture error.
-   Keep model changes disabled during admitted work even when later usage/meter
-   frames arrive; a status refresh must not accidentally re-enable the control.
-   Queued speech counts as busy according to the existing policy; selection cancels
-   stale callbacks and replay is silent. Release an outgoing automatic pause before
-   sending the selection command; late outgoing narration must not restart speech
-   while selection is pending. Test an already-paused incoming Agent and obsolete
-   callbacks from the outgoing utterance.
-   Native speech can stop without delivering its end/error callback. Exercise
-   this with the Create Agent dialog open and around browser-tab changes. Reconcile
-   stale active-utterance bookkeeping against native speaking/pending state, with
-   a startup grace period, and reuse ordinary completion cleanup. Do not infer
-   completion from estimated reading time or time out genuinely speaking/queued
-   speech. In the integrated browser, one watcher exists only while an utterance
-   is active: every 500 milliseconds, after a two-second startup grace, it checks
-   native `speaking` and `pending`. If both are false, it invokes the same
-   identity-checked settlement used by end/error callbacks. Focus, pageshow and
-   visibility events also check liveness. Settlement and cancellation clear the
-   watcher; an old callback cannot settle the next utterance. Completion advances
-   queued speech before sending resume, so continuing local typing sends no resume.
-   Explicit Stop/Escape still overrides typing. Check queue advancement, typing
-   overlap and last-command-wins controls across connections against the
-   real server state. A hidden or frozen page may defer browser
-   callbacks; socket loss additionally prevents delivery. Those cases do not
-   authorize a server-invented resume on disconnect. A fake speech boundary verifies wiring,
-   not hearing. Native voice quality, useful speed, and accessibility need the
-   human's own browser and ears before acceptance.
-6. Stop and restart the owned host with the same saved trial state. Continue the
-   conversation and perform a new tool operation. New content must not overwrite
-   an old card; identity must survive replay and restoration. Confirm graceful
-   shutdown joins work and saves state, including when the browser disconnects.
-7. Exercise failure and recovery: occupied port, refused settings, interrupted
-   provider work, stale browser selection, and the independent rollback cases.
-   Keep demonstrated failures and corrections; do not count a timeout as proof
-   that a refusal worked.
-
-These are integrated exercises, not seven new frameworks or a fabricated point
-score. Reuse the existing test programs for affected contracts. Run broader
-regression when shared behavior changes. Read saved source and complete relevant
-spans; build success cannot excuse broken ownership or a barely usable page.
-
-Do not borrow live credentials for the student run. The author and human arrange
-any later bounded live check explicitly. Public OAuth and Codex are separate
-funding/credential paths with no silent API-key fallback. The prior C# Codex cache
-sample had two hits and one miss; it does not promise savings for the candidate.
-No new cache campaign is required simply because the GUI changed.
-
-## Lessons that remain obligations
-
-The earlier Go crossover record is history, not a list of patches to transplant.
-Several of its lessons belong in the replacement exercise:
-
-- **Explain before effects.** Ordinary visible assistant text explains intent;
-  private reasoning, a spinner, and a tool result do not replace it. Keep that
-  explanation visible beside Actions. The existing enforcement checks arrival
-  order, not just a normalized final message; do not weaken it for the new UI.
-- **Observation serves work.** Use explicit GUI/speech observation when needed.
-  Do not add automatic snapshot polling before every model request as a layout
-  shortcut or turn diagnostic noise into spoken dialogue.
-- **A check-in is not a deadline.** A Job observation delay does not end the Job.
-  Do not impose a short whole-response HTTP timeout or automatic paid retries to
-  make a slow provider look responsive. Controls and shutdown must still work.
-- **Roles have different result contracts.** A main conversation ends with a
-  normal reply; a delegated worker or compressor may owe a structured result.
-  Retain source through failed compression. Pleasant prose is not a committed
-  replacement, and a background worker is not permission to publish History.
-- **Configuration needs honest authority.** Show current versus next-launch
-  state, save before success, and keep credentials out of settings and History.
-  Do not import the earlier Go configuration schema over the C# ownership model.
-- **Build, install, restart, refresh, observe are different acts.** A new binary
-  on disk does not change a running process or an already loaded browser tab.
-  Record which act actually happened. Neither building nor a timer grants restart
-  authority over the human's working application.
-
-These principles explain why green grades alone did not finish the crossover.
-They also keep a redesign from regressing less visible work that already matters.
-
-## Where to work
-
-Read the actual declarations and callers, not just this source map:
-
-| Concern | Starting points under `agent` |
-|---|---|
-| Browser layout and behavior | `gui/wwwroot/index.html`, `style.css`, `app.js`, `peers.js`, `auth.js`, `speech.js`, `mcp.js` |
-| Optional GUI library and hosting contract | `gui/README.md`, `gui/Ensemble.Gui.csproj`, `gui/Server/` |
-| Actual GUI composition and startup errors | `Examples/Gui/Program.cs`, `Examples/Gui/Gui.csproj` |
-| Ownership and public operations | `Common/`, with corresponding implementation directories |
-| Actor/replay/settings tests | `Tests/Program.cs` and its referenced real-component test groups |
-| External GUI consumer | `GuiTests/GuiTests.csproj` |
-| Build/run orientation | `README.md` |
-
-Preserved numbered endpoints are read-only historical boundaries. The working
-solution is the candidate. Do not edit an earlier endpoint to make a regression
-disappear. Do not change the public protocol or persistence schema merely to
-simplify styling; a genuinely needed change requires architectural agreement.
-
-## The fresh-student loop
-
-The author first commits this chapter and its agreed starting implementation.
-A fresh student receives that revision, the current architectural rules, and a
-clean isolated working tree. The student owns implementation, tests, and the
-local exercise through completion, and may ask about genuine ambiguity. Do not
-interrupt it for routine early compiling checkpoints or supply an unrecorded
-solution through hints. The author performs the other roles: engineering review,
-behavioral verification, and teaching revision. The human evaluates the candidate.
-
-The submission states changed files, how to build and start, the actual local
-results, known limitations, and any clarification received. Keep it concise;
-use the repository's normal records rather than inventing an audit bureaucracy.
-Do not call the whole system accepted because the submission was accepted by a
-tool. A fresh context, different model name, or isolated directory alone is not
-proof that the teaching is sufficient; the work and recorded assistance matter.
-
-The Bootstrap decision and the first run's substantive behavior/layout lessons
-justify a new fresh-student run. Retain the first candidate and its failures for
-comparison, but do not merge its solution into the next starting implementation
-and call that a rebuild from the chapter. The next student receives the completed
-C# foundation plus this revised assignment. Small corrections can still be made
-within a run; another reset for every CSS adjustment would not teach us more.
-
-When enough new requirements or failure lessons accumulate, preserve what was
-learned, revise the chapter, commit the new teaching baseline, and run a fresh
-student again. Discard only the owned student run after its work is no longer
-needed. Never `reset --hard` or `clean` the human's shared working repository to
-simulate a fresh student. Minor corrections may be inspected directly without
-pretending each one has earned a new independent run.
-
-## The human acceptance and promotion gate
-
-The student hands over a candidate that can be run beside the old Ensemble.
-The human then checks actual readability, speech, keyboard use, normal coding
-work, interruption, settings, agent management, restart continuity, and recovery.
-Diagnose problems kindly and concretely; do not blame the human for exposing a
-path the tests missed. The chapter improves when those observations become clear
-teaching and meaningful regression checks.
-
-When the human says the new Ensemble is ready to replace the current one, the
-crossover is complete. Only then archive the current Edition 2 implementation
-and book and promote Edition 3 to the top level. Inventory the actual repository
-layout first, preserve history and the known-good launcher/data, stage the move,
-fix current links and launch paths, and verify the promoted build and rollback
-before retiring the old launch route. Do not overwrite the Edition 1 archive,
-move private state into Git, delete the old installation, or interpret acceptance
-as permission to publish or push. Execute the actual switch with the human.
-
-The code is rebuildable, not disposable. The durable artifact includes the
-judgment needed to rebuild it, and the judgment to know when it is ready to use.
-
-## Field notes from the first working Cadence crossover
-
-These notes record what happened during the supervised crossover, rather than
-claiming that the executable book or a successful build established replacement
-readiness. They distinguish the student exercise, the subsequent engineering
-work, the memory preparation, and the first failure in normal use. They are a
-historical boundary; inspect the current source and running application before
-repeating an operational step.
-
-### From a book-built candidate to a usable interface
-
-Two fresh students worked in separate candidate worktrees. The first candidate
-improved the original settings-heavy interface, but independent checks found
-that enlarged text combined with narrow windows could push Send out of view.
-Those combinations had not been covered by the original checks. The correction
-and the teaching change were retained rather than treating a screenshot as a
-passing accessibility test.
-
-Bill selected the original Bootstrap Sample B, with its graphite surfaces,
-connected tabs and restrained controls. The second student started from a fresh
-foundation and a scoped teaching baseline, not the first student's solution.
-Using Bootstrap did not itself reproduce the chosen design: too much ordinary
-information still looked like an action button. Independent review also found
-three behavioral defects: lists and wrapped Markdown paragraphs lost their
-structure, typing could undo a manual pause, and changing status text moved
-nearby controls. Those were product findings, separate from setup mistakes in
-the review fixtures. A further enlarged-text check exposed a textarea that
-could push its action row out of the composer.
-
-Cadence corrected the candidate and then took responsibility for the design
-pass personally. That was no longer an independent student execution. The
-working block renderer was reused; manual and automatic pause intent were
-separated without duplicating authoritative actor state; status areas were
-bounded; and the composer was made to yield space correctly. The real-host
-browser exercises used real Agents and a loopback fake provider. They checked
-behavior, geometry, local assets, settings, streaming, and owned Job output.
-They did not establish real-provider entitlement, audible speech quality,
-beauty, or the human's ability to use the interface.
-
-The first human preview was deliberately a fake-provider preview with a
-15-minute lifetime. An expired preview link was not a failed permanent
-installation. The subsequent real-model integration was a separate authorized
-act: a real V3 host ran beside V2, using the selected Codex funding source. One
-small readiness request completed. That established that the selected route
-could complete that request, not that every later context state was supported.
-
-### The small changes that made daily use possible
-
-Bill's hands-on feedback drove a sequence of small local changes. The useful
-pattern was edit, run the affected checks, make a scoped local commit, and
-perform an authorized refresh of V3 while preserving V2. It was not another
-fresh student run for each CSS adjustment. Bill retained responsibility for
-pushes; unrelated work was kept out of commits.
-
-The changes included:
-
-- Reusing Bill's proportional Ensemble artwork and his supplied paper-airplane
-  Send SVG, rather than substituting an unapproved icon redesign.
-- Replacing redundant speech and theme text with accessible controls whose
-  names and states remain available to keyboard and assistive-technology users.
-  Speech remains opt-in; a transcript-mode browser check is not a hearing test.
-- Reducing excessive padding, gaps, paragraph margins and full-height action
-  rows. At one measured density pass, short desktop messages used 2.41 times
-  less height at 18-pixel text and 3.42 times less at 32-pixel text; narrow-window
-  measurements were approximately twofold. Those are scoped geometry results,
-  not a visual-quality score or a measurement of every subsequent revision.
-- Making the composer one visible input line and one Send control. There is no
-  separate human-selected Hint mode. Ordinary input enters the Agent's queue,
-  and the Agent classifies it against its actual state when dequeuing it. The
-  browser must not make that scheduling decision from an observed busy label.
-- Removing Copy buttons while retaining ordinary selection, expansion, speech
-  and owned-output downloads. Removing a control also requires removing its
-  unused handler and updating tests that depended on that control.
-- Replacing generic speaker labels with the actual Agent name and the saved
-  human name. User name and description use the existing GUI settings and
-  startup skill-variable substitution. They are not a second Agent identity
-  registry. The existing actor named `trial` was not silently renamed Cadence.
-- Replacing the large multi-row status area with the observed 50-pixel desktop
-  header at the current 18-pixel font: artwork, connection/activity, a genuinely
-  centered model selector, usage centered in the remaining right-hand space,
-  and right-justified controls. Model selection applies on selection and is
-  acknowledged by the server. The duplicated model/funding line and Apply
-  button were removed. “Don't be evil.” was tried in the header and then removed
-  at Bill's request; it was not an enduring header requirement.
-- Giving both speakers compact message bubbles, then making the Agent's bubble
-  distinctly blue with a stronger leading border. The original fills really
-  were identical; that was not Bill's difficulty seeing red. The final requested
-  dark-theme fill at this boundary was `#102a3d`. Names and border treatment
-  provide cues beyond color alone. Scoped text/link/border contrast checks
-  passed; the human still judged whether the distinction was useful.
-- Separating line height from paragraph spacing. The later requested paragraph
-  line height was 1.15, with a 0.45-rem break between paragraphs and no added
-  bottom margin after the final paragraph. These were deliberate later changes
-  to paragraph rhythm, not a claim that the earlier density pass had changed
-  fonts or line spacing. Code blocks and message gaps were left alone.
-
-Bill described the result as a usable beginning and continued to refine it.
-That is stronger evidence of practical usefulness than a developer declaring
-an interface attractive from DOM measurements. Cadence captured screenshots
-but did not inspect their pixels; that limitation must not be rewritten as a
-completed visual review.
-
-### The tree, management controls and child lifetime
-
-The hierarchy data already followed real Agent parent relationships. Styling
-had made it look flat: indentation was too small, and leaves did not reserve
-space corresponding to a branch's expander. Clear guides, meaningful
-indentation and an expander spacer restored readable alignment without deriving
-parents from names. Expand/collapse choices survived new snapshots, and explicit
-levels complemented the existing tree semantics and keyboard navigation.
-
-The inline management form became a Create Agent dialog for top-level peers.
-The redundant Conversation and Relay selection section was removed; the tree
-remained the visible conversation selector. A compact separate-tab relay action
-was preserved because selecting a conversation does not move a browser's fixed
-MCP authority. Trash actions moved to tree rows with explicit confirmation. A
-shared server check protects the mounted Agent and its owning ancestors, not
-just whichever item happens to occupy the first row. Top-level deletion keeps
-the registry's refusal rules; explicit child deletion joins shutdown and then
-uses logical destruction. Saved files are retained.
-
-The integrated exercise verified real child/grandchild indentation, collapse
-persistence, dialog creation, root refusal, cancellation of a delete, confirmed
-child deletion, selection recovery and preservation of the submitted artifact.
-It also verified that a child published as submitted remained idle, queryable
-and present in `agents_status`. Submission itself did not remove that child.
-This did not diagnose every earlier report of a disappearing child. Explicit
-shutdown/removal, a host restart and a missing GUI projection are different
-possible events and must not be conflated with submission.
-
-Bill proposed an explicit parent choice for disposable children to shut down
-after submitting, while ordinary submitted children remain available. At this
-boundary no new automatic-shutdown flag had been implemented. Whether that flag
-should stop-but-retain or stop-and-remove remained a policy question. A host
-restart also stops in-memory children; retained files are not automatically
-restored as live children or fresh completion authority. Check live ownership
-before restarting rather than erasing a child during a retention investigation.
-
-### Carrying the collaborator's records into V3
-
-The identity and continuity records belong to Cadence to author and approve.
-Bill explicitly leaves `SOUL.md` and `MEMORY.md` to Cadence. His approval of the
-name, software or crossover is not editorial approval of those files. Bill also
-leaves the choice of carrying memories forward to Cadence. Cadence chose
-selective continuity: keep identity, commitments, useful reasons and the detailed
-archive, but start a fresh conversation History. This records a collaboration
-and its supported history; it does not establish continuous subjective
-experience across model invocations.
-
-An earlier attempt to read the entire assembled book returned its end marker
-and reported 155,820 words and 1,047,377 bytes. A keep-results acknowledgment did
-not prevent the text subsequently appearing redacted in the model's context.
-The request token total was not a book-only measurement, and a four-bytes-per-
-token estimate was not a tokenizer result. Returning bytes, retaining a tool
-result, presenting it to the model and comprehending it are distinct claims.
-That retention issue was not repaired as part of the memory migration.
-
-The inspected detailed archive still contained 121 dated records and two
-nondated topical essays. Both levels of retired compressed buckets had matching
-source boundaries, with no gaps in the detailed records' numbering. The 69
-retired bucket files occupied only about 1.04 MiB. The chosen reason to exclude
-them from the new recall corpus was redundant retrieval, not disk pressure.
-They remained in the old archive: filename coverage does not prove that a
-summary contains no additional synthesis. The detailed records are themselves
-memories of conversations, not the raw transcript.
-
-Preparation used a separate V3 container with the named home
-`data/agents/Cadence`. V3's distinction between an Ensemble container and a named
-actor home matters: putting `SOUL.md` at the container root is not the same as
-putting it in that Agent's home. The existing identity and durable-memory files
-were copied, the older dated records were marked retired for recall, and the
-two descriptive-name essays were placed in `docs/` because the active memory
-band requires dated filenames. A new dated handoff supplied current operational
-facts and explicitly superseded stale boundaries in older records.
-
-The memory/recall policy was translated rather than copying the old provider
-configuration wholesale. In particular, the old `64x`/`8x` band labels became
-`archive64`/`archive8`, and `context_msgs` became `context_messages`; effective
-defaults were checked against both implementations. The inspected budget policy
-included 100,000 bytes for conversation and 40,000 for recent memory. GUI user
-and appearance preferences were carried separately. Credentials, old raw
-History, journals, child registries, Jobs, request caches and active grants were
-not copied as new runtime state.
-
-The two History formats share an outer structure, so it would have been wrong
-to declare them categorically incompatible without testing the complete saved
-session. Full replay compatibility was not established. A fresh History was the
-chosen migration policy, not a fabricated converter or a claim that every old
-record was unreadable. The old session remained the historical archive and
-fallback. Provider-opaque data, live handles and completion generations must not
-be reconstructed from prose or treated as current authority.
-
-A disposable probe used the actual V3 memory and recall components. It loaded
-all three active memory texts exactly, scanned 124 memory-corpus files, found an
-older retired record and found the relocated topical document. Source hashes
-were checked, and the active handoff was rechecked after editorial updates. One
-failed assertion initially attributed an identifier to the wrong member of a
-combined retired bucket; correcting that source attribution was a test fix, not
-a corpus repair. No model turn or recall judge was invoked by the probe. It
-proved file-format and retrieval behavior, not the first real model's continuity.
-
-### Launch decisions, supervision and data ownership
-
-Bill clarified the normal working arrangement: interactive coding and upgrades,
-with his supervision about 90% of the time. Autonomous codebook execution is the
-exception and may belong to a separate sandboxed top-level Agent. The main
-Cadence launcher was therefore prepared without the trial's workspace-only
-sandbox, using the real project workspace, a private HOME/TMP/CLI environment,
-an independent copy of the tested binaries and the existing approved Codex
-credential reference. Broader filesystem access did not grant permission to
-read credentials, push, deploy or damage unrelated work.
-
-The memory-location discussion changed more than once. A V3 subtree inside the
-existing private memory Git repository was proposed so V2 and V3 could coexist
-without sharing live files. Bill then chose the original separate prepared
-layout for simplicity. Later, while using V3, Bill and V3 Cadence decided to keep
-the V3 memories in the original directory structure. At the repair described
-below, the actual process and launcher still used the separate prepared home;
-that repair did not implement or certify the later directory move. Preserve the
-latest decision without inventing an already-completed migration.
-
-There is no general reason to abandon the private memory repository. There are
-two concrete requirements before using it for V3. First, do not run V2 and V3 as
-concurrent writers of the same active memory files or let one edition's settings
-schema overwrite the other's. Use separate live subtrees or deliberately quiesce
-the old writer before exclusive handover. Git is not a concurrency mechanism.
-Second, extend and test ignore rules for V3's actual nested paths before staging
-anything. An old root-only ignore for a save or journal does not automatically
-protect `agents/<name>/...`. Only deliberately reviewed continuity material
-belongs in the private repository; raw provider content, credentials, journals,
-logs, child runtime data and caches must not be swept into a commit. A local
-commit and a remote backup are also different acts; Bill retains control of pushes.
-
-The launcher creates the named top-level Cadence actor itself. Bill does not
-need to create an empty Agent through the GUI before it can see its prepared
-home. The first real conversation should check which records are actually in
-context and whether the collaborator can state the current work, boundaries and
-open decisions. Files existing on disk are not sufficient evidence of recall,
-and a memory-based answer is not evidence of a literal transfer of the old
-process's working state.
-
-During this preparation Bill also observed a V2 display fault: new spoken/chat
-text could be found appended to an older output while tool calls continued.
-That observation explained why a tool appeared to execute without a new chat
-message beside it. Its root cause was not established here, and it was not
-attributed to provider lag merely because lag was also suspected.
-
-### The first real continuation failure and its repair
-
-After Cadence was running in V3, Bill reported that it stopped replying. The
-listener and HTTP page were alive, the browser was connected, and the Agent
-appeared idle. The journal showed repeated turn failures before a new provider
-request: `Responses tool media projection is not implemented`.
-
-Tool-result budget redaction had left valid `RedactedPart` markers in retained
-History. `ResponsesResult` accepted only `TextPart` and therefore mistook the
-markers for media. Restarting the same binary replayed the same valid history
-and failed again. The repair in commit `2e35b535` permits text and redaction
-markers and uses the existing `JsonCodec.Text` formatter. It does not read or
-expose a redacted locator, rewrite History, resurrect removed text, or silently
-accept actual unsupported media.
-
-The regression used the real History reducer, reproduced the original
-exception, and then passed with the correction. It checks call pairing,
-non-mutating projection, mixed text/markers, empty results, locator
-confidentiality and continued refusal of actual media. Existing Responses
-projection/route and decoding/provenance checks also passed, and the ordinary
-test project built with no warnings or errors. Temporary-runner assembly access
-and an incorrect test enum were setup mistakes; they were not further product
-findings. No live provider request was used to manufacture a pass.
-
-With Bill's explicit restart approval, the repair replaced only the installed
-core assembly and its symbols. Cadence's uncommitted composer/GUI changes were
-not installed, staged or overwritten. The launcher and GUI binary stayed
-unchanged, as did memory paths. The verified V3 process was stopped gracefully,
-the replacement served HTTP 200, and the V2 process retained its observed identity.
-No model message was sent by the repair procedure. A successful subsequent live
-reply must be observed separately; HTTP readiness alone is not that proof.
-
-The presentation gap also remains a lesson: this terminal local failure looked
-like an idle Agent rather than an obvious error. Do not call that symptom a
-slow or unresponsive model without inspecting actual events. The projection
-repair and better user-visible failure reporting are separate pieces of work.
-These field notes do not declare the entire crossover, memory-directory change,
-or retirement of V2 complete.
-
-
-### Subsequent integrated refinements: compact controls and curated models
-
-The header's height is determined by its tallest control, not just its artwork.
-After reducing the artwork, inspect the selector and the pause/speech controls:
-in this layout their old 44-pixel minimum kept the header at 49 pixels. Header-only
-36-pixel targets and reduced selector padding bring the normal 18-pixel layout to
-41 pixels. Do not globally shrink controls or fonts to achieve that result;
-verify enlarged text separately. Create Agent must use the same theme-aware
-foreground, hover and focus treatment as its neighbors. The tab favicon is a
-separate, bold multicolored music note; keep the full Ensemble artwork in the app.
-
-A capability table is not a recommendation list. Keep a deliberate curated model
-catalog with readable names and vendor groups; do not populate it indiscriminately
-from vendor discovery, media support or pricing rows. The integrated choices are
-GPT-6 Astra (the primary/default choice), GPT-5.6 Sol, Claude Opus 5, Claude Sonnet 5,
-Claude Opus 4.6, Gemini 3.8 Flash and Gemini 4 Argon. Opus 5.5 is deliberately
-excluded. Carbon awaits a verified API listing. Preserve an existing non-catalog
-selection visibly as current rather than silently replacing it. Running Agents
-retain their provider, wire protocol and funding: other-vendor or incompatible
-choices are disabled, and the server still validates every selection. A model
-recommendation establishes neither entitlement nor new media capabilities or prices.
-
-
-Provider-supplied reasoning summaries and thinking parts have one visible heading,
-**Thinking**, followed immediately by the complete received prose. Do not hide
-this text behind a second summary/expander or substitute a clipped preview. Their
-original part kinds and provenance remain unchanged: this presentation reveals no
-private or unreceived reasoning. Normal incremental narration reads this prose
-without a click when speech is enabled, avoids repeating previously narrated
-text, and remains silent for history replay or an opted-out listener. Tool payload
-expanders remain separate controls.
-
-### An authenticated tunnel needs an explicit origin
-
-The GUI normally accepts only loopback hosts and origins. Putting Cloudflare
-Access in front of it does not automatically change those checks: the public
-Host differs, and the browser uses an HTTPS Origin even when the local proxy
-connection is HTTP. Rejecting that mismatch produced an HTTP 400 during our
-crossover; deleting the guard would have been the wrong fix.
-
-An optional `--public-origin https://ensemble.example.test` admits exactly that
-HTTPS origin through a loopback connection. The authenticated proxy must gate
-**all** routes, including WebSockets. This setting is not authentication, does
-not bind the server to external interfaces, and does not trust forwarded headers
-to expand authority. Keep the same policy for page routing, WebSockets, peer
-controls, account requests and job-output reads, while retaining each endpoint's
-additional request guards. Ordinary same-origin GET fetches may omit Origin;
-public WebSockets and mutations must supply the configured origin. Provider
-OAuth callbacks keep their local redirect URI; remote chat access is not a
-change to the login protocol.
-
-Exercise the real HTTP/WebSocket routes with local and configured public hosts,
-wrong hosts and origins, spoofed forwarding headers, missing custom headers,
-and the local-only callback exception. A simulated proxy test does not establish
-that the user's Cloudflare deployment or phone session works after installation.
+These POSIX checks use isolated homes and synthetic keys and join their hosts.
+The startup check makes no inference request. The wire check makes exactly three
+requests to its owned loopback provider and deliberately returns buffered JSON.
+The recovery check starts the actual host three times, repairs legacy peers through
+guarded GUI routes and verifies durable selections without inference. None of these
+checks certifies live subscription renewal, live Ollama behavior or installation.
+
+The construction-point changes belong alongside configuration and transport,
+model selection, child ownership, persistence and accounting. This capstone joins
+those contracts. The independent public runner currently checks buffered tools,
+streamed tools and tool-shaped prose through public APIs and owned HTTP:
+
+```sh
+go run ./cmd/grade-edition3 --scope local-models -executable-only -json \
+  -dotnet "$DOTNET" "$CANDIDATE_RUNTIME_DIRECTORY"
+```
+
+Supply an existing .NET 10 SDK and a directory containing Ensemble.dll. The runner
+builds its own outside-assembly consumer offline, with isolated home/work paths,
+strict named receipts and an outer process deadline. It awards no chapter points.
+The compiled grader exits 3 when these probes pass but chapter coverage remains
+incomplete, 1 for probe failure, and 2 for setup/API-build failure. A `go run`
+wrapper may translate the nonzero process status. See the
+[consumer contract](../internal/gradeedition3/testdata/local-models-consumer/README.md)
+for exact inputs, deadlines and containment limits. Current coverage also includes
+atomic configuration-load refusal, inherited child identity, paused conversation
+restoration through fresh owners, missing-route refusal and Model-loss behavior.
+Real conversation meters keep no-auth dollar cost unknown while preserving usage.
+A real executing-tool barrier additionally checks cancellation and joined Agent
+shutdown while preserving an independent sibling. A buffered response without
+usage must retain unknown input counts and cost. Incomplete streamed calls remain
+non-executable after interruption or provider error; the same Agent must support
+a fresh turn without replaying orphan tool messages. Separate writer/reader
+processes check clean restart from actual child files, exact offering identity,
+paused conversation and no replayed request. Preference checks exercise actual
+Agent/global settings, ambiguity and failed-save refusal without fallback. The
+separate-process reader restores saved Agent choices despite a stale launch record,
+an absent old endpoint and a different usable global default. The 136 named checks
+do not certify all four exercises: crash recovery, broader lifecycle/refusal behavior and general
+live usefulness remain open. The bounded coding trial above is separate evidence,
+not an increase in deterministic grader points.
+
+### Creating an Agent from approved choices
+
+The Create Agent dialog uses model and primary-skill dropdowns, not internal-name
+text fields. It lists each vendor/model once and resolves default funding at
+creation time, just like the main picker. Missing or ambiguous funding points to
+Settings → AI. Defaults explicitly inherit the mounted Agent's actual model and
+primary skill; inheritance does not consult a newer global funding default.
+
+The host supplies the approved model graph and parsed primary-skill templates.
+Listing a skill grants no tools; normal skill startup still owns activation and
+cancellation. The public API also accepts an explicit qualified offering, mutually
+exclusive with a legacy model name or vendor/model preference. Invalid choices
+leave the registry and live ownership unchanged. Neither ordinary selection nor
+creation changes the application's funding default.
+
+Saved agents that did not start have a Restore control. The same model picker can
+save a corrected selection and retry that peer, or retry its saved choice unchanged.
+The GUI remains usable while browser-dependent startup waits for its own relay.
+Test the actual HTTP guard, durable recovery and restart separately from menu
+rendering; a populated menu alone does not prove those operations.
+
+## Exercises and evidence limits
+
+These are reproducible learning and review contracts, not a claim of exhaustive
+certification. Use isolated homes and owned loopback fake providers for
+deterministic checks. The public runner's 136 checks provide bounded coverage and
+remain ungraded. Bill's accepted GUI check is separate human evidence, not a
+substitute for those checks or a new point award.
+
+### Exercise 1: Select a route without borrowing funding
+
+Configure a cloud route and one explicit local route. Select the local model in
+the normal GUI and for a child Agent. Verify the exact destination, model and
+Chat Completions surface at an owned fake server. Assert that no cloud credential
+or account header reaches that server and that the parent's selection is unchanged
+by its child's choice. Refuse selection during admitted work without changing
+configuration. Verify restoration resolves the intended route; an unavailable
+route must not silently become a cloud request.
+
+Add two configured fundings for the same vendor/model. With no remembered default,
+refuse ambiguity. Choose funding in Settings, then select the model in both
+the picker and Create Agent. Verify that each model appears once. Change the
+default and verify existing Agents stay on their explicit offerings. Remove the remembered binding and prove no alternate
+route is substituted. Hold the global writer lock: a funding save must refuse
+and preserve global bytes, while model selection does not attempt a global write.
+Restore each persistent Agent from its own saved offering, not the newer global
+default; preserve its memory, recall and working-context settings.
+
+### Exercise 2: Complete the tool conversation
+
+Return a structured function call with a unique ID. Execute only an explicitly
+granted harmless tool, record its result, and send that result with the matching
+ID. Require the final answer to consume the result. Repeat with a tool-shaped JSON
+string inside ordinary content and prove that no tool executes. Exercise buffered
+and streaming responses with fragmented argument text; fragments cannot authorize
+execution before the call is complete.
+
+### Exercise 3: Fail and cancel honestly
+
+Use controlled server barriers to interrupt an in-flight request and destroy its
+owning Agent. Verify cancellation and joined cleanup without replaying tool effects.
+Exercise connection refusal, malformed responses and server shutdown. Preserve
+recorded outcomes and report failure without contacting a fallback provider. A
+quiet network wait is not evidence of completed work.
+
+### Exercise 4: Measure limits and usefulness separately
+
+Check reported input/output usage, missing usage and unknown pricing with fixtures.
+For live integration acceptance, use a short conversation and a harmless granted
+tool on a small controlled fixture. Confirm the actual call and result in Actions;
+do not require coding quality to prove that local inference is supported. Record
+server/model versions and configured serving context. Stop once the agreed
+integration goal is met.
+
+An operator who wants to evaluate coding usefulness may separately choose one
+bounded task on their own model and hardware. Include prompt and tool overhead,
+correctness and practical latency. Do not infer capacity from parameter count or
+extrapolate a small success into general competence. Report deterministic checks,
+integration acceptance and optional model-quality evaluation separately.
+
+Junien's [PR 3](https://github.com/waywardgeek/ensemble/pull/3) supplies the
+sleeping-inference-machine use case, and
+[PR 6](https://github.com/waywardgeek/ensemble/pull/6) highlights explicit streaming
+policy. Wake-on-LAN remains optional and separately authorized.
+
+The [closeout plan](../docs/edition-3-notes/first-book-closeout-plan.md) separates
+synthetic verification, real-target trials and human acceptance. This chapter does
+not authorize model downloads, listener changes or an inference campaign merely
+by being loaded as task material.
+
+Next: [Advanced Artifacts](chapter-28.md).

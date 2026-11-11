@@ -68,6 +68,12 @@ that path without becoming jobs themselves. `tool_limits` sets one-shot
 observation options for the very next call, even a control or failed call; its
 consumption must be visible. Interactive commands require a real PTY.
 
+A control can return an observation of an existing Job without owning a new one.
+Preserve that observation's typed handle and status when the Agent records its
+result in History. Stripping them merely because the call is a control loses the
+facts needed by replay and the GUI. A handle-free `tool_limits` result still has
+no Job metadata; never manufacture a wrapper Job to fill that absence.
+
 ## In plain words
 
 Chapter 3 made the Agent wait inside each tool. Chapter 4 gives the work its
@@ -212,6 +218,31 @@ return await job.ObserveAsync(call.CallID, delay, pattern, maxBytes,
     callerCancellation, wakeOnOutput: false);
 ```
 
+The complete finalized model response, including every requested call and its
+normalized identity, is already in canonical History before any batch effect.
+The handle-bearing `ToolCalled` above records admission of one Job, not capture
+of that whole response. In this early serial loop, each call may therefore follow
+`ToolCalled`, `ToolStarted`, and `ToolReturned` before the next call is admitted.
+Record that call with its Job before releasing its worker, and record results
+before the next provider request. A failed call-record append must release no
+worker. Refusal must cause no tool effect.
+
+Chapter 3's implementation may have recorded all separate call events before
+executing the first call. Do not duplicate those events or invent batch
+pre-admission merely to preserve an implementation-specific test. Update that
+test to verify complete response capture before effects, each Job's own
+record-before-effect boundary, correlation, and result-before-next-request
+ordering. The later scheduler may separate planned calls from dispatch again;
+that is not required here.
+
+Preserve the receiver-bound `Tool.ExecuteAsync` contract from Chapter3 when
+routing it through this funnel. Reject a different call name before dispatch:
+return a correlated `IsError` result without Job metadata, a new Job, handler
+effects, or History dispatch facts. A matching name uses ordinary Agent dispatch;
+`Agent.DispatchAsync` itself still selects by name. This guard is not a second
+execution path. Run the public observation supplement's `receiver` mode to check
+both refusal and the two legitimate execution routes.
+
 Three things follow from putting it there and nowhere else.
 
 In C#, `Task.WhenAny` can similarly end a wait without ending the task.
@@ -270,9 +301,13 @@ needs its stated diagnostic. Do not hide those facts to imitate the old bytes.
 The log contract, so you do not guess it. Both `tool_called` and
 `tool_returned` carry `tool.job = {handle, status, output, bytes, exit_code?}`,
 with `status` one of `running`, `done`, `killed`, and `output` a
-`Ref{RefHandle, "cr/io/N"}`. The `job` field is absent on the four supervision
-tools; they are the only calls that are not jobs. One new event, `job_killed`,
-carries the job and a `reason` of `kill_job` or `shutdown`.
+`Ref{RefHandle, "cr/io/N"}`. The four controls allocate no wrapper Job, so their
+call records carry no newly allocated Job snapshot. A control's returned result
+can instead carry a snapshot of the existing Job it observed. Preserve that
+snapshot through result recording and replay; it does not give the control
+ownership of another Job. `tool_limits` has no observed Job and remains without
+Job metadata. One new event, `job_killed`, carries the job and a `reason` of
+`kill_job` or `shutdown`.
 
 On disk the killed event uses a top-level `job` payload, with the reason inside
 that object. This is an illustrative event, not a live receipt:
@@ -451,6 +486,69 @@ The CLI calls Shutdown before its final log save, including error exits from
 its input loop. Returning a final model answer alone does not end the CLI
 session; EOF does. A library application has the same responsibility when it
 finishes using its Agent.
+
+Recording a shutdown failure must not prevent shutdown itself. A History append
+or borrowed diagnostic writer can throw while recording `job_killed`. Preserve
+that exception, but still request cancellation, terminate and drain owned
+processes, and join cooperative callback cleanup before reporting the failure.
+Continue cleaning the other owned children and detach their relationships even
+when one child reports a recording error. Do not mark an owner destroyed and then
+leave its children running behind an early return or an exception. A killed
+snapshot alone does not prove cancellation was delivered.
+
+Exercise this through the public observation supplement's `cleanup` mode. A
+borrowed writer fails during destruction while a real cooperative callback holds
+its cleanup behind an external barrier. Destruction must signal cancellation,
+wait for that cleanup, preserve the error, and leave an unrelated Agent alive.
+The test's synthetic unknown-usage History setup activates the early diagnostic
+path; it is not a provider request. This does not require new callback interfaces,
+crash-safe logging, or forced termination of arbitrary managed code.
+
+### Measure the observation, not the worker
+
+Immediately after successfully recording dispatch admission, capture a monotonic
+clock reading. When the foreground observation produces its result, calculate the
+elapsed duration once and return it alongside that immutable result. The Agent
+records both in its paired returned event. Keep the clock local to the dispatch;
+a shared timer registry or polling loop would add another lifecycle authority.
+
+A schema or permission refusal has no admitted duration. An execution error after
+admission may have one. Cancellation that ends observation but leaves its Job
+running fixes the observation's duration at that boundary; later completion must
+not rewrite it. A control's own observation can likewise be measured without
+creating a wrapper Job. Paths without an explicit dispatch boundary retain
+unknown duration rather than inventing one. Later chapters apply that rule to
+skill activation; do not construct the skill system here to test this timing
+boundary. This feature does not change admission behavior.
+
+Persist the optional duration exactly as nonnegative ticks on the result event
+and retained Entry. The GUI may format seconds, but provider payloads remain
+unchanged. Test with a real custom tool held behind a barrier: the observation
+returns a running Job before the barrier opens, and its recorded duration remains
+unchanged after joined completion. Test refusal separately. Avoid a fragile test
+that assumes a loaded machine must finish within a tiny wall-clock threshold.
+
+### Looking ahead: completed structured results
+
+A running report is an observation, not the eventual structured result. Keep
+that distinction in the Job design, but do not invent a public structured custom
+handler or build MCP merely to prove it in this chapter. Here, implement and test
+the text-handler, timing, control-observation, and ownership exercises.
+
+The end-to-end delayed structured-result exercise belongs in
+[Chapter 11](chapter-11.md#exercise-delayed-structured-results-through-mcp), after
+MCP and browser inspection are available. There, a controlled remote peer supplies
+a real delayed result and the browser exposes its presentation. Preserve ordered
+parts and error status through completed observation without flattening them to
+diagnostic output. Chapter 26 separately tests work-product delivery descriptions
+and live download authority; generic MCP content does not establish either.
+
+Chapter 26 supplies the HTTP transfer integration, not this chapter. Such a
+transfer is not another tool observation or a new background Job. It has its own
+explicit lifetime, owned by the offering Agent and joined before that Agent's
+Sandbox is destroyed. Request cancellation stops that transfer; it does not erase
+the earlier offer or cancel another transfer. Do not build the later Sandbox or
+HTTP route as a prerequisite for this chapter's observation exercise.
 
 ## 4.7 The terminal
 
@@ -766,7 +864,7 @@ has something real to talk to. A command that emits more than a megabyte
 | id | points | what it grades |
 |---|---|---|
 | `ch3parity` | 10 | Chapter 3's corrected grader passes fully against the Chapter 4 binary |
-| `jobmodel` | 25 | handle on `tool_called` before the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes equal the result the model saw; `wait_for_job`'s own record carries no job |
+| `jobmodel` | 25 | handle on `tool_called` before the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes equal the result the model saw; `wait_for_job` allocates no wrapper Job; a returned snapshot describes the existing observed Job |
 | `waitjob` | 10 | delay honored (`running` at 0.2 s); wait returns the result; works on an already-finished job; file ends with marker and exit code |
 | `sendinput` | 10 | pattern wakes on the prompt and not the echo; input reaches the process; its reply comes back; clean exit recorded |
 | `debugger` | 5 | the fake drives `dlv` to a breakpoint and reads `42` |
@@ -797,6 +895,40 @@ visible instead of inventing a 160/160 result. Independently build and exercise
 the C# consumer through a local protocol fake and inspect the partial declarations
 and actual parent access paths. A failed overall grade is still a failed grade,
 with its executable and language-specific portions reported separately.
+Use `-jobs-only` for the executable100-point gate; it does not award the separate
+consumer/topology points. For historical compatibility, that gate permits older
+logs which omitted a control's returned Job snapshot, while checking any supplied
+snapshot against the observed Job. Such a legacy pass does not certify the revised
+preservation rule above; test that rule explicitly through actual result recording
+and replay, alongside the C# consumer and ownership review.
+
+The [public observation supplement](../internal/gradeedition3/testdata/ch04-observation-consumer/README.md)
+adds 23 named outside-assembly checks for real running and terminal observations,
+recorded fixed durations, typed control snapshots, no wrapper Jobs, and refusal
+without admission. Its README specifies the C# constructor and public member
+signatures required by this executable, using the text-returning custom handler
+and actual parent relationships above. Provide those members on the real owners,
+not in a parallel test adapter. It accepts the early paired `ToolReturned` fact;
+a later runtime's direct `ToolObserved` spelling is also supported, without
+requiring a mailbox at this construction point.
+
+The immutable `JobInfo` value exposes `int Handle`, non-null `string Status` and
+`string OutputPath`, `long Bytes`, `bool Truncated = false`,
+`int? ExitCode = null`, and non-null `string Cwd = ""`. Truncation describes the
+bounded observation, never permission to shorten its durable output file.
+Empty `Cwd` represents no per-call override, while execution still uses the
+Agent workspace; the optional wire field may be absent or empty. Preserve all
+snapshot fields through result recording, codec round trips and log replay.
+
+A pass is observation evidence, not the whole external-consumer exercise: this
+supplement makes no provider request and cannot certify structured completion
+metadata using its text-only handler. Its separate `log-write` and `log-read`
+modes persist actual dispatched observations and verify canonical facts after a
+writer exit and public `History.Load` in another process. Require all 27 writer
+and 21 reader checks, as documented in the README. This is canonical log replay,
+not model-dialogue inclusion, crash recovery, or execution of restored Jobs.
+The historical 100-point score and separate consumer/topology review are
+unchanged.
 
 From the repository root, using the approved .NET 10 SDK and controlled offline
 environment:
@@ -804,7 +936,7 @@ environment:
 ```sh
 dotnet run --project agent/Tests/Tests.csproj
 dotnet publish agent/Cli/Ch04.csproj -c Release -o /tmp/ch04-cli
-go run ./cmd/grade-edition2 -ch 4 -json /tmp/ch04-cli/ch04
+go run ./cmd/grade-edition2 -ch 4 -jobs-only -json /tmp/ch04-cli/ch04
 dotnet build agent/Examples/Consumer/Consumer.csproj
 ```
 
@@ -812,6 +944,18 @@ The component suite tests real tools and PTYs with fake HTTP at the provider
 boundary. The consumer exercise additionally verifies successful, correlated
 custom output—not merely the presence of a result marker—and the timestamped
 root diagnostic. No real-provider acceptance follows from either fake.
+
+The [public model-driven consumer](../internal/gradeedition3/testdata/ch04-model-consumer/README.md)
+provides that offline boundary through an owned loopback fake. Require all 38
+named checks and joined process exit. Its compile-time `AgentEntryPoint=Ask`
+uses the early prerequisite's actual Agent loop; `Send` selects the current
+runtime's public spelling. Neither adapter contains an exchange or dispatch
+loop. The fake withholds its final answer until three real correlated results,
+output files, callback execution and the timestamped root diagnostic are
+verified. Correct-looking output without executing the registered handler is
+not a pass. This does not award the historical Go-only topology points or
+replace ownership/source review, live-provider acceptance, or the separate
+structured-completion boundary.
 
 The numeric result has limits. Independent source review still checks actual
 parent relationships, Ensemble-owned logging, behavior in the correct package

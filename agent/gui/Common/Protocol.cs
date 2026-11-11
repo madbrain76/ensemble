@@ -58,8 +58,17 @@ public static partial class Gui
     // response copy observes both mount shutdown and request cancellation.
     private static partial void MapJobOutput(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Agent source, int port, string? publicOrigin, CancellationToken stopping);
+    // Explicit live work-product offers; the Agent owns and joins each copy.
+    private static partial void MapWorkProducts(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
+        Agent source, int port, string? publicOrigin, CancellationToken stopping);
+    private static partial void MapRenderers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
+        Agent owner, RendererStore? store, int port, string? publicOrigin, CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
+    private static partial JsonObject WorkingContextFrame(Agent agent);
+    private static partial JsonArray PreferredModelChoices(Agent agent, ModelSelectionStatus selection);
+    private static partial JsonArray FundingChoices(Agent agent);
+    private static partial Model ResolvePreferredModel(Agent agent, System.Text.Json.JsonElement preference);
     // Replay and live durable delivery use this exact same projection.
     public static partial Projection Project(HistorySnapshot snapshot, string agentID);
     // Merge authoritative reduced entries with retained lifecycle diagnostics.
@@ -67,5 +76,6 @@ public static partial class Gui
     private static partial ImmutableArray<Event> DisplayFacts(HistorySnapshot snapshot);
     public static partial string PartID(string agentID, long responseID, int partID);
     // Human-readable wire data retains the full canonical part under part.
-    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role, long sequence, DateTimeOffset? time, PartSpan? span);
+    public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role,
+        long sequence, DateTimeOffset? recordedAt = null, PartSpan? span = null);
 }

@@ -35,6 +35,25 @@ function firefoxArgs(args) {
     return (args || []).filter((flag) => !CHROME_FLAGS.test(flag));
 }
 
+// The capture-handle identity API is Chromium-only, and agent/gui/wwwroot/
+// page-capture.js will not offer the camera unless it can see all three of
+// getDisplayMedia, setCaptureHandleConfig and MediaStreamTrack.prototype
+// .getCaptureHandle. The capture suites fabricate the whole capture surface, so
+// Firefox only needs the two probed members to exist: each of them installs its
+// own getDisplayMedia and its own per-track getCaptureHandle afterwards.
+async function installCaptureHandleShim(page) {
+    await page.addInitScript(() => {
+        if (!navigator.mediaDevices.setCaptureHandleConfig) {
+            Object.defineProperty(navigator.mediaDevices, 'setCaptureHandleConfig',
+                { configurable: true, value: () => {} });
+        }
+        if (!MediaStreamTrack.prototype.getCaptureHandle) {
+            Object.defineProperty(MediaStreamTrack.prototype, 'getCaptureHandle',
+                { configurable: true, writable: true, value: () => undefined });
+        }
+    });
+}
+
 async function launchBrowser(options = {}) {
     const { channel, executablePath, args, ...rest } = options;
     return firefox.launch({
@@ -56,4 +75,4 @@ async function launchPersistentProfile(userDir, options = {}) {
     });
 }
 
-module.exports = { launchBrowser, launchPersistentProfile, firefox };
+module.exports = { launchBrowser, launchPersistentProfile, firefox, installCaptureHandleShim };

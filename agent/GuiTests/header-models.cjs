@@ -19,16 +19,21 @@ const current=fs.readFileSync(path.join(root,'style.css'),'utf8');
  const rows=[['OpenAI','gpt-6-astra','GPT-6 Astra'],['OpenAI','gpt-5.6-sol','GPT-5.6 Sol'],['Anthropic','claude-opus-5','Claude Opus 5'],['Anthropic','claude-sonnet-5','Claude Sonnet 5'],['Anthropic','claude-opus-4-6','Claude Opus 4.6'],['Gemini','gemini-3.8-flash','Gemini 3.8 Flash'],['Gemini','gemini-4-argon','Gemini 4 Argon']];
  const results=[];
  for(const theme of ['dark','light'])for(const width of [1600,1024,640])for(const font of [18,28]){
- await page.setViewportSize({width,height:900});await page.goto(`http://127.0.0.1:${server.address().port}/`);
+ await page.setViewportSize({width,height:900});
+ // The hover below parks the pointer on Create Agent, and Firefox keeps that
+ // hover across the next navigation, which would paint the hover background
+ // into this iteration's geometry read. Park it away from every control.
+ await page.mouse.move(0,0);
+ await page.goto(`http://127.0.0.1:${server.address().port}/`);
  await page.evaluate(({theme,font})=>{document.documentElement.dataset.bsTheme=theme;document.documentElement.style.fontSize=font+'px';document.querySelector('#peer-open').disabled=false;},{theme,font});
  await page.addScriptTag({content:'function renderControls() {}\n'+renderer});
  await page.addScriptTag({content:'let socket={readyState:1}; let goalSelectionPending=false; let goalDirty=false;\n'+goalRenderer});
  const goals=[
   [null,'Goal …'],
   [{file:null,available:true,enabled:false,phase:'unconfigured'},'Don’t Be Evil'],
-  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:480,phase:'busy'},'Goal on · reminders 8 min'],
+  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:480,phase:'busy'},'Goal on · continue on idle'],
   [{file:'GOAL.md',available:true,enabled:false,idle_seconds:480,phase:'paused'},'Goal on · reminders off'],
-  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:90,phase:'scheduled'},'Goal on · reminders 90 s'],
+  [{file:'GOAL.md',available:true,enabled:true,idle_seconds:90,phase:'retry_wait',failure_count:2,retry_error:'Model turn failed',due_utc:'2026-01-01T00:00:00Z'},'Goal on · continue on idle'],
   [{file:'GOAL.md',available:true,enabled:false,last_error:'fixture error',phase:'file_error'},'Goal file error · reminders off']
  ];
  for(const [goal,label] of goals){

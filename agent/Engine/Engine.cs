@@ -16,9 +16,11 @@ public sealed partial class Engine
     public partial Engine(Agent parent)
         : this(parent, new HttpClientHandler
         {
-            // Bearer transports must not redirect or retain cookies.
-            AllowAutoRedirect = parent.Configuration().Billing == BillingMode.ApiKey,
-            UseCookies = parent.Configuration().Billing == BillingMode.ApiKey
+            // Endpoint and funding may change between turns. No initial mode
+            // may enable hidden redirects or cookie authority for later sends.
+            // A configured endpoint is the destination, not a redirect hint.
+            AllowAutoRedirect = false,
+            UseCookies = false
         })
     {
     }
@@ -47,8 +49,7 @@ public sealed partial class Engine
             return CodexCredentials.ResponsesEndpoint;
         }
         // Accept either a service base or the complete documented endpoint.
-        bool streaming = !config.DisableStreaming
-            && LookupModel(config.Vendor, config.Model, out var features) && features.Stream;
+        bool streaming = !config.DisableStreaming && config.Features.Stream;
         var model = config.Model;
         if (model.StartsWith("models/", StringComparison.Ordinal))
         {
@@ -214,23 +215,28 @@ public sealed partial class Engine
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/event-stream"));
         // Diagnostic secrets belong to this exchange, not persistent Engine
         // state. A retried response can echo the rejected or rotated bearer.
-        var traceSecrets = new List<string> { config.ApiKey };
+        string apiKey = config.Authentication is { } binding
+            ? binding.RequestKey(new Uri(config.BaseUrl), config.Surface) : config.ApiKey;
+        var traceSecrets = new List<string> { apiKey };
         switch (config.Vendor)
         {
             case Vendor.Anthropic:
-                request.Headers.Add("x-api-key", config.ApiKey);
+                if (config.Billing != BillingMode.None) request.Headers.Add("x-api-key", apiKey);
                 request.Headers.Add("anthropic-version", "2023-06-01");
                 break;
             case Vendor.OpenAI:
                 // Resolve secret authority only here, never in projection or History.
-                string bearer = config.ApiKey;
+                if (config.Billing == BillingMode.None) break;
+                string bearer = apiKey;
                 if (config.Billing == BillingMode.ChatGptPlan)
                 {
-                    bearer = await PlanBearerAsync(null, cancellation);
+                    bearer = await PlanBearerAsync(config, null, cancellation);
                 }
                 else if (config.Billing == BillingMode.Codex)
                 {
-                    var source = Parent().Parent().CodexCredentials() ?? throw new CodexAuthorizationException();
+                    var source = config.Authentication is { } codexBinding
+                        ? codexBinding.CodexCredentials() ?? throw new CodexAuthorizationException()
+                        : Parent().Parent().CodexCredentials() ?? throw new CodexAuthorizationException();
                     var grant = await source.ReadAsync(cancellation);
                     bearer = grant.Bearer;
                     traceSecrets.Add(grant.Account);
@@ -249,7 +255,7 @@ public sealed partial class Engine
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearer);
                 break;
             case Vendor.Gemini:
-                request.Headers.Add("x-goog-api-key", config.ApiKey);
+                if (config.Billing != BillingMode.None) request.Headers.Add("x-goog-api-key", apiKey);
                 break;
         }
         cancellation.ThrowIfCancellationRequested();
@@ -270,7 +276,7 @@ public sealed partial class Engine
                     // publish deltas, or count usage. Other errors and interrupted
                     // successful streams are not safe grounds to replay inference.
                     response.Dispose();
-                    string bearer = await PlanBearerAsync(request.Headers.Authorization!.Parameter, cancellation);
+                    string bearer = await PlanBearerAsync(config, request.Headers.Authorization!.Parameter, cancellation);
                     traceSecrets.Add(bearer);
                     using var retry = new HttpRequestMessage(request.Method, request.RequestUri);
                     retry.Content = new StringContent(requestBody, Encoding.UTF8, "application/json");
@@ -352,12 +358,14 @@ public sealed partial class Engine
         }
     }
 
-    private partial async Task<string> PlanBearerAsync(string? rejectedBearer, CancellationToken cancellation)
+    private partial async Task<string> PlanBearerAsync(Configuration config, string? rejectedBearer, CancellationToken cancellation)
     {
         try
         {
-            var credentials = Parent().Parent().Credentials() ?? throw new PlanAuthorizationException();
-            return await credentials.GetBearerAfterRejectionAsync(Parent().Configuration().Account,
+            var credentials = config.Authentication is { } planBinding
+                ? planBinding.PlanCredentials() ?? throw new PlanAuthorizationException()
+                : Parent().Parent().Credentials() ?? throw new PlanAuthorizationException();
+            return await credentials.GetBearerAfterRejectionAsync(config.Account,
                 rejectedBearer, cancellation);
         }
         catch (Exception error) when (error is not ObjectDisposedException

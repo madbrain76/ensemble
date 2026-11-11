@@ -83,17 +83,17 @@ public sealed partial class Engine
                     throw new NotSupportedException("Responses supports images in human entries and tool results only");
                 }
                 string category = kind == Media.None ? blob.Mime : kind.ToString().ToLowerInvariant();
-                bool known = LookupModel(config.Vendor, config.Model, out var features);
-                if (!known && kind == Media.Image && ProvenImages(config))
+                ModelFeatures features = config.Features;
+                if (!config.ModelListed && kind == Media.Image && ProvenImages(config))
                 {
                     // The endpoint itself proved it receives image bytes. The
                     // curated table is application knowledge, not a registry of
                     // every local or newly released model, so a proven route is
-                    // admitted with image capability only.
-                    known = true;
+                    // admitted with image capability only. A model the host
+                    // declares keeps its declared capability either way.
                     features = new ModelFeatures(Media.Image);
                 }
-                if (!known || kind == Media.None || (features.Media & kind) == 0)
+                if (kind == Media.None || (features.Media & kind) == 0)
                 {
                     throw new NotSupportedException($"Model '{config.Model}' does not support {category} media.");
                 }

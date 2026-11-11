@@ -180,6 +180,55 @@ The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. Hi
 
 Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in the event archive; clearing a working view does not rewrite history.
 
+### Newest-only means one active note, not one archived event
+
+After a successful handoff lands, active Context contains exactly one
+`HandoffPart`: the newest note, once. Retire every older marked note, including
+notes loaded from a snapshot made by an older runtime. Do this through the next
+ordinary handoff reduction, not by rewriting the saved archive or migrating it
+behind the user's back. A rejected or uncommitted handoff does not replace the
+last successful note.
+
+The new note must carry forward still-relevant decisions, reasons and unfinished
+work. It should not copy every closed progress report. Ordinary dialogue and
+memory summaries are separate inputs: removing old checkpoint notes does not
+promise a particular token count or rewrite summaries that already incorporated
+them. Measure actual provider-reported input separately from snapshot file size.
+
+Test this contract at its boundaries:
+
+- Seed an old note, then complete two new handoffs. Require only the final note
+  in active Context, while canonical History retains all three handoff facts.
+- Hold a companion tool result. Before that result is recorded, require the old
+  active note to remain. After recording all outcomes, apply the new cut once.
+  Repeat with interruption and exact-ID refusals for undispatched batch tails.
+- Save and load the result, including a snapshot-only restoration. Require one
+  typed newest note, preserved ordinary dialogue and manuals, and no restored
+  tool traffic, media or private replay material in active Context.
+- Inspect provider requests, not just the reducer: the old marker must be absent
+  and the new marker present once in Messages, Chat Completions, Responses and
+  GenerateContent projections. Removing the older-note filter must make the
+  relevant assertions fail.
+
+Restored GUI delivery is a separate boundary. The display transcript combines
+retained Context with selected historical facts; it is not a complete journal.
+Do not replay compression removal/population transactions through that filtered
+transcript merely to calculate turn phase. Those transactions have already been
+applied to the authoritative snapshot. Keep core transaction validation strict.
+Chapter 21 adds compression: at that integration point, test two handoffs followed
+by a committed compression, then project the snapshot and connect a real GUI
+socket. Require connection, replay and current settings delivery, the newest
+visible note and correct turn state. A connection frame followed by repeated
+reconnects is not successful history delivery.
+
+Current repository checks are `--memory-selection-tests` on `agent/Tests` for
+prefix selection, handoff replacement, snapshot/provider replay and interrupted
+batches, and `--handoff-projection-tests` on `agent/GuiTests` for the compression
+projection/socket boundary. Run the built test executables with these selectors;
+the latter is a later-chapter integration check, not a Chapter 14 requirement to
+implement long-term memory early. These checks do not award new historical grader
+points or prove every live model's continuation quality.
+
 ### A checkpoint must not become its own next task
 
 A cut can preserve the wrong ambiguity. Suppose the assistant says, "I will save
@@ -212,7 +261,7 @@ The current focused check is `--handoff-continuation-tests` on the `agent/Tests`
 executable. It demonstrates a deterministic missing-receipt failure and its
 repair, not a guarantee that every live model will stop repeating itself. The
 historical endpoint grade below did not test this condition. Do not award an
-anti-loop claim merely because two successive handoffs retained their notes.
+anti-loop claim merely because the newest note survived a successful cut.
 
 The note should say what succeeded, what failed, where the source of truth lives, and what comes next. Failed approaches are often the highest-value bytes because they prevent repetition. Record uncertainty too. A note is a continuation aid, not proof of subjective continuity or a substitute for checking current state.
 
@@ -279,6 +328,8 @@ The public `History.Load` log path can replay this archive. It recovers the redu
 ## 14.12 One setting, one authority
 
 The library Agent owns the live byte target. The GUI's settings snapshot reads it rather than keeping a second mutable copy in presentation preferences. Validate a proposed patch and save it before publishing either preferences or policy. A failed save must leave the old file, live policy and both clients' acknowledged values unchanged.
+
+The GUI labels this control **Tool-result stubbing budget**. It is not a handoff threshold. Per-model working-context limits are separate whole input-token settings, described in Chapter 21; never reinterpret a legacy byte value such as `250` as 250,000 tokens.
 
 The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
 

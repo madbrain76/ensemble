@@ -153,6 +153,19 @@ text; replay reconstructs the same card, not a duplicate. Repeated final frames
 are idempotent. The server and browser both reject resurrection of completed
 content by stale chunks.
 
+### Keep the mount-local identity distinct
+
+An empty `agent_id` can identify the original unnamed Agent borrowed by a GUI
+mount. It is not a global address and must resolve directly to that actual
+mounted object. Other selections need a live qualified address. When a selected
+Agent is destroyed and loses its address, stop its observer instead of converting
+it into the empty alias. Queue tracing must follow the same distinction.
+
+Test the full lifecycle with a named selection replaced under the same name,
+and repeat with an unnamed mounted source. A successful interaction followed by
+a faulted observer during joined shutdown is a failed test, even if the browser
+already received its answer or downloaded its file.
+
 ## 7.4 Truthful tool cards
 
 There are three distinct claims:
@@ -173,13 +186,86 @@ Those are outcomes, not reasons to falsify the admission history.
 
 The GUI projects admitted execution as `tool_dispatched`. Refused calls have
 no such frame. They still get their paired result and visible error status.
-The browser's plan card can therefore change from **planned** to **started**
-to **finished/error**, without portraying a refusal as real execution.
+Retain the wire-level states `planned`, `started`, `finished` and `error` for
+machine behavior, but label them **Requested**, **Dispatched: awaiting result**,
+**Result returned** and **Error reported**. These labels describe admission and
+observation without portraying a refusal as real execution.
 
 `tool_finished` means the foreground observation returned. A running-job report
 can be a legitimate result: waiting stopped, while the independent job remains
 alive. Preserve the job handle and locator. Do not relabel that observation as
 process termination.
+
+When a result includes typed Job metadata, show its handle and **state when
+observed** separately: running, finished or killed, with the recorded exit code
+when available. Finished does not imply success, and an absent exit code is not
+zero. Keep earlier snapshots intact when a later observation arrives. Reopening
+an old transcript does not prove that a once-running Job is still running now.
+Unknown metadata stays unknown; prose that resembles a Job report must not create
+status facts. A live Job monitor would be a separate feature, not an inference
+from this retained result. Error reported likewise does not by itself distinguish
+a failed observation from unsuccessful execution; retain the exact result detail.
+This also applies to `wait_for_job`, `send_input`, and `kill_job`: their results
+can describe the existing Job. Preserve those typed observations through Agent
+recording and replay, even though the controls create no new Jobs.
+
+### Display recorded time and observation duration
+
+Project finalized facts with their recorded timestamp. The timestamp belongs to
+the retained Entry, not the browser's first paint or the diagnostic tail. Show a
+local date/time and expose its exact offset-bearing value in accessible detail.
+A streamed draft has no finalized timestamp yet. Keep a call's original recorded
+time when its dispatch status arrives; each result has its own recorded time.
+Missing historical values remain unknown.
+
+Show a returned tool's optional duration as **Observation**, explicitly identifying
+dispatch-to-return elapsed time rather than background Job runtime. Format the
+recorded value; never start a live counter on a retained running result. Invalid
+or absent timing metadata cannot become zero, current time or an inferred value.
+Test rerender, snapshot-only replay, exact timestamp detail and the distinction
+between an untimed draft and its finalized card.
+
+### Offer controls consume typed facts
+
+The later work-product feature renders a Download control only for a successful
+typed offer, never a pathname inferred from text. Bind the control to the actual
+card's Agent and opaque offer ID. Rendering or replaying an offer must make no
+download request. A human click starts the transfer, and the server rechecks live
+authority and the Sandbox. History can describe an expired offer without granting
+access to it.
+
+Retain the same control and feedback during ordinary rerenders. Give an active
+transfer a Cancel action. Bound both declared and streamed byte counts before
+creating a download Blob; an absent Content-Length does not remove the cap.
+Abort on transcript replacement, and check the current card object again before
+starting the browser download. A late response from an old card must not save a
+file under a replacement card's identity. Expose expired/unavailable and cancelled
+states without retrying automatically. Use download-only bytes, not inline HTML.
+
+### Preserve paired controls and reading position
+
+Use the result frame's `tool_part_id` to link a result to its actual call card.
+Names, Job handles and result prose cannot establish that relationship. Each
+result offers **View call**; its call offers **View latest result**. Earlier
+results retain their own call link. An absent or wrong-kind counterpart leaves
+an ordinary readable result without a guessed link.
+
+Keep these as relationships between the current presentation objects, not a
+second transcript. On activation, check both objects against the current card
+map and selected Agent, and require connected nodes. A detached button from an
+old replay must not target a new card merely because its ID was reused. Explicit
+navigation focuses and scrolls the counterpart; its controls have at least a
+44-pixel touch target.
+
+Preserve the actual heading, details summary and download controls when a result
+updates its call. Restoring only `details.open` after replacing the DOM loses
+keyboard focus and pending-control feedback. Update raw text only when changed,
+retain unchanged attachment and output controls, and defer repaint while selected
+text intersects the card. Selection release schedules the deferred render.
+Incoming output preserves pane position while the reader has focus or selection
+inside that pane. Otherwise, only a reader already near the bottom follows new
+output. Test both focus on the details summary and focus on the pair button when
+another result arrives; those exercise different update paths.
 
 `turn_ended` carries the completed answer when the turn completed normally, or
 an explicit terminal reason otherwise. It is not inferred from a transient
@@ -278,6 +364,48 @@ code highlighting. Test malicious markup, encoded unsafe links and remote image
 syntax, including the absence of network requests. Library configuration is a
 security boundary, not a substitute for these tests.
 
+### Copy the logical code, not the preview
+
+Give explicitly closed fenced code in assistant text a **Copy code** button.
+Here, exact means the parser's logical code payload: omit the fences and Markdown
+quote/list prefixes; retain code indentation, Unicode, blank lines, trailing spaces
+and the payload's terminal newline. Accept the pinned parser's normalization to
+LF line endings. The original Markdown remains unchanged in the backing card and
+History. This is code copying, not a byte-for-byte export of the Markdown source.
+Junien's [snippet contribution](https://github.com/waywardgeek/ensemble/pull/7)
+informs this requirement and its clipboard-denial and literal-content tests.
+
+An unfinished fence renders readable code but has no Copy button, even after the
+response ends. Inline code, indented code, human text and reasoning cards have no
+snippet-copy controls. Reuse the existing parser rather than add a competing
+fence grammar. In the pinned parser, a fence token's source span includes its
+opening line, every body line, and a closing line only if consumed. Container
+prefix removal preserves body-line count. Count an unterminated final body line
+too; end-of-input must not masquerade as a closer. Test this assumption against
+empty blocks, nested quotes/lists, mismatched fences and indentation whenever the
+parser changes.
+
+Use an explicit button click and the clipboard write API. Capture the complete
+logical payload at that click; neither highlighting nor a collapsed preview is
+the source. The control stays outside long-code expansion, so copying a collapsed
+snippet still copies all its code. Report success only after the write completes.
+When the API is absent or denies access, show an honest failure status and a
+labelled read-only field containing the same payload for manual selection/copy.
+Do not read the clipboard, execute the snippet or submit it as a prompt.
+
+Keep unchanged snippet controls when later prose streams. Retaining the node
+preserves pending-copy state, success feedback, expansion and manual selection;
+restore keyboard focus if reparenting blurs that same retained control. A changed
+payload gets a new control. Late clipboard completion belongs to the old snippet
+and must not update a replacement card or redirect its copied bytes. These are
+browser interaction lifetimes, not additional persistent artifact ownership.
+
+Even append-only model text can change a parsed snippet. A closing fence at the
+end of the current prefix stops being a closer if later text appends letters to
+that same line. A gated provider stream can exercise this payload change while
+a clipboard write is pending. Check both success and denial: neither may update
+the replacement's feedback or move focus into it.
+
 ### Stream Markdown, render the accumulated text
 
 Keep the complete original Markdown in the backing card. Send text deltas over
@@ -336,7 +464,7 @@ narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
 Microphone recording and transcription funding are separate from speech output.
 The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
-Chapter8 specifies its local storage and Chapter26 implements its input guards.
+Chapter8 specifies its local storage and Chapter25 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 
@@ -484,7 +612,12 @@ Test real components with small external fakes. Important cases include:
    origin without granting it actor input capability.
 7. Inspect actual narrow-layout controls and safe rendering of hostile-looking
    code. Exercise full-content speaker buttons through a fake speech boundary.
-8. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
+8. Compare copied bytes for complete fences, including Unicode, CRLF input,
+   quoted/list-contained code, empty blocks and a long collapsed preview. Refuse
+   unfinished fences; test denied/missing clipboard access, manual selection,
+   focus during streaming and completion after the original card disappears.
+   A deliberately preview-only copy and an unfinished-fence copy must fail.
+9. Exercise queued speech, interrupted-utterance cleanup, automatic typing pause,
    cross-tab resume, Stop speech/Escape preserving a draft, disconnect/reconnect,
    selection cleanup, transient restart state, and silent visibility wakeup.
 
@@ -501,6 +634,11 @@ This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
 pause semantics. It excludes inherited Chapter 6 scoring and Go topology
 checks. The full historical Go route remains available and unchanged in scope.
 Neither route establishes accessible speech quality or real provider acceptance.
+These historical points do not certify the added snippet-copy obligations.
+Use focused browser tests for that contract here. The named Artifacts grader
+covers snippet copying in the later integrated runtime; its later Agent and GUI
+APIs are not prerequisites for this early chapter. Student reconstruction and
+human usability remain distinct from either set of checks.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and

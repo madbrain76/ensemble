@@ -55,3 +55,50 @@ request, account mutation, post, vote, follow, deletion or notification change.
 Current API compatibility, account identity and credential validity await a
 read-only live check after explicit activation. No broad runtime regression or
 security-audit claim; core runtime code was not changed.
+
+## Authorized live status check
+
+Bill subsequently authorized the test. A disposable real Ensemble Agent loaded
+this skill with an explicit path to the existing credential file (no key copying)
+and issued exactly one moltbook_status request. It returned account coderhapsody,
+karma175 and unread_notifications40. Only these three fields were printed; no
+feed/comments were browsed, notifications marked read, or account state mutated.
+The skill unloaded, MCP teardown joined, and the consumer exited zero. No model
+request or running-host restart occurred.
+
+Evidence directory is named by /private/tmp/cadence-moltbook-live-latest;
+build.log and status.log retain the result. This supersedes the earlier untested
+credential/API boundary, but verifies only status, not every live endpoint.
+
+The running Cadence actor still lacks this skill: definitions are captured at
+Agent construction and the primary ensemble skill does not yet list moltbook.
+No primary-skill grant or launcher was changed. Live-session activation requires
+a separately agreed configuration update and Agent recreation/restart; copying a
+file or testing another Agent does not grant the current one new tools.
+
+## Restart configuration authorized
+
+Bill asked to add the skill and will restart himself. Added moltbook to the
+primary ensemble skill's loadable-skills and explicitly selected the existing
+/Users/bill/.config/moltbook/credentials.json path in its stdio argv. This is a
+path only, not a copied key. The active launcher already reads repository skills,
+so no launcher, binary, credential file, or running process was changed.
+
+The offline consumer now replaces the one argv declaration structurally and
+refuses an unexpected declaration count. Its injected API and nonexistent fixture
+credential path prevent the configured live path from leaking into offline tests.
+Clean rebuild and real skill/Job/unload integration pass again. No further live
+request occurred. Restart and actual availability in the restored actor remain
+to be observed; configuration is not proof that it has loaded. Discovery alone
+performs no API request, and loading does not authorize automatic posting.
+
+## Post-restart interpreter correction
+
+The first live tool status call failed with a network error, before any successful
+read or write. Credential-free HTTPS probes established that /usr/bin/python3
+returns HTTP200 while /opt/homebrew/bin/python3 fails issuer verification. The
+earlier live consumer pinned the former, but source MCP argv used PATH python3.
+Pinned the host skill command to the tested /usr/bin/python3; no TLS bypass or
+trust-store changes. Existing Agent definitions retain the old command until
+restart. Lesson: test the exact launch interpreter/environment, not only the
+same script. No public post or account mutation occurred.

@@ -192,7 +192,9 @@ public static partial class Gui
         // Operation-scoped I/O state. The Agent remains owned by its Ensemble.
         // Queues and socket lifetimes end when ServeAsync ends; no socket is ever
         // stored on Agent or used to decide whether a model turn is complete.
-        static string AddressOf(Agent target) => target.Address() ?? "";
+        string AddressOf(Agent target) => target.Address()
+            ?? (ReferenceEquals(target, agent) ? ""
+                : throw new ObjectDisposedException(nameof(target), "Selected Agent no longer has a live address."));
         object gate = new();
         // Serialize memory read/patch/save/apply across tabs without holding
         // the projection lock while the actor joins an invalidated compressor.
@@ -269,7 +271,9 @@ public static partial class Gui
         MapAuth(routes, callbackRoutes, agent, port, publicOrigin, stopping.Token);
         MapPeers(routes, agent, port, publicOrigin, stopping.Token);
         MapJobOutput(routes, agent, port, publicOrigin, stopping.Token);
-        MapDownload(routes, agent, port, publicOrigin, stopping.Token);
+        MapWorkProducts(routes, agent, port, publicOrigin, stopping.Token);
+        MapRenderers(routes, agent, options.RendererDirectory is { } rendererDirectory
+            ? new RendererStore(rendererDirectory) : null, port, publicOrigin, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
         var initialMcp = agent.EnsureMcp();
 
@@ -294,7 +298,10 @@ public static partial class Gui
                 // These are server-created addresses, captured while enqueueing.
                 // Later display selection cannot reattribute an older frame.
                 string? address = frame["agent_id"]?.GetValue<string>();
-                Agent? owner = address is null ? null : agent.Parent().FindAgentAddress(address);
+                // Empty is this mount's original unnamed Agent, not a global
+                // address. A removed selection must never borrow this alias.
+                Agent? owner = address is null ? null
+                    : address.Length == 0 ? agent : agent.Parent().FindAgentAddress(address);
                 Trace(owner, "<queued", json);
             }
             return true;
@@ -827,7 +834,8 @@ public static partial class Gui
                                 var patch = command.GetProperty("settings");
                                 bool memoryUpdate = patch.TryGetProperty("memory", out var memoryPatch);
                                 bool recallUpdate = patch.TryGetProperty("recall", out var recallPatch);
-                                if (memoryUpdate || recallUpdate)
+                                bool contextUpdate = patch.TryGetProperty("working_context", out var contextPatch);
+                                if (memoryUpdate || recallUpdate || contextUpdate)
                                 {
                                     // Policy and appearance have different owners/stores.
                                     // A patch updates one policy section; never imply an
@@ -847,6 +855,13 @@ public static partial class Gui
                                         {
                                             var desired = MergeMemorySettings(memoryPatch, selected.MemorySettings());
                                             await selected.SaveMemorySettingsAsync(desired);
+                                        }
+                                        else if (contextUpdate)
+                                        {
+                                            // Reuse the strict value codec; no unit conversion or rounding.
+                                            using var contextDocument = JsonDocument.Parse("[" + contextPatch.GetRawText() + "]");
+                                            var desired = JsonCodec.ReadWorkingContextLimits(contextDocument.RootElement).Single();
+                                            await selected.SetWorkingContextLimitAsync(desired, persist: true);
                                         }
                                         else
                                         {
@@ -878,7 +893,7 @@ public static partial class Gui
                                             Queue(socket, queue, new JsonObject
                                             {
                                                 ["type"] = "error",
-                                                ["message"] = (memoryUpdate ? "Memory" : "Recall") + " settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
+                                                ["message"] = (memoryUpdate ? "Memory" : contextUpdate ? "Working context" : "Recall") + " settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
                                             });
                                         }
                                     }
@@ -1016,18 +1031,46 @@ public static partial class Gui
                                 };
                                 await selected.PostAsync(new AgentInput(interrupt));
                                 break;
+                            case "get_model_choices":
+                                lock (gate) { Queue(socket, queue, MeterFrame(selected)); }
+                                break;
                             case "set_model":
                                 try
                                 {
-                                    await selected.SetModelAsync(text);
+                                    bool hasPreference = command.TryGetProperty("preference", out var preference);
+                                    if (hasPreference && (command.TryGetProperty("offering", out _) || !string.IsNullOrEmpty(text)))
+                                        throw new ArgumentException("Conflicting model selection forms.");
+                                    if (hasPreference)
+                                    {
+                                        await selected.SetModelAsync(ResolvePreferredModel(selected, preference));
+                                    }
+                                    else if (command.TryGetProperty("offering", out var offering))
+                                    {
+                                        ModelIdentity identity = JsonCodec.ReadModelIdentity(offering);
+                                        Model chosen = selected.Parent().ResolveModel(identity);
+                                        await selected.SetModelAsync(chosen);
+
+                                    }
+                                    else
+                                    {
+                                        await selected.SetModelAsync(text);
+                                    }
+                                    // Capability proof is keyed by route, so the new model inherits
+                                    // none of the proof the outgoing one earned for the images
+                                    // already in History. Asking here, on this async boundary, is
+                                    // what keeps an ordinary model change from refusing every later
+                                    // turn that has to replay them.
+                                    await selected.Engine().ProveImagesForHistoryAsync(
+                                        selected.History().View(), lifetime.Token);
                                     Broadcast(selected, null);
                                 }
-                                catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+                                catch (Exception error) when (error is ArgumentException or InvalidOperationException or FormatException or IOException
+                                    or InvalidDataException or UnauthorizedAccessException)
                                 {
                                     lock (gate)
                                     {
                                         Queue(socket, queue, new JsonObject { ["type"] = "error",
-                                            ["message"] = "Model selection refused: Agent must be idle and the model must be compatible with this route." });
+                                            ["message"] = "Model selection refused: Agent must be idle, the route and saved funding available and unambiguous, and any required save successful. No funding fallback was used." });
                                     }
                                 }
                                 // Also acknowledge unchanged selection and refusals.

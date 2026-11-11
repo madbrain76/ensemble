@@ -199,6 +199,8 @@ public sealed partial class Engine
     // Build a disposable request. Refuse unsupported media or ambiguous calls
     // locally; do not consume ephemera or alter recorded events.
     public partial JsonObject Render(Context context, string requestInstruction = "");
+    private partial JsonObject RenderConfigured(Context context, Configuration config,
+        string requestInstruction, bool automaticGoalReminder);
     // The exact primary/manual/tool guidance used by Render, before request-only
     // pressure instructions. Recall uses it without rendering or sending a request.
     internal partial string ProjectInstructions(Context context);
@@ -223,7 +225,7 @@ public sealed partial class Engine
         int toolRetries = 0);
 
     // Keep credential failures token-free on initial acquisition and 401 renewal.
-    private partial Task<string> PlanBearerAsync(string? rejectedBearer, CancellationToken cancellation);
+    private partial Task<string> PlanBearerAsync(Configuration config, string? rejectedBearer, CancellationToken cancellation);
 
     // Dispose the owned client and detach from Agent; do not destroy the parent.
     public partial void Destroy();

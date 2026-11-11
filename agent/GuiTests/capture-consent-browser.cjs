@@ -1,5 +1,5 @@
 // Full app wiring with synthetic MCP requests/capture. Not model-turn acceptance.
-const { launchBrowser, launchPersistentProfile } = require('./browser-launch.cjs');
+const { launchBrowser, launchPersistentProfile, installCaptureHandleShim } = require('./browser-launch.cjs');
 const assert = require('node:assert/strict');
 const base = process.env.GUI_URL || 'http://127.0.0.1:18202/assistant/';
 const url = new URL(base);
@@ -7,7 +7,7 @@ assert.equal(url.hostname, '127.0.0.1');
 assert.ok(!['8088','8089'].includes(url.port), 'Never target live hosts');
 (async () => {
   const browser = await launchBrowser({headless:true,channel:'chrome',args:['--autoplay-policy=no-user-gesture-required']});
-  const page = await browser.newPage(); page.setDefaultTimeout(15000);
+  const page = await browser.newPage(); await installCaptureHandleShim(page); page.setDefaultTimeout(15000);
   const errors=[]; page.on('pageerror',e=>errors.push(e.message));
   try {
     await page.addInitScript(() => {

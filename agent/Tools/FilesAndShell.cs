@@ -7,11 +7,12 @@ namespace Ensemble;
 
 public sealed partial class Tool
 {
-    private string ReadFile(JsonElement args)
+    private ToolResultPart ReadFile(ToolCallPart call)
     {
+        var args = call.Args;
         var start = Integer(args, "start_line", 1);
         var end = Integer(args, "end_line", int.MaxValue);
-        var maximum = Integer(args, "max_bytes", int.MaxValue);
+        var maximum = Integer(args, "max_bytes", 32768);
         if (start == 0)
         {
             start = 1;
@@ -22,7 +23,7 @@ public sealed partial class Tool
         }
         if (maximum == 0)
         {
-            maximum = int.MaxValue;
+            maximum = 32768;
         }
         if (maximum < 0)
         {
@@ -54,7 +55,9 @@ public sealed partial class Tool
         var bytes = Encoding.UTF8.GetBytes(result.ToString());
         if (bytes.Length <= maximum)
         {
-            return result.ToString();
+            return new ToolResultPart(call.CallID, [new TextPart(NumberReadLines(result.ToString(), start))],
+                fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
+                    FileExcerpt.Capture(result.ToString())));
         }
         // Back up to a UTF-8 boundary: a byte cap must not manufacture a broken
         // character. The report is separate from the capped file payload.
@@ -63,84 +66,51 @@ public sealed partial class Tool
         {
             boundary--;
         }
-        return Encoding.UTF8.GetString(bytes, 0, boundary) + "\n[truncated]\n";
+        var captured = Encoding.UTF8.GetString(bytes, 0, boundary);
+        var excerpt = FileExcerpt.Capture(captured);
+        return new ToolResultPart(call.CallID, [new TextPart(NumberReadLines(captured, start) + "\n[truncated]\n")],
+            fileEvidence: new FileEvidence(FileOperation.Read, String(args, "path"), start, 1,
+                new FileExcerpt(excerpt.Text, bytes.LongLength)));
     }
 
-    // A work product the user asked for becomes downloadable: the tool only
-    // publishes a descriptor, and the browser route re-opens the file through the
-    // same sandbox, so a name here is never a path the client may choose.
-    private string OfferDownload(JsonElement args)
+    // Number the model-facing presentation, not the captured source evidence.
+    // Preserve indentation, terminators and an unterminated final line exactly.
+    private static string NumberReadLines(string text, int startLine)
     {
-        var path = String(args, "path", "");
-        if (path.Trim().Length == 0)
+        var numbered = new StringBuilder();
+        int offset = 0;
+        long line = startLine;
+        while (offset < text.Length)
         {
-            throw new ArgumentException("Missing argument: path");
+            var newline = text.IndexOf('\n', offset);
+            var limit = newline < 0 ? text.Length : newline + 1;
+            numbered.Append(line.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(": ");
+            numbered.Append(text, offset, limit - offset);
+            offset = limit;
+            line++;
         }
-        var sandbox = Parent().Sandbox();
-        using (var probe = sandbox.OpenRegularRead(path))
-        {
-            if (probe.Length == 0)
-            {
-                throw new IOException("Work product is empty: " + path);
-            }
-            string name = Path.GetFileName(path.TrimEnd('/', '\\'));
-            if (name.Length == 0)
-            {
-                throw new ArgumentException("Work product must be a file path: " + path);
-            }
-            long bytes = probe.Length;
-            return JsonSerializer.Serialize(new
-            {
-                download = new
-                {
-                    name,
-                    path,
-                    mime = DownloadMime(name),
-                    size = bytes
-                }
-            });
-        }
+        return numbered.ToString();
     }
 
-    // Only types a browser accepts as a file download without sniffing. An
-    // executable or HTML deliverable stays a workspace file: the operator can
-    // still read it, and the GUI never becomes a distribution point.
-    public static partial string DownloadMime(string name) => Path.GetExtension(name).ToLowerInvariant() switch
+    private ToolResultPart ListDirectory(ToolCallPart call)
     {
-        ".pdf" => "application/pdf",
-        ".txt" or ".log" or ".md" => "text/plain; charset=utf-8",
-        ".csv" => "text/csv",
-        ".json" => "application/json",
-        ".zip" => "application/zip",
-        ".tar" => "application/x-tar",
-        ".gz" => "application/gzip",
-        ".png" => "image/png",
-        ".jpg" or ".jpeg" => "image/jpeg",
-        ".gif" => "image/gif",
-        ".webp" => "image/webp",
-        ".svg" => "image/svg+xml",
-        ".mp3" => "audio/mpeg",
-        ".wav" => "audio/wav",
-        ".ogg" => "audio/ogg",
-        ".mp4" => "video/mp4",
-        ".webm" => "video/webm",
-        _ => throw new ArgumentException(
-            "Work product type is not offered for download: " + Path.GetExtension(name))
-    };
-
-    private string ListDirectory(JsonElement args)
-    {
-        var directory = String(args, "path", ".");
+        var directory = String(call.Args, "path", ".");
         var files = Parent().Sandbox();
         var result = new StringBuilder();
+        var entries = new List<DirectoryEntry>();
+        int total = 0, nameBytes = 0;
+        bool displayFull = false;
         foreach (string name in files.ReadDirectory(directory))
         {
+            total++;
+            var entryKind = DirectoryEntryKind.Unknown;
             result.Append(name);
             try
             {
                 if (files.IsDirectory(Path.Combine(directory, name)))
                 {
                     result.Append('/');
+                    entryKind = DirectoryEntryKind.Directory;
                 }
             }
             catch (IOException)
@@ -149,11 +119,59 @@ public sealed partial class Tool
                 // a visible name. Decoration must not bypass the boundary.
             }
             result.Append('\n');
+            int size = Encoding.UTF8.GetByteCount(name);
+            if (!displayFull && entries.Count < DirectoryListing.MaximumEntries
+                && size <= DirectoryListing.MaximumNameBytes - nameBytes)
+            {
+                entries.Add(new DirectoryEntry(name, entryKind));
+                nameBytes += size;
+            }
+            else displayFull = true;
         }
-        return result.ToString();
+        return new ToolResultPart(call.CallID, [new TextPart(result.ToString())],
+            directoryListing: new DirectoryListing(entries, total));
     }
 
-    private IEnumerable<string> SearchPaths(string path, HashSet<string> visited)
+    // Search scope only: these matchers never grant filesystem authority.
+    private static List<(Regex Pattern, bool DirectoryOnly, bool NameOnly)> SearchExclusions(JsonElement args)
+    {
+        var result = new List<(Regex, bool, bool)>();
+        if (!args.TryGetProperty("exclude", out var exclusions)) return result;
+        if (exclusions.ValueKind != JsonValueKind.Array || exclusions.GetArrayLength() > 64)
+            throw new ArgumentException("exclude must be an array of at most 64 glob strings.");
+        foreach (var item in exclusions.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.String)
+                throw new ArgumentException("exclude entries must be glob strings.");
+            string glob = item.GetString()!;
+            if (glob.Length is < 1 or > 256 || glob.IndexOfAny(['\\', '[', ']', '{', '}', '!', ':']) >= 0 || glob.Any(char.IsControl))
+                throw new ArgumentException("exclude supports relative /-separated globs with *, ? and whole-component ** only.");
+            bool directoryOnly = glob.EndsWith('/');
+            string body = directoryOnly ? glob[..^1] : glob;
+            var components = body.Split('/');
+            if (components.Any(part => part is "" or "." or ".." || (part.Contains("**", StringComparison.Ordinal) && part != "**")))
+                throw new ArgumentException("exclude requires nonempty relative components; ** must be a whole component.");
+            var expression = new StringBuilder("\\A");
+            for (int i = 0; i < components.Length; i++)
+            {
+                string part = components[i];
+                bool last = i == components.Length - 1;
+                if (part == "**") expression.Append(last ? ".*" : "(?:[^/]+/)*");
+                else
+                {
+                    foreach (char character in part)
+                        expression.Append(character switch { '*' => "[^/]*", '?' => "[^/]", _ => Regex.Escape(character.ToString()) });
+                    if (!last) expression.Append('/');
+                }
+            }
+            expression.Append("\\z");
+            result.Add((new Regex(expression.ToString(), RegexOptions.CultureInvariant | RegexOptions.NonBacktracking), directoryOnly, components.Length == 1));
+        }
+        return result;
+    }
+
+    private IEnumerable<string> SearchPaths(string path, HashSet<string> visited,
+        List<(Regex Pattern, bool DirectoryOnly, bool NameOnly)> exclusions, string relative = "")
     {
         var files = Parent().Sandbox();
         if (!files.IsDirectory(path))
@@ -184,6 +202,9 @@ public sealed partial class Tool
                 // refuses; this catch applies only to discovered children.
                 continue;
             }
+            string childRelative = relative.Length == 0 ? name : relative + "/" + name;
+            if (exclusions.Any(rule => (!rule.DirectoryOnly || directory)
+                && rule.Pattern.IsMatch(rule.NameOnly ? name : childRelative))) continue;
             if (directory)
             {
                 // Preserve full-access search's existing no-directory-links
@@ -193,7 +214,7 @@ public sealed partial class Tool
                 {
                     continue;
                 }
-                foreach (string file in SearchPaths(entry, visited))
+                foreach (string file in SearchPaths(entry, visited, exclusions, childRelative))
                 {
                     yield return file;
                 }
@@ -205,19 +226,25 @@ public sealed partial class Tool
         }
     }
 
-    private string SearchFiles(JsonElement args)
+    private ToolResultPart SearchFiles(ToolCallPart call)
     {
+        var args = call.Args;
+        var captured = new List<SearchLine>();
+        long totalLines = 0;
+        int displayBytes = 0;
+        bool displayFull = false;
         var radius = Integer(args, "context_lines", 0);
         if (radius < 0)
         {
             throw new ArgumentException("context_lines must be nonnegative.");
         }
+        var exclusions = SearchExclusions(args);
         var pattern = new Regex(String(args, "pattern"));
         var result = new StringBuilder();
         var visited = new HashSet<string>(StringComparer.Ordinal);
         string path = String(args, "path");
         bool recursive = Parent().Sandbox().IsDirectory(path);
-        foreach (var file in SearchPaths(path, visited))
+        foreach (var file in SearchPaths(path, visited, exclusions))
         {
             var lineList = new List<string>();
             try
@@ -264,17 +291,38 @@ public sealed partial class Tool
                 }
                 for (int i = windows[w].Start; i <= windows[w].End; i++)
                 {
+                    totalLines++;
+                    if (!displayFull)
+                    {
+                        long bytes = Encoding.UTF8.GetByteCount(file) + (long)Encoding.UTF8.GetByteCount(lines[i]);
+                        if (captured.Count == SearchEvidence.MaximumLines || bytes + displayBytes > SearchEvidence.MaximumBytes)
+                            displayFull = true;
+                        else
+                        {
+                            var spans = pattern.Matches(lines[i]).Cast<Match>()
+                                .Take(SearchEvidence.MaximumSpansPerLine + 1)
+                                .Select(match => new SearchSpan(match.Index, match.Length)).ToArray();
+                            if (spans.Length > SearchEvidence.MaximumSpansPerLine) displayFull = true;
+                            else
+                            {
+                                captured.Add(new SearchLine(file, i + 1, lines[i], spans));
+                                displayBytes += (int)bytes;
+                            }
+                        }
+                    }
                     var separator = matches[i] ? ':' : '-';
                     result.Append(file).Append(separator).Append(i + 1)
                         .Append(separator).Append(lines[i]).Append('\n');
                 }
             }
         }
-        return result.ToString();
+        return new ToolResultPart(call.CallID, [new TextPart(result.ToString())],
+            searchEvidence: new SearchEvidence(captured, totalLines));
     }
 
-    private string WriteFile(JsonElement args)
+    private ToolResultPart WriteFile(ToolCallPart call)
     {
+        var args = call.Args;
         var path = String(args, "path");
         var append = Boolean(args, "append");
         var overwrite = Boolean(args, "overwrite");
@@ -283,15 +331,45 @@ public sealed partial class Tool
         files.CreateDirectory(string.IsNullOrEmpty(directory) ? "." : directory);
         // CreateNew enforces no-overwrite at the actual open. A separate
         // existence/size probe would race, and must not reopen a host path.
-        var mode = append ? FileMode.Append : overwrite ? FileMode.Create : FileMode.CreateNew;
-        using var stream = files.OpenFile(path, mode, FileAccess.Write);
-        using var writer = new StreamWriter(stream, new UTF8Encoding(false));
-        writer.Write(String(args, "content"));
-        return "File written.";
+        var content = String(args, "content");
+        var excerpt = FileExcerpt.Capture(content);
+        var evidence = new FileEvidence(append ? FileOperation.Append : FileOperation.Write,
+            path, 1, 1, excerpt);
+        var mode = append ? FileMode.OpenOrCreate : overwrite ? FileMode.Create : FileMode.CreateNew;
+        using var stream = files.OpenFile(path, mode, append ? FileAccess.ReadWrite : FileAccess.Write);
+        long startLine = 1, startColumn = 1;
+        if (append)
+        {
+            // Count and write through the same opened file, not a second path
+            // lookup. This is not a lock against unrelated concurrent writers.
+            using (var reader = new StreamReader(stream, leaveOpen: true))
+            {
+                var buffer = new char[4096];
+                int count;
+                while ((count = reader.Read(buffer, 0, buffer.Length)) != 0)
+                    foreach (char character in buffer.AsSpan(0, count))
+                        if (character == '\n') { startLine++; startColumn = 1; }
+                        else startColumn++;
+            }
+            stream.Seek(0, SeekOrigin.End);
+        }
+        if (append) evidence = new FileEvidence(FileOperation.Append, path, startLine, startColumn, excerpt);
+        // Dispose before returning success: flushing can fail too.
+        using (var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true))
+            writer.Write(content);
+        if (content.Length == 0) return new ToolResultPart(call.CallID,
+            [new TextPart("File written; no content written (empty input).")], fileEvidence: evidence);
+        long endLine = startLine;
+        for (int index = 0; index < content.Length - 1; index++)
+            if (content[index] == '\n') endLine++;
+        return new ToolResultPart(call.CallID,
+            [new TextPart($"File written. Lines {startLine}–{endLine}; starting column {startColumn} (UTF-16).")],
+            fileEvidence: evidence);
     }
 
-    private string EditFile(JsonElement args)
+    private ToolResultPart EditFile(ToolCallPart call)
     {
+        var args = call.Args;
         var path = String(args, "path");
         var oldText = String(args, "old_text");
         var replacement = String(args, "new_text");
@@ -318,11 +396,17 @@ public sealed partial class Tool
             throw new ArgumentException("old_text has multiple matches in " + path + "; read the file and narrow the anchor.");
         }
         var edited = text[..first] + replacement + text[(first + oldText.Length)..];
+        long startLine = 1, startColumn = 1;
+        foreach (char character in text.AsSpan(0, first))
+            if (character == '\n') { startLine++; startColumn = 1; }
+            else startColumn++;
+        var evidence = new FileEvidence(FileOperation.Edit, path, startLine, startColumn,
+            FileExcerpt.Capture(replacement), FileExcerpt.Capture(oldText));
         stream.Position = 0;
         stream.SetLength(0);
-        using var writer = new StreamWriter(stream, new UTF8Encoding(false));
-        writer.Write(edited);
-        return "File edited.";
+        using (var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true))
+            writer.Write(edited);
+        return new ToolResultPart(call.CallID, [new TextPart("File edited.")], fileEvidence: evidence);
     }
 
 }

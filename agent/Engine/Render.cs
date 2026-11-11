@@ -11,7 +11,12 @@ public sealed partial class Engine
 
     internal partial JsonObject Render(Context context, string requestInstruction, bool automaticGoalReminder)
     {
-        var config = Parent().Configuration();
+        return RenderConfigured(context, Parent().Configuration(), requestInstruction, automaticGoalReminder);
+    }
+
+    private partial JsonObject RenderConfigured(Context context, Configuration config,
+        string requestInstruction, bool automaticGoalReminder)
+    {
         var entries = Project(context, config, out var cacheBoundary, out var ephemeral);
         var imageBudget = new ImageRequestBudget();
         var request = config.Vendor switch
@@ -195,10 +200,9 @@ public sealed partial class Engine
         IReadOnlySet<string> declared = deferred
             ? Parent().SkillManager()!.CatalogTools(context).ToHashSet(StringComparer.Ordinal)
             : enabled;
-        return Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
-            && (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
+        return Parent().Tools().Where(tool => (tool.Name() != "goal_control" || Parent().GoalAvailable(context))
             && config.AllowsTool(tool.Name())
-            && (tool.Name() is not ("list_displays" or "screenshot") || enabled.Contains(tool.Name()))
+            && (tool.Name() is not ("list_displays" or "screenshot" or "offer_work_product") || enabled.Contains(tool.Name()))
             && !Parent().IsAutomaticTool(tool.Name())
             && ((skills.Length == 0 && Parent().SkillManager() is null) || declared.Contains(tool.Name()))).ToArray();
     }
@@ -234,9 +238,11 @@ public sealed partial class Engine
 
                     // A historical discovery result is evidence, not a permanent
                     // capability. Filter only the disposable request projection.
+                    // Work-product, directory and file display evidence stay in History,
+                    // not in provider requests or their model output budget.
                     var projectedResult = new ToolResultPart(result.CallID, result.Parts,
                         result.IsError, result.Job, result.ToolReferences.Where(name =>
-                            Parent().AllowsMemoryTool(name) && config.AllowsTool(name)
+                            config.AllowsTool(name)
                             && (name != "goal_control" || Parent().GoalAvailable(context))
                             && !revoked.Contains(name)));
                     results.Add((match.Index, result.CallID), projectedResult);
@@ -607,17 +613,6 @@ public sealed partial class Engine
             ["max_completion_tokens"] = OrdinaryOutputBudget,
             ["messages"] = messages
         };
-        // Ask for the reply as a stream. Without this the endpoint returns one
-        // buffered body: no text appears until the answer is finished, and an
-        // artifact has no fragment arrivals to measure a production span from.
-        // The channel selection is the operator's opt-out and always wins.
-        if (MayStream(config))
-        {
-            request["stream"] = true;
-            // Usage arrives only on request once the reply is chunked, and the
-            // settled result needs those counts for billing and the cache lens.
-            request["stream_options"] = new JsonObject { ["include_usage"] = true };
-        }
         // This dialect takes the level at the top level, not inside a reasoning
         // object. Sending what the provider already accepted is the whole point:
         // dropping the field here would reproduce the invisible failure that the

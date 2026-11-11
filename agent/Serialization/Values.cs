@@ -90,6 +90,8 @@ public sealed partial class Configuration
         ArgumentNullException.ThrowIfNull(reasoningEffort);
         ArgumentNullException.ThrowIfNull(reasoningSummary);
         bool listed = Engine.LookupModel(vendor, model, out var features);
+        Features = features;
+        ModelListed = listed;
         Surface = surface ?? (features.ResponsesOnly ? Surface.Responses : vendor switch
         {
             Vendor.Anthropic => Surface.Messages,
@@ -155,6 +157,10 @@ public sealed partial class Configuration
         {
             throw new ArgumentException("Account labels require public plan billing");
         }
+        if (billing == BillingMode.None && apiKey.Length != 0)
+        {
+            throw new ArgumentException("Unauthenticated funding cannot contain an API key");
+        }
         Billing = billing;
         Account = account;
         BaseUrl = baseUrl.TrimEnd('/');
@@ -172,6 +178,11 @@ public sealed partial class Configuration
     {
         // These are immutable values, not a second mutable credential/policy
         // owner. Keep validated transport choices unchanged during narrowing.
+        Features = source.Features;
+        ModelListed = source.ModelListed;
+        ServingContextTokens = source.ServingContextTokens;
+        Offering = source.Offering;
+        Authentication = source.Authentication;
         Vendor = source.Vendor;
         Model = source.Model;
         BaseUrl = source.BaseUrl;
@@ -203,6 +214,11 @@ public sealed partial class Configuration
 
     public partial Configuration WithModel(string model)
     {
+        if (Offering is not null)
+        {
+            if (model == Model) return this;
+            throw new ArgumentException("Select a configured model offering; a wire name cannot change its route.");
+        }
         // Route and funding are launch decisions. Model-specific reasoning
         // defaults are validated anew; an old model's resolved identity and
         // capability options must not leak into its replacement. Explicit
@@ -233,11 +249,14 @@ public sealed partial class Configuration
             && (!SafeMode || name != "host-screen");
     }
 
-    public partial Provenance Target() => new(Vendor, ResolvedModel, Surface);
+    public partial Provenance Target() => new(Vendor, ResolvedModel, Surface, Offering);
 }
 public sealed partial class Provenance
 {
     public partial Provenance(Vendor vendor, string model, Surface surface)
+        : this(vendor, model, surface, null) { }
+
+    public partial Provenance(Vendor vendor, string model, Surface surface, ModelIdentity? offering)
     {
         if (!Enum.IsDefined(vendor) || !Enum.IsDefined(surface) || string.IsNullOrEmpty(model))
         {
@@ -247,9 +266,11 @@ public sealed partial class Provenance
         Vendor = vendor;
         Model = model;
         Surface = surface;
+        Offering = offering;
     }
 
-    public partial bool Matches(Provenance target) => Vendor == target.Vendor && Model == target.Model && Surface == target.Surface;
+    public partial bool Matches(Provenance target) => Vendor == target.Vendor
+        && Model == target.Model && Surface == target.Surface && Offering == target.Offering;
 }
 public sealed partial class BlobRef
 {
@@ -358,7 +379,7 @@ public sealed partial class ToolCallPart
 }
 public sealed partial class ToolResultPart
 {
-    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError, JobInfo? job, IEnumerable<string>? toolReferences)
+    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError, JobInfo? job, IEnumerable<string>? toolReferences, WorkProductInfo? workProduct, DirectoryListing? directoryListing, FileEvidence? fileEvidence, SearchEvidence? searchEvidence)
     {
         if (string.IsNullOrEmpty(callID))
         {
@@ -369,6 +390,18 @@ public sealed partial class ToolResultPart
         // Copy the sequence so callers cannot change an already recorded result.
         Parts = parts.ToImmutableArray();
         IsError = isError;
+        if (searchEvidence is not null && isError)
+            throw new ArgumentException("An error cannot contain search evidence");
+        if (fileEvidence is not null && isError)
+            throw new ArgumentException("An error cannot contain file evidence");
+        if (directoryListing is not null && isError)
+            throw new ArgumentException("An error result cannot contain a directory listing");
+        if (workProduct is not null && isError)
+            throw new ArgumentException("An error result cannot offer a work product");
+        WorkProduct = workProduct;
+        DirectoryListing = directoryListing;
+        FileEvidence = fileEvidence;
+        SearchEvidence = searchEvidence;
         Job = job;
         ToolReferences = (toolReferences ?? []).Distinct(StringComparer.Ordinal).ToImmutableArray();
         if (ToolReferences.Any(string.IsNullOrWhiteSpace) || (isError && !ToolReferences.IsEmpty))
@@ -399,8 +432,7 @@ public sealed partial class Event
         string error, long redactFrom, long redactTo, Redaction? level, string reason, JobInfo? job,
         long responseID, IEnumerable<int>? partIDs, IEnumerable<string>? toolReferences,
         MemoryEntry? memory, MemoryRetirement? retirement, string taskID,
-        CompressionLaunch? compression, CompressionOutcome? outcome,
-        IEnumerable<PartSpan>? partSpans)
+        CompressionLaunch? compression, CompressionOutcome? outcome, TimeSpan? observationDuration, WorkProductInfo? workProduct, DirectoryListing? directoryListing, FileEvidence? fileEvidence, SearchEvidence? searchEvidence, IEnumerable<PartSpan>? partSpans)
     {
         if (!Enum.IsDefined(kind) || (actor.HasValue && !Enum.IsDefined(actor.Value)))
         {
@@ -430,6 +462,12 @@ public sealed partial class Event
         TaskID = taskID;
         Compression = compression;
         Outcome = outcome;
+        if (observationDuration is { } duration && (duration < TimeSpan.Zero
+            || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+        {
+            throw new ArgumentException("Observation duration requires a returned tool observation");
+        }
+        ObservationDuration = observationDuration;
         Kind = kind;
         Seq = seq;
         Time = time;
@@ -453,6 +491,18 @@ public sealed partial class Event
         RedactTo = redactTo;
         Level = level;
         Reason = reason;
+        if (searchEvidence is not null && (isError || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+            throw new ArgumentException("Search evidence requires a successful observation");
+        if (fileEvidence is not null && (isError || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+            throw new ArgumentException("File evidence requires a successful observation");
+        if (directoryListing is not null && (isError || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+            throw new ArgumentException("Directory listings require a successful observation");
+        if (workProduct is not null && (isError || kind is not (EventKind.ToolReturned or EventKind.ToolObserved)))
+            throw new ArgumentException("Work products require a successful returned observation");
+        WorkProduct = workProduct;
+        DirectoryListing = directoryListing;
+        FileEvidence = fileEvidence;
+        SearchEvidence = searchEvidence;
         Job = job;
         ResponseID = responseID;
         PartIDs = partIDs?.ToImmutableArray() ?? [];
@@ -489,19 +539,23 @@ public sealed partial class Event
         }
     }
 
-    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, PartSpans);
+    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration, WorkProduct, DirectoryListing, FileEvidence, SearchEvidence, PartSpans);
 
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs,
         IEnumerable<PartSpan>? partSpans) =>
         new(Kind, Seq, Time, Actor, Parts, From, Usage, CallID, Name, Args,
-            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome,
+            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome, ObservationDuration, WorkProduct, DirectoryListing, FileEvidence, SearchEvidence,
             partSpans ?? PartSpans);
 }
 public sealed partial class Entry
 {
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID, IEnumerable<int>? partIDs)
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID, IEnumerable<int>? partIDs, DateTimeOffset? time, TimeSpan? observationDuration)
     {
+        if (observationDuration is { } duration && duration < TimeSpan.Zero)
+            throw new ArgumentException("Negative observation duration");
+        ObservationDuration = observationDuration;
         Seq = seq;
+        Time = time;
         Actor = actor;
         Parts = parts.ToImmutableArray();
         ResponseID = responseID;
@@ -570,5 +624,22 @@ public sealed partial class RecallPart
     {
         ArgumentNullException.ThrowIfNull(attachment);
         Attachment = attachment;
+    }
+}
+
+public sealed partial class WorkProductInfo
+{
+    public partial WorkProductInfo(string id, string name, long offeredBytes)
+    {
+        if (id is null || id.Length != 32 || id.Any(c => !char.IsAsciiHexDigit(c)))
+            throw new ArgumentException("Invalid work-product identifier", nameof(id));
+        if (string.IsNullOrWhiteSpace(name) || name.Any(char.IsControl)
+            || name.Contains('/') || name.Contains('\\') || name is "." or "..")
+            throw new ArgumentException("Invalid work-product filename", nameof(name));
+        if (offeredBytes < 0 || offeredBytes > Agent.MaximumWorkProductBytes)
+            throw new ArgumentOutOfRangeException(nameof(offeredBytes));
+        ID = id;
+        Name = name;
+        OfferedBytes = offeredBytes;
     }
 }

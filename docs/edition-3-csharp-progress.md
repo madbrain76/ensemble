@@ -1,3 +1,249 @@
+# Current boundary: local-model integration accepted; external usage review next
+
+Bill accepted ordinary GUI MiMo support: separate Agent, memory/recall disabled,
+a reply and an observed tool call/result. No further MiMo coding trial is needed.
+Chapter27 now distinguishes runtime integration from model quality and provides a
+[guide for Julien's larger GPU setup](local-model-evaluation.md). External usage
+feedback remains pending; public136 remains ungraded. This prose closeout changes
+no runtime, deployment, provider authority or historical artifact score. Broader
+Settings auto-save remains separate unfinished work. Historical boundaries follow.
+
+# Current boundary: Cadence startup recovery and funding controls
+
+Bill requested a repair after switching Cadence to Opus made legacy peers fail
+restoration and shut down the GUI. The source now keeps the GUI available after
+fleet failure and provides explicit saved-peer model recovery. Model pickers show
+one vendor/model entry; Settings owns default funding changes. Explicit Codex and
+public OAuth stores can coexist with API funding in the OpenAI catalog.
+Core374/0, peer7/0, GUI socket/browser checks and isolated process restarts pass;
+see [recovery evidence](edition-3-notes/model-selection-usability.md).
+Initial-Agent/host-file failure recovery is outside this bounded peer repair.
+Bill then approved installation and startup. The verified candidate is installed
+in `/Users/bill/ensemble-edition3-cadence`; the GUI responds on port8088 with three
+saved peers awaiting explicit recovery, Astra once and all three funding sources.
+
+# Current boundary: Local Models domain implementation
+
+Bill approved Chapter27 implementation and graders personally by Cadence. The
+verified target is Windows-native Ollama with MiMo9B on an RTX4060; buffered tool
+round-trip and Mac reachability are established by Bill's outputs. Common now has
+configured vendor/endpoint/model ownership and explicit authentication bindings.
+Focused domain4/OAuth20/Codex6/existing model-selection3 groups pass. The shared
+Engine now refuses automatic inference redirects and retained cookies; causal
+before/after HTTP checks and shared358/0 pass. Configured-model
+public Model-object switching now uses the existing mailbox, validates and saves
+before publishing the relationship and frozen request configuration. Real loopback
+routing and failed-save tests pass. The ordinary GUI dropdown now carries qualified
+choices, funding and serving-context descriptions. Real socket and actual-page
+checks pass for same-name offerings, unavailable selection, reload and explicit
+recovery. The host now loads a strict model file before Agent/fleet restoration,
+using explicit existing-payer bindings without changing initial launch policy.
+Ten isolated host process/socket cases pass. Models now own immutable request
+policy, including reasoning and delivery options, with strict document loading
+and projection isolation. Seven domain groups and final shared366/0 pass; the GUI
+host builds cleanly. The reserved launch-return offering now has twelve startup
+cases and a three-request public-GUI wire test covering Responses to local Chat
+and back with restored launch policy and retained conversation. Configured Codex
+grant/source-loss checks and public OAuth loopback renewal/refusal checks pass.
+Configured Chat SSE tool success/interruption/provider-error checks now pass in
+five focused transport groups. An outside-assembly Local Models consumer passes
+136 public conversation/configuration/restoration/lifecycle/accounting checks and
+rejects compiled no-auth header-leak, wrong-endpoint restoration and unjoined-shutdown
+candidates. The named local-models runner now supplies strict receipt validation
+and bounded process execution; passing current coverage exits 3, with no points.
+Separate writer/reader processes now check clean child restoration without
+replayed inference; crash recovery is not certified. Broader lifecycle/refusal
+coverage and general real-model reliability remain unverified; the later bounded
+six-tool coding task below passed without closing those wider gates.
+Qualified peer launch records now preserve offering identity; restoration validates
+the entire launch set before startup effects, without a host-route fallback.
+Internal configured request binding, qualified child restoration and
+weak Agent/Model membership are implemented. Model loss refuses inference while
+retaining documentary saves. Working-context persistence now distinguishes
+configured offerings from each other and from legacy wire-name policies. Final
+shared regression passes364/0. The previous360/1 Sandbox fixture race and its
+passing focused recheck remain recorded, not claimed repaired. Final GUI regression
+groups also pass. Installed-app usability acceptance remains open. The following
+isolated trials provide bounded integrated inference evidence. The first returned
+correct code but
+made no requested tool call; it used minimal instructions and no primary skill.
+Current ET status confirmed a 4096-token serving context. This mixed result does
+not close live tool or human usability acceptance. A second small-primary-skill
+trial captured a real tool call and correlated result, but default recall and a
+relay error confounded the experiment; it is not clean full acceptance.
+The final authorized small-skill trial disabled all memory bands and recall and
+exposed exactly six original tools. Four requests and five tool results exercised
+read/write/run; the fixed six-case Python test passed with inputs and protected
+files unchanged. Process and relay joined without force or retry. Peak reported
+input/output was 1912/291, within the 4096-token serving allocation. This is one
+bounded live success, not all-six-tool or general coding certification; public136
+remains ungraded. No further live trial is planned.
+Chapter27 now contains TL;DR, plain-words teaching and four draft exercises.
+See [Local Models](edition-3-notes/local-models.md) for evidence and limits.
+No installation or restart performed by Cadence; Bill reports rebuilding/restarting
+the earlier context/Goals upgrades. PR reconstruction remains closed.
+
+# Current boundary: idle-transition Goals source upgrade
+
+Enabled goal continuation now queues on idle without a normal timer. Failed model
+turns back off1/10/100/1000 seconds; success resets the streak. GUI status exposes
+failure and next retry, with Retry now and preserved pause/off/interrupt boundaries.
+Original Chapter24, its Goals companion, source skill and affected tests agree.
+Shared core352/0, final focused core/restart/socket checks and actual-page evidence
+are bounded in [idle goal continuation](edition-3-notes/idle-goal-continuation.md).
+No installation or restart occurred. Both requested context/Goals upgrades are in
+source; Local Models resumes only with Bill's target access and inference decision.
+PR reconstruction/grader expansion remains closed.
+
+# Current boundary: working-context policy source upgrade
+
+Per-model whole-input-token working limits and an optional capacity ceiling now
+replace the old capacity-only 90/95 pressure policy. The Agent provides 80% once,
+90% every-request reminders and safe automatic handoff at 100%. The GUI displays
+last-reported percentage immediately after status, including Paused. Original
+Chapter21/companion and Chapter14 explain the policy and separate byte control.
+Focused final core, durable GUI settings and actual-page checks pass; broader core
+351/0 and its final-edit limits are recorded in
+[working-context evidence](edition-3-notes/working-context.md).
+No installation or restart occurred. Next is Bill's requested idle-transition goal
+reminder upgrade, then Local Models; PR grading/reconstruction campaigns stay closed.
+
+# Current boundary: adopted PR integration closed
+
+Bill approved ending further student reconstruction and grader-expansion campaigns.
+The adopted timing, snippet-copy, Actions and work-product source changes work in
+their recorded tested scopes and are explained in the construction chapters and
+Chapter26. Existing grading remains70/100; no ungraded scope was awarded points.
+Completed evidence is retained. This is source/teaching closure, not a claim that
+all nine PRs were merged or that the installed binary matches the source.
+
+The unfinished delayed-copy public port was removed from the working tree after
+retaining a separate draft receipt; committed buffered/streaming checks and earlier
+delayed-copy browser evidence remain. No new student campaign is authorized.
+Next is Local Models with the agreed real target, followed by bounded manuscript
+and local publication verification and human usability acceptance. Target access,
+inference, installation and deployment remain separate permissions.
+
+# Current boundary: artifact integration draft and partial public grade
+
+The named artifact grader now verifies70/100: Actions25, snippets20, recorded
+time15 and interaction10. Work products30 remains UNGRADED; successful partial
+runs exit3. Its deterministic running built-in offer coverage remains unresolved,
+with the scoring decision raised to Bill. No test hook or scoring waiver added.
+Chapter26 now has an integration draft, foundation links, four draft exercise
+contracts and the actual named-grader invocation. Honest reconstruction baselines,
+fresh students and human usability acceptance remain open. Local Models stays last.
+This prose increment changes no runtime, installed application or release output.
+Earlier headers below record prior boundaries, not current grader availability.
+See [evidence](edition-3-notes/artifacts-and-actions.md).
+
+# Current boundary: work-product download source candidate
+
+Explicitly granted work-product offers carry typed retained descriptions, not
+restored live authority. Agent-owned copies enforce64 MiB, cancel and join before
+Sandbox teardown;64 offers per lifetime, click-time bytes, expiry on destruction
+or restart. Guarded HTTP and click-only browser download paths are implemented.
+Core3, actual HTTP boundary/abort/mount-stop, seven browser suites and350 shared
+groups pass. Truncated/stale-download/replay-cancellation mutants fail intended
+assertions. Test hosts join with exit0. Foundations3/4/7/9/10/18/26 updated.
+Named public artifact grading, coherent Chapter26 exercises, fresh students and
+Bill's usability acceptance remain open. No installation, restart or publication.
+See [evidence](edition-3-notes/artifacts-and-actions.md).
+
+# Current boundary: recorded timing source increment
+
+History's recorded time and monotonic admitted-dispatch observation duration now
+survive retained Context and snapshot-only replay. GUI shows local recorded time
+with exact timestamp detail and fixed Observation duration, not Job runtime.
+Missing legacy values stay unknown. Focused core/projection tests, six browser
+suites and347 shared groups pass; timing mutants fail intended assertions.
+Joined fixture exit0. Earlier shared harness had13 missing-cwd-fixture failures
+and one overstrong zero-delay refusal assertion; corrected run passes, evidence
+retained. Chapters2/4/7/10/26 updated; student/public-grader/human gates remain open.
+No install, restart, publication or live timer. See
+[evidence](edition-3-notes/artifacts-and-actions.md).
+
+# Current boundary: paired Actions and stable controls
+
+Explicit call/latest-result navigation uses actual current card relationships.
+Tool controls retain focus, expansion and output feedback; selection defers
+rendering and focused readers retain pane position. Five actual-page suites pass;
+whole-card replacement and stale-navigation mutants fail intended assertions.
+Clean build and joined fixture exit0. Chapter7 teaching updated. Public grader,
+student and human acceptance remain open; no deployment or lifecycle change.
+See [evidence](edition-3-notes/artifacts-and-actions.md).
+
+# Current boundary: recorded Actions-state presentation
+
+Actions now distinguishes Result returned from a typed Job state when observed.
+Requested/dispatched/error labels and tooltips are explicit; raw machine states
+and speech behavior stay unchanged. Unknown metadata is not inferred from prose.
+Four real-page suites pass; ambiguous-label and false-Job-completion mutants fail
+intended assertions. Build and joined fixture exit0. Chapter7 teaching updated.
+This is presentation evidence, not new lifecycle/persistence or public-grade
+certification. Pair navigation/stable tool controls and Chapter7/26 student gates
+remain open. See [evidence](edition-3-notes/artifacts-and-actions.md).
+No install, restart, release rebuild or human acceptance claim.
+
+# Current boundary: snippet copying source increment
+
+Closed assistant-text fences now offer logical-payload copying, with agreed LF
+normalization, exact whitespace, denied-clipboard manual fallback and stable
+controls during streaming. Final embedded-page copy/Markdown/Actions suites pass;
+unfinished-fence and preview-copy mutants fail intended assertions. Fixture build
+and joined host pass. Chapter7 foundation teaching is updated; Chapters7/26 final
+student gates and named public grader coverage remain pending. No deployment,
+release rebuild or human/native-clipboard acceptance is implied. See
+[the evidence and limits](edition-3-notes/artifacts-and-actions.md).
+
+# Current boundary: first-book closeout navigation
+
+The working manuscript now contains Chapters 00–28: Voice and Images25,
+Artifacts and Actions26, Running Local Models27, and Crossing Over28.
+Chapters26–27 are explicitly in-development placeholders, not implemented or
+student-verified chapters. Historical endpoints and grader flags are unchanged;
+media grading remains `-ch 26`. Local Models is the last development slice.
+The [closeout plan](edition-3-notes/first-book-closeout-plan.md) governs the work
+and bounded student reconstruction. Prior release outputs remain unchanged.
+Earlier boundary entries below retain historical chapter numbers.
+
+# Current boundary: Puffin book split
+
+Gateway teaching, Connections/Agenda/Puffin outlines and four active notes moved
+to `puffin-book/`. Its README and discussion record capture OpenClaw attribution,
+Development-Driven Specs, Watchtower, monitoring and self-improvement. The first
+book stays in `book/`, with Crossing Over moved from30 to26 to keep the remaining
+manuscript contiguous. Local models and Actions-pane/artifact work remain first-book
+closeout directions, not completed work. Prior release artifacts, frozen endpoints,
+grader flags, implementation and the original Counterpoint design are unchanged.
+See [the Puffin book](../puffin-book/README.md). Earlier chapter numbers below are
+historical; linked moved notes now resolve to their new home.
+
+# Current boundary: Gateway complete-state source candidate verified
+
+Gateway now saves one versioned JSON state before durable mutation publication;
+no Gateway journal, periodic saver or teardown save. Failures close admission.
+Explicit legacy migration and validated backup recovery preserve originals and
+refuse silent empty fallback. Chapter26 teaches the construction and limits.
+Router16, public client6, adapter6 groups pass, with real sessions and independent
+process crash/lease checks. Public persistence grader passes against Host output;
+a deliberately unsaved candidate fails its intended admission assertion. Real
+Host offline modes pass. This is not power-loss or full historical rubric credit.
+Source review, hard prose lint, current navigation, changed links and syntax
+checks pass. Candidate is ready for Bill's deployment decision. No deployment,
+restart, push or regenerated release artifacts. See [evidence and limits](../puffin-book/notes/gateway-complete-state.md).
+
+# Current boundary: manuscript renumbering and Gateway upgrade begun
+
+Current sequence: Goals24, Voice and Images25, Gateway26, Connections27,
+Agenda28, Puffin29, CrossingOver30. Chapters27–29 are explicitly design-stage
+outlines, not implemented or graded chapters. Historical endpoints and grader
+flags are unchanged; prior evidence below uses its original numbering.
+Gateway whole-state JSON persistence is authorized and not yet implemented.
+Existing separate periodic policy/queue saves do not meet the new contract.
+No live services or published PDF/EPUB artifacts changed. See the
+[detailed design](../puffin-book/notes/puffin-chapter-outlines.md).
+
 # Current boundary: browser-profile font and shortcut complete, source only
 
 Font size and hold-to-talk shortcut now use origin-local profile storage, matching
@@ -294,7 +540,7 @@ and authorized Agent launches, with Gateway routing agentic messages as well as
 connections. Preserve Puffin's useful behavior; upgrade plans require Bill's
 approval before implementation. Initial source findings, reported incidents,
 supervision boundaries, proposed policies, migration risks, and open decisions:
-[Scheduling and Puffin investigation](edition-3-notes/scheduling-and-puffin.md).
+[Scheduling and Puffin investigation](../puffin-book/notes/scheduling-and-puffin.md).
 The follow-up records the proposed separate scheduler executable and Gateway-owned
 identity component, plus Bill's approved-family/Google-first sign-in direction.
 Implementation and security/migration details still require plan approval.

@@ -217,4 +217,46 @@ internal static class MediaProbeTests
         }
         finally { app.Destroy(); }
     }
+
+    // A model change is the one moment an Agent can lose the proof its already
+    // admitted images were earned under. The question is asked of the endpoint
+    // only when the table cannot answer and History really carries the bytes.
+    public static async Task ModelChangeProvesImagesAlreadyInHistory()
+    {
+        var app = new Application(TextWriter.Null);
+        try
+        {
+            var (listed, listedProvider) = await Connected(app, "gpt-4o");
+            try
+            {
+                listed.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Tool, parts: [Image()]));
+                await listed.Engine().ProveImagesForHistoryAsync(listed.History().View());
+                Check(listedProvider.Bodies.Count == 0, "curated model was probed for its own history");
+            }
+            finally { listed.Destroy(); }
+            var (imageless, imagelessProvider) = await Connected(app, "qwen-probe-history-imageless");
+            try
+            {
+                await imageless.Engine().ProveImagesForHistoryAsync(imageless.History().View());
+                Check(imagelessProvider.Bodies.Count == 0, "history without image bytes was probed");
+            }
+            finally { imageless.Destroy(); }
+            var (carrier, carrierProvider) = await Connected(app, "qwen-probe-history-carrier");
+            try
+            {
+                carrierProvider.Answer = asked => asked.Length == 0 ? "I cannot see any image."
+                    : char.ToUpperInvariant(asked[0]) + asked[1..];
+                carrier.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Tool, parts: [Image()]));
+                Check(Refused(() => carrier.Engine().ValidateMedia([Image()], Actor.Human)),
+                    "unlisted model admitted images before its history was proved");
+                await carrier.Engine().ProveImagesForHistoryAsync(carrier.History().View());
+                Check(carrierProvider.Bodies.Count == ProbeRequests, "history proof spent an unexpected request count");
+                carrier.Engine().ValidateMedia([Image()], Actor.Human);
+                await carrier.Engine().ProveImagesForHistoryAsync(carrier.History().View());
+                Check(carrierProvider.Bodies.Count == ProbeRequests, "proved history asked again");
+            }
+            finally { carrier.Destroy(); }
+        }
+        finally { app.Destroy(); }
+    }
 }

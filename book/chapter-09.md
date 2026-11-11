@@ -54,6 +54,20 @@ marks a non-primary skill pending removal and says so honestly. The manual and
 its tools remain active. Test this with a tool granted by the loaded skill, not
 one that was already granted by the primary.
 
+### Installed, discoverable and granted
+
+These are three different states. Installing a built-in handler does not grant
+its authority; listing a skill on the primary skill's loadable shelf does not
+load it. Work-product offering, like host-screen access, requires an explicit
+skill grant even in the legacy unskilled registry. Declaration filtering and
+dispatch enforcement must agree. The `work-products` skill grants
+`offer_work_product`; ordinary file editing does not silently gain that power.
+
+Unloading the skill prevents new offers. An already created offer retains its
+approved Agent-lifetime policy rather than being reconstructed from saved skill
+text. Restart does not restore live offer authority. Test installed-but-ungranted,
+loaded and unloaded states separately, including actual provider declarations.
+
 ## 9.2 Ownership and the authoritative facts
 
 Keep the existing hub-and-spoke organization:
@@ -181,11 +195,16 @@ Built-in substitutions are:
 | --- | --- |
 | `$TOOLS` | Sorted enabled tool names after the proposed activation. |
 | `$SKILLS` | Currently offered, not-yet-active skill names and descriptions. |
+| `$AGENT_NAME` | The actual owning Agent's name or fallback identity. |
+| `$AGENT_DATA_DIRECTORY` | The owning Agent's resolved data directory, or `UNAVAILABLE` without storage. |
 | `$CUSTOM_VAR`, or another registered uppercase name | Host-supplied value at activation. |
 
 Unknown variables remain visible. Substitution makes one pass: text supplied as
 a variable value is not recursively interpreted. Variable names must match
-`[A-Z][A-Z0-9_]*`; hosts cannot replace the built-ins `TOOLS` and `SKILLS`.
+`[A-Z][A-Z0-9_]*`; hosts cannot replace the built-ins `TOOLS`, `SKILLS`,
+`AGENT_NAME` and `AGENT_DATA_DIRECTORY`. The directory is resolved through the
+actual Agent owner, never an inherited variable or current working directory.
+It grants no file authority and does not create a queue or enable reminders.
 
 `RegisterVariable` updates the manager's explicit variable map under its lock.
 It does not mutate existing skill bodies. This is configuration for the next

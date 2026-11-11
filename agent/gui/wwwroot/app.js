@@ -4,7 +4,17 @@
 const transcript = document.querySelector("#transcript");
 const cards = new Map();
 const toolTranscript = document.querySelector("#tool-transcript");
+let jobSessions = null;
+import(new URL("./job-sessions.js", document.currentScript.src).href).then(module => {
+    jobSessions = module.createJobSessions(toolTranscript, fetch, () => {
+        for (const card of cards.values()) if (card.kind === "tool_result") queueCardRender(card);
+    });
+    if (socket?.readyState === WebSocket.OPEN && !selectionPending)
+        for (const card of cards.values()) if (card.kind === "tool_result") jobSessions.observe(card);
+}).catch(() => { /* Recorded cards remain usable without continuing views. */ });
 let acknowledgedState = null;
+let workingContext = null;
+let workingContextForm = null;
 let selectionPending = true;
 const collapsedAgents = new Set();
 let socket;
@@ -171,25 +181,6 @@ function readable(part) {
     return ""; // Never speak provider signatures or hidden opaque metadata.
 }
 
-// Lexical display only, not a language parser. Every original byte remains
-// in text nodes; provider code never becomes HTML or executable script.
-function highlight(code, source) {
-    const tokens = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\/\/[^\n]*|#[^\n]*|\b(?:class|public|private|static|partial|void|return|if|else|for|foreach|while|async|await|def|import|from|const|let|function|true|false|null|None|True|False)\b|\b\d+(?:\.\d+)?\b)/g;
-    let offset = 0;
-    for (const match of source.matchAll(tokens)) {
-        code.append(document.createTextNode(source.slice(offset, match.index)));
-        const span = document.createElement("span");
-        const token = match[0];
-        span.className = /^("|')/.test(token) ? "code-string"
-            : /^(\/\/|#)/.test(token) ? "code-comment"
-            : /^\d/.test(token) ? "code-number" : "code-keyword";
-        span.textContent = token;
-        code.append(span);
-        offset = match.index + token.length;
-    }
-    code.append(document.createTextNode(source.slice(offset)));
-}
-
 // Send only local activity edges. A different device can resume the Agent;
 // unchanged activity here must not reassert its previous pause.
 function updatePauseCause() {
@@ -341,71 +332,6 @@ function cardFor(id) {
     cards.set(id, card);
     return card;
 }
-function Clock(value) {
-    // Server-recorded instants arrive as ISO text; normalize to epoch millis so
-    // the display never mixes a string clock with a numeric one.
-    if (!value) return 0;
-    const parsed = Date.parse(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-function cardTimingText(card) {
-    // One line per artifact: the clock time it began, then how long production
-    // took. Both come from the recorded event whenever the server has them, so a
-    // reload repeats the original moment instead of reporting page-load time. An
-    // in-flight part shows an ellipsis rather than a fake duration; a finalized
-    // part that was never timed (a prompt, or a reply that did not stream) shows
-    // its clock alone, because "no measurement" is not "no time taken".
-    if (!card.first) return "";
-    const moment = new Date(card.started || card.clock || card.first);
-    const pad = (value) => String(value).padStart(2, "0");
-    const clock = `${pad(moment.getHours())}:${pad(moment.getMinutes())}:${pad(moment.getSeconds())}`;
-    if (!card.final) return `${clock} · …`;
-    // A recorded span always wins. Without one, a part observed live in this tab
-    // still has its own first-to-last arrival span, which is the measurement the
-    // operator watched; only a part with neither shows a clock alone.
-    const span = Number.isFinite(card.elapsed) ? card.elapsed
-        : (card.last > card.first ? card.last - card.first : null);
-    if (span === null) return clock;
-    const seconds = span / 1000;
-    const shown = seconds < 10 ? seconds.toFixed(1) : Math.round(seconds).toString();
-    return `${clock} · ${shown}s`;
-}
-
-function renderTiming(card) {
-    const line = document.createElement("div");
-    line.className = "card-timing";
-    line.textContent = cardTimingText(card);
-    const existing = card.node.querySelector(":scope > .card-timing");
-    if (existing) existing.replaceWith(line);
-    else card.node.prepend(line);
-}
-
-// A work product the Agent offered becomes one labelled link. The descriptor is
-// published by the tool; the browser never composes a path of its own.
-function downloadOffer(card) {
-    for (const part of card.parts || []) {
-        const text = part?.text || "";
-        if (!text.startsWith("{\"download\":")) continue;
-        let offer;
-        try { offer = JSON.parse(text).download; } catch (error) { return null; }
-        if (!offer?.name || !offer?.path) return null;
-        const link = document.createElement("a");
-        link.className = "btn btn-quiet btn-sm download-offer";
-        link.href = `download?agent=${encodeURIComponent(agentID || "")}`
-            + `&path=${encodeURIComponent(offer.path)}&download=1`;
-        link.download = offer.name;
-        let size = "";
-        if (typeof offer.size === "number" && offer.size > 0) {
-            size = offer.size < 1048576
-                ? ` (${Math.max(1, Math.round(offer.size / 1024))} KiB)`
-                : ` (${(offer.size / 1048576).toFixed(1)} MiB)`;
-        }
-        link.textContent = `Download ${offer.name}${size}`;
-        return link;
-    }
-    return null;
-}
-
 function media(parent, part, card) {
     if (part.type === "tool_result") {
         for (const child of part.parts || []) media(parent, child, card);
@@ -430,6 +356,63 @@ function media(parent, part, card) {
     box.append(element, download);
     parent.append(box);
 }
+function receivedTail(text) {
+    const bytes = new TextEncoder().encode(text);
+    let start = Math.max(0, bytes.length - 65536);
+    while (start < bytes.length && (bytes[start] & 0xc0) === 0x80) start++;
+    return new TextDecoder().decode(bytes.subarray(start));
+}
+function completePresentation(card) {
+    if (card.directoryListing) return card.directoryListing.entries.length === card.directoryListing.total_entries;
+    if (card.searchEvidence) return card.searchEvidence.lines.length === card.searchEvidence.total_lines;
+    if (card.fileEvidence) {
+        const segments = [card.fileEvidence.content, card.fileEvidence.removed].filter(Boolean);
+        return segments.every(segment => new TextEncoder().encode(segment.text).length === segment.total_bytes);
+    }
+    return false;
+}
+// Human output is independent of the immutable model observation in card.text.
+function loadResultWindow(card) {
+    // Continuing commands have one fetch owner, including late module startup.
+    if (jobSessions?.owns(card)) { card.windowController?.abort(); return; }
+    if (card.windowRequested || card.kind !== "tool_result" || card.status === "error" || !Number.isSafeInteger(card.job?.handle)) return;
+    if (completePresentation(card)) return;
+    card.windowRequested = true;
+    const controller = new AbortController();
+    card.windowController = controller;
+    const deadline = setTimeout(() => controller.abort(), 10000);
+    const url = new URL("./jobs/window", document.baseURI);
+    url.searchParams.set("agent", card.agent);
+    url.searchParams.set("handle", card.job.handle);
+    (async () => {
+        try {
+            const response = await fetch(url, { headers: { "X-Ensemble-Output": "1" },
+                signal: controller.signal, credentials: "same-origin", redirect: "error", cache: "no-store" });
+            if (!response.ok) throw new Error("Unavailable");
+            const value = await response.json();
+            if (!currentCard(card)) return;
+            if (value.handle !== card.job.handle || value.encoding !== "base64" ||
+                !Number.isSafeInteger(value.start) || !Number.isSafeInteger(value.end) ||
+                value.start < 0 || value.end < value.start || value.end - value.start > 65536 ||
+                typeof value.data !== "string" || value.data.length > 87384 ||
+                value.rolled_out !== (value.start > 0) ||
+                (card.job.origin_call_id && value.origin_call_id !== card.job.origin_call_id)) throw new Error("Invalid window");
+            const bytes = Uint8Array.from(atob(value.data), c => c.charCodeAt(0));
+            if (bytes.length !== value.end - value.start) throw new Error("Invalid length");
+            let start = 0;
+            if (value.rolled_out) while (start < bytes.length && (bytes[start] & 0xc0) === 0x80) start++;
+            card.windowText = new TextDecoder().decode(bytes.subarray(start));
+            card.windowNotice = value.rolled_out ? "Latest 64 KiB; earlier output remains on disk." : "";
+        } catch {
+            if (!currentCard(card) || controller.signal.aborted) return;
+            card.windowNotice = "Retained output unavailable; showing the recorded observation.";
+        } finally {
+            clearTimeout(deadline);
+            if (card.windowController === controller) card.windowController = null;
+            if (currentCard(card) && !controller.signal.aborted) queueCardRender(card);
+        }
+    })();
+}
 function fullOutputLinks(card) {
     if (card.kind !== "tool_result") return;
     // Job metadata is published by the real projection. A handle is not a
@@ -444,7 +427,10 @@ function fullOutputLinks(card) {
     const download = document.createElement("button");
     download.type = "button";
     download.className = "btn btn-sm btn-outline-primary";
-    download.textContent = "Download complete output";
+    download.setAttribute("aria-label", "Download complete output");
+    download.title = "Download complete output";
+    download.dataset.action = "download-output";
+    setButtonIcon(download, "icon-download");
     const notice = document.createElement("span");
     notice.setAttribute("role", "status");
     download.addEventListener("click", async () => {
@@ -493,8 +479,78 @@ function fullOutputLinks(card) {
             download.disabled = false;
         }
     });
-    links.append(download, notice);
+    card.node.querySelector(".card-heading").insertBefore(download, card.node.querySelector('[data-action="speak"]'));
+    links.append(notice);
     card.node.append(links);
+}
+function workProductLinks(card) {
+    const offer = card.workProduct;
+    if (card.kind !== "tool_result" || card.status === "error" || !offer
+        || typeof offer.id !== "string" || !/^[a-f0-9]{32}$/i.test(offer.id)
+        || typeof offer.name !== "string" || !offer.name.trim() || /[\x00-\x1f\x7f/\\]/.test(offer.name)
+        || !Number.isSafeInteger(offer.offered_bytes) || offer.offered_bytes < 0
+        || offer.offered_bytes > 64 * 1024 * 1024) return;
+    const box = document.createElement("div");
+    box.className = "work-product-links";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-sm btn-outline-primary";
+    const label = "Download " + offer.name;
+    button.textContent = label;
+    const policy = document.createElement("small");
+    policy.textContent = `${offer.offered_bytes.toLocaleString()} bytes when offered · current contents on click · 64 MiB limit · expires on restart`;
+    const notice = document.createElement("span");
+    notice.setAttribute("role", "status");
+    const url = new URL("./work-products/download", document.baseURI);
+    url.searchParams.set("agent", card.agent);
+    url.searchParams.set("offer", offer.id);
+    button.addEventListener("click", async () => {
+        if (card.workProductController) { card.workProductController.abort(); return; }
+        if (selectionPending || !currentCard(card)) return;
+        const controller = new AbortController();
+        card.workProductController = controller;
+        button.textContent = "Cancel download";
+        notice.textContent = "Downloading current file contents…";
+        try {
+            const response = await fetch(url, {
+                headers: { "X-Ensemble-Work-Product": "1" }, signal: controller.signal
+            });
+            if (!response.ok) throw new Error(response.status === 403
+                ? "Download access refused."
+                : "Offer expired, unavailable, or exceeds the 64 MiB limit.");
+            const limit = 64 * 1024 * 1024;
+            if (Number(response.headers.get("Content-Length")) > limit)
+                throw new Error("Work product exceeds the 64 MiB download limit.");
+            const reader = response.body.getReader();
+            const chunks = [];
+            let bytes = 0;
+            while (true) {
+                const chunk = await reader.read();
+                if (chunk.done) break;
+                bytes += chunk.value.byteLength;
+                if (bytes > limit) throw new Error("Work product exceeds the 64 MiB download limit.");
+                chunks.push(chunk.value);
+            }
+            if (controller.signal.aborted || !currentCard(card))
+                throw new DOMException("Offer view changed", "AbortError");
+            const local = URL.createObjectURL(new Blob(chunks, { type: "application/octet-stream" }));
+            const anchor = document.createElement("a");
+            anchor.href = local;
+            anchor.download = offer.name;
+            anchor.click();
+            setTimeout(() => URL.revokeObjectURL(local), 1000);
+            notice.textContent = `Downloaded ${bytes.toLocaleString()} bytes.`;
+        } catch (error) {
+            if (currentCard(card)) notice.textContent = error.name === "AbortError"
+                ? "Download cancelled." : "Download failed: " + error.message;
+        } finally {
+            controller.abort();
+            if (card.workProductController === controller) card.workProductController = null;
+            button.textContent = label;
+        }
+    });
+    box.append(button, policy, notice);
+    card.node.append(box);
 }
 // Coalesce streamed chunks without delaying authoritative text or speech.
 const pendingCardRenders = new Set();
@@ -585,6 +641,95 @@ function flushReplayBatches() {
     }
 }
 
+function toolObservationLabel(card) {
+    // These are call/observation facts, never claims about current execution.
+    switch (card.status) {
+        case "planned": return "Requested";
+        case "started": return "Dispatched · awaiting result";
+        case "finished": return "Result returned";
+        case "error": return "Error reported";
+        default: return "Observation state unavailable";
+    }
+}
+function recordedJobLabel(job) {
+    if (!Number.isSafeInteger(job?.handle) || job.handle <= 0) return "";
+    // A retained snapshot is not a live Job monitor. Replay must not imply that
+    // an old running observation still describes the process now.
+    let state = "unavailable";
+    switch (job.status) {
+        case "running": state = "running when observed"; break;
+        case "done": state = "completed"; break;
+        case "killed": state = "killed"; break;
+    }
+    const exit = Number.isSafeInteger(job.exit_code) ? ` · exit code ${job.exit_code}` : "";
+    return `Job ${job.handle} ${state}${exit}`;
+}
+function currentCard(card) {
+    return card && cards.get(card.id) === card && card.agent === agentID && card.node.isConnected;
+}
+function renderPairLink(card) {
+    const target = card.kind === "tool_call" ? card.latestResult : card.callCard;
+    let button = card.node.querySelector('[data-action="view-pair"]');
+    // The result may be assigned before its first DOM insertion. Keep the
+    // existing control through that update; clicks still require connected cards.
+    if (!target || cards.get(target.id) !== target || target.agent !== card.agent) {
+        button?.remove();
+        return;
+    }
+    if (!button) {
+        button = actionButton("", () => {
+            // Resolve the actual relationship on click; replay invalidates old
+            // objects even when the new transcript reuses the same wire IDs.
+            const counterpart = card.kind === "tool_call" ? card.latestResult : card.callCard;
+            if (!currentCard(card) || !currentCard(counterpart)) return;
+            counterpart.node.tabIndex = -1;
+            counterpart.node.focus({ preventScroll: true });
+            counterpart.node.scrollIntoView({ block: "nearest" });
+        });
+        button.dataset.action = "view-pair";
+        setButtonIcon(button, "icon-pair");
+        const heading = card.node.querySelector(".card-heading");
+        heading.insertBefore(button, heading.querySelector('[data-action="speak"]'));
+    }
+    button.title = card.kind === "tool_call" ? "View latest result" : "View call";
+    button.setAttribute("aria-label", button.title);
+}
+function renderRecordedTiming(card) {
+    let stamp = card.node.querySelector(":scope > .recorded-time");
+    const parsed = typeof card.recordedAt === "string" ? new Date(card.recordedAt) : null;
+    if (parsed && Number.isFinite(parsed.getTime())) {
+        if (!stamp) {
+            stamp = document.createElement("time");
+            stamp.className = "recorded-time";
+            card.node.append(stamp);
+        }
+        stamp.dateTime = card.recordedAt;
+        stamp.textContent = parsed.toLocaleTimeString();
+        stamp.title = "Finalized fact recorded at " + card.recordedAt;
+        stamp.setAttribute("aria-label", stamp.title);
+    } else stamp?.remove();
+    let elapsed = card.node.querySelector(":scope > .observation-duration");
+    // Two different measurements share one line. A tool result reports the
+    // dispatch-to-return observation the server recorded; any other part reports
+    // how long the part was in production. The source is named because a span the
+    // tab watched is not a span the server vouches for.
+    const tool = card.kind === "tool_result";
+    const milliseconds = tool ? card.observationMs : card.elapsed;
+    if (Number.isFinite(milliseconds) && milliseconds >= 0) {
+        if (!elapsed) {
+            elapsed = document.createElement("div");
+            elapsed.className = "observation-duration";
+            card.node.append(elapsed);
+        }
+        elapsed.textContent = (parsed && Number.isFinite(parsed.getTime()) ? " · " : "") + (milliseconds / 1000).toLocaleString(undefined,
+            { maximumFractionDigits: 3 }) + " s";
+        elapsed.title = tool
+            ? "Dispatch to returned observation: " + milliseconds + " ms; not background Job runtime"
+            : card.spanRecorded
+                ? "Part production span recorded by the server: " + milliseconds + " ms"
+                : "Part production measured in this tab while the part streamed: " + milliseconds + " ms";
+    } else elapsed?.remove();
+}
 function render(card) {
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
@@ -600,24 +745,17 @@ function render(card) {
         }
     } else {
         savedScrollTop = pane.scrollTop;
-        nearBottom = pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
+        const reading = pane.contains(document.activeElement) || [...cards.values()].some(
+            item => item.node.parentElement === pane && cardHasSelection(item));
+        nearBottom = !reading && pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
         if (card.node.parentElement !== pane) {
             for (const batch of replayBatches.values()) batch.backfill.delete(card.node);
             pane.append(card.node);
         }
     }
-    const oldDetails = card.node.querySelector("details");
-    const wasOpen = oldDetails ? oldDetails.open : false;
     const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
     const keepBody = prose && card.node.querySelector(":scope > .message");
-    if (!keepBody) {
-        // The timing line is host-authored furniture, not body content, so it must
-        // survive a rebuild. A one-chunk reply rendered exactly once, and without
-        // this its measured duration was wiped as soon as the card was inserted.
-        const timing = card.node.querySelector(":scope > .card-timing");
-        card.node.replaceChildren();
-        if (timing) card.node.prepend(timing);
-    }
+    if (!keepBody && !artifact) card.node.replaceChildren();
     card.node.className = "part";
     card.node.dataset.role = card.role;
     card.node.dataset.kind = card.kind;
@@ -637,12 +775,15 @@ function render(card) {
         : card.role === "assistant" ? (agentRows.find(row => row.key === card.agent)?.id || card.agent || "Agent") : card.role;
     title.textContent = artifact ? card.name || card.toolName || kind
         : card.kind === "text" ? author : kind;
-    title.title = `${author} · ${card.name || card.toolName || kind}${summary}${card.status ? " · " + card.status : ""}`;
-    if (artifact && card.status) {
-        const status = document.createElement("div");
-        status.className = "tool-state";
-        status.textContent = card.status;
-        card.node.append(status);
+    const statusLabel = artifact && card.status ? toolObservationLabel(card) : card.status;
+    title.title = `${author} · ${card.name || card.toolName || kind}${summary}${statusLabel ? " · " + statusLabel : ""}`;
+    card.node.querySelectorAll(":scope > .tool-state").forEach(node => node.remove());
+    if (card.kind === "tool_result") {
+        const jobLabel = recordedJobLabel(card.job);
+        const resultLabel = card.toolName ? `${card.toolName} result` : toolObservationLabel(card);
+        title.textContent = card.toolName
+            ? resultLabel + (jobLabel ? ` · ${jobLabel}` : "") + (card.status === "error" ? " · error" : "")
+            : (jobLabel || resultLabel) + (card.status === "error" && card.job ? " · error" : "");
     }
     const speaker = heading.querySelector('[data-action="speak"]') || actionButton("Speak", () => speak(card));
     speaker.setAttribute("aria-label", `Speak ${author} ${card.kind}`);
@@ -659,42 +800,147 @@ function render(card) {
     if (prose) {
         const body = keepBody || document.createElement("div");
         body.className = "message";
-        markdown(body, card.text);
+        const proseRenderer = window.EnsembleArtifactRenderers?.prose;
+        try {
+            if (typeof proseRenderer !== "function") throw new Error("Prose renderer unavailable");
+            proseRenderer(body, card.text, card.kind === "text" && card.role === "assistant");
+        } catch {
+            // Presentation failure never changes recorded text or speech. This
+            // literal fallback is outside the customizable renderer chain.
+            body.replaceChildren(document.createTextNode(card.text));
+        }
         if (!body.parentElement) card.node.append(body);
     } else {
-        const details = document.createElement("details");
-        details.open = wasOpen;
-        const summary = document.createElement("summary");
-        summary.textContent = "Expand complete received payload";
-        const pre = document.createElement("pre");
-        pre.textContent = card.text;
-        details.append(summary);
-        if (card.change) {
+        const result = card.kind === "tool_result";
+        const sessionOutput = result ? jobSessions?.output(card) : null;
+        let details = card.node.querySelector(":scope > details");
+        if (!details) {
+            details = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent = "Expand complete received payload";
+            details.append(summary, document.createElement("pre"));
+            card.node.append(details);
+        }
+        details.hidden = result && !sessionOutput;
+        details.querySelector("summary").textContent = result ? "Recorded observation" : "Expand complete received payload";
+        const pre = details.querySelector("pre:not(.edit-change)");
+        if (pre.textContent !== card.text) pre.textContent = card.text;
+        pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
+        if (card.change && !details.querySelector(".edit-change")) {
             const label = document.createElement("p");
             label.textContent = "Applied exact replacement (not a whole-file diff)";
             const change = document.createElement("pre");
             change.className = "edit-change";
             change.textContent = "- " + card.change.old_text.split("\n").join("\n- ")
                 + "\n+ " + card.change.new_text.split("\n").join("\n+ ");
-            details.append(label, change);
+            details.insertBefore(label, pre);
+            details.insertBefore(change, pre);
         }
-        pre.className = card.toolName === "search_files" ? "search-results" : "tool-output";
-        details.append(pre);
         if (artifact && card.kind !== "blob") {
-            const preview = document.createElement("pre");
-            preview.className = "preview";
+            let preview = card.node.querySelector(":scope > .preview");
+            if (!preview) {
+                preview = document.createElement("div");
+                preview.className = "preview";
+                card.node.insertBefore(preview, details);
+                details.ontoggle = () => { preview.hidden = details.open; };
+            }
             const clipped = card.text.slice(0, 1400).split("\n").slice(0, 18).join("\n");
-            preview.textContent = clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
-            preview.hidden = wasOpen;
-            details.ontoggle = () => { preview.hidden = details.open; };
-            card.node.append(preview);
+            const previewText = result ? (jobSessions?.owns(card) ? receivedTail(card.text) : (card.windowText ?? receivedTail(card.text))) : clipped + (clipped.length < card.text.length ? "\n… (bounded preview)" : "");
+            if (sessionOutput) {
+                if (card.previewSessionOutput !== sessionOutput) {
+                    const link = document.createElement("button");
+                    link.type = "button";
+                    link.className = "btn btn-sm btn-outline-secondary session-output-link";
+                    link.textContent = `View Job ${card.job.handle} output`;
+                    link.onclick = () => {
+                        if (!currentCard(card) || jobSessions?.output(card) !== sessionOutput) return;
+                        sessionOutput.focus({ preventScroll: true });
+                        sessionOutput.scrollIntoView({ block: "nearest" });
+                    };
+                    preview.replaceChildren(link);
+                    card.previewSessionOutput = sessionOutput;
+                }
+            } else {
+                const renderer = card.kind === "tool_result" && card.status !== "error"
+                    ? (window.EnsembleToolRenderers?.[card.toolName] ||
+                        (["list_directory", "read_file", "search_files", "write_file", "edit_file"].includes(card.toolName)
+                            ? window.EnsembleArtifactRenderers?.[card.toolName] : null)) : null;
+                const defaultRenderer = window.EnsembleArtifactRenderers?.tool_default;
+                if (card.previewSessionOutput || card.previewText !== previewText || card.previewDefaultRenderer !== defaultRenderer || card.previewRenderer !== renderer || card.previewDirectoryListing !== card.directoryListing || card.previewFileEvidence !== card.fileEvidence || card.previewSearchEvidence !== card.searchEvidence) {
+                    let content = null;
+                    if (typeof renderer === "function") {
+                        try { content = renderer(document, previewText, card.directoryListing, card.fileEvidence, card.searchEvidence); }
+                        catch { /* A presentation failure must not hide the recorded result. */ }
+                    }
+                    if ((!(content instanceof HTMLElement) || content.isConnected) && typeof defaultRenderer === "function") {
+                        try { content = defaultRenderer(document, previewText); }
+                        catch { /* The final literal fallback remains independent of custom code. */ }
+                    }
+                    if (!(content instanceof HTMLElement) || content.isConnected) {
+                        content = document.createElement("pre");
+                        content.textContent = previewText;
+                    }
+                    preview.replaceChildren(content);
+                    if (card.windowText !== undefined && !completePresentation(card) &&
+                        (card.directoryListing || card.fileEvidence || card.searchEvidence)) {
+                        const label = document.createElement("p");
+                        label.textContent = "Retained output tail (plain text)";
+                        const tail = document.createElement("pre");
+                        tail.className = "tool-output";
+                        tail.textContent = card.windowText;
+                        preview.append(label, tail);
+                    }
+                    card.previewSessionOutput = null;
+                    card.previewText = previewText;
+                    card.previewRenderer = renderer;
+                    card.previewDefaultRenderer = defaultRenderer;
+                    card.previewDirectoryListing = card.directoryListing;
+                    card.previewFileEvidence = card.fileEvidence;
+                    card.previewSearchEvidence = card.searchEvidence;
+                }
+            }
+            preview.hidden = result ? false : details.open;
+            preview.tabIndex = 0;
+            preview.setAttribute("aria-label", sessionOutput ? "Continuing output reference" : "Scrollable tool output");
+            if (result) {
+                let windowNotice = card.node.querySelector(":scope > .output-window-notice");
+                if (!windowNotice) {
+                    windowNotice = document.createElement("small");
+                    windowNotice.className = "output-window-notice";
+                    card.node.insertBefore(windowNotice, details);
+                }
+                windowNotice.textContent = card.windowNotice || (new TextEncoder().encode(card.text).length > 65536 && card.windowText === undefined ? "Latest 64 KiB of the received observation; retained output not yet available." : "");
+                windowNotice.hidden = !!jobSessions?.owns(card) || !windowNotice.textContent;
+                loadResultWindow(card);
+            }
         }
-        card.node.append(details);
     }
-    for (const part of card.parts || []) media(card.node, part, card);
-    const offer = downloadOffer(card);
-    if (offer && !card.node.querySelector(":scope > .download-offer")) card.node.append(offer);
-    fullOutputLinks(card);
+    // Passive attachments and the owned-output control are separate from raw
+    // detail. A call status update must not replace a focused summary or an
+    // in-flight download button. Parts are immutable projection values.
+    if (card.renderedParts !== card.parts) {
+        card.node.querySelector(":scope > .artifact-media")?.remove();
+        const attachments = document.createElement("div");
+        attachments.className = "artifact-media";
+        for (const part of card.parts || []) media(attachments, part, card);
+        if (attachments.childNodes.length) card.node.append(attachments);
+        card.renderedParts = card.parts;
+    }
+    if (card.renderedJobHandle !== card.job?.handle) {
+        card.node.querySelector(":scope > .artifact-links")?.remove();
+        card.node.querySelector('[data-action="download-output"]')?.remove();
+        fullOutputLinks(card);
+        card.renderedJobHandle = card.job?.handle;
+    }
+    if (card.renderedWorkProductID !== card.workProduct?.id) {
+        card.workProductController?.abort();
+        card.node.querySelector(":scope > .work-product-links")?.remove();
+        workProductLinks(card);
+        card.renderedWorkProductID = card.workProduct?.id;
+    }
+    renderRecordedTiming(card);
+    if (artifact) renderPairLink(card);
+
     // Only the non-batched path has read layout, so only it may write it back.
     if (!replaying) pane.scrollTop = nearBottom ? pane.scrollHeight : savedScrollTop;
 }
@@ -730,8 +976,16 @@ function renderControls() {
         if (running > 0) status = jobLabel;
         else if (livePhase !== "idle") status = selected.detail || livePhase;
     }
+    // Working context is the operator's other question about the same Agent, and
+    // an unknown budget must read as unknown rather than as an empty one.
+    const context = connected && !selectionPending ? workingContext : null;
+    const percent = Number.isFinite(context?.percent) ? `${Math.floor(context.percent)}% context` : "context unknown";
+    const title = context?.input_tokens != null
+        ? `Last reported main request: ${context.input_tokens.toLocaleString()} input tokens / ${context.working_tokens.toLocaleString()} working limit. Not a prediction of the next request.`
+        : "Working context: no current provider-reported input measurement. Unknown is not zero.";
     document.querySelector("#state").textContent = !connected ? "disconnected"
-        : selectionPending ? "selecting" : wakingLabel || status;
+        : selectionPending ? "selecting" : `${wakingLabel || status} · ${percent}`;
+    document.querySelector("#state").title = title;
     document.querySelector("#interrupt").disabled = !ready || !(busy || paused);
     // The actor classifies ordinary input when dequeued, even during a turn.
     document.querySelector("#send").disabled = !ready || !!voiceControl?.blocked || imageComposer.blocked || !!pageCapture?.busy || !!captureDraft || !!captureConsent?.busy;
@@ -751,10 +1005,10 @@ function renderControls() {
 function showUsage(frame) {
     const picker = document.querySelector("#model-choice");
     picker.replaceChildren();
-    // Display the curated list without implying a live actor can change vendor
-    // or funding. The server independently validates every actual selection.
+    // Configured offerings change the complete arrangement; legacy curated
+    // names preserve their route. The server validates every actual selection.
     const groups = new Map();
-    const add = (vendor, id, label, enabled) => {
+    const add = (vendor, id, label, enabled, offering = null, preference = null) => {
         if (!groups.has(vendor)) {
             const group = document.createElement("optgroup");
             group.label = vendor === "Gemini" ? "Google" : vendor;
@@ -763,18 +1017,47 @@ function showUsage(frame) {
         }
         const option = document.createElement("option");
         option.value = id;
+        if (offering) option.dataset.offering = JSON.stringify(offering);
+        if (preference) option.dataset.preference = JSON.stringify(preference);
         option.textContent = label;
         option.disabled = !enabled;
-        if (!enabled) option.title = "Unavailable for this Agent's fixed provider or API surface.";
+        if (!enabled) option.title = preference
+            ? "Default funding is unavailable or ambiguous. Choose funding in Settings → AI."
+            : offering ? "Configured offering unavailable under this Agent's current policy."
+            : "Unavailable legacy choice for this Agent's current route.";
         groups.get(vendor).append(option);
     };
-    const recommendations = frame.recommended_models || [];
-    for (const model of recommendations) add(model.vendor, model.id, model.label, model.enabled);
-    if (!recommendations.some(model => model.id === frame.selected_model && model.vendor === frame.model_vendor)) {
-        add(frame.model_vendor || "Current", frame.selected_model, frame.selected_model + " (current)", true);
+    const configured = frame.configured_models || [];
+    const preferred = frame.preferred_models || [];
+    const shown = new Set();
+    let selected = frame.selected_model;
+    const key = (vendor, model) => `${vendor.toLowerCase()}:${model}`;
+    for (const model of preferred) {
+        const id = "preference:" + JSON.stringify(model.preference);
+        add(model.vendor, id, model.label + (model.selected && frame.selection_available === false ? " (unavailable)" : ""), model.enabled, null, model.preference);
+        shown.add(key(model.vendor, model.model || model.preference.model));
+        if (model.selected) selected = id;
     }
-    picker.title = "Curated models by vendor. Running Agents keep their provider and funding; unavailable choices are disabled.";
-    picker.value = frame.selected_model;
+    // Embedded callers may have no global funding store. A sole explicit route
+    // still works; ambiguous routes require the host's funding configuration.
+    for (const model of configured) {
+        const identity = key(model.vendor, model.model);
+        if (shown.has(identity)) continue;
+        shown.add(identity);
+        const matches = configured.filter(value => key(value.vendor, value.model) === identity);
+        const id = JSON.stringify(model.offering);
+        add(model.vendor, id, model.label, matches.length === 1 && model.enabled, model.offering);
+        if (frame.selected_model === model.model && frame.selected_offering?.vendor === model.offering.vendor) selected = id;
+    }
+    for (const model of frame.recommended_models || []) {
+        if (shown.has(key(model.vendor, model.id))) continue;
+        add(model.vendor, model.id, model.label, model.enabled);
+        shown.add(key(model.vendor, model.id));
+    }
+    if (![...picker.options].some(option => option.value === selected))
+        add(frame.model_vendor || "Current", selected, frame.selected_model + " (current)", frame.selection_available !== false);
+    picker.title = "Select a model. Change its default funding in Settings → AI.";
+    picker.value = selected;
     renderControls();
     const count = value => value == null ? "?" : value.toLocaleString("en-US");
     const latest = frame.usage;
@@ -889,7 +1172,12 @@ function closeTurn() {
         if (card.final || !card.first) continue;
         card.final = true;
         card.last = now;
-        renderTiming(card);
+        card.started = card.first;
+        card.elapsed = Math.max(0, card.last - card.first);
+        // The duration is painted by the card renderer, and the stream sends no
+        // final frame that would have triggered it. Without this call a live turn
+        // showed no production time at all until the page was reloaded.
+        render(card);
     }
     renderTurnTiming();
 }
@@ -935,11 +1223,13 @@ function handle(frame) {
         return;
     }
     if (frame.type === "usage") {
+        showWorkingContext(frame.working_context);
         showUsage(frame);
         return;
     }
     if (frame.type === "replay") {
         if (agentID !== frame.agent_id) {
+            workingContext = null;
             voiceControl?.cancel();
             cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
@@ -967,6 +1257,9 @@ function handle(frame) {
         clearTimeout(cardRenderTimer);
         cardRenderTimer = null;
         pendingCardRenders.clear();
+        for (const card of cards.values()) { card.workProductController?.abort(); card.windowController?.abort(); }
+        jobSessions?.reset();
+        for (const card of cards.values()) card.windowController?.abort();
         cards.clear();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
@@ -1026,17 +1319,19 @@ function handle(frame) {
         turn.progress = true;
     }
     const card = cardFor(frame.part_id);
+    if (["part_final", "tool_finished"].includes(frame.type)
+        || (frame.type === "tool_dispatched" && !card.recordedAt)) {
+        card.recordedAt = frame.recorded_at;
+    }
+    if (frame.type === "tool_finished") card.observationMs = frame.observation_ms;
     if (frame.type === "part_delta") {
         if (card.final) return;
         const arrived = Date.now();
-        if (!card.first) { card.first = arrived; card.clock = Clock(frame.time); }
+        if (!card.first) card.first = arrived;
         card.last = arrived;
         card.kind = frame.kind;
         card.text += frame.chunk; // An empty chunk is a valid part opening.
         if (frame.tool_name) card.name = (card.name || "") + frame.tool_name;
-        // The live stream only ever sends deltas: part_final belongs to the replay
-        // projection, so without this the clock line appears only after a reload.
-        renderTiming(card);
     } else if (frame.type === "part_final") {
         const part = frame.part;
         card.parts = part.type === "tool_result" ? part.parts : [part];
@@ -1044,17 +1339,17 @@ function handle(frame) {
         card.role = part.role || "assistant";
         card.text = readable(part);
         card.last = Date.now();
-        if (!card.first) { card.first = card.last; card.clock = Clock(frame.time); }
-        // Recorded production data outranks anything measured in this tab: the
-        // browser clock is a fallback for a part the server never timed.
-        card.clock = Clock(frame.time) || card.clock;
+        if (!card.first) card.first = card.last;
+        // Recorded production data outranks anything measured in this tab. The
+        // server's clock owns the recording instant; the tab only ever supplies a
+        // span it watched for itself.
         card.started = Number(part.started) || 0;
         card.elapsed = Number.isFinite(part.elapsed) ? part.elapsed : null;
+        card.spanRecorded = Number.isFinite(part.elapsed);
         card.name = part.name || card.name;
         card.input = part.args || card.input;
         card.final = true;
         if (card.kind === "tool_call" && !card.status) card.status = "planned";
-        renderTiming(card);
     } else if (frame.type === "tool_dispatched") {
         card.kind = "tool_call";
         card.name = frame.name;
@@ -1065,25 +1360,24 @@ function handle(frame) {
     } else if (frame.type === "tool_finished") {
         card.kind = "tool_result";
         card.parts = frame.parts || [];
+        if (frame.name) card.toolName = frame.name;
         card.job = frame.job;
+        card.workProduct = frame.is_error ? null : frame.work_product;
+        card.directoryListing = frame.is_error ? null : frame.directory_listing;
+        card.fileEvidence = frame.is_error ? null : frame.file_evidence;
+        card.searchEvidence = frame.is_error ? null : frame.search_evidence;
         card.role = "tool";
         card.status = frame.is_error ? "error" : "finished";
         card.text = (frame.result || (frame.parts || []).map(readable).join("\n"))
             .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "");
         card.final = true;
-        // The result card carries its own instant: dispatch to return is the tool's
-        // production time, and it must come from the record, not from this tab.
-        // Only a finalized result can show a duration, so this follows card.final.
-        if (!card.first) card.first = Date.now();
-        card.last = Date.now();
-        card.clock = Clock(frame.time) || card.clock;
-        card.started = Clock(frame.started) || card.started;
-        card.elapsed = Number.isFinite(frame.elapsed) ? frame.elapsed : null;
-        renderTiming(card);
-        if (frame.tool_part_id && cards.has(frame.tool_part_id)) {
+        if (frame.tool_part_id && cards.get(frame.tool_part_id)?.kind === "tool_call" &&
+            cards.get(frame.tool_part_id)?.agent === card.agent) {
             const call = cards.get(frame.tool_part_id);
+            call.latestResult = card;
+            card.callCard = call;
             call.status = frame.is_error ? "error" : "finished";
-            card.toolName = call.name;
+            if (call.name) card.toolName = call.name;
             if (!frame.is_error && call.name === "edit_file" &&
                 typeof call.input?.old_text === "string" && typeof call.input?.new_text === "string") {
                 card.change = call.input;
@@ -1096,6 +1390,9 @@ function handle(frame) {
         if (!card.node.parentElement) render(card);
         else queueCardRender(card);
     } else render(card);
+    if (card.kind === "tool_result") jobSessions?.observe(card,
+        ["wait_for_job", "send_input"].includes(card.toolName));
+    if (card.callCard) renderPairLink(card.callCard);
     narrate(card);
 }
 function connect() {
@@ -1130,6 +1427,8 @@ function connect() {
     };
     socket.onclose = () => {
         if (connection !== socket) return;
+        jobSessions?.reset();
+        for (const card of cards.values()) card.windowController?.abort();
         document.querySelector("#connection").textContent = "Disconnected — reconnecting";
         selectionPending = true;
         voiceControl?.cancel();
@@ -1145,12 +1444,12 @@ function connect() {
     };
     socket.onerror = () => { notice("Connection unavailable; work may still be running."); };
 }
-function send(type, text = "") {
+function send(type, text = "", offering = null, preference = null) {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         notice("Not connected; input was not sent.");
         return false;
     }
-    socket.send(JSON.stringify({ type, text, ...(agentID ? { agent_id: agentID } : {}) }));
+    socket.send(JSON.stringify({ type, text, ...(offering ? { offering } : {}), ...(preference ? { preference } : {}), ...(agentID ? { agent_id: agentID } : {}) }));
     if (type === "prompt") beginTurn(); // The clock starts at submission, not first chunk.
     notice("");
     return true;
@@ -1164,6 +1463,8 @@ function selectAgent(key) {
     }
     voiceControl?.cancel();
     cancelPageCapture("Page capture cancelled on Agent change.");
+    jobSessions?.reset();
+    for (const card of cards.values()) card.windowController?.abort();
     imageComposer.selectionChanged(key);
     // Release this tab's old pause cause before asking the server to switch.
     // The incoming view starts with an activity baseline, not a stale pause.
@@ -1246,10 +1547,16 @@ window.addEventListener("pagehide", () => {
 });
 document.querySelector("#interrupt").onclick = () => send("interrupt");
 document.querySelector("#clear-tools").onclick = () => send("clear_tools");
+document.addEventListener("ensemble-funding-changed", () => {
+    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "get_model_choices" }));
+});
 document.querySelector("#model-choice").onchange = event => {
     // A choice is the action. The server's usage frame confirms it or restores
     // the unchanged model after refusal; never infer acceptance from the click.
-    if (send("set_model", event.target.value)) event.target.disabled = true;
+    const option = event.target.selectedOptions[0];
+    const offering = option?.dataset.offering ? JSON.parse(option.dataset.offering) : null;
+    const preference = option?.dataset.preference ? JSON.parse(option.dataset.preference) : null;
+    if (send("set_model", offering || preference ? "" : event.target.value, offering, preference)) event.target.disabled = true;
 };
 document.querySelector("#prompt").oninput = event => {
     resizeComposer();
@@ -1272,6 +1579,39 @@ document.addEventListener("keydown", event => {
         stopSpeechAndResume();
     }
 });
+function sameWorkingContextModel(first, second) {
+    return first?.vendor === second?.vendor && first?.model === second?.model
+        && first?.offering?.vendor === second?.offering?.vendor
+        && first?.offering?.endpoint === second?.offering?.endpoint
+        && first?.offering?.model === second?.offering?.model;
+}
+function showWorkingContext(value) {
+    const modelChanged = !sameWorkingContextModel(workingContext, value);
+    workingContext = value || null;
+    if (value && modelChanged) fillWorkingContextSettings(value);
+    renderControls();
+}
+function fillWorkingContextSettings(value) {
+    workingContextForm = { vendor: value.vendor, model: value.model,
+        ...(value.offering ? { offering: { ...value.offering } } : {}) };
+    document.querySelector("#working-context-model").textContent = `${value.vendor} / ${value.model}`;
+    document.querySelector("#working-context-tokens").value = value.working_tokens ?? "";
+    document.querySelector("#context-capacity-tokens").value = value.capacity_tokens ?? "";
+}
+document.querySelector("#save-working-context").onclick = () => {
+    if (!workingContextForm) return;
+    const working = Number(document.querySelector("#working-context-tokens").value);
+    const capacityText = document.querySelector("#context-capacity-tokens").value;
+    const capacity = capacityText === "" ? null : Number(capacityText);
+    if (!Number.isSafeInteger(working) || working <= 0 || (capacity !== null
+        && (!Number.isSafeInteger(capacity) || capacity <= 0 || working > capacity))) {
+        notice("Enter positive whole input tokens; the working limit must not exceed the capacity ceiling.");
+        return;
+    }
+    patchSettings({ working_context: { ...workingContextForm,
+        working_tokens: working, capacity_tokens: capacity } });
+};
+
 function applySettings() {
     if (!settings) return;
     document.querySelector("#human-name").value = settings.human_name || "";
@@ -1282,6 +1622,12 @@ function applySettings() {
     renderControls();
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
     document.querySelector("#context-target-bytes").value = settings.context_target_bytes;
+    // Settings acknowledgment/rollback restores form values, not the live usage
+    // measurement. The usage stream may already be newer than this snapshot.
+    const savedContext = settings.working_context;
+    const currentModel = workingContext && !sameWorkingContextModel(workingContext, savedContext);
+    if (currentModel) fillWorkingContextSettings(workingContext);
+    else if (savedContext) fillWorkingContextSettings(savedContext);
     if (settings.recall) {
         const recall = settings.recall;
         document.querySelector("#recall-enabled").checked = !recall.disabled;
@@ -1318,7 +1664,8 @@ function showGoal(goal) {
     if (!connected || goalSelectionPending) goal = undefined;
     const labels = {
         unloaded: "Goals skill unloaded", unconfigured: "No goal configured",
-        busy: "Working", scheduled: "Waiting for idle reminder", paused: "Paused",
+        busy: "Working", queued: "Continuation queued", idle: "Idle",
+        retry_wait: "Waiting to retry", paused: "Paused",
         off: "Reminders off — goal retained", file_error: "Goal file error — reminders off"
     };
     const header = document.querySelector("#header-goal");
@@ -1330,12 +1677,8 @@ function showGoal(goal) {
         header.textContent = "Don’t Be Evil";
         header.title = "No goal configured.";
     } else {
-        const seconds = goal.idle_seconds;
-        const interval = Number.isFinite(seconds) && seconds > 0
-            ? (seconds % 60 === 0 ? `${seconds / 60} min` : `${seconds} s`)
-            : "interval unknown";
         const configured = goal.last_error ? "Goal file error" : goal.available ? "Goal on" : "Goal unavailable";
-        const reminders = goal.enabled ? `reminders ${interval}` : "reminders off";
+        const reminders = goal.enabled ? "continue on idle" : "reminders off";
         header.textContent = `${configured} · ${reminders}`;
         header.title = `${header.textContent} — goal configuration, not Agent activity.`;
     }
@@ -1346,7 +1689,8 @@ function showGoal(goal) {
             details.push("reminders off");
         }
         if (goal.file) details.push(goal.file);
-        if (goal.due_utc) details.push(`due ${goal.due_utc}`);
+        if (goal.due_utc) details.push(`next retry ${goal.due_utc}`);
+        if (goal.retry_error) details.push(`failures ${goal.failure_count}: ${goal.retry_error}`);
         if (goal.last_error) details.push(goal.last_error);
         status.textContent = `Goal: ${details.join(" — ")}`;
     } else if (!connected) {
@@ -1357,12 +1701,12 @@ function showGoal(goal) {
         status.textContent = "Goal: waiting for Agent status";
     }
     document.querySelector("#goal-reload").disabled = !connected || goalSelectionPending;
-    for (const id of ["goal-file", "goal-delay", "goal-enabled", "goal-apply", "goal-off", "goal-clear"]) {
+    for (const id of ["goal-file", "goal-enabled", "goal-apply", "goal-off", "goal-clear"]) {
         document.querySelector(`#${id}`).disabled = !goal?.available;
     }
+    document.querySelector("#goal-retry").disabled = !goal?.available || !goal.enabled || goal.phase !== "retry_wait";
     if (!goalDirty) {
         document.querySelector("#goal-file").value = goal?.file || "";
-        document.querySelector("#goal-delay").value = goal?.idle_seconds ?? 480;
         document.querySelector("#goal-enabled").checked = goal?.enabled ?? false;
     }
 }
@@ -1377,14 +1721,10 @@ function updateGoal(goal) {
 document.querySelector("#goal-form").addEventListener("input", () => { goalDirty = true; });
 document.querySelector("#goal-form").addEventListener("submit", event => {
     event.preventDefault();
-    const seconds = Number(document.querySelector("#goal-delay").value);
-    if (!Number.isFinite(seconds) || seconds < .001 || seconds > 4294967.294) {
-        notice("Idle delay must be between .001 and 4294967.294 seconds.");
-        return;
-    }
     updateGoal({file: document.querySelector("#goal-file").value,
-        enabled: document.querySelector("#goal-enabled").checked, idle_seconds: seconds});
+        enabled: document.querySelector("#goal-enabled").checked});
 });
+document.querySelector("#goal-retry").onclick = () => updateGoal({retry_now: true});
 document.querySelector("#goal-off").onclick = () => updateGoal({enabled: false});
 document.querySelector("#goal-clear").onclick = () => updateGoal({file: ""});
 document.querySelector("#goal-reload").onclick = () => send("get_goal");
@@ -1682,4 +2022,9 @@ import("./voice-control.js").then(({ VoiceControl }) => {
 document.querySelector("#prompt").addEventListener("input", () => {
     voiceControl?.cancel();
     renderControls();
+});
+
+// Renderer selection changes presentation, never recorded tool facts.
+document.addEventListener("ensemble-renderers-changed", () => {
+    for (const card of cards.values()) queueCardRender(card);
 });

@@ -60,5 +60,22 @@ static class StreamChannelTests
             "the configuration lost the selected channels");
         Check(chosen.WithModel("gpt-4o-mini").Streams == chosen.Streams,
             "a model switch dropped the delivery selection");
+        // Selecting a configured offering changes the route, not what the operator
+        // asked to watch. An offering projection that copies route facts one by
+        // once once omitted this one, and because an unset selection reads as "no
+        // channel", every configured Agent stopped streaming live while still
+        // settling correctly — a stall that looked like a slow model.
+        var root = new global::Ensemble.Ensemble(TextWriter.Null);
+        var carrierVendor = new ModelVendor(root, "carrier", "Carrier fixture");
+        var carrierAuth = new ModelAuthentication(root, "none");
+        var carrierEndpoint = new ModelEndpoint(carrierVendor, "chat",
+            "http://127.0.0.1:1", Surface.ChatCompletions, carrierAuth);
+        var carrierModel = new Model(carrierEndpoint, "small", "carrier-small", "Small",
+            new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144), 4096);
+        Check(new Configuration(defaultConfig, carrierModel).Streams == StreamChannel.All,
+            "a configured offering lost the default delivery selection");
+        Check(new Configuration(chosen, carrierModel).Streams
+                == (StreamChannel.Text | StreamChannel.Tools),
+            "a configured offering lost the operator's delivery selection");
     }
 }

@@ -9,10 +9,41 @@ const root = process.cwd();
 const evidence = path.join(root, '.crossover/evidence');
 const base = 'http://127.0.0.1:18202/assistant/';
 const check = (condition, message) => { assert.ok(condition, message); console.log('PASS '+message); };
+// renderControls writes "<state> · <budget>" into #state, so a state comparison
+// has to take the state word on its own, as job-status.cjs does.
+// ea446b77 lets the server's own live Job count outrank the turn word, so an Agent
+// with a background Job never reads plain "idle", and an explicitly paused Agent
+// never reads plain "paused" either. The fixture keeps a 300-second Job running for
+// the whole pass, so the turn word alone can neither settle nor prove a hold here.
+// The Interrupt control is the discriminator: the actor enables it only while the
+// turn is busy or paused, and a background Job does not enable it.
+const settled = (pg) => pg.waitForFunction(() => {
+  const word = document.querySelector('#state').textContent.split(' \u00b7 ')[0];
+  return ['idle', 'inputpending'].includes(word) || /^[0-9]+ jobs? running$/.test(word);
+});
+const held = (pg) => pg.evaluate(() => {
+  const word = document.querySelector('#state').textContent.split(' \u00b7 ')[0];
+  return !['inflight', 'toolspending'].includes(word)
+    && (word === 'paused' || !document.querySelector('#interrupt').disabled);
+});
+const waitHeld = (pg) => pg.waitForFunction(() => {
+  const word = document.querySelector('#state').textContent.split(' \u00b7 ')[0];
+  return !['inflight', 'toolspending'].includes(word)
+    && (word === 'paused' || !document.querySelector('#interrupt').disabled);
+});
+const waitRunning = (pg) => pg.waitForFunction(() => {
+  const word = document.querySelector('#state').textContent.split(' \u00b7 ')[0];
+  return (['idle', 'inputpending'].includes(word) || /^[0-9]+ jobs? running$/.test(word))
+    && document.querySelector('#interrupt').disabled && !document.querySelector('#model-choice').disabled;
+});
 (async () => {
  const context = await launchPersistentProfile(path.join(root,'.crossover/profile-browser'), {
   executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', headless:true,
   viewport:{width:1600,height:1000},
+  // A fresh Agent now defaults to the "system" theme, so the dark evidence this
+  // suite inspects has to come from an explicitly dark operating system rather
+  // than from a stored preference. This also proves the default follows the OS.
+  colorScheme:'dark',
   args:['--no-first-run','--disable-background-networking']
  });
  const page = await context.newPage();
@@ -24,32 +55,63 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
  // Check actual rendered colors for representative text and input boundaries.
  // This is scoped contrast evidence, not an automated accessibility verdict.
  const checkContrast=async(theme)=>{
-  const report=await page.evaluate(()=>{
+  const report=await page.evaluate(async()=>{
    const rgb=s=>s.match(/[\d.]+/g).slice(0,3).map(Number);
    const luminance=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
    const ratio=(a,b)=>{const x=[luminance(rgb(a)),luminance(rgb(b))].sort((a,b)=>a-b);return(x[1]+.05)/(x[0]+.05)};
    const background=e=>{while(e){const c=getComputedStyle(e).backgroundColor;if(c!=='rgba(0, 0, 0, 0)'&&c!=='transparent')return c;e=e.parentElement;}throw Error('No opaque background');};
-   const text=['#connection','#state','#agents-tab','#settings-open','#agent-tree .tree-state','#prompt','#send','.card-heading strong','.card-heading .btn'].map(selector=>{
+   // #send is transparent artwork and paints no text, so its declared colour is
+   // never rendered. The affordance is measured below, where it actually appears.
+   const text=['#connection','#state','#agents-tab','#settings-open','#agent-tree .tree-state','#prompt','.card-heading strong','.card-heading .btn'].map(selector=>{
     const e=document.querySelector(selector);return{selector,ratio:ratio(getComputedStyle(e).color,background(e))};
    });
    const prompt=document.querySelector('#prompt'),style=getComputedStyle(prompt);
    const toggle=document.querySelector('.tree-expand').getBoundingClientRect();
+   const artwork=await (async()=>{
+    const icon=document.querySelector('#send .send-icon');
+    const base=luminance(rgb(background(icon)));
+    const bitmap=await createImageBitmap(icon);
+    const width=bitmap.width,height=bitmap.height;
+    const canvas=new OffscreenCanvas(width,height);
+    const context=canvas.getContext('2d',{willReadFrequently:true});
+    context.drawImage(bitmap,0,0);
+    bitmap.close();
+    const {data}=context.getImageData(0,0,width,height);
+    // The theme darkens the pale artwork with a CSS filter. Canvas filtering is
+    // unevenly supported, so the declared factor is applied to the pixels here.
+    const shade=Number((getComputedStyle(icon).filter.match(/brightness\(([\d.]+)\)/)||[null,'1'])[1]);
+    let best=0;
+    for(let index=0;index<data.length;index+=4){
+     if(data[index+3]<200)continue;
+     const pixel=[data[index],data[index+1],data[index+2]].map(value=>value*shade);
+     const pair=[luminance(pixel),base].sort((first,second)=>first-second);
+     best=Math.max(best,(pair[1]+.05)/(pair[0]+.05));
+    }
+    return {ratio:best};
+   })();
    const bubbles=['human','assistant'].map(role=>{
     const e=document.querySelector(`#transcript article[data-role="${role}"][data-kind="text"] > .message`),s=getComputedStyle(e);
     const link=document.createElement('a');link.href='#bubble-contrast-test';link.textContent='Link';e.append(link);
     const linkContrast=ratio(getComputedStyle(link).color,s.backgroundColor);link.remove();
     return {role,border:s.borderTopWidth,leftBorder:s.borderInlineStartWidth,borderStyle:s.borderTopStyle,borderColor:s.borderTopColor,background:s.backgroundColor,radius:s.borderTopLeftRadius,padding:s.padding,textContrast:ratio(s.color,s.backgroundColor),linkContrast,borderContrast:ratio(s.borderTopColor,s.backgroundColor)};
    });
-   return{text,bubbles,inputBorder:ratio(style.borderTopColor,background(prompt)),target:{width:toggle.width,height:toggle.height}};
+   return{text,artwork,bubbles,inputBorder:ratio(style.borderTopColor,background(prompt)),target:{width:toggle.width,height:toggle.height}};
   });
   for(const item of report.text)check(item.ratio>=4.5,`${theme} text contrast ${item.selector}: ${item.ratio.toFixed(2)}:1`);
+  check(report.artwork.ratio>=4.5,`${theme} send artwork is legible against the composer: ${report.artwork.ratio.toFixed(2)}:1`);
   check(report.inputBorder>=3,`${theme} input boundary contrast: ${report.inputBorder.toFixed(2)}:1`);
   check(report.target.width>=44&&report.target.height>=44,`${theme} tree expand target at least 44 pixels`);
   const [human,agent]=report.bubbles;
-  check(report.bubbles.every(b=>parseFloat(b.border)>=1&&b.borderStyle==='solid'&&b.borderColor!==b.background&&parseFloat(b.radius)>0),`${theme} both speakers have visible rounded message borders`);
+  // 87f5fcb3 removed the outline from every bubble and left the rounded fill with
+  // the speaker name above it as the identity cue, but never updated these
+  // expectations. What still has to hold is what that commit left behind: no
+  // outline, a real radius, and fills that tell the two speakers apart.
+  check(report.bubbles.every(b=>parseFloat(b.border)===0&&b.borderStyle==='none'&&parseFloat(b.radius)>0),`${theme} bubbles are unoutlined and rounded`);
   check(['radius','padding'].every(key=>human[key]===agent[key]),`${theme} both bubbles retain compact spacing`);
-  check(agent.background!==human.background&&parseFloat(agent.leftBorder)>parseFloat(human.leftBorder),`${theme} Agent has a distinct fill and a non-color border cue`);
-  check(agent.textContrast>=4.5&&agent.linkContrast>=4.5&&agent.borderContrast>=3,`${theme} Agent bubble text, links and border retain contrast`);
+  // The heavier leading edge is gone; the non-color cue is now the speaker name
+  // above the bubble, which this file checks with the accessible-label pass.
+  check(agent.background!==human.background,`${theme} Agent has a fill distinct from the human bubble`);
+  check(agent.textContrast>=4.5&&agent.linkContrast>=4.5,`${theme} Agent bubble text and links retain contrast`);
  };
 
  const modelRequests=[];
@@ -63,7 +125,8 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
  try {
   await page.goto(base);
   await page.waitForFunction(()=>document.querySelector('#connection').textContent==='Connected' && !document.querySelector('#send').disabled);
-  check(await page.locator('html').getAttribute('data-bs-theme')==='dark','fresh settings default to dark');
+  check(await page.locator('html').getAttribute('data-bs-theme')==='dark'
+   &&await page.locator('html').getAttribute('data-theme')==='system','fresh settings follow the system theme');
   await page.locator('#settings-open').click(); await page.locator('#settings-display-tab').click();
   await page.locator('#human-name').fill('Taylor <friend>');
   await page.locator('#human-description').fill('Writes $TOOLS <examples>');
@@ -101,25 +164,37 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.locator('#send img').evaluate(image=>image.decode());
   const sendImage=await context.request.get(new URL('artwork/paper-airplane-send.svg',base).href);
   check(sendImage.ok()&&sendImage.headers()['content-type']==='image/svg+xml','supplied Send SVG loads with image media type');
+  // 63fa7279 grouped the Send control inside #compose-actions and left this
+  // expectation naming it as a direct child of the form, so the assertion could
+  // not hold against upstream's own markup. The guarantee is unchanged: the form
+  // shows exactly the input and one actions group, and Send is that group's
+  // submit control on the same row as the input.
   const composer=await page.locator('#compose').evaluate(el=>{
-   const children=[...el.children].filter(x=>x.getBoundingClientRect().height>0);
-   const input=el.querySelector('textarea'),button=el.querySelector('button');
+   const visible=(node)=>[...node.children].filter(x=>x.getBoundingClientRect().height>0);
+   const input=el.querySelector('textarea'),button=el.querySelector('button[type="submit"]');
    const a=input.getBoundingClientRect(),b=button.getBoundingClientRect();
-   return {children:children.map(x=>x.id),sameRow:Math.min(a.bottom,b.bottom)>Math.max(a.top,b.top),placeholder:input.placeholder};
+   return {children:visible(el).map(x=>x.id),submit:button.id,
+     belowInput:b.top>=a.bottom,placeholder:input.placeholder};
   });
-  assert.deepEqual(composer.children,['prompt','send']);
-  check(composer.sameRow,'composer is exactly input and Send in one row');
+  assert.deepEqual(composer.children,['prompt','compose-actions','voice-status']);
+  assert.equal(composer.submit,'send');
+  // d117cc03 moved the controls to their own row under a full-width input, which
+  // composer-layout.cjs pins; the one-row wording here could not survive it.
+  check(composer.belowInput,'composer is exactly input above one actions group with Send');
   check(composer.placeholder===`Ask ${await page.locator('#agent-choice').inputValue()} anything…`,'placeholder names the selected Agent');
   const measureComposer=()=>page.locator('#prompt').evaluate(el=>{const c=getComputedStyle(el);return{height:el.getBoundingClientRect().height,line:parseFloat(c.lineHeight),padding:parseFloat(c.paddingTop)+parseFloat(c.paddingBottom)+parseFloat(c.borderTopWidth)+parseFloat(c.borderBottomWidth),scroll:el.scrollHeight,client:el.clientHeight,overflow:c.overflowY};});
   const one=await measureComposer();
   check(Math.abs(one.height-one.line-one.padding)<2,'composer starts at one line');
+  // resizeComposer fits rendered lines within the CSS one-to-five-line bounds, so
+  // a multiline draft grows and a cleared one shrinks back. The earlier one-line
+  // assertions predated that growth and could not both hold with it.
   await page.locator('#prompt').fill('first\nsecond');const two=await measureComposer();
-  check(Math.abs(two.height-one.height)<2,'multiline input keeps a one-line composer');
+  check(two.height>one.height&&Math.abs(two.height-2*two.line-two.padding)<2,'multiline input grows to two lines');
   await page.locator('#prompt').fill('a wrapped message '.repeat(100));const many=await measureComposer();
-  check(Math.abs(many.height-one.height)<2&&many.scroll>many.client&&many.overflow==='auto','long wrapped input scrolls inside one-line area');
+  check(many.height>two.height&&many.scroll>many.client&&many.overflow==='auto','long wrapped input caps and scrolls inside its area');
   await page.locator('#prompt').fill('');const empty=await measureComposer();
-  check(Math.abs(empty.height-one.height)<2,'clearing input preserves one-line area');
-  await page.waitForFunction(()=>['idle','inputpending'].includes(document.querySelector('#state').textContent));
+  check(Math.abs(empty.height-one.height)<2,'clearing input shrinks back to one line');
+  await settled(page);
 
   // Structural presentation checks do not certify pixel-level beauty. These
   // protect the selected design's distinction between navigation and actions.
@@ -132,18 +207,27 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
     tabBackground:t.backgroundColor,tabBottomRadius:t.borderBottomLeftRadius,
     treeBorder:row.borderTopWidth,treeBackground:row.backgroundColor,
     sendPrimary:document.querySelector('#send').classList.contains('btn-primary'),
-    controlNames:['pause','resume','interrupt'].map(id=>document.getElementById(id).getAttribute('aria-label'))};
+    // 7e46d046 removed the manual pause/play pair, which this file itself
+    // asserts below, so only the surviving compact control can be named.
+    controlNames:['interrupt'].map(id=>document.getElementById(id).getAttribute('aria-label'))};
   });
   check(await page.locator('#chat-pane > .pane-heading').count()===0,'redundant conversation title row removed');
-  check(!design.tabButtonClass && design.tabBottom===design.tabBackground && design.tabBottomRadius==='0px','tabs connect to their pane instead of appearing as action buttons');
+  // 89c644e3 gave the Agents heading its own bottom rule in the same commit that
+  // stopped it being a tab, so a border color can no longer equal a transparent
+  // background. What the check still has to protect is the distinction it named:
+  // this is navigation, not one of the action buttons beside it.
+  check(!design.tabButtonClass && design.tabBottomRadius==='0px' && design.tabBackground==='rgba(0, 0, 0, 0)','tabs connect to their pane instead of appearing as action buttons');
   check(design.treeBorder==='0px' && design.treeBackground==='rgba(0, 0, 0, 0)','tree rows use quiet navigation styling');
-  check(design.sendPrimary && design.controlNames.join(',')==='Pause,Resume,Interrupt','primary Send and named compact Agent controls');
+  check(design.sendPrimary && design.controlNames.join(',')==='Interrupt','primary Send and named compact Agent controls');
   await checkContrast('dark');
   await page.screenshot({path:path.join(evidence,'design-dark-initial.png')});
 
-  const markdownShape=await page.evaluate(()=>{
+  // Markdown is the shipped prose renderer module now, not a page global: this is
+  // the same import renderers.js performs for the "prose" selection.
+  const markdownShape=await page.evaluate(async ()=>{
    const target=document.createElement('div');
    target.className='part';document.body.append(target);
+   const {default: markdown}=await import(new URL('./skills/shared/markdown.js',location.href).href);
    markdown(target,'- first\n- second\n\n1. one\n2. two\n\nA wrapped\nparagraph with **bold** and *emphasis*.');
    const shape={whiteSpace:getComputedStyle(target.querySelector('p')).whiteSpace,ul:target.querySelectorAll('ul').length,ol:target.querySelectorAll('ol').length,
     li:target.querySelectorAll('li').length,p:target.querySelectorAll('p').length,
@@ -156,7 +240,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   // Geometry-only stress: this does not test Engine accounting. Preserve and
   // restore the real values; later assertions test actual acknowledged usage.
   const geometry=await page.evaluate(()=>{
-   const ids=['model-choice','narrate','pause','resume','interrupt','theme-toggle'];
+   const ids=['model-choice','narrate','interrupt','theme-toggle'];
    const measure=()=>Object.fromEntries(ids.map(id=>{
     const r=document.getElementById(id).getBoundingClientRect();return[id,[r.x,r.y,r.width,r.height]];
    }));
@@ -192,7 +276,10 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   });
   check(usageFits,'tight numeric slots retain seven-digit counts, cost and full hit rate');
   const originalModel=await page.locator('#model-choice').inputValue();
-  const otherModel=await page.locator('#model-choice option').evaluateAll((options,current)=>options.find(o=>o.value!==current)?.value,originalModel);
+  // showUsage lists every configured offering and disables the ones the current
+  // provider will not serve, so "another model" has to mean another *enabled*
+  // one, which is what the check below already claims to require.
+  const otherModel=await page.locator('#model-choice option').evaluateAll((options,current)=>options.find(o=>o.value!==current&&!o.disabled)?.value,originalModel);
   check(!!otherModel,'fixture supplies another same-provider model');
   const startRequests=modelRequests.length;
   const startFrames=frames.length;
@@ -207,7 +294,15 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   console.log('PASS immediate model selection, acknowledgment and refusal recovery');
 
   // The public agents_status regression adds one real result to the six seeded artifacts.
-  check(await page.locator('#tool-transcript .part').count()===7,'tool call, results and media appear only in Tools');
+  // The fixture gained a real work-product offer and further tool observations, so
+  // a literal card count no longer describes it. What this check exists to protect
+  // is the split itself: every Tools card is an observation or its media, and the
+  // conversation pane below carries none of them.
+  const toolKinds=await page.evaluate(()=>[...document.querySelectorAll('#tool-transcript .part')]
+   .map(node=>node.dataset.kind||node.querySelector('.card-heading')?.dataset.kind||''));
+  check(toolKinds.includes('tool_call')&&toolKinds.filter(kind=>kind==='tool_result').length>=4&&toolKinds.includes('blob'),
+   'tool calls, results and media appear in Tools');
+  check(toolKinds.every(kind=>['tool_call','tool_result','blob',''].includes(kind)),'Tools holds no conversation prose');
   check(await page.locator('#transcript [data-kind="tool_call"],#transcript [data-kind="tool_result"]').count()===0,'Chat excludes tools');
   check(await page.locator('#tool-transcript img').evaluate(e=>e.complete && e.naturalWidth>0),'embedded image renders');
   const originalIDs=await page.locator('[data-part-id]').evaluateAll(nodes=>nodes.map(n=>n.dataset.partId));
@@ -324,7 +419,14 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(cursorOutput.status()===200 && (await cursorOutput.text()).includes('unobserved-suffix'),'download completed two-stage output before ordinary observation');
   const observed=await context.request.get('http://127.0.0.1:18202/fixture/observe');
   check((await observed.text()).includes('unobserved-suffix'),'later ordinary Job observer still receives unconsumed tail');
-  check(await page.getByRole('button',{name:/^Copy(?: code| text)?$/}).count()===0,'no Copy buttons in messages, code or output');
+  // Copy controls are a shipped feature now: the prose renderer puts "Copy code"
+  // on a closed fence, which markdown-copy.cjs pins, and a snippet box carries its
+  // own. What still has to hold is the boundary that check was drawn around — a
+  // control belongs to code, never to spoken message prose.
+  const copyScopes=await page.evaluate(()=>[...document.querySelectorAll('#transcript button,#tool-transcript button')]
+   .filter(node=>/^Copy(?: code| text)?$/.test(node.textContent.trim()))
+   .map(node=>Boolean(node.closest('.code-snippet,.snippet-controls'))));
+  check(copyScopes.every(Boolean),'Copy controls belong to code, never to message prose');
   check((await page.locator('details pre code').allTextContents()).some(text=>text.includes('value65')),'complete code remains available for expansion and selection');
   await page.locator('#transcript details').first().locator('summary').click();
   check(await page.locator('#transcript .code-keyword').count()>0,'expanded code has safe token highlighting');
@@ -347,8 +449,8 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   check(await page.locator('#transcript .part').filter({hasText:'STREAM-IDENTITY first and final.'}).count()===1,'stream final updates one card');
   check(await page.locator('#transcript .part').filter({hasText:'STREAM-IDENTITY first and final.'}).getAttribute('data-part-id')===streamed,'stream/final part identity stable');
   check((await page.locator('#usage-all').textContent())==='31','meter uses acknowledged Engine input');
-  const paused=()=>page.waitForFunction(()=>document.querySelector('#state').textContent==='paused');
-  const resumed=()=>page.waitForFunction(()=>['idle','inputpending'].includes(document.querySelector('#state').textContent) && !document.querySelector('#model-choice').disabled);
+  const paused=()=>waitHeld(page);
+  const resumed=()=>waitRunning(page);
   const barrier=async()=>{
    await page.evaluate(()=>{window.priorSettings=settings;send('get_settings');});
    await page.waitForFunction(()=>settings!==window.priorSettings);
@@ -356,26 +458,13 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   // Explicit runtime pauses remain supported, but the GUI has no manual pair.
   check(await page.locator('#pause,#resume').count()===0,'manual pause/play pair removed');
   check(await page.locator('#speech-controls #stop-speech').count()===1,'Stop speech is reachable beside mic');
-  await page.evaluate(()=>send('pause'));await paused();
-  await page.locator('#prompt').fill('runtime pause plus typing');
-  await page.locator('#prompt').fill('');await barrier();
-  check(await page.locator('#state').textContent()==='paused','typing release preserves explicit runtime pause');
-  await page.evaluate(()=>send('unpause'));await resumed();
-  await page.locator('#prompt').fill('automatic typing');await paused();
-  await page.locator('#stop-speech').click();await barrier();
-  check(await page.locator('#state').textContent()==='paused','Stop speech preserves typed draft hold');
-  await page.keyboard.press('Escape');await barrier();
-  check(await page.locator('#state').textContent()==='paused','Escape preserves typed draft hold');
-  await page.locator('#prompt').fill('');await resumed();
-  const other=await context.newPage();await other.goto(base);
-  await other.waitForFunction(()=>!selectionPending&&acknowledgedState!==null);
-  await other.locator('#prompt').fill('other connection holds');await paused();
-  await page.locator('#prompt').fill('local hold');await page.locator('#prompt').fill('');await barrier();
-  check(await page.locator('#state').textContent()==='paused','one connection cannot release another hold');
-  await other.close();await resumed();
+  // 3f7879a7 replaced connection-owned holds with one Agent-wide pause, where
+  // Stop speech and Escape explicitly resume and a cleared draft resumes too.
+  // Those edges are automatic-pause.cjs's contract; what belongs here is the
+  // draft the operator keeps while the Agent stays held for a real reason.
   await page.locator('#prompt').fill('interrupt retains draft hold');await paused();
   await page.locator('#interrupt').click();await barrier();
-  check(await page.locator('#state').textContent()==='paused','Interrupt does not erase typed draft hold');
+  check(await held(page),'Interrupt does not erase typed draft hold');
   await page.locator('#prompt').fill('');await resumed();
   const beforeReconnect=await page.locator('#transcript .part').evaluateAll(nodes=>nodes.map(n=>n.dataset.partId));
   // Disconnect/reconnect must rebuild the same canonical cards, not append them.
@@ -391,7 +480,10 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
   await page.screenshot({path:path.join(evidence,'desktop-light.png')});
   await page.locator('#settings-open').click(); await page.locator('#settings-display-tab').click(); await page.locator('#font-size').fill('32'); await page.locator('#font-size').dispatchEvent('change');
   await page.waitForFunction(()=>getComputedStyle(document.documentElement).fontSize==='32px');
-  check(JSON.parse(fs.readFileSync('.crossover/runtime/appearance.json')).font_size===32,'font size acknowledged after durable save');
+  // 784e841d moved font size into the browser profile, so the durable record this
+  // choice has to survive in is localStorage, not the server's appearance file.
+  check(JSON.parse(await page.evaluate(()=>localStorage.getItem('ensemble.device.v1'))).font===32,
+    'font size durable in this browser profile');
   await page.locator('#settings-close').click();
   await page.setViewportSize({width:390,height:844});
   await page.waitForFunction(()=>document.body.classList.contains('compact'));
@@ -430,7 +522,7 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
     if(await page.locator('#pane-navigation').isVisible())await page.locator('button[data-pane="chat"]').click();
     await page.locator('#prompt').evaluate(el=>el.style.height='1000px');
     const layout=await page.evaluate(()=>{
-     const ids=['model-choice','narrate','pause','resume','interrupt','theme-toggle'];
+     const ids=['model-choice','narrate','interrupt','theme-toggle'];
      const measure=()=>ids.map(id=>{
       const r=document.getElementById(id).getBoundingClientRect();return[r.x,r.y,r.width,r.height];
      });
@@ -445,7 +537,8 @@ const check = (condition, message) => { assert.ok(condition, message); console.l
     assert.equal(layout.overflow,false,`page overflow ${width}/${size}`);
     assert.ok(layout.send.top>=0 && layout.send.bottom<=height && layout.send.right<=width,`Send unreachable ${width}x${height}/${size}: ${JSON.stringify(layout.send)}`);
     for(let i=0;i<layout.before.length;i++)for(let j=0;j<4;j++)assert.ok(Math.abs(layout.before[i][j]-layout.after[i][j])<1,`status moved control ${i} at ${width}/${size}`);
-    for(const id of ['model-choice','narrate','pause','resume','interrupt','theme-toggle']) {
+    // 7e46d046 removed the manual pause/play pair from the header.
+    for(const id of ['model-choice','narrate','interrupt','theme-toggle']) {
      await page.locator('#'+id).scrollIntoViewIfNeeded();
      assert.ok(await page.locator('#'+id).evaluate(el=>{
       const r=el.getBoundingClientRect(),bar=document.querySelector('#status-bar').getBoundingClientRect();

@@ -36,9 +36,17 @@ public sealed partial class Agent
                 // Resolve and create through this Agent's actual filesystem owner.
                 // This home is independent of the optional History save policy.
                 this.dataDirectory = Sandbox().Resolve(dataDirectory);
-                Sandbox().CreateDirectory(this.dataDirectory);
+                var saved = AgentSettings.Read(Sandbox(), Path.Combine(this.dataDirectory, "settings.json"));
+                if (saved?.SelectedOffering is { } offering)
+                {
+                    configuration = new Configuration(configuration, root.ResolveModel(offering));
+                }
                 outputDirectory ??= Path.Combine(this.dataDirectory, "jobs");
             }
+            // Validate the selected route before creating output or other owners.
+            // A saved explicit choice never falls back to the launch route.
+            AttachConfiguredModel();
+            if (this.dataDirectory is not null) Sandbox().CreateDirectory(this.dataDirectory);
             _ = new Memory(this);
             _ = new Recaller(this);
             _ = new History(this);
@@ -91,7 +99,7 @@ public sealed partial class Agent
         lock (ingress)
         {
             ObjectDisposedException.ThrowIf(destroyed, this);
-            return configuration;
+            return ValidatedConfiguration();
         }
     }
 
@@ -188,6 +196,8 @@ public sealed partial class Agent
         }
         try
         {
+            // Revoke new offer/read admission before draining admitted work.
+            Attempt(CloseWorkProducts);
             Attempt(() => ShutdownAsync().GetAwaiter().GetResult());
             Attempt(DestroyChildren);
             destroyed = true;
@@ -212,6 +222,7 @@ public sealed partial class Agent
             Attempt(() => sandbox?.Destroy());
             observations.Writer.TryComplete();
             Attempt(() => agentParent?.RemoveChild(this));
+            Attempt(DetachConfiguredModel);
             Attempt(() => parent?.RemoveAgent(this));
         }
         finally

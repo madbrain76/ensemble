@@ -5,6 +5,19 @@ namespace EnsembleGui;
 
 public static partial class Gui
 {
+    private static partial JsonObject WorkingContextFrame(Agent agent)
+    {
+        var status = agent.WorkingContextStatus();
+        var result = new JsonObject
+        {
+            ["vendor"] = status.Vendor.ToString(), ["model"] = status.Model,
+            ["input_tokens"] = status.InputTokens, ["working_tokens"] = status.WorkingTokens,
+            ["capacity_tokens"] = status.CapacityTokens, ["percent"] = status.Percent
+        };
+        if (status.Offering is { } offering) result["offering"] = JsonCodec.WriteModelIdentity(offering);
+        return result;
+    }
+
     public static partial JsonObject MeterFrame(Agent agent)
     {
         // One coherent snapshot supplies both latest and total values. Reading
@@ -12,8 +25,8 @@ public static partial class Gui
         MeterSnapshot meter = agent.Engine().Meter();
         Usage latest = meter.Latest?.Counts ?? new Usage(null, null, null, null);
         Usage totals = meter.Totals;
-        Configuration configuration = agent.Configuration();
-        var compatible = Engine.ModelChoices(configuration);
+        ModelSelectionStatus selection = agent.ModelSelectionStatus();
+        var compatible = selection.LegacyChoices;
         var recommendations = new JsonArray();
         foreach (var model in Engine.RecommendedModels)
         {
@@ -22,7 +35,7 @@ public static partial class Gui
                 ["vendor"] = model.Vendor.ToString(),
                 ["id"] = model.Name,
                 ["label"] = model.Label,
-                ["enabled"] = model.Vendor == configuration.Vendor && compatible.Contains(model.Name)
+                ["enabled"] = model.Vendor == selection.Vendor && compatible.Contains(model.Name)
             });
         }
         var choices = new JsonArray();
@@ -30,13 +43,33 @@ public static partial class Gui
         {
             choices.Add(model);
         }
+        var configured = new JsonArray();
+        foreach (ModelSelectionChoice choice in selection.ConfiguredChoices)
+        {
+            configured.Add(new JsonObject
+            {
+                ["offering"] = JsonCodec.WriteModelIdentity(choice.Offering),
+                ["vendor"] = choice.VendorLabel, ["endpoint"] = choice.EndpointID,
+                ["model"] = choice.Model, ["label"] = choice.Label,
+                ["funding"] = choice.Funding,
+                ["serving_context_tokens"] = choice.ServingContextTokens,
+                ["advertised_context_tokens"] = choice.AdvertisedContextTokens,
+                ["enabled"] = choice.Available
+            });
+        }
         return new JsonObject
         {
             ["type"] = "usage",
-            ["funding"] = configuration.FundingDescription(),
-            ["selected_model"] = configuration.Model,
+            ["selected_offering"] = selection.Offering is { } identity
+                ? JsonCodec.WriteModelIdentity(identity) : null,
+            ["selection_available"] = selection.Available,
+            ["configured_models"] = configured,
+            ["preferred_models"] = PreferredModelChoices(agent, selection),
+            ["working_context"] = WorkingContextFrame(agent),
+            ["funding"] = selection.Funding,
+            ["selected_model"] = selection.Model,
             ["model_choices"] = choices,
-            ["model_vendor"] = configuration.Vendor.ToString(),
+            ["model_vendor"] = selection.Vendor.ToString(),
             ["recommended_models"] = recommendations,
             ["agent_id"] = agent.Address() ?? "",
             ["usage"] = new JsonObject

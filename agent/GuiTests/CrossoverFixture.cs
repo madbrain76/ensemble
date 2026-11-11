@@ -1,4 +1,7 @@
+using System.Buffers.Binary;
+using System.IO.Compression;
 using System.Net;
+using System.Text;
 using System.Text.Json;
 using Ensemble;
 using EnsembleGui;
@@ -7,7 +10,7 @@ using EnsembleGui;
 // boundary is fake. The History, actors, Jobs, host, sockets and assets are real.
 internal static class CrossoverFixture
 {
-    internal static async Task RunAsync()
+    internal static async Task RunAsync(bool workingContext = false)
     {
         string originalDirectory = Directory.GetCurrentDirectory();
         string directory = Path.Combine(originalDirectory, ".crossover", "runtime");
@@ -29,9 +32,35 @@ internal static class CrossoverFixture
             // internal call. The generated key has no external authority.
             using var request = await JsonDocument.ParseAsync(context.Request.Body,
                 cancellationToken: context.RequestAborted);
-            if (context.Request.Headers["x-api-key"] != key
-                || !request.RootElement.GetProperty("stream").GetBoolean()
-                || request.RootElement.GetProperty("messages").GetArrayLength() == 0)
+            if (context.Request.Headers["x-api-key"] != key)
+            {
+                context.Response.StatusCode = 400;
+                return;
+            }
+            if (!request.RootElement.TryGetProperty("stream", out var streamFlag) || !streamFlag.GetBoolean())
+            {
+                // The only unstreamed question this endpoint is asked is the image
+                // capability probe. It is answered from the delivered pixel, so a
+                // server that silently dropped the bytes could not name the color.
+                string? probed = ProbeColor(request.RootElement);
+                if (probed is null)
+                {
+                    context.Response.StatusCode = 400;
+                    return;
+                }
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(new
+                {
+                    id = "probe", type = "message", role = "assistant",
+                    model = "claude-3-haiku-20240307",
+                    content = new[] { new { type = "text", text = probed } },
+                    usage = new { input_tokens = 12, cache_creation_input_tokens = 0,
+                        cache_read_input_tokens = 0, output_tokens = 1 },
+                    stop_reason = "end_turn"
+                }), context.RequestAborted);
+                return;
+            }
+            if (request.RootElement.GetProperty("messages").GetArrayLength() == 0)
             {
                 context.Response.StatusCode = 400;
                 return;
@@ -68,7 +97,7 @@ internal static class CrossoverFixture
             await provider.StartAsync(token);
             // The browser first switches this launch model to the catalogued
             // Haiku model, exercising an actual selection before inference.
-            var configuration = new Configuration(Vendor.Anthropic, "crossover-initial",
+            var configuration = new Configuration(Vendor.Anthropic, workingContext ? "claude-3-haiku-20240307" : "crossover-initial",
                 "http://127.0.0.1:18203", key);
             var selected = new Agent(root, configuration, name: "captain", outputDirectory: Path.Combine(directory, "jobs"));
             selected.InstallTools();
@@ -214,7 +243,15 @@ internal static class CrossoverFixture
                     throw new InvalidOperationException("Submitted child missing from agents_status.");
             }
             Console.WriteLine("PASS submitted child remains idle, queryable, owned, and listed in agents_status");
-            File.WriteAllText(Path.Combine(directory, "fixture.json"), JsonSerializer.Serialize(new { handle, runningHandle, nestedHandle, oversizedHandle, cursorHandle, bulkHandle, removedHandle, outputHash, retainedArtifact = Path.Combine(retained.DataDirectory(), "submit.md") }));
+            string productPath = Path.Combine(directory, "offered-report.bin");
+            File.WriteAllBytes(productPath, [1, 2, 3]);
+            var workProduct = selected.OfferWorkProduct(productPath);
+            byte[] productBytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32769);
+            File.WriteAllBytes(productPath, productBytes);
+            string workProductHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(productBytes)).ToLowerInvariant();
+            selected.History().Append(new Event(EventKind.ToolObserved, callID: "fixture-work-product",
+                parts: [new TextPart("A real work-product offer for the isolated browser test.")], workProduct: workProduct));
+            File.WriteAllText(Path.Combine(directory, "fixture.json"), JsonSerializer.Serialize(new { workProduct = new { workProduct.ID, workProduct.Name, workProduct.OfferedBytes }, workProductHash, handle, runningHandle, nestedHandle, oversizedHandle, cursorHandle, bulkHandle, removedHandle, outputHash, retainedArtifact = Path.Combine(retained.DataDirectory(), "submit.md") }));
             Console.WriteLine("READY http://127.0.0.1:18202/assistant/ (embedded assets; loopback provider :18203)");
             while (!File.Exists(stopFile))
             {
@@ -239,4 +276,97 @@ internal static class CrossoverFixture
         }
         Console.WriteLine("STOPPED crossover fixture, provider and owned Agents");
     }
+
+    // The probe's claim is about bytes, so the fake reads the bytes rather than
+    // reciting a fixed word. A 1x1 truecolor PNG inflates to one scanline: a
+    // filter byte followed by one RGB triple. With a single pixel every filter's
+    // predictor is zero, so those three bytes are the color.
+    private static string? ProbeColor(JsonElement root)
+    {
+        string? payload = null;
+        if (!root.TryGetProperty("messages", out var messages) || messages.ValueKind != JsonValueKind.Array)
+        {
+            return null;
+        }
+        foreach (var message in messages.EnumerateArray())
+        {
+            if (!message.TryGetProperty("content", out var content) || content.ValueKind != JsonValueKind.Array)
+            {
+                continue;
+            }
+            foreach (var block in content.EnumerateArray())
+            {
+                if (block.TryGetProperty("type", out var type) && type.GetString() == "image"
+                    && block.TryGetProperty("source", out var source)
+                    && source.TryGetProperty("data", out var data))
+                {
+                    payload = data.GetString();
+                }
+            }
+        }
+        if (payload is null)
+        {
+            return null;
+        }
+        byte[] png;
+        try
+        {
+            png = Convert.FromBase64String(payload);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+        byte[]? header = null;
+        using var compressed = new MemoryStream();
+        int position = 8; // skip the PNG signature
+        while (position + 12 <= png.Length)
+        {
+            int length = BinaryPrimitives.ReadInt32BigEndian(png.AsSpan(position));
+            string kind = Encoding.ASCII.GetString(png, position + 4, 4);
+            if (kind == "IHDR")
+            {
+                header = png[(position + 8)..(position + 8 + length)];
+            }
+            else if (kind == "IDAT")
+            {
+                compressed.Write(png, position + 8, length);
+            }
+            else if (kind == "IEND")
+            {
+                break;
+            }
+            position += 12 + length;
+        }
+        if (header is null || header.Length < 10
+            || BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(0)) != 1
+            || BinaryPrimitives.ReadInt32BigEndian(header.AsSpan(4)) != 1
+            || header[8] != 8 || header[9] != 2)
+        {
+            return null; // Only the probe's own 1x1 8-bit truecolor shape is claimed.
+        }
+        byte[] scanline;
+        try
+        {
+            using var inflate = new ZLibStream(new MemoryStream(compressed.ToArray()), CompressionMode.Decompress);
+            using var raw = new MemoryStream();
+            inflate.CopyTo(raw);
+            scanline = raw.ToArray();
+        }
+        catch (InvalidDataException)
+        {
+            return null;
+        }
+        if (scanline.Length != 4)
+        {
+            return null;
+        }
+        byte red = scanline[1], green = scanline[2], blue = scanline[3];
+        if (red >= green && red >= blue)
+        {
+            return "red";
+        }
+        return green >= blue ? "green" : "blue";
+    }
+
 }

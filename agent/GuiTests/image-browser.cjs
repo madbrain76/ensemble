@@ -56,7 +56,11 @@ assert.ok(!['8088', '8089'].includes(target.port), 'Never target working hosts')
         const transfer = new DataTransfer();
         for (let i = 0; i < count; i++) transfer.items.add(new File([blob], `synthetic-${i}.png`, {type:'image/png'}));
         if (caption) transfer.setData('text/plain', caption);
-        document.querySelector('#prompt').dispatchEvent(new ClipboardEvent('paste', {clipboardData:transfer, bubbles:true, cancelable:true}));
+        const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
+        // Firefox ignores the clipboardData member of ClipboardEventInit, so the
+        // fabricated transfer is attached as an own property of the event.
+        Object.defineProperty(event, 'clipboardData', { value: transfer });
+        document.querySelector('#prompt').dispatchEvent(event);
       };
     });
     await page.goto(base);

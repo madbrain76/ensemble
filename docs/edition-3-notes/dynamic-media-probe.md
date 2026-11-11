@@ -25,3 +25,22 @@ The changed GUI upload path was then driven in real headless Firefox against the
 Not verified: a real Qwen endpoint, which needs Bill's controller. The harness above is a scratch script rather than a landed `agent/GuiTests` case; it belongs with the Firefox tier on `port/21-firefox-harness` rather than in this branch.
 
 Consequence worth Bill's attention: the *reasoning* half of the same curated table still refuses `--reasoning-effort` for unlisted models (`Tests/ResponsesTests.cs` pins that), and this port deliberately did not touch it. Capability-by-probe for reasoning would need a different proof than a color name.
+
+## The same table stranded images already inside the conversation
+
+Selecting a model the curated table does not name used to make every later turn
+of an image-bearing Agent fail with `Model '…' does not support image media`,
+thrown by `CheckMedia` in `agent/Common/Media.cs` from `Render`. The refusal was
+honest about the table and wrong about the world: those images had been admitted
+under the *outgoing* route's proof, and History does not forget them when the
+selection changes. Nothing re-asked the new endpoint, so the Agent carried a
+transcript it could never send again until compaction dropped it.
+
+`Engine.ProveImagesForHistoryAsync` asks at the one moment the answer can have
+changed — `set_model` in `agent/gui/Server/Host.cs`, before the page is told the
+selection took. It is not a second authority and it is not a cost: it returns
+without a request when the table names the model, when nothing in the dialogue
+carries image bytes, and when the route is already proved. `MediaProbeTests`
+pins all three refusals alongside the one case that really does ask, so a model
+change on a text-only Agent stays free and a model change that would strand
+pixels pays one round trip.

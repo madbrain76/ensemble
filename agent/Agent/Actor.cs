@@ -191,7 +191,7 @@ public sealed partial class Agent
         }
         if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
         {
-            var part = new ToolResultPart(fact.CallID, fact.Parts, fact.IsError, fact.Job, fact.ToolReferences);
+            var part = new ToolResultPart(fact.CallID, fact.Parts, fact.IsError, fact.Job, fact.ToolReferences, fact.WorkProduct, fact.DirectoryListing, fact.FileEvidence, fact.SearchEvidence);
             Publish(new Observation(ObservationKind.PartFinal, saved.Seq, part));
         }
     }
@@ -413,6 +413,11 @@ public sealed partial class Agent
         {
             EnsureMemoryReady();
         }
+        if (message.Kind == MailKind.WorkingContextSettings)
+        {
+            ApplyWorkingContextLimit(message);
+            return;
+        }
         if (message.Kind == MailKind.GoalStatus)
         {
             message.GoalReply!.TrySetResult(CaptureGoalStatus());
@@ -618,7 +623,8 @@ public sealed partial class Agent
                 try
                 {
                     Record(new Event(EventKind.ToolObserved, callID: result.CallID, parts: result.Parts,
-                        isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences));
+                        isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
+                        observationDuration: message.ObservationDuration, workProduct: result.WorkProduct, directoryListing: result.DirectoryListing, fileEvidence: result.FileEvidence, searchEvidence: result.SearchEvidence));
                     StageHandoff(message.Call!, result);
                     message.ToolReply!.TrySetResult(result);
                 }
@@ -899,13 +905,14 @@ public sealed partial class Agent
             }
             var result = AdmitToolImages(message.Result!);
             var completedCall = active?.Call ?? calls[nextCall - 1];
-            var isControl = Tools().Any(tool => tool.Name() == completedCall.Name && tool.IsControl());
             // A host-invoked tool has no preceding assistant call. Preserve its
             // audit outcome without inventing a call or poisoning model dialogue.
             var resultKind = active?.Kind == MailKind.DirectTool
                 ? EventKind.ToolObserved : EventKind.ToolReturned;
+            // Controls allocate no wrapper Job, but may observe an existing one.
             Record(new Event(resultKind, callID: result.CallID, parts: result.Parts,
-                isError: result.IsError, job: isControl ? null : result.Job, toolReferences: result.ToolReferences));
+                isError: result.IsError, job: result.Job, toolReferences: result.ToolReferences,
+                observationDuration: message.ObservationDuration, workProduct: result.WorkProduct, directoryListing: result.DirectoryListing, fileEvidence: result.FileEvidence, searchEvidence: result.SearchEvidence));
             StageHandoff(completedCall, result);
             if (active?.Kind != MailKind.DirectTool)
             {
@@ -951,11 +958,6 @@ public sealed partial class Agent
             ApplyHandoff();
             ApplyToolClear();
         }
-        if (memoryHeadroomError is not null && active is not null)
-        {
-            Finish(new InvalidOperationException(memoryHeadroomError));
-            return;
-        }
         if (paused || stopping)
         {
             return;
@@ -982,13 +984,6 @@ public sealed partial class Agent
             {
                 return;
             }
-        }
-        // Waiting is actor state, not an awaited child task on the mailbox.
-        // Controls, completion mail, pause and interruption remain responsive.
-        if (active.Kind != MailKind.DirectTool && nextCall >= calls.Length
-            && WaitForMemoryHeadroom())
-        {
-            return;
         }
         try
         {
@@ -1061,6 +1056,8 @@ public sealed partial class Agent
                     throw;
                 }
                 Record(new Event(EventKind.RequestSent, from: configuration.Target()));
+                // A render/record refusal must not consume the once-only hint.
+                if (pressureInstruction.Length != 0) memoryPressureReminderSent = true;
                 responseID = History().Events()[^1].Seq;
                 hintPending = false;
                 calls = [];
@@ -1080,12 +1077,13 @@ public sealed partial class Agent
         }
     }
 
-    private partial async Task ControlWorker(Mail request, Task<ToolResultPart> work)
+    private partial async Task ControlWorker(Mail request, Task<ToolObservation> work)
     {
         Mail completion;
         try
         {
-            completion = request with { Kind = MailKind.ControlDone, Result = await work };
+            var observed = await work;
+            completion = request with { Kind = MailKind.ControlDone, Result = observed.Result, ObservationDuration = observed.Duration };
         }
         catch (Exception error)
         {
@@ -1135,6 +1133,7 @@ public sealed partial class Agent
             ApplyHandoff();
             ApplyToolClear();
             Record(new Event(EventKind.TurnEnded, reason: error?.Message ?? "completed"));
+            if (active.Kind == MailKind.Submit) ObserveGoalTurn(error);
             Publish(new Observation(ObservationKind.TurnEnded, Text: error?.Message ?? responseText,
                 Succeeded: error is null, HasReply: active.Reply is not null || active.ToolReply is not null));
             if (error is null)
@@ -1149,8 +1148,6 @@ public sealed partial class Agent
         }
         ApplyToolClear();
         active = null;
-        memoryHeadroomTaskID = null;
-        memoryHeadroomError = null;
         automaticPending = false;
         turnSnapshotsCollected = false;
         roundSnapshotsCollected = false;
@@ -1203,12 +1200,13 @@ public sealed partial class Agent
         mailbox.Writer.TryWrite(completion);
     }
 
-    private partial async Task ToolWorker(Task<ToolResultPart> work)
+    private partial async Task ToolWorker(Task<ToolObservation> work)
     {
         Mail completion;
         try
         {
-            completion = new Mail(MailKind.ToolDone, Result: await work);
+            var observed = await work;
+            completion = new Mail(MailKind.ToolDone, Result: observed.Result, ObservationDuration: observed.Duration);
         }
         catch (Exception error)
         {

@@ -6,6 +6,42 @@ namespace Ensemble;
 
 public sealed partial class Ensemble
 {
+    public partial ImmutableArray<PeerLaunch> SavedPeers(Agent source)
+    {
+        using var operation = BeginPeerOperation(source, CancellationToken.None);
+        return ReadPeerLaunches(source);
+    }
+
+    public partial async Task<Agent> RestorePeerAsync(Agent source, string name,
+        ModelIdentity? offering, CancellationToken cancellation, bool waitForBrowser)
+    {
+        using var operation = BeginPeerOperation(source, cancellation);
+        await peerOperations.WaitAsync(operation.Token).ConfigureAwait(false);
+        try
+        {
+            var entry = ReadPeerLaunches(source).SingleOrDefault(row => row.Name == name)
+                ?? throw new ArgumentException("No saved peer has that name.");
+            if (FindAgent(name) is not null)
+                throw new InvalidOperationException("That peer is already running.");
+            var policy = source.Configuration();
+            if (offering is not null)
+            {
+                // Explicit human recovery chooses a complete route. Never guess
+                // funding from an old wire name or the mounted Agent's selection.
+                _ = new Configuration(policy, ResolveModel(offering));
+                var sandbox = source.Sandbox();
+                string path = Path.Combine(AgentDirectory(name)!, "settings.json");
+                var saved = AgentSettings.Read(sandbox, path)
+                    ?? new AgentSettings(new MemorySettings(), new RecallSettings());
+                operation.Token.ThrowIfCancellationRequested();
+                (saved with { SelectedOffering = offering }).Write(sandbox, path);
+            }
+            return await ConstructPeerAsync(entry, policy, source.SkillManager()?.CaptureBootstrap(),
+                operation.Token, waitForBrowser, source.Sandbox()).ConfigureAwait(false);
+        }
+        finally { peerOperations.Release(); }
+    }
+
     private partial CancellationTokenSource BeginPeerOperation(Agent source, CancellationToken cancellation)
     {
         ArgumentNullException.ThrowIfNull(source);
@@ -24,7 +60,7 @@ public sealed partial class Ensemble
     }
 
     public partial async Task<Agent> CreatePeerAsync(Agent source, string name, string? model,
-        string? skill, CancellationToken cancellation, bool waitForBrowser)
+        string? skill, CancellationToken cancellation, bool waitForBrowser, ModelIdentity? offering)
     {
         using var operation = BeginPeerOperation(source, cancellation);
         await peerOperations.WaitAsync(operation.Token).ConfigureAwait(false);
@@ -40,10 +76,18 @@ public sealed partial class Ensemble
             }
             var configuration = source.Configuration();
             var bootstrap = source.SkillManager()?.CaptureBootstrap();
-            string selectedModel = string.IsNullOrEmpty(model) ? configuration.Model : model;
+            if (offering is not null && !string.IsNullOrEmpty(model))
+            {
+                throw new ArgumentException("Choose a qualified offering or a legacy model name, not both.");
+            }
+            // Resolve in this root; a model name must never stand in for its
+            // endpoint and funding. Projection validates the actual binding.
+            var selection = offering is null
+                ? configuration.WithModel(string.IsNullOrEmpty(model) ? configuration.Model : model)
+                : new Configuration(configuration, ResolveModel(offering));
             string selectedSkill = string.IsNullOrEmpty(skill) ? bootstrap?.Primary ?? "" : skill;
-            var entry = new PeerLaunch(name, selectedModel, selectedSkill, DateTimeOffset.UtcNow);
-            peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser).ConfigureAwait(false);
+            var entry = new PeerLaunch(name, selection.Model, selectedSkill, DateTimeOffset.UtcNow, selection.Offering);
+            peer = await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser, source.Sandbox()).ConfigureAwait(false);
             operation.Token.ThrowIfCancellationRequested();
             // This replacement is the commit point. Do not throw cancellation
             // afterward and tell the caller a durably committed creation failed.
@@ -89,10 +133,15 @@ public sealed partial class Ensemble
                 }
             }
             var configuration = source.Configuration();
+            // Resolve the entire launch set before any peer startup or file writes.
+            foreach (var entry in entries)
+            {
+                _ = PeerConfiguration(entry, configuration, source.Sandbox());
+            }
             var bootstrap = source.SkillManager()?.CaptureBootstrap();
             foreach (var entry in entries)
             {
-                restored.Add(await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser)
+                restored.Add(await ConstructPeerAsync(entry, configuration, bootstrap, operation.Token, waitForBrowser, source.Sandbox())
                     .ConfigureAwait(false));
             }
             operation.Token.ThrowIfCancellationRequested();
@@ -151,8 +200,31 @@ public sealed partial class Ensemble
         }
     }
 
+    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy, Sandbox sandbox)
+    {
+        var saved = AgentSettings.Read(sandbox, Path.Combine(AgentDirectory(entry.Name)!, "settings.json"));
+        if (saved?.SelectedOffering is { } selected)
+        {
+            return new Configuration(policy, ResolveModel(selected));
+        }
+        if (entry.Offering is { } identity)
+        {
+            Model model = ResolveModel(identity);
+            if (!string.Equals(model.Name, entry.Model, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException("Peer offering does not match its saved model name.");
+            }
+            return new Configuration(policy, model);
+        }
+        if (policy.Offering is not null)
+        {
+            throw new InvalidDataException("A legacy peer launch cannot identify a configured offering.");
+        }
+        return policy.WithModel(entry.Model);
+    }
+
     private partial async Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
-        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser)
+        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser, Sandbox sandbox)
     {
         cancellation.ThrowIfCancellationRequested();
         // A primary override selects from immutable parsed definitions. It does
@@ -170,7 +242,7 @@ public sealed partial class Ensemble
         {
             bootstrap = null;
         }
-        var peer = new Agent(this, configuration.WithModel(entry.Model), name: entry.Name);
+        var peer = new Agent(this, PeerConfiguration(entry, configuration, sandbox), name: entry.Name);
         try
         {
             peer.InstallTools();
@@ -245,13 +317,17 @@ public sealed partial class Ensemble
                 var fields = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var property in row.EnumerateObject())
                 {
-                    if (property.Name is not ("name" or "model" or "skill" or "created")
-                        || property.Value.ValueKind != JsonValueKind.String || !fields.Add(property.Name))
+                    bool known = property.Name is "name" or "model" or "skill" or "created" or "offering";
+                    bool validKind = property.Name == "offering"
+                        ? property.Value.ValueKind == JsonValueKind.Object
+                        : property.Value.ValueKind == JsonValueKind.String;
+                    if (!known || !validKind || !fields.Add(property.Name))
                     {
                         throw new InvalidDataException("Invalid or duplicate peer registry field.");
                     }
                 }
-                if (fields.Count != 4)
+                if (!fields.Contains("name") || !fields.Contains("model")
+                    || !fields.Contains("skill") || !fields.Contains("created"))
                 {
                     throw new InvalidDataException("A peer registry entry requires name, model, skill and created.");
                 }
@@ -264,11 +340,13 @@ public sealed partial class Ensemble
                 {
                     throw new InvalidDataException("Invalid or duplicate peer launch identity.");
                 }
-                entries.Add(new PeerLaunch(name, model, skill, created));
+                ModelIdentity? offering = row.TryGetProperty("offering", out var savedOffering)
+                    ? JsonCodec.ReadModelIdentity(savedOffering) : null;
+                entries.Add(new PeerLaunch(name, model, skill, created, offering));
             }
             return entries.ToImmutable();
         }
-        catch (Exception error) when (error is JsonException or ArgumentException)
+        catch (Exception error) when (error is JsonException or ArgumentException or FormatException)
         {
             throw new InvalidDataException("Invalid peer registry.", error);
         }
@@ -279,13 +357,18 @@ public sealed partial class Ensemble
         var rows = new JsonArray();
         foreach (var entry in entries)
         {
-            rows.Add(new JsonObject
+            var row = new JsonObject
             {
                 ["name"] = entry.Name,
                 ["model"] = entry.Model,
                 ["skill"] = entry.Skill,
                 ["created"] = entry.Created
-            });
+            };
+            if (entry.Offering is { } offering)
+            {
+                row["offering"] = JsonCodec.WriteModelIdentity(offering);
+            }
+            rows.Add(row);
         }
         // The supplied owner's Sandbox enforces the same host policy as its
         // History. No unconfined fallback or new filesystem service is needed.

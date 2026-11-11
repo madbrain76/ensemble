@@ -48,17 +48,17 @@ try
             flags["--safe-mode"] = "1";
             continue;
         }
-        if (flag is "--no-stream" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
+        if (flag is "--no-save" or "--no-stream" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
         {
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--public-origin" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--gui-auth-file" or "--host" or "--wake-on-lan" or "--wake-timeout" or "--stream") || i + 1 >= args.Length)
+        if (flag is not ("--account" or "--agent-name" or "--archive-log" or "--base-url" or "--billing" or "--cache-lens" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--event-log" or "--global-settings" or "--gui-auth-file" or "--gui-dir" or "--host" or "--model" or "--model-config" or "--port" or "--primary-skill" or "--prompt-cache-key" or "--public-origin" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--save" or "--save-log" or "--settings" or "--skills-dir" or "--startup-skills" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--vendor" or "--wake-on-lan" or "--wake-timeout" or "--workspace") || i + 1 >= args.Length)
         {
             throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
         string value = args[++i];
-        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--transcription" or "--transcription-key-file" or "--account" or "--credentials-dir" or "--codex-auth-file" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search" or "--wake-on-lan" or "--wake-timeout" or "--stream")
+        if (flag is "--account" or "--agent-name" or "--billing" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--global-settings" or "--model-config" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--wake-on-lan" or "--wake-timeout")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -145,9 +145,9 @@ try
     string credentialsDirectory = Selected("--credentials-dir", "EN_CREDENTIALS_DIR");
     string billingSelection = Selected("--billing", "EN_BILLING");
     string codexAuthFile = Selected("--codex-auth-file", "EN_CODEX_AUTH_FILE");
-    // Codex and public OAuth have independent stores and renewal owners.
-    // Do not inspect a public store when this launch explicitly selects Codex.
-    Credentials? launchCredentials = billingSelection == "codex" || string.IsNullOrWhiteSpace(credentialsDirectory)
+    // A separately supplied public OAuth store may coexist with Codex. Merely
+    // registering it does not change the selected payer or renew a credential.
+    Credentials? launchCredentials = string.IsNullOrWhiteSpace(credentialsDirectory)
         ? null : new Credentials(app, credentialsDirectory);
     string? savedAccount = launchCredentials is null ? null
         : await launchCredentials.SelectedPlanAccountAsync();
@@ -165,7 +165,8 @@ try
         "" or "api" => BillingMode.ApiKey,
         "chatgpt" => BillingMode.ChatGptPlan,
         "codex" => BillingMode.Codex,
-        _ => throw new ArgumentException("Unknown billing mode; use api, chatgpt or codex")
+        "none" => BillingMode.None,
+        _ => throw new ArgumentException("Unknown billing mode; use api, chatgpt, codex or none")
     };
     var vendor = Selected("--vendor", "LLM_VENDOR") switch
     {
@@ -198,6 +199,10 @@ try
         Console.Out.WriteLine($"Starting: model {Selected("--model", "LLM_MODEL")} at {endpoint}");
         Console.Out.Flush();
     }
+    // The value the operator typed, kept before the request policy fills in a
+    // default: only a choice this launch actually made is worth asking the
+    // provider to confirm.
+    string requestedEffort = Selected("--reasoning-effort", "OPENAI_REASONING_EFFORT");
     var config = new Configuration(vendor, Selected("--model", "LLM_MODEL"), endpoint, key,
         requireToolExplanation: Env("LLM_REQUIRE_TOOL_EXPLANATION") == "true",
         disableStreaming: flags.ContainsKey("--no-stream") || Env("EN_DISABLE_STREAMING") == "1",
@@ -211,7 +216,7 @@ try
         cacheBreakpoints: Selected("--cache-breakpoints", "EN_CACHE_BREAKPOINTS") == "1",
         promptCacheKey: Selected("--prompt-cache-key", "EN_PROMPT_CACHE_KEY"),
         surface: surface, billing: billing, account: accountSelection,
-        reasoningEffort: Selected("--reasoning-effort", "OPENAI_REASONING_EFFORT"),
+        reasoningEffort: requestedEffort,
         reasoningSummary: Selected("--reasoning-summary", "OPENAI_REASONING_SUMMARY"),
         safeMode: PolicyBoolean(Selected("--safe-mode", "EN_SAFE_MODE"), false),
         enableWebSearch: PolicyBoolean(Selected("--enable-web-search", "EN_ENABLE_WEB_SEARCH"), true),
@@ -226,13 +231,63 @@ try
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
     }
+    CodexCredentials? launchCodex = null;
     if (billing == BillingMode.Codex)
     {
         if (string.IsNullOrWhiteSpace(codexAuthFile))
         {
             throw new ArgumentException("Codex billing requires --codex-auth-file or EN_CODEX_AUTH_FILE");
         }
-        _ = new CodexCredentials(app, codexAuthFile);
+        launchCodex = new CodexCredentials(app, codexAuthFile);
+    }
+    string globalSettingsPath = Selected("--global-settings", "EN_GLOBAL_SETTINGS");
+    if (globalSettingsPath.Length == 0)
+    {
+        globalSettingsPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".en", "settings.json");
+    }
+    var globalSettings = new GlobalSettings(app, globalSettingsPath);
+    RegisterApiOfferings(app, globalSettings);
+    RegisterSubscriptionOfferings(app, config, launchCodex, launchCredentials,
+        accountSelection.Length != 0 ? accountSelection : savedAccount);
+    string modelConfigurationPath = Selected("--model-config", "EN_MODEL_CONFIG");
+    if (modelConfigurationPath.Length != 0)
+    {
+        // Host authority supplies the file and the existing payer. The document
+        // can reference these bindings, never credential locations or secrets.
+        byte[] modelDocument = ReadModelConfiguration(modelConfigurationPath);
+        _ = new ModelAuthentication(app, "none");
+        ModelAuthentication? launchBinding = billing switch
+        {
+            BillingMode.None => new ModelAuthentication(app, "launch"),
+            BillingMode.ApiKey when !string.IsNullOrWhiteSpace(key) => new ModelAuthentication(app, "launch", key),
+            BillingMode.ChatGptPlan => new ModelAuthentication(app, "launch", launchCredentials!, accountSelection),
+            BillingMode.Codex => new ModelAuthentication(app, "launch", launchCodex!),
+            _ => null
+        };
+        if (launchBinding is not null)
+        {
+            // A normal configured offering is the explicit return choice. It
+            // owns request policy, not a hidden backup Configuration or secrets.
+            // Reserve its vendor before loading: the file cannot replace it.
+            var launchVendor = new ModelVendor(app, "host-launch", "Launch configuration");
+            var launchEndpoint = new ModelEndpoint(launchVendor, "launch", config.BaseUrl,
+                config.Surface, launchBinding);
+            string summary = config.ReasoningSummary;
+            if (summary.Length == 0 && config.Surface == Surface.Responses
+                && !config.Features.ReasoningEfforts.IsDefaultOrEmpty)
+            {
+                summary = "off";
+            }
+            var launchPolicy = new ModelRequestPolicy(config.DisableStreaming, config.RequireToolExplanation,
+                config.DeferredTools, config.StubsToolResults, config.CacheBreakpoints,
+                config.PromptCacheKey, config.ReasoningEffort, summary);
+            _ = new Model(launchEndpoint, "launch", config.Model, "Return to launch",
+                config.Features, config.ServingContextTokens, launchPolicy);
+        }
+        // Complete loading before any Agent, persisted conversation, or fleet
+        // restoration. This is additive; it does not rewrite launch policy.
+        app.LoadModelConfiguration(modelDocument);
     }
     // Account management changes the saved next-launch default, not this
     // immutable Configuration. No implicit credential location is searched.
@@ -293,15 +348,20 @@ try
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
     string bindHost = hostFlags.GetValueOrDefault("--host", "127.0.0.1");
-    // Ask the endpoint before the first turn whether it will honour the requested
-    // reasoning effort. A refusal is a launch mistake, so it stops here rather than
-    // advertising a capability the provider denied. The refusal is the provider's
-    // own words about a field the operator chose, so it is printed deliberately:
-    // the handler below keeps unrecognized exception text private on purpose, and
-    // without this line the operator would only ever see a type name.
+    // Ask the endpoint before the first turn whether it will honour the reasoning
+    // effort this launch asked for. A refusal is a launch mistake, so it stops here
+    // rather than advertising a capability the provider denied. The refusal is the
+    // provider's own words about a field the operator chose, so it is printed
+    // deliberately: the handler below keeps unrecognized exception text private on
+    // purpose, and without this line the operator would only ever see a type name.
+    // An effort nobody chose is the application's default, and a launch must never
+    // spend a provider request, or a launch failure, confirming it.
     try
     {
-        await agent.Engine().ValidateReasoningEffortAsync(CancellationToken.None);
+        if (requestedEffort.Length > 0)
+        {
+            await agent.Engine().ValidateReasoningEffortAsync(CancellationToken.None);
+        }
     }
     catch (InvalidOperationException refusal)
     {
@@ -323,7 +383,8 @@ try
         // A refused credential attempt is operator feedback, not application state, so
         // it goes to the terminal's error stream where the launcher already reports
         // launch problems. Without it, a wrong password and a wrong file are identical.
-        DiagnosticsOutput: Console.Error);
+        DiagnosticsOutput: Console.Error,
+        RendererDirectory: Path.Combine(app.DataDirectory(), "renderers"));
     // Fleet restoration belongs to this application composition root, not the
     // reusable GUI mount, which only borrows the Agent supplied by its caller.
     // A browser-dependent peer cannot finish startup before its own relay can
@@ -334,8 +395,19 @@ try
     Task restoring = RestoreFleet();
     async Task RestoreFleet()
     {
-        await agent.RestoreChildrenAsync(fleetStop.Token, waitForBrowser: true);
-        await app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+        try
+        {
+            await agent.RestoreChildrenAsync(fleetStop.Token, waitForBrowser: true);
+            await app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+        }
+        catch (OperationCanceledException) when (fleetStop.IsCancellationRequested) { throw; }
+        catch (Exception error)
+        {
+            // A stopped peer must not take away the human's recovery controls.
+            // Keep the original files; the GUI lists unstarted registry peers
+            // and can save an explicit selection before retrying one of them.
+            ReportFailure("Saved agents could not start; use the GUI's saved-agent recovery controls", error);
+        }
     }
     Task first = await Task.WhenAny(serving, restoring);
     if (ReferenceEquals(first, restoring) && restoring.IsCompletedSuccessfully)
@@ -498,6 +570,95 @@ static string ReadTranscriptionKey(string path)
     return value.GetString()!;
 }
 
+// The host explicitly names this file; an Agent never supplies this pathname.
+// Bound both the initial file size and growth through the same opened handle.
+static byte[] ReadModelConfiguration(string path)
+{
+    const int maximumBytes = 1024 * 1024;
+    using var input = new FileStream(Path.GetFullPath(path), FileMode.Open, FileAccess.Read,
+        FileShare.ReadWrite | FileShare.Delete);
+    if (input.Length > maximumBytes)
+        throw new InvalidDataException("Model configuration exceeds 1 MiB.");
+    byte[] bytes = new byte[maximumBytes + 1];
+    int used = 0;
+    while (used < bytes.Length)
+    {
+        int count = input.Read(bytes.AsSpan(used));
+        if (count == 0) break;
+        used += count;
+    }
+    if (used > maximumBytes)
+        throw new InvalidDataException("Model configuration exceeds 1 MiB.");
+    return bytes.AsSpan(0, used).ToArray();
+}
+
+// Host-approved API routes use the existing curated names and exact capability
+// table. Presence of a key is not a provider entitlement or a network probe.
+// Stable graph IDs are persisted by Agent settings and global funding defaults.
+static void RegisterApiOfferings(Application app, GlobalSettings settings)
+{
+    var vendors = new (Vendor Vendor, string ID, string Label, string Address, Surface Surface)[]
+    {
+        (Vendor.OpenAI, "openai", "OpenAI", "https://api.openai.com", Surface.Responses),
+        (Vendor.Anthropic, "anthropic", "Anthropic", "https://api.anthropic.com", Surface.Messages),
+        (Vendor.Gemini, "gemini", "Gemini", "https://generativelanguage.googleapis.com", Surface.GenerateContent)
+    };
+    foreach (var row in vendors)
+    {
+        ModelAuthentication? binding = settings.BindApiKey(row.Vendor, row.ID + "-api");
+        if (binding is null) continue;
+        var vendor = new ModelVendor(app, row.ID, row.Label);
+        var endpoint = new ModelEndpoint(vendor, "api", row.Address, row.Surface, binding);
+        foreach (var recommendation in Engine.RecommendedModels)
+        {
+            if (recommendation.Vendor != row.Vendor) continue;
+            Engine.LookupModel(row.Vendor, recommendation.Name, out ModelFeatures features);
+            // Provider names may contain dots; graph IDs have a narrower grammar.
+            string modelID = recommendation.Name.Replace('.', '_');
+            _ = new Model(endpoint, modelID, recommendation.Name,
+                recommendation.Label, features);
+        }
+    }
+}
+
+// Subscription routes share the OpenAI vendor with API funding, so the picker
+// can show one model while Settings selects its payer. No endpoint is probed.
+static void RegisterSubscriptionOfferings(Application app, Configuration launch,
+    CodexCredentials? codex, Credentials? credentials, string? account)
+{
+    if (codex is null && (credentials is null || string.IsNullOrWhiteSpace(account))) return;
+    var vendor = app.ModelVendors().SingleOrDefault(value => value.ID == "openai")
+        ?? new ModelVendor(app, "openai", "OpenAI");
+    if (codex is not null)
+    {
+        var authentication = new ModelAuthentication(app, "openai-codex", codex);
+        Add("codex", CodexCredentials.ServiceBase, authentication);
+    }
+    if (credentials is not null && !string.IsNullOrWhiteSpace(account))
+    {
+        var authentication = new ModelAuthentication(app, "openai-chatgpt", credentials, account);
+        Add("chatgpt", "https://api.openai.com", authentication);
+    }
+    void Add(string id, string address, ModelAuthentication authentication)
+    {
+        var endpoint = new ModelEndpoint(vendor, id, address, Surface.Responses, authentication);
+        foreach (var row in Engine.RecommendedModels.Where(value => value.Vendor == Vendor.OpenAI))
+        {
+            Engine.LookupModel(Vendor.OpenAI, row.Name, out ModelFeatures features);
+            ModelRequestPolicy? policy = null;
+            if (launch.Vendor == Vendor.OpenAI && launch.Model == row.Name)
+            {
+                string summary = launch.ReasoningSummary;
+                if (summary.Length == 0 && !features.ReasoningEfforts.IsDefaultOrEmpty) summary = "off";
+                policy = new ModelRequestPolicy(launch.DisableStreaming, launch.RequireToolExplanation,
+                    launch.DeferredTools, launch.StubsToolResults, launch.CacheBreakpoints,
+                    launch.PromptCacheKey, launch.ReasoningEffort, summary);
+            }
+            _ = new Model(endpoint, row.Name.Replace('.', '_'), row.Name, row.Label, features,
+                requestPolicy: policy);
+        }
+    }
+}
 
 // A rejected flag is the operator's own input, so its text is safe to show even
 // though the handler above hides every other exception message. It carries the

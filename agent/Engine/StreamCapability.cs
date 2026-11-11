@@ -48,7 +48,10 @@ public sealed partial class Engine
     }
 
     // Surface belongs to the key: the same model over two dialects takes different
-    // request shapes, so one answer is not evidence about the other.
+    // request shapes, so one answer is not evidence about the other. So does the
+    // offering: two bindings at one address are distinct routes, and what one of
+    // them did with the flag says nothing about what the other will do.
     private static string StreamKey(Configuration config)
-        => config.Vendor + "\0" + config.Surface + "\0" + config.BaseUrl.TrimEnd('/') + "\0" + config.Model;
+        => config.Vendor + "\0" + config.Surface + "\0" + config.BaseUrl.TrimEnd('/') + "\0"
+            + config.Model + "\0" + config.Offering?.EndpointID;
 }

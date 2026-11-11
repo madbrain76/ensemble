@@ -81,6 +81,67 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args.Length == 0 || args is ["--model-transport-tests"])
+    {
+        await AsyncCase("Configured endpoint refuses inference redirects", MeterTests.ModelEndpointRedirects);
+        await AsyncCase("Configured endpoint has no retained cookie authority", MeterTests.ModelEndpointCookies);
+        await AsyncCase("Configured request projection and explicit authentication", MeterTests.ConfiguredProjection);
+        await AsyncCase("Configured Chat SSE tool round trip", MeterTests.ConfiguredStreamingTools);
+        await AsyncCase("Configured Chat SSE interruption and failure", MeterTests.ConfiguredStreamingFailures);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args.Length == 0 || args is ["--global-settings-tests"])
+    {
+        await AsyncCase("Global credential bindings and vendor funding persistence", () => GlobalSettingsTests.Persistence(temp));
+        CheckCase("Global settings absence and strict refusal", () => GlobalSettingsTests.Refusal(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args.Length == 0 || args is ["--model-domain-tests"])
+    {
+        CheckCase("Configured vendor/endpoint/model ownership", ModelDomainTests.Ownership);
+        CheckCase("Configured offering request policy admission", ModelRequestPolicyTests.Admission);
+        CheckCase("Strict host model configuration and atomic refusal", ModelConfigurationTests.Loading);
+        CheckCase("Configured model admission and identity refusal", ModelDomainTests.Refusals);
+        CheckCase("Configured model detach and destruction", ModelDomainTests.Detach);
+        CheckCase("Configured Agent weak selection membership", () => ModelAgentTests.Membership(temp));
+        await AsyncCase("Sol configured funding capability and diagnostic", () => ModelAgentTests.SolFunding(temp));
+        CheckCase("Model authentication bindings and credential lifetime", ModelAuthenticationTests.Bindings);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args.Length == 0 || args is ["--working-context-tests"])
+    {
+        CheckCase("Working-context token limits and strict codec", WorkingContextTests.Values);
+        await AsyncCase("Working-context durable per-model settings", () => WorkingContextTests.Persistence(temp));
+        if (args.Length != 0) await AsyncCase("Working-context real request reminders and automatic handoff", MeterTests.WorkingContextPressure);
+        if (args.Length != 0) return failures == 0 ? 0 : 1;
+    }
+    if (args is ["--work-product-tests"])
+    {
+        CheckCase("Work-product ownership, click-time bytes, lifetime and bounds", WorkProductTests.OwnershipAndBounds);
+        await AsyncCase("Work-product explicit tool authority and metadata replay", WorkProductTests.ToolAndReplay);
+        await AsyncCase("Work-product transfer cancellation and joined Agent teardown", WorkProductTests.TransferLifetime);
+        Console.WriteLine($"{passed} passed, {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
+    if (args is ["--recorded-time-tests"])
+    {
+        CheckCase("Recorded times survive reduction, snapshot and legacy replay", PersistenceTests.RecordedTime);
+        await AsyncCase("Observation timing ends before independent Job completion", GuiCoreTests.ObservationTiming);
+        Console.WriteLine($"{passed} passed, {failures} failed");
+        return failures == 0 ? 0 : 1;
+    }
     if (args is ["--tool-retention-tests"])
     {
         await AsyncCase("Ordinary results survive later requests and snapshot replay", ActorTests.ToolRetention);
@@ -94,15 +155,46 @@ try
         Console.WriteLine($"{passed} passed, {failures} failed");
         return failures == 0 ? 0 : 1;
     }
+    if (args is ["--search-evidence-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Search presentation evidence and bounded observation", () => SearchEvidenceTests.Run(temp));
+        if (args is ["--search-evidence-tests"]) return failures == 0 ? 0 : 1;
+    }
+    if (args is ["--file-evidence-tests"] || args.Length == 0)
+    {
+        await AsyncCase("File presentation evidence and bounded observation", () => FileEvidenceTests.Run(temp));
+        if (args is ["--file-evidence-tests"]) return failures == 0 ? 0 : 1;
+    }
+    if (args is ["--directory-listing-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Directory presentation evidence and bounded observation", () => DirectoryListingTests.Run(temp));
+        if (args is ["--directory-listing-tests"])
+        {
+            Console.WriteLine($"Directory tests: {passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--skill-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 9 transactional skills and capability gating", SkillTests.Capabilities);
         await AsyncCase("Chapter 9 parser, ownership and provider instruction placement", SkillTests.Projection);
         await AsyncCase("Chapter 9 real discovery exchanges and deferred references", ActorTests.SkillExchange);
         await AsyncCase("Native coding guidance discovery and instruction-only activation", SkillTests.NativeCodingGuidance);
+        await AsyncCase("Shared file-reading dependency preserves primary grants", SkillTests.FileReadingDependency);
+        await AsyncCase("Per-Agent queue guidance and owner-derived directory variables", SkillTests.AgentQueueGuidance);
         if (args is ["--skill-tests"])
         {
             Console.WriteLine($"Skill tests: {passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+
+    if (args is ["--goal-idle-tests"] || args.Length == 0)
+    {
+        await AsyncCase("goals immediate idle and failure backoff", () => MeterTests.GoalsIdleBackoff(temp));
+        if (args is ["--goal-idle-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
             return failures == 0 ? 0 : 1;
         }
     }
@@ -111,10 +203,10 @@ try
     {
         await AsyncCase("goals opt-in configuration and tool contract", () => MeterTests.GoalsConfiguration(temp));
         await AsyncCase("goals fresh projection and unload", () => MeterTests.GoalsProjection(temp));
-        await AsyncCase("goals timer pause busy off interrupt", () => MeterTests.GoalsTimer(temp));
+        await AsyncCase("goals idle pause busy off interrupt", () => MeterTests.GoalsTimer(temp));
         await AsyncCase("goals terminal submission and independent child", () => MeterTests.GoalsSubmission(temp));
         await AsyncCase("goals unreadable automatic wake", () => MeterTests.GoalsMissingWake(temp));
-        await AsyncCase("goals stale timer unload and teardown", () => MeterTests.GoalsStaleTimer(temp));
+        await AsyncCase("goals stale retry timer unload and teardown", () => MeterTests.GoalsStaleTimer(temp));
         await AsyncCase("goals same-turn handoff freshness", () => MeterTests.GoalsHandoff(temp));
         if (args is ["--goal-tests"])
         {
@@ -219,10 +311,9 @@ try
     {
         await AsyncCase("memory pressure thresholds", MeterTests.MemoryPressureThresholds);
         await AsyncCase("memory pressure deferred", MeterTests.MemoryPressureDeferred);
+        await AsyncCase("working-context independent Job survives", MeterTests.WorkingContextIndependentJob);
         await AsyncCase("memory cache boundary", () => { MeterTests.MemoryCacheBoundary(); return Task.CompletedTask; });
         await AsyncCase("memory pressure unknown", () => MeterTests.MemoryPressureUnknown(temp));
-        await AsyncCase("memory pressure headroom", () => MeterTests.MemoryPressureHeadroom(temp));
-        await AsyncCase("memory pressure headroom exit", () => MeterTests.MemoryPressureHeadroomExit(temp));
         if (args is ["--memory-pressure-tests"])
         {
             Console.WriteLine($"{passed} passed, {failures} failed");
@@ -320,8 +411,8 @@ try
         CheckCase("memory unsafe and incomplete selection", MemorySelectionTests.Boundaries);
         if (args.Length != 0)
         {
-            await AsyncCase("handoff actor retains checkpoints", ActorTests.HandoffBatch);
-            CheckCase("handoff retained snapshot replay", HandoffTests.Replay);
+            await AsyncCase("handoff actor replaces older checkpoints", ActorTests.HandoffBatch);
+            CheckCase("handoff newest-only snapshot replay", HandoffTests.Replay);
             await AsyncCase("handoff interrupted batch", ActorTests.InterruptedHandoff);
             Console.WriteLine($"{passed} passed; {failures} failed");
             return failures == 0 ? 0 : 1;
@@ -419,6 +510,8 @@ try
     if (args is ["--peer-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 21 durable peer launch and restoration", () => PeerTests.Persistence(temp));
+        await AsyncCase("Chapter 27 configured peer launch and restoration", () => ConfiguredPeerTests.Persistence(temp));
+        await AsyncCase("Stopped peer recovery after mounted Agent switches provider", () => ConfiguredPeerTests.Recovery(temp));
         await AsyncCase("Chapter 21 ordinary peer chat across restart", () => ActorTests.PeerChat(temp));
         await AsyncCase("Chapter 21 peer registry refusals and rollback", () => PeerTests.Refusals(temp));
         await AsyncCase("Chapter 21 explicit peer deletion and retained data", () => PeerTests.Deletion(temp));
@@ -515,6 +608,7 @@ try
     if (args is ["--child-restart-tests"] || args.Length == 0)
     {
         await AsyncCase("ordinary child restart ownership and completion", () => ActorTests.ChildRestart(temp));
+        await AsyncCase("configured child restart preserves route identity", () => ConfiguredChildTests.Restart(temp));
         await AsyncCase("restored child goal resumes through real actor", () => ActorTests.ChildRestartReminder(temp));
         if (args.Length != 0)
         {
@@ -724,6 +818,8 @@ try
         await AsyncCase("Unlisted endpoint earns image capability by probe", MediaProbeTests.UnlistedEndpointEarnsImages);
         await AsyncCase("Unproven endpoints stay refused", MediaProbeTests.UnprovenEndpointsStayRefused);
         await AsyncCase("Curated table stays authoritative over probing", MediaProbeTests.CuratedTableStaysAuthoritative);
+        await AsyncCase("A model change proves the images already in history",
+            MediaProbeTests.ModelChangeProvesImagesAlreadyInHistory);
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");
@@ -747,6 +843,9 @@ try
     {
         await AsyncCase("Agent-wide last-command-wins pause", MeterTests.AgentWidePause);
         await AsyncCase("Chapter 18 actor-owned model selection", () => MeterTests.ModelSelection(temp));
+        await AsyncCase("Chapter 27 configured Model selection and real routing", MeterTests.ConfiguredModelSelection);
+        await AsyncCase("Chapter 27 configured selection save-before-publication", () => MeterTests.ConfiguredSelectionSaveFailure(temp));
+        await AsyncCase("Chapter 27 Agent settings selection and restore precedence", () => MeterTests.ConfiguredPreferenceRestart(temp));
         await AsyncCase("Chapter 18 direct-send selection guard and capabilities", MeterTests.DirectSendSelection);
         if (args.Length != 0)
         {
@@ -809,6 +908,7 @@ try
         await AsyncCase("Codex ownership and fresh paired reads", () => CodexTests.Credentials(temp));
         await AsyncCase("Codex strict bounded credential refusal", () => CodexTests.InvalidFiles(temp));
         await AsyncCase("Codex actual Engine protocol and accounting", () => CodexTests.Transport(temp));
+        await AsyncCase("Configured Codex binding and explicit recovery", () => CodexTests.ConfiguredTransport(temp));
         await AsyncCase("Codex no retry or fallback after failure", () => CodexTests.Refusals(temp));
         await AsyncCase("Codex actor records safe terminal refusal", () => CodexTests.ActorFailure(temp));
         if (args.Length != 0)
@@ -838,6 +938,7 @@ try
     if (args is ["--auth-inference-tests"])
     {
         await AsyncCase("auth inference 401 bounded same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp));
+        await AsyncCase("configured auth inference 401 same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp, configured: true));
         await AsyncCase("auth delayed 401 reuses newest durable grant", () => AuthRenewalTests.RejectedOlderGeneration(temp));
         Console.WriteLine($"{passed} passed; {failures} failed");
         return failures == 0 ? 0 : 1;
@@ -859,6 +960,7 @@ try
         return failures == 0 ? 0 : 1;
     }
     await AsyncCase("auth inference 401 bounded same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp));
+    await AsyncCase("configured auth inference 401 same-source recovery", () => AuthRenewalTests.RejectedBearerRecovery(temp, configured: true));
     await AsyncCase("auth delayed 401 reuses newest durable grant", () => AuthRenewalTests.RejectedOlderGeneration(temp));
     await AsyncCase("auth rotating refresh across real processes", () => AuthRenewalTests.SerializedRotation(temp));
     await AsyncCase("auth refresh failure and plan-permission boundaries", () => AuthRenewalTests.FailuresAndPermission(temp));
@@ -924,12 +1026,17 @@ try
     await AsyncCase("Chapter 11 automatic tools stay outside discovery", ActorTests.AutomaticDiscovery);
     await AsyncCase("Chapter 11 automatic completion respects pause and server errors", ActorTests.AutomaticPauseAndError);
     await AsyncCase("Chapter 11 failed HTTP consumes automatic ephemera", ActorTests.AutomaticFailedRequest);
+    CheckCase("Work-product ownership, click-time bytes, lifetime and bounds", WorkProductTests.OwnershipAndBounds);
+        await AsyncCase("Work-product explicit tool authority and metadata replay", WorkProductTests.ToolAndReplay);
+        await AsyncCase("Work-product transfer cancellation and joined Agent teardown", WorkProductTests.TransferLifetime);
+    CheckCase("Recorded times survive reduction, snapshot and legacy replay", PersistenceTests.RecordedTime);
+    await AsyncCase("Observation timing ends before independent Job completion", GuiCoreTests.ObservationTiming);
     CheckCase("portable snapshot, tail, log-only, retention and archive", PersistenceTests.Replay);
 CheckCase("validated backup recovery and failure nonmutation", PersistenceTests.Recovery);
 await AsyncCase("automatic lifecycle and current runtime reconfiguration", PersistenceTests.Runtime);
 await AsyncCase("Chapter 14 pending skill authority and frozen projections", SkillAuthorityTests.PendingAuthority);
 CheckCase("Chapter 14 total reduction and strict unknown-event refusal", ReductionTests.TotalReplay);
-await AsyncCase("handoff waits for batch and retains completed notes", ActorTests.HandoffBatch);
+await AsyncCase("handoff waits for batch and replaces older notes", ActorTests.HandoffBatch);
 CheckCase("Chapter 14 handoff snapshot-only replay", HandoffTests.Replay);
 await AsyncCase("Chapter 14 interrupted handoff pairs tail and preserves Job", ActorTests.InterruptedHandoff);
 await AsyncCase("Chapter 14 manual clear waits for outcomes and preserves context/Jobs", ActorTests.ManualToolClear);
@@ -950,7 +1057,6 @@ await AsyncCase("A promised reply is corrected a bounded number of times", () =>
 await AsyncCase("An empty reply is corrected, then reported", () => SilentReplyTests.Run(temp + "-silent"));
 CheckCase("A collapsed stream is abandoned, not answered", RunawayGuardTests.Run);
 CheckCase("Per-channel streaming selects and refuses", StreamChannelTests.Run);
-await AsyncCase("A work product is offered only when it is real and safe to serve", () => DownloadOfferTests.Run(temp));
     await AsyncCase("Chapter 4 jobs and PTY", () => JobTests.Run(temp));
     await AsyncCase("Chapter 13 atomic custom completion and shutdown", ChannelToolTests.Run);
     await AsyncCase("Chapter 5 transport isolation", ActorTests.TransportIsolation);

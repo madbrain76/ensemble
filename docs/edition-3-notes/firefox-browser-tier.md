@@ -19,23 +19,80 @@ has no Chrome and reviews this GUI in Firefox, the whole tier could not run, so
   or `playwright`, and `FIREFOX_BINARY` for the executable. It drops Chrome-only
   switches instead of forwarding them, and performs no download: the operator
   installs the browser once.
-- `run-browser-tests.cjs` starts one disposable `GuiTests.dll --crossover-host`
-  in a private temp directory, runs the suites, and reports the tier with a
-  nonzero exit on failure. A suite that dials the crossover host is reported as
-  skipped when that fixture cannot start, because this build's shell launcher is
-  the macOS system PTY.
+- `run-browser-tests.cjs` gives every suite its own disposable fixture host in a
+  private temp directory, runs the tier, and exits nonzero on any failure. One
+  shared host cannot work: each suite replays the mounted Agent's durable
+  history, so an earlier suite's observations become a later suite's unexpected
+  transcript. Suites whose real driver supplies its own fixture, arguments and
+  environment name them in `PLAN`; a suite the platform genuinely cannot drive is
+  recorded in `SKIP` with the reason, never counted as a pass.
 
 ## Result on Linux + Firefox
 
-12 pass, 3 fail, 19 skipped of 34. Passing: browser-theme, capture-consent,
-composer-layout, image-picker, message-colors, message-playback, model-controls,
-voice-browser, voice-control, voice-hold, voice-session, voice-shortcut.
-Two of the three remaining failures are pre-existing Linux defects the tier had
-never been able to reach: `header-models.cjs` expects a transparent computed
-background where Firefox reports `rgb(38, 62, 100)`, a real cross-browser styling
-question, and `page-capture.cjs` drives Chrome's tab-capture API. `voice-funding.cjs`
-still resolves a build artifact the author's layout provided. None is a Firefox
-regression in the product; all three are recorded rather than papered over.
+58 pass, 0 fail, 4 skipped of 62, on 2026-11-11. Every skip is a capability the
+platform does not have, not an outcome: `page-capture-native.cjs`,
+`page-capture-native-ui.cjs` and `capture-model-native.cjs` drive the macOS
+system PTY and launch-services capture path, and `advanced-artifact-figures.cjs`
+is the human-authorized book-figure capture that overwrites the approved PNGs in
+`book/figures/advanced-artifacts`. Bill runs that one; the tier must not.
+
+## What Firefox needed that Chrome was handed for free
+
+Each entry is a harness accommodation for an API or a fixture the suite was
+written against. None of them weakens an assertion, and none is a product change.
+
+- **The Capture Handle is Chromium-only.** `agent/gui/wwwroot/page-capture.js`
+  refuses to offer the camera unless `getDisplayMedia`,
+  `navigator.mediaDevices.setCaptureHandleConfig` and
+  `MediaStreamTrack.prototype.getCaptureHandle` all exist, and the last two are
+  absent in Firefox. `installCaptureHandleShim` in `browser-launch.cjs` supplies
+  exactly the two probed members. The capture suites already fabricate
+  `getDisplayMedia` and a per-track `getCaptureHandle` of their own, so the
+  identity check still runs against a handle the suite controls, and a wrong tab
+  or origin still refuses. `page-capture.cjs` is a pure unit suite over an
+  injected `MediaDevices`: all 10 of its scenarios now run here.
+- **`voice-server-page.cjs` was given the wrong host.** It needs the separately
+  funded transcription payer, the model provider and `/fixture/status`, all of
+  which belong to `VoiceLeaseTests --browser-host`. Under `--crossover-host` the
+  browser correctly kept its hold button disabled forever, because that fixture
+  advertises no transcription funding. It is now in the runner's `PLAN`, which is
+  what that file's own header prescribes for a suite whose real driver supplies
+  its fixture, rather than reporting a missing argument as a Firefox failure.
+- **The state word was matched against the whole element.** `speech-pause.cjs`
+  and `working-context.cjs` required `#state` to read exactly `idle` or
+  `paused`. The element reads `"<state> · <context>"`, and `job-status.cjs:61`
+  pins that a live Job outranks the turn word, so a fixture holding a real
+  300-second Job answers `"1 job running"` — which is the accurate display and
+  was the assertion's blind spot, not the product's. They now assert the state
+  each connection has acknowledged, and `working-context.cjs` still matches the
+  working-context half as text. `header-status.cjs` and `job-status.cjs` remain
+  the owners of how the word is rendered.
+- **Firefox ignores `clipboardData` in `ClipboardEventInit`.** It constructs the
+  event with an empty transfer, so `image-browser.cjs` now attaches its
+  fabricated `DataTransfer` as an own property of the event it dispatches.
+- **A hover that survives navigation.** `header-models.cjs` hovers Create Agent,
+  and Firefox keeps the pointer there across the next `goto`, so the following
+  iteration measured the `:hover` background as the resting one and read
+  `rgb(38, 62, 100)` where Chrome reported a transparent `rgba(0, 0, 0, 0)`. The
+  loop parks the pointer before each load; the resting-transparent and
+  hover-painted pair are both still asserted.
+- **Preferences that moved to the browser profile.** Upstream `784e841d` made
+  the font size and the voice shortcut local to the browser, so
+  `crossover-browser.cjs` and `voice-server-page.cjs` read
+  `ensemble.device.v1` out of `localStorage` instead of waiting for an Agent
+  `settings_updated` frame that no longer carries them.
+- **The fake provider now answers the media probe honestly.**
+  `agent/GuiTests/CrossoverFixture.cs` decodes the probe's base64 PNG, inflates
+  its IDAT and reports the argmax pixel, so an unlisted model earns images in
+  the tier the way it does against a real endpoint instead of being refused by a
+  fixture that never looked at the bytes.
+- **Contrast on transparent artwork.** `crossover-browser.cjs` measured the
+  declared `color` of `#send`, which is an `<img class="send-icon">` on a
+  transparent button: that declared colour never paints a pixel, so the check
+  proved nothing. It now draws the artwork into an `OffscreenCanvas`, applies the
+  `brightness()` factor the stylesheet actually declares, and takes the best
+  contrast against the ancestor background. Both themes clear the same 4.5 floor,
+  at 17.40:1.
 
 ## Product fix found on the way
 

@@ -22,7 +22,6 @@ public enum ToolKind
     UnloadSkill,
     MicroHandoff,
     KeepToolResults,
-    OfferDownload,
     Custom,
     Remote,
     AgentStatus,
@@ -44,7 +43,8 @@ public enum ToolKind
     GoalControl,
     InspectImage,
     ListDisplays,
-    Screenshot
+    Screenshot,
+    OfferWorkProduct
 }
 
 public sealed partial class Tool
@@ -84,6 +84,7 @@ public sealed partial class Tool
     // Read-only projection through the executing Job’s real owning Agent.
     private static partial string Status(Job job);
     private partial ToolResultPart InspectImage(ToolCallPart call, CancellationToken cancellation);
+    private partial ToolResultPart OfferWorkProduct(ToolCallPart call, CancellationToken cancellation);
     // Shared state projection; detailed child status adds the existing Engine meter.
     private static partial JsonObject ChildStatusValue(Agent child, AgentWorkStatus status);
     private static partial Task<string> DetailedChildStatusAsync(Job job, JsonElement args, CancellationToken cancellation);
@@ -95,6 +96,8 @@ public sealed partial class Tool
     public partial string Name();
     public partial JsonObject Declaration(Vendor vendor);
 
+    // Receiver-bound: a different call name returns IsError without dispatch,
+    // Job admission or History changes. Agent.DispatchAsync selects by name.
     // Expected argument and operating-system failures become IsError results.
     // Cancellation is not a fabricated tool failure; it propagates to the caller.
     public partial Task<ToolResultPart> ExecuteAsync(ToolCallPart call, CancellationToken cancellation = default);
@@ -119,5 +122,4 @@ public sealed partial class Tool
     // The single whitelist shared by the tool and the browser route, so a file type
     // can never be offered by one and refused by the other, or served with a mime the
     // browser would sniff.
-    public static partial string DownloadMime(string name);
 }

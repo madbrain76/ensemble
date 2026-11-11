@@ -40,9 +40,12 @@ public sealed partial class Engine
     // The same documented capability rule governs ordinary and judge requests.
     private static partial void AddStreamingOptions(JsonObject request, Configuration config)
     {
+        // A curated row that documents streaming answers first; an unlisted model
+        // is nobody's knowledge but the endpoint's, so it is asked and the answer
+        // remembered. Gating on the table alone silently made every unlisted model
+        // buffer its whole reply, which reads as a GUI that never streams.
         if (!config.DisableStreaming && config.Vendor != Vendor.Gemini
-            && (config.Surface == Surface.Responses
-                || (LookupModel(config.Vendor, config.Model, out var features) && features.Stream)))
+            && (config.Surface == Surface.Responses || MayStream(config)))
         {
             request["stream"] = true;
             if (config.Surface == Surface.ChatCompletions)

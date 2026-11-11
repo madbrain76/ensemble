@@ -62,6 +62,46 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--artifact-renderer-fixture", var rendererDirectory])
+{
+    await ArtifactRendererFixture.RunAsync(rendererDirectory);
+    return;
+}
+if (args is ["--configured-model-fixture", var fixtureDirectory])
+{
+    await ConfiguredModelTests.RunAsync(fixtureDirectory);
+    return;
+}
+if (args is ["--configured-model-tests"])
+{
+    await ConfiguredModelTests.RunAsync();
+    return;
+}
+if (args is ["--job-window-tests"])
+{
+    await JobWindowTests.RunAsync();
+    return;
+}
+if (args is ["--work-product-tests"])
+{
+    await WorkProductHttpTests.RunAsync();
+    return;
+}
+if (args is ["--handoff-projection-tests"])
+{
+    await HandoffProjectionTests.RunAsync();
+    return;
+}
+if (args is ["--artifact-evidence-tests"])
+{
+    await ArtifactEvidenceTests.RunAsync();
+    return;
+}
+if (args is ["--recorded-time-tests"])
+{
+    RecordedTimeTests.Run();
+    return;
+}
 if (args is ["--diagnostic-tests"])
 {
     await DiagnosticRoutingTests.RunAsync();
@@ -121,6 +161,12 @@ if (args is ["--host-binding-tests"])
     return;
 }
 
+if (args is ["--renderer-store-tests"])
+{
+    RendererStoreTests.Run();
+    return;
+}
+
 if (args is ["--digest-tests"])
 {
     await DigestAuthTests.RunAsync();
@@ -133,6 +179,16 @@ if (args is ["--asset-cache-tests"])
     return;
 }
 
+if (args is ["--goal-idle-host"])
+{
+    await GoalIdleFixture.RunAsync();
+    return;
+}
+if (args is ["--working-context-host"])
+{
+    await CrossoverFixture.RunAsync(workingContext: true);
+    return;
+}
 if (args is ["--crossover-host"])
 {
     await CrossoverFixture.RunAsync();
@@ -182,7 +238,7 @@ try
             await Ready(http, origin + "/", hosting, cancellation);
             string page = await http.GetStringAsync(origin + "/", cancellation);
             Check(page.Contains("/app.js", StringComparison.Ordinal), "Embedded index missing");
-            foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css" })
+            foreach (string asset in new[] { "app.js", "auth.js", "mcp.js", "speech.js", "style.css", "skills/file-reading/renderers/list-directory.js" })
                 Check((await http.GetStringAsync(origin + "/" + asset, cancellation)).Length > 100, "Asset missing: " + asset);
             foreach (var asset in new[] { ("voice-recorder.js", "export class PcmVoiceRecorder"),
                 ("voice-worklet.js", "registerProcessor('pcm-voice'"), ("voice-pcm.js", "export const VOICE_PCM"),
@@ -528,6 +584,8 @@ finally
         Directory.SetCurrentDirectory(originalDirectory);
     }
 }
+await ArtifactEvidenceTests.RunAsync();
+await HandoffProjectionTests.RunAsync();
 await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();
 await PublicOriginTests.RunAsync();

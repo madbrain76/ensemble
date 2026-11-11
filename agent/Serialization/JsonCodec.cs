@@ -31,12 +31,20 @@ public static partial class JsonCodec
     private static IEnumerable<Part> Parts(JsonElement o) => o.TryGetProperty("parts", out var p) ? p.EnumerateArray().Select(ReadPart).ToArray() : [];
     private static JsonArray Parts(IEnumerable<Part> parts) => new(parts.Select(p => (JsonNode)WritePart(p)).ToArray());
     private static bool Flag(JsonElement o, string key) => o.TryGetProperty(key, out var v) && v.GetBoolean();
-    public static partial JsonObject WriteProvenance(Provenance value) => new()
+    public static partial JsonObject WriteProvenance(Provenance value)
     {
-        ["vendor"] = Label(value.Vendor),
-        ["model"] = value.Model,
-        ["surface"] = Label(value.Surface)
-    };
+        var result = new JsonObject
+        {
+            ["vendor"] = Label(value.Vendor),
+            ["model"] = value.Model,
+            ["surface"] = Label(value.Surface)
+        };
+        if (value.Offering is { } offering)
+        {
+            result["offering"] = WriteModelIdentity(offering);
+        }
+        return result;
+    }
     public static partial Provenance ReadProvenance(JsonElement value)
     {
         var vendor = EnumValue<Vendor>(String(value, "vendor"));
@@ -47,7 +55,32 @@ public static partial class JsonCodec
         {
             surface = "generate_content";
         }
-        return new Provenance(vendor, model, EnumValue<Surface>(surface));
+        ModelIdentity? offering = null;
+        if (value.TryGetProperty("offering", out var identity))
+        {
+            offering = ReadModelIdentity(identity);
+        }
+        return new Provenance(vendor, model, EnumValue<Surface>(surface), offering);
+    }
+
+    public static partial JsonObject WriteModelIdentity(ModelIdentity value) => new()
+    {
+        ["vendor"] = value.VendorID,
+        ["endpoint"] = value.EndpointID,
+        ["model"] = value.ModelID
+    };
+
+    public static partial ModelIdentity ReadModelIdentity(JsonElement value)
+    {
+        // Absence belongs to the containing legacy format. Present malformed
+        // identities must never become an implicit legacy route.
+        if (value.ValueKind != JsonValueKind.Object
+            || !value.EnumerateObject().Select(field => field.Name).Order(StringComparer.Ordinal)
+                .SequenceEqual(new[] { "endpoint", "model", "vendor" }))
+        {
+            throw new FormatException("Invalid configured model identity.");
+        }
+        return new ModelIdentity(String(value, "vendor"), String(value, "endpoint"), String(value, "model"));
     }
 
     private static JsonObject WriteRef(BlobRef value) => new()
@@ -101,6 +134,90 @@ public static partial class JsonCodec
         return JsonNode.Parse(value.GetRawText());
     }
 
+    private static JsonObject? WriteSearchEvidence(SearchEvidence? value) => value is null ? null : new()
+    {
+        ["total_lines"] = value.TotalLines,
+        ["lines"] = new JsonArray(value.Lines.Select(line => (JsonNode)new JsonObject
+        {
+            ["path"] = line.Path, ["number"] = line.Number, ["text"] = line.Text,
+            ["matches"] = new JsonArray(line.Matches.Select(span => (JsonNode)new JsonObject
+            { ["start"] = span.Start, ["length"] = span.Length }).ToArray())
+        }).ToArray())
+    };
+    private static SearchEvidence? ReadSearchEvidence(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("search_evidence", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        return new SearchEvidence(value.GetProperty("lines").EnumerateArray()
+            .Take(SearchEvidence.MaximumLines + 1).Select(line => new SearchLine(
+                String(line, "path"), line.GetProperty("number").GetInt64(), String(line, "text"),
+                line.GetProperty("matches").EnumerateArray().Take(SearchEvidence.MaximumSpansPerLine + 1)
+                    .Select(span => new SearchSpan(span.GetProperty("start").GetInt32(), span.GetProperty("length").GetInt32())))),
+            value.GetProperty("total_lines").GetInt64());
+    }
+
+    private static JsonObject WriteFileExcerpt(FileExcerpt value) => new()
+    {
+        ["text"] = value.Text, ["total_bytes"] = value.TotalBytes
+    };
+    private static FileExcerpt ReadFileExcerpt(JsonElement value) =>
+        new(String(value, "text"), value.GetProperty("total_bytes").GetInt64());
+    private static JsonObject? WriteFileEvidence(FileEvidence? value) => value is null ? null : new()
+    {
+        ["operation"] = value.Operation.ToString().ToLowerInvariant(), ["path"] = value.Path,
+        ["start_line"] = value.StartLine, ["start_column"] = value.StartColumn,
+        ["content"] = WriteFileExcerpt(value.Content),
+        ["removed"] = value.Removed is null ? null : WriteFileExcerpt(value.Removed)
+    };
+    private static FileEvidence? ReadFileEvidence(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("file_evidence", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        var operation = String(value, "operation") switch
+        {
+            "read" => FileOperation.Read, "write" => FileOperation.Write,
+            "append" => FileOperation.Append, "edit" => FileOperation.Edit,
+            _ => throw new JsonException("Invalid file operation")
+        };
+        return new FileEvidence(operation, String(value, "path"),
+            value.GetProperty("start_line").GetInt64(), value.GetProperty("start_column").GetInt64(),
+            ReadFileExcerpt(value.GetProperty("content")),
+            value.TryGetProperty("removed", out var removed) && removed.ValueKind != JsonValueKind.Null
+                ? ReadFileExcerpt(removed) : null);
+    }
+
+    private static JsonObject? WriteDirectoryListing(DirectoryListing? value) => value is null ? null : new()
+    {
+        ["total_entries"] = value.TotalEntries,
+        ["entries"] = new JsonArray(value.Entries.Select(entry => (JsonNode)new JsonObject
+        {
+            ["name"] = entry.Name, ["kind"] = entry.Kind.ToString().ToLowerInvariant()
+        }).ToArray())
+    };
+    private static DirectoryListing? ReadDirectoryListing(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("directory_listing", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        return new DirectoryListing(value.GetProperty("entries").EnumerateArray().Select(entry =>
+            new DirectoryEntry(String(entry, "name"), String(entry, "kind") switch
+            {
+                "unknown" => DirectoryEntryKind.Unknown, "file" => DirectoryEntryKind.File,
+                "directory" => DirectoryEntryKind.Directory,
+                _ => throw new JsonException("Invalid directory entry kind")
+            })), value.GetProperty("total_entries").GetInt32());
+    }
+
+    private static JsonObject? WriteWorkProduct(WorkProductInfo? value) => value is null ? null : new()
+    {
+        ["id"] = value.ID, ["name"] = value.Name, ["offered_bytes"] = value.OfferedBytes
+    };
+    private static WorkProductInfo? ReadWorkProduct(JsonElement owner)
+    {
+        if (!owner.TryGetProperty("work_product", out var value) || value.ValueKind == JsonValueKind.Null)
+            return null;
+        return new WorkProductInfo(String(value, "id"), String(value, "name"), value.GetProperty("offered_bytes").GetInt64());
+    }
+
     public static partial JsonObject WritePart(Part part) => part switch
     {
         HandoffPart p => new() { ["type"] = "handoff", ["text"] = p.Text },
@@ -132,6 +249,10 @@ public static partial class JsonCodec
         {
             ["type"] = "tool_result",
             ["call_id"] = p.CallID,
+            ["work_product"] = WriteWorkProduct(p.WorkProduct),
+            ["directory_listing"] = WriteDirectoryListing(p.DirectoryListing),
+            ["file_evidence"] = WriteFileEvidence(p.FileEvidence),
+            ["search_evidence"] = WriteSearchEvidence(p.SearchEvidence),
             ["parts"] = Parts(p.Parts),
             ["tool_references"] = new JsonArray(p.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray()),
             ["is_error"] = p.IsError
@@ -199,7 +320,7 @@ public static partial class JsonCodec
         "blob" => new BlobPart(String(value, "mime"), ReadRef(value.GetProperty("ref"))),
         "opaque" => new OpaquePart(ReadProvenance(value.GetProperty("from")), value.GetProperty("data")),
         "tool_call" => new ToolCallPart(String(value, "call_id"), ReadProvenance(value.GetProperty("from")), String(value, "name"), value.GetProperty("args"), value.TryGetProperty("opaque", out var op) ? op : null),
-        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
+        "tool_result" => new ToolResultPart(String(value, "call_id"), Parts(value), Flag(value, "is_error"), workProduct: ReadWorkProduct(value), directoryListing: ReadDirectoryListing(value), fileEvidence: ReadFileEvidence(value), searchEvidence: ReadSearchEvidence(value), toolReferences: value.TryGetProperty("tool_references", out var references) ? references.EnumerateArray().Select(item => item.GetString()!) : null),
         "redacted" => new RedactedPart(String(value, "kind"), value.GetProperty("bytes").GetInt64(), String(value, "reason"), value.TryGetProperty("ref", out var r) ? ReadRef(r) : null),
         var t => throw new FormatException($"Unknown part type: {t}")
     };
@@ -219,6 +340,10 @@ public static partial class JsonCodec
             o["time"] = time.ToString("O");
         }
 
+        if (value.ObservationDuration is { } duration)
+        {
+            o["observation_ticks"] = duration.Ticks;
+        }
         switch (value.Kind)
         {
             case EventKind.HintReceived:
@@ -277,6 +402,10 @@ public static partial class JsonCodec
                 {
                     tool["parts"] = Parts(value.Parts);
                     tool["is_error"] = value.IsError;
+                    if (value.WorkProduct is not null) tool["work_product"] = WriteWorkProduct(value.WorkProduct);
+                    if (value.FileEvidence is not null) tool["file_evidence"] = WriteFileEvidence(value.FileEvidence);
+                    if (value.SearchEvidence is not null) tool["search_evidence"] = WriteSearchEvidence(value.SearchEvidence);
+                    if (value.DirectoryListing is not null) tool["directory_listing"] = WriteDirectoryListing(value.DirectoryListing);
                     if (!value.ToolReferences.IsEmpty)
                     {
                         tool["tool_references"] = new JsonArray(value.ToolReferences.Select(name => (JsonNode?)JsonValue.Create(name)).ToArray());
@@ -292,7 +421,9 @@ public static partial class JsonCodec
                         ["bytes"] = value.Job.Bytes,
                         ["truncated"] = value.Job.Truncated,
                         ["exit_code"] = value.Job.ExitCode,
-                        ["cwd"] = value.Job.Cwd
+                        ["cwd"] = value.Job.Cwd,
+                        ["origin_call_id"] = value.Job.OriginCallID,
+                        ["origin_tool"] = value.Job.OriginTool
                     };
                 }
                 o["tool"] = tool;
@@ -332,7 +463,9 @@ public static partial class JsonCodec
                     ["status"] = value.Job.Status,
                     ["reason"] = value.Reason,
                     ["output"] = new JsonObject { ["kind"] = "handle", ["locator"] = value.Job.OutputPath },
-                    ["bytes"] = value.Job.Bytes
+                    ["bytes"] = value.Job.Bytes,
+                    ["origin_call_id"] = value.Job.OriginCallID,
+                    ["origin_tool"] = value.Job.OriginTool
                 };
                 break;
             case EventKind.Redacted:
@@ -408,11 +541,14 @@ public static partial class JsonCodec
                 var tool = root.GetProperty("tool");
                 return new(kind, seq, time, parts: Parts(tool), callID: String(tool, "call_id"), name: OptionalString(tool, "name"),
                     args: tool.TryGetProperty("args", out var args) ? args : null, isError: Flag(tool, "is_error"),
+                    workProduct: ReadWorkProduct(tool), directoryListing: ReadDirectoryListing(tool), fileEvidence: ReadFileEvidence(tool), searchEvidence: ReadSearchEvidence(tool),
+                    observationDuration: root.TryGetProperty("observation_ticks", out var ticks) ? TimeSpan.FromTicks(ticks.GetInt64()) : null,
                     toolReferences: tool.TryGetProperty("tool_references", out var toolRefs) ? toolRefs.EnumerateArray().Select(item => item.GetString()!) : null,
                     job: tool.TryGetProperty("job", out var job) ? new JobInfo(
                         job.GetProperty("handle").GetInt32(), String(job, "status"),
                         String(job.GetProperty("output"), "locator"), job.GetProperty("bytes").GetInt64(),
-                        Flag(job, "truncated"), job.TryGetProperty("exit_code", out var exit) && exit.ValueKind == JsonValueKind.Number ? exit.GetInt32() : null, OptionalString(job, "cwd")) : null);
+                        Flag(job, "truncated"), job.TryGetProperty("exit_code", out var exit) && exit.ValueKind == JsonValueKind.Number ? exit.GetInt32() : null, OptionalString(job, "cwd"),
+                        OptionalString(job, "origin_call_id"), OptionalString(job, "origin_tool")) : null);
             case EventKind.CompressionLaunched:
                 return new(kind, seq, time, compression: root.TryGetProperty("compression", out var launch) && launch.ValueKind != JsonValueKind.Null
                     ? ReadCompressionLaunch(launch) : null);
@@ -444,7 +580,8 @@ public static partial class JsonCodec
                 var killed = root.GetProperty("job");
                 return new(kind, seq, time, reason: String(killed, "reason"), job: new JobInfo(
                     killed.GetProperty("handle").GetInt32(), String(killed, "status"),
-                    String(killed.GetProperty("output"), "locator"), killed.GetProperty("bytes").GetInt64()));
+                    String(killed.GetProperty("output"), "locator"), killed.GetProperty("bytes").GetInt64(),
+                    OriginCallID: OptionalString(killed, "origin_call_id"), OriginTool: OptionalString(killed, "origin_tool")));
             case EventKind.Redacted:
                 if (!root.TryGetProperty("redact", out var r))
                 {

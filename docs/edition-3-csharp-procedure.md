@@ -1,3 +1,49 @@
+# Current boundary: PR integration closed; Local Models next
+
+The manuscript contains Chapters00–28. Adopted Artifacts/Actions changes and their
+construction-point teaching are implemented. Chapter26 is an integration chapter,
+not an empty placeholder. Its public score remains70/100, with work-products30
+UNGRADED; that coverage limit is not a known failure of the implemented feature.
+Chapter27 Local Models remains in development and is the final development slice.
+
+Bill directed Cadence to finish personally, with no further student campaigns or
+expanded grading program. No new students without an explicit request. Preserve
+existing reconstruction results and clearly label the unverified scopes. Next:
+verify the agreed real local target, complete its implementation/teaching, then a
+bounded manuscript/publication check and Bill's usability acceptance. The current
+[closeout plan](edition-3-notes/first-book-closeout-plan.md) supersedes historical
+gates below. No universal/full-book certification is implied.
+
+No installation, restart, deployment, model download, remote-machine command,
+listener/firewall change, paid inference or publication upload follows from this
+status. Ask Bill for target access and local inference authorization. Preserve
+private data, unrelated work and services8088/8089/8090. Prior release outputs
+remain unchanged. Historical entries below are records, not resumption authority.
+
+## Current increment: two books, Development-Driven Specs
+
+The coding-agent book stays in `book/`, currently Chapters 00–26 with Crossing
+Over last. Gateway and the provisional Connections/Agenda/Puffin subjects and
+active notes now live in `puffin-book/`. Follow its
+[discussion record](../puffin-book/notes/book-direction.md): build and learn with
+Bill, then record the resulting expertise in executable teaching. Do not design
+the whole book or Watchtower in advance. Earlier numbering/planning boundaries
+below are historical where superseded. Source, graders and frozen endpoints do
+not move. This documentation refactor authorizes no deployment or restart.
+
+## Current increment: Gateway foundation and the Puffin sequence
+
+Bill authorized current-manuscript renumbering: Goals 24, multimedia 25,
+Gateway 26, Connections 27, Agenda 28, Puffin 29, crossover 30. New chapters
+27–29 remain design-stage outlines. Historical endpoints and grader flags do
+not move. The bounded Gateway upgrade starts with complete-state JSON saves
+before durable acknowledgment, no Gateway event journal. Agenda will have its
+own snapshot and journal; Puffin reuses Ensemble persistence. See the
+[design outline](../puffin-book/notes/puffin-chapter-outlines.md).
+Earlier progress and chapter-specific instructions below are historical where
+superseded. Work personally with ensemble-coding active; no live deployment,
+restart, or unrelated cleanup is authorized by this increment.
+
 # Edition 3 — direct C# chapter execution
 
 ## Current layout — Edition 3 promoted, 2026-10-31

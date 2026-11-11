@@ -21,7 +21,7 @@ public sealed partial class PlanAuthorizationException : InvalidOperationExcepti
 }
 
 // Payment authority is independent of the wire surface; there is no fallback.
-public enum BillingMode { ApiKey = 1, ChatGptPlan, Codex }
+public enum BillingMode { ApiKey = 1, ChatGptPlan, Codex, None }
 public enum Actor
 {
     Human = 1, Agent, System, Tool
@@ -43,10 +43,22 @@ public enum RefKind
     Path = 1, Uri, Handle
 }
 
-/// <summary>Value-like configuration. The Agent holds the authoritative instance;
-/// transports reach it through their parent, never copy it. Credentials are not logged.</summary>
+/// <summary>Immutable request settings. The Agent publishes the current value;
+/// each send freezes it before transport. Configured projections reference the
+/// credential owner rather than copying its secrets. Credentials are not logged.</summary>
 public sealed partial class Configuration
 {
+    // Frozen request facts. Configured offerings supply their own capabilities;
+    // legacy construction resolves the catalog once, not separately per consumer.
+    public readonly ModelFeatures Features;
+    // True when the curated catalog knows this model. An unknown model is not a
+    // refused model: it earns capability from its own endpoint instead.
+    public readonly bool ModelListed;
+    public readonly long? ServingContextTokens;
+    public readonly ModelIdentity? Offering;
+    internal readonly ModelAuthentication? Authentication;
+    internal partial Configuration(Configuration policy, Model model);
+    private partial Configuration(Configuration source, string instructions, bool compressor);
     // Explicit provider capability assertion; default full-declaration mode is portable.
     public readonly bool DeferredTools;
     // Explicit selected-model policy, not guessed from a provider/name prefix.
@@ -150,8 +162,11 @@ public sealed partial class Provenance
     public readonly Vendor Vendor;
     public readonly string Model;
     public readonly Surface Surface;
+    public readonly ModelIdentity? Offering;
     public partial Provenance(Vendor vendor, string model, Surface surface);
-    // All three fields must agree; same vendor alone never authorizes opaque replay.
+    public partial Provenance(Vendor vendor, string model, Surface surface, ModelIdentity? offering);
+    // Wire identity and configured offering must agree. Legacy unknown offering
+    // matches only another legacy origin, never a newly configured destination.
     public partial bool Matches(Provenance target);
 }
 
@@ -242,9 +257,13 @@ public sealed partial class ToolResultPart : Part
     public readonly ImmutableArray<Part> Parts;
     public readonly bool IsError;
     public readonly JobInfo? Job;
+    public readonly WorkProductInfo? WorkProduct;
+    public readonly DirectoryListing? DirectoryListing;
+    public readonly FileEvidence? FileEvidence;
+    public readonly SearchEvidence? SearchEvidence;
     // Discovery evidence; only the deferred adapter emits provider references.
     public readonly ImmutableArray<string> ToolReferences;
-    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError = false, JobInfo? job = null, IEnumerable<string>? toolReferences = null);
+    public partial ToolResultPart(string callID, IEnumerable<Part> parts, bool isError = false, JobInfo? job = null, IEnumerable<string>? toolReferences = null, WorkProductInfo? workProduct = null, DirectoryListing? directoryListing = null, FileEvidence? fileEvidence = null, SearchEvidence? searchEvidence = null);
 }
 // A safe replacement in derived context. Ref preserves a blob locator internally;
 // text projection must not disclose that locator to the model.
@@ -264,6 +283,7 @@ public sealed partial class Event
     public readonly long Seq;
     public readonly EventKind Kind;
     public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor? Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly Provenance? From;
@@ -278,6 +298,10 @@ public sealed partial class Event
     public readonly long RedactTo;
     public readonly Redaction? Level;
     public readonly JobInfo? Job;
+    public readonly WorkProductInfo? WorkProduct;
+    public readonly DirectoryListing? DirectoryListing;
+    public readonly FileEvidence? FileEvidence;
+    public readonly SearchEvidence? SearchEvidence;
     public readonly ImmutableArray<string> ToolReferences;
     // Display identity is independent of provider call IDs and opaque payloads.
     // ResponseID is the durable RequestSent sequence; IDs are parser-local,
@@ -302,8 +326,7 @@ public sealed partial class Event
         Redaction? level = null, string reason = "", JobInfo? job = null,
         long responseID = 0, IEnumerable<int>? partIDs = null, IEnumerable<string>? toolReferences = null,
         MemoryEntry? memory = null, MemoryRetirement? retirement = null, string taskID = "",
-        CompressionLaunch? compression = null, CompressionOutcome? outcome = null,
-        IEnumerable<PartSpan>? partSpans = null);
+        CompressionLaunch? compression = null, CompressionOutcome? outcome = null, TimeSpan? observationDuration = null, WorkProductInfo? workProduct = null, DirectoryListing? directoryListing = null, FileEvidence? fileEvidence = null, SearchEvidence? searchEvidence = null, IEnumerable<PartSpan>? partSpans = null);
     // Attach finalized parser identities without altering canonical parts.
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs,
         IEnumerable<PartSpan>? partSpans = null);
@@ -319,11 +342,14 @@ public sealed partial class Entry
     public readonly long ToolBytes;
     public readonly bool HasWholeToolResults;
     public readonly long Seq;
+    // Original recorded fact time; null means legacy or synthetic, never now.
+    public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly long ResponseID;
     public readonly ImmutableArray<int> PartIDs;
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID = 0, IEnumerable<int>? partIDs = null);
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts, long responseID = 0, IEnumerable<int>? partIDs = null, DateTimeOffset? time = null, TimeSpan? observationDuration = null);
 }
 
 /// <summary>Immutable replay result. History replaces this value after each event.

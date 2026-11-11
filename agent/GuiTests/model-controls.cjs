@@ -28,6 +28,10 @@ for (const [name, state, connected, selecting, closed, disabled] of cases) {
         selectionPending: selecting, acknowledgedState: state, agentClosed: closed,
         voiceControl: null, imageComposer: {}, pageCapture: null, captureDraft: null,
         captureConsent: null,
+        // renderControls reads the server's tree projection for the running-jobs and
+        // live phase words, and the provider-reported working context for the budget.
+        // Neither is a model request, so both stay empty in this sandbox.
+        agentRows: [], workingContext: null,
     };
     vm.runInNewContext(source.slice(start, end) + '\nrenderControls();', context);
     assert.equal(elements.get('#model-choice').disabled, disabled, name);

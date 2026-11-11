@@ -46,14 +46,12 @@ const base = 'http://127.0.0.1:18202/assistant/';
       await page.waitForFunction(() => document.querySelector('#voice-status').textContent.startsWith('Recording.'));
       await page.waitForTimeout(250);
     };
-    await page.evaluate(() => voiceSocket.addEventListener('message', event => {
-      const frame = JSON.parse(event.data);
-      if (frame.type === 'settings_updated') globalThis.shortcutSaved = frame.settings.voice_shortcut;
-    }));
     await page.locator('#settings-open').click();
     await page.locator('#settings-display-tab').click();
     await page.locator('#voice-shortcut').selectOption('F8');
-    await page.waitForFunction(() => globalThis.shortcutSaved === 'F8');
+    // The voice shortcut belongs to the browser profile, not the Agent, so the
+    // durable record this save must produce is this page's own device storage.
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('ensemble.device.v1')).shortcut === 'F8');
     await page.keyboard.down('F8'); await page.keyboard.up('F8');
     assert.equal(await page.evaluate(() => voiceFrames.length), 0, 'Settings dialog allowed capture');
     await page.reload();

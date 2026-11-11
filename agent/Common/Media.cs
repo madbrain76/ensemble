@@ -52,6 +52,9 @@ public sealed partial class Engine
         (Vendor.OpenAI, "gpt-6-astra", new(Media.Image, Stream: true,
             ReasoningEfforts: ["low", "medium", "high", "xhigh", "max"],
             ReasoningSummaries: ["auto"], RequireToolExplanation: true, ResponsesOnly: true)),
+        // Preserve Sol's supported text-streaming selection on subscription routes.
+        // This declares no media, reasoning options, context limit or entitlement.
+        (Vendor.OpenAI, "gpt-5.6-sol", new(Media.None, Stream: true)),
         // GenerateContent function-response image placement was verified with
         // this exact model. No prefix inference or account entitlement implied.
         // https://ai.google.dev/gemini-api/docs/function-calling
@@ -113,6 +116,13 @@ public sealed partial class Engine
     // Admission question, answered only from the curated table or a completed
     // probe. It never performs I/O, so rendering stays pure.
     internal static partial bool ProvenImages(Configuration config);
+
+    // Changing to a model the curated table does not name must not strand the
+    // images this Agent has already admitted, whose proof belonged to the
+    // outgoing route. The endpoint is asked only when History really carries
+    // image bytes and the table really cannot answer.
+    public partial Task ProveImagesForHistoryAsync(Context context,
+        CancellationToken cancellation = default);
 }
 
 public sealed partial class BlobRef

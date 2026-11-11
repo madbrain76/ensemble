@@ -59,7 +59,7 @@ public sealed partial class Tool
     }
 
     public partial McpClient? Remote() => remote;
-    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage or ToolKind.Screenshot || waitForCompletion;
+    internal partial bool HasStructuredResult() => kind is ToolKind.Remote or ToolKind.InspectImage or ToolKind.Screenshot or ToolKind.OfferWorkProduct || waitForCompletion;
     internal partial bool WaitsForCompletion() => waitForCompletion;
 
     public partial Agent Parent() => parent ?? throw new InvalidOperationException("Tool is detached");
@@ -112,6 +112,11 @@ public sealed partial class Tool
                 properties["display"]!["minimum"] = 0;
                 properties["display"]!["default"] = 0;
                 break;
+            case ToolKind.OfferWorkProduct:
+                name = "offer_work_product";
+                description = "Offer one Sandbox file for the human to download by clicking. No automatic transfer. Click-time contents, 64 MiB maximum, 64 offers per Agent lifetime; expires on Agent destruction or restart. Requires work-products skill.";
+                Field("path", "string", "Regular work-product file within the Agent's filesystem authority. Not a public URL or image input.", true);
+                break;
             case ToolKind.InspectImage:
                 name = "inspect_image";
                 description = "Read and prepare an image through the Agent Sandbox. Returns actual PNG pixels plus dimensions; may resize, never overwrites the original. Requires image tool-result support.";
@@ -119,11 +124,11 @@ public sealed partial class Tool
                 break;
             case ToolKind.ReadFile:
                 name = "read_file";
-                description = "Read a UTF-8 text file, optionally selecting a one-based inclusive line range.";
+                description = "Read UTF-8 source with each line prefixed by its actual one-based line number and colon; optionally select an inclusive range.";
                 Field("path", "string", "File path.", true);
                 Field("start_line", "integer", "First line, default or zero means 1.");
                 Field("end_line", "integer", "Last line, default or zero means end of file.");
-                Field("max_bytes", "integer", "UTF-8 byte cap after line selection, default or zero means 32768; truncation is reported.");
+                Field("max_bytes", "integer", "Source UTF-8 byte cap after line selection, before line-number prefixes; default or zero means 32768. Truncation is reported; prefixes are not file content.");
                 break;
             case ToolKind.ListDirectory:
                 name = "list_directory";
@@ -136,6 +141,8 @@ public sealed partial class Tool
                 Field("path", "string", "File or directory path.", true);
                 Field("pattern", "string", "Regular expression.", true);
                 Field("context_lines", "integer", "Nonnegative context radius, default 0.");
+                Field("exclude", "array", "Optional case-sensitive globs for discovered entries; absent/empty includes all. Name-only patterns match at any depth; / paths are relative to search root; trailing / prunes directories. Supports *, ?, whole-component **; max 64 patterns, 256 chars each. No gitignore processing. Explicit file requests bypass exclusions.");
+                properties["exclude"]!["items"] = new JsonObject { ["type"] = "string" };
                 break;
             case ToolKind.RunCommand:
                 name = "run_command";
@@ -145,7 +152,7 @@ public sealed partial class Tool
                 break;
             case ToolKind.WriteFile:
                 name = "write_file";
-                description = "Create or write a UTF-8 file, creating parent directories. Existing files require overwrite:true or append:true.";
+                description = "Create or write a UTF-8 file, creating parent directories. Existing files require overwrite:true or append:true. Success reports written lines and starting UTF-16 column; append reads the existing file to establish positions.";
                 Field("path", "string", "File path.", true);
                 Field("content", "string", "Exact text to write.", true);
                 Field("overwrite", "boolean", "Allow replacing an existing file, default false.");
@@ -260,10 +267,11 @@ public sealed partial class Tool
                 break;
             case ToolKind.GoalControl:
                 name = "goal_control";
-                description = "Query or configure the session goal file and optional idle reminders. Off retains goal instructions; empty file clears. No completion or progress guarantee.";
+                description = "Query or configure goal continuation on idle. Failed model turns back off 1, 10, 100, then 1000 seconds. Off retains instructions; empty file clears. No completion guarantee.";
                 Field("file", "string", "Goal file; empty clears. Read freshly for each request.");
                 Field("enabled", "boolean", "Enable or disable idle reminders. Loading the skill does not enable them.");
-                Field("idle_seconds", "number", "Finite positive timer delay; default 480 seconds.");
+                Field("retry_now", "boolean", "Bypass a pending failure wait once; does not enable an off goal or override pause.");
+                Field("idle_seconds", "number", "Legacy compatibility only: validated but ignored by idle-transition/backoff scheduling.");
                 break;
             case ToolKind.AgentStatus:
                 name = "agent_status";
@@ -273,14 +281,9 @@ public sealed partial class Tool
                 name = "keep_tool_results";
                 description = "Keep the previous tool batch whole instead of once-only result stubbing. Call in the consuming response; takes no arguments. Later budget/explicit clearing still applies.";
                 break;
-            case ToolKind.OfferDownload:
-                name = "offer_download";
-                description = "Offer one completed workspace file for download in the browser. Call it after producing a deliverable the user asked for (a PDF, archive, report); the file must already exist in the workspace. Takes no action on disk and never exposes files outside the workspace.";
-                Field("path", "string", "Workspace-relative file path of the finished work product.", true);
-                break;
             case ToolKind.MicroHandoff:
                 name = "micro_handoff";
-                description = "Record a continuation checkpoint and clear tool traffic after this batch finishes. Retains earlier checkpoints until a matching memory replacement commits; preserves dialogue and skill instructions.";
+                description = "Record a continuation checkpoint and clear tool traffic after this batch finishes. Replaces all older checkpoints in active context; preserves dialogue, skill instructions, and canonical History.";
                 Field("text", "string", "Nonempty continuation note: decisions, evidence limits, and next work.", true);
                 break;
             case ToolKind.LoadSkill:
@@ -473,7 +476,15 @@ public sealed partial class Tool
 
     public partial Task<ToolResultPart> ExecuteAsync(ToolCallPart call, CancellationToken cancellation)
     {
-        return Parent().DispatchAsync(call, cancellation);
+        var owner = Parent();
+        // This member executes its receiver, not another registered Tool. Refuse
+        // before dispatch so a mismatched call cannot admit a Job or cause effects.
+        if (!string.Equals(call.Name, name, StringComparison.Ordinal))
+        {
+            return Task.FromResult(new ToolResultPart(call.CallID,
+                [new TextPart("Tool call name does not match the receiver.")], isError: true));
+        }
+        return owner.DispatchAsync(call, cancellation);
     }
 
     internal partial async Task<ToolResultPart> ExecuteJobAsync(Job job, ToolCallPart call, CancellationToken cancellation)
@@ -491,10 +502,19 @@ public sealed partial class Tool
             {
                 return await HostScreenAsync(call, cancellation).ConfigureAwait(false);
             }
+            if (kind == ToolKind.OfferWorkProduct)
+            {
+                return OfferWorkProduct(call, cancellation);
+            }
             if (kind == ToolKind.InspectImage)
             {
                 return InspectImage(call, cancellation);
             }
+            if (kind == ToolKind.ListDirectory) return ListDirectory(call);
+            if (kind == ToolKind.ReadFile) return ReadFile(call);
+            if (kind == ToolKind.WriteFile) return WriteFile(call);
+            if (kind == ToolKind.EditFile) return EditFile(call);
+            if (kind == ToolKind.SearchFiles) return SearchFiles(call);
             var text = kind switch
             {
                 ToolKind.AgentStatus => Status(job),
@@ -503,14 +523,8 @@ public sealed partial class Tool
                 ToolKind.Submit or ToolKind.SendMessageToParent or ToolKind.RespondToParentMessage
                     or ToolKind.ShutdownAgent or ToolKind.KillAgent or ToolKind.SpawnSubAgent or ToolKind.AgentsStatus or ToolKind.InterruptAgent or ToolKind.GetSubmission or ToolKind.SendMessage or ToolKind.AskAgent
                     or ToolKind.WaitForAgent or ToolKind.WaitForAgentChange => await ChildOperationAsync(job, call.Args, cancellation),
-                ToolKind.ReadFile => ReadFile(call.Args),
-                ToolKind.ListDirectory => ListDirectory(call.Args),
-                ToolKind.SearchFiles => SearchFiles(call.Args),
                 ToolKind.RunCommand => await job.RunCommandAsync(call.Args, cancellation),
                 ToolKind.Custom => await handler!(job, call.Args, cancellation),
-                ToolKind.WriteFile => WriteFile(call.Args),
-                ToolKind.EditFile => EditFile(call.Args),
-                ToolKind.OfferDownload => OfferDownload(call.Args),
                 _ => throw new InvalidOperationException("Unknown tool kind")
             };
             return new ToolResultPart(call.CallID, [new TextPart(text)]);

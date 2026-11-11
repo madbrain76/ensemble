@@ -31,7 +31,7 @@ const bands = ['conversation', 'soul', 'memory', 'archive64', 'archive8', 'sessi
         });
         await page.waitForFunction(() => document.querySelector('#memory-session-budget').value === '6005');
         await page.reload();
-        await page.waitForFunction(() => !selectionPending && settings.memory?.session?.budget === 6005);
+        await page.waitForFunction(() => settings !== null && !selectionPending && settings.memory?.session?.budget === 6005);
         for (const [index, band] of bands.entries()) {
             assert.equal(await page.locator(`#memory-${band}-budget`).inputValue(), String(6000 + index));
             assert.equal(await page.locator(`#memory-${band}-enabled`).isChecked(), false);

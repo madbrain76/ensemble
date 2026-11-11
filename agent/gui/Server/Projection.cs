@@ -12,7 +12,7 @@ public static partial class Gui
     }
 
     public static partial JsonObject PartFrame(string agentID, string id, Part part, Actor role,
-        long sequence, DateTimeOffset? time, PartSpan? span)
+        long sequence, DateTimeOffset? recordedAt, PartSpan? span)
     {
         var wire = JsonCodec.WritePart(part);
         wire["role"] = role == Actor.Agent ? "assistant" : role.ToString().ToLowerInvariant();
@@ -67,7 +67,7 @@ public static partial class Gui
         return new JsonObject
         {
             ["type"] = "part_final", ["agent_id"] = agentID, ["part_id"] = id,
-            ["seq"] = sequence, ["time"] = time?.ToString("O"), ["part"] = wire
+            ["seq"] = sequence, ["part"] = wire, ["recorded_at"] = recordedAt?.ToString("O")
         };
     }
 
@@ -75,14 +75,9 @@ public static partial class Gui
     {
         // Context, not the diagnostic tail, owns the finalized transcript. This
         // works equally after snapshot-only load and after a later redaction.
-        // The transcript is authoritative for content only. Its entries carry no
-        // clock, so each one recovers the wall time recorded under the same
-        // sequence: without this a reload stamps every card with page-load time.
-        var recorded = snapshot.Events
-            .Where(fact => fact.Time.HasValue && fact.Seq > 0)
-            .GroupBy(fact => fact.Seq)
-            .ToDictionary(group => group.Key, group => group.First().Time);
-        DateTimeOffset? At(long seq) => recorded.TryGetValue(seq, out DateTimeOffset? when) ? when : null;
+        // The transcript is authoritative for content only. Each reconstructed
+        // fact takes its wall time from the durable event that recorded it, so a
+        // reload never stamps history with page-load time.
         var facts = snapshot.Events.Where(fact => fact.Kind is not
             (EventKind.MessageReceived or EventKind.HintReceived or EventKind.ResponseEnded or EventKind.ToolReturned))
             .ToList();
@@ -94,21 +89,22 @@ public static partial class Gui
             }
             if (entry.Parts is [ToolResultPart result])
             {
-                facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, time: At(entry.Seq),
-                    parts: result.Parts, callID: result.CallID, isError: result.IsError,
-                    job: result.Job, toolReferences: result.ToolReferences));
+                facts.Add(new Event(EventKind.ToolReturned, seq: entry.Seq, time: entry.Time, parts: result.Parts,
+                    callID: result.CallID, isError: result.IsError, job: result.Job,
+                    toolReferences: result.ToolReferences, observationDuration: entry.ObservationDuration, workProduct: result.WorkProduct,
+                    directoryListing: result.DirectoryListing, fileEvidence: result.FileEvidence, searchEvidence: result.SearchEvidence));
             }
             else if (entry.Actor == Actor.Agent)
             {
-                facts.Add(new Event(EventKind.ResponseEnded, seq: entry.Seq, time: At(entry.Seq),
-                    parts: entry.Parts, responseID: entry.ResponseID, partIDs: entry.PartIDs,
-                    partSpans: entry.ResponseID == 0 ? null
-                        : snapshot.Events.FirstOrDefault(fact => fact.Seq == entry.Seq)?.PartSpans));
+                // The dialogue entry keeps content; the durable event keeps the
+                // per-part production spans, which only the streaming path observes.
+                facts.Add(new Event(EventKind.ResponseEnded, seq: entry.Seq, time: entry.Time, parts: entry.Parts,
+                    responseID: entry.ResponseID, partIDs: entry.PartIDs,
+                    partSpans: snapshot.Events.FirstOrDefault(fact => fact.Seq == entry.Seq)?.PartSpans));
             }
             else
             {
-                facts.Add(new Event(EventKind.MessageReceived, seq: entry.Seq, time: At(entry.Seq),
-                    actor: entry.Actor, parts: entry.Parts));
+                facts.Add(new Event(EventKind.MessageReceived, seq: entry.Seq, time: entry.Time, actor: entry.Actor, parts: entry.Parts));
             }
         }
         return facts.OrderBy(fact => fact.Seq).ToImmutableArray();
@@ -119,20 +115,35 @@ public static partial class Gui
         var frames = ImmutableArray.CreateBuilder<JsonObject>();
         var ids = ImmutableHashSet.CreateBuilder<string>();
         var calls = new Dictionary<string, string>(StringComparer.Ordinal);
-        var dispatch = new Dictionary<string, DateTimeOffset>(StringComparer.Ordinal);
+        // A Job's continuing view is keyed by the tool that owns it, so the name
+        // must survive a reload even when the model's own call part has left the
+        // working Context. The durable dispatch fact is the authority for it.
+        var names = new Dictionary<string, string>(StringComparer.Ordinal);
         string state = "idle";
         string lastAnswer = "";
         bool paused = false;
         bool shutdown = false;
         var context = new Context();
-        foreach (var fact in DisplayFacts(snapshot))
+        var display = DisplayFacts(snapshot);
+        foreach (var fact in display)
         {
-            context = History.Reduce(context, fact);
-            if (fact.Kind is EventKind.ToolCalled or EventKind.ToolStarted && fact.Time.HasValue
-                && fact.CallID.Length > 0)
+            if (fact.Kind is EventKind.ToolCalled or EventKind.ToolStarted
+                && fact.CallID.Length > 0 && fact.Name.Length > 0)
             {
-                // Dispatch time, not the model's request, bounds how long a tool ran.
-                dispatch[fact.CallID] = fact.Time.Value;
+                names[fact.CallID] = fact.Name;
+            }
+        }
+        foreach (var fact in display)
+        {
+            // DisplayFacts combines the authoritative retained transcript with
+            // diagnostics, not a complete replayable History. Reduce only turn
+            // phase inputs here: memory transactions and context cuts may refer
+            // to source that the snapshot has already retired.
+            if (fact.Kind is EventKind.RuntimeConfigured or EventKind.MessageReceived
+                or EventKind.RequestSent or EventKind.ResponseEnded or EventKind.ToolReturned
+                or EventKind.TurnInterrupted or EventKind.TurnEnded or EventKind.ErrorOccurred)
+            {
+                context = History.Reduce(context, fact);
             }
             if (fact.Kind == EventKind.RuntimeConfigured)
             {
@@ -182,12 +193,6 @@ public static partial class Gui
                     {
                         span = fact.PartSpans[i];
                     }
-                    else if (fact.Kind == EventKind.ToolReturned && fact.Time.HasValue
-                        && dispatch.TryGetValue(fact.CallID, out DateTimeOffset began))
-                    {
-                        long elapsed = (long)(fact.Time.Value - began).TotalMilliseconds;
-                        span = new PartSpan(began.ToUnixTimeMilliseconds(), Math.Max(0, elapsed));
-                    }
                     frames.Add(PartFrame(agentID, id, fact.Parts[i], role, fact.Seq, fact.Time, span));
                     ids.Add(id);
                     if (fact.Parts[i] is ToolCallPart call)
@@ -207,6 +212,7 @@ public static partial class Gui
                 frames.Add(new JsonObject
                 {
                     ["type"] = "tool_dispatched", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                    ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["call_id"] = fact.CallID, ["name"] = fact.Name,
                     ["input"] = JsonNode.Parse(fact.Args!.Value.GetRawText()),
                     ["job"] = fact.Job is null ? null : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["job"]?.DeepClone()
@@ -215,27 +221,25 @@ public static partial class Gui
             else if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
             {
                 string id = $"{agentID}:e{fact.Seq}:result";
-                // A result card measures dispatch to return: how long the tool
-                // actually ran. Without an instant the card would show no clock
-                // line at all, which reads as missing history.
-                long? started = null;
-                long? ran = null;
-                if (dispatch.TryGetValue(fact.CallID, out DateTimeOffset began))
-                {
-                    started = began.ToUnixTimeMilliseconds();
-                    if (fact.Time.HasValue)
-                    {
-                        ran = Math.Max(0, (long)(fact.Time.Value - began).TotalMilliseconds);
-                    }
-                }
                 frames.Add(new JsonObject
                 {
                     ["type"] = "tool_finished", ["agent_id"] = agentID, ["seq"] = fact.Seq,
-                    ["time"] = fact.Time?.ToString("O"),
-                    ["started"] = started,
-                    ["elapsed"] = ran,
+                    ["observation_ms"] = fact.ObservationDuration?.TotalMilliseconds,
+                    ["work_product"] = fact.WorkProduct is null ? null : new JsonObject
+                    {
+                        ["id"] = fact.WorkProduct.ID, ["name"] = fact.WorkProduct.Name,
+                        ["offered_bytes"] = fact.WorkProduct.OfferedBytes
+                    },
+                    ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["tool_part_id"] = calls.GetValueOrDefault(fact.CallID),
                     ["call_id"] = fact.CallID, ["result"] = JsonCodec.Text(fact.Parts),
+                    ["name"] = names.GetValueOrDefault(fact.CallID),
+                    ["search_evidence"] = fact.SearchEvidence is null ? null
+                        : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["search_evidence"]?.DeepClone(),
+                    ["file_evidence"] = fact.FileEvidence is null ? null
+                        : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["file_evidence"]?.DeepClone(),
+                    ["directory_listing"] = fact.DirectoryListing is null ? null
+                        : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["directory_listing"]?.DeepClone(),
                     ["parts"] = new JsonArray(fact.Parts.Select(p => (JsonNode)JsonCodec.WritePart(p)).ToArray()),
                     ["is_error"] = fact.IsError,
                     ["job"] = fact.Job is null ? null : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["job"]?.DeepClone()

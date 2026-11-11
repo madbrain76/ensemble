@@ -4,7 +4,8 @@ namespace Ensemble;
 
 /// <summary>Value-like durable launch choices. These are not the running Agent's
 /// mutable model selection, credentials, authority, or conversation.</summary>
-public sealed record PeerLaunch(string Name, string Model, string Skill, DateTimeOffset Created);
+public sealed record PeerLaunch(string Name, string Model, string Skill, DateTimeOffset Created,
+    ModelIdentity? Offering = null);
 
 public sealed partial class Ensemble
 {
@@ -18,10 +19,12 @@ public sealed partial class Ensemble
     /// that source. No source relationship is retained. Success means startup,
     /// initial History save and atomic ensemble.json replacement have completed.
     /// A host that can accept an independent browser may opt into waiting for it.
-    /// Headless/default callers retain immediate missing-browser refusal. Cancelling
-    /// an opted-in wait joins cleanup and removes the pending peer.</summary>
+    /// A qualified offering selects its complete route; it cannot be combined with a
+    /// model-name override. Headless/default callers retain immediate missing-browser
+    /// refusal. Cancelling an opted-in wait joins cleanup and removes the pending peer.</summary>
     public partial Task<Agent> CreatePeerAsync(Agent source, string name, string? model = null,
-        string? skill = null, CancellationToken cancellation = default, bool waitForBrowser = false);
+        string? skill = null, CancellationToken cancellation = default, bool waitForBrowser = false,
+        ModelIdentity? offering = null);
 
     /// <summary>Restore all registry peers, not delegated children. The host's
     /// initial Agent is already constructed and is not a registry entry. Validate
@@ -29,6 +32,18 @@ public sealed partial class Ensemble
     /// failure. Ordinary application destruction preserves registry and data.</summary>
     public partial Task<ImmutableArray<Agent>> RestorePeersAsync(Agent source,
         CancellationToken cancellation = default, bool waitForBrowser = false);
+
+    /// <summary>Read durable launch choices for host recovery controls. This does
+    /// not construct Agents or replace the live ownership collection.</summary>
+    public partial ImmutableArray<PeerLaunch> SavedPeers(Agent source);
+
+    /// <summary>Retry one stopped registry peer. An explicit offering is validated
+    /// and saved to that peer's settings before startup; sibling settings and
+    /// conversations are preserved. A later startup failure retains that choice
+    /// for another retry. Null retries the existing choice without changing it.</summary>
+    public partial Task<Agent> RestorePeerAsync(Agent source, string name,
+        ModelIdentity? offering = null, CancellationToken cancellation = default,
+        bool waitForBrowser = false);
 
     /// <summary>Explicitly stop and remove a registered live peer. Refuse retained
     /// unfinished children before closing admission. Once shutdown starts, join to
@@ -40,8 +55,9 @@ public sealed partial class Ensemble
     private partial CancellationTokenSource BeginPeerOperation(Agent source, CancellationToken cancellation);
     private partial ImmutableArray<PeerLaunch> ReadPeerLaunches(Agent source);
     private partial void SavePeerLaunches(Agent source, ImmutableArray<PeerLaunch> entries);
+    private partial Configuration PeerConfiguration(PeerLaunch entry, Configuration policy, Sandbox sandbox);
     private partial Task<Agent> ConstructPeerAsync(PeerLaunch entry, Configuration configuration,
-        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser);
+        SkillBootstrap? bootstrap, CancellationToken cancellation, bool waitForBrowser, Sandbox sandbox);
 }
 
 public sealed partial class Agent

@@ -11,11 +11,17 @@ public enum JobStatus
 }
 
 // Value-like recorded report. It cannot restart a process during replay.
+// Origin identifies the admitted call within its owning Agent, not a later
+// wait/input call. Empty origins in historical records remain unknown.
 public sealed record JobInfo(int Handle, string Status, string OutputPath, long Bytes,
-    bool Truncated = false, int? ExitCode = null, string Cwd = "");
+    bool Truncated = false, int? ExitCode = null, string Cwd = "",
+    string OriginCallID = "", string OriginTool = "");
 
 // Value-like observation policy. Delay wakes the caller; it never stops work.
 public sealed record JobLimits(double Delay = 3, string Pattern = "", int MaxBytes = 16384);
+
+// Immutable foreground observation, not the independent Job runtime.
+internal sealed record ToolObservation(ToolResultPart Result, TimeSpan? Duration);
 
 // Jobs strongly owns every admitted Job until explicit destruction. The lock
 // protects membership and pending observation settings; it is never held while work drains.
@@ -50,7 +56,7 @@ public sealed partial class Jobs
     // Actor-only admission. Automatic work uses normal Job lifetime/output, but
     // is never admitted by a guessed tool name or an ordinary model call.
     internal partial Job StartAutomatic(AutomaticTool automatic);
-    internal partial Task<ToolResultPart> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default, string? refusal = null);
+    internal partial Task<ToolObservation> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default, string? refusal = null);
     // Validate before replacing the one pending observation override.
     public partial void SetLimits(JobLimits limits);
     // Cap current observers at the default delay measured from their start.
@@ -86,6 +92,10 @@ public sealed partial class Job
     // it until destruction so automatic collection can read it independently;
     // later ordinary observations still return only unseen byte output.
     private ToolResultPart? structuredResult;
+    private DirectoryListing? directoryListing;
+    private FileEvidence? fileEvidence;
+    private SearchEvidence? searchEvidence;
+    private bool presentationObserved;
     private long bytes;
     private long cursor;
     // End of the latest urgent progress range. The shared byte cursor consumes

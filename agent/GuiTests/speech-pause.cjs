@@ -56,7 +56,12 @@ async function nativeSpeech() {
         await page.evaluate(() => { browserSpeech.select({ enabled: true, pause: true }); });
         return page;
     };
-    const state = (page, wanted) => page.waitForFunction(wanted => document.querySelector('#state').textContent === wanted, wanted);
+    // The rendered state element also carries the working-context reading, and a
+    // live Job deliberately outranks the turn word, so this pause state machine is
+    // asserted on the state each connection has acknowledged. header-status.cjs and
+    // job-status.cjs own how that word is displayed.
+    const state = (page, wanted) => page.waitForFunction(wanted => acknowledgedState === wanted, wanted);
+    const reported = (page) => page.evaluate(() => acknowledgedState);
     let primary, observer;
     try {
         primary = await open(); observer = await open();
@@ -160,7 +165,7 @@ async function nativeSpeech() {
 
         await speak();
         await primary.waitForTimeout(2700);
-        check(await observer.locator('#state').textContent() === 'paused', 'still-speaking native engine is not timed out');
+        check(await reported(observer) === 'paused', 'still-speaking native engine is not timed out');
         await primary.evaluate(() => testSpeech.finish()); await state(observer, 'idle');
 
         await speak();
@@ -185,31 +190,31 @@ async function nativeSpeech() {
         await primary.waitForFunction(() => activeSpeech?.id === 'next-item');
         await primary.evaluate(() => testOldUtterance.onend());
         check(await primary.evaluate(() => activeSpeech?.id === 'next-item'), 'old callback cannot settle the next utterance');
-        check(await observer.locator('#state').textContent() === 'paused', 'queue advancement retains the speech pause');
+        check(await reported(observer) === 'paused', 'queue advancement retains the speech pause');
         await primary.evaluate(() => testSpeech.finish()); await state(observer, 'idle');
 
         await speak();
         await observer.evaluate(() => send('unpause'));
         await primary.waitForTimeout(2700);
-        check(await observer.locator('#state').textContent() === 'idle', 'runtime Resume overrides continuing speech without stale reassertion');
+        check(await reported(observer) === 'idle', 'runtime Resume overrides continuing speech without stale reassertion');
         await primary.evaluate(() => testSpeech.finish()); await recovered();
 
         await speak();
         await primary.locator('#prompt').fill('An unfinished draft');
         await primary.evaluate(() => testSpeech.stopWithoutCallback());
         await recovered();
-        check(await observer.locator('#state').textContent() === 'paused', 'speech recovery preserves the typing pause');
+        check(await reported(observer) === 'paused', 'speech recovery preserves the typing pause');
         await primary.locator('#prompt').fill(''); await state(observer, 'idle');
 
         await speak(); await primary.evaluate(() => send('pause'));
         await primary.evaluate(() => testSpeech.stopWithoutCallback()); await recovered();
-        check(await observer.locator('#state').textContent() === 'idle', 'later speech-completion resume wins over earlier pause');
+        check(await reported(observer) === 'idle', 'later speech-completion resume wins over earlier pause');
         await primary.evaluate(() => send('unpause')); await state(observer, 'idle');
 
         await observer.evaluate(() => send('pause')); await state(primary, 'paused');
         await primary.evaluate(() => { speakText('foreign', 'Keep the other tab pause.'); testSpeech.stopWithoutCallback(); });
         await recovered();
-        check(await observer.locator('#state').textContent() === 'idle', 'speech completion sends ordinary Agent-wide resume');
+        check(await reported(observer) === 'idle', 'speech completion sends ordinary Agent-wide resume');
         await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
 
         await observer.evaluate(() => selectAgent('captain/worker'));
@@ -236,7 +241,7 @@ async function nativeSpeech() {
         check(await primary.evaluate(() => testSuppressed && activeSpeech === null),
             'release precedes selection and outgoing late narration stays silent');
         await primary.evaluate(() => testOldUtterance.onend());
-        check(await observer.locator('#state').textContent() === 'paused', 'obsolete callback cannot resume the incoming agent');
+        check(await reported(observer) === 'paused', 'obsolete callback cannot resume the incoming agent');
         await observer.evaluate(() => send('unpause')); await state(primary, 'idle');
         await primary.evaluate(() => selectAgent('captain'));
         await primary.waitForFunction(() => agentID === 'captain' && !selectionPending);

@@ -23,6 +23,8 @@ namespace EnsembleGui;
 // AuthPath names the private Digest credential file. Null defers to the
 // conventional <data directory>/gui-auth.json: an existing file turns LAN
 // authentication on, and its absence leaves the listener open as before.
+// RendererDirectory explicitly enables shared renderer snapshots; null keeps only
+// shipped rendering. Trials are never persisted in this directory.
 // Null TracePath uses Agent-owned diagnostics. An explicit path is a fresh,
 // operation-owned aggregate trace for embedding/tests, not the normal host mode.
 // ReadyOutput receives the addresses once RunAsync is actually listening, so an
@@ -34,7 +36,8 @@ namespace EnsembleGui;
 public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
     string? PublicOrigin = null, string? AuthPath = null, string Host = "127.0.0.1",
-    TextWriter? ReadyOutput = null, TextWriter? DiagnosticsOutput = null);
+    TextWriter? ReadyOutput = null, TextWriter? DiagnosticsOutput = null,
+    string? RendererDirectory = null);
 
 // A refused bind address is a launch decision carrying fixed operator guidance,
 // not provider, credential or filesystem text. The host reports unknown

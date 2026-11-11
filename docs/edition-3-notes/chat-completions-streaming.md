@@ -98,3 +98,19 @@ confined cases.
 that a turn *finishes*. A streamed reply renders right up to the frame that destroys
 it, so a progressive-rendering assertion can be fully green while the answer is
 discarded. Any streaming claim has to assert the settled result.
+
+## Two follow-ups, both surfaced by the Firefox tier
+
+The recall judge builds its own request body, and `AddStreamingOptions` gated on
+`config.Features.Stream` — the curated row — instead of `MayStream`. An unlisted
+model therefore never streamed for recall, and because the table names no local
+model, that was every model Bill actually runs. The documented capability rule
+now governs both request builders, and the duplicate `MayStream` branch that had
+grown in `Render` is gone, so there is one answer to the question.
+
+`StreamKey` also had to grow the offering. Two bindings of one vendor over one
+base URL are distinct routes, and what one of them did with the flag says nothing
+about the other; sharing a key let an endpoint observed buffering poison its
+sibling's negative record. The negative cache itself is a tested contract
+(`StreamingActorTests` refuses to ask a route twice within its window), not a
+defect — only its identity had been too coarse.

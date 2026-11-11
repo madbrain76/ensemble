@@ -51,7 +51,7 @@ public sealed partial class Job
                 }
             }
             return new JobInfo(Handle, StatusName(status), OutputPath, bytes,
-                ExitCode: exitCode, Cwd: cwd);
+                ExitCode: exitCode, Cwd: cwd, OriginCallID: call.CallID, OriginTool: call.Name);
         }
     }
 
@@ -119,6 +119,9 @@ public sealed partial class Job
                                 output.Flush();
                                 Notify();
                             }
+                            directoryListing = result.DirectoryListing;
+                            fileEvidence = result.FileEvidence;
+                            searchEvidence = result.SearchEvidence;
                             isError = result.IsError;
                         }
                     }
@@ -228,7 +231,8 @@ public sealed partial class Job
                     var notice = commandJob ? "Job killed: " + reason + "\n"
                         : "Job killed: " + reason + "; .NET cannot forcibly stop an uncooperative managed handler. Cancellation requested; late output is ignored.\n";
                     AppendOutput(notice);
-                    var info = new JobInfo(Handle, "killed", OutputPath, bytes, ExitCode: exitCode);
+                    var info = new JobInfo(Handle, "killed", OutputPath, bytes, ExitCode: exitCode,
+                        OriginCallID: call.CallID, OriginTool: call.Name);
                     try
                     {
                         Parent().Parent().History().Append(new Event(EventKind.JobKilled, reason: reason, job: info));
@@ -381,8 +385,9 @@ public sealed partial class Job
                     if (info.Status == "done" && cursor < bytes && structuredResult is { } completed)
                     {
                         cursor = bytes;
+                        presentationObserved = true;
                         return new ToolResultPart(callID, completed.Parts, completed.IsError,
-                            info, completed.ToolReferences);
+                            info, completed.ToolReferences, completed.WorkProduct, completed.DirectoryListing, completed.FileEvidence, completed.SearchEvidence);
                     }
                 }
                 bool truncated = fresh.Length > maxBytes;
@@ -404,9 +409,19 @@ public sealed partial class Job
                         + "\n[output truncated; full output on disk]\n"
                         + Encoding.UTF8.GetString(fresh.AsSpan(tailStart));
                 }
+                DirectoryListing? listing = null;
+                FileEvidence? evidence = null;
+                SearchEvidence? search = null;
                 bool firstReport;
                 lock (gate)
                 {
+                    if (info.Status == "done" && !error && !presentationObserved)
+                    {
+                        listing = directoryListing;
+                        evidence = fileEvidence;
+                        search = searchEvidence;
+                        presentationObserved = true;
+                    }
                     firstReport = cursor == 0;
                     cursor += fresh.Length;
                 }
@@ -427,7 +442,7 @@ public sealed partial class Job
                 return new ToolResultPart(callID, [new TextPart(bareResult ? text : header + text)], error, info with
                 {
                     Truncated = truncated
-                });
+                }, directoryListing: listing, fileEvidence: evidence, searchEvidence: search);
             }
             await Task.WhenAny(signal, expires, wake).WaitAsync(token);
         }

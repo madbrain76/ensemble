@@ -343,6 +343,20 @@ metadata, and metadata is allowed to be wrong: the clock on the machine that
 wrote the log may have been skewed, two events may share a timestamp, and a log
 assembled from two machines may not be monotonic at all. `Seq` is.
 
+History assigns UTC recorded time when it appends a fact. Carry that nullable
+value into its reduced Entry; replay and rendering must never substitute the
+current clock. Filtering or trimming an entry preserves its time. A newly
+synthesized summary carries the summary event's recorded time even though it
+occupies an earlier conversation position. Historical missing time stays unknown.
+
+A returned tool observation can also carry a nullable, nonnegative
+`ObservationDuration`. Chapter 4 measures it with a monotonic clock after dispatch
+admission, not by subtracting event timestamps. It describes the foreground
+observation, not the independent Job's total runtime. Keep it on the event and
+retained Entry, outside the provider-facing result payload. Copy operations such
+as numbering and reduction preserve this metadata; event constructors refuse it
+on non-result event kinds. Event ordering continues to use sequence numbers.
+
 Nothing in the log is ever edited, reordered, or deleted in place. When
 something needs to be removed from what the model sees, a new event goes on the
 end saying so, and the old event stays where it was. The log is written as
@@ -359,6 +373,7 @@ public sealed partial class Event
     public readonly long Seq;
     public readonly EventKind Kind;
     public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor? Actor;
     public readonly ImmutableArray<Part> Parts;
     public readonly Provenance? From;
@@ -372,7 +387,7 @@ public sealed partial class Event
         Actor? actor = null, IEnumerable<Part>? parts = null, Provenance? from = null,
         Usage? usage = null, string callID = "", string name = "", JsonElement? args = null,
         bool isError = false, string error = "", long redactFrom = 0, long redactTo = 0,
-        Redaction? level = null, string reason = "");
+        Redaction? level = null, string reason = "", TimeSpan? observationDuration = null);
     public partial Event Numbered(long seq, DateTimeOffset time);
 }
 ```
@@ -397,11 +412,14 @@ body that would not parse. A tool that ran and failed is ordinary tool
 that retries a compile error as if it were a network outage, which happens in
 practice and is less funny than it sounds.
 
-Thinking text is log-only. The reasoning can be recorded, and the *context*
-carries only opaque replay material, a signature or a redacted block, tagged
-with the exact model that produced it. The renderer decides whether that model
-wants it back. What you never do is reconstruct reasoning as prose and feed it
-to a different model as though it had thought it.
+Reasoning is not portable dialogue text. Record provider-issued replay material
+as opaque JSON tagged with its exact vendor, model and surface. Depending on the
+provider, that value may be a signature, a redacted block, or a complete thinking
+block containing both text and a signature. Preserve the complete replay value;
+do not strip fields or reconstruct its contents as ordinary `TextPart` prose.
+`JsonCodec.Text` excludes opaque material. A renderer returns it only to the
+matching producer when that surface supports replay; it never forwards it to a
+different producer as though that model had thought it.
 
 `ResponseEnded.Parts` holds everything the assistant produced in one reply,
 text and tool calls together, in the order it produced them; `ToolCalled` is
@@ -494,9 +512,12 @@ read. The shared shape is:
 public sealed partial class Entry
 {
     public readonly long Seq;
+    public readonly DateTimeOffset? Time;
+    public readonly TimeSpan? ObservationDuration;
     public readonly Actor Actor;
     public readonly ImmutableArray<Part> Parts;
-    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts);
+    public partial Entry(long seq, Actor actor, IEnumerable<Part> parts,
+        DateTimeOffset? time = null, TimeSpan? observationDuration = null);
 }
 
 public sealed partial class Context
@@ -1095,6 +1116,22 @@ removed. Canonicalization is not permission to change what the model asked.
 Also normalized here: usage, per the table in §2.5, and errors. An HTTP 429 is
 an `ErrorOccurred`, not a response.
 
+HTTP200 does not establish a valid response envelope. Check the selected vendor's
+required arrays and objects before indexing or reading their contents. For example,
+OpenAI `choices: []` and Gemini `candidates: []` contain no assistant candidate;
+normalize that failure to a safe `ErrorOccurred`, not an unchecked indexing
+exception or an invented `ResponseEnded`. An explicit empty text string inside
+a real candidate is a different case and must remain an empty string.
+
+Exercise this boundary through both parsing and an owned loopback HTTP server.
+The CLI should stop with a controlled nonzero exit, keep the human/request facts,
+and record exactly one error after the request. It must not fabricate an answer,
+retry the request, or echo the raw provider body into diagnostics or History.
+The first revised C# student passed the assigned grades but aborted on both empty
+arrays without recording an error. That independent failure added the public
+supplement below; a good-response control prevents rejecting every reply from
+masquerading as correct validation.
+
 ### Rules the seam has to hold
 
 **Decline vendor stateful conversation APIs.** Server-side threads and
@@ -1413,6 +1450,48 @@ The Edition 3 Chapter 1 gate adds real delayed-header and delayed-body
 lifetime phases to the ordinary parity checks; allow at least six minutes. Tests use real components and working
 loopback HTTP fakes, never mocks of internal calls. A green grade does not
 verify the architecture: inspect declarations, relationships and access paths.
+
+### Provider failure supplement
+
+Run the grader-owned
+[`ch02-provider-errors.py`](../internal/gradeedition3/testdata/ch02-provider-errors.py)
+with an existing Python3 interpreter, an absolute candidate executable and an
+owned writable workspace. Exact invocation and evidence requirements are in its
+[README](../internal/gradeedition3/testdata/ch02-provider-errors.md). No packages,
+credentials or live providers are needed. The checker uses real CLI processes and
+loopback HTTP for valid controls and empty candidate arrays. Require exit0 and
+`passed:true` for all four named cases, including the recorded error checks.
+This supplement awards no points and does not replace the historical100-point
+grade or ownership/readability review. Frozen endpoints remain unchanged.
+
+### Timing-value supplement for the revised chapter
+
+The original100-point CLI grader remains applicable to this C# exercise. The
+later timing addition also needs direct evidence about reduced Entry values,
+which the CLI's rendered provider JSON deliberately omits. Use the separate
+[public timing-value consumer](../internal/gradeedition3/testdata/ch02-timing-consumer/README.md)
+against the candidate core assembly. It uses the immutable declarations in this
+chapter and public `History.Reduce` and `JsonCodec`, not later Jobs or GUI APIs.
+
+Construct known offset-bearing times, explicit zero durations and unknown values.
+Round-trip them, reduce supplied tool-result facts without executing tools, and
+preserve their timing through result/tool/dialogue redaction. A summary uses its
+replacement fact's time rather than inheriting the replaced observation duration.
+Numbering preserves duration while assigning sequence and recorded time. Reject
+negative duration and duration attached to a non-result event.
+
+Run the separate log-write and log-read modes as successive processes in one
+fresh workspace. They exercise StartLog, Append, Load and Dump without later
+snapshot APIs. The writer records the returned UTC timestamp; the reader checks
+that exact fact after the writer exits. Unknown legacy timing remains unknown.
+The render mode compares otherwise identical timed and untimed Contexts through
+the three Chapter2 vendor routes, requiring unchanged complete provider JSON.
+
+These supplemental checks award no new chapter points. Their evidence includes
+passing external consumers and a reducer-loss negative candidate, not a fresh
+student result or complete early-chapter acceptance. Rendering checks here are
+offline public API checks, not three live-provider integrations.
+The preserved historical endpoint predates this addition and stays frozen.
 
 ### The checks
 

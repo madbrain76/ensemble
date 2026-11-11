@@ -45,7 +45,11 @@ const server = http.createServer((request, response) => {
             agentRows = input.rows;
             acknowledgedState = input.state;
             renderControls();
-            return document.querySelector('#state').textContent;
+            // The header also carries the working-context readout after a " · "
+            // separator, which header-status.cjs owns. This suite is about the
+            // status word, so it reads only that half of the label.
+            const full = document.querySelector('#state').textContent;
+            return full.split(' · ')[0];
         }, data);
 
         check(await label({ key: 'build%20agent', rows: [row(0)], state: 'idle' }) === 'idle',
@@ -90,9 +94,12 @@ const server = http.createServer((request, response) => {
             agentRows = [];
             acknowledgedState = 'idle';
             renderControls();
-            const before = document.querySelector('#state').textContent;
+            // Same reason as label(): the working-context readout is a separate
+            // clause of the header, owned by header-status.cjs.
+            const subject = () => document.querySelector('#state').textContent.split(' · ')[0];
+            const before = subject();
             handle({ type: 'agent_tree', agents: input.rows });
-            return { before, after: document.querySelector('#state').textContent };
+            return { before, after: subject() };
         }, { key: 'build%20agent', rows: [row(2)] });
         check(viaFrame.before === 'idle' && viaFrame.after === '2 jobs running',
             `an agent_tree frame repaints the header: ${JSON.stringify(viaFrame)}`);

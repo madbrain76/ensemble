@@ -127,6 +127,58 @@ public sealed partial class Engine
         return proven;
     }
 
+    // A model change is the one moment an Agent can lose the proof its existing
+    // images were admitted under: proof is keyed by route, and the new model is
+    // a different route. Without this, an unlisted model would refuse every
+    // later turn that replays those bytes, with no control left to recover.
+    // Catalogued models answer from the table, and a conversation with no image
+    // in it is never charged a provider call.
+    public partial async Task ProveImagesForHistoryAsync(Context context, CancellationToken cancellation)
+    {
+        Configuration config;
+        try
+        {
+            config = Parent().Configuration();
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+        if (LookupModel(config.Vendor, config.Model, out _))
+        {
+            return;
+        }
+        bool carriesImage = false;
+        foreach (var entry in context.Dialogue)
+        {
+            if (CarriesImage(entry.Parts))
+            {
+                carriesImage = true;
+                break;
+            }
+        }
+        if (carriesImage)
+        {
+            await ProbeImagesAsync(cancellation);
+        }
+    }
+
+    private static bool CarriesImage(IEnumerable<Part> parts)
+    {
+        foreach (var part in parts)
+        {
+            if (part is BlobPart blob && MediaKind(blob.Mime) == Media.Image)
+            {
+                return true;
+            }
+            if (part is ToolResultPart result && CarriesImage(result.Parts))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Two distinct colors in an unpredictable order. Distinct is the property
     // that matters: one fixed answer cannot satisfy both questions.
     private static (string Color, string Png)[] TwoProbeColors()

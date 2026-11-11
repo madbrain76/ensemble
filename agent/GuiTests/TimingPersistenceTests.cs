@@ -125,8 +125,8 @@ static class TimingPersistenceTests
 
             var frame = ReplyFrame(Gui.Project(agent.History().Snapshot(), "timed-root"), "STREAM-MARKER");
             Check(frame is not null, "reply never reached the replay projection");
-            Check(frame!["time"]?.GetValue<string>() == ended.Time?.ToString("O"),
-                $"frame instant is not the recorded event time: {frame!["time"]}");
+            Check(frame!["recorded_at"]?.GetValue<string>() == ended.Time?.ToString("O"),
+                $"frame instant is not the recorded event time: {frame!["recorded_at"]}");
             Check(frame["part"]?["started"]?.GetValue<long>() == ended.PartSpans[0].Started
                 && frame["part"]?["elapsed"]?.GetValue<long>() == ended.PartSpans[0].Elapsed,
                 $"replay lost the measured span: {frame["part"]}");
@@ -143,7 +143,7 @@ static class TimingPersistenceTests
             Check(ended.PartSpans.IsDefaultOrEmpty,
                 "a reply with no observed fragments claimed a measured span");
             var frame = ReplyFrame(Gui.Project(plain.History().Snapshot(), "timed-root"), "PLAIN-MARKER");
-            Check(frame is not null && frame["time"] is not null,
+            Check(frame is not null && frame["recorded_at"] is not null,
                 "a non-streamed reply lost its recorded instant too");
             Check(frame!["part"] is not null && frame["part"]!["started"] is null
                 && frame["part"]!["elapsed"] is null,

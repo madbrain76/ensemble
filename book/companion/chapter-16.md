@@ -18,6 +18,25 @@ Some protocol details are unforgiving. The callback uses literal `127.0.0.1` and
 
 An unsolicited callback with wrong state does not consume the active attempt. A matched denial or failed exchange does. The listener may need to serve several requests before the real callback arrives. Callback pages expose no code, state, account, or authorization URL. CLI prints the private URL in its human login command; GUI opens it in a separate user-initiated window rather than placing it in the main DOM or conversation. A blocked popup starts no login.
 
+## A model name is not a payer
+
+A familiar model name can exist behind several endpoints and funding arrangements.
+Choosing it must select the vendor, endpoint, protocol and credential binding
+as one offering. Ollama using the OpenAI wire format does not become OpenAI, and
+an absent local route is not permission to borrow a cloud key.
+
+The application stores the default funding chosen in Settings for each vendor in
+`~/.en/settings.json`. Each persistent Agent saves its own qualified offering in
+its own settings file. A new vendor/model choice may consult the application
+preference; an existing Agent does not move when that preference changes. Missing
+or ambiguous funding refuses instead of trying another usable account.
+
+The GUI lists each vendor/model once. Settings → AI changes its default funding;
+choosing a model resolves that preference again when the action executes. These
+are separate actions: selecting a model does not rewrite funding defaults, and
+saving a default does not retarget existing Agents. Explicitly supplied Codex and
+public OAuth stores remain independent funding choices alongside API keys.
+
 ## Identity is not permission to spend
 
 The ID token must pass signature and claim validation, not merely decode as JSON. The narrow C# validator verifies trusted issuer, issued audience, timestamps, nonce, and subject continuity, rejecting ambiguous key selection. An account is not identified by matching email strings across registrations.

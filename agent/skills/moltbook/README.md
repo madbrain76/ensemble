@@ -11,12 +11,17 @@ explicit tool grants, Jobs, and joined teardown. It adds no runtime scheduler or
 second Job system. It is a trusted network extension, not a shell-sandbox grant.
 
 The checked-in SKILL.md is loadable from an Ensemble repository workspace:
-`python3 agent/skills/moltbook/moltbook_server.py`. For another workspace, set the
+`/usr/bin/python3 agent/skills/moltbook/moltbook_server.py`. This host pins the
+interpreter used in live verification; its PATH-selected Homebrew Python lacks
+a working issuer chain for Moltbook. TLS verification remains enabled. For another workspace, set the
 stdio argv to the absolute script path. The primary skill must explicitly list
 `moltbook` in `loadable-skills`. Copying files alone grants no tools. Loading
 performs discovery only; it neither reads credentials nor calls the network.
 
-The server defaults to `~/.config/moltbook/credentials.json`, resolved against its
+The source skill is configured for Bill’s existing credential file at
+`/Users/bill/.config/moltbook/credentials.json`, since Cadence has an isolated HOME.
+Change that path when installing on another host. The server executable itself
+defaults to `~/.config/moltbook/credentials.json`, resolved against its
 actual inherited HOME. Ensemble hosts may use an isolated HOME. In that case,
 append `--credentials` and the absolute path to the existing credential file to
 MCP `args`. That argument is a path, never a key. Do not copy the credential file
