@@ -37,7 +37,18 @@ public sealed record GuiOptions(int Port = 8090, string? AssetsDirectory = null,
     string SettingsPath = "settings.json", string? TracePath = null, string BasePath = "",
     string? PublicOrigin = null, string? AuthPath = null, string Host = "127.0.0.1",
     TextWriter? ReadyOutput = null, TextWriter? DiagnosticsOutput = null,
-    string? RendererDirectory = null);
+    string? RendererDirectory = null)
+{
+    // Presentation only: neither durable History nor model context is trimmed.
+    public int ChatHistoryEventLimit { get; init; } = 100;
+    public int ToolHistoryEventLimit { get; init; } = 100;
+    // Preserve callers that supplied a single limit: apply it to each pane.
+    public int HistoryEventLimit
+    {
+        get => ChatHistoryEventLimit;
+        init { ChatHistoryEventLimit = value; ToolHistoryEventLimit = value; }
+    }
+}
 
 // A refused bind address is a launch decision carrying fixed operator guidance,
 // not provider, credential or filesystem text. The host reports unknown

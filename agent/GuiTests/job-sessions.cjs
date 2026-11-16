@@ -39,10 +39,10 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    });
    await page.waitForFunction(()=>document.querySelector('.job-session[data-job-handle="77"] .terminal-output')?.textContent.includes('SAFE'));
    assert.equal(await page.locator('.job-session[data-job-handle="77"]').count(),1);
-   await page.waitForSelector('[data-part-id="first"] .session-output-link');
+   await page.waitForSelector('[data-part-id="first"] .session-output-link', {state:'attached'});
    assert.equal(count,1,'Session must be the only initial output fetch owner');
-   assert.equal(await page.locator('.job-session[data-job-handle="77"] strong').textContent(),'Job 77 running');
-   assert(await page.locator('.job-session[data-job-handle="77"] button').isHidden());
+   assert.equal(await page.locator('.job-session[data-job-handle="77"] > strong').textContent(),'Job 77 running');
+   assert(await page.locator('.job-session[data-job-handle="77"] > button').isHidden());
    assert.equal(await page.locator('[data-part-id="first"] .preview').textContent(),'View Job 77 output');
    await page.evaluate(()=>{window.backgroundSession=document.querySelector('.job-session[data-job-handle="77"]');const marker=document.createElement('div');marker.id='autonomous-marker';toolTranscript.append(marker);});
    replyText += '\nbackground progress';
@@ -51,7 +51,7 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    replyStatus='done'; replyText='\x1b[1;31mSAFE <img>\x1b[0m\nnext';
 
    assert.equal(await page.locator('.job-session[data-job-handle="77"] .terminal-output img').count(),0);
-   assert.match(await page.locator('.job-session[data-job-handle="77"] p').textContent(),/rolled out/);
+   assert.match(await page.locator('.job-session[data-job-handle="77"] > p').textContent(),/rolled out/);
    assert.equal(await page.locator('.terminal-bold.terminal-fg-1').textContent(),'SAFE <img>');
    await page.evaluate(()=>{
     window.sessionNode=document.querySelector('.job-session[data-job-handle="77"]');
@@ -62,20 +62,25 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    assert(await page.evaluate(()=>toolTranscript.lastElementChild===sessionNode&&document.querySelector('.job-session[data-job-handle="77"]')===sessionNode));
    assert.equal(await page.locator('[data-part-id="first"] details pre').textContent(),'immutable first');
    assert.equal(await page.locator('[data-part-id="wait"] details pre').textContent(),'immutable wait');
-   await page.waitForSelector('[data-part-id="wait"] .session-output-link');
+   await page.waitForSelector('[data-part-id="wait"] .session-output-link', {state:'attached'});
    assert.equal(await page.locator('[data-part-id="wait"] .preview').textContent(),'View Job 77 output');
    assert.equal(await page.locator('[data-part-id="wait"] details').getAttribute('open'),null);
    assert.equal(await page.locator('[data-part-id="wait"] details summary').textContent(),'Recorded observation');
+   // The card now lives inside its session's recorded-observations group, so that
+   // group has to be open before its summary can be clicked. The mounted fixture
+   // Agent owns sessions of its own, so this opens this suite's group only.
+   await page.evaluate(()=>{document.querySelector('.job-session[data-job-handle="77"] .job-observations').open=true;});
    await page.locator('[data-part-id="wait"] details summary').click();
    assert(await page.locator('[data-part-id="wait"] details pre').isVisible(),'Recorded output remains inspectable');
    await page.locator('[data-part-id="wait"] details summary').click();
    await page.evaluate(()=>{document.querySelector('.job-session[data-job-handle="77"] .terminal-output').focus();addJobObservation('input','send_input');});
-   await page.waitForSelector('[data-part-id="input"] .session-output-link');
+   await page.waitForSelector('[data-part-id="input"] .session-output-link', {state:'attached'});
    assert.equal(await page.locator('[data-part-id="input"] .preview').textContent(),'View Job 77 output');
    assert(await page.evaluate(()=>{
     const card=cards.get('wait'), agent=card.agent, job=card.job;
+    const before=card.node.innerHTML;
     card.agent='different-agent'; render(card);
-    const otherAgent=!card.node.querySelector('.session-output-link');
+    const otherAgent=jobSessions.output(card)===null && card.node.innerHTML===before;
     card.agent=agent; card.job={...job,origin_call_id:'different-origin'}; render(card);
     const otherOrigin=!card.node.querySelector('.session-output-link');
     card.job=job; render(card);
@@ -97,7 +102,7 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
     const range=document.createRange();range.selectNodeContents(firstSpan);
     const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
    });
-   await page.evaluate(()=>document.querySelector('.job-session[data-job-handle="77"] button').click());
+   await page.evaluate(()=>document.querySelector('.job-session[data-job-handle="77"] > button').click());
    await page.waitForTimeout(100);
    assert(await page.evaluate(()=>document.querySelector('.job-session[data-job-handle="77"] .terminal-output span')===firstSpan&&window.getSelection().toString()==='SAFE <img>'));
    await page.evaluate(()=>{
@@ -129,15 +134,15 @@ assert(!['8088','8089','8090'].includes(new URL(base).port));
    await page.evaluate(()=>jobSessions.observe(cards.get('first')));
    await page.waitForFunction(()=>document.querySelector('[data-part-id="wait"] .preview')?.textContent==='immutable wait');
    assert.equal(await page.locator('[data-part-id="wait"] .session-output-link').count(),0,'Failed session fetch restores recorded observation');
-   assert(await page.locator('.job-session[data-job-handle="77"] button').isVisible());
+   assert(await page.locator('.job-session[data-job-handle="77"] > button').isVisible());
    unavailable=false;
-   await page.locator('.job-session[data-job-handle="77"] button').click();
-   await page.waitForSelector('[data-part-id="wait"] .session-output-link');
-   assert.equal(await page.locator('.job-session[data-job-handle="77"] strong').textContent(),'Job 77 completed');
+   await page.locator('.job-session[data-job-handle="77"] > button').click();
+   await page.waitForSelector('[data-part-id="wait"] .session-output-link', {state:'attached'});
+   assert.equal(await page.locator('.job-session[data-job-handle="77"] > strong').textContent(),'Job 77 completed');
    windowStart=0;
    await page.evaluate(()=>jobSessions.observe(cards.get('first')));
-   await page.waitForFunction(()=>document.querySelector('.job-session[data-job-handle="77"] p').hidden);
-   assert(await page.locator('.job-session[data-job-handle="77"] button').isHidden());
+   await page.waitForFunction(()=>document.querySelector('.job-session[data-job-handle="77"] > p').hidden);
+   assert(await page.locator('.job-session[data-job-handle="77"] > button').isHidden());
    assert.match(await page.locator('.job-session[data-job-handle="77"] .terminal-output').getAttribute('title'), /Terminal log/);
    assert.match(await page.locator('.job-session[data-job-handle="77"] .terminal-output').getAttribute('aria-label'), /Output bytes 0/);
 

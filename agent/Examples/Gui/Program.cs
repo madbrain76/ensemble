@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Ensemble;
 using EnsembleGui;
 using Application = Ensemble.Ensemble;
@@ -43,17 +44,23 @@ try
     for (int i = 0; i < args.Length; i++)
     {
         string flag = args[i];
+        if (flag is "--event-log" or "--save-log" or "--archive-log")
+        {
+            throw new ArgumentException("Separate event logs and count retention were removed; use --audit to retain the recovery journal.");
+        }
         if (flag == "--safe")
         {
             flags["--safe-mode"] = "1";
             continue;
         }
-        if (flag is "--no-save" or "--no-stream" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
+        if (flag is "--audit" or "--no-stream" or "--no-save" or "--gui-debug" or "--stub-tool-results" or "--cache-breakpoints")
         {
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--account" or "--agent-name" or "--archive-log" or "--base-url" or "--billing" or "--cache-lens" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--event-log" or "--global-settings" or "--gui-auth-file" or "--gui-dir" or "--host" or "--model" or "--model-config" or "--port" or "--primary-skill" or "--prompt-cache-key" or "--public-origin" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--save" or "--save-log" or "--settings" or "--skills-dir" or "--startup-skills" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--vendor" or "--wake-on-lan" or "--wake-timeout" or "--workspace") || i + 1 >= args.Length)
+        // The retired log flags are refused earlier with their own guidance, so they
+        // are absent here: a typo must not be accepted as a legacy spelling.
+        if (flag is not ("--account" or "--agent-name" or "--base-url" or "--billing" or "--cache-lens" or "--codex-auth-file" or "--credentials-dir" or "--data-dir" or "--enable-web-search" or "--global-settings" or "--gui-auth-file" or "--gui-dir" or "--host" or "--model" or "--model-config" or "--port" or "--primary-skill" or "--process-read-paths" or "--prompt-cache-key" or "--public-origin" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--sandbox" or "--save" or "--settings" or "--skills-dir" or "--startup-skills" or "--stream" or "--surface" or "--transcription" or "--transcription-key-file" or "--vendor" or "--wake-on-lan" or "--wake-timeout" or "--workspace") || i + 1 >= args.Length)
         {
             throw new LaunchFlagException("Unknown or incomplete GUI flag: " + flag);
         }
@@ -101,6 +108,20 @@ try
         throw new ArgumentException("Transcription must be off or openai-api-key");
     string endpoint = Selected("--base-url", "LLM_BASE_URL");
     string sandboxRoot = Selected("--sandbox", "EN_SANDBOX_ROOT");
+    // Explicit host policy, not a skill-declared or model-selected exception.
+    // Keep null distinct from []: children inherit omission and may drop grants.
+    ImmutableArray<string>? processReadPaths = null;
+    string readPathJson = Selected("--process-read-paths", "EN_PROCESS_READ_PATHS");
+    if (readPathJson.Length != 0)
+    {
+        if (readPathJson.Length > 262144)
+        {
+            throw new ArgumentException("Process read path configuration is too large.");
+        }
+        string[] paths = System.Text.Json.JsonSerializer.Deserialize<string[]>(readPathJson)
+            ?? throw new ArgumentException("Process read paths must be a JSON array.");
+        processReadPaths = paths.ToImmutableArray();
+    }
     string dataDirectory = Selected("--data-dir", "EN_DATA_DIR");
     string agentName = Selected("--agent-name", "EN_AGENT_NAME");
     string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
@@ -226,7 +247,8 @@ try
         wakeOnLanMac: Selected("--wake-on-lan", "EN_WAKE_ON_LAN"),
         // How long a woken provider gets to open its port. Only the operator knows
         // whether this is a thirty-second desktop or a box that loads a model first.
-        wakeTimeoutSeconds: ParseWakeTimeout(Selected("--wake-timeout", "EN_WAKE_TIMEOUT")));
+        wakeTimeoutSeconds: ParseWakeTimeout(Selected("--wake-timeout", "EN_WAKE_TIMEOUT")),
+        processReadPaths: processReadPaths);
     if (billing == BillingMode.ChatGptPlan && string.IsNullOrWhiteSpace(credentialsDirectory))
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
@@ -248,6 +270,7 @@ try
     }
     var globalSettings = new GlobalSettings(app, globalSettingsPath);
     RegisterApiOfferings(app, globalSettings);
+    RegisterOpenRouterOfferings(app, globalSettings);
     RegisterSubscriptionOfferings(app, config, launchCodex, launchCredentials,
         accountSelection.Length != 0 ? accountSelection : savedAccount);
     string modelConfigurationPath = Selected("--model-config", "EN_MODEL_CONFIG");
@@ -300,10 +323,9 @@ try
         _ = new CacheLens(agent.Engine(), cacheLensDirectory);
     }
     agent.InstallTools();
-    string log = Selected("--event-log", "CH02_LOG");
-    if (log.Length == 0)
+    if (Env("CH02_LOG").Length != 0 || Env("EN_SAVE_LOG").Length != 0 || Env("EN_ARCHIVE_LOG").Length != 0)
     {
-        log = Path.Combine(actorHome, "events.jsonl");
+        throw new ArgumentException("Legacy event-log environment options were removed; use --audit for the recovery journal.");
     }
     string skillsDirectory = Selected("--skills-dir", "EN_SKILLS_DIR");
     string primarySkill = Selected("--primary-skill", "EN_PRIMARY_SKILL");
@@ -333,18 +355,15 @@ try
     if (!flags.ContainsKey("--no-save") && Env("EN_DISABLE_SAVE") != "1")
     {
         string savePath = Selected("--save", "EN_SAVE_PATH");
-        string retention = Selected("--save-log", "EN_SAVE_LOG");
-        string archive = Selected("--archive-log", "EN_ARCHIVE_LOG");
-        agent.StartPersistence(new PersistenceOptions(savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath,
-            retention.Length == 0 ? -1 : int.Parse(retention, System.Globalization.CultureInfo.InvariantCulture),
-            archive.Length == 0 ? null : archive));
+        agent.StartPersistence(new PersistenceOptions(
+            savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath,
+            Audit: flags.ContainsKey("--audit")));
     }
     // Load durable state before replacing this Agent's previous diagnostics.
     // These legacy overrides affect only the root, not its children or peers.
     agent.StartDiagnostics(
         Env("CH06_API_LOG") is { Length: > 0 } apiPath ? apiPath : null,
         Env("CH07_GUI_LOG") is { Length: > 0 } guiPath ? guiPath : null);
-    agent.History().StartLog(log);
     // Shared GUI preferences belong to the application container. The reusable
     // GUI still borrows an Agent and accepts explicit caller-owned options.
     string bindHost = hostFlags.GetValueOrDefault("--host", "127.0.0.1");
@@ -619,6 +638,23 @@ static void RegisterApiOfferings(Application app, GlobalSettings settings)
                 recommendation.Label, features);
         }
     }
+}
+
+// A gateway has its own provider identity and credential even when it implements
+// another provider's wire format. Pin :free; there is no paid-route fallback.
+static void RegisterOpenRouterOfferings(Application app, GlobalSettings settings)
+{
+    ModelAuthentication? binding = settings.BindOpenRouterApiKey("openrouter-api");
+    if (binding is null)
+    {
+        return;
+    }
+    var vendor = new ModelVendor(app, "openrouter", "OpenRouter");
+    var endpoint = new ModelEndpoint(vendor, "api", "https://openrouter.ai/api/v1/messages",
+        Surface.Messages, binding);
+    _ = new Model(endpoint, "flint-v1_0-free", "recursive/flint-v1.0:free", "Flint v1.0 (free)",
+        new ModelFeatures(Media.None, Stream: true, ContextWindow: 262144),
+        requestPolicy: new ModelRequestPolicy(toolSchemas: ToolSchemaPolicy.PatternLengthCompatibility));
 }
 
 // Subscription routes share the OpenAI vendor with API funding, so the picker

@@ -6,8 +6,8 @@
 are preserved from the first edition's October 2026 account. They describe that
 work, not fresh measurements of today's products or of the C# implementation.
 The third-edition foundation and working V3 crossover have been accepted for
-daily use. Chapter 25 covers multimedia with 100/100 external media points and
-explicit platform limits. Chapter 26 retains the crossover acceptance
+daily use. Chapter 26 covers multimedia with 100/100 external media points and
+explicit platform limits. Chapter 30 retains the crossover acceptance
 requirements. Gateway and the connected personal-system work now belong in
 the separate [Puffin book](../puffin-book/README.md).*
 
@@ -64,15 +64,13 @@ This book is for the engineer who cannot afford that waste, or who does not want
 
 ## What this book is
 
-Every technical book ever written starts dying the day it ships. Frameworks move, APIs change, the version numbers in the examples stop matching the ones in the world, and three years later someone writes the same book again with updated screenshots. The genre has a half-life.
+Ensemble is the blueprint and the result: an AI coding agent built chapter by
+chapter from explanations, exercises and checks. The experiment is whether the
+teaching transfers to a builder who was not present for the original decisions.
+Working code, understandable ownership and a usable agent are the evidence.
 
-This book is designed to break it.
-
-What you are holding is the blueprint for an AI coding agent called Ensemble, executable chapter by chapter, with acceptance criteria you can run and mutation tests that check whether those criteria detect particular defects. Hand this blueprint to a language model and ask it to build Ensemble from scratch. The experiment is whether the teaching transfers: working code, understandable decisions, and a usable agent at the end.
-
-Do it again next year with a better model and get a better Ensemble. Add a chapter and get a more capable one. The Ensemble you just built can help write the next chapter.
-
-That sequence is the ambition. Each edition must supply its own proof.
+A new model or a new chapter gives us another chance to improve the result, not
+a guarantee of improvement. Each edition must supply its own proof.
 
 ## A specification with receipts
 
@@ -97,12 +95,239 @@ reviewer could accept the documented exception; the failed score stayed in the
 record. Other failures were real bugs and had to be fixed. A grader is useful
 evidence, and it is also software someone wrote.
 
+## Learn the system's vocabulary
+
+When an engineer joins Bill's team, the first assignment is to read the
+project's data-structure diagram and learn the classes in it. That gives the
+newcomer the vocabulary to converse with the team. Someone who knows what an
+Agent owns, what a Job outlives and what History records can ask a useful
+question before knowing how every method works.
+
+Start with the whole map. The diagram on the following page shows Ensemble's
+current lifecycle relationships, not just the first chapter's loop. The
+chapters build that system incrementally; seeing its vocabulary now does not
+add later capabilities to an earlier exercise.
+
+An arrow runs from a parent to its child. A heavy arrow means **strong
+ownership**: destroying the parent cascades into destroying the child, including
+cancelling and joining owned work. A thin arrow means a **weak relationship**:
+destruction detaches the link without destroying the related object. An outlined
+arrowhead means one child slot, possibly empty; a filled triangle means
+potentially many. Color reinforces these distinctions, but stroke weight and
+arrowhead shape remain usable in a black-and-white copy.
+
+A child may have several parents. The MCP client has incoming arrows from its
+manager, its granting skill manager and, for a browser connection, its browser
+registration. Those are three relationships to one object, not three copies.
+Back-references exist in the code but are not drawn as redundant reverse arrows.
+The Agent self-edge means that an Agent can own other Agents, not itself.
+
+<div class="ownership-plate">
+
+**Ensemble's ownership map**
+
+![Ensemble strongly owns Agents, model vendors, authentication bindings, credentials, global settings and voice transcription. Agents own services, child Agents, questions and transfers. MCP clients and tools have multiple strong parents; model selection and authentication bindings are weak relationships.](figures/common-ownership.svg){.ownership-map}<!-- The adjacent legend is the printed caption; retain descriptive alternative text. -->
+
+**Heavy blue:** cascade-delete ownership. **Thin orange:** weak relationship.<br />
+**Outlined triangle:** one slot, possibly empty. **Filled triangle:** many.
+
+Arrows point from parent to child. Parallel Agent-to-question arrows represent
+sender and recipient. WorkProductTransfer is nested inside Agent. The separate
+transport pair shows the process transport's owned stream transport.
+
+</div>
+
+### The names on the map
+
+Read these as responsibilities, not implementation recipes. Each name below
+appears in the diagram; later chapters teach its behavior and failure boundaries.
+
+<!-- common-ownership-classes:start -->
+
+**Application and execution**
+
+- **Ensemble**: The application root that owns Agents, provider configuration and shared host resources.
+- **Agent**: The conversation actor that owns scheduling, tools, services and any delegated child Agents.
+- **History**: The canonical event log and its derived context, updated before further model requests.
+- **Engine**: The provider boundary that renders requests, performs transport and returns immutable response facts.
+- **CacheLens**: The optional Engine-owned diagnostic that compares request prefixes without becoming conversation authority.
+- **Jobs**: The Agent-owned manager of independently running tool work and its observation handles.
+- **Job**: One admitted tool execution, its output, cancellation and joined completion.
+- **AgentQuestion**: A pending question held by both sender and recipient until answer or cancellation.
+- **Agent.WorkProductTransfer**: An Agent-owned file-copy lifetime that shutdown cancels and joins.
+
+**Capabilities and retained knowledge**
+
+- **Tool**: A callable operation owned by its Agent and, when remote, its MCP client.
+- **Skills**: The Agent-owned skill catalog and connection manager; History retains active instruction and grant facts.
+- **Sandbox**: The Agent's filesystem and process boundary, retaining the effective root and access policy.
+- **Memory**: The Agent-owned store that reads and stages durable memory records and settings.
+- **Recaller**: The Agent-owned corpus indexes used to retrieve relevant material for a turn.
+
+**Connections**
+
+- **Mcp**: The Agent-owned manager of MCP connections and the registered browser target.
+- **McpBrowser**: One browser registration, owning its transport and any client created by claiming it.
+- **McpClient**: One JSON-RPC connection, its correlated replies, reader, reverse calls and remote tools.
+- **IMcpTransport**: The owned, replaceable message-I/O boundary shared by the concrete MCP transports.
+- **McpProcessTransport**: A subprocess transport that owns and joins its process, protocol streams and stderr drain.
+- **McpStreamTransport**: The newline-delimited JSON-RPC transport that owns its supplied streams.
+
+**Models and host services**
+
+- **ModelVendor**: A configured provider identity that owns its service endpoints.
+- **ModelEndpoint**: A configured service address and wire protocol that owns its model offerings.
+- **Model**: One configured offering, with capabilities and weak links to the Agents selecting it.
+- **ModelAuthentication**: A root-owned authentication binding with weak links to endpoints and credential sources.
+- **Credentials**: The host's plan-account credential owner, including sign-in and token renewal work.
+- **CodexCredentials**: The host's Codex subscription credential owner, kept distinct from plan-account credentials.
+- **GlobalSettings**: The explicitly selected host settings file, not an Agent's private policy store.
+- **VoiceTranscriber**: The separately funded host transcription service with its own request lifetime.
+
+<!-- common-ownership-classes:end -->
+
+The map concentrates on live ownership. Immutable values such as Configuration,
+Event, Context and Usage carry facts without acquiring a parent back-reference
+for every holder. Garbage collection can reclaim those values; it cannot perform
+the cancellation, joining and two-way detachment required by the ownership graph.
+
+### The context is part of the vocabulary, too
+
+The ownership map is only one sheet of the architecture. The conversation data
+matters just as much when discussing how an Agent works. Follow
+**Agent → History → Context → Entry → Part** on the next sheets. History keeps
+recorded events and the current Context; Context holds dialogue entries, and
+entries hold typed content parts. Context also holds one-request parts directly,
+memories, accumulated usage, execution phase and compression bookkeeping.
+
+An individual Context value is immutable, but History's current state changes.
+Applying an event produces a replacement Context. Existing entries and payloads
+can be shared; this is not a deep copy of all the conversation text. The current
+reducer does copy collection references, and the memory constructor sorts and
+validates them. Immutability alone is not a claim of constant-time updates.
+History stages the replacement and flushes its journal before publishing it.
+Replaying recorded events reconstructs state; it does not rerun external tools.
+
+The next sheet includes snapshots and compression receipts because they retain
+references to this state. Its gray arrows are **stored data references**, not
+weak lifecycle relationships. Value-like objects need no reverse membership for
+every holder. The diagrams show relationships among their named types, not every
+primitive field or every supporting type in Common.
+
+<div class="ownership-plate">
+
+**Context and recorded changes**
+
+![Agent owns History; History and HistorySnapshot retain Context and Events. Context contains Entries, Parts, memories, usage and compression receipts. Entries and Events retain Parts; compression receipts refer to selections, events, memories and usage records.](figures/common-context.svg){.context-map}<!-- Printed legend follows; retain descriptive alternative text. -->
+
+**Heavy blue:** lifecycle ownership. **Gray:** stored data reference.<br />
+**Outlined triangle:** one slot, possibly empty. **Filled triangle:** many.
+
+Arrows describe stored relationships, not event execution order. An Event can
+carry Parts directly; applying it updates History's current Context. The Part
+box connects this sheet to the following contents sheet.
+
+</div>
+
+### The names on the context sheet
+
+<!-- common-context-classes:start -->
+
+- **Agent**: The conversation actor that owns History and controls when requests and tools execute.
+- **History**: The owner of recorded events and the current Context, with journal-before-publication updates.
+- **HistorySnapshot**: A consistent read containing retained events, a Context and sequence/checkpoint metadata.
+- **Context**: An immutable conversation-state value that History replaces as events are applied.
+- **Event**: An immutable recorded fact whose kind and payload determine its effect on conversation state.
+- **Entry**: One dialogue contribution with its actor, sequence, timing and content Parts.
+- **Part**: The shared base type for a piece of dialogue, event or one-request content.
+- **MemoryEntry**: One retained memory record with its band, identity, timestamp and text.
+- **Usage**: Recorded token counters, including separate fresh input, cache writes, cache reads and output.
+- **PendingCompression**: A replayable receipt linking a compression launch to staged removal and replacement facts.
+- **CompressionLaunch**: The identity and exact source selection of a compression attempt, not a running worker.
+- **CompressionOutcome**: The last bounded compression result, including its state and documentary usage records.
+- **MeterEntry**: Token counts paired with the billing identity to which they belong.
+- **UsageIdentity**: The vendor, model, service tier and billing mode identifying a usage record.
+
+<!-- common-context-classes:end -->
+
+### What goes inside a conversation
+
+Part is a base class, not a container that owns one instance of every variant.
+On the next sheet, dashed purple arrows point from a concrete variant to Part
+and mean **is a kind of**. They have no one/many meaning. Solid gray arrows keep
+the stored-reference notation. A ToolResultPart can itself contain Parts; that
+is real nesting, distinct from inheritance.
+
+<div class="ownership-plate">
+
+**Conversation contents**
+
+![Entry retains Parts. TextPart, ToolCallPart, ToolResultPart, OpaquePart, BlobPart, SkillPart, RecallPart, HandoffPart and RedactedPart are variants of Part. Their stored references include provenance, blob locators, recall text and tool-result metadata. ToolResultPart can contain nested Parts.](figures/common-contents.svg){.context-map}<!-- Printed legend follows; retain descriptive alternative text. -->
+
+**Solid gray:** stored reference; outlined triangle means one, filled means many.<br />
+**Dashed purple:** subtype points to its base class; no multiplicity meaning.
+
+Metadata boxes represent recorded facts, not live Jobs or download permissions.
+This sheet shows the payload boundary; metadata's internal helper records and
+primitive fields are outside this view.
+
+</div>
+
+### The names on the contents sheet
+
+<!-- common-contents-classes:start -->
+
+- **Entry**: One contribution whose Parts form its recorded content.
+- **Part**: The base vocabulary for the concrete content variants shown here.
+- **TextPart**: Text with optional provider provenance and opaque continuation metadata.
+- **ToolCallPart**: A requested operation with its call identity, name, arguments and provider provenance.
+- **ToolResultPart**: A correlated tool result containing Parts, an error flag and optional recorded metadata.
+- **OpaquePart**: Provider-owned JSON retained with provenance rather than interpreted as ordinary text.
+- **BlobPart**: A media reference with its MIME type and locator, not embedded live file ownership.
+- **SkillPart**: Recorded skill instructions, tool names and primary/pending grant state.
+- **RecallPart**: Retrieved context carried by a RecallAttachment.
+- **HandoffPart**: The retained continuation note from a context handoff.
+- **RedactedPart**: A stub describing removed content, its reason, original size and optional blob locator.
+- **Provenance**: The provider/model/wire-surface identity needed to interpret and safely replay content.
+- **BlobRef**: The kind and locator of referenced media, not authority to read arbitrary files.
+- **RecallAttachment**: The actual attached recall text and its source hashes.
+- **JobInfo**: A recorded observation of a Job, not the live running Job object.
+- **WorkProductInfo**: A recorded offered-file description, not a live download grant.
+- **DirectoryListing**: Bounded directory facts captured when the tool ran.
+- **FileEvidence**: Bounded file-operation facts used to display the actual read or change.
+- **SearchEvidence**: Bounded search matches and locations captured by the search operation.
+
+<!-- common-contents-classes:end -->
+
+Ensemble's **Context** holds conversation state. The model's **context-window
+capacity** limits how much information it can process at once, measured in
+tokens. Ensemble also has a configurable **working limit** that can be lower
+than that capacity: it is the input-token threshold used to prompt a handoff.
+
+`WorkingContextLimit` stores the chosen per-model working limit and optional
+capacity ceiling. `WorkingContextStatus` reports the effective limits and latest
+accepted request's input measurement; unknown measurements stay unknown. These
+policy/status values describe limits and measurements, rather than holding the
+conversation itself. Context's Usage is accumulated recorded usage, not the size
+of the current request. Engine renders the
+conversation with configuration and request instructions into a provider request;
+the serialized request, rather than a mutable live Context, goes to transport.
+
+The repository keeps this map reproducible in `scripts/common-diagram/`.
+Roslyn extracts stored declarations from `agent/Common`; a reviewed relationship
+map supplies the cascade-delete semantics that field types alone cannot prove.
+The generator checks both ends of those relationships and refuses changed
+lifecycle evidence until it is reviewed. This is a design aid, not a substitute
+for testing destruction. The [companion diagrams](../docs/common-diagrams/README.md)
+include the complete stored-data graph, subsystem views and a searchable browser;
+the printed maps and class guides above stand on their own.
+
 ## Working through this edition
 
 Build one chapter on its accepted predecessor. Read its explanation as well as
 its exercise: the reason for a boundary is often what keeps the next feature
 from breaking it. Before writing code, load
-the `ensemble-csharp` skill and follow the
+the `ensemble-coding` skill and follow the
 [C# edition procedure](../docs/edition-3-csharp-procedure.md). They carry the
 implementation and review rules into an agent's working context. Chapter 1
 explains the initial architecture; later chapters introduce their own machinery
@@ -159,40 +384,28 @@ to its preserved endpoints rather than changing their historical numbers.
 The second-edition attempt history is in
 [`docs/edition-2-attempt-1.md`](../docs/edition-2-attempt-1.md).
 
-## The generation
-
-Hand this book to the next generation of language model. Point it at Chapter 1. It reads the chapter, builds the exercise, runs the grader, exercises the result and submits it for review. Once accepted, it moves to Chapter 2. Chapter by chapter, it rebuilds Ensemble from scratch. Passing checks establish the exercised contracts and detect the tested deletions; the working agent still has to demonstrate the rest. The graders are not quizzes.
-
-A more capable model has the opportunity to produce a better Ensemble. The graders set a floor: cleaner code, sharper tool descriptions, tighter error handling and a more natural conversation style still need comparison. The specifications say what the agent must do. They do not limit how well it does it.
-
-When a new capability earns a place in the book, write its exercise and checks, including the earlier behavior the change could affect. Ensemble gains the capability. The book grows. The next model that reads it has that capability to build too.
-
-No version of Ensemble is final. Each is a phenotype expressed from the same genome in the environment of whatever model reads it. The graders are the immune system, with the blind spots the reviews keep finding. The prose is the teaching. Together they define a living standard for what an AI coding agent is, and that standard evolves as the book learns from another implementation.
-
 ## The crossing
 
-Somewhere in this book you will use Ensemble to help build the next chapter's exercise. The agent you have been building becomes the tool you build with. This crossing has a name.
+Somewhere in this book you will use Ensemble to help build the next chapter's
+exercise. When a compiler compiles itself, we call it **self-hosting**. When an
+AI coding agent becomes the primary tool for its own continued development, we
+call it **self-wielding**.
 
-When a compiler can compile itself, we call it **self-hosting**. When an AI coding agent is capable enough that it becomes the primary tool for its own continued development, we call it **self-wielding**.
+The loop is concrete:
 
-After the crossing, every chapter you add is written with the tool the chapter extends. The agent that helps you build Chapter N+1 is the agent that Chapter N produced. The loop is:
+> Build Ensemble. Use it to develop the next capability. Test and review the
+> result. Correct the teaching from what the work revealed. Reconstruct again.
 
-> Build Ensemble. Use Ensemble to write the next chapter's code. Grade it. Update the brief from the coder's feedback. The next Ensemble is better. Repeat.
+The specifications say what the agent must do, not how well it can do it.
+Cleaner code, sharper tool descriptions and better conversation still require
+comparison. Passing a grader sets an exercised floor; it does not select the
+best design or establish that the replacement is comfortable to use.
 
-A self-improvement loop with graded checkpoints and mutation-tested guardrails, running on a model whose improvements must be demonstrated on each pass.
-
-For the earlier crossover experiment, Bill explicitly selected GPT-6 Astra
-(`gpt-6-astra`) at high reasoning. The new Ensemble has demonstrated actual coding with that
-configuration: reading a program, reproducing failures, editing it and passing
-the unchanged tests. That bounded task belongs to the earlier crossover record,
-not evidence of this edition's replacement readiness.
-
-The earlier second edition was built with Codex under Bill's direction. The C#
-third edition was built inside Ensemble. That closes the development loop, but
-does not by itself establish that the replacement is ready for daily use. The
-current crossover exercise in Chapter 26 requires an actual usable application,
-a safe trial, and the human's acceptance before promotion. That exercise is
-ongoing; implementation completion is not crossover acceptance.
+The second edition was built with Codex under Bill's direction. The C# third
+edition was built inside Ensemble and has been accepted for daily use. Chapter
+30 teaches the safe parallel trial, rollback and human acceptance that made
+that crossing deliberate. A reader's implementation must earn its own
+acceptance; ours does not transfer with the source.
 
 ## Your Ensemble
 
@@ -201,6 +414,3 @@ Your needs are different from mine. Maybe you work for a well-funded company tha
 Clone this book. Go through it chapter by chapter. Customize it. Change the tool set, the memory system, the observer, the voice. Make it yours. Use the graders, review and actual work to find what your changes broke and keep the foundation under them.
 
 This book was designed to be forked.
-
-The blueprint is designed to renew itself and the agent to become self-wielding. The book builds the agent, the agent helps build the book, and each generation gets another chance to improve it. Keeping that promise takes corrected teaching, working code and evidence that the next pass learned something the last one did not.
-

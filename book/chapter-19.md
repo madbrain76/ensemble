@@ -272,6 +272,18 @@ not a second global name registry. The declared parent operations validate
 before mutation, establish both links before returning, and remove both links
 during destruction. No manager, copied service bag or callback factory is needed.
 
+Keep human-readable labels separate from these identities. An Agent may have an
+optional persistent display name, set through `SetDisplayNameAsync` or the GUI's
+Speech & Display settings. Save the label before publishing it; a failed save
+must not rename the live view. Other settings writes preserve it, and restart
+restores it. Blank clears the label and returns to the existing ID-based display.
+Labels need not be unique: tree and selector values, routing, ownership, and disk
+paths still use the original IDs. Render labels as literal text, keep full IDs
+available for disambiguation, and never guess which pieces of an existing ID to
+strip. This is presentation state, not a change to an Agent's instructions or
+identity. The GUI accepts a single-line label of at most 120 UTF-16 code units;
+the native operation enforces the same bound.
+
 `CreateChildAsync(id, model, submitSchema, cancellation)` constructs a ready
 child, not a running task. It derives Chapter 18's narrow-only policy, captures
 parsed skill templates and current values, creates independent Skills and MCP
@@ -291,6 +303,12 @@ validated and copied before construction effects. Descendants without an
 explicit schema get the default contract, not their parent's answer format.
 Configuration and templates may be immutable values; live clients, activation
 relationships and mutable variable collections must not be shared.
+
+The spawn tool's optional positive `working_context_tokens` sets and saves the
+exact selected route's working-input limit before the first task. Known serving
+capacity bounds it; when that is unknown, advertised model capacity supplies the
+bound. Omission preserves ordinary child settings, not the parent's working limit.
+Invalid limits refuse before construction; initialization failure joins cleanup.
 
 Creation failure joins cleanup and preserves files, permitting a same-ID retry
 after detachment. Successful admission leaves an independently owned child even
@@ -347,21 +365,9 @@ child called `submit` with a conforming payload. Whether the work that
 payload describes is correct is a judgment the parent must make, not a
 fact the framework can verify.
 
-Seven tools form the fleet API:
-
-- `spawn_sub_agent` creates a child from a specification.
-- `join_agents` blocks until every listed child has submitted, returning
-  each child's result.
-- `agents_status` lists live children and their current state.
-- `shutdown_agent` stops a child and removes it from the fleet.
-- `send_message_to_parent` blocks the child until the parent replies.
-- `respond_to_parent_message` delivers the parent's reply and unblocks
-  the child.
-- `submit` records the Agent's completed result.
-
-These seven names are the exercise. Additional fleet tools are outside this
-chapter. An omitted reply ID resolves the sole matching pending question; if
-there are several, require the ID rather than guessing which child to resume.
+The seven tools in §19.1 form this chapter's fleet API. Additional fleet controls
+belong to the next chapter. An omitted reply ID resolves the sole matching pending
+question; several questions require an explicit ID.
 
 `join_agents` is the fan-in, and it has one behavior beyond blocking
 that the rest of the fleet depends on: it returns early when a child
@@ -378,7 +384,7 @@ The tool arguments are small:
 
 | Tool | Arguments |
 | --- | --- |
-| `spawn_sub_agent` | `agent_id`, `task`, optional `model` and `submit_schema` |
+| `spawn_sub_agent` | `agent_id`, `task`, optional `model`, `submit_schema`, and `working_context_tokens` |
 | `join_agents` | optional `agent_ids`; omitted means all current children |
 | `agents_status` | none |
 | `shutdown_agent` | `agent_id` |
@@ -833,7 +839,7 @@ product regression. GUI mounting, replay and browser relay evidence have their
 own scope; the executable fleet score does not include a GUI consumer score.
 
 These are local results, not live-model task quality, account entitlement,
-provider billing, audible speech or human accessibility. Chapter 23 records the
+provider billing, audible speech or human accessibility. Chapter 24 records the
 later bounded live OAuth/cache exercise separately. The following second-edition
 account is preserved history, not another measurement of this C# implementation.
 

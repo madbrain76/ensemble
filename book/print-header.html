@@ -1,14 +1,17 @@
 <style>
-@page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
-@page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
-@page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
+/* Give the body half a 14pt line more depth than the former 54pt footer
+   margin. Page-number baselines stay 24pt above the edge; the bottom 45pt
+   remains reserved and checked by build-print.py. Side gutters are unchanged. */
+@page         { size: 7in 10in; margin: 0.75in 0.5in 47pt 0.875in; }
+@page :left   { size: 7in 10in; margin: 0.75in 0.875in 47pt 0.5in; }
+@page :right  { size: 7in 10in; margin: 0.75in 0.5in 47pt 0.875in; }
 /* Footers and TOC references are stamped after Chrome pagination. */
 /* Page margins own the print measure; pandoc's screen padding must not narrow it. */
 html, body, a, a:visited { color: #000; }
 body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 10pt; line-height: 1.4; }
 h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
-h2            { font-size: 16pt; margin-top: 2em; }
-h3            { font-size: 14pt; margin-top: 1.5em; }
+h2            { font-size: 16pt; margin-top: 1.25em; }
+h3            { font-size: 14pt; margin-top: 1.25em; }
 p             { margin: 0; text-indent: 1.5em; }
 p:first-of-type, h1 + p, h2 + p, h3 + p { text-indent: 0; }
 table         { border-collapse: collapse; margin: 1em auto; font-size: 11pt; }
@@ -30,6 +33,24 @@ pre, code, div.sourceCode, pre *, code * {
 /* Pandoc defaults blockquotes to #606060: too faint on printed paper. */
 blockquote    { margin: 1em 2em; font-style: italic; color: #000; }
 blockquote *  { color: #000 !important; }
+/* The onboarding map is a real printed page, not a link to an online figure.
+   Keep the existing 7x10 geometry and full-width vector image. 610pt fits the
+   619pt body height; the adjacent legend stays with the diagram. */
+.ownership-plate {
+  break-before: page;
+  break-after: page;
+  break-inside: avoid;
+  height: 610pt;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.ownership-plate p { text-indent: 0; margin: 0 0 8pt; }
+.ownership-plate > p:first-child { font-size: 14pt; text-align: center; }
+.ownership-plate .ownership-map { display: block; width: 100%; height: auto; }
+/* Supplemental data sheets have different aspect ratios; preserve vector
+   proportions and leave space for their printed legends. */
+.ownership-plate .context-map { display: block; width: auto; height: auto; max-width: 100%; max-height: 460pt; margin: 0 auto; }
 /* Sidebars are framed callouts, not ordinary chapter subsections. Keep
    full-size black text, and permit long callouts to split across pages. */
 .print-sidebar {
@@ -66,6 +87,7 @@ blockquote *  { color: #000 !important; }
 #TOC li               { break-inside: avoid; }
 #TOC a                { display: block; padding-right: 0.6in; }
 /* Printed page 1 must be recto; physical page parity still owns the gutters. */
-#preface              { break-before: right; }
-.recto-spacer         { height: 1pt; break-after: page; }
+/* The measured spacer must start a page too: otherwise it can fit into the
+   last Preface page and fail to change Chapter 0's physical parity. */
+.recto-spacer         { height: 1pt; break-before: page; break-after: page; }
 </style>

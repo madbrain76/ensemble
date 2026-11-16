@@ -18,7 +18,7 @@ The breakfast story, byte measurements, and compaction experiments described her
 4. **A real checkpoint kind.** `micro_handoff` records an ordinary result and then `HandoffRecorded`. The reducer removes tool traffic and private replay material, replaces older active handoff notes, and preserves visible dialogue and manuals.
 5. **Immediate revocation, retained instructions.** Pending skill unload removes authority, including deferred references and automatic snapshots. Its manual remains in SYSTEM. Retiring that manual is not this chapter's job.
 6. **Recoverable facts.** Serialize writers, append journal records before publication, validate recovery candidates independently, and retain journal events beyond the validated backup—not merely beyond the current primary.
-7. **A full event archive.** An optional archive contains original facts, including tool payloads and cuts. It is not reconstructed dialogue and does not silently invent missing history.
+7. **Optional audit retention.** Audit keeps the recovery journal untruncated on disk, including original tool payloads and cuts. It creates no separate archive and cannot restore previously discarded records.
 8. **Honest verification.** Component, separate-consumer, CLI, GUI, browser and executable-grader checks establish different things. Passing a loopback provider does not establish a real provider, audible speech or human accessibility.
 
 The endpoint is still C# 14/.NET 10. Shared vocabulary and persistent state are declared in `Common`; functional partial implementations supply the bodies. The GUI remains a separate application, not another scheduler or transcript owner.
@@ -30,8 +30,9 @@ a consumed large result with a stub unless the model keeps it for later use.
 Do not silently override that decision because the retained result is large.
 At a deliberate checkpoint, keep one new note and clear tool traffic without
 summarizing away the conversation. Record every cut so replay knows exactly what
-happened. Preserve original facts separately, and make crash recovery depend on
-validated files rather than guesses about what was probably saved.
+happened. Use the recovery journal for original events, with audit controlling
+long-term retention. Crash recovery depends on validated files rather than
+guesses about what was probably saved.
 
 ## 14.1 Why is this byte here?
 
@@ -43,7 +44,7 @@ Ask three questions of every byte sent again with a request:
 
 A user prompt has a reason to remain. A useful explanation of an edit does too. A large file result often answered a question once and is now occupying the window without another decision to support. In Chapter 2's measured sessions, result bytes made up about 42 percent of conversation history by volume and call arguments another 30 percent. That made tool traffic the obvious place to look.
 
-A removed file result can often be obtained again by reading the file. That is not the same as recovering the original result: the file may have changed, and repeating a command may have effects. Preserve original facts in the archive when their historical identity matters. A stub should say that bytes were removed, not fabricate a trustworthy locator.
+A removed file result can often be obtained again by reading the file. That is not the same as recovering the original result: the file may have changed, and repeating a command may have effects. Enable audit before those facts are recorded when their long-term historical identity matters. A stub should say that bytes were removed, not fabricate a trustworthy locator.
 
 One earlier bug was particularly instructive: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
 
@@ -60,7 +61,7 @@ Ensemble → Agent → History
                  → Skills / MCP owners, when configured
 ```
 
-History owns committed Context, retained diagnostic events, sequence numbering and persistence coordination. Agent owns the target, the actor's temporary decisions and request admission. Immutable Context, entries and parts are value-like snapshots; they do not acquire holder back-pointers simply because several readers use them.
+History owns committed Context, the recent event window, sequence numbering and persistence coordination. Agent owns the target, the actor's temporary decisions and request admission. Immutable Context, entries and parts are value-like snapshots; they do not acquire holder back-pointers simply because several readers use them.
 
 Common declares the new operations and values, including:
 
@@ -178,14 +179,14 @@ The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. Hi
 3. Retaining the visible text, ordinary dialogue, system entries and skill manuals.
 4. Removing older active handoff parts and appending the newest note.
 
-Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in the event archive; clearing a working view does not rewrite history.
+Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in retained journal events; clearing Context does not rewrite those payloads. Their later retention is governed by §14.10–14.11.
 
-### Newest-only means one active note, not one archived event
+### Newest-only governs active notes, not journal retention
 
 After a successful handoff lands, active Context contains exactly one
 `HandoffPart`: the newest note, once. Retire every older marked note, including
 notes loaded from a snapshot made by an older runtime. Do this through the next
-ordinary handoff reduction, not by rewriting the saved archive or migrating it
+ordinary handoff reduction, not by rewriting saved events or migrating them
 behind the user's back. A rejected or uncommitted handoff does not replace the
 last successful note.
 
@@ -198,7 +199,8 @@ them. Measure actual provider-reported input separately from snapshot file size.
 Test this contract at its boundaries:
 
 - Seed an old note, then complete two new handoffs. Require only the final note
-  in active Context, while canonical History retains all three handoff facts.
+  in active Context and a resident event window beginning at the preceding
+  handoff. With audit enabled from the start, require all three facts on disk.
 - Hold a companion tool result. Before that result is recorded, require the old
   active note to remain. After recording all outcomes, apply the new cut once.
   Repeat with interruption and exact-ID refusals for undispatched batch tails.
@@ -215,7 +217,7 @@ retained Context with selected historical facts; it is not a complete journal.
 Do not replay compression removal/population transactions through that filtered
 transcript merely to calculate turn phase. Those transactions have already been
 applied to the authoritative snapshot. Keep core transaction validation strict.
-Chapter 21 adds compression: at that integration point, test two handoffs followed
+Chapter 22 adds compression: at that integration point, test two handoffs followed
 by a committed compression, then project the snapshot and connect a real GUI
 socket. Require connection, replay and current settings delivery, the newest
 visible note and correct turn state. A connection frame followed by repeated
@@ -296,7 +298,7 @@ Chapter 10 saved on joined shutdown. A killed process cannot perform that shutdo
 
 `Agent.StartPersistence` restores first, activates `<save-path>.journal.jsonl`, then records current runtime configuration. It runs before accepting input. Direct `History.Save` remains a snapshot operation; it does not silently enable continuous journaling. Explicitly disabled persistence remains available.
 
-All writers serialize through History's existing save gate. Append computes its next event and reduced state under a short state lock, writes and flushes the journal and optional diagnostic writer outside that state lock, then publishes committed events/Context/sequence. Readers can still capture the last committed snapshot during slow disk work. Another writer cannot race past it.
+All writers serialize through History's existing save gate. Append computes its next event and reduced state under a short state lock, writes and flushes the journal outside that state lock, then publishes committed events/Context/sequence. Readers can still capture the last committed snapshot during slow disk work. Another writer cannot race past it.
 
 If append fails, publish nothing live and poison further append/save attempts. A partially written sequence must not be reused under the pretense that nothing happened. Shutdown may then report the original recording fault, but explicit destruction still joins work and detaches owners.
 
@@ -307,29 +309,28 @@ Only complete newline-terminated journal records count. An incomplete final suff
 Saving follows a careful order:
 
 1. Capture a consistent snapshot without holding the state lock across disk I/O.
-2. Render and validate the candidate; prepare any requested archive.
-3. Validate the old primary before rotating it into backup. Never overwrite a good backup with corrupt primary bytes.
+2. Render and validate the state-only candidate.
+3. Validate and re-encode the old primary as state-only before rotating it into backup. Never overwrite a good backup with corrupt primary bytes.
 4. Replace the primary with the new validated snapshot.
-5. Retain journal records newer than the **validated backup**. Without a valid backup, retain them all.
-6. Only then trim the live diagnostic tail as configured.
+5. With audit off, discard only records at or below `min(validatedBackupSequence, previousHandoff - 1)`. With no valid backup or no preceding handoff, retain them all.
+6. Audit leaves the disk journal untruncated; it does not change the in-memory window, which advances at handoffs.
 
 The journal is not trimmed merely to the latest primary boundary: that would destroy the facts a backup needs after primary corruption. No `fsync` or hardware power-loss guarantee is claimed here. The executable crash exercise tests process kill and recovery, including a torn final suffix.
 
-## 14.11 A full archive must really be full
+## 14.11 Optional audit uses the same journal
 
-An optional `ArchivePath` is an event-complete JSON-lines log. A dialogue-only reconstruction cannot replay cuts, tool outcomes, skill grants or lifecycle facts, so it is not an adequate substitute.
+There is no separate diagnostic writer or event archive. `Audit: true` simply prevents truncation of the recovery journal. Original event payloads, cuts, tool outcomes, and lifecycle facts remain there on disk. Both modes retain only the working window since the preceding handoff in memory; snapshots contain Context and scalar recovery metadata, never an event array.
 
-Before changing snapshots or trimming, merge the existing archive, available journal and retained diagnostic events. Require a contiguous sequence from one through the captured boundary. Overlapping sequence identities must serialize identically; missing earlier facts, conflicting overlaps or future events refuse before snapshot/backup changes. Strict UTF-8 prevents silently changing original bytes through replacement characters.
+Journal reading validates one complete record at a time. Startup still scans and rewrites its validated prefix to remove any torn suffix, so an enormous audit journal costs disk I/O, but not an allocation proportional to its full history. Ordinary Context and the current record still require memory.
 
-If no source still contains an early event, enabling an archive later cannot manufacture it from reduced Context. Report the missing history. Keep archive, save, backup, journal and open diagnostic paths distinct. Writing an archive successfully before a later snapshot failure is acceptable; a retry must validate and reuse it safely.
+Enabling audit late does not recreate discarded records. A complete journal beginning at one can be imported with `History.Load` for offline replay. A truncated journal requires its matching snapshot and must not be presented as a complete historical archive. Memory compression neither writes nor depends on an archive file.
 
-The public `History.Load` log path can replay this archive. It recovers the reduced working view because the original payloads and the subsequent cuts are both there. Diagnostic retention zero therefore need not mean lost history—provided journaling/archive saving actually preserved it. A snapshot alone remains a different artifact.
 
 ## 14.12 One setting, one authority
 
 The library Agent owns the live byte target. The GUI's settings snapshot reads it rather than keeping a second mutable copy in presentation preferences. Validate a proposed patch and save it before publishing either preferences or policy. A failed save must leave the old file, live policy and both clients' acknowledged values unchanged.
 
-The GUI labels this control **Tool-result stubbing budget**. It is not a handoff threshold. Per-model working-context limits are separate whole input-token settings, described in Chapter 21; never reinterpret a legacy byte value such as `250` as 250,000 tokens.
+The GUI labels this control **Tool-result stubbing budget**. It is not a handoff threshold. Per-model working-context limits are separate whole input-token settings, described in Chapter 22; never reinterpret a legacy byte value such as `250` as 250,000 tokens.
 
 The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
 
@@ -357,15 +358,14 @@ An ordinary interactive CLI launch can opt in explicitly:
 ```sh
 dotnet Cli/bin/Debug/net10.0/ch04.dll \
   --context-budget-bytes 400000 --stub-tool-results \
-  --save /owned/session/save.json --save-log 0 \
-  --archive-log /owned/session/archive.jsonl
+  --save /owned/session/save.json --audit
 ```
 
-Supply provider configuration through the already documented host boundary; do not put credentials in conversation or the archive. For offline replay:
+Supply provider configuration through the already documented host boundary; do not put credentials in conversation or the journal. For offline replay:
 
 ```sh
-dotnet Cli/bin/Debug/net10.0/ch04.dll dump /owned/session/archive.jsonl
-dotnet Cli/bin/Debug/net10.0/ch04.dll render /owned/session/archive.jsonl
+dotnet Cli/bin/Debug/net10.0/ch04.dll dump /owned/session/save.json.journal.jsonl
+dotnet Cli/bin/Debug/net10.0/ch04.dll render /owned/session/save.json.journal.jsonl
 ```
 
 These commands inspect recorded facts and render a request; they do not establish provider success. CLI JSON-line user input queues work. If an exercise needs a clear after a particular turn, wait for that turn's durable completion rather than sending several lines and assuming each blocks.

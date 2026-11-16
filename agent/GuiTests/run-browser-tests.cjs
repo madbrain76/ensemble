@@ -91,6 +91,30 @@ const PLAN = {
             env: { GUI_FIXTURE_URL: fs.readFileSync(path.join(context.dir, 'url'), 'utf8').trim() },
         }),
     },
+    // Both read their origin from the fixture's url file and stop it by writing
+    // next to it, so they need the fixture that serves the shipped page from a
+    // private directory: the crossover host cannot stand in, because these suites
+    // inject frames into the page rather than driving a mounted Agent.
+    // Both read their origin from the fixture's url file and stop it by writing
+    // next to it, so they need the fixture that serves the shipped page from a
+    // private directory: the crossover host cannot stand in, because these suites
+    // inject frames into the page rather than driving a mounted Agent.
+    'history-window.cjs': {
+        host: (context) => ['--artifact-renderer-fixture', context.dir], waitFor: 'url',
+        stopFile: 'stop', inputs: (context) => ({ args: [context.dir] }),
+    },
+    'error-cards-browser.cjs': {
+        host: (context) => ['--artifact-renderer-fixture', context.dir], waitFor: 'url',
+        stopFile: 'stop', inputs: (context) => ({ args: [context.dir] }),
+    },
+    'recall-browser.cjs': {
+        host: (context) => ['--artifact-renderer-fixture', context.dir], waitFor: 'url',
+        stopFile: 'stop', inputs: (context) => ({ args: [context.dir] }),
+    },
+    'workflow-job-sessions.cjs': {
+        host: (context) => ['--artifact-renderer-fixture', context.dir], waitFor: 'url',
+        stopFile: 'stop', inputs: (context) => ({ args: [context.dir] }),
+    },
     'inline-dice.cjs': {
         requires: () => (fs.existsSync(path.join(SHARED, 'inline-dice.js')) ? null : 'built distribution skills/shared'),
         inputs: () => ({ args: [SHARED] }),

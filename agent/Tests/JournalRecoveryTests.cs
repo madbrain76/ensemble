@@ -48,7 +48,7 @@ internal static class JournalRecoveryTests
             var source = Owner(app).History();
             source.StartJournal(path);
             source.Append(Message("one"));
-            source.Save(new PersistenceOptions(path, 0));
+            source.Save(new PersistenceOptions(path));
             source.Append(Message("two"));
             string[] committed = File.ReadAllLines(journal);
             Check(committed.Length > 0, "Journal fixture wrote no records");
@@ -74,7 +74,7 @@ internal static class JournalRecoveryTests
             Check(!File.Exists(journal), "the rejected file must stop being the active journal");
 
             restored.Append(Message("three"));
-            restored.Save(new PersistenceOptions(path, 0));
+            restored.Save(new PersistenceOptions(path));
             var again = Owner(app).History();
             Check(again.LoadSave(path) && Text(again) == "one|two|three",
                 "later saves must stay recoverable after a rejected tail");

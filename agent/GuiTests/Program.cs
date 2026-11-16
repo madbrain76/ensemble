@@ -72,9 +72,19 @@ if (args is ["--configured-model-fixture", var fixtureDirectory])
     await ConfiguredModelTests.RunAsync(fixtureDirectory);
     return;
 }
+if (args is ["--peer-controls-tests"])
+{
+    await PeerControlsTests.RunAsync();
+    return;
+}
 if (args is ["--configured-model-tests"])
 {
     await ConfiguredModelTests.RunAsync();
+    return;
+}
+if (args is ["--history-window-tests"])
+{
+    await HistoryWindowTests.RunAsync();
     return;
 }
 if (args is ["--job-window-tests"])
@@ -585,6 +595,7 @@ finally
     }
 }
 await ArtifactEvidenceTests.RunAsync();
+await HistoryWindowTests.RunAsync();
 await HandoffProjectionTests.RunAsync();
 await PeerControlsTests.RunAsync();
 await ImageControlsTests.RunAsync();

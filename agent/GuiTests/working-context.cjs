@@ -42,7 +42,12 @@ const { launchBrowser } = require('./browser-launch.cjs');
             await page.waitForFunction(() => document.querySelector('#notice').textContent.includes('not acknowledged'));
             assert.match(await page.locator('#state').textContent(), /31% context/,
                 'Failed-save form rollback must not replace the latest measurement');
-            assert.equal(await page.locator('#working-context-tokens').inputValue(), '100');
+            // The refusal must not rewrite what the operator typed: the form keeps
+            // an unsent draft apart from the acknowledged policy. What must not move
+            // is the policy itself, so it is read from the frame that reports it
+            // rather than inferred from the field.
+            assert.equal(await page.locator('#working-context-tokens').inputValue(), '200');
+            assert.equal(await page.evaluate(() => workingContext.working_tokens), 100);
             await page.locator('#settings-close').click();
         } finally {
             fs.rmdirSync(settingsPath);
@@ -78,8 +83,18 @@ const { launchBrowser } = require('./browser-launch.cjs');
             await page.locator('#save-working-context').click();
             await page.waitForFunction(() => document.querySelector('#notice').textContent.includes('not acknowledged'));
             assert.match(await page.locator('#working-context-model').textContent(), /claude-opus-4-6/);
+            // The refused write keeps the operator's unsent edit, so the durable
+            // policy is read the same way the suite reads it anywhere else: after a
+            // reload, which discards drafts. The stale prior-model value the original
+            // assertion guarded against is still refused here.
+            assert.equal(await page.locator('#working-context-tokens').inputValue(), '200');
+            await page.locator('#settings-close').click();
+            await page.reload();
+            await page.waitForFunction(() => document.querySelector('#working-context-model')
+                .textContent.includes('claude-opus-4-6'));
+            await page.locator('#settings-open').click();
             assert.equal(await page.locator('#working-context-tokens').inputValue(), switchedLimit,
-                'Failed save after model switch must restore that model, not stale prior-model settings');
+                'Failed save after model switch must leave that model acknowledged, not stale prior-model settings');
         } finally {
             fs.rmdirSync(settingsPath);
             fs.renameSync(backup, settingsPath);

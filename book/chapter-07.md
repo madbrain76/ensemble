@@ -153,6 +153,19 @@ text; replay reconstructs the same card, not a duplicate. Repeated final frames
 are idempotent. The server and browser both reject resurrection of completed
 content by stale chunks.
 
+Chat and Tools need separate display windows. Each defaults to 100 contributing
+events; tool traffic must not evict conversation, nor chat evict tool output.
+Count a mixed event once per pane and select its parts independently. Keep
+state/lifecycle replay bounded too, while deriving final state from all facts.
+Display eviction is presentation policy, never deletion from saved History.
+
+Continuing Job output has a different identity from each recorded observation.
+A `wait_for_job` result updates and foregrounds the same output view; its audit
+record does not require another top-level output card. Preserve the recorded
+operation name even for background MCP results without an assistant call card.
+Chapter 29 develops this continuing view, and the Chapter 30 field notes record
+the workflow case that exposed the original command-only restriction.
+
 ### Keep the mount-local identity distinct
 
 An empty `agent_id` can identify the original unnamed Agent borrowed by a GUI
@@ -464,7 +477,7 @@ narration off cancels that browser's current and queued speech. A rate or voice
 change affects the next constructed utterance, not audio already speaking.
 Microphone recording and transcription funding are separate from speech output.
 The hold-to-talk shortcut is a browser-profile preference, not Agent policy;
-Chapter8 specifies its local storage and Chapter25 implements its input guards.
+Chapter8 specifies its local storage and Chapter26 implements its input guards.
 Automatic narration reads only new content for the Agent selected in that tab.
 A selected tab may be in the background; selection is not foreground visibility.
 
@@ -565,7 +578,7 @@ Run it from an owned workspace, selecting a provider and model explicitly:
 dotnet run --project /path/to/Examples/Gui -- \
   --port 8097 --workspace /path/to/owned-work \
   --vendor anthropic --model SELECTED-MODEL --base-url PROVIDER-URL \
-  --event-log event.log
+  --save save.json
 ```
 
 Credentials come from the existing `LLM_API_KEY` environment contract, not from
@@ -578,7 +591,7 @@ Keep four kinds of evidence distinct:
 
 | Log | Contents |
 |---|---|
-| `event.log` / `--event-log` / `CH02_LOG` | canonical recorded facts |
+| `<save>.journal.jsonl` | canonical recorded facts; `--audit` preserves its available history |
 | `api.log` / `CH06_API_LOG` | existing sanitized request/payload trace |
 | `gui.log` / `CH07_GUI_LOG` | UTC timestamp, direction, and GUI JSON frame |
 | `debug.log` | ordinary application diagnostics |
@@ -630,15 +643,13 @@ grade-edition2 -ch 7 -executable-only \
   /absolute/path/to/gui-launcher
 ```
 
-This route covers 80 points: wire behavior, reconnect replay, GUI trace, and
-pause semantics. It excludes inherited Chapter 6 scoring and Go topology
-checks. The full historical Go route remains available and unchanged in scope.
-Neither route establishes accessible speech quality or real provider acceptance.
-These historical points do not certify the added snippet-copy obligations.
-Use focused browser tests for that contract here. The named Artifacts grader
-covers snippet copying in the later integrated runtime; its later Agent and GUI
-APIs are not prerequisites for this early chapter. Student reconstruction and
-human usability remain distinct from either set of checks.
+This 80-point route covers wire behavior, reconnect replay, GUI trace and pause
+semantics, not inherited Chapter 6 scoring or Go topology. The historical Go
+route is unchanged. Neither certifies accessible speech, real providers or the
+added snippet-copy contract; use focused browser tests for that contract. The
+later Artifacts grader covers integrated copying, but its Agent and GUI APIs
+are not prerequisites here. Student reconstruction and human usability remain
+separate checks.
 
 For a human exercise, use a bounded task in the owned workspace. Watch a
 response stream, inspect thinking and tool details, send a hint, pause and
@@ -646,8 +657,7 @@ unpause, and interrupt while paused. Reconnect while work continues. Listen to
 individual full artifacts and try automatic narration if authorized. Keep the
 actual logs and describe failures honestly.
 
-The C# endpoint's offline protocol, browser, and fake-speech evidence is recorded
-in `docs/edition-3-csharp-progress.md`. Paid-provider work and audible-user
-verification must remain explicitly incomplete when they have not been done.
-A green grade is evidence for its checks, not a replacement for these boundaries
-or for an inspection of the ownership and call paths.
+The C# offline protocol, browser and fake-speech evidence is in
+`docs/edition-3-csharp-progress.md`. Keep unperformed paid-provider and audible-user
+checks explicitly incomplete. A passing grade does not replace those checks or
+inspection of ownership and call paths.

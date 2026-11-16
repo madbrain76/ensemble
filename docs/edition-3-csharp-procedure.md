@@ -1,3 +1,44 @@
+# Current boundary: editorial integration and print proportion
+
+The authorized editorial pass clarified current contracts, integrated prerequisite
+teaching and reduced repeated explanations and development bookkeeping. Quality,
+not length, is the criterion; the detailed failure stories and executable
+requirements remain. No runtime source or historical endpoints changed.
+
+The revised local Revision 2 artifacts contain all 31 chapters, with 539 interior
+pages and 540 covered pages at 7 × 10 inches. Body and code remain 10 point.
+At Bill’s request the body extends seven points farther down each page; the
+47-point bottom margin leaves the page numbers in their former position. The
+minimum measured text-to-number bounding-box gap is 15.5 points. Representative
+rendered pages, including the tightest footer, were inspected.
+
+All 14 publishing regressions pass. EPUB CRC/XML and chapter spine order,
+PDF type size, contents links, page labels and revision text were checked.
+The native/workflow results below belong to the preceding code closeout, not a
+new runtime campaign. Website PDF/EPUB copies match the revised book artifacts byte for byte.
+Push, deployment and KDP upload remain outside this local completion.
+
+# Current boundary: Workflows closeout and Third Edition, Revision 2
+
+Bill has closed the Workflows development increment and requested publication of
+this 31-chapter edition (00–30). Chapter 21 records the implemented contracts,
+independent reviews, assisted student reconstruction, and supervised live novel
+use. The novel completed its initial draft and first revision pass; Bill stopped
+later review to read it. No three-round completion is claimed.
+
+Release checks: 389 native tests, 88 Python workflow tests, 14 publishing tests,
+and the external stdio workflow grader passed. The optional spawn-time working
+limit is saved before first task admission; only global fiction reviewers request
+700,000 automatically. Existing workers and other roles are not retuned.
+
+Local release artifacts are rebuilt and verified: 31 chapters, 561 interior
+pages and 562 covered pages at 7 × 10 inches with 10-point body type. The EPUB
+spine order and representative rendered pages were checked; website PDF/EPUB
+copies match byte for byte. Public pushes/deployment and hardcover layout remain
+separate decisions. No installation or restart is part of this
+closeout. Historical boundaries below preserve their original evidence and limits;
+they are not instructions to resume superseded development campaigns.
+
 # Current boundary: PR integration closed; Local Models next
 
 The manuscript contains Chapters00–28. Adopted Artifacts/Actions changes and their

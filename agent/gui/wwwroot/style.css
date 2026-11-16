@@ -149,7 +149,7 @@ summary { cursor: pointer; color: var(--accent); overflow-wrap: anywhere; paddin
 .tree-delete.btn { flex: none; border: 0; background: transparent; color: var(--bs-body-color); }
 .tree-delete svg { width: 1.35rem; height: 1.35rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .agent-toolbar { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; margin-top: .25rem; }
-#peer-open { flex: 1; }
+#peer-open { flex: none; }
 .peer-dialog { width: min(28rem, calc(100vw - 1rem)); max-height: calc(100dvh - 2rem); overflow: auto; background: var(--surface); color: var(--bs-body-color); border: 1px solid var(--control-edge); border-radius: .5rem; padding: .5rem; }
 .peer-dialog::backdrop { background: rgb(0 0 0 / .6); }
 .peer-dialog h2 { font-size: 1.1rem; }
@@ -290,7 +290,12 @@ body.compact #transcript { padding: .3rem; }
 #transcript .media { gap: .2rem; }
 #notice { padding-inline: .4rem; }
 /* Settings keep their controls/handlers, but no longer compete with the tree. */
-.agents-heading { margin: 0; padding: .3rem .4rem; font-size: 1rem; border-bottom: 1px solid var(--edge); }
+/* The heading's targets keep a fixed physical size while its text scales, so at a
+   large font in a narrow pane the row cannot fit. Without wrapping it overflows the
+   pane and the trailing control lands beneath the chat column, where it can be seen
+   but never reached. */
+.agents-heading { display: flex; align-items: center; justify-content: space-between; gap: .25rem; flex-wrap: wrap; padding: .3rem .4rem; border-bottom: 1px solid var(--edge); }
+.agents-heading h2 { margin: 0; font-size: 1rem; }
 .agents-content { flex: 1; min-height: 0; overflow: auto; }
 .settings-dialog { width: min(48rem, calc(100vw - 1rem)); max-width: none; height: min(42rem, calc(100dvh - 1rem)); max-height: none; padding: 0; overflow: hidden; background: var(--surface); color: var(--bs-body-color); border: 1px solid var(--control-edge); border-radius: .5rem; }
 .settings-dialog[open] { display: flex; flex-direction: column; }

@@ -71,14 +71,15 @@
 </nav>
 <main id="workspace" data-pane="chat">
  <aside id="left-pane" aria-label="Agents">
- <h2 class="agents-heading" id="agents-tab">Agents</h2>
+ <div class="agents-heading"><h2 id="agents-tab">Agents</h2>
+ <button class="btn btn-secondary icon-button" id="peer-open" type="button" aria-label="Create Agent" title="Create Agent">+</button></div>
  <div class="agents-content"><section id="agents-panel" aria-labelledby="agents-tab" tabindex="0">
  <ul id="agent-tree" role="tree" aria-label="Agent hierarchy"></ul>
  <div id="agent-actions" class="agent-actions" role="toolbar" aria-label="Selected Agent actions">
   <button class="btn btn-quiet icon-button" type="button" data-agent-delete data-delete-agent="" disabled aria-label="Delete selected Agent" title="Select a deletable Agent first"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
  </div>
  <select id="agent-choice" hidden aria-hidden="true" tabindex="-1"></select>
- <div class="agent-toolbar"><button class="btn btn-secondary" id="peer-open" type="button">Create Agent</button>
+ <div class="agent-toolbar">
  <a id="relay-link" class="btn icon-button" target="_blank" rel="noopener noreferrer" aria-label="Open selected Agent in a separate relay tab" title="Open selected Agent in a separate relay tab" hidden>↗</a>
  <button class="btn btn-quiet" id="peer-cancel" type="button" hidden>Cancel creation</button></div>
  <div id="peer-notice" class="notice" role="status"></div>
@@ -146,6 +147,7 @@
  <label>Tool-result stubbing budget <input class="form-control" id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <fieldset id="working-context-settings"><legend>Per-model working context</legend>
 <p id="working-context-model"></p>
+<p>Valid changes save when you leave a field. Save can retry an unsaved edit.</p>
 <label>Working limit <input class="form-control" id="working-context-tokens" type="number" min="1" step="1"> input tokens</label>
 <label>Capacity ceiling <input class="form-control" id="context-capacity-tokens" type="number" min="1" step="1" placeholder="Unknown"> input tokens (blank = unknown)</label>
 <p>80%: one reminder. 90%: reminder on every model request. 100%: automatic completed handoff. Raise the working limit before a deliberate large review. These percentages use the last reported request, not a prediction; a capacity ceiling validates the setting but cannot guarantee the next request fits.</p>
@@ -220,8 +222,15 @@
  <p id="voice-shortcut-help">While this page has focus, hold the selected key to talk; release to send. Right Alt is not used for AltGr or Apple Option. Modifier chords and open dialogs refuse capture. The microphone button works independently.</p>
  <label>Voice (this browser) <select class="form-select" id="voice"><option value="">Browser default</option></select></label>
  <p>Speech is opt-in using the header checkbox. Voice choices are provided by this browser.</p>
- </section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Shared user profile</h2>
- <form id="user-settings">
+ </section><section class="settings-section" aria-labelledby="agent-name-heading"><h2 id="agent-name-heading">Selected Agent</h2>
+ <form id="agent-name-settings">
+ <label for="agent-display-name">Selected Agent: display name</label>
+ <input class="form-control" id="agent-display-name" maxlength="120" autocomplete="off">
+ <p>A readable label only; the unique ID and saved files do not change. Leave blank to show the ID. Saves when you finish editing.</p>
+ <button class="btn btn-secondary" type="submit">Save display name</button>
+</form>
+</section><section class="settings-section" aria-labelledby="user-heading"><h2 id="user-heading">Shared user profile</h2>
+<form id="user-settings">
  <label for="human-name">Name</label><input class="form-control" id="human-name" maxlength="120" autocomplete="name">
  <label for="human-description">Description</label><textarea class="form-control" id="human-description" maxlength="2000" rows="3"></textarea>
  <button class="btn btn-secondary" type="submit">Save user</button>
@@ -248,6 +257,7 @@
 <section class="tab-pane" id="settings-memory-panel" role="tabpanel" aria-labelledby="settings-memory-tab" tabindex="0">
 <section class="settings-section" id="memory-settings"><h2 id="memory-heading">Selected Agent’s memory</h2>
 <form id="memory-settings-form">
+<p>Valid changes save when you leave a field or toggle a checkbox. Save can retry; Reload discards unsaved edits.</p>
 <p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
 <fieldset><legend>Conversation</legend>
 <label><input class="form-check-input" id="memory-conversation-enabled" type="checkbox"> Enabled</label>
@@ -281,6 +291,7 @@
 <section class="tab-pane" id="settings-recall-panel" role="tabpanel" aria-labelledby="settings-recall-tab" tabindex="0">
 <section class="settings-section" id="recall-settings"><h2>Selected Agent’s recall</h2>
 <form id="recall-settings-form">
+<p>Valid changes save when you leave a field or toggle a checkbox. Save can retry; Reload discards unsaved edits.</p>
 <p>Saved in this Agent’s settings, applied to future turns. An in-flight recall keeps its captured policy. Disabling recall does not delete files or remove earlier attachments.</p>
 <label><input class="form-check-input" id="recall-enabled" type="checkbox"> Recall enabled</label>
 <label><input class="form-check-input" id="recall-judge-enabled" type="checkbox"> Use model judge</label>

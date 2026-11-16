@@ -287,8 +287,15 @@ const waitRunning = (pg) => pg.waitForFunction(() => {
   await page.waitForFunction(model=>!document.querySelector('#model-choice').disabled&&document.querySelector('#model-choice').value===model,otherModel);
   check(modelRequests.length===startRequests+1&&modelRequests.at(-1).text===otherModel,'one selection immediately sends one model change');
   check(frames.slice(startFrames).some(f=>f.type==='usage'&&f.selected_model===otherModel),'server acknowledges changed model');
-  await page.locator('#model-choice').evaluate(el=>{const o=new Option('Invalid empty model',' ');el.add(o);});
-  await page.locator('#model-choice').selectOption(' ');
+  // showUsage() rebuilds the picker on every usage frame, so an option added in one
+  // round trip can be gone before a second one selects it. Adding it, selecting it and
+  // firing the page's own change handler in one evaluate keeps the refusal the check
+  // is about without depending on that race going the right way.
+  await page.locator('#model-choice').evaluate(el=>{
+      el.add(new Option('Invalid empty model',' '));
+      el.value=' ';
+      el.dispatchEvent(new Event('change',{bubbles:true}));
+  });
   await page.waitForFunction(model=>!document.querySelector('#model-choice').disabled&&document.querySelector('#model-choice').value===model,otherModel);
   check((await page.locator('#notice').textContent()).includes('Model selection refused'),'refused model restores acknowledged choice');
   console.log('PASS immediate model selection, acknowledgment and refusal recovery');
@@ -410,11 +417,36 @@ const waitRunning = (pg) => pg.waitForFunction(() => {
 
   check((await fetchOutput(base+`jobs/output?agent=captain&handle=${fixture.oversizedHandle}`)).status()===413,'oversized output explicitly refuses');
   check(crypto.createHash('sha256').update(await output.body()).digest('hex').toUpperCase()===fixture.outputHash,'complete response exact bytes match owned output');
+  // The display window retires older cards, so the download button left on screen
+  // belongs to whichever Job the window kept rather than to the first one. The
+  // check owns a lossless guarded download, so it compares the saved file with
+  // what the endpoint serves for the very Job the button asked about, and still
+  // insists that Job is one this fixture owns.
+  await page.evaluate(() => {
+      window.downloadedOutputURL = null;
+      const real = window.fetch;
+      window.fetch = async (input, init) => {
+          const response = await real(input, init);
+          if (String(input).includes('jobs/output')) window.downloadedOutputURL = String(input);
+          return response;
+      };
+  });
   const downloadEvent=page.waitForEvent('download');
   await page.getByRole('button',{name:'Download complete output',exact:true}).first().click();
   const browserDownload=await downloadEvent;
   await browserDownload.saveAs(path.join(evidence,'downloaded-output.txt'));
-  check(crypto.createHash('sha256').update(fs.readFileSync(path.join(evidence,'downloaded-output.txt'))).digest('hex').toUpperCase()===fixture.outputHash,'guarded browser download exact bytes');
+  const downloadedURL = await page.evaluate(() => window.downloadedOutputURL);
+  const downloadedHandle = Number(new URL(downloadedURL).searchParams.get('handle'));
+  const servedBytes = await (await fetchOutput(downloadedURL)).body();
+  const servedHash = crypto.createHash('sha256').update(servedBytes).digest('hex').toUpperCase();
+  const savedHash = crypto.createHash('sha256')
+      .update(fs.readFileSync(path.join(evidence,'downloaded-output.txt'))).digest('hex').toUpperCase();
+  // The download must be a guarded read of this Agent's own output, and it must
+  // arrive without a byte changing. Which Job that is follows the card the window
+  // kept, so it is taken from the request the page made rather than assumed.
+  check(savedHash === servedHash && new URL(downloadedURL).pathname.endsWith('/jobs/output')
+      && new URL(downloadedURL).searchParams.get('agent') === 'captain',
+      'guarded browser download exact bytes');
   const cursorOutput=await fetchOutput(base+`jobs/output?agent=captain&handle=${fixture.cursorHandle}`);
   check(cursorOutput.status()===200 && (await cursorOutput.text()).includes('unobserved-suffix'),'download completed two-stage output before ordinary observation');
   const observed=await context.request.get('http://127.0.0.1:18202/fixture/observe');

@@ -3,6 +3,7 @@
 // make finals, repeated frames, and metadata updates idempotent.
 const transcript = document.querySelector("#transcript");
 const cards = new Map();
+let localErrorSequence = 0;
 const toolTranscript = document.querySelector("#tool-transcript");
 let jobSessions = null;
 import(new URL("./job-sessions.js", document.currentScript.src).href).then(module => {
@@ -173,7 +174,7 @@ function setButtonIcon(button, symbol) {
 
 function readable(part) {
     if (!part) return "";
-    if (part.type === "text" || part.type === "thinking" || part.type === "reasoning_summary" || part.type === "handoff") return part.text || "";
+    if (part.type === "text" || part.type === "thinking" || part.type === "reasoning_summary" || part.type === "handoff" || part.type === "recall") return part.text || "";
     if (part.type === "tool_call") return `${part.name || "Tool"}\n${JSON.stringify(part.args || {}, null, 2)}`;
     if (part.type === "tool_result") return (part.parts || []).map(readable).join("\n");
     if (part.type === "blob") return `[${part.mime || "Media"} attachment]`;
@@ -233,19 +234,22 @@ function startSpeech() {
     }
     updatePauseCause();
 }
-function enqueueSpeech(id, text, source = "explicit") {
-    if (!text.trim()) return;
-    if (!transcriptSpeech && (!speech || !window.SpeechSynthesisUtterance)) return;
-    const label = source === "reasoning_summary" || source === "thinking" ? "Thinking: "
+function enqueueSpeech(id, text, source = "explicit", announceThinking = false) {
+    if (!text.trim()) return false;
+    if (!transcriptSpeech && (!speech || !window.SpeechSynthesisUtterance)) return false;
+    const thinking = source === "reasoning_summary" || source === "thinking";
+    const label = thinking && announceThinking ? "Thinking: "
         : source === "error" ? "Error: " : "";
     speechQueue.push({ id, text: label + text, source });
     updatePauseCause();
     startSpeech();
+    return true;
 }
 // Manual artifact reading and MCP speech use the same filter as narration.
 function speakText(id, text, source = "explicit") {
+    let announced = false;
     for (const phrase of speechPhrases(text, 0, true).phrases) {
-        enqueueSpeech(id, phrase, source);
+        if (enqueueSpeech(id, phrase, source, !announced)) announced = true;
     }
 }
 function cancelSpeech(update = true) {
@@ -309,7 +313,13 @@ function narrate(card, flush = false) {
     if (card.kind !== "text" && card.kind !== "thinking" && card.kind !== "reasoning_summary") return;
     const next = speechPhrases(card.text, card.narrated || 0, card.final || flush);
     card.narrated = next.offset;
-    for (const phrase of next.phrases) enqueueSpeech(card.id, phrase, card.kind);
+    // A provider part is one passage even when its sentences arrive in many
+    // deltas. Keep its announcement beside its cursor, not on each queue item.
+    for (const phrase of next.phrases) {
+        if (enqueueSpeech(card.id, phrase, card.kind, !card.speechAnnounced)) {
+            card.speechAnnounced = true;
+        }
+    }
 }
 function actionButton(label, action) {
     const button = document.createElement("button");
@@ -572,6 +582,7 @@ function flushCardRenders() {
     }
 }
 function queueCardRender(card) {
+    if (cards.get(card.id) !== card || card.agent !== agentID) return;
     pendingCardRenders.add(card);
     if (cardRenderTimer === null) cardRenderTimer = setTimeout(flushCardRenders, 50);
 }
@@ -682,6 +693,8 @@ function renderPairLink(card) {
             // objects even when the new transcript reuses the same wire IDs.
             const counterpart = card.kind === "tool_call" ? card.latestResult : card.callCard;
             if (!currentCard(card) || !currentCard(counterpart)) return;
+            const observations = counterpart.node.closest(".job-observations");
+            if (observations) observations.open = true;
             counterpart.node.tabIndex = -1;
             counterpart.node.focus({ preventScroll: true });
             counterpart.node.scrollIntoView({ block: "nearest" });
@@ -731,14 +744,20 @@ function renderRecordedTiming(card) {
     } else elapsed?.remove();
 }
 function render(card) {
+    // Timers and Job callbacks may outlive a replay or display-window eviction.
+    // They must never reinsert a former Agent's card into the current pane.
+    if (cards.get(card.id) !== card || card.agent !== agentID) return;
     if (cardHasSelection(card)) { queueCardRender(card); return; }
     pendingCardRenders.delete(card);
     const artifact = ["tool_call", "tool_result", "blob"].includes(card.kind);
     const pane = artifact ? toolTranscript : transcript;
+    // A continuing Job owns its recorded observations, so a result card belongs in
+    // that collapsed group rather than loose in the artifact pane.
+    const container = card.kind === "tool_result" ? jobSessions?.container(card) || pane : pane;
     let savedScrollTop = 0;
     let nearBottom = false;
     if (replaying) {
-        const batch = replayBatch(pane);
+        const batch = replayBatch(container);
         if (!batch.nodes.has(card.node)) {
             batch.nodes.add(card.node);
             batch.fragment.append(card.node);
@@ -748,9 +767,9 @@ function render(card) {
         const reading = pane.contains(document.activeElement) || [...cards.values()].some(
             item => item.node.parentElement === pane && cardHasSelection(item));
         nearBottom = !reading && pane.scrollHeight - pane.scrollTop - pane.clientHeight < 90;
-        if (card.node.parentElement !== pane) {
+        if (card.node.parentElement !== container) {
             for (const batch of replayBatches.values()) batch.backfill.delete(card.node);
-            pane.append(card.node);
+            container.append(card.node);
         }
     }
     const prose = ["text", "thinking", "reasoning_summary"].includes(card.kind);
@@ -768,7 +787,8 @@ function render(card) {
     const title = heading.querySelector("strong") || document.createElement("strong");
     const argument = card.kind === "tool_call" ? Object.values(card.input || {}).find(value => typeof value === "string") : null;
     const summary = argument ? ` · ${argument.slice(0, 100)}` : "";
-    const kind = card.kind === "reasoning_summary" || card.kind === "thinking" ? "Thinking" : card.kind;
+    const kind = card.kind === "reasoning_summary" || card.kind === "thinking" ? "Thinking"
+        : card.kind === "error" ? "Error" : card.kind;
     // Labels are projections of this card, not invented people or timestamps.
     // Keep wire-level details in a tooltip while prose reads as conversation.
     const author = card.role === "human" ? (settings?.human_name || "Human")
@@ -797,7 +817,14 @@ function render(card) {
     if (!heading.parentElement) card.node.append(heading);
     // Supplied thinking is readable prose, not a hidden tool payload. Keep its
     // original kind/provenance; the friendly label does not invent hidden reasoning.
-    if (prose) {
+    if (card.kind === "error") {
+        // Diagnostics are visible literal text, never provider HTML or a hidden payload.
+        const body = document.createElement("div");
+        body.className = "message";
+        body.style.whiteSpace = "pre-wrap";
+        body.textContent = card.text;
+        card.node.append(body);
+    } else if (prose) {
         const body = keepBody || document.createElement("div");
         body.className = "message";
         const proseRenderer = window.EnsembleArtifactRenderers?.prose;
@@ -1081,11 +1108,15 @@ function showAgents() {
         if (row.key != null) option.value = row.key;
         option.disabled = row.key == null;
         const activity = [row.phase, row.tool, row.detail].filter(Boolean).join(" — ");
-        // The display name is row.id. row.key is the address the wire carries, so
-        // a name with a space arrives percent-encoded and used to be shown that
-        // way -- in this picker and in the capture consent dialog that reads its
-        // selected text. Null keys are header rows, which have only an id.
-        const label = row.key === "" ? "Original unnamed conversation" : row.id || row.key;
+        // A display name is the operator's label and row.id its decoded fallback.
+        // row.key is the address the wire carries, so a name with a space arrives
+        // percent-encoded and must never be what this picker -- or the capture
+        // consent dialog that reads its selected text -- shows the operator. The
+        // full address belongs in the title, and a null key is the original
+        // unnamed conversation, which has no address to name it.
+        const label = row.display_name
+            || (row.key === "" ? "Original unnamed conversation" : row.id || row.key);
+        option.title = row.key || row.id;
         option.textContent = `${label} — ${row.paused ? "paused" : row.state}${activity ? " — " + activity : ""}`;
         picker.append(option);
     }
@@ -1099,7 +1130,7 @@ function showAgents() {
     }
     picker.value = agentID ?? "";
     const selected = agentRows.find(row => row.key === agentID);
-    const name = selected?.id || agentID || "Original unnamed conversation";
+    const name = selected?.display_name || selected?.id || agentID || "Original unnamed conversation";
     const input = document.querySelector("#prompt");
     input.placeholder = `Ask ${name} anything…`;
     input.setAttribute("aria-label", `Message to ${name}`);
@@ -1215,6 +1246,22 @@ function handle(frame) {
         return;
     }
     if (frame.type !== "replay" && frame.agent_id != null && frame.agent_id !== agentID) return;
+    if (frame.type === "display_window") {
+        const retained = new Set(frame.part_ids);
+        for (const [id, card] of cards) {
+            if (retained.has(id)) continue;
+            card.workProductController?.abort();
+            card.windowController?.abort();
+            pendingCardRenders.delete(card);
+            card.node.remove();
+            cards.delete(id);
+            if (card.callCard) card.callCard.latestResult = null;
+            if (card.latestResult) card.latestResult.callCard = null;
+        }
+        jobSessions?.retain(cards.values());
+        for (const card of cards.values()) renderPairLink(card);
+        return;
+    }
     if (frame.type === "goal_status" || frame.type === "goal_updated") {
         if (goalSelectionPending) return;
         goalDirty = false;
@@ -1230,6 +1277,7 @@ function handle(frame) {
     if (frame.type === "replay") {
         if (agentID !== frame.agent_id) {
             workingContext = null;
+            settingsDrafts.clear();
             voiceControl?.cancel();
             cancelPageCapture("Page capture cancelled on Agent change.");
             cancelSpeech(false);
@@ -1258,9 +1306,9 @@ function handle(frame) {
         cardRenderTimer = null;
         pendingCardRenders.clear();
         for (const card of cards.values()) { card.workProductController?.abort(); card.windowController?.abort(); }
-        jobSessions?.reset();
-        for (const card of cards.values()) card.windowController?.abort();
         cards.clear();
+        // reset() notifies remaining cards; clear ownership before that callback.
+        jobSessions?.reset();
         transcript.replaceChildren();
         toolTranscript.replaceChildren();
         for (const event of frame.data.events || []) handle(event);
@@ -1276,7 +1324,7 @@ function handle(frame) {
         settings = frame.settings;
         applySettings();
         if (nameChanged) for (const card of cards.values()) render(card);
-        notice("");
+        notice(settingsDrafts.size ? "Settings received; unsaved edits remain in the form." : "");
         return;
     }
     if (frame.type === "agent_state" || frame.type === "state_changed") {
@@ -1301,10 +1349,19 @@ function handle(frame) {
         // arrive as error frames. Turn completion is not a second error source.
         const isError = frame.type === "error" || frame.kind === "error_occurred";
         if (isError) {
+            // Durable errors share the server's retained display identity. Control
+            // refusals are local and expire with the next authoritative window.
+            const id = frame.part_id || (frame.kind === "error_occurred"
+                ? `${agentID}:e${frame.seq}:error` : `local-error:${++localErrorSequence}`);
+            const alreadyShown = cards.has(id);
+            const card = cardFor(id);
+            Object.assign(card, { kind: "error", role: "system", final: true,
+                text: frame.message || "Request failed.", recordedAt: frame.recorded_at });
+            render(card);
             applySettings();
-            if (!replaying && browserSpeech.value.enabled) {
+            if (!alreadyShown && !replaying && browserSpeech.value.enabled) {
                 flushNarration();
-                speakText("error", frame.message || "Request failed.", "error");
+                speakText(id, card.text, "error");
             }
         }
         notice(frame.message || frame.kind);
@@ -1362,6 +1419,7 @@ function handle(frame) {
         card.parts = frame.parts || [];
         if (frame.name) card.toolName = frame.name;
         card.job = frame.job;
+        card.toolName = frame.name;
         card.workProduct = frame.is_error ? null : frame.work_product;
         card.directoryListing = frame.is_error ? null : frame.directory_listing;
         card.fileEvidence = frame.is_error ? null : frame.file_evidence;
@@ -1392,6 +1450,9 @@ function handle(frame) {
     } else render(card);
     if (card.kind === "tool_result") jobSessions?.observe(card,
         ["wait_for_job", "send_input"].includes(card.toolName));
+    // Once a continuing view exists, keep each immutable observation inside its
+    // collapsed history instead of adding another output card to the pane.
+    if (card.kind === "tool_result" && jobSessions?.container(card)) render(card);
     if (card.callCard) renderPairLink(card.callCard);
     narrate(card);
 }
@@ -1585,10 +1646,31 @@ function sameWorkingContextModel(first, second) {
         && first?.offering?.endpoint === second?.offering?.endpoint
         && first?.offering?.model === second?.offering?.model;
 }
+// Drafts are presentation only: acknowledged settings remain the policy authority.
+const settingsDrafts = new Set();
+const contextSettingIDs = ["working-context-tokens", "context-capacity-tokens"];
+function forgetSettingsDrafts(ids) {
+    for (const id of ids) settingsDrafts.delete(id);
+}
+function settingControlValue(control) {
+    return control.type === "checkbox" ? control.checked : control.value;
+}
+function autosaveSettings(controls, save) {
+    for (const control of controls) {
+        control.addEventListener("input", () => settingsDrafts.add(control.id));
+        control.addEventListener("change", () => {
+            settingsDrafts.add(control.id);
+            save();
+        });
+    }
+}
 function showWorkingContext(value) {
     const modelChanged = !sameWorkingContextModel(workingContext, value);
     workingContext = value || null;
-    if (value && modelChanged) fillWorkingContextSettings(value);
+    if (value && modelChanged) {
+        forgetSettingsDrafts(contextSettingIDs);
+        fillWorkingContextSettings(value);
+    }
     renderControls();
 }
 function fillWorkingContextSettings(value) {
@@ -1598,7 +1680,7 @@ function fillWorkingContextSettings(value) {
     document.querySelector("#working-context-tokens").value = value.working_tokens ?? "";
     document.querySelector("#context-capacity-tokens").value = value.capacity_tokens ?? "";
 }
-document.querySelector("#save-working-context").onclick = () => {
+function saveWorkingContextSettings() {
     if (!workingContextForm) return;
     const working = Number(document.querySelector("#working-context-tokens").value);
     const capacityText = document.querySelector("#context-capacity-tokens").value;
@@ -1610,10 +1692,17 @@ document.querySelector("#save-working-context").onclick = () => {
     }
     patchSettings({ working_context: { ...workingContextForm,
         working_tokens: working, capacity_tokens: capacity } });
-};
+}
+document.querySelector("#save-working-context").onclick = saveWorkingContextSettings;
+autosaveSettings(contextSettingIDs.map(id => document.getElementById(id)), saveWorkingContextSettings);
 
 function applySettings() {
     if (!settings) return;
+    const drafts = [...settingsDrafts].map(id => {
+        const control = document.getElementById(id);
+        return {control, value: settingControlValue(control)};
+    });
+    document.querySelector("#agent-display-name").value = settings.display_name || "";
     document.querySelector("#human-name").value = settings.human_name || "";
     document.querySelector("#human-description").value = settings.human_description || "";
     browserTheme.seed(settings.theme);
@@ -1641,8 +1730,24 @@ function applySettings() {
         document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
         document.querySelector(`#memory-${band}-budget`).value = policy.budget;
     }
+    for (const {control, value} of drafts) {
+        if (settingControlValue(control) === value) settingsDrafts.delete(control.id);
+        else if (control.type === "checkbox") control.checked = value;
+        else control.value = value;
+    }
     updatePauseCause(); // Disabling speech pausing does not cancel the queue.
 }
+function saveDisplayName() {
+    const control = document.querySelector("#agent-display-name");
+    if (!control.reportValidity()) return;
+    control.value = control.value.trim();
+    patchSettings({display_name: control.value || null});
+}
+autosaveSettings([document.querySelector("#agent-display-name")], saveDisplayName);
+document.querySelector("#agent-name-settings").addEventListener("submit", event => {
+    event.preventDefault();
+    saveDisplayName();
+});
 document.querySelector("#user-settings").addEventListener("submit", event => {
     event.preventDefault();
     patchSettings({ human_name: document.querySelector("#human-name").value,
@@ -1728,8 +1833,11 @@ document.querySelector("#goal-retry").onclick = () => updateGoal({retry_now: tru
 document.querySelector("#goal-off").onclick = () => updateGoal({enabled: false});
 document.querySelector("#goal-clear").onclick = () => updateGoal({file: ""});
 document.querySelector("#goal-reload").onclick = () => send("get_goal");
-document.querySelector("#memory-settings-form").addEventListener("submit", event => {
-    event.preventDefault();
+function saveMemorySettings() {
+    if (!document.querySelector("#memory-settings-form").checkValidity()) {
+        notice("Complete the memory fields with values in their allowed ranges before saving.");
+        return;
+    }
     const memory = {};
     for (const band of ["conversation", "soul", "memory", "archive64", "archive8", "session"]) {
         const policy = {disabled: !document.querySelector(`#memory-${band}-enabled`).checked};
@@ -1742,10 +1850,12 @@ document.querySelector("#memory-settings-form").addEventListener("submit", event
         memory[band] = policy;
     }
     patchSettings({memory});
-});
-document.querySelector("#memory-settings-reload").onclick = () => send("get_settings");
-document.querySelector("#recall-settings-form").addEventListener("submit", event => {
-    event.preventDefault();
+}
+function saveRecallSettings() {
+    if (!document.querySelector("#recall-settings-form").checkValidity()) {
+        notice("Complete the recall fields with values in their allowed ranges before saving.");
+        return;
+    }
     const recall = {
         disabled: !document.querySelector("#recall-enabled").checked,
         disable_judge: !document.querySelector("#recall-judge-enabled").checked,
@@ -1761,8 +1871,20 @@ document.querySelector("#recall-settings-form").addEventListener("submit", event
         recall[field] = value;
     }
     patchSettings({recall});
-});
-document.querySelector("#recall-settings-reload").onclick = () => send("get_settings");
+}
+for (const [group, save] of [["memory", saveMemorySettings], ["recall", saveRecallSettings]]) {
+    const form = document.querySelector(`#${group}-settings-form`);
+    const controls = [...form.querySelectorAll("input, select")];
+    autosaveSettings(controls, save);
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        save();
+    });
+    document.querySelector(`#${group}-settings-reload`).onclick = () => {
+        forgetSettingsDrafts(controls.map(control => control.id));
+        send("get_settings");
+    };
+}
 document.querySelector("#font-size").onchange = event => browserDevice.select({ font: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });
 document.querySelector("#context-target-bytes").onchange = event => patchSettings({ context_target_bytes: Number(event.target.value) });
@@ -1843,7 +1965,7 @@ function renderAgentTree() {
             toggle.classList.add("tree-expand");
             toggle.dataset.toggleAgent = row.key;
             toggle.tabIndex = -1;
-            toggle.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${row.id}`);
+            toggle.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${row.display_name || row.id}`);
             line.append(toggle);
         } else {
             const spacer = document.createElement("span");
@@ -1859,7 +1981,7 @@ function renderAgentTree() {
         choose.title = `${row.key || row.id} · ${row.paused ? "paused" : row.state} · ${[row.phase, row.tool, row.detail].filter(Boolean).join(" — ")}`;
         const name = document.createElement("span");
         name.className = "tree-name";
-        name.textContent = row.id;
+        name.textContent = row.display_name || row.id;
         const state = document.createElement("span");
         state.className = "tree-state";
         state.textContent = [row.submitted ? "submitted" : "", row.paused ? "paused" : row.state].filter(Boolean).join(" · ");
@@ -1968,10 +2090,13 @@ function updateAgentActions() {
         remove.dataset.deleteAgent = row.key;
         remove.disabled = false;
         remove.title = `Delete ${row.key}; saved files will remain`;
+        // One control serves the whole tree, so it names the Agent it would remove.
+        remove.setAttribute("aria-label", `Delete ${row.display_name || row.id}`);
     } else {
         delete remove.dataset.deleteAgent;
         remove.disabled = true;
         remove.title = "Select a deletable Agent first";
+        remove.setAttribute("aria-label", "Delete selected Agent");
     }
 }
 

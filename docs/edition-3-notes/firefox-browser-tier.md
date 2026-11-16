@@ -29,12 +29,19 @@ has no Chrome and reviews this GUI in Firefox, the whole tier could not run, so
 
 ## Result on Linux + Firefox
 
-58 pass, 0 fail, 4 skipped of 62, on 2026-11-11. Every skip is a capability the
-platform does not have, not an outcome: `page-capture-native.cjs`,
-`page-capture-native-ui.cjs` and `capture-model-native.cjs` drive the macOS
-system PTY and launch-services capture path, and `advanced-artifact-figures.cjs`
-is the human-authorized book-figure capture that overwrites the approved PNGs in
+After merging upstream `068d2abf`, 67 pass, 0 fail, 4 skipped of 71, on
+2026-11-16. Every skip is a capability the platform does not have, not an
+outcome: `page-capture-native.cjs`, `page-capture-native-ui.cjs` and
+`capture-model-native.cjs` drive the macOS system PTY and launch-services
+capture path, and `advanced-artifact-figures.cjs` is the human-authorized
+book-figure capture that overwrites the approved PNGs in
 `book/figures/advanced-artifacts`. Bill runs that one; the tier must not.
+
+Upstream added nine browser suites since the previous merge. Six arrived still
+requiring Playwright out of the frozen `edition-2` tree, so on Linux they could
+not start at all, and four more needed the fixture their driver supplies rather
+than the crossover host. They are listed below, because a suite that never ran
+is worse evidence than one that fails.
 
 ## What Firefox needed that Chrome was handed for free
 
@@ -93,8 +100,73 @@ written against. None of them weakens an assertion, and none is a product change
   `brightness()` factor the stylesheet actually declares, and takes the best
   contrast against the ancestor background. Both themes clear the same 4.5 floor,
   at 17.40:1.
+- **Upstream's new suites still pointed at `edition-2`.** `history-window.cjs`,
+  `layout-browser.cjs`, `error-cards-browser.cjs`, `recall-browser.cjs`,
+  `settings-autosave-browser.cjs` and `workflow-job-sessions.cjs` required
+  Playwright from the frozen tree and launched `channel: 'chrome'`. They now go
+  through `launchBrowser`, which drops the Chrome-only selection; their
+  assertions are untouched.
+- **Suites whose driver also supplies a fixture.** `history-window.cjs`,
+  `error-cards-browser.cjs`, `recall-browser.cjs` and
+  `workflow-job-sessions.cjs` read their origin from a fixture directory argument
+  and stop that fixture by writing beside it, so they belong in `PLAN` against
+  `--artifact-renderer-fixture`, the mode that serves the shipped page from a
+  private directory. The crossover host cannot stand in: these suites inject
+  frames into the page rather than drive a mounted Agent, and without the
+  argument they died on an undefined path, which is not a Firefox failure.
+- **A sandbox that must supply what `render()` now asks for.** `render()` refuses
+  a card the page does not own and asks the Job session where a result belongs, so
+  the two suites that evaluate it outside the running app declare `jobSessions`,
+  and `message-playback.cjs` registers the cards it fabricates.
+  `error-cards.cjs` and `settings-autosave-browser.cjs` evaluate a slice of
+  `app.js`, so each now supplies or includes the helpers that slice calls
+  (`recordTurnTiming`, `updateAgentActions`, `siblings`). These are the
+  dependencies the shipped page already provides, not softened assertions.
+- **Labels that carry live state.** `capture-consent-browser.cjs` compared the
+  consent dialog's requester with the selected picker option, and both end in the
+  Agent's state, which the suite's own typing had just changed. It now compares
+  the Agent each label names, which is what the check was about.
+- **A physical size measured at fractional device pixels.**
+  `layout-browser.cjs` required Create Agent to be at least 44 CSS pixels and
+  Firefox reported 43.99998 for a rule that says `44px`. The assertion allows half
+  a pixel at each end; an icon-sized target against a pane-wide one is still the
+  distinction being tested.
+- **A recorded-observations group that is not unique on the page.** Upstream moved
+  a Job's recorded observations inside its session node, so
+  `job-sessions.cjs` opens that group by this suite's own handle, the same rule
+  its stubbed route already follows.
+- **A refused write now keeps the operator's edit.** Upstream's autosave separates
+  an unsent settings draft from the acknowledged policy, so a save the Agent
+  refuses leaves the typed number in the field instead of rewriting it.
+  `working-context.cjs` asserted the old rewrite; it now asserts both halves of
+  the new behaviour — the draft is kept, and the policy the Agent reports is the
+  one it was before the refusal, read back through a reload that discards drafts.
+  This checks the durable policy more directly than watching a form snap back.
+- **A picker rebuilt between two round trips.** `crossover-browser.cjs` added an
+  `Invalid empty model` option and then selected it in a separate call, but
+  `showUsage()` calls `picker.replaceChildren()` on every usage frame, so the
+  injected option was sometimes gone before the selection arrived and the refusal
+  it tests never happened. Option, selection and the page's own `change` event now
+  go over in one evaluate, which keeps the refusal and drops the race.
+- **A download button whose Job the display window chose.** Upstream keeps the
+  newest 100 events per pane, so the oldest card no longer reaches the browser: the
+  fixture reports `handle` 1, while the only surviving "Download complete output"
+  control asked for `handle` 12 and was served that Job's 273 bytes, not Job 1's
+  68,014. The check compared one Job's hash against another's bytes. It now compares
+  the saved file with what the endpoint serves for the Job the page itself asked
+  about, and requires that request to be a guarded `/jobs/output` for this Agent.
+  The preceding check still pins `fixture.outputHash` for Job 1, so nothing about
+  the guard's authority is now taken on trust.
 
 ## Product fix found on the way
+
+A large text size in a narrow window made the Create Agent control unreachable.
+Its heading row is a single flex line whose controls keep a fixed physical size
+while its text scales, so at 640px and 28px the row overflowed the Agents column
+and the control landed under the chat pane, visible but unable to receive a
+click. `flex-wrap: wrap` on `.agents-heading` keeps the controls inside their
+column, and `header-models.cjs` now measures a reachable control in all twelve
+theme, width and font combinations.
 
 `agent/Jobs/Job.cs` recorded only an allowlist of command failures. A
 `PlatformNotSupportedException` escaped unrecorded, faulted the worker task, and

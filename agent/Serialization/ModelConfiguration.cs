@@ -52,10 +52,12 @@ public sealed partial class Configuration
         SafeMode = policy.SafeMode;
         EnableWebSearch = policy.EnableWebSearch;
         SandboxRoot = policy.SandboxRoot;
+        ProcessReadPaths = policy.ProcessReadPaths;
         DisableStreaming = requestPolicy.DisableStreaming;
         RequireToolExplanation = requestPolicy.RequireToolExplanation;
         DeferredTools = requestPolicy.DeferredTools;
         StubsToolResults = requestPolicy.StubsToolResults;
+        ToolSchemas = requestPolicy.ToolSchemas;
         CacheBreakpoints = requestPolicy.CacheBreakpoints;
         PromptCacheKey = requestPolicy.PromptCacheKey;
         ReasoningEffort = requestPolicy.ReasoningEffort;

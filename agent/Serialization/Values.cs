@@ -31,7 +31,8 @@ public sealed partial class Configuration
         bool enableWebSearch,
         string sandboxRoot,
         string wakeOnLanMac,
-        int wakeTimeoutSeconds)
+        int wakeTimeoutSeconds,
+        ImmutableArray<string>? processReadPaths)
     {
         if (!Enum.IsDefined(vendor))
         {
@@ -83,6 +84,17 @@ public sealed partial class Configuration
         ArgumentOutOfRangeException.ThrowIfGreaterThan(wakeTimeoutSeconds,
             MaximumWakeTimeoutSeconds);
         WakeTimeoutSeconds = wakeTimeoutSeconds;
+        if (processReadPaths is { } paths)
+        {
+            if (paths.IsDefault || paths.Length > 64
+                || paths.Any(path => string.IsNullOrWhiteSpace(path)
+                    || path.Length > 4096 || !Path.IsPathFullyQualified(path)
+                    || path.Any(char.IsControl)))
+            {
+                throw new ArgumentException("Process read paths require at most 64 absolute paths.");
+            }
+        }
+        ProcessReadPaths = processReadPaths;
         Vendor = vendor;
         Model = model;
         ArgumentNullException.ThrowIfNull(account);
@@ -174,7 +186,8 @@ public sealed partial class Configuration
         ResolvedModel = string.IsNullOrEmpty(resolvedModel) ? model : resolvedModel;
     }
 
-    internal partial Configuration(Configuration source, bool safeMode, bool enableWebSearch, string sandboxRoot)
+    internal partial Configuration(Configuration source, bool safeMode, bool enableWebSearch, string sandboxRoot,
+        ImmutableArray<string>? processReadPaths)
     {
         // These are immutable values, not a second mutable credential/policy
         // owner. Keep validated transport choices unchanged during narrowing.
@@ -194,6 +207,7 @@ public sealed partial class Configuration
         DisableStreaming = source.DisableStreaming;
         DeferredTools = source.DeferredTools;
         StubsToolResults = source.StubsToolResults;
+        ToolSchemas = source.ToolSchemas;
         CacheBreakpoints = source.CacheBreakpoints;
         PromptCacheKey = source.PromptCacheKey;
         Surface = source.Surface;
@@ -210,6 +224,7 @@ public sealed partial class Configuration
         WakeTimeoutSeconds = source.WakeTimeoutSeconds;
         // Delivery selection belongs to the launch, not the model.
         Streams = source.Streams;
+        ProcessReadPaths = processReadPaths ?? source.ProcessReadPaths;
     }
 
     public partial Configuration WithModel(string model)
@@ -232,6 +247,7 @@ public sealed partial class Configuration
             safeMode: SafeMode, enableWebSearch: EnableWebSearch, sandboxRoot: SandboxRoot,
             wakeOnLanMac: WakeOnLanMac,
             wakeTimeoutSeconds: WakeTimeoutSeconds,
+            processReadPaths: ProcessReadPaths,
             stream: Engine.StreamName(Streams));
     }
 

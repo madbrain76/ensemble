@@ -110,30 +110,51 @@ public static partial class Gui
         return facts.OrderBy(fact => fact.Seq).ToImmutableArray();
     }
 
-    public static partial Projection Project(HistorySnapshot snapshot, string agentID)
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID) => Project(snapshot, agentID, 100);
+
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID, int eventLimit) =>
+        Project(snapshot, agentID, eventLimit, eventLimit);
+
+    public static partial Projection Project(HistorySnapshot snapshot, string agentID, int chatEventLimit, int toolEventLimit)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(chatEventLimit, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(toolEventLimit, 1);
+        var facts = DisplayFacts(snapshot);
+        // Count each event once in each pane it contributes to. A mixed response
+        // may keep its prose after its tool call leaves the tools window, or vice
+        // versa. Choose before serializing payloads; polling cannot evict chat.
+        static bool ToolPane(Part part) => part is ToolCallPart or ToolResultPart or BlobPart;
+        var chatEvents = new List<long>();
+        var toolEvents = new List<long>();
+        foreach (var fact in facts)
+        {
+            if (fact.Kind is EventKind.MessageReceived or EventKind.HintReceived or EventKind.ResponseEnded)
+            {
+                if (fact.Parts.Any(part => !ToolPane(part))) chatEvents.Add(fact.Seq);
+                if (fact.Parts.Any(ToolPane)) toolEvents.Add(fact.Seq);
+            }
+            else if (fact.Kind == EventKind.ErrorOccurred)
+                chatEvents.Add(fact.Seq);
+            else if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
+                toolEvents.Add(fact.Seq);
+        }
+        var chatWindow = chatEvents.TakeLast(chatEventLimit).ToHashSet();
+        var toolWindow = toolEvents.TakeLast(toolEventLimit).ToHashSet();
+        long first = chatWindow.Concat(toolWindow).DefaultIfEmpty(snapshot.Sequence).Min();
+        // Keeping quiet chat must not replay an unlimited intervening stream of
+        // state/lifecycle notices. Final State still reduces the complete history.
+        long statusFirst = facts.TakeLast(Math.Max(chatEventLimit, toolEventLimit))
+            .FirstOrDefault()?.Seq ?? snapshot.Sequence;
         var frames = ImmutableArray.CreateBuilder<JsonObject>();
         var ids = ImmutableHashSet.CreateBuilder<string>();
         var calls = new Dictionary<string, string>(StringComparer.Ordinal);
-        // A Job's continuing view is keyed by the tool that owns it, so the name
-        // must survive a reload even when the model's own call part has left the
-        // working Context. The durable dispatch fact is the authority for it.
-        var names = new Dictionary<string, string>(StringComparer.Ordinal);
+        var toolNames = new Dictionary<string, string>(StringComparer.Ordinal);
         string state = "idle";
         string lastAnswer = "";
         bool paused = false;
         bool shutdown = false;
         var context = new Context();
-        var display = DisplayFacts(snapshot);
-        foreach (var fact in display)
-        {
-            if (fact.Kind is EventKind.ToolCalled or EventKind.ToolStarted
-                && fact.CallID.Length > 0 && fact.Name.Length > 0)
-            {
-                names[fact.CallID] = fact.Name;
-            }
-        }
-        foreach (var fact in display)
+        foreach (var fact in facts)
         {
             // DisplayFacts combines the authoritative retained transcript with
             // diagnostics, not a complete replayable History. Reduce only turn
@@ -144,6 +165,12 @@ public static partial class Gui
                 or EventKind.TurnInterrupted or EventKind.TurnEnded or EventKind.ErrorOccurred)
             {
                 context = History.Reduce(context, fact);
+                // Phase reduction needs only the current tool batch. Retaining
+                // every old message here copies a growing transcript per event.
+                if (context.Phase != Phase.ToolsPending)
+                    context = new Context(phase: context.Phase);
+                else if (fact.Kind == EventKind.ResponseEnded)
+                    context = new Context(context.Dialogue.TakeLast(1), phase: context.Phase);
             }
             if (fact.Kind == EventKind.RuntimeConfigured)
             {
@@ -166,13 +193,25 @@ public static partial class Gui
                 : paused ? "paused" : context.Phase.ToString().ToLowerInvariant();
             if (next != state)
             {
-                frames.Add(new JsonObject
-                {
-                    ["type"] = "state_changed", ["agent_id"] = agentID, ["seq"] = fact.Seq,
-                    ["from"] = state, ["to"] = next
-                });
+                if (fact.Seq >= statusFirst)
+                    frames.Add(new JsonObject
+                    {
+                        ["type"] = "state_changed", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                        ["from"] = state, ["to"] = next
+                    });
                 state = next;
             }
+            // Background MCP results have no assistant call card. Carry the
+            // recorded tool name independently, including calls before the window.
+            if (fact.Kind == EventKind.RuntimeConfigured) toolNames.Clear();
+            if (fact.Kind == EventKind.ToolCalled) toolNames[fact.CallID] = fact.Name;
+            if (fact.Kind == EventKind.ResponseEnded)
+                foreach (var call in fact.Parts.OfType<ToolCallPart>())
+                    toolNames[call.CallID] = call.Name;
+            string? resultName = null;
+            if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
+                toolNames.Remove(fact.CallID, out resultName);
+            if (fact.Seq < first) continue;
             if (fact.Kind is EventKind.MessageReceived or EventKind.HintReceived or EventKind.ResponseEnded)
             {
                 if (fact.Kind == EventKind.ResponseEnded)
@@ -181,6 +220,7 @@ public static partial class Gui
                 }
                 for (int i = 0; i < fact.Parts.Length; i++)
                 {
+                    if (!(ToolPane(fact.Parts[i]) ? toolWindow : chatWindow).Contains(fact.Seq)) continue;
                     // Historical logs have no parser IDs. Their event sequence
                     // and offset give a stable, disjoint replay-only namespace.
                     string id = fact.ResponseID == 0
@@ -220,6 +260,7 @@ public static partial class Gui
             }
             else if (fact.Kind is EventKind.ToolReturned or EventKind.ToolObserved)
             {
+                if (!toolWindow.Contains(fact.Seq)) continue;
                 string id = $"{agentID}:e{fact.Seq}:result";
                 frames.Add(new JsonObject
                 {
@@ -232,8 +273,8 @@ public static partial class Gui
                     },
                     ["recorded_at"] = fact.Time?.ToString("O"),
                     ["part_id"] = id, ["tool_part_id"] = calls.GetValueOrDefault(fact.CallID),
-                    ["call_id"] = fact.CallID, ["result"] = JsonCodec.Text(fact.Parts),
-                    ["name"] = names.GetValueOrDefault(fact.CallID),
+                    ["call_id"] = fact.CallID, ["name"] = resultName,
+                    ["result"] = JsonCodec.Text(fact.Parts),
                     ["search_evidence"] = fact.SearchEvidence is null ? null
                         : JsonNode.Parse(JsonCodec.WriteEvent(fact))?["tool"]?["search_evidence"]?.DeepClone(),
                     ["file_evidence"] = fact.FileEvidence is null ? null
@@ -248,21 +289,32 @@ public static partial class Gui
             }
             else if (fact.Kind is EventKind.ErrorOccurred or EventKind.TurnInterrupted or EventKind.JobKilled or EventKind.AgentShutdown)
             {
-                frames.Add(new JsonObject
+                bool error = fact.Kind == EventKind.ErrorOccurred;
+                if (error ? !chatWindow.Contains(fact.Seq) : fact.Seq < statusFirst) continue;
+                var frame = new JsonObject
                 {
                     ["type"] = "lifecycle", ["agent_id"] = agentID, ["seq"] = fact.Seq,
                     ["kind"] = JsonNode.Parse(JsonCodec.WriteEvent(fact))!["type"]!.GetValue<string>(), ["message"] = fact.Error.Length == 0 ? fact.Reason : fact.Error
-                });
+                };
+                if (error)
+                {
+                    string id = $"{agentID}:e{fact.Seq}:error";
+                    frame["part_id"] = id;
+                    frame["recorded_at"] = fact.Time?.ToString("O");
+                    ids.Add(id);
+                }
+                frames.Add(frame);
             }
             else if (fact.Kind == EventKind.TurnEnded)
             {
-                frames.Add(new JsonObject
-                {
-                    ["type"] = "turn_ended", ["agent_id"] = agentID, ["seq"] = fact.Seq,
-                    ["reason"] = fact.Reason,
-                    ["text"] = fact.Reason == "completed" ? lastAnswer : "",
-                    ["error"] = fact.Reason == "completed" ? "" : fact.Reason
-                });
+                if (fact.Seq >= statusFirst)
+                    frames.Add(new JsonObject
+                    {
+                        ["type"] = "turn_ended", ["agent_id"] = agentID, ["seq"] = fact.Seq,
+                        ["reason"] = fact.Reason,
+                        ["text"] = fact.Reason == "completed" ? lastAnswer : "",
+                        ["error"] = fact.Reason == "completed" ? "" : fact.Reason
+                    });
                 calls.Clear();
                 lastAnswer = "";
             }

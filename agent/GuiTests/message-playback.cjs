@@ -16,14 +16,18 @@ const render = source.slice(source.indexOf('// Coalesce streamed chunks'), sourc
   await page.addScriptTag({content:`const transcript=document.querySelector('#transcript'), toolTranscript=document.querySelector('#tools');
    const settings={human_name:'Bill'}, agentRows=[{key:'agent',id:'Cadence'}], speech=true, transcriptSpeech=false;
    // This page is not replaying a durable history; render() asks for that fact.
-   let replaying=false; const cards=new Map(), agentID='agent';
+   // A continuing Job owns its observations; this page has none, and an optional
+   // chain still needs the name to exist, so it is declared rather than left out.
+   let replaying=false; const cards=new Map(), agentID='agent', jobSessions=null;
    function actionButton(label,handler){const b=document.createElement('button');b.className='btn icon-button';b.onclick=handler;return b;}
    function setButtonIcon(b){b.textContent='▶';} function speak(card){window.spoken=card.text;}
    // render() takes prose through the shipped renderer chain. Without it every
    // card would silently measure the literal text fallback, not the layout here.
    window.EnsembleArtifactRenderers={prose:(body,text)=>{const p=document.createElement('p');p.textContent=text;body.append(p);}};
    function fullOutputLinks(){} ${render}
-   window.draw=(role)=>{transcript.replaceChildren();window.card={node:document.createElement('article'),role,kind:'text',agent:'agent',text:'Short message',status:''};render(card);};`});
+   // render() only paints a card the page has registered, and a stale identity is
+   // exactly what it refuses, so these fabricated cards declare themselves.
+   window.draw=(role)=>{transcript.replaceChildren();window.card={id:'message-playback',node:document.createElement('article'),role,kind:'text',agent:'agent',text:'Short message',status:''};cards.set(card.id,card);render(card);};`});
   for(const width of [320,1200]) for(const size of [18,28]) for(const role of ['human','assistant']) {
    await page.setViewportSize({width,height:800});
    await page.evaluate(({size,role})=>{document.body.style.fontSize=size+'px';window.draw(role);},{size,role});
@@ -32,7 +36,8 @@ const render = source.slice(source.indexOf('// Coalesce streamed chunks'), sourc
    await page.locator('[data-action="speak"]').click();assert.equal(await page.evaluate(()=>window.spoken),'Short message');
    const visibility = await page.evaluate(() => {
     transcript.replaceChildren();
-    const items = ['thinking','reasoning_summary'].map(kind => ({node:document.createElement('article'),role:'assistant',kind,agent:'agent',text:' \n\t',status:''}));
+    const items = ['thinking','reasoning_summary'].map(kind => ({id:'visibility-'+kind,node:document.createElement('article'),role:'assistant',kind,agent:'agent',text:' \n\t',status:''}));
+    for (const item of items) cards.set(item.id, item);
     for (const item of items) render(item);
     const hidden = items.every(item => item.node.hidden && item.node.getBoundingClientRect().height === 0 && item.text === ' \n\t');
     for (const item of items) { item.text += 'Visible thought'; render(item); }

@@ -140,24 +140,34 @@ internal static class GoImportTests
         Check(before.AsSpan().SequenceEqual(File.ReadAllBytes(Path.Combine(source, "save.json"))),
             "discovery modified the Go source files");
 
-        var imported = JsonCodec.ReadSave(File.ReadAllText(Path.Combine(destination, "agents", "root", "save.json")));
-        Check(imported.Events.Length == 15, $"expected the fifteen readable events, got {imported.Events.Length}");
-        Check(imported.Events.Any(e => e.Kind == EventKind.MessageReceived
-            && e.Parts.Length == 1 && e.Parts[0] is TextPart ask && ask.Text.Contains("slip-in PDF cover")),
+        string importedText = File.ReadAllText(Path.Combine(destination, "agents", "root", "save.json"));
+        var imported = JsonCodec.ReadSave(importedText);
+        // The reader folds the log into Context and retains no event collection, so the
+        // migrated history is verified from the bytes the import actually wrote.
+        var writtenLog = JsonNode.Parse(importedText)!.AsObject()["log"]!.AsArray();
+        var importedEvents = writtenLog
+            .Select(raw => JsonCodec.ReadEvent(raw!.ToJsonString())).ToArray();
+        Check(importedEvents.Length == 15, $"expected the fifteen readable events, got {importedEvents.Length}");
+        Check(importedEvents.Any(fact => fact.Kind == EventKind.MessageReceived
+            && fact.Parts.Length == 1 && fact.Parts[0] is TextPart ask && ask.Text.Contains("slip-in PDF cover")),
             "the user's own words did not survive");
-        Check(imported.Events.Any(e => e.Kind == EventKind.ToolReturned
-            && e.Parts.Any(part => part is TextPart result && result.Text.Contains("blender.pdf"))),
+        Check(importedEvents.Any(fact => fact.Kind == EventKind.ToolReturned
+            && fact.Parts.Any(part => part is TextPart result && result.Text.Contains("blender.pdf"))),
             "tool output did not survive");
-        var recall = imported.Events.Single(e => e.Kind == EventKind.RecallAdded);
+        var recall = importedEvents.Single(fact => fact.Kind == EventKind.RecallAdded);
         Check(recall.Parts.Length == 1 && recall.Parts[0] is RecallPart attached
             && attached.Attachment.Text.Contains("blender notes"),
             "the recalled memories lost their text");
-        var redaction = imported.Events.Single(e => e.Kind == EventKind.Redacted);
+        var redaction = importedEvents.Single(fact => fact.Kind == EventKind.Redacted);
         Check(redaction.RedactFrom == 10 && redaction.RedactTo == 12,
             $"the migrated redaction range drifted: {redaction.RedactFrom}..{redaction.RedactTo}");
-        Check(imported.Events[^1].Seq == imported.Events.Length && imported.Sequence == imported.Events.Length,
+        Check(importedEvents[^1].Seq == importedEvents.Length && imported.Sequence == importedEvents.Length,
             "the migrated history is not an unbroken run from one");
-        Check(imported.Context is null, "Go's snapshot was carried over instead of rebuilt");
+        // Go's own snapshot layout is discarded on purpose; the Context the load will
+        // use must therefore be the one this log rebuilds, not one carried over.
+        Check(imported.Context.Dialogue.SelectMany(entry => entry.Parts).OfType<TextPart>()
+            .Any(body => body.Text.Contains("slip-in PDF cover")),
+            "the rebuilt Context did not come from the migrated log");
 
         var registry = JsonNode.Parse(File.ReadAllText(Path.Combine(destination, "ensemble.json")))!.AsArray();
         Check(registry.Count(row => row?["name"]?.GetValue<string>() == "PDF designer") == 1,
@@ -246,7 +256,7 @@ internal static class GoImportTests
             // replaced has to have been kept rather than discarded.
             string adopted = File.ReadAllText(Path.Combine(quiet, "agents", "root", "save.json"));
             Check(adopted.Contains("slip-in PDF cover"),
-                "the quiet primary was not adopted; its save still holds the placeholder");
+                "the quiet primary was not adopted; its save still holds the placeholder: " + RestoreLog);
             Check(!adopted.Contains("shutdown"), "the placeholder history survived the adoption");
             Check(File.Exists(Path.Combine(quiet, "agents", "root", "save.json.before-go-restore")),
                 "the replaced quiet save was discarded rather than kept");
@@ -287,7 +297,7 @@ internal static class GoImportTests
         {
             string? summary = Restore(destination);
             Check(summary is not null && summary.Contains("1 Agent "),
-                "one damaged peer stopped the whole restore: " + summary);
+                "one damaged peer stopped the whole restore: " + summary + " || log: " + RestoreLog);
             Check(RestoreLog.Contains("PDF designer"), "the damaged peer was not reported: " + RestoreLog);
             Check(File.Exists(Path.Combine(destination, "agents", "root", "save.json")),
                 "the healthy primary was withheld behind a damaged peer");

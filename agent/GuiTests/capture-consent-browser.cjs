@@ -50,7 +50,12 @@ assert.ok(!['8088','8089'].includes(url.port), 'Never target live hosts');
     await page.locator('#prompt').fill('Preserve this unsent draft');
     await page.evaluate(()=>rpc(9000));
     await page.waitForFunction(()=>document.querySelector('#capture-consent').open);
-    assert.equal(await page.locator('[data-capture-requester]').textContent(),await page.locator('#agent-choice option:checked').textContent());
+    // Both labels end in the Agent's live state, and typing the draft above just
+    // changed it, so the two reads straddle a pause. What must agree is the Agent
+    // each label names, which is the first field of both.
+    const identity = (value) => value.split(' — ')[0];
+    assert.equal(identity(await page.locator('[data-capture-requester]').textContent()),
+        identity(await page.locator('#agent-choice option:checked').textContent()));
     await page.evaluate(()=>{rpc(9001,'gui_click',{selector:'#capture-share'});rpc(9002,'gui_snapshot');});
     assert.equal((await reply(9001)).data.result.isError,undefined);
     assert.equal((await reply(9002)).data.result.isError,undefined);

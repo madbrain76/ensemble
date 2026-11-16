@@ -8,3 +8,4 @@
 
 # Private crossover fixture homes, profiles and retained test evidence.
 /.crossover/
+GuiTests/.crossover/

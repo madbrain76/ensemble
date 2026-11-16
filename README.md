@@ -6,11 +6,21 @@ application is C# 14 / .NET 10, developed inside Ensemble with Cadence.
 
 ## Development-Driven Specifications, not Spec-Driven Development
 
+[![Code is disposable. Knowledge compounds. Start the five-slide presentation.](https://raw.githubusercontent.com/waywardgeek/dev-driven-specs/main/presentation/slide-01.png)](https://coderhapsody.ai/presentation)
+
+**[Start the five-slide presentation](https://coderhapsody.ai/presentation)** · [Download PowerPoint](https://github.com/waywardgeek/dev-driven-specs/blob/main/presentation/development-driven-specifications.pptx)
+
 **Build the code and the specification together. Development earns the spec.**
 The goal is not to write a detailed plan up front and hand it to an AI, or to
 vibe-code a system and document its source afterward. The goal is to become the
 expert by pair-programming with the AI, then preserve that expertise in a form
 another agent can execute.
+
+**Want to use this method for your own project? Start with
+[dev-driven-specs](https://github.com/waywardgeek/dev-driven-specs).** It provides
+reusable agent skills for the approach used to build Ensemble: develop something
+with your AI, turn the lessons into a specification, then test it by having an
+agent execute it. Give your agent the skills and start building.
 
 Bill's workflow is concrete:
 
@@ -40,6 +50,8 @@ build. Teach how and why to build it that way. You cannot learn all of that up f
 - [Read the book](book/README.md), [chapter guide](book/chapters.md), or
   [assembled manuscript](book/the-art-of-building-ai-coding-agents.md).
 - [Current application source](agent/) and [human companion](book/companion/).
+- [Common data-structure diagrams](docs/common-diagrams/README.md) and the
+  [Chapter 0 class vocabulary](book/chapter-00.md#learn-the-systems-vocabulary).
 - [Preserved chapter solutions](solutions/README.md).
 - [Promotion and verification](docs/edition-3-promotion.md),
   [implementation evidence](docs/edition-3-csharp-progress.md).
@@ -97,7 +109,7 @@ in place of `dotnet` when launching the terminal client too.
 
 Choose your own data directory, workspace, funding configuration and unused port
 for a real launch. Do not replace a running host just to refresh source. The GUI
-embeds its assets at build time. See [the crossover chapter](book/chapter-29.md)
+embeds its assets at build time. See [the crossover chapter](book/chapter-30.md)
 and the source README for application behavior and qualified test evidence.
 
 `make test` runs the C# regression executable and root Go tooling tests;

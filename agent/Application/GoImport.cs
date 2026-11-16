@@ -166,7 +166,7 @@ public sealed partial class Ensemble
         try
         {
             var existing = JsonCodec.ReadSave(File.ReadAllText(path));
-            bool talks = existing.Events.Any(event_ => event_.Parts.Any(part =>
+            bool talks = existing.Context.Dialogue.Any(entry => entry.Parts.Any(part =>
                 (part is TextPart body && body.Text.Length > 0) || part is ToolCallPart));
             // Nothing said here yet: the Go primary is the conversation this operator
             // was resuming, so it becomes the primary rather than a stranger in the
@@ -407,11 +407,18 @@ public sealed partial class Ensemble
         for (int attempt = 0; ; attempt++)
         {
             if (attempt > 20) throw new InvalidDataException("too many unreadable event types to adapt");
+            if (dropped.Count > 0)
+            {
+                // Retiring a record leaves a hole, and this reader demands an unbroken
+                // run. Closing has to happen before the next read, or the recovery
+                // trips over the very gap it just made. Renumbering an already
+                // unbroken log leaves it, and every redaction range, untouched.
+                CloseGaps(root, dropped);
+            }
             string candidate = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-            SaveDocument document;
             try
             {
-                document = JsonCodec.ReadSave(candidate);
+                _ = JsonCodec.ReadSave(candidate);
             }
             catch (FormatException fault) when (fault.Message.StartsWith("Unknown EventKind:", StringComparison.Ordinal))
             {
@@ -433,18 +440,67 @@ public sealed partial class Ensemble
                 dropped[kind] = dropped.GetValueOrDefault(kind) + removed;
                 continue;
             }
-            if (dropped.Count > 0)
-            {
-                // A removed record leaves a hole, and replay requires an unbroken
-                // run of sequences. Close it before the document is offered.
-                CloseGaps(root, dropped);
-                candidate = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-                document = JsonCodec.ReadSave(candidate);
-            }
             // Write exactly the text that the reader above accepted.
-            int characters = document.Events.Sum(event_ => event_.Parts.Sum(part => part is TextPart body ? body.Text.Length : 0));
-            int silent = document.Events.Sum(event_ => event_.Parts.Sum(part => part is TextPart body && body.Text.Length == 0 ? 1 : 0));
-            return new Adapted(name, destinationPath, candidate, document.Events.Length, characters, silent, dropped, translated);
+            var written = CountWritten(root);
+            return new Adapted(name, destinationPath, candidate, written.Events, written.Characters,
+                written.Silent, dropped, translated);
+        }
+    }
+
+    // The reader folds the log into Context and retains no event collection, so the
+    // import reports the dialogue it actually wrote by reading its own document back.
+    // Each event kind carries its parts under its own envelope -- message, response,
+    // tool -- so the walk is structural rather than tied to one layout. Text is the
+    // only part an operator reads as speaking, and a text part that arrived with no
+    // body is Go's omitempty, which the operator is told to expect.
+    private static (int Events, int Characters, int Silent) CountWritten(JsonObject root)
+    {
+        int events = 0;
+        int characters = 0;
+        int silent = 0;
+        if (root["log"] is JsonArray log)
+        {
+            foreach (var entry in log)
+            {
+                if (entry is not JsonObject item)
+                {
+                    continue;
+                }
+                events++;
+                CountText(item, ref characters, ref silent);
+            }
+        }
+        return (events, characters, silent);
+    }
+
+    private static void CountText(JsonNode node, ref int characters, ref int silent)
+    {
+        if (node is JsonArray entries)
+        {
+            foreach (var entry in entries)
+            {
+                if (entry is not null) CountText(entry, ref characters, ref silent);
+            }
+            return;
+        }
+        if (node is not JsonObject item)
+        {
+            return;
+        }
+        if (item["type"]?.GetValueKind() == JsonValueKind.String
+            && item["type"]!.GetValue<string>() == "text")
+        {
+            string body = item["text"]?.GetValueKind() == JsonValueKind.String
+                ? item["text"]!.GetValue<string>() : "";
+            characters += body.Length;
+            if (body.Length == 0)
+            {
+                silent++;
+            }
+        }
+        foreach (var child in item)
+        {
+            if (child.Value is not null) CountText(child.Value, ref characters, ref silent);
         }
     }
 
@@ -579,9 +635,11 @@ public sealed partial class Ensemble
                     retiring.Add(entry);
                     continue;
                 }
-                // Ranks are one-based positions in the renumbered history.
-                range["from"] = low + 1;
-                range["to"] = high + 1;
+                // Ranks are one-based positions in the renumbered history. They are
+                // written as the same width the Go sequences were read with, because a
+                // second pass over an already-closed log reads these values back.
+                range["from"] = (long)(low + 1);
+                range["to"] = (long)(high + 1);
             }
         }
         foreach (var entry in retiring)

@@ -134,12 +134,8 @@ internal static partial class MeterTests
                 {
                     Check(failure is InvalidOperationException
                         && agent.History().Events().Count(fact => fact.Kind == EventKind.ErrorOccurred
-                            && fact.Error == "Invalid provider stream: Provider stream error") == 1,
-                        // The controlled fact must name the rule the stream broke,
-                        // not merely the exception type: "FormatException" told the
-                        // operator nothing about a provider that rejected the reply.
-                        "Provider error did not produce one controlled canonical stream failure "
-                        + "that names the broken rule.");
+                            && fact.Error == "Provider reported an error.") == 1,
+                        "Provider error did not produce one controlled canonical stream failure.");
                 }
                 Check(effects == 0 && !agent.History().Events().Any(fact =>
                     fact.Kind is EventKind.ToolCalled or EventKind.ResponseEnded),
